@@ -158,6 +158,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 137
     },
     expected: {
+      quality: 100,
       width: 1,
       height: 1,
       format: "jpeg",
@@ -215,6 +216,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 146
     },
     expected: {
+      quality: 100,
       width: 9,
       height: 1,
       format: "jpeg",
@@ -249,6 +251,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 148
     },
     expected: {
+      quality: 100,
       width: 1,
       height: 1,
       format: "jpeg",
@@ -306,6 +309,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 160
     },
     expected: {
+      quality: 100,
       width: 9,
       height: 1,
       format: "jpeg",
@@ -478,6 +482,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 141
     },
     expected: {
+      quality: 100,
       width: 25,
       height: 1,
       format: "jpeg",
@@ -512,6 +517,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 144
     },
     expected: {
+      quality: 87,
       width: 8,
       height: 1,
       format: "jpeg",
@@ -546,6 +552,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 165
     },
     expected: {
+      quality: 87,
       width: 8,
       height: 1,
       format: "jpeg",
@@ -580,6 +587,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 144
     },
     expected: {
+      quality: 87,
       width: 8,
       height: 1,
       format: "jpeg",
@@ -614,6 +622,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 165
     },
     expected: {
+      quality: 87,
       width: 8,
       height: 1,
       format: "jpeg",
@@ -648,6 +657,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 165
     },
     expected: {
+      quality: 87,
       width: 8,
       height: 1,
       format: "jpeg",
@@ -682,6 +692,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 144
     },
     expected: {
+      quality: 87,
       width: 8,
       height: 1,
       format: "jpeg",
@@ -716,6 +727,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 166
     },
     expected: {
+      quality: 87,
       width: 8,
       height: 1,
       format: "jpeg",
@@ -750,6 +762,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 144
     },
     expected: {
+      quality: 87,
       width: 8,
       height: 1,
       format: "jpeg",
@@ -784,6 +797,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 166
     },
     expected: {
+      quality: 87,
       width: 16,
       height: 1,
       format: "jpeg",
@@ -818,6 +832,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 145
     },
     expected: {
+      quality: 87,
       width: 16,
       height: 1,
       format: "jpeg",
@@ -852,6 +867,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 180
     },
     expected: {
+      quality: 87,
       width: 16,
       height: 1,
       format: "jpeg",
@@ -886,6 +902,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 145
     },
     expected: {
+      quality: 87,
       width: 16,
       height: 1,
       format: "jpeg",
@@ -1184,6 +1201,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 137
     },
     expected: {
+      quality: 100,
       width: 1,
       height: 1,
       format: "jpeg",
@@ -1216,6 +1234,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 702
     },
     expected: {
+      quality: 85,
       width: 1,
       height: 1,
       format: "jpeg",
@@ -1250,6 +1269,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 702
     },
     expected: {
+      quality: 85,
       width: 1,
       height: 1,
       format: "jpeg",
@@ -1284,6 +1304,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 702
     },
     expected: {
+      quality: 85,
       width: 1,
       height: 1,
       format: "jpeg",
@@ -1318,6 +1339,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 797
     },
     expected: {
+      quality: 85,
       width: 7,
       height: 9,
       format: "jpeg",
@@ -1352,6 +1374,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 797
     },
     expected: {
+      quality: 85,
       width: 7,
       height: 9,
       format: "jpeg",
@@ -1386,6 +1409,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 797
     },
     expected: {
+      quality: 85,
       width: 7,
       height: 9,
       format: "jpeg",
@@ -1420,6 +1444,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 1163
     },
     expected: {
+      quality: 85,
       width: 17,
       height: 19,
       format: "jpeg",
@@ -1454,6 +1479,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 1163
     },
     expected: {
+      quality: 85,
       width: 17,
       height: 19,
       format: "jpeg",
@@ -1488,6 +1514,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 1163
     },
     expected: {
+      quality: 85,
       width: 17,
       height: 19,
       format: "jpeg",
@@ -1522,6 +1549,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 251376
     },
     expected: {
+      quality: 85,
       width: 511,
       height: 512,
       format: "jpeg",
@@ -1556,6 +1584,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 251376
     },
     expected: {
+      quality: 85,
       width: 128,
       height: 128,
       format: "jpeg",
@@ -1590,6 +1619,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 251376
     },
     expected: {
+      quality: 85,
       width: 256,
       height: 256,
       format: "jpeg",
@@ -1624,6 +1654,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 261372
     },
     expected: {
+      quality: 85,
       width: 512,
       height: 512,
       format: "jpeg",
@@ -1658,6 +1689,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 261372
     },
     expected: {
+      quality: 85,
       width: 128,
       height: 128,
       format: "jpeg",
@@ -1692,6 +1724,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 261372
     },
     expected: {
+      quality: 85,
       width: 256,
       height: 256,
       format: "jpeg",
@@ -1726,6 +1759,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 258600
     },
     expected: {
+      quality: 85,
       width: 513,
       height: 512,
       format: "jpeg",
@@ -1760,6 +1794,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 258600
     },
     expected: {
+      quality: 85,
       width: 129,
       height: 128,
       format: "jpeg",
@@ -1794,6 +1829,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 258600
     },
     expected: {
+      quality: 85,
       width: 257,
       height: 256,
       format: "jpeg",
@@ -1828,6 +1864,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 6643
     },
     expected: {
+      quality: 85,
       width: 513,
       height: 9,
       format: "jpeg",
@@ -1862,6 +1899,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 6643
     },
     expected: {
+      quality: 85,
       width: 257,
       height: 5,
       format: "jpeg",
@@ -1896,6 +1934,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 6643
     },
     expected: {
+      quality: 85,
       width: 257,
       height: 5,
       format: "jpeg",
@@ -1930,6 +1969,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 129660
     },
     expected: {
+      quality: 85,
       width: 513,
       height: 256,
       format: "jpeg",
@@ -1964,6 +2004,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 129660
     },
     expected: {
+      quality: 85,
       width: 129,
       height: 64,
       format: "jpeg",
@@ -1998,6 +2039,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 129660
     },
     expected: {
+      quality: 85,
       width: 257,
       height: 128,
       format: "jpeg",
@@ -2038,6 +2080,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 149
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2076,6 +2119,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 149
     },
     expected: {
+      quality: 94,
       width: 5,
       height: 5,
       format: "jpeg",
@@ -2114,6 +2158,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 149
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2152,6 +2197,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 149
     },
     expected: {
+      quality: 94,
       width: 5,
       height: 5,
       format: "jpeg",
@@ -2190,6 +2236,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 161
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2228,6 +2275,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 161
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2266,6 +2314,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 157
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2304,6 +2353,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 157
     },
     expected: {
+      quality: 94,
       width: 5,
       height: 5,
       format: "jpeg",
@@ -2342,6 +2392,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 157
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2380,6 +2431,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 157
     },
     expected: {
+      quality: 94,
       width: 5,
       height: 5,
       format: "jpeg",
@@ -2418,6 +2470,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 169
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2456,6 +2509,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 169
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2494,6 +2548,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 181
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2532,6 +2587,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 181
     },
     expected: {
+      quality: 94,
       width: 5,
       height: 5,
       format: "jpeg",
@@ -2570,6 +2626,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 199
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2608,6 +2665,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 199
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2646,6 +2704,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 217
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2684,6 +2743,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 217
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2722,6 +2782,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 177
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2760,6 +2821,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 177
     },
     expected: {
+      quality: 94,
       width: 5,
       height: 5,
       format: "jpeg",
@@ -2798,6 +2860,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 185
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2836,6 +2899,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 185
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2874,6 +2938,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 210
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2912,6 +2977,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 210
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2950,6 +3016,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 197
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -2988,6 +3055,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 197
     },
     expected: {
+      quality: 94,
       width: 5,
       height: 5,
       format: "jpeg",
@@ -3026,6 +3094,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 224
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -3064,6 +3133,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 224
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -3102,6 +3172,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 246
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -3140,6 +3211,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 246
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -3178,6 +3250,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 187
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -3216,6 +3289,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 187
     },
     expected: {
+      quality: 94,
       width: 5,
       height: 5,
       format: "jpeg",
@@ -3254,6 +3328,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 203
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -3292,6 +3367,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 203
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -3330,6 +3406,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 231
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -3368,6 +3445,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 231
     },
     expected: {
+      quality: 94,
       width: 19,
       height: 17,
       format: "jpeg",
@@ -3398,6 +3476,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 7827
     },
     expected: {
+      quality: 94,
       width: 512,
       height: 512,
       format: "jpeg",
@@ -3428,6 +3507,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 9112
     },
     expected: {
+      quality: 94,
       width: 512,
       height: 512,
       format: "jpeg",
@@ -3458,6 +3538,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 8067
     },
     expected: {
+      quality: 94,
       width: 513,
       height: 512,
       format: "jpeg",
@@ -3488,6 +3569,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 9392
     },
     expected: {
+      quality: 94,
       width: 513,
       height: 512,
       format: "jpeg",
@@ -3520,6 +3602,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 1162
     },
     expected: {
+      quality: 85,
       width: 17,
       height: 19,
       format: "jpeg",
@@ -3554,6 +3637,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 1161
     },
     expected: {
+      quality: 85,
       width: 17,
       height: 19,
       format: "jpeg",
@@ -3651,6 +3735,7 @@ export const jpegInputVectors: JpegInputVector[] = [
       size: 663
     },
     expected: {
+      quality: 85,
       width: 17,
       height: 19,
       format: "jpeg",

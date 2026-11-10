@@ -53,6 +53,7 @@ export type ColorInput =
     };
 
 export interface RgbaImage {
+  readonly quality?: number;
   readonly decodeWarnings?: readonly string[];
   /** Original indexed colormap as unsigned 0xAARRGGBB values, in file order. */
   readonly indexedColors?: readonly number[];

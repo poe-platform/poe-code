@@ -12456,17 +12456,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (!Number.isSafeInteger(length)) throw new Error("earwax: output sample count is too large");
                           budget.checkDuration(length / 44100);
                           budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
-                          stretched = await resampleAudio(stretched, length, origRate, 44100, budget, context.signal);
+                          const ends = audioTimestamps?.map(frame => frame.end) ??
+                            t.samples.map(sample => (sample.dts + sample.duration - (t.samples[0]?.dts ?? 0)) * origRate / t.timescale);
+                          const firstPts = Math.round((audioTimestamps?.[0]?.pts ?? audioStartSample) * 44100 / origRate);
+                          const outputEnds: number[] = [];
+                          stretched = await resampleAudio(stretched, length, origRate, 44100, budget, context.signal,
+                            undefined, undefined, undefined, undefined, undefined, undefined, undefined, { ends, outputEnds });
                           filteredSampleFormat = "flt";
                           panSampleFormat = "flt";
                           audioStartSample = Math.round(audioStartSample * 44100 / origRate);
-                          for (const frame of audioTimestamps ?? []) {
-                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            frame.start = Math.round(frame.start * 44100 / origRate);
-                            frame.end = Math.round(frame.end * 44100 / origRate);
-                            delete frame.exactPts;
-                            frame.pts = Math.round(frame.pts * 44100 / origRate);
-                          }
+                          // Preserve the resampler's buffered startup and separate drain frame.
+                          budget.allocateMemory(outputEnds.length * 24);
+                          audioTimestamps = outputEnds.map((end, i) => {
+                            const start = outputEnds[i - 1] ?? 0;
+                            return { start, end, pts: firstPts + start };
+                          });
                           origRate = 44100;
                         }
                         if (origRate === 44100 && stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) {

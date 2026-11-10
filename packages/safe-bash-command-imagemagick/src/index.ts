@@ -6577,23 +6577,37 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 return pixels;
             };
         }
-        const lookup = Array.from({ length: 4 }, () => levels === 65536
-            ? Uint16Array.from({ length: levels }, (_, value) => value)
-            : Uint8Array.from({ length: levels }, (_, value) => clampByteVal(value * 255 / (levels - 1))));
         if (token === "-auto-level") {
-            const mins = [levels - 1, levels - 1, levels - 1, levels - 1], maxs = [0, 0, 0, 0], active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];
+            const mins = [levels - 1, levels - 1, levels - 1, levels - 1], maxs = [0, 0, 0, 0];
+            const gray = image.space === "b-w" || image.space === "grey16";
+            const active = [channels.r, !gray && channels.g, !gray && channels.b, channels.a && image.hasAlpha];
             for (let channel = 0; channel < 4; channel++) for (let value = 0; value < levels; value++) if (histogram[channel]![value]! > 0) { mins[channel] = Math.min(mins[channel]!, value); maxs[channel] = Math.max(maxs[channel]!, value); }
             if (!independent) {
                 // Native default channels share one range, including alpha when present.
                 const channelCount = image.hasAlpha ? 4 : 3;
-                const low = Math.min(...mins.slice(0, channelCount)), high = Math.max(...maxs.slice(0, channelCount));
-                mins.fill(low); maxs.fill(high);
+                mins.fill(Math.min(...mins.slice(0, channelCount)));
+                maxs.fill(Math.max(...maxs.slice(0, channelCount)));
             }
-            for (let channel = 0; channel < 4; channel++) {
-                const range = maxs[channel]! - mins[channel]!;
-                if (active[channel] && range > 0) for (let value = 0; value < levels; value++) lookup[channel]![value] = Math.round(Math.max(0, Math.min(levels - 1, (value - mins[channel]!) / range * (levels - 1))));
+            const operations: MagickPixelOperation[] = [];
+            for (let channel = 0; channel < (independent ? 4 : 1); channel++) {
+                if (independent && !active[channel] || maxs[channel]! <= mins[channel]!) continue;
+                const selected = independent ? {
+                    r: channel === 0, g: channel === 1 || gray && channel === 0, b: channel === 2 || gray && channel === 0, a: channel === 3, k: false,
+                } : { r: true, g: true, b: true, a: true, k: false };
+                // Reuse levels' HDRI samples and both masked cache syncs.
+                operations.push(parseMagickPixelOperation(["-level", `${mins[channel]! * 65535 / (levels - 1)},${maxs[channel]! * 65535 / (levels - 1)}`], {
+                    ...settings, channelExplicit: true, channels: selected,
+                }, 0)!);
             }
-        } else if (token === "-linear-stretch") {
+            return function* (pixels, pixelOffset = 0, imageWidth = image.width) {
+                for (const operation of operations) pixels = yield* operation.apply(pixels, pixelOffset, imageWidth);
+                return pixels;
+            };
+        }
+        const lookup = Array.from({ length: 4 }, () => levels === 65536
+            ? Uint16Array.from({ length: levels }, (_, value) => value)
+            : Uint8Array.from({ length: levels }, (_, value) => clampByteVal(value * 255 / (levels - 1))));
+        if (token === "-linear-stretch") {
             const lowTarget = blackPoint * (percentage ? count / 100 : 1);
             // An omitted white point is the remaining pixel count, not the black point.
             const highTarget = Number.isFinite(whitePoint) ? whitePoint * (percentage ? count / 100 : 1) : count - lowTarget;
@@ -10849,7 +10863,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const workingSamples = workingBytes ? new Float64Array(workingBytes.buffer.slice(workingBytes.byteOffset, workingBytes.byteOffset + workingBytes.byteLength)) : undefined;
                     await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, histogram, intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, offset / 4, settings.channels, workingSamples, image.storedHueSamples !== undefined, image.space === "cmyk"), signal);
                 }
-                return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, evaluate: operation.sepiaThreshold !== undefined || token === "-auto-gamma", handlesWriteMask: token === "-auto-gamma", apply: operation.transform(histogram, image) }, signal, analysisOperation.highDepth);
+                return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, evaluate: operation.sepiaThreshold !== undefined || token === "-auto-gamma" || token === "-auto-level", handlesWriteMask: token === "-auto-gamma" || token === "-auto-level", apply: operation.transform(histogram, image) }, signal, analysisOperation.highDepth);
             }, { handlesRegion: token === "-sepia-tone" }));
             continue;
         }

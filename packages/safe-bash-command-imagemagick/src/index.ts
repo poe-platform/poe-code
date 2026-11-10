@@ -4411,7 +4411,7 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
             } else {
                 const hueBytes = !reducePalette ? (yield { kind: "read", hue: true, position, length })! : undefined;
                 const hue = hueBytes?.length ? new Float64Array(hueBytes.slice().buffer) : undefined;
-                const backing = !reducePalette && !hue ? new Float64Array(samples.length) : undefined;
+                const backing = !hue ? new Float64Array(samples.length) : undefined;
                 for (let i = 0; i < samples.length; i++) {
                     const sample = hue ? hue[i]! : samples[i]! / 65535;
                     const value = mask[i % 4] ? Math.round(Math.max(0, Math.min(1, sample)) * (levels - 1)) / (levels - 1) : sample;
@@ -4421,7 +4421,7 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
                 }
                 // Subsequent colorspace conversions must see the quantized working samples.
                 if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(hue.buffer) };
-                // Keep fractional depth levels for later grayscale conversion.
+                // Keep fractional levels for subsequent operators until output quantization.
                 if (backing) yield { kind: "write", evaluate: true, position, data: new Uint8Array(backing.buffer) };
             }
             yield { kind: "write", highDepth: true, position, data: new Uint8Array(samples.buffer) };
@@ -7171,19 +7171,23 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
         const sceneCount = target.sceneCount ?? (pageIdx === undefined ? undefined : 1);
         const analysis = { warnings: "", errors: "" };
-        let inspected:IdentifyInspection|undefined;
-        if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,originalInput:target.originalInput,byteLen:size,sceneIdx:pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis,optionProperties:{format:customFormat!}},pixels,signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision);}};
-        const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
-        if (!bytes&&!inspected) {
-            errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
-            exitCode = 1;
-            yield* flush();
-            continue;
-        }
         try {
+            const lower = baseInPath.toLowerCase();
+            const inlineImage = lower.startsWith("xc:") || lower.startsWith("canvas:")
+                ? yield* parseInputOperandSteps(baseInPath, files, createDefaultState(), stdinBytes, analysis)
+                : undefined;
+            let inspected:IdentifyInspection|undefined;
+            if(reader && !inlineImage)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,originalInput:target.originalInput,byteLen:size,sceneIdx:pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis,optionProperties:{format:customFormat!}},pixels,signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision);}};
+            const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
+            if (!bytes&&!inspected&&!inlineImage) {
+                errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
+                exitCode = 1;
+                yield* flush();
+                continue;
+            }
             const inputOptions = pageIdx !== undefined ? { page: pageIdx } : undefined;
             if(inspected&&"error" in inspected)throw inspected.error;
-            const meta = inspected?.metadata??readImageMetadata(bytes!, inputOptions),size=inspected?.size??bytes!.byteLength;
+            const meta = inlineImage??inspected?.metadata??readImageMetadata(bytes!, inputOptions),size=inlineImage ? 0 : inspected?.size??bytes!.byteLength;
             if (pageIdx === undefined && (meta.format === "tiff" || meta.format === "gif") && (meta.pages ?? 1) > 1) {
                 for (let page = 1; page < meta.pages!; page++) {
                     yield;
@@ -7195,14 +7199,14 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             const bitDepth = meta.depth === "ushort" ? "16" : meta.depth === "bit" ? "1" : "8";
             const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
             if (customFormat !== undefined) {
-                outParts.push(inspected?.formatted??(yield* formatMagickPropertyStringSteps(customFormat, meta, () => decodeImage(encoded!, inputOptions), {
+                outParts.push(inspected?.formatted??(yield* formatMagickPropertyStringSteps(customFormat, meta, () => inlineImage ?? decodeImage(encoded!, inputOptions), {
                     filePath: baseInPath, originalInput: target.originalInput, byteLen: size, sceneIdx: pageIdx ?? 0, listIndex: target.listIndex, sceneCount: sceneCount ?? meta.pages ?? 1, precision, analysis, optionProperties: { format: customFormat }
                 })));
             }
             else if (locateMaximum) {
                 if (inspected?.formatted !== undefined) outParts.push(inspected.formatted);
                 else {
-                    const image = decodeImage(encoded!, inputOptions), steps = identifyMaximumSteps(image, locateLimit, precision);
+                    const image = inlineImage ?? decodeImage(encoded!, inputOptions), steps = identifyMaximumSteps(image, locateLimit, precision);
                     let next = steps.next();
                     while (!next.done) {
                         if (!next.value) { yield; next = steps.next(); }
@@ -7215,8 +7219,8 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 }
             }
             else if (verbose) {
-                const stats = inspected?.stats??(yield* computeImageStatsSteps(decodeImage(encoded!, inputOptions)));
-                const histogram = inspected?.histogram ?? (yield* formatHistogramOutputSteps(decodeImage(encoded!, inputOptions)));
+                const stats = inspected?.stats??(yield* computeImageStatsSteps(inlineImage ?? decodeImage(encoded!, inputOptions)));
+                const histogram = inspected?.histogram ?? (yield* formatHistogramOutputSteps(inlineImage ?? decodeImage(encoded!, inputOptions)));
                 const colors = histogram.trim() ? histogram.trimEnd().split("\n").length : 0;
                 outParts.push(`Image: ${inPath}\n` +
                     `  Format: ${meta.format.toUpperCase()}\n` +
@@ -7231,7 +7235,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                     `  Colors: ${colors}\n  Histogram:\n${histogram}`);
                 if (inspected?.statistics !== undefined) outParts.push(inspected.statistics);
                 else {
-                    const image = decodeImage(encoded!, inputOptions), steps = identifyStatisticsSteps(image, precision);
+                    const image = inlineImage ?? decodeImage(encoded!, inputOptions), steps = identifyStatisticsSteps(image, precision);
                     let next = steps.next();
                     while (!next.done) {
                         yield;
@@ -7242,7 +7246,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 if (convexHull) {
                     if (inspected?.hull !== undefined) outParts.push(inspected.hull);
                     else {
-                        const image = decodeImage(encoded!, inputOptions), steps = identifyHullSteps(image, precision);
+                        const image = inlineImage ?? decodeImage(encoded!, inputOptions), steps = identifyHullSteps(image, precision);
                         let next = steps.next();
                         while (!next.done) {
                             yield;
@@ -7254,7 +7258,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 if (moments) {
                     if (inspected?.moments !== undefined) outParts.push(inspected.moments);
                     else {
-                        const image = decodeImage(encoded!, inputOptions), steps = identifyMomentsSteps(image, precision);
+                        const image = inlineImage ?? decodeImage(encoded!, inputOptions), steps = identifyMomentsSteps(image, precision);
                         let next = steps.next();
                         while (!next.done) {
                             yield;

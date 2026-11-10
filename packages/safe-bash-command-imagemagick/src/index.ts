@@ -1607,7 +1607,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
       const property = key === "@" ? "trim-geometry" : "bounding-box";
       short[key] ??= resolvePixels ? yield* resolvePixels(property) : yield* formatTrimBoundsSteps(img ??= getImage(), function*(position, length) {
         yield;
-        return { data: img!.data.subarray(position, position + length), ...(img!.data16 ? { data16: img!.data16.subarray(position, position + length) } : {}) };
+        return { data: img!.data.subarray(position, position + length), ...(img!.data16 ? { data16: img!.data16.subarray(position, position + length) } : {}), ...(img!.evaluateSamples ? { evaluateSamples: img!.evaluateSamples.subarray(position, position + length) } : {}) };
       }, property, context.fuzz ?? 0, context.analysis);
       parts.push(short[key]!);
     } else if (token === "%T") {

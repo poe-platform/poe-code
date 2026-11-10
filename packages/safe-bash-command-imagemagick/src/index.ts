@@ -10027,7 +10027,18 @@ if (t === "-intent" || t === "+intent") {
         else if (t === "+compress") { delete state.netpbmAscii; delete state.tiffCompression; delete state.bmpCompression; delete state.tgaCompression; delete state.miffCompression; }
         else if (t === "+depth") { delete state.inputDepth; }
         else if (t === "-endian") {
-            const endian = (tokens[++i] ?? "").trim().toLowerCase().replaceAll("_", "").replaceAll("-", "");
+            let value = tokens[++i] ?? "";
+            if (value.includes("%")) {
+                // Read settings can precede every input; option expansion needs no pixels.
+                const expansion = formatMagickPropertyStringSteps(value, {
+                    format: "png", width: 0, height: 0, space: "srgb", channels: 4,
+                    depth: "uchar", density: 72, hasAlpha: false
+                }, () => { throw new Error("no images found for operation '-endian'"); }, { optionProperties: state.optionProperties });
+                let next = expansion.next();
+                while (!next.done) next = expansion.next();
+                value = next.value;
+            }
+            const endian = value.trim().toLowerCase().replaceAll("_", "").replaceAll("-", "");
             if (!["msb", "lsb", "undefined"].includes(endian)) throw new Error(`unrecognized endian type '${endian}'`);
             state.inputEndian = endian;
             state.optionProperties = { ...state.optionProperties, endian: tokens[i]! };

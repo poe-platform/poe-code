@@ -10311,7 +10311,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-unique-colors") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const result = yield* uniqueColorsSteps(image);
+                const result: RgbaImage = yield* uniqueColorsSteps(image);
+                if (image.metaChannels) {
+                    result.metaChannels = [];
+                    for (const plane of image.metaChannels) result.metaChannels.push(yield* createSolidRgbaImageSteps(result.width, 1, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16));
+                }
                 // Native creates a fresh, zero-valued write-mask channel on the palette.
                 return { ...result, writeMask: image.writeMask ? yield* createSolidRgbaImageSteps(result.width, 1, { r: 0, g: 0, b: 0, a: 255 }) : undefined };
             });
@@ -12955,7 +12959,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             steps.push(async (image, backend) => {
                 if (!image) return undefined;
-                const result = await uniqueColorsStored(image, backend.storage, signal);
+                const result: StoredRgbaImage = await uniqueColorsStored(image, backend.storage, signal);
+                if (image.storedMetaChannels) {
+                    result.storedMetaChannels = [];
+                    for (const plane of image.storedMetaChannels) result.storedMetaChannels.push(await createStoredCanvas(result.width, 1, { r: 0, g: 0, b: 0, a: 255 }, backend, signal, !!plane.storedData16));
+                }
                 return { ...result, storedWriteMask: image.storedWriteMask ? await createStoredCanvas(result.width, 1, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined };
             });
             continue;

@@ -16581,6 +16581,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "channelmap: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("channelmap: unsupported option ")) return { exitCode: 8 };
             if (msg === "pan: unsupported option enable") return { exitCode: 176 };
+            if (msg === "channelsplit: unsupported option enable") return { exitCode: 176 };
+            if (msg.startsWith("channelsplit: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("pan: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("pan:")) return { exitCode: 222 };
             if (msg.startsWith("pan:") && !msg.startsWith("pan: unsupported output layout ")) return { exitCode: 234 };

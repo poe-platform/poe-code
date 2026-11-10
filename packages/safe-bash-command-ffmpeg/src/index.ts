@@ -11341,13 +11341,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else throw new Error(`channelmap: unsupported option ${key}`);
                         }
                         const speakers = Object.keys(audioSpeakerMasks);
+                        const channelName = (name: string) => {
+                          if (!name.startsWith("USR")) return name;
+                          const digits = name.slice(3);
+                          if (!digits || [...digits].some(char => char < "0" || char > "9")) return name;
+                          const id = Number(digits);
+                          return Object.keys(audioSpeakerMasks).find(speaker => audioSpeakerMasks[speaker] === 2 ** id) ?? `USR${id}`;
+                        };
                         const inputNames = filteredChannelNames ?? (filteredChannelMask
                           ? speakers.filter(name => Math.floor(filteredChannelMask! / audioSpeakerMasks[name]!) % 2 === 1)
                           : stretched.length === 1 ? ["FC"] : stretched.length === 2 ? ["FL", "FR"] : []);
                         let outputNames: string[] | undefined;
                         if (layout) {
-                          outputNames = parseAudioChannelLayout(layout);
-                          if (outputNames.some(name => !speakers.includes(name)) || new Set(outputNames).size !== outputNames.length) {
+                          outputNames = parseAudioChannelLayout(layout).map(channelName);
+                          if (outputNames.some(name => !speakers.includes(name) &&
+                            !(name.startsWith("USR") && name.length > 3 &&
+                              [...name.slice(3)].every(char => char >= "0" && char <= "9") && Number(name.slice(3)) <= 2147483647))) {
                             throw new Error("channelmap: unsupported channel layout");
                           }
                         }
@@ -11379,8 +11388,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         const selected = new Array<(typeof stretched)[number]>(outputNames.length);
                         for (const [index, entry] of entries.entries()) {
-                          const input = numericInput ? Number(entry[0]) : inputNames.indexOf(entry[0]!);
-                          const output = !paired ? index : numericOutput ? Number(entry[1]) : outputNames.indexOf(entry[1]!);
+                          const input = numericInput ? Number(entry[0]) : inputNames.indexOf(channelName(entry[0]!));
+                          const output = !paired ? index : numericOutput ? Number(entry[1]) : outputNames.indexOf(channelName(entry[1]!));
                           if (!Number.isSafeInteger(input) || input < 0 || input >= stretched.length) {
                             throw new Error(`channelmap: unavailable input channel ${entry[0]}`);
                           }
@@ -11390,8 +11399,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           selected[output] = stretched[input]!;
                         }
                         stretched = selected;
-                        filteredChannelMask = outputNames.reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0);
                         filteredChannelNames = outputNames;
+                        filteredChannelMask = outputNames.every((name, index) => speakers.includes(name) &&
+                          (index === 0 || speakers.indexOf(name) > speakers.indexOf(outputNames![index - 1]!)))
+                          ? outputNames.reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0) : undefined;
                       } else if (trimmed === "channelsplit" || trimmed.startsWith("channelsplit=")) {
                         const { input, selected } = parseChannelSplit(trimmed);
                         if (selected.length !== 1) throw new Error("channelsplit: simple audio filters require exactly one output");

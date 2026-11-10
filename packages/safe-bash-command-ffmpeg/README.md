@@ -552,6 +552,8 @@ such as `0x3` or `0X3`; binary prefixes are rejected. Explicit layouts must matc
 speaker metadata, including `1:FR` and `0|1|1|0:quad`. Speaker lists preserve
 their explicit order when resolving named destinations and subsequent channel maps;
 `channelmap=0|1:FR+FL,channelmap=FL` selects the second input channel.
+Numbered user channels retain their identities and order across filters;
+for example, `0|1:USR17+USR18,channelmap=USR18` selects the second input channel.
 Omitted layouts use native defaults for one through eight channels, including
 2.1 for three channels and 4.0 (not quad) for four channels. Explicit input-output pairs such
 as `0-1|1-0` or `FL-FR|FR-FL` route channels by destination, regardless of pair

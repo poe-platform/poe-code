@@ -5189,46 +5189,48 @@ function* copyMagickPixelSteps(image: Pick<RgbaImage, "width" | "height">, geome
     const left = destination.x, top = destination.y, right = left + width, bottom = top + height;
     if (left < 0 || top < 0 || right > image.width || bottom > image.height) throw new Error("geometry does not contain image");
     const dx = left - source.x, dy = top - source.y;
-    const pixelBytes = highDepth ? 8 : 4;
-    for (let y = 0; y < image.height; y++) for (let start = 0; start < image.width; start += 1024) {
-        yield;
-        const count = Math.min(1024, image.width - start), data = new Uint8Array(count * pixelBytes);
-        let runStart = 0, runSource = -1, previous = -2;
-        for (let i = 0; i <= count; i++) {
-            let position = -1;
-            if (i < count) {
-                let x = start + i, sy = y;
-                if (x >= left && x < right && y >= top && y < bottom) {
-                    // Follow earlier writes back to their original pixel in constant time.
-                    let copies = 1;
-                    if (dy > 0 || (dy === 0 && dx > 0)) {
-                        const horizontal = dx > 0 ? Math.floor((x - left) / dx) : dx < 0 ? Math.floor((right - 1 - x) / -dx) : Infinity;
-                        const vertical = dy > 0 ? Math.floor((y - top) / dy) : Infinity;
-                        copies += Math.min(horizontal, vertical);
+    for (const evaluate of evaluateSamples ? [false, true] : [false]) {
+        const pixelBytes = evaluate ? 32 : highDepth ? 8 : 4;
+        for (let y = 0; y < image.height; y++) for (let start = 0; start < image.width; start += 1024) {
+            yield;
+            const count = Math.min(1024, image.width - start), data = new Uint8Array(count * pixelBytes);
+            let runStart = 0, runSource = -1, previous = -2;
+            for (let i = 0; i <= count; i++) {
+                let position = -1;
+                if (i < count) {
+                    let x = start + i, sy = y;
+                    if (x >= left && x < right && y >= top && y < bottom) {
+                        // Follow earlier writes back to their original pixel in constant time.
+                        let copies = 1;
+                        if (dy > 0 || (dy === 0 && dx > 0)) {
+                            const horizontal = dx > 0 ? Math.floor((x - left) / dx) : dx < 0 ? Math.floor((right - 1 - x) / -dx) : Infinity;
+                            const vertical = dy > 0 ? Math.floor((y - top) / dy) : Infinity;
+                            copies += Math.min(horizontal, vertical);
+                        }
+                        x -= copies * dx;
+                        sy -= copies * dy;
                     }
-                    x -= copies * dx;
-                    sy -= copies * dy;
+                    position = (Math.max(0, Math.min(image.height - 1, sy)) * image.width + Math.max(0, Math.min(image.width - 1, x))) * 4;
                 }
-                position = (Math.max(0, Math.min(image.height - 1, sy)) * image.width + Math.max(0, Math.min(image.width - 1, x))) * 4;
+                if (i > runStart && (i === count || position !== previous + 4)) {
+                    const bytes = yield { kind: "read", position: runSource, length: (i - runStart) * 4, highDepth, evaluate };
+                    if (!bytes || bytes.length !== (i - runStart) * pixelBytes) throw new Error("Truncated copy pixels");
+                    data.set(bytes, runStart * pixelBytes);
+                    runStart = i;
+                }
+                if (i === runStart) runSource = position;
+                previous = position;
             }
-            if (i > runStart && (i === count || position !== previous + 4)) {
-                const bytes = yield { kind: "read", position: runSource, length: (i - runStart) * 4, highDepth };
-                if (!bytes || bytes.length !== (i - runStart) * pixelBytes) throw new Error("Truncated copy pixels");
-                data.set(bytes, runStart * pixelBytes);
-                runStart = i;
+            if (channels) {
+                const original = yield { kind: "read", position: (y * image.width + start) * 4, length: count * 4, highDepth, evaluate };
+                if (!original || original.length !== data.length) throw new Error("Truncated copy pixels");
+                const channelBytes = highDepth ? 2 : 1;
+                for (let i = 0; i < data.length; i++) {
+                    if (!channels[Math.floor(i / channelBytes) % 4]) data[i] = original[i]!;
+                }
             }
-            if (i === runStart) runSource = position;
-            previous = position;
+            yield { kind: "write", position: (y * image.width + start) * 4, data, highDepth, evaluate };
         }
-        if (channels) {
-            const original = yield { kind: "read", position: (y * image.width + start) * 4, length: count * 4, highDepth };
-            if (!original || original.length !== data.length) throw new Error("Truncated copy pixels");
-            const channelBytes = highDepth ? 2 : 1;
-            for (let i = 0; i < data.length; i++) {
-                if (!channels[Math.floor(i / channelBytes) % 4]) data[i] = original[i]!;
-            }
-        }
-        yield { kind: "write", position: (y * image.width + start) * 4, data, highDepth };
     }
 }
 

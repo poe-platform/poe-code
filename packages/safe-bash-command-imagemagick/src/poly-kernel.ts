@@ -31,8 +31,9 @@ export function parseMagickPoly(value: string): number[] {
         const name = (part.startsWith("+") || part.startsWith("-") ? part.slice(1) : part).toLowerCase();
         if (name === "nan") return NaN;
         if (name === "inf" || name === "infinity") return part.startsWith("-") ? -Infinity : Infinity;
-        const number = Number(part);
-        if (Number.isNaN(number) || (!part.toLowerCase().startsWith("0x") && Number.parseFloat(part) !== number))
+        const hexadecimal = name.startsWith("0x");
+        const number = hexadecimal ? Number(name) * (part.startsWith("-") ? -1 : 1) : Number(part);
+        if (Number.isNaN(number) || (!hexadecimal && Number.parseFloat(part) !== number))
             throw new Error(`invalid list of numbers '-poly' '${value}'`);
         return number;
     });

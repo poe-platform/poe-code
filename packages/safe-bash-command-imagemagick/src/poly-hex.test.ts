@@ -8,18 +8,26 @@ import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js"
 for (const mode of ["sync", "map", "retained", "command"] as const) {
     it.each([
         { terms: "0x1,1", expected: [32896, 16448, 8224, 65535] },
+        { terms: "+0x1,1", expected: [32896, 16448, 8224, 65535] },
+        { terms: "+0X1,1", expected: [32896, 16448, 8224, 65535] },
+        { terms: "-0x1,1", after: ["-poly", "-1,1"], expected: [32896, 16448, 8224, 65535] },
+        { terms: "-0X1,1", after: ["-poly", "-1,1"], expected: [32896, 16448, 8224, 65535] },
         { terms: "0x2,1", expected: [65535, 32896, 16448, 65535] },
         { terms: "1,1", expected: [32896, 16448, 8224, 65535] },
         { terms: "2,1", expected: [65535, 32896, 16448, 65535] },
         { terms: "0b10,1", expected: undefined },
         { terms: "0x,1", expected: undefined },
         { terms: "0x1g,1", expected: undefined },
-    ])(`${mode}: matches hexadecimal polynomial controls $terms`, async ({ terms, expected }) => {
+        { terms: "+0x,1", expected: undefined },
+        { terms: "-0x1g,1", expected: undefined },
+        { terms: "+0b10,1", expected: undefined },
+        { terms: "-0b10,1", expected: undefined },
+    ])(`${mode}: matches hexadecimal polynomial controls $terms`, async ({ terms, expected, after = [] }) => {
         const previous = new TextEncoder().encode("KEEP");
         const files = new Map([["/out.raw", previous]]), fs = createMemoryFileSystem();
         await fs.writeFile("/out.raw", previous);
         const args = ["-set", "option:coeff", "0.5", "xc:#804020", "xc:#204080",
-            "-poly", terms, "-depth", "16", "-endian", "MSB", "PNG64:/out.raw"];
+            "-poly", terms, ...after, "-depth", "16", "-endian", "MSB", "PNG64:/out.raw"];
         const result = mode === "command" ? await createMagickCommand().execute({
             command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
             stdin: (async function* () {})(), signal: new AbortController().signal,
@@ -35,3 +43,23 @@ for (const mode of ["sync", "map", "retained", "command"] as const) {
         } else expect(output).toEqual(previous);
     });
 }
+
+// Native raw RGBA8 results; the offset exposes retained negative samples.
+it.each([
+    ["+0x1", [205, 109, 141, 255]],
+    ["-0x1", [0, 45, 13, 255]],
+    ["0x1", [205, 109, 141, 255]],
+    ["-1", [0, 45, 13, 255]],
+])("command: applies signed hexadecimal coefficient %s before an offset", async (coefficient, expected) => {
+    const stdout: number[] = [];
+    const result = await createMagickCommand().execute({
+        command: "magick",
+        args: createCommandArguments(["xc:#802040", "-poly", `${coefficient},1`,
+            "-evaluate", "add", "30%", "-depth", "8", "rgba:-"]).args,
+        cwd: "/", env: {}, fs: createMemoryFileSystem(),
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async bytes => { stdout.push(...bytes); } }, stderr: { write: async () => {} },
+    });
+    expect(result.exitCode).toBe(0);
+    expect(stdout).toEqual(expected);
+});

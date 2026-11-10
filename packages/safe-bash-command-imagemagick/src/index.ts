@@ -54,6 +54,7 @@ import { evaluateNoiseSteps } from "./noise.js";
 import { orderedDitherPixelSteps, parseOrderedDither } from "./ordered-dither.js";
 import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
 import { bilevelPixelSteps } from "./bilevel-kernel.js";
+import { autoTonalMetaPixelSteps } from "./auto-tonal-meta.js";
 import { histogramPixelSteps } from "./histogram-kernel.js";
 import { convertHuePixels, prepareHueOutput, formatHuePixel, hueTextPixel, type HueMetadata } from "./colorspace-hue.js";
 import { enhancePixelSteps } from "./enhance-kernel.js";
@@ -11141,7 +11142,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const result = yield* apply(image);
                 if (metaChannels) {
                     result.metaChannels = [];
-                    for (const plane of metaChannels) result.metaChannels.push(yield* apply(plane));
+                    for (const plane of metaChannels) result.metaChannels.push(image.region || image.writeMask
+                        ? yield* applyMagickRasterSteps(plane, autoTonalMetaPixelSteps(image, !!image.writeMask, apply), signal, plane,
+                            image.writeMask ? [plane, image, image.writeMask] : [plane, image])
+                        : yield* apply(plane));
                 }
                 if (t === "-sepia-tone" && image.metaChannels) {
                     result.metaChannels = [...image.metaChannels];
@@ -14370,7 +14374,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const result = await transformStoredMagickPixels(image, backend, transform, signal, analysisOperation.highDepth);
                 if (metaChannels) {
                     result.storedMetaChannels = [];
-                    for (const plane of metaChannels) result.storedMetaChannels.push(await transformStoredMagickPixels(plane, backend, transform, signal, true));
+                    for (const plane of metaChannels) result.storedMetaChannels.push(image.region || image.storedWriteMask
+                        ? await transformStoredMagickRaster(plane, backend, autoTonalMetaPixelSteps(image, !!image.storedWriteMask, transform.apply), signal, plane,
+                            image.storedWriteMask ? [plane, image, image.storedWriteMask] : [plane, image])
+                        : await transformStoredMagickPixels(plane, backend, transform, signal, true));
                 }
                 if (token === "-sepia-tone" && image.storedMetaChannels) {
                     result.storedMetaChannels = [...image.storedMetaChannels];

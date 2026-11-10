@@ -5,6 +5,12 @@ import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js"
 
 // Native ImageMagick 7.1.2-35 Q16-HDRI reference RGBA8 exports.
 const cases = [
+    { coder: "cmyk", depth: 8, interlace: "Line", input: "1f364d647b92a9c0d7ee051c334a6178", output: "4c3c2dff32261bff199b7eff097860ff", exitCode: 0 },
+    { coder: "cmyk", depth: 8, interlace: "Plane", input: "1f364d647b92a9c0d7ee051c334a6178", output: "b36a20ff8f4d0cff6e359bff522178ff", exitCode: 0 },
+    { coder: "cmyka", depth: 8, interlace: "Line", input: "1f364d647b92a9c0d7ee051c334a61788fa6bdd4", output: "4c3c2d2832261b116e5a45424f3f2f2b", exitCode: 0 },
+    { coder: "cmyka", depth: 8, interlace: "Plane", input: "1f364d647b92a9c0d7ee051c334a61788fa6bdd4", output: "b36a208f8f4d0ca66e359bbd522178d4", exitCode: 0 },
+    { coder: "cmyk", depth: 8, input: "1f364d647b92a9c0d7ee051c334a6178", output: "887a6cff211b15ff240fdfff6c6054ff", exitCode: 0 },
+    { coder: "cmyka", depth: 8, input: "1f364d647b92a9c0d7ee051c334a61788fa6bdd4", output: "887a6c7b110d0aeeb1a19161231d17d4", exitCode: 0 },
     { coder: "cmyk", depth: 8, input: "093e73a8dd12477cb1e61b5085baef24", output: "544230ff117a5fff36119cff693b0eff", exitCode: 0 },
     { coder: "cmyk", depth: 16, input: "093e73a8dd12477cb1e61b5085baef24598ec3f82d6297cc01366ba0d50a3f74", output: "632d79ff15963bff17011fff6e3485ff", exitCode: 0 },
     { coder: "cmyka", depth: 8, input: "093e73a8dd12477cb1e61b5085baef24598ec3f8", output: "544230dd483828e63e2f21ef34271bf8", exitCode: 0 },
@@ -15,11 +21,11 @@ const cases = [
 ];
 
 for (const mode of ["file", "extension", "stream", "sync"] as const) for (const endian of ["LSB", "MSB"]) {
-    it.each(cases)(`${mode} ${endian} decodes $coder at depth $depth: $input`, async ({ coder, depth, input, output, exitCode }) => {
+    it.each(cases)(`${mode} ${endian} decodes $coder at depth $depth ($interlace): $input`, async ({ coder, depth, input, output, exitCode, interlace = "None" }) => {
         const bytes = Buffer.from(input, "hex"), keep = new TextEncoder().encode("KEEP");
         if (depth === 16 && endian === "MSB") bytes.swap16();
         const path = `/raw.${coder}`;
-        const argv = ["-size", "2x2", "-depth", String(depth), "-endian", endian, mode === "extension" ? path : `${coder}:${mode === "stream" ? "-" : path}`, "-append", "-depth", "8", "rgba:/out"];
+        const argv = ["-size", "2x2", "-depth", String(depth), "-endian", endian, "-interlace", interlace, mode === "extension" ? path : `${coder}:${mode === "stream" ? "-" : path}`, "-append", "-interlace", "None", "-depth", "8", "rgba:/out"];
         let result: { exitCode: number }, stderr: string, actual: Uint8Array;
         if (mode === "sync") {
             const files = new Map<string, Uint8Array>([[path, bytes], ["/out", keep]]);
@@ -49,12 +55,21 @@ for (const mode of ["file", "extension", "stream", "sync"] as const) for (const 
 }
 
 for (const mode of ["sync", "retained"] as const) {
-    it.each(cases.filter(test => test.depth === 16 && test.exitCode === 0))(`${mode} retains $coder inks across bounded reads, byte offsets and frame selection`, async ({ coder, input }) => {
-        const pixels = Buffer.from(input.repeat(257), "hex");
-        const bytes = Buffer.concat([Buffer.from("PAD"), Buffer.alloc(pixels.length), pixels]);
+    for (const interlace of ["None", "Line", "Plane"]) for (const endian of ["LSB", "MSB"]) it.each(cases.filter(test => test.depth === 16 && test.exitCode === 0))(`${mode} ${interlace} ${endian} retains $coder inks across bounded reads, byte offsets and frame selection`, async ({ coder, input }) => {
+        const pixels = Buffer.from(input.repeat(257), "hex"), channels = coder.length;
+        if (endian === "MSB") pixels.swap16();
+        const samples: number[] = [];
+        if (interlace !== "None") {
+            const rows = interlace === "Line" ? 4 : 1, width = 1028 / rows;
+            for (let row = 0; row < rows; row++) for (let channel = 0; channel < channels; channel++) for (let x = 0; x < width; x++) {
+                const start = ((row * width + x) * channels + channel) * 2;
+                for (const byte of pixels.subarray(start, start + 2)) samples.push(interlace === "Line" && channel === 4 ? 255 - byte : byte);
+            }
+        }
+        const bytes = Buffer.concat([Buffer.from("PAD"), Buffer.alloc(pixels.length), interlace === "None" ? pixels : Buffer.from(samples)]);
         const files = new Map<string, Uint8Array>([["/in", bytes]]), filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/in", bytes);
-        const args = ["-size", "257x4+3", "-depth", "16", `${coder}:/in[1]`, `${coder}:/out`];
+        const args = ["-size", "257x4+3", "-depth", "16", "-endian", endian, "-interlace", interlace, `${coder}:/in[1]`, "-interlace", "None", `${coder}:/out`];
         const result = mode === "sync" ? runMagickCliSync(args, files) : await runMagickCli(args, { filesystem, cwd: "/" });
         expect(result).toMatchObject({ exitCode: 0, stderr: "" });
         expect(Buffer.from(mode === "sync" ? files.get("/out")! : await filesystem.readFile("/out"))).toEqual(pixels);

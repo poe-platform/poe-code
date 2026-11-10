@@ -56,7 +56,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                     }
                     return bytes;
                 }
-                if (interlace !== "none" && (channels === 3 || typeof layout === "string") || (interlace === "plane" || interlace === "line") && layout === 2) {
+                if (interlace !== "none" && channels >= 3 || (interlace === "plane" || interlace === "line") && layout === 2) {
                     const sampleBytes = Math.min(depth, 16) / 8, inputSampleBytes = depth / 8, pixelBytes = channels * sampleBytes;
                     const lastPixel = Math.ceil(end / pixelBytes);
                     for (let pixel = Math.floor(start / pixelBytes); pixel < lastPixel;) {
@@ -73,7 +73,8 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                                 const outputChannel = interlace === "line" && bgr && channel < 3 ? 2 - channel : channel;
                                 const output = (pixel + Math.floor(i / sampleBytes)) * pixelBytes + outputChannel * sampleBytes + i % sampleBytes;
                                 const value = layout === "rgbo" && interlace === "line" && channel === 3 ? 255 : input[swap ? i ^ 1 : i]!;
-                                if (output >= start && output < end) bytes[headerLength + output - start] = value;
+                                // Native CMYKA line interlace stores opacity; plane and packed layouts store alpha.
+                                if (output >= start && output < end) bytes[headerLength + output - start] = layout === 5 && interlace === "line" && channel === 4 ? 255 - value : value;
                             }
                         }
                         pixel = limit;

@@ -61,7 +61,7 @@ export function encodeImage(image: RgbaImage, options: OutputEncodeOptions): Ret
 
 function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channels: readonly number[]): Uint8Array {
     const format = options.format;
-    const depth = (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 ? 16 : 8;
+    const depth = (options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 ? 16 : 8;
     const pixels = image.width * image.height;
     const data = new Uint8Array(pixels * channels.length * depth / 8);
     const view = new DataView(data.buffer), samples = image.data16 ?? image.data;

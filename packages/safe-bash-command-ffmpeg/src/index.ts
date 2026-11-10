@@ -4092,11 +4092,11 @@ async function applyVideoFilterChain(
         }
       }
       if (positional.length > 1 && positional.at(-1) === "") positional.pop();
-      const modeValue = parseFilterExpression(named.all_mode ?? "normal", "tblend", { normal: 0, addition: 1, average: 3, difference: 6 });
+      const modeValue = parseFilterExpression(named.all_mode ?? "normal", "tblend", { normal: 0, addition: 1, average: 3, difference: 6, multiply: 13 });
       if (modeValue < -1 || modeValue > 39) throw new RangeError("tblend: all_mode out of range [-1 - 39]");
       let mode = roundToEven(modeValue);
-      if (modeValue < 0 || ![0, 1, 3, 6].includes(mode) || (argStr !== "" && (positional.length !== 1 || Object.keys(named).length !== 1 || named.all_mode === undefined))) {
-        throw new Error("tblend: only all_mode=normal, addition, difference or average is supported");
+      if (modeValue < 0 || ![0, 1, 3, 6, 13].includes(mode) || (argStr !== "" && (positional.length !== 1 || Object.keys(named).length !== 1 || named.all_mode === undefined))) {
+        throw new Error("tblend: only all_mode=normal, addition, difference, average or multiply is supported");
       }
       const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
       const commands = videoCommands.filter(command => command.target === name || command.target === instance);
@@ -4112,9 +4112,9 @@ async function applyVideoFilterChain(
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
           const command = commands[nextCommand++]!;
           try {
-            const value = parseFilterExpression(command.expression, "tblend", { normal: 0, addition: 1, average: 3, difference: 6 });
+            const value = parseFilterExpression(command.expression, "tblend", { normal: 0, addition: 1, average: 3, difference: 6, multiply: 13 });
             const updatedMode = roundToEven(value);
-            if (value >= 0 && value <= 39 && [0, 1, 3, 6].includes(updatedMode)) mode = updatedMode;
+            if (value >= 0 && value <= 39 && [0, 1, 3, 6, 13].includes(updatedMode)) mode = updatedMode;
           } catch {
             // Rejected runtime commands preserve the active blend mode.
           }
@@ -4141,13 +4141,14 @@ async function applyVideoFilterChain(
           if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
           let first = a[offset]! + (sampleBytes === 2 ? a[offset + 1]! * 256 : 0);
           let second = b[offset]! + (sampleBytes === 2 ? b[offset + 1]! * 256 : 0);
-          if (mode === 6 && !useNative && offset % 4 === 3 && packedAlpha) {
+          if ([6, 13].includes(mode) && !useNative && offset % 4 === 3 && packedAlpha) {
             // swscale rounds packed alpha when converting to planar GBR for tblend.
             first = Math.min(255, Math.round(first * 257 / 256));
             second = Math.min(255, Math.round(second * 257 / 256));
           }
           const maximum = sampleBytes === 1 ? 255 : native!.format === 68 ? 1023 : 65535;
-          const value = mode === 1 ? Math.min(maximum, first + second) : mode === 3 ? Math.floor((first + second) / 2) :
+          const value = mode === 13 ? Math.floor(first * second / maximum)
+            : mode === 1 ? Math.min(maximum, first + second) : mode === 3 ? Math.floor((first + second) / 2) :
             !useNative && offset % 4 === 3 && !hasAlpha ? 255 : Math.abs(first - second);
           data[offset] = value & 255;
           if (sampleBytes === 2) data[offset + 1] = value >> 8;
@@ -4163,7 +4164,7 @@ async function applyVideoFilterChain(
         }
       }
       current = blended;
-      if (mode === 6 && packedAlpha) pixelFormat = "gbrap";
+      if ([6, 13].includes(mode) && packedAlpha) pixelFormat = "gbrap";
     } else if (name === "shuffleframes") {
       for (const key of Object.keys(named)) {
         if (key !== "mapping" && key !== "enable") throw new Error(`shuffleframes: unsupported option ${key}`);

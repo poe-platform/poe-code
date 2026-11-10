@@ -9639,7 +9639,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-complex") {
-            const operation = parseComplexOperator(tokens[++i]);
+            const argument = tokens[++i], image = stack[0];
+            const expanded = image && argument !== undefined ? yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties }) : argument;
+            const operation = parseComplexOperator(expanded);
             if (stack.length < 2) throw new Error("image sequence is required '-complex'");
             const result: RgbaImage[] = [];
             const grayOnly = stack.slice(0, stack.length >= 4 ? 4 : 2).some(image => image.space === "b-w" || image.space === "grey16");
@@ -11097,8 +11099,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-complex") {
-            const operation = parseComplexOperator(tokens[++i]), background = state.background;
+            const argument = tokens[++i], { background, optionProperties } = state;
             stackStep(async (stack, backend) => {
+                const image = await stack.get(0);
+                const expanded = image && argument !== undefined ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack) : argument;
+                const operation = parseComplexOperator(expanded);
                 if (stack.length < 2) throw new Error("image sequence is required '-complex'");
                 const result = new StoredImageStack(backend.storage, signal, stack);
                 let grayOnly = false;

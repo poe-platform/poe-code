@@ -1737,11 +1737,12 @@ function* formatMagickPropertyStringSteps<Step=never>(
     } else {
       const property = token.slice(2, -1);
       const key = property.toLowerCase();
+      const propertyKey = Object.hasOwn(properties, key) ? key : Object.keys(properties).find(name => name.toLowerCase() === key);
       const optionKey = key.startsWith("option:") ? key.slice(7) : key.startsWith("artifact:") ? key.slice(9) : key;
       if (property.length === 1 && Object.hasOwn(short, property)) {
         parts.push(short[property]!);
-      } else if (Object.hasOwn(properties, key)) {
-        parts.push(properties[key]!);
+      } else if (propertyKey !== undefined) {
+        parts.push(properties[propertyKey]!);
       } else if (Object.hasOwn(properties, `artifact:${key}`)) {
         parts.push(properties[`artifact:${key}`]!);
       } else if (Object.hasOwn(context.optionProperties ?? {}, optionKey)) {
@@ -6761,7 +6762,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         let image: RgbaImage = { ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c, [c.r, c.g, c.b, c.a].some(value => !Number.isInteger(value)))), bitsPerSample: state.inputDepth ?? 16, hasAlpha, ...(!hasAlpha ? { inactiveAlpha: false } : {}) };
         if (c.space) image = { ...image, space: c.space, channels: hasAlpha ? 2 : 1 };
         if (c.cmyk) image = yield* fillCmykPixels(image, c.cmyk);
-        return yield* applyMod([image]);
+        return yield* applyMod([Object.assign(image, { [magickInput]: { filePath: baseToken.slice(baseToken.indexOf(":") + 1) } })]);
     }
     if (lower.startsWith("gradient:") || lower.startsWith("radial-gradient:")) {
         const radial = lower.startsWith("radial-gradient:");
@@ -16002,7 +16003,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const colorStr=(baseToken.slice(baseToken.indexOf(":")+1)||"white").trim();
   const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(colorStr,true),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
   const hasAlpha=color.a<255||colorStr.startsWith("#")&&[5,9,17].includes(colorStr.length)||colorStr.toLowerCase().includes("a(");
-  image={...await createStoredCanvas(width,height,color,backend,signal,[color.r,color.g,color.b,color.a].some(value=>!Number.isInteger(value))),hasAlpha,...(!hasAlpha?{inactiveAlpha:false}:{}),...(lower==="null:"?{[magickInput]:{filePath:"null:"}}:{bitsPerSample:state.inputDepth??16})};
+  image={...await createStoredCanvas(width,height,color,backend,signal,[color.r,color.g,color.b,color.a].some(value=>!Number.isInteger(value))),hasAlpha,...(!hasAlpha?{inactiveAlpha:false}:{}),...(lower==="null:"?{[magickInput]:{filePath:"null:"}}:{bitsPerSample:state.inputDepth??16,[magickInput]:{filePath:baseToken.slice(baseToken.indexOf(":")+1)}})};
   if ("space" in color && color.space) image = { ...image, space: color.space, channels: hasAlpha ? 2 : 1 };
   if ("cmyk" in color && color.cmyk) {
    const inks = color.cmyk;

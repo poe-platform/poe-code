@@ -17,7 +17,9 @@ it("preserves original morphology pixel vectors", async () => {
     for (const args of operators) {
         const files = new Map([["input", bytes]]);
         expect((await runConvertCli(["input", ...args, "out.png"], files)).exitCode).toBe(0);
-        hashes.push(createHash("sha256").update(decodeImage(files.get("out.png")!).data).digest("hex"));
+        const output = decodeImage(files.get("out.png")!);
+        const pixels = output.data16 ? Uint8Array.from(output.data16, value => Math.round(value / 257)) : output.data;
+        hashes.push(createHash("sha256").update(pixels).digest("hex"));
     }
     expect(hashes).toMatchInlineSnapshot(`
       [

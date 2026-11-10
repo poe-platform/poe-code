@@ -62,7 +62,7 @@ export function* morphologyPixelSteps(image: { width: number; height: number; ha
         sums.fill(0);
         squaredSums.fill(0);
         for (let left = 0; left < width; left += 1024) {
-            const count = Math.min(1024, width - left), data = new Uint8Array(count * 4);
+            const count = Math.min(1024, width - left), data = mode === "mean" ? new Float64Array(count * 4) : new Uint8Array(count * 4);
             if (channels) {
                 const original = yield { kind: "read", position: (y * width + left) * 4, length: data.length };
                 if (!original || original.length !== data.length) throw new Error("Truncated morphology pixels");
@@ -105,7 +105,7 @@ export function* morphologyPixelSteps(image: { width: number; height: number; ha
                     } else if (mode === "rms") {
                         value = Math.round(Math.sqrt(sums[c]! / samples));
                     } else if (mode === "mean") {
-                        value = Math.round(sums[c]! / samples);
+                        value = sums[c]! / samples;
                     } else if (mode === "mode") {
                         // Ascending traversal preserves the lowest value when frequencies tie.
                         for (let candidate = 0; candidate < 256; candidate++) {
@@ -137,7 +137,9 @@ export function* morphologyPixelSteps(image: { width: number; height: number; ha
                     data[local * 4 + c] = value;
                 }
             }
-            yield { kind: "write", position: (y * width + left) * 4, data };
+            if (data instanceof Float64Array) {
+                yield { kind: "write", highDepth: true, position: (y * width + left) * 4, data: new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) };
+            } else yield { kind: "write", position: (y * width + left) * 4, data };
         }
     }
 }

@@ -26,7 +26,8 @@ it(`computes ${statistic} with clamped edges (${mode}, center=${center})`, async
     const output = decodeImage(mode === "buffered" ? files.get("/out.png")! : await fs.readFile("/out.png"));
     // A center impulse contributes once everywhere; a corner impulse is repeated by edge clamping.
     const counts = center ? Array<number>(9).fill(1) : [4, 2, 0, 2, 1, 0, 0, 0, 0];
-    expect([...output.data]).toEqual(counts.flatMap(count => statistic === "Mean"
+    // Means can now retain 16-bit samples; compare their rounded byte values.
+    expect(output.data16 ? Array.from(output.data16, value => Math.round(value / 257)) : [...output.data]).toEqual(counts.flatMap(count => statistic === "Mean"
         ? [Math.round(255 * count / 9), Math.round(128 * count / 9), Math.round(64 * count / 9), 255]
         : [0, 0, 0, 255]));
 });

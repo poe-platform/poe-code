@@ -2162,7 +2162,7 @@ async function applyVideoFilterChain(
       }, signal);
     } else if (name === "metadata") {
       const mode = named.mode ?? positional[0];
-      if ((mode !== "print" && mode !== "delete" && mode !== "4") || Object.keys(named).some(key => key !== "mode" && key !== "key") ||
+      if ((mode !== "add" && mode !== "print" && mode !== "delete" && mode !== "4") || Object.keys(named).some(key => key !== "mode" && key !== "key" && !(mode === "add" && key === "value")) ||
           positional.some((part, index) => index > 0 && !part.includes("="))) {
         throw new Error("metadata: unsupported mode or option");
       }
@@ -2173,6 +2173,18 @@ async function applyVideoFilterChain(
             Object.entries(frame.filterMetadata ?? {}).filter(([key]) =>
               named.key !== undefined && key.toLowerCase() !== named.key.toLowerCase())
           ) };
+        }, signal);
+        continue;
+      }
+      if (mode === "add") {
+        const { key, value } = named;
+        if (!key || value === undefined) throw new Error("metadata: add requires key and value");
+        const lookupKey = key.toLowerCase();
+        current = await mapWork(current, frame => {
+          budget.checkCpu();
+          if (Object.keys(frame.filterMetadata ?? {}).some(name => name.toLowerCase() === lookupKey)) return frame;
+          budget.allocateMemory(64 + 2 * (key.length + value.length));
+          return { ...frame, filterMetadata: { ...frame.filterMetadata, [key]: value } };
         }, signal);
         continue;
       }

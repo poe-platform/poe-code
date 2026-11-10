@@ -1,12 +1,14 @@
-// Present headerless RGB/GRAY as Netpbm so both decoding paths retain 16-bit samples.
-export function rawNetpbmInput(width: number, height: number, depth: number, endian: string, byteLength: number, channels: 1 | 3, offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none") {
-    const coder = channels === 1 ? "GRAY" : "RGB";
+// Present headerless RGB/GRAY/GRAYA as Netpbm so both decoding paths retain 16-bit samples.
+export function rawNetpbmInput(width: number, height: number, depth: number, endian: string, byteLength: number, channels: 1 | 2 | 3, offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none") {
+    const coder = channels === 1 ? "GRAY" : channels === 2 ? "GRAYA" : "RGB";
     if (depth !== 8 && depth !== 16) throw new Error(`unsupported ${coder} input depth '${depth}'`);
     const frameLength = width * height * channels * (depth / 8);
     if (!Number.isSafeInteger(frameLength) || frameLength > byteLength - offset || !Number.isSafeInteger(offset) || offset < 0) throw new Error(`unexpected end-of-file in ${coder} input`);
     // A complete packed scanline starts another frame; a shorter tail is ignored.
     if (interlace === "none" && (byteLength - offset) % frameLength >= frameLength / height) throw new Error(`unexpected end-of-file in ${coder} input`);
-    const header = new TextEncoder().encode(`P${channels === 1 ? 5 : 6}\n${width} ${height}\n${depth === 8 ? 255 : 65535}\n`);
+    const header = new TextEncoder().encode(channels === 2
+        ? `P7\nWIDTH ${width}\nHEIGHT ${height}\nDEPTH 2\nMAXVAL ${depth === 8 ? 255 : 65535}\nTUPLTYPE GRAYSCALE_ALPHA\nENDHDR\n`
+        : `P${channels === 1 ? 5 : 6}\n${width} ${height}\n${depth === 8 ? 255 : 65535}\n`);
     const swap = depth === 16 && endian !== "msb";
     return {
         size: header.length + frameLength,

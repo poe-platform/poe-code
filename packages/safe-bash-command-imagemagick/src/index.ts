@@ -6297,12 +6297,13 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         }
         return yield* applyMod(selected);
     }
-    if (lower.startsWith("gray:") || (!lower.includes(":") && lower.endsWith(".gray"))) {
-        if (!state.hasSize) throw new Error("must specify image size for GRAY input");
-        const path = lower.startsWith("gray:") ? baseToken.slice(5) : baseToken;
+    if (lower.startsWith("graya:") || lower.startsWith("gray:") || (!lower.includes(":") && lower.endsWith(".gray"))) {
+        const alpha = lower.startsWith("graya:");
+        if (!state.hasSize) throw new Error(`must specify image size for ${alpha ? "GRAYA" : "GRAY"} input`);
+        const path = alpha ? baseToken.slice(6) : lower.startsWith("gray:") ? baseToken.slice(5) : baseToken;
         const source = path === "-" ? stdinBytes : files.get(path);
         if (!source) return undefined;
-        const raw = rawNetpbmInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", source.length, 1, state.inputOffset);
+        const raw = rawNetpbmInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", source.length, alpha ? 2 : 1, state.inputOffset);
         const frames: RgbaImage[] = [];
         for (const page of selectedInputPages(pageSpec, raw.pages)) {
             const bytes = new Uint8Array(raw.size);
@@ -13557,13 +13558,14 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    return parseStoredCompareInput(`ppm:${token.slice(5)}`,state,backend,signal,{...readOptions,source:{size,async read(offset,length){return backend.storage.read(position+offset,length);}}});
   };
   return readOptions.source===null?undefined:readOptions.source?consume(readOptions.source):backend.read(baseToken.slice(5),consume);
- }else if(lower.startsWith("gray:")||(!lower.includes(":")&&lower.endsWith(".gray"))){
-  if(!state.hasSize)throw new Error("must specify image size for GRAY input");
-  const path=lower.startsWith("gray:")?baseToken.slice(5):baseToken;
+ }else if(lower.startsWith("graya:")||lower.startsWith("gray:")||(!lower.includes(":")&&lower.endsWith(".gray"))){
+  const alpha=lower.startsWith("graya:");
+  if(!state.hasSize)throw new Error(`must specify image size for ${alpha ? "GRAYA" : "GRAY"} input`);
+  const path=alpha?baseToken.slice(6):lower.startsWith("gray:")?baseToken.slice(5):baseToken;
   const consume=async(source:ImageByteSource)=>{
-   const raw=rawNetpbmInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",source.size,1,state.inputOffset);
+   const raw=rawNetpbmInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",source.size,alpha?2:1,state.inputOffset);
    for(const page of selectedInputPages(pageSpec,raw.pages)){
-    image=await parseStoredCompareInput(`pgm:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
+    image=await parseStoredCompareInput(`${alpha?"pam":"pgm"}:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
      const steps=raw.read(position,length,page);let next=steps.next();
      while(!next.done)next=steps.next(await source.read(next.value.position,next.value.length,{signal}));
      return next.value;

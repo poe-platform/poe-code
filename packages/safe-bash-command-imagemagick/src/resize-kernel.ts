@@ -218,7 +218,8 @@ function contributions(index: number, source: number, target: number, blur: numb
     const { radius, weight } = resizeFilter(kernel, settings);
     let scale = Math.max(1, source / target) * blur;
     const narrow = radius * scale < 0.5;
-    const center = (index + 0.5) * source / target + (narrow ? 1e-12 : 0) - 0.5;
+    // Native filter bisectors include MagickEpsilon, even at half-sample ties.
+    const center = (index + 0.5) * source / target + 1e-12 - 0.5;
     if (narrow) scale = blur;
     const support = Math.max(0.5, radius * scale);
     const first = Math.max(0, Math.ceil(center - support)), last = Math.min(source - 1, Math.floor(center + support));
@@ -230,7 +231,8 @@ function contributions(index: number, source: number, target: number, blur: numb
         weights[i] = weight(x);
         sum += weights[i]!;
     }
-    for (let i = 0; i < weights.length; i++) weights[i]! /= Math.abs(sum) >= 1e-12 ? sum : sum < 0 ? -1e-12 : 1e-12;
+    const density = 1 / (Math.abs(sum) >= 1e-12 ? sum : sum < 0 ? -1e-12 : 1e-12);
+    for (let i = 0; i < weights.length; i++) weights[i]! *= density;
     return { first, weights };
 }
 
@@ -299,6 +301,20 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
                                 }
                                 row[x * stride + 3]! += alpha * weight;
                             }
+                        }
+                    }
+                    // ResizeImage stores the first axis in float quantum samples
+                    // before filtering the second axis.
+                    if (!scale && !axis && thumbnailFactor < 3 && width / image.width > height / image.height) {
+                        const quantum = highDepth ? 1 : 257;
+                        for (let x = 0; x < count; x++) {
+                            const alpha = row[x * stride + 3]!;
+                            const storedAlpha = image.hasAlpha ? Math.fround(alpha * 65535) / 65535 : 1;
+                            for (let channel = 0; channel < stride; channel++) if (channel !== 3) {
+                                const value = row[x * stride + channel]! / (image.hasAlpha ? Math.abs(alpha) < 1e-12 ? 1e-12 : alpha : 1);
+                                row[x * stride + channel] = Math.fround(value * quantum) / quantum * storedAlpha;
+                            }
+                            row[x * stride + 3] = storedAlpha;
                         }
                     }
                     if (rows.size === 64) rows.delete(rows.keys().next().value!);

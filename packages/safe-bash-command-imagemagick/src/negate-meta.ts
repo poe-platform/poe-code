@@ -11,9 +11,11 @@ export function* negateMetaPixelSteps(image: { width: number; height: number; ha
         const samples = working?.length ? new Float64Array(working.slice().buffer)
             : Float64Array.from(new Uint16Array((yield { kind: "read", highDepth: true, position, length })!.slice().buffer), value => value / 257);
         let colors: Float64Array | Uint16Array | undefined;
+        let grayTolerance = 1e-12;
         if (onlyGray) {
             const hue = yield { kind: "read", hue: true, image: 1, position, length };
             const working = hue?.length ? hue : yield { kind: "read", evaluate: true, image: 1, position, length };
+            grayTolerance *= (hue?.length ? 1 : working?.length ? 255 : 65535) / 65535;
             colors = working?.length ? new Float64Array(working.slice().buffer)
                 : new Uint16Array((yield { kind: "read", highDepth: true, image: 1, position, length })!.slice().buffer);
         }
@@ -32,7 +34,8 @@ export function* negateMetaPixelSteps(image: { width: number; height: number; ha
                 : Float64Array.from(new Uint16Array((yield { kind: "read", highDepth: true, image: 2, position: maskPosition, length: maskLength })!.slice().buffer), value => value / 257);
         }
         for (let offset = 0; offset < length; offset += 4) {
-            if (!colors || colors[offset] === colors[offset + 1] && colors[offset + 1] === colors[offset + 2])
+            if (!colors || Math.abs(colors[offset]! - colors[offset + 1]!) < grayTolerance
+                && Math.abs(colors[offset + 1]! - colors[offset + 2]!) < grayTolerance)
                 for (let channel = 0; channel < 3; channel++) samples[offset + channel] = 255 - samples[offset + channel]!;
             if (original && parent) {
                 // Clip-cache compositing uses the parent alpha, not the opaque plane backing.

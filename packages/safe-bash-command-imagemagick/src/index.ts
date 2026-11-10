@@ -9102,11 +9102,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const hueSamples = im.hueSamples?.slice();
             const evaluateSamples = im.evaluateSamples?.slice();
             const samples = hueSamples ?? evaluateSamples ?? data16 ?? out, range = hueSamples ? 1 : evaluateSamples || !data16 ? 255 : 65535;
+            // IsPixelGray compares Q16 samples against MagickEpsilon.
+            const grayTolerance = 1e-12 * range / 65535;
             const mask = [ch.r, ch.g, ch.b, cmyk ? ch.k : ch.a && (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false)];
             if (im.space === "b-w" || im.space === "grey16") mask[1] = mask[2] = ch.r;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) { signal?.throwIfAborted(); yield; }
-                const gray = samples[idx] === samples[idx + 1] && samples[idx + 1] === samples[idx + 2];
+                const gray = Math.abs(samples[idx]! - samples[idx + 1]!) < grayTolerance
+                    && Math.abs(samples[idx + 1]! - samples[idx + 2]!) < grayTolerance;
                 if (cmyk && (!onlyGray || gray) && ch.a && (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false)) {
                     const alpha = 255 - (evaluateSamples?.[idx + 3] ?? (data16 ? data16[idx + 3]! / 257 : out[idx + 3]!));
                     out[idx + 3] = clampByteVal(alpha);

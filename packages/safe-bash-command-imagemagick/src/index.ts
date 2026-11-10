@@ -17881,8 +17881,8 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         else if (t === "+texture") {
             texture = undefined;
         }
-        else if (t === "-bordercolor") {
-            const value = argv[++i] ?? "#dfdfdf";
+        else if (t === "-bordercolor" || t === "+bordercolor") {
+            const value = t === "+bordercolor" ? "#dfdfdf" : argv[++i] ?? "#dfdfdf";
             try {
                 state.borderColor = parseColor(value);
             } catch {

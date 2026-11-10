@@ -11866,8 +11866,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async image => { if (!image) return image; const {gifApplications: ignoredGifApplications, icc: ignored, exif: ignoredExif, xmp: ignoredXmp, properties: ignoredProperties, ...rest} = image; return rest; });
             continue;
         }
-            const geometry = parseMagickPageSetting(tokens[++i] ?? "", "page");
-            state.page = { width: Math.round(geometry.width ?? 0), height: Math.round(geometry.height ?? 0), x: Math.trunc(geometry.x), y: Math.trunc(geometry.y) };
+        if (!operandsOnly && (token === "+repage" || token === "-repage")) {
+            const raw = token === "-repage" ? tokens[++i] ?? "0x0" : undefined, optionProperties = state.optionProperties;
+            stackStep(async (stack, backend) => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                for (let index = 0; index < stack.length; index++) {
+                    const image = (await stack.get(index))!;
+                    const expanded = raw === undefined ? undefined : await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                    const geometry = expanded === undefined ? undefined : parseMagickRepageGeometry(expanded);
+                    const reset = { ...image, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } };
+                    await stack.set(index, geometry ? { ...image, virtualCanvas: magickRepageCanvas(image, geometry, "repage") } : reset);
+                }
+                return stack;
             });
             continue;
         }

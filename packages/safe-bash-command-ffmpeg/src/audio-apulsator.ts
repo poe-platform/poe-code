@@ -9,7 +9,8 @@ export async function pulsateAudio(
   if (channels.length !== 1 && channels.length !== 2) throw new Error("apulsator: stereo input required");
   let mode = "sine";
   let timing = "hz";
-  const options = { hz: 2, bpm: 120, ms: 500, amount: 1, offset_l: 0, offset_r: 0.5, width: 1, level_in: 1, level_out: 1 };
+  const defaults = { hz: 2, bpm: 120, ms: 500, amount: 1, offset_l: 0, offset_r: 0.5, width: 1, level_in: 1, level_out: 1 };
+  const options = { ...defaults };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const names = ["level_in", "level_out", "mode", "amount", "offset_l", "offset_r", "width", "timing", "bpm", "ms", "hz"] as const;
   const argumentsList = argument ? argument.split(":") : [];
@@ -34,10 +35,12 @@ export async function pulsateAudio(
       timing = value;
       continue;
     }
-    const number = parseFilterExpression(value, "apulsator", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
     const gain = key === "level_in" || key === "level_out";
     const min = key === "hz" ? 0.01 : gain ? 0.015625 : key === "bpm" ? 30 : key === "ms" ? 10 : 0;
     const max = key === "hz" ? 100 : gain ? 64 : key === "bpm" ? 300 : key === "ms" ? 2000 : key === "width" ? 2 : 1;
+    const number = parseFilterExpression(value, "apulsator", {
+      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, min, max, default: defaults[key]
+    });
     if (number < min || number > max) {
       throw new Error(`apulsator: invalid ${key}`);
     }

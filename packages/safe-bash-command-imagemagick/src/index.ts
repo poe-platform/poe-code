@@ -2089,6 +2089,11 @@ function resolveMagickSpliceGeometry(raw: string, width: number, height: number)
         // the trailing component and offsets do not move the splice region.
         const dimensions = parseMagickGeometry(raw.slice(0, suffix));
         g = { ...g, aspectRatio: (dimensions.width ?? 0) / (dimensions.height ?? 1), x: 0, y: 0 };
+    } else if (dimensionSeparator < 0 && raw[suffix] === ":") {
+        const dimensions = parseMagickGeometry(raw.replace(":", "x").replaceAll("@", "").replaceAll("#", ""));
+        // A zero numerator, including 0:0, inserts no columns; a zero denominator inserts no rows.
+        const numerator = dimensions.width ?? 0;
+        g = { ...g, aspectRatio: numerator === 0 ? 0 : numerator / (dimensions.height ?? 1) };
     }
     const hasDimensions = raw.toLowerCase().includes("x");
     const geometry = { ...g,

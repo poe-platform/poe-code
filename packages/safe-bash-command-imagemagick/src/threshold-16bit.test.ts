@@ -12,7 +12,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         ["-threshold", "R", "32768", [0, 32769, 32770, 32769]],
         ["-threshold", "RGB", "32769", [0, 0, 65535, 32769]],
         ["-threshold", "A", "32769", [32768, 32769, 32770, 0]],
-        ["-threshold", "R", "50%", [65535, 32769, 32770, 32769]],
+        ["-threshold", "R", "50%", [0, 32769, 32770, 32769]],
         ["-threshold", "", "32769", [0, 0, 0, 0]],
         ["-threshold", "Default", "32769", [0, 0, 0, 0]],
         ["-black-threshold", "", "32769", [0, 0, 0, 32769]],

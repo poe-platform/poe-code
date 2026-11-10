@@ -7772,7 +7772,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (!Number.isFinite(scalar) || (!hexadecimal && Number.parseFloat(threshold) !== scalar)) {
                 throw new Error(`invalid argument '-threshold' '${raw}'`);
             }
-            return field.endsWith("%") ? scalar / 100 * 65535 : scalar;
+            // Plain threshold percentages use the Q16 interval (QuantumRange + 1).
+            return field.endsWith("%") ? scalar / 100 * 65536 : scalar;
         });
         const value = thresholds[0]!;
         const channels = state.channelDefault ? undefined : state.channels;

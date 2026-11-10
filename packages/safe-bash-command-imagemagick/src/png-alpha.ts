@@ -1,7 +1,7 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import { regionContains, type Region } from "./region.js";
 
-/** PNG32/64 enable inactive alpha, setting opacity only where the write mask permits it. */
+/** PNG32/64 and raw RGBA enable inactive alpha, setting opacity only where the write mask permits it. */
 export function* pngAlphaPixelSteps(image: { width: number; height: number; hasAlpha: boolean; region?: Region | undefined }, mask: { width: number; height: number } | undefined, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const maximum = highDepth ? 65535 : 255;
     for (let y = 0; y < image.height; y++) {

@@ -6915,7 +6915,18 @@ function parseMagickSwapPositions(spec: string): number[] {
     if ([...spec].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@^".includes(c))) {
         throw new Error(`invalid argument ${spec}`);
     }
-    const geometry = [...spec].filter(c => c.trim() !== "" && !"!#%()<>@^".includes(c)).join("");
+    let geometry = [...spec].filter(c => c.trim() !== "" && !"!#%()<>@^".includes(c)).join("");
+    // Native reads signed/secondary hexadecimal fields as numbers, but bare 0xN as 0,N.
+    for (let i = 1; i < geometry.length - 2; i++) {
+        if (geometry[i] !== "0" || geometry[i + 1]!.toLowerCase() !== "x" ||
+            !"+-,/xX:".includes(geometry[i - 1]!)) continue;
+        let end = i + 2;
+        while (end < geometry.length && "0123456789abcdefABCDEF".includes(geometry[end]!)) end++;
+        if (end === i + 2) continue;
+        const decimal = String(Number.parseInt(geometry.slice(i + 2, end), 16));
+        geometry = geometry.slice(0, i) + decimal + geometry.slice(end);
+        i += decimal.length - 1;
+    }
     const separator = [...geometry].find(c => "xX,/:".includes(c));
     const fields = separator ? geometry.split(separator) : [geometry];
     const first = Number(fields[0]);

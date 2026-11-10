@@ -9009,22 +9009,22 @@ export class Runtime {
       const operand = args[offset];
       const value = operand === undefined ? 1n : await signedLong(operand, this.budget, this.signal);
       if (value === undefined || value === "overflow") {
-        await writeDiagnostic(stderr, `shift: ${operand}: numeric argument required\n`);
+        await writeDiagnostic(stderr, `${context.scriptName ?? "shell"}: line ${context.diagnosticLine ?? 1}: shift: ${operand}: numeric argument required\n`);
         if (!suppressSpecial && !context.execution?.ignoreErrexit
           && (state.profile === "sh" || state.variables.POSIXLY_CORRECT !== undefined)) throw completedExit(2);
         return 2;
       }
       const count = Number(value);
       if (args.length - offset > 1) {
-        await writeDiagnostic(stderr, "shift: too many arguments\n");
+        await writeDiagnostic(stderr, `${context.scriptName ?? "shell"}: line ${context.diagnosticLine ?? 1}: shift: too many arguments\n`);
         throw completedExit(1);
       }
       if (count < 0) {
-        await writeDiagnostic(stderr, `shift: ${operand}: shift count out of range\n`);
+        await writeDiagnostic(stderr, `${context.scriptName ?? "shell"}: line ${context.diagnosticLine ?? 1}: shift: ${operand}: shift count out of range\n`);
         return 1;
       }
       if (count > state.positional.length) {
-        if (state.shift_verbose) await writeDiagnostic(stderr, `shift: ${operand === undefined ? "" : `${operand}: `}shift count out of range\n`);
+        if (state.shift_verbose) await writeDiagnostic(stderr, `${context.scriptName ?? "shell"}: line ${context.diagnosticLine ?? 1}: shift: ${operand === undefined ? "" : `${operand}: `}shift count out of range\n`);
         return 1;
       }
       this.replacePositionals(state, this.positionalValues(state).slice(count));

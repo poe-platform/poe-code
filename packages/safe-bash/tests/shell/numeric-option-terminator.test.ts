@@ -19,7 +19,7 @@ for (const [name, source, stdout, exitCode, stderr] of [
   ["shift count", 'set -- first second third; shift -- 2; printf "%s:%s:%s\\n" "$?" "$#" "$1"', "0:1:third\n", 0, ""],
   ["exit repeated terminator", 'exit -- --', "", 2, "exit: --: numeric argument required\n"],
   ["return repeated terminator", 'f() { return -- --; printf BODY_AFTER; }; f; printf "%s\\n" "$?"', "2\n", 0, "return: --: numeric argument required\n"],
-  ["shift repeated terminator", 'set -- first second; shift -- --; printf "%s:%s:%s\\n" "$?" "$#" "$1"', "2:2:first\n", 0, "shift: --: numeric argument required\n"],
+  ["shift repeated terminator", 'set -- first second; shift -- --; printf "%s:%s:%s\\n" "$?" "$#" "$1"', "2:2:first\n", 0, "shell: line 1: shift: --: numeric argument required\n"],
   ["exit extra operands", 'exit -- 0 1; printf "%s\\n" "$?"', "", 1, "exit: too many arguments\n"],
   ["return extra operands", 'f() { return -- 0 1; printf "BODY:%s\\n" "$?"; }; f', "", 1, "return: too many arguments\n"],
   ["top-level return extra operands", 'return 1 2; printf after', "", 1, "return: too many arguments\n"],
@@ -31,7 +31,7 @@ for (const [name, source, stdout, exitCode, stderr] of [
   ["top-level return default", 'return; printf "after:%s" "$?"', "after:2", 0, "return: can only `return' from a function or sourced script\n"],
   ["top-level return invalid status", 'return bad; printf "after:%s" "$?"', "after:2", 0, "return: bad: numeric argument required\nreturn: can only `return' from a function or sourced script\n"],
   ["top-level return invalid status with extra operands", 'return bad 2; printf "after:%s" "$?"', "after:2", 0, "return: bad: numeric argument required\nreturn: can only `return' from a function or sourced script\n"],
-  ["shift extra operands", 'set -- first second; shift -- 0 1; printf "%s:%s:%s\\n" "$?" "$#" "$1"', "", 1, "shift: too many arguments\n"],
+  ["shift extra operands", 'set -- first second; shift -- 0 1; printf "%s:%s:%s\\n" "$?" "$#" "$1"', "", 1, "shell: line 1: shift: too many arguments\n"],
   ["exit later terminator", 'exit 0 --; printf "%s\\n" "$?"', "", 1, "exit: too many arguments\n"],
 ] as const) {
   test(`numeric option terminator: ${name}`, async context => {

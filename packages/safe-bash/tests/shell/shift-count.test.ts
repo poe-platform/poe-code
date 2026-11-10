@@ -1,6 +1,43 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
+
+for (const [source, stdout, stderr, exitCode] of [
+  ['set -- a b; printf "pre: ";\nshift -1; printf %s "$?"', "pre: 1", "shell: line 2: shift: -1: shift count out of range\n", 0],
+  ['set -- a b; printf "pre: ";\nshift -- 2 3; printf %s "$?"', "pre: ", "shell: line 2: shift: too many arguments\n", 1],
+  ['set -- a b; printf "pre: ";\nshift 5; printf %s "$?"', "pre: 1", "", 0],
+  ['set -- one two; shift 1; printf "%s:%s:%s" "$?" "$#" "$*"', "0:1:two", "", 0],
+] as const) {
+  test(`shift diagnostic acceptance: ${source}`, async context => {
+    const { shell, commands } = setup();
+    for (const command of basicCommands()) commands.register(command);
+    context.after(() => shell.dispose());
+    const result = await shell.exec(source);
+    assert.deepEqual([result.stdout, result.stderr, result.exitCode], [stdout, stderr, exitCode]);
+  });
+}
+
+for (const command of ["shift", "builtin shift", "command shift"]) {
+  test(`${command} reports the named shell and source line`, async context => {
+    const { shell } = setup();
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`bash -c 'set -- a b;\n\n${command} -1' named-shell`);
+    assert.equal(result.stderr, "named-shell: line 3: shift: -1: shift count out of range\n");
+    assert.equal(result.exitCode, 1);
+  });
+}
+
+for (const command of ["bash /shift.sh", ". /shift.sh"]) {
+  test(`${command} reports the script filename and source line`, async context => {
+    const { shell, fs } = setup();
+    context.after(() => shell.dispose());
+    await fs.writeFile("/shift.sh", new TextEncoder().encode("set -- a b\n\nshift -1"));
+    const result = await shell.exec(command);
+    assert.equal(result.stderr, "/shift.sh: line 3: shift: -1: shift count out of range\n");
+    assert.equal(result.exitCode, 1);
+  });
+}
 
 for (const [options, argument, positionals, diagnostic, status] of [
   ["", "3", "a b", "", 1],
@@ -18,7 +55,7 @@ for (const [options, argument, positionals, diagnostic, status] of [
     const result = await shell.exec(`set -- ${positionals}; ${options} shift ${argument}; say "$?|$*"`);
     assert.equal(result.stdout, `${status}|${positionals}\n`);
     const verbose = options === "shopt -s shift_verbose;" && status === 1;
-    assert.equal(result.stderr, verbose || diagnostic ? `shift: ${diagnostic}shift count out of range\n` : "");
+    assert.equal(result.stderr, verbose || diagnostic ? `shell: line 1: shift: ${diagnostic}shift count out of range\n` : "");
     assert.equal(result.exitCode, 0);
   });
 }
@@ -30,13 +67,13 @@ for (const posix of [undefined, "", "1"]) {
     const initial = await shell.exec('shopt -p shift_verbose; shopt -q shift_verbose; say "$?"; shift', { onState() {} });
     const enabled = posix !== undefined;
     assert.equal(initial.stdout, `shopt -${enabled ? "s" : "u"} shift_verbose\n${enabled ? 0 : 1}\n`);
-    assert.equal(initial.stderr, enabled ? "shift: shift count out of range\n" : "");
+    assert.equal(initial.stderr, enabled ? "shell: line 1: shift: shift count out of range\n" : "");
     assert.equal(initial.exitCode, 1);
     const changed = await shell.exec(`shopt -${enabled ? "u" : "s"} shift_verbose`, { state: initial.state });
     assert.equal(changed.state?.options?.shift_verbose, !enabled);
     const restored = await shell.exec(`(shopt -${enabled ? "s" : "u"} shift_verbose); shopt -q shift_verbose; say "$?"; shift`, { state: changed.state });
     assert.equal(restored.stdout, `${enabled ? 1 : 0}\n`);
-    assert.equal(restored.stderr, enabled ? "" : "shift: shift count out of range\n");
+    assert.equal(restored.stderr, enabled ? "" : "shell: line 1: shift: shift count out of range\n");
     assert.equal(restored.exitCode, 1);
   });
 }
@@ -46,7 +83,7 @@ test("nested bash initializes shift_verbose from its exported environment", asyn
   context.after(() => shell.dispose());
   const result = await shell.exec(`POSIXLY_CORRECT=1 bash -c 'shopt -p shift_verbose; shift; shopt -u shift_verbose; shift'`);
   assert.equal(result.stdout, "shopt -s shift_verbose\n");
-  assert.equal(result.stderr, "shift: shift count out of range\n");
+  assert.equal(result.stderr, "bash: line 1: shift: shift count out of range\n");
   assert.equal(result.exitCode, 1);
 });
 
@@ -80,7 +117,7 @@ test("shift treats --help after -- as a numeric operand", async context => {
   context.after(() => shell.dispose());
   const result = await shell.exec('set -- a b; shift -- --help; say "status=$? args=$*"');
   assert.equal(result.stdout, "status=2 args=a b\n");
-  assert.equal(result.stderr, "shift: --help: numeric argument required\n");
+  assert.equal(result.stderr, "shell: line 1: shift: --help: numeric argument required\n");
   assert.equal(result.exitCode, 0);
 });
 
@@ -90,7 +127,7 @@ for (const argument of ["1.0", "1e0", "0x1", "junk", "", "+", "1 0", "\u00a01\u0
     try {
       const result = await shell.exec(`set -- first second; shift '${argument}'; say "AFTER:$?:COUNT:$#:$1:$2"`);
       assert.equal(result.stdout, "AFTER:2:COUNT:2:first:second\n");
-      assert.equal(result.stderr, `shift: ${argument}: numeric argument required\n`);
+      assert.equal(result.stderr, `shell: line 1: shift: ${argument}: numeric argument required\n`);
       assert.equal(result.exitCode, 0);
     } finally { await shell.dispose(); }
   });
@@ -139,7 +176,7 @@ for (const [name, source, stdout, exitCode] of [
     context.after(() => shell.dispose());
     const result = await shell.exec(`set -- first second; ${source}`);
     assert.equal(result.stdout, stdout);
-    assert.equal(result.stderr, "shift: too many arguments\n");
+    assert.equal(result.stderr, "shell: line 1: shift: too many arguments\n");
     assert.equal(result.exitCode, exitCode);
   });
 }
@@ -150,7 +187,7 @@ for (const command of ["shift", "builtin shift", "command shift"]) {
     context.after(() => shell.dispose());
     const result = await shell.exec(`set -- first second; ${command} x y; say "AFTER:$?:COUNT:$#:$1:$2"`);
     assert.equal(result.stdout, "AFTER:2:COUNT:2:first:second\n");
-    assert.equal(result.stderr, "shift: x: numeric argument required\n");
+    assert.equal(result.stderr, "shell: line 1: shift: x: numeric argument required\n");
     assert.equal(result.exitCode, 0);
   });
 }
@@ -161,7 +198,7 @@ for (const argument of ["-1", "-- -1", "-9223372036854775808"]) {
     try {
       const result = await shell.exec(`set -- first second; shift ${argument}; say "AFTER:$?:COUNT:$#:$1:$2"`);
       assert.equal(result.stdout, "AFTER:1:COUNT:2:first:second\n");
-      assert.equal(result.stderr, `shift: ${argument === "-- -1" ? "-1" : argument}: shift count out of range\n`);
+      assert.equal(result.stderr, `shell: line 1: shift: ${argument === "-- -1" ? "-1" : argument}: shift count out of range\n`);
       assert.equal(result.exitCode, 0);
     } finally { await shell.dispose(); }
   });
@@ -186,7 +223,7 @@ for (const operand of ["bad", "9223372036854775808"]) {
       context.after(() => shell.dispose());
       const result = await shell.exec(`POSIXLY_CORRECT=1; set -- first second; ${source}`);
       assert.equal(result.stdout, stdout);
-      assert.equal(result.stderr, `shift: ${operand}: numeric argument required\n`);
+      assert.equal(result.stderr, `shell: line 1: shift: ${operand}: numeric argument required\n`);
       assert.equal(result.exitCode, exitCode);
     });
   }
@@ -197,7 +234,7 @@ test("shift numeric errors terminate with inherited POSIXLY_CORRECT", async cont
   context.after(() => shell.dispose());
   const result = await shell.exec('set -- first second; shift bad; say continued');
   assert.equal(result.stdout, "");
-  assert.equal(result.stderr, "shift: bad: numeric argument required\n");
+  assert.equal(result.stderr, "shell: line 1: shift: bad: numeric argument required\n");
   assert.equal(result.exitCode, 2);
 });
 
@@ -207,7 +244,7 @@ for (const operand of ["3", "-1"]) {
     context.after(() => shell.dispose());
     const result = await shell.exec(`POSIXLY_CORRECT=1; set -- first second; shift ${operand}; say "continued:$?:$*"`);
     assert.equal(result.stdout, "continued:1:first second\n");
-    assert.equal(result.stderr, operand === "-1" ? "shift: -1: shift count out of range\n" : "");
+    assert.equal(result.stderr, operand === "-1" ? "shell: line 1: shift: -1: shift count out of range\n" : "");
     assert.equal(result.exitCode, 0);
   });
 }

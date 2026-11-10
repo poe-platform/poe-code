@@ -3,7 +3,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 
 export type RawCoder = "rgb" | "rgba" | "bgr" | "bgra" | "gray";
 export type ImageFormat = RasterFormat | RawCoder;
-export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; endian?: string | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
+export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | undefined; endian?: string | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
 
 /** Search complete output sizes, including alpha and container overhead. */
 function* webpTargetQualities(options: OutputEncodeOptions): Generator<number, number, number> {
@@ -55,24 +55,34 @@ export function encodeImage(image: RgbaImage, options: OutputEncodeOptions): Ret
         return encoded;
     }
     const channels = format === "gray" ? 1 : format.endsWith("a") ? 4 : 3;
-    const depth = (image.bitsPerSample ?? 8) > 8 ? 16 : 8;
-    const data = new Uint8Array(image.width * image.height * channels * depth / 8);
+    const data = encodeRawPixels(image, options, Array.from({ length: channels }, (_, channel) => channel));
+    return { data, format: "raw", channels };
+}
+
+function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channels: readonly number[]): Uint8Array {
+    const format = options.format;
+    const depth = (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 ? 16 : 8;
+    const pixels = image.width * image.height;
+    const data = new Uint8Array(pixels * channels.length * depth / 8);
     const view = new DataView(data.buffer), samples = image.data16 ?? image.data;
     const scale = image.data16 ? 65535 : 255, maximum = depth === 16 ? 65535 : 255;
-    let offset = 0;
-    for (let pixel = 0; pixel < image.width * image.height; pixel++) {
-        for (let channel = 0; channel < channels; channel++) {
+    for (let pixel = 0; pixel < pixels; pixel++) {
+        for (let c = 0; c < channels.length; c++) {
+            const channel = channels[c]!;
             const index = format.startsWith("bgr") && channel < 3 ? 2 - channel : channel;
             const value = format === "gray"
                 ? 0.212656 * samples[pixel * 4]! + 0.715158 * samples[pixel * 4 + 1]! + 0.072186 * samples[pixel * 4 + 2]!
                 : channel === 3 && !image.hasAlpha ? scale : samples[pixel * 4 + index]!;
             const quantum = Math.round(value * maximum / scale);
+            const sample = options.rawInterlace === "plane" ? c * pixels + pixel
+                : options.rawInterlace === "line" ? Math.floor(pixel / image.width) * image.width * channels.length + c * image.width + pixel % image.width
+                : pixel * channels.length + c;
+            const offset = sample * depth / 8;
             if (depth === 16) view.setUint16(offset, quantum, options.endian === undefined || options.endian === "lsb");
             else data[offset] = quantum;
-            offset += depth / 8;
         }
     }
-    return { data, format: "raw", channels };
+    return data;
 }
 
 export async function* encodeStoredImage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal, options: OutputEncodeOptions): ReturnType<typeof encodeStoredRaster> {
@@ -103,22 +113,31 @@ export async function* encodeStoredImage(image: StoredRgbaImage, storage: ImageB
         }
         return yield* encodeStoredRaster(image, storage, signal, { ...options, format: options.format, ...(options.format === "jpeg" && options.jpegExtent !== undefined ? { quality, chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4" } : {}), synthesizeExif: false });
     }
-    let size = 0, channels = 0;
+    let size = 0;
+    const channels = options.format === "gray" ? 1 : options.format.endsWith("a") ? 4 : 3;
+    const packedChannels = Array.from({ length: channels }, (_, channel) => channel);
     const chunkPixels = image.storedData16 ? 2048 : 4096;
-    for (let pixel = 0; pixel < image.width * image.height; pixel += chunkPixels) {
-        await yieldTurn(signal);
-        const count = Math.min(chunkPixels, image.width * image.height - pixel);
-        const data = new Uint8Array(await storage.read(image.position + pixel * 4, count * 4, { signal }));
-        if (data.length !== count * 4) throw new Error("Truncated raw pixel storage");
-        let data16: Uint16Array | undefined;
-        if (image.storedData16) {
-            const bytes = await storage.read(image.storedData16.position + pixel * 8, count * 8, { signal });
-            if (bytes.length !== count * 8) throw new Error("Truncated raw sample storage");
-            data16 = new Uint16Array(new Uint8Array(bytes).buffer);
+    const pixels = image.width * image.height;
+    const spanPixels = options.rawInterlace === "line" ? image.width : pixels;
+    // Finish each row/channel run before advancing, even when it spans several reads.
+    for (let start = 0; start < pixels; start += spanPixels) {
+        for (let channel = 0; channel < (options.rawInterlace ? channels : 1); channel++) {
+            for (let pixel = start; pixel < start + spanPixels; pixel += chunkPixels) {
+                await yieldTurn(signal);
+                const count = Math.min(chunkPixels, start + spanPixels - pixel);
+                const data = new Uint8Array(await storage.read(image.position + pixel * 4, count * 4, { signal }));
+                if (data.length !== count * 4) throw new Error("Truncated raw pixel storage");
+                let data16: Uint16Array | undefined;
+                if (image.storedData16) {
+                    const bytes = await storage.read(image.storedData16.position + pixel * 8, count * 8, { signal });
+                    if (bytes.length !== count * 8) throw new Error("Truncated raw sample storage");
+                    data16 = new Uint16Array(new Uint8Array(bytes).buffer);
+                }
+                const encoded = encodeRawPixels({ ...image, width: count, height: 1, data, ...(data16 ? { data16 } : {}) }, options, options.rawInterlace ? [channel] : packedChannels);
+                size += encoded.length;
+                yield encoded;
+            }
         }
-        const encoded = encodeImage({ ...image, width: count, height: 1, data, ...(data16 ? { data16 } : {}) }, options);
-        size += encoded.data.length; channels = encoded.channels;
-        yield encoded.data;
     }
     return { format: "raw", width: image.width, height: image.height, channels, premultiplied: false, size };
 }

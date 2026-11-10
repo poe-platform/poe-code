@@ -10743,6 +10743,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const width = image.width * factor, height = image.height * factor;
                 const output = yield* applyMagickRasterSteps({ ...image, isPalette: false }, magnifyPixelSteps(image, state.magnifyMethod, state.background, state.virtualPixel), signal, { ...image, width, height });
                 if (image.readMask) output.readMask = yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 });
+                // Native magnification retains the mask channel with cleared coverage.
+                output.region = undefined;
+                if (image.region || image.writeMask) output.writeMask = yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 });
                 return output;
             });
         }
@@ -13633,6 +13636,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const width = image.width * factor, height = image.height * factor;
                 const output = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, magnifyPixelSteps(image, method, background, virtualPixel), signal, { ...image, width, height });
                 if (image.readMask) output.readMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
+                output.region = undefined;
+                if (image.region || image.storedWriteMask) output.storedWriteMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 return output;
             });
         } else if (!operandsOnly && token === "-adaptive-resize") {

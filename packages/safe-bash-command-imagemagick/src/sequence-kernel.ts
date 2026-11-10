@@ -152,20 +152,27 @@ export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | 
 }
 
 export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "height"> & { magickColorspace?: string | undefined })[], highDepth = false, intensity = "rec709luma"): Steps {
-    const { width, height } = inputs[0]!, chunkPixels = highDepth ? 2048 : 4096;
+    const { width, height } = inputs[0]!, chunkPixels = 512;
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x += chunkPixels) {
         yield;
         const position = (y * width + x) * 4, length = Math.min(chunkPixels, width - x) * 4;
         const base = (yield { kind: "read", highDepth, image: 0, position, length })!;
         const data = highDepth ? new Uint16Array(base.slice().buffer) : new Uint8Array(base);
+        const samples = Float64Array.from(data, value => highDepth ? value / 257 : value);
         for (let image = 0; image < inputs.length; image++) {
             const sourceImage = inputs[image]!;
             if (y >= sourceImage.height || x >= sourceImage.width) continue;
             const count = Math.min(length, (sourceImage.width - x) * 4);
             const bytes = image === 0 ? base : (yield { kind: "read", highDepth, image, position: (y * sourceImage.width + x) * 4, length: count })!;
             const source = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
-            for (let offset = 0; offset < count; offset += 4) data[offset + image] = Math.round(magickIntensity(source[offset]!, source[offset + 1]!, source[offset + 2]!, intensity, highDepth ? 65535 : 255, sourceImage.magickColorspace === "RGB"));
+            for (let offset = 0; offset < count; offset += 4) {
+                const value = magickIntensity(source[offset]!, source[offset + 1]!, source[offset + 2]!, intensity, highDepth ? 65535 : 255, sourceImage.magickColorspace === "RGB");
+                samples[offset + image] = highDepth ? value / 257 : value;
+                data[offset + image] = Math.round(value);
+            }
         }
+        // Retain fractional intensities for later high-depth output.
+        yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
         yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
     }
 }

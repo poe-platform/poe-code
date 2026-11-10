@@ -8672,7 +8672,7 @@ function* prepareFloatOutput(image: RgbaImage): Generator<void, RgbaImage, void>
     return { ...image, dataFloat };
 }
 
-function* preparePng16Output(image: RgbaImage): Generator<void, RgbaImage, void> {
+function* prepare16BitOutput(image: RgbaImage): Generator<void, RgbaImage, void> {
     if (!image.evaluateSamples) return image;
     const data16 = new Uint16Array(image.evaluateSamples.length);
     for (let offset = 0; offset < data16.length; offset++) {
@@ -8683,7 +8683,7 @@ function* preparePng16Output(image: RgbaImage): Generator<void, RgbaImage, void>
 }
 
 function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: MagickState["dither"] = false, diffusionAmount = 1, pngCoder?: ReturnType<typeof inferOutputFormat>["pngCoder"]): Generator<void, RgbaImage, void> {
-    if (pngCoder === "png48" || pngCoder === "png64") image = yield* preparePng16Output(image);
+    if (pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format)) image = yield* prepare16BitOutput(image);
     if ((pngCoder === "png32" || pngCoder === "png64") && (image.alphaBlend === false || !image.hasAlpha && (image.writeMask || image.region))) {
         image = { ...yield* applyMagickRasterSteps(image, pngAlphaPixelSteps(image, image.writeMask, !!image.data16), undefined, { ...image, hasAlpha: true }, image.writeMask ? [image, image.writeMask] : [image]), channels: 4 };
     }
@@ -8704,8 +8704,8 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
 }
 
 async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFormat, backend: CompareFileSession, signal: AbortSignal, dither: MagickState["dither"] = false, diffusionAmount = 1, pngCoder?: ReturnType<typeof inferOutputFormat>["pngCoder"]): Promise<StoredRgbaImage> {
-    if ((pngCoder === "png48" || pngCoder === "png64") && image.storedEvaluateSamples !== undefined) {
-        image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: preparePng16Output }, signal);
+    if ((pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format)) && image.storedEvaluateSamples !== undefined) {
+        image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepare16BitOutput }, signal);
     }
     if ((pngCoder === "png32" || pngCoder === "png64") && (image.alphaBlend === false || !image.hasAlpha && (image.storedWriteMask || image.region))) {
         image = { ...await transformStoredMagickRaster(image, backend, pngAlphaPixelSteps(image, image.storedWriteMask, !!image.storedData16), signal, { ...image, hasAlpha: true }, image.storedWriteMask ? [image, image.storedWriteMask] : [image]), channels: 4 };
@@ -10517,9 +10517,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const rIm = stack[0]!;
             const sources = stack.slice(0, 4);
             const result = yield* applyMagickRasterSteps(rIm, combinePixelSteps(sources, sources.some(image => !!image.data16), state.intensity), signal, rIm, sources);
-            // The first plane's evaluation cache no longer describes the combined pixels.
-            const { evaluateSamples: ignoredEvaluate, ...combined } = result;
-            stack = [{ ...combined, space: "srgb", channels: 4, hasAlpha: sources.length === 4 || sources[0]!.hasAlpha }];
+            stack = [{ ...result, space: "srgb", channels: 4, hasAlpha: sources.length === 4 || sources[0]!.hasAlpha }];
         }
         else if (t === "-draw") {
             const drawSpec = tokens[++i] ?? "";
@@ -11482,9 +11480,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const sources: StoredRgbaImage[] = [];
                     for (let index = 0; index < Math.min(4, stack.length); index++) sources.push((await stack.get(index))!);
                     const base = sources[0]!, result = await transformStoredMagickRaster(base, backend, combinePixelSteps(sources, sources.some(image => !!image.storedData16), settings.intensity), signal, base, sources);
-                    // The first plane's evaluation cache no longer describes the combined pixels.
-                    const { storedEvaluateSamples: ignoredEvaluate, ...combined } = result;
-                    stack.length = 0; await stack.push({ ...combined, space: "srgb", channels: 4, hasAlpha: sources.length === 4 || sources[0]!.hasAlpha });
+                    stack.length = 0; await stack.push({ ...result, space: "srgb", channels: 4, hasAlpha: sources.length === 4 || sources[0]!.hasAlpha });
                 } else if (token === "-morph") {
                     const image = await stack.get(0);
                     const expanded = image ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal) : argument;

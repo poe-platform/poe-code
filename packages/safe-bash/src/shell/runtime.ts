@@ -9835,9 +9835,10 @@ export class Runtime {
         ? await this.arrayIndex(binding, element.index, state, io, store.owner)
         : numericIndex(element.index, 4294967295);
       const entries = this.presenceArrayEntries(state, part.name);
+      const scalar = !binding && !entries && index === 0 ? this.variable(state, part.name) : undefined;
       const value = binding ? index === undefined ? undefined : binding.getValue(index)
         : entries ? (index === undefined ? undefined : entries[index])
-        : index === 0 ? this.variable(state, part.name) : undefined;
+        : scalar === undefined ? undefined : stateMonitor(state)?.values.get(part.name, scalar) ?? scalar;
       if (part.operator && defaultParameterOperators.includes(part.operator)) {
         const missing = value === undefined || part.operator.startsWith(":") && shellValueByteLength(value) === 0;
         const operator = part.operator.at(-1)!;

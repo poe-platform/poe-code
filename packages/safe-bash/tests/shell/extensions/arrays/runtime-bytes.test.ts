@@ -9,6 +9,10 @@ import { ShellLimitError } from "../../../../src/shell/types.js";
 import { nativeOptions, runNative } from "../trap/oracle.js";
 
 const cases: readonly [string, string, string][] = [
+  ["scalar element zero preserves raw bytes", `a=$'\\xff'; printf '%s|%s' "$a" "\${a[0]}"`, "ff7cff"],
+  ["scalar arithmetic element zero preserves raw bytes", `a=$'\\xfe'; i=1; printf '%s' "\${a[i-1]}"`, "fe"],
+  ["printf assigned scalar element zero preserves raw bytes", `printf -v a '\\xff'; printf '%s' "\${a[0]}"`, "ff"],
+  ["scalar element default preserves raw bytes", `a=$'\\xff'; printf '%s' "\${a[0]:-fallback}"`, "ff"],
   ["element assignment retains raw zero created during RHS expansion", `raw=$'\\xfe'; a=([4]=$'\\xff'); a[1]=\${a:=$raw}; printf '%s' "\${a[@]}"`, "fefeff"],
   ["compound cells distinguish identical display projections", `a=($'\\xff' $'\\xfe' '�'); printf '%s' "\${a[@]}"`, "fffeefbfbd"],
   ["sparse element assignment", `a[9]=$'\\xff'; printf '%s' "\${a[9]}"`, "ff"],

@@ -60,7 +60,7 @@ for (const command of ["break", "continue"]) {
       context.after(() => shell.dispose());
       const result = await shell.exec(`${command} ${args}; say "AFTER:$?"`);
       assert.equal(result.stdout, "AFTER:0\n");
-      assert.equal(result.stderr, `${command}: only meaningful in a loop\n`);
+      assert.equal(result.stderr, `shell: line 1: ${command}: only meaningful in a \`for', \`while', or \`until' loop\n`);
       assert.equal(result.exitCode, 0);
     });
   }
@@ -70,7 +70,7 @@ for (const command of ["break", "continue"]) {
     context.after(() => shell.dispose());
     const result = await shell.exec(`set -e; ${command} junk; say "AFTER:$?"`);
     assert.equal(result.stdout, "AFTER:0\n");
-    assert.equal(result.stderr, `${command}: only meaningful in a loop\n`);
+    assert.equal(result.stderr, `shell: line 1: ${command}: only meaningful in a \`for', \`while', or \`until' loop\n`);
     assert.equal(result.exitCode, 0);
   });
 
@@ -104,7 +104,7 @@ for (const command of ["break", "continue"]) {
       try {
         const result = await shell.exec(`for a in 1; do ${command} '${count}'; say BODY_AFTER; done; say "AFTER:$?"`);
         assert.equal(result.stdout, "AFTER:1\n");
-        assert.equal(result.stderr, `${command}: invalid loop count\n`);
+        assert.equal(result.stderr, `shell: line 1: ${command}: ${count}: loop count out of range\n`);
         assert.equal(result.exitCode, 0);
       } finally { await shell.dispose(); }
     });

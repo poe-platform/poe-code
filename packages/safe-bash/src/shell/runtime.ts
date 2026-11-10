@@ -9755,7 +9755,7 @@ export class Runtime {
         throw completedExit(1);
       }
       if (levels < 1) {
-        await writeDiagnostic(stderr, `${command}: invalid loop count\n`);
+        await this.diagnostic(context, `${command}: ${operand}: loop count out of range`);
         throw completedExit(1, "break", state.loopDepth);
       }
       throw completedExit(0, command, Math.min(levels, state.loopDepth));

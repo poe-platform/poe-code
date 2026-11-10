@@ -62,7 +62,7 @@ for (const control of ["break", "continue"]) {
       const result = await shell.exec(`for item in a b; do say "$item"; ${control} 0; say BODY_AFTER; done`);
       assert.equal(result.stdout, "a\n");
       assert.equal(result.exitCode, 1);
-      assert.equal(result.stderr, `${control}: invalid loop count\n`);
+      assert.equal(result.stderr, `shell: line 1: ${control}: 0: loop count out of range\n`);
       const outside = await shell.exec(`${control} 0; say "OUTSIDE:$?"`);
       assert.equal(outside.stdout, "OUTSIDE:0\n");
       assert.equal(outside.stderr, `shell: line 1: ${control}: only meaningful in a \`for', \`while', or \`until' loop\n`);
@@ -80,7 +80,7 @@ for (const control of ["break", "continue"]) {
       const result = await shell.exec(`${loop} say "ITER:$i"; for inner in a b; do ${control} 0; say BODY_AFTER; done; say OUTER_AFTER; ((i++)); done; say "AFTER:$?"`);
       assert.equal(result.stdout, "ITER:1\nAFTER:1\n");
       assert.equal(result.exitCode, 0);
-      assert.equal(result.stderr, `${control}: invalid loop count\n`);
+      assert.equal(result.stderr, `shell: line 1: ${control}: 0: loop count out of range\n`);
       const recovered = await shell.exec('for item in a b; do say "$item"; break; done; say "RECOVERED:$?"');
       assert.equal(recovered.stdout, "a\nRECOVERED:0\n");
       assert.equal(recovered.stderr, "");

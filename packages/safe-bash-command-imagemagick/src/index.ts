@@ -6945,7 +6945,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 }
                 im = { ...image, evaluateSamples };
             }
-            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im as MagickImage)[magickInput], virtualPixel: state.optionProperties?.["virtual-pixel"] } });
+            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im as MagickImage)[magickInput], virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz } });
             if (state.qualityExplicit) im = { ...im, quality: state.quality };
             if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
             if (state.composeExplicit) im = { ...im, properties: { ...im.properties, compose: state.composeRaw } };
@@ -11191,6 +11191,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], channelMask } };
                 });
             }
+            if (t === "-fuzz" || t === "+fuzz") {
+                stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                    yield;
+                    return { ...image, [magickInput]: { ...image[magickInput], fuzz: state.alphaFuzz } };
+                });
+            }
             if (t === "-bordercolor" || t === "+bordercolor") {
                 stack = yield* mapMagickImagesSteps(stack, function* (image) {
                     yield;
@@ -11626,7 +11632,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         continue;
                     }
                 }
-                const bounds = compareLayerBounds(previous, current, state.alphaFuzz, method);
+                const fuzz = method === "removedups"
+                    ? Math.max(previous[magickInput]?.fuzz ?? 0, current[magickInput]?.fuzz ?? 0) : state.alphaFuzz;
+                const bounds = compareLayerBounds(previous, current, fuzz, method);
                 let next = bounds.next();
                 while (!next.done) {
                     if (!next.value) { yield; next = bounds.next(); }
@@ -14094,6 +14102,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     return stack;
                 });
             }
+            if (token === "-fuzz" || token === "+fuzz") {
+                const fuzz = state.alphaFuzz;
+                steps.push(async image => image ? { ...image, [magickInput]: { ...image[magickInput], fuzz } } : undefined);
+            }
             if (token === "-bordercolor" || token === "+bordercolor") {
                 const borderColor = state.borderColor;
                 steps.push(async image => {
@@ -14943,7 +14955,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             continue;
                         }
                     }
-                    const bounds = compareLayerBounds(previous!, current, fuzz, method);
+                    const frameFuzz = method === "removedups"
+                        ? Math.max(previous![magickInput]?.fuzz ?? 0, current[magickInput]?.fuzz ?? 0) : fuzz;
+                    const bounds = compareLayerBounds(previous!, current, frameFuzz, method);
                     let next = bounds.next();
                     while (!next.done) {
                         if (!next.value) { await yieldTurn(signal); next = bounds.next(); }
@@ -16931,7 +16945,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    }
    image = { ...metadata, storedEvaluateSamples };
   }
-  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image as StoredMagickImage)[magickInput], virtualPixel: state.optionProperties?.["virtual-pixel"] } });
+  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image as StoredMagickImage)[magickInput], virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz } });
   if(state.qualityExplicit)image={...image,quality:state.quality};
   if(state.page!==undefined)image={...image,virtualCanvas:state.page};
   if(state.composeExplicit)image={...image,properties:{...image.properties,compose:state.composeRaw}};

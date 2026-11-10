@@ -163,6 +163,29 @@ for (const command of ["mapfile", "readarray"]) {
     }
   }
 
+  for (const [flag, diagnostic] of [
+    ["n", "invalid line count"],
+    ["s", "invalid line count"],
+    ["O", "invalid array origin"],
+    ["c", "invalid callback quantum"],
+    ["u", "invalid file descriptor specification"],
+  ]) {
+    const operands = ["-1", "nope", "", "2x", "9007199254740992", ...(flag === "c" ? ["000", "+0", "-0", " 000 "] : [])];
+    for (const operand of operands) {
+      for (const attached of operand === "" ? [false] : [false, true]) test(`${command} numeric diagnostic: -${flag}, ${JSON.stringify(operand)}, attached=${attached}`, async () => {
+        const { shell, fs } = setup();
+        try {
+          await fs.writeFile("/data", new TextEncoder().encode("ONE\nTWO\n"));
+          const option = attached ? `'-${flag}${operand}'` : `-${flag} '${operand}'`;
+          const result = await shell.exec(`A=(old); exec 3</data; ${command} -u3 ${option} A; code=$?; IFS= read -ru3 next; args "\${A[@]}" "$next"; exit "$code"`);
+          assert.equal(result.exitCode, 1);
+          assert.equal(result.stdout, '["old","ONE"]');
+          assert.equal(result.stderr, `shell: line 1: ${command}: ${operand}: ${diagnostic}\n`);
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+
   for (const [declaration, name, diagnostic] of [
     ["export A=old; readonly A", "A", "readonly variable"],
     ["declare -arx A=(old)", "A", "readonly variable"],

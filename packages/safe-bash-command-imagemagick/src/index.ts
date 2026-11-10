@@ -7619,6 +7619,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             image = { ...image, [magickInput]: { ...image[magickInput],
                 imageType: imageType === "bilevel" ? "Bilevel" : imageType === "grayscale" ? "Grayscale" : imageType === "grayscalealpha" ? "GrayscaleAlpha" : undefined
             } };
+            if (space === "srgb" && (image.space === "b-w" || image.space === "grey16" || image.magickColorspace === "RGB")) image = { ...image, isPalette: false };
             const linearGray = (image.space === "b-w" || image.space === "grey16") && image.gamma === 1;
             if (linearGray && space === "lineargray") return image;
             if (linearGray && space === "rgb") return { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3, magickColorspace: "RGB" };

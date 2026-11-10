@@ -4912,9 +4912,9 @@ async function decodeStoredMagickSvg(svg: string, density: number, backend: Comp
 }
 function* extentEvaluateSamples(image: Pick<RgbaImage, "width">, layout: NonNullable<ReturnType<typeof magickExtentLayout>>, background: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const color = [background.r, background.g, background.b, background.a];
-    for (let y = 0; y < layout.height; y++) for (let x = 0; x < layout.width; x += 4096) {
+    for (let y = 0; y < layout.height; y++) for (let x = 0; x < layout.width; x += 512) {
         yield;
-        const count = Math.min(4096, layout.width - x), samples = new Float64Array(count * 4);
+        const count = Math.min(512, layout.width - x), samples = new Float64Array(count * 4);
         for (let i = 0; i < samples.length; i += 4) samples.set(color, i);
         const area = layout.area, left = Math.max(x, layout.left), right = Math.min(x + count, layout.left + (area?.width ?? 0));
         if (area && y >= layout.top && y < layout.top + area.height && right > left) {
@@ -4941,9 +4941,9 @@ function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: NonNu
     const clippedCopy = magickCompositeMode(state.composeRaw).name === "copy"
         && (layout.area?.width !== image.width || layout.area.height !== image.height);
     const color = [background.r, background.g, background.b, background.a];
-    for (let y = 0; y < layout.height; y++) for (let x = 0; x < layout.width; x += 4096) {
+    for (let y = 0; y < layout.height; y++) for (let x = 0; x < layout.width; x += 512) {
         yield;
-        const count = Math.min(4096, layout.width - x), samples = new Float64Array(count * 4);
+        const count = Math.min(512, layout.width - x), samples = new Float64Array(count * 4);
         for (let i = 0; i < samples.length; i += 4) samples.set(color, i);
         const area = layout.area, left = Math.max(x, layout.left), right = Math.min(x + count, layout.left + (area?.width ?? 0));
         if (area && y >= layout.top && y < layout.top + area.height && right > left) {
@@ -10493,9 +10493,9 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
             }
         }
         for (const y of ys) for (let row = 0; row < y.length; row++) for (const x of xs) {
-            for (let offset = 0; offset < x.length; offset += 4096) {
+            for (let offset = 0; offset < x.length; offset += 16384 / plane.stride) {
                 if (work++ % 64 === 0) await yieldTurn(signal);
-                const length = Math.min(4096, x.length - offset) * plane.stride;
+                const length = Math.min(16384 / plane.stride, x.length - offset) * plane.stride;
                 const sourceX = x.source + offset;
                 const sourceLength = y.source + row >= h ? 0 : Math.max(0, Math.min(length, (w - sourceX) * plane.stride));
                 let bytes = sourceLength > 0 ? await backend.storage.read(plane.source + ((y.source + row) * w + sourceX) * plane.stride, sourceLength) : new Uint8Array();

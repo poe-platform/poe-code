@@ -40,9 +40,9 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
     // Recompute bounded spans for the second pass, retaining floating point values
     // until equalization instead of rounding the convolution to eight bits.
     for (let pass = 0; pass < 2; pass++) {
-        for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 1024) {
+        for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 512) {
             yield;
-            const count = Math.min(1024, width - left), sums = new Float64Array(count * 4);
+            const count = Math.min(512, width - left), sums = new Float64Array(count * 4);
             for (let k = -half; k <= half; k++) {
                 yield;
                 const weight = weights[k + half]!;

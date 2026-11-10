@@ -4747,15 +4747,16 @@ function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanv
     if (g.isSubdivide) {
         const cols = Math.max(1, Math.round(g.width ?? 1));
         const rows = Math.max(1, Math.round(g.height ?? 1));
-        // Positive offsets overlap tiles; negative offsets leave gaps at their starts.
-        const width = img.width - Math.abs(g.x);
-        const height = img.height - Math.abs(g.y);
+        // Gravity anchors the subdivision counts, producing overlap between tiles.
+        const offset = gravityAdjustBox(img.width, img.height, cols, rows, g.x, g.y, gravity);
+        const width = img.width - Math.abs(offset.x);
+        const height = img.height - Math.abs(offset.y);
         for (let r = 0; r < rows; r++) {
-            const top = Math.min(img.height - 1, Math.round((r * height) / rows - Math.min(0, g.y)));
-            const nextTop = Math.max(top + 1, Math.min(img.height, Math.round(((r + 1) * height) / rows + Math.max(0, g.y))));
+            const top = Math.min(img.height - 1, Math.round((r * height) / rows - Math.min(0, offset.y)));
+            const nextTop = Math.max(top + 1, Math.min(img.height, Math.round(((r + 1) * height) / rows + Math.max(0, offset.y))));
             for (let c = 0; c < cols; c++) {
-                const left = Math.min(img.width - 1, Math.round((c * width) / cols - Math.min(0, g.x)));
-                const nextLeft = Math.max(left + 1, Math.min(img.width, Math.round(((c + 1) * width) / cols + Math.max(0, g.x))));
+                const left = Math.min(img.width - 1, Math.round((c * width) / cols - Math.min(0, offset.x)));
+                const nextLeft = Math.max(left + 1, Math.min(img.width, Math.round(((c + 1) * width) / cols + Math.max(0, offset.x))));
                 yield { left, top, width: nextLeft - left, height: nextTop - top };
             }
         }

@@ -26,7 +26,7 @@ export async function phaseAudio(
     });
     const [min, max] = ranges[key];
     if (!value || !Number.isFinite(number) || number < min! || number > max!) {
-      throw new Error(`aphaser: invalid ${key}`);
+      throw new RangeError(`aphaser: invalid ${key}`);
     }
     // Native rounds the 0..1 integer option to nearest, with ties to even.
     options[key] = key === "type" ? Number(number > 0.5) : number;

@@ -14520,6 +14520,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("aformat: unsupported option ")) return { exitCode: 8 };
             if (msg === "aformat: invalid sample rate" || msg.startsWith("aformat: unsupported sample format ") ||
                 msg.startsWith("aformat: unsupported channel layout ")) return { exitCode: 234 };
+            if (msg === "aphaser: unsupported option enable") return { exitCode: 176 };
+            if (msg.startsWith("aphaser: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("aphaser:")) return { exitCode: 222 };
+            if (msg === "aphaser: invalid expression" || msg === "aphaser: invalid or unsupported expression") return { exitCode: 234 };
             if (msg === "atempo: timeline is unsupported") return { exitCode: 176 };
             if (msg === "atempo: unknown option") return { exitCode: 8 };
             if (msg.startsWith("atempo:")) return { exitCode: err instanceof RangeError ? 222 : 234 };

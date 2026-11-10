@@ -33,6 +33,32 @@ for (const [filter, hash, frames = 2048] of [
   }
 }
 
+// Native FFmpeg 7.0.2 validation statuses and eight-sample signed 16-bit control.
+for (const [filter, exitCode] of [
+  ["aphaser=wrong=1", 8],
+  ["aphaser=type=garbage", 234],
+  ["aphaser=type=42", 222],
+  ["aphaser=type=t:enable=0", 176],
+  ["aphaser=in_gain=2", 222],
+  ["aphaser=out_gain=1e9+1", 222],
+  ["aphaser=delay=6", 222],
+  ["aphaser=decay=1", 222],
+  ["aphaser=speed=0", 222],
+  ["aphaser=type=t", 0]
+] as const) {
+  for (const graph of [false, true]) {
+    it(`${filter} returns native status ${exitCode} and output bytes (${graph ? "graph" : "simple"})`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from([-12655, 12655, 1, -1, 32767, -32768, 0, 300], value => value / 32768)
+      ] }, { bitsPerSample: 16 });
+      const { volume, result, stderr } = await run(filter, graph, 8, input);
+      assert.equal(result.exitCode, exitCode, stderr);
+      assert.equal((volume.readFileSync("/out.raw") as Buffer).toString("hex"),
+        exitCode === 0 ? "5ff1c7088303670172267ee900f7bffc" : "4b454550");
+    });
+  }
+}
+
 // Native FFmpeg 9.0.1, unsigned 8-bit mono WAV to signed 16-bit raw PCM.
 for (const [filter, hash] of [
   ["anull", "08bf20a6df02b84d99d1bc9538cf14bbf377d59ffe2e1ccfcf9551ea0eda1c37"],

@@ -2081,6 +2081,11 @@ function resolveMagickSpliceGeometry(raw: string, width: number, height: number)
     // Splice treats @ dimensions literally and ignores # without dropping dimensions or offsets.
     let g = parseMagickGeometry(raw.replaceAll("@", "").replaceAll("#", ""));
     const dimensionSeparator = raw.toLowerCase().indexOf("x");
+    // A second decimal point in the width leaves the entire native rectangle untouched.
+    if (dimensionSeparator >= 0 && !raw.trimStart().startsWith("+") && !raw.trimStart().startsWith("-")
+        && raw.slice(0, dimensionSeparator).split(".").length > 2) {
+        return { ...g, width, height, x: 0, y: 0 };
+    }
     const suffix = [...raw].findIndex(character => character === ":" || character === "/");
     if (dimensionSeparator >= 0 && suffix > dimensionSeparator) {
         // GetGeometry stops before parsing dimensions when it encounters a slash.
@@ -2138,6 +2143,11 @@ function resolveMagickChopGeometry(raw: string, image: Pick<RgbaImage, "width" |
     // Chop ignores # and treats % anywhere as a dimension modifier, preserving pixel offsets.
     let g = parseMagickGeometry(raw.replaceAll("#", "").replaceAll("%", "") + (raw.includes("%") ? "%" : ""));
     const dimensionSeparator = raw.toLowerCase().indexOf("x");
+    // A second decimal point in the width leaves the entire native rectangle untouched.
+    if (dimensionSeparator >= 0 && !raw.trimStart().startsWith("+") && !raw.trimStart().startsWith("-")
+        && raw.slice(0, dimensionSeparator).split(".").length > 2) {
+        return { ...g, width: image.virtualCanvas?.width || width, height: image.virtualCanvas?.height || height, x: 0, y: 0 };
+    }
     const suffix = [...raw].findIndex(character => character === ":" || character === "/");
     if (dimensionSeparator >= 0 && suffix > dimensionSeparator) {
         // A slash stops GetGeometry before dimensions or offsets are read.

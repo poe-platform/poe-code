@@ -26,10 +26,14 @@ for (const [filter, hash] of [
   assert.equal(createHash("sha256").update(pcm).digest("hex"), hash);
 });
 
-for (const option of ["boost=0", "cutoff=901", "feedback=-1", "dry=2", "wet=NaN", "decay=2", "slope=0", "delay=101", "boost=", "unknown=1", "channels=", "channels=invalid"]) {
+for (const [option, exitCode] of [
+  ["boost=0", 222], ["cutoff=901", 222], ["feedback=-1", 222], ["dry=2", 222],
+  ["wet=NaN", 234], ["decay=2", 222], ["slope=0", 222], ["delay=101", 222],
+  ["boost=", 234], ["unknown=1", 8], ["channels=", 234], ["channels=invalid", 234]
+] as const) {
   it(`rejects ${option} without replacing output`, async () => {
     const { volume, result } = await run(`asubboost=${option}`);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, exitCode);
     assert.equal(volume.readFileSync("/out.wav", "utf8"), "KEEP");
   });
 }
@@ -109,3 +113,35 @@ it("supports positional selection and explicit speaker names", async () => {
   assert.deepEqual(output[0], mono);
   assert.ok(output[1]!.every(sample => sample === 0));
 });
+
+// Native FFmpeg 7.0.2 statuses and complete raw output for eight stereo PCM16 frames.
+for (const [option, exitCode] of [
+  ["wet=2", 222], ["nope=1", 8], ["delay=bad", 234], ["wet=0.5", 0]
+] as const) for (const graph of [false, true]) {
+  it(`asubboost=${option} returns native status and preserves output on error (graph=${graph})`, async () => {
+    const volume = Volume.fromJSON({ "/out": "KEEP" });
+    volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [
+      Float64Array.from([-32768, -8000, 4000, 12000, 16000, 12000, 8000, 4000], value => value / 32768),
+      Float64Array.from([16000, 12000, 8000, 4000, -4000, -8000, -12000, -16000], value => value / 32768)
+    ] }, { bitsPerSample: 16 }));
+    const filter = `asubboost=${option}`;
+    let stderr = "";
+    let writes = 0;
+    const result = await createFfmpegCommand().execute({
+      args: ["-y", "-v", "error", "-i", "in.wav", ...(graph
+        ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-f", "s16le", "out"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { writes++; volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(), stdout: { async write() {} },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, exitCode, stderr);
+    assert.equal((volume.readFileSync("/out") as Buffer).toString("hex"), exitCode === 0
+      ? "00c0401f60f07017d007a00f7017d007401f30f8701760f0a00f90e8d007c0e0" : "4b454550");
+    if (exitCode !== 0) assert.equal(writes, 0);
+  });
+}

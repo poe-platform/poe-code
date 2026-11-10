@@ -14546,6 +14546,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "acontrast: unknown option") return { exitCode: 8 };
             if (msg === "acontrast: invalid expression" || msg === "acontrast: invalid or unsupported expression") return { exitCode: 234 };
             if (err instanceof RangeError && msg.startsWith("acontrast:")) return { exitCode: 222 };
+            if (msg.startsWith("asubboost: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("asubboost: invalid ")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("apad: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("apad:")) return { exitCode: 222 };
             if (msg.startsWith("apad: invalid ") || msg === "apad: pad_len and whole_len are mutually exclusive") return { exitCode: 234 };

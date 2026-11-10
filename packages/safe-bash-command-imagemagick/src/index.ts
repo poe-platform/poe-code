@@ -2384,7 +2384,8 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
 }
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
-    const value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
+    let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
+    if (["-swirl", "-implode", "-wave"].includes(option)) value = value.replaceAll("(", "").replaceAll(")", "");
     const forcedRegionResize = (option === "-liquid-rescale" || option === "-adaptive-resize") && value.includes("!");
     let dimensions = false;
     for (const char of value) {
@@ -2395,7 +2396,7 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
         }
     }
     if (!value || value === "+" || value === "-") throw new Error(`invalid argument for option '${option}': ${raw}`);
-    if (option === "-chop" && !dimensions) {
+    if (["-chop", "-swirl", "-implode", "-wave"].includes(option) && !dimensions) {
         const geometry = parseMagickGeometry(value.replaceAll("#", ""));
         if (geometry.width !== undefined && geometry.hasOffset) {
             throw new Error(`invalid argument for option '${option}': ${raw}`);
@@ -3718,6 +3719,7 @@ function solveLinearSystem(A: number[][], b: number[]): number[] {
 }
 
 function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, token: string, spec: string, args = "0"): WarpPlan | undefined {
+    if (["-swirl", "-implode", "-wave"].includes(token)) spec = spec.replaceAll("(", "").replaceAll(")", "");
     const w = img.width, h = img.height, cx = (w - 1) / 2, cy = (h - 1) / 2;
     const result = (map: WarpPlan["map"], width = w, height = h, hasAlpha = true): WarpPlan => ({ width, height, hasAlpha, map });
     const bestFit = (plan: WarpPlan, forward: WarpPlan["map"]): WarpPlan => {

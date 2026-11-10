@@ -21,18 +21,12 @@ async function cutRanges(list: string, work: SortWork): Promise<CutRange[]> {
   let start = 0;
   let end = 0;
   let invalid = false;
-  let needsRange = true;
   for (let index = 0; index <= list.length; index++) {
     const checkpoint = work.charge();
     if (checkpoint) await checkpoint;
     const character = list[index];
     if (character === "," || character === " " || character === "\t" || index === list.length) {
-      if (index === tokenStart) {
-        if (needsRange && (character === "," || index === list.length)) throw new UsageError("invalid range ''");
-        if (character === ",") needsRange = true;
-        tokenStart = index + 1;
-        continue;
-      }
+      if (index === tokenStart) throw new PublicDiagnostic("invalid range ''");
       if (invalid || (dash === tokenStart && dash === index - 1)) throw new UsageError(`invalid range '${list.slice(tokenStart, index)}'`);
       if (dash === tokenStart) start = 1;
       if (dash < 0) end = start;
@@ -42,7 +36,6 @@ async function cutRanges(list: string, work: SortWork): Promise<CutRange[]> {
       if (!openEnd && (!Number.isSafeInteger(end) || end < 1)) throw new UsageError(`invalid number '${list.slice(dash < 0 ? tokenStart : dash + 1, index)}'`);
       if (end < start) throw new PublicDiagnostic(`invalid decreasing range '${list.slice(tokenStart, index)}'`);
       ranges.push({ start, end });
-      needsRange = character === ",";
       tokenStart = index + 1;
       dash = -1;
       start = 0;

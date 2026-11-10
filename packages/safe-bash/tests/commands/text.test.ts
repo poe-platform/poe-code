@@ -812,10 +812,10 @@ test("cut preserves range union record and Unicode behavior across chunk boundar
   assert.equal((await run("cut", ["-c", "1-"], { stdin: "\uFEFFa\uFEFFb\n\uFEFFc\n" })).stdout, "\uFEFFa\uFEFFb\n\uFEFFc\n");
   assert.equal((await run("cut", ["-b", "1-"], { stdin: "\uFEFFa\n" })).stdout, "\uFEFFa\n");
   assert.equal((await run("cut", ["-b", Array(10001).fill("1").join(",")], { stdin: "abc\n" })).stdout, "a\n");
-  for (const ranges of ["", "0", "-", "1--2", "1,", ",1", "9007199254740992"]) {
+  for (const ranges of ["0", "-", "1--2", "9007199254740992"]) {
     assert.equal((await run("cut", ["-b", ranges])).exitCode, 2, ranges);
   }
-  assert.equal((await run("cut", ["-b", "01,, 2"], { stdin: "abc\n" })).exitCode, 2);
+  assert.equal((await run("cut", ["-b", "01,, 2"], { stdin: "abc\n" })).exitCode, 1);
 });
 
 test("cut keeps adjacent range boundaries and merges only overlaps", async () => {
@@ -833,20 +833,29 @@ test("cut keeps adjacent range boundaries and merges only overlaps", async () =>
   assert.equal((await run("cut", ["-c", "1,2-3", "--output-delimiter=:"], { stdin: "é😀z\n" })).stdout, "é:😀z\n");
 });
 
-test("cut accepts blank separators and padding while rejecting empty comma items", async () => {
+test("cut accepts single separators and rejects empty list entries before reading input", async () => {
   for (const mode of ["-b", "-c", "-f"]) {
     const args = mode === "-f" ? ["-d", ":"] : [];
-    const stdin = mode === "-f" ? "a:b:c\n" : "abc\n";
-    for (const list of [" 1,2", "1,2 ", "1\t2", "\t1 , \t2\t ", "1  2", "1,\t2", "1 2,3"]) {
-      const result = await run("cut", [mode, list, ...args, "--output-delimiter=|"], { stdin });
+    for (const [list, bytes, fields] of [["1 2", "a:", "a:b"], ["1\t2", "a:", "a:b"], ["1,2", "a:", "a:b"], ["1 2,3", "a:b", "a:b:c"], ["1-2 3", "a:b", "a:b:c"], ["-2\t3-", "a:b:c", "a:b:c"]] as const) {
+      const result = await run("cut", [mode, list, ...args], {
+        commands: textCommands(), env: { LC_ALL: "C" }, stdin: "a:b:c",
+      });
       assert.equal(result.exitCode, 0, `${JSON.stringify(list)}: ${result.stderr}`);
-      assert.equal(result.stdout, list === "1 2,3" ? "a|b|c\n" : "a|b\n");
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `${mode === "-f" ? fields : bytes}\n`);
     }
-    for (const list of ["1,,2", "1, ,2", "1,\t,2", ",1", "1,", "1, ", " \t", "1\n2"]) {
-      const result = await run("cut", [mode, list, ...args], { stdin });
-      assert.equal(result.exitCode, 2, JSON.stringify(list));
+    for (const list of ["1  2", "", "1\t\t2", "1 \t2", "1\t 2", "1, 2", "1,\t2", "1 ,2", "1\t,2", " 1", "\t1", "1 ", "1\t", "1,,2", "1, ,2", "1,\t,2", ",1", "1,", "1, ", " \t"]) {
+      let reads = 0;
+      const result = await run("cut", [mode, list, ...args], {
+        commands: textCommands(), env: { LC_ALL: "C" },
+        stdin: { async *[Symbol.asyncIterator]() { reads++; yield Buffer.from("a:b:c"); } },
+      });
+      assert.equal(result.exitCode, 1, JSON.stringify(list));
       assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "cut: invalid range ''\n");
+      assert.equal(reads, 0);
     }
+    assert.equal((await run("cut", [mode, "1\n2", ...args], { commands: textCommands() })).exitCode, 2);
   }
 });
 

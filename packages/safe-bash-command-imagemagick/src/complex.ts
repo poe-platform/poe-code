@@ -1,16 +1,22 @@
 import type { RgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-export function parseComplexOperator(value: string | undefined): "add" | "subtract" | "multiply" | "conjugate" | "magnitudephase" | "realimaginary" {
+export function parseComplexOperator(value: string | undefined): "add" | "subtract" | "multiply" | "conjugate" | "divide" | "magnitudephase" | "realimaginary" {
     if (!value) throw new Error("missing argument '-complex'");
     const operation = value.toLowerCase();
     if (operation === "undefined") return "conjugate";
-    if (operation !== "add" && operation !== "subtract" && operation !== "conjugate" && operation !== "multiply" && operation !== "magnitudephase" && operation !== "realimaginary") throw new Error(`unsupported complex operator '${value}'`);
+    if (operation !== "add" && operation !== "subtract" && operation !== "conjugate" && operation !== "multiply" && operation !== "divide" && operation !== "magnitudephase" && operation !== "realimaginary") throw new Error(`unsupported complex operator '${value}'`);
     return operation;
 }
 
-export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, operation: "add" | "subtract" | "multiply" | "conjugate" | "magnitude" | "phase" | "real" | "imaginary", images: readonly Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha">[], gray: boolean, grayOnly: boolean, part: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, operation: "add" | "subtract" | "multiply" | "conjugate" | "divide" | "magnitude" | "phase" | "real" | "imaginary", images: readonly Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha">[], gray: boolean, grayOnly: boolean, part: number, snr: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const base = images[0]!;
+    const divide = (a: number, b: number, c: number, d: number) => {
+        // Components are normalized; b and d belong to the denominator pair.
+        const denominator = b * b + d * d + snr;
+        return (part === 0 ? a * b + c * d : a * d - c * b)
+            / (Math.abs(denominator) < 1e-12 ? 1e-12 : denominator);
+    };
     for (let y = 0; y < base.height; y++) for (let x = 0; x < base.width;) {
         yield;
         // Only the first pair bounds arithmetic; preserve original samples outside it.
@@ -45,6 +51,8 @@ export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, 
             }
             if (operation === "conjugate") return part === 0 ? inputs[0]![offset]! : -inputs[0]![offset]!;
             // Inputs are matching components of the two pairs, then their opposite components.
+            if (operation === "divide") return 255 * divide(inputs[0]![offset]! / 255, inputs[1]![offset]! / 255,
+                inputs[2]![offset]! / 255, inputs[3]![offset]! / 255);
             if (operation === "multiply") return (part === 0
                 ? inputs[0]![offset]! * inputs[1]![offset]! - inputs[2]![offset]! * inputs[3]![offset]!
                 : inputs[0]![offset]! * inputs[3]![offset]! + inputs[2]![offset]! * inputs[1]![offset]!) / 255;
@@ -61,6 +69,7 @@ export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, 
             if (active) for (let offset = 0; offset < length; offset += 4) {
                 const black = inks[1]?.[offset + 3] ?? 0;
                 output[offset + 3] = operation === "conjugate" ? (part === 0 ? inks[0][offset + 3]! : -inks[0][offset + 3]!)
+                    : operation === "divide" ? divide(inks[0][offset + 3]!, black, inks[2]?.[offset + 3] ?? 0, inks[3]?.[offset + 3] ?? 0)
                     : operation === "multiply" ? (part === 0
                     ? inks[0][offset + 3]! * black - (inks[2]?.[offset + 3] ?? 0) * (inks[3]?.[offset + 3] ?? 0)
                     : inks[0][offset + 3]! * (inks[3]?.[offset + 3] ?? 0) + (inks[2]?.[offset + 3] ?? 0) * black)

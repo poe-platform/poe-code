@@ -711,6 +711,7 @@ interface MagickState {
   magnifyMethod?: MagnifyMethod;
   modulateColorspace?: string;
   whiteBalanceVibrance?: string;
+  complexSnr?: number;
   resizeFilter?: ResizeFilterSettings;
   sampleOffset?: { x: number; y: number };
   pointFilter?: boolean;
@@ -8825,6 +8826,7 @@ if (t === "-seed") {
             if (key === "tiff:rows-per-strip") delete state.tiffRowsPerStrip;
             if (key === "dither:diffusion-amount") delete state.diffusionAmount;
             if (key === "modulate:colorspace") delete state.modulateColorspace;
+            if (key === "complex:snr") delete state.complexSnr;
             if (key === "white-balance:vibrance") delete state.whiteBalanceVibrance;
             if (key === "magnify:method") delete state.magnifyMethod;
             if (key === "trim:edges") delete state.trimEdges;
@@ -8851,6 +8853,7 @@ if (t === "-seed") {
                 state.diffusionAmount = Number.isFinite(amount) ? amount / (filterValue?.includes("%") ? 100 : 1) : 0;
             }
             if (filterKey === "modulate:colorspace") state.modulateColorspace = filterValue ?? "hsl";
+            if (filterKey === "complex:snr") state.complexSnr = Number.parseFloat(filterValue ?? "") || 0;
             if (filterKey === "white-balance:vibrance") state.whiteBalanceVibrance = filterValue ?? "";
             if (filterKey === "sample:offset") {
                 const geometry = parseMagickGeometry(filterValue ?? "");
@@ -9659,13 +9662,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             for (let part = 0; part < 2; part++) {
                 const base = stack[part]!;
                 const inputs: RgbaImage[] = [];
-                for (const index of polar ? [part, 1 - part] : operation === "conjugate" ? [part] : operation === "multiply" ? [part, part + 2, 1 - part, 3 - part] : [part, part + 2]) {
+                for (const index of polar ? [part, 1 - part] : operation === "conjugate" ? [part] : (operation === "multiply" || operation === "divide") ? [part, part + 2, 1 - part, 3 - part] : [part, part + 2]) {
                     let input = stack[stack.length >= 4 ? index : index % 2]!;
                     if (input.width !== base.width || input.height !== base.height)
                         input = yield* applyMagickRasterSteps(input, extendEdgePixelSteps(input, base.width, base.height, true, input.virtualPixel, state.background), signal, { ...input, width: base.width, height: base.height });
                     inputs.push(input);
                 }
-                let output = yield* applyMagickRasterSteps(base, complexPixelSteps(extent, operation === "magnitudephase" ? (part === 0 ? "magnitude" : "phase") : operation === "realimaginary" ? (part === 0 ? "real" : "imaginary") : operation, inputs, base.space === "b-w" || base.space === "grey16", grayOnly, part), signal, base, inputs);
+                let output = yield* applyMagickRasterSteps(base, complexPixelSteps(extent, operation === "magnitudephase" ? (part === 0 ? "magnitude" : "phase") : operation === "realimaginary" ? (part === 0 ? "real" : "imaginary") : operation, inputs, base.space === "b-w" || base.space === "grey16", grayOnly, part, state.complexSnr ?? 0), signal, base, inputs);
                 if (base.writeMask) output = yield* applyMagickRasterSteps(output, writeMaskPixelSteps(output, base.writeMask, true), signal, output, [output, base, base.writeMask]);
                 result.push(output);
             }
@@ -10192,6 +10195,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const geometry = yield* formatMagickPropertyStringSteps(geom, im, () => im, context);
                 validateMagickStatisticGeometry(geometry);
                 const plan = magickMorphologyPlan(method, geometry, true);
+                if (state.virtualPixel === "transparent" && (!state.channelExplicit || state.channels.a)) im = { ...im, hasAlpha: true };
                 return (yield* applyMagickMorphology4ChSteps(im, plan, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.virtualPixel, state.background));
             });
         }
@@ -11119,7 +11123,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-complex") {
-            const argument = tokens[++i], { background, optionProperties } = state;
+            const argument = tokens[++i], { background, optionProperties, complexSnr } = state;
             stackStep(async (stack, backend) => {
                 const image = await stack.get(0);
                 const expanded = image && argument !== undefined ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack) : argument;
@@ -11137,13 +11141,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 for (let part = 0; part < 2; part++) {
                     const base: StoredRgbaImage = (await stack.get(part))!;
                     const inputs: StoredRgbaImage[] = [];
-                    for (const index of polar ? [part, 1 - part] : operation === "conjugate" ? [part] : operation === "multiply" ? [part, part + 2, 1 - part, 3 - part] : [part, part + 2]) {
+                    for (const index of polar ? [part, 1 - part] : operation === "conjugate" ? [part] : (operation === "multiply" || operation === "divide") ? [part, part + 2, 1 - part, 3 - part] : [part, part + 2]) {
                         let input: StoredRgbaImage = (await stack.get(stack.length >= 4 ? index : index % 2))!;
                         if (input.width !== base.width || input.height !== base.height)
                             input = await transformStoredMagickRaster(input, backend, extendEdgePixelSteps(input, base.width, base.height, true, input.virtualPixel, background), signal, { ...input, width: base.width, height: base.height });
                         inputs.push(input);
                     }
-                    let output = await transformStoredMagickRaster(base, backend, complexPixelSteps(extent, operation === "magnitudephase" ? (part === 0 ? "magnitude" : "phase") : operation === "realimaginary" ? (part === 0 ? "real" : "imaginary") : operation, inputs, base.space === "b-w" || base.space === "grey16", grayOnly, part), signal, base, inputs);
+                    let output = await transformStoredMagickRaster(base, backend, complexPixelSteps(extent, operation === "magnitudephase" ? (part === 0 ? "magnitude" : "phase") : operation === "realimaginary" ? (part === 0 ? "real" : "imaginary") : operation, inputs, base.space === "b-w" || base.space === "grey16", grayOnly, part, complexSnr ?? 0), signal, base, inputs);
                     if (base.storedWriteMask) output = await transformStoredMagickRaster(output, backend, writeMaskPixelSteps(output, base.storedWriteMask, true), signal, output, [output, base, base.storedWriteMask]);
                     await result.push(output);
                 }
@@ -12256,6 +12260,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 validateMagickStatistic(method);
                 const geometry = await formatRetainedIdentify(geom, image, context, async () => ({ image, storage: backend.storage }), signal);
                 validateMagickStatisticGeometry(geometry);
+                if (virtualPixel === "transparent" && (!channels || channels[3])) image = { ...image, hasAlpha: true };
                 return morphStoredMagickImage(image, backend, magickMorphologyPlan(method, geometry, true), signal, channels, virtualPixel, background);
             });
         } else if (!operandsOnly && token === "-morphology") {

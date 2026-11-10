@@ -2046,7 +2046,7 @@ function resolveMagickChopGeometry(raw: string, width: number, height: number) {
     const offsetOnly = g.hasOffset && g.width === undefined && g.height === undefined;
     return {
         ...g,
-        width: offsetOnly ? width : Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? width / 100 : 1))),
+        width: offsetOnly ? width : Math.max(0, Math.round((g.width ?? (g.isPercent ? 100 : 0)) * (g.isPercent ? width / 100 : 1))),
         height: offsetOnly ? height : Math.max(0, Math.round((g.height ?? (g.isPercent ? g.width ?? 0 : raw.toLowerCase().includes("x") ? 0 : height)) * (g.isPercent ? height / 100 : 1)))
     };
 }

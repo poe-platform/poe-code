@@ -11152,8 +11152,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-lat") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const geometry = parseLocalThresholdGeometry(tokens[++i] ?? "");
+            const raw = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const geometry = parseLocalThresholdGeometry(expanded);
                 return yield* applyMagickRasterSteps({ ...im, isPalette: false }, localThresholdPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
             });
         }
@@ -14012,8 +14014,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const geometry = parseLocalThresholdGeometry(tokens[++i] ?? ""), background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: false }, backend, localThresholdPixelSteps(image, geometry, background, virtualPixel, channels), signal) : undefined);
+            const raw = tokens[++i] ?? "", { background, virtualPixel, optionProperties } = state, channels = state.channelExplicit ? state.channels : undefined;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const geometry = parseLocalThresholdGeometry(expanded);
+                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, localThresholdPixelSteps(image, geometry, background, virtualPixel, channels), signal);
+            });
         } else if (!operandsOnly && token === "-kmeans") {
             const geometry = parseKmeansGeometry(tokens[++i] ?? "");
             steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, kmeansPixelSteps(image, geometry), signal) : undefined);

@@ -9,20 +9,37 @@ type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined
 export type LookupInterpolation = "background" | "blend" | "bilinear" | "nearest" | "integer" | "average" | "average9" | "average16" | "mesh" | "catrom" | "spline";
 
 function* sampleLookup(lut: { width: number; height: number }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
-    if (interpolation === "average9" || interpolation === "average16" || interpolation === "blend" || interpolation === "mesh" || interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported lookup interpolation: ${interpolation}`);
+    if (interpolation === "average9" || interpolation === "average16" || interpolation === "blend" || interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported lookup interpolation: ${interpolation}`);
     const nearest = interpolation === "nearest", single = nearest || interpolation === "integer";
     const left = Math.floor(x + (nearest ? 0.5 : 0)), top = Math.floor(y + (nearest ? 0.5 : 0));
     const dx = x - left, dy = y - top, values = [0, 0, 0, 0];
+    const meshPixels: (Uint8Array | Uint16Array)[] = [];
+    let meshWeights: number[] | undefined;
+    if (interpolation === "mesh") {
+        for (let row = 0; row < 2; row++) for (let column = 0; column < 2; column++) {
+            const position = (Math.max(0, Math.min(lut.height - 1, top + row)) * lut.width + Math.max(0, Math.min(lut.width - 1, left + column))) * 4;
+            const bytes = (yield { kind: "read", highDepth, image: 1, position, length: 4 })!;
+            meshPixels.push(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
+        }
+        const luma = meshPixels.map(p => 0.212656 * p[0]! + 0.715158 * p[1]! + 0.072186 * p[2]!);
+        // Split along the diagonal with the smaller luminance difference.
+        meshWeights = Math.abs(luma[0]! - luma[3]!) < Math.abs(luma[1]! - luma[2]!)
+            ? dx <= dy ? [1 - dy, 0, dy - dx, dx] : [1 - dx, dx - dy, 0, dy]
+            : dx <= 1 - dy ? [1 - dx - dy, dx, dy, 0] : [0, 1 - dy, 1 - dx, dx + dy - 1];
+    }
     for (let row = 0; row < (single ? 1 : 2); row++) for (let column = 0; column < (single ? 1 : 2); column++) {
-        const weight = single ? 1 : interpolation === "average" ? 0.25 : (column ? dx : 1 - dx) * (row ? dy : 1 - dy);
+        const weight = meshWeights?.[row * 2 + column] ?? (single ? 1 : interpolation === "average" ? 0.25 : (column ? dx : 1 - dx) * (row ? dy : 1 - dy));
         if (!weight) continue;
         const position = (Math.max(0, Math.min(lut.height - 1, top + row)) * lut.width + Math.max(0, Math.min(lut.width - 1, left + column))) * 4;
-        const bytes = (yield { kind: "read", highDepth, image: 1, position, length: 4 })!;
-        const pixel = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+        let pixel = meshPixels[row * 2 + column];
+        if (!pixel) {
+            const bytes = (yield { kind: "read", highDepth, image: 1, position, length: 4 })!;
+            pixel = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+        }
         for (let channel = 0; channel < 3; channel++) values[channel]! += pixel[channel]! * weight * (single ? 1 : interpolation === "average" ? Number(pixel[3]! > 0) : pixel[3]!);
         values[3]! += pixel[3]! * weight;
     }
-    if (interpolation === "bilinear" || interpolation === "background") for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
+    if (interpolation === "bilinear" || interpolation === "background" || interpolation === "mesh") for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
     return values;
 }
 

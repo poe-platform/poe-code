@@ -9281,7 +9281,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-unique-colors") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            stack = yield* mapMagickImagesSteps(stack, uniqueColorsSteps);
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                const result = yield* uniqueColorsSteps(image);
+                // Native creates a fresh, zero-valued write-mask channel on the palette.
+                return { ...result, writeMask: image.writeMask ? yield* createSolidRgbaImageSteps(result.width, 1, { r: 0, g: 0, b: 0, a: 255 }) : undefined };
+            });
         }
         else if (t === "-colors") {
             const colors = Number(tokens[++i]);
@@ -11440,7 +11444,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            steps.push(async (image, backend) => image ? uniqueColorsStored(image, backend.storage, signal) : undefined);
+            steps.push(async (image, backend) => {
+                if (!image) return undefined;
+                const result = await uniqueColorsStored(image, backend.storage, signal);
+                return { ...result, storedWriteMask: image.storedWriteMask ? await createStoredCanvas(result.width, 1, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined };
+            });
             continue;
         }
         if (!operandsOnly && token === "-colors") {

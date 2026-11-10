@@ -4737,12 +4737,15 @@ function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanv
     if (g.isSubdivide) {
         const cols = Math.max(1, Math.round(g.width ?? 1));
         const rows = Math.max(1, Math.round(g.height ?? 1));
+        // Positive offsets overlap tiles; negative offsets leave gaps at their starts.
+        const width = img.width - Math.abs(g.x);
+        const height = img.height - Math.abs(g.y);
         for (let r = 0; r < rows; r++) {
-            const top = Math.min(img.height - 1, Math.round((r * img.height) / rows));
-            const nextTop = Math.max(top + 1, Math.min(img.height, Math.round(((r + 1) * img.height) / rows)));
+            const top = Math.min(img.height - 1, Math.round((r * height) / rows - Math.min(0, g.y)));
+            const nextTop = Math.max(top + 1, Math.min(img.height, Math.round(((r + 1) * height) / rows + Math.max(0, g.y))));
             for (let c = 0; c < cols; c++) {
-                const left = Math.min(img.width - 1, Math.round((c * img.width) / cols));
-                const nextLeft = Math.max(left + 1, Math.min(img.width, Math.round(((c + 1) * img.width) / cols)));
+                const left = Math.min(img.width - 1, Math.round((c * width) / cols - Math.min(0, g.x)));
+                const nextLeft = Math.max(left + 1, Math.min(img.width, Math.round(((c + 1) * width) / cols + Math.max(0, g.x))));
                 yield { left, top, width: nextLeft - left, height: nextTop - top };
             }
         }

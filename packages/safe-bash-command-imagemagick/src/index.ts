@@ -742,7 +742,7 @@ interface MagickState {
   dither: false | "riemersma" | "floydsteinberg";
   diffusionAmount?: number;
   quantizeGray?: boolean;
-  colors?: number;
+  colors?: { count: number };
   treeDepth?: number;
   formatStr: string | undefined;
   channels: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean; meta?: number[] };
@@ -10203,13 +10203,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-colors") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const colors = parseMagickColorCount(tokens[++i] ?? "");
-            state.colors = colors;
+            const value = tokens[++i] ?? "";
+            const colors = value.includes("%") ? undefined : parseMagickColorCount(value);
+            const quantization = state.colors = { count: colors ?? 256 };
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                const count = quantization.count = colors ?? parseMagickColorCount(yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }));
                 // Native quantizes these working colorspaces in sRGB.
                 if (image.magickColorspace && image.magickColorspace !== "RGB") image = yield* convertHuePixels(image, "sRGB");
                 const { hueSamples: ignoredHue, ...pixels } = image;
-                const output = yield* applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, colors, state.quantizeGray, state.treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, state.dither ? { width: image.width, height: image.height, method: state.dither, diffusionAmount: state.diffusionAmount ?? 1 } : undefined, true), signal);
+                const output = yield* applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, count, state.quantizeGray, state.treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, state.dither ? { width: image.width, height: image.height, method: state.dither, diffusionAmount: state.diffusionAmount ?? 1 } : undefined, true), signal);
                 // Native classifies the resulting colormap, even without reducing its size.
                 if (!output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
                 const { magickColorspace: ignoredSpace, ...gray } = output;
@@ -10709,7 +10711,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const palSpec = t === "-remap" ? tokens[++i] ?? "" : "";
             const palImg = t === "+remap"
-                ? yield* applyMagickRasterSteps(stack[0]!, quantizeImageListSteps(stack.map(image => ({ length: image.data.length, hasAlpha: image.hasAlpha })), state.colors ?? 256, state.quantizeGray, state.treeDepth), signal,
+                ? yield* applyMagickRasterSteps(stack[0]!, quantizeImageListSteps(stack.map(image => ({ length: image.data.length, hasAlpha: image.hasAlpha })), state.colors?.count ?? 256, state.quantizeGray, state.treeDepth), signal,
                     { width: stack.reduce((sum, image) => sum + image.width * image.height, 0), height: 1, hasAlpha: stack.some(image => image.hasAlpha) }, stack)
                 : palSpec.slice(0, 4).toLowerCase() === "mpr:"
                 ? registers.get(palSpec.slice(4).toLowerCase())?.[0]
@@ -12767,12 +12769,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const colors = parseMagickColorCount(tokens[++i] ?? ""), grayscale = state.quantizeGray, treeDepth = state.treeDepth, dither = state.dither, diffusionAmount = state.diffusionAmount ?? 1;
-            state.colors = colors;
+            const value = tokens[++i] ?? "", optionProperties = state.optionProperties, grayscale = state.quantizeGray, treeDepth = state.treeDepth, dither = state.dither, diffusionAmount = state.diffusionAmount ?? 1;
+            const colors = value.includes("%") ? undefined : parseMagickColorCount(value);
+            const quantization = state.colors = { count: colors ?? 256 };
             steps.push(async (image, backend) => {
                 if (!image) return;
+                const source = image;
+                const count = quantization.count = colors ?? parseMagickColorCount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image: source, storage: backend.storage }), signal));
                 if (image.magickColorspace && image.magickColorspace !== "RGB") image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
-                const output = await transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, colors, grayscale, treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true), signal);
+                const output = await transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, count, grayscale, treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true), signal);
                 if (!output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
                 const { magickColorspace: ignoredSpace, ...gray } = output;
                 return { ...gray, space: "b-w", channels: output.hasAlpha ? 2 : 1 };
@@ -13536,7 +13541,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     hasAlpha ||= image.hasAlpha;
                 }
                 const colors = await transformStoredMagickRaster((await stack.get(0))!, backend,
-                    quantizeImageListSteps(images, settings.colors ?? 256, settings.quantizeGray, settings.treeDepth), signal,
+                    quantizeImageListSteps(images, settings.colors?.count ?? 256, settings.quantizeGray, settings.treeDepth), signal,
                     { width, height: 1, hasAlpha }, async index => (await stack.get(index))!);
                 for (let n = 0; n < stack.length; n++) {
                     const image = (await stack.get(n))!;

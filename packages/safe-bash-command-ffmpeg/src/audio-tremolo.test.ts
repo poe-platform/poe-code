@@ -81,6 +81,25 @@ for (const [filter, hash] of [
   });
 }
 
+// Native FFmpeg 7.0.2: 16 constant PCM16 samples, split into four-sample frames.
+for (const enable of ["PI", "E", "PHI", "1", "0"]) {
+  for (const graph of [false, true]) {
+    it(`tremolo enable=${enable} matches native PCM (${graph ? "graph" : "simple"})`, async () => {
+      const { volume, result, stderr } = await run(
+        `asetnsamples=n=4:p=0,tremolo=f=1000:d=1:enable=${enable}`,
+        graph, [new Float64Array(16).fill(16000 / 32768)]
+      );
+      assert.equal(result.exitCode, 0, stderr);
+      const samples = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
+      const pcm = Buffer.alloc(samples.length * 2);
+      for (let i = 0; i < samples.length; i++) pcm.writeInt16LE(Math.round(samples[i]! * 32768), i * 2);
+      assert.equal(pcm.toString("hex"), enable === "0"
+        ? "803e".repeat(16)
+        : "803e5935401f270900002709401f5935803e5935401f270900002709401f5935");
+    });
+  }
+}
+
 for (const enable of ["", "unknown", "gte(t,)"]) {
   it(`rejects invalid tremolo enable=${enable} without replacing output`, async () => {
     const { volume, result, stderr } = await run(`tremolo=enable='${enable}'`);

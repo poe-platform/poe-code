@@ -16,7 +16,7 @@ export async function tremoloAudio(
     const key = separator < 0 ? ["f", "d"][index] : option.slice(0, separator).trim();
     if (key === "enable") {
       enable = option.slice(separator + 1).trim();
-      parseFilterExpression(enable, "tremolo enable", { n: 0, t: 0 });
+      parseFilterExpression(enable, "tremolo enable", { n: 0, t: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 });
       continue;
     }
     if (key !== "f" && key !== "d") throw new Error(`tremolo: unsupported option ${key}`);
@@ -41,7 +41,7 @@ export async function tremoloAudio(
   let position = 0;
   for (const [n, timestamp] of frames.entries()) {
     const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "tremolo enable", {
-      n, t: timestamp.pts / sampleRate
+      n, t: timestamp.pts / sampleRate, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2
     })) >= 0.5;
     for (let frame = timestamp.start; frame < timestamp.end; frame++) {
       const phase = (frequency * (position % period) / sampleRate + 0.25) % 1;

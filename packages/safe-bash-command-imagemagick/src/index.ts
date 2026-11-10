@@ -11162,7 +11162,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-kmeans") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geometry = parseKmeansGeometry(tokens[++i] ?? "");
-            stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps({ ...image, isPalette: true }, kmeansPixelSteps(image, geometry), signal));
+            if (geometry.iterations > 0) stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps({ ...image, isPalette: true }, kmeansPixelSteps(image, geometry), signal));
         }
         else if (t === "-mean-shift") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
@@ -14031,7 +14031,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const geometry = parseKmeansGeometry(tokens[++i] ?? "");
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, kmeansPixelSteps(image, geometry), signal) : undefined);
+            if (geometry.iterations > 0) steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, kmeansPixelSteps(image, geometry), signal) : undefined);
         } else if (!operandsOnly && token === "-mean-shift") {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);

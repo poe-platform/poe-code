@@ -32,6 +32,8 @@ for (const retained of [false, true])
 for (const mogrify of [false, true])
 it.each([
     [[], pixels],
+    [["-kmeans", "1x0"], pixels],
+    [["-kmeans", "2x0+0.001"], pixels],
     [["-kmeans", "2x50+0.001"], clustered],
     [["-kmeans", "2"], clustered],
     [["-kmeans", "1x50+0.001"], [110, 0, 110, 255, 110, 0, 110, 255, 110, 0, 110, 255, 110, 0, 110, 255]],
@@ -67,7 +69,28 @@ it("supports kmeans through the public magick command", async () => {
     expect(Array.from(decodeImage(await fs.readFile("/out.png")).data)).toEqual(clustered);
 });
 
-it.each(["", "bogus", "0", "-1", "2x0", "2x", "2x50+", "2x50+Infinity", "2x50+-1", "1.5", "65537", "2x1001"])("rejects invalid or excessive kmeans geometry %j without replacing output", async geometry => {
+for (const mode of ["public", "map"])
+it.each([
+    { options: [], output: ["-depth", "8", "rgba:out"], expected: Buffer.from("202040ff405080ff808060ffb0a040ff", "hex") },
+    { options: ["-kmeans", "1x0"], output: ["-depth", "8", "rgba:out"], expected: Buffer.from("202040ff405080ff808060ffb0a040ff", "hex") },
+    { options: [], output: ["-format", "%k|%r", "info:out"], expected: Buffer.from("4|DirectClass sRGB ") },
+    { options: ["-kmeans", "1x0"], output: ["-format", "%k|%r", "info:out"], expected: Buffer.from("4|DirectClass sRGB ") },
+    { options: ["-kmeans", "1x1"], output: ["-depth", "8", "rgba:out"], expected: Buffer.from("646458ff646458ff646458ff646458ff", "hex") },
+])(`matches native zero-iteration kmeans and controls (%j, mode=${mode})`, async ({ options, output, expected }) => {
+    const argv = ["-seed", "7", "xc:#202040", "xc:#405080", "xc:#808060", "xc:#b0a040", "+append", ...options, ...output];
+    const files = new Map<string, Uint8Array>([["out", Buffer.from("KEEP")]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/out", Buffer.from("KEEP"));
+    const args = createCommandArguments(argv);
+    const result = mode === "map" ? await runMagickCli(argv, files) : await createMagickCommand().execute({
+        command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write() {} }, stderr: { async write() {} },
+    });
+    expect(result.exitCode).toBe(0);
+    expect(Buffer.from(mode === "map" ? files.get("out")! : await fs.readFile("/out"))).toEqual(expected);
+});
+
+it.each(["", "bogus", "0", "-1", "2x-1", "2x0.5", "2x", "2x50+", "2x50+Infinity", "2x50+-1", "1.5", "65537", "2x1001"])("rejects invalid or excessive kmeans geometry %j without replacing output", async geometry => {
     const files = new Map([["out.png", new Uint8Array([42])]]);
     const result = await runMagickCli(["xc:red", "-kmeans", geometry, "out.png"], files);
     expect(result.exitCode).toBe(1);

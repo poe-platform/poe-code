@@ -7,7 +7,7 @@ export function parseKmeansGeometry(raw: string): { colors: number; iterations: 
     const colors = Number(dimensions[0]), iterations = dimensions[1] === undefined ? 300 : Number(dimensions[1]);
     const tolerance = offset < 0 ? 0.0001 : Number(raw.slice(offset + 1));
     if (dimensions.length > 2 || dimensions.some(part => !part.trim()) || !Number.isSafeInteger(colors) || colors < 1
-        || !Number.isSafeInteger(iterations) || iterations < 1 || !Number.isFinite(tolerance) || tolerance < 0
+        || !Number.isSafeInteger(iterations) || iterations < 0 || !Number.isFinite(tolerance) || tolerance < 0
         || (offset >= 0 && !raw.slice(offset + 1).trim())) throw new Error("Invalid kmeans geometry");
     if (colors > 65536 || iterations > 1000) throw new Error("Kmeans colors or iterations exceed limit");
     return { colors, iterations, tolerance };

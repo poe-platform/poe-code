@@ -11321,7 +11321,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed.startsWith("channelmap=")) {
                         let map: string | undefined;
                         let layout = "";
-                        for (const [index, option] of trimmed.slice("channelmap=".length).split(":").entries()) {
+                        for (const [index, option] of trimmed.slice("channelmap=".length).trimStart().split(":").entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["map", "channel_layout"][index] : option.slice(0, separator);
                           const value = separator < 0 ? option : option.slice(separator + 1);

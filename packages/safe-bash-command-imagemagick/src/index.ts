@@ -1536,7 +1536,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const pageX = `${page.x < 0 ? "" : "+"}${page.x}`, pageY = `${page.y < 0 ? "" : "+"}${page.y}`;
   const resolution = meta.resolution;
   const resolutionScale = resolution?.unit === "meter" ? 100 : 1;
-  const resolutionUnit = resolution?.unit ?? meta.magickUnits;
+  const resolutionUnit = resolution?.unit ?? meta.magickUnits ?? (meta.format === "tiff" ? "inch" : undefined);
   const defaultResolution = (meta.density ?? 72) / (resolutionUnit === "cm" ? 2.54 : 1);
   const hasAlphaChannel = meta.hasAlpha || meta.inactiveAlpha;
   const short: Record<string, string> = {

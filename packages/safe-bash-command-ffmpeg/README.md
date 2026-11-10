@@ -554,6 +554,8 @@ their explicit order when resolving named destinations and subsequent channel ma
 `channelmap=0|1:FR+FL,channelmap=FL` selects the second input channel.
 Numbered user channels retain their identities and order across filters;
 for example, `0|1:USR17+USR18,channelmap=USR18` selects the second input channel.
+Layout entries accept user labels such as `FL@left+FR@right`; subsequent maps
+select them by speaker identifier (`FL` or `FR`) and retain the listed order.
 Omitted layouts use native defaults for one through eight channels, including
 2.1 for three channels and 4.0 (not quad) for four channels. Explicit input-output pairs such
 as `0-1|1-0` or `FL-FR|FR-FL` route channels by destination, regardless of pair

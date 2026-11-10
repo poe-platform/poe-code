@@ -22,5 +22,5 @@ export function parseAudioChannelLayout(layout: string): string[] {
     if (Number.isSafeInteger(mask) && mask > 0 &&
         names.reduce((sum, name) => sum + audioSpeakerMasks[name]!, 0) === mask) return names;
   }
-  return layout.split("+");
+  return layout.split("+").map(channel => channel.split("@", 1)[0]!);
 }

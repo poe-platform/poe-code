@@ -38,7 +38,8 @@ export async function boostSubAudio(
     const numericKey = key as keyof typeof options;
     const number = parseFilterExpression(value, "asubboost", {});
     const [min, max] = ranges[numericKey];
-    if (!value || !Number.isFinite(number) || number < min! || number > max!) throw new Error(`asubboost: invalid ${key}`);
+    if (!value || !Number.isFinite(number)) throw new Error(`asubboost: invalid ${key}`);
+    if (number < min! || number > max!) throw new RangeError(`asubboost: invalid ${key}`);
     options[numericKey] = number;
   }
   signal?.throwIfAborted();

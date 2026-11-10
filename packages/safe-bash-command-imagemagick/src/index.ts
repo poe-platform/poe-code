@@ -8927,7 +8927,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
-        if ((t === "-ordered-dither" || t === "-solarize" || t === "-channel-fx" || t === "-level" || t === "+level") && !stack.length) throw new Error(`no images found for operation '${t}'`);
+        if ((t === "-ordered-dither" || t === "-random-threshold" || t === "-range-threshold" || t === "-solarize" || t === "-channel-fx" || t === "-level" || t === "+level") && !stack.length) throw new Error(`no images found for operation '${t}'`);
         const setting = applyMagickReadSetting(tokens, state, i);
         if (setting === undefined && (t === "-solarize" || ((t === "-colorize" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold") && tokens[i + 1]?.includes("%[")) || ((t === "-modulate" || t === "-posterize" || t === "-ordered-dither") && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-level-colors" || t === "+level-colors" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
             const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" || t === "-tint" ? "" : "1");
@@ -11094,7 +11094,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && (token === "-level" || token === "+level")) stackStep(async stack => {
+        if (!operandsOnly && (token === "-level" || token === "+level" || token === "-random-threshold" || token === "-range-threshold")) stackStep(async stack => {
             if (!stack.length) throw new Error(`no images found for operation '${token}'`);
             return stack;
         });

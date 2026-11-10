@@ -50,3 +50,50 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
     expect([...output.data]).toEqual([...decodeImage(tile).data].map((value, index) => index % 4 === 0 ? 128 : value));
   });
 }
+
+for (const mode of ["command", "buffered", "retained", "sync"] as const) {
+  it.each([
+    { expression: "page.w", pixel: undefined },
+    { expression: "page.h", pixel: undefined },
+    { expression: "page.width", pixel: 204 },
+    { expression: "page.height", pixel: 153 },
+    { expression: "w", pixel: 77 },
+    { expression: "h", pixel: 51 },
+  ])(`${mode}: -fx $expression validates page dimensions before writing pixels`, async ({ expression, pixel }) => {
+    const original = new TextEncoder().encode("KEEP");
+    const files = new Map([["/out", original]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/out", original);
+    const args = ["-size", "3x2", "xc:#80402060", "-repage", "8x6+1+2", "-fx", `${expression}/10`, "-depth", "8", "gray:/out"];
+    const argumentValues = createCommandArguments(args);
+    let stderr = "";
+    const result = mode === "command" ? await createMagickCommand().execute({
+      command: "magick", args: argumentValues.args, argumentValues, fs, cwd: "/", env: {},
+      signal: new AbortController().signal, stdin: (async function* () {})(),
+      stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+    }) : mode === "sync" ? runMagickCliSync(args, files)
+      : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result.exitCode).toBe(pixel === undefined ? 1 : 0);
+    expect("stderr" in result ? result.stderr : stderr).toEqual(pixel === undefined ? expect.stringContaining("page.") : "");
+    const output = mode === "retained" || mode === "command" ? await fs.readFile("/out") : files.get("/out")!;
+    expect([...output]).toEqual(pixel === undefined ? [...original] : Array(6).fill(pixel));
+  });
+
+  it.each(["page.w", "page.h"])(`${mode}: format rejects %s`, async expression => {
+    const original = new TextEncoder().encode("KEEP");
+    const files = new Map([["/out", original]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/out", original);
+    const args = ["-size", "3x2", "xc:#80402060", "-repage", "8x6+1+2", "-format", `%[fx:${expression}]`, "info:/out"];
+    const argumentValues = createCommandArguments(args);
+    let stderr = "";
+    const result = mode === "command" ? await createMagickCommand().execute({
+      command: "magick", args: argumentValues.args, argumentValues, fs, cwd: "/", env: {},
+      signal: new AbortController().signal, stdin: (async function* () {})(),
+      stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+    }) : mode === "sync" ? runMagickCliSync(args, files)
+      : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result.exitCode).toBe(1);
+    expect("stderr" in result ? result.stderr : stderr).toContain(expression);
+    const output = mode === "retained" || mode === "command" ? await fs.readFile("/out") : files.get("/out")!;
+    expect(output.byteLength).toBe(0);
+  });
+}

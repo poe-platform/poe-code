@@ -3550,6 +3550,9 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
         const property = next();
         if (property?.type !== "id") throw new FxExpressionError("Expected property in FX expression");
         const sub = property.val.toLowerCase();
+        if (name === "page" && (sub === "w" || sub === "h")) {
+          throw new FxExpressionError(`Invalid FX page property: page.${sub}; use page.width or page.height`);
+        }
         if (sub === "p" && (peek()?.val === "{" || peek()?.val === "[")) {
           relative = next()!.val === "[";
           coordX = parseTernary();

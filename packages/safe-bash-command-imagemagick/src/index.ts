@@ -9205,7 +9205,7 @@ function* prepare16BitOutput(image: RgbaImage): Generator<void, RgbaImage, void>
 
 function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: MagickState["dither"] = false, diffusionAmount = 1, pngCoder?: ReturnType<typeof inferOutputFormat>["pngCoder"]): Generator<void, RgbaImage, void> {
     if (pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format)) image = yield* prepare16BitOutput(image);
-    if ((pngCoder === "png32" || pngCoder === "png64") && image.alphaBlend === false
+    if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false
         || (pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && !image.hasAlpha && (image.writeMask || image.region)) {
         image = { ...yield* applyMagickRasterSteps(image, pngAlphaPixelSteps(image, image.writeMask, !!image.data16), undefined, { ...image, hasAlpha: true }, image.writeMask ? [image, image.writeMask] : [image]), channels: 4 };
     }
@@ -9229,7 +9229,7 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     if ((pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format)) && image.storedEvaluateSamples !== undefined) {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepare16BitOutput }, signal);
     }
-    if ((pngCoder === "png32" || pngCoder === "png64") && image.alphaBlend === false
+    if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false
         || (pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && !image.hasAlpha && (image.storedWriteMask || image.region)) {
         image = { ...await transformStoredMagickRaster(image, backend, pngAlphaPixelSteps(image, image.storedWriteMask, !!image.storedData16), signal, { ...image, hasAlpha: true }, image.storedWriteMask ? [image, image.storedWriteMask] : [image]), channels: 4 };
     }

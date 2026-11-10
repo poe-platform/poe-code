@@ -13251,9 +13251,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           } else if (key === "enable") {
                             enable = value;
                             parseFilterExpression(enable, "adelay enable", { n: 0, t: 0, pos: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity }, undefined, new Float64Array(10));
-                          } else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
-                            const number = parseFilterExpression(value, "adelay", key === "thread_type" ? { slice: 1 }
-                              : key === "threads" ? { default: 0, min: 0 } : { default: -1, min: -1 });
+                          } else if (key === "thread_type") {
+                            // Scheduling flags do not affect PCM, but each set/clear term must be valid.
+                            let position = 0;
+                            do {
+                              if (value[position] === "+" || value[position] === "-") position++;
+                              const start = position;
+                              if (value[position] === "+" || value[position] === "-") position++;
+                              while (position < value.length && value[position] !== "+" && value[position] !== "-") position++;
+                              const bits = parseFilterExpression(value.slice(start, position), "adelay", { slice: 1, none: 0, all: -1 });
+                              if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
+                                throw new RangeError("adelay: invalid thread_type");
+                              }
+                            } while (position < value.length);
+                          } else if (key === "threads" || key === "extra_hw_frames") {
+                            const number = parseFilterExpression(value, "adelay",
+                              key === "threads" ? { default: 0, min: 0 } : { default: -1, min: -1 });
                             if (!Number.isFinite(number) || number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
                               throw new RangeError(`adelay: invalid ${key}`);
                             }

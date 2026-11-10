@@ -2608,7 +2608,7 @@ async function applyVideoFilterChain(
         variables.x = parseFilterExpression(xExpression, "crop", variables);
         variables.y = parseFilterExpression(yExpression, "crop", variables);
         variables.x = parseFilterExpression(xExpression, "crop", variables);
-        if (!Number.isFinite(variables.x) || !Number.isFinite(variables.y)) {
+        if (Number.isNaN(variables.x) || Number.isNaN(variables.y)) {
           throw new Error("crop: invalid or unsupported expression");
         }
         const cx = Math.max(0, Math.min(iw - cw, roundToEven(variables.x)));

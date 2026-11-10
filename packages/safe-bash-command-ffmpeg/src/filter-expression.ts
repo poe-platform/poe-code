@@ -230,7 +230,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
     return evaluate ? value : 0;
   }
   const angle = parse();
-  if (offset !== source.length || (!Number.isFinite(angle) && !((filter === "fps: frame rate" || filter === "tremolo") && Math.abs(angle) === Infinity) && filter !== "asetpts" && filter !== "volume" && filter !== "atrim" && filter !== "aeval" && filter !== "tblend" && filter !== "aselect" && filter !== "tmix enable" && filter !== "framestep enable" && filter !== "negate enable" && filter !== "hflip enable" && filter !== "vflip enable" && filter !== "adelay enable" && filter !== "afade enable" && filter !== "tremolo enable" && !((filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
+  if (offset !== source.length || (!Number.isFinite(angle) && !((filter === "fps: frame rate" || filter === "tremolo" || filter === "crop") && Math.abs(angle) === Infinity) && filter !== "asetpts" && filter !== "volume" && filter !== "atrim" && filter !== "aeval" && filter !== "tblend" && filter !== "aselect" && filter !== "tmix enable" && filter !== "framestep enable" && filter !== "negate enable" && filter !== "hflip enable" && filter !== "vflip enable" && filter !== "adelay enable" && filter !== "afade enable" && filter !== "tremolo enable" && !((filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
   return angle;
 }
 

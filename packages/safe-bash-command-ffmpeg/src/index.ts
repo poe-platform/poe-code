@@ -9233,6 +9233,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let origRate = audio.sampleRate;
                   let loudnormResampling = false;
                   let filteredChannelMask = audio.channelMask;
+                  let filteredChannelNames: string[] | undefined;
                   let panPcm16 = ["pcm_s16le", "pcm_s16be"].includes(t.codecDescriptions[0]?.codecName ?? "");
                   const inputCodec = t.codecDescriptions[0]?.codecName;
                   let filteredSampleFormat = inputCodec === "pcm_u8" ? "u8" : inputCodec === "pcm_s16le" ? "s16" : ["pcm_s24le", "pcm_s32le"].includes(inputCodec ?? "") ? "s32"
@@ -9293,6 +9294,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const stereo = await panAudio(expression, stretched, filteredChannelMask, false, budget, context.signal);
                         stretched = stereo.channels;
                         filteredChannelMask = stereo.channelMask;
+                        filteredChannelNames = undefined;
                       }
                       if (filterName === "adeclick" || filterName === "adeclip") {
                         stretched = await declickAudio(stretched, origRate, trimmed, budget, context.signal);
@@ -9302,6 +9304,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (filteredChannelMask && filteredChannelMask !== 3) throw new Error("surround: stereo input required");
                         stretched = await surroundAudio(stretched, origRate, trimmed, budget, context.signal);
                         filteredChannelMask = 0x3f;
+                        filteredChannelNames = undefined;
                         continue;
                       }
                       if (filterName === "afwtdn") {
@@ -9664,6 +9667,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "apulsator" || trimmed.startsWith("apulsator=")) {
                         stretched = await pulsateAudio(stretched, origRate, trimmed, budget, context.signal);
                         filteredChannelMask = 3;
+                        filteredChannelNames = undefined;
                         filteredSampleFormat = "dbl";
                         statsScale = 1;
                       } else if (trimmed === "adynamicequalizer" || trimmed.startsWith("adynamicequalizer=")) {
@@ -10495,6 +10499,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           audioTimestamps.push({ start, end, pts });
                         }
                         filteredChannelMask = 7;
+                        filteredChannelNames = undefined;
                         filteredSampleFormat = "fltp";
                       } else if (trimmed === "crystalizer" || trimmed.startsWith("crystalizer=")) {
                         let intensity = 2;
@@ -10609,6 +10614,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         stretched = output;
                         filteredChannelMask = 3;
+                        filteredChannelNames = undefined;
                         filteredSampleFormat = "flt";
                       } else if (trimmed === "aeval" || trimmed.startsWith("aeval=")) {
                         let expressions = "";
@@ -10690,6 +10696,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         stretched = output;
                         filteredChannelMask = outputMask;
+                        filteredChannelNames = undefined;
                       } else if (trimmed === "aformat" || trimmed.startsWith("aformat=")) {
                         const argument = trimmed.slice("aformat=".length);
                         const options = argument ? argument.split(":") : [];
@@ -10763,6 +10770,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           if (layouts[0] === "mono" && stretched.length === 1 && (filteredChannelMask === 1 || filteredChannelMask === 2)) {
                             filteredChannelMask = 4;
+                            filteredChannelNames = undefined;
                             continue;
                           }
                           const inputLayout = stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ? "mono"
@@ -10774,11 +10782,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const mixed = await panAudio(expression, stretched, filteredChannelMask, panPcm16, budget, context.signal);
                           stretched = mixed.channels;
                           filteredChannelMask = mixed.channelMask;
+                          filteredChannelNames = undefined;
                         }
                       } else if (trimmed === "pan" || trimmed.startsWith("pan=")) {
                         const panned = await panAudio(trimmed.slice(4), stretched, filteredChannelMask, panPcm16, budget, context.signal);
                         stretched = panned.channels;
                         filteredChannelMask = panned.channelMask;
+                        filteredChannelNames = undefined;
                       } else if (trimmed === "crossfeed" || trimmed.startsWith("crossfeed=")) {
                         filteredSampleFormat = "dbl";
                         if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) {
@@ -10787,6 +10797,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             stretched, filteredChannelMask, false, budget, context.signal);
                           stretched = stereo.channels;
                           filteredChannelMask = stereo.channelMask;
+                          filteredChannelNames = undefined;
                         }
                         if (stretched.length !== 2) throw new Error("crossfeed: stereo input required");
                         let enable: string | undefined;
@@ -10946,6 +10957,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             stretched, filteredChannelMask, panPcm16, budget, context.signal);
                           stretched = stereo.channels;
                           filteredChannelMask = stereo.channelMask;
+                          filteredChannelNames = undefined;
                         }
                         if (origRate !== 44100 || stretched.length !== 2) {
                           throw new Error("earwax: 44100 Hz stereo input required");
@@ -10995,6 +11007,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             stretched, filteredChannelMask, false, budget, context.signal);
                           stretched = stereo.channels;
                           filteredChannelMask = stereo.channelMask;
+                          filteredChannelNames = undefined;
                         }
                         if (stretched.length !== 2) throw new Error("haas: stereo input required");
                         const options = {
@@ -11331,9 +11344,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR",
                           "TC", "TFL", "TFC", "TFR", "TBL", "TBC", "TBR"];
-                        const inputNames = filteredChannelMask
+                        const inputNames = filteredChannelNames ?? (filteredChannelMask
                           ? speakers.filter((_, index) => (filteredChannelMask! & (1 << index)) !== 0)
-                          : stretched.length === 1 ? ["FC"] : stretched.length === 2 ? ["FL", "FR"] : [];
+                          : stretched.length === 1 ? ["FC"] : stretched.length === 2 ? ["FL", "FR"] : []);
                         let outputNames: string[] | undefined;
                         if (layout) {
                           const digits = layout.startsWith("0x") ? layout.slice(2) : layout;
@@ -11349,7 +11362,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (outputNames.some(name => !speakers.includes(name)) || new Set(outputNames).size !== outputNames.length) {
                               throw new Error("channelmap: unsupported channel layout");
                             }
-                            outputNames = speakers.filter(name => outputNames!.includes(name));
                           }
                         }
                         if (map?.endsWith("|")) map = map.slice(0, -1);
@@ -11392,6 +11404,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         stretched = selected;
                         filteredChannelMask = outputNames.reduce((mask, name) => mask | (1 << speakers.indexOf(name)), 0);
+                        filteredChannelNames = outputNames;
                       } else if (trimmed === "channelsplit" || trimmed.startsWith("channelsplit=")) {
                         const { input, selected } = parseChannelSplit(trimmed);
                         if (selected.length !== 1) throw new Error("channelsplit: simple audio filters require exactly one output");
@@ -11418,12 +11431,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           stretched = stereo;
                           filteredChannelMask = 3;
+                          filteredChannelNames = undefined;
                         }
                         if (stretched.length !== input.length || (filteredChannelMask && filteredChannelMask !== mask)) {
                           throw new Error("channelsplit: matching input channel layout required");
                         }
                         stretched = [stretched[input.indexOf(selected[0]!)]!];
                         filteredChannelMask = 1 << speakers.indexOf(selected[0]!);
+                        filteredChannelNames = undefined;
                       } else if (trimmed === "asetpts" || trimmed.startsWith("asetpts=") || trimmed === "aselect" || trimmed.startsWith("aselect=")) {
                         const selecting = trimmed === "aselect" || trimmed.startsWith("aselect=");
                         const argument = trimmed.includes("=") ? trimmed.slice(trimmed.indexOf("=") + 1) : selecting ? "1" : "PTS";

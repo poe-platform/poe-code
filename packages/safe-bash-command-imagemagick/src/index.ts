@@ -10730,7 +10730,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const value = tokens[++i] ?? "72";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const resized = yield* applyMagickResizeSteps(image, magickResampleGeometry(image, value), state.kernel, false, false, false, state.resizeFilter);
-                return applyMagickDensity(resized, value);
+                return applyMagickDensity(resized, state.densityGeometry ?? value);
             });
         }
         else if (t === "-magnify") {
@@ -13610,11 +13610,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const value = tokens[++i] ?? "72", kernel = state.kernel, settings = state.resizeFilter;
+            const density = state.densityGeometry ?? value;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const options = magickResizeOptions(image, magickResampleGeometry(image, value), kernel);
                 const resized = options ? await resizeStoredMagickImage(image, backend, options, signal, false, false, false, settings) : image;
-                return applyMagickDensity(resized, value);
+                return applyMagickDensity(resized, density);
             });
         } else if (!operandsOnly && token === "-magnify") {
             const method = state.magnifyMethod, factor = method === "scale3x" ? 3 : 2;

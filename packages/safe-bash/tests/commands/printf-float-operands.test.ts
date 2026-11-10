@@ -52,14 +52,78 @@ for (const operand of ["   ", "\t", "0b101", "0o77", "+0b101", "-0o77"]) {
   });
 }
 
-test("printf accepts decimal C floating syntax and preserves signed zero", () => {
-  for (const [operand, expected] of [["  +1.25", 1.25], [".5", .5], ["1.", 1], ["1e-2", .01], ["-0.0", -0], ["010", 10]] as const) {
-    assert.equal(parsePrintfFloat(operand)?.value, expected);
-  }
-  for (const operand of ["", ".", "+"]) assert.equal(parsePrintfFloat(operand), undefined);
-  for (const [operand, value] of [["1e", 1], ["1e+", 1], ["1.2.3", 1.2], ["1junk", 1]] as const) {
-    const parsed = parsePrintfFloat(operand);
-    assert.equal(parsed?.value, value);
-    assert.equal(parsed?.error, "invalid number");
-  }
+test("printf accepts decimal C floating syntax and preserves signed zero", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+  try {
+    for (const [operand, expected] of [["  +1.25", "1.25"], [".5", "0.5"], ["1.", "1"], ["1e-2", "0.01"], ["-0.0", "-0"], ["010", "10"]]) {
+      const result = await shell.exec(`printf %g '${operand}'`);
+      assert.equal(result.stdout, expected);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+    }
+    for (const operand of ["", ".", "+"]) assert.equal(parsePrintfFloat(operand), undefined);
+    for (const [operand, expected] of [["1e", "1"], ["1e+", "1"], ["1.2.3", "1.2"], ["1junk", "1"]]) {
+      const result = await shell.exec(`printf %g '${operand}'`);
+      assert.equal(result.stdout, expected);
+      assert.equal(result.exitCode, 1);
+      assert.equal(parsePrintfFloat(operand)?.error, "invalid number");
+    }
+  } finally { await shell.dispose(); }
+});
+
+for (const [format, operand, expected] of [
+  ["%g", "1e400", "1e+400"],
+  ["%g", "1e-400", "1e-400"],
+  ["%a", "0x1p1024", "0x8p+1021"],
+  ["%a", "0x1p-1075", "0x8p-1078"],
+  ["%a", "0x1p50", "0x8p+47"],
+  ["%.0f", "9007199254740992", "9007199254740992"],
+  ["%.20e", "1e400", "1.00000000000000000003e+400"],
+  ["%.20e", "1e-400", "9.99999999999999999979e-401"],
+  ["%a", "1e400", "0xd.a763fc8cb9ff9e6p+1325"],
+  ["%a", "1e-400", "0x9.5fe7e07c91efafap-1332"],
+  ["%+.2E", "1e400", "+1.00E+400"],
+  ["%012g", "-1e-400", "-000001e-400"],
+  ["%#.3A", "-0x1p-1075", "-0X8.000P-1078"],
+  ["%.0f", "0x1p1024", (1n << 1024n).toString()],
+  ["%a", "0x1p16383", "0x8p+16380"],
+  ["%a", "0x1p-16382", "0x8p-16385"],
+  ["%a", "0x1p-16445", "0x0.000000000000001p-16385"],
+  ["%g", "1e4932", "1e+4932"],
+] as const) {
+  test(`printf retains the Linux long-double exponent range: ${format} ${operand}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+    try {
+      const result = await shell.exec(`printf '${format}' '${operand}'`, { env: { LC_ALL: "C", TZ: "UTC" } });
+      assert.equal(result.stdout, expected);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const route of ["assignment", "substitution", "loop"]) {
+  test(`printf retains extended operands through ${route}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+    try {
+      const invocation = "printf '%g|%a' 1e400 -0x1p-1075";
+      const script = route === "assignment" ? "printf -v value '%g|%a' 1e400 -0x1p-1075; printf '%s' \"$value\""
+        : route === "substitution" ? `value=$(${invocation}); printf '%s' "$value"`
+        : `for value in once; do ${invocation}; done`;
+      const result = await shell.exec(script);
+      assert.equal(result.stdout, "1e+400|-0x8p-1078");
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("printf retains extended numeric prefixes when diagnosing trailing input", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
+  try {
+    const result = await shell.exec("printf '%g|%a' 1e400junk -0x1p-1075junk");
+    assert.equal(result.stdout, "1e+400|-0x8p-1078");
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stderr, "printf: '1e400junk': invalid number\nprintf: '-0x1p-1075junk': invalid number\n");
+  } finally { await shell.dispose(); }
 });

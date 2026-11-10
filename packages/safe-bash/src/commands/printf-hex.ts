@@ -1,18 +1,13 @@
-import type { PrintfBinary } from "./printf-float.js";
+import { printfBinary, type PrintfBinary } from "./printf-float.js";
 
 // Use the leading-nibble spelling captured from GNU/Linux long-double printf.
-export function printfHex(number: number, precision: number | undefined, alternate: boolean, exact?: PrintfBinary): string {
-  const magnitude = Math.abs(number);
-  if (exact ? exact.significand === 0n : magnitude === 0) return `0x0${precision ? "." + "0".repeat(precision) : alternate ? "." : ""}p+0`;
-  const bits = new DataView(new ArrayBuffer(8));
-  bits.setFloat64(0, magnitude);
-  const encoded = bits.getBigUint64(0);
-  const field = Number((encoded >> 52n) & 2047n);
-  const significand = exact?.significand ?? ((encoded & ((1n << 52n) - 1n)) | (field ? 1n << 52n : 0n));
+export function printfHex(number: number | PrintfBinary, precision: number | undefined, alternate: boolean): string {
+  const { significand, exponent: power } = printfBinary(number);
+  if (significand === 0n) return `0x0${precision ? "." + "0".repeat(precision) : alternate ? "." : ""}p+0`;
   const top = significand.toString(2).length - 1;
-  let exponent = (exact?.power ?? (field ? field - 1023 - 52 : -1074)) + top - 3;
-  const digits = precision ?? 15;
-  const shift = top - 3 - digits * 4;
+  let exponent = Math.max(power + top - 3, -16385);
+  const digits = precision ?? Math.ceil(Math.max(0, exponent - power) / 4);
+  const shift = exponent - power - digits * 4;
   let rounded: bigint;
   if (shift > 0) {
     rounded = significand >> BigInt(shift);

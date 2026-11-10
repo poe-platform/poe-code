@@ -319,8 +319,7 @@ export async function formatPrintf(context: CommandContext, shellStartedAt = (co
         continue;
       }
       else {
-        let exactFloat: PrintfBinary | undefined;
-        let number = supplied === "" ? 0 : /^["']/u.test(supplied) ? quotedNumber(suppliedIndex) : Number(supplied);
+        let number: number | PrintfBinary = supplied === "" ? 0 : /^["']/u.test(supplied) ? quotedNumber(suppliedIndex) : Number(supplied);
         if (/^[+-]0[xX][0-9a-fA-F]+$/u.test(supplied.trim())) {
           number = Number(supplied.trim().slice(1)) * (supplied.trim().startsWith("-") ? -1 : 1);
         }
@@ -330,21 +329,20 @@ export async function formatPrintf(context: CommandContext, shellStartedAt = (co
         }
         if ("fFeEgGaA".includes(specifier) && supplied && !supplied.startsWith("'") && !supplied.startsWith('"')) {
           const parsed = parsePrintfFloat(supplied);
-          number = parsed?.value ?? NaN;
+          number = parsed?.binary ?? parsed?.value ?? NaN;
           specialFloat = parsed?.special;
-          exactFloat = parsed?.binary;
           if (parsed?.error) {
             await writeDiagnostic(context.stderr, `printf: '${supplied}': ${parsed.error}\n`, context.signal);
             exitCode = 1;
           }
         }
-        if ("fFeEgGaA".includes(specifier) && (!Number.isFinite(number) && specialFloat === undefined || supplied === "" && suppliedIndex < args.length)) {
+        if ("fFeEgGaA".includes(specifier) && (typeof number === "number" && !Number.isFinite(number) && specialFloat === undefined || supplied === "" && suppliedIndex < args.length)) {
           await writeDiagnostic(context.stderr, `printf: '${supplied}': invalid number\n`, context.signal);
           exitCode = 1; number = 0;
         }
         if (specialFloat !== undefined) text = specialFloat;
-        else if (/[aA]/u.test(specifier)) text = (number < 0 ? "-" : "") + printfHex(number, precision, flags.includes("#"), exactFloat);
-        else if ("fFeEgG".includes(specifier)) text = printfDecimal(number, specifier, precision, flags.includes("#"), exactFloat);
+        else if (/[aA]/u.test(specifier)) text = ((typeof number === "number" ? number < 0 : number.negative) ? "-" : "") + printfHex(number, precision, flags.includes("#"));
+        else if ("fFeEgG".includes(specifier)) text = printfDecimal(number, specifier, precision, flags.includes("#"));
         else {
           const radix = /[xX]/u.test(specifier) ? 16 : specifier === "o" ? 8 : 10;
           const unsigned = /[uoxX]/u.test(specifier);
@@ -367,7 +365,7 @@ export async function formatPrintf(context: CommandContext, shellStartedAt = (co
         const negativeZero = Object.is(number, -0) && "fFeEgGaA".includes(specifier);
         if (negativeZero) text = "-" + text;
         if (/[XFEGA]/u.test(specifier)) text = text.toUpperCase();
-        if ((number >= 0 || specialFloat === "nan") && !negativeZero && /[difFeEgGaA]/u.test(specifier)) text = (flags.includes("+") ? "+" : flags.includes(" ") ? " " : "") + text;
+        if (((typeof number === "number" ? number >= 0 : !number.negative) || specialFloat === "nan") && !negativeZero && /[difFeEgGaA]/u.test(specifier)) text = (flags.includes("+") ? "+" : flags.includes(" ") ? " " : "") + text;
       }
       if (flags.includes("-")) text = text.padEnd(width, " ");
       else if (specialFloat === undefined && flags.includes("0") && /[diouxXfFeEgGaA]/u.test(specifier)

@@ -5,6 +5,7 @@ export async function tmix(
   frames: MediaVideoFrame[], argument: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaVideoFrame[]> {
   const options: Record<string, string> = { frames: "3", weights: "1" };
+  if (argument.endsWith(":")) argument = argument.slice(0, -1);
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["frames", "weights"][index] : option.slice(0, separator).trim();
@@ -15,8 +16,8 @@ export async function tmix(
   if (!Number.isInteger(count) || count < 1 || count > 1024) {
     throw new Error("tmix: frames must be an integer from 1 to 1024");
   }
-  const supplied = options.weights!.split(" ").filter(Boolean).map(Number);
-  if (!supplied.length || supplied.some(weight => !Number.isFinite(weight))) {
+  const supplied = (options.weights || "1").split(" ").filter(Boolean).map(Number);
+  if (supplied.some(weight => !Number.isFinite(weight))) {
     throw new Error("tmix: weights must be finite numbers");
   }
   const weights = Array.from({ length: count }, (_, index) => supplied[Math.min(index, supplied.length - 1)]!);

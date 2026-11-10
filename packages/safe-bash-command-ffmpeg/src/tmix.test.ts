@@ -70,6 +70,11 @@ for (const [samples, filter, expected] of [
   [colorSamples, "tmix=frames=2:weights=1 1", [[55, 80, 172], [55, 130, 116], [89, 121, 66], [176, 41, 151], [145, 70, 165], [70, 148, 95]]],
   [graySamples, "tmix=frames=2:weights=2 -1", [16, 15, 16, 6, 0, 0].map(value => [value, 128, 128])],
   [graySamples, "tmix=frames=1", graySamples],
+  [graySamples, "tmix=weights=", [16, 16, 17, 22, 46, 118].map(value => [value, 128, 128])],
+  [graySamples, "tmix=frames=2:", [16, 17, 18, 24, 60, 163].map(value => [value, 128, 128])],
+  [graySamples, "tmix=frames=2", [16, 17, 18, 24, 60, 163].map(value => [value, 128, 128])],
+  [graySamples, "tmix=frames=2:weights=1 3:", [16, 17, 18, 27, 75, 199].map(value => [value, 128, 128])],
+  [graySamples, "tmix=frames=2:weights=1 3", [16, 17, 18, 27, 75, 199].map(value => [value, 128, 128])],
   [graySamples, "tmix=frames=2:weights=1 0", [16, 16, 17, 18, 30, 90].map(value => [value, 128, 128])]
 ] as const) {
   for (const chroma of ["420", "422", "444"]) {

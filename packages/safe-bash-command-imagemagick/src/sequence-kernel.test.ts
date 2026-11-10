@@ -67,7 +67,7 @@ it("preserves interpolation rounding and missing channel samples", () => {
     expect(run(interpolatePixelSteps(size, 1 / 3), [a, b], size)).toEqual(Uint8Array.from(a, (value, i) => Math.round(value * (1 - 1 / 3) + b[i]! / 3)));
     const g = b.subarray(0, 12), expected = new Uint8Array(size);
     // Consecutive RGB samples have Rec.709 intensity R + (0.715158 + 2 * 0.072186).
-    for (let offset = 0; offset < size; offset += 4) { expected[offset] = Math.round(a[offset]! + 0.85953); expected[offset + 1] = offset < g.length ? Math.round(g[offset]! - 0.85953) : a[offset + 1]!; expected[offset + 2] = Math.round(b[offset]! - 0.85953); expected[offset + 3] = 255; }
+    for (let offset = 0; offset < size; offset += 4) { expected[offset] = Math.round(a[offset]! + 0.85953); expected[offset + 1] = offset < g.length ? Math.round(g[offset]! - 0.85953) : a[offset + 1]!; expected[offset + 2] = Math.round(b[offset]! - 0.85953); expected[offset + 3] = a[offset + 3]!; }
     expect(run(combinePixelSteps([a, g, b].map(data => ({ width: data.length / 4, height: 1 }))), [a, g, b], size)).toEqual(expected);
 });
 

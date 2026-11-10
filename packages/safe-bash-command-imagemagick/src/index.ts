@@ -10518,7 +10518,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const result = yield* applyMagickRasterSteps(rIm, combinePixelSteps(sources, sources.some(image => !!image.data16)), signal, rIm, sources);
                 // The first plane's evaluation cache no longer describes the combined pixels.
                 const { evaluateSamples: ignoredEvaluate, ...combined } = result;
-                stack = [{ ...combined, space: "srgb", channels: 4, hasAlpha: sources.length === 4 }];
+                stack = [{ ...combined, space: "srgb", channels: 4, hasAlpha: sources.length === 4 || sources[0]!.hasAlpha }];
             }
         }
         else if (t === "-draw") {
@@ -11485,7 +11485,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const base = sources[0]!, result = await transformStoredMagickRaster(base, backend, combinePixelSteps(sources, sources.some(image => !!image.storedData16)), signal, base, sources);
                     // The first plane's evaluation cache no longer describes the combined pixels.
                     const { storedEvaluateSamples: ignoredEvaluate, ...combined } = result;
-                    stack.length = 0; await stack.push({ ...combined, space: "srgb", channels: 4, hasAlpha: sources.length === 4 });
+                    stack.length = 0; await stack.push({ ...combined, space: "srgb", channels: 4, hasAlpha: sources.length === 4 || sources[0]!.hasAlpha });
                 } else if (token === "-morph") {
                     const image = await stack.get(0);
                     const expanded = image ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal) : argument;

@@ -157,7 +157,6 @@ export function* combinePixelSteps(inputs: readonly Pick<RgbaImage, "width" | "h
         const position = (y * width + x) * 4, length = Math.min(chunkPixels, width - x) * 4;
         const base = (yield { kind: "read", highDepth, image: 0, position, length })!;
         const data = highDepth ? new Uint16Array(base.slice().buffer) : new Uint8Array(base);
-        if (inputs.length < 4) for (let offset = 3; offset < length; offset += 4) data[offset] = highDepth ? 65535 : 255;
         for (let image = 0; image < inputs.length; image++) {
             const sourceImage = inputs[image]!;
             if (y >= sourceImage.height || x >= sourceImage.width) continue;

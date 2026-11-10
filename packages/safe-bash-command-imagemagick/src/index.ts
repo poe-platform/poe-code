@@ -9177,6 +9177,16 @@ function updateMagickProperty(properties: ImageMetadata["properties"], key: stri
     return updated;
 }
 
+function setMagickType<T extends { [magickInput]?: MagickFormatContext }>(image: T, value: string): T {
+    const type = value.toLowerCase();
+    const imageType = type === "bilevel" ? "Bilevel" : type === "grayscale" ? "Grayscale"
+        : type === "grayscalealpha" || type === "grayscalematte" ? "GrayscaleAlpha" : undefined;
+    if (imageType === undefined && !["undefined", "optimize", "palette", "palettealpha", "palettematte",
+        "palettebilevelalpha", "palettebilevelmatte", "truecolor", "truecoloralpha", "truecolormatte",
+        "colorseparation", "colorseparationalpha", "colorseparationmatte"].includes(type)) return image;
+    return { ...image, [magickInput]: { ...image[magickInput], imageType } };
+}
+
 function applyMagickDensity<T extends ImageMetadata & { magickUnits?: MagickState["units"] }>(image: T, value: string): T {
     const geometry = parseMagickGeometry(value);
     const x = geometry.width ?? 72, y = geometry.height ?? x;
@@ -9838,6 +9848,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
                 if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
                 if (expandedKey.toLowerCase() === "colorspace") return yield* setColorspacePixels(image, expanded);
+                if (expandedKey.toLowerCase() === "type") return setMagickType(image, expanded);
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: parseInt(expanded, 10) || 0 };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickPageSetting(expanded, "set"), forceExact: false }, "set") };
@@ -12209,6 +12220,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
                 if (expandedKey.toLowerCase() === "colorspace") return transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: image => setColorspacePixels(image, expanded) }, signal);
+                if (expandedKey.toLowerCase() === "type") return setMagickType(image, expanded);
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: parseInt(expanded, 10) || 0 };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickPageSetting(expanded, "set"), forceExact: false }, "set") };

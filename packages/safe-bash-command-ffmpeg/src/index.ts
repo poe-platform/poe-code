@@ -3053,14 +3053,19 @@ async function applyVideoFilterChain(
     } else if (name === "fps") {
       const options: Record<string, string> = {};
       const keys = ["fps", "start_time", "round", "eof_action"];
-      for (const [index, part] of (argStr ? positional : []).entries()) {
+      let position = 0;
+      for (const part of argStr ? positional : []) {
         const separator = part.indexOf("=");
-        const key = separator < 0 ? keys[index] : part.slice(0, separator).trim();
+        const key = separator < 0 ? keys[position] : part.slice(0, separator).trim();
+        // FFmpeg 7 restarts shorthand after named options, skipping the first
+        // slot when it was just visited, regardless of the named key.
+        if (separator < 0) position++;
+        else position = position === 0 ? 1 : 0;
         if (key === "enable") throw new Error("fps: timeline is unsupported");
         if (!key || !keys.includes(key)) throw new Error(`fps: unsupported option ${key ?? part}`);
         options[key] = (separator < 0 ? part : part.slice(separator + 1)).trim();
       }
-      const targetFps = parseFilterExpression(options.fps ?? "25", "fps", {
+      const targetFps = parseFilterExpression(options.fps ?? "25", "fps: frame rate", {
         source_fps: 1 / current[0]!.durationSeconds,
         ntsc: 30000 / 1001, pal: 25, film: 24, "ntsc_film": 24000 / 1001
       });
@@ -14349,6 +14354,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const msg = err instanceof Error ? err.message : String(err);
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
             if (msg === audioConversionDisabled) return { exitCode: 234 };
+            if (msg.startsWith("fps: frame rate:")) {
+              // Rate expressions fail during filter configuration, after file
+              // muxers open their output. Image sequences have not opened a frame.
+              const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
+              if (!imageOutput && outputFormat !== "null" && !isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {
+                await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
+              }
+              return { exitCode: 234 };
+            }
             const unnamedChannel = msg.startsWith("channelmap: unavailable input channel") && msg.endsWith(" (unnamed layout)");
             const unsupportedPanOrder = msg.startsWith("pan: unsupported output channel order ");
             if (err instanceof AlimiterError || err instanceof CompandError || unnamedChannel || unsupportedPanOrder) {

@@ -159,6 +159,8 @@ Leading `+` and trailing text are accepted, as in `+2S`, `0.5ms`, or `2Sabc`. `a
 Positional values after named options follow native FFmpeg ordering: `adelay=1S:all=1:2S` replaces the delay with two samples for every channel; `adelay=1S:enable=1:2S` delays only the first channel by two samples.
 Negative delays are accepted only when they truncate to zero samples: at 8 kHz,
 `-0.1249` milliseconds is accepted, while `-0.125` is rejected.
+Invalid delays or `all` values return status 234; unknown option names return status 8.
+These failures emit no audio.
 `all` accepts signed or zero-padded decimal `1`/`0` (such as `+1`, `0001`, or `-0`)
 and case-insensitive `true`/`false`, `yes`/`no`, `y`/`n`, `on`/`off`,
 `enable`/`disable`, and `enabled`/`disabled`, in named or positional form.

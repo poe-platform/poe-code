@@ -46,7 +46,7 @@ for (const [value, all] of [
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
         if (all === null) {
-          assert.equal(result.exitCode, 1);
+          assert.equal(result.exitCode, 234);
           assert.ok(stderr.includes("adelay: invalid all option"), stderr);
           assert.equal(volume.readFileSync("/out.wav", "utf8"), "existing output");
           return;

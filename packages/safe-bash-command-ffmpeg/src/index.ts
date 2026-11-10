@@ -15997,6 +15997,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 (err instanceof RangeError && msg.startsWith("dcshift:"))) {
               return { exitCode: err instanceof RangeError ? 222 : 234 };
             }
+            if (msg.startsWith("adelay: unsupported option ")) return { exitCode: 8 };
+            if (msg === "adelay: invalid all option" || msg.startsWith("adelay: invalid delay ")) return { exitCode: 234 };
             if (msg.startsWith("aecho: unsupported option ")) return { exitCode: 8 };
             if (msg === "aecho: invalid gain") return { exitCode: 222 };
             if (msg === "aecho: delays and decays must have matching entries") return { exitCode: 234 };

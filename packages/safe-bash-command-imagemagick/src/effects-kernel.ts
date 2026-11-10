@@ -271,6 +271,16 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                         samples[x * 4 + channel] = round((hue || inks ? value : Math.max(0, Math.min(1, value))) * 255 * pixelScale);
                         continue;
                     }
+                    if (selected && (name === "dividesrc" || name === "dividedst")) {
+                        const destinationAlpha = background.a / 255;
+                        const sc = sourceColor / (255 * pixelScale) * foreground, dc = color / 255 * destinationAlpha;
+                        // Native divides premultiplied colors before alpha normalization.
+                        const mixed = Math.abs(dc) < 1e-12 ? name === "dividesrc" ? dc + 1 - destinationAlpha : sc + 1 - foreground
+                            : (name === "dividesrc" ? dc / sc : sc / dc) + sc * (1 - destinationAlpha) + dc * (1 - foreground);
+                        const value = mixed / Math.max(alpha, 1e-12);
+                        samples[x * 4 + channel] = round((hue || inks ? value : Math.max(0, Math.min(1, value))) * 255 * pixelScale);
+                        continue;
+                    }
                     if (selected && blend) {
                         const source = sourceColor / pixelScale, destinationAlpha = background.a / 255;
                         const mixed = name === "multiply" ? source * color / 255

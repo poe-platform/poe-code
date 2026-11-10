@@ -1,3 +1,4 @@
+import type { Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 export function parseUnsharpGeometry(raw: string): { width: number; height: number; amount: number; threshold: number } {
@@ -17,8 +18,9 @@ export function parseUnsharpGeometry(raw: string): { width: number; height: numb
 }
 
 /** Native sampled Gaussian or rank-three blur, with bounded row caching. */
-export function* blurPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }, gaussian: boolean, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, unsharp?: { amount: number; threshold: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* blurPixelSteps(image: { width: number; height: number; region?: Region | undefined }, geometry: { width?: number; height?: number }, gaussian: boolean, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, unsharp?: { amount: number; threshold: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
+    const region = !gaussian && !unsharp ? image.region : undefined;
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
     let half = 0;
     if (sigma > 0) {
@@ -64,6 +66,12 @@ export function* blurPixelSteps(image: { width: number; height: number }, geomet
                             for (let c = 0; c < 3; c++) row[x * 4 + c]! += bytes[offset + c]! * alpha * weight;
                             row[x * 4 + 3]! += alpha * weight;
                         }
+                        if (region && (left + x < region.x || left + x >= region.x + region.width || sy < region.y || sy >= region.y + region.height)) {
+                            const offset = (left + x - first) * 4, alpha = bytes[offset + 3]! / 255;
+                            // Native clips each separable pass before the next one reads it.
+                            for (let c = 0; c < 3; c++) row[x * 4 + c] = (bytes[offset + c]! * alpha + row[x * 4 + c]! * (1 - alpha)) * alpha;
+                            row[x * 4 + 3] = alpha;
+                        }
                     }
                     if (rows.size >= 32) rows.delete(rows.keys().next().value!);
                     rows.set(sy, row);
@@ -71,15 +79,19 @@ export function* blurPixelSteps(image: { width: number; height: number }, geomet
                 for (let i = 0; i < sums.length; i++) sums[i]! += row[i]! * weights[ky + half]!;
             }
             const data = new Uint8Array(count * 4);
-            const original = unsharp || mask?.some(active => !active)
+            const original = region || unsharp || mask?.some(active => !active)
                 ? yield { kind: "read" as const, position: (y * width + left) * 4, length: data.length }
                 : undefined;
-            if ((unsharp || mask?.some(active => !active)) && (!original || original.length !== data.length)) throw new Error("Truncated blur pixels");
+            if ((region || unsharp || mask?.some(active => !active)) && (!original || original.length !== data.length)) throw new Error("Truncated blur pixels");
             for (let x = 0; x < count; x++) {
                 const alpha = sums[x * 4 + 3]!;
                 for (let c = 0; c < 4; c++) {
                     const index = x * 4 + c;
                     let value = c === 3 ? alpha * 255 : alpha > 0 ? sums[index]! / alpha : 0;
+                    if (region && (left + x < region.x || left + x >= region.x + region.width || y < region.y || y >= region.y + region.height)) {
+                        const sourceAlpha = original![x * 4 + 3]! / 255;
+                        value = c === 3 ? original![index]! : original![index]! * sourceAlpha + sums[index]! * (1 - sourceAlpha);
+                    }
                     if (unsharp) {
                         const source = original![index]!, difference = source - value;
                         value = Math.abs(2 * difference) < 255 * unsharp.threshold ? source : source + unsharp.amount * difference;

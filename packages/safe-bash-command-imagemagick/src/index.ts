@@ -9431,7 +9431,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const g = parseMagickGeometry(tokens[++i] ?? "0x1");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return yield* applyMagickRasterSteps({ ...im, isPalette: false }, blurPixelSteps(im, g, t === "-gaussian-blur", state.channelExplicit ? state.channels : undefined), signal);
-            });
+            }, undefined, t === "-blur");
         }
         else if (t === "-enhance") {
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -11712,7 +11712,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && (token === "-blur" || token === "-gaussian-blur")) {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: false }, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels), signal) : undefined);
+            steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => image ? transformStoredMagickRaster({ ...image, isPalette: false }, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels), signal) : undefined, { handlesRegion: token === "-blur" }));
         } else if (!operandsOnly && token === "-enhance") {
             const { background, virtualPixel } = state;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, enhancePixelSteps(image, background, virtualPixel), signal) : undefined);

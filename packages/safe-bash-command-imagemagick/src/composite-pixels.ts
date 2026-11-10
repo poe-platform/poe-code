@@ -422,6 +422,7 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
             }
             if (norm === "lineardodge" ||
                 norm === "linearburn" ||
+                norm === "linearlight" ||
                 norm === "colorburn" ||
                 norm === "colordodge" ||
                 norm === "multiply" ||
@@ -460,6 +461,8 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                             f = Math.min(1, sc + dc);
                         else if (norm === "linearburn")
                             f = Math.max(0, sc + dc - 1);
+                        else if (norm === "linearlight")
+                            f = Math.max(0, Math.min(1, dc + 2 * sc - 1));
                         else if (norm === "colorburn")
                             f = sc === 0 ? 0 : Math.max(0, 1 - (1 - dc) / sc);
                         else if (norm === "colordodge")
@@ -481,7 +484,7 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                         else
                             f = dc <= 0.5 ? 2 * sc * dc : 1 - 2 * (1 - sc) * (1 - dc);
                         const comp = f * sa * da + sc * sa * (1 - da) + dc * da * (1 - sa);
-                        const unpremul = gamma > 1e-6 && (norm === "lineardodge" || norm === "linearburn" || norm === "colorburn" || norm === "colordodge" || norm === "multiply" || norm === "screen" || norm === "overlay" || norm === "hardlight" || norm === "pinlight" || norm === "vividlight" || norm === "hardmix") ? comp / gamma : comp;
+                        const unpremul = gamma > 1e-6 && (norm === "lineardodge" || norm === "linearburn" || norm === "linearlight" || norm === "colorburn" || norm === "colordodge" || norm === "multiply" || norm === "screen" || norm === "overlay" || norm === "hardlight" || norm === "pinlight" || norm === "vividlight" || norm === "hardmix") ? comp / gamma : comp;
                         out[dIdx + c] = clampByteVal(unpremul * 255);
                     }
                 }

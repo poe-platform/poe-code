@@ -6440,18 +6440,37 @@ function parseMagickInsertPosition(spec: string): number {
 
 function parseMagickIndices(spec: string, ranges = true): number[][] {
   if (!spec.trim() || spec.trimStart().startsWith(",")) throw new Error(`invalid argument ${spec}`);
-  return Array.from(spec, c => !c.trim() || (!ranges && c === "x") ? "," : c).join("").split(",").filter(part => part.trim()).map(part => {
-    const value = part.trim();
-    const separator = ranges ? value.indexOf("-", 1) : -1;
-    const values = separator > 0 ? [value.slice(0, separator), value.slice(separator + 1)] : [value];
-    return values.map(value => {
-      const digits = value.startsWith("-") || (!ranges && value.startsWith("+")) ? value.slice(1) : value;
-      if (!digits.length || !Array.from(digits).every(c => c >= "0" && c <= "9") || !Number.isSafeInteger(Number(value))) {
-        throw new Error(`invalid argument ${spec}`);
-      }
-      return Number(value);
-    });
-  });
+  const parts: number[][] = [];
+  let position = 0;
+  const readIndex = (): number => {
+    while (position < spec.length && !spec[position]!.trim()) position++;
+    const start = position;
+    if (spec[position] === "-" || (!ranges && spec[position] === "+")) position++;
+    const digits = position;
+    while (position < spec.length && spec[position]! >= "0" && spec[position]! <= "9") position++;
+    const value = Number(spec.slice(start, position));
+    if (position === digits || !Number.isSafeInteger(value)) throw new Error(`invalid argument ${spec}`);
+    return value;
+  };
+  while (position < spec.length) {
+    const separator = spec[position]!;
+    if (!separator.trim() || separator === "," || (!ranges && separator === "x")) { position++; continue; }
+    const values = [readIndex()];
+    const end = position;
+    while (position < spec.length && !spec[position]!.trim()) position++;
+    // A dash after optional whitespace continues this range, not a negative list entry.
+    if (ranges && spec[position] === "-") {
+      position++;
+      values.push(readIndex());
+    } else if (position > end) {
+      parts.push(values);
+      continue;
+    }
+    const next = spec[position];
+    if (next !== undefined && next.trim() && next !== "," && (ranges || next !== "x")) throw new Error(`invalid argument ${spec}`);
+    parts.push(values);
+  }
+  return parts;
 }
 
 function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" | "delete"): Generator<number> {

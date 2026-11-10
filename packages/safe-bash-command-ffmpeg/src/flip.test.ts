@@ -61,6 +61,38 @@ for (const direction of ["hflip", "vflip"]) {
   }
 }
 
+// Native FFmpeg 7.0.2 raw RGBA output; the input packets start at bytes 0 and 32.
+for (const [direction, expressions, expected] of [
+  ["hflip", ["eq(pos\\,0)", "eq(n\\,0)"],
+    "6d8aa7c4f916335085a2bfdc112e4b683d5a7794c9e6032055728face1fe1b38b1ceeb0825425f7c99b6d3f00d2a4764819ebbd8f5122f4c6986a3c0ddfa1734"],
+  ["vflip", ["gte(pos\\,32)", "gte(n\\,1)"],
+    "112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794819ebbd8f5122f4c6986a3c0ddfa1734b1ceeb0825425f7c99b6d3f00d2a4764"]
+] as const) {
+  for (const expression of expressions) {
+    it(`${direction} enable=${expression} matches native rawvideo timeline output`, async () => {
+      const input = Buffer.from(Array.from({ length: 64 }, (_, i) => (i * 29 + 17) % 256));
+      const volume = Volume.fromJSON({ "/in.raw": input, "/out.raw": "KEEP" });
+      const errors: Uint8Array[] = [];
+      const result = await createFfmpegCommand().execute({
+        args: ["-y", "-v", "error", "-f", "rawvideo", "-pixel_format", "rgba", "-video_size", "4x2",
+          "-framerate", "2", "-i", "/in.raw", "-vf", `${direction}=enable=${expression}`,
+          "-pix_fmt", "rgba", "-f", "rawvideo", "/out.raw"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+      assert.equal((volume.readFileSync("/out.raw") as Buffer).toString("hex"), expected);
+      assert.deepEqual(volume.readFileSync("/in.raw"), input);
+    });
+  }
+}
+
 for (const [size, input, horizontal, vertical] of [
   ["2x2", "204060808080305070908080", "402080608080503090708080", "608020408080709030508080"],
   ["4x4", "0102030405060708090a0b0c0d0e0f101112131415161718",

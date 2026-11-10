@@ -9242,7 +9242,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let replayGainAvailable = true;
                   let audioStartSample = 0;
                   const audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
-                  let audioTimestamps: { start: number; end: number; pts: number }[] | undefined;
+                  let audioTimestamps: { start: number; end: number; pts: number; pos?: number }[] | undefined;
                   if (!sink && ((index !== undefined && (audioSegment || frameChecksumOutput)) || (filter && parseFilterChain(filter.expression)
                     .some(item => item.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse")))) {
                     if (index !== undefined && audioSegment) segmentAudioPackets = [];
@@ -9550,11 +9550,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const previous = audioTimestamps;
                         audioTimestamps = [];
                         let frameIndex = 0;
+                        let packetEnd = t.samples[0] ? Math.round(t.samples[0].duration * origRate / t.timescale) : 0;
                         for (let start = 0; start < padded; start += size) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           while (previous && frameIndex + 1 < previous.length && previous[frameIndex]!.end <= start) frameIndex++;
+                          while (!previous && frameIndex + 1 < t.samples.length && packetEnd <= start) {
+                            frameIndex++;
+                            packetEnd += Math.round(t.samples[frameIndex]!.duration * origRate / t.timescale);
+                          }
                           const frame = previous?.[frameIndex];
                           audioTimestamps.push({ start, end: Math.min(padded, start + size),
+                            pos: previous ? frame?.pos : t.samples[frameIndex]?.offset,
                             pts: frame ? frame.pts + start - frame.start : audioStartSample + start });
                         }
                       } else if (trimmed === "ashowinfo") {
@@ -11430,7 +11436,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const packet = t.samples[n];
                             const count = packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                             const end = Math.min(length, start + count);
-                            audioTimestamps.push({ start, end,
+                            audioTimestamps.push({ start, end, pos: packet?.offset,
                               pts: packet ? packet.pts * origRate / t.timescale : audioStartSample + start });
                             start = end;
                           }
@@ -11447,7 +11453,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (parseFilterExpression(expression, "aselect", { n, t: frame.pts / origRate }) === 0) continue;
                             ranges.push(frame);
                             const end = length + frame.end - frame.start;
-                            selected.push({ start: length, end, pts: frame.pts });
+                            selected.push({ start: length, end, pts: frame.pts, pos: frame.pos });
                             length = end;
                           }
                           budget.allocateMemory(length * stretched.length * 8);
@@ -11472,13 +11478,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const startPts = audioTimestamps[0]?.pts ?? 0;
                         // Validate even an empty stream; expressions use the audio sample time base.
                         if (audioTimestamps.length === 0) parseFilterExpression(expression, "asetpts", {
+                          POS: NaN,
                           NAN: NaN, PTS: 0, STARTPTS: 0, T: 0, TB: 1 / origRate, SR: origRate,
+                          FR: NaN, FRAME_RATE: NaN,
                           N: 0, NB_CONSUMED_SAMPLES: 0, NB_SAMPLES: 0, S: 0
                         });
                         for (const frame of audioTimestamps) {
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           frame.pts = Math.trunc(parseFilterExpression(expression, "asetpts", {
+                            POS: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN,
                             NAN: NaN, PTS: frame.pts, STARTPTS: startPts, T: frame.pts / origRate, TB: 1 / origRate, SR: origRate,
+                            FR: NaN, FRAME_RATE: NaN,
                             N: frame.start, NB_CONSUMED_SAMPLES: frame.start,
                             NB_SAMPLES: frame.end - frame.start, S: frame.end - frame.start
                           }));
@@ -11563,7 +11573,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const last = Math.min(end, frame.end);
                             if (last <= first) continue;
                             budget.allocateMemory(24);
-                            retained.push({ start: first - start, end: last - start, pts: frame.pts + first - frame.start });
+                            retained.push({ start: first - start, end: last - start, pts: frame.pts + first - frame.start, pos: frame.pos });
                           }
                           audioTimestamps = retained;
                         }

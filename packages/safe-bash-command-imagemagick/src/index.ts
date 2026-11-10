@@ -589,6 +589,7 @@ function parseDelayOption(value: string, current: number): number {
 
 interface MagickState {
   respectParentheses?: boolean;
+  extract?: string;
   distortScale?: string;
   gradientBoundingBox?: MagickGeometry;
   gradientDirection?: string;
@@ -8310,6 +8311,13 @@ if (t === "-seed") {
             state.inputEndian = endian;
         }
         else if (t === "+endian") { delete state.inputEndian; }
+        else if (t === "-extract") {
+            const value = tokens[++i];
+            if (value === undefined) throw new Error("missing an argument for option '-extract'");
+            validateMagickTransformGeometry(value, t);
+            state.extract = value;
+        }
+        else if (t === "+extract") { delete state.extract; }
         else if (t === "-page") {
             const value = tokens[++i] ?? "";
             validateMagickTransformGeometry(value, t);
@@ -8745,7 +8753,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         const t = tokens[i]!;
         if (!operandsOnly && t === "--") { operandsOnly = true; i++; continue; }
         if (operandsOnly) {
-            const loaded = yield* parseInputOperandsSteps(t, files, state, stdinBytes, undefined, undefined, registers, analysis);
+            const loaded = yield* parseInputOperandsSteps(t, files, state, stdinBytes, undefined, state.extract, registers, analysis);
             if (!loaded) throw new Error(`unable to open image '${t}'`);
             for (const warning of loaded[0]?.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
             stack.push(...loaded);
@@ -10123,7 +10131,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 state.background = { r: 0, g: 0, b: 0, a: 0 };
             }
             const maxDecodeDim = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
-            const loaded = (yield* parseInputOperandsSteps(t, files, state, stdinBytes, maxDecodeDim, undefined, registers, analysis));
+            const loaded = (yield* parseInputOperandsSteps(t, files, state, stdinBytes, maxDecodeDim, state.extract, registers, analysis));
             if (mergeOntoCanvas) {
                 state.background = prevBg;
             }
@@ -12201,7 +12209,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const base = stack.length === 1 ? await stack.get(0) : undefined, lower = token.toLowerCase();
                 const merge = !literal && (lower.startsWith("label:") || lower.startsWith("caption:")) && base && captured.hasSize && base.width === captured.sizeWidth && base.height === captured.sizeHeight && Object.values(captured.background).every(value => value === 255);
                 const settings = merge ? { ...captured, background: { r: 0, g: 0, b: 0, a: 0 } } : captured;
-                const loaded = await parseStoredCompareInput(token, settings, backend, signal, { analysis, registers, visit: async image => {
+                const loaded = await parseStoredCompareInput(token, settings, backend, signal, { analysis, registers, ...(settings.extract === undefined ? {} : { extract: settings.extract }), visit: async image => {
                     for (const warning of image.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
                     if (merge) {
                         const composed = await compositeStoredMagick(base, image, backend, signal, 0, 0, "over");

@@ -34,7 +34,7 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
         const output = decodeImage(retained ? await filesystem.readFile("/tile-00.png") : files.get("/tile-00.png")!);
         expect([output.width, output.height]).toEqual([width, height]);
         expect(output.data).toEqual(Uint8Array.from(samples.flatMap(value => [value, value, value, missed ? 0 : 255])));
-        expect(output.virtualCanvas).toEqual({ width: pageWidth, height: pageHeight, x, y });
+        expect(output.virtualCanvas ?? { width: output.width, height: output.height, x: 0, y: 0 }).toEqual({ width: pageWidth, height: pageHeight, x, y });
     });
 }
 

@@ -573,7 +573,9 @@ for example, `aeval=isinf(1/0)` produces full-scale samples.
 `bitand(x,y)` and `bitor(x,y)` truncate fractional operands toward zero and retain
 bits above 32 bits, for example `aeval=bitand(n\,1)/2` alternates silence and half amplitude.
 `aeval=val(0)*random(0)` applies a deterministic random gain to each sample, matching
-FFmpeg 7. Random state persists across samples, stays independent for each output
+FFmpeg 7. `randomi(index,min,max)` uses the same generator to produce floating-point
+values between the supplied bounds; `aeval=randomi(0\,1\,2)/4` produces values between 0.25 and 0.5.
+Random state persists across samples, stays independent for each output
 channel and register index (0–9), and starts fresh for each filter execution.
 Use `st(index,seed)` to seed or reset a generator; `ld(index)` reads its last unsigned 64-bit value as a floating-point number.
 `aeval=sqrt(val(ch)):c=same` takes each channel sample’s square root. Negative

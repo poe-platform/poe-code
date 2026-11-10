@@ -77,7 +77,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
             }
           }
         }
-        else if (name === "random" && args.length === 1 && registers && randomStates) {
+        else if (((name === "random" && args.length === 1) || (name === "randomi" && args.length === 3)) && registers && randomStates) {
           value = 0;
           if (evaluate) {
             const index = Math.max(0, Math.min(9, Math.trunc(args[0]!) || 0));
@@ -90,7 +90,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
             }
             const random = Number(nextRandom(state));
             registers[index] = random;
-            value = random / 2 ** 64;
+            value = name === "randomi" ? args[1]! + (args[2]! - args[1]!) * random / 2 ** 64 : random / 2 ** 64;
           }
         }
         else if (filter === "rotate" && args.length === 1 && (name === "rotw" || name === "roth")) {

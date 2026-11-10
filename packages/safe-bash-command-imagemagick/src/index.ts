@@ -1445,6 +1445,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     mean: formatSignificantMetric(sums.reduce((sum, value, c) => sum + (selectedChannels[c] ? value : 0), 0) / (count * selectedCount), precision),
     min: formatSignificantMetric(min, precision),
     max: formatSignificantMetric(max, precision),
+    minima: formatSignificantMetric(min, precision),
+    maxima: formatSignificantMetric(max, precision),
     median: formatSignificantMetric(selectedMedian, precision),
     "standard-deviation": formatSignificantMetric(deviation, precision),
     skewness: formatSignificantMetric(skewness, precision),
@@ -1591,7 +1593,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
         parts.push(properties[`artifact:${key}`]!);
       } else if (Object.hasOwn(context.optionProperties ?? {}, key.startsWith("option:") ? key.slice(7) : key)) {
         parts.push(context.optionProperties![key.startsWith("option:") ? key.slice(7) : key]!);
-      } else if (["mean", "min", "max", "median", "standard-deviation", "skewness", "kurtosis", "entropy", "opaque", "type", "bit-depth"].includes(key)) {
+      } else if (["mean", "min", "max", "minima", "maxima", "median", "standard-deviation", "skewness", "kurtosis", "entropy", "opaque", "type", "bit-depth"].includes(key)) {
         if(resolvePixels){parts.push(yield*resolvePixels(property));continue;}
         img ??= getImage();
         pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection, context.precision);

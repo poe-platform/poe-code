@@ -7859,7 +7859,21 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     out[idx + channel] = data16 ? Math.round(sample / 257) : sample;
                 }
             }
-            return { ...image, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
+            // Preserve palette order (including unused entries) for later indexed operations.
+            const modulateColor = (r: number, g: number, b: number): number[] =>
+                modulateRgb(r / 255, g / 255, b / 255, brightness, saturation, hueShift % 6, colorspace)
+                    .map(value => Math.max(0, Math.min(255, Math.round(Math.fround(Math.fround(value * 65535) / 257)))));
+            const indexedColors = image.indexedColors?.map(color => {
+                const [r, g, b] = modulateColor((color >>> 16) & 255, (color >>> 8) & 255, color & 255);
+                return (color >>> 24) * 16777216 + r! * 65536 + g! * 256 + b!;
+            });
+            let pngPalette = image.pngPalette;
+            if (pngPalette) {
+                const bytes = new Uint8Array(pngPalette.bytes);
+                for (let i = 0; i < bytes.length; i += 3) bytes.set(modulateColor(bytes[i]!, bytes[i + 1]!, bytes[i + 2]!), i);
+                pngPalette = { ...pngPalette, bytes };
+            }
+            return { ...image, data: out, evaluateSamples, ...(data16 ? { data16 } : {}), ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) };
         };
     } else if (token === "-brightness-contrast") {
         highDepth = true;

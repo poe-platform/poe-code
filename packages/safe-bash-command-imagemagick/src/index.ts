@@ -4479,7 +4479,12 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
     }
     for (const i of dither === "riemersma" ? hilbertPixels(img) : scan()) {
         if (++cooperativeWork % 1024 === 0) { signal?.throwIfAborted(); yield; }
-        const input = (yield { kind: "read", position: i, length: 4 })!;
+        const bytes = (yield { kind: "read", position: i, length: 4 })!;
+        const hueBytes = dither && !reducePalette ? yield { kind: "read", hue: true, position: i, length: 4 } : undefined;
+        const hue = hueBytes?.length ? new Float64Array(hueBytes.slice().buffer) : undefined;
+        const input = hue ? Float64Array.from(hue, value => value * 255) : bytes;
+        // CMYK's fourth working slot is black; alpha lives in the RGBA backing.
+        if (hue && img.space === "cmyk") input[3] = bytes[3]!;
         const out = new Uint8Array(4);
         const alpha = img.hasAlpha ? input[3]! / 255 : 1;
         const target = [input[0]! * alpha, input[1]! * alpha, input[2]! * alpha, input[3]!];
@@ -4578,7 +4583,18 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
                 nextRow[x * 4 + channel]! += error * 5;
             }
         }
-        if (dither && !Number.isInteger(step)) {
+        if (hue) {
+            const samples = Float64Array.from(out, value => Math.round(value / step) / (levels - 1));
+            const backing = Float64Array.from(samples, value => value * 255);
+            if (img.space === "cmyk") {
+                // Native's dither palette has no black ink, even with K selected.
+                samples[3] = 0;
+                for (let channel = 0; channel < 3; channel++) backing[channel] = (1 - samples[channel]!) * 255;
+            }
+            yield { kind: "write", hue: true, position: i, data: new Uint8Array(samples.buffer) };
+            yield { kind: "write", evaluate: true, position: i, data: new Uint8Array(backing.buffer) };
+            yield { kind: "write", highDepth: true, position: i, data: new Uint8Array(Uint16Array.from(backing, value => Math.round(value * 257)).buffer) };
+        } else if (dither && !Number.isInteger(step)) {
             // Retain the palette's Q16 levels instead of expanding rounded bytes.
             const samples = Uint16Array.from(out, value => Math.round(Math.round(value / step) / (levels - 1) * 65535));
             yield { kind: "write", highDepth: true, position: i, data: new Uint8Array(samples.buffer) };
@@ -8436,7 +8452,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const levels = parsePosterizeLevels(tokens[++i] ?? "");
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = function* (image) {
-            const working = (!state.dither || levels < 2 || Math.trunc(levels) > 16) && (image.hueSamples !== undefined || image.magickColorspace === "RGB");
+            const working = image.hueSamples !== undefined || image.magickColorspace === "RGB" && (!state.dither || levels < 2 || Math.trunc(levels) > 16);
             let output = yield* applyMagickRasterSteps({ ...image, isPalette: true }, posterizePixelSteps(image, levels, state.dither, state.diffusionAmount ?? 1, channels, signal, !working), signal);
             if (!working) return output;
             if (image.magickColorspace !== "RGB") output = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(output);
@@ -13905,7 +13921,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expandedLevels = levels ?? parsePosterizeLevels(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal));
-                const working = (!dither || expandedLevels < 2 || Math.trunc(expandedLevels) > 16) && (image.storedHueSamples !== undefined || image.magickColorspace === "RGB");
+                const working = image.storedHueSamples !== undefined || image.magickColorspace === "RGB" && (!dither || expandedLevels < 2 || Math.trunc(expandedLevels) > 16);
                 let output = await transformStoredMagickRaster({ ...image, isPalette: true }, backend, posterizePixelSteps(image, expandedLevels, dither, diffusionAmount, channels, signal, !working), signal);
                 if (!working) return output;
                 if (image.magickColorspace !== "RGB") output = await transformStoredMagickPixels(output, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal);

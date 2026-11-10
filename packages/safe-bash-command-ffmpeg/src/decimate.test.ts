@@ -31,7 +31,7 @@ for (const [values, filter, expected] of [
   [unique, "decimate=4,select='lt(t,0.2)'", [40]],
   [duplicates, "decimate=cycle=1", null],
   [duplicates, "decimate=cycle=26", null],
-  [duplicates, "decimate=cycle=2.5", null],
+  [unique, "decimate=cycle=2.5", [40, 112, 144, 232]],
   [duplicates, "decimate=cycle=oops", null],
   [duplicates, "decimate=cycle=", null],
   [duplicates, "decimate=unknown=4", null],

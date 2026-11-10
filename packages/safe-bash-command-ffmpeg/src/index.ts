@@ -3519,13 +3519,16 @@ async function applyVideoFilterChain(
         return selected;
       });
     } else if (name === "decimate") {
-      const cycle = Number(named.cycle ?? (positional[0]?.includes("=") ? "5" : positional[0] || "5"));
+      const cycle = parseFilterExpression(
+        named.cycle ?? (positional[0]?.includes("=") ? "5" : positional[0] || "5"),
+        "decimate", { default: 5, min: 2, max: 25, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 }
+      );
       const mixed = parseFilterBoolean(named.mixed ?? "0", "decimate: mixed must be a Boolean");
       const dupthresh = Number(named.dupthresh ?? "1.1");
       const sceneThreshold = Number(named.scthresh ?? "15");
       if (named.mixed === "" || positional.slice(1, argStr.endsWith(":") ? -1 : undefined).some(part => !part.includes("=")) ||
           Object.keys(named).some(key => key !== "cycle" && key !== "mixed" && key !== "dupthresh" && key !== "scthresh") ||
-          !Number.isInteger(cycle) || cycle < 2 || cycle > 25) {
+          cycle < 2 || cycle > 25) {
         throw new Error("decimate: expected cycle from 2 to 25 and optional mixed Boolean");
       }
       if (named.dupthresh === "" || !Number.isFinite(dupthresh) || dupthresh < 0 || dupthresh > 100) {
@@ -3539,7 +3542,7 @@ async function applyVideoFilterChain(
       }
       // Decimate retimes frames but forwards the input EOF to downstream filters.
       if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
-      current = await decimate(current, cycle, mixed, dupthresh, sceneThreshold, budget, signal);
+      current = await decimate(current, roundToEven(cycle), mixed, dupthresh, sceneThreshold, budget, signal);
     } else if (name === "mpdecimate") {
       if (argStr) throw new Error("mpdecimate: custom options are unsupported");
       const retained: typeof current = [];

@@ -14869,7 +14869,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             } while (position < flags.length);
                             continue;
                           }
-                          const value = parseFilterExpression(option.slice(separator + 1), "areverse", {});
+                          const value = parseFilterExpression(option.slice(separator + 1), "areverse",
+                            key === "threads" ? { min: 0, default: 0 } : { min: -1, default: -1 });
                           if (value < (key === "extra_hw_frames" ? -1 : 0) || value > 2147483647) {
                             throw new RangeError(`areverse: invalid ${key}`);
                           }

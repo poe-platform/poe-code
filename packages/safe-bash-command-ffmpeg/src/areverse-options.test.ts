@@ -7,14 +7,17 @@ const invalidFilters = new Map<string, number>([
   ["areverse=unknown=1", 8], ["areverse@flip=unknown=1", 8],
   ["areverse=threads=-1", 222], ["areverse=threads=2147483648", 222],
   ["areverse=threads=", 234], ["areverse=thread_type=bogus", 234],
-  ["areverse=extra_hw_frames=-2", 222], ["areverse=2", 234]
+  ["areverse=extra_hw_frames=-2", 222], ["areverse=2", 234],
+  ["areverse=threads=min-1", 222], ["areverse=extra_hw_frames=default-1", 222]
 ]);
 
 for (const graph of [false, true]) {
   for (const filter of [
     "areverse", "areverse=", "asetnsamples=n=3:p=0,areverse",
     "asetnsamples=n=3:p=0,areverse@flip", "asetnsamples=n=3:p=0,areverse@flip=",
-    ...["threads=2", "thread_type=slice", "extra_hw_frames=1", "threads=1:thread_type=slice"].flatMap(options => [
+    ...["threads=2", "thread_type=slice", "extra_hw_frames=1", "threads=1:thread_type=slice",
+      "threads=min", "threads=default", "extra_hw_frames=min", "extra_hw_frames=default",
+      "threads=0", "extra_hw_frames=-1"].flatMap(options => [
       `areverse=${options}`, `areverse@rev=${options}`, `asetnsamples=n=3:p=0,areverse=${options}`
     ]),
     ...invalidFilters.keys()

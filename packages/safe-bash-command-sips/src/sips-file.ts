@@ -4,7 +4,7 @@ import {FsError,dirname,compareIdentity,type FileStat,type FileStaging,type File
 import {resolvePath} from "safe-bash-contracts/path";
 import {writeFileOutput} from "safe-bash-contracts/filesystem-output-budget";
 import type {CommandContext} from "safe-bash-contracts/command";
-import {createIdentifyReader,imageInspectionError,type IdentifyFileInput,type IdentifyInspection} from "./identify-reader.js";
+import {createIdentifyReader,type IdentifyFileInput,type IdentifyInspection} from "./identify-reader.js";
 import {performImage,runImageSteps,ImageStorageFailure,type SipsImageBackend} from "./image-backend.js";
 import {StoredSipsImages,type SipsPayload,type SipsImage} from "./stored-image-backend.js";
 import type {SipsCliResult} from "./index.js";
@@ -39,7 +39,7 @@ export async function runSipsFiles(argv:readonly string[],input:SipsFileInput,si
  };
  const inspectPayload=async(bytes:SipsPayload):Promise<IdentifyInspection>=>{
   try{const metadata=await runImageSteps(performImage(images.backend.metadata(bytes)),signal),properties=await runImageSteps(performImage(images.backend.readProperties(bytes,metadata.format)),signal);return {metadata,properties,size:size(bytes)};}
-  catch(error){signal.throwIfAborted();if(error instanceof FsError)throw error;return {error:imageInspectionError(error)};}
+  catch(error){signal.throwIfAborted();if(error instanceof FsError)throw error;return {error};}
  };
  const read:SipsInputReader=async(path,mutation)=>{
   if(!mutation)return inspect(path,path,undefined,false);

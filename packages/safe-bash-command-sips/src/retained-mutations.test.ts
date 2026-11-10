@@ -38,6 +38,6 @@ for(const length of [8,32,64])for(const command of ["identify","query","mutate"]
 it(`preserves ${command} diagnostics for a ${length}-byte TIFF prefix`,async()=>{
  const bytes=(await sharp({create:{width:13,height:11,channels:4,background:"red"}}).tiff().toBuffer()).slice(0,length),fs=new MemoryFileSystem();await fs.writeFile("/in",bytes);
  const args=command==="identify"?["in"]:command==="query"?["-g","all","in"]:["-r","90","in","-o","out"],run=command==="identify"?runIdentifyCli:runSipsCli;
- const expected=await run(args,new Map([["in",bytes]]));expect(expected.stderr).toContain("Offset is outside the bounds of the DataView");
+ const expected=await run(args,new Map([["in",bytes]]));expect(expected.stderr).toContain("Truncated TIFF directory");
  expect(await run(args,{filesystem:fs,cwd:"/"})).toEqual(expected);
 });

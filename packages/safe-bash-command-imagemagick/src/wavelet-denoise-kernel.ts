@@ -24,7 +24,7 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
     }
     const masked = image.region ? Float64Array.from(output) : undefined;
     if ((threshold !== 0 || masked) && levels > 0) {
-        const planes = new Float32Array(size * 3), row = new Float32Array(Math.max(width, height));
+        const planes = new Float32Array(size * 4), row = new Float32Array(Math.max(width, height));
         for (let channel = 0; channel < 3; channel++) {
             for (let i = 0; i < size; i++) {
                 if (i % 1024 === 0) yield;
@@ -41,7 +41,10 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
                         for (let i = 0; i < extent; i++) {
                             if (i % 1024 === 0) yield;
                             const left = i < scale ? scale - i : i - scale;
-                            const right = i + scale < extent ? i + scale : 2 * extent - 2 - i - scale;
+                            // Native processes the leading edge first, even when the
+                            // edge spans overlap, and reserves a fourth scratch plane.
+                            const right = i < scale || i < extent - scale ? i + scale
+                                : extent - 2 - (i - Math.max(scale, extent - scale));
                             row[i] = 0.25 * Math.fround(Math.fround(2 * planes[source + base + i * stride]! + planes[source + base + left * stride]!) + planes[source + base + right * stride]!);
                         }
                         for (let i = 0; i < extent; i++) planes[low + base + i * stride] = row[i]!;

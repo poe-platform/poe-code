@@ -1186,6 +1186,9 @@ async function panAudio(
       (names.some(name => audioSpeakerMasks[name] === undefined) || new Set(names).size !== names.length)) {
     throw new Error(`pan: unsupported output layout ${layout}`);
   }
+  if (names.some((name, index) => index > 0 && audioSpeakerMasks[name]! < audioSpeakerMasks[names[index - 1]!]!)) {
+    throw new Error(`pan: unsupported output channel order ${layout}`);
+  }
   const speakers = Object.keys(audioSpeakerMasks);
   // Default layouts are mono, stereo, 2.1, 4.0, 5.0, 5.1, 6.1 and 7.1.
   // An explicit mask takes precedence; four unmasked channels are not quad.
@@ -13483,8 +13486,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const msg = err instanceof Error ? err.message : String(err);
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
             const unnamedChannel = msg.startsWith("channelmap: unavailable input channel") && msg.endsWith(" (unnamed layout)");
-            if (err instanceof AlimiterError || err instanceof CompandError || unnamedChannel) {
-              if ((unnamedChannel || ((err instanceof AlimiterError || err instanceof CompandError) && err.stage === "configuration")) && outputFormat !== "null" &&
+            const unsupportedPanOrder = msg.startsWith("pan: unsupported output channel order ");
+            if (err instanceof AlimiterError || err instanceof CompandError || unnamedChannel || unsupportedPanOrder) {
+              if ((unnamedChannel || unsupportedPanOrder || ((err instanceof AlimiterError || err instanceof CompandError) && err.stage === "configuration")) && outputFormat !== "null" &&
                   !isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {
                 await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
               }

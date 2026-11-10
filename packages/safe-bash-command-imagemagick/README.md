@@ -183,6 +183,6 @@ Write portable half-float maps with `magick input.png output.phm` (or `phm:out.b
 
 Read RGB and RGBA QOI images with lossless 8-bit samples, including colors under fully transparent pixels.
 
-`-alpha discrete` makes output opaque while retaining stored opacity for subsequent `-alpha extract` or `-alpha activate`, including 16-bit samples.
+`-alpha discrete` makes output opaque while retaining stored opacity for subsequent `-alpha extract` or `-alpha activate`, including 16-bit samples. `%[channels]` counts the retained alpha channel after `discrete` or `deactivate`; `off` removes it from the reported channels.
 
 `-alpha deactivate` preserves alpha samples for later `activate` or `extract`. `associate` and `disassociate` also preserve those samples while transforming RGB. Disabled alpha writes opaque output; `off` clears stored alpha, while `set` initializes disabled alpha to opaque.

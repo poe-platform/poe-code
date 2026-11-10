@@ -119,9 +119,9 @@ import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage
 import { combineMetaPixelSteps, type MetaChannels } from "./combine-meta.js";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16" | "evaluateSamples">> & { position?: number; storedEvaluateSamples?: number | undefined };
-type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
-type ImageMetadata = BaseImageMetadata & HueMetadata & MetaChannels;
+type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
+type ImageMetadata = BaseImageMetadata & HueMetadata & MetaChannels & Pick<RgbaImage, "inactiveAlpha">;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -1547,6 +1547,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     g: `${page.width}x${page.height}${pageX}${pageY}`, O: `${pageX}${pageY}`, P: `${page.width}x${page.height}`, X: pageX, Y: pageY,
     c: meta.properties?.comment ?? "", l: meta.properties?.label ?? "", C: compression, Q: String(context.quality ?? meta.quality ?? 92)
   };
+  const hasAlphaChannel = meta.hasAlpha || meta.inactiveAlpha;
   const metaChannelCount = meta.metaChannels?.length ?? meta.storedMetaChannels?.length ?? 0;
   const properties: Record<string, string> = {
     compose: "Over",
@@ -1562,7 +1563,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     orientation: ["Undefined", "TopLeft", "TopRight", "BottomRight", "BottomLeft", "LeftTop", "RightTop", "RightBottom", "LeftBottom"][meta.orientation ?? 0] ?? "Undefined",
     ...(meta.jpegSamplingFactor === undefined ? {} : { "jpeg:sampling-factor": meta.jpegSamplingFactor }),
     "exif:orientation": meta.orientation === undefined ? "" : String(meta.orientation),
-    colorspace: space, channels: `${space === "LinearGray" ? "gray" : space.toLowerCase()}${meta.hasAlpha ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (meta.hasAlpha ? 1 : 0) + (meta.isPalette ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.writeMask || meta.storedWriteMask ? 1 : 0) + metaChannelCount}.${metaChannelCount}`,
+    colorspace: space, channels: `${space === "LinearGray" ? "gray" : space.toLowerCase()}${hasAlphaChannel ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (hasAlphaChannel ? 1 : 0) + (meta.isPalette ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.writeMask || meta.storedWriteMask ? 1 : 0) + metaChannelCount}.${metaChannelCount}`,
     width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
     depth: bitDepth, size: context.outputFilePath === undefined ? short.b! : "0B", compression, quality: String(meta.quality ?? 0), page: short.P!,
     "resolution.x": formatSignificantMetric(resolution ? resolution.x / resolutionScale : 0),
@@ -7542,7 +7543,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     out[idx + 3] = 255;
                     data16[idx + 3] = 65535;
                 }
-                return { ...im, data: out, data16, hasAlpha: false, channels: im.channels === 4 ? 3 : im.channels === 2 ? 1 : im.channels };
+                return { ...im, data: out, data16, hasAlpha: false, inactiveAlpha: false, channels: im.channels === 4 ? 3 : im.channels === 2 ? 1 : im.channels };
             };
         }
         else if (mode === "associate" || mode === "disassociate") {
@@ -7566,7 +7567,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         else if (mode === "deactivate" || mode === "discrete") {
             apply = function* (im) {
                 yield;
-                return { ...im, hasAlpha: false, alphaBlend: im.alphaBlend ?? im.hasAlpha };
+                return { ...im, hasAlpha: false, inactiveAlpha: im.hasAlpha || im.inactiveAlpha, alphaBlend: im.alphaBlend ?? im.hasAlpha };
             };
         }
         else if (mode === "background") {
@@ -7596,7 +7597,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     out[idx] = mode === "opaque" ? 255 : 0;
                     if (data16) data16[idx] = mode === "opaque" ? 65535 : 0;
                 }
-                return { ...im, data: out, ...(data16 ? { data16 } : {}), hasAlpha: mode !== "off", alphaBlend: mode !== "off" };
+                return { ...im, data: out, ...(data16 ? { data16 } : {}), hasAlpha: mode !== "off", inactiveAlpha: false, alphaBlend: mode !== "off" };
             };
         }
         else if (mode === "copy" || mode === "shape") {
@@ -7619,26 +7620,26 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     data16[idx + 3] = Math.round(intensity);
                     out[idx + 3] = clampByteVal(intensity / 257);
                 }
-                return { ...im, data: out, data16, hasAlpha: true, alphaBlend: mode === "shape" };
+                return { ...im, data: out, data16, hasAlpha: true, inactiveAlpha: false, alphaBlend: mode === "shape" };
             };
         }
         else if (mode === "activate") {
             apply = function* (im) {
                 yield;
-                return { ...im, hasAlpha: true, alphaBlend: true, channels: im.channels <= 2 ? 2 : 4 };
+                return { ...im, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, channels: im.channels <= 2 ? 2 : 4 };
             };
         }
         else if (mode === "on" || mode === "set") {
             apply = function* (im) {
                 if (im.hasAlpha && im.alphaBlend !== false) return im;
                 const opaque = yield* prepareInactiveAlphaOutput({ ...im, hasAlpha: false });
-                return { ...opaque, hasAlpha: true, alphaBlend: true, channels: im.channels <= 2 ? 2 : 4 };
+                return { ...opaque, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, channels: im.channels <= 2 ? 2 : 4 };
             };
         }
         else if (mode === "extract") {
             apply = function* (im) {
                 if (im.alphaBlend !== true) im = yield* prepareInactiveAlphaOutput(im);
-                return yield* extractChannelImageSteps({ ...im, hasAlpha: true }, 3);
+                return { ...yield* extractChannelImageSteps({ ...im, hasAlpha: true }, 3), inactiveAlpha: false };
             };
         }
         else { throw new Error(`Unsupported alpha mode: ${mode}`); }

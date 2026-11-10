@@ -5088,6 +5088,12 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
     return virtualCanvas ? { ...resized, virtualCanvas } : resized;
 }
 
+function discardDisassociatedAlpha<T extends ImageMetadata>(image: T): T {
+    if (image.hasAlpha || image.inactiveAlpha !== true || image.alphaBlend !== false) return image;
+    return { ...image, inactiveAlpha: false, alphaSeparate: false,
+        channels: image.space === "cmyk" ? 4 : image.channels <= 2 ? 1 : 3 };
+}
+
 function magickRotateCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, angle: number) {
     const rotation = ((angle % 360) + 360) % 360;
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
@@ -11231,6 +11237,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const operation = parseMagickWarpOperation(["-rotate", expanded], state, 0, analysis);
                 const { angle: deg, applies } = parseMagickRotation(expanded);
                 if (!applies(im)) return im;
+                if (((deg % 360) + 360) % 360 >= 1e-6) im = discardDisassociatedAlpha(im);
                 const plan = operation?.plan(im);
                 if (plan) {
                     // Arbitrary rotation retains a zero-valued write-mask channel on its new canvas.
@@ -11278,6 +11285,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-flip") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
+                im = discardDisassociatedAlpha(im);
                 return { ...yield* flipImageSteps(im),
                     alphaSeparate: im.alphaBlend === false ? false : im.alphaSeparate,
                     ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* flipImageSteps(plane); }) } : {}),
@@ -11290,6 +11298,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-flop") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
+                im = discardDisassociatedAlpha(im);
                 return { ...yield* flopImageSteps(im),
                     alphaSeparate: im.alphaBlend === false ? false : im.alphaSeparate,
                     ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* flopImageSteps(plane); }) } : {}),
@@ -11302,6 +11311,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-transpose") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
+                im = discardDisassociatedAlpha(im);
                 return { ...yield* rotateImageSteps((yield* flipImageSteps(im)), 90, state.background),
                     alphaSeparate: im.alphaBlend === false ? false : im.alphaSeparate,
                     ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* rotateImageSteps((yield* flipImageSteps(plane)), 90, state.background); }) } : {}),
@@ -11314,6 +11324,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-transverse") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
+                im = discardDisassociatedAlpha(im);
                 return { ...yield* rotateImageSteps((yield* flopImageSteps(im)), 90, state.background),
                     alphaSeparate: im.alphaBlend === false ? false : im.alphaSeparate,
                     ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* rotateImageSteps((yield* flopImageSteps(plane)), 90, state.background); }) } : {}),
@@ -11326,6 +11337,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-auto-orient") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
+                if (im.orientation && im.orientation >= 2 && im.orientation <= 8) im = discardDisassociatedAlpha(im);
                 let output: RgbaImage = yield* applyExifOrientationSteps(im);
                 if (im.metaChannels) output.metaChannels = yield* mapSteps(im.metaChannels, function* (plane) { return yield* applyExifOrientationSteps({ ...plane, orientation: im.orientation ?? 1 }); });
                 if (im.readMask) output.readMask = yield* applyExifOrientationSteps({ ...im.readMask, orientation: im.orientation } as RgbaImage);
@@ -13903,6 +13915,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const background = state.background, kind = token === "-transpose" ? "flip" : "flop";
             steps.push(async (image, backend) => {
                 if (!image) return;
+                image = discardDisassociatedAlpha(image);
                 const storedMetaChannels = [];
                 for (const plane of image.storedMetaChannels ?? []) storedMetaChannels.push(await transformStoredImage(await transformStoredImage(plane, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal));
                 return {
@@ -14287,6 +14300,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const kind = token === "-flip" ? "flip" : token === "-flop" ? "flop" : "autoOrient", orientation = state.orientation;
             steps.push(async (image, backend) => {
                 if (!image) return;
+                if (kind !== "autoOrient" || image.orientation && image.orientation >= 2 && image.orientation <= 8) image = discardDisassociatedAlpha(image);
                 let output: StoredRgbaImage = await transformStoredImage(image, backend.storage, { kind }, signal);
                 if (kind !== "autoOrient" && image.alphaBlend === false) output.alphaSeparate = false;
                 if (image.storedMetaChannels) {
@@ -14340,6 +14354,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const operation = parseMagickWarpOperation(["-rotate", expanded], settings, 0, analysis);
                 const { angle, applies } = parseMagickRotation(expanded);
                 if (!applies(image)) return image;
+                if (((angle % 360) + 360) % 360 >= 1e-6) image = discardDisassociatedAlpha(image);
                 const plan = operation?.plan(image);
                 if (plan) {
                     const storedWriteMask = image.region || image.storedWriteMask

@@ -2741,7 +2741,7 @@ function sampleFxImage(
   return sampleFxPixel(img.data16 ?? img.data!, idx, ch, img.data16 ? 65535 : 255);
 }
 function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number, interpolation?: LookupInterpolation): number {
-  if (interpolation === "blend" || interpolation === "mesh" || interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported FX interpolation: ${interpolation}`);
+  if (interpolation === "average9" || interpolation === "average16" || interpolation === "blend" || interpolation === "mesh" || interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported FX interpolation: ${interpolation}`);
   if (!img) return 0;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return NaN;
   const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
@@ -8442,7 +8442,8 @@ if (t === "-seed") {
             if (method === "nearest" || method === "nearest-neighbor") state.interpolation = "nearest";
             // ImageMagick's background method uses the default bilinear sampler.
             else if (method === "background") state.interpolation = "bilinear";
-            else if (method === "blend" || method === "integer" || method === "average" || method === "bilinear" || method === "mesh" || method === "catrom" || method === "spline") state.interpolation = method;
+            else if (method === "average4") state.interpolation = "average";
+            else if (method === "blend" || method === "integer" || method === "average" || method === "average9" || method === "average16" || method === "bilinear" || method === "mesh" || method === "catrom" || method === "spline") state.interpolation = method;
             else throw new Error(`unrecognized interpolate method '${method}'`);
         }
         else if (t === "+interpolate") {

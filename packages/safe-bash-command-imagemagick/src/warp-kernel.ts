@@ -73,8 +73,17 @@ function* splineSamples(x: number, y: number): Generator<readonly [number, numbe
     }
 }
 
+function* averageSamples(x: number, y: number, size: number): Generator<readonly [number, number, number]> {
+    // Odd footprints center on the nearest pixel; even ones straddle floor(x/y).
+    const left = Math.floor(x + (size === 3 ? 0.5 : 0)) - (size > 2 ? 1 : 0);
+    const top = Math.floor(y + (size === 3 ? 0.5 : 0)) - (size > 2 ? 1 : 0);
+    for (let row = 0; row < size; row++) for (let column = 0; column < size; column++)
+        yield [left + column, top + row, 1];
+}
+
 export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { alphaBlend?: boolean | undefined }, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = source;
+    const averageSize = plan.interpolation === "average" ? 2 : plan.interpolation === "average9" ? 3 : plan.interpolation === "average16" ? 4 : 0;
     const filter = kernel === "nearest" ? undefined : resizeFilter(kernel ?? "robidoux", settings, true);
     const blur = Math.max(1e-12, (settings?.blur ?? 1) * (kernel === "lanczos2sharp" ? 0.9549963639785485 : kernel === "lanczossharp" ? 0.9812505644269356 : 1));
     const support = filter ? filter.radius * blur : 2;
@@ -157,7 +166,7 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                         ? fx <= fy ? [1 - fy, 0, fy - fx, fx] : [1 - fx, fx - fy, 0, fy]
                         : fx <= 1 - fy ? [1 - fx - fy, fx, fy, 0] : [0, 1 - fy, 1 - fx, fx + fy - 1];
                 }
-                const samples: Iterable<readonly [number, number, number] | undefined> = outside ? [[Math.floor(sx), Math.floor(sy), 1]] : plan.nearest || interpolation === "nearest" ? [[Math.floor(sx + 0.5), Math.floor(sy + 0.5), 1]] : interpolation === "integer" ? [[x0, y0, 1]] : interpolation === "average" ? [[x0, y0, 0.25], [x1, y0, 0.25], [x0, y1, 0.25], [x1, y1, 0.25]] : filtered ? ellipseSamples(sx, sy, derivatives!, weights, support) : interpolation === "catrom" ? catromSamples(sx, sy) : interpolation === "spline" ? splineSamples(sx, sy) : [
+                const samples: Iterable<readonly [number, number, number] | undefined> = outside ? [[Math.floor(sx), Math.floor(sy), 1]] : plan.nearest || interpolation === "nearest" ? [[Math.floor(sx + 0.5), Math.floor(sy + 0.5), 1]] : interpolation === "integer" ? [[x0, y0, 1]] : averageSize ? averageSamples(sx, sy, averageSize) : filtered ? ellipseSamples(sx, sy, derivatives!, weights, support) : interpolation === "catrom" ? catromSamples(sx, sy) : interpolation === "spline" ? splineSamples(sx, sy) : [
                     [x0, y0, meshWeights?.[0] ?? (1 - fx) * (1 - fy)], [x1, y0, meshWeights?.[1] ?? fx * (1 - fy)],
                     [x0, y1, meshWeights?.[2] ?? (1 - fx) * fy], [x1, y1, meshWeights?.[3] ?? fx * fy]
                 ];
@@ -173,14 +182,14 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                     // Native mesh divides unassociated colors by interpolated alpha;
                     // average excludes transparent RGB.
                     if (interpolation === "mesh") colorTotal += weight * opacity / maximum;
-                    else if (interpolation === "average" || interpolation === "catrom" || interpolation === "spline") colorTotal += weight;
+                    else if (averageSize || interpolation === "catrom" || interpolation === "spline") colorTotal += weight;
                     // Native Catrom and spline keep the interpolated premultiplied colors.
                     if (derivatives || interpolation === "blend" || interpolation === "bilinear" || interpolation === "catrom" || interpolation === "spline") weight *= opacity / maximum;
-                    else if (interpolation === "average") weight *= Number(opacity > 0);
+                    else if (averageSize) weight *= Number(opacity > 0);
                     red += pixel[0]! * (plan.channels?.[0] === false ? unassociatedWeight : weight);
                     green += pixel[1]! * (plan.channels?.[1] === false ? unassociatedWeight : weight);
                     blue += pixel[2]! * (plan.channels?.[2] === false ? unassociatedWeight : weight);
-                    if (interpolation !== "mesh" && interpolation !== "average" && interpolation !== "catrom" && interpolation !== "spline") colorTotal += weight;
+                    if (interpolation !== "mesh" && !averageSize && interpolation !== "catrom" && interpolation !== "spline") colorTotal += weight;
                 }
                 // Native EWA falls back to interpolation for nonpositive filter coverage.
                 if (filtered && (total <= 1e-12 || colorTotal <= 1e-12)) continue;

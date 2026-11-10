@@ -8410,7 +8410,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
             const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
-            const evaluateSamples = im.evaluateSamples?.slice() ?? Float64Array.from(im.data16 ?? im.data, value => im.data16 ? value / 257 : value);
+            const hueSamples = im.space !== "cmyk" ? im.hueSamples?.slice() : undefined;
+            const evaluateSamples = (hueSamples ? Float64Array.from(hueSamples, value => value * 255) : im.evaluateSamples?.slice()) ?? Float64Array.from(im.data16 ?? im.data, value => im.data16 ? value / 257 : value);
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
                     yield;
@@ -8426,11 +8427,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         : (sig(u) - s0) / span;
                     // Preserve native Q16-HDRI float samples for subsequent operations.
                     evaluateSamples[idx + c] = Math.fround(Math.max(0, Math.min(1, value)) * 65535) / 257;
+                    if (hueSamples) hueSamples[idx + c] = evaluateSamples[idx + c]! / 255;
                     out[idx + c] = clampByteVal(evaluateSamples[idx + c]!);
                     if (data16) data16[idx + c] = Math.round(evaluateSamples[idx + c]! * 257);
                 }
             }
-            return { ...im, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
+            return { ...im, data: out, evaluateSamples, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
         };
     }
     else if (token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors") {

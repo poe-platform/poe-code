@@ -1,9 +1,10 @@
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
+import type { Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, radius: number, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">> & { region?: Region | undefined }, radius: number, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(image.data16 || image.storedData16), maximum = highDepth ? 65535 : 255;
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha] : [true, true, true, image.hasAlpha];
     const half = radius > 0 ? Math.ceil(radius) : 2;
@@ -66,6 +67,7 @@ export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "has
         if (!bytes || bytes.length !== count * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated edge pixels");
         const samples = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes;
         const data = highDepth ? new Uint16Array(samples) : new Uint8Array(samples);
+        const working = image.region ? Float64Array.from(samples, value => value * 255 / maximum) : undefined;
         for (let x = 0; x < count; x++) {
             const alpha = area * samples[x * 4 + 3]! - sums[x * 4 + 3]!;
             for (let c = 0; c < 4; c++) if (mask[c]) {
@@ -74,9 +76,12 @@ export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "has
                 const value = image.hasAlpha && c < 3
                     ? (area * samples[x * 4 + c]! * samples[x * 4 + 3]! - sums[x * 4 + c]!) / (alpha === 0 ? maximum * 1e-12 : alpha)
                     : area * samples[x * 4 + c]! - sums[x * 4 + c]!;
+                // Region compositing needs unclamped Q16-HDRI quantum values.
+                if (working) working[x * 4 + c] = Math.fround(value * 65535 / maximum) / 257;
                 data[x * 4 + c] = Math.max(0, Math.min(maximum, Math.round(value)));
             }
         }
         yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
+        if (working) yield { kind: "write", evaluate: true, position, data: new Uint8Array(working.buffer) };
     }
 }

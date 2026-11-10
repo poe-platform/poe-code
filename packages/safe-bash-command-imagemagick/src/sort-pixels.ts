@@ -12,6 +12,7 @@ export function* sortPixelSteps(image: { width: number; height: number; space?: 
     const row = new Uint16Array(width * 4), intensities = new Float64Array(width);
     // 512 RGBA float pixels fit the 16 KiB paged-storage read limit.
     const working: { hue?: Float64Array; evaluate?: Float64Array } = {};
+    let indices: Uint8Array | undefined;
     let order = new Uint32Array(width), scratch = new Uint32Array(width);
     for (let y = 0; y < height; y++) {
         // Derive order from image 0, then optionally emit the mask from image 1.
@@ -31,6 +32,14 @@ export function* sortPixelSteps(image: { width: number; height: number; space?: 
                 const bytes = yield { kind: "read", image: source, highDepth: true, position, length: count * 4 };
                 if (!bytes || bytes.length !== count * 8) throw new Error("Truncated sort pixels");
                 row.set(new Uint16Array(bytes.slice().buffer), left * 4);
+                if (!mask) {
+                    const original = yield { kind: "read", pngIndices: true, position: y * width + left, length: count };
+                    if (original?.length) {
+                        if (original.length !== count) throw new Error("Truncated sort pixel indices");
+                        indices ??= new Uint8Array(width);
+                        indices.set(original, left);
+                    }
+                }
                 for (const plane of ["hue", "evaluate"] as const) {
                     const samples = yield { kind: "read", image: source, [plane]: true, position, length: count * 4 };
                     if (!samples?.length) { delete working[plane]; continue; }
@@ -67,6 +76,12 @@ export function* sortPixelSteps(image: { width: number; height: number; space?: 
                 output.set(row.subarray(source, source + 4), x * 4);
             }
             yield { kind: "write", highDepth: true, position: (y * width + left) * 4, data: new Uint8Array(output.buffer) };
+            // Equal colors can occupy distinct palette slots; move their indices with them.
+            if (indices) {
+                const output = new Uint8Array(count);
+                for (let x = 0; x < count; x++) output[x] = indices[order[left + x]!]!;
+                yield { kind: "write", pngIndices: true, position: y * width + left, data: output };
+            }
             // Keep every working plane in the same order as RGBA for later operations.
             for (const plane of ["hue", "evaluate"] as const) {
                 const samples = working[plane];

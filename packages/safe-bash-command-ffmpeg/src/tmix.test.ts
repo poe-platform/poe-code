@@ -60,3 +60,40 @@ for (const [filter, expected] of [
     }
   });
 }
+
+const colorSamples = [[55, 80, 172], [55, 180, 60], [122, 62, 72], [230, 20, 230], [60, 120, 100], [80, 176, 90]];
+const graySamples = [16, 17, 18, 30, 90, 235].map(value => [value, 128, 128]);
+for (const [samples, filter, expected] of [
+  [colorSamples, "null", colorSamples],
+  [colorSamples, "tmix=frames=1", colorSamples],
+  [colorSamples, "tmix=frames=2:weights=0 1", colorSamples],
+  [colorSamples, "tmix=frames=2:weights=1 1", [[55, 80, 172], [55, 130, 116], [89, 121, 66], [176, 41, 151], [145, 70, 165], [70, 148, 95]]],
+  [graySamples, "tmix=frames=2:weights=2 -1", [16, 15, 16, 6, 0, 0].map(value => [value, 128, 128])],
+  [graySamples, "tmix=frames=1", graySamples],
+  [graySamples, "tmix=frames=2:weights=1 0", [16, 16, 17, 18, 30, 90].map(value => [value, 128, 128])]
+] as const) {
+  for (const chroma of ["420", "422", "444"]) {
+    it(`mixes native YUV${chroma} samples: ${filter} (${samples === colorSamples ? "color" : "gray"})`, async () => {
+      const volume = Volume.fromJSON({ "/out.raw": "KEEP" });
+      volume.writeFileSync("/in.y4m", Buffer.concat([
+        Buffer.from(`YUV4MPEG2 W2 H2 F5:1 Ip A1:1 C${chroma}\n`),
+        ...samples.flatMap(frame => [Buffer.from("FRAME\n"), Buffer.from(frame.flatMap((value, plane) => Array(plane === 0 || chroma === "444" ? 4 : chroma === "422" ? 2 : 1).fill(value)))])
+      ]));
+      const errors: Uint8Array[] = [];
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error", "-y", "-i", "/in.y4m", "-vf", filter,
+          "-fps_mode", "passthrough", "-pix_fmt", `yuv${chroma}p`, "-f", "rawvideo", "/out.raw"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+      assert.deepEqual(volume.readFileSync("/out.raw"), Buffer.from(expected.flatMap(frame => frame.flatMap((value, plane) => Array(plane === 0 || chroma === "444" ? 4 : chroma === "422" ? 2 : 1).fill(value)))));
+    });
+  }
+}

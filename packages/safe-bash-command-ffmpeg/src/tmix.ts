@@ -1,4 +1,4 @@
-import type { MediaVideoFrame, MediaBudgetTracker } from "@poe-code/mp4-ast";
+import { scaleVideoPicture, type MediaVideoFrame, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
 export async function tmix(
@@ -30,19 +30,32 @@ export async function tmix(
     if (history.some(previous => previous.width !== frame.width || previous.height !== frame.height)) {
       throw new Error("tmix: frames must have matching dimensions");
     }
-    budget.allocateMemory(frame.data.length);
-    const data = new Uint8Array(frame.data.length);
+    const native = frame.native;
+    const useNative = native && [0, 4, 5, 12, 13, 14].includes(native.format) && history.every(previous =>
+      previous.native?.rgba === previous.data && previous.native.width === previous.width &&
+      previous.native.height === previous.height && previous.native.format === native.format &&
+      previous.native.colorspace === native.colorspace && previous.native.fullRange === native.fullRange &&
+      previous.native.pixels.length === native.pixels.length);
+    const sources = history.map(previous => useNative ? previous.native!.pixels : previous.data);
+    budget.allocateMemory(useNative ? native.pixels.length + frame.data.length : frame.data.length);
+    const data = new Uint8Array(sources[0]!.length);
     for (let offset = 0; offset < data.length; offset++) {
       let value = 0;
       for (let slot = 0; slot < count; slot++) {
         if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-        value += history[slot]!.data[offset]! * weights[slot]!;
+        value += sources[slot]![offset]! * weights[slot]!;
       }
       data[offset] = Math.max(0, Math.min(255, Math.round(value / sum)));
     }
-    const mixed = { ...frame, data };
-    delete mixed.native;
-    output.push(mixed);
+    if (useNative) {
+      const mixedNative = { ...native, pixels: data };
+      const rgba = scaleVideoPicture({ ...frame, native: mixedNative }, frame.width, frame.height)!;
+      output.push({ ...frame, data: rgba, native: { ...mixedNative, rgba } });
+    } else {
+      const mixed = { ...frame, data };
+      delete mixed.native;
+      output.push(mixed);
+    }
   }
   return output;
 }

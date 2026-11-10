@@ -10760,7 +10760,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const options = magickResizeOptions(image, geometry, undefined);
                 if (!options || (options.width === image.width && options.height === image.height)) return image;
                 const width = options.width!, height = options.height!;
-                const resized = yield* applyMagickRasterSteps(image, adaptiveResizePixelSteps(image, width, height, !!image.data16), signal, { ...image, width, height });
+                const resized = yield* applyMagickRasterSteps({ ...image, isPalette: false }, adaptiveResizePixelSteps(image, width, height, !!image.data16), signal, { ...image, width, height });
                 const virtualCanvas = magickResizeCanvas(image, width, height);
                 return virtualCanvas ? { ...resized, virtualCanvas } : resized;
             });
@@ -13661,7 +13661,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const options = magickResizeOptions(image, geometry, undefined);
                 if (!options || (options.width === image.width && options.height === image.height)) return image;
                 const width = options.width!, height = options.height!;
-                const resized = await transformStoredMagickRaster(image, backend, adaptiveResizePixelSteps(image, width, height, !!image.storedData16), signal, { ...image, width, height });
+                const resized = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, adaptiveResizePixelSteps(image, width, height, !!image.storedData16), signal, { ...image, width, height });
                 const virtualCanvas = magickResizeCanvas(image, width, height);
                 return virtualCanvas ? { ...resized, virtualCanvas } : resized;
             });

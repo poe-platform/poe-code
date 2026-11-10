@@ -1283,7 +1283,11 @@ async function renderShowwavespic(
   let work = 0;
   for (const [channel, samples] of channels.entries()) {
     const color = parseColorRgba(colors[Math.min(channel, colors.length - 1)]!);
-    if (!split) for (let c = 0; c < 4; c++) color[c] = Math.floor(color[c]! / channels.length);
+    if (!split) {
+      // FFmpeg truncates the shared intensity before scaling each RGBA component.
+      const intensity = Math.floor(255 / channels.length);
+      for (let c = 0; c < 4; c++) color[c] = Math.floor(color[c]! * intensity / 255);
+    }
     for (let x = 0; x < width; x++) {
       // FFmpeg puts all remaining samples in the final column.
       const start = x * samplesPerColumn;

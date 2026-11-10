@@ -4734,6 +4734,16 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
 
 function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geomStr: string, gravity: GravityPosition): Generator<Parameters<typeof extractImageSteps>[1] | undefined | null> {
     const g = parseMagickGeometry(geomStr.replaceAll("#", ""));
+    if (g.enlargeOnly) {
+        const width = g.isPercent ? Math.round(img.width * (g.percentX ?? 100) / 100) : Math.round(g.width ?? (img.virtualCanvas?.width || img.width));
+        const height = g.isPercent ? Math.round(img.height * (g.percentY ?? 100) / 100) : Math.round(g.height ?? (img.virtualCanvas?.height || img.height));
+        // ParseGravityGeometry cancels the crop, including offsets and tiling,
+        // only when both nonzero dimensions are smaller than the raster.
+        if (width > 0 && width < img.width && height > 0 && height < img.height) {
+            yield { left: 0, top: 0, width: img.width, height: img.height };
+            return;
+        }
+    }
     if (g.isSubdivide) {
         const cols = Math.max(1, Math.round(g.width ?? 1));
         const rows = Math.max(1, Math.round(g.height ?? 1));

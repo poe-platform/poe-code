@@ -1536,6 +1536,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const pageX = `${page.x < 0 ? "" : "+"}${page.x}`, pageY = `${page.y < 0 ? "" : "+"}${page.y}`;
   const resolution = meta.resolution;
   const resolutionScale = resolution?.unit === "meter" ? 100 : 1;
+  const hasAlphaChannel = meta.hasAlpha || meta.inactiveAlpha;
   const short: Record<string, string> = {
     w: String(meta.width), h: String(meta.height), m: meta.format.toUpperCase(),
     A: meta.hasAlpha ? "Blend" : "Undefined",
@@ -1543,7 +1544,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     W: page.width < 0 ? Number(BigInt.asUintN(64, BigInt(page.width))).toExponential(16) : String(page.width),
     H: page.height < 0 ? Number(BigInt.asUintN(64, BigInt(page.height))).toExponential(16) : String(page.height),
     G: `${context.originalWidth ?? meta.width}x${context.originalHeight ?? meta.height}`,
-    z: bitDepth, q: "16", r: `${meta.isPalette ? "PseudoClass" : "DirectClass"} ${space} ${meta.hasAlpha ? "Alpha" : ""}`,
+    z: bitDepth, q: "16", r: `${meta.isPalette ? "PseudoClass" : "DirectClass"} ${space} ${hasAlphaChannel ? "Alpha" : ""}`,
     f: baseName, t: dot < 0 ? baseName : baseName.slice(0, dot), e: dot < 0 ? "" : baseName.slice(dot + 1), i: context.outputFilePath ?? filePath, M: context.originalInput ?? filePath,
     d: filePath.slice(0, Math.max(0, filePath.lastIndexOf("/"))),
     o: "", u: "",
@@ -1558,7 +1559,6 @@ function* formatMagickPropertyStringSteps<Step=never>(
     g: `${page.width}x${page.height}${pageX}${pageY}`, O: `${pageX}${pageY}`, P: `${page.width}x${page.height}`, X: pageX, Y: pageY,
     c: meta.properties?.comment ?? "", l: meta.properties?.label ?? "", C: compression, Q: String(context.quality ?? meta.quality ?? 92)
   };
-  const hasAlphaChannel = meta.hasAlpha || meta.inactiveAlpha;
   const metaChannelCount = meta.metaChannels?.length ?? meta.storedMetaChannels?.length ?? 0;
   const properties: Record<string, string> = {
     compose: "Over",

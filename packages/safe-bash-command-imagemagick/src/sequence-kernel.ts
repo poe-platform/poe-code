@@ -208,7 +208,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
     const hue = !!inputs[0]?.magickColorspace && inputs[0].magickColorspace !== "RGB" && inputs[0].space !== "cmyk";
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
-    const fractional = ["mean", "multiply", "rms", "rootmeansquare"].includes(operation);
+    const fractional = ["divide", "mean", "multiply", "rms", "rootmeansquare"].includes(operation);
     const retainRange = ["add", "sum", "subtract", "min", "max"].includes(operation);
     function* read(image: number, position: number, length: number, retainWorking = retainRange || fractional): Generator<ConvolveRequest, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
         const working = retainWorking ? yield { kind: "read", evaluate: true, image, position, length } : undefined;
@@ -458,6 +458,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 if (average && channels && !channels[offset % 4] && (offset % 4 !== 3 || hasAlpha)) data[offset] = 0;
                 else if (multiplication && (offset % 4 !== 3 || hasAlpha)) data[offset] = values[offset]! * range;
                 else if (average && (offset % 4 !== 3 || hasAlpha)) data[offset] = values[offset]! / frames;
+                else if (operation === "divide" && (offset % 4 !== 3 || hasAlpha)) data[offset] = values[offset]! / scale;
                 else if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(quantum ? values[offset]! / scale : values[offset]!);
             }
         }

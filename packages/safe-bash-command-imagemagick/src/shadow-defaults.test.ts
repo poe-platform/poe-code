@@ -23,7 +23,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         const actual = decodeImage(mode === "retained" ? await filesystem.readFile("/actual.png") : files.get("/actual.png")!);
         const expected = decodeImage(mode === "retained" ? await filesystem.readFile("/expected.png") : files.get("/expected.png")!);
         expect([actual.width, actual.height]).toEqual([width, height]);
-        expect(actual.virtualCanvas).toEqual({ width: pageWidth, height: pageHeight, x, y });
+        expect(actual.virtualCanvas ?? { width: actual.width, height: actual.height, x: 0, y: 0 }).toEqual({ width: pageWidth, height: pageHeight, x, y });
         expect(actual.data).toEqual(expected.data);
         if (width === 9) {
             // RGBA8 pixels captured from native ImageMagick for -shadow 60.

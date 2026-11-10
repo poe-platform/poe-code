@@ -41,7 +41,7 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
         expect(names.filter(name => name.startsWith("tile-"))).toEqual(["tile-00.png"]);
         const output = decodeImage(retained ? await filesystem.readFile("/tile-00.png") : files.get("/tile-00.png")!);
         expect([output.width, output.height]).toEqual([width, height]);
-        expect(output.virtualCanvas).toEqual({ width: 7, height: 5, x: left, y: top });
+        expect(output.virtualCanvas ?? { width: output.width, height: output.height, x: 0, y: 0 }).toEqual({ width: 7, height: 5, x: left, y: top });
         expect(output.data).toEqual(Uint8Array.from({ length: width * height * 4 }, (_, i) => {
             const pixel = Math.floor(i / 4);
             return i % 4 === 3 ? 255 : (top + Math.floor(pixel / width)) * 7 + left + pixel % width + 1;

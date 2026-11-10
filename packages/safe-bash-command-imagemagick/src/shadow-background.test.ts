@@ -22,7 +22,7 @@ it.each(["buffered", "retained", "sync"])("inherits PNG shadow background and ho
         expect(result.exitCode, result.stderr).toBe(0);
         const output = decodeImage(result.stdoutBytes!);
         expect([output.width, output.height]).toEqual([5, 4]);
-        expect(output.virtualCanvas).toEqual({ width: 5, height: 4, x: 0, y: 0 });
+        expect(output.virtualCanvas).toBeUndefined();
         for (let y = 0; y < 4; y++) for (let x = 0; x < 5; x++) {
             const offset = (y * 5 + x) * 4;
             const alpha = x >= 1 && x <= 3 && y >= 1 && y <= 2 ? 153 : 0;

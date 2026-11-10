@@ -291,7 +291,7 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   // setUint32 truncates fractional pixels per meter, matching ImageMagick.
   physicalView.setUint32(0,resolution ? resolution.x * scale : density / 0.0254); physicalView.setUint32(4,resolution ? resolution.y * scale : density / 0.0254); physical[8] = resolution?.unit === "unknown" ? 0 : 1;
   if (!options.omitPngResolution && (resolution !== undefined || options.density !== undefined)) {signal.throwIfAborted(); yield makeChunk("pHYs",physical);}
-  if (image.virtualCanvas !== undefined) {signal.throwIfAborted(); yield canvasChunk(image.virtualCanvas);}
+  if (image.virtualCanvas !== undefined && (image.virtualCanvas.width !== image.width || image.virtualCanvas.height !== image.height || image.virtualCanvas.x !== 0 || image.virtualCanvas.y !== 0)) {signal.throwIfAborted(); yield canvasChunk(image.virtualCanvas);}
   for (const chunk of textChunks(image.properties)) {
     for (let offset = 0; offset < chunk.length; offset += 4096) {signal.throwIfAborted(); yield chunk.subarray(offset, offset + 4096);}
   }

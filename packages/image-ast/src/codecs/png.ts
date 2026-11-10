@@ -475,7 +475,7 @@ export function encodePngImage(
     ...exifChunk,
     ...textChunks(img.properties),
     ...(img.xmp ? [xmpChunk(img.xmp)] : []),
-    ...(img.virtualCanvas === undefined ? [] : [canvasChunk(img.virtualCanvas)]),
+    ...(img.virtualCanvas === undefined || img.virtualCanvas.width === width && img.virtualCanvas.height === height && img.virtualCanvas.x === 0 && img.virtualCanvas.y === 0 ? [] : [canvasChunk(img.virtualCanvas)]),
     makeChunk("IDAT", compressed),
     makeChunk("IEND", new Uint8Array(0))
   ];

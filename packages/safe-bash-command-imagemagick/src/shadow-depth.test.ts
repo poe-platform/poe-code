@@ -17,7 +17,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect(result.exitCode, result.stderr).toBe(0);
         const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
         expect([output.width, output.height]).toEqual([1, 1]);
-        expect(output.virtualCanvas).toEqual({ width: 1, height: 1, x: 0, y: 0 });
+        expect(output.virtualCanvas).toBeUndefined();
         expect(Array.from(output.data16 ?? [])).toEqual([0xc023, 0x1401, 0x5291, Math.round(0x5023 * opacity / 100)]);
     });
 }

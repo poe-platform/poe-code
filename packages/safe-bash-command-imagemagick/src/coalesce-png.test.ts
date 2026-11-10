@@ -17,7 +17,8 @@ it.each([false, true])("coalesces a single offset PNG onto its full canvas (reta
     const context = retained ? { filesystem, cwd: "/" } : files;
     expect(await runMagickCli(["part.png", "-coalesce", "out.png"], context)).toMatchObject({ exitCode: 0 });
     const output = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("out.png")!);
-    expect(output).toMatchObject({ width: 48, height: 32, virtualCanvas: { width: 48, height: 32, x: 0, y: 0 } });
+    expect(output).toMatchObject({ width: 48, height: 32 });
+    expect(output.virtualCanvas).toBeUndefined();
     expect(output.data).toHaveLength(6144);
     // SHA-256 of native ImageMagick's out.png -depth 8 rgba:- output.
     expect(createHash("sha256").update(output.data).digest("hex"))
@@ -25,7 +26,8 @@ it.each([false, true])("coalesces a single offset PNG onto its full canvas (reta
 
     expect(await runMagickCli(["out.png", "-coalesce", "full.png"], context)).toMatchObject({ exitCode: 0 });
     const full = decodeImage(retained ? await filesystem.readFile("/full.png") : files.get("full.png")!);
-    expect(full).toMatchObject({ width: 48, height: 32, virtualCanvas: { width: 48, height: 32, x: 0, y: 0 } });
+    expect(full).toMatchObject({ width: 48, height: 32 });
+    expect(full.virtualCanvas).toBeUndefined();
     expect(full.data).toEqual(output.data);
 });
 

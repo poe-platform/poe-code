@@ -34,7 +34,7 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
             const path = `/tile-${String(index).padStart(2, "0")}.png`;
             const output = decodeImage(retained ? await filesystem.readFile(path) : files.get(path)!);
             expect([output.width, output.height]).toEqual([width, height]);
-            expect(output.virtualCanvas).toEqual({ width: 7, height: 5, x, y });
+            expect(output.virtualCanvas ?? { width: output.width, height: output.height, x: 0, y: 0 }).toEqual({ width: 7, height: 5, x, y });
             const pixels = [];
             for (let row = y; row < y + height; row++) {
                 for (let col = x; col < x + width; col++) {

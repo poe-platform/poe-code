@@ -16,7 +16,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect(result.exitCode, result.stderr).toBe(0);
         const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
         expect([output.width, output.height]).toEqual([2 + 4 * sigma, 2 + 4 * sigma]);
-        expect(output.virtualCanvas).toEqual({ width: 2 + 2 * sigma, height: 2 + 2 * sigma, x: 0 - 2 * sigma, y: 0 - 2 * sigma });
+        expect(output.virtualCanvas ?? { width: output.width, height: output.height, x: 0, y: 0 }).toEqual({ width: 2 + 2 * sigma, height: 2 + 2 * sigma, x: 0 - 2 * sigma, y: 0 - 2 * sigma });
         for (let offset = 0; offset < output.data.length; offset += 4) {
             expect(Array.from(output.data.subarray(offset, offset + 3))).toEqual([255, 0, 0]);
             if (sigma === 0) expect(output.data[offset + 3]).toBe(255);

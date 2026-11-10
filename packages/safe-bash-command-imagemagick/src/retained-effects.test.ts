@@ -19,20 +19,20 @@ it("preserves effect pixels and geometry", async () => {
         const files = new Map([["input", bytes]]);
         expect((await runConvertCli(["input", ...args, "out.png"], files)).exitCode).toBe(0);
         const image = decodeImage(files.get("out.png")!);
-        hashes.push(createHash("sha256").update(image.data).update(JSON.stringify([image.width, image.height, image.virtualCanvas])).digest("hex"));
+        hashes.push(createHash("sha256").update(image.data).update(JSON.stringify([image.width, image.height, image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 }])).digest("hex"));
     }
     expect(hashes).toMatchInlineSnapshot(`
       [
-        "40c9cf3ba34544fdcc548bf2ee598535f37f5eccf6cbfb696c7294289adb809e",
-        "a17ba66656a0721a229491f9ebf6fdf94876a2b1d89864e83ebe08db71d7a5e9",
+        "d9e3846429aa72bb26c2d2ca64126e97ae7aff5fbc9373d7982d6e8ffa01a90f",
+        "88210fe67f2017aed944c49ffc49864bb909dfaa52d17435f8e1f7498e92b347",
         "0aeec4fe0cb8c49a1547bd5a88788e51a2a62b0abf81e2a7cef88e40bcb8c1ff",
-        "dc9e4f0526b9960ac5019c0e13a47553b79e250ff5a02489b3e42b9d5e0c9210",
-        "3e441f46944fa4f57fadbcecefb6cf35c1aaa75830dc6fdb4a8628bdaf54b2bd",
+        "c0b18fbea25c054d748f52a5a4ce674d8ae37162e98adbaa38c895ae7c1b8d8c",
+        "f1ea0fe184d9a8ab52a56ea374b8feb30c05a1f632b7108e3d7eec13121ee748",
         "1620ee98360a99e5374e2d9e8d5f22836605b4b3332f80df70357a8f0557724d",
         "93a5072ee91515fe8062ef60899bbe86c8b59c70eb4010219b3af315198931ec",
         "196f0b863a5f1f73ef837ea6d156ff75e5c75841d88e3656ae69c6b22644bc33",
-        "59150403c842472d799072e1a440f79dc00e584b3034eb2ba2232f50cbdf43d7",
-        "be5ab223b221f5f8ad5dfdc87056fe2e338272fac3fd5e2fa004f92932a88f78",
+        "78f12fb9287470af4868271ebb1f872753d0f410c938d4fca9f65db2b4c0d378",
+        "4a5f8c80ad4ec2be3ceb1a70ce9e05716f14727b1f565ce0e8e537160f7bc0da",
       ]
     `);
 });

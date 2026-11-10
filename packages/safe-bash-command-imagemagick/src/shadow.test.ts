@@ -28,8 +28,8 @@ it.each([
             }
             offset += length + 12;
         }
-        expect(actualCanvas).toEqual(canvas);
-        expect(image.virtualCanvas).toEqual({width:canvas[0],height:canvas[1],x:canvas[2],y:canvas[3]});
+        expect(actualCanvas).toEqual(geometry === "80x0+0+0" ? undefined : canvas);
+        expect(image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 }).toEqual({width:canvas[0],height:canvas[1],x:canvas[2],y:canvas[3]});
         expect((await runMagickCli(["/shadow.png", "/copy.png"], backend)).exitCode).toBe(0);
         const copied = retained ? await filesystem.readFile("/copy.png") : files.get("/copy.png")!;
         expect(decodeImage(copied).virtualCanvas).toEqual(image.virtualCanvas);

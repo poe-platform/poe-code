@@ -1,9 +1,10 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Native BilevelType: Rec709 gray, 2%/1% normalization, then a half-range threshold. */
-export function* bilevelPixelSteps(count: number, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* bilevelPixelSteps(count: number, highDepth: boolean): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
     const histogram = new Float64Array(65536), sampleBytes = highDepth ? 2 : 1;
     let low = 0, high = 65535;
+    let black = false, white = false;
     for (let pass = 0; pass < 2; pass++) {
         for (let first = 0; first < count; first += 4096) {
             yield;
@@ -18,6 +19,8 @@ export function* bilevelPixelSteps(count: number, highDepth: boolean): Generator
                 if (!data) histogram[gray]!++;
                 else {
                     const value = gray > (high > low ? (low + high) / 2 : 65535 / 2) ? 255 : 0;
+                    black ||= value === 0;
+                    white ||= value === 255;
                     data.fill(value, offset, offset + 3);
                     data[offset + 3] = 255;
                 }
@@ -31,4 +34,8 @@ export function* bilevelPixelSteps(count: number, highDepth: boolean): Generator
             for (; high > 0; high--) { sum += histogram[high]!; if (sum > 0.01 * count) break; }
         }
     }
+    const palette: number[] = [];
+    if (black) palette.push(0xff000000);
+    if (white) palette.push(0xffffffff);
+    return palette;
 }

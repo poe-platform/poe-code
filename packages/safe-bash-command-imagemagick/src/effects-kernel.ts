@@ -11,7 +11,7 @@ export interface ShadowLayout {
     readonly opacity: number;
     readonly sigma: number;
 }
-export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, layout: ShadowLayout, color: RgbaColor, alpha = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hasAlpha"> & Partial<Pick<StoredRgbaImage, "storedData16">>, layout: ShadowLayout, color: RgbaColor, alpha = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
     const sigma = layout.sigma;
     let half = 0;
@@ -59,7 +59,7 @@ export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "
                             if (x % 32 === 0) yield;
                             for (let k = -half; k <= half; k++) {
                                 const sx = Math.max(0, Math.min(layout.width - 1, left + x + k)) - layout.offsetX;
-                                if (sx >= first && sx <= last) row[x]! += samples[(sx - first) * 4 + 3]! * weights[k + half]!;
+                                if (sx >= first && sx <= last) row[x]! += (source.hasAlpha ? samples[(sx - first) * 4 + 3]! : maximum) * weights[k + half]!;
                             }
                         }
                     }

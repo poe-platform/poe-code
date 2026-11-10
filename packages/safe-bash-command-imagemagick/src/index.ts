@@ -10621,6 +10621,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ });
                 validateMagickTransformGeometry(expanded, t);
                 let result = yield* applyMagickRollSteps(im, expanded, signal);
+                if (im.metaChannels?.length) {
+                    result.metaChannels = [];
+                    for (const plane of im.metaChannels) result.metaChannels.push(yield* applyMagickRollSteps(plane, expanded, signal));
+                }
                 if (im.region) {
                     result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, im.region, !!(result.data16 || im.data16), state.channels), signal, result, [result, im]);
                     const offsets = parseMagickRollGeometry(expanded);
@@ -13909,6 +13913,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (token === "-splice") validateMagickSpliceGeometry(expanded);
                 else validateMagickTransformGeometry(expanded, token);
                 let result = await transformStoredMagickCoordinates(image, backend, token, expanded, captured, signal, analysis);
+                if (token === "-roll" && image.storedMetaChannels?.length) {
+                    result.storedMetaChannels = [];
+                    for (const plane of image.storedMetaChannels)
+                        result.storedMetaChannels.push(await transformStoredMagickCoordinates(plane, backend, token, expanded, captured, signal, analysis));
+                }
                 if (token === "-roll" && image.region) {
                     result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, image.region, !!(result.storedData16 || image.storedData16), captured.channels), signal, result, [result, image]);
                     const offsets = parseMagickRollGeometry(expanded);

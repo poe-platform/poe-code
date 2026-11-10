@@ -410,7 +410,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
         const gray = colorOutput && (inputImage.space === "b-w" || inputImage.space === "grey16");
         // Native reductions visit the input's channel slots using the output channel map.
         // An opaque 8-bit gray PNG has a palette-index slot in addition to gray.
-        const colorSlots = cmyk ? stride : gray ? 1 + Number(inputImage.hasAlpha || (inputImage.format === "png" && inputImage.depth === "uchar")) : 3;
+        const colorSlots = gray ? 1 + Number(inputImage.hasAlpha || (inputImage.format === "png" && inputImage.depth === "uchar")) : cmyk ? stride : 3;
         const maskedMedian = operation === "median" && channels?.some(selected => !selected);
         const graySlots = gray && ["mean", "sum", "max"].includes(operation);
         if ((!hasAlpha || inputImage.hasAlpha) && !graySlots && !maskedMedian) return bytes;

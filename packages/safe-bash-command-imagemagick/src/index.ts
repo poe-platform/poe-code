@@ -18386,6 +18386,9 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                             const resize = magickResizeOptions(image, geometry, state.kernel ?? "lanczossharp");
                             if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true, false, false, state.resizeFilter);
                         }
+                        // Montage paints byte-valued tiles, matching the buffered canvas.
+                        const { storedData16: ignoredData16, storedEvaluateSamples: ignoredEvaluateSamples, ...tile } = image;
+                        image = tile;
                         if (!frame && borderW > 0) {
                             const border = await createStoredCanvas(image.width + borderW * 2, image.height + borderW * 2, state.borderColor, backend, signal);
                             image = await compositeStoredMagick(border, image, backend, signal, borderW, borderW, "over", undefined, false, true);

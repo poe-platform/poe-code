@@ -2689,8 +2689,18 @@ async function applyVideoFilterChain(
       if (positional.some((part, index) => index > 6 && !part.includes("="))) {
         throw new Error("pad: too many positional options");
       }
-      const evaluation = named.eval ?? (positional[5]?.includes("=") ? undefined : positional[5]) ?? "init";
-      if (!["init", "frame", "0", "1"].includes(evaluation)) {
+      let evaluation: number;
+      try {
+        evaluation = parseFilterExpression(
+          named.eval ?? (positional[5]?.includes("=") ? undefined : positional[5]) ?? "init", "pad", {
+            init: 0, frame: 1, default: 0, min: 0, max: 1,
+            PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+          }
+        );
+      } catch (cause) {
+        throw new Error("pad: eval must be init or frame", { cause });
+      }
+      if (!Number.isFinite(evaluation) || evaluation < 0 || evaluation > 1) {
         throw new Error("pad: eval must be init or frame");
       }
       const aspectExpression = named.aspect ?? (positional[6]?.includes("=") ? undefined : positional[6]) ?? "0";

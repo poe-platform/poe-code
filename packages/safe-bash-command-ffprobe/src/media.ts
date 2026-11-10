@@ -1009,6 +1009,7 @@ function parseProbeArguments(args: readonly string[]) {
     else if (arg === "-show_optional_fields") showOptionalFields = parseOptionalFields(value());
     else if (arg === "-prefix") prefix = true;
     else if (arg === "-byte_binary_prefix") byteBinaryPrefix = true;
+    else if (arg === "-pretty") unit = prefix = byteBinaryPrefix = sexagesimal = true;
     else if (arg === "-sexagesimal") sexagesimal = true;
     else if (arg === "-show_error") showError = true;
     else if (arg === "-show_format") showFormat = true;

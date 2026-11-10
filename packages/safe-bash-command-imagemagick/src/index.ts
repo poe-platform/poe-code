@@ -6967,7 +6967,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         : value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055;
                     evaluateSamples[idx] = value * 255;
                     data[idx] = clampByteVal(value * 255);
-                    data16[idx] = Math.round(value * 65535);
+                    data16[idx] = Math.round(Math.max(0, Math.min(1, value)) * 65535);
                 }
                 const { magickColorspace: ignored, ...metadata } = image;
                 image = { ...metadata, data, data16, evaluateSamples, space: "srgb", gamma: linearize ? 1 : 1 / 2.2, channels: image.hasAlpha ? 4 : 3, ...(linearize ? { magickColorspace: "RGB" as const } : {}) };

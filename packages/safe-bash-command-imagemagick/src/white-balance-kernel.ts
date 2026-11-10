@@ -42,6 +42,7 @@ export function* whiteBalancePixelSteps(image: Pick<RgbaImage, "width" | "height
                 while (!next.done) { yield; next = conversion.next(); }
                 const output = next.value;
                 yield { kind: "write", highDepth: true, position, data: new Uint8Array(output.data16!.buffer) };
+                yield { kind: "write", evaluate: true, position, data: new Uint8Array(output.evaluateSamples!.buffer) };
             }
         }
         if (pass === 0) { a /= image.width * image.height; b /= image.width * image.height; }

@@ -7,14 +7,33 @@ import fixtures from "./white-balance-fixtures.json" with { type: "json" };
 
 // ImageMagick 7.1.2-35 Q16-HDRI: input.png -white-balance PNG32:output.png,
 // decoded with: magick output.png -depth 8 rgba:-.
+const cases = [
+    ...[...fixtures.map(fixture => ({ ...fixture, copies: 1 })), { ...fixtures[0]!, name: "gradient across chunk boundaries", copies: 65 }]
+        .map(fixture => ({ ...fixture, operations: ["-white-balance"] })),
+    // RGB input: ff0010 ff2010 fa100a 1060ff. Native Q16-HDRI samples,
+    // including explicit-clamp controls for the out-of-range blue channel.
+    ...[
+        { operations: ["-white-balance", "-evaluate", "Divide", "2"], rgba: "663017ff653317ff643015ff005f9bff" },
+        { operations: ["-white-balance", "-clamp", "-evaluate", "Divide", "2"], rgba: "663017ff653317ff643015ff005f80ff" },
+        { operations: ["-white-balance", "-white-balance"], rgba: "b36f41ffb17543ffb06e3dff00ffffff" },
+        { operations: ["-white-balance", "-clamp", "-white-balance"], rgba: "b66d48ffb4734affb26c44ff00f8ffff" },
+        { operations: ["-white-balance"], rgba: "cc5f2dffca662fffc86029ff00bfffff" },
+        { operations: ["-evaluate", "Divide", "2"], rgba: "800008ff801008ff7d0805ff083080ff" }
+    ].flatMap(sample => [1, 129].map(copies => ({
+        ...sample, copies, name: `${sample.operations.join(" ")} (${copies} rows)`,
+        input: "iVBORw0KGgoAAAANSUhEUgAAAAQAAAABCAIAAAB2XpiaAAAAFUlEQVR4nGP8zyDAoMDw+8MvsYCvAB3/BXEuzWDoAAAAAElFTkSuQmCC"
+    })))
+];
+
 for (const mode of ["sync", "buffered", "retained", "command"] as const) {
-    it.each([...fixtures.map(fixture => ({ ...fixture, copies: 1 })), { ...fixtures[0]!, name: "gradient across chunk boundaries", copies: 65 }])(`white-balances $name with native pixels via ${mode}`, async ({ input, rgba, copies }) => {
+    it.each(cases)(`white-balances $name with native pixels via ${mode}`, async ({ input, rgba, copies, operations }) => {
         let bytes: Uint8Array = Buffer.from(input, "base64");
         if (copies > 1) {
             const image = decodeImage(bytes);
-            bytes = await sharp(Buffer.concat(Array.from({ length: copies }, () => image.data)), {
+            const repeated = sharp(Buffer.concat(Array.from({ length: copies }, () => image.data)), {
                 raw: { width: image.width, height: image.height * copies, channels: 4 }
-            }).png().toBuffer();
+            });
+            bytes = await (image.hasAlpha ? repeated : repeated.removeAlpha()).png().toBuffer();
         }
         const files = new Map([["input.png", bytes]]);
         const fs = new MemoryFileSystem();
@@ -24,7 +43,7 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
             const value = Reflect.get(target, key, target);
             return typeof value === "function" ? value.bind(target) : value;
         } });
-        const args = ["input.png", "-white-balance", "PNG32:output.png"];
+        const args = ["input.png", ...operations, "PNG32:output.png"];
         let stdout = "", stderr = "";
         const result = mode === "command" ? await createMagickCommand().execute({
             command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,

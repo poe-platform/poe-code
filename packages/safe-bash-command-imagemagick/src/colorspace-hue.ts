@@ -14,9 +14,10 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
     const hwb = toHue ? target === "HWB" : image.magickColorspace === "HWB";
     const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
     // Lab must see HDRI working samples before the integer backing clamps them.
-    const evaluateSamples = target === "CIELab" ? image.evaluateSamples : undefined;
-    const input = image.hueSamples ?? evaluateSamples ?? image.data16 ?? image.data, range = image.hueSamples ? 1 : evaluateSamples ? 255 : image.data16 ? 65535 : 255;
+    const inputEvaluateSamples = target === "CIELab" ? image.evaluateSamples : undefined;
+    const input = image.hueSamples ?? inputEvaluateSamples ?? image.data16 ?? image.data, range = image.hueSamples ? 1 : inputEvaluateSamples ? 255 : image.data16 ? 65535 : 255;
     const hueSamples = toHue ? new Float64Array(data.length) : undefined;
+    const evaluateSamples = toHue ? undefined : new Float64Array(data.length);
     for (let offset = 0; offset < data.length; offset += 4) {
         if (offset % 65536 === 0) yield;
         let r = input[offset]! / range, g = input[offset + 1]! / range, b = input[offset + 2]! / range;
@@ -88,12 +89,13 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
         }
         for (const [channel, value] of [r, g, b, input[offset + 3]! / range].entries()) {
             if (hueSamples) hueSamples[offset + channel] = value;
+            if (evaluateSamples) evaluateSamples[offset + channel] = value * 255;
             data16[offset + channel] = Math.round(Math.max(0, Math.min(1, value)) * 65535);
             data[offset + channel] = Math.round(Math.max(0, Math.min(1, value)) * 255);
         }
     }
     const { magickColorspace: ignored, hueSamples: ignoredSamples, storedHueSamples: ignoredStored, evaluateSamples: ignoredEvaluate, ...metadata } = image;
-    return { ...metadata, data, data16, space: "srgb", channels: image.hasAlpha ? 4 : 3, ...(hueSamples ? { magickColorspace: target as "HCL" | "HCLp" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV", hueSamples } : {}) };
+    return { ...metadata, data, data16, ...(evaluateSamples ? { evaluateSamples } : {}), space: "srgb", channels: image.hasAlpha ? 4 : 3, ...(hueSamples ? { magickColorspace: target as "HCL" | "HCLp" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV", hueSamples } : {}) };
 }
 
 export function formatHuePixel(channels: readonly number[], space: "HCL" | "HCLp" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV", hasAlpha: boolean): string {

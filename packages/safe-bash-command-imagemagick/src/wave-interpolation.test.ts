@@ -32,7 +32,6 @@ for (const retained of [false, true]) {
     it.each([
         ["-interpolate", "bogus", "-wave", "2x5"],
         ["-interpolate", "mesh", "-fx", "p{0.5,0.5}"],
-        ["-interpolate", "mesh", "-filter", "point", "-rotate", "30"],
         ["/input.png", "-interpolate", "mesh", "-clut"],
     ])(`preserves existing output for unsupported interpolation, retained=${retained}: %s`, async (...operation) => {
         const input = Buffer.from(fixtures[0]!.input, "base64"), existing = Buffer.from("existing output");

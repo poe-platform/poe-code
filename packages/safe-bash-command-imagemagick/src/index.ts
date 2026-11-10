@@ -418,6 +418,8 @@ function normalizeMagickOffsets(raw: string): string {
 
 export function parseMagickGeometry(raw: string): MagickGeometry {
   let s = normalizeMagickOffsets([...raw].filter(character => character.trim() !== "").join(""));
+  // GetGeometry retains dimensions before an incomplete exponent or trailing backslash.
+  if (s.endsWith("e") || s.endsWith("E") || s.endsWith("\\")) s = s.slice(0, -1);
   let forceExact = false;
   let shrinkOnly = false;
   let enlargeOnly = false;

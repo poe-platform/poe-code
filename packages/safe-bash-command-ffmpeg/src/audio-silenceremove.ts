@@ -38,10 +38,14 @@ export async function removeSilence(
         : Number(!threshold && !periods && value.endsWith("s") ? value.slice(0, scale === 1 ? -1 : -2) : value) * scale;
       const min = key === "stop_periods" ? -9000 : 0;
       const max = periods ? 9000 : key === "window" ? 100 : threshold ? Number.MAX_VALUE : 2147.483647;
-      if (!value || !Number.isFinite(number) || number < min || number > max || (periods && !Number.isInteger(number))) {
+      if (!value || !Number.isFinite(number) || number < min || number > max) {
         throw new Error(`silenceremove: invalid ${key}`);
       }
-      options[key] = number;
+      // Native integer options validate bounds before rounding ties to even.
+      const lower = Math.floor(number);
+      options[key] = periods
+        ? number - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(number)
+        : number;
     } else throw new Error(`silenceremove: unsupported option ${key}`);
   }
 

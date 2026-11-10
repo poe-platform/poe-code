@@ -51,7 +51,8 @@ for (const [mode, start] of [["any", 4], ["all", 8]] as const) {
   });
 }
 for (const filter of ["silenceremove=window=-1", "silenceremove=start_threshold=bad",
-  "silenceremove=stop_periods=1.5", "silenceremove=start_mode=both", "silenceremove=detection=unknown",
+  "silenceremove=stop_periods=-9000.1", "silenceremove=start_periods=9000.1",
+  "silenceremove=start_periods=-0.1", "silenceremove=stop_periods=9000.1", "silenceremove=start_mode=both", "silenceremove=detection=unknown",
   "silenceremove=unknown=1"]) {
   it(`rejects ${filter} without replacing output`, async () => {
     const { result, volume } = await run([[0, 1000, 0]], filter);
@@ -99,4 +100,29 @@ for (const filter of ["anull", "silenceremove"]) {
     const actual = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
     assert.deepEqual(Array.from(actual, v => v * 32768), source);
   });
+}
+
+const periodSource = [0, 0, 0, 0, 9000, -9000, 0, 0, 0, 0, 4000, -4000,
+  0, 0, 0, 0, 0, 0, 7000, -7000, 7000, -7000, 0, 0, 0];
+for (const graph of [false, true]) {
+  // Native FFmpeg converts integer AVOptions with nearest, ties-to-even rounding.
+  for (const [periods, start] of [[1.4, 4], [1, 4], [1.5, 5], [2.5, 5], [2, 5], [0.5, 0]] as const) {
+    it(`matches native start_periods=${periods} samples (graph=${graph})`, async () => {
+      const { result, volume, error } = await run([periodSource],
+        `silenceremove=start_periods=${periods}:window=0:start_threshold=0.1`, graph);
+      assert.equal(result.exitCode, 0, error);
+      const actual = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
+      assert.deepEqual(Array.from(actual, value => value * 32768), periodSource.slice(start));
+    });
+  }
+  for (const [fraction, integer] of [[1.4, 1], [1.5, 2], [2.5, 2], [-1.4, -1], [-1.5, -2], [-2.5, -2], [-0.5, 0]] as const) {
+    it(`rounds stop_periods=${fraction} to ${integer} (graph=${graph})`, async () => {
+      const filter = (periods: number) => `silenceremove=stop_periods=${periods}:window=0:stop_threshold=0.1`;
+      const actual = await run([periodSource], filter(fraction), graph);
+      const expected = await run([periodSource], filter(integer), graph);
+      assert.equal(actual.result.exitCode, 0, actual.error);
+      assert.equal(expected.result.exitCode, 0, expected.error);
+      assert.deepEqual(actual.volume.readFileSync("/out.wav"), expected.volume.readFileSync("/out.wav"));
+    });
+  }
 }

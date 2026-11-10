@@ -1037,6 +1037,14 @@ function parseAsetnsamples(argument: string) {
       size = roundToEven(number);
     } else if (key === "p" || key === "pad") {
       pad = parseFilterBoolean(value, "asetnsamples: invalid pad");
+    } else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      const number = parseFilterExpression(value, "asetnsamples", key === "thread_type" ? { slice: 1 } : {});
+      if (key === "thread_type"
+        ? !Number.isInteger(number) || number < -2147483648 || number > 4294967295
+        : number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
+        throw new RangeError(`asetnsamples: invalid ${key}`);
+      }
+      // Scheduling and hardware frame reservations do not change PCM samples.
     } else throw new Error(`asetnsamples: unsupported option ${key}`);
   }
   return { size, pad };

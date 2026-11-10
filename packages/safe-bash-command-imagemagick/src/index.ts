@@ -5165,11 +5165,14 @@ function magickExtentLayout(img: Pick<RgbaImage, "width" | "height">, geomStr: s
 function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     yield;
     const layout = magickExtentLayout(img, geomStr, state);
-    if (!layout) return img;
+    // Extent retains the read-mask channel but clears its selection on the new canvas.
+    const readMask = img.readMask ? yield* createSolidRgbaImageSteps(layout?.width ?? img.width, layout?.height ?? img.height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
+    if (!layout) return readMask ? { ...img, readMask } : img;
     const virtualCanvas = magickResizeCanvas(img, layout.width, layout.height);
     const source = (img as MagickImage)[magickInput];
     const background = state.backgroundExplicit ? state.background : img.backgroundColor ?? state.background;
     const canvas = { ...yield* createSolidRgbaImageSteps(layout.width, layout.height, background, true),
+        ...(readMask ? { readMask } : {}),
         ...(img.magickColorspace ? { magickColorspace: img.magickColorspace } : {}),
         density: img.density, ...(img.resolution ? { resolution: img.resolution } : {}),
         ...(img.properties ? { properties: img.properties } : {}),
@@ -12977,11 +12980,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: captured.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 const layout = magickExtentLayout(image, expanded, captured);
-                if (!layout) return image;
+                const readMask = image.readMask ? await createStoredCanvas(layout?.width ?? image.width, layout?.height ?? image.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
+                if (!layout) return readMask ? { ...image, readMask } : image;
                 const virtualCanvas = magickResizeCanvas(image, layout.width, layout.height);
                 const source = (image as StoredMagickImage)[magickInput];
                 const background = captured.backgroundExplicit ? captured.background : image.backgroundColor ?? captured.background;
                 const canvas = { ...await createStoredCanvas(layout.width, layout.height, background, backend, signal, true),
+                    ...(readMask ? { readMask } : {}),
                     ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}),
                     density: image.density, ...(image.resolution ? { resolution: image.resolution } : {}),
                     ...(image.properties ? { properties: image.properties } : {}),

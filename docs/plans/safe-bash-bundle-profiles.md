@@ -130,6 +130,53 @@ Clean packages built from `beb8fdf84815deed008daf46707c7e7bd903fda6`, packed and
 
 The installed graphs retain the same shared PDF command chunk and exactly two Flate decoder diagnostics in both PDF profiles; no duplicate PDF engine was found. Building PDF source at the previous baseline commit `bbcf69e059` and the captured revision with identical current dependencies and the maintained minified browser recipe measures 1,554,993 and 1,635,841 bytes. Added retained readers, form flattening/data, text ordering, HTML text streaming and raster handling account for the largest source contributions. These diagnostic figures establish source attribution, not an exact decomposition of the 69,115-byte installed-profile increase. The installed verifier exercises all 17 Worker profiles, portable exports and portable command scenarios with the measured baseline; no engines, behavior checks or consumer imports are bypassed. Publication remains a separate requirement.
 
+### November 10 installed qualification
+
+Fresh scoped artifacts from the existing checkout rooted at `7818e4db96`, including concurrent runtime edits, were packed with lifecycle scripts disabled and installed into an empty consumer. The unchanged verifier reproduced 17 absolute/incremental failures. These are emitted consumer bytes, including every static chunk and asset, rather than archive sizes. Only failing profiles receive new measured baselines:
+
+| Profile | Previous baseline | Installed bytes / new baseline |
+| --- | ---: | ---: |
+| core | 1,715,877 | 1,750,969 |
+| rootCore | 1,717,280 | 1,752,473 |
+| pythonLlm | 2,095,516 | 2,149,318 |
+| pdf | 3,234,703 | 3,301,952 |
+| multiplePdf | 3,511,461 | 3,621,298 |
+| baseRegistry | 6,721,017 | 6,872,392 |
+| registryWithRegex | 6,721,054 | 6,872,429 |
+| enabledConsumer | 7,213,453 | 7,397,103 |
+| full | 75,086,998 | 80,537,517 |
+| rootPythonLlm | 2,096,622 | 2,150,570 |
+| splitCore | 1,711,634 | 1,747,898 |
+| splitPythonLlm | 2,092,214 | 2,146,164 |
+| splitEnabledConsumer | 7,125,253 | 7,305,556 |
+| splitFull | 74,639,465 | 79,753,271 |
+
+CSV (3,628,688), CSV/XLSX (3,952,649) and Git (7,856,047) still fit their previous baselines, which remain unchanged. The 2% total tolerance, 5% incremental tolerance, 16 KiB minimum allowance, forbidden imports, command inventory, Worker assertions and MCP OAuth limits are unchanged. This qualification changes budgets, not output sizes; the same tarballs produce the same before/after bytes.
+
+Source comparisons use esbuild `bytesInOutput`, identical browser/workerd ES2022 minification and external package imports, comparing `8eea23b651` (the previous full qualification) with this checkout. These owner-level deltas attribute supported functionality; they are not an additive decomposition of the installed graph, which tree-shakes and shares dependencies differently:
+
+| Source owner | Before | After | Main additions |
+| --- | ---: | ---: | --- |
+| media-codecs | 5,836,280 | 9,088,731 | Audio codec runtime +2,044,437; x264 runtime +1,155,665 |
+| ImageMagick command | 168,637 | 1,995,741 | Font runtime 853,745; default font 152,124; image operations |
+| FFmpeg command | 41,059 | 679,937 | Video/audio filters, frame checksums and stream controls |
+| image-ast | 365,414 | 580,701 | WebP VP8 encoding, MIFF, Netpbm and JPEG handling |
+| mp4-ast | 168,400 | 457,059 | Container adapters, packet handling and streaming |
+| Pandoc command | 1,288,575 | 1,454,351 | Retained YAML values/parser and document conversion |
+| Python command | 218,521 | 361,022 | Provisioning, package programs, build backends and metadata |
+| shell entry | 1,378,374 | 1,408,035 | Shell expansion, array, read/mapfile, getopts and printf semantics |
+| SQLite command | 165,448 | 203,429 | Recursive CTEs, derived columns and query output |
+| Markdown engine | 82,387 | 98,394 | CommonMark/GFM parsing |
+| XML engine | 56,882 | 63,551 | Predicate/query evaluation |
+
+Against the separately reviewed PDF source `7d05680028`, PDF AST grows from 1,617,481 to 1,647,672 bytes. Linearized/QDF writers contribute 7,992/3,118 new bytes; raster and text extraction account for further growth. QPDF also grows by 39,523 bytes against `8eea23b651`, including linearization checking/reporting. These paths remain selected by the PDF profiles.
+
+Installed metafiles retain one canonical image implementation (1,101,741 bytes plus its 29-byte facade), one media command chunk (9,735,336 bytes), and one PDF command chunk shared by both PDF profiles (1,441,215/1,572,742 retained bytes). The media source metadata contains one codec runtime and one x264 runtime. The embedded CSV Python worker contributes 30,086,674 bytes only in full profiles. Git selects one 6,084,801-byte Wasm asset. No new accidental duplicate owner was found; removing these selected implementations would remove supported behavior. Narrow profiles continue to reject unrelated engines, Python/LLM rejects SQLite, and enabled consumers reject a duplicate shell runtime.
+
+The ordinary installed verifier, without metadata instrumentation or budget overrides, passes all 17 Worker profiles, 10 portable exports and 14 portable command scenarios. MCP consent/OAuth/account lookup measure 9,658/19,579/145,095 bytes under their unchanged limits. All 323 focused packaging tests and changed-script lint pass, retaining self-contained bundle checks while accepting FFmpeg/ffprobe's exact declared checksum dependency.
+
+This is profile-gate qualification, not a successful complete release. Additional checks found a browser smoke failure where the ExifTool help fixture rejects the shell's directory-tracking call, and repository lint errors in generated codec files. The broad Node smoke fixture cannot establish absent private workspaces from this nested consumer because Node can resolve the parent checkout's dependencies. Publication and the broader release sequence remain unverified.
+
 ## Git asset audit
 
 The historical Git Wasm grew from 2,878,331 to 5,310,726 bytes. Changes between the containing source revisions include signing (Ed25519/OpenSSH SSHSIG/OpenPGP), hooks/core.hooksPath, SSH transport and known_hosts, server hooks, standalone native host filesystem and credentials, upload-pack/receive-pack and SSH-to-HTTPS fallback. The packaging script selects the `git_rust.wasm` library artifact, not the separate `git-rust` executable. Native host filesystem/process/credential-helper adapters live in `src/main.rs`; their presence in the source diff is not evidence that those adapters caused library Wasm growth. The library includes portable crypto, hooks, SSH and wire modules. These are supported features, not demonstrated duplicate copies. This change preserves them. Core and unrelated profiles must carry zero Git assets; the selected Git profile must carry exactly one Wasm and execute repository initialization/status. The initial packed asset was 5,338,726 bytes; after integrating upstream Git changes, the verified packed asset is 5,338,654 bytes, with one copy in Git/full and zero in unrelated profiles. Native-only code splitting would need a separate behavior-qualified compiler change.

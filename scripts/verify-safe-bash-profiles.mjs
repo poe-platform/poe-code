@@ -126,32 +126,33 @@ const engineMarkers = {
 // optional-engine regressions cannot hide behind unrelated core reductions.
 // Core excludes unregistered command implementations; registries explicitly retain them.
 export const safeBashProfileBaselines = {
-  "core": 1715877,
-  "rootCore": 1717280,
+  // November 10 source attribution and installed measurements are recorded in
+  // docs/plans/safe-bash-bundle-profiles.md. Unaffected ceilings stay stricter.
+  "core": 1750969,
+  "rootCore": 1752473,
   // Tool diagnostics use bounded caller-backed pages without selecting SQLite.
-  // Scoped manifest ownership and weak-cache migration add ~1.3 KiB;
-  // reserve 1.5 KiB in Python baselines, retaining the 2%/5% growth checks.
-  "pythonLlm": 2095516,
+  // Includes Python provisioning, manifest ownership and weak-cache migration.
+  "pythonLlm": 2149318,
   // Canonical PDF graph includes caller-backed parsing, fonts, editing and output.
-  "pdf": 3234703,
-  "multiplePdf": 3511461,
+  "pdf": 3301952,
+  "multiplePdf": 3621298,
   // One spreadsheet engine with streamed formats and caller-backed workbook storage.
   "csv": 3570816,
   "csvXlsx": 3878506,
   // Portable revision date filters retain gix-date and Jiff parsing.
   "git": 7845428,
   // Registries also retain bounded Unicode hostname processing and IDNA data.
-  "baseRegistry": 6721017,
-  "registryWithRegex": 6721054,
+  "baseRegistry": 6872392,
+  "registryWithRegex": 6872429,
   // Full yq includes streamed input/output and caller-backed in-place output.
-  "enabledConsumer": 7213453,
+  "enabledConsumer": 7397103,
   // Full also selects document/media engines, Pandoc and the CSV Python worker.
-  "full": 75086998,
-  "rootPythonLlm": 2096622,
-  "splitCore": 1711634,
-  "splitPythonLlm": 2092214,
-  "splitEnabledConsumer": 7125253,
-  "splitFull": 74639465
+  "full": 80537517,
+  "rootPythonLlm": 2150570,
+  "splitCore": 1747898,
+  "splitPythonLlm": 2146164,
+  "splitEnabledConsumer": 7305556,
+  "splitFull": 79753271
 };
 const reviewedBudgets = Object.fromEntries(Object.entries(safeBashProfileBaselines)
   .map(([name, bytes]) => [name, Math.ceil(bytes * 1.02)]));

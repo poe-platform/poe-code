@@ -2280,7 +2280,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     img = { ...img, alphaSeparate: img.alphaBlend === false ? false : img.alphaSeparate, isPalette: false, hasAlpha: img.hasAlpha || bg.a < 255, ...(bg.a < 255 ? { alphaBlend: true } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
     if (sw === 0 && sh === 0) return img;
     const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
-    const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
+    const data16 = img.data16 || virtualPixel === "gray" ? new Uint16Array(out.length) : undefined;
     const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
     const hueSamples = img.hueSamples ? new Float64Array(out.length) : undefined;
     if (img.space === "cmyk") {
@@ -2315,7 +2315,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                 const origY = y < sy ? y : y - sh;
                 const srcIdx = virtualPixelIndex(origX, origY, img.width, img.height, virtualPixel) * 4;
                 if (srcIdx < 0) {
-                    const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
+                    const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 0x8000 / 257 : 0;
                     const color = virtualPixel === "background" || virtualPixel.endsWith("-tile")
                         ? [bg.r, bg.g, bg.b, bg.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
                     out.set(color.map(Math.round), dstIdx);
@@ -2329,7 +2329,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                 out[dstIdx + 2] = img.data[srcIdx + 2]!;
                 out[dstIdx + 3] = img.data[srcIdx + 3]!;
                 if (evaluateSamples) evaluateSamples.set(img.evaluateSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
-                if (data16) data16.set(img.data16!.subarray(srcIdx, srcIdx + 4), dstIdx);
+                if (data16) data16.set(img.data16?.subarray(srcIdx, srcIdx + 4) ?? Uint16Array.from(img.data.subarray(srcIdx, srcIdx + 4), value => value * 257), dstIdx);
                 if (hueSamples) hueSamples.set(img.hueSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
             }
         }
@@ -12181,6 +12181,15 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
         background = { ...background, r: rgb[0]! * 255, g: rgb[1]! * 255, b: rgb[2]! * 255 };
     }
+    if (token === "-splice" && state.virtualPixel === "gray" && !image.storedData16) {
+        const length = w * h * 4, position = backend.storage.allocate(length * 2);
+        for (let offset = 0; offset < length; offset += 16384) {
+            await yieldTurn(signal);
+            const bytes = await backend.storage.read(image.position + offset, Math.min(16384, length - offset));
+            await backend.storage.write(position + offset * 2, new Uint8Array(Uint16Array.from(bytes, value => value * 257).buffer));
+        }
+        image = { ...image, storedData16: { position, length } };
+    }
     const position = token === "-splice" ? (await createStoredCanvas(width, height, background, backend, signal)).position : backend.storage.allocate(width * height * 4);
     const storedData16 = image.storedData16 ? { position: backend.storage.allocate(width * height * 8), length: width * height * 4 } : undefined;
     const storedEvaluateSamples = image.storedEvaluateSamples === undefined ? undefined : backend.storage.allocate(width * height * 32);
@@ -12239,7 +12248,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
                         if (index >= 0) extended.set(await backend.storage.read(plane.source + index * plane.stride, plane.stride), i);
                         else {
                             const method = state.virtualPixel;
-                            const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
+                            const gray = method === "white" ? 255 : method === "gray" ? 0x8000 / 257 : 0;
                             const color = method === "background" || method?.endsWith("-tile")
                                 ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255];
                             const samples = plane.stride === 32 ? Float64Array.from(color, value => plane.target === storedHueSamples ? value / 255 : value) : plane.stride === 8

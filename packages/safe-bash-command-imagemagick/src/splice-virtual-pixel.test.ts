@@ -34,8 +34,8 @@ for (const depth of [8, 16]) for (const mode of ["buffered", "retained", "comman
                 else if (offset === 4 || method === "background") expected.push(255 * scale, 0, 255 * scale, 255 * scale);
                 else if (method === "transparent") expected.push(0, 0, 0, 0);
                 else if (["black", "white", "gray"].includes(method)) {
-                    const value = method === "white" ? 255 : method === "gray" ? 128 : 0;
-                    expected.push(value * scale, value * scale, value * scale, 255 * scale);
+                    const value = method === "white" ? 255 * scale : method === "gray" ? depth === 16 ? 0x8000 : 128 : 0;
+                    expected.push(value, value, value, 255 * scale);
                 } else {
                     const sourceX = method === "tile" ? x - 4 : method === "mirror" ? 7 - x : 3;
                     expected.push(...source.slice((y * 4 + sourceX) * 4, (y * 4 + sourceX + 1) * 4));
@@ -44,4 +44,29 @@ for (const depth of [8, 16]) for (const mode of ["buffered", "retained", "comman
             expect(Array.from(depth === 16 ? output.data16! : output.data)).toEqual(expected);
         });
     }
+}
+
+for (const mode of ["buffered", "retained", "command"]) {
+    it.each([
+        { colorspace: "sRGB", virtualPixel: "gray", output: ["-channel", "R", "-separate", "+channel", "-depth", "16", "-endian", "MSB", "gray:out"], hex: "4545454545458000" },
+        { colorspace: "Lab", virtualPixel: "gray", output: ["-channel", "R", "-separate", "+channel", "-depth", "16", "-endian", "MSB", "gray:out"], hex: "8d2c8d2c8d2c8000" },
+        { colorspace: "HSL", virtualPixel: "gray", output: ["-colorspace", "sRGB", "-depth", "8", "rgba:out"], hex: "458abcff458abcff458abcff40bfbfff" },
+        { colorspace: "sRGB", virtualPixel: "white", output: ["-channel", "R", "-separate", "+channel", "-depth", "16", "-endian", "MSB", "gray:out"], hex: "454545454545ffff" },
+        { colorspace: "HSL", virtualPixel: "edge", output: ["-colorspace", "sRGB", "-depth", "8", "rgba:out"], hex: "458abcff458abcff458abcff458abcff" }
+    ])(`${mode}: splice exposes $virtualPixel samples in $colorspace`, async ({ colorspace, virtualPixel, output, hex }) => {
+        const files = new Map([["out", Buffer.from("KEEP")]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/out", Buffer.from("KEEP"));
+        const args = ["-size", "3x1", "xc:#458abc", "-colorspace", colorspace, "-background", "#2468ac", "-virtual-pixel", virtualPixel, "-splice", "1x0+4+0", ...output];
+        if (mode === "command") {
+            const command = createMagickCommand(), argumentValues = createCommandArguments(args);
+            const result = await command.execute({ command: command.name, args: argumentValues.args, argumentValues,
+                cwd: "/", env: {}, fs: filesystem, signal: new AbortController().signal,
+                stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} } });
+            expect(result.exitCode).toBe(0);
+        } else {
+            expect((await runMagickCli(args, mode === "buffered" ? files : { filesystem, cwd: "/" })).exitCode).toBe(0);
+        }
+        const bytes = mode === "buffered" ? files.get("out")! : await filesystem.readFile("/out");
+        expect(Buffer.from(bytes).toString("hex")).toBe(hex);
+    });
 }

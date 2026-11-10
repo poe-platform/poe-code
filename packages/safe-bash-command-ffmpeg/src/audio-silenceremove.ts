@@ -1,17 +1,18 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
 import { parseFilterExpression } from "./filter-expression.js";
+import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
 
 export async function removeSilence(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: { start: number; end: number; pts: number }[],
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<{ channels: (Float32Array | Float64Array)[]; frames: typeof frames }> {
+  let enable: string | undefined;
   const options = {
     start_periods: 0, start_duration: 0, start_threshold: 0, start_silence: 0, start_mode: "any",
     stop_periods: 0, stop_duration: 0, stop_threshold: 0, stop_silence: 0, stop_mode: "all",
-    detection: "rms", window: 0.02
+    detection: "rms", window: 0.02, timestamp: "write"
   };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const positional = ["start_periods", "start_duration", "start_threshold", "start_silence", "start_mode",
@@ -34,14 +35,18 @@ export async function removeSilence(
     const separator = option.indexOf("=");
     const key = separator < 0 ? positional[index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    if (key === "start_mode" || key === "stop_mode") {
+    if (key === "enable") {
+      enable = value;
+      parseFilterExpression(enable, "silenceremove enable", { n: 0, t: 0 });
+    } else if (key === "start_mode" || key === "stop_mode") {
       if (!["any", "all", "0", "1"].includes(value)) throw new Error(`silenceremove: invalid ${key}`);
       options[key] = value === "0" || value === "any" ? "any" : "all";
     } else if (key === "detection") {
       if (!["avg", "rms", "peak", "median", "ptp", "dev", "0", "1", "2", "3", "4", "5"].includes(value)) throw new Error("silenceremove: supported detection modes are avg, rms, peak, median, ptp and dev");
       options.detection = ["avg", "rms", "peak", "median", "ptp", "dev"][Number(value)] ?? value;
-    } else if (key === "timestamp" && (value === "write" || value === "0")) {
-      // The audio pipeline emits a contiguous timeline.
+    } else if (key === "timestamp") {
+      if (!["write", "copy", "0", "1"].includes(value)) throw new Error("silenceremove: invalid timestamp");
+      options.timestamp = value === "copy" || value === "1" ? "copy" : "write";
     } else if (key === "start_periods" || key === "stop_periods" || key === "start_threshold" ||
       key === "stop_threshold" || key === "start_duration" || key === "stop_duration" ||
       key === "start_silence" || key === "stop_silence" || key === "window") {
@@ -63,6 +68,14 @@ export async function removeSilence(
   }
 
   let output = [...channels];
+  budget.allocateMemory(frames.length);
+  let enabledFrames = new Uint8Array(frames.length);
+  for (const [n, frame] of frames.entries()) {
+    if (n % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+    enabledFrames[n] = Number(enable === undefined || Math.abs(parseFilterExpression(enable, "silenceremove enable", {
+      n, t: frame.pts / sampleRate
+    })) >= 0.5);
+  }
   const firstPts = frames[0]?.pts ?? 0;
   const window = Math.max(1, Math.round(options.window * sampleRate));
   const peakToPeak = options.detection === "ptp";
@@ -88,9 +101,9 @@ export async function removeSilence(
     let foundSound = false;
     let stopRemaining = 0;
     let written = 0;
-    let start = length;
-    if (phase === "stop") budget.allocateMemory(length * output.length * 8);
-    const trimmed = phase === "stop" ? output.map(() => new Float64Array(length)) : [];
+    const retention = phase === "start" ? Math.round(options.start_silence * sampleRate) : 0;
+    budget.allocateMemory((length + Math.min(length, retention)) * output.length * 8);
+    const trimmed = output.map(() => new Float64Array(length + Math.min(length, retention)));
     budget.allocateMemory(frames.length * 4);
     const counts = new Uint32Array(frames.length);
     let frameIndex = 0;
@@ -100,8 +113,11 @@ export async function removeSilence(
         signal?.throwIfAborted();
         budget.checkCpu();
       }
+      while (frameIndex + 1 < frames.length && i >= frames[frameIndex]!.end) frameIndex++;
+      const enabled = enabledFrames[frameIndex] !== 0;
+      let keep = !enabled;
       let matches = mode === "all";
-      for (let c = 0; c < output.length; c++) {
+      for (let c = 0; c < output.length && !(phase === "start" && found >= periods); c++) {
         const channel = output[c]!;
         const value = peakToPeak ? channel[i]! : Math.abs(channel[i]!);
         let level: number;
@@ -164,17 +180,30 @@ export async function removeSilence(
       }
       if (phase === "start") {
         // FFmpeg counts qualifying samples cumulatively and opens after duration, not at it.
-        if (matches) count++;
+        if (found < periods && matches) count++;
         if (count > duration) {
           count = 0;
-          if (++found >= periods) { start = i; break; }
+          if (++found >= periods && enabled) {
+            const retained = Math.min(retention, i + 1);
+            if (retained > 0) {
+              for (let c = 0; c < output.length; c++) {
+                // Native flush includes the next queue slot, then repeats the triggering sample.
+                trimmed[c]!.set(output[c]!.subarray(i - retained + 2, i + 1), written);
+                trimmed[c]![written + retained - 1] = i >= retention ? output[c]![i - retention]! : 0;
+              }
+              written += retained;
+              counts[frameIndex]! += retained;
+            }
+          }
         }
+        keep ||= found >= periods;
       } else {
         foundSound ||= !matches;
         if (periods < 0 && !matches) found = 0;
-        const retain = found < 0 && stopRemaining > 0;
+        const retain = enabled && found < 0 && stopRemaining > 0;
         if (retain) stopRemaining--;
-        if (found >= 0 && foundSound) count = matches ? count + 1 : 0;
+        // Timeline bypass keeps the detector and period counters running.
+        if ((found >= 0 || !enabled) && foundSound) count = matches ? count + 1 : 0;
         if (count > duration) {
           if (++found >= Math.abs(periods)) {
             found = -1;
@@ -183,42 +212,38 @@ export async function removeSilence(
           }
           count = 0;
         }
-        if (found >= 0 || retain) {
-          for (let c = 0; c < output.length; c++) trimmed[c]![written] = output[c]![i]!;
-          while (frameIndex + 1 < frames.length && i >= frames[frameIndex]!.end) frameIndex++;
-          counts[frameIndex]!++;
-          written++;
-        }
+        keep ||= found >= 0 || retain;
+      }
+      if (keep) {
+        for (let c = 0; c < output.length; c++) trimmed[c]![written] = output[c]![i]!;
+        counts[frameIndex]!++;
+        written++;
       }
     }
-    const retention = Math.round(options.start_silence * sampleRate);
-    const retained = Math.min(retention, start + 1);
-    if (phase === "start" && retained > 0 && start < length) {
-      budget.allocateMemory((length - start + retained) * output.length * 8);
-      output = output.map(channel => {
-        const result = new Float64Array(length - start + retained);
-        // Native flush walks backward from the NEXT queue slot, then emits the
-        // triggering sample again. Preserve that order, including an unwritten zero.
-        result.set(channel.subarray(start - retained + 2, start + 1));
-        result[retained - 1] = start >= retention ? channel[start - retention]! : 0;
-        result.set(channel.subarray(start), retained);
-        return result;
-      });
-    } else {
-      output = phase === "start" ? output.map(c => c.subarray(start)) : trimmed.map(c => c.subarray(0, written));
-    }
+    output = trimmed.map(c => c.subarray(0, written));
     const outputFrames: typeof frames = [];
+    budget.allocateMemory(frames.length);
+    const retainedEnabled = new Uint8Array(frames.length);
     let offset = 0;
-    for (const [n, frame] of frames.entries()) {
-      if (n % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-      const count = phase === "start" ? Math.max(0, frame.end - Math.max(frame.start, start))
-        + (frame.start <= start && start < frame.end ? retained : 0) : counts[n]!;
+    for (let n = 0; n < frames.length; n++) {
+      if (n % 4096 === 0) { await yieldTurn(signal); budget.checkCpu(); }
+      const frame = frames[n]!;
+      const count = counts[n]!;
       if (!count) continue;
+      // Each surviving input frame keeps its PTS, even when its leading samples were removed.
       budget.allocateMemory(24);
-      outputFrames.push({ start: offset, end: offset + count, pts: firstPts + offset });
+      retainedEnabled[outputFrames.length] = enabledFrames[n]!;
+      outputFrames.push({ start: offset, end: offset + count, pts: frame.pts });
       offset += count;
     }
     frames = outputFrames;
+    enabledFrames = retainedEnabled;
+  }
+  if (options.timestamp === "write" && (options.start_periods || options.stop_periods)) {
+    for (const [index, frame] of frames.entries()) {
+      if (index % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+      frame.pts = firstPts + frame.start;
+    }
   }
   return { channels: output, frames };
 }

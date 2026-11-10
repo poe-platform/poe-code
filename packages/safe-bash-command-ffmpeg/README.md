@@ -678,6 +678,9 @@ Every entry must be `mono` or `stereo`; invalid lists fail without replacing out
 `fltp`, `dbl`, and `dblp`. Samples pass through the selected intermediate
 precision, even when the output codec has higher precision. Planar float and
 double formats preserve the same samples as their packed equivalents.
+Pipe-separated lists preserve an allowed input format regardless of list order:
+`f=u8|s16` and `f=flt|s16` preserve PCM16 input. Every entry must be supported;
+invalid lists fail without replacing output.
 `aformat=sample_rates=16000` (alias `r`) resamples at that point in the chain,
 so later filters use the selected rate. Pipe-separated lists preserve an allowed
 input rate or select the nearest allowed rate; `r=16000|8000` preserves 8 kHz,

@@ -11112,13 +11112,27 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             continue;
                           }
                           if (key === "sample_fmts" || key === "f") {
-                            if (!["u8", "s16", "s32", "flt", "fltp", "dbl", "dblp"].includes(value)) throw new Error(`aformat: unsupported sample format ${value}`);
-                            panPcm16 = value === "s16";
-                            const truncate = value === "u8" && ["u8", "u8p", "s16", "s16p", "s32", "s32p"].includes(filteredSampleFormat);
-                            filteredSampleFormat = value;
-                            if (value === "dbl" || value === "dblp") continue;
-                            const floating = value === "flt" || value === "fltp";
-                            const scale = value === "u8" ? 128 : value === "s32" ? 2147483648 : 32768;
+                            const formats = value.split("|");
+                            if (formats.some(format => !["u8", "s16", "s32", "flt", "fltp", "dbl", "dblp"].includes(format))) {
+                              throw new Error(`aformat: unsupported sample format ${value}`);
+                            }
+                            const bytes: Record<string, number> = { u8: 1, s16: 2, s32: 4, flt: 4, dbl: 8 };
+                            const source = filteredSampleFormat.endsWith("p") ? filteredSampleFormat.slice(0, -1) : filteredSampleFormat;
+                            const score = (format: string) => {
+                              const packed = format.endsWith("p") ? format.slice(0, -1) : format;
+                              const difference = bytes[packed]! - bytes[source]!;
+                              return (format.endsWith("p") === filteredSampleFormat.endsWith("p") ? 0 : 1)
+                                + (difference < 0 ? -100 * difference : 10 * difference)
+                                + (packed === "s32" && source === "flt" ? 20 : packed === "flt" && source === "s32" ? 2 : 0);
+                            };
+                            const format = formats.includes(filteredSampleFormat) ? filteredSampleFormat
+                              : formats.reduce((best, candidate) => score(best) < score(candidate) ? best : candidate);
+                            panPcm16 = format === "s16";
+                            const truncate = format === "u8" && ["u8", "u8p", "s16", "s16p", "s32", "s32p"].includes(filteredSampleFormat);
+                            filteredSampleFormat = format;
+                            if (format === "dbl" || format === "dblp") continue;
+                            const floating = format === "flt" || format === "fltp";
+                            const scale = format === "u8" ? 128 : format === "s32" ? 2147483648 : 32768;
                             const output = stretched.map(channel => new Float64Array(channel.length));
                             for (let i = 0; i < stretched[0]!.length; i++) {
                               if (i % 4096 === 0) {

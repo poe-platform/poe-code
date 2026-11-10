@@ -63,7 +63,7 @@ for (const retained of [false, true]) {
 
 it("copies across retained chunk boundaries", async () => {
     const filesystem = new MemoryFileSystem();
-    expect(await runConvertCli(["-size", "4097x1", "xc:red", "-channel-fx", "red=>blue", "rgba:/out.rgba"], { filesystem, cwd: "/" })).toMatchObject({ exitCode: 0, stderr: "" });
+    expect(await runConvertCli(["-size", "4097x1", "xc:red", "-channel-fx", "red=>blue", "-depth", "8", "rgba:/out.rgba"], { filesystem, cwd: "/" })).toMatchObject({ exitCode: 0, stderr: "" });
     const output = await filesystem.readFile("/out.rgba");
     expect(output.length).toBe(4097 * 4);
     for (let offset = 0; offset < output.length; offset += 4) expect([...output.subarray(offset, offset + 4)]).toEqual([255, 0, 255, 255]);

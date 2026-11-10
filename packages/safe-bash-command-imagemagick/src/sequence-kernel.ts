@@ -213,9 +213,9 @@ export type ChannelAssignment = { target: number } & ({ image: number; source: n
 
 export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | "height" | "hasAlpha">[], assignments: readonly ChannelAssignment[], highDepth: boolean): Steps {
     const { width, height } = inputs[0]!;
-    for (let y = 0; y < height; y++) for (let x = 0; x < width; x += 2048) {
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x += 512) {
         yield;
-        const position = (y * width + x) * 4, length = Math.min(2048, width - x) * 4;
+        const position = (y * width + x) * 4, length = Math.min(512, width - x) * 4;
         const working = yield { kind: "read", evaluate: true, position, length };
         const base = working?.length ? new Float64Array(working.slice().buffer)
             : Float64Array.from(highDepth ? new Uint16Array((yield { kind: "read", highDepth, position, length })!.slice().buffer)

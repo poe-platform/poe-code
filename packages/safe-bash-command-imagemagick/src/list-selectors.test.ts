@@ -12,7 +12,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
             { args: ["r.png", "g.png", "-delete", spec], pixels: null },
             { args: ["r.png", "g.png", "-duplicate", `1,${spec}`], pixels: null }
         ]),
-        ...["invalid", "0,foo", "1.5"].map(spec => ({ args: ["r.png", "g.png", "-swap", spec], pixels: null })),
+        ...["invalid", "0,foo"].map(spec => ({ args: ["r.png", "g.png", "-swap", spec], pixels: null })),
         ...["0,foo"].map(spec => ({ args: ["r.png", "g.png", "-duplicate", spec], pixels: null })),
         { args: ["r.png", "g.png", "b.png", "-clone", "-1--2,0"], pixels: [red, green, blue, blue, green, red] },
         { args: ["r.png", "g.png", "b.png", "-delete", "-1,0"], pixels: [green] },

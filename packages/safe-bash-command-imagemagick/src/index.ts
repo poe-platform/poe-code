@@ -6438,14 +6438,34 @@ function parseMagickInsertPosition(spec: string): number {
     return Number.parseInt(spec, 10) || 0;
 }
 
-function parseMagickIndices(spec: string, ranges = true): number[][] {
+function parseMagickSwapPositions(spec: string): number[] {
+    if ([...spec].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@^".includes(c))) {
+        throw new Error(`invalid argument ${spec}`);
+    }
+    const geometry = [...spec].filter(c => c.trim() !== "" && !"!#%()<>@^".includes(c)).join("");
+    const separator = [...geometry].find(c => "xX,/:".includes(c));
+    const fields = separator ? geometry.split(separator) : [geometry];
+    const first = Number(fields[0]);
+    if (!fields[0] || !Number.isFinite(first)) throw new Error(`invalid argument ${spec}`);
+    // Signed dimensions after x are offsets; comma-separated indices retain signs.
+    const second = fields[1] && !(separator?.toLowerCase() === "x" && "+-".includes(fields[1][0]!))
+        ? Number.parseFloat(fields[1]) : -1;
+    if (!Number.isFinite(second)) throw new Error(`invalid argument ${spec}`);
+    const positions = separator === ":" && fields[1]
+        ? [Math.trunc(first / Math.max(1e-12, second)), 1]
+        : [Math.trunc(first), Math.trunc(second)];
+    if (!positions.every(Number.isSafeInteger)) throw new Error(`invalid argument ${spec}`);
+    return positions;
+}
+
+function parseMagickIndices(spec: string): number[][] {
   if (!spec.trim() || spec.trimStart().startsWith(",")) throw new Error(`invalid argument ${spec}`);
   const parts: number[][] = [];
   let position = 0;
   const readIndex = (): number => {
     while (position < spec.length && !spec[position]!.trim()) position++;
     const start = position;
-    if (spec[position] === "-" || (!ranges && spec[position] === "+")) position++;
+    if (spec[position] === "-") position++;
     const digits = position;
     while (position < spec.length && spec[position]! >= "0" && spec[position]! <= "9") position++;
     const value = Number(spec.slice(start, position));
@@ -6454,12 +6474,12 @@ function parseMagickIndices(spec: string, ranges = true): number[][] {
   };
   while (position < spec.length) {
     const separator = spec[position]!;
-    if (!separator.trim() || separator === "," || (!ranges && separator === "x")) { position++; continue; }
+    if (!separator.trim() || separator === ",") { position++; continue; }
     const values = [readIndex()];
     const end = position;
     while (position < spec.length && !spec[position]!.trim()) position++;
     // A dash after optional whitespace continues this range, not a negative list entry.
-    if (ranges && spec[position] === "-") {
+    if (spec[position] === "-") {
       position++;
       values.push(readIndex());
     } else if (position > end) {
@@ -6467,10 +6487,11 @@ function parseMagickIndices(spec: string, ranges = true): number[][] {
       continue;
     }
     const next = spec[position];
-    if (next !== undefined && next.trim() && next !== "," && (ranges || next !== "x")) throw new Error(`invalid argument ${spec}`);
+    if (next !== undefined && next.trim() && next !== ",") throw new Error(`invalid argument ${spec}`);
     parts.push(values);
   }
   return parts;
+
 }
 
 function parseMagickDuplicateScenes(spec: string): string {
@@ -9830,7 +9851,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let i1 = stack.length - 2;
             let i2 = stack.length - 1;
             if (t === "-swap") {
-                const [s1, s2] = parseMagickIndices(tokens[++i] ?? "-2,-1", false).flat();
+                const [s1, s2] = parseMagickSwapPositions(tokens[++i] ?? "-2,-1");
                 i1 = (s1 ?? -2) < 0 ? stack.length + (s1 ?? -2) : (s1 ?? 0);
                 i2 = (s2 ?? -1) < 0 ? stack.length + (s2 ?? -1) : (s2 ?? 0);
             }
@@ -10581,7 +10602,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (!Number.isInteger(target) || target < 0 || target >= stack.length || (raw < 0 && target === 0)) throw new Error(`invalid image index ${token}`);
                     for (let n = stack.length - 1; n > target; n--) { await yieldTurn(signal); await stack.swap(n, n - 1); }
                 } else {
-                    const values = parseMagickIndices(token === "+swap" ? "-2,-1" : spec, false).flat();
+                    const values = parseMagickSwapPositions(token === "+swap" ? "-2,-1" : spec);
                     const a = values[0] ?? -2, b = values[1] ?? -1;
                     const i1 = a < 0 ? stack.length + a : a, i2 = b < 0 ? stack.length + b : b;
                     if (i1 === i2 || i1 < 0 || i2 < 0 || i1 >= stack.length || i2 >= stack.length) throw new Error(`invalid image index ${token}`);

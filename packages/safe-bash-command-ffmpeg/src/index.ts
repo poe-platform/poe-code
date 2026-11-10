@@ -11098,6 +11098,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           context.signal?.throwIfAborted();
                           let end: number;
                           let pts = nextPts;
+                          let pos: number | undefined;
                           if (start < padding) {
                             end = Math.min(padding, start + 2048);
                             nextPts += end - start;
@@ -11105,6 +11106,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (start < padding + inputLength) {
                               const frame = previous?.[n];
                               const packet = t.samples[n];
+                              pos = previous ? frame?.pos : packet?.offset;
                               const count = frame ? frame.end - frame.start
                                 : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                               const inputPts = frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start - padding);
@@ -11135,8 +11137,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               if (enabled) position++;
                             }
                           }
-                          budget.allocateMemory(24);
-                          audioTimestamps.push({ start, end, pts });
+                          budget.allocateMemory(32);
+                          audioTimestamps.push({ start, end, pts, pos });
                           start = end;
                         }
                         stretched = output;

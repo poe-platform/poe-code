@@ -62,7 +62,7 @@ export function orientRegion(region: Region, image: { width: number; height: num
 }
 
 /** Apply a white write mask outside the selected rectangle in bounded chunks. */
-export function* regionPixelSteps(image: { width: number; height: number; hasAlpha: boolean; alphaBlend?: boolean | undefined }, region: Region, highDepth = false, channels?: MaskChannels): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* regionPixelSteps(image: { width: number; height: number; hasAlpha: boolean; alphaBlend?: boolean | undefined; space?: string }, region: Region, highDepth = false, channels?: MaskChannels & { k?: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const left = Math.max(0, Math.min(image.width, region.x));
     const right = Math.max(left, Math.min(image.width, region.x + region.width));
     const wrappedRight = region.wrap ? Math.max(0, region.x + region.width - image.width) : 0;
@@ -82,12 +82,33 @@ export function* regionPixelSteps(image: { width: number; height: number; hasAlp
                     : Float64Array.from(highDepth ? new Uint16Array((yield { kind: "read", highDepth, image: source!, position, length })!.slice().buffer)
                         : (yield { kind: "read", image: source!, position, length })!, value => highDepth ? value / 257 : value);
                 const output = original.slice();
+                const inks = image.space === "cmyk" ? new Float64Array((yield { kind: "read", hue: true, image: source!, position, length })!.slice().buffer) : undefined;
                 if (source === 1) {
                     const editedWorking = yield { kind: "read", evaluate: true, position, length };
                     const edited = editedWorking?.length ? new Float64Array(editedWorking.slice().buffer)
                         : Float64Array.from(highDepth ? new Uint16Array((yield { kind: "read", highDepth, position, length })!.slice().buffer)
                             : (yield { kind: "read", position, length })!, value => highDepth ? value / 257 : value);
+                    if (inks) {
+                        const editedInks = new Float64Array((yield { kind: "read", hue: true, position, length })!.slice().buffer);
+                        // CMYK stores black in the ink plane; alpha remains in the RGBA backing.
+                        const active = image.hasAlpha || image.alphaBlend !== false;
+                        const selected = channels ? [channels.r, channels.g, channels.b, channels.k !== false] : undefined;
+                        for (let offset = 0; offset < inks.length; offset += 4) {
+                            const sourceAlpha = active ? original[offset + 3]! / 255 : 1;
+                            const editedAlpha = active ? edited[offset + 3]! / 255 : 1;
+                            for (let channel = 0; channel < 4; channel++) {
+                                inks[offset + channel] = !selected || selected[channel]
+                                    ? Math.fround((inks[offset + channel]! * sourceAlpha + editedInks[offset + channel]! * editedAlpha * (1 - sourceAlpha)) * 65535) / 65535
+                                    : editedInks[offset + channel]!;
+                            }
+                        }
+                    }
                     for (let offset = 0; offset < output.length; offset += 4) blendMaskedPixel(output, original, edited, offset, 1, 255, channels, image.hasAlpha || image.alphaBlend !== false);
+                }
+                if (inks) {
+                    yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
+                    for (let offset = 0; offset < output.length; offset += 4) for (let channel = 0; channel < 3; channel++)
+                        output[offset + channel] = (1 - inks[offset + channel]!) * (1 - inks[offset + 3]!) * 255;
                 }
                 yield { kind: "write", evaluate: true, position, data: new Uint8Array(output.buffer) };
                 const bounded = highDepth ? Uint16Array.from(output, value => Math.round(Math.max(0, Math.min(65535, value * 257))))

@@ -7731,7 +7731,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         const [lowBlack, lowWhite, highWhite, highBlack] = points as [number, number, number, number];
         const channels = state.channels;
-        const explicit = state.channelExplicit;
+        const explicit = !state.channelDefault;
         apply = function* (image) {
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;

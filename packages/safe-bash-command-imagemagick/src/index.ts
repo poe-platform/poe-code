@@ -7415,7 +7415,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             throw new Error(`invalid argument '-range-threshold' '${raw}'`);
         }
         const scale = raw.includes("%") ? 65535 / 100 : 1;
-        const [lowBlack, lowWhite, highWhite, highBlack] = parts.map(part => Number(part) * scale) as [number, number, number, number];
+        const points = parts.map(part => Number(part) * scale);
+        for (let point = 1; point < points.length; point++) {
+            points[point] = Math.max(points[point - 1]!, points[point]!);
+        }
+        const [lowBlack, lowWhite, highWhite, highBlack] = points as [number, number, number, number];
         const channels = state.channels;
         const explicit = state.channelExplicit;
         apply = function* (image) {

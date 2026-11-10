@@ -81,7 +81,7 @@ function* averageSamples(x: number, y: number, size: number): Generator<readonly
         yield [left + column, top + row, 1];
 }
 
-export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { alphaBlend?: boolean | undefined }, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "space" | "storedData16" | "storedEvaluateSamples" | "storedHueSamples">> & { alphaBlend?: boolean | undefined }, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = source;
     const averageSize = plan.interpolation === "average" ? 2 : plan.interpolation === "average9" ? 3 : plan.interpolation === "average16" ? 4 : 0;
     const filter = kernel === "nearest" ? undefined : resizeFilter(kernel ?? "robidoux", settings, true);
@@ -89,6 +89,8 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
     const support = filter ? filter.radius * blur : 2;
     const weights = filter ? Float64Array.from({ length: 1024 }, (_, i) => filter.weight(Math.sqrt(i / 1024) * filter.radius)) : robidoux;
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
+    // Hue/Lab planes hold the working channels; CMYK keeps black in the alpha slot.
+    const hue = source.space !== "cmyk" && (!!source.hueSamples || source.storedHueSamples !== undefined);
     const evaluate = !!source.evaluateSamples || source.storedEvaluateSamples !== undefined;
     const cache = new Map<number, Float64Array>();
     function* readPixel(x: number, y: number): Generator<ConvolveRequest, ArrayLike<number>, Uint8Array | undefined> {
@@ -104,18 +106,18 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
             }
         }
         const position = (y * width + x) * 4;
-        if (evaluate) {
+        if (hue || evaluate) {
             const page = Math.floor(position / 1024) * 1024;
             let samples = cache.get(page);
             if (!samples) {
                 const length = Math.min(1024, width * height * 4 - page);
-                const bytes = yield { kind: "read", evaluate: true, position: page, length };
+                const bytes = yield { kind: "read", hue, evaluate: !hue, position: page, length };
                 if (!bytes || bytes.length !== length * 8) throw new Error("Truncated warp pixels");
                 samples = new Float64Array(bytes.slice().buffer);
                 if (cache.size === 32) cache.delete(cache.keys().next().value!);
                 cache.set(page, samples);
             }
-            return samples.subarray(position - page, position - page + 4).map(value => value * scale);
+            return samples.subarray(position - page, position - page + 4).map(value => value * (hue ? maximum : scale));
         }
         const bytes = yield { kind: "read", highDepth, position, length: 4 };
         if (!bytes || bytes.length !== (highDepth ? 8 : 4)) throw new Error("Truncated warp pixels");
@@ -209,5 +211,6 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
         }
         yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
         yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(evaluateSamples.buffer) };
+        if (hue) yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(evaluateSamples.map(value => value / 255).buffer) };
     }
 }

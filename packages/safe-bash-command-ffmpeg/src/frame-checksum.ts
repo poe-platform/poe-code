@@ -252,6 +252,7 @@ export function serializeFrameChecksum(
       dts: frame.ptsSeconds * track.timescale, pts: frame.ptsSeconds * track.timescale,
       duration: frame.durationSeconds * track.timescale, frame
     })) : decodedAudioPackets ?? (audioPackets.length ? audioPackets : payload.length ? [{ dts: 0, pts: 0, duration: track.duration, data: payload }] : []);
+    let nextAudioPts = 0;
     let previousDts = -Infinity;
     for (const packet of packets) {
       budget.checkCpu();
@@ -277,6 +278,12 @@ export function serializeFrameChecksum(
       }
       let dts = Math.round((packet.dts + timestampOffset) * rate / track.timescale);
       let pts = Math.round((packet.pts + timestampOffset) * rate / track.timescale);
+      if (track.type === "audio" && !copy) {
+        // The audio encoder fills missing timestamps before muxer corrections.
+        if (Number.isNaN(pts)) pts = nextAudioPts;
+        if (Number.isNaN(dts)) dts = pts;
+        nextAudioPts = pts + duration;
+      }
       // FFmpeg corrects backward audio DTS before interleaving; negative starts remain valid.
       if (track.type === "audio" && dts < previousDts) {
         dts = previousDts;

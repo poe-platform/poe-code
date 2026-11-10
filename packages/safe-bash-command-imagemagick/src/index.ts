@@ -5969,7 +5969,7 @@ function inferOutputFormat(spec: string, fallback: ImageFormat = "png"): { forma
   if (prefixMatch) {
     const prefix = prefixMatch[1]!.toLowerCase();
     const rest = prefixMatch[2]!;
-    const fmt = prefix === "tiff64" ? "tiff" : extToImageFormat(prefix);
+    const fmt = ["r", "g", "b", "a", "k", "c", "m", "y", "o"].includes(prefix) ? "gray" : prefix === "tiff64" ? "tiff" : extToImageFormat(prefix);
     if (fmt) {
       return { format: fmt, path: rest, ...(prefix === "tiff64" ? { tiffBig: true } : {}), ...(prefix === "gif87" ? { gifVersion: "87a" as const } : {}), ...(prefix === "bmp2" || prefix === "bmp3" ? { bmpFormat: prefix } : {}), ...(["png00", "png8", "png24", "png32", "png48", "png64"].includes(prefix) ? { pngCoder: prefix as "png00" | "png8" | "png24" | "png32" | "png48" | "png64" } : {}) };
     }

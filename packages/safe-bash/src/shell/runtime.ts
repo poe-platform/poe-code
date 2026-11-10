@@ -8587,8 +8587,12 @@ export class Runtime {
       const previous = assignments.get(name);
       const restoreTemporary = suppliedName !== name && previous && !previous.superseded;
       try {
+      const binding = arrayStore(state)?.get(name);
+      if (!binding?.associative && (index?.source === "@" || index?.source === "*")) {
+        await this.diagnostic(context, `${destination}[${index.source}]: bad array subscript`);
+        return 1;
+      }
       if (state.readonlyVariables?.has(name)) {
-        const binding = arrayStore(state)?.get(name);
         // Bash evaluates indexed destinations even when the write is refused.
         if (index && !binding?.associative) await this.arrayIndex(binding, index, state, context, requireArrays(state).owner, true, binding?.maximum ?? (state.variables[name] === undefined ? -1 : 0));
         await writeDiagnostic(context.stderr, `printf: ${name}: readonly variable\n`);

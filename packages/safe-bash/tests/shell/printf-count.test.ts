@@ -4,6 +4,38 @@ import { test } from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
 
+for (const [initial, subscript, stdout, diagnostic] of [
+  ["a=(OLD TWO)", "@", "1:1:2:OLD:TWO:OLD\n", "a[@]: bad array subscript"],
+  ["a=(OLD TWO)", "*", "1:1:2:OLD:TWO:OLD\n", "a[*]: bad array subscript"],
+  ["unset a", "@", "1:1:0:::\n", "a[@]: bad array subscript"],
+  ["unset a", "*", "1:1:0:::\n", "a[*]: bad array subscript"],
+  ["a=(OLD TWO); readonly a", "@", "1:1:2:OLD:TWO:OLD\n", "a[@]: bad array subscript"],
+  ["a=(OLD TWO); readonly a", "*", "1:1:2:OLD:TWO:OLD\n", "a[*]: bad array subscript"],
+  ["a=(OLD TWO)", "1", "0:1:2:OLD:X:OLD\n", ""],
+  ["declare -A a=([keep]=OLD)", "@", "0:1:2:::OLD\n", ""],
+  ["declare -A a=([keep]=OLD)", "*", "0:1:2:::OLD\n", ""],
+  ["a=(OLD TWO)", "1/0", "", '1/0: division by 0 (error token is "0")'],
+] as const) {
+  test(`printf -v formats before rejecting an array destination: ${initial}; a[${subscript}]`, async context => {
+    const script = `${initial}; key=''; n=old; printf -v 'a[${subscript}]' 'X%n' n; echo "$?:$n:\${#a[@]}:\${a[0]}:\${a[1]}:\${a[keep]}"`;
+    const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script, "shell"], {
+      env: { PATH: "/usr/bin:/bin", LC_ALL: "C.UTF-8" }, timeout: 2000,
+    });
+    assert.ifError(oracle.error);
+    assert.equal(oracle.signal, null);
+    assert.equal(oracle.status, subscript === "1/0" ? 1 : 0);
+    assert.equal(oracle.stdout.toString(), stdout);
+    assert.equal(oracle.stderr.toString(), diagnostic ? `shell: line 1: ${diagnostic}\n` : "");
+    const { shell, commands } = setup({ env: { LC_ALL: "C.UTF-8" } });
+    for (const command of basicCommands()) commands.register(command);
+    context.after(() => shell.dispose());
+    const result = await shell.exec(script);
+    assert.equal(result.exitCode, oracle.status, result.stderr);
+    assert.deepEqual(result.stdoutBytes, new Uint8Array(oracle.stdout));
+    assert.deepEqual(result.stderrBytes, new Uint8Array(oracle.stderr));
+  });
+}
+
 for (const [name, script] of [
   ["variable output", `n=old; printf -v value '%s%n:%s' 'a b' n z; rc=$?; printf '%s|%s|%s' "$rc" "$value" "$n"`],
   ["stdout and format reuse", `printf '%s%n' a n bb m; printf '|%s|%s' "$n" "$m"`],

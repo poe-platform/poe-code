@@ -356,7 +356,9 @@ count (default 2) of decoded PCM inputs. Output layouts include
 mono, stereo, `3.0`, quad, `5.1`, `downmix` (`DL+DR`), explicit speaker lists
 such as `WL+WR`, and numeric speaker masks such as `0x3`.
 Input maps accept numeric indices or speaker names, such as
-`map=0.FR-FL|1.FL-FR`. Names resolve against each input’s layout; missing speakers
+`map=0.FR-FL|1.FL-FR`. Both input and channel indices accept decimal, leading-zero
+octal, hexadecimal (`0x`), and an optional `+`, such as `map=0x0.+0-FL|0x1.+1-FR`.
+Names resolve against each input’s layout; missing speakers
 are rejected. Maps are optional and may assign only one output channel. Unmapped
 outputs first use unused inputs with matching speaker positions, then the first
 unused input channels.

@@ -63,24 +63,23 @@ export async function joinAudio(
     const [source, output, ...extra] = mapping.split("-");
     const indices = source!.split(".");
     if (extra.length || !outputNames.includes(output ?? "") || selected.has(output!) ||
-        indices.length !== 2 || !indices[0] || !indices[1] ||
-        [...indices[0]].some(char => char < "0" || char > "9")) {
+        indices.length !== 2 || !indices[0] || !indices[1]) {
       throw new Error("join: invalid channel map");
     }
-    const input = audio[Number(indices[0])];
+    const inputIndex = readMapIndex(indices[0]);
+    if (inputIndex.end !== indices[0].length) throw new Error("join: invalid channel map");
+    const input = audio[inputIndex.index];
     if (!input) throw new Error("join: invalid input channel");
     const name = indices[1];
-    let channelIndex: number;
-    if ([...name].every(char => char >= "0" && char <= "9")) {
-      channelIndex = Number(name);
-    } else {
+    let channelIndex = readMapIndex(name).index;
+    if (Number.isNaN(channelIndex)) {
       const mask = input.channelMask || ([0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][input.channels] ?? 0);
       channelIndex = speakers.filter(name => Math.floor(mask / audioSpeakerMasks[name]!) % 2 === 1).indexOf(name);
     }
     const channel = input.channelData[channelIndex];
     if (!channel) throw new Error("join: invalid input channel");
     selected.set(output!, channel);
-    used[Number(indices[0])]!.add(channelIndex);
+    used[inputIndex.index]!.add(channelIndex);
   }
   // Reserve matching speakers before filling any gaps with unused channels.
   for (const matchSpeaker of [true, false]) {
@@ -159,6 +158,23 @@ export async function joinAudio(
   }
   return { ...first, timescale: sampleRate, duration: length, samples: frames, editList: undefined,
     decodedAudio: { ...audio[0]!, channels: outputNames.length, channelMask: outputMask, channelData } };
+}
+
+function readMapIndex(source: string): { index: number; end: number } {
+  let end = 0;
+  while (end < source.length && " \t\n\r\v\f".includes(source[end]!)) end++;
+  if (source[end] === "+") end++;
+  let radix = source[end] === "0" ? 8 : 10;
+  if (source.slice(end, end + 2).toLowerCase() === "0x" &&
+      source[end + 2] && "0123456789abcdef".includes(source[end + 2]!.toLowerCase())) {
+    radix = 16;
+    end += 2;
+  }
+  const start = end;
+  const alphabet = "0123456789abcdef".slice(0, radix);
+  while (end < source.length && alphabet.includes(source[end]!.toLowerCase())) end++;
+  // Native channel ordinals consume an integer prefix; input ordinals must reach the dot.
+  return { index: Number.parseInt(source.slice(start, end), radix), end };
 }
 
 function validChannelLayout(layout: string): boolean {

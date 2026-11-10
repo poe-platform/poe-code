@@ -1,7 +1,8 @@
 import { expect, it } from "vitest";
 import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli, runConvertCliSync } from "./index.js";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
     it.each([
@@ -66,5 +67,30 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect((await run(["mpr:orig", "later.png"])).exitCode).toBe(1);
         expect((await run(["-size", "1x1", "xc:blue", "mpr:final"])).exitCode).toBe(0);
         expect(mode === "retained" ? (await filesystem.readdir("/")).map(entry => entry.name) : [...files.keys()]).toEqual(["out.png"]);
+    });
+}
+
+for (const mode of ["command", "buffered", "retained", "sync"] as const) {
+    it.each(["-write", "+write"].flatMap(write => ["", "[1]"].flatMap(outputSelector => [
+        { write, outputSelector, inputSelector: "", expected: "ff000000ff000000ffffffff" },
+        { write, outputSelector, inputSelector: "[0]", expected: "ff0000" }
+    ])))(`stores the full MPR sequence under its base name in ${mode}: $write mpr:seq$outputSelector, read $inputSelector`, async ({ write, outputSelector, inputSelector, expected }) => {
+        const files = new Map([["out", new TextEncoder().encode("KEEP")]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/out", files.get("out")!);
+        const args = ["xc:red", "xc:lime", "xc:blue", "xc:white", write, `mpr:seq${outputSelector}`, "-delete", "0-3", `mpr:seq${inputSelector}`, "+append", "-depth", "8", "rgb:out"];
+        let stdout = "", stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        expect("stdout" in result ? result.stdout : stdout).toBe("");
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        const bytes = mode === "command" || mode === "retained" ? await filesystem.readFile("/out") : files.get("out")!;
+        expect(Buffer.from(bytes).toString("hex")).toBe(expected);
     });
 }

@@ -10008,7 +10008,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     yield;
                     saved.push({ ...image, data: new Uint8Array(image.data) });
                 }
-                registers.set(writePath.slice(4).toLowerCase(), saved);
+                registers.set(parseInputToken(writePath).baseToken.slice(4).toLowerCase(), saved);
             }
             else if (stack.length > 0 && writePath && writePath.toLowerCase() !== "null:") {
                 const top = stack[stack.length - 1]!;
@@ -13040,7 +13040,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         await yieldTurn(signal);
                         await saved.push((await stack.get(index))!);
                     }
-                    registers.set(path.slice(4).toLowerCase(), saved);
+                    registers.set(parseInputToken(path).baseToken.slice(4).toLowerCase(), saved);
                 }
                 else if (image && path && path.toLowerCase() !== "null:") {
                     const output = inferOutputFormat(path, image.format);

@@ -1061,6 +1061,49 @@ describe("dcshift", () => {
   }
 });
 
+describe("bounded infinite aloop", () => {
+  for (const complex of [false, true]) {
+    for (const [filter, options, left] of [
+      ["aloop=-1:3:0", ["-t", "0.00125"], [101, 102, 103, 101, 102, 103, 101, 102, 103, 101]],
+      ["aloop=-1:3:0", ["-frames:a", "2"], [101, 102, 103, 101, 102, 103]],
+      ["aloop=-1:3:0,atrim=end_sample=10", [], [101, 102, 103, 101, 102, 103, 101, 102, 103, 101]],
+      ["aloop=2:3:0", ["-t", "0.00125"], [101, 102, 103, 101, 102, 103, 101, 102, 103, 104]],
+    ] as const) {
+      it(`matches oracle PCM for ${filter} ${options.join(" ")}, complex=${complex}`, async () => {
+        const raw = new Uint8Array(32);
+        const view = new DataView(raw.buffer);
+        for (let i = 0; i < 8; i++) {
+          view.setInt16(i * 4, 101 + i, true);
+          view.setInt16(i * 4 + 2, -901 - i, true);
+        }
+        const vfs = createTestVfs({ "/in.raw": raw, "/out.raw": "KEEP" });
+        const result = await runCmd(createFfmpegCommand(), ["-y", "-f", "s16le", "-ar", "8000", "-ac", "2", "-i", "/in.raw",
+          ...(complex ? ["-filter_complex", `[0:a]${filter}[o]`, "-map", "[o]"] : ["-af", filter]),
+          ...options, "-f", "s16le", "/out.raw"], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const expected = new Uint8Array(left.length * 4);
+        const expectedView = new DataView(expected.buffer);
+        left.forEach((sample, i) => {
+          expectedView.setInt16(i * 4, sample, true);
+          expectedView.setInt16(i * 4 + 2, -800 - sample, true);
+        });
+        assert.deepEqual(vfs.store.get("/out.raw"), expected);
+      });
+    }
+    for (const filter of ["aloop=-2:3:0", "aloop=-1:-3:0", "aloop=-1:3:0"]) {
+      it(`preserves existing output for ${filter}, complex=${complex}`, async () => {
+        const vfs = createTestVfs({ "/in.raw": new Uint8Array(32), "/out.raw": "KEEP" });
+        const result = await runCmd(createFfmpegCommand(), ["-y", "-f", "s16le", "-ar", "8000", "-ac", "2", "-i", "/in.raw",
+          ...(complex ? ["-filter_complex", `[0:a]${filter}[o]`, "-map", "[o]"] : ["-af", filter]),
+          "-f", "s16le", "/out.raw"], vfs);
+        assert.notEqual(result.exitCode, 0);
+        assert.match(result.stderr, /aloop:/);
+        assert.equal(new TextDecoder().decode(vfs.store.get("/out.raw")), "KEEP");
+      });
+    }
+  }
+});
+
 describe("aloop", () => {
   for (const complex of [false, true]) {
     for (const [filter, expected] of [

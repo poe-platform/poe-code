@@ -10216,13 +10216,58 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const number = key === "time" ? parseHlsDuration(value) : parseFilterExpression(value, "aloop", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
                           if (!value || !Number.isFinite(number) ||
                             (key !== "time" && number > (key === "start" ? 2 ** 63 : 2147483647)) ||
-                            number < (key === "start" ? -1 : 0) ||
+                            number < (key === "start" || key === "loop" ? -1 : 0) ||
                             (key === "time" && number > (2 ** 63 - 1) / 1_000_000)) {
                             throw new Error(`aloop: invalid ${key}`);
                           }
                           values[key] = key === "time" ? number : roundToEven(number);
                         }
                         const { loop, size, start, time } = values;
+                        if (loop === -1 && size! > 0) {
+                          if (start !== 0) throw new Error("aloop: indefinite loops require start=0");
+                          const regionLength = Math.min(size!, stretched[0]?.length ?? 0);
+                          if (regionLength === 0) continue;
+                          const firstPts = audioTimestamps?.[0]?.pts ?? audioStartSample;
+                          const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
+                          let length = endSeconds === undefined ? Infinity
+                            : Math.max(0, Math.round(endSeconds * origRate) - Math.min(firstPts, Math.round((outputSs ?? 0) * origRate)));
+                          if (maxAudioFrames !== undefined) {
+                            const framesPerLoop = Math.ceil(regionLength / 1024);
+                            length = Math.min(length, Math.floor(maxAudioFrames / framesPerLoop) * regionLength
+                              + (maxAudioFrames % framesPerLoop) * 1024);
+                          }
+                          const next = audioFilters[filterIndex + 1];
+                          if (next?.split("=", 1)[0]!.split("@", 1)[0] === "atrim") {
+                            const { duration, startPts, endPts, startSample, endSample } = parseAtrim(
+                              next.includes("=") ? next.slice(next.indexOf("=") + 1) : "", origRate);
+                            const start = Math.min(startPts - firstPts, startSample);
+                            const end = Math.max(endSample, endPts - firstPts,
+                              duration > 0 ? (start === Infinity ? 0 : start) + duration : -Infinity);
+                            if (Number.isFinite(end)) length = Math.min(length, Math.max(0, end));
+                          }
+                          if (!Number.isSafeInteger(length)) throw new Error("aloop: a finite consumer limit is required");
+                          budget.checkDuration(length / origRate);
+                          budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
+                          audioTimestamps = [];
+                          for (let start = 0; start < length;) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const end = Math.min(length, start + Math.min(1024, regionLength - start % regionLength));
+                            budget.allocateMemory(24);
+                            audioTimestamps.push({ start, end, pts: firstPts + start });
+                            start = end;
+                          }
+                          stretched = await mapWork(stretched, async channel => {
+                            const output = new Float32Array(length);
+                            for (let offset = 0; offset < length; offset += 16384) {
+                              await yieldTurn(context.signal);
+                              context.signal?.throwIfAborted();
+                              budget.checkCpu();
+                              for (let i = offset; i < Math.min(length, offset + 16384); i++) output[i] = channel[i % regionLength]!;
+                            }
+                            return output;
+                          }, context.signal);
+                          continue;
+                        }
                         const loopStart = start === -1 ? Math.round(time! * origRate) : start!;
                         if (loop! > 0 && size! > 0 && start! > 0) throw new Error("aloop: active loops require start=0");
                         if (size! > 0 && loopStart < (stretched[0]?.length ?? 0)) {

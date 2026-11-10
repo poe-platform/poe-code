@@ -12468,8 +12468,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-frame") {
             const raw = tokens[++i] ?? "";
-            stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+            for (let sceneIdx = 0; sceneIdx < stack.length; sceneIdx++) {
+                let im = stack[sceneIdx]!;
+                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
                 const g = resolveMagickFrameGeometry(expanded, im);
                 // Border color controls promotion even though the frame uses matte color.
@@ -12485,9 +12486,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     borderPixels(plane, fw, fh, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16), signal, { width, height, hasAlpha: false }));
                 const canvas = { ...yield* applyMagickRasterSteps(im, magickFramePixels(im, width, height, state.borderColor, im.matteColor ?? state.matteColor, fw, fh, g.x, g.y, state.composeRaw.toLowerCase() === "over"), signal,
                     { width, height, hasAlpha: im.hasAlpha || (im.matteColor ?? state.matteColor).a < 255 || state.borderColor.a < 255 }), region: undefined, writeMask, readMask, metaChannels, virtualCanvas: magickBorderCanvas(im, fw, fh) };
-                if (state.composeRaw.toLowerCase() === "over") return canvas;
-                return yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, fw, fh, state.composeArgs, signal, state.alphaFuzz, true);
-            });
+                stack[sceneIdx] = state.composeRaw.toLowerCase() === "over" ? canvas
+                    : yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, fw, fh, state.composeArgs, signal, state.alphaFuzz, true);
+            }
         }
         else if (t === "-deskew") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
@@ -16161,9 +16162,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-frame") {
             const raw = tokens[++i] ?? "";
             const { borderColor, matteColor, composeRaw, composeArgs, alphaFuzz, optionProperties } = state;
+            let images: StoredImageStack, sceneIdx = 0;
+            stackStep(async stack => { images = stack; return stack; });
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image: image!, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image: image!, storage: backend.storage }), signal, images);
                 validateMagickTransformGeometry(expanded, token);
                 const geometry = resolveMagickFrameGeometry(expanded, image);
                 // Border color controls promotion even though the frame uses matte color.

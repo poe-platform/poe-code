@@ -13925,7 +13925,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (key !== "delay" && key !== "feedback" && key !== "crossfeed" && key !== "drymix") {
                             if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
                               const value = parseFilterExpression(option.slice(separator + 1), "stereowiden",
-                                key === "thread_type" ? { slice: 1 } : {});
+                                key === "thread_type" ? { slice: 1 }
+                                  : key === "threads" ? { default: 0, min: 0 } : { default: -1 });
                               if (!Number.isFinite(value) || value < (key === "extra_hw_frames" ? -1 : 0) || value > 2147483647) {
                                 throw new RangeError(`stereowiden: invalid ${key}`);
                               }

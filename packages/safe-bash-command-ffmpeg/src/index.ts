@@ -3725,8 +3725,11 @@ async function applyVideoFilterChain(
         PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
       });
       if (positional.length > 1 || Object.keys(named).some(key => key !== "step") ||
-          !Number.isFinite(value) || value < 1 || value > 2147483647) {
+          !Number.isFinite(value)) {
         throw new Error("framestep: step must be an integer from 1 to 2147483647");
+      }
+      if (value < 1 || value > 2147483647) {
+        throw new RangeError("framestep: step must be an integer from 1 to 2147483647");
       }
       const step = roundToEven(value);
       current = current.filter((_, index) => index % step === 0)
@@ -14936,6 +14939,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (err instanceof RangeError && msg.startsWith("tmix:")) return { exitCode: 222 };
             if (msg === "tmix: invalid expression" || msg === "tmix: invalid or unsupported expression" ||
                 msg === "tmix: weights must be finite numbers") return { exitCode: 234 };
+            if (msg.startsWith("framestep:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg === "decimate: timeline is unsupported") return { exitCode: 176 };
             if (msg === "decimate: unsupported option") return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("decimate:")) return { exitCode: 222 };

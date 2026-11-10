@@ -10583,7 +10583,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
                 let output = yield* applyMagickRasterSteps(base, complexPixelSteps(extent, operation === "magnitudephase" ? (part === 0 ? "magnitude" : "phase") : operation === "realimaginary" ? (part === 0 ? "real" : "imaginary") : operation, inputs, base.space === "b-w" || base.space === "grey16", grayOnly, part, state.complexSnr ?? 0), signal, base, inputs);
                 if (base.writeMask) output = yield* applyMagickRasterSteps(output, writeMaskPixelSteps(output, base.writeMask, true), signal, output, [output, base, base.writeMask]);
-                result.push(output);
+                result.push({ ...output, isPalette: false, inactiveAlpha: false });
             }
             stack = result;
         }
@@ -12249,6 +12249,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     let output = await transformStoredMagickRaster(base, backend, complexPixelSteps(extent, operation === "magnitudephase" ? (part === 0 ? "magnitude" : "phase") : operation === "realimaginary" ? (part === 0 ? "real" : "imaginary") : operation, inputs, base.space === "b-w" || base.space === "grey16", grayOnly, part, complexSnr ?? 0), signal, base, inputs);
                     if (base.storedWriteMask) output = await transformStoredMagickRaster(output, backend, writeMaskPixelSteps(output, base.storedWriteMask, true), signal, output, [output, base, base.storedWriteMask]);
+                    output = { ...output, isPalette: false, inactiveAlpha: false };
                     await result.push(output);
                 }
                 return result;

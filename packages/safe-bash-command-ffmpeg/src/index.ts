@@ -9490,6 +9490,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let mode = "select";
                         let key: string | undefined;
                         let metadataValue: string | undefined;
+                        let comparison = "same_str";
                         let file: string | undefined;
                         for (const option of trimmed.slice("ametadata=".length).split(":").filter(Boolean)) {
                           const separator = option.indexOf("=");
@@ -9500,6 +9501,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else if (name === "key") key = value;
                           else if (name === "value") metadataValue = value;
                           else if (name === "file") file = value;
+                          else if (name === "function") comparison = value;
                           // The in-memory report is written once, so buffering does not affect its contents.
                           else if (name === "direct") parseFilterBoolean(value, "ametadata: invalid direct");
                           else throw new Error(`ametadata: unsupported option ${name}`);
@@ -9525,6 +9527,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           continue;
                         }
+                        if (!["same_str", "starts_with", "ends_with"].includes(comparison)) throw new Error(`ametadata: unsupported function ${comparison}`);
                         let report = "";
                         for (const [n, frame] of audioMetadata.entries()) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -9535,7 +9538,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           let tags = "";
                           for (const [name, value] of frame.tags) {
                             if (lookupKey !== undefined && lookupKey !== name.toLowerCase()) continue;
-                            if (metadataValue !== undefined && metadataValue !== value) continue;
+                            if (metadataValue !== undefined) {
+                              const matches = comparison === "starts_with" ? value.startsWith(metadataValue)
+                                : comparison === "ends_with" ? value.endsWith(metadataValue) : value === metadataValue;
+                              if (!matches) continue;
+                            }
                             if (mode === "delete") {
                               frame.tags.delete(name);
                               continue;

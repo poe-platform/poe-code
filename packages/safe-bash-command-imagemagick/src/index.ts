@@ -2224,10 +2224,15 @@ function parseMagickRollGeometry(raw: string): MagickGeometry {
         if ((char === "+" || char === "-") && normalized[i - 1]?.toLowerCase() !== "e") {
             offsets++;
             if (offsets > 2) { end = i; break; }
-            const next = normalized[i + 1];
-            if (next === "+" || next === "-") {
-                // The geometry sign multiplies the sign of the numeric offset.
-                normalized = normalized.slice(0, i) + (char === next ? "+" : "-") + normalized.slice(i + 2);
+            let sign = char;
+            let next = i + 1;
+            while (normalized[next] === "+" || normalized[next] === "-") {
+                if (normalized[next] === "-") sign = sign === "+" ? "-" : "+";
+                next++;
+            }
+            if (next > i + 1) {
+                // Each minus reverses the sign of the offset.
+                normalized = normalized.slice(0, i) + sign + normalized.slice(next);
                 end = normalized.length;
             }
         } else if (offsets > 0 && (char === "," || char === ":")) {

@@ -4229,7 +4229,9 @@ async function applyVideoFilterChain(
       current = shuffled;
     } else if (name === "loop") {
       const values = { loop: 0, size: 0, start: 0, time: Infinity };
-      for (const [index, option] of (argStr ? argStr.split(":") : []).entries()) {
+      const options = argStr ? argStr.split(":") : [];
+      if (options.at(-1) === "") options.pop();
+      for (const [index, option] of options.entries()) {
         const separator = option.indexOf("=");
         const key = separator < 0 ? ["loop", "size", "start", "time"][index] : option.slice(0, separator).trim();
         if (key !== "loop" && key !== "size" && key !== "start" && key !== "time") throw new Error(`loop: unsupported option ${key}`);

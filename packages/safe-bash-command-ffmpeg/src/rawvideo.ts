@@ -6,10 +6,11 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
   if (dimensions.length !== 2 || !Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width <= 0 || height <= 0) {
     throw new Error("rawvideo input requires a valid -video_size WIDTHxHEIGHT");
   }
-  if (pixelFormat !== "rgb24" && pixelFormat !== "yuv420p") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
+  const gray = pixelFormat === "gray" || pixelFormat === "gray8";
+  if (!gray && pixelFormat !== "rgb24" && pixelFormat !== "yuv420p") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
   const ySize = width * height;
   const chromaSize = Math.ceil(width / 2) * Math.ceil(height / 2);
-  const frameBytes = pixelFormat === "yuv420p" ? ySize + chromaSize * 2 : ySize * 3;
+  const frameBytes = pixelFormat === "yuv420p" ? ySize + chromaSize * 2 : ySize * (gray ? 1 : 3);
   if (!Number.isSafeInteger(frameBytes)) throw new Error("Invalid rawvideo frame size");
   const count = Math.ceil(bytes.length / frameBytes);
   budget.checkSamples(count);
@@ -29,9 +30,10 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     const rgba = pixelFormat === "yuv420p"
       ? yuv420pToRgba(data.subarray(0, ySize), data.subarray(ySize, ySize + chromaSize), data.subarray(ySize + chromaSize), width, height)
       : new Uint8Array(width * height * 4);
-    for (let pixel = 0; pixelFormat === "rgb24" && pixel < width * height; pixel++) {
+    for (let pixel = 0; pixelFormat !== "yuv420p" && pixel < width * height; pixel++) {
       if (pixel % 4096 === 0) budget.checkCpu();
-      rgba.set(data.subarray(pixel * 3, pixel * 3 + 3), pixel * 4);
+      if (gray) rgba.fill(data[pixel]!, pixel * 4, pixel * 4 + 3);
+      else rgba.set(data.subarray(pixel * 3, pixel * 3 + 3), pixel * 4);
       rgba[pixel * 4 + 3] = 255;
     }
     frames.push({ width, height, data: rgba,
@@ -79,6 +81,18 @@ export function serializeRawVideo(track: MediaTrack, codec: string | undefined, 
           const { y, u, v } = rgbaToYuv420p(frame.data, frame.width, frame.height);
           append(y); append(u); append(v);
         }
+      } else if (format === "gray" || format === "gray8" || format === "ya8") {
+        const channels = format === "ya8" ? 2 : 1;
+        const length = frame.width * frame.height * channels;
+        budget.checkOutputBytes(size + length);
+        const bytes = new Uint8Array(length);
+        // The format filter has already converted RGB to full-range grayscale.
+        for (let pixel = 0; pixel < frame.width * frame.height; pixel++) {
+          if (pixel % 4096 === 0) budget.checkCpu();
+          bytes[pixel * channels] = frame.data[pixel * 4]!;
+          if (channels === 2) bytes[pixel * channels + 1] = frame.data[pixel * 4 + 3]!;
+        }
+        append(bytes);
       } else if (format === "rgb24" || format === "bgr24" || format === "rgba") {
         const channels = format === "rgba" ? 4 : 3;
         const length = frame.width * frame.height * channels;

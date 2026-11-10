@@ -83,3 +83,51 @@ for (const limits of [{ maxFrames: 3 }, { maxSamplesPerTrack: 3 }, { maxPixelsPe
     assert.equal(result.volume.existsSync("/out.mov"), false);
   });
 }
+
+// Native FFmpeg 7.0.2 reference bytes, including two 2x2 frames.
+const grayPixels = Buffer.from("113a638cb5de0730", "hex");
+for (const format of ["gray", "gray8"]) {
+  for (const frameLimit of [undefined, "1"]) {
+    it(`copies ${format} packets with frame limit ${frameLimit}`, async () => {
+      const result = await run(["-f", "rawvideo", "-pix_fmt", format, "-s", "2x2", "-r", "1",
+        "-i", "/in.raw", "-c:v", "copy", ...(frameLimit ? ["-frames:v", frameLimit] : []),
+        "-f", "rawvideo", "/out.raw"], grayPixels);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.volume.readFileSync("/out.raw"), frameLimit ? grayPixels.subarray(0, 4) : grayPixels);
+    });
+  }
+
+  it(`serializes RGB24 as ${format} using full-range luminance`, async () => {
+    const result = await run(["-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "2x2", "-r", "1",
+      "-i", "/in.raw", "-vf", "null", "-pix_fmt", format, "-f", "rawvideo", "/out.raw"],
+    Buffer.from("113a638cb5de07305982abd4fd264f78a1caf31c456e97c0", "hex"));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal((result.volume.readFileSync("/out.raw") as Buffer).toString("hex"), "32ad28a36b99618f");
+  });
+}
+
+for (const copy of [false, true]) {
+  it(`handles a partial final gray frame (copy=${copy})`, async () => {
+    const bytes = Buffer.concat([grayPixels, Buffer.from([0, 255])]);
+    const result = await run(["-f", "rawvideo", "-pix_fmt", "gray", "-s", "2x2", "-r", "1",
+      "-i", "/in.raw", "-c:v", copy ? "copy" : "rawvideo", "-f", "rawvideo", "/out.raw"], bytes);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.volume.readFileSync("/out.raw"), copy ? bytes : grayPixels);
+  });
+}
+
+it("decodes full-range gray samples to RGB without changing luminance", async () => {
+  const bytes = Buffer.from([0, 16, 235, 255]);
+  const result = await run(["-f", "rawvideo", "-pix_fmt", "gray", "-s", "2x2", "-i", "/in.raw",
+    "-pix_fmt", "rgb24", "-f", "rawvideo", "/out.raw"], bytes);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.volume.readFileSync("/out.raw"), Buffer.from([...bytes].flatMap(value => [value, value, value])));
+});
+
+it("enforces the gray output byte limit before writing", async () => {
+  const result = await run(["-f", "rawvideo", "-pix_fmt", "gray", "-s", "2x2", "-i", "/in.raw",
+    "-f", "rawvideo", "/out.raw"], grayPixels, { limits: { maxOutputBytes: 7 } });
+  assert.notEqual(result.exitCode, 0);
+  assert.match(result.stderr, /maxOutputBytes/);
+  assert.equal(result.volume.existsSync("/out.raw"), false);
+});

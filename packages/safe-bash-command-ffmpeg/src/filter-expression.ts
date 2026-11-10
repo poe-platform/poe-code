@@ -31,7 +31,8 @@ export function parseFilterExpression(expression: string, filter: string, variab
       const name = source.slice(start, offset);
       if (source[offset] === "(") {
         offset++;
-        const args = [parse(0, depth + 1, evaluate)];
+        const coefficientStart = offset;
+        const args = [parse(0, depth + 1, evaluate && name !== "taylor")];
         while (source[offset] === ",") {
           offset++;
           // Validate both branches, but only evaluate the selected branch.
@@ -51,6 +52,30 @@ export function parseFilterExpression(expression: string, filter: string, variab
             if (randomStates) delete randomStates[index];
           }
           value = name === "st" ? args[1]! : registers[index]!;
+        }
+        else if (name === "taylor" && (args.length === 2 || args.length === 3) && registers) {
+          value = 0;
+          if (evaluate) {
+            const end = offset;
+            const index = Math.max(0, Math.min(9, Math.trunc(args[2] ?? 0) || 0));
+            const saved = registers[index]!;
+            let factor = 1;
+            try {
+              // FFmpeg reevaluates the coefficient with ld(index) set to each order.
+              for (let order = 0; order < 1000; order++) {
+                registers[index] = order;
+                offset = coefficientStart;
+                const coefficient = parse(0, depth + 1);
+                const previous = value;
+                value += factor * coefficient;
+                if (previous === value && coefficient !== 0) break;
+                factor *= args[1]! / (order + 1);
+              }
+            } finally {
+              registers[index] = saved;
+              offset = end;
+            }
+          }
         }
         else if (name === "random" && args.length === 1 && registers && randomStates) {
           value = 0;

@@ -58,6 +58,16 @@ for (const [expression, expected] of [
   ["gcd()", undefined],
   ["gcd(6)", undefined],
   ["gcd(6,2,1)", undefined],
+  ["taylor(ld(0),1)/4", [22268, 22268, 22268, 22268]],
+  ["taylor(1,0)/2", [16384, 16384, 16384, 16384]],
+  ["taylor(eq(ld(0),2),n)/8", [0, 2048, 8192, 18432]],
+  ["st(3,0.25);taylor(ld(3),1,3)/4+ld(3)/4", [24316, 24316, 24316, 24316]],
+  ["taylor(st(1,ld(1)+1),0);ld(1)/8", [8192, 16384, 24576, 32767]],
+  ["if(0,taylor(st(1,1),1),0);ld(1)", [0, 0, 0, 0]],
+  ["taylor(taylor(1,0),0)/2", [16384, 16384, 16384, 16384]],
+  ["taylor(1)", undefined],
+  ["taylor(1,0,0,0)", undefined],
+  ["taylor(unknown,0)", undefined],
   ["bitand(n,1)/2", [0, 16384, 0, 16384]],
   ["bitor(n,1)/8", [4096, 4096, 12288, 12288]],
   ["bitand(4294967297,4294967296)/8589934592", [16384, 16384, 16384, 16384]],
@@ -99,7 +109,7 @@ for (const [expression, expected] of [
       [110, -550, 220, -660, 330, -770, 440, -880].forEach((sample, i) => input.writeInt16LE(sample, i * 2));
       fs.writeFileSync("/grid.raw", input);
       let stderr = "";
-      const filter = `aeval=${expression.split(",").join("\\,")}`;
+      const filter = `aeval=${expression.split(",").join("\\,").split(";").join("\\;")}`;
       const filters = complex ? ["-filter_complex", `[0:a]${filter}[s]`, "-map", "[s]"] : ["-af", filter];
       const result = await createFfmpegCommand().execute({
         args: ["-y", "-v", "error", "-f", "s16le", "-ar", "8000", "-ac", "2", "-i", "/grid.raw", ...filters, "-f", "s16le", "/out.raw"],

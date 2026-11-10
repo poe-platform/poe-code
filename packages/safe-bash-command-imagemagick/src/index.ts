@@ -1470,7 +1470,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       statistics.minima = Math.min(statistics.minima, minimum / 65535);
       statistics.maxima = Math.max(statistics.maxima, maximum / 65535);
       statistics.median += median / 65535 / channels;
-      statistics[`mean.${c}`] = means[c]!;
+      statistics[`mean.${c}`] = selectedChannels[c] ? means[c]! : 0;
       statistics[`standard_deviation.${c}`] = deviation;
       statistics.mean += means[c]! / channels;
       statistics.standard_deviation += deviation / channels;

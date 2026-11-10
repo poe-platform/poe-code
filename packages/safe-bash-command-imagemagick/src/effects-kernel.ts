@@ -81,7 +81,7 @@ export function vignetteLayout(source: Pick<RgbaImage, "width" | "height" | "vir
     const width = source.virtualCanvas?.width || source.width, height = source.virtualCanvas?.height || source.height;
     return { width, height, hasAlpha: true, virtualCanvas: { width, height, x: 0, y: 0 } };
 }
-export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" | "virtualCanvas" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">>, background: RgbaColor,
+export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" | "virtualCanvas" | "data16" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">>, background: RgbaColor,
     geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; hasYOffset: boolean; isPercent: boolean }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, compose = "Over"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { name } = magickCompositeMode(compose);
     const sourceIn = name === "srcin" || name === "in", destinationOut = name === "dstout" || name === "destout";
@@ -94,7 +94,10 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
     const ry = cy - Math.ceil(insetY * (geometry.isPercent ? height / 100 : 1) - 0.5);
     if (rx < 0 || ry < 0) throw new Error("non-conforming drawing primitive definition 'ellipse'");
     const canvas = vignetteLayout(source), offsetX = source.virtualCanvas?.x ?? 0, offsetY = source.virtualCanvas?.y ?? 0;
-    const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1;
+    const highDepth = !!(source.data16 || source.storedData16);
+    const hue = source.space !== "cmyk" && (!!source.hueSamples || source.storedHueSamples !== undefined);
+    const scale = hue ? 1 / 255 : highDepth ? 257 : 1;
+    const quantum = (value: number) => hue ? Math.fround(value * 65535) / 65535 : Math.round(value);
     if (source.space === "b-w" || source.space === "grey16") {
         // Native converts the canvas background to the source's gray colorspace.
         const gray = 0.212656 * background.r + 0.715158 * background.g + 0.072186 * background.b;
@@ -104,12 +107,14 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
     for (let position = 0; position < canvas.width * canvas.height * 4; position += 4096) {
         yield;
         const length = Math.min(4096, canvas.width * canvas.height * 4 - position);
-        const data = highDepth ? new Uint16Array(length) : new Uint8Array(length);
+        const data = hue ? new Float64Array(length) : highDepth ? new Uint16Array(length) : new Uint8Array(length);
         for (let i = 0; i < length; i += 4) {
-            data[i] = Math.round(background.r * scale); data[i + 1] = Math.round(background.g * scale);
-            data[i + 2] = Math.round(background.b * scale); data[i + 3] = Math.round(background.a * scale);
+            for (const [channel, value] of [background.r, background.g, background.b, background.a].entries())
+                data[i + channel] = hue ? value / 255 : Math.round(value * scale);
         }
-        yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
+        if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(data.buffer) };
+        const bounded = hue ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(1, value)) * 65535)) : data;
+        yield { kind: "write", highDepth, position, data: new Uint8Array(bounded.buffer) };
     }
     const sigma = Math.abs(geometry.height ?? 1), radius = geometry.width ?? 0;
     let half = 0;
@@ -185,9 +190,9 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                 }
                 for (let x = 0; x < count; x++) coverage[x]! += row[x]! * weights[ky + half]!;
             }
-            const position = (y * width + left) * 4, bytes = yield { kind: "read", highDepth, position, length: count * 4 };
-            if (!bytes || bytes.length !== count * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated vignette pixels");
-            const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
+            const position = (y * width + left) * 4, bytes = yield { kind: "read", hue, highDepth, position, length: count * 4 };
+            if (!bytes || bytes.length !== count * 4 * (hue ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated vignette pixels");
+            const data = hue ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
             for (let x = 0; x < count; x++) {
                 const foreground = coverage[x]!, back = (name === "plus" ? 1 : 1 - foreground) * background.a / 255;
                 const alpha = sourceIn ? foreground * background.a / 255 : destinationOut ? back : Math.min(1, foreground + back);
@@ -200,20 +205,24 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                             : name === "screen" ? source + color - source * color / 255 : Math.abs(source - color);
                         const value = mixed * foreground * destinationAlpha + source * foreground * (1 - destinationAlpha) + color * back;
                         // Native Screen keeps premultiplied RGB; Multiply and Difference unpremultiply.
-                        data[x * 4 + channel] = Math.round((name === "screen" ? value : alpha === 0 ? 0 : value / alpha) * scale);
+                        data[x * 4 + channel] = quantum((name === "screen" ? value : alpha === 0 ? 0 : value / alpha) * scale);
                         continue;
                     }
-                    data[x * 4 + channel] = !selected || copyDestination || copyAlpha ? Math.round(color * scale) : copySource ? data[x * 4 + channel]!
-                        : sourceIn ? Math.round(data[x * 4 + channel]! * alpha)
-                        : destinationOut ? (alpha === 0 ? 0 : Math.round(color * scale))
+                    data[x * 4 + channel] = !selected || copyDestination || copyAlpha ? quantum(color * scale) : copySource ? data[x * 4 + channel]!
+                        : sourceIn ? quantum(data[x * 4 + channel]! * alpha)
+                        : destinationOut ? (alpha === 0 ? 0 : quantum(color * scale))
                         // Plus adds alpha-weighted channels without unpremultiplying.
-                        : name === "plus" ? Math.round(Math.min(255 * scale, data[x * 4 + channel]! * foreground + color * scale * back))
-                        : alpha === 0 ? 0 : Math.round((data[x * 4 + channel]! * foreground + color * scale * back) / alpha);
+                        : name === "plus" ? quantum(Math.min(255 * scale, data[x * 4 + channel]! * foreground + color * scale * back))
+                        : alpha === 0 ? 0 : quantum((data[x * 4 + channel]! * foreground + color * scale * back) / alpha);
                 }
-                data[x * 4 + 3] = Math.round(((!channels || channels.a) && !copyDestination ? (copySource || copyAlpha ? foreground
+                data[x * 4 + 3] = quantum(((!channels || channels.a) && !copyDestination ? (copySource || copyAlpha ? foreground
                     : name === "difference" ? Math.abs(foreground - background.a / 255) : alpha) * 255 : background.a) * scale);
             }
-            yield { kind: "write", highDepth, position: ((y + offsetY) * canvas.width + left + offsetX) * 4, data: new Uint8Array(data.buffer) };
+            // Replace the working channels too, so later colorspace conversion sees the rendered vignette.
+            const target = ((y + offsetY) * canvas.width + left + offsetX) * 4;
+            if (hue) yield { kind: "write", hue: true, position: target, data: new Uint8Array(data.buffer) };
+            const bounded = hue ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(1, value)) * 65535)) : data;
+            yield { kind: "write", highDepth, position: target, data: new Uint8Array(bounded.buffer) };
         }
     }
 }

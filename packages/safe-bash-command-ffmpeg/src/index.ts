@@ -12939,10 +12939,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               // beyond the requested output, even when tempo is one.
                               minimum = Math.ceil((outputSamples + window) * tempo) + window;
                             }
+                            let boundedDownstream = false;
                             if (duration !== undefined && packetSize > 0) {
                               let rate = origRate;
-                              const clocks: ReturnType<typeof createAudioTimestampTransform>[] = [];
-                              let changedClock = false;
+                              const filters: {
+                                clock: ReturnType<typeof createAudioTimestampTransform> | undefined;
+                                select: ReturnType<typeof createAudioSelection> | undefined;
+                                trim: ReturnType<typeof createAudioTrim> | undefined;
+                                samplesPerTick: number;
+                                length: number;
+                              }[] = [];
+                              let changedFrames = false;
+                              let selectsFrames = false;
                               let supported = true;
                               for (const item of audioFilters.slice(filterIndex + 1)) {
                                 const separator = item.indexOf("=");
@@ -12950,35 +12958,67 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 const argument = separator < 0 ? "" : item.slice(separator + 1);
                                 if (name === "asetrate") {
                                   rate = parseAsetrate(argument);
-                                  changedClock = true;
-                                } else if (name === "asetpts") {
-                                  clocks.push(createAudioTimestampTransform(
-                                    separator < 0 ? "PTS" : argument.startsWith("expr=") ? argument.slice(5) : argument,
-                                    rate, audioTimeBase ?? 1 / rate));
-                                  changedClock = true;
+                                  changedFrames = true;
+                                } else if (name === "asetpts" || name === "aselect" || name === "atrim") {
+                                  filters.push({
+                                    clock: name === "asetpts" ? createAudioTimestampTransform(
+                                      separator < 0 ? "PTS" : argument.startsWith("expr=") ? argument.slice(5) : argument,
+                                      rate, audioTimeBase ?? 1 / rate) : undefined,
+                                    select: name === "aselect" ? createAudioSelection(argument || "1", rate, audioTimeBase) : undefined,
+                                    trim: name === "atrim" ? createAudioTrim(argument, rate) : undefined,
+                                    samplesPerTick: (audioTimeBase ?? 1 / rate) * rate,
+                                    length: 0
+                                  });
+                                  changedFrames = true;
+                                  selectsFrames ||= name === "aselect";
                                 } else if (!["anull", "acopy", "volume"].includes(name!)) {
                                   supported = false;
                                   break;
                                 }
                               }
-                              if (changedClock && supported) {
-                                // Follow the downstream clock packet by packet, including stateful
-                                // asetpts expressions, before allocating any silence. Output trimming
-                                // still decides which samples survive overlapping timestamps.
+                              if (changedFrames && supported) {
+                                // Follow retained frames through the downstream filters before allocating
+                                // silence. Each filter counts only the samples that reach its input.
+                                boundedDownstream = true;
                                 let endPts: number | undefined;
+                                let outputFrames = 0;
+                                let ended = false;
                                 minimum = inputLength;
-                                for (let n = 0, start = inputLength, pts = paddingPts; ; n++) {
+                                for (let n = 0, start = inputLength, pts = paddingPts; !ended; n++) {
                                   if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                                  if (maxAudioFrames !== undefined && outputFrames >= maxAudioFrames) break;
                                   const source = audioTimestamps[n];
-                                  if (!source && maxAudioFrames !== undefined && n >= maxAudioFrames) break;
-                                  const frame = source ? { ...source } : { start, end: start + packetSize, pts };
-                                  for (const clock of clocks) frame.pts = clock(frame);
-                                  if (!Number.isFinite(frame.pts)) throw new Error("apad: cannot bound a non-finite output timestamp");
-                                  endPts ??= Math.max(frame.pts, outputSs === undefined ? -Infinity : Math.round(outputSs * rate))
-                                    + Math.round(duration * rate);
-                                  if (frame.pts >= endPts) break;
-                                  if (source) continue;
-                                  minimum = start + Math.min(packetSize, Math.max(0, endPts - frame.pts));
+                                  let frame: AudioFilterFrame | undefined = source ? { ...source } : { start, end: start + packetSize, pts };
+                                  let skippedSamples = 0;
+                                  for (const filter of filters) {
+                                    const count: number = frame.end - frame.start;
+                                    frame = { ...frame, start: filter.length, end: filter.length + count };
+                                    filter.length += count;
+                                    if (filter.select && !filter.select(frame)) { frame = undefined; break; }
+                                    if (filter.trim) {
+                                      const range = filter.trim(frame);
+                                      if (range == null) { ended = range === null; frame = undefined; break; }
+                                      skippedSamples += range.start;
+                                      frame = { ...frame, start: frame.start + range.start, end: frame.start + range.end,
+                                        pts: frame.pts + Math.round(range.start / filter.samplesPerTick) * filter.samplesPerTick };
+                                    }
+                                    if (filter.clock) {
+                                      delete frame.exactPts;
+                                      frame.pts = filter.clock(frame);
+                                    }
+                                  }
+                                  if (frame) {
+                                    if (!Number.isFinite(frame.pts)) throw new Error("apad: cannot bound a non-finite output timestamp");
+                                    const seek = outputSs === undefined ? -Infinity : Math.round(outputSs * rate);
+                                    endPts ??= Math.max(frame.pts, seek) + Math.round(duration * rate);
+                                    if (frame.pts >= endPts) break;
+                                    if (frame.pts + frame.end - frame.start > seek) outputFrames++;
+                                  }
+                                  if (source || ended) continue;
+                                  // Selection must see complete packets; trim also consumes the skipped
+                                  // prefix before the samples needed to reach the output duration.
+                                  minimum = start + (selectsFrames || !frame ? packetSize
+                                    : Math.min(packetSize, skippedSamples + Math.max(0, endPts! - frame.pts)));
                                   budget.checkDuration(minimum / origRate);
                                   budget.checkSamples(minimum);
                                   start += packetSize;
@@ -12986,7 +13026,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 }
                               }
                             }
-                            if (maxAudioFrames !== undefined) {
+                            if (maxAudioFrames !== undefined && !boundedDownstream) {
                               // The output cap counts regrouped frames, not apad's packets.
                               const frameSamples = reframe !== undefined
                                 ? parseAsetnsamples(reframe.includes("=") ? reframe.slice(reframe.indexOf("=") + 1) : "").size

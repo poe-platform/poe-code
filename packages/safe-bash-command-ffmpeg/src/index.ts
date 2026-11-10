@@ -3524,6 +3524,9 @@ async function applyVideoFilterChain(
           !Number.isInteger(cycle) || cycle < 2 || cycle > 25) {
         throw new Error("decimate: only cycle is supported; expected an integer from 2 to 25");
       }
+      if (!frameRateKnown) {
+        throw new Error("decimate: The input needs a constant frame rate; current rate of 1/0 is invalid");
+      }
       current = await decimate(current, cycle, budget, signal);
     } else if (name === "mpdecimate") {
       if (argStr) throw new Error("mpdecimate: custom options are unsupported");
@@ -14653,7 +14656,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === audioConversionDisabled) return { exitCode: 234 };
             if (msg === "negate: invalid expression" || msg === "negate: invalid or unsupported expression") return { exitCode: 234 };
             if ((overwrite && msg === "aecho: delay is too small") ||
-                msg === "negate: Requested components not available" || msg.startsWith("fps: frame rate:")) {
+                msg === "negate: Requested components not available" || msg.startsWith("fps: frame rate:") ||
+                msg === "decimate: The input needs a constant frame rate; current rate of 1/0 is invalid") {
               // Filter configuration can fail after file
               // muxers open their output. Image sequences have not opened a frame.
               const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";

@@ -10509,7 +10509,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let replayGainPreamp = 0;
                         let replayGainNoClip = true;
                         let enable: string | undefined;
-                        for (const [index, option] of argument.split(":").entries()) {
+                        const volumeOptions = argument.split(":");
+                        if (volumeOptions.at(-1) === "") volumeOptions.pop();
+                        for (const [index, option] of volumeOptions.entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? (["volume", "precision", "eval", "replaygain", "replaygain_preamp", "replaygain_noclip"][index] ?? "") : option.slice(0, separator).trim();
                           const value = separator < 0 ? option.trim() : option.slice(separator + 1).trim();

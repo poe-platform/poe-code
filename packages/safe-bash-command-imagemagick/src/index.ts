@@ -1682,7 +1682,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
       const property = key === "@" ? "trim-geometry" : "bounding-box";
       short[key] ??= resolvePixels ? yield* resolvePixels(property) : yield* formatTrimBoundsSteps(img ??= getImage(), function*(position, length) {
         yield;
-        return { data: img!.data.subarray(position, position + length), ...(img!.data16 ? { data16: img!.data16.subarray(position, position + length) } : {}), ...(img!.evaluateSamples ? { evaluateSamples: img!.evaluateSamples.subarray(position, position + length) } : {}) };
+        return { data: img!.data.subarray(position, position + length), ...(img!.data16 ? { data16: img!.data16.subarray(position, position + length) } : {}), ...(img!.evaluateSamples ? { evaluateSamples: img!.evaluateSamples.subarray(position, position + length) } : {}), ...(img!.hueSamples ? { hueSamples: img!.hueSamples.subarray(position, position + length) } : {}) };
       }, property, context.fuzz ?? 0, context.analysis, context.trimEdges, context.trimPercentBackground, context.trimBackgroundColor);
       parts.push(short[key]!);
     } else if (token === "%T") {
@@ -1883,7 +1883,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    yield {async run(){const {image,storage}=raster!,data=await storage.read(image.position+position,length,signal?{signal}:undefined);
     const original=image.storedData16;
     const bytes=original?await storage.read(original.position+position*2,Math.max(0,Math.min(length,original.length-position))*2,signal?{signal}:undefined):undefined;
-    const inks=property === "colors" && image.space === "cmyk" && image.storedHueSamples !== undefined
+    const inks=(property === "colors" || property === "trim-geometry" || property === "bounding-box") && image.space === "cmyk" && image.storedHueSamples !== undefined
       ? await storage.read(image.storedHueSamples+position*8,length*8,signal?{signal}:undefined) : undefined;
     const evaluated=image.storedEvaluateSamples === undefined ? undefined : await storage.read(image.storedEvaluateSamples+position*8,length*8,signal?{signal}:undefined);
     chunk={data,...(evaluated?{evaluateSamples:new Float64Array(evaluated.slice().buffer)}:{}),...(bytes?{data16:new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2)}:{}),...(inks?{hueSamples:new Float64Array(inks.slice().buffer)}:{})};

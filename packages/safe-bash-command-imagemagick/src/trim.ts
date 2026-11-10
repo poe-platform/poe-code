@@ -1,6 +1,6 @@
 import { extractImageSteps, transformStoredImage, type ImageByteStorage, type RgbaColor, type RgbaImage as BaseRgbaImage, type StoredRgbaImage as BaseStoredRgbaImage } from "@poe-code/image-ast/portable";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { matchesAlphaFloodfill } from "./floodfill.js";
+import { rgbToCmyk } from "./colorspace-cmyk.js";
 import type { HueMetadata } from "./colorspace-hue.js";
 
 type RgbaImage = BaseRgbaImage & HueMetadata & { writeMask?: BaseRgbaImage | undefined };
@@ -8,29 +8,44 @@ type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { storedWriteMask?: B
 
 type Area = { left: number; top: number; width: number; height: number };
 type Read = { position: number; length: number };
+type TrimPixels = { samples: Uint8Array | Uint16Array | Float64Array; inks: Float64Array | undefined };
+type TrimColor = RgbaColor & { black?: number };
 
-// Native fuzzy equivalence doubles hue arc distance before comparing it.
-function matchesTrimColor(r: number, g: number, b: number, a: number, refR: number, refG: number, refB: number, refA: number, fuzz: number, hue: boolean, referenceFuzz = fuzz): boolean {
-    let distance = r - refR;
+function trimColor(pixels: TrimPixels, offset: number, scale: number, hasAlpha: boolean, cmyk: boolean): TrimColor {
+    const samples = pixels.samples;
+    const r = samples[offset]! / scale, g = samples[offset + 1]! / scale, b = samples[offset + 2]! / scale;
+    const a = hasAlpha ? samples[offset + 3]! / scale : 255;
+    if (!cmyk) return { r, g, b, a };
+    const inks = pixels.inks?.subarray(offset, offset + 4) ?? rgbToCmyk(r / 255, g / 255, b / 255);
+    return { r: inks[0]! * 255, g: inks[1]! * 255, b: inks[2]! * 255, a, black: inks[3]! * 255 };
+}
+
+function matchesTrimColor(pixel: TrimColor, reference: TrimColor, fuzz: number, hue: boolean, referenceFuzz = fuzz): boolean {
+    let distance = pixel.r - reference.r;
+    // Native fuzzy equivalence doubles hue arc distance before comparing it.
     if (hue) {
         if (Math.abs(distance) > 127.5) distance -= 255;
         distance *= 2;
     }
-    return matchesAlphaFloodfill(distance, g, b, a, 0, refG, refB, refA, fuzz, referenceFuzz);
+    // CMYK black contributes independently; alpha weights the other three inks.
+    const squared = (pixel.a - reference.a) ** 2 + ((pixel.black ?? 0) - (reference.black ?? 0)) ** 2
+        + (distance ** 2 + (pixel.g - reference.g) ** 2 + (pixel.b - reference.b) ** 2)
+        * (pixel.a / 255) * (reference.a / 255) / 3;
+    return squared <= fuzz ** 2 + referenceFuzz ** 2;
 }
 
 // Percentage trimming peels the least occupied edge first (west wins ties).
 // Census values for the opposite edge stay unchanged until its length changes.
-function* percentTrimBounds(width: number, height: number, hasAlpha: boolean, fuzz: number, scale: number, percent: number, hue: boolean, background?: RgbaColor): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | Float64Array | undefined> {
-    const corners: RgbaColor[] = [];
+function* percentTrimBounds(width: number, height: number, hasAlpha: boolean, fuzz: number, scale: number, percent: number, hue: boolean, background?: RgbaColor, cmyk = false): Generator<Read | undefined, Area | undefined, TrimPixels | undefined> {
+    const corners: TrimColor[] = [];
     for (const pixel of [0, width - 1, (height - 1) * width, width * height - 1]) {
         if (background) { corners.push(background); continue; }
         const bytes = yield { position: pixel * 4, length: 4 };
-        if (!bytes || bytes.length !== 4) throw new Error("Truncated trim pixels");
-        corners.push({ r: bytes[0]! / scale, g: bytes[1]! / scale, b: bytes[2]! / scale, a: bytes[3]! / scale });
+        if (!bytes || bytes.samples.length !== 4) throw new Error("Truncated trim pixels");
+        corners.push(trimColor(bytes, 0, scale, hasAlpha, cmyk));
     }
     let left = 0, top = 0, right = width - 1, bottom = height - 1;
-    function* census(edge: number, corner: number): Generator<Read | undefined, number, Uint8Array | Uint16Array | Float64Array | undefined> {
+    function* census(edge: number, corner: number): Generator<Read | undefined, number, TrimPixels | undefined> {
         const vertical = edge < 2, count = vertical ? bottom - top + 1 : right - left + 1;
         const ref = corners[corner]!;
         let foreground = 0;
@@ -40,9 +55,9 @@ function* percentTrimBounds(width: number, height: number, hasAlpha: boolean, fu
             const x = vertical ? (edge === 0 ? left : right) : left + start;
             const y = vertical ? top + start : (edge === 2 ? top : bottom);
             const bytes = yield { position: (y * width + x) * 4, length: length * 4 };
-            if (!bytes || bytes.length !== length * 4) throw new Error("Truncated trim pixels");
-            for (let i = 0; i < bytes.length; i += 4) {
-                if (!matchesTrimColor(bytes[i]! / scale, bytes[i + 1]! / scale, bytes[i + 2]! / scale, hasAlpha ? bytes[i + 3]! / scale : 255, ref.r, ref.g, ref.b, hasAlpha ? ref.a : 255, fuzz, hue, background ? 0 : fuzz)) foreground++;
+            if (!bytes || bytes.samples.length !== length * 4) throw new Error("Truncated trim pixels");
+            for (let i = 0; i < bytes.samples.length; i += 4) {
+                if (!matchesTrimColor(trimColor(bytes, i, scale, hasAlpha, cmyk), ref, fuzz, hue, background ? 0 : fuzz)) foreground++;
             }
             start += length;
         }
@@ -67,14 +82,14 @@ function* percentTrimBounds(width: number, height: number, hasAlpha: boolean, fu
 
 // ImageMagick uses the original corner colors independently for each bound,
 // unlike Sharp's median-filtered, single-background trim.
-function* trimBounds(width: number, height: number, hasAlpha: boolean, fuzz: number, scale: number, colorspace: HueMetadata["magickColorspace"], edges?: string, percentBackground?: number, background?: RgbaColor): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | Float64Array | undefined> {
+function* trimBounds(width: number, height: number, hasAlpha: boolean, fuzz: number, scale: number, colorspace: HueMetadata["magickColorspace"], edges?: string, percentBackground?: number, background?: RgbaColor, cmyk = false): Generator<Read | undefined, Area | undefined, TrimPixels | undefined> {
     const hue = colorspace !== undefined && ["HCL", "HCLp", "HSL", "HSB", "HSV"].includes(colorspace);
-    if (percentBackground !== undefined) return yield* percentTrimBounds(width, height, hasAlpha, fuzz, scale, percentBackground, hue, background);
-    const corners: (Uint8Array | Uint16Array | Float64Array)[] = [];
+    if (percentBackground !== undefined) return yield* percentTrimBounds(width, height, hasAlpha, fuzz, scale, percentBackground, hue, background, cmyk);
+    const corners: TrimColor[] = [];
     for (const pixel of [0, width - 1, (height - 1) * width, width * height - 1]) {
         const bytes = yield { position: pixel * 4, length: 4 };
-        if (!bytes || bytes.length !== 4) throw new Error("Truncated trim pixels");
-        corners.push(bytes.slice());
+        if (!bytes || bytes.samples.length !== 4) throw new Error("Truncated trim pixels");
+        corners.push(trimColor(bytes, 0, scale, hasAlpha, cmyk));
     }
     // Native bounds start one pixel past a sole row or column. Cropping clamps them later.
     let left = width, top = height;
@@ -86,12 +101,13 @@ function* trimBounds(width: number, height: number, hasAlpha: boolean, fuzz: num
             yield;
             const length = Math.min(1024, width - start) * 4;
             const bytes = yield { position: (y * width + start) * 4, length };
-            if (!bytes || bytes.length !== length) throw new Error("Truncated trim pixels");
+            if (!bytes || bytes.samples.length !== length) throw new Error("Truncated trim pixels");
             for (let i = 0; i < length; i += 4) {
                 const x = start + i / 4;
+                const pixel = trimColor(bytes, i, scale, hasAlpha, cmyk);
                 const matches = (corner: number) => {
                     const ref = corners[corner]!;
-                    return matchesTrimColor(bytes[i]! / scale, bytes[i + 1]! / scale, bytes[i + 2]! / scale, hasAlpha ? bytes[i + 3]! / scale : 255, ref[0]! / scale, ref[1]! / scale, ref[2]! / scale, hasAlpha ? ref[3]! / scale : 255, fuzz, hue);
+                    return matchesTrimColor(pixel, ref, fuzz, hue);
                 };
                 if ((x < left || y < top) && !matches(0)) { left = Math.min(left, x); top = Math.min(top, y); }
                 if (x > rowRight && !matches(1)) rowRight = x;
@@ -121,8 +137,8 @@ function cropTrimBounds(area: Area, width: number, height: number, minSize?: { w
 }
 
 export function* formatTrimBoundsSteps<Step = never>(
-    image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "magickColorspace">,
-    load: (position: number, length: number) => Generator<Step, { data: Uint8Array; data16?: Uint16Array; evaluateSamples?: Float64Array }, void>,
+    image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "magickColorspace">,
+    load: (position: number, length: number) => Generator<Step, { data: Uint8Array; data16?: Uint16Array; evaluateSamples?: Float64Array; hueSamples?: Float64Array }, void>,
     format: "trim-geometry" | "bounding-box",
     fuzz: number,
     analysis?: { warnings: string; boundsWarning?: boolean },
@@ -131,13 +147,13 @@ export function* formatTrimBoundsSteps<Step = never>(
     background?: RgbaColor
 ): Generator<Step | void, string, void> {
     const first = yield* load(0, 4);
-    const steps = trimBounds(image.width, image.height, image.hasAlpha, fuzz, first.evaluateSamples ? 1 : first.data16 ? 257 : 1, image.magickColorspace, edges, percentBackground, background);
+    const steps = trimBounds(image.width, image.height, image.hasAlpha, fuzz, first.evaluateSamples ? 1 : first.data16 ? 257 : 1, image.magickColorspace, edges, percentBackground, background, image.space === "cmyk");
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }
         else {
             const chunk = yield* load(next.value.position, next.value.length);
-            next = steps.next(chunk.evaluateSamples ?? chunk.data16 ?? chunk.data);
+            next = steps.next({ samples: chunk.evaluateSamples ?? chunk.data16 ?? chunk.data, inks: chunk.hueSamples });
         }
     }
     if (!next.value && analysis && !analysis.boundsWarning) {
@@ -169,11 +185,11 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
         return image;
     }
     const pixels = image.evaluateSamples ?? image.data16 ?? image.data;
-    const steps = trimBounds(image.width, image.height, image.hasAlpha, fuzz, image.evaluateSamples ? 1 : image.data16 ? 257 : 1, image.magickColorspace, edges, percentBackground, background);
+    const steps = trimBounds(image.width, image.height, image.hasAlpha, fuzz, image.evaluateSamples ? 1 : image.data16 ? 257 : 1, image.magickColorspace, edges, percentBackground, background, image.space === "cmyk");
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }
-        else { const { position, length } = next.value; next = steps.next(pixels.subarray(position, position + length)); }
+        else { const { position, length } = next.value; next = steps.next({ samples: pixels.subarray(position, position + length), inks: image.hueSamples?.subarray(position, position + length) }); }
     }
     if (next.value && next.value.left < image.width && next.value.top < image.height) {
         const area = cropTrimBounds(next.value, image.width, image.height, minSize);
@@ -220,7 +236,7 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     }
     const sampleBytes = image.storedEvaluateSamples !== undefined ? 8 : image.storedData16 ? 2 : 1;
     const position = image.storedEvaluateSamples ?? image.storedData16?.position ?? image.position;
-    const steps = trimBounds(image.width, image.height, image.hasAlpha, fuzz, sampleBytes === 2 ? 257 : 1, image.magickColorspace, edges, percentBackground, background);
+    const steps = trimBounds(image.width, image.height, image.hasAlpha, fuzz, sampleBytes === 2 ? 257 : 1, image.magickColorspace, edges, percentBackground, background, image.space === "cmyk");
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { await yieldTurn(signal); next = steps.next(); }
@@ -228,8 +244,11 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
             const { position: offset, length } = next.value;
             const bytes = await storage.read(position + offset * sampleBytes, length * sampleBytes, { signal });
             if (bytes.length !== length * sampleBytes) throw new Error("Truncated trim pixels");
-            next = steps.next(sampleBytes === 8 ? new Float64Array(new Uint8Array(bytes).buffer)
-                : sampleBytes === 2 ? new Uint16Array(new Uint8Array(bytes).buffer) : bytes);
+            const inkBytes = image.space === "cmyk" && image.storedHueSamples !== undefined
+                ? await storage.read(image.storedHueSamples + offset * 8, length * 8, { signal }) : undefined;
+            next = steps.next({ samples: sampleBytes === 8 ? new Float64Array(new Uint8Array(bytes).buffer)
+                : sampleBytes === 2 ? new Uint16Array(new Uint8Array(bytes).buffer) : bytes,
+                inks: inkBytes ? new Float64Array(new Uint8Array(inkBytes).buffer) : undefined });
         }
     }
     if (next.value && next.value.left < image.width && next.value.top < image.height) {

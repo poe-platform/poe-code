@@ -1,5 +1,5 @@
 import { virtualPixelIndex } from "./virtual-pixel.js";
-import type { RgbaColor, RgbaImage } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
@@ -33,17 +33,19 @@ export function parseLocalThresholdGeometry(raw: string): { width: number; heigh
 }
 
 /** Sliding neighborhood sums with bounded source blocks and Q16 sample precision. */
-export function* localThresholdPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">, geometry: ReturnType<typeof parseLocalThresholdGeometry>, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* localThresholdPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples">>, geometry: ReturnType<typeof parseLocalThresholdGeometry>, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, rx = Math.floor(geometry.width / 2), ry = Math.floor(geometry.height / 2);
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
+    const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
+    const maximum = hue ? 1 : 65535, offset = geometry.offset * maximum / 65535;
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a, channels.k] : [true, true, true, image.hasAlpha, true];
     // Gray's projected RGB samples share the logical red/gray channel.
     if (image.space === "b-w" || image.space === "grey16") mask[1] = mask[2] = mask[0]!;
     const blocks = new Map<number, Uint16Array | Float64Array>();
-    const gray = method === "white" ? 65535 : method === "gray" ? 65535 / 2 : 0;
+    const gray = method === "white" ? maximum : method === "gray" ? maximum / 2 : 0;
     const fill = (method === "background" || method?.endsWith("-tile"))
-        ? [background.r, background.g, background.b, background.a].map(value => value * 257)
-        : [gray, gray, gray, method === "transparent" ? 0 : 65535];
+        ? [background.r, background.g, background.b, background.a].map(value => value * maximum / 255)
+        : [gray, gray, gray, method === "transparent" ? 0 : maximum];
     if (cmyk) fill.push(0);
     function* sample(x: number, y: number): Generator<ConvolveRequest | undefined, ArrayLike<number>, Uint8Array | undefined> {
         if (x < 0 || y < 0 || x >= width || y >= height) {
@@ -56,9 +58,9 @@ export function* localThresholdPixelSteps(image: Pick<RgbaImage, "width" | "heig
         let samples = blocks.get(start);
         if (!samples) {
             const length = Math.min(1024, width * height - start) * 4;
-            const bytes = yield { kind: "read", highDepth: true, position: start * 4, length };
-            if (!bytes || bytes.length !== length * 2) throw new Error("Truncated local threshold pixels");
-            samples = new Uint16Array(bytes.slice().buffer);
+            const bytes = yield { kind: "read", hue, highDepth: true, position: start * 4, length };
+            if (!bytes || bytes.length !== length * (hue ? 8 : 2)) throw new Error("Truncated local threshold pixels");
+            samples = hue ? new Float64Array(bytes.slice().buffer) : new Uint16Array(bytes.slice().buffer);
             if (cmyk) {
                 const inkBytes = yield { kind: "read", hue: true, position: start * 4, length };
                 if (!inkBytes || inkBytes.length !== length * 8) throw new Error("Truncated local threshold inks");
@@ -83,7 +85,7 @@ export function* localThresholdPixelSteps(image: Pick<RgbaImage, "width" | "heig
         const sums = [0, 0, 0, 0, 0];
         for (let left = 0; left < width; left += 1024) {
             yield;
-            const count = Math.min(1024, width - left), data = cmyk ? new Float64Array(count * stride) : new Uint16Array(count * stride);
+            const count = Math.min(1024, width - left), data = hue || cmyk ? new Float64Array(count * stride) : new Uint16Array(count * stride);
             for (let i = 0; i < count; i++) {
                 const x = left + i;
                 for (let row = 0; row < geometry.height; row++) {
@@ -97,7 +99,7 @@ export function* localThresholdPixelSteps(image: Pick<RgbaImage, "width" | "heig
                     }
                 }
                 const pixel = yield* sample(x, y);
-                for (let c = 0; c < stride; c++) data[i * stride + c] = mask[c] && area > 0 ? (pixel[c]! > sums[c]! / area + geometry.offset ? 65535 : 0) : pixel[c]!;
+                for (let c = 0; c < stride; c++) data[i * stride + c] = mask[c] && area > 0 ? (pixel[c]! > sums[c]! / area + offset ? maximum : 0) : pixel[c]!;
             }
             const position = (y * width + left) * 4;
             if (cmyk) {
@@ -112,7 +114,9 @@ export function* localThresholdPixelSteps(image: Pick<RgbaImage, "width" | "heig
                 yield { kind: "write", highDepth: true, position, data: new Uint8Array(Uint16Array.from(rgba, value => Math.max(0, Math.min(65535, Math.round(value * 257)))).buffer) };
                 continue;
             }
-            yield { kind: "write", highDepth: true, position, data: new Uint8Array(data.buffer) };
+            if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(data.buffer) };
+            const bounded = hue ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(1, value)) * 65535)) : data;
+            yield { kind: "write", highDepth: true, position, data: new Uint8Array(bounded.buffer) };
         }
     }
 }

@@ -9459,6 +9459,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-crop") {
             const geom = tokens[++i] ?? "100%";
+            validateMagickTransformGeometry(geom, t);
             const nextStack: RgbaImage[] = [];
             for (const im of stack) {
                 if (++cooperativeWork % 65536 === 0)
@@ -11968,6 +11969,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, false, channels, geometry), signal) : undefined);
         } else if (!operandsOnly && token === "-crop") {
             const geometry = tokens[++i] ?? "100%", gravity = state.gravity;
+            validateMagickTransformGeometry(geometry, token);
             stackStep(async (stack, backend) => {
                 const frames = new StoredImageStack(backend.storage, signal);
                 for (let n = 0; n < stack.length; n++) {

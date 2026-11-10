@@ -2084,10 +2084,10 @@ async function applyVideoFilterChain(
         const [target, action, expression] = words;
         const filter = target?.split("@", 1)[0];
         if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !action || !expression ||
-            !(filter === "negate" && action === "components" || filter === "tmix" && action === "scale" ||
+            !(filter === "negate" && action === "components" || filter === "tmix" ||
               filter === "tblend" && action === "all_mode" ||
               filter === "crop" && ["w", "out_w", "h", "out_h", "x", "y"].includes(action))) {
-          throw new Error("sendcmd: expected TIME negate[@NAME] components FLAGS or TIME tmix[@NAME] scale VALUE or TIME tblend[@NAME] all_mode MODE or TIME crop[@NAME] w|out_w|h|out_h|x|y EXPR");
+          throw new Error("sendcmd: expected TIME negate[@NAME] components FLAGS or TIME tmix[@NAME] COMMAND VALUE or TIME tblend[@NAME] all_mode MODE or TIME crop[@NAME] w|out_w|h|out_h|x|y EXPR");
         }
         budget.allocateMemory(64);
         scheduled.push({ time, target, action, expression });
@@ -4498,7 +4498,9 @@ async function applyVideoFilterChain(
       current = output;
     } else if (name === "tmix") {
       const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
-      const commands = videoCommands.filter(command => command.target === name || command.target === instance);
+      // Rejected runtime options leave the mix unchanged, without stopping rendering.
+      const commands = videoCommands.filter(command => command.action === "scale" &&
+        (command.target === name || command.target === instance));
       videoCommands = videoCommands.filter(command => command.target !== name && command.target !== instance);
       commands.sort((a, b) => a.time - b.time);
       current = await tmix(current, argStr, budget, signal, commands);

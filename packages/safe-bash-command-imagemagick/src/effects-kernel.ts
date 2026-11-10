@@ -199,16 +199,18 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
     }
 }
 
-export function* raisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "hasAlpha" | "space"> & { storedData16?: unknown }, borderWidth: number, borderHeight: number, raised: boolean, channels: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* raisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "hasAlpha" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">>, borderWidth: number, borderHeight: number, raised: boolean, channels: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (2 * borderWidth >= image.width || 2 * borderHeight >= image.height) throw new Error("size must exceed bevel width");
     // Gray's three projected RGB samples share the logical red/gray channel.
     if (image.space === "b-w" || image.space === "grey16") channels = [channels[0]!, channels[0]!, channels[0]!, channels[3]!];
     const highDepth = !!(image.data16 || image.storedData16);
+    const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
+    const maximum = hue ? 1 : 255, quantum = 65535 / maximum;
     const size = image.width * image.height * 4;
     for (let position = 0; position < size; position += 2048) {
         yield;
         const length = Math.min(2048, size - position);
-        const working = yield { kind: "read", evaluate: true, position, length };
+        const working = yield { kind: "read", hue, evaluate: !hue, position, length };
         const data = working?.length ? new Float64Array(working.slice().buffer)
             : Float64Array.from(highDepth ? new Uint16Array((yield { kind: "read", highDepth, position, length })!.slice().buffer)
                 : (yield { kind: "read", position, length })!, value => highDepth ? value / 257 : value);
@@ -226,14 +228,14 @@ export function* raisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "da
                 if (x >= borderWidth && x < image.width - borderWidth) continue;
                 foreground = x < borderWidth;
             }
-            const target = foreground === raised ? 255 : 0;
+            const target = foreground === raised ? maximum : 0;
             for (let channel = 0; channel < (image.hasAlpha ? 4 : 3); channel++) if (channels[channel])
-                data[offset + channel] = Math.fround((data[offset + channel]! * factor + target * (255 - factor)) / 255 * 257) / 257;
+                data[offset + channel] = Math.fround((data[offset + channel]! * factor + target * (255 - factor)) / 255 * quantum) / quantum;
         }
         // Keep working values for later arithmetic; only the encoded backing is bounded.
-        yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
-        const bounded = highDepth ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(65535, value * 257))))
-            : Uint8Array.from(data, value => Math.round(Math.max(0, Math.min(255, value))));
+        yield { kind: "write", hue, evaluate: !hue, position, data: new Uint8Array(data.buffer) };
+        const bounded = highDepth ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(65535, value * quantum))))
+            : Uint8Array.from(data, value => Math.round(Math.max(0, Math.min(255, value * 255 / maximum))));
         yield { kind: "write", highDepth, position, data: new Uint8Array(bounded.buffer) };
     }
 }

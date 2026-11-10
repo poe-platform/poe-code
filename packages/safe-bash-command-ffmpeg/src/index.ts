@@ -9946,13 +9946,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
                             || action === "feedback" && (target === "stereowiden" || target?.startsWith("stereowiden@"))
                             || action === "delays" && (target === "adelay" || target?.startsWith("adelay@"))
+                            || action === "level" && ["afreqshift", "aphaseshift"].some(name => target === name || target?.startsWith(`${name}@`))
                             || action === "wet" && (target === "asubboost" || target?.startsWith("asubboost@"))
                             || action === "dry" && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
                             || action === "limit" && (target === "alimiter" || target?.startsWith("alimiter@"))
                             || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback GAIN or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays DELAYS or TIME alimiter[@NAME] limit LIMIT or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN");
+                            throw new Error("asendcmd: expected TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback GAIN or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays DELAYS or TIME alimiter[@NAME] limit LIMIT or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN");
                           }
                           return { time, target, action: action!, expression };
                         });
@@ -10146,7 +10147,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await phaseAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal);
                       } else if (filterName === "aphaseshift" || filterName === "afreqshift") {
                         filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
-                        stretched = await shiftAudioPhase(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal);
+                        const commands = audioCommands.filter(command => command.target === filterName || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        audioCommands = audioCommands.filter(command => command.target !== filterName && command.target !== filterTarget);
+                        stretched = await shiftAudioPhase(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal, commands);
                         statsScale = 1;
                       } else if (trimmed === "apulsator" || trimmed.startsWith("apulsator=")) {
                         stretched = await pulsateAudio(stretched, origRate, trimmed, budget, context.signal);

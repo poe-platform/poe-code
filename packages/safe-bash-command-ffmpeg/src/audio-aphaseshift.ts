@@ -4,7 +4,8 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function shiftAudioPhase(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  format: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  format: string, budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; expression: string }[] = []
 ): Promise<Float64Array[]> {
   const frequencyShift = filter.split("=", 1)[0] === "afreqshift";
   const name = frequencyShift ? "afreqshift" : "aphaseshift";
@@ -61,14 +62,21 @@ export async function shiftAudioPhase(
   const angle = round(options.shift * Math.PI);
   let cosine = round(Math.cos(angle)), sine = round(Math.sin(angle));
   const shift = round(options.shift), step = round(1 / sampleRate);
-  const level = round(options.level);
   const output: Float64Array[] = [];
   let work = 0;
   for (const channel of channels) {
+    let level = round(options.level), nextCommand = 0;
     const samples = new Float64Array(length);
     const previousInput = new Float64Array(stages), olderInput = new Float64Array(stages);
     const previousOutput = new Float64Array(stages), olderOutput = new Float64Array(stages);
     for (let frame = 0; frame < length; frame++) {
+      while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame) {
+        const command = commands[nextCommand++]!;
+        try {
+          const value = parseFilterExpression(command.expression, name, {});
+          if (Number.isFinite(value) && value >= 0 && value <= 1) level = round(value);
+        } catch { /* Native ignores rejected runtime commands and keeps the previous level. */ }
+      }
       let inPhase = 0;
       let value = round(channel[frame]!);
       for (let stage = 0; stage < stages; stage++) {

@@ -10210,7 +10210,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (!key || !Object.hasOwn(values, key)) throw new Error(`aloop: unsupported option ${key}`);
                           const number = key === "time" ? parseHlsDuration(value) : Number(value);
                           if (!value || !Number.isFinite(number) ||
-                            (key !== "time" && !Number.isSafeInteger(number)) ||
+                            (key !== "time" && (!Number.isInteger(number) || number > (key === "start" ? 2 ** 63 : 2147483647))) ||
                             number < (key === "start" ? -1 : 0) ||
                             (key === "time" && number > (2 ** 63 - 1) / 1_000_000)) {
                             throw new Error(`aloop: invalid ${key}`);

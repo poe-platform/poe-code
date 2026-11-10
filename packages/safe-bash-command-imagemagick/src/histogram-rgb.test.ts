@@ -22,7 +22,10 @@ it.each([false, true])("matches native RGB histogram text (retained=%s)", async 
 });
 
 it.each([false, true])("uses native RGB names and unnamed-color fallback (retained=%s)", async retained => {
-    const result = await runConvertCli(["xc:magenta", "xc:cyan", "xc:DarkGray", "xc:#123456", "+append", "-depth", "8", "-alpha", "off", "-format", "%c", "histogram:info:-"], retained ? { filesystem: new MemoryFileSystem(), cwd: "/" } : new Map());
+    const input = await sharp(new Uint8Array([255, 0, 255, 0, 255, 255, 169, 169, 169, 18, 52, 86]), { raw: { width: 4, height: 1, channels: 3 } }).png().toBuffer();
+    const filesystem = new MemoryFileSystem(), files = new Map([["rgb.png", input]]);
+    await filesystem.writeFile("/rgb.png", input);
+    const result = await runConvertCli(["rgb.png", "-format", "%c", "histogram:info:-"], retained ? { filesystem, cwd: "/" } : files);
     expect(result).toEqual({ exitCode: 0, stderr: "", stdout:
         "             1: (0,255,255) #00FFFF cyan\n" +
         "             1: (18,52,86) #123456 srgb(18,52,86)\n" +

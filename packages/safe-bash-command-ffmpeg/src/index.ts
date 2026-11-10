@@ -2848,30 +2848,37 @@ async function applyVideoFilterChain(
       if (positional.filter(value => !value.includes("=")).length > 2 || Object.keys(named).some(key => key !== "components" && key !== "negate_alpha" && key !== "enable")) {
         throw new Error("negate: unknown option");
       }
-      const components = named.components ?? (positional[0]?.includes("=") ? undefined : positional[0] || undefined);
+      const components = positional.flatMap((part, index) => {
+        const equals = part.indexOf("=");
+        if (equals >= 0) return part.slice(0, equals).trim().toLowerCase() === "components" ? [part.slice(equals + 1).trim()] : [];
+        return index === 0 && part ? [part] : [];
+      });
       const negateAlpha = parseFilterBoolean(
         named.negate_alpha ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "0",
         "negate: invalid negate_alpha boolean"
       );
-      const flags = components ?? "0";
-      const relative = flags.startsWith("+") || flags.startsWith("-");
-      let mask = relative ? 0b0111111 : 0;
-      let position = 0;
-      do {
-        const remove = flags[position] === "-";
-        if (remove || flags[position] === "+") position++;
-        const start = position;
-        while (position < flags.length && flags[position] !== "+" && flags[position] !== "-") position++;
-        const component = flags.slice(start, position);
-        if (component === "none") continue;
-        if (!component.trim()) throw new Error("negate: invalid empty component");
-        const index = ["r", "g", "b", "y", "u", "v", "a"].indexOf(component);
-        const value = index < 0 ? parseFilterExpression(component, "negate", {}) : 1 << index;
-        if (!Number.isInteger(value) || value < 0 || value > 127) {
-          throw new Error(`negate: invalid component ${component}`);
-        }
-        mask = remove ? mask & ~value : mask | value;
-      } while (position < flags.length);
+      let mask = 0b0111111;
+      let relative = true;
+      for (const flags of components) {
+        relative = flags.startsWith("+") || flags.startsWith("-");
+        if (!relative) mask = 0;
+        let position = 0;
+        do {
+          const remove = flags[position] === "-";
+          if (remove || flags[position] === "+") position++;
+          const start = position;
+          while (position < flags.length && flags[position] !== "+" && flags[position] !== "-") position++;
+          const component = flags.slice(start, position);
+          if (component === "none") continue;
+          if (!component.trim()) throw new Error("negate: invalid empty component");
+          const index = ["r", "g", "b", "y", "u", "v", "a"].indexOf(component);
+          const value = index < 0 ? parseFilterExpression(component, "negate", {}) : 1 << index;
+          if (!Number.isInteger(value) || value < 0 || value > 127) {
+            throw new Error(`negate: invalid component ${component}`);
+          }
+          mask = remove ? mask & ~value : mask | value;
+        } while (position < flags.length);
+      }
       current = await mapWork(current, async (f, n) => {
         const source = f.native;
         const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
@@ -2881,7 +2888,7 @@ async function applyVideoFilterChain(
           pixelFormat === "rgb24" || pixelFormat === "bgr24" ? 0b0000111 : 0b1000111;
         // An unchanged all-color default selects only the negotiated format's components.
         // RGBA alpha is selected by components; grayscale alpha also honors negate_alpha.
-        const selected = (components === undefined || relative && mask === 0b0111111 ? available & 0b0111111 : mask) |
+        const selected = (relative && mask === 0b0111111 ? available & 0b0111111 : mask) |
           (pixelFormat === "ya8" && negateAlpha ? 0b1000000 : 0);
         if (selected & ~available) throw new Error("negate: Requested components not available");
         if (named.enable !== undefined && !(Math.abs(parseFilterExpression(named.enable, "negate enable", {

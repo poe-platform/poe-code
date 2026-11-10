@@ -1,9 +1,10 @@
 // Present headerless samples as Netpbm or MIFF for both decoding paths.
-export function rawRasterInput(width: number, height: number, depth: number, endian: string, byteLength: number, layout: 1 | 2 | 3 | 4 | 5 | "rgba" | "rgbo", offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none", floatingPoint = false) {
-    const channels = typeof layout === "string" ? 4 : layout;
+export function rawRasterInput(width: number, height: number, depth: number, endian: string, byteLength: number, layout: 1 | 2 | 3 | 4 | 5 | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro", offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none", floatingPoint = false) {
+    const channels = typeof layout === "string" ? layout.length : layout;
+    const bgr = typeof layout === "string" && layout.startsWith("bgr"), sampleBytes = Math.min(depth, 16) / 8, pixelBytes = channels * sampleBytes;
     const coder = typeof layout === "string" ? layout.toUpperCase() : channels === 1 ? "GRAY" : channels === 2 ? "GRAYA" : channels === 3 ? "RGB" : channels === 4 ? "CMYK" : "CMYKA";
-    const packed = (depth === 10 || depth === 12) && (channels === 1 || channels === 3);
-    if (floatingPoint ? depth !== 16 && depth !== 32 && depth !== 64 : !packed && depth !== 8 && depth !== 16 && (depth !== 32 || channels === 2 || typeof layout === "string") && !((depth === 1 || depth === 2 || depth === 4) && (channels === 1 || channels === 3) && interlace === "none")) throw new Error(`unsupported ${coder} input depth '${depth}'`);
+    const packed = (depth === 10 || depth === 12) && (layout === 1 || layout === 3);
+    if (floatingPoint ? depth !== 16 && depth !== 32 && depth !== 64 : !packed && depth !== 8 && depth !== 16 && (depth !== 32 || channels === 2 || typeof layout === "string") && !((depth === 1 || depth === 2 || depth === 4) && (layout === 1 || layout === 3) && interlace === "none")) throw new Error(`unsupported ${coder} input depth '${depth}'`);
     const rowChannels = packed && interlace !== "none" ? 1 : channels;
     const rowSamples = width * channels, rowLength = Math.ceil(width * rowChannels * depth / 8);
     const frameLength = rowLength * height * (channels / rowChannels), decodedLength = rowSamples * height * Math.ceil(Math.min(depth, 16) / 8);
@@ -90,17 +91,21 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                     }
                     return bytes;
                 }
-                const alignedStart = swap || floatingPoint || depth === 32 ? start - start % 2 : start;
-                const alignedEnd = swap || floatingPoint || depth === 32 ? end + end % 2 : end;
+                const alignment = bgr ? pixelBytes : swap || floatingPoint || depth === 32 ? 2 : 1;
+                const alignedStart = start - start % alignment;
+                const alignedEnd = Math.ceil(end / alignment) * alignment;
                 const ratio = Math.max(1, depth / 16);
-                for (let cursor = alignedStart; cursor < alignedEnd; cursor += 8192 / ratio) {
-                    const length = Math.min(8192 / ratio, alignedEnd - cursor);
+                const chunkBytes = Math.floor(8192 / ratio / alignment) * alignment;
+                for (let cursor = alignedStart; cursor < alignedEnd; cursor += chunkBytes) {
+                    const length = Math.min(chunkBytes, alignedEnd - cursor);
                     let input = yield { channel: 0, position: offset + page * frameLength + cursor * ratio, length: length * ratio };
                     if (input.length !== length * ratio) throw new Error(`unexpected end-of-file in ${coder} input`);
                     if (floatingPoint || depth === 32) input = rawSamplesTo16(input, depth, endian, floatingPoint);
                     for (let i = Math.max(start, cursor); i < Math.min(end, cursor + length); i++) {
-                        const value = input[(swap ? i ^ 1 : i) - cursor]!;
-                        bytes[headerLength + i - start] = layout === "rgbo" && Math.floor(i / (depth / 8)) % channels === 3 ? 255 - value : value;
+                        const channel = Math.floor(i % pixelBytes / sampleBytes);
+                        const source = bgr && channel < 3 ? i + (2 - 2 * channel) * sampleBytes : i;
+                        const value = input[(swap ? source ^ 1 : source) - cursor]!;
+                        bytes[headerLength + i - start] = (layout === "bgro" || layout === "rgbo") && channel === 3 ? 255 - value : value;
                     }
                 }
             }

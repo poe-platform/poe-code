@@ -6322,7 +6322,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         }
         return yield* applyMod(selected);
     }
-    const packedCoder = (["gray", "graya", "cmyk", "cmyka", "rgba", "rgbo"] as const).find(coder => lower.startsWith(`${coder}:`) || (!lower.includes(":") && lower.endsWith(`.${coder}`)));
+    const packedCoder = (["gray", "graya", "cmyk", "cmyka", "rgba", "rgbo", "bgr", "bgra", "bgro"] as const).find(coder => lower.startsWith(`${coder}:`) || (!lower.includes(":") && lower.endsWith(`.${coder}`)));
     if (packedCoder) {
         if (!state.hasSize) throw new Error(`must specify image size for ${packedCoder.toUpperCase()} input`);
         const path = lower.startsWith(`${packedCoder}:`) ? baseToken.slice(packedCoder.length + 1) : baseToken;
@@ -13570,7 +13570,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
      }
      return image;
  }
- const packedCoder=(["gray","graya","cmyk","cmyka","rgba","rgbo"] as const).find(coder=>lower.startsWith(`${coder}:`)||(!lower.includes(":")&&lower.endsWith(`.${coder}`)));
+ const packedCoder=(["gray","graya","cmyk","cmyka","rgba","rgbo","bgr","bgra","bgro"] as const).find(coder=>lower.startsWith(`${coder}:`)||(!lower.includes(":")&&lower.endsWith(`.${coder}`)));
  if(lower.startsWith("tile:")){
   if(!state.hasSize)throw new Error("must specify image size for TILE input");
   if(readOptions.visit){

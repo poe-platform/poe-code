@@ -8438,7 +8438,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const black = endpointColors ? [endpointColors[0]!.r, endpointColors[0]!.g, endpointColors[0]!.b, endpointColors[0]!.a] : [blackPoint, blackPoint, blackPoint, blackPoint];
         const whitePoint = parsePt(parts[1], 255 - blackPoint);
         const white = endpointColors ? [endpointColors[1]!.r, endpointColors[1]!.g, endpointColors[1]!.b, endpointColors[1]!.a] : [whitePoint, whitePoint, whitePoint, whitePoint];
-        const gamma = !colorEndpoints && parts[2] !== undefined ? parseFloat(parts[2]) : 1.0;
+        const gamma = !colorEndpoints && parts[2]?.trim() ? parseFloat(parts[2]) : 1.0;
         const exponent = 1 / (Math.abs(gamma) >= 1e-12 ? gamma : gamma < 0 ? -1e-12 : 1e-12);
         const inverse = token === "+level-colors" || token === "+level" || !colorEndpoints && raw.includes("!");
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };

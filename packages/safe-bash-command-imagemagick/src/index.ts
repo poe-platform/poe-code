@@ -8395,15 +8395,18 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const raw = tokens[++i] ?? (colorEndpoints ? "" : "0,100%");
         let endpointColors: RgbaColor[] | undefined;
         if (colorEndpoints) {
-            // Functional color names contain commas inside parentheses.
-            let nesting = 0, separator = -1;
+            // Ignore fields after the second endpoint, but keep commas in functional colors.
+            let nesting = 0, separator = -1, end = raw.length;
             for (let index = 0; index < raw.length; index++) {
                 if (raw[index] === "(") nesting++;
                 else if (raw[index] === ")") nesting--;
-                else if (raw[index] === "," && nesting === 0) { separator = index; break; }
+                else if (raw[index] === "," && nesting === 0) {
+                    if (separator >= 0) { end = index; break; }
+                    separator = index;
+                }
             }
             endpointColors = separator < 0 ? [parseColor(raw || "black", true), parseColor(raw || "black", true)]
-                : [parseColor(raw.slice(0, separator) || "black", true), parseColor(raw.slice(separator + 1) || "white", true)];
+                : [parseColor(raw.slice(0, separator) || "black", true), parseColor(raw.slice(separator + 1, end) || "white", true)];
         }
         else if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
             throw new Error(`invalid argument for option '${token}': ${raw}`);

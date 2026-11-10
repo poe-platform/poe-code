@@ -1832,7 +1832,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
                 channels.push(Math.max(0, Math.min(hexMaximum, Math.round(fn({ ...ctx, ch }) * hexMaximum))));
                 continue;
               }
-              channels.push((ch === 3 || img.space === "cmyk" || img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "xyY" || img.magickColorspace === "YCbCr" || img.magickColorspace === "Log" || img.magickColorspace === "OHTA" || img.magickColorspace === "YUV" || img.magickColorspace === "Oklab" || img.magickColorspace === "Luv" || img.magickColorspace === "Oklch" || img.magickColorspace === "LCH" || img.magickColorspace === "LCHab" || img.magickColorspace === "LCHuv" || img.magickColorspace === "CIELab") && key.startsWith("pixel:") ? fn({ ...ctx, ch }) : clampByteVal(fn({ ...ctx, ch }) * 255));
+              channels.push((ch === 3 || img.space === "cmyk" || img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "xyY" || img.magickColorspace === "YCbCr" || img.magickColorspace === "Log" || img.magickColorspace === "OHTA" || img.magickColorspace === "YUV" || img.magickColorspace === "Oklab" || img.magickColorspace === "Luv" || img.magickColorspace === "Oklch" || img.magickColorspace === "LCH" || img.magickColorspace === "LCHab" || img.magickColorspace === "LCHuv" || img.magickColorspace === "CIELab") && key.startsWith("pixel:") ? fn({ ...ctx, ch }) : fn({ ...ctx, ch }) * 255);
             }
             if (key.startsWith("hex:")) {
               parts.push(channels.map(value => value.toString(16).toUpperCase().padStart(hexMaximum === 65535 ? 4 : 2, "0")).join(""));
@@ -1841,13 +1841,11 @@ function* formatMagickPropertyStringSteps<Step=never>(
               if (img.space === "cmyk") { parts.push(formatCmykPixel(channels, hasAlpha)); continue; }
               if (img.space === "b-w" || img.space === "grey16") {
                 parts.push(channels[3] !== undefined
-                  ? `graya(${channels[0]},${formatMetricNum(channels[3])})`
-                  : `gray(${channels[0]})`);
+                  ? `graya(${clampByteVal(channels[0]!)},${formatMetricNum(channels[3])})`
+                  : `gray(${clampByteVal(channels[0]!)})`);
                 continue;
               }
-              parts.push(channels[3] !== undefined
-                ? `srgba(${channels.slice(0, 3).join(",")},${formatMetricNum(channels[3])})`
-                : `srgb(${channels.slice(0, 3).join(",")})`);
+              parts.push(formatRgbPixel(channels, context.precision));
             }
           }
         } catch (error) {
@@ -1869,6 +1867,13 @@ function* formatMagickPropertyStringSteps<Step=never>(
   }
   parts.push(fmt.slice(previous));
   return parts.join("");
+}
+
+function formatRgbPixel(channels: readonly number[], precision?: number): string {
+  const rgb = channels.slice(0, 3);
+  const fractional = rgb.some(value => Math.abs(value - Math.round(value)) > 1e-9);
+  const color = rgb.map(value => fractional ? `${formatSignificantMetric(value * 100 / 255, precision)}%` : String(Math.round(value))).join(",");
+  return channels[3] === undefined ? `srgb(${color})` : `srgba(${color},${formatMetricNum(channels[3])})`;
 }
 
 class FxPixelDemand { constructor(readonly position:number, readonly image = 0){} }
@@ -1915,13 +1920,13 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
   }
   if(key.startsWith("fx:"))return formatSignificantMetric(value, context.precision);
   if(key.startsWith("hex:")){channels.push(Math.max(0,Math.min(hexMaximum,Math.round(value*hexMaximum))));continue;}
-  channels.push((ch === 3 || image.space === "cmyk" || (image as StoredRgbaImage).magickColorspace === "HCL" || (image as StoredRgbaImage).magickColorspace === "HCLp" || (image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HSV" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "xyY" || (image as StoredRgbaImage).magickColorspace === "YCbCr" || (image as StoredRgbaImage).magickColorspace === "Log" || (image as StoredRgbaImage).magickColorspace === "OHTA" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "Oklab" || (image as StoredRgbaImage).magickColorspace === "Luv" || (image as StoredRgbaImage).magickColorspace === "Oklch" || (image as StoredRgbaImage).magickColorspace === "LCH" || (image as StoredRgbaImage).magickColorspace === "LCHab" || (image as StoredRgbaImage).magickColorspace === "LCHuv" || (image as StoredRgbaImage).magickColorspace === "CIELab") && key.startsWith("pixel:") ? value : clampByteVal(value*255));
+  channels.push((ch === 3 || image.space === "cmyk" || (image as StoredRgbaImage).magickColorspace === "HCL" || (image as StoredRgbaImage).magickColorspace === "HCLp" || (image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HSV" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "xyY" || (image as StoredRgbaImage).magickColorspace === "YCbCr" || (image as StoredRgbaImage).magickColorspace === "Log" || (image as StoredRgbaImage).magickColorspace === "OHTA" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "Oklab" || (image as StoredRgbaImage).magickColorspace === "Luv" || (image as StoredRgbaImage).magickColorspace === "Oklch" || (image as StoredRgbaImage).magickColorspace === "LCH" || (image as StoredRgbaImage).magickColorspace === "LCHab" || (image as StoredRgbaImage).magickColorspace === "LCHuv" || (image as StoredRgbaImage).magickColorspace === "CIELab") && key.startsWith("pixel:") ? value : value*255);
  }
  if(key.startsWith("hex:"))return channels.map(value=>value.toString(16).toUpperCase().padStart(hexMaximum === 65535 ? 4 : 2,"0")).join("");
  if(((image as StoredRgbaImage).magickColorspace === "HCL" || (image as StoredRgbaImage).magickColorspace === "HCLp" || (image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HSV" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "xyY" || (image as StoredRgbaImage).magickColorspace === "YCbCr" || (image as StoredRgbaImage).magickColorspace === "Log" || (image as StoredRgbaImage).magickColorspace === "OHTA" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "Oklab" || (image as StoredRgbaImage).magickColorspace === "Luv" || (image as StoredRgbaImage).magickColorspace === "Oklch" || (image as StoredRgbaImage).magickColorspace === "LCH" || (image as StoredRgbaImage).magickColorspace === "LCHab" || (image as StoredRgbaImage).magickColorspace === "LCHuv" || (image as StoredRgbaImage).magickColorspace === "CIELab"))return formatHuePixel(channels, (image as StoredRgbaImage).magickColorspace as "HCL" | "HCLp" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "xyY" | "CIELab" | "YCbCr" | "Log" | "OHTA" | "YUV" | "Luv" | "Oklch" | "Oklab", hasAlpha);
  if(image.space === "cmyk")return formatCmykPixel(channels,hasAlpha);
- if(image.space === "b-w" || image.space === "grey16")return channels[3]!==undefined?`graya(${channels[0]},${formatMetricNum(channels[3])})`:`gray(${channels[0]})`;
- return channels[3]!==undefined?`srgba(${channels.slice(0,3).join(",")},${formatMetricNum(channels[3])})`:`srgb(${channels.slice(0,3).join(",")})`;
+ if(image.space === "b-w" || image.space === "grey16")return channels[3]!==undefined?`graya(${clampByteVal(channels[0]!)},${formatMetricNum(channels[3])})`:`gray(${clampByteVal(channels[0]!)})`;
+ return formatRgbPixel(channels, context.precision);
 }
 
 async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string; errors?: string; boundsWarning?: boolean }; optionProperties?: Record<string, string> | undefined },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal,stack?:StoredImageStack):Promise<string>{

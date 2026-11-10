@@ -1256,7 +1256,7 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
             evaluateSamples[i] = evaluateSamples[i + 1] = evaluateSamples[i + 2]!;
         }
     }
-    return { ...img, data: out, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), ...(data16 ? { data16 } : {}) };
+    return { ...img, isPalette: false, data: out, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), ...(data16 ? { data16 } : {}) };
 }
 
 function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boolean, diffusionAmount: number, signal?: AbortSignal): Generator<void, RgbaImage, void> {

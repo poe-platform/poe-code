@@ -4,7 +4,7 @@ import { Volume } from "memfs";
 import { encodeImage, decodeImage } from "@poe-code/image-ast/portable";
 import { createFfmpegCommand } from "./index.js";
 
-for (const dimensions of ["w=oh*2:h=2", "w=4:h=ow/2", "out_w=out_h*2:out_h=2", "out_w=4:out_h=out_w/2", "w=4:h=2", "w=oh*2:h=2.2", "w=oh:h=ow", "w=oh*4:h=2", "w=oh:h=0", "w=4:h=2:x=0/0"]) {
+for (const dimensions of ["w=oh*2:h=2", "w=4:h=ow/2", "out_w=out_h*2:out_h=2", "out_w=4:out_h=out_w/2", "w=4:h=2", "w=oh*2:h=2.2", "w=oh:h=ow", "w=oh*4:h=2", "w=oh:h=0", "w=nan:h=2", "w=4:h=NaN", "w=4:h=2:x=0/0"]) {
   it(`resolves crop output dimensions ${dimensions}`, async () => {
     const input = encodeImage({
       width: 7, height: 5, channels: 4,
@@ -28,9 +28,9 @@ for (const dimensions of ["w=oh*2:h=2", "w=4:h=ow/2", "out_w=out_h*2:out_h=2", "
       stdin: (async function* () {})(), stdout: { async write() {} },
       stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
     } as never);
-    if (["w=oh:h=ow", "w=oh*4:h=2", "w=oh:h=0", "w=4:h=2:x=0/0"].includes(dimensions)) {
+    if (["w=oh:h=ow", "w=oh*4:h=2", "w=oh:h=0", "w=nan:h=2", "w=4:h=NaN"].includes(dimensions)) {
       assert.equal(result.exitCode, 1);
-      assert.ok(Buffer.concat(errors).toString().includes(dimensions.includes("x=") ? "invalid or unsupported expression" : "Invalid too big or non positive size"));
+      assert.ok(Buffer.concat(errors).toString().includes("Invalid too big or non positive size"));
       assert.equal(volume.readFileSync("/out1.png", "utf8"), "existing output");
       return;
     }
@@ -40,7 +40,7 @@ for (const dimensions of ["w=oh*2:h=2", "w=4:h=ow/2", "out_w=out_h*2:out_h=2", "
       assert.equal(output.width, 4);
       assert.equal(output.height, 2);
       assert.deepEqual(output.data, new Uint8Array(Array.from({ length: 8 }, (_, pixel) => {
-        const gray = 1 + Math.floor(pixel / 4) * 7 + pixel % 4;
+        const gray = (dimensions.includes("x=") ? 2 : 1) + Math.floor(pixel / 4) * 7 + pixel % 4;
         return [gray, gray, gray, 255];
       }).flat()));
     }

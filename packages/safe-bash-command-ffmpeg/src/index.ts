@@ -2610,6 +2610,9 @@ async function applyVideoFilterChain(
       const variables = { ...dimensions, ow: cw, oh: ch, out_w: cw, out_h: ch, n: 0, t: 0, pos: NaN, x: NaN, y: NaN };
       const xExpression = crop.x ?? String((iw - cw) / 2);
       const yExpression = crop.y ?? String((ih - ch) / 2);
+      // Pixel positions survive NaN results; expression variables retain their evaluated values.
+      let left = Math.floor((iw - cw) / 2 / hsub) * hsub;
+      let top = Math.floor((ih - ch) / 2 / vsub) * vsub;
       current = await mapWork(current, async (f, n) => {
         variables.n = n;
         variables.t = f.ptsSeconds;
@@ -2618,13 +2621,12 @@ async function applyVideoFilterChain(
         variables.x = parseFilterExpression(xExpression, "crop", variables);
         variables.y = parseFilterExpression(yExpression, "crop", variables);
         variables.x = parseFilterExpression(xExpression, "crop", variables);
-        if (Number.isNaN(variables.x) || Number.isNaN(variables.y)) {
-          throw new Error("crop: invalid or unsupported expression");
+        if (!Number.isNaN(variables.x)) {
+          left = Math.floor(Math.max(0, Math.min(iw - cw, roundToEven(variables.x))) / hsub) * hsub;
         }
-        const cx = Math.max(0, Math.min(iw - cw, roundToEven(variables.x)));
-        const cy = Math.max(0, Math.min(ih - ch, roundToEven(variables.y)));
-        const left = Math.floor(cx / hsub) * hsub;
-        const top = Math.floor(cy / vsub) * vsub;
+        if (!Number.isNaN(variables.y)) {
+          top = Math.floor(Math.max(0, Math.min(ih - ch, roundToEven(variables.y))) / vsub) * vsub;
+        }
         const source = f.native;
         if (source?.rgba === f.data && source.width === f.width && source.height === f.height &&
             (source.format === 34 || source.format === 104)) {

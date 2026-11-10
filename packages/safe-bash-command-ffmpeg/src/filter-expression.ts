@@ -158,6 +158,8 @@ export function parseFilterExpression(expression: string, filter: string, variab
         else if (name === "lerp" && args.length === 3) value = args[0]! + (args[1]! - args[0]!) * args[2]!;
         else if (name === "between" && args.length === 3) value = Number(args[0]! >= args[1]! && args[0]! <= args[2]!);
         else throw new Error(`${filter}: invalid or unsupported expression`);
+      } else if (filter === "crop" && name.toLowerCase() === "nan") {
+        value = NaN;
       } else if (filter === "tremolo" && (name.toLowerCase() === "inf" || name.toLowerCase() === "infinity")) {
         value = Infinity;
       } else {

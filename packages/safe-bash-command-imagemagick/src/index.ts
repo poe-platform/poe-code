@@ -2100,7 +2100,7 @@ function parseMagickRaiseGeometry(raw: string, option: string): MagickGeometry {
     if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
         throw new Error(`invalid argument for option '${option}': ${raw}`);
     }
-    return parseMagickGeometry(raw);
+    return parseMagickGeometry(raw.replaceAll(":", "x"));
 }
 
 function validateMagickStatisticGeometry(raw: string): void {

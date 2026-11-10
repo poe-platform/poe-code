@@ -10763,6 +10763,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (!options || (options.width === image.width && options.height === image.height)) return image;
                 const width = options.width!, height = options.height!;
                 const resized = yield* applyMagickRasterSteps({ ...image, isPalette: false }, adaptiveResizePixelSteps(image, width, height, !!image.data16, background, image.virtualPixel), signal, { ...image, width, height });
+                if (image.readMask) {
+                    const mask = image.readMask as RgbaImage;
+                    resized.readMask = yield* applyMagickRasterSteps(mask, adaptiveResizePixelSteps(image, width, height, !!image.data16, background, image.virtualPixel, true), signal, { ...mask, width, height }, [image, mask]);
+                }
                 const mask = image.region ? yield* applyMagickRasterSteps({ width: image.width, height: image.height, data: image.data,
                     format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, regionMaskPixelSteps(image, image.region), signal) : image.writeMask;
                 if (mask) {
@@ -13681,6 +13685,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!options || (options.width === image.width && options.height === image.height)) return image;
                 const width = options.width!, height = options.height!;
                 const resized = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, adaptiveResizePixelSteps(image, width, height, !!image.storedData16, background, image.virtualPixel), signal, { ...image, width, height });
+                if (image.readMask) {
+                    const mask = image.readMask as StoredRgbaImage;
+                    resized.readMask = await transformStoredMagickRaster(mask, backend, adaptiveResizePixelSteps(image, width, height, !!image.storedData16, background, image.virtualPixel, true), signal, { ...mask, width, height }, [image, mask]);
+                }
                 const mask = image.region ? await transformStoredMagickRaster({ width: image.width, height: image.height, position: image.position,
                     format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, backend, regionMaskPixelSteps(image, image.region), signal) : image.storedWriteMask;
                 if (mask) {

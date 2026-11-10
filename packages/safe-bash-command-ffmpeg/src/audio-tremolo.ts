@@ -28,7 +28,7 @@ export async function tremoloAudio(
     }
     if (key !== "f" && key !== "d") throw new Error(`tremolo: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    const number = parseFilterExpression(value, "tremolo", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 });
+    const number = parseFilterExpression(value, "tremolo", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
     if (number < (key === "f" ? 0.1 : 0) || number > (key === "f" ? 20000 : 1)) {
       throw new RangeError(`tremolo: invalid ${key}`);
     }

@@ -4863,6 +4863,11 @@ function parseMagickRepageGeometry(raw: string): MagickGeometry {
     return geometry;
 }
 
+function parseMagickPageGeometry(raw: string) {
+    const geometry = parseMagickPageSetting(raw, "page");
+    return { width: Math.round(geometry.width ?? 0), height: Math.round(geometry.height ?? 0), x: Math.trunc(geometry.x), y: Math.trunc(geometry.y) };
+}
+
 function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: MagickGeometry, operation: "repage" | "set") {
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
     // Setting page keeps an omitted height, but a height-only value clears width.
@@ -8580,10 +8585,6 @@ if (t === "-seed") {
             state.extract = value;
         }
         else if (t === "+extract") { delete state.extract; }
-        else if (t === "-page") {
-            const geometry = parseMagickPageSetting(tokens[++i] ?? "", "page");
-            state.page = { width: Math.round(geometry.width ?? 0), height: Math.round(geometry.height ?? 0), x: Math.trunc(geometry.x), y: Math.trunc(geometry.y) };
-        }
         else if (t === "+page") { delete state.page; }
         else if (t === "-tile-offset") {
             const value = tokens[++i] ?? "";
@@ -9150,6 +9151,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         if ((t === "-ordered-dither" || t === "-random-threshold" || t === "-range-threshold" || t === "-solarize" || t === "-channel-fx" || t === "-level" || t === "+level") && !stack.length) throw new Error(`no images found for operation '${t}'`);
+        if (t === "-page") {
+            const raw = tokens[++i] ?? "";
+            const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
+            const expanded = yield* formatMagickPropertyStringSteps(raw, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+            const page = state.page = parseMagickPageGeometry(expanded);
+            stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, virtualCanvas: page }; });
+            i++;
+            continue;
+        }
         const setting = applyMagickReadSetting(tokens, state, i);
         if (setting === undefined && (t === "-solarize" || ((t === "-colorize" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-random-threshold" || t === "-range-threshold") && tokens[i + 1]?.includes("%[")) || ((t === "-modulate" || t === "-posterize" || t === "-ordered-dither") && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-level-colors" || t === "+level-colors" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
             const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" || t === "-tint" ? "" : "1");
@@ -9170,7 +9180,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, false, 1, channels, signal), signal));
             }
             if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity }; });
-            if (t === "-page") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, virtualCanvas: state.page! }; });
             if (t === "-virtual-pixel" || t === "+virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, virtualPixel: state.virtualPixel ?? "edge" }; });
         }
         else if (t === "-connected-components" || t === "+connected-components") {
@@ -9759,11 +9768,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "+repage" || t === "-repage") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             if (t === "-repage") {
-                const value = tokens[++i] ?? "0x0";
-                const geometry = parseMagickRepageGeometry(value);
+                const raw = tokens[++i] ?? "0x0";
                 stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                    yield;
-                    return { ...image, virtualCanvas: magickRepageCanvas(image, geometry, "repage") };
+                    const expanded = yield* formatMagickPropertyStringSteps(raw, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                    return { ...image, virtualCanvas: magickRepageCanvas(image, parseMagickRepageGeometry(expanded), "repage") };
                 });
             }
             else stack = yield* mapMagickImagesSteps(stack, function* (image) {
@@ -11223,6 +11231,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
+        if (!operandsOnly && token === "-page") {
+            const raw = tokens[++i] ?? "", settings = { ...state };
+            const page = state.page = { width: 0, height: 0, x: 0, y: 0 };
+            stackStep(async (stack, backend) => {
+                const image = await stack.get(0) ?? await createStoredCanvas(1, 1, settings.background, backend, signal);
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                Object.assign(page, parseMagickPageGeometry(expanded));
+                for (let index = 0; index < stack.length; index++) await stack.set(index, { ...(await stack.get(index))!, virtualCanvas: page });
+                return stack;
+            });
+            continue;
+        }
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
         if (setting !== undefined) {
             i = setting;
@@ -11241,10 +11261,6 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-virtual-pixel" || token === "+virtual-pixel") {
                 const virtualPixel = state.virtualPixel ?? "edge";
                 steps.push(async image => image ? { ...image, virtualPixel } : undefined);
-            }
-            if (token === "-page") {
-                const page = state.page!;
-                steps.push(async image => image ? { ...image, virtualCanvas: page } : undefined);
             }
             continue;
         }
@@ -11894,12 +11910,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "+repage" || token === "-repage")) {
-            const raw = token === "-repage" ? tokens[++i] ?? "0x0" : undefined;
-            stackStep(async stack => {
+            const raw = token === "-repage" ? tokens[++i] ?? "0x0" : undefined, optionProperties = state.optionProperties;
+            stackStep(async (stack, backend) => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
-                const geometry = raw === undefined ? undefined : parseMagickRepageGeometry(raw);
                 for (let index = 0; index < stack.length; index++) {
                     const image = (await stack.get(index))!;
+                    const expanded = raw === undefined ? undefined : await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                    const geometry = expanded === undefined ? undefined : parseMagickRepageGeometry(expanded);
                     const reset = { ...image, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } };
                     await stack.set(index, geometry ? { ...image, virtualCanvas: magickRepageCanvas(image, geometry, "repage") } : reset);
                 }

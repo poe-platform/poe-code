@@ -121,7 +121,7 @@ import {
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodePngToCanvas, FONT_5X7, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
+import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodePngToCanvas, FONT_5X7, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, resizeImageSteps, rotateImageSteps } from "@poe-code/image-ast/portable";
 
 import { combineMetaPixelSteps, type MetaChannels } from "./combine-meta.js";
 import { negateMetaPixelSteps } from "./negate-meta.js";
@@ -7833,9 +7833,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     let maskAlpha: MagickPixelOperation["maskAlpha"];
     let meta: MagickPixelOperation["meta"];
     let evaluate = false;
-    if (token === "-colorspace" || token === "-grayscale" || token === "-type") {
-        const value = tokens[++i];
-        const imageType = token === "-type" ? (value ?? "").toLowerCase() : undefined;
+    if (token === "-colorspace" || token === "-grayscale" || token === "-type" || token === "-monochrome") {
+        const value = token === "-monochrome" ? "Bilevel" : tokens[++i];
+        const imageType = token === "-type" || token === "-monochrome" ? (value ?? "").toLowerCase() : undefined;
         if (imageType !== undefined && !["bilevel", "grayscale", "grayscalealpha", "truecolor", "truecoloralpha", "palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(imageType)) {
             throw new Error(`unsupported image type '${value ?? ""}'`);
         }
@@ -7850,7 +7850,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             throw new Error(`unsupported grayscale method '${tokens[i] ?? ""}'`);
         }
         if (space === "transparent") space = "srgb";
-        evaluate = (paletteType && !bilevelAlpha) || token !== "-type" && (token === "-grayscale" || ["log", "rgb", "srgb", "gray", "grey", "lineargray", "rec709luma", "rec601luma", "lab", "cielab", "luv", "oklch", "lch", "lchab", "lchuv", "oklab", "ohta", "yuv", "ycbcr"].includes(space));
+        evaluate = (paletteType && !bilevelAlpha) || imageType === undefined && (token === "-grayscale" || ["log", "rgb", "srgb", "gray", "grey", "lineargray", "rec709luma", "rec601luma", "lab", "cielab", "luv", "oklch", "lch", "lchab", "lchuv", "oklab", "ohta", "yuv", "ycbcr"].includes(space));
         const luminance = space === "lineargray" || space === "rec601luminance" || space === "rec709luminance";
         apply = function* (image) {
             image = { ...image, [magickInput]: { ...image[magickInput],
@@ -8387,8 +8387,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             output = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(pixels);
             return { ...output, isPalette: true, magickColorspace: "Gray", space: "b-w", channels: output.hasAlpha ? 2 : 1 };
         };
-    } else if (token === "-monochrome") {
-        apply = function* (image) { return yield* thresholdImageSteps(yield* grayscaleImageSteps(image), 128, true); };
+
     } else if (token === "-modulate") {
         highDepth = true;
         const raw = tokens[++i] ?? "";
@@ -10924,7 +10923,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         converted.metaChannels.push(selected ? yield* metaOperation.apply(plane) : plane);
                     }
                 }
-                if (t === "-type" && tokens[i]?.toLowerCase() === "bilevel") {
+                if (t === "-monochrome" || t === "-type" && tokens[i]?.toLowerCase() === "bilevel") {
                     const source = converted.data16 ? { ...converted, data: new Uint8Array(converted.data16.buffer, converted.data16.byteOffset, converted.data16.byteLength) } : converted;
                     return yield* applyMagickRasterSteps(converted, bilevelPixelSteps(converted.width * converted.height, !!converted.data16), signal, converted, [source]);
                 }
@@ -13892,7 +13891,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             i = pixelOperation.end;
             const settings = { ...state };
             const palette = token === "-type" && ["palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(tokens[i]?.toLowerCase() ?? "");
-            const bilevel = token === "-type" && tokens[i]?.toLowerCase() === "bilevel";
+            const bilevel = token === "-monochrome" || token === "-type" && tokens[i]?.toLowerCase() === "bilevel";
             const meta = !state.channelExplicit || state.channelDefault ? undefined : state.channels.meta ?? [];
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession): Promise<StoredRgbaImage | undefined> => {
                 if (!image) return;

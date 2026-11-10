@@ -5732,8 +5732,8 @@ async function decodeStoredMagickSvg(svg: string, density: number, backend: Comp
     }
     return decodeImageToStorage({ size, async read(position, length) { return backend.storage.read(base + position, length); } }, backend.storage, signal, { density });
 }
-async function applyStoredMagickExtent(image: StoredRgbaImage, geometry: string, captured: MagickState, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
-    const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: captured.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+async function applyStoredMagickExtent(image: StoredRgbaImage, geometry: string, captured: MagickState, backend: CompareFileSession, signal: AbortSignal, images?: StoredImageStack, listIndex = 0): Promise<StoredRgbaImage> {
+    const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images?.length ?? 1, listIndex, optionProperties: captured.optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
     const layout = magickExtentLayout(image, expanded, captured);
     const readMask = image.readMask ? await createStoredCanvas(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
     const virtualCanvas = magickResizeCanvas(image, layout.width, layout.height);
@@ -12269,10 +12269,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-extent") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geom = tokens[++i] ?? "100%";
-            stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                return (yield* applyMagickExtentSteps(im, expanded, state, signal));
-            });
+            for (let sceneIdx = 0; sceneIdx < stack.length; sceneIdx++) {
+                const im = stack[sceneIdx]!;
+                const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, optionProperties: state.optionProperties });
+                const [image] = yield* mapMagickImagesSteps([im], function* (image) {
+                    return yield* applyMagickExtentSteps(image, expanded, state, signal);
+                });
+                stack[sceneIdx] = image!;
+            }
         }
         else if (t === "-border") {
             const raw = tokens[++i] ?? "";
@@ -16155,14 +16159,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const rows = magickMedianRows(tokens[++i] ?? "3");
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, morphologyPixelSteps(image, rows, "median"), signal) : undefined);
         } else if (!operandsOnly && token === "-extent") {
+            let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
                 return stack;
             });
             const geometry = tokens[++i] ?? "100%", captured = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
-                return applyStoredMagickExtent(image, geometry, captured, backend, signal);
+                return applyStoredMagickExtent(image, geometry, captured, backend, signal, images, sceneIdx++);
             });
         } else if (!operandsOnly && token === "-frame") {
             const raw = tokens[++i] ?? "";

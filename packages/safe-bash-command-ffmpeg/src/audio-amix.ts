@@ -14,9 +14,10 @@ export async function mixAudio(
   const a = inputs[0];
   if (!a) throw new Error("amix requires decoded PCM audio");
   const layouts = inputs.map(input => input.channelMask ||
-    (input.channels === 1 ? 4 : input.channels === 2 ? 3 : undefined));
+    (input.channels === 1 ? 4 : input.channels === 2 ? 3 : input.channels === 6 ? 0x3f : undefined));
   const remix = inputs.map((input, index) => input.channels !== a.channels &&
-    (layouts[0] === 4 && layouts[index] === 3 || layouts[0] === 3 && layouts[index] === 4));
+    (layouts[0] === 4 && (layouts[index] === 3 || layouts[index] === 0x3f || layouts[index] === 0x60f) ||
+      layouts[index] === 4 && (layouts[0] === 3 || layouts[0] === 0x3f || layouts[0] === 0x60f)));
   if (inputs.some((input, index) => !remix[index] && (input.channels !== a.channels || layouts[index] !== layouts[0]))) {
     throw new Error("amix requires matching channel layouts");
   }
@@ -119,9 +120,19 @@ export async function mixAudio(
           let value = audio.channelData[remix[input] ? 0 : channel]![sample] ?? 0;
           if (remix[input]) {
             // FFmpeg remixes in float with equal-power gains, without PCM clipping.
-            value = Math.fround(value * Math.fround(Math.SQRT1_2));
-            if (audio.channels === 2) value = Math.fround(value +
-              Math.fround((audio.channelData[1]![sample] ?? 0) * Math.fround(Math.SQRT1_2)));
+            if (a.channels === 6) {
+              value = channel === 2 ? value : 0;
+            } else {
+              value = Math.fround(value * Math.fround(Math.SQRT1_2));
+              if (audio.channels >= 2) value = Math.fround(value +
+                Math.fround((audio.channelData[1]![sample] ?? 0) * Math.fround(Math.SQRT1_2)));
+              if (audio.channels === 6) {
+                value = Math.fround(value + (audio.channelData[2]![sample] ?? 0));
+                // Center is unity, surrounds are -6 dB, and LFE is excluded.
+                for (let surround = 4; surround < 6; surround++) value = Math.fround(value +
+                  Math.fround((audio.channelData[surround]![sample] ?? 0) * 0.5));
+              }
+            }
           }
           mixed = Math.fround(mixed + Math.fround(value * gains[input]!));
         }

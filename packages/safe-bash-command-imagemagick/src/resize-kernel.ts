@@ -259,7 +259,27 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
     }
 }
 
-export function* resizePixelSteps(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale = false, kernel: MagickResizeKernel = "lanczos3", highDepth = false, settings?: ResizeFilterSettings, preserveSamples = false, writeMask = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+// ResizeImage's copied channels round the filter bisector, rather than the
+// pixel-center coordinate used by SampleImage and ordinary Point filtering.
+function resizeCopyIndex(index: number, source: number, target: number) {
+    return Math.min(source - 1, Math.floor((index + 0.5) * source / target + 0.5 + 1e-12));
+}
+
+export function* resizeMaskPixelSteps(image: ResizeImage, width: number, height: number, horizontal: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 256) {
+        yield;
+        const data = new Uint16Array(Math.min(256, width - left) * 4);
+        for (let x = left; x < left + data.length / 4; x++) {
+            const sx = horizontal ? resizeCopyIndex(x, image.width, width) : x;
+            const sy = horizontal ? y : resizeCopyIndex(y, image.height, height);
+            const bytes = (yield { kind: "read", highDepth: true, position: (sy * image.width + sx) * 4, length: 4 })!;
+            data.set(new Uint16Array(bytes.slice().buffer), (x - left) * 4);
+        }
+        yield { kind: "write", highDepth: true, position: (y * width + left) * 4, data: new Uint8Array(data.buffer) };
+    }
+}
+
+export function* resizePixelSteps(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale = false, kernel: MagickResizeKernel = "lanczos3", highDepth = false, settings?: ResizeFilterSettings, preserveSamples = false, writeMask = false, maskedAxis?: "horizontal" | "vertical"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (scale && writeMask) {
         // ScaleImage checks the resized clone's zero write-mask channel before
         // writing area averages, leaving its color and active alpha channels zero.
@@ -278,6 +298,31 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
     while (!next.done) {
         const request = next.value;
         if (request?.kind !== "samples") { next = samples.next(yield request); continue; }
+        if (maskedAxis) {
+            const horizontal = maskedAxis === "horizontal";
+            for (let i = 0; i < request.data.length; i += 4) {
+                const pixel = request.position / 4 + i / 4, x = pixel % width, y = Math.floor(pixel / width);
+                const sx = horizontal ? resizeCopyIndex(x, image.width, width) : x;
+                const sy = horizontal ? y : resizeCopyIndex(y, image.height, height);
+                // The authentic row/column cache starts with a zero mask and
+                // retains the copied mask from the preceding row/column.
+                let mask = 0;
+                if (horizontal ? x > 0 : y > 0) {
+                    const mx = horizontal ? resizeCopyIndex(x - 1, image.width, width) : x;
+                    const my = horizontal ? y : resizeCopyIndex(y - 1, image.height, height);
+                    const bytes = (yield { kind: "read", image: 1, highDepth: true, position: (my * image.width + mx) * 4, length: 4 })!;
+                    const pixels = new Uint16Array(bytes.slice().buffer);
+                    mask = 0.212656 * pixels[0]! + 0.715158 * pixels[1]! + 0.072186 * pixels[2]!;
+                }
+                if (mask <= 65535 / 2) {
+                    const position = (sy * image.width + sx) * 4;
+                    const samples = yield { kind: "read", evaluate: true, position, length: 4 };
+                    const bytes = samples?.length ? samples : (yield { kind: "read", highDepth, position, length: 4 })!;
+                    const values = samples?.length ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+                    for (let c = 0; c < 4; c++) request.data[i + c] = values[c]! * (samples?.length && highDepth ? 257 : 1);
+                }
+            }
+        }
         // Even byte sources produce fractional samples needed by PNG64 output
         // and HDRI comparison, including negative filter lobes.
         const values = request.data.map(sample => Math.fround(sample * (highDepth ? 1 : 257)) / 257);

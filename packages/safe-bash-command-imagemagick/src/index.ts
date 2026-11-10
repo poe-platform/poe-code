@@ -60,7 +60,7 @@ import { kuwaharaPixelSteps } from "./kuwahara-kernel.js";
 import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
 import { magickFramePixels, montageShadowPixels } from "./montage-frame.js";
 import { borderPixels } from "./border.js";
-import { adaptiveResizePixelSteps, morphPixelSteps, pointResizePixelSteps, resizePixelSteps, type MagickResizeKernel as ResizeKernel, type ResizeFilterSettings } from "./resize-kernel.js";
+import { adaptiveResizePixelSteps, morphPixelSteps, pointResizePixelSteps, resizeMaskPixelSteps, resizePixelSteps, type MagickResizeKernel as ResizeKernel, type ResizeFilterSettings } from "./resize-kernel.js";
 import { formatTrimBoundsSteps, trimMagickSteps, trimStoredMagick } from "./trim.js";
 import { sketchPixelSteps } from "./sketch-kernel.js";
 import { gifDitherSteps } from "./gif-dither.js";
@@ -4665,6 +4665,19 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     kernel = options.kernel;
     const width = options.width!, height = options.height!;
     const point = !scale && kernel === "nearest" && (!thumbnail || Math.min(img.width / width, img.height / height) < 3);
+    if (img.writeMask && !sample && !scale && !point) {
+        const horizontalFirst = width / img.width > height / img.height;
+        let resized = img;
+        for (const horizontal of [horizontalFirst, !horizontalFirst]) {
+            const w = horizontal ? width : resized.width, h = horizontal ? resized.height : height;
+            const mask = resized.writeMask!;
+            const dimensions = { ...resized, width: w, height: h };
+            const output = yield* applyMagickRasterSteps(resized, resizePixelSteps(resized, w, h, thumbnail, false, kernel, !!resized.data16, settings, true, true, horizontal ? "horizontal" : "vertical"), undefined, dimensions, [resized, mask]);
+            resized = { ...output, writeMask: yield* applyMagickRasterSteps(mask, resizeMaskPixelSteps(mask, w, h, horizontal), undefined, dimensions) };
+        }
+        const virtualCanvas = magickResizeCanvas(img, width, height);
+        return virtualCanvas ? { ...resized, virtualCanvas } : resized;
+    }
     let resized: RgbaImage = !settings && !img.data16 && !scale && (kernel === "linear")
         ? yield* resizeImageSteps(img, { ...options, kernel })
         : yield* applyMagickRasterSteps(img, point ? pointResizePixelSteps(img, width, height, sample, 4, sampleOffset, !!img.writeMask) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings, preserveSamples, !!img.writeMask), undefined, { ...img, width, height });
@@ -4697,6 +4710,19 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
     const width = options.width!, height = options.height!;
     if (width === image.width && height === image.height) return image;
     const point = !scale && options.kernel === "nearest" && (!thumbnail || Math.min(image.width / width, image.height / height) < 3);
+    if (image.storedWriteMask && !sample && !scale && !point) {
+        const horizontalFirst = width / image.width > height / image.height;
+        let resized = image;
+        for (const horizontal of [horizontalFirst, !horizontalFirst]) {
+            const w = horizontal ? width : resized.width, h = horizontal ? resized.height : height;
+            const mask = resized.storedWriteMask!;
+            const dimensions = { ...resized, width: w, height: h };
+            const output = await transformStoredMagickRaster(resized, backend, resizePixelSteps(resized, w, h, thumbnail, false, options.kernel, !!resized.storedData16, settings, true, true, horizontal ? "horizontal" : "vertical"), signal, dimensions, [resized, mask]);
+            resized = { ...output, storedWriteMask: await transformStoredMagickRaster(mask, backend, resizeMaskPixelSteps(mask, w, h, horizontal), signal, dimensions) };
+        }
+        const virtualCanvas = magickResizeCanvas(image, width, height);
+        return virtualCanvas ? { ...resized, virtualCanvas } : resized;
+    }
     let resized: StoredRgbaImage = !settings && !image.storedData16 && !scale && (options.kernel === "linear")
         ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options, kernel: options.kernel }, signal)
         : await transformStoredMagickRaster(image, backend, point ? pointResizePixelSteps(image, width, height, sample, 4, sampleOffset, !!image.storedWriteMask) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings, preserveSamples, !!image.storedWriteMask), signal, { ...image, width, height });

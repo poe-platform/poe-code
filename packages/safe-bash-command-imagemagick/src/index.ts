@@ -6247,7 +6247,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 }
                 im = { ...image, evaluateSamples };
             }
-            im = { ...im, gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { ...(im as MagickImage)[magickInput], virtualPixel: state.virtualPixel } };
+            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { ...(im as MagickImage)[magickInput], virtualPixel: state.virtualPixel } });
             if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
             if (state.interlace !== undefined) im = Object.assign({}, im, { [magickInput]: { ...(im as MagickImage)[magickInput], interlace: state.interlace } });
             if (state.orientation !== undefined) im = { ...im, orientation: state.orientation };
@@ -13849,7 +13849,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    }
    image = { ...metadata, storedEvaluateSamples };
   }
-  image = { ...image, gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { ...(image as StoredMagickImage)[magickInput], virtualPixel: state.virtualPixel } };
+  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { ...(image as StoredMagickImage)[magickInput], virtualPixel: state.virtualPixel } });
   if(state.page!==undefined)image={...image,virtualCanvas:state.page};
   if(state.interlace!==undefined)image=Object.assign({},image,{[magickInput]:{...(image as StoredMagickImage)[magickInput],interlace:state.interlace}});
   if(state.orientation!==undefined)image={...image,orientation:state.orientation};

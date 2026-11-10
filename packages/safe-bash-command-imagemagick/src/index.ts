@@ -11600,6 +11600,10 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
     const state = createDefaultState();
     try {
         const stack = (yield* evaluatePipelineTokensSteps(pipelineTokens, files, state, undefined, stdinBytes, signal, analysis));
+        if (state.orientation !== undefined) for (let index = 0; index < stack.length; index++) {
+            yield;
+            stack[index] = { ...stack[index]!, orientation: state.orientation };
+        }
         if (stack.length === 0) {
             return {
                 exitCode: 1,
@@ -14161,6 +14165,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
             }
             while (parents.length) { const parent = parents.pop()!; for (let n = 0; n < stack.length; n++) await parent.push((await stack.get(n))!); stack = parent; }
+            if (state.orientation !== undefined) for (let index = 0; index < stack.length; index++) {
+                await yieldTurn(signal);
+                await stack.set(index, { ...(await stack.get(index))!, orientation: state.orientation });
+            }
             image = await stack.get(stack.length - 1);
         }
         catch (error) {

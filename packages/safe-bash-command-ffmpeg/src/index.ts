@@ -1017,7 +1017,7 @@ function parseAsetnsamples(argument: string) {
   return { size, pad };
 }
 
-function parseAtrim(argument: string, origRate: number) {
+function parseAtrim(argument: string, origRate: number, timeBase = 1 / origRate) {
   let duration = 0;
   const bounds = new Map<string, number>();
   const options: string[] = [];
@@ -1067,7 +1067,7 @@ function parseAtrim(argument: string, origRate: number) {
       continue;
     }
     if (key === "start_sample" && boundary === -1) bounds.delete(key);
-    else bounds.set(key, boundary);
+    else bounds.set(key, pts ? Math.sign(boundary) * Math.round(Math.abs(boundary) * (timeBase * origRate)) : boundary);
   }
   const startPts = Math.min(bounds.get("start") ?? Infinity, bounds.get("start_pts") ?? Infinity);
   const endPts = Math.max(bounds.get("end") ?? -Infinity, bounds.get("end_pts") ?? -Infinity);
@@ -9330,6 +9330,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let surroundLevel = surroundMixLevel;
                   let lfeLevel = lfeMixLevel;
                   let origRate = audio.sampleRate;
+                  // Frame timestamps stay in sample units; filters expose ticks in this time base.
+                  let audioTimeBase: number | undefined;
                   let loudnormResampling = false;
                   let filteredChannelMask = audio.channelMask;
                   let filteredChannelNames: string[] | undefined;
@@ -9382,7 +9384,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (!["anull", "acopy", "ametadata", "arealtime", "asendcmd", "asetrate",
                         "asetnsamples", "ashowinfo", "afade", "silencedetect", "astats", "volume",
                         "aloop", "aresample", "apad", "adelay", "atempo", "aformat", "pan",
-                        "channelmap", "channelsplit", "asetpts", "aselect", "atrim", "areverse", "earwax"
+                        "channelmap", "channelsplit", "asettb", "asetpts", "aselect", "atrim", "areverse", "earwax"
                       ].includes(filterName)) panPcm16 = false;
                       if (["extrastereo", "stereotools", "stereowiden"].includes(filterName) &&
                         (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ||
@@ -9688,7 +9690,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const count = timestamp ? timestamp.end - timestamp.start
                             : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                           const end = Math.min(length, start + count);
-                          const pts = timestamp?.pts ?? audioStartSample + start;
+                          const timeBase = audioTimeBase ?? 1 / origRate;
+                          const samplePts = timestamp?.pts ?? audioStartSample + start;
+                          const pts = Math.sign(samplePts) * Math.round(Math.abs(samplePts) / (timeBase * origRate));
                           let a = 0, b = 0;
                           const planeChecksums: string[] = [];
                           for (let plane = 0; plane < (planar ? channels : 1); plane++) {
@@ -9714,7 +9718,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             planeChecksums.push(((pb * 65536 + pa) >>> 0).toString(16).padStart(8, "0").toUpperCase());
                           }
                           const checksum = ((b * 65536 + a) >>> 0).toString(16).padStart(8, "0").toUpperCase();
-                          await writeBytes(context.stderr, encodeUtf8(`[ashowinfo] n:${n} pts:${Number.isNaN(pts) ? "NOPTS" : pts} pts_time:${Number.isNaN(pts) ? "NOPTS" : Number((pts / origRate).toPrecision(6))} pos:-1 fmt:${format} channels:${channels} chlayout:${layout} rate:${origRate} nb_samples:${end - start} checksum:${checksum} plane_checksums: [ ${planeChecksums.join(" ")} ]\n`), context.signal);
+                          await writeBytes(context.stderr, encodeUtf8(`[ashowinfo] n:${n} pts:${Number.isNaN(pts) ? "NOPTS" : pts} pts_time:${Number.isNaN(pts) ? "NOPTS" : Number((pts * timeBase).toPrecision(6))} pos:-1 fmt:${format} channels:${channels} chlayout:${layout} rate:${origRate} nb_samples:${end - start} checksum:${checksum} plane_checksums: [ ${planeChecksums.join(" ")} ]\n`), context.signal);
                           start = end;
                         }
                       } else if (trimmed === "asubcut" || trimmed.startsWith("asubcut=")) {
@@ -11890,10 +11894,24 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = [stretched[input.indexOf(selected[0]!)]!];
                         filteredChannelMask = 1 << speakers.indexOf(selected[0]!);
                         filteredChannelNames = undefined;
-                      } else if (trimmed === "asetpts" || trimmed.startsWith("asetpts=") || trimmed === "aselect" || trimmed.startsWith("aselect=")) {
+                      } else if (["asettb", "asetpts", "aselect"].includes(filterName)) {
+                        const timeBase = audioTimeBase ?? 1 / origRate;
+                        const samplesPerTick = timeBase * origRate;
+                        const toTicks = (pts: number) => Math.sign(pts) * Math.round(Math.abs(pts) / samplesPerTick);
                         const selecting = trimmed === "aselect" || trimmed.startsWith("aselect=");
-                        const argument = trimmed.includes("=") ? trimmed.slice(trimmed.indexOf("=") + 1) : selecting ? "1" : "PTS";
+                        const argument = trimmed.includes("=") ? trimmed.slice(trimmed.indexOf("=") + 1) : selecting ? "1" : filterName === "asettb" ? "intb" : "PTS";
                         let expression = argument.startsWith("expr=") ? argument.slice(5) : argument;
+                        if (filterName === "asettb") {
+                          expression = "intb";
+                          for (const [index, option] of argument.split(":").entries()) {
+                            const separator = option.indexOf("=");
+                            const key = separator < 0 && index === 0 ? "expr" : option.slice(0, separator);
+                            if (key !== "expr" && key !== "tb") throw new Error("asettb: unsupported option");
+                            expression = separator < 0 ? option : option.slice(separator + 1);
+                          }
+                          audioTimeBase = parseFilterExpression(expression, "asettb", { intb: timeBase, sr: origRate, AVTB: 1 / 1000000 });
+                          if (audioTimeBase <= 0) throw new Error("asettb: time base must be positive");
+                        }
                         if (selecting) {
                           expression = "1";
                           for (const [index, option] of argument.split(":").entries()) {
@@ -11920,6 +11938,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
+                        if (filterName === "asettb") {
+                          const samplesPerTick = audioTimeBase! * origRate;
+                          for (const frame of audioTimestamps) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            frame.pts = Math.sign(frame.pts) * Math.round(Math.abs(frame.pts) / samplesPerTick) * samplesPerTick;
+                          }
+                          continue;
+                        }
                         if (selecting) {
                           const variables = {
                             samples_n: NaN, sample_rate: origRate, consumed_samples_n: NaN,
@@ -11927,7 +11953,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             // Decoded audio is key; video classification and concat metadata are unavailable.
                             key: 1, pict_type: NaN, interlace_type: NaN, concatdec_select: NaN,
                             I: 1, PROGRESSIVE: 0,
-                            n: 0, t: NaN, pts: NaN, TB: 1 / origRate, start_pts: NaN, start_t: NaN, pos: NaN,
+                            n: 0, t: NaN, pts: NaN, TB: timeBase, start_pts: NaN, start_t: NaN, pos: NaN,
                             selected_n: 0, prev_pts: NaN, prev_t: NaN,
                             prev_selected_n: NaN, prev_selected_pts: NaN, prev_selected_t: NaN
                           };
@@ -11942,20 +11968,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             context.signal?.throwIfAborted();
                             variables.n = n;
                             variables.samples_n = frame.end - frame.start;
-                            variables.pts = frame.pts;
+                            variables.pts = toTicks(frame.pts);
                             variables.pos = frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN;
                             variables.t = frame.pts / origRate;
                             if (Number.isNaN(variables.start_pts)) {
-                              variables.start_pts = frame.pts;
+                              variables.start_pts = variables.pts;
                               variables.start_t = variables.t;
                             }
                             const keep = parseFilterExpression(expression, "aselect", variables, undefined, registers) !== 0;
-                            variables.prev_pts = frame.pts;
+                            variables.prev_pts = variables.pts;
                             variables.prev_t = variables.t;
                             if (!keep) continue;
                             variables.selected_n++;
                             variables.prev_selected_n = n;
-                            variables.prev_selected_pts = frame.pts;
+                            variables.prev_selected_pts = variables.pts;
                             variables.prev_selected_t = variables.t;
                             ranges.push(frame);
                             const end = length + frame.end - frame.start;
@@ -11984,10 +12010,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const startPts = audioTimestamps[0]?.pts ?? 0;
                         let previousOutputPts = NaN;
                         let previousInputPts = NaN;
-                        // Validate even an empty stream; expressions use the audio sample time base.
+                        // Validate even an empty stream; expressions use the current filter time base.
                         if (audioTimestamps.length === 0) parseFilterExpression(expression, "asetpts", {
                           POS: NaN,
-                          NAN: NaN, PTS: 0, STARTPTS: 0, STARTT: 0, T: 0, TB: 1 / origRate, SR: origRate, INTERLACED: 0,
+                          NAN: NaN, PTS: 0, STARTPTS: 0, STARTT: 0, T: 0, TB: timeBase, SR: origRate, INTERLACED: 0,
                           FR: NaN, FRAME_RATE: NaN,
                           PREV_INPTS: NaN, PREV_INT: NaN,
                           N: 0, NB_CONSUMED_SAMPLES: 0, NB_SAMPLES: 0, S: 0,
@@ -11998,18 +12024,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const inputPts = frame.pts;
                           frame.pts = Math.trunc(parseFilterExpression(expression, "asetpts", {
                             POS: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN,
-                            NAN: NaN, PTS: frame.pts, STARTPTS: startPts, STARTT: startPts / origRate, T: frame.pts / origRate, TB: 1 / origRate, SR: origRate, INTERLACED: 0,
+                            NAN: NaN, PTS: toTicks(frame.pts), STARTPTS: toTicks(startPts), STARTT: startPts / origRate, T: frame.pts / origRate, TB: timeBase, SR: origRate, INTERLACED: 0,
                             FR: NaN, FRAME_RATE: NaN,
-                            PREV_INPTS: previousInputPts, PREV_INT: previousInputPts / origRate,
+                            PREV_INPTS: toTicks(previousInputPts), PREV_INT: previousInputPts / origRate,
                             N: frame.start, NB_CONSUMED_SAMPLES: frame.start,
                             NB_SAMPLES: frame.end - frame.start, S: frame.end - frame.start,
-                            PREV_OUTPTS: previousOutputPts, PREV_OUTT: previousOutputPts / origRate
-                          }));
+                            PREV_OUTPTS: toTicks(previousOutputPts), PREV_OUTT: previousOutputPts / origRate
+                          })) * samplesPerTick;
                           previousOutputPts = frame.pts;
                           previousInputPts = inputPts;
                         }
                       } else if (trimmed === "atrim" || trimmed.startsWith("atrim=")) {
-                        const { duration, startPts, endPts, startSample, endSample } = parseAtrim(trimmed.slice("atrim=".length), origRate);
+                        const { duration, startPts, endPts, startSample, endSample } = parseAtrim(trimmed.slice("atrim=".length), origRate, audioTimeBase);
                         const length = stretched[0]?.length ?? 0;
                         const ranges: { start: number; end: number }[] = [];
                         const retained: NonNullable<typeof audioTimestamps> = [];
@@ -12034,7 +12060,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         for (const frame of audioTimestamps) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           const count = frame.end - frame.start;
-                          const pts = Number.isNaN(frame.pts) ? nextPts : frame.pts;
+                          const pts = Number.isNaN(frame.pts) ? nextPts : Math.sign(frame.pts) * Math.round(Math.abs(frame.pts));
                           nextPts = pts + count;
                           // Timestamp bounds apply to every frame; sample bounds count all input samples.
                           let start = Math.min(startPts - pts, startSample - frame.start);
@@ -12051,7 +12077,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (end <= start) continue;
                           budget.allocateMemory(48);
                           ranges.push({ start: frame.start + start, end: frame.start + end });
-                          retained.push({ start: outputLength, end: outputLength + end - start, pts: frame.pts + start, pos: frame.pos });
+                          const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
+                          retained.push({ start: outputLength, end: outputLength + end - start,
+                            pts: frame.pts + Math.round(start / samplesPerTick) * samplesPerTick, pos: frame.pos });
                           outputLength += end - start;
                         }
                         const start = ranges[0]?.start ?? length;

@@ -5,6 +5,22 @@ import { createFfmpegCommand } from "./index.js";
 
 // FFmpeg evaluates constants before rounding the requested sample count.
 for (const [options, limit, frames] of [
+  ["pad_len=min", "0.004", 32],
+  ["pad_len=default", "0.004", 32],
+  ["pad_len=-1", "0.004", 32],
+  ["whole_len=min", "0.004", 32],
+  ["whole_len=default", "0.004", 32],
+  ["whole_len=-1", "0.004", 32],
+  ["pad_len=min:whole_len=5", "0.004", 5],
+  ["pad_len=default:whole_len=5", "0.004", 5],
+  ["whole_len=min:pad_len=2", "0.004", 5],
+  ["whole_len=default:pad_len=2", "0.004", 5],
+  ["pad_len=default+3", "0.004", 5],
+  ["whole_len=min+6", "0.004", 5],
+  ["pad_len=min-1", "0.004", null],
+  ["whole_len=default-1", "0.004", null],
+  ["pad_dur=default", "0.004", null],
+  ["whole_dur=min", "0.004", null],
   ["whole_len=PI*2", "0.001", 6],
   ["whole_len=E*2", "0.001", 5],
   ["whole_len=PHI*3", "0.001", 5],

@@ -16,7 +16,12 @@ export const audioFadeCurves: Record<string, (gain: number) => number> = {
   iqsin: gain => 0.6366197723675814 * Math.asin(gain),
   ihsin: gain => 0.3183098861837907 * Math.acos(1 - 2 * gain),
   dese: gain => gain <= 0.5 ? Math.cbrt(2 * gain) / 2 : 1 - Math.cbrt(2 * (1 - gain)) / 2,
-  desi: gain => gain <= 0.5 ? (2 * gain) ** 3 / 2 : 1 - (2 * (1 - gain)) ** 3 / 2,
+  desi: gain => {
+    const x = 2 * (gain <= 0.5 ? gain : 1 - gain);
+    // Match native cubic multiplication; exponentiation changes PCM truncation.
+    const cube = x * x * x / 2;
+    return gain <= 0.5 ? cube : 1 - cube;
+  },
   losi: gain => {
     const a = 1 / (1 - 0.787) - 1;
     const low = 1 / (1 + Math.exp(a));

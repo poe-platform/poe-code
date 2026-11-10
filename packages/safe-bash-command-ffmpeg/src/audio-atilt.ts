@@ -5,7 +5,8 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function tiltAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number }[],
-  budget: MediaBudgetTracker, signal?: AbortSignal
+  budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<Float64Array[]> {
   let enable: string | undefined;
   const options = { freq: 10000, slope: 0, width: 1000, order: 5, level: 1 };
@@ -38,41 +39,58 @@ export async function tiltAudio(
 
   budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * 8, 0));
   const output = channels.map(channel => new Float64Array(channel.length));
-  // Geometrically spaced pole/zero pairs, prewarped about freq and
-  // bilinearly transformed. Each first-order stage has unity DC gain.
-  const ratio = ((options.freq + options.width) / options.freq) ** (1 / (options.order - 1));
-  const angular = 2 * Math.PI * options.freq;
-  const warp = angular / Math.tan(angular / (2 * sampleRate));
-  const transform = 1 / Math.tan(0.5 / sampleRate);
-  let work = 0;
-  let enabled: Uint8Array | undefined;
-  if (enable !== undefined) {
-    budget.allocateMemory(frames.length);
-    enabled = new Uint8Array(frames.length);
-    for (const [n, frame] of frames.entries()) {
-      if (work++ % 1024 === 0) {
-        await yieldTurn(signal);
-        signal?.throwIfAborted();
-        budget.checkCpu();
-      }
-      enabled[n] = Number(Math.abs(parseFilterExpression(enable, "atilt enable", {
-        n, t: frame.pts / sampleRate
-      })) >= 0.5);
+  // Native atilt retains all stage histories when order shrinks and grows.
+  budget.allocateMemory(channels.length * 30 * 2 * 8 + 30 * 4 * 8);
+  const history = channels.map(() => new Float64Array(30 * 2));
+  const coefficients = new Float64Array(30 * 4);
+  const updateCoefficients = () => {
+    // Geometrically spaced pole/zero pairs, prewarped about freq and
+    // bilinearly transformed. Each first-order stage has unity DC gain.
+    const ratio = ((options.freq + options.width) / options.freq) ** (1 / (options.order - 1));
+    const angular = 2 * Math.PI * options.freq;
+    const warp = angular / Math.tan(angular / (2 * sampleRate));
+    const transform = 1 / Math.tan(0.5 / sampleRate);
+    for (let stage = 0; stage < options.order; stage++) {
+      const pole = warp * Math.tan(angular * ratio ** stage / (2 * sampleRate));
+      const zero = warp * Math.tan(angular * ratio ** (stage - options.slope) / (2 * sampleRate));
+      const denominator = pole + transform;
+      coefficients[stage * 4] = (zero + transform) / denominator;
+      coefficients[stage * 4 + 1] = (zero - transform) / denominator;
+      coefficients[stage * 4 + 2] = (pole - transform) / denominator;
+      coefficients[stage * 4 + 3] = pole / zero;
     }
-  }
-  for (let stage = 0; stage < options.order; stage++) {
-    const pole = warp * Math.tan(angular * ratio ** stage / (2 * sampleRate));
-    const zero = warp * Math.tan(angular * ratio ** (stage - options.slope) / (2 * sampleRate));
-    const denominator = pole + transform;
-    const feed = (zero + transform) / denominator;
-    const previousFeed = (zero - transform) / denominator;
-    const feedback = (pole - transform) / denominator;
-    const gain = pole / zero;
-    for (const [c, channel] of channels.entries()) {
-      let previousInput = 0;
-      let previousOutput = 0;
-      const samples = output[c]!;
-      for (const [n, frame] of frames.entries()) {
+  };
+  updateCoefficients();
+  let work = 0;
+  let nextCommand = 0;
+  for (const [n, frame] of frames.entries()) {
+    while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
+      const command = commands[nextCommand++]!;
+      const key = command.action as keyof typeof options;
+      if (!Object.hasOwn(options, key)) continue;
+      try {
+        const value = parseFilterExpression(command.expression, "atilt", {});
+        const [min, max] = ranges[key];
+        if (!Number.isFinite(value) || value < min! || value > max!) continue;
+        options[key] = key === "order"
+          ? value % 1 === 0.5 ? 2 * Math.round(value / 2) : Math.round(value)
+          : value;
+        updateCoefficients();
+      } catch { /* Native asendcmd continues after a rejected command. */ }
+    }
+    const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "atilt enable", {
+      n, t: frame.pts / sampleRate
+    })) >= 0.5;
+    for (let stage = 0; stage < (enabled ? options.order : 1); stage++) {
+      const feed = coefficients[stage * 4]!;
+      const previousFeed = coefficients[stage * 4 + 1]!;
+      const feedback = coefficients[stage * 4 + 2]!;
+      const gain = coefficients[stage * 4 + 3]!;
+      for (const [c, channel] of channels.entries()) {
+        const state = history[c]!;
+        let previousInput = state[stage * 2]!;
+        let previousOutput = state[stage * 2 + 1]!;
+        const samples = output[c]!;
         for (let i = frame.start; i < frame.end; i++) {
           if (work++ % 4096 === 0) {
             await yieldTurn(signal);
@@ -80,7 +98,7 @@ export async function tiltAudio(
             budget.checkCpu();
           }
           // Generic timeline bypass freezes each stage's history.
-          if (enabled && !enabled[n]) {
+          if (!enabled) {
             samples[i] = channel[i]!;
             continue;
           }
@@ -90,6 +108,8 @@ export async function tiltAudio(
           previousOutput = value;
           samples[i] = value * gain;
         }
+        state[stage * 2] = previousInput;
+        state[stage * 2 + 1] = previousOutput;
       }
     }
   }

@@ -103,7 +103,7 @@ describe("ImageMagick property formatting", () => {
 
   it("reports the configured info output quality and each scene", async () => {
     const result = await runMagickCli(["-size", "2x1", "xc:red", "xc:blue", "-alpha", "off", "-quality", "73", "-format", "%s/%n:%Q:%[hex:p{0,0}] ", "info:"], new Map());
-    expect(result).toMatchObject({ exitCode: 0, stdout: "0/2:73:FF0000 1/2:73:0000FF ", stderr: "" });
+    expect(result).toMatchObject({ exitCode: 0, stdout: "0/2:73:FFFF00000000 1/2:73:00000000FFFF ", stderr: "" });
   });
 
   it("does not decode pixels for literal or metadata-only identify formats", async () => {

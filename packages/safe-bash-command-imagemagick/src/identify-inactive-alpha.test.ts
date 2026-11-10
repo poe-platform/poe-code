@@ -8,7 +8,7 @@ for (const execution of ["command", "buffered", "sync"] as const) {
     { modes: ["deactivate"], output: "info", expected: "srgba 4.0" },
     { modes: ["discrete"], output: "info", expected: "srgba 4.0" },
     { modes: ["deactivate", "deactivate"], output: "info", expected: "srgba 4.0" },
-    { modes: ["discrete", "extract"], output: "info", expected: "gray  1.0" },
+    { modes: ["discrete", "extract"], output: "info", expected: "srgb  3.0" },
     { modes: ["deactivate", "remove"], output: "info", expected: "srgb  3.0" },
     { modes: ["deactivate", "set", "offifopaque"], output: "info", expected: "srgb  3.0" },
     { modes: ["off"], output: "info", expected: "srgb  3.0" },

@@ -8416,9 +8416,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const s1 = sig(1);
         const span = s1 - s0;
         const inverse = token === "+sigmoidal-contrast";
-        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = function* (im) {
-            const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha];
+            const cmyk = im.space === "cmyk";
+            if (cmyk) im = yield* convertCmykPixels(im);
+            const inkSamples = cmyk ? im.hueSamples?.slice() : undefined;
+            const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha, cmyk && channels.k];
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
             const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
@@ -8427,24 +8430,37 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
                     yield;
-                for (let c = 0; c < 4; c++) {
+                for (let c = 0; c < mask.length; c++) {
                     if (++pixelWork % 16384 === 0)
                         yield;
                     if (!mask[c])
                         continue;
-                    const u = evaluateSamples[idx + c]! / 255;
+                    const ink = inkSamples && c !== 3;
+                    const offset = idx + (c === 4 ? 3 : c);
+                    const u = ink ? inkSamples[offset]! : evaluateSamples[offset]! / 255;
                     // Match ImageMagick's epsilon clamp so saturated endpoints stay finite.
                     const value = inverse
                         ? alpha + (2 / beta) * Math.atanh(Math.max(-1 + 1e-12, Math.min(1 - 1e-12, span * u + s0)))
                         : (sig(u) - s0) / span;
                     // Preserve native Q16-HDRI float samples for subsequent operations.
-                    evaluateSamples[idx + c] = Math.fround(Math.max(0, Math.min(1, value)) * 65535) / 257;
-                    if (hueSamples) hueSamples[idx + c] = evaluateSamples[idx + c]! / 255;
-                    out[idx + c] = clampByteVal(evaluateSamples[idx + c]!);
-                    if (data16) data16[idx + c] = Math.round(evaluateSamples[idx + c]! * 257);
+                    const quantum = Math.fround(Math.max(0, Math.min(1, value)) * 65535);
+                    if (ink) inkSamples[offset] = quantum / 65535;
+                    else {
+                        evaluateSamples[offset] = quantum / 257;
+                        if (hueSamples) hueSamples[offset] = evaluateSamples[offset]! / 255;
+                        out[offset] = clampByteVal(evaluateSamples[offset]!);
+                        if (data16) data16[offset] = Math.round(evaluateSamples[offset]! * 257);
+                    }
+                }
+                // Rebuild RGB from the adjusted inks; alpha is independent of black.
+                if (inkSamples) for (let c = 0; c < 3; c++) {
+                    const value = Math.fround((1 - inkSamples[idx + c]!) * (1 - inkSamples[idx + 3]!) * 65535);
+                    evaluateSamples[idx + c] = value / 257;
+                    out[idx + c] = clampByteVal(value / 257);
+                    if (data16) data16[idx + c] = Math.max(0, Math.min(65535, Math.round(value)));
                 }
             }
-            return { ...im, data: out, evaluateSamples, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
+            return { ...im, data: out, evaluateSamples, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(inkSamples ? { hueSamples: inkSamples } : {}) };
         };
     }
     else if (token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors") {

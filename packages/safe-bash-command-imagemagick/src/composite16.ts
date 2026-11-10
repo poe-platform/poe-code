@@ -21,7 +21,8 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
         const sourceY = tile ? y % overlay.height : Math.max(0, Math.min(overlay.height - 1, y - top));
         const outsideX = !tile && (x < left || x >= left + overlay.width);
         const outside = outsideX || (!tile && (y < top || y >= top + overlay.height));
-        const count = Math.min(2048, base.width - x, outsideX ? x < left ? left - x : base.width - x : overlay.width - sourceX);
+        // Four Float64 channels must fit the 16 KiB storage transfer limit.
+        const count = Math.min(512, base.width - x, outsideX ? x < left ? left - x : base.width - x : overlay.width - sourceX);
         const position = (y * base.width + x) * 4;
         const bytes = (yield { kind: "read", highDepth: true, evaluate: baseEvaluate, position, length: count * 4 })!;
         const samples = baseEvaluate ? new Float64Array(bytes.slice().buffer) : Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257);

@@ -4857,7 +4857,7 @@ function* compositeMaskPixelSteps(image: Pick<RgbaImage, "width" | "height">, ma
 function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal, fuzz = 0, clipToOverlay = false): Generator<void, RgbaImage, void> {
     const { name, delegated, preservesAlpha } = magickCompositeMode(modeRaw);
     if (name === "dst" || name === "dest") return dst;
-    if (dst.data16 || src.data16 || dst.evaluateSamples || src.evaluateSamples) {
+    if (["dstatop", "destatop"].includes(name) || dst.data16 || src.data16 || dst.evaluateSamples || src.evaluateSamples) {
         const hasAlpha = dst.hasAlpha || (!delegated && !preservesAlpha);
         return yield* applyMagickRasterSteps(dst, composite16PixelSteps(dst, src, left, top, modeRaw, composeArgs, false, fuzz, clipToOverlay), signal,
             { ...dst, hasAlpha }, [dst, src]);
@@ -13300,7 +13300,7 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
     const compositeMode = magickCompositeMode(mode);
     if (!generic && (compositeMode.name === "dst" || compositeMode.name === "dest")) return base;
     let hasAlpha = base.hasAlpha || (!generic && !compositeMode.delegated && !compositeMode.preservesAlpha);
-    if (!generic && (base.storedData16 || overlay.storedData16 || base.storedEvaluateSamples !== undefined || overlay.storedEvaluateSamples !== undefined)) {
+    if (!generic && (["dstatop", "destatop"].includes(compositeMode.name) || base.storedData16 || overlay.storedData16 || base.storedEvaluateSamples !== undefined || overlay.storedEvaluateSamples !== undefined)) {
         return transformStoredMagickRaster({ ...base, storedEvaluateSamples: undefined }, backend,
             composite16PixelSteps(base, overlay, left, top, mode, args, tile, fuzz, clipToOverlay), signal,
             { ...base, hasAlpha }, [base, overlay]);

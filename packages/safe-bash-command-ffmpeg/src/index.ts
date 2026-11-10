@@ -9364,7 +9364,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let statsScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 / 32767
                     : t.codecDescriptions[0]?.codecName === "pcm_s32le" ? 2147483648 / 2147483647 : 1;
                   if (filter) {
-                    let audioCommands: { sample: number; target: string; expression: string }[] = [];
+                    let audioCommands: { sample: number; target: string; action: string; expression: string }[] = [];
                     const audioFilters = parseFilterChain(filter.expression);
                     for (const [filterIndex, item] of audioFilters.entries()) {
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -9583,12 +9583,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "feedback" && (target === "stereowiden" || target?.startsWith("stereowiden@"))
                             || action === "dry" && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
                             || action === "limit" && (target === "alimiter" || target?.startsWith("alimiter@"))
-                            || action === "unity" && (target === "afade" || target?.startsWith("afade@"))
+                            || ["unity", "silence", "curve", "c", "nb_samples", "ns", "type", "t"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME stereowiden[@NAME] feedback GAIN or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME alimiter[@NAME] limit LIMIT or TIME afade[@NAME] unity GAIN or TIME dialoguenhance[@NAME] original GAIN");
+                            throw new Error("asendcmd: expected TIME stereowiden[@NAME] feedback GAIN or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME alimiter[@NAME] limit LIMIT or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|type|t VALUE or TIME dialoguenhance[@NAME] original GAIN");
                           }
-                          return { time, target, expression };
+                          return { time, target, action: action!, expression };
                         });
                         if (!scheduled.length) throw new Error("asendcmd: commands are required");
                         budget.allocateMemory(scheduled.length * 64);
@@ -9605,7 +9605,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
                           while (next < scheduled.length && scheduled[next]!.time <= pts / origRate) {
                             const command = scheduled[next++]!;
-                            audioCommands.push({ sample: start, target: command.target, expression: command.expression });
+                            audioCommands.push({ sample: start, target: command.target, action: command.action, expression: command.expression });
                           }
                           start += count;
                         }

@@ -7,7 +7,7 @@ import { audioFadeCurves as curves } from "./audio-fade-curves.js";
 export async function fadeAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number }[] | undefined, startSample: number,
-  commands: readonly { sample: number; expression: string }[],
+  commands: readonly { sample: number; action: string; expression: string }[],
   budget: MediaBudgetTracker, signal?: AbortSignal, sampleFormat = "dbl"
 ): Promise<Float64Array[]> {
   let type = "in";
@@ -35,10 +35,7 @@ export async function fadeAudio(
     } else option += char;
   }
   if (argument) options.push(option);
-  for (const [index, option] of options.entries()) {
-    const separator = option.indexOf("=");
-    const key = separator < 0 ? ["type", "start_sample", "nb_samples", "start_time", "duration", "curve", "silence", "unity"][index] : option.slice(0, separator).trim();
-    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+  function applyOption(key: string | undefined, value: string) {
     if (key === "t" || key === "type") {
       const number = parseFilterExpression(value, "afade", { in: 0, out: 1 });
       if (number < 0 || number > 1) throw new Error("afade: invalid type");
@@ -81,6 +78,12 @@ export async function fadeAudio(
       } else throw new Error(`afade: unsupported option ${key}`);
     }
   }
+  for (const [index, option] of options.entries()) {
+    const separator = option.indexOf("=");
+    const key = separator < 0 ? ["type", "start_sample", "nb_samples", "start_time", "duration", "curve", "silence", "unity"][index] : option.slice(0, separator).trim();
+    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    applyOption(key, value);
+  }
   if (startOption + samplesOption > maxSamples) throw new Error("afade: invalid timing");
   let start = Number(startOption);
   let samples = Number(samplesOption);
@@ -102,8 +105,8 @@ export async function fadeAudio(
     while (commandIndex < commands.length && commands[commandIndex]!.sample <= i) {
       const command = commands[commandIndex++]!;
       try {
-        const value = parseFilterExpression(command.expression, "afade", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
-        if (Number.isFinite(value) && value >= 0 && value <= 1) unity = value;
+        applyOption(command.action, command.expression);
+        if (command.action === "ns" || command.action === "nb_samples") samples = Number(samplesOption);
       } catch { /* Native asendcmd continues after a rejected command. */ }
     }
     while (frames && frameIndex + 1 < frames.length && frames[frameIndex]!.end <= i) frameIndex++;
@@ -116,11 +119,11 @@ export async function fadeAudio(
     let pts = frame ? frame.pts + i - frame.start : startSample + i;
     // Native AV_NOPTS_VALUE precedes the fade: mute fade-in, preserve fade-out.
     if (Number.isNaN(pts)) pts = -Infinity;
-    const progress = Math.max(0, Math.min(1, (pts - start) / samples));
+    const progress = Math.max(0, Math.min(1, (type === "out" ? start + samples - pts : pts - start) / samples));
     // A positive duration can round to zero samples; both fades mute the boundary.
     const fraction = samples === 0
       ? (type === "out" ? (pts < start ? 1 : 0) : (pts > start ? 1 : 0))
-      : type === "out" ? 1 - progress : progress;
+      : progress;
     // Native shortcuts whole frames strictly outside the fade, bypassing the curve.
     const frameStart = pts - (i - (frame?.start ?? 0));
     const before = frameStart + (frame ? frame.end - frame.start : length) < start;

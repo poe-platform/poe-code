@@ -11194,7 +11194,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let stretched: typeof audio.channelData = audio.channelData;
                   let replayGainAvailable = true;
                   let audioStartSample = 0;
-                  let audioInitialFrameDropped = false;
+                  let audioInitialFrameUnavailable = false;
                   let audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
                   let audioTimestamps: { start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined }[] | undefined;
                   if (!sink && ((index !== undefined && (audioSegment || frameChecksumOutput)) || (filter && parseFilterChain(filter.expression)
@@ -11597,6 +11597,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const copies: { start: number; end: number; output: number }[] = [];
                         let frameIndex = 0;
                         let packetEnd = t.samples[0] ? Math.round(t.samples[0].duration * origRate / t.timescale) : 1024;
+                        // Regrouping cannot supply a frame immediately if it needs more input.
+                        if (reframe.size > (previous?.[0]?.end ?? Math.min(length, packetEnd))) {
+                          audioInitialFrameUnavailable = true;
+                        }
                         let enabled = true;
                         let padded = 0;
                         for (let start = 0; start < length;) {
@@ -13614,9 +13618,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const previousMetadata = audioMetadata;
                         audioMetadata = [];
                         audioTimestamps = [];
-                        // A trim that drops the first frame leaves no timestamp available
-                        // when native adelay first schedules its unconditional silence.
-                        let nextPts = audioInitialFrameDropped ? NaN
+                        // Dropped or buffered input leaves no timestamp available when
+                        // native adelay first schedules its unconditional silence.
+                        let nextPts = audioInitialFrameUnavailable ? NaN
                           : previous?.[0]?.pts ?? (t.samples[0] ? t.samples[0].pts * origRate / t.timescale : audioStartSample);
                         nextPts = Math.sign(nextPts) * Math.round(Math.abs(nextPts));
                         let nextExactPts: bigint | undefined;
@@ -13749,7 +13753,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // Common silence is emitted before upstream input is requested.
                         // Commands for later filters follow the corresponding input frame.
                         for (const command of audioCommands) command.sample += padding;
-                        audioInitialFrameDropped = false;
+                        audioInitialFrameUnavailable = false;
                       } else if (trimmed === "atempo" || trimmed.startsWith("atempo=")) {
                         const argument = trimmed.slice("atempo=".length).trim();
                         const tempo = parseTempo(argument);
@@ -15081,7 +15085,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         for (const [n, frame] of audioTimestamps.entries()) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           const range = trim(frame);
-                          if (range == null && n === 0) audioInitialFrameDropped = true;
+                          if (range == null && n === 0) audioInitialFrameUnavailable = true;
                           if (range === null) break;
                           if (range === undefined) continue;
                           const { start, end } = range;
@@ -15168,6 +15172,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         // Reverse buffers all input until EOF, so every upstream command
                         // reaches its target before the first reversed frame is emitted.
+                        audioInitialFrameUnavailable = true;
                         audioCommands.sort((a, b) => a.sample - b.sample);
                         for (const command of audioCommands) command.sample = 0;
                         // These scheduling and hardware options do not change reversed PCM.

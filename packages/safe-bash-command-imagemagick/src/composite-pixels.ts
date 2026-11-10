@@ -234,7 +234,7 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                 out[dIdx + 3] = clampByteVal(alpha * 255);
                 continue;
             }
-            if (norm === "minus") {
+            if (norm === "minus" || norm === "minusdst") {
                 const alpha = sa + da - sa * da;
                 for (let c = 0; c < 3; c++) {
                     // Subtract destination in the overlap, retaining both outside contributions.

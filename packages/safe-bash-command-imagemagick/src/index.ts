@@ -7308,7 +7308,9 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             const operation = parseMagickPixelOperation(["-threshold", String(65535 * threshold / 100)], captured, 0)!;
             return function* (image) {
                 const result = yield* operation.apply(image);
-                return { ...result, isPalette: false, properties: { ...result.properties, "auto-threshold:threshold": `${Number(threshold.toPrecision(6))}%` } };
+                // The mask is sRGB; retaining source hue samples would restore the input on conversion.
+                const { hueSamples: ignoredHue, magickColorspace: ignoredColorspace, ...mask } = result;
+                return { ...mask, isPalette: false, properties: { ...result.properties, "auto-threshold:threshold": `${Number(threshold.toPrecision(6))}%` } };
             };
         } };
     }

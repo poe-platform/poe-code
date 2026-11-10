@@ -1,9 +1,11 @@
 // Present headerless samples as Netpbm or MIFF for both decoding paths.
 export function rawRasterInput(width: number, height: number, depth: number, endian: string, byteLength: number, channels: 1 | 2 | 3 | 4 | 5, offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none") {
     const coder = channels === 1 ? "GRAY" : channels === 2 ? "GRAYA" : channels === 3 ? "RGB" : channels === 4 ? "CMYK" : "CMYKA";
-    if (depth !== 8 && depth !== 16 && (depth !== 32 || channels === 2) && !((depth === 1 || depth === 2 || depth === 4) && (channels === 1 || channels === 3) && interlace === "none")) throw new Error(`unsupported ${coder} input depth '${depth}'`);
-    const rowSamples = width * channels, rowLength = Math.ceil(rowSamples * depth / 8);
-    const frameLength = rowLength * height, decodedLength = rowSamples * height * Math.ceil(Math.min(depth, 16) / 8);
+    const packed = (depth === 10 || depth === 12) && (channels === 1 || channels === 3);
+    if (!packed && depth !== 8 && depth !== 16 && (depth !== 32 || channels === 2) && !((depth === 1 || depth === 2 || depth === 4) && (channels === 1 || channels === 3) && interlace === "none")) throw new Error(`unsupported ${coder} input depth '${depth}'`);
+    const rowChannels = packed && interlace !== "none" ? 1 : channels;
+    const rowSamples = width * channels, rowLength = Math.ceil(width * rowChannels * depth / 8);
+    const frameLength = rowLength * height * (channels / rowChannels), decodedLength = rowSamples * height * Math.ceil(Math.min(depth, 16) / 8);
     if (!Number.isSafeInteger(decodedLength) || !Number.isSafeInteger(frameLength) || frameLength > byteLength - offset || !Number.isSafeInteger(offset) || offset < 0) throw new Error(`unexpected end-of-file in ${coder} input`);
     // A complete packed scanline starts another frame; a shorter tail is ignored.
     if (interlace === "none" && (byteLength - offset) % frameLength >= frameLength / height) throw new Error(`unexpected end-of-file in ${coder} input`);
@@ -37,6 +39,33 @@ export function rawRasterInput(width: number, height: number, depth: number, end
     const packed = input[Math.floor(index / samplesPerByte) - firstByte]!;
                             bytes[headerLength + cursor - start] = ((packed >> (8 - depth - index % samplesPerByte * depth)) & mask) * (255 / mask);
                         }
+                    }
+                    return bytes;
+                }
+                if (packed) {
+                    // Packed samples are MSB-first, regardless of -endian; padding ends each channel row.
+                    const lastPixel = Math.ceil(end / (channels * 2));
+                    for (let pixel = Math.floor(start / (channels * 2)); pixel < lastPixel;) {
+                        const row = Math.floor(pixel / width);
+                        const limit = Math.min(lastPixel, pixel + 1024, (row + 1) * width);
+                        const firstSample = (pixel % width) * rowChannels;
+                        const count = (limit - pixel) * rowChannels;
+                        const firstByte = Math.floor(firstSample * depth / 8);
+                        const length = Math.ceil((firstSample + count) * depth / 8) - firstByte;
+                        for (let channel = 0; channel < channels / rowChannels; channel++) {
+                            const sourceRow = interlace === "plane" ? channel * height + row : interlace === "line" ? row * channels + channel : row;
+                            const input = yield { channel: interlace === "partition" ? channel : 0, position: offset + page * frameLength / (interlace === "partition" ? channels : 1) + sourceRow * rowLength + firstByte, length };
+                            if (input.length !== length) throw new Error(`unexpected end-of-file in ${coder} input`);
+                            for (let i = 0; i < count; i++) {
+                                const bit = (firstSample + i) * depth - firstByte * 8, byte = Math.floor(bit / 8);
+                                const sample = ((input[byte]! << 16 | (input[byte + 1] ?? 0) << 8 | (input[byte + 2] ?? 0)) >>> (24 - depth - bit % 8)) & (2 ** depth - 1);
+                                const value = Math.round(sample * 65535 / (2 ** depth - 1));
+                                const output = (interlace === "none" ? pixel * channels + i : (pixel + i) * channels + channel) * 2;
+                                if (output >= start && output < end) bytes[headerLength + output - start] = value >>> 8;
+                                if (output + 1 >= start && output + 1 < end) bytes[headerLength + output + 1 - start] = value & 255;
+                            }
+                        }
+                        pixel = limit;
                     }
                     return bytes;
                 }

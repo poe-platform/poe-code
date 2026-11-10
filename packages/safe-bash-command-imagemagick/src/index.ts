@@ -1998,7 +1998,17 @@ function* createPatternImageSteps(width: number, height: number, pattern: Return
 
 function resolveMagickSpliceGeometry(raw: string, width: number, height: number) {
     // Splice treats @ dimensions literally, unlike resize's area geometry.
-    const g = parseMagickGeometry(raw.replaceAll("@", ""));
+    let g = parseMagickGeometry(raw.replaceAll("@", ""));
+    const dimensionSeparator = raw.toLowerCase().indexOf("x");
+    const suffix = [...raw].findIndex(character => character === ":" || character === "/");
+    if (dimensionSeparator >= 0 && suffix > dimensionSeparator) {
+        // GetGeometry stops before parsing dimensions when it encounters a slash.
+        if (raw[suffix] === "/") return { ...g, width, height, x: 0, y: 0 };
+        // A colon normalizes the first two dimensions as an aspect ratio;
+        // the trailing component and offsets do not move the splice region.
+        const dimensions = parseMagickGeometry(raw.slice(0, suffix));
+        g = { ...g, aspectRatio: (dimensions.width ?? 0) / (dimensions.height ?? 1), x: 0, y: 0 };
+    }
     const hasDimensions = raw.toLowerCase().includes("x");
     const geometry = { ...g,
         width: Math.max(0, Math.round(g.aspectRatio !== undefined ? Math.min(width, height * g.aspectRatio) : g.isPercent

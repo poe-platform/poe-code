@@ -13,6 +13,11 @@ for (const mode of ["sync", "map", "retained", "command"] as const) {
         { terms: "-inf,1", expected: [0, 0, 0, 65535] },
         { terms: "1e999,1", expected: [65535, 65535, 65535, 65535] },
         { terms: "nanx,1", expected: undefined },
+        { terms: "nan(abc,1", expected: undefined },
+        { terms: "nan(abc)x,1", expected: undefined },
+        { terms: "nan(a!b),1", expected: undefined },
+        { terms: "nan(a b),1", expected: undefined },
+        { terms: "nan((abc)),1", expected: undefined },
         { terms: "1,1", expected: [32896, 16448, 8224, 65535] },
     ])(`${mode}: handles non-finite polynomial terms $terms`, async ({ terms, expected }) => {
         const previous = new TextEncoder().encode("KEEP");

@@ -29,7 +29,9 @@ export function parseMagickPoly(value: string): number[] {
     if (!fields.length) throw new Error(`invalid list of numbers '-poly' '${value}'`);
     const terms = fields.map(part => {
         const name = (part.startsWith("+") || part.startsWith("-") ? part.slice(1) : part).toLowerCase();
-        if (name === "nan") return NaN;
+        if (name === "nan" || (name.startsWith("nan(") && name.endsWith(")") &&
+            [...name.slice(4, -1)].every(character => character === "_" ||
+                character >= "a" && character <= "z" || character >= "0" && character <= "9"))) return NaN;
         if (name === "inf" || name === "infinity") return part.startsWith("-") ? -Infinity : Infinity;
         const hexadecimal = name.startsWith("0x");
         const number = hexadecimal ? Number(name) * (part.startsWith("-") ? -1 : 1) : Number(part);

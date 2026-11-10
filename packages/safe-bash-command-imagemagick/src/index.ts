@@ -6302,7 +6302,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const path = lower.startsWith("gray:") ? baseToken.slice(5) : baseToken;
         const source = path === "-" ? stdinBytes : files.get(path);
         if (!source) return undefined;
-        const raw = rawNetpbmInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, "lsb", source.length, 1, state.inputOffset);
+        const raw = rawNetpbmInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", source.length, 1, state.inputOffset);
         const frames: RgbaImage[] = [];
         for (const page of selectedInputPages(pageSpec, raw.pages)) {
             const bytes = new Uint8Array(raw.size);
@@ -13561,7 +13561,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   if(!state.hasSize)throw new Error("must specify image size for GRAY input");
   const path=lower.startsWith("gray:")?baseToken.slice(5):baseToken;
   const consume=async(source:ImageByteSource)=>{
-   const raw=rawNetpbmInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,"lsb",source.size,1,state.inputOffset);
+   const raw=rawNetpbmInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",source.size,1,state.inputOffset);
    for(const page of selectedInputPages(pageSpec,raw.pages)){
     image=await parseStoredCompareInput(`pgm:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
      const steps=raw.read(position,length,page);let next=steps.next();

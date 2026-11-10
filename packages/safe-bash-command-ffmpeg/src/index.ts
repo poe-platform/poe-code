@@ -11490,7 +11490,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const argument = trimmed.slice("atrim=".length);
                         for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
                           const separator = option.indexOf("=");
-                          let key = separator < 0 ? ["start", "end"][index] : option.slice(0, separator).trim();
+                          let key = separator < 0 ? ["start", "end", "start_pts", "end_pts", "duration", "start_sample", "end_sample"][index] : option.slice(0, separator).trim();
                           if (key === "starti" || key === "endi") key = key.slice(0, -1);
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           const samples = key === "start_sample" || key === "end_sample";

@@ -9506,7 +9506,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else if (name === "direct") parseFilterBoolean(value, "ametadata: invalid direct");
                           else throw new Error(`ametadata: unsupported option ${name}`);
                         }
-                        if (mode !== "print" && mode !== "add" && mode !== "modify" && mode !== "delete") throw new Error("ametadata: only mode=add, mode=modify, mode=delete and mode=print are supported");
+                        if (mode !== "print" && mode !== "add" && mode !== "modify" && mode !== "delete" && mode !== "select") throw new Error("ametadata: only mode=add, mode=modify, mode=delete, mode=select and mode=print are supported");
                         const lookupKey = key?.toLowerCase();
                         if (mode === "add" || mode === "modify") {
                           if (!key || metadataValue === undefined) throw new Error(`ametadata: mode=${mode} requires key and value`);
@@ -9528,6 +9528,55 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           continue;
                         }
                         if (!["same_str", "starts_with", "ends_with"].includes(comparison)) throw new Error(`ametadata: unsupported function ${comparison}`);
+                        if (mode === "select") {
+                          if (!key) throw new Error("ametadata: mode=select requires key");
+                          const selected: NonNullable<typeof audioTimestamps> = [];
+                          const ranges: { start: number; end: number }[] = [];
+                          const inputLength = stretched[0]?.length ?? 0;
+                          let length = 0;
+                          for (let start = 0, n = 0; start < inputLength; n++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const timestamp = audioTimestamps?.[n];
+                            const packet = t.samples[n];
+                            const count = timestamp ? timestamp.end - timestamp.start
+                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                            const end = Math.min(inputLength, start + count);
+                            const frame = audioMetadata[n];
+                            const tag = frame && Array.from(frame.tags).find(([name]) => name.toLowerCase() === lookupKey);
+                            const matches = tag && (metadataValue === undefined || (comparison === "starts_with" ? tag[1].startsWith(metadataValue)
+                              : comparison === "ends_with" ? tag[1].endsWith(metadataValue) : tag[1] === metadataValue));
+                            if (frame && matches) {
+                              budget.allocateMemory(64);
+                              audioMetadata[selected.length] = frame;
+                              ranges.push({ start, end });
+                              selected.push({ start: length, end: length + end - start,
+                                pts: timestamp?.pts ?? frame.pts, pos: timestamp?.pos ?? packet?.offset });
+                              length += end - start;
+                            }
+                            start = end;
+                          }
+                          audioMetadata.length = selected.length;
+                          if (length !== inputLength) {
+                            budget.allocateMemory(length * stretched.length * 8);
+                            const output = stretched.map(() => new Float64Array(length));
+                            let offset = 0;
+                            for (const frame of ranges) {
+                              for (let start = frame.start; start < frame.end; start += 4096) {
+                                budget.checkCpu();
+                                await yieldTurn(context.signal);
+                                context.signal?.throwIfAborted();
+                                const end = Math.min(frame.end, start + 4096);
+                                for (const [channel, samples] of stretched.entries()) {
+                                  output[channel]!.set(samples.subarray(start, end), offset + start - frame.start);
+                                }
+                              }
+                              offset += frame.end - frame.start;
+                            }
+                            stretched = output;
+                          }
+                          audioTimestamps = selected;
+                          continue;
+                        }
                         let report = "";
                         for (const [n, frame] of audioMetadata.entries()) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }

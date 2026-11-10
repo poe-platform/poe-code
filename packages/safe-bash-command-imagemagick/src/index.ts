@@ -1811,7 +1811,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
           img ??= getImage();
           const fn = compileFxExpression(expression.slice(expression.indexOf(":") + 1));
           if (fn.needsStatistics) pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection, context.precision);
-          const ctx: FxEvalContext = { statistics, frameIndex: context.listIndex ?? context.sceneIdx, stack: context.fxStack ?? [{ ...img, [magickInput]: { ...img[magickInput], ...context } }], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
+          const ctx: FxEvalContext = { statistics, sceneCount: context.sceneCount, frameIndex: context.listIndex ?? context.sceneIdx, stack: context.fxStack ?? [{ ...img, [magickInput]: { ...img[magickInput], ...context } }], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
           if (key.startsWith("fx:")) {
             parts.push(formatSignificantMetric(fn(ctx), context.precision));
           } else {
@@ -1875,7 +1875,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
   return frame;
  }, indexOf(target) { for (const [index, frame] of frames) if (frame === target) return index; return 0; } };
  const statistics=fn.needsStatistics?yield*getStatistics():undefined;
- const fxContext:FxEvalContext={statistics,frameIndex:context.listIndex??context.sceneIdx,stack:source,x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
+ const fxContext:FxEvalContext={statistics,sceneCount:context.sceneCount,frameIndex:context.listIndex??context.sceneIdx,stack:source,x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
   if(!target)return 0;
   const px=Math.max(0,Math.min(target.width-1,Math.round(x))),py=Math.max(0,Math.min(target.height-1,Math.round(y))),position=(py*target.width+px)*4;
   if(!Number.isFinite(position))return NaN;
@@ -3137,6 +3137,7 @@ interface FxStack { readonly length: number; get(index: number): FxImage | undef
 class FxFrameDemand {}
 interface FxEvalContext {
   readonly frameIndex?: number | undefined;
+  readonly sceneCount?: number | undefined;
   readonly statistics?: Readonly<Record<string, number>> | undefined;
   readonly stack: FxStack | readonly FxImage[];
   readonly sample?: typeof sampleFxImage;
@@ -3714,7 +3715,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
         if (name === "j") return ctx.y;
         if (name === "w") return ctx.w;
         if (name === "h") return ctx.h;
-        if (name === "n") return ctx.stack.length;
+        if (name === "n") return ctx.sceneCount ?? ctx.stack.length;
         if (name === "t") return ctx.frameIndex ?? 0;
         if (name === "quantumrange" || name === "maxrgb") return 65535;
         if (name === "quantumscale") return 1 / 65535;
@@ -18181,7 +18182,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const gifPages: MagickImage[] = [];
     const stdoutChunks: Uint8Array[] = [];
     let stdout = "";
-    function* writePage(canvas: RgbaImage, page: number, multiple: boolean): Generator<void, void, void> {
+    function* writePage(canvas: RgbaImage, page: number, sceneCount: number): Generator<void, void, void> {
         if (title !== undefined) {
             const { svg, height } = montageTitleSvg(title, canvas.width, state, padY);
             const caption = decodeImage(new TextEncoder().encode(svg));
@@ -18197,17 +18198,17 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         if (outSpec.toLowerCase().startsWith("info:")) {
             stdout += state.formatStr !== undefined
-                ? yield* formatMagickPropertyStringSteps(state.formatStr, canvas, () => canvas, { outputFilePath: outSpec.slice(5), sceneIdx: page, outputScene: page, quality: state.quality })
+                ? yield* formatMagickPropertyStringSteps(state.formatStr, canvas, () => canvas, { outputFilePath: outSpec.slice(5), sceneIdx: page, outputScene: page, sceneCount, quality: state.quality })
                 : `${canvas.width}x${canvas.height} ${canvas.magickColorspace ?? "sRGB"} 8-bit\n`;
             detachRgbaBuffer(canvas.data);
             return;
         }
         const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png");
-        if (state.adjoin && format === "gif" && multiple && !hasSceneOutputPattern(path)) {
+        if (state.adjoin && format === "gif" && sceneCount > 1 && !hasSceneOutputPattern(path)) {
             gifPages.push(canvas);
             return;
         }
-        const outPath = path === "-" ? path : (multiple && !adjoin) || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, page) : path.replaceAll("%%", "%");
+        const outPath = path === "-" ? path : (sceneCount > 1 && !adjoin) || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, page) : path.replaceAll("%%", "%");
         if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
         const { data: encoded } = encodeImage(canvas, { format, netpbmDepth: state.inputDepth ?? 16, pngCoder, gifVersion, tiffBig, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth, ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}), consumeInput: true } as any);
         detachRgbaBuffer(canvas.data);
@@ -18301,7 +18302,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 yield* blitOverRgbaInPlaceSteps(canvas, im, dstX + borderW, dstY + borderW);
                 detachRgbaBuffer(im.data);
             }
-            yield* writePage(canvas, pageStart / (cols * rows), n > cols * rows);
+            yield* writePage(canvas, pageStart / (cols * rows), Math.ceil(n / (cols * rows)));
         }
     } else {
         const images: RgbaImage[] = [];
@@ -18448,7 +18449,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 yield* blitOverRgbaInPlaceSteps(canvas, im, cellX + off.left + (concatenate ? borderW : 0), cellY + off.top + (concatenate ? borderW : 0));
                 detachRgbaBuffer(im.data);
             }
-            yield* writePage(canvas, pageStart / (cols * rows), n > cols * rows);
+            yield* writePage(canvas, pageStart / (cols * rows), Math.ceil(n / (cols * rows)));
         }
         images.length = 0;
     }
@@ -18687,7 +18688,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             if (outSpec.toLowerCase().startsWith("info:")) {
                 const target = outSpec.slice(5), page = pageStart / (cols * rows);
                 const text = state.formatStr !== undefined
-                    ? await formatRetainedIdentify(state.formatStr, canvas, { outputFilePath: target, sceneIdx: page, outputScene: page, quality: state.quality }, async () => ({ image: canvas, storage: backend.storage }), signal)
+                    ? await formatRetainedIdentify(state.formatStr, canvas, { outputFilePath: target, sceneIdx: page, outputScene: page, sceneCount: Math.ceil(n / (cols * rows)), quality: state.quality }, async () => ({ image: canvas, storage: backend.storage }), signal)
                     : `${canvas.width}x${canvas.height} ${canvas.magickColorspace ?? "sRGB"} 8-bit\n`;
                 if ((!target || target === "-") && input.stdout) await writeIdentifyText(input.stdout, text, signal);
                 else stdout += text;

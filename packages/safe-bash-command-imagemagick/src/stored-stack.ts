@@ -18,6 +18,7 @@ export interface MagickFormatContext {
     listIndex?: number;
     sceneCount?: number;
     quality?: number;
+    borderColor?: RgbaColor;
     fuzz?: number;
     trimEdges?: string | undefined;
     trimPercentBackground?: number | undefined;

@@ -9381,8 +9381,8 @@ if (t === "-intent" || t === "+intent") {
         else if (t === "-mattecolor" || t === "+mattecolor") {
             state.matteColor = parseColor(t === "+mattecolor" ? "#bdbdbd" : tokens[++i] ?? "#bdbdbd");
         }
-        else if (t === "-bordercolor") {
-            state.borderColor = parseColor(tokens[++i] ?? "#dfdfdf", true);
+        else if (t === "-bordercolor" || t === "+bordercolor") {
+            state.borderColor = parseColor(t === "+bordercolor" ? "#dfdfdf" : tokens[++i] ?? "#dfdfdf", true);
         }
         else if (t === "-pointsize") {
             state.pointsize = Math.max(1, Number(tokens[++i] ?? 12));
@@ -9943,6 +9943,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         if (setting === undefined && (t === "-solarize" || ((t === "-colorize" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-random-threshold" || t === "-range-threshold") && tokens[i + 1]?.includes("%[")) || ((t === "-modulate" || t === "-posterize" || t === "-ordered-dither") && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%")) || ((t === "-level-colors" || t === "+level-colors") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
             const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" || t === "-tint" ? "" : "1");
             let sceneIdx = 0;
+        const previousBorderColor = state.borderColor;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" ? value.trimEnd() : value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, sceneIdx: sceneIdx++, optionProperties: state.optionProperties });
                 const operation = parseMagickPixelOperation([t, expanded], state, 0, signal)!;
@@ -9961,6 +9962,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const depth = state.inputDepth ?? 16, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
                 stack = yield* mapMagickImagesSteps(stack, function* (image) {
                     if (depth < 16) image = yield* applyMagickRasterSteps(image, posterizePixelSteps(image, 2 ** depth, false, 1, channels, signal, false), signal);
+            if (t === "-bordercolor" || t === "+bordercolor") {
+                stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                    yield;
+                    const source = (image as MagickImage)[magickInput];
+                    return { ...image, [magickInput]: { ...source, borderColor: t === "-bordercolor" ? state.borderColor : source?.borderColor ?? previousBorderColor } };
+                });
+            }
                     return { ...image, bitsPerSample: depth };
                 });
             }
@@ -10757,12 +10765,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const width = im.width + bw * 2, height = im.height + bh * 2;
                 const readMask = im.readMask ? yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
                 // Native decoration creates a zero-valued write-mask channel.
+                const borderColor = (im as MagickImage)[magickInput]?.borderColor ?? state.borderColor;
                 const writeMask = im.writeMask ? yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
                 if (state.composeRaw.toLowerCase() === "over") {
-                    return { ...yield* applyMagickRasterSteps(im, borderPixels(im, bw, bh, state.borderColor, !!im.data16), signal,
+                    return { ...yield* applyMagickRasterSteps(im, borderPixels(im, bw, bh, borderColor, !!im.data16), signal,
                         { width, height, hasAlpha: true }), region: undefined, writeMask, readMask, virtualCanvas: magickBorderCanvas(im, bw, bh) };
                 }
-                const canvas = yield* createSolidRgbaImageSteps(width, height, state.borderColor);
+                const canvas = yield* createSolidRgbaImageSteps(width, height, borderColor);
                 const composed = yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, bw, bh, state.composeArgs, signal, state.alphaFuzz, true);
                 return { ...composed, writeMask, readMask, virtualCanvas: magickBorderCanvas(im, bw, bh) };
             }));
@@ -12332,9 +12341,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             i = setting;
             if (token === "-channel" || token === "+channel") {
                 const channels = state.channels;
+        const previousBorderColor = state.borderColor;
                 stackStep(async stack => { maskChannels = channels; return stack; });
             }
             if (token === "-depth" || token === "+depth") {
+            if (token === "-bordercolor" || token === "+bordercolor") {
+                const borderColor = state.borderColor;
+                steps.push(async image => {
+                    if (!image) return;
+                    const source = (image as StoredMagickImage)[magickInput];
+                    return { ...image, [magickInput]: { ...source, borderColor: token === "-bordercolor" ? borderColor : source?.borderColor ?? previousBorderColor } };
+                });
+            }
                 const depth = state.inputDepth ?? 16, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
                 steps.push(async (image, backend) => {
                     if (!image) return;
@@ -13887,7 +13905,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return compositeStoredMagick(canvas, image, backend, signal, left, top, composeRaw, composeArgs, false, true, false, false, alphaFuzz, true);
             });
         } else if (!operandsOnly && token === "-border") {
-            const geometry = parseMagickBorderGeometry(tokens[++i] ?? ""), background = state.borderColor, compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz;
+            const geometry = parseMagickBorderGeometry(tokens[++i] ?? ""), defaultBorderColor = state.borderColor, compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const left = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? 0));
@@ -13899,6 +13917,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (compose.toLowerCase() === "over") {
                     return { ...await transformStoredMagickRaster(image, backend, borderPixels(image, left, top, background, !!image.storedData16), signal,
                         { width, height, hasAlpha: true }), region: undefined, storedWriteMask, readMask, virtualCanvas: magickBorderCanvas(image, left, top) };
+                const background = (image as StoredMagickImage)[magickInput]?.borderColor ?? defaultBorderColor;
                 }
                 const canvas = await createStoredCanvas(width, height, background, backend, signal);
                 return { ...await compositeStoredMagick(canvas, image, backend, signal, left, top, compose, composeArgs, false, true, false, false, fuzz, true),

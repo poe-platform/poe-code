@@ -3495,25 +3495,23 @@ async function applyVideoFilterChain(
       const cols = Number(dimensions[0]);
       const rows = Number(dimensions[1]);
       if (cols * rows > 2147483647) throw new Error("tile: layout has too many cells");
-      for (const key of ["nb_frames", "margin", "padding"]) {
-        const value = Number(named[key] ?? 0);
-        const max = key === "nb_frames" ? cols * rows : 1024;
-        if (named[key]?.trim() === "" || !Number.isInteger(value) || value < 0 || value > max) {
-          throw new Error(`tile: ${key} must be an integer from 0 to ${max}`);
+      const integerOption = (key: string, max: number): number => {
+        const value = parseFilterExpression(named[key] ?? "0", `tile: ${key}`, {
+          default: 0, min: 0, max, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+        });
+        // AVOptions checks the unrounded value before converting with lrint.
+        if (value < 0 || value > max) {
+          throw new RangeError(`tile: ${key} must be from 0 to ${max}`);
         }
-      }
-      const padding = Number(named.padding ?? 0);
-      const margin = Number(named.margin ?? 0);
+        return roundToEven(value);
+      };
+      const padding = integerOption("padding", 1024);
+      const margin = integerOption("margin", 1024);
       const color = parseColorRgba(named.color ?? "black");
-      const perTile = Number(named.nb_frames ?? 0) || cols * rows;
-      const overlap = Number(named.overlap ?? 0);
-      if (!Number.isInteger(overlap) || overlap < 0 || overlap > 2147483647) {
-        throw new Error("tile: overlap must be an integer from 0 to 2147483647");
-      }
-      const initPadding = Number(named.init_padding ?? 0);
-      if (!Number.isInteger(initPadding) || initPadding < 0 || initPadding > 2147483647) {
-        throw new Error("tile: init_padding must be an integer from 0 to 2147483647");
-      }
+      const perTile = integerOption("nb_frames", 2147483647) || cols * rows;
+      if (perTile > cols * rows) throw new Error("tile: nb_frames exceeds layout capacity");
+      const overlap = integerOption("overlap", 2147483647);
+      const initPadding = integerOption("init_padding", 2147483647);
       const step = perTile - Math.min(overlap, perTile - 1);
       const tiledFrames: MediaVideoFrame[] = [];
       let consumed = 0;

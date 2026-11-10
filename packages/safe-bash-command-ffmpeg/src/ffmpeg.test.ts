@@ -2505,8 +2505,8 @@ describe("tile invalid options", () => {
   for (const options of [
     "2x2:nb_frames=5", "0x2", "2x0", "-1x2", "2x2x2", "2junkx2", "2.5x2",
     "2x2:padding=-1", "2x2:margin=-1", "2x2:badkey=1",
-    "2x2:nb_frames=-1", "2x2:nb_frames=1.5", "2x2:nb_frames=invalid",
-    "2x2:padding=1.5", "2x2:margin=invalid", "2x2:padding=2147483648",
+    "2x2:nb_frames=-1", "2x2:nb_frames=invalid",
+    "2x2:margin=invalid", "2x2:padding=2147483648",
     "2x2:margin=2147483648", "2x2:padding=1025", "2x2:margin=1025",
     "2147483648x1", "65536x65536", "2x2:nb_frames=", "2x2:color=invalid",
     "2x2:0:0:0:black:0:0:extra"
@@ -2577,7 +2577,7 @@ describe("untile", () => {
 });
 
 describe("tile overlap", () => {
-  for (const overlap of ["-1", "1.5", "2147483648", "invalid"]) {
+  for (const overlap of ["-1", "2147483648", "invalid"]) {
     it(`rejects overlap=${overlap} without replacing output`, async () => {
       const vfs = createTestVfs({ "/out.png": "keep" });
       const result = await runCmd(createFfmpegCommand(), [
@@ -2641,7 +2641,7 @@ describe("tile overlap", () => {
 });
 
 describe("tile initial padding", () => {
-  for (const initPadding of ["-1", "1.5", "2147483648", "invalid"]) {
+  for (const initPadding of ["-1", "2147483648", "invalid"]) {
     it(`rejects init_padding=${initPadding} without replacing output`, async () => {
       const vfs = createTestVfs({ "/out.png": "keep" });
       const result = await runCmd(createFfmpegCommand(), [

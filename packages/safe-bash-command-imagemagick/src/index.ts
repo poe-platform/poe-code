@@ -10115,7 +10115,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-morph") {
             if (!stack.length) throw new Error("no images found for operation '-morph'");
             const argument = tokens[++i] ?? "1", image = stack[0];
-            const expanded = image ? yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }) : argument;
+            const expanded = image ? yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties }) : argument;
             const count = parseMagickMorphCount(expanded);
             stack = (yield* applyMagickMorphSteps(stack, count, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.kernel, signal, state.resizeFilter));
         }
@@ -11805,7 +11805,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     stack.length = 0; await stack.push({ ...result, storedMetaChannels, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: 4, hasAlpha: base.space !== "cmyk" && sources.length === 4 || base.hasAlpha });
                 } else if (token === "-morph") {
                     const image = await stack.get(0);
-                    const expanded = image ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal) : argument;
+                    const expanded = image ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack) : argument;
                     const count = parseMagickMorphCount(expanded);
                     if (stack.length === 1 && count > 1) {
                         const image = (await stack.get(0))!;

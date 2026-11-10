@@ -16,7 +16,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         ...["0,foo"].map(spec => ({ args: ["r.png", "g.png", "-duplicate", spec], pixels: null })),
         { args: ["r.png", "g.png", "b.png", "-clone", "-1--2,0"], pixels: [red, green, blue, blue, green, red] },
         { args: ["r.png", "g.png", "b.png", "-delete", "-1,0"], pixels: [green] },
-        { args: ["r.png", "g.png", "-clone", "0,,1,"], pixels: [red, green, red, green] },
+        { args: ["r.png", "g.png", "-clone", "0,,1,"], pixels: [red, green, red, green, red] },
         { args: ["r.png", "g.png", "-delete", "99"], pixels: [red, green] },
         { args: ["r.png", "g.png", "-swap", "-1,0"], pixels: [green, red] },
         { args: ["r.png", "g.png", "-duplicate", "1,-1-0"], pixels: [red, green, green, red] }

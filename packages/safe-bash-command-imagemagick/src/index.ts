@@ -119,8 +119,8 @@ import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage
 import { combineMetaPixelSteps, type MetaChannels } from "./combine-meta.js";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16" | "evaluateSamples">> & { position?: number; storedEvaluateSamples?: number | undefined };
-type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
 type ImageMetadata = BaseImageMetadata & HueMetadata & MetaChannels & Pick<RgbaImage, "inactiveAlpha" | "alphaBlend">;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
@@ -9378,8 +9378,8 @@ if (t === "-intent" || t === "+intent") {
         else if (t === "-strokewidth") {
             state.strokeWidth = Math.max(0, Number(tokens[++i] ?? 1));
         }
-        else if (t === "-mattecolor") {
-            state.matteColor = parseColor(tokens[++i] ?? "#bdbdbd");
+        else if (t === "-mattecolor" || t === "+mattecolor") {
+            state.matteColor = parseColor(t === "+mattecolor" ? "#bdbdbd" : tokens[++i] ?? "#bdbdbd");
         }
         else if (t === "-bordercolor") {
             state.borderColor = parseColor(tokens[++i] ?? "#dfdfdf", true);
@@ -9936,6 +9936,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
+        if (t === "+mattecolor") {
+            stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, matteColor: image.matteColor ?? state.matteColor }; });
+        }
         const setting = applyMagickReadSetting(tokens, state, i);
         if (setting === undefined && (t === "-solarize" || ((t === "-colorize" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-random-threshold" || t === "-range-threshold") && tokens[i + 1]?.includes("%[")) || ((t === "-modulate" || t === "-posterize" || t === "-ordered-dither") && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%")) || ((t === "-level-colors" || t === "+level-colors") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
             const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" || t === "-tint" ? "" : "1");
@@ -9961,6 +9964,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     return { ...image, bitsPerSample: depth };
                 });
             }
+            if (t === "-mattecolor") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, matteColor: state.matteColor }; });
             if (t === "-interlace" || t === "+interlace") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
             if (t === "-compose" || t === "+compose") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, properties: { ...image.properties, compose: state.composeRaw } }; });
             if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity }; });
@@ -10902,8 +10906,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const readMask = im.readMask ? yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
                 // Native decoration creates a zero-valued write-mask channel.
                 const writeMask = im.writeMask ? yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
-                const canvas = { ...yield* applyMagickRasterSteps(im, magickFramePixels(im, width, height, state.borderColor, state.matteColor, fw, fh, g.x, g.y, state.composeRaw.toLowerCase() === "over"), signal,
-                    { width, height, hasAlpha: im.hasAlpha || state.matteColor.a < 255 || state.borderColor.a < 255 }), region: undefined, writeMask, readMask, virtualCanvas: magickBorderCanvas(im, fw, fh) };
+                const canvas = { ...yield* applyMagickRasterSteps(im, magickFramePixels(im, width, height, state.borderColor, im.matteColor ?? state.matteColor, fw, fh, g.x, g.y, state.composeRaw.toLowerCase() === "over"), signal,
+                    { width, height, hasAlpha: im.hasAlpha || (im.matteColor ?? state.matteColor).a < 255 || state.borderColor.a < 255 }), region: undefined, writeMask, readMask, virtualCanvas: magickBorderCanvas(im, fw, fh) };
                 if (state.composeRaw.toLowerCase() === "over") return canvas;
                 return yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, fw, fh, state.composeArgs, signal, state.alphaFuzz, true);
             });
@@ -12319,6 +12323,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
+        if (!operandsOnly && token === "+mattecolor") {
+            const matteColor = state.matteColor;
+            steps.push(async image => image ? { ...image, matteColor: image.matteColor ?? matteColor } : undefined);
+        }
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
         if (setting !== undefined) {
             i = setting;
@@ -12333,6 +12341,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (depth < 16) image = await transformStoredMagickRaster(image, backend, posterizePixelSteps(image, 2 ** depth, false, 1, channels, signal, false), signal);
                     return { ...image, bitsPerSample: depth };
                 });
+            }
+            if (token === "-mattecolor") {
+                const matteColor = state.matteColor;
+                steps.push(async image => image ? { ...image, matteColor } : undefined);
             }
             if (token === "-interlace" || token === "+interlace") {
                 const interlace = state.interlace!;
@@ -13869,8 +13881,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const readMask = image.readMask ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                 // Native decoration creates a zero-valued write-mask channel.
                 const storedWriteMask = image.storedWriteMask ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
-                const canvas = { ...await transformStoredMagickRaster(image, backend, magickFramePixels(image, width, height, borderColor, matteColor, left, top, geometry.x, geometry.y, composeRaw.toLowerCase() === "over"), signal,
-                    { width, height, hasAlpha: image.hasAlpha || matteColor.a < 255 || borderColor.a < 255 }), region: undefined, storedWriteMask, readMask, virtualCanvas: magickBorderCanvas(image, left, top) };
+                const canvas = { ...await transformStoredMagickRaster(image, backend, magickFramePixels(image, width, height, borderColor, image.matteColor ?? matteColor, left, top, geometry.x, geometry.y, composeRaw.toLowerCase() === "over"), signal,
+                    { width, height, hasAlpha: image.hasAlpha || (image.matteColor ?? matteColor).a < 255 || borderColor.a < 255 }), region: undefined, storedWriteMask, readMask, virtualCanvas: magickBorderCanvas(image, left, top) };
                 if (composeRaw.toLowerCase() === "over") return canvas;
                 return compositeStoredMagick(canvas, image, backend, signal, left, top, composeRaw, composeArgs, false, true, false, false, alphaFuzz, true);
             });

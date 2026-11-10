@@ -15,7 +15,8 @@ export async function decodeMiffToStorage(source: ImageByteSource, storage: Imag
     const { metadata, offset, colors, pixelBytes } = await readMiffFromSource(source, signal, options?.page);
     checkLimitInputPixels(metadata.width, metadata.height, options);
     const count = metadata.width * metadata.height, position = storage.allocate(count * 4), sampleBytes = metadata.bitsPerSample! / 8;
-    const storedData16 = sampleBytes > 1 ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;
+    const storedData16 = sampleBytes > 1 || metadata.space === "cmyk" ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;
+    const storedHueSamples = metadata.space === "cmyk" ? storage.allocate(count * 32) : undefined;
     const palette = colors ? new Uint8Array(colors * 3 * sampleBytes) : undefined;
     if (palette) for (let start = 0; start < palette.length; start += 8192) {
         await defaultRuntime.yieldTurn(signal);
@@ -34,7 +35,8 @@ export async function decodeMiffToStorage(source: ImageByteSource, storage: Imag
         if (input.length !== length) throw new Error("Truncated MIFF raster");
         const pixels = miffPixels(input, metadata, palette);
         await storage.write(position + pixel * 4, pixels.data, { signal });
+        if (storedHueSamples !== undefined) await storage.write(storedHueSamples + pixel * 32, new Uint8Array(pixels.hueSamples!.buffer), { signal });
         if (storedData16) await storage.write(storedData16.position + pixel * 8, new Uint8Array(pixels.data16!.buffer), { signal });
     }
-    return { ...metadata, position, ...(storedData16 ? { storedData16 } : {}) };
+    return { ...metadata, position, ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }) };
 }

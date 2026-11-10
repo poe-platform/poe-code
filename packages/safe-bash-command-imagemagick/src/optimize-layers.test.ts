@@ -37,5 +37,11 @@ it(`preserves GIF playback (retained=${retained}, optimize=${optimize}, disposal
     ? [[0, 0, 3, 3], [1, 1, 1, 1], [1, 1, 1, 1], [0, 0, 1, 1]]
     : Array.from({ length: 4 }, () => [0, 0, 3, 3]));
   expect(decodeImage(output, { animated: true }).delay).toEqual([100, 200, 300, 400]);
-  expect(decodeImage(output, { animated: true }).data).toEqual(decodeImage(input, { animated: true }).data);
+  const actual = decodeImage(output, { animated: true }).data;
+  const expected = decodeImage(input, { animated: true }).data;
+  // Hidden RGB may change during palette conversion without changing playback.
+  for (const pixels of [actual, expected]) for (let i = 0; i < pixels.length; i += 4) {
+    if (pixels[i + 3] === 0) pixels.fill(0, i, i + 3);
+  }
+  expect(actual).toEqual(expected);
 });

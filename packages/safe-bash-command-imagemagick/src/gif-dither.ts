@@ -37,6 +37,8 @@ export function* gifDitherSteps(image: { width: number; height: number }, method
         if (++work % 1024 === 0) yield;
         const input = (yield { kind: "read", position, length: 4 })!;
         const target = Float64Array.from(input), x = position / 4 % image.width;
+        // Match the quantizer’s single transparent entry without hidden RGB error.
+        if (input[3] === 0) target[0] = target[1] = target[2] = 0;
         let key = 0;
         for (let c = 0; c < 4; c++) {
             if (method === "riemersma") for (let i = 0; i < 16; i++) target[c]! += weights[i]! * queue[i * 4 + c]!;

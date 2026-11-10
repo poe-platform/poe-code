@@ -234,14 +234,6 @@ const cases = [
   ["missing format skips readonly index", 'a=(old); i=0; readonly -a a; printf -v \'a[i++]\'; echo rc=$? i=$i first=${a[0]}'],
   ["loop readonly index side effect", 'a=(old); i=0; readonly -a a; for n in 1 2; do printf -v \'a[i++]\' %s new; echo rc=$? i=$i first=${a[0]}; done'],
   ["temporary prefix publication", 'value=old; value=temp printf -v value %s new; printf "<%s>" "$value"'],
-  ["nameref target prefix restoration", 'a=old; declare -n r=a; a=x printf -v r %s new; printf "%s|%s" "$?" "$a"'],
-  ["nameref prefix restoration", 'a=old; declare -n r=a; r=x printf -v r %s new; printf "%s|%s" "$?" "$a"'],
-  ["nameref indexed target prefix restoration", 'a=old; declare -n r=a; a=x printf -v "r[1]" %s new; printf "%s|%s|%s" "$?" "$a" "${a[1]-unset}"'],
-  ["nameref indexed prefix restoration", 'a=old; declare -n r=a; r=x printf -v "r[1]" %s new; printf "%s|%s|%s" "$?" "$a" "${a[1]-unset}"'],
-  ["nameref existing array prefix restoration", 'a=(old tail); declare -n r=a; a=x builtin printf -v "r[1]" %s new; printf "%s|%s|%s" "$?" "${a[0]}" "${a[1]}"'],
-  ["nameref byte prefix restoration", String.raw`a=$(printf '\377'); declare -n r=a; a=x command printf -v r %s new; printf '%s|' "$?"; printf '%s' "$a"`],
-  ["nameref publication without prefix", 'a=old; declare -n r=a; printf -v r %s new; printf "%s|%s" "$?" "$a"'],
-  ["nameref prefix direct target publication", 'a=old; declare -n r=a; r=x printf -v a %s new; printf "%s|%s" "$?" "$a"'],
   ["function and explicit builtin resolution", 'printf() { builtin printf function; }; printf -v value %s ignored; command printf -v value %s command; builtin printf "<%s>" "$value"; builtin printf -v value %s builtin; builtin printf "<%s>" "$value"'],
   ["format-error partial publication", 'value=old; printf -v value "prefix%s%Z" body; printf "<%s:%s>" "$?" "$value"'],
   ["numeric-error publication", 'printf -v value "%d:%s" nope tail; printf "<%s:%s>" "$?" "$value"'],
@@ -419,6 +411,32 @@ for (const unlimited of [false, true]) {
           compareNative();
         }
       } finally { await shell.dispose(); }
+    });
+  }
+}
+
+for (const [initial, target, expected] of [
+  ["a=(old)", "a[-3]", "1|2|old|0"],
+  ["a=(old)", "a[-3-i++]", "1|2|old|1"],
+  ["a=(old); declare -n ref=a", "ref[-3]", "1|2|old|0"],
+  ["a=(old)", "a[-1]", "0|2|ok|0"],
+] as const) {
+  for (const prefix of ["", "builtin ", "command "]) {
+    test(`${prefix}printf -v names an out-of-range destination after formatting: ${target}`, async context => {
+      const script = `${initial}; i=0;\n${prefix}printf -v '${target}' 'ok%n' n; printf '%s|%s|%s|%s' "$?" "$n" "$a" "$i"`;
+      const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script, "shell"], {
+        env: { LC_ALL: "C" }, timeout: 2000,
+      });
+      assert.ifError(oracle.error);
+      assert.equal(oracle.status, 0);
+      assert.equal(oracle.stdout.toString(), expected);
+      assert.equal(oracle.stderr.toString(), target === "a[-1]" ? "" : `shell: line 2: ${target}: bad array subscript\n`);
+      const { shell } = fixture();
+      context.after(() => shell.dispose());
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, oracle.status);
+      assert.deepEqual(result.stdoutBytes, new Uint8Array(oracle.stdout));
+      assert.deepEqual(result.stderrBytes, new Uint8Array(oracle.stderr));
     });
   }
 }

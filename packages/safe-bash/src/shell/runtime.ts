@@ -8489,13 +8489,10 @@ export class Runtime {
         status = 1;
       }
       if (!name) return status;
+      const destination = name;
       const value = concatShellValues(chunks, allocation);
       this.signal.throwIfAborted();
-      const suppliedName = name;
       name = this.referenceName(state, name);
-      const previous = assignments.get(name);
-      const restoreTemporary = suppliedName !== name && previous && !previous.superseded;
-      try {
       if (state.readonlyVariables?.has(name)) {
         const binding = arrayStore(state)?.get(name);
         // Bash evaluates indexed destinations even when the write is refused.
@@ -8505,18 +8502,22 @@ export class Runtime {
       }
       // Bash ignores assignments to its function-stack variable.
       if (name === "FUNCNAME") return status;
-      if (index) await this.arrayAssignment({ kind: "element", name, index, append: false, value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, context);
-      else await this.assignVariable(state, name, value, context);
-      if (previous && suppliedName === name) {
+      if (index) {
+        try { await this.arrayAssignment({ kind: "element", name, index, append: false, value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, context); }
+        catch (error) {
+          this.signal.throwIfAborted();
+          if (!(error instanceof ArrayFailure) || error.message !== "indexed array: index outside 0..2147483647") throw error;
+          await this.diagnostic(context, `${destination}[${index.source ?? index.decimal}]: bad array subscript`);
+          return 1;
+        }
+      } else await this.assignVariable(state, name, value, context);
+      const previous = assignments.get(name);
+      if (previous) {
         if (!previous.exported) state.exported.delete(name);
         await this.discardVariable(previous);
         assignments.delete(name);
       }
       return status;
-      } finally {
-        // Indexed publication must not discard a temporary binding reached through a nameref.
-        if (restoreTemporary) delete previous.superseded;
-      }
     } catch (error) {
       this.signal.throwIfAborted();
       // Destination arithmetic errors terminate the script; ArrayFailure remains recoverable.

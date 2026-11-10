@@ -12516,6 +12516,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       } else if (trimmed === "aresample" || trimmed.startsWith("aresample=")) {
                         let rate: number | undefined = trimmed === "aresample" ? 0 : undefined;
+                        let discard = 0;
                         let firstPts: number | undefined;
                         let format: string | undefined;
                         let cutoff: number | undefined;
@@ -12595,6 +12596,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         if (firstPts !== undefined) {
+                          rate ??= 0;
                           const start = audioTimestamps?.[0]?.pts ?? audioStartSample;
                           const offset = start - firstPts;
                           // libswresample's default minimum compensation is 1 ms.
@@ -12616,7 +12618,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 return output;
                               }, context.signal);
                             } else {
-                              stretched = stretched.map(channel => channel.subarray(Math.min(inputLength, -offset)));
+                              // Retain the input history until the resampler has filtered it.
+                              discard = -offset;
                             }
                           }
                           audioStartSample = firstPts;
@@ -12646,8 +12649,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               const start = outputEnds[i - 1] ?? 0;
                               return { start, end, pts: firstPts + start };
                             });
+                            discard = Math.floor(discard * targetRate / origRate);
                             origRate = targetRate;
                           }
+                        }
+                        if (discard > 0) {
+                          stretched = stretched.map(channel => channel.subarray(discard));
+                          audioTimestamps = audioTimestamps?.filter(frame => frame.end > discard).map(frame => ({
+                            start: Math.max(0, frame.start - discard), end: frame.end - discard,
+                            pts: frame.pts - Math.min(discard, frame.start)
+                          }));
                         }
                         if (format !== undefined) {
                           stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);

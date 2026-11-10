@@ -1071,7 +1071,13 @@ function parseAtrim(argument: string, origRate: number) {
     if (key === undefined || (!samples && !pts && key !== "start" && key !== "end")) {
       throw new Error(`atrim: unsupported option ${key}`);
     }
-    const number = samples || pts ? parseFilterExpression(value, "atrim", { inf: Infinity, Infinity, NaN }) : parseHlsDuration(value);
+    const number = samples || pts ? parseFilterExpression(value, "atrim", {
+      inf: Infinity, Infinity, NaN,
+      min: pts ? -(2 ** 63) : key === "start_sample" ? -1 : 0,
+      max: 2 ** 63,
+      default: pts ? -(2 ** 63) : key === "start_sample" ? -1 : 2 ** 63,
+      none: 0
+    }) : parseHlsDuration(value);
     const boundary = samples || pts ? roundToEven(number) : Math.sign(number) * Math.round(Math.abs(number) * origRate);
     // Native int64 options use doubles, including INT64_MAX rounded to 2^63.
     if (!value || Number.isNaN(number)) throw new Error(`atrim: invalid ${key}`);

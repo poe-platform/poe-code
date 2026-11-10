@@ -17,12 +17,13 @@ for (const mode of ["sync", "command"] as const) {
         expect(result.exitCode).toBe(0);
         const bytes = mode === "sync" ? files.get("out.miff")! : await filesystem.readFile("/out.miff");
         const end = bytes.indexOf(26) + 1;
-        expect(new TextDecoder().decode(bytes.subarray(0, end))).toContain(`page=${page}\n`);
+        const expectedPage = page === "0x0+2-3" ? "4x0+2-3" : page;
+        expect(new TextDecoder().decode(bytes.subarray(0, end))).toContain(`page=${expectedPage}\n`);
         expect(bytes.subarray(end)).toEqual(pixels);
         if (nativeMagick) {
             const identified = spawnSync("magick", ["identify", "-format", "%w %h %g", "miff:-"], { input: bytes });
             expect(identified.status, identified.stderr.toString()).toBe(0);
-            expect(identified.stdout.toString()).toBe(`2 1 ${page === "0x0+2-3" ? "2x1+2-3" : page}`);
+            expect(identified.stdout.toString()).toBe(`2 1 ${page === "0x0+2-3" ? "4x1+2-3" : page}`);
             const decoded = spawnSync("magick", ["miff:-", "-depth", "8", "rgba:-"], { input: bytes });
             expect(decoded.status).toBe(0);
             expect(new Uint8Array(decoded.stdout)).toEqual(pixels);

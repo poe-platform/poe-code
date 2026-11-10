@@ -10847,11 +10847,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           + Math.round((lastFrame.end - lastFrame.start) / samplesPerTick) * samplesPerTick : 0;
                         if (padding === undefined && minimum === undefined) {
                           let nextIndex = filterIndex + 1;
-                          let reframed = false;
+                          let reframe: string | undefined;
                           for (; nextIndex < audioFilters.length; nextIndex++) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             const name = audioFilters[nextIndex]!.split("=", 1)[0]!.split("@", 1)[0];
-                            if (name === "asetnsamples") reframed = true;
+                            if (name === "asetnsamples") reframe = audioFilters[nextIndex];
                             else if (!["anull", "acopy", "volume"].includes(name!)) break;
                           }
                           const next = audioFilters[nextIndex];
@@ -10888,7 +10888,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               duration > 0 ? inputLength + firstPts + duration - paddingPts : -Infinity);
                             // Reframing preserves sample positions but can change discontinuous PTS.
                             // Only sample end bounds are safe to propagate through asetnsamples.
-                            if (Number.isFinite(end) && (!reframed || endPts === -Infinity && duration === 0)) {
+                            if (Number.isFinite(end) && (!reframe || endPts === -Infinity && duration === 0)) {
                               minimum = Math.max(0, end);
                             }
                           }
@@ -10909,8 +10909,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                             if (maxAudioFrames !== undefined) {
                               // The output cap counts regrouped frames, not apad's packets.
-                              const reframe = audioFilters[filterIndex + 1];
-                              const frameSamples = reframe?.split("=", 1)[0]!.split("@", 1)[0] === "asetnsamples"
+                              const frameSamples = reframe !== undefined
                                 ? parseAsetnsamples(reframe.includes("=") ? reframe.slice(reframe.indexOf("=") + 1) : "").size
                                 : undefined;
                               let frameBound = frameSamples === undefined

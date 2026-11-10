@@ -50,10 +50,12 @@ it("adds only absent keys and prints all tags in filter order", async () => {
   assert.ok(String(result.volume.readFileSync("/all.txt", "utf8")).startsWith("frame:0    pts:0       pts_time:0\naudit=left\nother=second\n"));
 });
 
-for (const filter of ["ametadata=mode=add:value=left", "ametadata=mode=add:key=audit"]) {
-  it(`rejects incomplete add: ${filter}`, async () => {
+for (const filter of ["ametadata=mode=add:value=left", "ametadata=mode=add:key=audit",
+  "ametadata=mode=modify:value=left", "ametadata=mode=modify:key=audit"]) {
+  it(`rejects incomplete metadata update: ${filter}`, async () => {
     const result = await run("mix", filter);
     assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("requires key and value"), result.stderr);
     assert.equal(result.volume.existsSync("/out.wav"), false);
   });
 }
@@ -71,3 +73,40 @@ it("preserves added tags through phase measurement", async () => {
   assert.equal(result.exitCode, 0, result.stderr);
   assert.ok(String(result.volume.readFileSync("/tag.txt", "utf8")).startsWith("frame:0    pts:0       pts_time:0\naudit=left\nlavfi.aphasemeter.phase=1.000000\n"));
 });
+
+for (const graph of [false, true]) {
+  for (const key of ["label", "absent", undefined]) {
+    it(`modifies only existing frame tags without changing PCM (key=${key}, graph=${graph})`, async () => {
+      // Native FFmpeg 7.0.2: ten mono PCM16 samples split into 3, 3, 3, 1.
+      const input = Buffer.from("e803d007b80ba00f88137017581b401f28231027", "hex");
+      const volume = Volume.fromJSON({ "/in.raw": input, "/tags": "KEEP" });
+      const filter = "asetnsamples=n=3:p=0,ametadata=mode=add:key=label:value=sample,"
+        + (key === undefined ? "" : `ametadata=mode=modify:key=${key}:value=new,`)
+        + "ametadata=mode=print:file=tags";
+      const output: Buffer[] = [];
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-hide_banner", "-nostats", "-v", "info", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "in.raw",
+          ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+          "-f", "s16le", "-"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(),
+        stdout: { async write(bytes: Uint8Array) { output.push(Buffer.from(bytes)); } },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.deepEqual(Buffer.concat(output), input);
+      const value = key === "label" ? "new" : "sample";
+      assert.equal(volume.readFileSync("/tags", "utf8"),
+        `frame:0    pts:0       pts_time:0\nlabel=${value}\n`
+        + `frame:1    pts:3       pts_time:0.000375\nlabel=${value}\n`
+        + `frame:2    pts:6       pts_time:0.00075\nlabel=${value}\n`
+        + `frame:3    pts:9       pts_time:0.001125\nlabel=${value}\n`);
+    });
+  }
+}

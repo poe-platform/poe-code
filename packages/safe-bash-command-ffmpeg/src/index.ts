@@ -9504,10 +9504,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else if (name === "direct") parseFilterBoolean(value, "ametadata: invalid direct");
                           else throw new Error(`ametadata: unsupported option ${name}`);
                         }
-                        if (mode !== "print" && mode !== "add") throw new Error("ametadata: only mode=add and mode=print are supported");
+                        if (mode !== "print" && mode !== "add" && mode !== "modify") throw new Error("ametadata: only mode=add, mode=modify and mode=print are supported");
                         const lookupKey = key?.toLowerCase();
-                        if (mode === "add") {
-                          if (!key || metadataValue === undefined) throw new Error("ametadata: mode=add requires key and value");
+                        if (mode === "add" || mode === "modify") {
+                          if (!key || metadataValue === undefined) throw new Error(`ametadata: mode=${mode} requires key and value`);
                           const length = stretched[0]?.length ?? 0;
                           for (let start = 0, n = 0; start < length; n++) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -9516,7 +9516,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const count = timestamp ? timestamp.end - timestamp.start
                               : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                             const frame = audioMetadata[n] ?? { pts: timestamp?.pts ?? audioStartSample + start, tags: new Map<string, string>() };
-                            if (!Array.from(frame.tags.keys()).some(name => name.toLowerCase() === lookupKey)) {
+                            if (mode === "modify" ? frame.tags.has(key) : !Array.from(frame.tags.keys()).some(name => name.toLowerCase() === lookupKey)) {
                               budget.allocateMemory(64 + 2 * (key.length + metadataValue.length));
                               frame.tags.set(key, metadataValue);
                             }

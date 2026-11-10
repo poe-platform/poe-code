@@ -1999,8 +1999,8 @@ function* createPatternImageSteps(width: number, height: number, pattern: Return
 function resolveMagickSpliceGeometry(raw: string, width: number, height: number) {
     // Rectangle geometry ends at the first comma-separated field.
     raw = raw.split(",", 1)[0]!;
-    // Splice treats @ dimensions literally, unlike resize's area geometry.
-    let g = parseMagickGeometry(raw.split(",", 1)[0]!.replaceAll("@", ""));
+    // Splice treats @ dimensions literally and ignores # without dropping dimensions or offsets.
+    let g = parseMagickGeometry(raw.replaceAll("@", "").replaceAll("#", ""));
     const dimensionSeparator = raw.toLowerCase().indexOf("x");
     const suffix = [...raw].findIndex(character => character === ":" || character === "/");
     if (dimensionSeparator >= 0 && suffix > dimensionSeparator) {

@@ -10524,7 +10524,19 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const histogram = sums ? [] : t === "-auto-level" ? Array.from({ length: image.space === "cmyk" ? 5 : 4 }, () => new Float64Array([Infinity, -Infinity])) : Array.from({ length: cmykStretch || operation.sepiaThreshold !== undefined && image.space === "cmyk" ? 6 : analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(cmykStretch || channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.data16 ? 65536 : 256));
                 const selection = t === "-auto-gamma" ? yield* readMaskSelectionSteps(image, 0, image.data.length) : undefined;
                 yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram, state.intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, 0, state.channels, cmykStretch || operation.sepiaThreshold !== undefined || t === "-auto-level" || t === "-auto-threshold" || sums ? image.hueSamples ?? image.evaluateSamples : undefined, !!image.hueSamples, image.space === "cmyk", sums, t === "-auto-level");
-                return yield* operation.transform(histogram, image, sums)(image);
+                const metaChannels = t === "-auto-level" && state.channelDefault ? image.metaChannels : undefined;
+                // Extra planes contribute their single channel to the default shared range.
+                if (metaChannels) for (const plane of metaChannels) {
+                    yield* accumulateMagickHistogram(plane.data16 ?? plane.data, [histogram[0]!], state.intensity, false,
+                        undefined, undefined, true, undefined, 0, undefined, plane.evaluateSamples, false, false, undefined, true);
+                }
+                const apply = operation.transform(histogram, image, sums);
+                const result = yield* apply(image);
+                if (metaChannels) {
+                    result.metaChannels = [];
+                    for (const plane of metaChannels) result.metaChannels.push(yield* apply(plane));
+                }
+                return result;
             }, undefined, t === "-sepia-tone");
         }
         else if (t === "-cycle") {
@@ -13532,22 +13544,31 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const sums = token === "-auto-gamma" ? { count: 0, values: [0, 0, 0, 0, 0] } : undefined;
                 const cmykStretch = image.space === "cmyk" && (token === "-contrast-stretch" || token === "-linear-stretch");
                 const histogram = sums ? [] : token === "-auto-level" ? Array.from({ length: image.space === "cmyk" ? 5 : 4 }, () => new Float64Array([Infinity, -Infinity])) : Array.from({ length: cmykStretch || operation.sepiaThreshold !== undefined && image.space === "cmyk" ? 6 : analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(cmykStretch || channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.storedData16 ? 65536 : 256)), size = image.width * image.height * 4;
-                const original = analysisOperation.highDepth ? image.storedData16 : undefined;
-                const workingPosition = cmykStretch || operation.sepiaThreshold !== undefined || token === "-auto-level" || token === "-auto-threshold" && image.space === "cmyk" || sums ? image.storedHueSamples ?? image.storedEvaluateSamples : undefined;
-                const chunkSize = workingPosition !== undefined ? 2048 : original ? 8192 : 16384;
-                for (let offset = 0; offset < size; offset += chunkSize) {
-                    if (offset % 1048576 === 0) await yieldTurn(signal);
-                    const bytes = await backend.storage.read((original?.position ?? image.position) + offset * (original ? 2 : 1), Math.min(chunkSize, size - offset) * (original ? 2 : 1));
-                    const selection = token === "-auto-gamma" ? await drainIdentifySteps(readMaskSelectionSteps(image as StoredRgbaImage, offset, Math.min(chunkSize, size - offset), function* (position, length): Generator<IdentifyStep, Uint8Array, void> {
-                        let data!: Uint8Array;
-                        yield { async run() { data = await backend.storage.read((image as StoredRgbaImage).readMask!.position! + position, length); } };
-                        return data;
-                    }), signal) : undefined;
-                    const workingBytes = workingPosition !== undefined ? await backend.storage.read(workingPosition + offset * 8, Math.min(chunkSize, size - offset) * 8) : undefined;
-                    const workingSamples = workingBytes ? new Float64Array(workingBytes.buffer.slice(workingBytes.byteOffset, workingBytes.byteOffset + workingBytes.byteLength)) : undefined;
-                    await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, histogram, intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, offset / 4, settings.channels, workingSamples, image.storedHueSamples !== undefined, image.space === "cmyk", sums, token === "-auto-level"), signal);
+                const metaChannels = token === "-auto-level" && settings.channelDefault ? image.storedMetaChannels : undefined;
+                for (const plane of [image, ...metaChannels ?? []]) {
+                    const original = analysisOperation.highDepth ? plane.storedData16 : undefined;
+                    const workingPosition = cmykStretch || operation.sepiaThreshold !== undefined || token === "-auto-level" || token === "-auto-threshold" && plane.space === "cmyk" || sums ? plane.storedHueSamples ?? plane.storedEvaluateSamples : undefined;
+                    const chunkSize = workingPosition !== undefined ? 2048 : original ? 8192 : 16384;
+                    for (let offset = 0; offset < size; offset += chunkSize) {
+                        if (offset % 1048576 === 0) await yieldTurn(signal);
+                        const bytes = await backend.storage.read((original?.position ?? plane.position) + offset * (original ? 2 : 1), Math.min(chunkSize, size - offset) * (original ? 2 : 1));
+                        const selection = token === "-auto-gamma" ? await drainIdentifySteps(readMaskSelectionSteps(plane as StoredRgbaImage, offset, Math.min(chunkSize, size - offset), function* (position, length): Generator<IdentifyStep, Uint8Array, void> {
+                            let data!: Uint8Array;
+                            yield { async run() { data = await backend.storage.read((plane as StoredRgbaImage).readMask!.position! + position, length); } };
+                            return data;
+                        }), signal) : undefined;
+                        const workingBytes = workingPosition !== undefined ? await backend.storage.read(workingPosition + offset * 8, Math.min(chunkSize, size - offset) * 8) : undefined;
+                        const workingSamples = workingBytes ? new Float64Array(workingBytes.buffer.slice(workingBytes.byteOffset, workingBytes.byteOffset + workingBytes.byteLength)) : undefined;
+                        await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, plane === image ? histogram : [histogram[0]!], intensity, plane === image && image.magickColorspace === "RGB", selection, operation.sepiaThreshold, plane.space === "b-w" || plane.space === "grey16", plane, offset / 4, settings.channels, workingSamples, plane.storedHueSamples !== undefined, plane.space === "cmyk", sums, token === "-auto-level"), signal);
+                    }
                 }
-                return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, evaluate: cmykStretch || operation.sepiaThreshold !== undefined || token === "-auto-gamma" || token === "-auto-level" || token === "-linear-stretch", handlesWriteMask: token === "-auto-gamma" || token === "-auto-level" || token === "-linear-stretch", apply: operation.transform(histogram, image, sums) }, signal, analysisOperation.highDepth);
+                const transform = { end: analysisOperation.end, evaluate: cmykStretch || operation.sepiaThreshold !== undefined || token === "-auto-gamma" || token === "-auto-level" || token === "-linear-stretch", handlesWriteMask: token === "-auto-gamma" || token === "-auto-level" || token === "-linear-stretch", apply: operation.transform(histogram, image, sums) };
+                const result = await transformStoredMagickPixels(image, backend, transform, signal, analysisOperation.highDepth);
+                if (metaChannels) {
+                    result.storedMetaChannels = [];
+                    for (const plane of metaChannels) result.storedMetaChannels.push(await transformStoredMagickPixels(plane, backend, transform, signal, true));
+                }
+                return result;
             }, { handlesRegion: token === "-sepia-tone" }));
             continue;
         }

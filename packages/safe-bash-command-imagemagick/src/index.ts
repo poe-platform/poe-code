@@ -9515,6 +9515,8 @@ if (t === "-intent" || t === "+intent") {
             state.hasSize = true;
         }
         else if (t === "+size") {
+            state.sizeWidth = 1;
+            state.sizeHeight = 1;
             state.hasSize = false;
             delete state.inputOffset;
         }
@@ -15495,7 +15497,12 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 state.hasSize = true;
             }
         }
-        else if (t === "+size") { state.hasSize = false; delete state.inputOffset; }
+        else if (t === "+size") {
+            state.sizeWidth = 1;
+            state.sizeHeight = 1;
+            state.hasSize = false;
+            delete state.inputOffset;
+        }
         else if (t === "+depth") { delete state.inputDepth; }
         else if (t === "-density") {
             density = argv[++i] ?? "72";

@@ -9981,7 +9981,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "-interlace" || t === "+interlace") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
             if (t === "-compose" || t === "+compose") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, properties: { ...image.properties, compose: state.composeRaw } }; });
             if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity }; });
-            if (t === "-virtual-pixel" || t === "+virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, hasAlpha: image.hasAlpha || state.virtualPixel === "transparent" || state.virtualPixel === "background" && state.background.a < 255, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { ...(image as MagickImage)[magickInput], virtualPixel: state.virtualPixel } }; });
+            if (t === "-virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, hasAlpha: image.hasAlpha || state.virtualPixel === "transparent" || state.virtualPixel === "background" && state.background.a < 255, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { ...(image as MagickImage)[magickInput], virtualPixel: state.virtualPixel } }; });
         }
         else if (t === "-connected-components" || t === "+connected-components") {
             const connectivity = parseConnectedComponents(tokens, i++);
@@ -10370,13 +10370,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ });
                 validateMagickSpliceGeometry(expanded);
-                const result = yield* applyMagickSpliceSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, state.gravity, signal, state.virtualPixel);
-                if (im.readMask) result.readMask = yield* applyMagickSpliceSteps(im.readMask as RgbaImage, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, state.virtualPixel);
+                const result = yield* applyMagickSpliceSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, state.gravity, signal, im.virtualPixel);
+                if (im.readMask) result.readMask = yield* applyMagickSpliceSteps(im.readMask as RgbaImage, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, im.virtualPixel);
                 if (im.region && (result.width !== im.width || result.height !== im.height)) {
                     // Inserted bands are editable; existing protection travels with its pixels.
                     const mask = yield* applyMagickRasterSteps({ width: im.width, height: im.height, data: im.data,
                         format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, regionMaskPixelSteps(im, im.region), signal);
-                    result.writeMask = yield* applyMagickSpliceSteps(mask, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, state.virtualPixel);
+                    result.writeMask = yield* applyMagickSpliceSteps(mask, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, im.virtualPixel);
                     result.region = undefined;
                 }
                 return result;
@@ -12385,7 +12385,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const gravity = state.gravity;
                 steps.push(async image => image ? { ...image, gravity } : undefined);
             }
-            if (token === "-virtual-pixel" || token === "+virtual-pixel") {
+            if (token === "-virtual-pixel") {
                 const virtualPixel = state.virtualPixel, activateAlpha = virtualPixel === "transparent" || virtualPixel === "background" && state.background.a < 255;
                 steps.push(async image => image ? { ...image, hasAlpha: image.hasAlpha || activateAlpha, virtualPixel: virtualPixel ?? "edge", [magickInput]: { ...(image as StoredMagickImage)[magickInput], virtualPixel } } : undefined);
             }
@@ -13532,9 +13532,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 images = stack;
                 return stack;
             });
-            const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), captured = { ...state };
+            const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
+                const captured = { ...settings, virtualPixel: image.virtualPixel ?? "edge" };
                 const expanded = await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ }, async () => ({ image, storage: backend.storage }), signal, images);
                 if (token === "-splice") validateMagickSpliceGeometry(expanded);
                 else validateMagickTransformGeometry(expanded, token);

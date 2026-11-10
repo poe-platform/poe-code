@@ -11241,6 +11241,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     image = { ...image, region: undefined, writeMask };
                 }
                 let result = yield* applyMagickRasterSteps(image, sortPixelSteps(image, state.intensity), signal);
+                if (image.metaChannels) result.metaChannels = yield* mapSteps(image.metaChannels, function* (plane) {
+                    return yield* applyMagickRasterSteps(plane, sortPixelSteps(image, state.intensity, true), signal, plane, [image, plane]);
+                });
                 if (image.readMask) result.readMask = yield* applyMagickRasterSteps(image.readMask as RgbaImage,
                     sortPixelSteps(image, state.intensity, true), signal, image.readMask as RgbaImage, [image, image.readMask as RgbaImage]);
                 if (image.writeMask) {
@@ -14236,6 +14239,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     image = { ...image, region: undefined, storedWriteMask };
                 }
                 let result = await transformStoredMagickRaster(image, backend, sortPixelSteps(image, intensity), signal);
+                if (image.storedMetaChannels) {
+                    result.storedMetaChannels = [];
+                    for (const plane of image.storedMetaChannels) result.storedMetaChannels.push(await transformStoredMagickRaster(plane, backend,
+                        sortPixelSteps(image, intensity, true), signal, plane, [image, plane]));
+                }
                 if (image.readMask) result.readMask = await transformStoredMagickRaster(image.readMask as StoredRgbaImage, backend,
                     sortPixelSteps(image, intensity, true), signal, image.readMask as StoredRgbaImage, [image, image.readMask as StoredRgbaImage]);
                 if (image.storedWriteMask) {

@@ -346,7 +346,8 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
         }
         return;
     }
-    const samples = resizeSamples(image, width, height, thumbnail, scale, kernel, highDepth, settings, false, preserveSamples);
+    const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
+    const samples = resizeSamples(image, width, height, thumbnail, scale, kernel, highDepth, settings, cmyk, preserveSamples);
     const range = highDepth ? 65535 : 255;
     let next = samples.next();
     while (!next.done) {
@@ -354,8 +355,8 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
         if (request?.kind !== "samples") { next = samples.next(yield request); continue; }
         if (maskedAxis) {
             const horizontal = maskedAxis === "horizontal";
-            for (let i = 0; i < request.data.length; i += 4) {
-                const pixel = request.position / 4 + i / 4, x = pixel % width, y = Math.floor(pixel / width);
+            for (let i = 0; i < request.data.length; i += stride) {
+                const pixel = request.position / 4 + i / stride, x = pixel % width, y = Math.floor(pixel / width);
                 const sx = horizontal ? resizeCopyIndex(x, image.width, width) : x;
                 const sy = horizontal ? y : resizeCopyIndex(y, image.height, height);
                 // The authentic row/column cache starts with a zero mask and
@@ -374,8 +375,24 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
                     const bytes = samples?.length ? samples : (yield { kind: "read", highDepth, position, length: 4 })!;
                     const values = samples?.length ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
                     for (let c = 0; c < 4; c++) request.data[i + c] = values[c]! * (samples?.length && highDepth ? 257 : 1);
+                    if (cmyk) {
+                        const bytes = yield { kind: "read", hue: true, position, length: 4 };
+                        const inks = bytes?.length ? new Float64Array(bytes.slice().buffer)
+                            : rgbToCmyk(request.data[i]! / range, request.data[i + 1]! / range, request.data[i + 2]! / range);
+                        for (let c = 0; c < 4; c++) request.data[i + (c === 3 ? 4 : c)] = inks[c]! * range;
+                    }
                 }
             }
+        }
+        if (cmyk) {
+            const count = request.data.length / stride, inks = new Float64Array(count * 4), pixels = new Float64Array(count * 4);
+            for (let i = 0; i < count; i++) {
+                for (let c = 0; c < 4; c++) inks[i * 4 + c] = Math.fround(request.data[i * stride + (c === 3 ? 4 : c)]! * (highDepth ? 1 : 257)) / 65535;
+                for (let c = 0; c < 3; c++) pixels[i * 4 + c] = (1 - inks[i * 4 + c]!) * (1 - inks[i * 4 + 3]!) * range;
+                pixels[i * 4 + 3] = request.data[i * stride + 3]!;
+            }
+            yield { kind: "write", hue: true, position: request.position, data: new Uint8Array(inks.buffer) };
+            request.data = pixels;
         }
         // Even byte sources produce fractional samples needed by PNG64 output
         // and HDRI comparison, including negative filter lobes.

@@ -5064,7 +5064,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     }
     const options = magickResizeOptions(img, geomStr, kernel ?? (thumbnail ? "lanczossharp" : undefined));
     if (!options || (options.width === img.width && options.height === img.height)) return img;
-    preserveSamples ||= !!img.readMask;
+    preserveSamples ||= !!img.readMask || img.space === "cmyk";
     const writeMask = !!(img.writeMask || ((sample || scale) && img.region));
     kernel = options.kernel;
     const width = options.width!, height = options.height!;
@@ -5127,7 +5127,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
     if (!options) return image;
     const width = options.width!, height = options.height!;
     if (width === image.width && height === image.height) return image;
-    preserveSamples ||= !!image.readMask;
+    preserveSamples ||= !!image.readMask || image.space === "cmyk";
     const writeMask = !!(image.storedWriteMask || ((sample || scale) && image.region));
     const point = !scale && options.kernel === "nearest" && (!thumbnail || Math.min(image.width / width, image.height / height) < 3);
     if (image.readMask) {

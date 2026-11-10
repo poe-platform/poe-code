@@ -11144,6 +11144,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 canvas = yield* applyMagickRasterSteps(canvas, overCompositePixelSteps(canvas, stack[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || stack[n]!.data16)), signal, canvas, [canvas, stack[n]!]);
             }
             for (const image of stack) detachRgbaBuffer(image.data);
+            const source = (image as MagickImage)[magickInput], scene = source?.sceneIdx ?? 0;
+            Object.assign(canvas, {
+                [magickInput]: { delayTicks: source?.delayTicks },
+                delay: [image.delay?.[scene] ?? 0], delayTicks: image.delayTicks, ticksPerSecond: image.ticksPerSecond,
+                disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene],
+            });
             stack = [{ ...canvas, ...(image.orientation === undefined ? {} : { orientation: image.orientation }), gravity: image.gravity, virtualCanvas, density: image.density, ...(image.gamma !== undefined ? { gamma: image.gamma } : {}), ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) }];
         }
         else if (t === "-append" || t === "+append") {
@@ -12457,6 +12463,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const { width, height, virtualCanvas, offsets } = next.value;
                 let canvas: StoredRgbaImage = { gravity: images[0]!.gravity, ...await createStoredCanvas(width, height, background, backend, signal), hasAlpha: images.some(frame => frame.hasAlpha) || background.a < 255, ...(images[0]!.magickColorspace ? { magickColorspace: images[0]!.magickColorspace } : {}), ...(image.space === "cmyk" ? { space: "cmyk" as const } : {}) };
                 for (let n = 0; n < images.length; n++) canvas = await transformStoredMagickRaster(canvas, backend, overCompositePixelSteps(canvas, images[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.storedData16 || images[n]!.storedData16)), signal, canvas, [canvas, images[n]!]);
+                const source = image[magickInput], scene = source?.sceneIdx ?? 0;
+                Object.assign(canvas, {
+                    [magickInput]: { delayTicks: source?.delayTicks },
+                    delay: [await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] ?? 0], delayTicks: image.delayTicks, ticksPerSecond: image.ticksPerSecond,
+                    disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene],
+                });
                 stack.length = 0;
                 await stack.push({ ...canvas, ...(image.orientation === undefined ? {} : { orientation: image.orientation }), virtualCanvas, density: image.density, ...(image.gamma !== undefined ? { gamma: image.gamma } : {}), ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) });
                 return stack;

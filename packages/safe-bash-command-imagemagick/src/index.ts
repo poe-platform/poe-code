@@ -2126,8 +2126,8 @@ function resolveMagickChopGeometry(raw: string, image: Pick<RgbaImage, "width" |
     const { width, height } = image;
     // Rectangle geometry ends at the first comma-separated field.
     raw = raw.split(",", 1)[0]!.replaceAll("(", "").replaceAll(")", "");
-    // Chop ignores the # geometry modifier without dropping dimensions or offsets.
-    const g = parseMagickGeometry(raw.replaceAll("#", ""));
+    // Chop ignores # and treats % anywhere as a dimension modifier, preserving pixel offsets.
+    const g = parseMagickGeometry(raw.replaceAll("#", "").replaceAll("%", "") + (raw.includes("%") ? "%" : ""));
     // Native GetGeometry leaves the page rectangle untouched when a scalar @
     // width is followed by an offset sign, rather than a dimension separator.
     if (g.areaLimit !== undefined && g.hasOffset && !g.isPercent) {

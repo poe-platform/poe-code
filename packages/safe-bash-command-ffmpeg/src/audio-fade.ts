@@ -40,12 +40,18 @@ export async function fadeAudio(
     const key = separator < 0 ? ["type", "start_sample", "nb_samples", "start_time", "duration", "curve", "silence", "unity"][index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "t" || key === "type") {
-      if (!["in", "out", "0", "1"].includes(value)) throw new Error("afade: invalid type");
-      type = value === "1" || value === "out" ? "out" : "in";
+      const number = parseFilterExpression(value, "afade", { in: 0, out: 1 });
+      if (number < 0 || number > 1) throw new Error("afade: invalid type");
+      type = number > 0.5 ? "out" : "in";
     } else if (key === "c" || key === "curve") {
-      const entry = Object.entries(curves).find(([name], index) => value === name || value === String(index - 1));
-      if (!entry) throw new Error("afade: invalid curve");
-      curve = entry[1];
+      const entries = Object.entries(curves);
+      const names = Object.fromEntries(entries.map(([name], index) => [name, index - 1]));
+      const number = parseFilterExpression(value, "afade", names);
+      if (number < -1 || number > entries.length - 2) throw new Error("afade: invalid curve");
+      // FFmpeg integer options round to nearest, with exact halves going to even.
+      const floor = Math.floor(number);
+      const index = number - floor === 0.5 ? floor + Math.abs(floor % 2) : Math.round(number);
+      curve = entries[index + 1]![1];
     } else if (key === "enable") {
       enable = value;
       parseFilterExpression(enable, "afade enable", { n: 0, t: 0 });

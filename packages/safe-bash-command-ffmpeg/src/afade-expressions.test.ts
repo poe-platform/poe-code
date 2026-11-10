@@ -1,13 +1,14 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
 import { createFfmpegCommand } from "./index.js";
 
-async function run(options: string, graph: boolean) {
+async function run(options: string, graph: boolean, samples = new Float64Array(16).fill(12000 / 32768)) {
   const fs = Volume.fromJSON({ "/out.pcm": "KEEP" });
   fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000,
-    channels: [new Float64Array(16).fill(12000 / 32768)] }));
+    channels: [samples] }));
   let stderr = "";
   const filter = `afade=${options}`;
   const result = await createFfmpegCommand().execute({
@@ -28,6 +29,16 @@ async function run(options: string, graph: boolean) {
 
 for (const graph of [false, true]) {
   for (const [expression, literal] of [
+    ["c=0+1:ns=4", "c=qsin:ns=4"],
+    ["curve=qsin+1:ns=4", "c=esin:ns=4"],
+    ["curve=-1/2:ns=4", "c=tri:ns=4"],
+    ["curve=1.5:ns=4", "c=esin:ns=4"],
+    ["curve=2.5:ns=4", "c=esin:ns=4"],
+    ["t=1-1:ns=4", "t=in:ns=4"],
+    ["type=in+1:ns=4", "t=out:ns=4"],
+    ["type=1/2:ns=4", "t=in:ns=4"],
+    ["type=3/4:ns=4", "t=out:ns=4"],
+    ["1-1:0:4:0:0:0+1", "in:0:4:0:0:qsin"],
     ["ns=4:unity=1/2", "ns=4:unity=0.5"],
     ["ns=2+2", "ns=4"],
     ["ns=PI", "ns=3"],
@@ -55,6 +66,8 @@ for (const graph of [false, true]) {
   }
 
   for (const option of [
+    "c=23-0", "curve=-1.1", "c=22.1", "c=unknown", "c=1/0", "c=0/0", "c=",
+    "t=2-0", "type=-0.1", "t=1.1", "type=unknown", "t=1/0", "t=0/0", "t=",
     "unity=2", "unity=3/2", "silence=-1/4", "silence=2/1", "ns=0", "ns=1-1",
     "ns=0.9", "ss=-1/4", "ns=18446744073709551616", "ss=18446744073709551616",
     "unity=1/0", "silence=0/0", "ns=1/0", "ss=0/0", "ns=2+", "unity=",
@@ -67,4 +80,20 @@ for (const graph of [false, true]) {
       assert.equal(result.output.toString(), "KEEP");
     });
   }
+}
+
+// Native FFmpeg 7.0.2 hashes for the 3173-sample PCM16 reproduction.
+for (const [options, hash] of [
+  ["c=0+1:ns=900", "41b5795fc8c9379cdc9587c3c901301ed383e5b439fd478faf53a7f544221a7b"],
+  ["c=qsin:ns=900", "41b5795fc8c9379cdc9587c3c901301ed383e5b439fd478faf53a7f544221a7b"],
+  ["t=1-1:ns=900", "0e18cde688299d4e9ddd19e7132b19ebf546c41ec789baf732250b44fbcf567a"],
+  ["t=in:ns=900", "0e18cde688299d4e9ddd19e7132b19ebf546c41ec789baf732250b44fbcf567a"]
+]) {
+  it(`afade ${options} matches native PCM bytes`, async () => {
+    const samples = Float64Array.from({ length: 3173 }, (_, i) => ((i * 179 % 50001) - 25000) / 32768);
+    const result = await run(options!, false, samples);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.output.length, 6346);
+    assert.equal(createHash("sha256").update(result.output).digest("hex"), hash);
+  });
 }

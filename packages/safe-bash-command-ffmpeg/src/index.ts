@@ -2070,8 +2070,9 @@ async function applyVideoFilterChain(
         const [target, action, expression] = words;
         const filter = target?.split("@", 1)[0];
         if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !expression ||
-            !(filter === "negate" && action === "components" || filter === "tmix" && action === "scale")) {
-          throw new Error("sendcmd: expected TIME negate[@NAME] components FLAGS or TIME tmix[@NAME] scale VALUE");
+            !(filter === "negate" && action === "components" || filter === "tmix" && action === "scale" ||
+              filter === "tblend" && action === "all_mode")) {
+          throw new Error("sendcmd: expected TIME negate[@NAME] components FLAGS or TIME tmix[@NAME] scale VALUE or TIME tblend[@NAME] all_mode MODE");
         }
         budget.allocateMemory(64);
         scheduled.push({ time, target, expression });
@@ -4091,13 +4092,29 @@ async function applyVideoFilterChain(
       if (positional.length > 1 && positional.at(-1) === "") positional.pop();
       const modeValue = parseFilterExpression(named.all_mode ?? "normal", "tblend", { normal: 0, addition: 1, average: 3, difference: 6 });
       if (modeValue < -1 || modeValue > 39) throw new RangeError("tblend: all_mode out of range [-1 - 39]");
-      const mode = roundToEven(modeValue);
+      let mode = roundToEven(modeValue);
       if (modeValue < 0 || ![0, 1, 3, 6].includes(mode) || (argStr !== "" && (positional.length !== 1 || Object.keys(named).length !== 1 || named.all_mode === undefined))) {
         throw new Error("tblend: only all_mode=normal, addition, difference or average is supported");
       }
+      const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
+      const commands = videoCommands.filter(command => command.target === name || command.target === instance);
+      videoCommands = videoCommands.filter(command => command.target !== name && command.target !== instance);
+      commands.sort((a, b) => a.time - b.time);
+      let nextCommand = 0;
       const blended: typeof current = [];
       for (let index = 1; index < current.length; index++) {
         const frame = current[index]!;
+        while (nextCommand < commands.length && commands[nextCommand]!.time <= frame.ptsSeconds) {
+          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          const command = commands[nextCommand++]!;
+          try {
+            const value = parseFilterExpression(command.expression, "tblend", { normal: 0, addition: 1, average: 3, difference: 6 });
+            const updatedMode = roundToEven(value);
+            if (value >= 0 && value <= 39 && [0, 1, 3, 6].includes(updatedMode)) mode = updatedMode;
+          } catch {
+            // Rejected runtime commands preserve the active blend mode.
+          }
+        }
         const previous = current[index - 1]!;
         if (frame.width !== previous.width || frame.height !== previous.height) {
           throw new Error("tblend: adjacent frames must have matching dimensions");

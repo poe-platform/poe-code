@@ -9982,6 +9982,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }));
         }
         else if (t === "-shave") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geometry = tokens[++i] ?? "";
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geometry, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
@@ -12634,6 +12635,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return frames;
             });
         } else if (!operandsOnly && token === "-shave") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const geometry = tokens[++i] ?? "", captured = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;

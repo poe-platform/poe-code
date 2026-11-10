@@ -17790,7 +17790,7 @@ interface MontageArguments {
     transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number } | { kind: "transparent"; operation: MagickPixelOperation })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined; texture: string | undefined;
 }
-function* parseMontageArguments<Step>(argv: readonly string[], fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
+function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
     let cooperativeWork = 63;
     let warnings = "";
     const state = createDefaultState();
@@ -18140,10 +18140,27 @@ function* parseMontageArguments<Step>(argv: readonly string[], fileTargets: (pat
             else if (pending) yield* applyTransforms(false);
             const targets = i === argv.length - 1 ? [t] : yield* fileTargets(t);
             for (const target of targets) {
-                operands.push(target);
-                transforms.push([]);
-                labels.push(label);
-                sizes.push({ hasSize: state.hasSize, sizeWidth: state.sizeWidth, sizeHeight: state.sizeHeight, inputOffset: state.inputOffset ?? 0 });
+                let inputs = [target];
+                if (i !== argv.length - 1) {
+                    const { baseToken, pageSpec, inlineGeom } = parseInputToken(target);
+                    let path = baseToken;
+                    const colon = path.indexOf(":");
+                    if (colon > 0 && extToImageFormat(path.slice(0, colon))) path = path.slice(colon + 1);
+                    const count = yield* frameCount(path);
+                    if (count > 1 && inlineGeom === undefined) {
+                        inputs = [];
+                        for (const page of selectedInputPages(pageSpec, count)) {
+                            if (++cooperativeWork % 64 === 0) yield;
+                            inputs.push(`${baseToken}[${page}]`);
+                        }
+                    }
+                }
+                for (const input of inputs) {
+                    operands.push(input);
+                    transforms.push([]);
+                    labels.push(label);
+                    sizes.push({ hasSize: state.hasSize, sizeWidth: state.sizeWidth, sizeHeight: state.sizeHeight, inputOffset: state.inputOffset ?? 0 });
+                }
             }
         }
     }
@@ -18161,7 +18178,12 @@ function montageTitleSvg(title: string, width: number, state: MagickState, padY:
 }
 function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     let cooperativeWork = 63;
-    const parsed = yield* parseMontageArguments(argv, path => mogrifyTargets(path, files.keys()));
+    const parsed = yield* parseMontageArguments(argv, function* (path): Generator<void, number, void> {
+        yield;
+        const bytes = path === "-" ? stdinBytes : files.get(path);
+        try { return bytes?.[0] === 0x47 ? readImageMetadata(bytes).pages ?? 1 : 1; }
+        catch { return 1; } // The image reader reports malformed headers.
+    }, path => mogrifyTargets(path, files.keys()));
     if ("exitCode" in parsed) return parsed;
     const { warnings, trim, shadow, transforms, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture } = parsed;
     const variableCells = !frame && cellW === undefined && cellH === undefined;
@@ -18508,7 +18530,41 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     return { exitCode: inputErrors ? 1 : 0, stdout, stderr: warnings + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
 }
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
-    const parsed = await drainIdentifySteps(parseMontageArguments(argv, function* (path): Generator<IdentifyStep, string[], void> {
+    return withCompareFiles(input, stdinBytes, signal, async backend => {
+        const snapshots = new Map<string, ImageByteSource & { position: number }>();
+        const snapshotInput = async (path: string) => {
+            const existing = snapshots.get(path);
+            if (existing) return existing;
+            await backend.read(path, async source => {
+                const position = backend.storage.allocate(source.size);
+                for (let start = 0; start < source.size; start += 16384) {
+                    await yieldTurn(signal);
+                    await backend.storage.write(position + start, await source.read(start, Math.min(16384, source.size - start), { signal }));
+                }
+                snapshots.set(path, { position, size: source.size, async read(start, length) {
+                    signal.throwIfAborted();
+                    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(length) || start < 0 || length < 0 || length > 16384 || start + length > source.size) throw new RangeError("Invalid montage input range");
+                    return new Uint8Array(await backend.storage.read(position + start, length));
+                } });
+            });
+            return snapshots.get(path);
+        };
+    const parsed = await drainIdentifySteps(parseMontageArguments(argv, function* (path): Generator<IdentifyStep, number, void> {
+        let count = 1;
+        yield { async run() {
+            // Repeated operands still count toward cumulative input admission.
+            if (snapshots.has(path)) await backend.read(path, async () => {});
+            const source = await snapshotInput(path);
+            if (source) {
+                const prefix = await source.read(0, Math.min(6, source.size));
+                if (prefix[0] === 0x47) {
+                    try { count = (await readImageMetadataFromSource(source, signal, undefined, backend.storage)).pages ?? 1; }
+                    catch { signal.throwIfAborted(); } // The image reader reports malformed headers.
+                }
+            }
+        } };
+        return count;
+    }, function* (path): Generator<IdentifyStep, string[], void> {
         let targets: string[] = [];
         yield { async run() { targets = await mogrifyFileTargets(path, input.filesystem, input.cwd, signal); } };
         return targets;
@@ -18518,7 +18574,6 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
     const variableCells = !frame && cellW === undefined && cellH === undefined;
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: warnings + "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
-    return withCompareFiles(input, stdinBytes, signal, async backend => {
         let textureImage: StoredRgbaImage | undefined;
         if (texture !== undefined) {
             try { textureImage = await parseStoredCompareInput(texture, state, backend, signal); }
@@ -18547,14 +18602,11 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             const token = paths[index]!;
             let path = parseInputToken(token.toLowerCase().startsWith("tile:") ? token.slice(5) : token).baseToken;
             const colon = path.indexOf(":"); if (colon > 0 && extToImageFormat(path.slice(0, colon))) path = path.slice(colon + 1);
-            await backend.read(path, async source => {
-                const position = backend.storage.allocate(source.size);
-                for (let start = 0; start < source.size; start += 16384) {
-                    await yieldTurn(signal);
-                    await backend.storage.write(position + start, await source.read(start, Math.min(16384, source.size - start), { signal }));
-                }
-                await sources.set(BigInt(index * 5), BigInt(position)); await sources.set(BigInt(index * 5 + 1), BigInt(source.size));
-            });
+            const snapshot = await snapshotInput(path);
+            if (snapshot) {
+                await sources.set(BigInt(index * 5), BigInt(snapshot.position));
+                await sources.set(BigInt(index * 5 + 1), BigInt(snapshot.size));
+            }
             if (!fast) continue;
             const source = await sourceAt(index);
             if (!source || token.includes("[") || token.includes(":")) { fast = false; continue; }

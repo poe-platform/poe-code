@@ -7906,7 +7906,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         evaluate = true;
         const raw = [...(tokens[++i] ?? "")].filter(c => c.trim() !== "").join("").replaceAll("X", "x");
         validateMagickTransformGeometry(raw.replaceAll(",", "x").replaceAll("/", "x"), token);
-        const parts = raw.replaceAll(",", "x").replaceAll("/", "x").replaceAll(":", "x").split("x");
+        const parts = [...raw].filter(c => !"()#".includes(c)).join("").replaceAll(",", "x").replaceAll("/", "x").replaceAll(":", "x").split("x");
         for (const [index, part] of parts.entries()) {
             const field = [...part].filter(c => !"!#%()<>@\\^".includes(c)).join("");
             // Only a complete brightness/contrast pair may have trailing offsets.

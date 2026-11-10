@@ -9376,8 +9376,8 @@ if (t === "-intent" || t === "+intent") {
         else if (t === "-antialias" || t === "+antialias") {
             state.antialias = t === "-antialias";
         }
-        else if (t === "-stroke") {
-            state.stroke = parseColor(tokens[++i] ?? "#000000");
+        else if (t === "-stroke" || t === "+stroke") {
+            state.stroke = parseColor(t === "+stroke" ? "none" : tokens[++i] ?? "#000000");
         }
         else if (t === "-strokewidth") {
             state.strokeWidth = Math.max(0, Number(tokens[++i] ?? 1));
@@ -14243,7 +14243,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
     const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-page", "-comment", "-label"]);
     const flagsWithoutArgs = new Set([
         "-despeckle",
-        "-enhance", "-antialias", "+antialias",
+        "-enhance", "-antialias", "+antialias", "+stroke",
         "-identify", "+identify", "-verbose", "+verbose", "-regard-warnings", "+regard-warnings",
         "-negate", "+negate", "-contrast", "+contrast", "-trim", "-flip", "-flop", "-transpose", "-transverse", "-auto-orient",
         "-auto-level", "-auto-gamma", "-white-balance", "-normalize", "-equalize", "-monochrome", "-strip", "-unique-colors", "-sort-pixels",

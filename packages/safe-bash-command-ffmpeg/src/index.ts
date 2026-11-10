@@ -11652,7 +11652,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (tempo < 0.5 || tempo > 100) {
                           throw new Error("atempo must be in the range [0.5, 100]");
                         }
-                        stretched = await filterTempo(stretched, origRate, tempo, t.codecDescriptions[0]?.codecName === "pcm_s16le", budget, context.signal);
+                        stretched = await filterTempo(stretched, origRate, tempo, panSampleFormat === "s16", budget, context.signal);
                       } else if (trimmed === "dialoguenhance" || trimmed.startsWith("dialoguenhance=")) {
                         const values = [1, 1, 2];
                         let enable: string | undefined;

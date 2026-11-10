@@ -54,3 +54,33 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         expect([...decodeImage(output).data16!]).toEqual(expected);
     });
 }
+
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+    // ImageMagick 7.1.2-35 Q16-HDRI, raw 8-bit RGBA destination bytes.
+    it.each([
+        ["40!%", "7fa9dc9fbf5f5f5f"],
+        ["40>%", "7fa9dc9fbf5f5f5f"],
+        ["4!0%", "7fa9dc9fbf5f5f5f"],
+        ["40", "7fa9dc9fbf5f5f5f"],
+        ["40%", "7f562360405f5f5f"],
+        ["40%!", "7f562360405f5f5f"],
+    ] as const)(`${mode}: preserves solarize threshold units across modifiers in %s`, async (threshold, expected) => {
+        const original = new TextEncoder().encode("KEEP");
+        const files = new Map([["/out", original]]);
+        const fs = new MemoryFileSystem();
+        await fs.writeFile("/out", original);
+        const argv = ["xc:#80562360", "xc:#40a0a0a0", "+append", "-solarize", threshold, "-depth", "8", "rgba:/out"];
+        const args = createCommandArguments(argv);
+        let stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runConvertCliSync(argv, files)
+            : await runConvertCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        const output = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
+        expect(Buffer.from(output).toString("hex")).toBe(expected);
+    });
+}

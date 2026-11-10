@@ -7977,9 +7977,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 fields.push(offset ? character : "");
             } else fields[fields.length - 1] += character;
         }
-        const thresholds = fields.map(part => {
+        for (const part of fields) {
             const field = part.trim();
-            if (!field) return 0;
+            if (!field) continue;
             const threshold = field.endsWith("%") ? field.slice(0, -1) : field;
             const unsigned = threshold.startsWith("-") || threshold.startsWith("+") ? threshold.slice(1) : threshold;
             const hexadecimal = unsigned.startsWith("0x");
@@ -7987,11 +7987,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (hexadecimal ? !Number.isFinite(raw) : Number.parseFloat(threshold) !== raw) {
                 throw new Error(`invalid argument '-solarize' '${value}'`);
             }
-            // A percent sign scales only when it immediately follows the number.
-            return field.endsWith("%") && threshold === threshold.trimEnd() ? (raw / 100) * 65535 : raw;
-        });
+        }
+        // Read the original numeric prefix: geometry flags end the scalar, and
+        // only an immediately following percent sign changes its units.
+        const unsigned = geometry.startsWith("-") || geometry.startsWith("+") ? geometry.slice(1) : geometry;
+        const raw = (unsigned.startsWith("0x") ? Number.parseInt(geometry, 16) : Number.parseFloat(geometry)) || 0;
+        const percent = unsigned.indexOf("%"), prefix = unsigned.slice(0, percent);
+        const percentage = percent > 0 && prefix === prefix.trimEnd() && Number(prefix) * (geometry.startsWith("-") ? -1 : 1) === raw;
+        const threshold = percentage ? (raw / 100) * 65535 : raw;
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
-        apply = image => applyMagickSolarizeSteps(image, thresholds[0]!, channels, signal);
+        apply = image => applyMagickSolarizeSteps(image, threshold, channels, signal);
     } else if (token === "-ordered-dither") {
         highDepth = true;
         const options = parseOrderedDither(tokens[++i] ?? ""), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };

@@ -30,7 +30,7 @@ export async function removeSilence(
       token = "";
     } else token += char;
   }
-  if (argument) tokens.push(token);
+  if (token || (argument && !argument.endsWith(":"))) tokens.push(token);
   for (const [index, option] of tokens.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? positional[index] : option.slice(0, separator).trim();

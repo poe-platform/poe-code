@@ -41,3 +41,41 @@ for (const [filter, colorType] of [
     assert.equal(output[25], colorType);
   });
 }
+
+for (const inputType of ["Buffer", "Uint8Array"]) {
+  for (const [filter, expected] of [
+    ["null", "113a638cb5de07305982abd4"],
+    ["format=gray", "113a638c8080103059828080"],
+    ["format=gray8", "113a638c8080103059828080"],
+    ["format=pix_fmts=gray,format=yuv420p", "113a638c8080103059828080"],
+    ["format=gray,format=gray", "113a638c8080103059828080"]
+  ] as const) {
+    it(`${filter} converts planar luma without chroma contamination (${inputType})`, async () => {
+      const input = Buffer.from("113a638cb5de07305982abd4", "hex");
+      const volume = Volume.fromJSON({ "/in.raw": input });
+      const reads: Uint8Array[] = [];
+      const errors: Uint8Array[] = [];
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error", "-f", "rawvideo", "-pix_fmt", "yuv420p", "-s", "2x2", "-r", "1",
+          "-i", "/in.raw", "-vf", filter, "-pix_fmt", "yuv420p", "-f", "rawvideo", "/out.raw"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) {
+            const bytes = volume.readFileSync(path) as Buffer;
+            const data = inputType === "Buffer" ? bytes : Uint8Array.from(bytes);
+            reads.push(data);
+            return data;
+          },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+      // Native FFmpeg 7.0.2 output, including both chroma planes and both frames.
+      assert.equal((volume.readFileSync("/out.raw") as Buffer).toString("hex"), expected);
+      for (const bytes of reads) assert.deepEqual(Buffer.from(bytes), input, "input remains unchanged");
+    });
+  }
+}

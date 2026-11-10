@@ -2725,7 +2725,7 @@ async function applyVideoFilterChain(
             budget.checkCpu();
             return converted;
           }, signal);
-        } else {
+        } else if (!["gray", "gray8", "ya8", "gray16be"].includes(pixelFormat)) {
           current = current.map(({ native: _native, ...frame }) => frame);
         }
         if (pixelFormat === "monob" && previousPixelFormat !== "monob") {
@@ -2803,7 +2803,9 @@ async function applyVideoFilterChain(
           }, signal);
         }
         if (pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "ya8" || pixelFormat === "gray16be") {
-          current = await mapWork(current, async (f) => {
+          current = await mapWork(current, async ({ native, ...f }) => {
+            const planar = native?.rgba === f.data && native.width === f.width && native.height === f.height &&
+              [0, 4, 5, 12, 13, 14].includes(native.format) ? native : undefined;
             const data = f.data.slice();
             for (let i = 0; i < data.length; i += 4) {
               if (i % 65536 === 0) {
@@ -2811,8 +2813,12 @@ async function applyVideoFilterChain(
                 signal?.throwIfAborted();
                 budget.checkCpu();
               }
-              // FFmpeg converts encoded RGB to full-range BT.601 luma.
-              const gray = Math.round(0.299 * data[i]! + 0.587 * data[i + 1]! + 0.114 * data[i + 2]!);
+              // Expand planar luma directly: RGB conversion can clip colored pixels.
+              // RGB sources use full-range BT.601 luminance.
+              const gray = planar
+                ? planar.fullRange || [12, 13, 14].includes(planar.format) ? planar.pixels[i / 4]!
+                  : Math.max(0, Math.min(255, Math.round((planar.pixels[i / 4]! - 16) * 255 / 219)))
+                : Math.round(0.299 * data[i]! + 0.587 * data[i + 1]! + 0.114 * data[i + 2]!);
               data[i] = data[i + 1] = data[i + 2] = gray;
               if (pixelFormat !== "ya8") data[i + 3] = 255;
               else if (previousPixelFormat !== "ya8") {

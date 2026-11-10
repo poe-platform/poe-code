@@ -1,3 +1,4 @@
+import { deflateSync } from "node:zlib";
 import { expect, it, vi } from "vitest";
 import { decodeMiffImage, readMiffHeader } from "./miff-input.js";
 import { decodeMiffToStorage } from "./miff-input-storage.js";
@@ -24,7 +25,7 @@ it.each([0, 2, 256])("reads DirectClass RGB samples with colors=%s", colors => {
     expect([...decodeMiffImage(fixture(`colors=${colors}`)).data]).toEqual([18, 52, 86, 255]);
 });
 
-it.each(["compression=Zip", "class=PseudoClass", "depth=64", "depth=8 quantum:format=floating-point", "colorspace=Lab", "profile:icc=10", "number-meta-channels=1"])("rejects unsupported layout %s", fields => {
+it.each(["compression=JPEG", "class=PseudoClass", "depth=64", "depth=8 quantum:format=floating-point", "colorspace=Lab", "profile:icc=10", "number-meta-channels=1"])("rejects unsupported layout %s", fields => {
     expect(() => decodeMiffImage(fixture(fields))).toThrow("Unsupported MIFF encoding");
 });
 
@@ -47,10 +48,18 @@ it("stops reading on cancellation", async () => {
     expect(source.read).not.toHaveBeenCalled();
 });
 
-it.each([16, 32])("decodes retained %s-bit samples in bounded chunks without retaining borrowed bytes", async depth => {
+for (const depth of [16, 32]) it.each(["None", "Zip", "LZW"])(`decodes retained %s ${depth}-bit samples in bounded chunks without retaining borrowed bytes`, async compression => {
     const samples = depth === 16 ? [0x12, 0x34, 0x56, 0x78, 0x9a, 0xbc, 0x80, 0x01]
         : [0x12, 0x34, 0x12, 0x34, 0x56, 0x78, 0x56, 0x78, 0x9a, 0xbc, 0x9a, 0xbc, 0x80, 0x01, 0x80, 0x01];
-    const bytes = fixture(`columns=2050 depth=${depth} matte=True`, Array.from({ length: 2050 }, () => samples).flat());
+    const raw = Array.from({ length: 2050 }, () => samples).flat();
+    const compressed = deflateSync(new Uint8Array(raw));
+    const packets: number[] = [];
+    // Split samples and zlib structures across packet boundaries.
+    for (let offset = 0; offset < compressed.length; offset += 7) {
+        const packet = compressed.subarray(offset, offset + 7);
+        packets.push(0, 0, 0, packet.length, ...packet);
+    }
+    const bytes = fixture(`columns=2050 depth=${depth} matte=True compression=${compression}`, compression === "None" ? raw : packets);
     const backing = new Uint8Array(2050 * 12), borrowed = new Uint8Array(8192);
     let end = 0;
     const source = { size: bytes.length, read: vi.fn(async (offset: number, length: number) => {

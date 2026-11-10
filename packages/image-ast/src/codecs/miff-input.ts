@@ -1,3 +1,5 @@
+import { miffBzipRaster } from "./miff-bzip-input.js";
+import { createByteCodec } from "@poe-code/compression";
 import type { ImageMetadata, RgbaImage, SharpInputOptions } from "../ast.js";
 import { checkLimitInputPixels } from "../limits.js";
 import { miffLzma, type MiffRead } from "./miff-lzma.js";
@@ -59,12 +61,11 @@ function* miffFrameHeader(size: number): Generator<MiffRead, MiffHeader, Uint8Ar
     const hasAlpha = fields.get("matte")?.toLowerCase() === "true" || fields.get("alpha-trait") === "Blend";
     const channels = cmyk ? hasAlpha ? 5 : 4 : gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3;
     const floating = fields.get("quantum:format") === "floating-point";
+    const compression = fields.get("compression") ?? "None";
     const indexed = fields.get("class") === "PseudoClass", colors = Number(fields.get("colors") ?? 0);
     const sampleBytes = depth / 8, indexBytes = Math.max(sampleBytes, colors > 256 ? 2 : 1);
     const pixelBytes = indexed ? indexBytes + (hasAlpha ? sampleBytes : 0) : channels * sampleBytes;
-    const compression = fields.get("compression") ?? "None";
-    if ((!indexed && fields.get("class") !== "DirectClass") || !["None", "LZMA"].includes(compression) || indexed && compression !== "None" || !(indexed ? [8, 16] : [8, 16, 32]).includes(depth) || !["sRGB", "RGB", "Gray", "CMYK"].includes(colorspace) && (fields.get("class") !== "DirectClass" || !["CIELab", "XYZ", "HSL", "YCbCr"].includes(colorspace))
-        || compression === "LZMA" && (floating || ![8, 16].includes(depth) || !["sRGB", "RGB", "Gray"].includes(colorspace))
+    if ((!indexed && fields.get("class") !== "DirectClass") || !["None", "Zip", "LZW", "BZip", "RLE", "LZMA"].includes(compression) || indexed && compression !== "None" || !(indexed ? [8, 16] : [8, 16, 32]).includes(depth) || !["sRGB", "RGB", "Gray", "CMYK"].includes(colorspace) && (fields.get("class") !== "DirectClass" || !["CIELab", "XYZ", "HSL", "YCbCr"].includes(colorspace))
         || floating && (indexed || ![16, 32].includes(depth))
         || indexed && (cmyk || !Number.isSafeInteger(colors) || colors < 1 || colors > 65536)
         || Number(fields.get("number-meta-channels") ?? 0) !== 0
@@ -98,22 +99,32 @@ export function* miffHeader(size: number, page = 0, options?: SharpInputOptions)
     if (!Number.isSafeInteger(page) || page < 0) throw new RangeError("MIFF page out of range");
     let start = 0, pages = 0;
     const delay: number[] = [];
-    let selected: ReturnType<typeof readMiffHeader> | undefined;
+    let selected: MiffHeader | undefined;
     while (start < size) {
         const steps = miffFrameHeader(size - start);
         let next = steps.next();
         while (!next.done) next = steps.next(yield { offset: start + next.value.offset, length: next.value.length });
-        const { metadata, offset, colors, pixelBytes, compression } = next.value;
+        const { metadata, offset, compression, colors, pixelBytes } = next.value;
         if (pages === page) checkLimitInputPixels(metadata.width, metadata.height, options);
         delay.push(metadata.delay![0]!);
-        if (pages++ === page) selected = { ...next.value, metadata: { ...metadata, size }, offset: start + offset };
+        const header = { ...next.value, metadata: { ...metadata, size }, offset: start + offset };
+        if (pages++ === page) selected = header;
         start += offset + colors * 3 * (metadata.depth === "ushort" ? 2 : 1);
-        if (compression === "LZMA") {
-            start = yield* miffLzma(start, size, pixelBytes, metadata.width * metadata.height * pixelBytes);
-        } else start += metadata.width * metadata.height * pixelBytes;
+        if (compression === "None") start += metadata.width * metadata.height * pixelBytes;
+        else if (compression === "RLE") {
+            let remaining = metadata.width * metadata.height;
+            while (remaining) {
+                if (size - start < pixelBytes + 1) throw new Error("Truncated MIFF raster");
+                const repeat = (yield { offset: start + pixelBytes, length: 1 })[0];
+                if (repeat === undefined) throw new Error("Truncated MIFF raster");
+                remaining -= repeat + 1;
+                if (remaining < 0) throw new Error("MIFF run exceeds raster");
+                start += pixelBytes + 1;
+            }
+        } else start = yield* miffRaster(header);
     }
     if (!selected) throw new RangeError("MIFF page out of range");
-    return { ...selected, metadata: { ...selected.metadata, delay, ...(pages > 1 ? { pages } : {}) } };
+    return { ...selected, metadata: { ...selected.metadata, ...(pages > 1 ? { pages, delay } : {}) } };
 }
 
 export function readMiffHeader(bytes: Uint8Array, page?: number, options?: SharpInputOptions) {
@@ -170,29 +181,109 @@ export function miffPixels(bytes: Uint8Array, metadata: ImageMetadata, palette?:
     return { data, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
 }
 
-export function decodeMiffImage(bytes: Uint8Array, options?: SharpInputOptions): RgbaImage {
-    const { metadata, offset, colors, pixelBytes, compression } = readMiffHeader(bytes, options?.page, options);
-    checkLimitInputPixels(metadata.width, metadata.height, options);
-    const paletteLength = colors * 3 * (metadata.depth === "ushort" ? 2 : 1), start = offset + paletteLength;
-    const length = metadata.width * metadata.height * pixelBytes;
-    if (compression === "LZMA") {
-        const data = new Uint8Array(metadata.width * metadata.height * 4);
-        const data16 = metadata.bitsPerSample! > 8 ? new Uint16Array(data.length) : undefined;
-        const raster = miffLzma(start, bytes.length, pixelBytes, length);
-        let position = 0;
-        try {
-            let chunk = raster.next();
-            while (!chunk.done) {
-                if (chunk.value instanceof Uint8Array) {
-                    const pixels = miffPixels(chunk.value, metadata);
-                    data.set(pixels.data, position);
-                    if (data16) data16.set(pixels.data16!, position);
-                    position += pixels.data.length;
-                    chunk = raster.next();
-                } else chunk = raster.next(bytes.subarray(chunk.value.offset, chunk.value.offset + chunk.value.length));
-            }
-        } finally { raster.return(start); }
-        return { ...metadata, data, ...(data16 ? { data16 } : {}) };
+// Read requests and decoded chunks share the same bounded decoder in both paths.
+export function* miffRaster(header: ReturnType<typeof readMiffHeader>): Generator<{ offset: number; length: number } | Uint8Array, number, Uint8Array> {
+    const { metadata, compression } = header, size = metadata.size!;
+    let offset = header.offset + header.colors * 3 * (metadata.depth === "ushort" ? 2 : 1);
+    if (compression === "BZip") return yield* miffBzipRaster(header);
+    const stride = header.pixelBytes;
+    if (compression === "LZMA") return yield* miffLzma(offset, size, stride, metadata.width * metadata.height * stride);
+    const chunkBytes = Math.min(1024, Math.floor(8192 / stride)) * stride;
+    let remaining = metadata.width * metadata.height * stride;
+    function* read(length: number): Generator<{ offset: number; length: number }, Uint8Array, Uint8Array> {
+        if (length > size - offset) throw new Error("Truncated MIFF raster");
+        const bytes = yield { offset, length };
+        if (bytes.length !== length) throw new Error("Truncated MIFF raster");
+        offset += length;
+        return bytes;
     }
-    return { ...metadata, ...miffPixels(bytes.subarray(start, start + length), metadata, colors ? bytes.subarray(offset, start) : undefined) };
+    if (compression === "None") {
+        while (remaining) {
+            const bytes = yield* read(Math.min(chunkBytes, remaining));
+            remaining -= bytes.length;
+            yield bytes;
+        }
+        return offset;
+    }
+    if (compression === "RLE") {
+        let run = 0;
+        let sample = new Uint8Array(stride);
+        while (remaining) {
+            const chunk = new Uint8Array(Math.min(chunkBytes, remaining));
+            for (let index = 0; index < chunk.length; index += stride) {
+                if (run === 0) {
+                    const packet = yield* read(stride + 1);
+                    sample = packet.slice(0, stride);
+                    run = packet[stride]! + 1;
+                    if (run * stride > remaining) throw new Error("MIFF run exceeds raster");
+                }
+                chunk.set(sample, index);
+                run--;
+                remaining -= stride;
+            }
+            yield chunk;
+        }
+        return offset;
+    }
+    const codec = createByteCodec({ direction: "decode", format: "zlib", chunkSize: chunkBytes });
+    let pending = new Uint8Array(chunkBytes), used = 0;
+    try {
+        while (remaining || !codec.complete && offset < size) {
+            const header = yield* read(4);
+            // Finished zlib trailers may occupy another packet; native row-flushed
+            // streams instead end at EOF or the next MIFF signature.
+            if (!remaining && header[0] === 105 && header[1] === 100 && header[2] === 61 && header[3] === 73) {
+                offset -= 4;
+                break;
+            }
+            let packet = new DataView(header.buffer, header.byteOffset, 4).getUint32(0);
+            if (!packet || packet > size - offset) throw new Error("Invalid MIFF compressed packet");
+            while (packet) {
+                const input = yield* read(Math.min(packet, 8192));
+                packet -= input.length;
+                // Native MIFF flushes rows without a final zlib trailer.
+                for (const bytes of codec.push(input)) {
+                    if (bytes.length > remaining) throw new Error("Excess MIFF raster data");
+                    remaining -= bytes.length;
+                    for (let index = 0; index < bytes.length;) {
+                        const take = Math.min(pending.length - used, bytes.length - index);
+                        pending.set(bytes.subarray(index, index + take), used);
+                        used += take;
+                        index += take;
+                        if (used === pending.length) {
+                            yield pending;
+                            pending = new Uint8Array(chunkBytes);
+                            used = 0;
+                        }
+                    }
+                }
+                if (codec.consumed !== input.length) throw new Error("Invalid MIFF compressed packet");
+            }
+            if (codec.complete && remaining) throw new Error("Truncated MIFF raster");
+        }
+        if (used) yield pending.subarray(0, used);
+    } finally { codec.close(); }
+    return offset;
+}
+
+export function decodeMiffImage(bytes: Uint8Array, options?: SharpInputOptions): RgbaImage {
+    const header = readMiffHeader(bytes, options?.page, options), { metadata } = header;
+    checkLimitInputPixels(metadata.width, metadata.height, options);
+    const count = metadata.width * metadata.height, data = new Uint8Array(count * 4);
+    const hueSamples = metadata.space === "cmyk" ? new Float64Array(count * 4) : undefined;
+    const data16 = metadata.bitsPerSample! > 8 || hueSamples ? new Uint16Array(count * 4) : undefined;
+    const palette = header.colors ? bytes.subarray(header.offset, header.offset + header.colors * 3 * (metadata.depth === "ushort" ? 2 : 1)) : undefined;
+    const steps = miffRaster(header);
+    let next = steps.next(), position = 0;
+    try {
+        while (!next.done) {
+            if (next.value instanceof Uint8Array) {
+                const pixels = miffPixels(next.value, metadata, palette);
+                data.set(pixels.data, position); data16?.set(pixels.data16!, position); hueSamples?.set(pixels.hueSamples!, position);
+                position += pixels.data.length;
+                next = steps.next();
+            } else next = steps.next(bytes.subarray(next.value.offset, next.value.offset + next.value.length));
+        }
+    } finally { steps.return(header.offset); }
+    return { ...metadata, data, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
 }

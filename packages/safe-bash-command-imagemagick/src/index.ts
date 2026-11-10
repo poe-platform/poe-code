@@ -10740,7 +10740,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-magnify") {
             const factor = state.magnifyMethod === "scale3x" ? 3 : 2;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                return yield* applyMagickRasterSteps(image, magnifyPixelSteps(image, state.magnifyMethod), signal, { ...image, width: image.width * factor, height: image.height * factor });
+                return yield* applyMagickRasterSteps({ ...image, isPalette: false }, magnifyPixelSteps(image, state.magnifyMethod), signal, { ...image, width: image.width * factor, height: image.height * factor });
             });
         }
         else if (t === "-adaptive-resize") {
@@ -13625,7 +13625,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && token === "-magnify") {
             const method = state.magnifyMethod, factor = method === "scale3x" ? 3 : 2;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, magnifyPixelSteps(image, method), signal, { ...image, width: image.width * factor, height: image.height * factor }) : undefined);
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: false }, backend, magnifyPixelSteps(image, method), signal, { ...image, width: image.width * factor, height: image.height * factor }) : undefined);
         } else if (!operandsOnly && token === "-adaptive-resize") {
             const geometry = tokens[++i] ?? "100%";
             validateMagickTransformGeometry(geometry, token);

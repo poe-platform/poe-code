@@ -10269,11 +10269,34 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           continue;
                         }
                         const loopStart = start === -1 ? Math.round(time! * origRate) : start!;
-                        if (loop! > 0 && size! > 0 && start! > 0) throw new Error("aloop: active loops require start=0");
                         if (size! > 0 && loopStart < (stretched[0]?.length ?? 0)) {
                           const inputLength = stretched[0]?.length ?? 0;
-                          const regionLength = Math.min(size!, inputLength - loopStart);
-                          const regionEnd = loopStart + regionLength;
+                          let regionLength = Math.min(size!, inputLength - loopStart);
+                          let regionEnd = loopStart + regionLength;
+                          const regions = [{ start: loopStart, end: regionEnd }];
+                          if (loop! > 0 && start! > 0) {
+                            regions.length = 0;
+                            regionLength = 0;
+                            let consumed = 0;
+                            let ignored = 0;
+                            // Native aloop requests at most 1024 samples, rechecking the
+                            // start against ignored samples even after collection begins.
+                            while (consumed < inputLength && regionLength < size!) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              const count = Math.min(1024, size! - regionLength, inputLength - consumed);
+                              if (ignored + count > start!) {
+                                const first = consumed + (regionLength === 0 ? start! - ignored : 0);
+                                const last = regions[regions.length - 1];
+                                if (last?.end === first) last.end = consumed + count;
+                                else regions.push({ start: first, end: consumed + count });
+                                regionLength += consumed + count - first;
+                              } else {
+                                ignored += count;
+                              }
+                              consumed += count;
+                            }
+                            regionEnd = consumed;
+                          }
                           const repeatedLength = regionLength * loop!;
                           const length = inputLength + repeatedLength;
                           if (!Number.isSafeInteger(length)) throw new Error("aloop: output sample count is too large");
@@ -10317,15 +10340,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
                           stretched = await mapWork(stretched, async channel => {
                             const output = new Float32Array(length);
+                            let regionIndex = 0;
+                            let source = regions[0]!.start;
                             for (let offset = 0; offset < length; offset += 16384) {
                               await yieldTurn(context.signal);
                               context.signal?.throwIfAborted();
                               budget.checkCpu();
                               const end = Math.min(length, offset + 16384);
                               for (let i = offset; i < end; i++) {
-                                output[i] = channel[i < regionEnd ? i
-                                  : i < regionEnd + repeatedLength ? loopStart + (i - regionEnd) % regionLength
-                                  : i - repeatedLength]!;
+                                if (i < regionEnd) output[i] = channel[i]!;
+                                else if (i < regionEnd + repeatedLength) {
+                                  output[i] = channel[source++]!;
+                                  if (source === regions[regionIndex]!.end) {
+                                    regionIndex = (regionIndex + 1) % regions.length;
+                                    source = regions[regionIndex]!.start;
+                                  }
+                                } else output[i] = channel[i - repeatedLength]!;
                               }
                             }
                             return output;

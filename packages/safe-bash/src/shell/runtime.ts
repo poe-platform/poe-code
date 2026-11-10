@@ -8138,7 +8138,7 @@ export class Runtime {
           "    Returns 0 if the directory is changed, and if $PWD is set successfully when",
           "    -P is used; non-zero otherwise.",
           "",
-        ].join("\n"), this.signal);
+        ].join("\n"));
         return 2;
       }
       if (option === "--") { offset++; break; }
@@ -8172,7 +8172,9 @@ export class Runtime {
           const bytes = shellValueBytes(value, context[valueScope]);
           try { fatalUtf8Decoder.decode(bytes); }
           catch {
-            diagnosticTarget = shellValueText(diagnosticCommandName(value, byteLocale(state.variables), context[valueScope]));
+            const allocation = context[valueScope] ?? this.budget.values.scope();
+            try { diagnosticTarget = shellValueText(diagnosticCommandName(value, byteLocale(state.variables), allocation)); }
+            finally { if (!context[valueScope]) allocation.close(); }
             throw new FsError("ENOENT", { path: target });
           }
         }
@@ -9829,7 +9831,9 @@ export class Runtime {
       // Bash transforms an element nameref's value, but keeps its name for bare/default expansions.
       if (!(part.substring || part.transform || memberPatternOperators.includes(part.operator ?? "")) ||
           variableTarget(this.referenceName(state, part.name))?.subscript === undefined) return part;
-      part = copyArraySelector(part, { ...part, indirect: false });
+      const resolved = { ...part, indirect: false };
+      copyArraySelector(part, resolved);
+      part = resolved;
     }
     if (part.kind === "variable" && part.indirect) {
       const referencePart: Extract<WordPart, { kind: "variable" }> = { kind: "variable", name: part.name, quoted: true, ...(part.line === undefined ? {} : { line: part.line }) };
@@ -11512,6 +11516,9 @@ Object.assign(Runtime.prototype, {
   outcomeFrame: undefined, _fs: undefined, _contextFsMask: -1, _contextFsSignal: undefined, _contextFs: undefined, _redirectFsMask: -1, _redirectFs: undefined, _fileWrites: undefined, _outputFiles: undefined, _syncArithState: undefined, _canFastMemoryRedirect: undefined, _syncArithRawVars: undefined, _syncArithLine: undefined, _syncArithRawWriteOnly: false, _syncArithTouched: undefined, _syncArithRefs: undefined, });
 export class RootShellState implements State {
   shellStartedAt = Date.now();
+  declare expand_aliases?: boolean;
+  declare aliases?: Map<string, string>;
+  declare extglob?: boolean;
   declare shift_verbose: boolean;
   declare umask: number;
   declare extensions: ShellExtensionState | undefined;

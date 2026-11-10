@@ -8944,18 +8944,22 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = function* (image) {
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
-            const samples = data16 ?? out, quantum = data16 ? 65535 : 255;
+            const hueSamples = image.hueSamples?.slice();
+            const evaluateSamples = image.evaluateSamples?.slice();
+            const samples = hueSamples ?? evaluateSamples ?? data16 ?? out;
+            const quantum = hueSamples ? 1 : evaluateSamples || !data16 ? 255 : 65535;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 for (let channel = 0; channel < 3; channel++) {
                     const value = samples[idx + channel]!;
                     const weight = value / quantum - 0.5;
-                    const sample = Math.max(0, Math.min(quantum, Math.round(value + vector[channel]! * (quantum / 255) * (1 - 4 * weight * weight))));
-                    if (data16) data16[idx + channel] = sample;
-                    out[idx + channel] = data16 ? Math.round(sample / 257) : sample;
+                    const sample = Math.fround((value + vector[channel]! * (quantum / 255) * (1 - 4 * weight * weight)) * (65535 / quantum)) / (65535 / quantum);
+                    samples[idx + channel] = sample;
+                    if (data16) data16[idx + channel] = Math.round(Math.max(0, Math.min(65535, sample * (65535 / quantum))));
+                    out[idx + channel] = clampByteVal(sample * (255 / quantum));
                 }
             }
-            return { ...image, data: out, ...(data16 ? { data16 } : {}) };
+            return { ...image, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
         };
     }
     else if (token === "-negate" || token === "+negate") {

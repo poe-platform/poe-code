@@ -7424,7 +7424,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let videoBitrate: number | undefined;
         let subtitleCodec: string | undefined;
         let kaiserBeta = 9;
-        let filterType: "kaiser" | "blackman_nuttall" = "kaiser";
+        let filterType: "cubic" | "kaiser" | "blackman_nuttall" = "kaiser";
         let audioRate: number | undefined;
         let audioChannelOptions: [string, number | undefined][] = [];
         let rematrixMaxval: number | undefined;
@@ -8135,11 +8135,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-filter_type") {
             const raw = args[++i];
-            if (raw !== "kaiser" && raw !== "blackman_nuttall") {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: filter_type must be kaiser or blackman_nuttall\n"), context.signal);
+            if (raw !== "cubic" && raw !== "0" && raw !== "kaiser" && raw !== "blackman_nuttall") {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: filter_type must be cubic (0), kaiser or blackman_nuttall\n"), context.signal);
               return { exitCode: 8 };
             }
-            filterType = raw;
+            filterType = raw === "0" ? "cubic" : raw;
           } else if (arg === "-ar" || (arg === "-sample_rate" && args.slice(i + 1).includes("-i"))) {
             audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
             if (audioRate !== undefined && audioRate < 0) {
@@ -12518,7 +12518,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let rate: number | undefined = trimmed === "aresample" ? 0 : undefined;
                         let firstPts: number | undefined;
                         let format: string | undefined;
-                        let window: "kaiser" | "blackman_nuttall" = "kaiser";
+                        let window: "cubic" | "kaiser" | "blackman_nuttall" = "kaiser";
                         const options = trimmed === "aresample" ? [] : trimmed.slice("aresample=".length).split(":");
                         if (options.at(-1) === "") options.pop();
                         for (const [position, option] of options.entries()) {
@@ -12532,10 +12532,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             continue;
                           }
                           if (key === "filter_type") {
-                            if (extra !== undefined || (raw !== "kaiser" && raw !== "blackman_nuttall")) {
-                              throw new Error("aresample: filter_type must be kaiser or blackman_nuttall");
+                            if (extra !== undefined || (raw !== "cubic" && raw !== "0" && raw !== "kaiser" && raw !== "blackman_nuttall")) {
+                              throw new Error("aresample: filter_type must be cubic (0), kaiser or blackman_nuttall");
                             }
-                            window = raw;
+                            window = raw === "0" ? "cubic" : raw;
                             rate ??= 0;
                             continue;
                           }

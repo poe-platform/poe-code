@@ -3,7 +3,7 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 export async function resampleAudio(
   channels: readonly (Float32Array | Float64Array)[], outputLength: number, inputRate: number, outputRate: number,
-  budget: MediaBudgetTracker, signal?: AbortSignal, filterType: "kaiser" | "blackman_nuttall" = "kaiser", kaiserBeta = 9, filterSize = 32, resampleCutoff = 0, phaseShift = 10, linearInterp = 1, exactRational = 1,
+  budget: MediaBudgetTracker, signal?: AbortSignal, filterType: "cubic" | "kaiser" | "blackman_nuttall" = "kaiser", kaiserBeta = 9, filterSize = 32, resampleCutoff = 0, phaseShift = 10, linearInterp = 1, exactRational = 1,
   frameLimit?: { count?: number; ends: readonly number[]; outputEnds?: number[] }
 ): Promise<Float32Array[]> {
   const rateRatio = inputRate / outputRate;
@@ -65,6 +65,13 @@ export async function resampleAudio(
     if (exactPhases <= phaseCount) phaseCount = exactPhases;
   }
   function filterWeight(distance: number): number {
+    if (filterType === "cubic") {
+      const x = Math.abs(distance * cutoff);
+      // SWR evaluates this cubic over the full filter support, including x > 2.
+      return x < 1
+        ? 1 - 3 * x * x + 2 * x * x * x - 0.5 * (-x * x + x * x * x)
+        : -0.5 * (-4 + 8 * x - 5 * x * x + x * x * x);
+    }
     const phase = Math.PI * distance * cutoff;
     const w = 2 * distance / filterLength;
     let window: number;

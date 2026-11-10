@@ -7615,7 +7615,7 @@ for (const filter of ["aformat=channel_layouts=surround", "aformat=channel_layou
     const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(4), new Float64Array(4)] });
     const vfs = createTestVfs({ "/input.wav": input, "/output.wav": "existing" });
     const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/input.wav", "-af", filter, "/output.wav"], vfs);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, filter.endsWith("=") ? 1 : 234);
     assert.match(result.stderr, /aformat: unsupported/);
     assert.equal(new TextDecoder().decode(vfs.store.get("/output.wav")!), "existing");
   });

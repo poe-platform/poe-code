@@ -33,7 +33,7 @@ for (const levels of [[12000], [12000, -4000]]) {
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
         if (filter.includes("bad")) {
-          assert.equal(result.exitCode, 1);
+          assert.equal(result.exitCode, 234);
           assert.match(stderr, /aformat: unsupported channel layout/);
           assert.equal(volume.readFileSync("/output.wav", "utf8"), "keep");
           return;

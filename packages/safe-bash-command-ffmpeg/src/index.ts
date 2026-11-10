@@ -13427,6 +13427,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("atrim:") && !msg.startsWith("atrim: unsupported option")) {
               return { exitCode: err instanceof RangeError ? 222 : 234 };
             }
+            if (msg.startsWith("aformat: unsupported option ")) return { exitCode: 8 };
+            if (msg === "aformat: invalid sample rate" || msg.startsWith("aformat: unsupported sample format ") ||
+                msg.startsWith("aformat: unsupported channel layout ")) return { exitCode: 234 };
             if (msg === "acontrast: timeline is unsupported") return { exitCode: 176 };
             if (msg === "acontrast: unknown option") return { exitCode: 8 };
             if (msg === "acontrast: invalid expression") return { exitCode: 234 };

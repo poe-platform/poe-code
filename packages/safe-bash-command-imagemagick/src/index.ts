@@ -1564,6 +1564,8 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const metaChannelCount = meta.metaChannels?.length ?? meta.storedMetaChannels?.length ?? 0;
   const properties: Record<string, string> = {
     compose: "Over",
+    scene: short.s!,
+    orientation: ["Undefined", "TopLeft", "TopRight", "BottomRight", "BottomLeft", "LeftTop", "RightTop", "RightBottom", "LeftBottom"][meta.orientation ?? 0] ?? "Undefined",
     ...meta.properties,
     magick: short.m!,
     version: MAGICK_VERSION,
@@ -1575,10 +1577,9 @@ function* formatMagickPropertyStringSteps<Step=never>(
       southwest: "SouthWest", south: "South", southeast: "SouthEast"
     } as Partial<Record<GravityPosition, string>>)[meta.gravity] ?? "" }),
     ...(context.virtualPixel === undefined ? {} : { "virtual-pixel": context.virtualPixel }),
-    scene: short.s!, scenes: short.n!,
+    scenes: short.n!,
     profiles: [...(meta.icc ? ["icc"] : []), ...(meta.xmp ? ["xmp"] : []), ...Object.keys(meta.gifApplications ?? {}).map(name => `gif:${name.toLowerCase()}`)].join(","),
     gamma: String(Number((meta.gamma ?? 1 / 2.2).toPrecision(6))),
-    orientation: ["Undefined", "TopLeft", "TopRight", "BottomRight", "BottomLeft", "LeftTop", "RightTop", "RightBottom", "LeftBottom"][meta.orientation ?? 0] ?? "Undefined",
     ...(meta.jpegSamplingFactor === undefined ? {} : { "jpeg:sampling-factor": meta.jpegSamplingFactor }),
     "exif:orientation": meta.orientation === undefined ? "" : String(meta.orientation),
     colorspace: space, channels: `${space === "LinearGray" ? "gray" : space.toLowerCase()}${meta.hasAlpha || meta.inactiveAlpha && meta.alphaBlend !== false ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (hasAlphaChannel ? 1 : 0) + (meta.isPalette ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.region || meta.writeMask || meta.storedWriteMask ? 1 : 0) + metaChannelCount}.${metaChannelCount}`,

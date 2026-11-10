@@ -60,9 +60,19 @@ function* miffFrameHeader(size: number): Generator<number, MiffHeader, number | 
     if (indexed && size - offset < colors * 3 * sampleBytes) throw new Error("Truncated MIFF palette");
     if (size - offset < (indexed ? colors * 3 * sampleBytes : 0) + width * height * pixelBytes) throw new Error("Truncated MIFF raster");
     const orientation = ["topleft", "topright", "bottomright", "bottomleft", "lefttop", "righttop", "rightbottom", "leftbottom"].indexOf(fields.get("orientation")?.toLowerCase() ?? "") + 1;
+    let virtualCanvas: ImageMetadata["virtualCanvas"];
+    const page = fields.get("page");
+    if (page !== undefined) {
+        const [size, ...offsets] = page.replaceAll("+", " +").replaceAll("-", " -").split(" ");
+        const dimensions = size!.split("x").map(Number), [pageWidth, pageHeight] = dimensions;
+        const [x = 0, y = 0] = offsets.map(Number);
+        if (dimensions.length !== 2 || offsets.length > 2 || dimensions.some(value => !Number.isSafeInteger(value) || value < 0)
+            || !Number.isSafeInteger(x) || !Number.isSafeInteger(y)) throw new Error("Invalid MIFF page geometry");
+        virtualCanvas = { width: pageWidth!, height: pageHeight!, x, y };
+    }
     const delay = Number(fields.get("delay") ?? 0), ticksPerSecond = Number(fields.get("ticks-per-second") ?? 100) || 100;
     if (!Number.isSafeInteger(delay) || delay < 0 || !Number.isSafeInteger(ticksPerSecond) || ticksPerSecond < 0) throw new Error("Invalid MIFF timing");
-    return { metadata: { ...(orientation ? { orientation } : {}), delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, format: "miff", width, height, channels, hasAlpha, depth: floating ? "float" : depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: 72, size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes };
+    return { metadata: { ...(orientation ? { orientation } : {}), ...(virtualCanvas ? { virtualCanvas } : {}), delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, format: "miff", width, height, channels, hasAlpha, depth: floating ? "float" : depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: 72, size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes };
 }
 
 /** Scan adjacent rasters and collect animation timing without reading their pixels. */

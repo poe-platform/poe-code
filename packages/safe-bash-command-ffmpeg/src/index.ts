@@ -11751,7 +11751,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         if (selecting) {
-                          const variables = { n: 0, t: NaN, pts: NaN, TB: 1 / origRate, start_pts: NaN, start_t: NaN };
+                          const variables = {
+                            // Decoded audio is key; video classification and concat metadata are unavailable.
+                            key: 1, pict_type: NaN, interlace_type: NaN, concatdec_select: NaN,
+                            I: 1, PROGRESSIVE: 0,
+                            n: 0, t: NaN, pts: NaN, TB: 1 / origRate, start_pts: NaN, start_t: NaN
+                          };
                           if (audioTimestamps.length === 0) parseFilterExpression(expression, "aselect", variables);
                           const selected: typeof audioTimestamps = [];
                           const ranges: { start: number; end: number }[] = [];

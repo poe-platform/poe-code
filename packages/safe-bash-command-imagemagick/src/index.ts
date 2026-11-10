@@ -6028,6 +6028,15 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
                     canvas.evaluateSamples.set(samples, ((top + y) * totalW + left + x) * 4);
                 }
                 if (canvas.hueSamples) canvas.hueSamples.set(im.hueSamples!.subarray(start, start + Math.min(4096, im.width - x) * 4), ((top + y) * totalW + left + x) * 4);
+                if (!im.hasAlpha) {
+                    const offset = ((top + y) * totalW + left + x) * 4;
+                    const end = offset + Math.min(4096, im.width - x) * 4;
+                    for (let alpha = offset + 3; alpha < end; alpha += 4) {
+                        canvas.data[alpha] = 255;
+                        if (canvas.data16) canvas.data16[alpha] = 65535;
+                        if (canvas.evaluateSamples) canvas.evaluateSamples[alpha] = 255;
+                    }
+                }
             }
         }
         hasAlpha ||= im.hasAlpha;
@@ -12584,17 +12593,25 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             for (let x = 0; x < frame.width; x += chunkPixels) {
                                 await yieldTurn(signal);
                                 const pixels = await backend.storage.read(frame.position + (y * frame.width + x) * 4, Math.min(chunkPixels, frame.width - x) * 4);
+                                if (!frame.hasAlpha) for (let i = 3; i < pixels.length; i += 4) pixels[i] = 255;
                                 await backend.storage.write(result.position + ((top + y) * width + left + x) * 4, pixels);
                                 const original = frame.storedData16
                                     ? await backend.storage.read(frame.storedData16.position + (y * frame.width + x) * 8, pixels.length * 2) : undefined;
                                 if (result.storedData16) {
                                     const bytes = original ?? new Uint8Array(Uint16Array.from(pixels, value => value * 257).buffer);
+                                    if (!frame.hasAlpha) {
+                                        for (let i = 6; i < bytes.length; i += 8) { bytes[i] = 255; bytes[i + 1] = 255; }
+                                    }
                                     await backend.storage.write(result.storedData16.position + ((top + y) * width + left + x) * 8, bytes);
                                 }
                                 if (result.storedEvaluateSamples !== undefined) {
                                     const bytes = frame.storedEvaluateSamples !== undefined
                                         ? await backend.storage.read(frame.storedEvaluateSamples + (y * frame.width + x) * 32, pixels.length * 8)
                                         : new Uint8Array(Float64Array.from(original ? new Uint16Array(original.slice().buffer) : pixels, value => original ? value / 257 : value).buffer);
+                                    if (!frame.hasAlpha) {
+                                        const samples = new Float64Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 8);
+                                        for (let i = 3; i < samples.length; i += 4) samples[i] = 255;
+                                    }
                                     await backend.storage.write(result.storedEvaluateSamples + ((top + y) * width + left + x) * 32, bytes);
                                 }
                                 if (result.storedHueSamples !== undefined) {

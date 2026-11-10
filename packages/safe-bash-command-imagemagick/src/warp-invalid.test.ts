@@ -5,9 +5,9 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 
 const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAcAAAAFCAIAAAAG+GGPAAAAJUlEQVR4nGMUtojNxwCMMo5pWERVvTAF8xn1giuwiJrHNGKKAgAm2itiRBt5eAAAAABJRU5ErkJggg==", "base64");
 
-for (const mode of ["sync", "buffered", "command", "mogrify"] as const)
+for (const mode of ["sync", "buffered", "retained", "command", "mogrify"] as const)
 for (const option of ["-wave", "-swirl", "-implode"]) {
-    it.each(["bad", "", "2xbad", "NaN"])(`${mode}: rejects ${option} %j without replacing output`, async (argument) => {
+    it.each(["bad", "", "2xbad", "NaN", "+1+2", "-1-2", "x", "++2", "--2", "+-2", "-+2", "+%[fx:1]+2", ...(option === "-wave" ? [] : ["x7"])])(`${mode}: rejects ${option} %j without replacing output`, async (argument) => {
         const destination = mode === "mogrify" ? input : new TextEncoder().encode("KEEP");
         const files = new Map<string, Uint8Array>([["/input.png", input], ["/out.png", destination]]);
         const filesystem = new MemoryFileSystem();
@@ -16,6 +16,7 @@ for (const option of ["-wave", "-swirl", "-implode"]) {
         let stderr = "";
         const result = mode === "sync" ? runConvertCliSync(argv, files)
             : mode === "buffered" ? await runConvertCli(argv, files)
+            : mode === "retained" ? await runConvertCli(argv, { filesystem, cwd: "/" })
             : await createMagickCommand().execute({
                 command: "magick", args: createCommandArguments(argv).args, cwd: "/", env: {}, fs: filesystem,
                 stdin: (async function* () {})(), signal: new AbortController().signal,

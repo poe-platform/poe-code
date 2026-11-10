@@ -2178,6 +2178,14 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
         }
     }
     if (!value || value === "+" || value === "-") throw new Error(`invalid argument for option '${option}': ${raw}`);
+    if (option === "-swirl" || option === "-implode" || option === "-wave") {
+        const geometry = parseMagickGeometry(value);
+        // A single signed magnitude parses as an offset; two offsets supply no magnitude.
+        const magnitude = geometry.aspectRatio ?? geometry.width ?? (geometry.areaLimit !== undefined || geometry.hasOffset && !geometry.hasYOffset ? Number.parseFloat(value) : undefined);
+        if (!Number.isFinite(magnitude) && (option !== "-wave" || !Number.isFinite(geometry.height))) {
+            throw new Error(`invalid argument for option '${option}': ${raw}`);
+        }
+    }
 }
 
 function hasSignedMagickShaveDimensions(raw: string): boolean {

@@ -9,7 +9,16 @@ for (const [option, amount, geometry] of [
     ["-swirl", "120", "120x5"],
     ["-swirl", "120", "120%"],
     ["-implode", "1.5", "1.5x2"],
-    ["-implode", "1.5", "1.5%"]
+    ["-implode", "1.5", "1.5%"],
+    ["-swirl", "1", "+1"],
+    ["-swirl", "-1", "-1"],
+    ["-swirl", "1", "+1%"],
+    ["-swirl", "1", "1@"],
+    ["-implode", "1", "+1"],
+    ["-implode", "-1", "-1"],
+    ["-wave", "0x7", "x7"],
+    ["-wave", "2x1", "2"],
+    ["-wave", "2x1", "2x"]
 ]) {
     it(`${mode}: ${option} ${geometry} uses the first geometry value`, async () => {
         const pixels = Uint8Array.from({ length: 9 * 7 * 4 }, (_, i) =>
@@ -30,7 +39,8 @@ for (const [option, amount, geometry] of [
         expect(result.exitCode).toBe(0);
         const output = decodeImage(mode === "sync" || mode === "buffered" ? files.get("/out.png")!
             : await filesystem.readFile(mode === "mogrify" ? "/input.png" : "/out.png"));
-        expect([output.width, output.height]).toEqual([9, 7]);
-        expect(output.data).toEqual(decodeImage(files.get("/expected.png")!).data);
+        const expected = decodeImage(files.get("/expected.png")!);
+        expect([output.width, output.height]).toEqual([expected.width, expected.height]);
+        expect(output.data).toEqual(expected.data);
     });
 }

@@ -2797,6 +2797,7 @@ function propToChannel(prop: string): number {
 class FxExpressionError extends Error {}
 
 function compileFxExpression(exprStr: string) {
+  const variables = new Set<string>();
   let needsStatistics = false;
   const requireStatistics = () => { needsStatistics = true; };
   const statements = exprStr
@@ -2808,14 +2809,15 @@ function compileFxExpression(exprStr: string) {
     const assignMatch = /^([a-zA-Z_][a-zA-Z0-9_]*)\s*=\s*([^=].*)$/.exec(stmt);
     if (assignMatch) {
       const varName = assignMatch[1]!.toLowerCase();
-      const rhsFn = compileSingleFxExpr(assignMatch[2]!, requireStatistics);
+      variables.add(varName);
+      const rhsFn = compileSingleFxExpr(assignMatch[2]!, requireStatistics, variables);
       return (ctx: FxEvalContext) => {
         const val = rhsFn(ctx);
         ctx.vars.set(varName, val);
         return val;
       };
     }
-    return compileSingleFxExpr(stmt, requireStatistics);
+    return compileSingleFxExpr(stmt, requireStatistics, variables);
   });
 
   return Object.assign((ctx: FxEvalContext) => {
@@ -2827,7 +2829,7 @@ function compileFxExpression(exprStr: string) {
   }, { needsStatistics });
 }
 
-function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: FxEvalContext) => number {
+function compileSingleFxExpr(src: string, requireStatistics: () => void, variables: ReadonlySet<string>): (ctx: FxEvalContext) => number {
   type Tok = { type: "num" | "id" | "op" | "punc"; val: string };
   const tokens: Tok[] = [];
   let k = 0;
@@ -3196,7 +3198,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         };
       }
 
-      const color = X11_NAMED_COLORS[name];
+      const color = Object.hasOwn(X11_NAMED_COLORS, name) ? X11_NAMED_COLORS[name] : undefined;
       if (color && peek()?.val === ".") {
         throw new FxExpressionError(`Expected operator at '.${tokens[pos + 1]?.val ?? ""}'`);
       }
@@ -3243,9 +3245,15 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
 
       const isStatistic = statisticNames.includes(name);
       if (isStatistic) requireStatistics();
+      const isVariable = variables.has(name);
+      if (!color && !isStatistic && !isVariable && ![
+        "i", "j", "w", "h", "n", "t", "quantumrange", "maxrgb", "quantumscale", "epsilon", "phi", "pi", "e",
+        "u", "v", "s", "p", "page", "resolution", "printsize", "quality", "depth", "z", "extent",
+        "k", "r", "g", "b", "a", "alpha", "opacity", "intensity", "luma", "luminance", "hue", "saturation", "lightness"
+      ].includes(name)) throw new FxExpressionError(`Expected operand at '${tok.val}'`);
       return (ctx) => {
-        if (ctx.vars.has(name) && !propName && !coordX) {
-          return ctx.vars.get(name)!;
+        if (isVariable && !propName && !coordX) {
+          return ctx.vars.get(name) ?? 0;
         }
         if (color) return color[ctx.ch]! / 255;
         if (isStatistic && ctx.statistics) {

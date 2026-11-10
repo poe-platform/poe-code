@@ -1,7 +1,7 @@
 import type { RgbaColor } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-export function* borderPixels(image: { width: number; height: number }, left: number, top: number, color: RgbaColor, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* borderPixels(image: { width: number; height: number; hasAlpha: boolean }, left: number, top: number, color: RgbaColor, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const width = image.width + left * 2, height = image.height + top * 2;
     const maximum = highDepth ? 65535 : 255;
     const background = [color.r, color.g, color.b, color.a].map(value => Math.round(value * maximum / 255));
@@ -17,7 +17,7 @@ export function* borderPixels(image: { width: number; height: number }, left: nu
             const source = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
             for (let pixel = first; pixel < end; pixel++) {
                 const src = (pixel - first) * 4, dst = (pixel - x) * 4;
-                const alpha = source[src + 3]! / maximum, behind = background[3]! / maximum * (1 - alpha), combined = alpha + behind;
+                const alpha = image.hasAlpha ? source[src + 3]! / maximum : 1, behind = background[3]! / maximum * (1 - alpha), combined = alpha + behind;
                 for (let channel = 0; channel < 3; channel++) data[dst + channel] = combined
                     ? Math.round((source[src + channel]! * alpha + background[channel]! * behind) / combined) : background[channel]!;
                 data[dst + 3] = Math.round(combined * maximum);

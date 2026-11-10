@@ -7805,11 +7805,21 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         const raw = tokens[++i] ?? "";
         const geometry = raw.trim().toLowerCase();
-        const firstDigit = geometry.startsWith("-") || geometry.startsWith("+") ? 1 : 0;
-        const separator = geometry.indexOf("x", geometry.startsWith("0x", firstDigit) ? firstDigit + 2 : 0);
-        const fields = separator < 0 ? [geometry] : [geometry.slice(0, separator), ...geometry.slice(separator + 1).split("x")];
-        const thresholds = fields.map(field => {
-            const threshold = (field.endsWith("%") ? field.slice(0, -1) : field).trim();
+        if (!geometry) throw new Error(`invalid argument '-threshold' '${raw}'`);
+        const fields = [""];
+        for (const character of geometry) {
+            if ("!<>^@#".includes(character)) continue;
+            const field = fields[fields.length - 1]!;
+            const unsigned = field.startsWith("-") || field.startsWith("+") ? field.slice(1) : field;
+            const offset = (character === "+" || character === "-") && field !== "" && !(field.endsWith("e") && !unsigned.startsWith("0x"));
+            if (",/:".includes(character) || (character === "x" && unsigned !== "0") || offset) {
+                fields.push(offset ? character : "");
+            } else fields[fields.length - 1] += character;
+        }
+        const thresholds = fields.map(part => {
+            const field = part.trim();
+            if (!field) return 0;
+            const threshold = field.endsWith("%") ? field.slice(0, -1) : field;
             const unsigned = threshold.startsWith("-") || threshold.startsWith("+") ? threshold.slice(1) : threshold;
             const hexadecimal = unsigned.startsWith("0x");
             const scalar = hexadecimal ? Number(unsigned) * (threshold.startsWith("-") ? -1 : 1) : Number(threshold);
@@ -7817,7 +7827,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 throw new Error(`invalid argument '-threshold' '${raw}'`);
             }
             // Plain threshold percentages use the Q16 interval (QuantumRange + 1).
-            return field.endsWith("%") ? scalar / 100 * 65536 : scalar;
+            return field.endsWith("%") && threshold === threshold.trimEnd() ? scalar / 100 * 65536 : scalar;
         });
         const value = thresholds[0]!;
         const channels = state.channelDefault ? undefined : state.channels;

@@ -11401,7 +11401,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           });
                         }
                         const previous = audioTimestamps;
+                        const previousMetadata = audioMetadata;
                         audioTimestamps = [];
+                        audioMetadata = [];
                         let frameIndex = 0;
                         let packetEnd = t.samples[0] ? Math.round(t.samples[0].duration * origRate / t.timescale) : 0;
                         for (let start = 0; start < padded; start += size) {
@@ -11412,9 +11414,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             packetEnd += Math.round(t.samples[frameIndex]!.duration * origRate / t.timescale);
                           }
                           const frame = previous?.[frameIndex];
+                          const pts = frame ? frame.pts + start - frame.start : audioStartSample + start;
                           audioTimestamps.push({ start, end: Math.min(padded, start + size),
                             pos: previous ? frame?.pos : t.samples[frameIndex]?.offset,
-                            pts: frame ? frame.pts + start - frame.start : audioStartSample + start });
+                            pts });
+                          if (previousMetadata.length) {
+                            // Output frames inherit tags from the frame containing their first sample.
+                            const tags = new Map(previousMetadata[frameIndex]?.tags);
+                            budget.allocateMemory(64 + tags.size * 64);
+                            audioMetadata.push({ pts, tags });
+                          }
                         }
                       } else if (trimmed === "ashowinfo") {
                         if (logLevel < 32) continue;

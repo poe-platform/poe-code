@@ -10843,9 +10843,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const sink = index !== undefined && index >= workingDoc.tracks.length - audioSinks.length;
                   let audioChannels = index === undefined ? undefined : audioChannelsForStream(audioChannelOptions, index, ordinal!);
                   if (audioChannels !== undefined && audioChannels <= 0) audioChannels = undefined;
-                  const filter = expression === undefined
+                  let filter = expression === undefined
                     ? afFilters.filter(filter => filter.ordinal === undefined || filter.ordinal === ordinal).at(-1)
                     : { expression };
+                  if (filter?.expression.includes(";")) {
+                    const graph = await resolveAudioGraph(filter.expression, [{ ...workingDoc, tracks: [t] }],
+                      [], new Set(), new Set(), filterAudio, mixCommands, budget, context.signal);
+                    if (graph.outputs.length !== 1 || graph.sinks.length) {
+                      throw new Error("Simple audio filter graph requires one input and one output");
+                    }
+                    t = graph.outputs[0]!.track;
+                    filter = { ...filter, expression: graph.outputs[0]!.expression };
+                  }
                   if (autoConversionFilters && audioRate === undefined && audioChannels === undefined && rematrixVolume === 1 && !filter && maxAudioFrames === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") return t;
                   const doc = index === undefined ? loadedDocs.find(doc => doc.tracks.includes(t)) ?? loadedDocs[0]! : workingDoc;
                   const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"

@@ -19,6 +19,7 @@ export async function flangeAudio(
     if (!key || !Object.hasOwn(options, key)) throw new Error(`flanger: unsupported option ${key}`);
     const value = separator < 0 ? option : option.slice(separator + 1);
     const number = parseFilterExpression(value, "flanger", {
+      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
       ...(key === "shape" ? { sinusoidal: 0, s: 0, triangular: 1, t: 1 } : {}),
       ...(key === "interp" ? { linear: 0, quadratic: 1 } : {})
     });

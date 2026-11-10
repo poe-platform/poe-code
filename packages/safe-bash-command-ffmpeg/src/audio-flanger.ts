@@ -10,8 +10,10 @@ export async function flangeAudio(
   const ranges = { delay: [0, 30], depth: [0, 10], regen: [-95, 95], width: [0, 100], speed: [0.1, 10], shape: [0, 1], phase: [0, 100], interp: [0, 1] };
   const names = Object.keys(options) as (keyof typeof options)[];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  const argumentsList = argument ? argument.split(":") : [];
+  if (argumentsList.at(-1) === "") argumentsList.pop();
   let position = 0;
-  for (const option of argument ? argument.split(":") : []) {
+  for (const option of argumentsList) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[position] : option.slice(0, separator).trim() as keyof typeof options;
     if (separator < 0) position++;

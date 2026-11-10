@@ -87,7 +87,31 @@ for (const [expression, decimal] of [
   }
 }
 
-for (const option of ["delay=-1", "depth=11", "regen=96", "width=101", "speed=0", "phase=101", "shape=bad", "interp=2", "unknown=1", "delay=NaN", "delay=PI*10"]) {
+it("matches native PCM for the final-separator stereo regression", async () => {
+  const channels = Array.from({ length: 2 }, (_, c) =>
+    Float64Array.from({ length: 8000 }, (_, i) => ((i * 997 + c * 149) % 60001 - 30000) / 32768));
+  const { volume, result, stderr } = await run("flanger=2:3:", 8000, true, false, "s16le", channels);
+  assert.equal(result.exitCode, 0, stderr);
+  const pcm = volume.readFileSync("/out.s16") as Buffer;
+  assert.equal(pcm.length, 32000);
+  assert.equal(createHash("sha256").update(pcm).digest("hex").slice(0, 16), "2b3a475db3b0c323");
+});
+
+for (const stereo of [false, true]) {
+  for (const graph of [false, true]) {
+    for (const options of ["2:3", "delay=2:depth=3", "2:4:-20:60:2:t:50:quadratic"]) {
+      it(`accepts a final flanger separator (${options}, stereo=${stereo}, graph=${graph})`, async () => {
+        const control = await run(`flanger=${options}`, 4096, stereo, graph);
+        assert.equal(control.result.exitCode, 0, control.stderr);
+        const actual = await run(`flanger=${options}:`, 4096, stereo, graph);
+        assert.equal(actual.result.exitCode, 0, actual.stderr);
+        assert.deepEqual(actual.volume.readFileSync("/out.s16"), control.volume.readFileSync("/out.s16"));
+      });
+    }
+  }
+}
+
+for (const option of ["2::3", "2:3::", "delay=2:depth=", "delay=-1", "depth=11", "regen=96", "width=101", "speed=0", "phase=101", "shape=bad", "interp=2", "unknown=1", "delay=NaN", "delay=PI*10"]) {
   it(`rejects ${option} without replacing output`, async () => {
     const { volume, result } = await run(`flanger=${option}`);
     assert.notEqual(result.exitCode, 0);

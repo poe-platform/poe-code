@@ -21,7 +21,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
   for (let index = 0; index < count; index++) {
     budget.checkCpu();
     const data = bytes.subarray(index * frameBytes, (index + 1) * frameBytes);
-    samples.push({ data, size: data.length, dts: index * ticks, pts: index * ticks, cts: 0,
+    samples.push({ data, offset: index * frameBytes, size: data.length, dts: index * ticks, pts: index * ticks, cts: 0,
       duration: ticks, isKeyframe: true, sampleDescriptionIndex: 1 });
     // Stream copy retains the final short packet; decoding only emits complete frames.
     if (data.length !== frameBytes) continue;
@@ -36,7 +36,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
       else rgba.set(data.subarray(pixel * 3, pixel * 3 + 3), pixel * 4);
       rgba[pixel * 4 + 3] = 255;
     }
-    frames.push({ width, height, data: rgba,
+    frames.push({ width, height, data: rgba, offset: index * frameBytes,
       ...(pixelFormat === "yuv420p" ? { native: { rgba, pixels: data, width, height, format: 0, colorspace: 5, fullRange: 0 } } : {}),
       ptsSeconds: index * ticks / timescale,
       durationSeconds: ticks / timescale, keyframe: true });

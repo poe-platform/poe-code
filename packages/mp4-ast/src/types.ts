@@ -191,6 +191,8 @@ export class MediaBudgetTracker {
 export type MediaTrackType = "video" | "audio" | "subtitle" | "data";
 
 export interface MediaVideoFrame {
+  /** Absolute source packet offset, when known. */
+  readonly offset?: number | undefined;
   readonly native?: NativeVideoPixels;
   readonly width: number;
   readonly height: number;

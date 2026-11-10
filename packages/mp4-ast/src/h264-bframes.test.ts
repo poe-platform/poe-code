@@ -31,6 +31,8 @@ for (const frameCount of [1, 2, 3, 24, 49]) {
       assert.equal(frames.length, frameCount);
       frames.forEach((frame, i) => {
         assert.ok(Math.abs(frame.ptsSeconds - i / 12) < 0.00002);
+        const source = track.samples.find(sample => sample.pts === Math.round(frame.ptsSeconds * track.timescale))!;
+        assert.equal(frame.offset, source.offset);
         if (maxBFrames !== 0) assert.deepEqual(frame.data, reference[i]!.data, `picture ${i}, maxBFrames ${maxBFrames}`);
       });
       if (maxBFrames === 0) reference = frames;

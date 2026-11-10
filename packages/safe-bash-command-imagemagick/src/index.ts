@@ -9912,9 +9912,15 @@ function setMagickType<T extends { [magickInput]?: MagickFormatContext }>(image:
     return { ...image, [magickInput]: { ...image[magickInput], imageType } };
 }
 
+function parseMagickDensity(value: string): { width: number; height: number } {
+    const geometry = parseMagickGeometry(value.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
+    if (geometry.aspectRatio !== undefined) return { width: geometry.aspectRatio, height: 1 };
+    const width = geometry.width ?? 72;
+    return { width, height: geometry.height ?? width };
+}
+
 function applyMagickDensity<T extends ImageMetadata & { magickUnits?: MagickState["units"] }>(image: T, value: string): T {
-    const geometry = parseMagickGeometry(value.replaceAll(",", "x").replaceAll("/", "x"));
-    const x = geometry.width ?? 72, y = geometry.height ?? x;
+    const { width: x, height: y } = parseMagickDensity(value);
     const unit = image.resolution?.unit ?? image.magickUnits ?? "unknown";
     const scale = unit === "meter" ? 100 : 1;
     return { ...image, density: x * (unit === "cm" || unit === "meter" ? 2.54 : 1),
@@ -10130,8 +10136,8 @@ if (t === "-intent" || t === "+intent") {
             state.qualityExplicit = true;
         }
         else if (t === "-density") {
-            const g = parseMagickGeometry(state.densityGeometry = tokens[++i] ?? "72");
-            state.density = Math.max(1, Math.round(g.width ?? 72));
+            const g = parseMagickDensity(state.densityGeometry = tokens[++i] ?? "72");
+            state.density = Math.max(1, Math.round(g.width));
         }
         else if (t === "+density") {
             delete state.densityGeometry;
@@ -10601,7 +10607,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         if (t === "-density") {
             const value = state.densityGeometry = tokens[++i] ?? "72";
-            state.density = Math.max(1, Math.round(parseMagickGeometry(value).width ?? 72));
+            state.density = Math.max(1, Math.round(parseMagickDensity(value).width));
             stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return applyMagickDensity(image, value); });
             i++;
             continue;
@@ -13417,7 +13423,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-density") {
             const value = state.densityGeometry = tokens[++i] ?? "72";
-            state.density = Math.max(1, Math.round(parseMagickGeometry(value).width ?? 72));
+            state.density = Math.max(1, Math.round(parseMagickDensity(value).width));
             steps.push(async image => image ? applyMagickDensity(image, value) : undefined);
             continue;
         }
@@ -16584,7 +16590,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         else if (t === "+depth") { delete state.inputDepth; }
         else if (t === "-density") {
             density = argv[++i] ?? "72";
-            state.density = Math.max(1, Math.round(parseMagickGeometry(density).width ?? 72));
+            state.density = Math.max(1, Math.round(parseMagickDensity(density).width));
         }
         else if (t === "(") {
             resizeSteps.push(t);

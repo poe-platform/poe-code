@@ -234,7 +234,7 @@ function contributions(index: number, source: number, target: number, blur: numb
     return { first, weights };
 }
 
-type ResizeImage = { width: number; height: number; hasAlpha: boolean; space?: string };
+type ResizeImage = { width: number; height: number; hasAlpha: boolean; inactiveAlpha?: boolean | undefined; space?: string };
 type ResizeSamples = Generator<ConvolveRequest | { kind: "samples"; position: number; data: Float64Array } | undefined, void, Uint8Array | undefined>;
 
 /** Keep HDRI samples unclamped until all resizing and morph blending is finished. */
@@ -393,8 +393,9 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
 }
 
 export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, height: number, fraction: number, channels?: readonly boolean[], highDepth = false, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    // ImageMagick retains the first image's alpha unless both alpha channels are active.
-    const blendAlpha = a.hasAlpha && b.hasAlpha, blendBlack = a.space === "cmyk" && b.space === "cmyk";
+    // Undefined alpha stays with the first image; inactive alpha has CopyPixelTrait.
+    const blendAlpha = !!(a.hasAlpha || a.inactiveAlpha) && !!(b.hasAlpha || b.inactiveAlpha), blendBlack = a.space === "cmyk" && b.space === "cmyk";
+    if (!a.hasAlpha && a.inactiveAlpha) channels = [channels?.[0] ?? true, channels?.[1] ?? true, channels?.[2] ?? true, false, channels?.[4] ?? true];
     // A grayscale first frame has one color channel, shared by R, G and B.
     const gray = a.space === "b-w" || a.space === "grey16";
     const inks = a.space === "cmyk" || b.space === "cmyk", stride = inks ? 5 : 4;
@@ -418,6 +419,17 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
             const samples = next.value!;
             if (samples.kind !== "samples") return;
             position = samples.position;
+            const input = image === 0 ? a : b;
+            if (!input.hasAlpha && input.inactiveAlpha) {
+                // Resize copies inactive alpha at the filter bisector, without weighting colors.
+                for (let offset = 0; offset < samples.data.length; offset += stride) {
+                    const pixel = position / 4 + offset / stride;
+                    const sx = input.width === width ? pixel % width : resizeCopyIndex(pixel % width, input.width, width);
+                    const sy = input.height === height ? Math.floor(pixel / width) : resizeCopyIndex(Math.floor(pixel / width), input.height, height);
+                    const bytes = (yield { kind: "read", image, highDepth: inks || highDepth, position: (sy * input.width + sx) * 4, length: 4 })!;
+                    samples.data[offset + 3] = (inks || highDepth ? new Uint16Array(bytes.slice().buffer) : bytes)[3]!;
+                }
+            }
             if (!blended) blended = Float64Array.from(samples.data, (value, i) => (i % stride === 3 && !blendAlpha || i % stride === 4 && !blendBlack) ? value : value * (1 - fraction));
             else for (let i = 0; i < blended.length; i++) {
                 if (i % stride === 3 && !blendAlpha || i % stride === 4 && !blendBlack) continue;

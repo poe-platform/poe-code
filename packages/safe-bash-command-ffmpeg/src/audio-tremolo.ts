@@ -11,8 +11,10 @@ export async function tremoloAudio(
   let depth = 0.5;
   let enable: string | undefined;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  const options = argument ? argument.split(":") : [];
+  if (options.at(-1) === "") options.pop();
   let optionPosition = 0;
-  for (const option of argument ? argument.split(":") : []) {
+  for (const option of options) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["f", "d"][optionPosition] : option.slice(0, separator).trim();
     // FFmpeg 7 restarts shorthand after named options, skipping the first slot

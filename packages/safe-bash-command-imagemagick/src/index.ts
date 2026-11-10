@@ -3220,6 +3220,12 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         }
         if (name === "t" || propName === "t") return targetIdx;
         const targetImg = "get" in ctx.stack ? ctx.stack.get(targetIdx) ?? ctx.stack.get(0) : ctx.stack[targetIdx] ?? ctx.stack[0];
+        if (name === "page") {
+          if (propName === "width") return targetImg?.virtualCanvas?.width ?? targetImg?.width ?? ctx.w;
+          if (propName === "height") return targetImg?.virtualCanvas?.height ?? targetImg?.height ?? ctx.h;
+          if (propName === "x") return targetImg?.virtualCanvas?.x ?? 0;
+          if (propName === "y") return targetImg?.virtualCanvas?.y ?? 0;
+        }
         if (name === "resolution" && (propName === "x" || propName === "y")) {
           const resolution = targetImg?.resolution;
           return resolution ? resolution[propName] / (resolution.unit === "meter" ? 100 : 1) : 0;

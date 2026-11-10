@@ -22,7 +22,8 @@ for (const graph of [false, true]) {
     ["loop=1:2:100", [], true],
     ["loop=-1:2:6", [], false],
     ["loop=-2:0:0", [], false],
-    ["loop=-1:0:-1", [], false]
+    ["loop=-1:0:-1", [], true],
+    ["loop=-1:0:-2", [], false]
   ] as const) {
     it(`${graph ? "graph" : "simple"} ${filter} ${outputOptions.join(" ")} ${succeeds ? "passes through without replay" : "rejects unsafe looping"}`, async () => {
       const volume = Volume.fromJSON({ "/in.y4m": input, "/o.raw": "KEEP" });

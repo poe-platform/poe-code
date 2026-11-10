@@ -259,7 +259,7 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                 continue;
             }
             if (norm === "blend") {
-                const [sStr, dStr] = (composeArgs || "50").split(/[xX,]/);
+                const [sStr, dStr] = (composeArgs ?? "100x100").split(/[xX,]/);
                 const wSrc = Math.max(0, (parseFloat(sStr || "50") || 0) / 100);
                 const wDst = dStr !== undefined ? Math.max(0, (parseFloat(dStr) || 0) / 100) : Math.max(0, 1 - wSrc);
                 const effSa = sa * wSrc;

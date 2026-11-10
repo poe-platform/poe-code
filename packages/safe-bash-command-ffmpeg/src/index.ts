@@ -2725,12 +2725,15 @@ async function applyVideoFilterChain(
         else if (key === "passthrough") passthrough = value;
         else throw new Error(`transpose: unsupported option ${key}`);
       }
-      const directions: Record<string, number> = { cclock_flip: 0, clock: 1, cclock: 2, clock_flip: 3 };
+      const constants = { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 };
+      const directions = { ...constants, cclock_flip: 0, clock: 1, cclock: 2, clock_flip: 3 };
       let dir = parseFilterExpression(direction, "transpose", directions);
-      if (!Number.isInteger(dir) || dir < 0 || dir > 7) throw new Error("transpose: invalid direction");
-      const modes: Record<string, number> = { none: 0, landscape: 1, portrait: 2 };
-      let pass = Object.hasOwn(modes, passthrough) ? modes[passthrough]! : passthrough ? Number(passthrough) : NaN;
-      if (!Number.isInteger(pass) || pass < 0 || pass > 2147483647) throw new Error("transpose: invalid passthrough");
+      if (dir < 0 || dir > 7) throw new RangeError("transpose: invalid direction");
+      const modes = { ...constants, none: 0, landscape: 1, portrait: 2 };
+      let pass = parseFilterExpression(passthrough, "transpose", modes);
+      if (pass < 0 || pass > 2147483647) throw new RangeError("transpose: invalid passthrough");
+      dir = roundToEven(dir);
+      pass = roundToEven(pass);
       if (dir >= 4) { dir -= 4; pass = 1; }
       const angle = dir === 0 || dir === 2 ? 270 : 90;
       current = await mapWork(current, async (f) => {
@@ -14495,6 +14498,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (err instanceof AlimiterError || err instanceof CompandError || unnamedChannel || unsupportedPanOrder) {
               if ((unnamedChannel || unsupportedPanOrder || ((err instanceof AlimiterError || err instanceof CompandError) && err.stage === "configuration")) && outputFormat !== "null" &&
                   !isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {
+                (msg.startsWith("transpose:") && !msg.startsWith("transpose: unsupported option")) ||
                 await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
               }
               return { exitCode: err instanceof CompandError ? err.exitCode : 234 };

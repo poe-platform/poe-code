@@ -3,6 +3,8 @@ import * as commands from "@poe-platform/safe-bash";
 // Public agent registration must expose effect-free discovery in every runtime.
 const helpFs = new Proxy(commands.createMemoryFileSystem(), {
   get(target, key) {
+    // Directory tracking is optional shell bookkeeping, not command file access.
+    if (key === "trackDirectory") return undefined;
     const value = Reflect.get(target, key);
     if (typeof value !== "function") return value;
     return () => { throw new Error("ExifTool help accessed the VFS: " + String(key)); };

@@ -69,8 +69,28 @@ it("atilt defaults preserve PCM and positional options work in a linked filter c
   for (let i = 0; i < 4; i++) assert.equal(named.bytes.readInt16LE(i * 4 + 2), 0);
 });
 
+// Native FFmpeg 7.0.2 signed 16-bit PCM at indices 0, 1, 2, 31, 32, 33.
+for (const [order, rounded, samples] of [
+  [2.5, 2, [7482, -5013, -1989, -847, 8646, -4644]],
+  [3.5, 4, [5449, -3068, -1507, -816, 6092, -2852]],
+  [3.1, 3, [5893, -3490, -1617, -821, 6651, -3238]]
+] as const) {
+  it(`atilt rounds order ${order} to ${rounded} with native PCM output`, async () => {
+    const input = [Float64Array.from({ length: 128 }, (_, i) => (i % 8 === 0 ? 3000 : -800) / 32768)];
+    const control = await run(`atilt=freq=500:slope=0.5:order=${rounded}`, input, false, 8000);
+    assert.equal(control.exitCode, 0, control.stderr);
+    for (const positional of [false, true]) {
+      const filter = positional ? `atilt=500:0.5:1000:${order}` : `atilt=freq=500:slope=0.5:order=${order}`;
+      const result = await run(filter, input, positional, 8000);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.bytes, control.bytes);
+      assert.deepEqual([0, 1, 2, 31, 32, 33].map(i => result.bytes.readInt16LE(i * 2)), samples);
+    }
+  });
+}
+
 for (const option of ["freq=19", "freq=192001", "slope=1.1", "slope=-1.1", "width=99", "width=10001",
-  "order=1", "order=31", "order=2.5", "level=-1", "level=4.1", "slope=NaN", "freq=", "unknown=1"]) {
+  "order=1", "order=31", "order=1.9", "order=30.1", "level=-1", "level=4.1", "slope=NaN", "freq=", "unknown=1"]) {
   it(`atilt rejects ${option} without replacing output`, async () => {
     const result = await run(`atilt=${option}`, [new Float64Array(4)]);
     assert.equal(result.exitCode, 1);

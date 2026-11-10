@@ -17,10 +17,13 @@ export async function tiltAudio(
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     const number = parseFilterExpression(value, "atilt", {});
     const [min, max] = ranges[key];
-    if (!value || !Number.isFinite(number) || number < min! || number > max! || key === "order" && !Number.isInteger(number)) {
+    if (!value || !Number.isFinite(number) || number < min! || number > max!) {
       throw new Error(`atilt: invalid ${key}`);
     }
     options[key] = number;
+    if (key === "order") {
+      options.order = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
+    }
   }
 
   budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * 8, 0));

@@ -10927,8 +10927,14 @@ function applyMagickProfile<T extends { readonly icc?: Uint8Array; readonly exif
 
 async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult | undefined> {
     const analysis = createConvertAnalysis();
-    const result = await tryConvertFilesResult(argv, input, stdinBytes, signal, analysis);
-    return result ? combineConvertOutput(result, analysis) : undefined;
+    try {
+        const result = await tryConvertFilesResult(argv, input, stdinBytes, signal, analysis);
+        return result ? combineConvertOutput(result, analysis) : undefined;
+    } catch (error) {
+        signal.throwIfAborted();
+        if (!(error instanceof RangeError) || error.message !== "Invalid WebP frame duration") throw error;
+        return combineConvertOutput({ exitCode: 1, stdout: "", stderr: `magick: ${error.message}\n` }, analysis);
+    }
 }
 async function tryConvertFilesResult(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal, analysis: ReturnType<typeof createConvertAnalysis>): Promise<ImageMagickCliResult | undefined> {
     if (!input.filesystem.capabilities || !input.filesystem.open || !input.filesystem.removeFileConditional) return;

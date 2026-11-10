@@ -73,11 +73,14 @@ export function encodeImage(image: RawImage, options: OutputEncodeOptions): Retu
 
 function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channels: readonly number[]): Uint8Array {
     const format = options.format;
-    const depth = options.tiffFloatDepth ?? ((options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 ? 16 : 8);
+    const requestedDepth = options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
+    const depth = options.tiffFloatDepth ?? (requestedDepth === 1 || requestedDepth === 2 || requestedDepth === 4 ? requestedDepth : requestedDepth > 8 ? 16 : 8);
     const pixels = image.width * image.height;
-    const data = new Uint8Array(pixels * channels.length * depth / 8);
+    const rowSamples = image.width * (options.rawInterlace ? 1 : channels.length);
+    const rowBytes = Math.ceil(rowSamples * depth / 8);
+    const data = new Uint8Array(rowBytes * image.height * (options.rawInterlace ? channels.length : 1));
     const view = new DataView(data.buffer), samples = image.data16 ?? image.data;
-    const scale = image.data16 ? 65535 : 255, maximum = depth === 16 ? 65535 : 255;
+    const scale = image.data16 ? 65535 : 255, maximum = 2 ** depth - 1;
     for (let pixel = 0; pixel < pixels; pixel++) {
         const inks = format.startsWith("cmyk") ? image.space === "cmyk" && image.hueSamples
             ? image.hueSamples.subarray(pixel * 4, pixel * 4 + 4)
@@ -95,7 +98,8 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
             const sample = (options.rawInterlace === "plane" || options.rawInterlace === "partition") ? c * pixels + pixel
                 : options.rawInterlace === "line" ? Math.floor(pixel / image.width) * image.width * channels.length + c * image.width + pixel % image.width
                 : pixel * channels.length + c;
-            const offset = sample * depth / 8;
+            const rowBit = (sample % rowSamples) * depth;
+            const offset = Math.floor(sample / rowSamples) * rowBytes + Math.floor(rowBit / 8);
             const little = options.endian === undefined || options.endian === "lsb";
             if (options.tiffFloatDepth) {
                 // ImageMagick scales Q16 samples by the reciprocal quantum range.
@@ -108,7 +112,8 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
                         : (exponent + 15) * 1024 + Math.round((normalized / 2 ** exponent - 1) * 1024);
                     view.setUint16(offset, half, little);
                 }
-            } else if (depth === 16) view.setUint16(offset, quantum, little);
+            } else if (depth < 8) data[offset] = data[offset]! | (quantum << (8 - depth - rowBit % 8));
+            else if (depth === 16) view.setUint16(offset, quantum, little);
             else data[offset] = quantum;
         }
     }
@@ -163,13 +168,16 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
             const cmyk = options.format.startsWith("cmyk") && image.space === "cmyk";
             const chunkPixels = cmyk ? 512 : image.storedData16 ? 2048 : 4096;
             const pixels = image.width * image.height;
+            const depth = options.tiffFloatDepth ?? options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
+            const packed = depth === 1 || depth === 2 || depth === 4;
             const spanPixels = options.rawInterlace === "line" ? image.width : pixels;
             // Finish each row/channel run before advancing, even when it spans several reads.
             for (let start = 0; start < pixels; start += spanPixels) {
                 for (let channel = rawFrames ? plane : 0; channel < (rawFrames ? plane + 1 : options.rawInterlace ? channels : 1); channel++) {
-                    for (let pixel = start; pixel < start + spanPixels; pixel += chunkPixels) {
+                    for (let pixel = start; pixel < start + spanPixels;) {
                         await yieldTurn(signal);
-                        const count = Math.min(chunkPixels, start + spanPixels - pixel);
+                        // Chunk sizes are byte-aligned; only the last chunk of a packed row adds padding.
+                        const count = Math.min(chunkPixels, start + spanPixels - pixel, packed ? image.width - pixel % image.width : Infinity);
                         const data = new Uint8Array(await storage.read(image.position + pixel * 4, count * 4, { signal }));
                         if (data.length !== count * 4) throw new Error("Truncated raw pixel storage");
                         let data16: Uint16Array | undefined;
@@ -186,6 +194,7 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
                         }
                         const encoded = encodeRawPixels({ ...image, width: count, height: 1, data, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) }, options, options.rawInterlace ? [channel] : packedChannels);
                         size += encoded.length;
+                        pixel += count;
                         yield encoded;
                     }
                 }

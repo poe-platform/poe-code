@@ -2013,6 +2013,7 @@ async function applyVideoFilterChain(
 
   let pixelFormat = diagnostics.pixelFormat;
   let timescale = diagnostics.timescale;
+  let endTimeSeconds: number | undefined;
   let current: (MediaVideoFrame & { filterMetadata?: Record<string, string> })[] = frames;
   if (current.length === 0) return current;
 
@@ -2020,6 +2021,7 @@ async function applyVideoFilterChain(
     if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
     budget.checkCpu();
+    const lastInputFrame = current.at(-1);
     const eqIdx = filterSpec.indexOf("=");
     const name = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).split("@", 1)[0]!.trim().toLowerCase();
     const argStr = eqIdx >= 0 ? filterSpec.slice(eqIdx + 1).trim() : "";
@@ -3098,7 +3100,7 @@ async function applyVideoFilterChain(
       const inputOffset = startTime === undefined ? 0 : roundTimestamp(startTime * timescale) / timescale;
       const outputOffset = startTime === undefined ? 0 : roundTimestamp(startTime * targetFps);
       const last = current[current.length - 1]!;
-      const endTime = last.ptsSeconds + last.durationSeconds;
+      const endTime = endTimeSeconds ?? last.ptsSeconds + last.durationSeconds;
       const endTimestamp = roundToEven(eofValue) === 1
         ? roundTimestamp(endTime * targetFps, true)
         : roundTimestamp(endTime * targetFps);
@@ -3120,6 +3122,7 @@ async function applyVideoFilterChain(
         });
       }
       current = resampled;
+      endTimeSeconds = endTimestamp / targetFps;
       timescale = targetFps;
     } else if (name === "trim") {
       // FFmpeg positional options skip aliases; integer bounds use lrint rounding.
@@ -3654,6 +3657,15 @@ async function applyVideoFilterChain(
         previousOutput = output;
         return { ...f, ptsSeconds: Math.trunc(output) / timescale };
       }, signal);
+      // EOF follows the same expression as frame PTS, independently of frame duration.
+      const endTime = endTimeSeconds ?? (lastInputFrame ? lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds : 0);
+      const endPts = Math.round(endTime * timescale);
+      endTimeSeconds = Math.trunc(parseFilterExpression(expr, "setpts", {
+        PTS: endPts, STARTPTS: startPts, N: current.length,
+        T: endPts * (1 / timescale), TB: 1 / timescale, STARTT: startPts * (1 / timescale),
+        PREV_INPTS: previousInput, PREV_INT: previousInput / timescale,
+        PREV_OUTPTS: previousOutput, PREV_OUTT: previousOutput / timescale
+      })) / timescale;
     } else if (name === "drawbox") {
       const values = positional.map(part => part === "" || part.includes("=") ? undefined : part);
       for (const key of Object.keys(named)) {
@@ -3779,6 +3791,13 @@ async function applyVideoFilterChain(
       }, signal);
     } else if (name !== "format" && name !== "null") {
       throw new Error(`Unsupported video filter: ${name}`);
+    }
+    // Filters that change the final frame's timing establish a new endpoint.
+    const lastOutputFrame = current.at(-1);
+    if (name !== "setpts" && name !== "fps" &&
+        (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
+         lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
+      endTimeSeconds = undefined;
     }
   }
 

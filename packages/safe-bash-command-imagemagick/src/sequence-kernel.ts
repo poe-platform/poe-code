@@ -45,7 +45,7 @@ function* sampleLookup(lut: { width: number; height: number }, x: number, y: num
         for (let channel = 0; channel < 3; channel++) values[channel]! += pixel[channel]! * weight * (single ? 1 : interpolation === "average" ? Number(pixel[3]! > 0) : pixel[3]!);
         values[3]! += pixel[3]! * weight;
     }
-    if (interpolation === "bilinear" || interpolation === "background" || interpolation === "mesh") for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
+    if (interpolation === "bilinear" || interpolation === "background" || interpolation === "blend" || interpolation === "mesh") for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
     return values;
 }
 

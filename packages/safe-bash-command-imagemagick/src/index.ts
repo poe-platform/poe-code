@@ -17871,6 +17871,9 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         else if (t === "-border") {
             borderW = Math.max(0, Math.trunc(parseMagickGeometry(argv[++i] ?? "0").width ?? 0));
         }
+        else if (t === "+border") {
+            borderW = 0;
+        }
         else if (t === "-gravity") {
             const value = argv[++i];
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -gravity\n" };

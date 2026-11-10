@@ -20,6 +20,7 @@ import { formatYuv } from "./format-yuv.js";
 import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
 import { tmix } from "./tmix.js";
+import { doubleweave } from "./doubleweave.js";
 import { padTinterlace } from "./tinterlace-pad.js";
 import { weave } from "./weave.js";
 import { decimate } from "./decimate.js";
@@ -3839,6 +3840,8 @@ async function applyVideoFilterChain(
         current = await mapWork(current, frame => ({ ...frame, interlaced: mode !== 2,
           ...(mode === 2 ? {} : { topFieldFirst: mode === 1 }) }), signal);
       }
+    } else if (name === "doubleweave") {
+      current = await doubleweave(current, argStr, budget, signal);
     } else if (name === "tinterlace") {
       if (positional.length > 1 && positional.at(-1) === "") positional.pop();
       for (const key of Object.keys(named)) {

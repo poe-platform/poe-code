@@ -182,7 +182,7 @@ export class RecordReader {
   private done = false;
   private closed = false;
   private iterator: AsyncGenerator<Uint8Array>;
-  constructor(source: ByteSource, readonly separator: number, readonly budget: Budget, signal: AbortSignal) {
+  constructor(source: ByteSource, readonly separator: number, readonly budget: Budget, private readonly signal: AbortSignal, private readonly onReadError?: (error: unknown) => void) {
     this.iterator = readBytes(source, signal);
   }
   next(): Uint8Array | undefined | Promise<Uint8Array | undefined> {
@@ -215,7 +215,16 @@ export class RecordReader {
       }
       if (this.offset === this.chunk.length) {
         if (this.budget.hasPendingOutput()) await this.budget.flushOutput();
-        const result = await this.iterator.next();
+        let result: IteratorResult<Uint8Array>;
+        try { result = await this.iterator.next(); }
+        catch (error) {
+          this.signal.throwIfAborted();
+          if (!this.onReadError) throw error;
+          this.onReadError(error);
+          this.done = true;
+          this.chunk = empty;
+          break;
+        }
         if (result.done) { this.done = true; this.chunk = empty; break; }
         this.budget.input(result.value.length);
         this.chunk = Uint8Array.from(result.value);
@@ -255,7 +264,7 @@ export class Inputs {
   private readers: RecordReader[] = [];
   private stdin: RecordReader | undefined;
   readonly signal: AbortSignal;
-  constructor(readonly context: CommandContext, readonly budget: Budget, readonly separator: number) {
+  constructor(readonly context: CommandContext, readonly budget: Budget, readonly separator: number, private readonly onReadError?: (error: unknown) => void) {
     this.signal = AbortSignal.any([context.signal, this.controller.signal]);
   }
   async open(name: string): Promise<RecordReader> {
@@ -270,7 +279,7 @@ export class Inputs {
       if (stat.type === "directory") throw new FsError("EISDIR", { path });
       source = readFileStream(this.context.fs, path, { signal: this.signal, chunkSize: Math.min(65536, this.budget.limits.maxChunkBytes) });
     }
-    const reader = new RecordReader(source, this.separator, this.budget, this.signal);
+    const reader = new RecordReader(source, this.separator, this.budget, this.signal, this.onReadError);
     this.readers.push(reader);
     if (name === "-") this.stdin = reader;
     return reader;

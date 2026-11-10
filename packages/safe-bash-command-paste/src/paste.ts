@@ -76,10 +76,14 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
     const list = delimiters(delimiterList, locale);
     if (!files.length) files.push("-");
     budget.check(files.length, limits.maxFiles, "file");
-    const inputs = new Inputs(context, budget, separator), terminator = Uint8Array.of(separator);
+    let status = 0;
+    const readErrors: unknown[] = [];
+    const inputs = new Inputs(context, budget, separator, error => {
+      readErrors.push(error);
+      status = 1;
+    }), terminator = Uint8Array.of(separator);
     try {
       if (serial) {
-        let status = 0;
         for (const file of files) {
           let reader;
           try { reader = await inputs.open(operandName(file)); }
@@ -124,7 +128,10 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
         if (!present) break;
         row.push(terminator); await budget.output(row);
       }
-      return { exitCode: directoryErrors.length ? 1 : 0 };
-    } finally { await inputs.close(); }
+      return { exitCode: directoryErrors.length ? 1 : status };
+    } finally {
+      await inputs.close();
+      for (const error of readErrors) await diagnostic(context, error);
+    }
   });
 }

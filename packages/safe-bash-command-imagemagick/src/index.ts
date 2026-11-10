@@ -11151,7 +11151,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geometry = parseClaheGeometry(tokens[++i] ?? "");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return yield* applyMagickRasterSteps(im, clahePixelSteps(im, geometry, state.background, state.virtualPixel), signal);
+                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, clahePixelSteps(im, geometry, state.background, state.virtualPixel), signal);
             });
         }
         else if (t === "-lat") {
@@ -14024,7 +14024,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const geometry = parseClaheGeometry(tokens[++i] ?? ""), { background, virtualPixel } = state;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, clahePixelSteps(image, geometry, background, virtualPixel), signal) : undefined);
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: false }, backend, clahePixelSteps(image, geometry, background, virtualPixel), signal) : undefined);
         } else if (!operandsOnly && token === "-lat") {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);

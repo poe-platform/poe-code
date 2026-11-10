@@ -107,7 +107,9 @@ export async function fadeAudio(
         n: frameIndex, t: (frame?.pts ?? startSample) / sampleRate
       })) >= 0.5;
     }
-    const pts = frame ? frame.pts + i - frame.start : startSample + i;
+    let pts = frame ? frame.pts + i - frame.start : startSample + i;
+    // Native AV_NOPTS_VALUE precedes the fade: mute fade-in, preserve fade-out.
+    if (Number.isNaN(pts)) pts = -Infinity;
     const progress = Math.max(0, Math.min(1, (pts - start) / samples));
     // A positive duration can round to zero samples; both fades mute the boundary.
     const fraction = samples === 0

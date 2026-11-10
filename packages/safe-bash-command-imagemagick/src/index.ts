@@ -11553,6 +11553,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const width = image.width * factor, height = image.height * factor;
                 const output = yield* applyMagickRasterSteps({ ...image, isPalette: false }, magnifyPixelSteps(image, state.magnifyMethod, state.background, state.virtualPixel, state.intensity), signal, { ...image, width, height });
+                if (image.metaChannels) {
+                    output.metaChannels = [];
+                    for (const plane of image.metaChannels) output.metaChannels.push(yield* applyMagickRasterSteps(plane,
+                        magnifyPixelSteps(plane, state.magnifyMethod, state.background, state.virtualPixel, state.intensity), signal, { ...plane, width, height }));
+                }
                 if (image.readMask) output.readMask = yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 });
                 // Native magnification retains the mask channel with cleared coverage.
                 output.region = undefined;
@@ -14818,6 +14823,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const width = image.width * factor, height = image.height * factor;
                 const output = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, magnifyPixelSteps(image, method, background, virtualPixel, intensity), signal, { ...image, width, height });
+                if (image.storedMetaChannels) {
+                    output.storedMetaChannels = [];
+                    for (const plane of image.storedMetaChannels) output.storedMetaChannels.push(await transformStoredMagickRaster(plane, backend,
+                        magnifyPixelSteps(plane, method, background, virtualPixel, intensity), signal, { ...plane, width, height }));
+                }
                 if (image.readMask) output.readMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 output.region = undefined;
                 if (image.region || image.storedWriteMask) output.storedWriteMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);

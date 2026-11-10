@@ -101,6 +101,34 @@ for (const filter of ["aphaser=delay=3", "aphaser=delay=3:"]) {
   }
 }
 
+// Native FFmpeg 7.0.2 opens the destination before configuring the delay buffer.
+for (const [filter, exitCode, length, hash] of [
+  ["aphaser=delay=0", 234, 0, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"],
+  ["aphaser=delay=0.01", 234, 0, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"],
+  ["aphaser=delay=0.125", 0, 32, "a131cc632affa5d8e011b45e4baafd4b6d7dfdc47a3727a560f5044255fda00c"],
+  ["aphaser=wrong=1", 8, 4, "1dd17190a2f261044d8e04d099db4ebe2754ff402e5c2b8b759498176ddd343a"]
+] as const) {
+  for (const graph of [false, true]) {
+    it(`${filter} matches native delay-configuration status and complete output (${graph ? "graph" : "simple"})`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from({ length: 16 }, (_, i) => ((i * 7919 + 3467) % 49001 - 24500) / 32768)
+      ] }, { bitsPerSample: 16 });
+      const { volume, result, stderr } = await run(filter, graph, 16, input);
+      const output = volume.readFileSync("/out.raw") as Buffer;
+      assert.deepEqual({ exitCode: result.exitCode, length: output.length, hash: createHash("sha256").update(output).digest("hex") },
+        { exitCode, length, hash }, stderr);
+    });
+  }
+}
+
+for (const graph of [false, true]) {
+  it(`zero-sample phaser truncates existing WAV output on configuration failure (${graph ? "graph" : "simple"})`, async () => {
+    const { volume, result, stderr } = await run("aphaser=delay=0", graph);
+    assert.equal(result.exitCode, 234, stderr);
+    assert.equal((volume.readFileSync("/out.wav") as Buffer).length, 0);
+  });
+}
+
 // Native FFmpeg 9.0.1, unsigned 8-bit mono WAV to signed 16-bit raw PCM.
 for (const [filter, hash] of [
   ["anull", "08bf20a6df02b84d99d1bc9538cf14bbf377d59ffe2e1ccfcf9551ea0eda1c37"],
@@ -185,7 +213,7 @@ for (const key of ["in_gain", "out_gain", "delay", "decay", "speed", "type"]) {
   }
 }
 
-for (const filter of ["aphaser=delay=0", "aphaser=delay=6", "aphaser=speed=0", "aphaser=decay=1", "aphaser=in_gain=NaN", "aphaser=type=bad", "aphaser=unknown=1"]) {
+for (const filter of ["aphaser=delay=6", "aphaser=speed=0", "aphaser=decay=1", "aphaser=in_gain=NaN", "aphaser=type=bad", "aphaser=unknown=1"]) {
   it(`${filter} rejects invalid options without replacing output`, async () => {
     const { volume, result } = await run(filter);
     assert.notEqual(result.exitCode, 0);

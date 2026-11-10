@@ -15921,6 +15921,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "shuffleframes: mapping must contain frame indices from -1 to the group size minus one") return { exitCode: 234 };
             if (msg === "negate: invalid expression" || msg === "negate: invalid or unsupported expression") return { exitCode: 234 };
             if ((overwrite && msg === "aecho: delay is too small") ||
+                msg === "aphaser: delay is too small" ||
                 msg === "Padded dimensions cannot be smaller than input dimensions" ||
                 msg === "negate: Requested components not available" || msg.startsWith("fps: frame rate:") ||
                 msg === "decimate: The input needs a constant frame rate; current rate of 1/0 is invalid") {

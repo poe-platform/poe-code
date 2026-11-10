@@ -7408,6 +7408,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     } else if (token === "-range-threshold") {
         highDepth = true;
+        evaluate = true;
         const raw = tokens[++i] ?? "";
         const parts = raw.split(",").map(part => part.endsWith("%") ? part.slice(0, -1) : part);
         if (parts.length !== 4 || parts.some(part => !part.trim() || !Number.isFinite(Number(part)))) {
@@ -7420,7 +7421,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = function* (image) {
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
-            const samples = data16 ?? out, quantumScale = data16 ? 1 : 257, maximum = data16 ? 65535 : 255;
+            const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(data16 ?? out, value => data16 ? value / 257 : value);
+            const samples = evaluateSamples, quantumScale = 257;
             const mask = explicit ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha] : [true, true, true, image.hasAlpha];
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
@@ -7431,11 +7433,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     const level = value <= lowBlack || value >= highBlack ? 0
                         : value < lowWhite ? (value - lowBlack) / (lowWhite - lowBlack)
                         : value > highWhite ? (highBlack - value) / (highBlack - highWhite) : 1;
-                    samples[idx + channel] = Math.round(level * maximum);
-                    out[idx + channel] = Math.round(data16 ? samples[idx + channel]! / 257 : samples[idx + channel]!);
+                    // Preserve native HDRI precision until region/write-mask compositing.
+                    samples[idx + channel] = Math.fround(level * 65535) / 257;
+                    if (data16) data16[idx + channel] = Math.round(samples[idx + channel]! * 257);
+                    out[idx + channel] = Math.round(samples[idx + channel]!);
                 }
             }
-            return { ...image, data: out, ...(data16 ? { data16 } : {}) };
+            return { ...image, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
         };
     } else if (token === "-threshold") {
         highDepth = true;

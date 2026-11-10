@@ -4456,7 +4456,11 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
                 nextRow[x * 4 + channel]! += error * 5;
             }
         }
-        yield { kind: "write", position: i, data: out };
+        if (dither && !Number.isInteger(step)) {
+            // Retain the palette's Q16 levels instead of expanding rounded bytes.
+            const samples = Uint16Array.from(out, value => Math.round(Math.round(value / step) / (levels - 1) * 65535));
+            yield { kind: "write", highDepth: true, position: i, data: new Uint8Array(samples.buffer) };
+        } else yield { kind: "write", position: i, data: out };
     }
 }
 

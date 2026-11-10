@@ -4,7 +4,7 @@ import { createMagickRandom } from "./random.js";
 import { evaluateNoiseSteps } from "./noise.js";
 type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>;
 
-export type LookupInterpolation = "blend" | "bilinear" | "nearest" | "integer" | "average" | "average9" | "average16" | "mesh" | "catrom" | "spline";
+export type LookupInterpolation = "background" | "blend" | "bilinear" | "nearest" | "integer" | "average" | "average9" | "average16" | "mesh" | "catrom" | "spline";
 
 function* sampleLookup(lut: { width: number; height: number }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
     if (interpolation === "average9" || interpolation === "average16" || interpolation === "blend" || interpolation === "mesh" || interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported lookup interpolation: ${interpolation}`);
@@ -20,7 +20,7 @@ function* sampleLookup(lut: { width: number; height: number }, x: number, y: num
         for (let channel = 0; channel < 3; channel++) values[channel]! += pixel[channel]! * weight * (single ? 1 : interpolation === "average" ? Number(pixel[3]! > 0) : pixel[3]!);
         values[3]! += pixel[3]! * weight;
     }
-    if (interpolation === "bilinear") for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
+    if (interpolation === "bilinear" || interpolation === "background") for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
     return values;
 }
 

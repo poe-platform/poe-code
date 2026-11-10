@@ -138,7 +138,9 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                 }
                 continue;
             }
-            if (virtualPixel === undefined && (sx < -0.5 || sy < -0.5 || sx > width - 0.5 || sy > height - 0.5)) {
+            // Point resampling uses PixelInfo interpolation, whose background
+            // mode returns the image background even inside the source raster.
+            if (kernel === "nearest" && plan.interpolation === "background" || virtualPixel === undefined && (sx < -0.5 || sy < -0.5 || sx > width - 0.5 || sy > height - 0.5)) {
                 evaluateSamples.set([background.r, background.g, background.b, background.a], offset);
                 data[offset] = background.r * scale; data[offset + 1] = background.g * scale; data[offset + 2] = background.b * scale; data[offset + 3] = background.a * scale;
                 continue;
@@ -156,7 +158,8 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
             // Native resampling uses an integer lookup when the entire filter
             // footprint lies beyond the raster's pixel centers.
             const outside = filter && virtualPixel === "background" && (sx + support < 0 || sy + support < 0 || sx - support > width - 1 || sy - support > height - 1);
-            const interpolation = plan.interpolation;
+            // Channel interpolation treats background as bilinear.
+            const interpolation = plan.interpolation === "background" ? "bilinear" : plan.interpolation;
             for (let filtered = !!derivatives && kernel !== "nearest" && !plan.nearest; ; filtered = false) {
                 let meshPixels: ArrayLike<number>[] | undefined;
                 let meshWeights: number[] | undefined;

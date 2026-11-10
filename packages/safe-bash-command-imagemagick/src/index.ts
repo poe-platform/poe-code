@@ -8944,10 +8944,8 @@ if (t === "-seed") {
         else if (t === "-interpolate") {
             const method = (tokens[++i] ?? "").toLowerCase();
             if (method === "nearest" || method === "nearest-neighbor") state.interpolation = "nearest";
-            // ImageMagick's background method uses the default bilinear sampler.
-            else if (method === "background") state.interpolation = "bilinear";
             else if (method === "average4") state.interpolation = "average";
-            else if (method === "blend" || method === "integer" || method === "average" || method === "average9" || method === "average16" || method === "bilinear" || method === "mesh" || method === "catrom" || method === "spline") state.interpolation = method;
+            else if (method === "background" || method === "blend" || method === "integer" || method === "average" || method === "average9" || method === "average16" || method === "bilinear" || method === "mesh" || method === "catrom" || method === "spline") state.interpolation = method;
             else throw new Error(`unrecognized interpolate method '${method}'`);
         }
         else if (t === "+interpolate") {

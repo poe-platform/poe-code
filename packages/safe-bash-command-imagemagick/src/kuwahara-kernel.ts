@@ -108,7 +108,7 @@ export function* kuwaharaPixelSteps(image: { width: number; height: number }, ge
                 for (let c = 0; c < 3; c++) sums[c]! += pixel[c]! * (mask && !mask[c] ? 1 : colorWeight) * weight;
                 sums[3]! += alpha * weight;
             }
-            if (interpolation === "bilinear") for (let c = 0; c < 3; c++) if (!mask || mask[c]) sums[c] = sums[3]! > 0 ? sums[c]! / sums[3]! : 0;
+            if (interpolation === "bilinear" || interpolation === "background") for (let c = 0; c < 3; c++) if (!mask || mask[c]) sums[c] = sums[3]! > 0 ? sums[c]! / sums[3]! : 0;
             for (let c = 0; c < 4; c++) data[i * 4 + c] = Math.max(0, Math.min(255, Math.round(c === 3 ? sums[3]! * 255 : sums[c]! / 257)));
         }
         yield { kind: "write", position: start * 4, data };

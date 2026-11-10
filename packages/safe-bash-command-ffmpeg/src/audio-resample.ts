@@ -40,11 +40,13 @@ export async function resampleAudio(
     if (emitted < outputLength) frameLimit.outputEnds?.push(outputLength);
   }
   const output = channels.map(() => new Float32Array(outputLength));
-  if (length === 0) return output;
+  if (length === 0 || outputLength === 0) return output;
   const center = Math.floor((filterLength - 1) / 2);
   // Startup reflects around the first sample; flushing repeats the last sample.
   const period = Math.max(1, 2 * length - 1);
   const sums = new Float64Array(channels.length);
+  budget.allocateMemory(channels.length * 8 * Float32Array.BYTES_PER_ELEMENT);
+  const lanes = new Float32Array(channels.length * 8);
   let phaseCount = 2 ** phaseShift;
   if (exactRational) {
     let divisor = inputRate;
@@ -53,11 +55,44 @@ export async function resampleAudio(
     const exactPhases = outputRate / divisor;
     if (exactPhases <= phaseCount) phaseCount = exactPhases;
   }
+  function filterWeight(distance: number): number {
+    const phase = Math.PI * distance * cutoff;
+    const w = 2 * distance / filterLength;
+    let window: number;
+    if (filterType === "blackman_nuttall") {
+      const angle = Math.PI * w;
+      window = 0.3635819 + 0.4891775 * Math.cos(angle)
+        + 0.1365995 * Math.cos(2 * angle) + 0.0106411 * Math.cos(3 * angle);
+    } else {
+      const x = kaiserBeta * kaiserBeta * Math.max(1 - w * w, 0) / 4;
+      // I0(beta * sqrt(1 - w²)), evaluated by its convergent power series.
+      window = 1;
+      let term = 1;
+      for (let k = 1; k < 32; k++) {
+        term *= x / (k * k);
+        window += term;
+        if (term < window * Number.EPSILON) break;
+      }
+    }
+    return (phase === 0 ? 1 : Math.sin(phase) / phase) * window;
+  }
   let work = 0;
-  let normalization = 1;
+  // All phases use the integer-phase coefficient sum for normalization.
+  let normalization = 0;
+  for (let j = -center; j < filterLength - center; j++) {
+    normalization += filterWeight(j);
+    if (++work % 16384 === 0) {
+      await yieldTurn(signal);
+      signal?.throwIfAborted();
+      budget.checkCpu();
+    }
+  }
+  // FFmpeg's x86 FMA float path accumulates eight lanes, then sums halves.
+  // Keep adjacent-phase interpolation on its separate scalar path.
+  const interpolate = linearInterp !== 0 && inputRate * phaseCount % outputRate !== 0;
   for (let i = 0; i < outputLength; i++) {
-    let weightSum = 0;
     sums.fill(0);
+    lanes.fill(0);
     const phasePosition = i * (inputRate * phaseCount) / outputRate;
     const fraction = linearInterp ? phasePosition - Math.floor(phasePosition) : 0;
     // Default linear interpolation blends adjacent polyphase filter responses.
@@ -67,30 +102,16 @@ export async function resampleAudio(
       const samplePosition = (Math.floor(phasePosition) + side) / phaseCount;
       for (let j = Math.floor(samplePosition) - center; j < Math.floor(samplePosition) - center + filterLength; j++) {
         const distance = j - samplePosition;
-        const phase = Math.PI * distance * cutoff;
-        const w = 2 * distance / filterLength;
-        let window: number;
-        if (filterType === "blackman_nuttall") {
-          const angle = Math.PI * w;
-          window = 0.3635819 + 0.4891775 * Math.cos(angle)
-            + 0.1365995 * Math.cos(2 * angle) + 0.0106411 * Math.cos(3 * angle);
-        } else {
-          const x = kaiserBeta * kaiserBeta * Math.max(1 - w * w, 0) / 4;
-          // I0(beta * sqrt(1 - w²)), evaluated by its convergent power series.
-          window = 1;
-          let term = 1;
-          for (let k = 1; k < 32; k++) {
-            term *= x / (k * k);
-            window += term;
-            if (term < window * Number.EPSILON) break;
-          }
-        }
-        const weight = (phase === 0 ? 1 : Math.sin(phase) / phase) * window * phaseWeight;
-        weightSum += weight;
+        const weight = filterWeight(distance) * phaseWeight;
         // Reflect at both ends, including clips shorter than the filter support.
         const wrapped = ((j % period) + period) % period;
         const index = wrapped < length ? wrapped : period - wrapped;
-        for (let c = 0; c < channels.length; c++) sums[c] = sums[c]! + channels[c]![index]! * weight;
+        const coefficient = Math.fround(weight / normalization);
+        const lane = (j - Math.floor(samplePosition) + center) % 8;
+        for (let c = 0; c < channels.length; c++) {
+          if (interpolate) sums[c] = sums[c]! + channels[c]![index]! * weight;
+          else lanes[c * 8 + lane] = lanes[c * 8 + lane]! + channels[c]![index]! * coefficient;
+        }
         if (++work % 16384 === 0) {
           await yieldTurn(signal);
           signal?.throwIfAborted();
@@ -98,9 +119,18 @@ export async function resampleAudio(
         }
       }
     }
-    // swresample normalizes all phases by the integer-phase coefficient sum.
-    if (i === 0) normalization = weightSum;
-    for (let c = 0; c < channels.length; c++) output[c]![i] = sums[c]! / normalization;
+    for (let c = 0; c < channels.length; c++) {
+      if (interpolate) output[c]![i] = sums[c]! / normalization;
+      else {
+        const base = c * 8;
+        for (let step = 4; step >= 1; step /= 2) {
+          for (let lane = 0; lane < step; lane++) {
+            lanes[base + lane] = lanes[base + lane]! + lanes[base + lane + step]!;
+          }
+        }
+        output[c]![i] = lanes[base]!;
+      }
+    }
   }
   return output;
 }

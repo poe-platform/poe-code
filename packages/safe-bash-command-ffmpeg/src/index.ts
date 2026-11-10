@@ -3072,18 +3072,25 @@ async function applyVideoFilterChain(
         throw new Error("fps: invalid eof_action value");
       }
       const rounding = options.round ?? "near";
-      const roundTimestamp = (rounding === "zero" || rounding === "0") ? Math.trunc
+      const round = (rounding === "zero" || rounding === "0") ? Math.trunc
         : (rounding === "down" || rounding === "2") ? Math.floor
         : (rounding === "up" || rounding === "3") ? Math.ceil
         : (rounding === "inf" || rounding === "1") ? (value: number) => Math.sign(value) * Math.ceil(Math.abs(value))
         : (value: number) => Math.sign(value) * Math.floor(Math.abs(value) + 0.5);
+      const roundTimestamp = (value: number, roundUp = false): number => {
+        // Seconds-to-ticks arithmetic can leave exact boundaries a few ULPs away
+        // from an integer. Restore those boundaries before directional rounding.
+        const integer = Math.round(value);
+        if (Math.abs(value - integer) <= 4 * Number.EPSILON * Math.max(1, Math.abs(value))) return integer;
+        return roundUp ? Math.ceil(value) : round(value);
+      };
       // FFmpeg rounds the requested start separately in the input and output time bases.
       const inputOffset = startTime === undefined ? 0 : roundTimestamp(startTime * timescale) / timescale;
       const outputOffset = startTime === undefined ? 0 : roundTimestamp(startTime * targetFps);
       const last = current[current.length - 1]!;
       const endTime = last.ptsSeconds + last.durationSeconds;
       const endTimestamp = options.eof_action === "pass" || options.eof_action === "1"
-        ? Math.ceil(endTime * targetFps)
+        ? roundTimestamp(endTime * targetFps, true)
         : roundTimestamp(endTime * targetFps);
       const firstTimestamp = startTime === undefined ? roundTimestamp(current[0]!.ptsSeconds * targetFps) : outputOffset;
       const resampled: MediaVideoFrame[] = [];
@@ -9356,7 +9363,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const offsetTicks = Math.round(presentationOffset * t.timescale);
                   const decoded = await ensureDecodedFrames(t, workingDoc.timescale, budget, context.signal);
                   // Filters use the displayed timeline; retain media coordinates for the existing edit list.
-                  const displayed = decoded.map(frame => ({ ...frame, ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) - offsetTicks) / t.timescale }));
+                  const displayed = decoded.map(frame => ({ ...frame, ptsSeconds: frame.ptsSeconds - offsetTicks / t.timescale }));
                   const diagnostics = {
                     timescale: workingDoc.containerFormat === "image2" && decoded[0]?.durationSeconds
                       ? 1 / decoded[0].durationSeconds : t.timescale,

@@ -3,6 +3,7 @@ import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { edgePixelSteps } from "./edge-kernel.js";
 import { magickIntensity } from "./intensity.js";
+import { regionContains, type Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Feed the active color planes to the edge filter, retaining alpha from RGBA. */
@@ -26,8 +27,8 @@ export function* charcoalEdgePixelSteps(image: Pick<RgbaImage, "width" | "height
     }
 }
 
-/** Blur with virtual pixels, normalize, negate and grayscale without rounding intermediate pixels. */
-export function* charcoalPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">> & { magickColorspace?: string }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, intensity = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+/** Blur clamped edges, normalize, negate and grayscale without rounding intermediate pixels. */
+export function* charcoalPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">> & { magickColorspace?: string; region?: Region | undefined }, geometry: { width?: number; height?: number }, writeMask: Pick<RgbaImage, "width" | "height"> | undefined, channels: { r: boolean; g: boolean; b: boolean; a: boolean } | undefined, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, intensity = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(image.data16 || image.storedData16);
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
     const mask = channels ? [channels.r, channels.g, channels.b] : [true, true, true];
@@ -56,6 +57,13 @@ export function* charcoalPixelSteps(image: Pick<RgbaImage, "width" | "height" | 
     const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 127.5 : 0;
     const fill = (virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
         ? [background.r, background.g, background.b] : [gray, gray, gray];
+    function* protections(left: number, y: number, count: number): Generator<ConvolveRequest | undefined, Float64Array, Uint8Array | undefined> {
+        const result = new Float64Array(count);
+        const bytes = writeMask ? (yield { kind: "read", image: 1, position: (y * width + left) * 4, length: count * 4 })! : undefined;
+        for (let x = 0; x < count; x++) result[x] = image.region && !regionContains(image.region, left + x, y) ? 1
+            : bytes ? (bytes[x * 4]! * 0.212656 + bytes[x * 4 + 1]! * 0.715158 + bytes[x * 4 + 2]! * 0.072186) / 255 : 0;
+        return result;
+    }
     const histograms = Array.from({ length: channels ? 3 : 1 }, () => new Float64Array(65536));
     const lows = histograms.map(() => 0), highs = histograms.map(() => 65535);
     for (let pass = 0; pass < 2; pass++) {
@@ -64,6 +72,7 @@ export function* charcoalPixelSteps(image: Pick<RgbaImage, "width" | "height" | 
             for (let y = 0; y < height; y++) {
                 yield;
                 const sums = new Float64Array(count * 3);
+                let original: Float64Array | undefined;
                 for (let ky = -half; ky <= half; ky++) {
                     yield;
                     const pixel = virtualPixelIndex(left, y + ky, width, height, virtualPixel);
@@ -90,9 +99,11 @@ export function* charcoalPixelSteps(image: Pick<RgbaImage, "width" | "height" | 
                                 }
                                 const start = direction === -1 ? source - run + 1 : source;
                                 const readLength = (direction === 0 ? 1 : run) * 4;
-                                const bytes = yield { kind: "read", highDepth, position: start * 4, length: readLength };
-                                if (!bytes || bytes.length !== readLength * (highDepth ? 2 : 1)) throw new Error("Truncated charcoal pixels");
-                                const values = highDepth ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : bytes;
+                                const working = yield { kind: "read", evaluate: true, position: start * 4, length: readLength };
+                                const bytes = working?.length ? undefined : yield { kind: "read", highDepth, position: start * 4, length: readLength };
+                                if (!working?.length && (!bytes || bytes.length !== readLength * (highDepth ? 2 : 1))) throw new Error("Truncated charcoal pixels");
+                                const values = working?.length ? Float64Array.from(new Float64Array(working.slice().buffer), value => Math.max(0, Math.min(255, value)))
+                                    : highDepth ? Float64Array.from(new Uint16Array(bytes!.slice().buffer), value => value / 257) : bytes!;
                                 for (let i = 0; i < run; i++) {
                                     const offset = (direction === 0 ? 0 : direction === -1 ? run - i - 1 : i) * 4;
                                     for (let c = 0; c < 3; c++) samples[(x + i) * 3 + c] = values[offset + c]!;
@@ -106,12 +117,18 @@ export function* charcoalPixelSteps(image: Pick<RgbaImage, "width" | "height" | 
                                     for (let c = 0; c < 3; c++) if (mask[c]) row[x * 3 + c]! += samples[offset + c]! * weights[k + half]!;
                                 }
                             }
+                            // Each blur pass writes through the mask before the next pass reads it.
+                            const protection = yield* protections(left, sy, count);
+                            for (let x = 0; x < count; x++) for (let c = 0; c < 3; c++) row[x * 3 + c] = row[x * 3 + c]! * (1 - protection[x]!) + samples[(x + half) * 3 + c]! * protection[x]!;
                         }
                         if (rows.size >= 32) rows.delete(rows.keys().next().value!);
                         rows.set(sy, row);
                     }
+                    if (ky === 0) original = row;
                     for (let i = 0; i < sums.length; i++) sums[i]! += row[i]! * weights[ky + half]!;
                 }
+                const protection = yield* protections(left, y, count);
+                for (let x = 0; x < count; x++) for (let c = 0; c < 3; c++) sums[x * 3 + c] = sums[x * 3 + c]! * (1 - protection[x]!) + original![x * 3 + c]! * protection[x]!;
                 if (channels && mask.some(selected => !selected)) {
                     const bytes = yield { kind: "read", position: (y * width + left) * 4, length: count * 4 };
                     if (!bytes || bytes.length !== count * 4) throw new Error("Truncated charcoal pixels");
@@ -126,18 +143,16 @@ export function* charcoalPixelSteps(image: Pick<RgbaImage, "width" | "height" | 
                 } else {
                     const data = new Uint16Array(count * 4);
                     for (let x = 0; x < count; x++) {
+                        const negated = new Float64Array(3);
                         for (let c = 0; c < 3; c++) {
                             const low = lows[channels ? c : 0]!, high = highs[channels ? c : 0]!;
-                            let value = sums[x * 3 + c]!;
-                            if (mask[c]) {
-                                // Normalize indexes a Q16 lookup table before the final grayscale conversion.
-                                if (high > low) value = Math.max(0, Math.min(255, (Math.round(value * 257) - low) / (high - low) * 255));
-                                value = 255 - value;
-                            }
-                            sums[x * 3 + c] = value;
+                            // Normalize indexes a Q16 lookup table before the final grayscale conversion.
+                            const value = mask[c] && high > low ? Math.max(0, Math.min(255, (Math.round(sums[x * 3 + c]! * 257) - low) / (high - low) * 255)) : sums[x * 3 + c]!;
+                            const normalized = value * (1 - protection[x]!) + sums[x * 3 + c]! * protection[x]!;
+                            negated[c] = mask[c] ? (255 - normalized) * (1 - protection[x]!) + normalized * protection[x]! : normalized;
                         }
-                        const gray = magickIntensity(sums[x * 3]!, sums[x * 3 + 1]!, sums[x * 3 + 2]!, intensity, 255, image.magickColorspace === "RGB");
-                        // Native grayscale MS uses squared Q16 samples without quantum normalization.
+                        // Grayscale collapses the color planes even where the mask protects the red sample.
+                        const gray = magickIntensity(negated[0]!, negated[1]!, negated[2]!, intensity, 255, image.magickColorspace === "RGB") * (1 - protection[x]!) + negated[0]! * protection[x]!;
                         data.fill(Math.min(65535, Math.round(gray * 257 * (intensity === "ms" ? 65535 : 1))), x * 4, x * 4 + 3); data[x * 4 + 3] = 65535;
                     }
                     yield { kind: "write", highDepth: true, position: (y * width + left) * 4, data: new Uint8Array(data.buffer) };

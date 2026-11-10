@@ -104,3 +104,20 @@ export function* statisticWriteMaskPixelSteps(image: { width: number; height: nu
         }
     }
 }
+
+/** Write-only copy cache regions retain a cleared mask after the old mask clips the pixels. */
+export function* clearWriteMaskPixelSteps(image: { width: number; height: number }, area: { left: number; top: number; right: number; bottom: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    for (let y = 0; y < image.height; y++) for (let x = 0; x < image.width; x += 1024) {
+        yield;
+        const count = Math.min(1024, image.width - x), position = (y * image.width + x) * 4;
+        for (const evaluate of [false, true]) {
+            const bytes = yield { kind: "read", highDepth: true, evaluate, position, length: count * 4 };
+            if (!bytes?.length) continue;
+            const data = evaluate ? new Float64Array(bytes.slice().buffer) : new Uint16Array(bytes.slice().buffer);
+            if (y >= area.top && y < area.bottom) {
+                for (let i = Math.max(x, area.left); i < Math.min(x + count, area.right); i++) data.fill(0, (i - x) * 4, (i - x) * 4 + 3);
+            }
+            yield { kind: "write", highDepth: true, evaluate, position, data: new Uint8Array(data.buffer) };
+        }
+    }
+}

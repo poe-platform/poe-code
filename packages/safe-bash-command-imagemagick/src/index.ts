@@ -32,7 +32,7 @@ import { decodeApngSteps, readApng } from "./apng-input.js";
 import { signatureSteps } from "./signature.js";
 import { encipherPixelSteps } from "./encipher-kernel.js";
 import { chopRegion, orientRegion, rotateRegion, rollRegion, regionContains, regionPixelSteps, type Region } from "./region.js";
-import { statisticWriteMaskPixelSteps, writeMaskExtentSteps, writeMaskPixelSteps } from "./write-mask.js";
+import { clearWriteMaskPixelSteps, statisticWriteMaskPixelSteps, writeMaskExtentSteps, writeMaskPixelSteps } from "./write-mask.js";
 import { pngAlphaPixelSteps } from "./png-alpha.js";
 import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
 import { rawNetpbmInput, rgbPartitionPaths } from "./raw-rgb.js";
@@ -5180,7 +5180,7 @@ async function createStoredCanvas(width: number, height: number, color: RgbaColo
 type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor });
 type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
 
-function* copyMagickPixelSteps(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string, highDepth: boolean, channels?: boolean[], evaluateSamples = false, virtualPixel?: VirtualPixelMethod, background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function parseMagickCopyGeometry(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string) {
     validateMagickTransformGeometry(geometry, "-copy");
     validateMagickTransformGeometry(offset, "-copy");
     const source = parseMagickGeometry(geometry.replace(":", "x")), destination = parseMagickGeometry(offset);
@@ -5192,7 +5192,11 @@ function* copyMagickPixelSteps(image: Pick<RgbaImage, "width" | "height">, geome
     if (width === 0 && height > 0) throw new Error("no pixels defined in cache");
     const left = Math.trunc(destination.x), top = Math.trunc(destination.y), right = left + width, bottom = top + height;
     if (left < 0 || top < 0 || right > image.width || bottom > image.height) throw new Error("geometry does not contain image");
-    const dx = left - Math.trunc(source.x), dy = top - Math.trunc(source.y);
+    return { left, top, right, bottom, dx: left - Math.trunc(source.x), dy: top - Math.trunc(source.y) };
+}
+
+function* copyMagickPixelSteps(image: Pick<RgbaImage, "width" | "height">, area: ReturnType<typeof parseMagickCopyGeometry>, highDepth: boolean, channels?: boolean[], evaluateSamples = false, virtualPixel?: VirtualPixelMethod, background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const { left, top, right, bottom, dx, dy } = area;
     for (const evaluate of evaluateSamples ? [false, true] : [false]) {
         const pixelBytes = evaluate ? 32 : highDepth ? 8 : 4;
         const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
@@ -9621,7 +9625,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const context = { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties };
                 const expandedGeometry = yield* formatMagickPropertyStringSteps(geometry, image, () => image, context);
                 const expandedOffset = yield* formatMagickPropertyStringSteps(offset, image, () => image, context);
-                return yield* applyMagickRasterSteps(image, copyMagickPixelSteps(image, expandedGeometry, expandedOffset, !!image.data16, channels, !!image.evaluateSamples, state.virtualPixel, state.background), signal, { ...image, hasAlpha: image.hasAlpha || (!channels || channels[3] === true) && (state.virtualPixel === "transparent" || (state.virtualPixel === "background" || state.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255) });
+                const area = parseMagickCopyGeometry(image, expandedGeometry, expandedOffset);
+                let result = yield* applyMagickRasterSteps(image, copyMagickPixelSteps(image, area, !!image.data16, channels, !!image.evaluateSamples, state.virtualPixel, state.background), signal, { ...image, hasAlpha: image.hasAlpha || (!channels || channels[3] === true) && (state.virtualPixel === "transparent" || (state.virtualPixel === "background" || state.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255) });
+                if (image.writeMask) {
+                    // Native clips the copy with the old mask, then leaves its queued mask pixels cleared.
+                    result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, image.writeMask, !!(result.data16 || image.data16), false, state.channels), signal, result, [result, image, image.writeMask]);
+                    result.writeMask = yield* applyMagickRasterSteps(image.writeMask, clearWriteMaskPixelSteps(image.writeMask, area), signal);
+                }
+                return result;
             });
         }
         else if (t === "-roll") {
@@ -12368,7 +12379,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const context = { ...(image as StoredMagickImage)[magickInput], optionProperties };
                 const expandedGeometry = await formatRetainedIdentify(geometry, image, context, async () => ({ image, storage: backend.storage }), signal);
                 const expandedOffset = await formatRetainedIdentify(offset, image, context, async () => ({ image, storage: backend.storage }), signal);
-                return transformStoredMagickRaster(image, backend, copyMagickPixelSteps(image, expandedGeometry, expandedOffset, !!image.storedData16, channels, image.storedEvaluateSamples !== undefined, virtualPixel, background), signal, { ...image, hasAlpha: image.hasAlpha || (!channels || channels[3] === true) && (virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255) });
+                const area = parseMagickCopyGeometry(image, expandedGeometry, expandedOffset);
+                let result = await transformStoredMagickRaster(image, backend, copyMagickPixelSteps(image, area, !!image.storedData16, channels, image.storedEvaluateSamples !== undefined, virtualPixel, background), signal, { ...image, hasAlpha: image.hasAlpha || (!channels || channels[3] === true) && (virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255) });
+                if (image.storedWriteMask) {
+                    result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!(result.storedData16 || image.storedData16), false, maskChannels), signal, result, [result, image, image.storedWriteMask]);
+                    result.storedWriteMask = await transformStoredMagickRaster(image.storedWriteMask, backend, clearWriteMaskPixelSteps(image.storedWriteMask, area), signal);
+                }
+                return result;
             });
         } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
             if (token === "-chop" || token === "-roll") stackStep(async stack => {

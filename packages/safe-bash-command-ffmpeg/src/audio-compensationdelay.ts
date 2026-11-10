@@ -47,9 +47,12 @@ export async function compensateAudioDelay(
   let nextCommand = 0;
   for (const [n, frame] of frames.entries()) {
     while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
-      const gain = Number(commands[nextCommand++]!.expression);
+      const command = commands[nextCommand++]!;
       // Failed runtime commands leave the current option unchanged.
-      if (Number.isFinite(gain) && gain >= 0 && gain <= 1) values[3] = gain;
+      try {
+        const gain = parseFilterExpression(command.expression, "compensationdelay", {});
+        if (Number.isFinite(gain) && gain >= 0 && gain <= 1) values[3] = gain;
+      } catch { /* Native asendcmd continues after a rejected command. */ }
     }
     const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "compensationdelay enable", {
       n, t: frame.pts / sampleRate, pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0

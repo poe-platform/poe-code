@@ -1318,24 +1318,29 @@ async function panAudio(
   spec: string, channels: MediaAudioData["channelData"], channelMask: number | undefined, sampleFormat: string,
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<{ channels: (Float32Array | Float64Array)[]; channelMask: number; channelNames: string[] }> {
-  if (spec.endsWith(":")) spec = spec.slice(0, -1);
-  const [expression = "", ...options] = spec.split(":");
-  for (const option of options) {
-    const equals = option.indexOf("=");
-    const key = option.slice(0, equals).trim();
-    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
-      const number = parseFilterExpression(option.slice(equals + 1), "pan", key === "thread_type" ? { slice: 1 } : {});
-      if (key === "thread_type"
-        ? !Number.isInteger(number) || number < -2147483648 || number > 4294967295
-        : number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
-        throw new RangeError(`pan: invalid ${key}`);
-      }
-      // Scheduling and hardware frame reservations do not change PCM samples.
-    } else if (equals > 0 && [...key].every(char =>
-      (char >= "a" && char <= "z") || (char >= "A" && char <= "Z") ||
-      (char >= "0" && char <= "9") || char === "_")) {
-      throw new Error(`pan: unsupported option ${key}`);
-    } else throw new Error("pan: unexpected positional option");
+  let expression = "";
+  const options = spec.split(":");
+  if (options.at(-1) === "") options.pop();
+  for (const [index, option] of options.entries()) {
+    const separator = option.indexOf("=");
+    const pipe = option.indexOf("|");
+    if (separator >= 0 && (pipe < 0 || separator < pipe)) {
+      const key = option.slice(0, separator).trim();
+      const value = option.slice(separator + 1);
+      if (key === "args") expression = value;
+      else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+        const number = parseFilterExpression(value, "pan", key === "thread_type" ? { slice: 1 } : {});
+        if (key === "thread_type"
+          ? !Number.isInteger(number) || number < -2147483648 || number > 4294967295
+          : number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
+          throw new RangeError(`pan: invalid ${key}`);
+        }
+        // Scheduling and hardware frame reservations do not change PCM samples.
+      } else throw new Error(`pan: unsupported option ${key}`);
+    } else {
+      if (index > 0) throw new Error("pan: unexpected positional option");
+      expression = option;
+    }
   }
   const [layout, ...assignments] = expression.split("|").map(value => value.trim());
   const count = parseAudioChannelCount(layout ?? "");

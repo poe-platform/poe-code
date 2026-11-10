@@ -725,6 +725,8 @@ input layout. Numbered input and output channels accept signed and spaced decima
 2.1, 4.0, 5.0, 5.1, 6.1 or 7.1 for one through eight channels. Four channels use
 `FL+FR+FC+BC`; six use `FL+FR+FC+LFE+BL+BR`. Explicit channel masks take precedence.
 `pan` accepts `threads`, `thread_type=slice`, and `extra_hw_frames` after the channel equations (for example, `pan=mono|c0=c1:threads=1`); these settings leave PCM samples unchanged.
+The matrix also accepts the named `args` option, for example `pan=args=mono|c0=c1`.
+Repeated `args` options use the last value.
 `-af 'pan=mono|c0=c1'` extracts the right channel and
 `-af 'pan=stereo|FL=FR|FR=FL'` swaps stereo channels. PCM16 mixing uses native Q15
 gains and rounds half steps toward positive infinity, including native 32-bit overflow

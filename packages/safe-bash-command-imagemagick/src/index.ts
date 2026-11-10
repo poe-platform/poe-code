@@ -1,3 +1,4 @@
+import { cropReadMaskSteps, cropStoredReadMask } from "./crop-read-mask.js";
 import { decodeMagickImage as decodeImage } from "./image-raster.js";
 import { renderFontCaption } from "./font/caption.js";
 import { defaultCaptionFont } from "./font/default.js";
@@ -5340,7 +5341,7 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
             ...(yield* extractImageSteps(img, area)),
             ...(metaChannels ? { metaChannels } : {}),
             ...(img.region ? { region: { ...img.region, x: img.region.x - area.left, y: img.region.y - area.top } } : {}),
-            ...(img.readMask ? { readMask: yield* extractImageSteps(img.readMask as RgbaImage, area) } : {}),
+            ...(img.readMask ? { readMask: yield* cropReadMaskSteps(img.readMask as RgbaImage, area) } : {}),
             ...(img.writeMask ? { writeMask: yield* extractImageSteps(img.writeMask, area) } : {}),
             virtualCanvas: magickCropCanvas(img, area.left, area.top)
         } : img);
@@ -11743,7 +11744,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         result.metaChannels.push(selected ? yield* applyMagickMorphology4ChSteps(plane, plan, signal, undefined, state.virtualPixel, state.background) : plane);
                     }
                 }
-                return im.region || im.writeMask ? yield* applyMagickRasterSteps(result, statisticWriteMaskPixelSteps(im, magickMedianRows(geometry), state.virtualPixel), signal, result, im.writeMask ? [result, im, im.writeMask] : [result, im]) : result;
+                return { ...(im.region || im.writeMask ? yield* applyMagickRasterSteps(result, statisticWriteMaskPixelSteps(im, magickMedianRows(geometry), state.virtualPixel), signal, result, im.writeMask ? [result, im, im.writeMask] : [result, im]) : result), region: undefined, writeMask: undefined };
             });
         }
         else if (t === "-channel-fx") {
@@ -14311,7 +14312,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         result.storedMetaChannels.push(!meta || meta.includes(index)
                             ? await morphStoredMagickImage(plane, backend, plan, signal, undefined, virtualPixel, background) : plane);
                 }
-                return image.region || image.storedWriteMask ? transformStoredMagickRaster(result, backend, statisticWriteMaskPixelSteps(image, magickMedianRows(geometry), virtualPixel), signal, result, image.storedWriteMask ? [result, image, image.storedWriteMask] : [result, image]) : result;
+                return { ...(image.region || image.storedWriteMask ? await transformStoredMagickRaster(result, backend, statisticWriteMaskPixelSteps(image, magickMedianRows(geometry), virtualPixel), signal, result, image.storedWriteMask ? [result, image, image.storedWriteMask] : [result, image]) : result), region: undefined, storedWriteMask: undefined };
             });
         } else if (!operandsOnly && token === "-morphology") {
             const method = (tokens[++i] ?? "dilate").toLowerCase();
@@ -14814,7 +14815,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             ...await transformStoredImage(image, backend.storage, { kind: "extract", ...area }, signal),
                             ...(storedMetaChannels ? { storedMetaChannels } : {}),
                             ...(image.region ? { region: { ...image.region, x: image.region.x - area.left, y: image.region.y - area.top } } : {}),
-                            ...(image.readMask ? { readMask: await transformStoredImage(image.readMask as StoredRgbaImage, backend.storage, { kind: "extract", ...area }, signal) } : {}),
+                            ...(image.readMask ? { readMask: await cropStoredReadMask(image.readMask as StoredRgbaImage, area, backend.storage, signal) } : {}),
                             ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, backend.storage, { kind: "extract", ...area }, signal) } : {}),
                             virtualCanvas: magickCropCanvas(image, area.left, area.top)
                         } : image, expanded, gravity));

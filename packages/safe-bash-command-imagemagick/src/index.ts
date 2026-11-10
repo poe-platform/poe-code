@@ -10104,7 +10104,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i = analysisOperation.end;
             const argument = tokens[i] ?? "80%";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const operation = t === "-sepia-tone" || t === "-contrast-stretch" || t === "-linear-stretch" ? parseMagickAnalysisOperation([t,
+                const operation = t === "-auto-threshold" || t === "-sepia-tone" || t === "-contrast-stretch" || t === "-linear-stretch" ? parseMagickAnalysisOperation([t,
                     yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties })
                 ], state, 0)! : analysisOperation;
                 const sums = t === "-auto-gamma" ? { count: 0, values: [0, 0, 0, 0, 0] } : undefined;
@@ -12815,7 +12815,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const intensity = state.intensity, argument = tokens[i] ?? "80%", settings = { ...state };
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
-                const operation = token === "-sepia-tone" || token === "-contrast-stretch" || token === "-linear-stretch" ? parseMagickAnalysisOperation([token,
+                const operation = token === "-auto-threshold" || token === "-sepia-tone" || token === "-contrast-stretch" || token === "-linear-stretch" ? parseMagickAnalysisOperation([token,
                     await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal)
                 ], settings, 0)! : analysisOperation;
                 const sums = token === "-auto-gamma" ? { count: 0, values: [0, 0, 0, 0, 0] } : undefined;

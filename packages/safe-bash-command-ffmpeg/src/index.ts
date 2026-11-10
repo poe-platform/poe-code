@@ -11384,7 +11384,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               formats = compatible;
                               continue;
                             }
-                            if (name === "volume") {
+                            if (name === "vibrato") {
+                              if (!formats || formats.includes("dblp")) formats = ["dblp"];
+                            } else if (name === "volume") {
                               let precision = "float";
                               for (const [index, option] of argument.split(":").entries()) {
                                 const separator = option.indexOf("=");

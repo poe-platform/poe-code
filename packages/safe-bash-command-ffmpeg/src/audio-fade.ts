@@ -121,7 +121,14 @@ export async function fadeAudio(
     const fraction = samples === 0
       ? (type === "out" ? (pts < start ? 1 : 0) : (pts > start ? 1 : 0))
       : type === "out" ? 1 - progress : progress;
-    const gain = enabled ? silence + (unity - silence) * curve(fraction) : 1;
+    // Native shortcuts whole frames strictly outside the fade, bypassing the curve.
+    const frameStart = pts - (i - (frame?.start ?? 0));
+    const before = frameStart + (frame ? frame.end - frame.start : length) < start;
+    const after = start + samples < frameStart;
+    const gain = !enabled ? 1
+      : before ? (type === "in" ? silence : unity)
+        : after ? (type === "in" ? unity : silence)
+          : silence + (unity - silence) * curve(fraction);
     for (let c = 0; c < channels.length; c++) {
       const sample = channels[c]![i]! * gain;
       // Store at the negotiated precision before the next filter consumes samples.

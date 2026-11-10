@@ -70,6 +70,12 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
       tool: "safe-bash-command-mcp/src/tool-call.ts",
     })) entryPoints["safe-bash/dist/command-chunks/mcp-" + name] = path.join(rootDir, "packages", source);
   }
+  if (portable && entryPoints["pdf-ast/dist/index"]) {
+    // Keep lightweight PDF exports outside the parser/rendering aggregate.
+    for (const [name, source] of Object.entries({ values: "cos/values.ts", text: "extract/text.ts" })) {
+      entryPoints["safe-bash/dist/command-chunks/pdf-" + name] = path.join(rootDir, "packages/pdf-ast/src", source);
+    }
+  }
   if (!Object.keys(entryPoints).length) return undefined;
   return {
     absWorkingDir: rootDir, entryPoints, alias, external: subpathImports.size ? [...new Set([...(external ?? []), ...subpathImports])] : external,

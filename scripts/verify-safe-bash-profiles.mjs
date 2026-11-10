@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { readFile } from "node:fs/promises";
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
+import { verifySafeBashPdf } from "./verify-safe-bash-pdf.mjs";
 
 export const rejectNodeImports = {
   name: "reject-node-imports",
@@ -249,6 +250,7 @@ export default { async fetch() {
 }
 
 export async function verifySafeBashPortableCommands(consumer) {
+  await verifySafeBashPdf(consumer);
   consumer = path.resolve(consumer);
   // Measure consent, token lifecycle and account lookup without the shell fixture.
   const consent = ["prepareRemoteMcpAuthorization", "exchangeAuthorizationCode"];

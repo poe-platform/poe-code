@@ -1,3 +1,5 @@
+export { cosNull, cosBool, formatPdfNumber, cosNumber, cosArray, cosRef } from "./cos/values.js";
+import { cosNumber } from "./cos/values.js";
 import { encodeFlate } from "./cos/filters.js";
 
 export interface ByteSpan {
@@ -451,40 +453,6 @@ export type PdfSemanticNode =
 
 const textEncoder = new TextEncoder();
 
-export function cosNull(span?: ByteSpan): PdfCosNull {
-  return { kind: "null", span };
-}
-
-export function cosBool(value: boolean, span?: ByteSpan): PdfCosBoolean {
-  return { kind: "boolean", value, span };
-}
-
-export function formatPdfNumber(value: number): string {
-  if (!Number.isFinite(value) || Math.abs(value) < 1e-10) {
-    return "0";
-  }
-  if (Number.isInteger(value)) {
-    return String(value);
-  }
-  let fixed = value.toFixed(6);
-  while (fixed.endsWith("0")) fixed = fixed.slice(0, -1);
-  if (fixed.endsWith(".")) fixed = fixed.slice(0, -1);
-  return fixed === "-0" || fixed === "" ? "0" : fixed;
-}
-
-export function cosNumber(value: number, raw?: string, span?: ByteSpan): PdfCosNumber {
-  if (!Number.isFinite(value)) {
-    throw new Error(`Invalid non-finite PDF number: ${String(value)}`);
-  }
-  const isInteger = Number.isInteger(value);
-  const hasExponent = raw !== undefined && (raw.includes("e") || raw.includes("E"));
-  const formatted =
-    raw !== undefined && !hasExponent
-      ? raw
-      : formatPdfNumber(value);
-  return { kind: "number", value, raw: formatted, isInteger, span };
-}
-
 export function cosName(decoded: string, rawBytes?: Uint8Array, span?: ByteSpan): PdfCosName {
   return {
     kind: "name",
@@ -543,10 +511,6 @@ export function cosHexString(hexOrBytes: string | Uint8Array, span?: ByteSpan): 
   return { kind: "string", format: "hex", bytes: hexOrBytes, span };
 }
 
-export function cosArray(items: PdfCosNode[], span?: ByteSpan): PdfCosArray {
-  return { kind: "array", items: [...items], span };
-}
-
 export function cosDict(
   entriesOrRecord:
     | readonly PdfDictEntry[]
@@ -568,10 +532,6 @@ export function cosDict(
     }
   }
   return { kind: "dict", entries, span };
-}
-
-export function cosRef(objectNumber: number, generationNumber = 0, span?: ByteSpan): PdfCosRef {
-  return { kind: "ref", objectNumber, generationNumber, span };
 }
 
 export function cosStream(

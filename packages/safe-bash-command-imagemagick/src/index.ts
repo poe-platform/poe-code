@@ -6985,7 +6985,9 @@ function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: M
         if (sums) {
             const samples = workingSamples ?? data;
             const scale = workingSamples ? hue ? 1 : 255 : data instanceof Uint16Array ? 65535 : 255;
-            for (let channel = 0; channel < 4; channel++) sums.values[channel]! += samples[i + channel]! / scale;
+            for (let channel = 0; channel < 4; channel++) sums.values[cmyk && channel === 3 ? 4 : channel]! += samples[i + channel]! / scale;
+            // CMYK's working plane stores black; alpha remains in the RGBA backing.
+            if (cmyk) sums.values[3]! += data[i + 3]! / (data instanceof Uint16Array ? 65535 : 255);
             sums.count++;
             continue;
         }
@@ -7188,24 +7190,25 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         }
         if (token === "-auto-gamma") {
             const count = Math.max(1, channelSums!.count);
-            const channelCount = image.hasAlpha ? 4 : 3;
+            const cmyk = image.space === "cmyk";
+            const channelCount = (cmyk ? 4 : 3) + (image.hasAlpha ? 1 : 0);
             const sums = channelSums!.values;
             // Grayscale stores one color sample; its RGB projections must not outweigh alpha.
             const gray = image.space === "b-w" || image.space === "grey16";
             const sharedMean = gray
                 ? (sums[0]! + (image.hasAlpha ? sums[3]! : 0)) / (count * (image.hasAlpha ? 2 : 1))
-                : sums.slice(0, channelCount).reduce((sum, value) => sum + value, 0) / (count * channelCount);
+                : sums.reduce((sum, value, channel) => sum + (channel === 3 && !image.hasAlpha ? 0 : value), 0) / (count * channelCount);
             // Native auto-gamma uses levels, including both masked cache syncs.
             const operations: MagickPixelOperation[] = [];
-            const active = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b];
-            for (let channel = 0; channel < (independent ? gray ? 1 : 3 : 1); channel++) {
+            const active = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a && image.hasAlpha, settings.channels.k];
+            for (let channel = 0; channel < (independent ? cmyk ? 5 : gray ? 1 : 3 : 1); channel++) {
                 if (independent && !active[channel]) continue;
                 const mean = independent ? sums[channel]! / count : sharedMean;
                 const gamma = Math.log(mean) / Math.log(0.5);
                 if (!Number.isFinite(gamma)) continue;
                 const selected = independent ? {
-                    r: channel === 0, g: gray || channel === 1, b: gray || channel === 2, a: false, k: false,
-                } : { r: true, g: true, b: true, a: true, k: false };
+                    r: channel === 0, g: gray || channel === 1, b: gray || channel === 2, a: channel === 3, k: channel === 4,
+                } : { r: true, g: true, b: true, a: true, k: cmyk };
                 operations.push(parseMagickPixelOperation(["-level", `0,65535,${gamma}`], {
                     ...settings, channelExplicit: true, channels: selected,
                 }, 0)!);
@@ -9638,7 +9641,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const operation = t === "-sepia-tone" || t === "-contrast-stretch" || t === "-linear-stretch" ? parseMagickAnalysisOperation([t,
                     yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties })
                 ], state, 0)! : analysisOperation;
-                const sums = t === "-auto-gamma" ? { count: 0, values: [0, 0, 0, 0] } : undefined;
+                const sums = t === "-auto-gamma" ? { count: 0, values: [0, 0, 0, 0, 0] } : undefined;
                 const histogram = sums ? [] : t === "-auto-level" ? Array.from({ length: image.space === "cmyk" ? 5 : 4 }, () => new Float64Array([Infinity, -Infinity])) : Array.from({ length: operation.sepiaThreshold !== undefined && image.space === "cmyk" ? 6 : analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.data16 ? 65536 : 256));
                 const selection = t === "-auto-gamma" ? yield* readMaskSelectionSteps(image, 0, image.data.length) : undefined;
                 yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram, state.intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, 0, state.channels, operation.sepiaThreshold !== undefined || t === "-auto-level" || t === "-auto-threshold" || sums ? image.hueSamples ?? image.evaluateSamples : undefined, !!image.hueSamples, image.space === "cmyk", sums, t === "-auto-level");
@@ -12058,7 +12061,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const operation = token === "-sepia-tone" || token === "-contrast-stretch" || token === "-linear-stretch" ? parseMagickAnalysisOperation([token,
                     await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal)
                 ], settings, 0)! : analysisOperation;
-                const sums = token === "-auto-gamma" ? { count: 0, values: [0, 0, 0, 0] } : undefined;
+                const sums = token === "-auto-gamma" ? { count: 0, values: [0, 0, 0, 0, 0] } : undefined;
                 const histogram = sums ? [] : token === "-auto-level" ? Array.from({ length: image.space === "cmyk" ? 5 : 4 }, () => new Float64Array([Infinity, -Infinity])) : Array.from({ length: operation.sepiaThreshold !== undefined && image.space === "cmyk" ? 6 : analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.storedData16 ? 65536 : 256)), size = image.width * image.height * 4;
                 const original = analysisOperation.highDepth ? image.storedData16 : undefined;
                 const workingPosition = operation.sepiaThreshold !== undefined || token === "-auto-level" || token === "-auto-threshold" && image.space === "cmyk" || sums ? image.storedHueSamples ?? image.storedEvaluateSamples : undefined;

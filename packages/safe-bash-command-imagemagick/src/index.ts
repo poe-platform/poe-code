@@ -7963,38 +7963,24 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-solarize") {
         highDepth = true;
         const value = tokens[++i] ?? "50%";
-        const geometry = value.trim().toLowerCase();
-        if (!geometry) throw new Error(`invalid argument '-solarize' '${value}'`);
-        const fields = [""];
-        let offsets = 0;
-        for (const character of geometry) {
-            if ("!<>^@#".includes(character)) continue;
-            const field = fields[fields.length - 1]!;
-            const unsigned = field.startsWith("-") || field.startsWith("+") ? field.slice(1) : field;
-            const offset = (character === "+" || character === "-") && field !== "" && !(field.endsWith("e") && !unsigned.startsWith("0x"));
-            if (offset && ++offsets > 2) throw new Error(`invalid argument '-solarize' '${value}'`);
-            if (character === "," || character === "/" || (character === "x" && unsigned !== "0") || offset) {
-                fields.push(offset ? character : "");
-            } else fields[fields.length - 1] += character;
+        // Native validates geometry separately from reading its leading scalar.
+        const geometry = [...value].filter(character => character.trim() !== "" && !"()".includes(character)).join("");
+        const [first, second] = geometry.split(",");
+        const component = (first || second || "").split("/")[0]!;
+        const hasGeometryFlag = geometry.startsWith("-") || [...geometry].some(character => "xX.!#%:<>@^".includes(character));
+        if ([...geometry].some(character => !"0123456789eExX!#%+,-./:<>@^".includes(character)) ||
+            (!hasGeometryFlag && !(component && Number.parseFloat(component) === Number(component)) &&
+                !(geometry.startsWith("+") && !Number.isNaN(Number.parseFloat(geometry))))) {
+            throw new Error(`invalid argument '-solarize' '${value}'`);
         }
-        for (const part of fields) {
-            const field = part.trim();
-            if (!field) continue;
-            const threshold = field.endsWith("%") ? field.slice(0, -1) : field;
-            const unsigned = threshold.startsWith("-") || threshold.startsWith("+") ? threshold.slice(1) : threshold;
-            const hexadecimal = unsigned.startsWith("0x");
-            const raw = hexadecimal ? Number(unsigned) * (threshold.startsWith("-") ? -1 : 1) : Number(threshold);
-            if (hexadecimal ? !Number.isFinite(raw) : Number.parseFloat(threshold) !== raw) {
-                throw new Error(`invalid argument '-solarize' '${value}'`);
-            }
-        }
-        // Read the original numeric prefix: geometry flags end the scalar, and
-        // only an immediately following percent sign changes its units.
-        const unsigned = geometry.startsWith("-") || geometry.startsWith("+") ? geometry.slice(1) : geometry;
-        const raw = (unsigned.startsWith("0x") ? Number.parseInt(geometry, 16) : Number.parseFloat(geometry)) || 0;
-        const percent = unsigned.indexOf("%"), prefix = unsigned.slice(0, percent);
-        const percentage = percent > 0 && prefix === prefix.trimEnd() && Number(prefix) * (geometry.startsWith("-") ? -1 : 1) === raw;
-        const threshold = percentage ? (raw / 100) * 65535 : raw;
+        const text = value.trimStart();
+        const unsigned = text.startsWith("-") || text.startsWith("+") ? text.slice(1) : text;
+        const raw = (unsigned.toLowerCase().startsWith("0x") ? Number.parseInt(text, 16) : Number.parseFloat(text)) || 0;
+        const percent = text.indexOf("%"), prefix = text.slice(0, percent);
+        const magnitude = prefix.startsWith("-") || prefix.startsWith("+") ? prefix.slice(1) : prefix;
+        // Only a percent sign immediately after the original number scales it.
+        const isPercent = percent > 0 && prefix.trimEnd() === prefix && Number(magnitude) * (prefix.startsWith("-") ? -1 : 1) === raw;
+        const threshold = isPercent ? (raw / 100) * 65535 : raw;
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = image => applyMagickSolarizeSteps(image, threshold, channels, signal);
     } else if (token === "-ordered-dither") {

@@ -2162,9 +2162,19 @@ async function applyVideoFilterChain(
       }, signal);
     } else if (name === "metadata") {
       const mode = named.mode ?? positional[0];
-      if ((mode !== "print" && mode !== "4") || Object.keys(named).some(key => key !== "mode" && key !== "key") ||
+      if ((mode !== "print" && mode !== "delete" && mode !== "4") || Object.keys(named).some(key => key !== "mode" && key !== "key") ||
           positional.some((part, index) => index > 0 && !part.includes("="))) {
-        throw new Error("metadata: only print mode and key selection are supported");
+        throw new Error("metadata: unsupported mode or option");
+      }
+      if (mode === "delete") {
+        current = await mapWork(current, frame => {
+          budget.checkCpu();
+          return { ...frame, filterMetadata: Object.fromEntries(
+            Object.entries(frame.filterMetadata ?? {}).filter(([key]) =>
+              named.key !== undefined && key.toLowerCase() !== named.key.toLowerCase())
+          ) };
+        }, signal);
+        continue;
       }
       if (diagnostics.logLevel < 32) continue;
       for (const [index, frame] of current.entries()) {

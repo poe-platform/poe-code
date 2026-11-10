@@ -160,7 +160,7 @@ export const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval
 export const defaultCommandPath = "/bin:/usr/bin";
 const zeroPositionKey = "-1";
 const unsupportedSetOptionNames = new Set([
-  "emacs", "errtrace", "functrace", "histexpand", "history", "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog", "notify", "onecmd", "physical", "posix", "privileged", "verbose", "vi", "xtrace", ]);
+  "emacs", "errtrace", "functrace", "histexpand", "history", "ignoreeof", "interactive-comments", "keyword", "monitor", "nolog", "notify", "onecmd", "posix", "privileged", "verbose", "vi", "xtrace", ]);
 export const shellKeywords = new Set(["if", "then", "else", "elif", "fi", "for", "while", "until", "do", "done", "case", "esac", "in", "function", "{", "}", "!", "[[", "]]", "time", "select", "coproc"]);
 type Discovery = { kind: "keyword" | "function" | "builtin" | "command" | "interpreter" | "file"; name: string };
 const commandSpellingSymbol = Symbol("safe-bash.commandSpelling");
@@ -947,7 +947,7 @@ export interface State extends DynamicVariableState {
   functionDepth: number;
   locals: Map<string, SavedVariable>[];
   localSetOptions?: {
-    readonly values: Pick<State, "allexport" | "braceexpand" | "errexit" | "hashall" | "noclobber" | "noexec" | "noglob" | "nounset" | "pipefail">;
+    readonly values: Pick<State, "allexport" | "braceexpand" | "errexit" | "hashall" | "noclobber" | "noexec" | "noglob" | "nounset" | "physical" | "pipefail">;
     readonly extensions: ReadonlyMap<string, boolean>;
   } | undefined;
   getopts?: GetoptsBinding | undefined;
@@ -979,6 +979,7 @@ export interface State extends DynamicVariableState {
   noclobber?: boolean;
   allexport?: boolean;
   noexec?: boolean;
+  physical?: boolean;
   pipefail: boolean;
   errexit?: boolean;
   nounset?: boolean;
@@ -5154,7 +5155,7 @@ export class Runtime {
               const fast = !pattern ? this.fastValueWord(word, state, { ...io, nameExpansionContext: "conditional" }, false, false, false, false) : undefined;
               if (typeof fast === "string") return fast;
               return (await this.word(word, state, { ...io, nameExpansionContext: "conditional" }, false, pattern, false, pattern)).join("");
-            }, arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io), regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }), option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "hashall" ? state.hashall !== false : name === "noexec" ? !!state.noexec : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false, present: name => this.variablePresent(state, name, io), });
+            }, arithmetic: value => this.arithmeticValue(prepareArithmetic(value || "0", this.budget.parsing), state, io), regex: (subject, pattern) => this.ere(subject, pattern, state, { ...io, nameExpansionContext: "conditional" }), option: name => name === "allexport" ? !!state.allexport : name === "braceexpand" ? state.braceexpand !== false : name === "hashall" ? state.hashall !== false : name === "noexec" ? !!state.noexec : name === "noglob" ? !!state.noglob : name === "noclobber" ? !!state.noclobber : name === "errexit" ? !!state.errexit : name === "nounset" ? !!state.nounset : name === "physical" ? !!state.physical : name === "pipefail" ? state.pipefail : state.extensions?.options.get(name)?.enabled ?? false, present: name => this.variablePresent(state, name, io), });
         } catch (error) {
           this.signal.throwIfAborted();
           if (error instanceof NounsetDiagnosticFailure) { diagnosticFailure = error; throw error; }
@@ -6393,7 +6394,7 @@ export class Runtime {
             if (name === "braceexpand") return state.braceexpand !== false;
             if (name === "hashall") return state.hashall !== false;
             if (name === "allexport") return !!state.allexport;
-            if (["errexit", "noclobber", "noglob", "noexec", "nounset", "pipefail"].includes(name)) return !!state[name as "nounset"];
+            if (["errexit", "noclobber", "noglob", "noexec", "nounset", "physical", "pipefail"].includes(name)) return !!state[name as "nounset"];
             return false;
           }, terminal: () => false, descriptorStat: async number => {
             const descriptor = io.descriptors?.get(number);
@@ -7062,8 +7063,8 @@ export class Runtime {
     const shoptArguments: string[][] = [];
     let commandString = false;
     let standardInput = false;
-    const options = { allexport: false, braceexpand: true, errexit: false, hashall: true, noclobber: false, noexec: false, noglob: false, nounset: false, pipefail: false };
-    const flagsByName = { a: "allexport", B: "braceexpand", e: "errexit", h: "hashall", C: "noclobber", n: "noexec", f: "noglob", u: "nounset" } as const;
+    const options = { allexport: false, braceexpand: true, errexit: false, hashall: true, noclobber: false, noexec: false, noglob: false, nounset: false, physical: false, pipefail: false };
+    const flagsByName = { a: "allexport", B: "braceexpand", e: "errexit", h: "hashall", C: "noclobber", n: "noexec", f: "noglob", u: "nounset", P: "physical" } as const;
     while (args.length && (args[0]!.startsWith("-") || args[0]!.startsWith("+"))) {
       const option = args.shift()!;
       if (option === "--" || option === "-") break;
@@ -7081,7 +7082,7 @@ export class Runtime {
       }
       const flags = option.slice(1);
       if (!flags.length || [...flags].some(flag => flag !== "O" && !Object.hasOwn(flagsByName, flag) && !(enabled && (flag === "c" || flag === "s" || flag === "l" || flag === "i")))) {
-        await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, +/-a, +/-e, +/-h, +/-u, +/-n, +/-B, +/-f, +/-C, +/-O shopt-option and +/-o ${Object.keys(options).join(", ")}\n`);
+        await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, +/-a, +/-e, +/-h, +/-u, +/-n, +/-B, +/-f, +/-C, +/-P, +/-O shopt-option and +/-o ${Object.keys(options).join(", ")}\n`);
         return 2;
       }
       for (const flag of flags) {
@@ -7787,6 +7788,7 @@ export class Runtime {
         else if (flag === "h") state.hashall = enabled;
         else if (flag === "C") state.noclobber = enabled;
         else if (flag === "n") state.noexec = enabled;
+        else if (flag === "P") state.physical = enabled;
         else if ([...state.extensions?.options.values() ?? []].some(option => option.flag === flag)) {
           for (const option of state.extensions!.options.values()) if (option.flag === flag) option.enabled = enabled;
         }
@@ -7805,6 +7807,7 @@ export class Runtime {
             else if (name === "noglob") state.noglob = enabled;
             else if (name === "noclobber") state.noclobber = enabled;
             else if (name === "noexec") state.noexec = enabled;
+            else if (name === "physical") state.physical = enabled;
             else if (state.extensions?.options.has(name)) state.extensions.options.get(name)!.enabled = enabled;
             else {
               const unsupported = unsupportedSetOptionNames.has(name);
@@ -7816,7 +7819,7 @@ export class Runtime {
         } else valid = false;
       }
       if (!valid) {
-        await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- a/e/h/u/f/n/B/C clusters, -- arguments and terminal o with allexport, braceexpand, hashall, noclobber, noexec, noglob, pipefail, errexit or nounset\n");
+        await writeDiagnostic(stderr, "set: unsupported shell option; supported forms are +/- a/e/h/u/f/n/B/C/P clusters, -- arguments and terminal o with allexport, braceexpand, hashall, noclobber, noexec, noglob, physical, pipefail, errexit or nounset\n");
         return 1;
       }
       index++;
@@ -8094,7 +8097,7 @@ export class Runtime {
     this.signal.throwIfAborted();
     const lookup = new CdLookup(this.signal, this.budget.limits);
     let offset = 0;
-    let physical = false;
+    let physical = !!state.physical;
     if (!stackHooks) for (; offset < args.length; offset++) {
       await lookup.charge(1);
       const option = args[offset]!;
@@ -9235,7 +9238,7 @@ export class Runtime {
               allexport: !!state.allexport, braceexpand: state.braceexpand !== false,
               errexit: !!state.errexit, hashall: state.hashall !== false, noclobber: !!state.noclobber,
               noexec: !!state.noexec, noglob: !!state.noglob,
-              nounset: !!state.nounset, pipefail: state.pipefail,
+              nounset: !!state.nounset, physical: !!state.physical, pipefail: state.pipefail,
             },
             extensions: new Map([...state.extensions?.options.values() ?? []].map(option => [option.name, option.enabled])),
           };
@@ -10374,7 +10377,7 @@ export class Runtime {
     let value = namerefName ? state.variables[part.name] === undefined ? undefined : this.referenceName(state, part.name)
       : part.specialParameter ? specialValue === undefined ? undefined : shellValueText(specialValue)
       : part.name === "?" ? String(state.status)
-      : part.name === "-" ? `${state.allexport ? "a" : ""}${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.hashall !== false ? "h" : ""}${state.noexec ? "n" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}`
+      : part.name === "-" ? `${state.allexport ? "a" : ""}${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.hashall !== false ? "h" : ""}${state.noexec ? "n" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}${state.physical ? "P" : ""}`
       : part.name === "#" ? String(state.positional.length)
       : part.name === "@" || part.name === "*" ? state.positional.join(io.nameExpansionContext === "document" || part.name === "@" && (!split || hereString) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"

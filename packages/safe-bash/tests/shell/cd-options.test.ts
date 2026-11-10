@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { Shell, MemoryFileSystem, FsError, agentCommands } from "../../src/index.js";
 
@@ -331,6 +332,85 @@ for (const [script, expected] of [
     assert.equal(result.exitCode, 0);
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, `0|${expected}|${expected}\n`);
+  });
+}
+
+for (const [script, expected] of [
+  ["set -P; cd link; cd ..", "/work/dir"],
+  ["set -o physical; cd link; cd ..", "/work/dir"],
+  ["set -P; set +P; cd link; cd ..", "/work"],
+  ["set -o physical; set +o physical; cd link; cd ..", "/work"],
+  ["set -P; cd -L link/..", "/work"],
+  ["set -P; cd -PL link/..", "/work"],
+  ["set -P; cd -LP link/..", "/work/dir"],
+  ["set +P; cd -P link/..", "/work/dir"],
+  ["cd link; set -P; cd ..", "/work/dir"],
+  ["set -P; cd -L link; cd ..", "/work/dir"],
+  ["set -P; cd", "/work/dir/child"],
+  ["set -P; pushd link >/dev/null; cd ..", "/work/dir"],
+  ["set -P; pushd -n link >/dev/null; popd >/dev/null; cd ..", "/work/dir"],
+  ["set -P; (set +P); cd link/..", "/work/dir"],
+  ["set -P; f() { local -; set +P; }; f; cd link/..", "/work/dir"],
+  ["f() { local -; set -P; }; f; cd link/..", "/work"],
+] as const) {
+  test(`${script} honors the physical shell option`, async context => {
+    const { shell } = await fixture();
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`${script}; printf '%s|%s|' "$?" "$PWD"; pwd -P`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `0|${expected}|${expected}\n`);
+  });
+}
+
+test("physical option reporting and predicates follow enable and disable", async context => {
+  const { shell } = await fixture();
+  context.after(() => shell.dispose());
+  const source = `
+    for setting in -P +P '-o physical' '+o physical'; do
+      set $setting
+      [[ -o physical ]]; printf '%s|' "$?"
+      test -o physical; printf '%s|' "$?"
+      shopt -qo physical; printf '%s|' "$?"
+      case $- in *P*) printf 'on|' ;; *) printf 'off|' ;; esac
+      case :$SHELLOPTS: in *:physical:*) printf 'on|' ;; *) printf 'off|' ;; esac
+      set -o | while read name value; do
+        if [[ $name == physical ]]; then printf '%s|' "$value"; fi
+      done
+      set +o | while read command flag name; do
+        if [[ $name == physical ]]; then printf '%s\\n' "$flag"; fi
+      done
+    done
+  `;
+  const result = await shell.exec(source);
+  const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], {
+    cwd: "/", env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000,
+  });
+  assert.equal(native.error, undefined);
+  assert.equal(native.signal, null);
+  assert.equal(result.exitCode, native.status);
+  assert.deepEqual(result.stdoutBytes, new Uint8Array(native.stdout));
+  assert.deepEqual(result.stderrBytes, new Uint8Array(native.stderr));
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "0|0|0|on|on|on|-o\n1|1|1|off|off|off|+o\n".repeat(2));
+});
+
+for (const script of [
+  'set -P; (cd link/..; pwd -P)',
+  'set -P; printf "%s\\n" "$(cd link/..; pwd -P)"',
+  "bash -P -c 'cd link/..; pwd -P'",
+  "bash -o physical -c 'cd link/..; pwd -P'",
+  "sh -P -c 'cd link/..; pwd -P'",
+  "shopt -so physical; cd link/..; pwd -P",
+]) {
+  test(`${script} propagates physical mode`, async context => {
+    const { shell } = await fixture();
+    context.after(() => shell.dispose());
+    const result = await shell.exec(script);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "/work/dir\n");
   });
 }
 

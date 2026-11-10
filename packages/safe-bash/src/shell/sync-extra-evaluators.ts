@@ -3569,7 +3569,7 @@ const syncExtraRuntimeMethods = {
         if (name === "braceexpand") return state.braceexpand !== false;
         if (name === "hashall") return state.hashall !== false;
         if (name === "allexport") return !!state.allexport;
-        if (["errexit", "noclobber", "noglob", "noexec", "nounset", "pipefail"].includes(name)) return !!state[name as "nounset"];
+        if (["errexit", "noclobber", "noglob", "noexec", "nounset", "physical", "pipefail"].includes(name)) return !!state[name as "nounset"];
         return false;
       }, terminal: () => false, };
     variablePresence.set(predicates, name => this.variablePresent(state, name, io));

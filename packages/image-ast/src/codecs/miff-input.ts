@@ -61,11 +61,12 @@ function* miffFrameHeader(size: number): Generator<MiffRead, MiffHeader, Uint8Ar
     const hasAlpha = fields.get("matte")?.toLowerCase() === "true" || fields.get("alpha-trait") === "Blend";
     const channels = cmyk ? hasAlpha ? 5 : 4 : gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3;
     const floating = fields.get("quantum:format") === "floating-point";
-    const compression = fields.get("compression") ?? "None";
     const indexed = fields.get("class") === "PseudoClass", colors = Number(fields.get("colors") ?? 0);
     const sampleBytes = depth / 8, indexBytes = Math.max(sampleBytes, colors > 256 ? 2 : 1);
     const pixelBytes = indexed ? indexBytes + (hasAlpha ? sampleBytes : 0) : channels * sampleBytes;
-    if ((!indexed && fields.get("class") !== "DirectClass") || !["None", "Zip", "LZW", "BZip", "RLE", "LZMA"].includes(compression) || indexed && compression !== "None" || !(indexed ? [8, 16] : [8, 16, 32]).includes(depth) || !["sRGB", "RGB", "Gray", "CMYK"].includes(colorspace) && (fields.get("class") !== "DirectClass" || !["CIELab", "XYZ", "HSL", "YCbCr"].includes(colorspace))
+    const compression = fields.get("compression") ?? "None";
+    if ((!indexed && fields.get("class") !== "DirectClass") || !["None", "LZMA", "Zip", "LZW", "BZip", "RLE"].includes(compression) || indexed && compression !== "None" || !(indexed ? [8, 16] : [8, 16, 32]).includes(depth) || !["sRGB", "RGB", "Gray", "CMYK"].includes(colorspace) && (fields.get("class") !== "DirectClass" || !["CIELab", "XYZ", "HSL", "YCbCr"].includes(colorspace))
+        || compression === "LZMA" && (floating || ![8, 16].includes(depth) || !["sRGB", "RGB", "Gray"].includes(colorspace))
         || floating && (indexed || ![16, 32].includes(depth))
         || indexed && (cmyk || !Number.isSafeInteger(colors) || colors < 1 || colors > 65536)
         || Number(fields.get("number-meta-channels") ?? 0) !== 0
@@ -99,16 +100,16 @@ export function* miffHeader(size: number, page = 0, options?: SharpInputOptions)
     if (!Number.isSafeInteger(page) || page < 0) throw new RangeError("MIFF page out of range");
     let start = 0, pages = 0;
     const delay: number[] = [];
-    let selected: MiffHeader | undefined;
+    let selected: ReturnType<typeof readMiffHeader> | undefined;
     while (start < size) {
         const steps = miffFrameHeader(size - start);
         let next = steps.next();
         while (!next.done) next = steps.next(yield { offset: start + next.value.offset, length: next.value.length });
-        const { metadata, offset, compression, colors, pixelBytes } = next.value;
+        const { metadata, offset, colors, pixelBytes, compression } = next.value;
         if (pages === page) checkLimitInputPixels(metadata.width, metadata.height, options);
         delay.push(metadata.delay![0]!);
+        if (pages++ === page) selected = { ...next.value, metadata: { ...metadata, size }, offset: start + offset };
         const header = { ...next.value, metadata: { ...metadata, size }, offset: start + offset };
-        if (pages++ === page) selected = header;
         start += offset + colors * 3 * (metadata.depth === "ushort" ? 2 : 1);
         if (compression === "None") start += metadata.width * metadata.height * pixelBytes;
         else if (compression === "RLE") {
@@ -124,7 +125,7 @@ export function* miffHeader(size: number, page = 0, options?: SharpInputOptions)
         } else start = yield* miffRaster(header);
     }
     if (!selected) throw new RangeError("MIFF page out of range");
-    return { ...selected, metadata: { ...selected.metadata, ...(pages > 1 ? { pages, delay } : {}) } };
+    return { ...selected, metadata: { ...selected.metadata, delay, ...(pages > 1 ? { pages } : {}) } };
 }
 
 export function readMiffHeader(bytes: Uint8Array, page?: number, options?: SharpInputOptions) {
@@ -186,8 +187,8 @@ export function* miffRaster(header: ReturnType<typeof readMiffHeader>): Generato
     const { metadata, compression } = header, size = metadata.size!;
     let offset = header.offset + header.colors * 3 * (metadata.depth === "ushort" ? 2 : 1);
     if (compression === "BZip") return yield* miffBzipRaster(header);
+    if (compression === "LZMA") return yield* miffLzma(offset, size, header.pixelBytes, metadata.width * metadata.height * header.pixelBytes);
     const stride = header.pixelBytes;
-    if (compression === "LZMA") return yield* miffLzma(offset, size, stride, metadata.width * metadata.height * stride);
     const chunkBytes = Math.min(1024, Math.floor(8192 / stride)) * stride;
     let remaining = metadata.width * metadata.height * stride;
     function* read(length: number): Generator<{ offset: number; length: number }, Uint8Array, Uint8Array> {

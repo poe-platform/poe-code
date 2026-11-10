@@ -2,6 +2,7 @@ import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
 import { magickCompositeMode } from "./composite-pixels.js";
+import { regionContains, type Region } from "./region.js";
 export interface ShadowLayout {
     readonly width: number;
     readonly height: number;
@@ -81,7 +82,7 @@ export function vignetteLayout(source: Pick<RgbaImage, "width" | "height" | "vir
     const width = source.virtualCanvas?.width || source.width, height = source.virtualCanvas?.height || source.height;
     return { width, height, hasAlpha: true, virtualCanvas: { width, height, x: 0, y: 0 } };
 }
-export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" | "virtualCanvas" | "data16" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">>, background: RgbaColor,
+export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" | "virtualCanvas" | "data16" | "space" | "hasAlpha" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { region?: Region | undefined }, background: RgbaColor,
     geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; hasYOffset: boolean; isPercent: boolean }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, compose = "Over"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { name } = magickCompositeMode(compose);
     const sourceIn = name === "srcin" || name === "in", destinationOut = name === "dstout" || name === "destout";
@@ -194,13 +195,20 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
             if (!bytes || bytes.length !== count * 4 * (hue ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated vignette pixels");
             const data = hue ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
             for (let x = 0; x < count; x++) {
-                const foreground = coverage[x]!, back = (name === "plus" ? 1 : 1 - foreground) * background.a / 255;
+                const protectedPixel = source.region && !regionContains(source.region, left + x, y);
+                // Intensity compositing clips RGB and restores the original alpha before flattening.
+                // Activating a previously absent alpha channel initializes it to transparent.
+                const sourceAlpha = source.hasAlpha ? data[x * 4 + 3]! / (255 * scale) : 0;
+                const foreground = protectedPixel ? sourceAlpha : coverage[x]!;
+                const intensity = protectedPixel ? sourceAlpha + coverage[x]! * (1 - sourceAlpha) : 1;
+                const back = (name === "plus" ? 1 : 1 - foreground) * background.a / 255;
                 const alpha = sourceIn ? foreground * background.a / 255 : destinationOut ? back : Math.min(1, foreground + back);
                 for (let channel = 0; channel < 3; channel++) {
                     const color = channel === 0 ? background.r : channel === 1 ? background.g : background.b;
                     const selected = !channels || (channel === 0 ? channels.r : channel === 1 ? channels.g : channels.b);
+                    const sourceColor = protectedPixel ? Math.fround(data[x * 4 + channel]! / scale * intensity * 257) / 257 * scale : data[x * 4 + channel]!;
                     if (selected && blend) {
-                        const source = data[x * 4 + channel]! / scale, destinationAlpha = background.a / 255;
+                        const source = sourceColor / scale, destinationAlpha = background.a / 255;
                         const mixed = name === "multiply" ? source * color / 255
                             : name === "screen" ? source + color - source * color / 255 : Math.abs(source - color);
                         const value = mixed * foreground * destinationAlpha + source * foreground * (1 - destinationAlpha) + color * back;
@@ -208,12 +216,12 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                         data[x * 4 + channel] = quantum((name === "screen" ? value : alpha === 0 ? 0 : value / alpha) * scale);
                         continue;
                     }
-                    data[x * 4 + channel] = !selected || copyDestination || copyAlpha ? quantum(color * scale) : copySource ? data[x * 4 + channel]!
-                        : sourceIn ? quantum(data[x * 4 + channel]! * alpha)
+                    data[x * 4 + channel] = !selected || copyDestination || copyAlpha ? quantum(color * scale) : copySource ? quantum(sourceColor)
+                        : sourceIn ? quantum(sourceColor * alpha)
                         : destinationOut ? (alpha === 0 ? 0 : quantum(color * scale))
                         // Plus adds alpha-weighted channels without unpremultiplying.
-                        : name === "plus" ? quantum(Math.min(255 * scale, data[x * 4 + channel]! * foreground + color * scale * back))
-                        : alpha === 0 ? 0 : quantum((data[x * 4 + channel]! * foreground + color * scale * back) / alpha);
+                        : name === "plus" ? quantum(Math.min(255 * scale, sourceColor * foreground + color * scale * back))
+                        : alpha === 0 ? 0 : quantum((sourceColor * foreground + color * scale * back) / alpha);
                 }
                 data[x * 4 + 3] = quantum(((!channels || channels.a) && !copyDestination ? (copySource || copyAlpha ? foreground
                     : name === "difference" ? Math.abs(foreground - background.a / 255) : alpha) * 255 : background.a) * scale);

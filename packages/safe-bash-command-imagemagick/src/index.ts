@@ -4743,6 +4743,98 @@ function magickCropViewport<T extends Pick<RgbaImage, "width" | "height" | "virt
     return { ...crop, virtualCanvas: { width, height, x: page.x - origin.x, y: page.y - origin.y } };
 }
 
+// ImageMagick page aliases, in PostScript points (`magick -list pagesize`).
+const magickPaperSizes: Readonly<Record<string, string>> = {
+    "4x6": "288x432",
+    "5x7": "360x504",
+    "7x9": "504x648",
+    "8x10": "576x720",
+    "9x11": "648x792",
+    "9x12": "648x864",
+    "10x13": "720x936",
+    "10x14": "720x1008",
+    "11x17": "792x1224",
+    "4a0": "4768x6741",
+    "2a0": "3370x4768",
+    "a0": "2384x3370",
+    "a10": "74x105",
+    "a1": "1684x2384",
+    "a2": "1191x1684",
+    "a3": "842x1191",
+    "a4small": "595x842",
+    "a4": "595x842",
+    "a5": "420x595",
+    "a6": "298x420",
+    "a7": "210x298",
+    "a8": "147x210",
+    "a9": "105x147",
+    "archa": "648x864",
+    "archb": "864x1296",
+    "archc": "1296x1728",
+    "archd": "1728x2592",
+    "arche": "2592x3456",
+    "b0": "2920x4127",
+    "b10": "91x127",
+    "b1": "2064x2920",
+    "b2": "1460x2064",
+    "b3": "1032x1460",
+    "b4": "729x1032",
+    "b5": "516x729",
+    "b6": "363x516",
+    "b7": "258x363",
+    "b8": "181x258",
+    "b9": "127x181",
+    "c0": "2599x3676",
+    "c1": "1837x2599",
+    "c2": "1298x1837",
+    "c3": "918x1296",
+    "c4": "649x918",
+    "c5": "459x649",
+    "c6": "323x459",
+    "c7": "230x323",
+    "csheet": "1224x1584",
+    "dsheet": "1584x2448",
+    "esheet": "2448x3168",
+    "executive": "540x720",
+    "flsa": "612x936",
+    "flse": "612x936",
+    "folio": "612x936",
+    "halfletter": "396x612",
+    "isob0": "2835x4008",
+    "isob10": "88x125",
+    "isob1": "2004x2835",
+    "isob2": "1417x2004",
+    "isob3": "1001x1417",
+    "isob4": "709x1001",
+    "isob5": "499x709",
+    "isob6": "354x499",
+    "isob7": "249x354",
+    "isob8": "176x249",
+    "isob9": "125x176",
+    "jisb0": "1030x1456",
+    "jisb1": "728x1030",
+    "jisb2": "515x728",
+    "jisb3": "364x515",
+    "jisb4": "257x364",
+    "jisb5": "182x257",
+    "jisb6": "128x182",
+    "ledger": "1224x792",
+    "legal": "612x1008",
+    "lettersmall": "612x792",
+    "letter": "612x792",
+    "monarch": "279x540",
+    "quarto": "610x780",
+    "statement": "396x612",
+    "tabloid": "792x1224",
+};
+
+function resolveMagickPageGeometry(raw: string): string {
+    const end = [...raw].findIndex(character => "+-!<>%^@".includes(character));
+    const name = (end < 0 ? raw : raw.slice(0, end)).toLowerCase();
+    const size = Object.hasOwn(magickPaperSizes, name) ? magickPaperSizes[name] : undefined;
+    return size === undefined ? raw : size + (end < 0 ? "" : raw.slice(end));
+}
+
 function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: MagickGeometry, operation: "repage" | "set") {
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
     let width = Math.round(geometry.width ?? page.width);
@@ -8459,7 +8551,7 @@ if (t === "-seed") {
         }
         else if (t === "+extract") { delete state.extract; }
         else if (t === "-page") {
-            const value = tokens[++i] ?? "";
+            const value = resolveMagickPageGeometry(tokens[++i] ?? "");
             validateMagickTransformGeometry(value, t);
             const geometry = parseMagickGeometry(value);
             state.page = { width: Math.round(geometry.width ?? 0), height: Math.round(geometry.height ?? 0), x: Math.trunc(geometry.x), y: Math.trunc(geometry.y) };
@@ -8993,7 +9085,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: Number(expanded) };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
-                if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickGeometry(expanded), forceExact: false }, "set") };
+                if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickGeometry(resolveMagickPageGeometry(expanded)), forceExact: false }, "set") };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
             });
             i++;
@@ -9639,7 +9731,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "+repage" || t === "-repage") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             if (t === "-repage") {
-                const geometry = parseMagickGeometry(tokens[++i] ?? "0x0");
+                const value = tokens[++i] ?? "0x0";
+                validateMagickTransformGeometry(value, "-repage");
+                const geometry = parseMagickGeometry(value);
                 stack = yield* mapMagickImagesSteps(stack, function* (image) {
                     yield;
                     return { ...image, virtualCanvas: magickRepageCanvas(image, geometry, "repage") };
@@ -11066,7 +11160,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: Number(expanded) };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
-                if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickGeometry(expanded), forceExact: false }, "set") };
+                if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickGeometry(resolveMagickPageGeometry(expanded)), forceExact: false }, "set") };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
             });
             continue;

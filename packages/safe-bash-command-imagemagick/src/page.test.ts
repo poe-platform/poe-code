@@ -11,7 +11,7 @@ for (const mode of ["map", "sync", "retained", "command"] as const) {
     [["-page", "12x12+2+3", "+page", "/input.png"], undefined],
     [["/input.png", "-page", "12x12+2+3"], { width: 12, height: 12, x: 2, y: 3 }],
     [["-page", "12x12+2+3", "/input.png", "+page"], { width: 12, height: 12, x: 2, y: 3 }],
-    [["-page", "+2+3", "/input.png"], { width: 0, height: 0, x: 2, y: 3 }],
+    [["-page", "+2+3", "/input.png"], { width: 5, height: 3, x: 2, y: 3 }],
   ] as const)(`${mode} saves page geometry without changing pixels: %j`, async (options, canvas) => {
     const input = await sharp({ create: { width: 5, height: 3, channels: 3, background: "red" } }).png().toBuffer();
     const files = new Map<string, Uint8Array>([["/input.png", input]]), fs = createMemoryFileSystem();

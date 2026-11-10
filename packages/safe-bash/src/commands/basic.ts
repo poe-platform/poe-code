@@ -237,6 +237,11 @@ export async function formatPrintf(context: CommandContext, shellStartedAt = (co
       const width = Math.abs(suppliedWidth);
       const suppliedPrecision = directive.precision === "*" ? await dynamic() : directive.precision;
       const precision = suppliedPrecision !== undefined && suppliedPrecision < 0 ? undefined : suppliedPrecision;
+      if (directive.warning !== undefined) {
+        await writeDiagnostic(context.stderr, `printf: ${directive.warning}\n`, context.signal);
+        await output(context, "%");
+        continue;
+      }
       if (width > 1_000_000 || (precision ?? 0) > 1000) throw new UsageError("format width or precision is too large");
       const specifier = unicode.utf8 && directive.wide && (directive.specifier === "s" || directive.specifier === "c")
         ? directive.specifier.toUpperCase() : directive.specifier;

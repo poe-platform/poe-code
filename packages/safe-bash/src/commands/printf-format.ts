@@ -9,6 +9,7 @@ interface PrintfDirective {
   readonly specifier: string;
   readonly wide?: boolean;
   readonly timeFormat?: string;
+  readonly warning?: string;
 }
 
 // Scan cooperatively, including repeated flags and leading zeroes.
@@ -53,7 +54,7 @@ export async function parsePrintfDirective(format: string | Uint8Array, start: n
       offset++;
       if (character() === "T") return { end: offset + 1, flags, width, precision, specifier: "T", timeFormat };
     }
-    throw new UsageError("invalid time format");
+    return { end: start + 1, flags, width, precision, specifier: "%", warning: `warning: \`${character() || "\0"}': invalid time format specification` };
   }
   let wide = false;
   for (let modifier = character(); modifier && "hlLjzt".includes(modifier); modifier = character()) {

@@ -100,12 +100,17 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
                     : 0.212656 * samples[pixel * 4]! + 0.715158 * samples[pixel * 4 + 1]! + 0.072186 * samples[pixel * 4 + 2]!
                 : format === "rgbo" && channel === 3 ? 0 : index === 3 && !image.hasAlpha ? scale : samples[pixel * 4 + index]!;
             // The 4-bit gray exporter takes the high nibble of the rounded 8-bit luma.
-            const quantum = format === "gray" && depth === 4
+            let quantum = format === "gray" && depth === 4
                 ? Math.round(value * 255 / scale) >> 4
                 // Q16-HDRI converts grayscale luma to a float quantum before widening it.
                 : format.startsWith("gray") && channel === 0 && depth > 16
                 ? Math.round(Math.fround(value * 65535 / scale) * maximum / 65535)
                 : Math.round(value * maximum / scale);
+            if (format === "graya" && !options.rawInterlace) {
+                // Native packed GRAYA reverses bilevel gray and wraps 4-bit alpha at 16.
+                if (depth === 1 && channel === 0) quantum = value > scale / 2 ? 0 : 1;
+                if (depth === 4 && channel === 1) quantum = Math.round(value * 16 / scale) & 15;
+            }
             const sample = (options.rawInterlace === "plane" || options.rawInterlace === "partition") ? c * pixels + pixel
                 : options.rawInterlace === "line" ? Math.floor(pixel / image.width) * image.width * channels.length + c * image.width + pixel % image.width
                 : pixel * channels.length + c;

@@ -404,7 +404,8 @@ function normalizeMagickOffsets(raw: string): string {
             sign = sign === raw[++i] ? "+" : "-";
         }
         normalized += sign;
-        if ((sign === "+" || sign === "-") && raw[i + 1] === "0" && raw[i + 2]?.toLowerCase() === "x") {
+        if ((sign === "+" || sign === "-") && raw[i - 1]?.toLowerCase() !== "e"
+            && raw[i + 1] === "0" && raw[i + 2]?.toLowerCase() === "x") {
             let end = i + 3;
             while (end < raw.length && raw[end]! >= "0" && raw[end]! <= "9") end++;
             if (end > i + 3) {
@@ -458,14 +459,16 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
   let hasYOffset = false;
   // A final sign leaves its ordinate at zero without discarding earlier fields.
   const trailingOffsetSign = s.endsWith("+") || s.endsWith("-");
+  // Signs inside exponents belong to dimensions, not rectangle offsets.
+  const offsetStart = [...s].findIndex((character, index) => (character === "+" || character === "-") && s[index - 1]?.toLowerCase() !== "e");
   // Rectangle geometry preserves the first two offsets and ignores later ones.
-  const offsetMatch = /^([^+-]*)([+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)(?:([+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)(?:[+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)*)?$/.exec(trailingOffsetSign ? `${s}0` : s);
+  const offsetMatch = offsetStart < 0 ? null : /^([+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)(?:([+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)(?:[+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)*)?$/.exec(trailingOffsetSign ? `${s.slice(offsetStart)}0` : s.slice(offsetStart));
   if (offsetMatch) {
-    s = offsetMatch[1]!;
-    x = Number(offsetMatch[2]!);
-    y = offsetMatch[3] !== undefined ? Number(offsetMatch[3]!) : 0;
+    s = s.slice(0, offsetStart);
+    x = Number(offsetMatch[1]!);
+    y = offsetMatch[2] !== undefined ? Number(offsetMatch[2]!) : 0;
     hasOffset = true;
-    hasYOffset = offsetMatch[3] !== undefined;
+    hasYOffset = offsetMatch[2] !== undefined;
   }
 
   while (s.length > 0) {

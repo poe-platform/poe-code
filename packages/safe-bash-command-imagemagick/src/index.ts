@@ -8264,6 +8264,7 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     if ((pngCoder === "png32" || pngCoder === "png64") && (image.alphaBlend === false || !image.hasAlpha && (image.writeMask || image.region))) {
         image = { ...yield* applyMagickRasterSteps(image, pngAlphaPixelSteps(image, image.writeMask, !!image.data16), undefined, { ...image, hasAlpha: true }, image.writeMask ? [image, image.writeMask] : [image]), channels: 4 };
     }
+    if (format === "png" && image.virtualCanvas?.width === 0 && image.virtualCanvas.height === 0) image = { ...image, virtualCanvas: { ...image.virtualCanvas, width: image.width, height: image.height } };
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
     if (format === "gif" && !image.isPalette && dither) image = { ...(yield* applyMagickRasterSteps(image, gifDitherSteps(image, dither, diffusionAmount))), isPalette: true };
     if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
@@ -8283,6 +8284,7 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     if ((pngCoder === "png32" || pngCoder === "png64") && (image.alphaBlend === false || !image.hasAlpha && (image.storedWriteMask || image.region))) {
         image = { ...await transformStoredMagickRaster(image, backend, pngAlphaPixelSteps(image, image.storedWriteMask, !!image.storedData16), signal, { ...image, hasAlpha: true }, image.storedWriteMask ? [image, image.storedWriteMask] : [image]), channels: 4 };
     }
+    if (format === "png" && image.virtualCanvas?.width === 0 && image.virtualCanvas.height === 0) image = { ...image, virtualCanvas: { ...image.virtualCanvas, width: image.width, height: image.height } };
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
     if (format === "gif" && !image.isPalette && dither) image = { ...(await transformStoredMagickRaster(image, backend, gifDitherSteps(image, dither, diffusionAmount), signal)), isPalette: true };
     if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
@@ -9645,8 +9647,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             else stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 yield;
-                const { virtualCanvas: ignoredCanvas, ...reset } = image;
-                return reset;
+                return { ...image, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } };
             });
         }
         else if (t === "-resample") {
@@ -11771,18 +11772,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async image => { if (!image) return image; const {gifApplications: ignoredGifApplications, icc: ignored, exif: ignoredExif, xmp: ignoredXmp, properties: ignoredProperties, ...rest} = image; return rest; });
             continue;
         }
-        if (!operandsOnly && (token === "+repage" || token === "-repage")) {
-            const raw = token === "-repage" ? tokens[++i] ?? "0x0" : undefined, optionProperties = state.optionProperties;
-            stackStep(async (stack, backend) => {
-                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
-                for (let index = 0; index < stack.length; index++) {
-                    const image = (await stack.get(index))!;
-                    const expanded = raw === undefined ? undefined : await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                    const geometry = expanded === undefined ? undefined : parseMagickRepageGeometry(expanded);
-                    const { virtualCanvas: ignoredCanvas, ...reset } = image;
-                    await stack.set(index, geometry ? { ...image, virtualCanvas: magickRepageCanvas(image, geometry, "repage") } : reset);
-                }
-                return stack;
+            const geometry = parseMagickPageSetting(tokens[++i] ?? "", "page");
+            state.page = { width: Math.round(geometry.width ?? 0), height: Math.round(geometry.height ?? 0), x: Math.trunc(geometry.x), y: Math.trunc(geometry.y) };
             });
             continue;
         }

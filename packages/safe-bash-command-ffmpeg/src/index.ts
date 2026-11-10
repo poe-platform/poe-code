@@ -12516,6 +12516,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       } else if (trimmed === "aresample" || trimmed.startsWith("aresample=")) {
                         let rate: number | undefined = trimmed === "aresample" ? 0 : undefined;
+                        let stageFilterSize: number | undefined;
                         let discard = 0;
                         let firstPts: number | undefined;
                         let format: string | undefined;
@@ -12547,6 +12548,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (!raw?.trim() || extra !== undefined || !Number.isFinite(cutoff) || cutoff < 0 || cutoff > 1) {
                               throw new Error("aresample: cutoff must be a number between 0 and 1");
                             }
+                            continue;
+                          }
+                          if (key === "filter_size") {
+                            stageFilterSize = Number(raw);
+                            if (!raw?.trim() || extra !== undefined || !Number.isInteger(stageFilterSize) || stageFilterSize < 0 || stageFilterSize > 2147483647) {
+                              throw new Error("aresample: filter_size must be an integer between 0 and 2147483647");
+                            }
+                            rate ??= 0;
                             continue;
                           }
                           if (key === "osf" || key === "out_sample_fmt") {
@@ -12650,7 +12659,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, internalFormat, budget, context.signal);
                             }
                             stretched = await resampleAudio(stretched, length, origRate, targetRate, budget, context.signal,
-                              window, undefined, undefined, cutoff, undefined, undefined, undefined, { ends, outputEnds }, internalFormat);
+                              window, undefined, stageFilterSize, cutoff, undefined, undefined, undefined, { ends, outputEnds }, internalFormat);
                             // Resampling produces floats; later filters and encoders must round
                             // these samples rather than narrow the original integer PCM.
                             if (!autoConversionFilters) format ??= filteredSampleFormat;

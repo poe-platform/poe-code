@@ -81,6 +81,14 @@ export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, 
             }
         }
         for (let offset = 0; offset < length; offset++) values[offset] = offset % 4 === 3 && !hasAlpha ? 255 : values[offset]! * 255;
+        if (!colorOutput) {
+            // Gray has one logical color channel (R); an unselected Gray
+            // channel retains the white polynomial output canvas.
+            for (let offset = 0; offset < length; offset += 4) {
+                const gray = channels && !channels[0] ? 255 : values[offset]!;
+                values[offset] = values[offset + 1] = values[offset + 2] = gray;
+            }
+        }
         if (inks) {
             for (let offset = 0; offset < length; offset += 4) {
                 for (let channel = 0; channel < 3; channel++)

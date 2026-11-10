@@ -5,7 +5,8 @@ import { parseFilterExpression } from "./filter-expression.js";
 import { parseFilterBoolean } from "./filter-boolean.js";
 
 export async function mixAudio(
-  tracks: MediaTrack[], filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  tracks: MediaTrack[], filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { action: string; expression: string }[] = []
 ): Promise<MediaTrack> {
   const inputs = tracks.map(track => {
     if (!track.decodedAudio) throw new Error("amix requires decoded PCM audio");
@@ -54,6 +55,14 @@ export async function mixAudio(
     } else throw new Error(`amix: unsupported option ${key}`);
   }
   if (count !== inputs.length) throw new Error("amix: inputs must match the number of connected inputs");
+  // Apply commands delivered while upstream inputs were buffered, before mixing.
+  // Failed runtime commands leave the current options in place.
+  for (const command of commands) {
+    try {
+      if (command.action === "normalize") normalize = parseFilterBoolean(command.expression, "amix: invalid normalize");
+      else if (command.action === "weights") weights = parseWeights(command.expression, count);
+    } catch { /* FFmpeg reports a declined command without aborting the graph. */ }
+  }
   while (weights.length < count) weights.push(weights[weights.length - 1]!);
   for (const [index, input] of inputs.entries()) {
     if (input.sampleRate === a.sampleRate) continue;

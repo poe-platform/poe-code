@@ -1519,7 +1519,7 @@ function parseAstreamselectOptions(filter: string): { count: number; selected: n
 }
 
 // Resolve audio graph inputs and transitions before the PCM filter evaluator runs.
-async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string) => Promise<MediaTrack>, budget: MediaBudgetTracker, signal?: AbortSignal) {
+async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string) => Promise<MediaTrack>, mixCommands: { target: string; action: string; expression: string }[], budget: MediaBudgetTracker, signal?: AbortSignal) {
   const nodes = new Map<string, { inputs: string[]; expression: string }>();
   const inputTrack = (label: string): MediaTrack => {
     const [input, selector, ordinal, ...extra] = label.split(":");
@@ -1863,7 +1863,12 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             source.track = await filterAudio(source.track, source.expression);
           }
         }
-        const track = await mixAudio(sources.map(source => source.track), filters[0]!, budget, signal);
+        const target = equals < 0 ? first : first.slice(0, equals);
+        const commands = mixCommands.filter(command => command.target === "amix" || command.target === target);
+        for (let index = mixCommands.length - 1; index >= 0; index--) {
+          if (mixCommands[index]!.target === "amix" || mixCommands[index]!.target === target) mixCommands.splice(index, 1);
+        }
+        const track = await mixAudio(sources.map(source => source.track), filters[0]!, budget, signal, commands);
         return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "acrossfade" || filters[0]?.startsWith("acrossfade=")) {
@@ -9987,6 +9992,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             let workingDoc: MediaDocument;
             let audioOrdinal = 0;
             let audioSinks: { track: MediaTrack; expression: string }[] = [];
+            const mixCommands: { target: string; action: string; expression: string }[] = [];
             let decimateSource: { doc: MediaDocument; track: MediaTrack } | undefined;
             const decimateGraph = filterComplex ? parseDecimateGraph(filterComplex, maps) : undefined;
             const feedback = filterComplex ? parseFeedbackGraph(filterComplex, maps) : undefined;
@@ -10415,7 +10421,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   loadedDocs.some((_, index) => filterComplex?.includes(`[${index}:a`));
                 if (audioGraph) {
                   if (afFilters.length) throw new Error("Cannot combine simple and complex audio filters");
-                  const { outputs, sinks } = await resolveAudioGraph(filterComplex, loadedDocs, maps, audioOutputMaps, mappedAudioLabels, filterAudio, budget, context.signal);
+                  const { outputs, sinks } = await resolveAudioGraph(filterComplex, loadedDocs, maps, audioOutputMaps, mappedAudioLabels, filterAudio, mixCommands, budget, context.signal);
                   audioSinks = sinks;
                   workingDoc = await muxMp4Cooperatively(
                     [{ ...loadedDocs[0]!, tracks: outputs.map(output => output.track) }],
@@ -11205,6 +11211,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             // aphaser declines runtime commands without aborting the render.
                             || target === "aphaser" || target?.startsWith("aphaser@")
                             || target === "adelay" || target?.startsWith("adelay@")
+                            || target === "amix" || target?.startsWith("amix@")
                             || action === "level" && ["afreqshift", "aphaseshift"].some(name => target === name || target?.startsWith(`${name}@`))
                             || action === "wet" && (target === "asubboost" || target?.startsWith("asubboost@"))
                             || ["mm", "cm", "m", "dry", "wet", "temp", "enable"].includes(action!) && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
@@ -11214,7 +11221,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME tremolo[@NAME] enable EXPR or TIME vibrato[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback|crossfeed|drymix|enable EXPR or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] mm|cm|m|dry|wet|temp|enable VALUE or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays|enable VALUE or TIME alimiter[@NAME] limit LIMIT or TIME agate[@NAME] makeup GAIN or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN or TIME aphaser[@NAME] COMMAND ARG or TIME atilt[@NAME] freq|slope|width|order|level VALUE");
+                            throw new Error("asendcmd: expected TIME tremolo[@NAME] enable EXPR or TIME vibrato[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback|crossfeed|drymix|enable EXPR or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] mm|cm|m|dry|wet|temp|enable VALUE or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays|enable VALUE or TIME alimiter[@NAME] limit LIMIT or TIME agate[@NAME] makeup GAIN or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN or TIME aphaser[@NAME] COMMAND ARG or TIME atilt[@NAME] freq|slope|width|order|level VALUE or TIME amix[@NAME] weights|normalize VALUE");
                           }
                           return { time, target, action: action!, expression };
                         });
@@ -11233,7 +11240,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
                           while (next < scheduled.length && scheduled[next]!.time <= pts / origRate) {
                             const command = scheduled[next++]!;
-                            audioCommands.push({ sample: start, target: command.target, action: command.action, expression: command.expression });
+                            if (command.target === "amix" || command.target.startsWith("amix@")) mixCommands.push(command);
+                            else audioCommands.push({ sample: start, target: command.target, action: command.action, expression: command.expression });
                           }
                           start += count;
                         }

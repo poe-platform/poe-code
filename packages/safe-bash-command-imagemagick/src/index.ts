@@ -9875,8 +9875,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         const analysisOperation = setting === undefined && !pixelOperation ? parseMagickAnalysisOperation(tokens, state, i) : undefined;
         if (setting !== undefined) {
             i = setting;
-            if (t === "-depth") {
-                const depth = state.inputDepth!, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
+            if (t === "-depth" || t === "+depth") {
+                const depth = state.inputDepth ?? 16, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
                 stack = yield* mapMagickImagesSteps(stack, function* (image) {
                     if (depth < 16) image = yield* applyMagickRasterSteps(image, posterizePixelSteps(image, 2 ** depth, false, 1, channels, signal, false), signal);
                     return { ...image, bitsPerSample: depth };
@@ -12211,8 +12211,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const channels = state.channels;
                 stackStep(async stack => { maskChannels = channels; return stack; });
             }
-            if (token === "-depth") {
-                const depth = state.inputDepth!, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
+            if (token === "-depth" || token === "+depth") {
+                const depth = state.inputDepth ?? 16, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
                 steps.push(async (image, backend) => {
                     if (!image) return;
                     if (depth < 16) image = await transformStoredMagickRaster(image, backend, posterizePixelSteps(image, 2 ** depth, false, 1, channels, signal, false), signal);

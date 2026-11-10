@@ -202,7 +202,11 @@ export function gifFrameHeader(
       : typeof options.delay === "number"
         ? options.delay
         : (frameDelay ?? (frames > 1 ? 100 : 0)),
-    centiseconds = Math.max(0, Math.floor(delay / 10));
+    // ImageMagick's 64-bit size_t multiplication wraps before division by
+    // the default 100 ticks/second. Keep signed counts exact until encoding.
+    centiseconds = delay < 0
+      ? Number((BigInt.asUintN(64, BigInt(Math.floor(delay / 10)) * 100n) / 100n) & 65535n)
+      : Math.floor(delay / 10);
   const text = options.gifVersion === "87a" ? undefined : rectangle.comment ?? (frame === 0 ? image.properties?.comment : undefined);
   const original = rectangle.gifCommentBytes ?? (frame === 0 ? image.gifCommentBytes : undefined);
   const bytes = original && text === new TextDecoder().decode(original) ? original : new TextEncoder().encode(text);

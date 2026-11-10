@@ -1604,7 +1604,10 @@ function* formatMagickPropertyStringSteps<Step=never>(
       parts.push(short[key]!);
     } else if (token === "%T") {
       const delay = resolvePixels ? yield* resolvePixels("delay") : String((meta.delay ?? (img ??= getImage()).delay)?.[(meta as MagickImage)[magickInput]?.sceneIdx ?? context.sceneIdx ?? 0] ?? 0);
-      parts.push(String(Number(delay) / 10));
+      const count = Number(delay) / 10;
+      // Preserve signed counts internally: converting to Number(size_t) here is
+      // safe for display, but would lose the low bits needed by the GIF coder.
+      parts.push(count < 0 ? Number(BigInt.asUintN(64, BigInt(Math.floor(count)))).toExponential(16) : String(count));
     } else if (token === "%D") {
       const disposal = (meta as RgbaImage).disposal;
       parts.push(["Undefined", "None", "Background", "Previous"][(typeof disposal === "number" ? disposal : disposal?.[context.sceneIdx ?? 0]) ?? 0] ?? "Undefined");

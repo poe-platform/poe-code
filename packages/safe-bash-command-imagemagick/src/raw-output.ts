@@ -61,7 +61,9 @@ export function encodeImage(image: RawImage, options: OutputEncodeOptions): Retu
     const channels = format === "gray" ? 1 : (format.startsWith("cmyk") ? 4 : 3) + (format.endsWith("a") ? 1 : 0);
     const selectedChannels = Array.from({ length: channels }, (_, channel) => channel);
     if (!image.rawFrames) return { data: encodeRawPixels(image, options, selectedChannels), format: "raw", channels };
-    const frames = image.rawFrames.map(frame => encodeRawPixels(frame, options, selectedChannels));
+    const frames = options.rawInterlace === "partition"
+        ? selectedChannels.flatMap(channel => image.rawFrames!.map(frame => encodeRawPixels(frame, options, [channel])))
+        : image.rawFrames.map(frame => encodeRawPixels(frame, options, selectedChannels));
     const data = new Uint8Array(frames.reduce((size, frame) => size + frame.length, 0));
     let offset = 0;
     for (const frame of frames) { data.set(frame, offset); offset += frame.length; }
@@ -127,7 +129,7 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
         }
         return yield* encodeStoredRaster(image, storage, signal, { ...options, format: options.format, ...(options.format === "jpeg" && options.jpegExtent !== undefined ? { quality, chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4" } : {}), synthesizeExif: false });
     }
-    if (image.rawFrames) {
+    if (image.rawFrames && options.rawInterlace !== "partition") {
         let size = 0;
         let info: OutputInfo | undefined;
         for (let index = 0; index < image.rawFrames.length; index++) {
@@ -140,33 +142,39 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
     let size = 0;
     const channels = options.format === "gray" ? 1 : (options.format.startsWith("cmyk") ? 4 : 3) + (options.format.endsWith("a") ? 1 : 0);
     const packedChannels = Array.from({ length: channels }, (_, channel) => channel);
-    const cmyk = options.format.startsWith("cmyk") && image.space === "cmyk";
-    const chunkPixels = cmyk ? 512 : image.storedData16 ? 2048 : 4096;
-    const pixels = image.width * image.height;
-    const spanPixels = options.rawInterlace === "line" ? image.width : pixels;
-    // Finish each row/channel run before advancing, even when it spans several reads.
-    for (let start = 0; start < pixels; start += spanPixels) {
-        for (let channel = 0; channel < (options.rawInterlace ? channels : 1); channel++) {
-            for (let pixel = start; pixel < start + spanPixels; pixel += chunkPixels) {
-                await yieldTurn(signal);
-                const count = Math.min(chunkPixels, start + spanPixels - pixel);
-                const data = new Uint8Array(await storage.read(image.position + pixel * 4, count * 4, { signal }));
-                if (data.length !== count * 4) throw new Error("Truncated raw pixel storage");
-                let data16: Uint16Array | undefined;
-                if (image.storedData16) {
-                    const bytes = await storage.read(image.storedData16.position + pixel * 8, count * 8, { signal });
-                    if (bytes.length !== count * 8) throw new Error("Truncated raw sample storage");
-                    data16 = new Uint16Array(new Uint8Array(bytes).buffer);
+    const rawFrames = image.rawFrames;
+    for (let plane = 0; plane < (rawFrames ? channels : 1); plane++) {
+        for (let frame = 0; frame < (rawFrames?.length ?? 1); frame++) {
+            if (rawFrames) image = await rawFrames.at(frame);
+            const cmyk = options.format.startsWith("cmyk") && image.space === "cmyk";
+            const chunkPixels = cmyk ? 512 : image.storedData16 ? 2048 : 4096;
+            const pixels = image.width * image.height;
+            const spanPixels = options.rawInterlace === "line" ? image.width : pixels;
+            // Finish each row/channel run before advancing, even when it spans several reads.
+            for (let start = 0; start < pixels; start += spanPixels) {
+                for (let channel = rawFrames ? plane : 0; channel < (rawFrames ? plane + 1 : options.rawInterlace ? channels : 1); channel++) {
+                    for (let pixel = start; pixel < start + spanPixels; pixel += chunkPixels) {
+                        await yieldTurn(signal);
+                        const count = Math.min(chunkPixels, start + spanPixels - pixel);
+                        const data = new Uint8Array(await storage.read(image.position + pixel * 4, count * 4, { signal }));
+                        if (data.length !== count * 4) throw new Error("Truncated raw pixel storage");
+                        let data16: Uint16Array | undefined;
+                        if (image.storedData16) {
+                            const bytes = await storage.read(image.storedData16.position + pixel * 8, count * 8, { signal });
+                            if (bytes.length !== count * 8) throw new Error("Truncated raw sample storage");
+                            data16 = new Uint16Array(new Uint8Array(bytes).buffer);
+                        }
+                        let hueSamples: Float64Array | undefined;
+                        if (cmyk && image.storedHueSamples !== undefined) {
+                            const bytes = await storage.read(image.storedHueSamples + pixel * 32, count * 32, { signal });
+                            if (bytes.length !== count * 32) throw new Error("Truncated raw ink storage");
+                            hueSamples = new Float64Array(new Uint8Array(bytes).buffer);
+                        }
+                        const encoded = encodeRawPixels({ ...image, width: count, height: 1, data, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) }, options, options.rawInterlace ? [channel] : packedChannels);
+                        size += encoded.length;
+                        yield encoded;
+                    }
                 }
-                let hueSamples: Float64Array | undefined;
-                if (cmyk && image.storedHueSamples !== undefined) {
-                    const bytes = await storage.read(image.storedHueSamples + pixel * 32, count * 32, { signal });
-                    if (bytes.length !== count * 32) throw new Error("Truncated raw ink storage");
-                    hueSamples = new Float64Array(new Uint8Array(bytes).buffer);
-                }
-                const encoded = encodeRawPixels({ ...image, width: count, height: 1, data, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) }, options, options.rawInterlace ? [channel] : packedChannels);
-                size += encoded.length;
-                yield encoded;
             }
         }
     }

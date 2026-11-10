@@ -33,6 +33,30 @@ for (const mode of ["command", "sync"] as const) {
         for (const [index, channel] of [..."RGB"].entries()) expect(await result.read(`/out.${channel}`)).toEqual(rgb.filter((_, i) => i % 3 === index));
     });
 
+    it.each(["rgb", "rgba", "bgr", "bgra"].flatMap(format => [8, 16].flatMap(depth => [1, 2].map(frames => ({ format, depth, frames })))))(`writes native $format $depth-bit $frames-frame Partition planes and preserves frame order (${mode})`, async ({ format, depth, frames }) => {
+        const pixels = Uint8Array.from(Buffer.from("ff0000ff00ff00800000ff40fdfbf9bf080808ff627f9113", "hex"));
+        const second = new Uint8Array(pixels.length);
+        for (let i = 0; i < 6; i++) second.set(pixels.subarray(i * 4, i * 4 + 4), (5 - i) * 4);
+        const header = new TextEncoder().encode("P7\nWIDTH 3\nHEIGHT 2\nDEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n");
+        const files = new Map<string, Uint8Array>([
+            ["/in.pam", new Uint8Array([...header, ...pixels])],
+            ["/second.pam", new Uint8Array([...header, ...second])],
+            ["/out", keep], ["/copy.raw", keep]
+        ]);
+        const result = await execute(["/in.pam", ...(frames === 2 ? ["/second.pam"] : []), "-interlace", "Partition", "-depth", String(depth), "-write", `${format}:/copy.raw`, `${format}:/out`], files);
+        expect(result.stderr).toBe("");
+        expect(result.exitCode).toBe(0);
+        expect(await result.read("/out")).toEqual(keep);
+        expect(await result.read("/copy.raw")).toEqual(keep);
+        for (const channel of format.toUpperCase()) {
+            const index = "RGBA".indexOf(channel);
+            const samples = new Uint8Array([...pixels.filter((_, i) => i % 4 === index), ...(frames === 2 ? second.filter((_, i) => i % 4 === index) : [])]);
+            const expected = depth === 8 ? samples : Uint8Array.from([...samples].flatMap(sample => [sample, sample]));
+            expect(await result.read(`/out.${channel}`)).toEqual(expected);
+            expect(await result.read(`/copy.${channel}`)).toEqual(expected);
+        }
+    });
+
     it.each(["Partition", "None"])(`reads %s RGB samples (${mode})`, async interlace => {
         const rgb = Uint8Array.from({ length: 36 }, (_, i) => (7 * i + 1) % 256);
         const files = new Map<string, Uint8Array>([["/out.png", keep]]);

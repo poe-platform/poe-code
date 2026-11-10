@@ -1,7 +1,7 @@
 import { rgbPartitionPaths } from "./raw-rgb.js";
 import { decodeMagickImage as decodeImage } from "./image-raster.js";
 import { magickInput } from "./stored-stack.js";
-import { encodeStoredImage, isRawCoder, type OutputEncodeOptions } from "./raw-output.js";
+import { encodeStoredImage, isRawCoder, type OutputEncodeOptions, type StoredRawImage } from "./raw-output.js";
 import { EncodedSnapshots } from "./encoded-snapshots.js";
 import { decodeFileImage } from "./image-raster.js";
 import { readImageMetadataFromSource, tryPdfMetadata, readImageMetadata, tryImageFile, UnsupportedStoredResource, UnsupportedImageFormat, type ImageMetadata, type SharpInputOptions, type StoredRgbaImage, type RgbaImage, type ImageByteSource } from "@poe-code/image-ast/portable";
@@ -106,12 +106,16 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                     throw error;
                 }
             };
-        const stage = async (image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions) => {
-            if (encoding.format !== "rgb" || encoding.rawInterlace !== "partition") return snapshots.stage(image, path, encoding);
-            const size = image.width * image.height * ((image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 ? 2 : 1);
+        const stage = async (image: StoredRawImage, path: string, encoding: OutputEncodeOptions) => {
+            if (!["rgb", "rgba", "bgr", "bgra"].includes(encoding.format) || encoding.rawInterlace !== "partition") return snapshots.stage(image, path, encoding);
+            let size = 0;
+            for (let index = 0; index < (image.rawFrames?.length ?? 1); index++) {
+                const frame = image.rawFrames ? await image.rawFrames.at(index) : image;
+                size += frame.width * frame.height * ((encoding.netpbmDepth ?? frame.bitsPerSample ?? (frame.depth === "ushort" ? 16 : 8)) > 8 ? 2 : 1);
+            }
             const encoder = encodeStoredImage(image, storage, signal, encoding);
             try {
-                for (const target of rgbPartitionPaths(path)) {
+                for (const target of rgbPartitionPaths(path, encoding.format)) {
                     const source = (async function* () {
                         let written = 0;
                         while (written < size) {

@@ -19,10 +19,16 @@ for (const [filter, expected] of [
   ["shuffleframes=1 0:", [40, 12, 112, 72, 176, 144, 232, 204]],
   ["shuffleframes=mapping=1 0:", [40, 12, 112, 72, 176, 144, 232, 204]],
   ["shuffleframes=1|0", [40, 12, 112, 72, 176, 144, 232, 204]],
+  ["shuffleframes=0x1 0", [12, 12, 72, 72, 144, 144, 204, 204]],
+  ["shuffleframes=1.5 0", [40, 12, 112, 72, 176, 144, 232, 204]],
+  ["shuffleframes=1abc 0", [40, 12, 112, 72, 176, 144, 232, 204]],
+  ["shuffleframes=mapping=1abc|0", [40, 12, 112, 72, 176, 144, 232, 204]],
+  ["shuffleframes=+1e2 0", [40, 12, 112, 72, 176, 144, 232, 204]],
+  ["shuffleframes=-1.5 0", [12, 72, 144, 204]],
   ["shuffleframes=-1", []],
   ["trim=end_frame=2,shuffleframes=2 0 1", []],
   ["shuffleframes=1 0,shuffleframes=1 0", values],
-  ...["3 0 1", "-2 0", "1.5 0", "nope", "mapping=", "unknown=0", "0:1", "1 0::", "0:1:"].map(value => [`shuffleframes=${value}`, null] as const)
+  ...["3 0 1", "-2 0", "2abc 0", "-2.5 0", ".5 0", "nope", "mapping=", "unknown=0", "0:1", "1 0::", "0:1:"].map(value => [`shuffleframes=${value}`, null] as const)
 ] as const) {
   it(`shuffleframes selects frames or safely rejects ${filter}`, async () => {
     const volume = Volume.fromJSON(expected === null ? { "/o01.png": "existing output" } : {});

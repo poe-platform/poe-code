@@ -1,4 +1,4 @@
-import type { RgbaColor } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage } from "@poe-code/image-ast/portable";
 import type { HueMetadata } from "./colorspace-hue.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { MorphologyRow } from "./morphology-kernel.js";
@@ -6,13 +6,15 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 
 /** Neighborhood statistics over working samples, with bounded source pages and output spans. */
-export function* morphologyWorkingPixelSteps(image: HueMetadata & { width: number; height: number }, rows: readonly MorphologyRow[], mode: "min" | "max" | "mean" | "gradient", channels?: readonly boolean[], virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* morphologyWorkingPixelSteps(image: HueMetadata & { width: number; height: number; space?: RgbaImage["space"] }, rows: readonly MorphologyRow[], mode: "min" | "max" | "mean" | "gradient", channels?: readonly boolean[], virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, ry = Math.floor(rows.length / 2);
     const hue = image.magickColorspace !== undefined && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
     const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 127.5 : 0;
     const fill = ((virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
         ? [background.r, background.g, background.b, background.a]
         : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255]).map(value => hue ? value / 255 : value);
+    // Tiled cache gaps share Gray's channel; native writes blue into it last.
+    if ((image.space === "b-w" || image.space === "grey16") && virtualPixel.endsWith("-tile")) fill[0] = fill[1] = fill[2]!;
     const sampleCount = rows.reduce<number>((total, row) => total + (typeof row === "number" ? row * 2 + 1 : row.length), 0);
     const minimum = new Float64Array(4);
     const cache = new Map<number, Float64Array>();

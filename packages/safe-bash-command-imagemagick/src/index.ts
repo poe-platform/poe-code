@@ -1521,7 +1521,7 @@ function warnUnknownMagickProperty(token: string, analysis: { warnings: string }
 
 function* formatMagickPropertyStringSteps<Step=never>(
   fmt: string,
-  meta: ImageMetadata & Pick<RgbaImage, "readMask" | "writeMask" | "region" | "gravity"> & Pick<StoredRgbaImage, "storedWriteMask">,
+  meta: ImageMetadata & { magickUnits?: MagickState["units"] } & Pick<RgbaImage, "readMask" | "writeMask" | "region" | "gravity"> & Pick<StoredRgbaImage, "storedWriteMask">,
   getImage: () => RgbaImage,
   context: MagickFormatContext & { analysis?: { warnings: string; errors?: string; boundsWarning?: boolean }; optionProperties?: Record<string, string> | undefined; fxStack?: readonly RgbaImage[] } = {},
   resolvePixels?: (property:string)=>Generator<Step,string,void>
@@ -1536,6 +1536,8 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const pageX = `${page.x < 0 ? "" : "+"}${page.x}`, pageY = `${page.y < 0 ? "" : "+"}${page.y}`;
   const resolution = meta.resolution;
   const resolutionScale = resolution?.unit === "meter" ? 100 : 1;
+  const resolutionUnit = resolution?.unit ?? meta.magickUnits;
+  const defaultResolution = (meta.density ?? 72) / (resolutionUnit === "cm" ? 2.54 : 1);
   const hasAlphaChannel = meta.hasAlpha || meta.inactiveAlpha;
   const short: Record<string, string> = {
     w: String(meta.width), h: String(meta.height), m: meta.format.toUpperCase(),
@@ -1549,9 +1551,9 @@ function* formatMagickPropertyStringSteps<Step=never>(
     d: filePath.slice(0, Math.max(0, filePath.lastIndexOf("/"))),
     o: "", u: "",
     b: `${context.byteLen ?? 0}B`, B: String(context.byteLen ?? 0),
-    x: formatSignificantMetric(resolution ? resolution.x / resolutionScale : meta.density ?? 72, 17),
-    y: formatSignificantMetric(resolution ? resolution.y / resolutionScale : meta.density ?? 72, 17),
-    U: resolution?.unit === "inch" ? "PixelsPerInch" : resolution?.unit === "cm" || resolution?.unit === "meter" ? "PixelsPerCentimeter" : "Undefined",
+    x: formatSignificantMetric(resolution ? resolution.x / resolutionScale : defaultResolution, 17),
+    y: formatSignificantMetric(resolution ? resolution.y / resolutionScale : defaultResolution, 17),
+    U: resolutionUnit === "inch" ? "PixelsPerInch" : resolutionUnit === "cm" || resolutionUnit === "meter" ? "PixelsPerCentimeter" : "Undefined",
     s: String(context.outputScene ?? context.sceneIdx ?? 0), p: String(context.listIndex ?? context.sceneIdx ?? 0), n: String(context.sceneCount ?? meta.pages ?? 1),
     N: (context.listIndex ?? context.sceneIdx ?? 0) === (context.sceneCount ?? meta.pages ?? 1) - 1 ? `${context.sceneCount ?? meta.pages ?? 1}\n` : "",
     // Native uses this sentinel when ImageInfo.number_scenes is unset.

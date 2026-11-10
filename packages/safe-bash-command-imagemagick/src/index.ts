@@ -8684,10 +8684,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const inks = image.space === "cmyk" ? image.hueSamples : undefined;
             // Native sets sRGB without converting the CMY samples to display colors.
             if (image.space === "cmyk") image = yield* copyCmykChannelsToRgb(image);
+            const hueSamples = image.hueSamples?.slice();
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
             const evaluateSamples = inks ? Float64Array.from(image.evaluateSamples ?? data16 ?? out, (sample, index) =>
-                index % 4 === 3 ? sample / (image.evaluateSamples || !data16 ? 1 : 257) : Math.fround(inks[index]! * 65535) / 257) : image.evaluateSamples?.slice();
+                index % 4 === 3 ? sample / (image.evaluateSamples || !data16 ? 1 : 257) : Math.fround(inks[index]! * 65535) / 257) : hueSamples ? Float64Array.from(hueSamples, sample => Math.fround(sample * 65535) / 257) : image.evaluateSamples?.slice();
             const samples = evaluateSamples ?? data16 ?? out, quantumScale = evaluateSamples || !data16 ? 257 : 1, maximum = evaluateSamples || !data16 ? 255 : 65535;
             const mask = channels ? [channels.r, channels.g, channels.b, channels.a && (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false)] : undefined;
             for (let idx = 0; idx < out.length; idx += 4) {
@@ -8697,6 +8698,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         if (mask[channel]) {
                             const white = samples[idx + channel]! * quantumScale > value;
                             samples[idx + channel] = white ? maximum : 0;
+                            if (hueSamples) hueSamples[idx + channel] = white ? 1 : 0;
                             out[idx + channel] = white ? 255 : 0;
                             if (data16) data16[idx + channel] = white ? 65535 : 0;
                         }
@@ -8705,17 +8707,19 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     const intensity = magickIntensity(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!, state.intensity, maximum, image.magickColorspace === "RGB") * quantumScale;
                     const result = intensity > value ? 255 : 0;
                     samples[idx] = samples[idx + 1] = samples[idx + 2] = result ? maximum : 0;
+                    if (hueSamples) hueSamples[idx] = hueSamples[idx + 1] = hueSamples[idx + 2] = result ? 1 : 0;
                     out[idx] = out[idx + 1] = out[idx + 2] = result;
                     if (data16) data16[idx] = data16[idx + 1] = data16[idx + 2] = result ? 65535 : 0;
                     // Native default threshold assigns the intensity result to alpha too.
                     if (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false) {
                         samples[idx + 3] = result ? maximum : 0;
+                        if (hueSamples) hueSamples[idx + 3] = result ? 1 : 0;
                         out[idx + 3] = result;
                         if (data16) data16[idx + 3] = result ? 65535 : 0;
                     }
                 }
             }
-            return { ...image, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
+            return { ...image, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(hueSamples ? { hueSamples } : {}) };
         };
     } else if (token === "-colorize") {
         highDepth = true;

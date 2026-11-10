@@ -10873,6 +10873,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             ? Math.max(1, Math.round(t.samples[0].duration * origRate / t.timescale)) : 1024);
                           let collected = 0;
                           let regionIndex = 0;
+                          let nextPts: number | undefined;
                           // Native requests size-limited groups while filling the cache
                           // (also with loop=0), then resumes the remaining input frames.
                           for (let offset = 0; offset < inputLength;) {
@@ -10889,8 +10890,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const packet = t.samples[frameIndex];
                             const count = loop === 0 || offset < regionEnd ? Math.min(1024, size! - collected) : frameEnd - offset;
                             const end = Math.min(inputLength, offset + count);
-                            const pts = (frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + frameStart))
+                            let pts = (frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + frameStart))
                               + offset - frameStart;
+                            if (loop! > 0 && start! > 0 && offset < regionEnd) {
+                              const region = regions[regionIndex];
+                              if (region && region.start < end) {
+                                // The first cached frame advances the replay clock by its drained prefix.
+                                if (collected === 0) nextPts = pts + region.start - offset;
+                              } else {
+                                // Ignored chunks use the replay clock, so input frames can overlap.
+                                pts = nextPts ?? 0;
+                              }
+                              nextPts = (nextPts ?? 0) + end - offset;
+                            }
                             const pos = previous ? frame?.pos : packet?.offset;
                             const tags = previousMetadata[frameIndex]?.tags;
                             if (tags) budget.allocateMemory(tags.size * 64);
@@ -10912,7 +10924,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                   for (let sample = 0; sample < regionLength; sample += 1024) {
                                     if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                                     const start = regionEnd + regionLength * repeat + sample;
-                                    const repeatPts = (pts + prefixEnd - offset) + repeat * regionLength + sample;
+                                    const repeatPts = (nextPts ?? pts + prefixEnd - offset) + repeat * regionLength + sample;
                                     budget.allocateMemory(88);
                                     audioTimestamps.push({ start, end: start + Math.min(1024, regionLength - sample), pts: repeatPts });
                                     // FIFO replay allocates fresh frames without input tags.
@@ -10923,7 +10935,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                             if (end > regionEnd) {
                               const tailStart = Math.max(offset, regionEnd);
-                              const tailPts = (pts + tailStart - offset) + repeatedLength;
+                              const tailPts = (nextPts === undefined ? pts + tailStart - offset
+                                : nextPts + tailStart - regionEnd) + repeatedLength;
                               budget.allocateMemory(88);
                               audioTimestamps.push({ start: tailStart + repeatedLength, end: end + repeatedLength, pts: tailPts, pos });
                               audioMetadata.push({ pts: tailPts, tags: new Map(tags) });

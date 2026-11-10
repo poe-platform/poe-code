@@ -9646,10 +9646,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const grayOnly = stack.slice(0, stack.length >= 4 ? 4 : 2).some(image => image.space === "b-w" || image.space === "grey16");
             for (let part = 0; part < 2; part++) {
                 const base = stack[part]!;
-                let other = stack[operation !== "conjugate" && stack.length >= 4 ? part + 2 : part]!;
-                if (other.width !== base.width || other.height !== base.height)
-                    other = yield* applyMagickRasterSteps(other, extendEdgePixelSteps(other, base.width, base.height, true, other.virtualPixel, state.background), signal, { ...other, width: base.width, height: base.height });
-                let output = yield* applyMagickRasterSteps(base, complexPixelSteps(extent, operation, [base, other], base.space === "b-w" || base.space === "grey16", grayOnly, part), signal, base, [base, other]);
+                const inputs: RgbaImage[] = [];
+                for (const index of operation === "conjugate" ? [part] : operation === "multiply" ? [part, part + 2, 1 - part, 3 - part] : [part, part + 2]) {
+                    let input = stack[stack.length >= 4 ? index : index % 2]!;
+                    if (input.width !== base.width || input.height !== base.height)
+                        input = yield* applyMagickRasterSteps(input, extendEdgePixelSteps(input, base.width, base.height, true, input.virtualPixel, state.background), signal, { ...input, width: base.width, height: base.height });
+                    inputs.push(input);
+                }
+                let output = yield* applyMagickRasterSteps(base, complexPixelSteps(extent, operation, inputs, base.space === "b-w" || base.space === "grey16", grayOnly, part), signal, base, inputs);
                 if (base.writeMask) output = yield* applyMagickRasterSteps(output, writeMaskPixelSteps(output, base.writeMask, true), signal, output, [output, base, base.writeMask]);
                 result.push(output);
             }
@@ -11115,10 +11119,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 for (let part = 0; part < 2; part++) {
                     const base: StoredRgbaImage = (await stack.get(part))!;
-                    let other: StoredRgbaImage = (await stack.get(operation !== "conjugate" && stack.length >= 4 ? part + 2 : part))!;
-                    if (other.width !== base.width || other.height !== base.height)
-                        other = await transformStoredMagickRaster(other, backend, extendEdgePixelSteps(other, base.width, base.height, true, other.virtualPixel, background), signal, { ...other, width: base.width, height: base.height });
-                    let output = await transformStoredMagickRaster(base, backend, complexPixelSteps(extent, operation, [base, other], base.space === "b-w" || base.space === "grey16", grayOnly, part), signal, base, [base, other]);
+                    const inputs: StoredRgbaImage[] = [];
+                    for (const index of operation === "conjugate" ? [part] : operation === "multiply" ? [part, part + 2, 1 - part, 3 - part] : [part, part + 2]) {
+                        let input: StoredRgbaImage = (await stack.get(stack.length >= 4 ? index : index % 2))!;
+                        if (input.width !== base.width || input.height !== base.height)
+                            input = await transformStoredMagickRaster(input, backend, extendEdgePixelSteps(input, base.width, base.height, true, input.virtualPixel, background), signal, { ...input, width: base.width, height: base.height });
+                        inputs.push(input);
+                    }
+                    let output = await transformStoredMagickRaster(base, backend, complexPixelSteps(extent, operation, inputs, base.space === "b-w" || base.space === "grey16", grayOnly, part), signal, base, inputs);
                     if (base.storedWriteMask) output = await transformStoredMagickRaster(output, backend, writeMaskPixelSteps(output, base.storedWriteMask, true), signal, output, [output, base, base.storedWriteMask]);
                     await result.push(output);
                 }

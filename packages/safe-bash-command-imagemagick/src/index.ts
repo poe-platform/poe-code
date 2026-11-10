@@ -87,7 +87,7 @@ import { distancePixelSteps, manhattanDistanceScale } from "./distance-kernel.js
 import { morphologyIntensityPixelSteps } from "./morphology-intensity.js";
 import { hitAndMissPixelSteps, morphologyPixelSteps, type MorphologyRow } from "./morphology-kernel.js";
 import { edgePixelSteps } from "./edge-kernel.js";
-import { charcoalPixelSteps } from "./charcoal-kernel.js";
+import { charcoalEdgePixelSteps, charcoalPixelSteps } from "./charcoal-kernel.js";
 import { shadePixelSteps } from "./shade-kernel.js";
 import { embossPixelSteps } from "./emboss-kernel.js";
 import { convolvePixelSteps, type ConvolveKernel, type ConvolveRequest } from "./convolve-kernel.js";
@@ -9577,8 +9577,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
                 const geometry = parseMagickGeometry(expanded.replace(",", "x").replace("/", "x"));
-                const edges = yield* applyMagickRasterSteps(im, edgePixelSteps({ ...im, hasAlpha: im.hasAlpha || virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255 }, geometry.width ?? 0, channels, virtualPixel, background), signal, { ...im, hasAlpha: false });
-                return yield* applyMagickRasterSteps(edges, charcoalPixelSteps(edges, geometry, channels, virtualPixel, background, intensity), signal);
+                const edges = yield* applyMagickRasterSteps(im, charcoalEdgePixelSteps({ ...im, hasAlpha: im.hasAlpha || virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255 }, geometry.width ?? 0, channels, virtualPixel, background), signal, { ...im, hasAlpha: false });
+                const { magickColorspace: ignoredSpace, hueSamples: ignoredHue, ...metadata } = edges;
+                return yield* applyMagickRasterSteps({ ...metadata, space: "b-w", channels: 1, gamma: 1 / 2.2, isPalette: false }, charcoalPixelSteps(edges, geometry, channels, virtualPixel, background, intensity), signal);
             });
         }
         else if (t === "-sketch") {
@@ -11993,8 +11994,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 validateMagickTransformGeometry(expanded, token);
                 const geometry = parseMagickGeometry(expanded.replace(",", "x").replace("/", "x"));
-                const edges = await transformStoredMagickRaster(image, backend, edgePixelSteps({ ...image, hasAlpha: image.hasAlpha || virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255 }, geometry.width ?? 0, channels, virtualPixel, background), signal, { ...image, hasAlpha: false });
-                return transformStoredMagickRaster(edges, backend, charcoalPixelSteps(edges, geometry, channels, virtualPixel, background, intensity), signal);
+                const edges = await transformStoredMagickRaster(image, backend, charcoalEdgePixelSteps({ ...image, hasAlpha: image.hasAlpha || virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255 }, geometry.width ?? 0, channels, virtualPixel, background), signal, { ...image, hasAlpha: false });
+                const { magickColorspace: ignoredSpace, storedHueSamples: ignoredHue, ...metadata } = edges;
+                return transformStoredMagickRaster({ ...metadata, space: "b-w", channels: 1, gamma: 1 / 2.2, isPalette: false }, backend, charcoalPixelSteps(edges, geometry, channels, virtualPixel, background, intensity), signal);
             });
         } else if (!operandsOnly && token === "-sketch") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), seed = state.seed ?? 0n;

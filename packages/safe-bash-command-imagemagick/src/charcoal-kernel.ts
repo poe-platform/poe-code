@@ -1,11 +1,34 @@
-import type { RgbaColor } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
-import type { ConvolveRequest } from "./convolve-kernel.js";
+import { edgePixelSteps } from "./edge-kernel.js";
 import { magickIntensity } from "./intensity.js";
+import type { ConvolveRequest } from "./convolve-kernel.js";
+
+/** Feed the active color planes to the edge filter, retaining alpha from RGBA. */
+export function* charcoalEdgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">>, radius: number, channels: { r: boolean; g: boolean; b: boolean; a: boolean } | undefined, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const hue = !!image.hueSamples || image.storedHueSamples !== undefined;
+    const steps = edgePixelSteps(image, radius, channels, virtualPixel, background);
+    let next = steps.next();
+    while (!next.done) {
+        const request = next.value;
+        if (request?.kind === "read" && hue) {
+            const bytes = yield { ...request, hue: true };
+            if (!bytes || bytes.length !== request.length * 8) throw new Error("Truncated charcoal color planes");
+            const planes = new Float64Array(bytes.slice().buffer);
+            const rgba = yield request;
+            if (!rgba) throw new Error("Truncated charcoal alpha");
+            const maximum = request.highDepth ? 65535 : 255;
+            const samples = request.highDepth ? new Uint16Array(rgba.slice().buffer) : rgba.slice();
+            for (let i = 0; i < samples.length; i++) if (i % 4 !== 3) samples[i] = Math.round(planes[i]! * maximum);
+            next = steps.next(new Uint8Array(samples.buffer));
+        } else next = steps.next(yield request);
+    }
+}
 
 /** Blur with virtual pixels, normalize, negate and grayscale without rounding intermediate pixels. */
-export function* charcoalPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, intensity = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* charcoalPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">> & { magickColorspace?: string }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, intensity = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const highDepth = !!(image.data16 || image.storedData16);
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
     const mask = channels ? [channels.r, channels.g, channels.b] : [true, true, true];
     let half = 0;
@@ -67,11 +90,12 @@ export function* charcoalPixelSteps(image: { width: number; height: number }, ge
                                 }
                                 const start = direction === -1 ? source - run + 1 : source;
                                 const readLength = (direction === 0 ? 1 : run) * 4;
-                                const bytes = yield { kind: "read", position: start * 4, length: readLength };
-                                if (!bytes || bytes.length !== readLength) throw new Error("Truncated charcoal pixels");
+                                const bytes = yield { kind: "read", highDepth, position: start * 4, length: readLength };
+                                if (!bytes || bytes.length !== readLength * (highDepth ? 2 : 1)) throw new Error("Truncated charcoal pixels");
+                                const values = highDepth ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : bytes;
                                 for (let i = 0; i < run; i++) {
                                     const offset = (direction === 0 ? 0 : direction === -1 ? run - i - 1 : i) * 4;
-                                    for (let c = 0; c < 3; c++) samples[(x + i) * 3 + c] = bytes[offset + c]!;
+                                    for (let c = 0; c < 3; c++) samples[(x + i) * 3 + c] = values[offset + c]!;
                                 }
                                 x += run;
                             }
@@ -97,7 +121,7 @@ export function* charcoalPixelSteps(image: { width: number; height: number }, ge
                     for (let x = 0; x < count; x++) {
                         if (channels) {
                             for (let c = 0; c < 3; c++) if (mask[c]) histograms[c]![Math.max(0, Math.min(65535, Math.round(257 * sums[x * 3 + c]!)))]!++;
-                        } else histograms[0]![Math.max(0, Math.min(65535, Math.round(257 * magickIntensity(sums[x * 3]!, sums[x * 3 + 1]!, sums[x * 3 + 2]!, intensity, 255, false))))]!++;
+                        } else histograms[0]![Math.max(0, Math.min(65535, Math.round(257 * magickIntensity(sums[x * 3]!, sums[x * 3 + 1]!, sums[x * 3 + 2]!, intensity, 255, image.magickColorspace === "RGB"))))]!++;
                     }
                 } else {
                     const data = new Uint16Array(count * 4);
@@ -112,7 +136,7 @@ export function* charcoalPixelSteps(image: { width: number; height: number }, ge
                             }
                             sums[x * 3 + c] = value;
                         }
-                        const gray = magickIntensity(sums[x * 3]!, sums[x * 3 + 1]!, sums[x * 3 + 2]!, intensity, 255, false);
+                        const gray = magickIntensity(sums[x * 3]!, sums[x * 3 + 1]!, sums[x * 3 + 2]!, intensity, 255, image.magickColorspace === "RGB");
                         // Native grayscale MS uses squared Q16 samples without quantum normalization.
                         data.fill(Math.min(65535, Math.round(gray * 257 * (intensity === "ms" ? 65535 : 1))), x * 4, x * 4 + 3); data[x * 4 + 3] = 65535;
                     }

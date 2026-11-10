@@ -10227,7 +10227,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (stack.length >= 2) {
                 const lut = stack[t === "-clut" ? 1 : stack.length - 1]!;
                 const im = stack[0]!;
-                const hasAlpha = im.hasAlpha || (t === "-hald-clut" && lut.hasAlpha && (state.channels.a || !state.channelExplicit));
+                const hasAlpha = im.hasAlpha || t === "-hald-clut";
                 const { magickColorspace: ignoredColorspace, ...metadata } = im;
                 const colorspace = t === "-hald-clut" ? lut.magickColorspace : im.magickColorspace;
                 let result = yield* applyMagickRasterSteps({ ...metadata, ...(colorspace ? { magickColorspace: colorspace } : {}), space: "srgb", channels: hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, t === "-clut" ? im.hasAlpha && (state.channels.a || !state.channelExplicit) : state.channels.a || !state.channelExplicit], !!(im.data16 || lut.data16), state.interpolation), signal, { ...im, hasAlpha }, [im, lut]);
@@ -11773,7 +11773,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const lut = (await stack.get(token === "-clut" ? 1 : stack.length - 1))! as StoredRgbaImage;
                     const image = (await stack.get(0))! as StoredRgbaImage;
                     const mask = [settings.channels.r, settings.channels.g, settings.channels.b, token === "-clut" ? image.hasAlpha && (settings.channels.a || !settings.channelExplicit) : settings.channels.a || !settings.channelExplicit];
-                    const hasAlpha = image.hasAlpha || (token === "-hald-clut" && lut.hasAlpha && mask[3]!);
+                    const hasAlpha = image.hasAlpha || token === "-hald-clut";
                     const { magickColorspace: ignoredColorspace, ...metadata } = image;
                     const colorspace = token === "-hald-clut" ? lut.magickColorspace : image.magickColorspace;
                     let result = await transformStoredMagickRaster({ ...metadata, ...(colorspace ? { magickColorspace: colorspace } : {}), space: "srgb", channels: hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16), settings.interpolation), signal, { ...image, hasAlpha }, [image, lut]);

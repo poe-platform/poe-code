@@ -22,7 +22,7 @@ describe.each(["command", "retained", "buffered", "sync"] as const)("function co
       stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
     }) : mode === "sync" ? runMagickCliSync(argv, new Map())
       : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : new Map());
-    const error = "stderr" in result ? result.stderr : stderr;
+    const error = "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr;
     expect(result.exitCode, error).toBe(exitCode);
     if (exitCode === 0) expect(error).toBe("");
     else expect(error).toContain("invalid list of numbers '-function'");

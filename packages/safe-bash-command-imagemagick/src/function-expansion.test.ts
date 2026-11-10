@@ -26,9 +26,9 @@ describe.each(["command", "retained", "buffered", "sync"] as const)("function co
       stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
     }) : mode === "sync" ? runMagickCliSync(argv, new Map())
       : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : new Map());
-    expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(exitCode);
-    if (exitCode === 0) expect("stderr" in result ? result.stderr : stderr).toBe("");
-    else expect("stderr" in result ? result.stderr : stderr).toContain("invalid list of numbers");
+    expect(result.exitCode, "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toBe(exitCode);
+    if (exitCode === 0) expect("stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toBe("");
+    else expect("stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toContain("invalid list of numbers");
     const bytes = mode === "command" ? Buffer.concat(chunks)
       : "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? Buffer.from(result.stdoutBytes)
       : Buffer.from("stdout" in result && typeof result.stdout === "string" ? result.stdout : "");

@@ -10,6 +10,8 @@ samples.forEach((sample, index) => input.writeInt16LE(sample, index * 2));
 for (const graph of [false, true]) {
   for (const [filter, options, expected] of [
     ["apad=packet_size=2", ["-frames:a", "0"], []],
+    ["apad=packet_size=2", ["-ss", "2", "-frames:a", "0"], []],
+    ["apad=packet_size=2", ["-ss", "2", "-frames:a", "1"], undefined],
     ["apad=packet_size=2", ["-frames:a", "1"], samples],
     ["apad=packet_size=2", ["-frames:a", "2"], [...samples, 0, 0, 0, 0]],
     ["apad=packet_size=2", ["-frames:a", "3"], [...samples, ...Array(8).fill(0)]],

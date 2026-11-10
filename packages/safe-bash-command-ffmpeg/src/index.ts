@@ -11096,9 +11096,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 }
                                 minimum = Math.min(minimum, required);
                               } else {
-                                let frameBound = frameSamples === undefined
-                                  ? inputLength + Math.max(0, maxAudioFrames - audioTimestamps.length) * packetSize
-                                  : maxAudioFrames * frameSamples;
+                                let frameBound: number;
+                                if (frameSamples === undefined) {
+                                  let retainedFrames = 0;
+                                  for (const frame of audioTimestamps) {
+                                    if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                                    if (outputSs === undefined || frame.pts + frame.end - frame.start > seek) retainedFrames++;
+                                  }
+                                  const paddingFrames = Math.max(0, maxAudioFrames - retainedFrames);
+                                  const paddingStep = Math.round(packetSize / samplesPerTick) * samplesPerTick;
+                                  // A partially retained packet counts; wholly skipped packets do not.
+                                  const skippedFrames = outputSs === undefined || seek < paddingPts + packetSize ? 0
+                                    : paddingStep === 0 ? Infinity : Math.floor((seek - paddingPts - packetSize) / paddingStep) + 1;
+                                  frameBound = inputLength + (paddingFrames === 0 ? 0
+                                    : (skippedFrames + paddingFrames) * packetSize);
+                                } else {
+                                  frameBound = maxAudioFrames * frameSamples;
+                                }
                                 if (resampleSupport && packetSize > 0 && maxAudioFrames > 0) {
                                   const emitted = audioTimestamps.filter(frame => frame.end > resampleSupport).length;
                                   // Startup consumes complete packets without emitting frames.

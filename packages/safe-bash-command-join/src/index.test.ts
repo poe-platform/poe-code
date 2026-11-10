@@ -33,6 +33,24 @@ async function run(args: ShellValue[], files: Record<string, string | Uint8Array
  return { ...result, stdout, stdoutBytes, stderr, combined };
 }
 
+for (const { args, expected } of [
+ { args: ["-o", "auto", "-o", "0"], expected: "a\na\na\na\n" },
+ { args: ["-o", "0", "-o", "auto"], expected: "a\na\na\na\n" },
+ { args: ["-o", "auto"], expected: "a L1 R1\na L1 R2\na L2 R1\na L2 R2\n" },
+ { args: ["-o", "auto", "-o", "auto"], expected: "a L1 R1\na L1 R2\na L2 R1\na L2 R2\n" },
+ { args: ["-oauto", "-o1.2", "-oauto", "-o2.2", "-oauto"], expected: "L1 R1\nL1 R2\nL2 R1\nL2 R2\n" },
+]) {
+ test(`join gives explicit output fields precedence over auto: ${args.join(" ")}`, async () => {
+  const result = await run([...args, "left", "right"], {
+   "/left": "a L1\na L2\nc L3\n",
+   "/right": "a R1\na R2\nb R3\n",
+  });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, expected);
+  assert.equal(result.stderr, "");
+ });
+}
+
 for (const args of [
  ["-z", "-t", "\n"],
  ["-t\n", "-z"],

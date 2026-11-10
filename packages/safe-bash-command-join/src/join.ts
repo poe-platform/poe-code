@@ -88,11 +88,9 @@ function parse(context: CommandContext, budget: Budget): Options {
       options.delimiter = options.whole ? undefined : bytes;
     } else if (flag === "o") {
       if (value === "auto") {
-        if (Array.isArray(options.format)) fail("conflicting output format specifications");
-        options.format = "auto";
+        options.format ??= "auto";
         return;
       }
-      if (options.format === "auto") fail("conflicting output format specifications");
       const values = value.split(/[, \t]/u);
       // GNU 9.10 permits one final separator, but no empty field before it.
       if (values.length > 1 && values.at(-1) === "") values.pop();

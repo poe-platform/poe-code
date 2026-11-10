@@ -14,7 +14,7 @@ function kernelWidth(radius: number, sigma: number): number {
 }
 
 /** ImageMagick's noise, directional blur, edge, normalize and color-dodge sketch. */
-export function* sketchPixelSteps(image: { width: number; height: number; hasAlpha: boolean }, geometry: { width?: number; height?: number; x?: number }, seed: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* sketchPixelSteps(image: { width: number; height: number; hasAlpha: boolean }, geometry: { width?: number; height?: number; x?: number }, seed: bigint): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1), angle = geometry.x ?? 0;
     if (![radius, sigma, angle].every(Number.isFinite) || radius < 0 || radius > 5000) throw new Error("Invalid sketch geometry");
     const width = image.width * 2, height = image.height * 2, size = width * height;

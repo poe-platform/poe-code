@@ -171,7 +171,7 @@ export function* combinePixelSteps(inputs: readonly Pick<RgbaImage, "width" | "h
 }
 
 /** Median ranks selected channel sums, retaining stable input order for equal sums. */
-export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette">[], raw: string, channels?: readonly boolean[], highDepth = false, seed = 0, width = size / 4): Steps {
+export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette">[], raw: string, channels?: readonly boolean[], highDepth = false, seed = 0n, width = size / 4): Steps {
     const frames = inputs.length, hasAlpha = inputs.some(image => image.hasAlpha);
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");

@@ -727,7 +727,7 @@ interface MagickState {
   connectedCircularityThreshold?: number[];
   connectedMajorAxisThreshold?: number[];
   connectedAngleThreshold?: number[];
-  seed?: number;
+  seed?: bigint;
 }
 
 function createDefaultState(): MagickState {
@@ -1068,7 +1068,7 @@ function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | 
         return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h, !!im.data16, im.virtualPixel, state.background), signal, { ...im, width: w, height: h });
     }));
     const virtualCanvas = magickResizeCanvas(base, w, h);
-    return { ...yield* applyMagickRasterSteps(base, (typeof opRaw === "string" ? evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16), state.seed ?? 0, w) : polyPixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16))), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized), ...(virtualCanvas ? { virtualCanvas } : {}) };
+    return { ...yield* applyMagickRasterSteps(base, (typeof opRaw === "string" ? evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16), state.seed ?? 0n, w) : polyPixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16))), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized), ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
 function parseMagickConvolveKernel(spec: string, normalize = true, reverse = false): ConvolveKernel {
@@ -3764,7 +3764,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     const background = state.background, backgroundExplicit = state.backgroundExplicit, virtualPixel = state.virtualPixel ?? (distort || token === "-implode" || token === "-swirl" || token === "-spread" ? "edge" : undefined);
     const kernel = distort ? state.kernel : undefined, filter = distort ? state.resizeFilter : undefined;
     const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b] : undefined;
-    const compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz, seed = state.seed ?? 0;
+    const compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz, seed = state.seed ?? 0n;
     return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas">, geometry = spec) => {
         if (token === "-shear") {
             const plan = shearPlan(image, geometry);
@@ -5999,7 +5999,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const spec = baseToken.slice(7), fractal = spec.toLowerCase() === "fractal";
         const [first, last] = fractal ? [] : spec.split("-");
         const metadata = { width: state.sizeWidth, height: state.sizeHeight, format: "png" as const, channels: 3 as const, depth: "ushort" as const, space: "srgb" as const, density: 72, hasAlpha: false };
-        return yield* applyMod([yield* applyMagickRasterSteps({ ...metadata, data: new Uint8Array() }, plasmaPixelSteps(metadata.width, metadata.height, parseColor(first || (fractal ? "#808080" : "white")), parseColor(last || "black"), fractal, state.seed ?? 0))]);
+        return yield* applyMod([yield* applyMagickRasterSteps({ ...metadata, data: new Uint8Array() }, plasmaPixelSteps(metadata.width, metadata.height, parseColor(first || (fractal ? "#808080" : "white")), parseColor(last || "black"), fractal, state.seed ?? 0n))]);
     }
     if (lower.startsWith("pattern:")) {
         const pattern = builtinPattern(baseToken.slice(8));
@@ -7239,7 +7239,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         let random: (() => number) | undefined;
         apply = (image, pixelOffset = 0) => {
             if ((operation === "uniformnoise" || operation === "gaussiannoise" || operation === "impulsenoise" || operation === "laplaciannoise" || operation === "multiplicativenoise" || operation === "poissonnoise") && pixelOffset === 0)
-                random = createMagickRandom(state.seed ?? 0);
+                random = createMagickRandom(state.seed ?? 0n);
             return applyMagickEvaluateSteps({ ...image, isPalette: false }, operation, value, channels, random, signal);
         };
     } else if (token === "-function") {
@@ -8286,10 +8286,14 @@ if (t === "-seed") {
             const value = tokens[++i] ?? "";
             validateMagickTransformGeometry(value, t);
             // Native validates geometry, then reads only the leading decimal integer.
-            state.seed = Number.parseInt(value, 10);
-            if (!Number.isSafeInteger(state.seed)) throw new Error("Invalid random seed");
+            const decimal = value.trimStart();
+            const start = decimal[0] === "+" || decimal[0] === "-" ? 1 : 0;
+            let end = start;
+            while (end < decimal.length && decimal[end]! >= "0" && decimal[end]! <= "9") end++;
+            if (end === start) throw new Error("Invalid random seed");
+            state.seed = BigInt(decimal.slice(0, end));
         }
-        else if (t === "+seed") { state.seed = Math.floor(Date.now() / 1000); }
+        else if (t === "+seed") { state.seed = BigInt(Math.floor(Date.now() / 1000)); }
         else if (t === "-precision") {
             const value = tokens[++i], requested = Number(value);
             if (value === undefined || !value.trim() || !Number.isFinite(requested)) throw new Error("invalid argument for option '-precision'");
@@ -9527,7 +9531,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-sketch") {
-            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), seed = state.seed ?? 0;
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), seed = state.seed ?? 0n;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return yield* applyMagickRasterSteps(im, sketchPixelSteps(im, geometry, seed), signal);
             });
@@ -10895,7 +10899,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     const first = (await stack.get(0))!;
                     const base = frames.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
-                    const result = await transformStoredMagickRaster(base, backend, (terms ? polyPixelSteps(base.width * base.height * 4, frames, terms, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth) : evaluateSequencePixelSteps(base.width * base.height * 4, frames, argument, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth, settings.seed ?? 0, base.width)), signal, { ...base, hasAlpha: frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);
+                    const result = await transformStoredMagickRaster(base, backend, (terms ? polyPixelSteps(base.width * base.height * 4, frames, terms, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth) : evaluateSequencePixelSteps(base.width * base.height * 4, frames, argument, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth, settings.seed ?? 0n, base.width)), signal, { ...base, hasAlpha: frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);
                     stack.length = 0; await stack.push(result);
                 }
                 return stack;
@@ -11935,7 +11939,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return transformStoredMagickRaster(edges, backend, charcoalPixelSteps(edges, geometry), signal);
             });
         } else if (!operandsOnly && token === "-sketch") {
-            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), seed = state.seed ?? 0;
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), seed = state.seed ?? 0n;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, sketchPixelSteps(image, geometry, seed), signal) : undefined);
         } else if (!operandsOnly && token === "-edge") {
             const argument = tokens[++i] ?? "", radius = Number(argument);
@@ -12910,7 +12914,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }else if(lower.startsWith("plasma:")){
   const spec=baseToken.slice(7),fractal=spec.toLowerCase()==="fractal",[first,last]=fractal?[]:spec.split("-");
   const metadata={width:state.sizeWidth,height:state.sizeHeight,format:"png" as const,channels:3 as const,depth:"ushort" as const,space:"srgb" as const,density:72,hasAlpha:false};
-  image=await transformStoredMagickRaster({...metadata,position:0},backend,plasmaPixelSteps(metadata.width,metadata.height,parseColor(first||(fractal?"#808080":"white")),parseColor(last||"black"),fractal,state.seed??0),signal);
+  image=await transformStoredMagickRaster({...metadata,position:0},backend,plasmaPixelSteps(metadata.width,metadata.height,parseColor(first||(fractal?"#808080":"white")),parseColor(last||"black"),fractal,state.seed??0n),signal);
  }else if(lower.startsWith("gradient:")||lower.startsWith("radial-gradient:")||lower.startsWith("pattern:")){
   const pattern=lower.startsWith("pattern:")?builtinPattern(baseToken.slice(8)):undefined;
   const width=Math.max(1,Math.round(pattern&&!state.hasSize&&lower.startsWith("pattern:")?pattern.width:state.sizeWidth)),height=Math.max(1,Math.round(pattern&&!state.hasSize&&lower.startsWith("pattern:")?pattern.height:state.sizeHeight)),position=backend.storage.allocate(width*height*4);

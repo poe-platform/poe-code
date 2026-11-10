@@ -3,7 +3,7 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 import { createMagickRandom } from "./random.js";
 
 /** ImageMagick's midpoint displacement, retaining HDRI precision until output. */
-export function* plasmaPixelSteps(width: number, height: number, first: RgbaColor, last: RgbaColor, fractal: boolean, seed: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* plasmaPixelSteps(width: number, height: number, first: RgbaColor, last: RgbaColor, fractal: boolean, seed: bigint): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const pixels = new Float32Array(width * height * 3);
     const a = [first.r, first.g, first.b], b = [last.r, last.g, last.b];
     for (let y = 0; y < height; y++) {

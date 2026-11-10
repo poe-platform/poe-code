@@ -8,12 +8,12 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     throw new Error("rawvideo input requires a valid -video_size WIDTHxHEIGHT");
   }
   const gray = pixelFormat === "gray" || pixelFormat === "gray8";
-  const yuv = pixelFormat === "yuv420p" || pixelFormat === "yuv444p";
+  const yuv = pixelFormat === "yuv420p" || pixelFormat === "yuv422p" || pixelFormat === "yuv444p";
   const rgb16 = pixelFormat === "rgb48be" || pixelFormat === "rgba64be";
   if (!rgb16 && !gray && pixelFormat !== "bgra" && pixelFormat !== "rgb24" && pixelFormat !== "rgba" && pixelFormat !== "gray16be" && !yuv && pixelFormat !== "ya8") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
   const ySize = width * height;
-  const chromaSize = pixelFormat === "yuv444p" ? ySize : Math.ceil(width / 2) * Math.ceil(height / 2);
-  const frameBytes = rgb16 ? ySize * (pixelFormat === "rgba64be" ? 8 : 6) : pixelFormat === "bgra" || pixelFormat === "rgba" ? ySize * 4 : pixelFormat === "yuv420p" ? ySize + chromaSize * 2 : ySize * (gray ? 1 : pixelFormat === "gray16be" || pixelFormat === "ya8" ? 2 : 3);
+  const chromaSize = pixelFormat === "yuv444p" ? ySize : Math.ceil(width / 2) * (pixelFormat === "yuv422p" ? height : Math.ceil(height / 2));
+  const frameBytes = rgb16 ? ySize * (pixelFormat === "rgba64be" ? 8 : 6) : pixelFormat === "bgra" || pixelFormat === "rgba" ? ySize * 4 : yuv ? ySize + chromaSize * 2 : ySize * (gray ? 1 : pixelFormat === "gray16be" || pixelFormat === "ya8" ? 2 : 3);
   if (!Number.isSafeInteger(frameBytes)) throw new Error("Invalid rawvideo frame size");
   const count = Math.ceil(bytes.length / frameBytes);
   budget.checkSamples(count);
@@ -34,7 +34,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
         format: pixelFormat === "rgb48be" ? 34 : 104, colorspace: 5, fullRange: 1 } }, width, height)!
       : yuv
       ? yuv420pToRgba(data.subarray(0, ySize), data.subarray(ySize, ySize + chromaSize), data.subarray(ySize + chromaSize), width, height,
-        pixelFormat === "yuv444p" ? 0 : 1, pixelFormat === "yuv444p" ? 0 : 1)
+        pixelFormat === "yuv444p" ? 0 : 1, pixelFormat === "yuv420p" ? 1 : 0)
       : pixelFormat === "rgba" ? new Uint8Array(data) : new Uint8Array(width * height * 4);
     for (let pixel = 0; !rgb16 && !yuv && pixelFormat !== "rgba" && pixel < width * height; pixel++) {
       if (pixel % 4096 === 0) budget.checkCpu();
@@ -54,7 +54,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     }
     frames.push({ width, height, data: rgba, offset: index * frameBytes,
       ...(rgb16 || yuv || pixelFormat === "gray16be" ? { native: { rgba, pixels: data, width, height,
-        format: pixelFormat === "rgb48be" ? 34 : pixelFormat === "rgba64be" ? 104 : pixelFormat === "gray16be" ? 29 : pixelFormat === "yuv444p" ? 5 : 0, colorspace: 5, fullRange: rgb16 || pixelFormat === "gray16be" ? 1 : 0 } } : {}),
+        format: pixelFormat === "rgb48be" ? 34 : pixelFormat === "rgba64be" ? 104 : pixelFormat === "gray16be" ? 29 : pixelFormat === "yuv444p" ? 5 : pixelFormat === "yuv422p" ? 4 : 0, colorspace: 5, fullRange: rgb16 || pixelFormat === "gray16be" ? 1 : 0 } } : {}),
       ptsSeconds: index / timescale,
       durationSeconds: 1 / timescale, keyframe: true });
   }
@@ -89,8 +89,9 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
     const format = pixelFormat ?? track.codecDescriptions[0]?.pixFmt ?? "yuv420p";
     for (const frame of track.decodedVideoFrames ?? []) {
       budget.checkCpu();
-      if (format === "yuv444p") {
-        budget.checkOutputBytes(size + frame.width * frame.height * 3);
+      if (format === "yuv422p" || format === "yuv444p") {
+        const chromaWidth = format === "yuv444p" ? frame.width : Math.ceil(frame.width / 2);
+        budget.checkOutputBytes(size + (frame.width + 2 * chromaWidth) * frame.height);
         const converted = await formatYuv(frame, format, signal);
         append(converted.native!.pixels);
       } else if (format === "yuv420p") {

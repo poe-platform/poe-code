@@ -21,8 +21,10 @@ export async function formatYuv(
     signal?.throwIfAborted();
     for (let x = 0; x < width; x++) {
       const offset = (y * width + x) * 4;
-      pixels[y * width + x] = (8414 * data[offset]! + 16519 * data[offset + 1]! +
-        3208 * data[offset + 2]! + (16 << 15) + 16384) >> 15;
+      // swscale rounds RGB luma to 14 bits before rounding to an 8-bit plane.
+      const luma = (8414 * data[offset]! + 16519 * data[offset + 1]! +
+        3208 * data[offset + 2]! + (16 << 15) + 256) >> 9;
+      pixels[y * width + x] = (luma + 32) >> 6;
     }
   }
   for (let y = 0; y < chromaHeight; y++) {

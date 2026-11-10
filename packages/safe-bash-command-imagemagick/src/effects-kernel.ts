@@ -11,8 +11,11 @@ export interface ShadowLayout {
     readonly opacity: number;
     readonly sigma: number;
 }
-export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hasAlpha"> & Partial<Pick<StoredRgbaImage, "storedData16">>, layout: ShadowLayout, color: RgbaColor, alpha = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hasAlpha" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">>, layout: ShadowLayout, color: RgbaColor, alpha = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
+    // Native assigns the background components directly to C, M and Y, with K zero.
+    const inks = source.space === "cmyk" ? [color.r / 255, color.g / 255, color.b / 255, 0] : undefined;
+    if (inks) color = { ...color, r: 255 - color.r, g: 255 - color.g, b: 255 - color.b };
     const sigma = layout.sigma;
     let half = 0;
     if (sigma > 0) {
@@ -75,6 +78,11 @@ export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "
                 data[offset + 3] = Number.isFinite(value) ? Math.max(0, Math.min(maximum, Math.round(value))) : 0;
             }
             yield { kind: "write", highDepth, position: (y * layout.width + left) * 4, data: new Uint8Array(data.buffer) };
+            if (inks) {
+                const samples = new Float64Array(count * 4);
+                for (let x = 0; x < count; x++) samples.set(inks, x * 4);
+                yield { kind: "write", hue: true, position: (y * layout.width + left) * 4, data: new Uint8Array(samples.buffer) };
+            }
         }
     }
 }

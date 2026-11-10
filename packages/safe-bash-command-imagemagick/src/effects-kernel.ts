@@ -83,7 +83,7 @@ export function vignetteLayout(source: Pick<RgbaImage, "width" | "height" | "vir
     return { width, height, hasAlpha: true, virtualCanvas: { width, height, x: 0, y: 0 } };
 }
 export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" | "virtualCanvas" | "data16" | "space" | "hasAlpha" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { region?: Region | undefined }, background: RgbaColor,
-    geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; hasYOffset: boolean; isPercent: boolean }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, compose = "Over"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; hasYOffset: boolean; isPercent: boolean }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, compose = "Over"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { name } = magickCompositeMode(compose);
     const sourceIn = name === "srcin" || name === "in", destinationOut = name === "dstout" || name === "destout";
     const copySource = ["src", "source", "copy"].includes(name), copyDestination = ["dst", "destination"].includes(name);
@@ -104,6 +104,14 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
         const gray = 0.212656 * background.r + 0.715158 * background.g + 0.072186 * background.b;
         background = { r: gray, g: gray, b: gray, a: background.a };
     }
+    let backgroundInks: number[] | undefined;
+    if (source.space === "cmyk") {
+        // Native conforms the canvas background through linear RGB to CMYK.
+        const rgb = [background.r, background.g, background.b].map(value => value / 255)
+            .map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+        backgroundInks = rgbToCmyk(rgb[0]!, rgb[1]!, rgb[2]!);
+        background = { r: rgb[0]! * 255, g: rgb[1]! * 255, b: rgb[2]! * 255, a: background.a };
+    }
     // Fill the virtual canvas, then paint only the visible portion of the vignette.
     for (let position = 0; position < canvas.width * canvas.height * 4; position += 4096) {
         yield;
@@ -116,6 +124,11 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
         if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(data.buffer) };
         const bounded = hue ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(1, value)) * 65535)) : data;
         yield { kind: "write", highDepth, position, data: new Uint8Array(bounded.buffer) };
+        if (backgroundInks) {
+            const inks = new Float64Array(length);
+            for (let i = 0; i < length; i += 4) inks.set(backgroundInks, i);
+            yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
+        }
     }
     const sigma = Math.abs(geometry.height ?? 1), radius = geometry.width ?? 0;
     let half = 0;
@@ -194,6 +207,12 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
             const position = (y * width + left) * 4, bytes = yield { kind: "read", hue, highDepth, position, length: count * 4 };
             if (!bytes || bytes.length !== count * 4 * (hue ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated vignette pixels");
             const data = hue ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
+            const inkBytes = backgroundInks ? yield { kind: "read", hue: true, position, length: count * 4 } : undefined;
+            const inks = inkBytes?.length ? new Float64Array(inkBytes.slice().buffer) : backgroundInks ? new Float64Array(count * 4) : undefined;
+            if (inks && !inkBytes?.length) for (let i = 0; i < data.length; i += 4)
+                inks.set(rgbToCmyk(data[i]! / (255 * scale), data[i + 1]! / (255 * scale), data[i + 2]! / (255 * scale)), i);
+            const samples = inks ?? data, pixelScale = inks ? 1 / 255 : scale;
+            const round = inks ? (value: number) => Math.fround(value * 65535) / 65535 : quantum;
             for (let x = 0; x < count; x++) {
                 const protectedPixel = source.region && !regionContains(source.region, left + x, y);
                 // Intensity compositing clips RGB and restores the original alpha before flattening.
@@ -203,31 +222,34 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                 const intensity = protectedPixel ? sourceAlpha + coverage[x]! * (1 - sourceAlpha) : 1;
                 const back = (name === "plus" ? 1 : 1 - foreground) * background.a / 255;
                 const alpha = sourceIn ? foreground * background.a / 255 : destinationOut ? back : Math.min(1, foreground + back);
-                for (let channel = 0; channel < 3; channel++) {
-                    const color = channel === 0 ? background.r : channel === 1 ? background.g : background.b;
-                    const selected = !channels || (channel === 0 ? channels.r : channel === 1 ? channels.g : channels.b);
-                    const sourceColor = protectedPixel ? Math.fround(data[x * 4 + channel]! / scale * intensity * 257) / 257 * scale : data[x * 4 + channel]!;
+                for (let channel = 0; channel < (inks ? 4 : 3); channel++) {
+                    const color = backgroundInks ? backgroundInks[channel]! * 255 : channel === 0 ? background.r : channel === 1 ? background.g : background.b;
+                    const selected = !channels || (channel === 0 ? channels.r : channel === 1 ? channels.g : channel === 2 ? channels.b : channels.k);
+                    const sourceColor = protectedPixel ? Math.fround(samples[x * 4 + channel]! / pixelScale * intensity * 257) / 257 * pixelScale : samples[x * 4 + channel]!;
                     if (selected && blend) {
-                        const source = sourceColor / scale, destinationAlpha = background.a / 255;
+                        const source = sourceColor / pixelScale, destinationAlpha = background.a / 255;
                         const mixed = name === "multiply" ? source * color / 255
                             : name === "screen" ? source + color - source * color / 255 : Math.abs(source - color);
                         const value = mixed * foreground * destinationAlpha + source * foreground * (1 - destinationAlpha) + color * back;
                         // Native Screen keeps premultiplied RGB; Multiply and Difference unpremultiply.
-                        data[x * 4 + channel] = quantum((name === "screen" ? value : alpha === 0 ? 0 : value / alpha) * scale);
+                        samples[x * 4 + channel] = round((name === "screen" ? value : alpha === 0 ? 0 : value / alpha) * pixelScale);
                         continue;
                     }
-                    data[x * 4 + channel] = !selected || copyDestination || copyAlpha ? quantum(color * scale) : copySource ? quantum(sourceColor)
-                        : sourceIn ? quantum(sourceColor * alpha)
-                        : destinationOut ? (alpha === 0 ? 0 : quantum(color * scale))
+                    samples[x * 4 + channel] = !selected || copyDestination || copyAlpha ? round(color * pixelScale) : copySource ? round(sourceColor)
+                        : sourceIn ? round(sourceColor * alpha)
+                        : destinationOut ? (alpha === 0 ? 0 : round(color * pixelScale))
                         // Plus adds alpha-weighted channels without unpremultiplying.
-                        : name === "plus" ? quantum(Math.min(255 * scale, sourceColor * foreground + color * scale * back))
-                        : alpha === 0 ? 0 : quantum((sourceColor * foreground + color * scale * back) / alpha);
+                        : name === "plus" ? round(Math.min(255 * pixelScale, sourceColor * foreground + color * pixelScale * back))
+                        : alpha === 0 ? 0 : round((sourceColor * foreground + color * pixelScale * back) / alpha);
                 }
+                if (inks) for (let channel = 0; channel < 3; channel++)
+                    data[x * 4 + channel] = Math.round((1 - inks[x * 4 + channel]!) * (1 - inks[x * 4 + 3]!) * 255 * scale);
                 data[x * 4 + 3] = quantum(((!channels || channels.a) && !copyDestination ? (copySource || copyAlpha ? foreground
                     : name === "difference" ? Math.abs(foreground - background.a / 255) : alpha) * 255 : background.a) * scale);
             }
             // Replace the working channels too, so later colorspace conversion sees the rendered vignette.
             const target = ((y + offsetY) * canvas.width + left + offsetX) * 4;
+            if (inks) yield { kind: "write", hue: true, position: target, data: new Uint8Array(inks.buffer) };
             if (hue) yield { kind: "write", hue: true, position: target, data: new Uint8Array(data.buffer) };
             const bounded = hue ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(1, value)) * 65535)) : data;
             yield { kind: "write", highDepth, position: target, data: new Uint8Array(bounded.buffer) };

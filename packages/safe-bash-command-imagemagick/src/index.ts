@@ -9945,15 +9945,18 @@ async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareF
 function* prepareInactiveAlphaOutput(image: RgbaImage): Generator<void, RgbaImage, void> {
     if (image.hasAlpha) return image;
     const evaluateSamples = image.evaluateSamples?.slice();
+    // The fourth CMYK working sample is black ink, not alpha.
+    const hueSamples = image.space === "cmyk" ? undefined : image.hueSamples?.slice();
     const data = new Uint8Array(image.data);
     const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
     for (let index = 3; index < data.length; index += 4) {
         if (index % 65536 === 3) yield;
         data[index] = 255;
         if (evaluateSamples) evaluateSamples[index] = 255;
+        if (hueSamples) hueSamples[index] = 1;
         if (data16) data16[index] = 65535;
     }
-    return { ...image, data, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}) };
+    return { ...image, data, ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}) };
 }
 
 function* prepareFloatOutput(image: RgbaImage): Generator<void, RgbaImage, void> {

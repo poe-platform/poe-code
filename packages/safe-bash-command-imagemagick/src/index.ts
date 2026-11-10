@@ -12798,10 +12798,20 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const colorspace = oldStack[0]!;
                 let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(maxW, maxH, background, highDepth),
                     space: colorspace.space, ...(colorspace.magickColorspace === undefined ? {} : { magickColorspace: colorspace.magickColorspace }) };
+                if (colorspace.metaChannels?.length) {
+                    canvas.metaChannels = [];
+                    for (const plane of colorspace.metaChannels)
+                        canvas.metaChannels.push({ ...yield* createSolidRgbaImageSteps(maxW, maxH, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16), space: "b-w", channels: 1, hasAlpha: false });
+                }
                 for (const im of oldStack) {
                     const compose = im.properties?.compose ?? "Over";
                     const over = ["over", "srcover"].includes(magickCompositeMode(compose).name);
                     const x = (im.virtualCanvas?.x ?? 0) - originX, y = (im.virtualCanvas?.y ?? 0) - originY;
+                    for (const [channel, plane] of (canvas.metaChannels ?? []).entries()) {
+                        const source = im.metaChannels?.[channel];
+                        if (source) canvas.metaChannels![channel] = yield* applyMagickRasterSteps(plane,
+                            composite16PixelSteps(plane, source, x, y, compose, state.composeArgs, false, state.alphaFuzz, true, [canvas, im]), signal, plane, [plane, source, canvas, im]);
+                    }
                     if (over) {
                         canvas = yield* applyMagickRasterSteps(canvas, overCompositePixelSteps(canvas, im, x, y, highDepth), signal, canvas, [canvas, im]);
                         continue;
@@ -14564,6 +14574,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!append) {
                     const first = (await stack.get(0))! as StoredRgbaImage;
                     result = { ...result, space: first.space, ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }) };
+                    if (first.storedMetaChannels?.length) {
+                        result.storedMetaChannels = [];
+                        for (const plane of first.storedMetaChannels)
+                            result.storedMetaChannels.push({ ...await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal, !!plane.storedData16), space: "b-w", channels: 1, hasAlpha: false });
+                    }
                 }
                 if (append) {
                     const first = (await stack.get(0))! as StoredRgbaImage, scene = first[magickInput]?.sceneIdx ?? 0;
@@ -14596,6 +14611,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 for (let n = 0; n < stack.length; n++) {
                     let frame: StoredRgbaImage = (await stack.get(n))!;
                     const compose = frame.properties?.compose ?? "Over";
+                    if (!append) for (const [channel, plane] of (result.storedMetaChannels ?? []).entries()) {
+                        const source = frame.storedMetaChannels?.[channel];
+                        if (source) result.storedMetaChannels![channel] = await transformStoredMagickRaster(plane, backend,
+                            composite16PixelSteps(plane, source, (frame.virtualCanvas?.x ?? 0) - originX, (frame.virtualCanvas?.y ?? 0) - originY,
+                                compose, settings.composeArgs, false, settings.alphaFuzz, true, [result, frame]), signal, plane, [plane, source, result, frame]);
+                    }
                     if (append && cmyk && !nonCmyk && frame.storedHueSamples === undefined) frame = await transformStoredMagickPixels(frame, backend, { end: 0, highDepth: true, apply: convertCmykPixels }, signal);
                     if (append && cmyk && nonCmyk && frame.space === "cmyk") frame = await transformStoredMagickPixels(frame, backend, { end: 0, highDepth: true, apply: copyCmykChannelsToRgb }, signal);
                     const offset = resolveGravityOffset(vertical ? width - frame.width : 0, vertical ? 0 : height - frame.height, frame.gravity ?? settings.gravity);

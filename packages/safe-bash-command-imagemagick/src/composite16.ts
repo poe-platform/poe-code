@@ -5,8 +5,9 @@ import { compositePixelsSteps, magickCompositeMode } from "./composite-pixels.js
 type Raster = Pick<RgbaImage, "width" | "height" | "hasAlpha" | "evaluateSamples" | "data16"> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples" | "storedData16">>;
 
 // Use the shared compose formulas on bounded spans, retaining working samples and all 16 source bits.
+// Meta planes take alpha from their parent images, supplied as raster sources 2 and 3.
 export function* composite16PixelSteps(base: Raster, overlay: Raster, left: number, top: number, mode: string,
-    args?: string, tile = false, fuzz = 0, clipToOverlay = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    args?: string, tile = false, fuzz = 0, clipToOverlay = false, alphaSources?: readonly [Raster, Raster]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(base.data16 || overlay.data16 || base.storedData16 || overlay.storedData16);
     const baseEvaluate = !!base.evaluateSamples || base.storedEvaluateSamples !== undefined;
     const overlayEvaluate = !!overlay.evaluateSamples || overlay.storedEvaluateSamples !== undefined;
@@ -26,14 +27,27 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
         const position = (y * base.width + x) * 4;
         const bytes = (yield { kind: "read", highDepth: true, evaluate: baseEvaluate, position, length: count * 4 })!;
         const samples = baseEvaluate ? new Float64Array(bytes.slice().buffer) : Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257);
+        if (alphaSources) {
+            const evaluate = !!alphaSources[0].evaluateSamples || alphaSources[0].storedEvaluateSamples !== undefined;
+            const bytes = (yield { kind: "read", image: 2, highDepth: true, evaluate, position, length: count * 4 })!;
+            const alpha = evaluate ? new Float64Array(bytes.slice().buffer) : new Uint16Array(bytes.slice().buffer);
+            for (let i = 3; i < samples.length; i += 4) samples[i] = alpha[i]! / (evaluate ? 1 : 257);
+        }
         if (outside && maskDestination && !tile && !clipToOverlay) {
             if (base.hasAlpha) for (let i = 3; i < samples.length; i += 4) samples[i] = 0;
         } else if (!outside || extendSource) {
             const sourceBytes = (yield { kind: "read", highDepth: true, evaluate: overlayEvaluate, image: 1,
                 position: (sourceY * overlay.width + sourceX) * 4, length: outsideX ? 4 : count * 4 })!;
             const sourceSamples = overlayEvaluate ? new Float64Array(sourceBytes.slice().buffer) : Float64Array.from(new Uint16Array(sourceBytes.slice().buffer), value => value / 257);
-            const dst = { ...base, width: count, height: 1, data: samples };
-            const src = { ...overlay, width: count, height: 1, data: new Float64Array(count * 4) };
+            if (alphaSources) {
+                const evaluate = !!alphaSources[1].evaluateSamples || alphaSources[1].storedEvaluateSamples !== undefined;
+                const bytes = (yield { kind: "read", image: 3, highDepth: true, evaluate,
+                    position: (sourceY * overlay.width + sourceX) * 4, length: outsideX ? 4 : count * 4 })!;
+                const alpha = evaluate ? new Float64Array(bytes.slice().buffer) : new Uint16Array(bytes.slice().buffer);
+                for (let i = 3; i < sourceSamples.length; i += 4) sourceSamples[i] = alpha[i]! / (evaluate ? 1 : 257);
+            }
+            const dst = { ...base, hasAlpha: alphaSources?.[0].hasAlpha ?? base.hasAlpha, width: count, height: 1, data: samples };
+            const src = { ...overlay, hasAlpha: alphaSources?.[1].hasAlpha ?? overlay.hasAlpha, width: count, height: 1, data: new Float64Array(count * 4) };
             for (let i = 0; i < src.data.length; i++) src.data[i] = sourceSamples[outsideX ? i % 4 : i]!;
             const result = new Float64Array(count * 4);
             yield* compositePixelsSteps(dst, src, result, mode, 0, 0, args, fuzz, clipToOverlay);

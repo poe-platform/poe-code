@@ -9365,8 +9365,8 @@ if (t === "-intent" || t === "+intent") {
             state.background = { r: 255, g: 255, b: 255, a: 255 };
             state.backgroundExplicit = false;
         }
-        else if (t === "-fill") {
-            const color = (tokens[++i] ?? "#000000").trim().toLowerCase();
+        else if (t === "-fill" || t === "+fill") {
+            const color = t === "+fill" ? "none" : (tokens[++i] ?? "#000000").trim().toLowerCase();
             state.fill = parseColor(color, true);
             state.fillHasAlpha = color === "none" || color === "transparent"
                 || color.startsWith("#") && [5, 9, 17].includes(color.length)

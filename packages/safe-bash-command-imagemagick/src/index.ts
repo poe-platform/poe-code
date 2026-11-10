@@ -4957,6 +4957,8 @@ function* blitOverRgbaInPlaceSteps(
           dstData[dstIdx + 2] = Math.round((srcData[srcIdx + 2]! * sAlpha + dstData[dstIdx + 2]! * dAlpha) / outAlpha);
           dstData[dstIdx + 3] = Math.round(outAlpha * 255);
         }
+      } else if (dstData[dstIdx + 3] === 0) {
+        dstData.fill(0, dstIdx, dstIdx + 3);
       }
       dstIdx += 4;
       srcIdx += 4;
@@ -13453,6 +13455,8 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
                         const sa = alpha / 255, da = dst.data[pixel + 3]! / 255, outA = sa + da * (1 - sa);
                         for (let channel = 0; channel < 3; channel++) dst.data[pixel + channel] = Math.round((src.data[pixel + channel]! * sa + dst.data[pixel + channel]! * da * (1 - sa)) / outA);
                         dst.data[pixel + 3] = Math.round(outA * 255);
+                    } else if (dst.data[pixel + 3] === 0) {
+                        dst.data.fill(0, pixel, pixel + 3);
                     }
                 }
             }

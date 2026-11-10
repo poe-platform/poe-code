@@ -598,6 +598,8 @@ export function decodePngToCanvas(
                 canvas.data[dstIdx + 2] = Math.round((b * sa + (canvas.data[dstIdx + 2] ?? 0) * da * (1 - sa)) / outA);
                 canvas.data[dstIdx + 3] = Math.round(outA * 255);
               }
+            } else if (canvas.data[dstIdx + 3] === 0) {
+              canvas.data.fill(0, dstIdx, dstIdx + 3);
             }
             srcIdx += bpp;
             dstIdx += 4;

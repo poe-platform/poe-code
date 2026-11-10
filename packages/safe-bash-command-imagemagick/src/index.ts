@@ -5948,7 +5948,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
     }
     const first = stack[0]! as MagickImage;
     const gray = stack.every(image => image.space === "b-w" || image.space === "grey16") && background.r === background.g && background.g === background.b;
-    return { ...canvas, ...(gray ? { space: first.space, gamma: first.gamma } : {}), ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }), channels: gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), hasAlpha, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
+    return { ...canvas, ...(first.orientation !== undefined ? { orientation: first.orientation } : {}), ...(gray ? { space: first.space, gamma: first.gamma } : {}), ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }), channels: gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), hasAlpha, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
 }
 
 function expandFilenameProperties(spec: string, properties: ImageMetadata["properties"]): string {
@@ -12072,7 +12072,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 if (append) {
                     const first = (await stack.get(0))! as StoredMagickImage & HueMetadata, scene = first[magickInput]?.sceneIdx ?? 0;
-                    result = { ...result, ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }), delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), hasAlpha: background.a < 255, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
+                    result = { ...result, ...(first.orientation !== undefined ? { orientation: first.orientation } : {}), ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }), delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), hasAlpha: background.a < 255, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
                 }
                 let cursor = 0;
                 for (let n = 0; n < stack.length; n++) {

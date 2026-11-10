@@ -10743,7 +10743,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const maxW = flatten ? oldStack[0]!.virtualCanvas?.width || oldStack[0]!.width : Math.max(mosaic ? oldStack[0]!.virtualCanvas?.width || oldStack[0]!.width : -Infinity, ...oldStack.map(im => im.width + (im.virtualCanvas?.x ?? 0))) - originX;
                 const maxH = flatten ? oldStack[0]!.virtualCanvas?.height || oldStack[0]!.height : Math.max(mosaic ? oldStack[0]!.virtualCanvas?.height || oldStack[0]!.height : -Infinity, ...oldStack.map(im => im.height + (im.virtualCanvas?.y ?? 0))) - originY;
                 const highDepth = oldStack.some(image => !!image.data16);
-                const over = state.compose === "over";
+                const over = ["over", "srcover"].includes(magickCompositeMode(state.composeRaw).name);
                 const background = state.backgroundExplicit ? state.background : oldStack[0]!.backgroundColor ?? state.background;
                 const colorspace = oldStack[0]!;
                 let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(maxW, maxH, background, highDepth),
@@ -10754,7 +10754,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         canvas = yield* applyMagickRasterSteps(canvas, overCompositePixelSteps(canvas, im, x, y, highDepth), signal, canvas, [canvas, im]);
                         continue;
                     }
-                    canvas = yield* applyMagickCompositeLayerSteps(canvas, im, state.compose, x, y, undefined, signal, 0, true);
+                    canvas = yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, x, y, state.composeArgs, signal, state.alphaFuzz, true);
                 }
                 for (const im of oldStack) {
                     if (im.data.buffer !== canvas.data.buffer) detachRgbaBuffer(im.data);
@@ -12093,9 +12093,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }
                         result = { ...result, hasAlpha: result.hasAlpha || frame.hasAlpha };
                     }
-                    else if (settings.compose === "over") result = await transformStoredMagickRaster(result, backend,
+                    else if (["over", "srcover"].includes(magickCompositeMode(settings.composeRaw).name)) result = await transformStoredMagickRaster(result, backend,
                         overCompositePixelSteps(result, frame, (frame.virtualCanvas?.x ?? 0) - originX, (frame.virtualCanvas?.y ?? 0) - originY, highDepth), signal, result, [result, frame]);
-                    else result = await compositeStoredMagick(result, frame, backend, signal, (frame.virtualCanvas?.x ?? 0) - originX, (frame.virtualCanvas?.y ?? 0) - originY, settings.compose, undefined, false, true, false, false, 0, true);
+                    else result = await compositeStoredMagick(result, frame, backend, signal, (frame.virtualCanvas?.x ?? 0) - originX, (frame.virtualCanvas?.y ?? 0) - originY, settings.composeRaw, settings.composeArgs, false, true, false, false, settings.alphaFuzz, true);
                     cursor += vertical ? frame.height : frame.width;
                 }
                 if (append) result = { ...result, channels: result.hasAlpha ? 4 : 3 };

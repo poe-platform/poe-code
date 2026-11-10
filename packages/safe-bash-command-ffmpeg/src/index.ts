@@ -12494,7 +12494,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             7, 23, 0, -6, -5, -18, 7, -10, 22, -2, 9, -12, -6, -11, -5, 0]
                         ];
                         // Native signed integer conversion discards low bits before convolution.
-                        const quantize = filteredSampleFormat === "s32" ? Math.floor : roundToEven;
+                        const quantize = filteredSampleFormat === "s32" || filteredSampleFormat === "s32p" ? Math.floor : roundToEven;
                         const history = [new Int16Array(32), new Int16Array(32)];
                         const output = stretched.map(channel => new Float64Array(channel.length));
                         for (let i = 0; i < stretched[0]!.length; i++) {

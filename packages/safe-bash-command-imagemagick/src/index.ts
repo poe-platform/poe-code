@@ -9237,6 +9237,18 @@ function applyMagickDensity<T extends ImageMetadata & { magickUnits?: MagickStat
         resolution: { x: x * scale, y: y * scale, unit } };
 }
 
+function magickTrimSettings(state: MagickState, properties: ImageMetadata["properties"]): MagickState {
+    let settings = state;
+    for (const [key, value] of Object.entries(properties ?? {})) {
+        const name = key.toLowerCase();
+        if (name !== "artifact:trim:minsize" && name !== "artifact:trim:edges" &&
+            name !== "artifact:trim:percent-background" && name !== "artifact:trim:background-color") continue;
+        if (settings === state) settings = { ...state };
+        applyMagickReadSetting(["-define", `${name.slice("artifact:".length)}=${value}`], settings, 0);
+    }
+    return settings;
+}
+
 function applyMagickReadSetting(tokens: readonly string[], state: MagickState, start: number): number | undefined {
     let i = start;
     const t = tokens[i];
@@ -10817,7 +10829,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-trim") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* trimMagickSteps(im, state.alphaFuzz, state.trimEdges, state.trimMinSize, state.trimPercentBackground, analysis, state.trimBackgroundColor, state.backgroundExplicit ? state.background : undefined));
+                const settings = magickTrimSettings(state, im.properties);
+                return (yield* trimMagickSteps(im, settings.alphaFuzz, settings.trimEdges, settings.trimMinSize, settings.trimPercentBackground, analysis, settings.trimBackgroundColor, state.backgroundExplicit ? state.background : undefined));
             }));
         }
         else if (t === "-rotate") {
@@ -13853,9 +13866,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const fuzz = state.alphaFuzz, edges = state.trimEdges, minSize = state.trimMinSize, percentBackground = state.trimPercentBackground, background = state.trimBackgroundColor;
+            const captured = { ...state };
             const emptyBackground = state.backgroundExplicit ? state.background : undefined;
-            steps.push(async (image, backend) => image ? trimStoredMagick(image, backend.storage, fuzz, signal, edges, minSize, percentBackground, analysis, background, emptyBackground) : undefined);
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const settings = magickTrimSettings(captured, image.properties);
+                return trimStoredMagick(image, backend.storage, settings.alphaFuzz, signal, settings.trimEdges, settings.trimMinSize, settings.trimPercentBackground, analysis, settings.trimBackgroundColor, emptyBackground);
+            });
         } else if (!operandsOnly && token === "-despeckle") {
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, despecklePixelSteps(image, channels), signal) : undefined);

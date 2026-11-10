@@ -3450,7 +3450,7 @@ export class Runtime {
       if (create) throw completedExit(1);
       return undefined;
     }
-    return binding.keyIndex(resolvedValue, owner, this.signal, create);
+    return binding.keyIndex(resolvedValue, owner, this.signal, create !== false);
   }
 
   tryFastArrayAssignmentSync(..._args: any[]): boolean { return false; }

@@ -87,7 +87,7 @@ export function prepareArithmetic(source: string, budget = new ParseBudget()): A
     if (!(error instanceof ShellSyntaxError) || /nesting/u.test(error.reason)) throw error;
     budget.admit();
     const units = budget.admittedUnits - startUnits;
-    const program: ArithmeticProgram = { source, error, completed: lastParsedCompleted };
+    const program: ArithmeticProgram = lastParsedCompleted ? { source, error, completed: lastParsedCompleted } : { source, error };
     if (source.length <= 256) {
       if (preparedArithmeticCache.size >= 64) {
         const oldest = preparedArithmeticCache.keys().next().value;

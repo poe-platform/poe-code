@@ -17,7 +17,12 @@ for (const [filter, expected] of [
   ["tblend=all_mode=difference,select='eq(t,0.1)+eq(t,0.7)'", [28, 56]],
   ["trim=end_frame=1,tblend=all_mode=difference", []],
   ["tblend=all_mode=difference,tblend=all_mode=difference", [28, 72, 40, 0, 32, 56]],
-  ...["all_mode=addition", "all_mode=normal:all_opacity=0.5", "all_mode=difference:all_opacity=0.5", "unknown=difference"].map(value => [`tblend=${value}`, null] as const)
+  ["tblend=all_mode=addition", [52, 80, 152, 255, 255, 255, 255]],
+  ["tblend=all_mode=1", [52, 80, 152, 255, 255, 255, 255]],
+  ["tblend=all_mode=addition,select='eq(t,0.1)+eq(t,0.7)'", [52, 255]],
+  ["trim=end_frame=1,tblend=all_mode=addition", []],
+  ["tblend=all_mode=addition,tblend=all_mode=addition", [132, 232, 255, 255, 255, 255]],
+  ...["all_mode=invalid", "all_mode=addition:all_opacity=0.5", "all_mode=normal:all_opacity=0.5", "all_mode=difference:all_opacity=0.5", "unknown=difference"].map(value => [`tblend=${value}`, null] as const)
 ] as const) {
   it(`tblend selects frames or safely rejects ${filter}`, async () => {
     const volume = Volume.fromJSON(expected === null ? { "/o01.png": "existing output" } : {});

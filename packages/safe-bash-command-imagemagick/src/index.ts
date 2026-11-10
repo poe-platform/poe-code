@@ -18265,22 +18265,23 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         return yield* mogrifyTargets(path, files.keys());
     });
     if ("exitCode" in parsed) return parsed;
-    const { warnings, trim, shadow, transforms, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture } = parsed;
+    const { trim, shadow, transforms, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture } = parsed;
+    const analysis = { warnings: parsed.warnings };
     const variableCells = !frame && cellW === undefined && cellH === undefined;
     if (operands.length < 2) {
         return {
             exitCode: 1,
             stdout: "",
-            stderr: warnings + "montage: missing an image filename\n"
+            stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + "montage: missing an image filename\n"
         };
     }
     let textureImage: RgbaImage | undefined;
     if (texture !== undefined) {
         try { textureImage = yield* parseInputOperandSteps(texture, files, state, stdinBytes); }
         catch (error) {
-            return { exitCode: 1, stdout: "", stderr: warnings + `montage: improper image header '${texture}': ${(error as Error).message}\n` };
+            return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: improper image header '${texture}': ${(error as Error).message}\n` };
         }
-        if (!textureImage) return { exitCode: 1, stdout: "", stderr: warnings + `montage: unable to open image '${texture}': No such file or directory\n` };
+        if (!textureImage) return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: unable to open image '${texture}': No such file or directory\n` };
     }
     const outSpec = operands[operands.length - 1]!;
     const inPaths = operands.slice(0, -1);
@@ -18424,7 +18425,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     return {
                         exitCode: 1,
                         stdout: "",
-                        stderr: warnings + `montage: improper image header '${p}': ${(err as Error).message}\n`
+                        stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: improper image header '${p}': ${(err as Error).message}\n`
                     };
                 }
                 const im = loadedList?.[0];
@@ -18433,7 +18434,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     return {
                         exitCode: 1,
                         stdout: "",
-                        stderr: warnings + `montage: unable to open image '${p}': No such file or directory\n`
+                        stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: unable to open image '${p}': No such file or directory\n`
                     };
                 }
                 if (!anyTransparent) {
@@ -18452,7 +18453,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             yield;
             let loadedList: RgbaImage[] | undefined;
             try {
-                loadedList = (yield* parseInputOperandsSteps(p, files, { ...state, ...sizes[inputIndex] }, stdinBytes, undefined, undefined, undefined, undefined, index => {
+                loadedList = (yield* parseInputOperandsSteps(p, files, { ...state, ...sizes[inputIndex] }, stdinBytes, undefined, undefined, undefined, analysis, index => {
                     inputErrors += `montage: invalid image index ${index} '${parseInputToken(p).baseToken}'\n`;
                 }));
             }
@@ -18460,7 +18461,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 return {
                     exitCode: 1,
                     stdout: "",
-                    stderr: warnings + `montage: improper image header '${p}': ${(err as Error).message}\n`
+                    stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: improper image header '${p}': ${(err as Error).message}\n`
                 };
             }
             if (!loadedList) {
@@ -18521,7 +18522,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
         }
         const n = images.length;
-        if (!n) return { exitCode: 1, stdout: "", stderr: warnings + inputErrors };
+        if (!n) return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors };
         const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n)))));
         const rows = tileRows ?? Math.ceil(n / cols);
         const maxThumbW = Math.max((cellW ?? 0) + (frame ? 0 : borderW * 2), ...images.map((im) => im.width));
@@ -18624,7 +18625,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         files.set(outSpec.slice(5), new TextEncoder().encode(stdout));
         stdout = "";
     }
-    return { exitCode: inputErrors ? 1 : 0, stdout, stderr: warnings + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
+    return { exitCode: inputErrors ? 1 : 0, stdout, stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
 }
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
     return withCompareFiles(input, stdinBytes, signal, async backend => {
@@ -18679,18 +18680,19 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         return bytes ? yield* montageInputNames(bytes) : targets;
     }), signal);
     if ("exitCode" in parsed) return parsed;
-    const { warnings, trim, shadow, transforms, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture } = parsed;
+    const { trim, shadow, transforms, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture } = parsed;
+    const analysis = { warnings: parsed.warnings };
     const variableCells = !frame && cellW === undefined && cellH === undefined;
-    if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: warnings + "montage: missing an image filename\n" }; }
+    if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
         let textureImage: StoredRgbaImage | undefined;
         if (texture !== undefined) {
             try { textureImage = await parseStoredCompareInput(texture, state, backend, signal); }
             catch (error) {
                 signal.throwIfAborted(); if (error instanceof CompareInputFailure) throw error.reason;
-                return { exitCode: 1, stdout: "", stderr: warnings + `montage: improper image header '${texture}': ${(error as Error).message}\n` };
+                return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: improper image header '${texture}': ${(error as Error).message}\n` };
             }
-            if (!textureImage) return { exitCode: 1, stdout: "", stderr: warnings + `montage: unable to open image '${texture}': No such file or directory\n` };
+            if (!textureImage) return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: unable to open image '${texture}': No such file or directory\n` };
         }
         let inputErrors = "";
         const sources = new IntegerTable(backend.storage, 128), images = new StoredImageStack(backend.storage, signal);
@@ -18747,7 +18749,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 const path = paths[index]!;
                 const errorsBefore = inputErrors;
                 try {
-                    const loaded = await parseStoredCompareInput(path, { ...state, ...sizes[index] }, backend, signal, { source: await sourceAt(index), onInvalidIndex: invalidIndex => {
+                    const loaded = await parseStoredCompareInput(path, { ...state, ...sizes[index] }, backend, signal, { analysis, source: await sourceAt(index), onInvalidIndex: invalidIndex => {
                         inputErrors += `montage: invalid image index ${invalidIndex} '${parseInputToken(path).baseToken}'\n`;
                     }, visit: async image => {
                         const isNull = (image as StoredMagickImage)[magickInput]?.filePath === "null:";
@@ -18798,12 +18800,12 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     if (!loaded && inputErrors === errorsBefore) inputErrors += `montage: unable to open image '${path}': No such file or directory\n`;
                 } catch (error) {
                     signal.throwIfAborted(); if (error instanceof CompareInputFailure) throw error.reason;
-                    return { exitCode: 1, stdout: "", stderr: warnings + `montage: improper image header '${path}': ${(error as Error).message}\n` };
+                    return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: improper image header '${path}': ${(error as Error).message}\n` };
                 }
             }
         }
         const n = fast ? paths.length : images.length;
-        if (!n) return { exitCode: 1, stdout: "", stderr: warnings + inputErrors };
+        if (!n) return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors };
         const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n))))), rows = tileRows ?? Math.ceil(n / cols);
         const slotW = maxThumbW + padX * 2 + (frame ? frame.size * 2 : 0), slotH = maxThumbH + padY * 2 + (frame ? frame.size * 2 : 0) + (shadow ? 4 : 0);
         const output = inferOutputFormat(outSpec, "png");
@@ -18849,9 +18851,9 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     try { image = await parseStoredCompareInput(path, { ...state, ...sizes[pageStart + index] }, backend, signal, { source: await sourceAt(pageStart + index) }); }
                     catch (error) {
                         signal.throwIfAborted(); if (error instanceof CompareInputFailure) throw error.reason;
-                        return { exitCode: 1, stdout: "", stderr: warnings + `montage: improper image header '${path}': ${(error as Error).message}\n` };
+                        return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: improper image header '${path}': ${(error as Error).message}\n` };
                     }
-                    if (!image) return { exitCode: 1, stdout: "", stderr: warnings + `montage: unable to open image '${path}': No such file or directory\n` };
+                    if (!image) return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: unable to open image '${path}': No such file or directory\n` };
                     directPng = await sources.get(BigInt((pageStart + index) * 5 + 4)) === 1n;
                 } else image = (await images.get(pageStart + index))!;
                 if (variableCells && col === 0) {
@@ -18936,7 +18938,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
         let offset = 0;
         for (const chunk of stdoutChunks) { stdoutBytes.set(chunk, offset); offset += chunk.length; }
-        return { exitCode: inputErrors ? 1 : 0, stdout, stderr: warnings + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
+        return { exitCode: inputErrors ? 1 : 0, stdout, stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
     });
 }
 export async function runMontageCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {

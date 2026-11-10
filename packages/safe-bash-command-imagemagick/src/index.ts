@@ -17949,6 +17949,17 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "-background") {
             state.background = parseColor(argv[++i] ?? "#ffffff");
         }
+        else if (t === "-compose") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -compose\n" };
+            const { name } = magickCompositeMode(value);
+            if (!magickComposeNames.some(compose => compose.toLowerCase() === name))
+                return { exitCode: 1, stdout: "", stderr: `montage: unrecognized compose operator '${value}'\n` };
+            state.composeRaw = name;
+        }
+        else if (t === "+compose") {
+            state.composeRaw = "over";
+        }
         else if (t === "-texture") {
             texture = argv[++i];
             if (texture === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -texture\n" };
@@ -18326,6 +18337,15 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         files.set(outPath, encoded);
     }
     let canvas: RgbaImage;
+    function* compositeTile(image: RgbaImage, x: number, y: number): Generator<void, void, void> {
+        if (state.composeRaw.toLowerCase() === "over") {
+            yield* blitOverRgbaInPlaceSteps(canvas, image, x, y);
+        } else {
+            const previous = canvas;
+            canvas = yield* applyMagickCompositeLayerSteps(canvas, image, state.composeRaw, x, y, undefined, signal, 0, true);
+            if (canvas.data !== previous.data) detachRgbaBuffer(previous.data);
+        }
+    }
     let anyTransparent = state.background.a < 255 || (borderW > 0 && state.borderColor.a < 255);
 
     if (canStreamTiles && fastMetaDims.length === inPaths.length) {
@@ -18352,7 +18372,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             const canvasH = Math.max(1, variableCells ? rowHeights.reduce((sum, height) => sum + height, 0) : rows * slotH);
             let tileX = 0, tileY = 0;
                 if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
-            canvas = (yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background));
+            canvas = { ...yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background), hasAlpha: state.background.a < 255 };
             if (textureImage) for (let y = 0; y < canvasH; y += textureImage.height) {
                 for (let x = 0; x < canvasW; x += textureImage.width) {
                     if (++cooperativeWork % 64 === 0) yield;
@@ -18376,7 +18396,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 const dstX = cellX + off.left;
                 const dstY = cellY + off.top;
                 const rawTileBytes = files.get(p);
-                const directPng = rawTileBytes ? decodePngToCanvas(rawTileBytes, canvas, dstX + borderW, dstY + borderW) : undefined;
+                const directPng = rawTileBytes && state.composeRaw.toLowerCase() === "over" ? decodePngToCanvas(rawTileBytes, canvas, dstX + borderW, dstY + borderW) : undefined;
                 if (directPng) {
                     if (directPng.anyTransparent) anyTransparent = true;
                     continue;
@@ -18406,7 +18426,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                         if (im.data[k]! < 255) { anyTransparent = true; break; }
                     }
                 }
-                yield* blitOverRgbaInPlaceSteps(canvas, im, dstX + borderW, dstY + borderW);
+                yield* compositeTile(im, dstX + borderW, dstY + borderW);
                 detachRgbaBuffer(im.data);
             }
             yield* writePage(canvas, pageStart / (cols * rows), Math.ceil(n / (cols * rows)));
@@ -18506,7 +18526,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             const canvasW = Math.max(1, variableCells ? Math.max(0, ...rowWidths) + (shadow ? 4 : 0) : cols * slotW + (shadow ? 4 : 0));
             const canvasH = Math.max(1, variableCells ? rowHeights.reduce((sum, height) => sum + height, 0) : rows * slotH);
             let tileX = 0, tileY = 0;
-            canvas = (yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background));
+            canvas = { ...yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background), hasAlpha: state.background.a < 255 };
             if (textureImage) for (let y = 0; y < canvasH; y += textureImage.height) {
                 for (let x = 0; x < canvasW; x += textureImage.width) {
                     if (++cooperativeWork % 64 === 0) yield;
@@ -18541,14 +18561,14 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     im = yield* applyMagickRasterSteps(im, magickFramePixels(im, maxThumbW + frame.width * 2, maxThumbH + frame.height * 2, state.borderColor, frame.outer || frame.inner ? matte : state.background, frame.width, frame.height, frame.outer, frame.inner), signal, { width: maxThumbW + frame.width * 2, height: maxThumbH + frame.height * 2, hasAlpha: true });
                     detachRgbaBuffer(previous.data);
                     if (!shadow) {
-                        yield* blitOverRgbaInPlaceSteps(canvas, im, cellX, cellY);
+                        yield* compositeTile(im, cellX, cellY);
                         detachRgbaBuffer(im.data);
                         continue;
                     }
                     const shadowImage = yield* applyMagickRasterSteps(im, montageShadowPixels(im), signal, { width: im.width + 20, height: im.height + 20, hasAlpha: true });
                     yield* blitOverRgbaInPlaceSteps(shadowImage, im, 0, 0);
                     detachRgbaBuffer(im.data);
-                    yield* blitOverRgbaInPlaceSteps(canvas, shadowImage, cellX, cellY);
+                    yield* compositeTile(shadowImage, cellX, cellY);
                     detachRgbaBuffer(shadowImage.data);
                     continue;
                 }
@@ -18560,7 +18580,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     detachRgbaBuffer(shadowImage.data);
                 }
                 // Concatenate offsets bordered tiles without enlarging the canvas.
-                yield* blitOverRgbaInPlaceSteps(canvas, im, cellX + off.left + (concatenate ? borderW : 0), cellY + off.top + (concatenate ? borderW : 0));
+                yield* compositeTile(im, cellX + off.left + (concatenate ? borderW : 0), cellY + off.top + (concatenate ? borderW : 0));
                 detachRgbaBuffer(im.data);
             }
             yield* writePage(canvas, pageStart / (cols * rows), Math.ceil(n / (cols * rows)));
@@ -18793,7 +18813,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 }
             }
             let tileX = 0, tileY = 0;
-            let canvas = await createStoredCanvas(Math.max(1, canvasWidth), Math.max(1, canvasHeight), state.background, backend, signal);
+            let canvas = { ...await createStoredCanvas(Math.max(1, canvasWidth), Math.max(1, canvasHeight), state.background, backend, signal), hasAlpha: state.background.a < 255 };
             if (textureImage) canvas = await compositeStoredMagick(canvas, textureImage, backend, signal, 0, 0, "over", undefined, false, true, false, true);
             let anyTransparent = state.background.a < 255 || (borderW > 0 && state.borderColor.a < 255);
             for (let index = 0; index < pageSize; index++) {
@@ -18821,12 +18841,12 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 if (frame) {
                     image = await transformStoredMagickRaster(image, backend, magickFramePixels(image, maxThumbW + frame.width * 2, maxThumbH + frame.height * 2, state.borderColor, frame.outer || frame.inner ? matte : state.background, frame.width, frame.height, frame.outer, frame.inner), signal, { width: maxThumbW + frame.width * 2, height: maxThumbH + frame.height * 2, hasAlpha: true });
                     if (!shadow) {
-                        canvas = await compositeStoredMagick(canvas, image, backend, signal, col * slotW + padX, row * slotH + padY, "over", undefined, false, true);
+                        canvas = await compositeStoredMagick(canvas, image, backend, signal, col * slotW + padX, row * slotH + padY, state.composeRaw, undefined, false, true, false, false, 0, true);
                         continue;
                     }
                     let shadowImage = await transformStoredMagickRaster(image, backend, montageShadowPixels(image), signal, { width: image.width + 20, height: image.height + 20, hasAlpha: true });
                     shadowImage = await compositeStoredMagick(shadowImage, image, backend, signal, 0, 0, "over", undefined, false, true);
-                    canvas = await compositeStoredMagick(canvas, shadowImage, backend, signal, col * slotW + padX, row * slotH + padY, "over", undefined, false, true);
+                    canvas = await compositeStoredMagick(canvas, shadowImage, backend, signal, col * slotW + padX, row * slotH + padY, state.composeRaw, undefined, false, true, false, false, 0, true);
                     continue;
                 }
                 const width = fast ? Number(await sources.get(BigInt((pageStart + index) * 5 + 2))) : image.width, height = fast ? Number(await sources.get(BigInt((pageStart + index) * 5 + 3))) : image.height;
@@ -18844,7 +18864,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     const shadowImage = await transformStoredMagickRaster(image, backend, montageShadowPixels(image), signal, { width: image.width + 20, height: image.height + 20, hasAlpha: true });
                     canvas = await compositeStoredMagick(canvas, shadowImage, backend, signal, x, y, "over", undefined, false, true);
                 }
-                canvas = await compositeStoredMagick(canvas, image, backend, signal, x + (fast ? borderW : 0), y + (fast ? borderW : 0), "over", undefined, false, true, directPng);
+                canvas = await compositeStoredMagick(canvas, image, backend, signal, x + (fast ? borderW : 0), y + (fast ? borderW : 0), state.composeRaw, undefined, false, true, directPng && state.composeRaw.toLowerCase() === "over", false, 0, true);
             }
             if (title !== undefined) {
                 const { svg, height } = montageTitleSvg(title, canvas.width, state, padY);

@@ -3769,11 +3769,16 @@ async function applyVideoFilterChain(
       })
         .map(frame => ({ ...frame, durationSeconds: frame.durationSeconds * step }));
     } else if (name === "tinterlace") {
+      for (const key of Object.keys(named)) {
+        if (key !== "mode") throw new Error(`tinterlace: unsupported option ${key}`);
+      }
       const mode = parseFilterExpression(named.mode ?? argStr, "tinterlace", {
         PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
         merge: 0, drop_even: 1, drop_odd: 2, pad: 3, interleave_top: 4,
         interleave_bottom: 5, interlacex2: 6, mergex2: 7
       });
+      if (Number.isNaN(mode)) throw new Error("tinterlace: invalid expression");
+      if (mode < 0 || mode > 7) throw new RangeError("tinterlace: mode out of range [0 - 7]");
       if (positional.length !== 1 || Object.keys(named).some(key => key !== "mode") ||
           ![1, 2, 4].includes(roundToEven(mode))) {
         throw new Error("tinterlace: only modes drop_even, drop_odd and interleave_top are supported");
@@ -14999,6 +15004,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const msg = err instanceof Error ? err.message : String(err);
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
             if (msg === audioConversionDisabled) return { exitCode: 234 };
+            if (msg.startsWith("tinterlace: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("tinterlace:")) return { exitCode: 222 };
+            if (msg === "tinterlace: invalid expression" || msg === "tinterlace: invalid or unsupported expression") return { exitCode: 234 };
             if (msg.startsWith("shuffleframes: unsupported option ")) return { exitCode: 8 };
             if (msg === "shuffleframes: mapping must contain frame indices from -1 to the group size minus one") return { exitCode: 234 };
             if (msg === "negate: invalid expression" || msg === "negate: invalid or unsupported expression") return { exitCode: 234 };

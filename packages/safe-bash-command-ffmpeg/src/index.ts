@@ -10203,9 +10203,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "aloop" || trimmed.startsWith("aloop=")) {
                         const values: Record<string, number> = { loop: 0, size: 0, start: 0, time: Infinity };
                         const argument = trimmed.slice("aloop=".length);
-                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                        let optionPosition = 0;
+                        for (const option of (argument ? argument.split(":") : [])) {
                           const separator = option.indexOf("=");
-                          const key = separator < 0 ? ["loop", "size", "start", "time"][index] : option.slice(0, separator).trim();
+                          const key = separator < 0 ? ["loop", "size", "start", "time"][optionPosition] : option.slice(0, separator).trim();
+                          // Named options restart shorthand, skipping the first slot only
+                          // when it was the slot just visited, regardless of the named key.
+                          if (separator < 0) optionPosition++;
+                          else optionPosition = optionPosition === 0 ? 1 : 0;
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           if (!key || !Object.hasOwn(values, key)) throw new Error(`aloop: unsupported option ${key}`);
                           const number = key === "time" ? parseHlsDuration(value) : Number(value);

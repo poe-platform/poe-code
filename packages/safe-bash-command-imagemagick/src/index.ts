@@ -7721,11 +7721,12 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
 // ImageMagick 7.1.2 ColorspaceOptions, including existing aliases.
 const magickColorspaces = ["undefined", "adobe98", "cat02lms", "cielab", "cmy", "cmyk", "displayp3", "gray", "grey", "hcl", "hclp", "hsb", "hsi", "hsl", "hsv", "hwb", "jzazbz", "lab", "lch", "lchab", "lchuv", "lineargray", "lms", "log", "luv", "ohta", "oklab", "oklch", "prophoto", "rec601luma", "rec601ycbcr", "rec709luma", "rec709ycbcr", "rgb", "scrgb", "srgb", "transparent", "xyy", "xyz", "ycbcr", "ydbdr", "ycc", "yiq", "ypbpr", "yuv"];
 
-type MagickPixelOperation = { handlesWriteMask?: boolean; maskAlpha?: "transparent" | "opaque" | "extract" | "unmasked" | undefined; warning?: string; evaluate?: boolean; highDepth?: boolean; end: number; apply(image: RgbaImage, pixelOffset?: number, imageWidth?: number): Generator<void, RgbaImage, void> };
+type MagickPixelOperation = { meta?: { channels: "all" | readonly number[]; apply: MagickPixelOperation["apply"] }; handlesWriteMask?: boolean; maskAlpha?: "transparent" | "opaque" | "extract" | "unmasked" | undefined; warning?: string; evaluate?: boolean; highDepth?: boolean; end: number; apply(image: RgbaImage, pixelOffset?: number, imageWidth?: number): Generator<void, RgbaImage, void> };
 function parseMagickPixelOperation(tokens: readonly string[], settings: MagickState, start: number, signal?: AbortSignal): MagickPixelOperation | undefined {
     const state = { ...settings }, token = tokens[start];
     let i = start, apply: MagickPixelOperation["apply"], highDepth = false, warning: string | undefined;
     let maskAlpha: MagickPixelOperation["maskAlpha"];
+    let meta: MagickPixelOperation["meta"];
     let evaluate = false;
     if (token === "-colorspace" || token === "-grayscale" || token === "-type") {
         const value = tokens[++i];
@@ -8803,7 +8804,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const span = s1 - s0;
         const inverse = token === "+sigmoidal-contrast";
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
-        apply = function* (im) {
+        const adjust = function* (im: RgbaImage, channels: MagickState["channels"]): Generator<void, RgbaImage> {
             const cmyk = im.space === "cmyk";
             if (cmyk) im = yield* convertCmykPixels(im);
             const inkSamples = cmyk ? im.hueSamples?.slice() : undefined;
@@ -8847,6 +8848,22 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 }
             }
             return { ...im, data: out, evaluateSamples, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(inkSamples ? { hueSamples: inkSamples } : {}) };
+        };
+        meta = {
+            channels: !state.channelExplicit || state.channelDefault ? "all" : state.channels.meta ?? [],
+            apply: image => adjust(image, { r: true, g: true, b: true, a: false }),
+        };
+        const extra = meta;
+        apply = function* (image) {
+            const result = yield* adjust(image, channels);
+            if (image.metaChannels?.length) {
+                result.metaChannels = [...image.metaChannels];
+                for (const [index, plane] of image.metaChannels.entries()) {
+                    if (extra.channels === "all" || extra.channels.includes(index))
+                        result.metaChannels[index] = yield* extra.apply(plane);
+                }
+            }
+            return result;
         };
     }
     else if (token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors") {
@@ -9102,7 +9119,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, handlesWriteMask: token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors", maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-color-threshold" || token === "-blue-shift" || token === "-threshold" || token === "-contrast" || token === "+contrast" || token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+    return { end: i, apply, ...(meta ? { meta } : {}), handlesWriteMask: token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors", maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-color-threshold" || token === "-blue-shift" || token === "-threshold" || token === "-contrast" || token === "+contrast" || token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
 function parseChannelAssignments(expression: string): ChannelAssignment[] {
@@ -9249,6 +9266,15 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
         }
         await backend.storage.write(position + offset, pixels);
         result = { ...metadata, ...(operation.handlesWriteMask ? { storedWriteMask } : {}), width: image.width, height: image.height, position, ...(storedEvaluateSamples === undefined ? {} : {storedEvaluateSamples}), ...(storedData16 ? {storedData16} : {}), ...(storedDataFloat ? {storedDataFloat} : {}), ...(storedHueSamples === undefined ? {} : {storedHueSamples}) };
+    }
+    if (operation.meta && image.storedMetaChannels?.length) {
+        const { meta, ...planeOperation } = operation;
+        result.storedMetaChannels = [...image.storedMetaChannels];
+        for (const [index, plane] of image.storedMetaChannels.entries()) {
+            if (operation.meta.channels === "all" || operation.meta.channels.includes(index))
+                result.storedMetaChannels[index] = await transformStoredMagickPixels(plane, backend,
+                    { ...planeOperation, apply: meta.apply }, signal, highDepth);
+        }
     }
     return result;
 }

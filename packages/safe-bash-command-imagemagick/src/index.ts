@@ -5916,9 +5916,6 @@ function smushGap(value: string | undefined): number {
 
 function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: MagickState): Generator<void, RgbaImage, void> {
     let work = 0;
-    if (stack.length === 0) {
-        return (yield* createSolidRgbaImageSteps(1, 1, state.background));
-    }
     if (stack.length === 1)
         return stack[0]!;
     const totalW = vertical
@@ -10715,6 +10712,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = [{ ...canvas, gravity: image.gravity, virtualCanvas, density: image.density, ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) }];
         }
         else if (t === "-append" || t === "+append") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const oldStack = stack;
             const appended = (yield* appendStackImagesSteps(oldStack, t === "-append", state));
             for (const im of oldStack) {
@@ -12024,8 +12022,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const settings = { ...state };
             stackStep(async (stack, backend) => {
                 if (token === "-composite" && stack.length < 2) throw new Error("image sequence is required '-composite'");
-                if ((flatten || merge || mosaic) && !stack.length) throw new Error(`no images found for operation '${token}'`);
-                if (!stack.length) return stack;
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 let result: StoredRgbaImage;
                 if (token === "-composite") {
                     const base = (await stack.get(0))!; let overlay = (await stack.get(1))!, gx = 0, gy = 0;

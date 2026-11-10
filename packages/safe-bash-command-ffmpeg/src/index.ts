@@ -1017,7 +1017,7 @@ function parseAsetnsamples(argument: string) {
   return { size, pad };
 }
 
-function parseAtrim(argument: string, origRate: number, timeBase = 1 / origRate) {
+function parseAtrim(argument: string, origRate: number) {
   let duration = 0;
   const bounds = new Map<string, number>();
   const options: string[] = [];
@@ -1067,7 +1067,8 @@ function parseAtrim(argument: string, origRate: number, timeBase = 1 / origRate)
       continue;
     }
     if (key === "start_sample" && boundary === -1) bounds.delete(key);
-    else bounds.set(key, pts ? Math.sign(boundary) * Math.round(Math.abs(boundary) * (timeBase * origRate)) : boundary);
+    // Native atrim compares PTS options against timestamps rescaled to sample units.
+    else bounds.set(key, boundary);
   }
   const startPts = Math.min(bounds.get("start") ?? Infinity, bounds.get("start_pts") ?? Infinity);
   const endPts = Math.max(bounds.get("end") ?? -Infinity, bounds.get("end_pts") ?? -Infinity);
@@ -10218,7 +10219,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // Demand includes the complete frame where a downstream trim discovers EOF.
                         const next = audioFilters[filterIndex + 1]?.trim();
                         const trim = next?.split("=", 1)[0]!.split("@", 1)[0] === "atrim"
-                          ? parseAtrim(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "", origRate, audioTimeBase)
+                          ? parseAtrim(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "", origRate)
                           : undefined;
                         const length = stretched[0]?.length ?? 0;
                         let measuredEnd = 0;
@@ -12253,7 +12254,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           previousInputPts = inputPts;
                         }
                       } else if (trimmed === "atrim" || trimmed.startsWith("atrim=")) {
-                        const { duration, startPts, endPts, startSample, endSample } = parseAtrim(trimmed.slice("atrim=".length), origRate, audioTimeBase);
+                        const { duration, startPts, endPts, startSample, endSample } = parseAtrim(trimmed.slice("atrim=".length), origRate);
                         const length = stretched[0]?.length ?? 0;
                         const ranges: { start: number; end: number }[] = [];
                         const retained: NonNullable<typeof audioTimestamps> = [];

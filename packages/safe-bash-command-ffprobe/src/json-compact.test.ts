@@ -61,6 +61,14 @@ const cases = [
     name: "empty tag object", samples: 80, selection: ["-show_entries", "format_tags=missing"],
     expected: '{\n    "format": {         "tags": {  } }\n}\n'
   },
+  {
+    name: "absent stream tags", samples: 80, selection: ["-show_entries", "stream_tags"],
+    expected: '{\n    "streams": [\n        {  }\n    ]\n}\n'
+  },
+  {
+    name: "missing stream tags", samples: 80, selection: ["-show_entries", "stream_tags=missing"],
+    expected: '{\n    "streams": [\n        {  }\n    ]\n}\n'
+  },
   { name: "no sections", samples: 80, selection: [], expected: "{\n\n}\n" }
 ];
 

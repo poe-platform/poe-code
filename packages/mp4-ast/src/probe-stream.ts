@@ -90,7 +90,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
   const streamTags: Record<string, string | T> = {
     ...track.metadata,
     ...(adts || containerFormat === "webvtt" || (matroska || containerFormat === "avi") && track.language === "und" ||
-      containerFormat === "wav" && track.disposition?.attached_pic === 1
+      containerFormat === "wav"
       ? {} : { language: track.language || "und" })
   };
   if (track.handlerName) streamTags.handler_name = track.handlerName;
@@ -187,7 +187,7 @@ export function buildProbeStream<T extends string | MediaProbeText>(track: Probe
       multilayer: 0,
       ...track.disposition
     },
-    tags: (adts || containerFormat === "webvtt") && Object.keys(streamTags).length === 0 ? undefined : streamTags,
+    tags: (adts || containerFormat === "webvtt" || containerFormat === "wav") && Object.keys(streamTags).length === 0 ? undefined : streamTags,
     side_data_list: hasDisplayMatrix
       ? [{ side_data_type: "Display Matrix",
           displaymatrix: "\n" + [0, 1, 2].map(row =>

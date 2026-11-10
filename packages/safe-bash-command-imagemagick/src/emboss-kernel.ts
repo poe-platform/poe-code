@@ -6,9 +6,25 @@ import { regionContains, type Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Native emboss diagonal Gaussian convolution followed by channel-aware equalization. */
-export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { region?: Region | undefined }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { region?: Region | undefined }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
     const highDepth = !!(image.data16 || image.storedData16);
     const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
+    function* read(position: number, length: number): Generator<ConvolveRequest | undefined, Float64Array, Uint8Array | undefined> {
+        const bytes = yield { kind: "read", evaluate, highDepth, position, length };
+        if (!bytes || bytes.length !== length * (evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated emboss pixels");
+        const rgba = evaluate ? new Float64Array(bytes.slice().buffer)
+            : Float64Array.from(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes, value => highDepth ? value / 257 : value);
+        if (!cmyk) return rgba;
+        const inkBytes = yield { kind: "read", hue: true, position, length };
+        if (!inkBytes || inkBytes.length !== length * 8) throw new Error("Truncated emboss inks");
+        const inks = new Float64Array(inkBytes.slice().buffer), samples = new Float64Array(length / 4 * stride);
+        for (let i = 0; i < length / 4; i++) samples.set([
+            inks[i * 4]! * 255, inks[i * 4 + 1]! * 255, inks[i * 4 + 2]! * 255,
+            rgba[i * 4 + 3]!, inks[i * 4 + 3]! * 255,
+        ], i * stride);
+        return samples;
+    }
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.max(1e-12, Math.abs(geometry.height ?? 1));
     let half = radius > 0 ? Math.ceil(radius) : 1;
     if (radius <= 0 && sigma > 1e-12) {
@@ -33,8 +49,9 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
     const fill = (virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
         ? [background.r, background.g, background.b, background.a]
         : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
-    const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha] : [true, true, true, image.hasAlpha];
-    const histograms = Array.from({ length: channels ? 4 : 1 }, () => new Float64Array(65536));
+    if (cmyk) fill.push(0);
+    const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha, channels.k] : [true, true, true, image.hasAlpha, true];
+    const histograms = Array.from({ length: channels ? stride : 1 }, () => new Float64Array(65536));
     const lookups = histograms.map(() => new Float64Array(65536));
     const bin = (value: number): number => Math.max(0, Math.min(65535, Math.round(value * 257)));
     // Recompute bounded spans for the second pass, retaining floating point values
@@ -42,7 +59,7 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
     for (let pass = 0; pass < 2; pass++) {
         for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 512) {
             yield;
-            const count = Math.min(512, width - left), sums = new Float64Array(count * 4);
+            const count = Math.min(512, width - left), sums = new Float64Array(count * stride);
             for (let k = -half; k <= half; k++) {
                 yield;
                 const weight = weights[k + half]!;
@@ -60,16 +77,13 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
                     if (pixel >= 0) {
                         const start = direction === -1 ? pixel - run + 1 : pixel;
                         const length = (direction === 0 ? 1 : run) * 4;
-                        const bytes = yield { kind: "read", evaluate, highDepth, position: start * 4, length };
-                        if (!bytes || bytes.length !== length * (evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated emboss pixels");
-                        samples = evaluate ? new Float64Array(bytes.slice().buffer)
-                            : highDepth ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : bytes;
+                        samples = yield* read(start * 4, length);
                     }
                     for (let i = 0; i < run; i++) {
-                        const offset = (pixel < 0 || direction === 0 ? 0 : direction === -1 ? run - i - 1 : i) * 4;
+                        const offset = (pixel < 0 || direction === 0 ? 0 : direction === -1 ? run - i - 1 : i) * stride;
                         const alpha = image.hasAlpha ? samples[offset + 3]! / 255 : 1;
-                        for (let channel = 0; channel < 3; channel++) sums[(x + i) * 4 + channel]! += samples[offset + channel]! * weight * alpha;
-                        sums[(x + i) * 4 + 3]! += weight * alpha;
+                        for (let channel = 0; channel < stride; channel++) if (channel !== 3) sums[(x + i) * stride + channel]! += samples[offset + channel]! * weight * alpha;
+                        sums[(x + i) * stride + 3]! += weight * alpha;
                     }
                     x += run;
                 }
@@ -77,54 +91,62 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
             // Keep convolution values unrounded until equalization. Explicit
             // selections use per-channel maps; the default shares an intensity map.
             for (let x = 0; x < count; x++) {
-                const alpha = sums[x * 4 + 3]!;
-                if (image.hasAlpha) for (let channel = 0; channel < 3; channel++) {
-                    sums[x * 4 + channel]! /= Math.abs(alpha) < 1e-12 ? (alpha < 0 ? -1e-12 : 1e-12) : alpha;
+                const alpha = sums[x * stride + 3]!;
+                if (image.hasAlpha) for (let channel = 0; channel < stride; channel++) if (channel !== 3) {
+                    sums[x * stride + channel]! /= Math.abs(alpha) < 1e-12 ? (alpha < 0 ? -1e-12 : 1e-12) : alpha;
                 }
-                sums[x * 4 + 3] = alpha * 255;
+                sums[x * stride + 3] = alpha * 255;
                 // Q16-HDRI stores convolution results as float32 quantum samples.
-                for (let channel = 0; channel < 4; channel++) sums[x * 4 + channel] = Math.fround(sums[x * 4 + channel]! * 257) / 257;
+                for (let channel = 0; channel < stride; channel++) sums[x * stride + channel] = Math.fround(sums[x * stride + channel]! * 257) / 257;
             }
             const region = image.region;
             const position = (y * width + left) * 4;
-            const bytes = pass === 1 || image.region ? yield { kind: "read", evaluate, highDepth, position, length: count * 4 } : undefined;
-            if ((pass === 1 || image.region) && (!bytes || bytes.length !== count * 4 * (evaluate ? 8 : highDepth ? 2 : 1))) throw new Error("Truncated emboss pixels");
-            const samples = bytes ? evaluate ? new Float64Array(bytes.slice().buffer)
-                : Float64Array.from(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes, value => highDepth ? value / 257 : value) : undefined;
+            const samples = pass === 1 || image.region ? yield* read(position, count * 4) : undefined;
             // The native cache composites the region mask after convolution, before
             // building the histogram. Keep HDRI values through both mask applications.
             if (region) for (let x = 0; x < count; x++) {
                 if (regionContains(region, left + x, y)) continue;
-                const sourceAlpha = image.hasAlpha ? samples![x * 4 + 3]! / 255 : 1;
-                const editedAlpha = image.hasAlpha ? sums[x * 4 + 3]! / 255 : 1;
-                for (let channel = 0; channel < 3; channel++) sums[x * 4 + channel] = samples![x * 4 + channel]! * sourceAlpha + sums[x * 4 + channel]! * editedAlpha * (1 - sourceAlpha);
-                sums[x * 4 + 3] = samples![x * 4 + 3]!;
+                const sourceAlpha = image.hasAlpha ? samples![x * stride + 3]! / 255 : 1;
+                const editedAlpha = image.hasAlpha ? sums[x * stride + 3]! / 255 : 1;
+                for (let channel = 0; channel < stride; channel++) if (channel !== 3) sums[x * stride + channel] = samples![x * stride + channel]! * sourceAlpha + sums[x * stride + channel]! * editedAlpha * (1 - sourceAlpha);
+                sums[x * stride + 3] = samples![x * stride + 3]!;
             }
             if (pass === 0) {
                 for (let x = 0; x < count; x++) {
                     if (channels) {
-                        for (let channel = 0; channel < 4; channel++) if (mask[channel]) histograms[channel]![bin(sums[x * 4 + channel]!)]!++;
-                    } else histograms[0]![bin(sums[x * 4]! * 0.212656 + sums[x * 4 + 1]! * 0.715158 + sums[x * 4 + 2]! * 0.072186)]!++;
+                        for (let channel = 0; channel < stride; channel++) if (mask[channel]) histograms[channel]![bin(sums[x * stride + channel]!)]!++;
+                    } else histograms[0]![bin(sums[x * stride]! * 0.212656 + sums[x * stride + 1]! * 0.715158 + sums[x * stride + 2]! * 0.072186)]!++;
                 }
             } else {
                 const values = samples!.slice();
-                for (let x = 0; x < count; x++) for (let channel = 0; channel < (image.hasAlpha ? 4 : 3); channel++) {
+                for (let x = 0; x < count; x++) for (let channel = 0; channel < stride; channel++) {
                     if (!mask[channel]) continue;
                     const map = channels ? channel : 0, black = histograms[map]![0]!, lookup = lookups[map]!;
-                    const value = sums[x * 4 + channel]!;
+                    const value = sums[x * stride + channel]!;
                     let equalized = black === width * height ? value : lookup[bin(value)]!;
                     // Equalization writes through the same mask using the convolved source.
                     if (region && !regionContains(region, left + x, y)) {
-                        const sourceAlpha = image.hasAlpha ? sums[x * 4 + 3]! / 255 : 1;
-                        const editedAlpha = image.hasAlpha ? (black === width * height ? sums[x * 4 + 3]! : lookup[bin(sums[x * 4 + 3]!)]!) / 255 : 1;
+                        const sourceAlpha = image.hasAlpha ? sums[x * stride + 3]! / 255 : 1;
+                        const editedAlpha = image.hasAlpha ? (black === width * height ? sums[x * stride + 3]! : lookup[bin(sums[x * stride + 3]!)]!) / 255 : 1;
                         equalized = channel === 3 ? value : value * sourceAlpha + equalized * editedAlpha * (1 - sourceAlpha);
                     }
-                    values[x * 4 + channel] = Math.fround(equalized * 257) / 257;
+                    values[x * stride + channel] = Math.fround(equalized * 257) / 257;
                 }
-                const data = highDepth ? Uint16Array.from(values, value => Math.max(0, Math.min(65535, Math.round(value * 257))))
-                    : Uint8Array.from(values, value => Math.max(0, Math.min(255, Math.round(value))));
+                let rgba = values;
+                if (cmyk) {
+                    const inks = new Float64Array(count * 4);
+                    rgba = new Float64Array(count * 4);
+                    for (let x = 0; x < count; x++) {
+                        inks.set([values[x * stride]! / 255, values[x * stride + 1]! / 255, values[x * stride + 2]! / 255, values[x * stride + 4]! / 255], x * 4);
+                        for (let channel = 0; channel < 3; channel++) rgba[x * 4 + channel] = (1 - inks[x * 4 + channel]!) * (1 - inks[x * 4 + 3]!) * 255;
+                        rgba[x * 4 + 3] = values[x * stride + 3]!;
+                    }
+                    yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
+                }
+                const data = highDepth ? Uint16Array.from(rgba, value => Math.max(0, Math.min(65535, Math.round(value * 257))))
+                    : Uint8Array.from(rgba, value => Math.max(0, Math.min(255, Math.round(value))));
                 yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
-                yield { kind: "write", evaluate: true, position, data: new Uint8Array(values.buffer) };
+                yield { kind: "write", evaluate: true, position, data: new Uint8Array(rgba.buffer) };
             }
         }
         if (pass === 0) for (let channel = 0; channel < histograms.length; channel++) {

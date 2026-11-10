@@ -31,6 +31,7 @@ import { identifyMomentsSteps } from "./identify-moments.js";
 import { identifyMaximumSteps, identifyStoredMaximum } from "./identify-locate.js";
 import { hilbertPixels, riemersmaRemapSteps } from "./riemersma.js";
 import { fillCmykPixels, convertCmykPixels, copyCmykChannelsToRgb, applyCmykLookup, formatCmykPixel, rgbToCmyk } from "./colorspace-cmyk.js";
+import { tintCmykPixels } from "./tint-cmyk.js";
 import { modulateRgb } from "./modulate.js";
 import { cyclePixelSteps } from "./cycle.js";
 import { magnifyPixelSteps, parseMagnifyMethod, type MagnifyMethod } from "./magnify-kernel.js";
@@ -8958,6 +8959,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const intensity = 0.212656 * state.fill.r + 0.715158 * state.fill.g + 0.072186 * state.fill.b;
         const vector = fill.map((channel, index) => channel * strengths[index]! - intensity);
         apply = function* (image) {
+            if (image.space === "cmyk") return yield* tintCmykPixels(image, [...vector, -intensity]);
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
             const hueSamples = image.hueSamples?.slice();

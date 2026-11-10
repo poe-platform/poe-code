@@ -10951,6 +10951,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         yield;
         const t = tokens[i]!;
         const layerMethod = t === "-layers" ? (tokens[i + 1] ?? "").toLowerCase().replaceAll("-", "").replaceAll("_", "") : "";
+        if (!operandsOnly && ["trimbounds", "coalesce", "dispose", "compareany", "compareoverlay", "compareclear", "optimizetransparency", "removedups", "removezero", "optimizeplus", "optimizeframe", "optimize"].includes(layerMethod) && !stack.length) throw new Error("no images found for operation '-layers'");
         if (!operandsOnly && t === "--") { operandsOnly = true; i++; continue; }
         if (operandsOnly) {
             const loaded = yield* parseInputOperandsSteps(t, files, state, stdinBytes, undefined, state.extract, registers, analysis);
@@ -13631,6 +13632,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (i && i % 64 === 0) await yieldTurn(signal);
         const token = tokens[i]!;
         const layerMethod = token === "-layers" ? (tokens[i + 1] ?? "").toLowerCase().replaceAll("-", "").replaceAll("_", "") : "";
+        if (!operandsOnly && ["trimbounds", "coalesce", "dispose", "compareany", "compareoverlay", "compareclear", "optimizetransparency", "removedups", "removezero", "optimizeplus", "optimizeframe", "optimize"].includes(layerMethod)) {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error("no images found for operation '-layers'");
+                return stack;
+            });
+        }
         if (token === "") continue;
         if (!operandsOnly && (token === "-quiet" || token === "+quiet")) {
             stackStep(async stack => { analysis.quiet = token === "-quiet"; return stack; });

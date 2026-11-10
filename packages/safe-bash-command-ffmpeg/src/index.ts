@@ -9505,6 +9505,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else throw new Error(`ametadata: unsupported option ${name}`);
                         }
                         if (mode !== "print" && mode !== "add") throw new Error("ametadata: only mode=add and mode=print are supported");
+                        const lookupKey = key?.toLowerCase();
                         if (mode === "add") {
                           if (!key || metadataValue === undefined) throw new Error("ametadata: mode=add requires key and value");
                           const length = stretched[0]?.length ?? 0;
@@ -9515,7 +9516,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const count = timestamp ? timestamp.end - timestamp.start
                               : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                             const frame = audioMetadata[n] ?? { pts: timestamp?.pts ?? audioStartSample + start, tags: new Map<string, string>() };
-                            if (!frame.tags.has(key)) {
+                            if (!Array.from(frame.tags.keys()).some(name => name.toLowerCase() === lookupKey)) {
                               budget.allocateMemory(64 + 2 * (key.length + metadataValue.length));
                               frame.tags.set(key, metadataValue);
                             }
@@ -9529,9 +9530,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           let tags = "";
                           for (const [name, value] of frame.tags) {
-                            if (key !== undefined && key !== name) continue;
+                            if (lookupKey !== undefined && lookupKey !== name.toLowerCase()) continue;
                             if (metadataValue !== undefined && metadataValue !== value) continue;
-                            const line = `${name}=${value}\n`;
+                            const line = `${key ?? name}=${value}\n`;
                             budget.allocateMemory(line.length * 2);
                             tags += line;
                           }

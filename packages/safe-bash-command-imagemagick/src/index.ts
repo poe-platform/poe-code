@@ -2177,7 +2177,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     if ((img.space === "b-w" || img.space === "grey16") && (bg.r !== bg.g || bg.g !== bg.b))
         img = { ...img, space: "srgb", channels: 4 };
     const virtualCanvas = magickResizeCanvas(img, outW, outH);
-    return { ...img, width: outW, height: outH, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), hasAlpha: img.hasAlpha || bg.a < 255, ...(virtualCanvas ? { virtualCanvas } : {}) };
+    return { ...img, isPalette: false, width: outW, height: outH, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), hasAlpha: img.hasAlpha || bg.a < 255, ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
 function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition = "northwest", signal?: AbortSignal, analysis?: { warnings: string }): Generator<void, RgbaImage, void> {
@@ -11162,7 +11162,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         const { virtualCanvas: ignoredCanvas, ...mask } = image.storedWriteMask;
         image = { ...image, storedWriteMask: await transformStoredMagickCoordinates({ ...mask, ...(image.virtualCanvas ? { virtualCanvas: image.virtualCanvas } : {}) }, backend, token, geometry, state, signal, analysis) };
     }
-    return { ...image, region, position, width, height, ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}), ...(token === "-splice" ? { hasAlpha: image.hasAlpha || background.a < 255 } : {}),
+    return { ...image, region, position, width, height, ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}), ...(token === "-splice" ? { isPalette: false, hasAlpha: image.hasAlpha || background.a < 255 } : {}),
         ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 

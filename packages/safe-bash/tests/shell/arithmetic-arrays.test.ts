@@ -74,7 +74,7 @@ for (const [name, source, diagnostic] of [
   ["element recursion", 'a=("a[0]"); say "$((a[0]))"', "recursion"],
   ["subscript recursion", 'i="a[i]"; a=(10); say "$((a[i]))"', "nesting"],
   ["invalid negative index", 'a=(10); say "$((a[-2]))"', "index outside"],
-  ["invalid lvalue", 'a=(10); say "$(((a[0]+1)=2))"', "arithmetic syntax error"],
+  ["invalid lvalue", 'a=(10); say "$(((a[0]+1)=2))"', "attempted assignment to non-variable"],
 ] as const) test(`arithmetic arrays reject ${name}`, async () => {
   const { shell } = setup();
   try {

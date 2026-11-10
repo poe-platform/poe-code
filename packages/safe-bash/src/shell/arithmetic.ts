@@ -8,6 +8,7 @@ export type Arithmetic = (
   | { kind: "unary"; operator: string; operand: Arithmetic; postfix: boolean }
   | { kind: "binary"; operator: string; left: Arithmetic; right: Arithmetic }
   | { kind: "conditional"; condition: Arithmetic; yes: Arithmetic; no: Arithmetic }
+  | { kind: "invalid-write"; operand: Arithmetic; reason: string; offset: number }
 ) & { start?: number };
 
 export interface ArithmeticProgram {
@@ -257,7 +258,12 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
       }
       left = { kind: "unary", operator: token, operand, postfix: false };
     } else if (token === "(") {
+      // Grouping yields a value, not an assignable variable.
       left = expression();
+      if (left.kind === "name") {
+        budget.admit();
+        left = { kind: "unary", operator: "+", operand: left, postfix: false };
+      }
       if (current() !== ")") error("Unclosed arithmetic parenthesis");
       cursor++;
     } else if ((tc0 >= 65 && tc0 <= 90) || (tc0 >= 97 && tc0 <= 122) || tc0 === 95) {
@@ -282,7 +288,13 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
     while (true) {
       const operator = current();
       if (operator === "++" || operator === "--") {
-        if (left!.kind !== "name") error("Arithmetic assignment requires a variable");
+        if (left!.kind !== "name") {
+          if (token !== "(") error("Arithmetic assignment requires a variable");
+          left = { kind: "invalid-write", operand: left!, reason: "syntax error: operand expected", offset: tokenOffsets[cursor]! + 1, start };
+          cursor++;
+          budget.admit();
+          continue;
+        }
         lastParsedHasMutation = true;
         cursor++;
         budget.admit();
@@ -300,12 +312,15 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
         left = { kind: "conditional", condition: left!, yes, no: expression(3), start };
       } else {
         const assignment = priority === 2;
+        const operatorOffset = tokenOffsets[cursor - 1]!;
         if (assignment) {
-          if (left!.kind !== "name") error("Arithmetic assignment requires a variable");
+          if (left!.kind !== "name" && token !== "(") error("Arithmetic assignment requires a variable");
           lastParsedHasMutation = true;
         }
         const right = expression(priority + (assignment || operator === "**" ? 0 : 1));
-        left = { kind: "binary", operator, left: left!, right, start };
+        left = assignment && left!.kind !== "name"
+          ? { kind: "invalid-write", operand: left!, reason: "attempted assignment to non-variable", offset: operatorOffset, start }
+          : { kind: "binary", operator, left: left!, right, start };
       }
     }
     depth--;
@@ -458,6 +473,7 @@ export function* arithmeticEvaluation(program: ArithmeticProgram, references: Ar
     | { kind: "unary"; node: Extract<Arithmetic, { kind: "unary" }> }
     | { kind: "left"; node: Extract<Arithmetic, { kind: "binary" }> }
     | { kind: "right"; node: Extract<Arithmetic, { kind: "binary" }>; left?: bigint }
+    | { kind: "invalid-write"; node: Extract<Arithmetic, { kind: "invalid-write" }> }
     | { kind: "logical" };
   try {
     if (program.error) throw program.error;
@@ -481,6 +497,8 @@ export function* arithmeticEvaluation(program: ArithmeticProgram, references: Ar
             visiting.add(reference);
             pending.push({ kind: "variable", name: reference }, { kind: "evaluate", node: parseArithmetic(text ?? "0", 0, budget) });
           }
+        } else if (node.kind === "invalid-write") {
+          pending.push({ kind: "invalid-write", node }, { kind: "evaluate", node: node.operand });
         } else if (node.kind === "conditional") {
           pending.push({ kind: "conditional", node }, { kind: "evaluate", node: node.condition });
         } else if (node.kind === "unary") {
@@ -490,6 +508,8 @@ export function* arithmeticEvaluation(program: ArithmeticProgram, references: Ar
         } else {
           pending.push({ kind: "left", node }, { kind: "evaluate", node: node.left });
         }
+      } else if (frame.kind === "invalid-write") {
+        throw new ArithmeticFailure(frame.node.reason, frame.node.offset);
       } else if (frame.kind === "variable") visiting.delete(frame.name);
       else if (frame.kind === "conditional") {
         pending.push({ kind: "evaluate", node: value ? frame.node.yes : frame.node.no });

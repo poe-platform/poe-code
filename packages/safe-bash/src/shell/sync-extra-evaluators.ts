@@ -630,7 +630,7 @@ function syncStepsMayWriteName(steps: readonly SyncLoopStep[], name: string): bo
 function arithmeticReadsOtherName(node: ArithmeticProgram["tree"], inductionName: string): boolean {
   if (!node) return false;
   if (node.kind === "name") return node.name !== inductionName;
-  if (node.kind === "unary") return arithmeticReadsOtherName(node.operand, inductionName);
+  if (node.kind === "unary" || node.kind === "invalid-write") return arithmeticReadsOtherName(node.operand, inductionName);
   if (node.kind === "binary") return arithmeticReadsOtherName(node.left, inductionName) || arithmeticReadsOtherName(node.right, inductionName);
   if (node.kind === "conditional") return arithmeticReadsOtherName(node.condition, inductionName) || arithmeticReadsOtherName(node.yes, inductionName) || arithmeticReadsOtherName(node.no, inductionName);
   return false;
@@ -2346,6 +2346,8 @@ function evaluateArithmeticBigInt(program: ArithmeticProgram, references: Arithm
       if (depth >= 64) return evalDeep(node);
       budget.admit(0);
       switch (node.kind) {
+        case "invalid-write":
+          return evalDeep(node);
         case "literal":
           return node.value;
         case "name":
@@ -4051,6 +4053,7 @@ const syncExtraRuntimeMethods = {
   canSyncArithmeticOperands(this: any, tree: ArithmeticProgram["tree"], state: State, line?: number, depth = 0): boolean {
     if (!tree || depth > 128 || hasNonNamerefAttributes(state) || state.readonlyVariables?.size) return false;
     switch (tree.kind) {
+      case "invalid-write": return false;
       case "literal": return true;
       case "name": {
         const effName = resolveSyncNameref(state, tree.name);
@@ -4104,6 +4107,7 @@ const syncExtraRuntimeMethods = {
     if (!tree || !this.canSyncArithmeticOperands(tree, state, line, depth)) return false;
     const checkNoFault = (node: NonNullable<ArithmeticProgram["tree"]>): boolean => {
       switch (node.kind) {
+        case "invalid-write": return false;
         case "literal":
         case "name":
           return true;
@@ -14797,6 +14801,8 @@ const syncExtraRuntimeMethods = {
         const arithTreeMutatesVar = (node: ArithmeticProgram["tree"], vName: string): boolean => {
           if (!node) return false;
           switch (node.kind) {
+            case "invalid-write":
+              return arithTreeMutatesVar(node.operand, vName);
             case "literal":
             case "name":
               return false;
@@ -17250,6 +17256,8 @@ const syncExtraRuntimeMethods = {
     if (!store || !monitor) return false;
     const check = (node: NonNullable<ArithmeticProgram["tree"]>): boolean => {
       switch (node.kind) {
+        case "invalid-write":
+          return false;
         case "literal":
           return node.value >= -94906265n && node.value <= 94906265n;
         case "name": {

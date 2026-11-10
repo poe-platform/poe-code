@@ -35,6 +35,26 @@ for (const [source, stdout, exitCode = 0] of [
   assert.equal(result.exitCode, native.status);
 });
 
+for (const [source, stdout, diagnostic] of [
+  ['x=2; (( (x)=4 )); echo "$?:$x"', '1:2\n', '(x)=4 : attempted assignment to non-variable (error token is "=4 ")\n'],
+  ['x=2; (( (x)++ )); echo "$?:$x"', '1:2\n', '(x)++ : syntax error: operand expected (error token is "+ ")\n'],
+  ['a=(3 5); i=0; (( (a[i++])=4 )); echo "$?:$i:${a[*]}"', '1:1:3 5\n', '(a[i++])=4 : attempted assignment to non-variable (error token is "=4 ")\n'],
+  ['a=(3 5); i=0; (( (a[i++])-- )); echo "$?:$i:${a[*]}"', '1:1:3 5\n', '(a[i++])-- : syntax error: operand expected (error token is "- ")\n'],
+  ['x=2; i=0; (( (x)+=i++ )); echo "$?:$x:$i"', '1:2:0\n', '(x)+=i++ : attempted assignment to non-variable (error token is "+=i++ ")\n'],
+  ['x=2; (( x=(4) )); echo "$?:$x"', '0:4\n', ''],
+  ['x=2; (( x++ )); echo "$?:$x"', '0:3\n', ''],
+  ['x=2; (( (x) )); echo "$?:$x"', '0:2\n', ''],
+] as const) test(`parenthesized arithmetic write targets: ${source}`, async context => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  for (const command of basicCommands()) shell.commands.register(command);
+  const result = await shell.exec(source);
+  assert.equal(result.stdout, stdout);
+  assert.equal(result.exitCode, 0);
+  if (diagnostic) assert.ok(result.stderr.endsWith(diagnostic), result.stderr);
+  else assert.equal(result.stderr, '');
+});
+
 for (const [source, stdout] of [
   ['i=0; (( (++i, 1 / 0) )); echo "status=$? i=$i"', 'status=1 i=1\n'],
   ['i=0; (( ++i / (i - 1) )); echo "status=$? i=$i"', 'status=1 i=1\n'],

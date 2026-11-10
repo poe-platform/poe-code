@@ -4340,6 +4340,17 @@ function* applyMagickSolarizeSteps(img: RgbaImage, thresh: number, channels: Mag
             if (evaluateSamples) evaluateSamples[offset] = next / 257;
         }
     }
+    if (img.isPalette) {
+        // Later indexed operations must also see solarized, initially unused colors.
+        const solarize = (value: number): number => value * 257 > thresh ? 255 - value : value;
+        img = {
+            ...img,
+            ...(img.indexedColors ? { indexedColors: img.indexedColors.map(color =>
+                (color >>> 24) * 16777216 + solarize((color >>> 16) & 255) * 65536 +
+                solarize((color >>> 8) & 255) * 256 + solarize(color & 255)) } : {}),
+            ...(img.pngPalette ? { pngPalette: { ...img.pngPalette, bytes: img.pngPalette.bytes.map(solarize) } } : {})
+        };
+    }
     return { ...img, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 

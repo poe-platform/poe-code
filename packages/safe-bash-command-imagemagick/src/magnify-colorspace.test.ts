@@ -34,7 +34,7 @@ it.each(["scale2x", "scale3x"] as const)("%s retains working samples across row 
     const pixel = [-0.125, 1.25, 0.375, 0.75];
     const hueSamples = Float64Array.from(Array.from({ length: width }, () => pixel).flat());
     const output = new Float64Array(width * factor * factor * 4);
-    const steps = magnifyPixelSteps({ width, height: 1, hasAlpha: true, hueSamples }, method, { r: 0, g: 0, b: 0, a: 255 });
+    const steps = magnifyPixelSteps({ width, height: 1, space: "srgb", hasAlpha: true, hueSamples }, method, { r: 0, g: 0, b: 0, a: 255 });
     let next = steps.next();
     while (!next.done) {
         const request = next.value;

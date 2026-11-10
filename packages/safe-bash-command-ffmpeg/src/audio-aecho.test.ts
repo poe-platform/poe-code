@@ -260,6 +260,41 @@ for (const filter of [
   });
 }
 
+// Native FFmpeg 7.0.2 distinguishes option, gain, and list validation errors.
+for (const [filter, exitCode, output] of [
+  ["aecho=foo=1", 8, "4b454550"],
+  ["aecho=2:1:1:0.5", 222, "4b454550"],
+  ["aecho=in_gain=-1", 222, "4b454550"],
+  ["aecho=out_gain=1.1", 222, "4b454550"],
+  ["aecho=0.5:0.4:1|2:0.25", 234, "4b454550"],
+  ["aecho=0.5:0.5:1:0.5", 0, "a00f00000000000030f8000000000000a00f00000000000030f8000000000000"]
+] as const) {
+  for (const graph of [false, true]) {
+    it(`${filter} returns native status and output bytes (${graph ? "graph" : "simple"})`, async () => {
+      const volume = Volume.fromJSON({ "/out.pcm": "KEEP" });
+      volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from([16000, 0, 0, 0, -8000, 0, 0, 0], value => value / 32768)
+      ] }));
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-y", "-v", "error", "-i", "/in.wav", ...(graph
+          ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+          "-f", "s16le", "/out.pcm"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal((volume.readFileSync("/out.pcm") as Buffer).toString("hex"), output);
+      assert.equal(result.exitCode, exitCode, stderr);
+    });
+  }
+}
+
 async function run(filter: string, graph = false, frames = 16) {
   const channels = frames === 16 ? [new Float64Array(16), new Float64Array(16)] : [
     Float64Array.from({ length: frames }, (_, i) => ((i * 997) % 64000 - 32000) / 32768),

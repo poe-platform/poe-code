@@ -7929,8 +7929,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 if (idx % 65536 === 0) yield;
                 for (let channel = 0; channel < 4; channel++) {
                     if (!mask[channel]) continue;
-                    // Q16-HDRI stores the result as a float before scaling to output depth.
-                    const value = Math.fround((samples[idx + channel]! * slope + offset) * (65535 / quantum));
+                    // Keep Q16-HDRI working samples unclipped until encoding or -clamp.
+                    const value = Math.fround(evaluateSamples[idx + channel]! * 257 * slope + offset);
+                    evaluateSamples[idx + channel] = value / 257;
                     const sample = Math.max(0, Math.min(quantum, Math.round(data16 ? value : Math.fround(value / 257))));
                     if (data16) data16[idx + channel] = sample;
                     out[idx + channel] = data16 ? Math.round(sample / 257) : sample;

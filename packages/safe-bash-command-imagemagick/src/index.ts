@@ -635,6 +635,7 @@ interface MagickState {
   bmpCompression?: "rle" | "none";
   tiffTile?: { width: number; height: number };
   tiffCompression?: "none" | "lzw" | "deflate" | "packbits" | "jpeg";
+  interlace?: string;
   pngInterlace?: boolean;
   gifInterlace?: boolean;
   tiffFloatingPoint?: boolean;
@@ -1533,7 +1534,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     magick: short.m!,
     version: MAGICK_VERSION,
     directory: short.d!, basename: short.t!, extension: short.e!,
-    interlace: meta.isProgressive ? meta.format.toUpperCase() : "None",
+    interlace: context.interlace ?? (meta.isProgressive ? meta.format.toUpperCase() : "None"),
     scene: short.s!, scenes: short.n!,
     profiles: [...(meta.icc ? ["icc"] : []), ...(meta.xmp ? ["xmp"] : []), ...Object.keys(meta.gifApplications ?? {}).map(name => `gif:${name.toLowerCase()}`)].join(","),
     gamma: String(Number((meta.gamma ?? 1 / 2.2).toPrecision(6))),
@@ -6080,6 +6081,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             }
             im = { ...im, gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge" };
             if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
+            if (state.interlace !== undefined) im = Object.assign({}, im, { [magickInput]: { ...(im as MagickImage)[magickInput], interlace: state.interlace } });
             if (state.orientation !== undefined) im = { ...im, orientation: state.orientation };
             if (state.units !== undefined) im = applyMagickUnits(im, state.units);
             if (state.densityGeometry !== undefined) im = applyMagickDensity(im, state.densityGeometry);
@@ -8567,13 +8569,14 @@ if (t === "-seed") {
         else if (t === "-interlace") {
             const interlace = (tokens[++i] ?? "").toLowerCase();
             if (interlace !== "plane" && interlace !== "line" && interlace !== "none" && interlace !== "png" && interlace !== "gif" && interlace !== "jpeg" && interlace !== "partition") throw new Error(`unsupported interlace type '${interlace}'`);
+            state.interlace = interlace === "png" || interlace === "gif" || interlace === "jpeg" ? interlace.toUpperCase() : interlace[0]!.toUpperCase() + interlace.slice(1);
             state.jpegProgressive = interlace !== "none";
             state.tiffPlanar = interlace === "plane" || interlace === "partition";
             state.rawInterlace = interlace === "plane" || interlace === "line" ? interlace : undefined;
             state.pngInterlace = interlace !== "none";
             state.gifInterlace = interlace !== "none";
         }
-        else if (t === "+interlace") { delete state.rawInterlace; state.jpegProgressive = true; delete state.tiffPlanar; state.pngInterlace = true; state.gifInterlace = true; }
+        else if (t === "+interlace") { state.interlace = "Undefined"; delete state.rawInterlace; state.jpegProgressive = true; delete state.tiffPlanar; state.pngInterlace = true; state.gifInterlace = true; }
         else if (t === "-compress") {
             const compression = (tokens[++i] ?? "").toLowerCase();
             const method = ({ none: "none", lzw: "lzw", zip: "deflate", rle: "packbits", jpeg: "jpeg", bzip: "none" } as const)[compression as "none" | "lzw" | "zip" | "rle" | "jpeg" | "bzip"];
@@ -9193,6 +9196,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const levels = 2 ** state.inputDepth!, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
                 stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, false, 1, channels, signal), signal));
             }
+            if (t === "-interlace" || t === "+interlace") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
             if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity }; });
             if (t === "-virtual-pixel" || t === "+virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, virtualPixel: state.virtualPixel ?? "edge" }; });
         }
@@ -11274,6 +11278,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const levels = 2 ** state.inputDepth!, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
                 steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, false, 1, channels, signal), signal) : undefined);
             }
+            if (token === "-interlace" || token === "+interlace") {
+                const interlace = state.interlace!;
+                steps.push(async image => image ? { ...image, [magickInput]: { ...(image as StoredMagickImage)[magickInput], interlace } } : undefined);
+            }
             if (token === "-gravity" || token === "+gravity") {
                 const gravity = state.gravity;
                 steps.push(async image => image ? { ...image, gravity } : undefined);
@@ -13276,6 +13284,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   }
   image = { ...image, gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge" };
   if(state.page!==undefined)image={...image,virtualCanvas:state.page};
+  if(state.interlace!==undefined)image=Object.assign({},image,{[magickInput]:{...(image as StoredMagickImage)[magickInput],interlace:state.interlace}});
   if(state.orientation!==undefined)image={...image,orientation:state.orientation};
   if(state.units!==undefined)image=applyMagickUnits(image,state.units);
   if(state.densityGeometry!==undefined)image=applyMagickDensity(image,state.densityGeometry);

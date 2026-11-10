@@ -571,18 +571,25 @@ function isSyncResolved(promise: unknown): boolean {
 }
 
 async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteSource): Promise<{ exitCode: number }> {
+  const longOptions = { count: "c", repeated: "d", unique: "u", "all-repeated": "all-repeated:", group: "group:", "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z" };
   let ended = false;
   let repeatedMethod = "none";
   let groupMethod: string | undefined;
   const args = context.args.map(argument => {
     if (ended) return argument;
     if (argument === "--") ended = true;
+    else if (argument.startsWith("--")) {
+      const equals = argument.indexOf("=");
+      const name = argument.slice(2, equals < 0 ? undefined : equals);
+      const matches = Object.keys(longOptions).filter(option => option.startsWith(name));
+      if (matches.length === 1) argument = `--${matches[0]}${equals < 0 ? "" : argument.slice(equals)}`;
+    }
     if (argument === "--all-repeated") return "--all-repeated=none";
     if (argument === "--group") return "--group=separate";
     return argument;
   });
   const operandIndices: number[] = [];
-  const parsed = options(args, "cduiDf:s:w:z", { count: "c", repeated: "d", unique: "u", "all-repeated": "all-repeated:", group: "group:", "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z" }, context.env.POSIXLY_CORRECT !== undefined, index => { operandIndices.push(index); }, undefined, (option, method) => {
+  const parsed = options(args, "cduiDf:s:w:z", longOptions, context.env.POSIXLY_CORRECT !== undefined, index => { operandIndices.push(index); }, undefined, (option, method) => {
     if (option === "D") repeatedMethod = "none";
     else if (option === "all-repeated") {
       if (!["none", "prepend", "separate"].includes(method!)) throw new UsageError(`invalid argument '${method}' for 'all-repeated'`);

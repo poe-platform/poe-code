@@ -19,7 +19,7 @@ import { morphologyWorkingPixelSteps } from "./morphology-working.js";
 import { builtinPattern } from "./builtin-patterns.js";
 import { gradientRadii } from "./gradient-radii.js";
 import { gradientVector } from "./gradient-vector.js";
-import { gradientProjection } from "./gradient.js";
+import { gradientCenter, gradientProjection } from "./gradient.js";
 import { besselJ } from "./bessel.js";
 import { clahePixelSteps, parseClaheGeometry } from "./clahe-kernel.js";
 import { localThresholdPixelSteps, parseLocalThresholdGeometry } from "./local-threshold-kernel.js";
@@ -2058,8 +2058,7 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
             u32.fill(tmp32[0]!, i * span, (i + 1) * span);
         }
     } else {
-        const cx = center?.x ?? (w - 1) / 2;
-        const cy = center?.y ?? (h - 1) / 2;
+        const { x: cx, y: cy } = center ?? gradientCenter(w, h, direction);
         const projection = gradientProjection(w, h, direction, angle);
         for (let y = 0; y < h; y++) {
             if (++work % 16384 === 0)
@@ -16004,7 +16003,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const storedData16=checker?undefined:{position:backend.storage.allocate(width*height*8),length:width*height*4};
   const spec=baseToken.slice(baseToken.indexOf(":")+1),separator=spec.indexOf("-"),first=separator<0?spec:spec.slice(0,separator),last=separator<0?"":spec.slice(separator+1),a=parseColor(checker?"white":first||"#ffffff",true),b=parseColor(checker||separator<0?"#000000":last||"#ffffff",true);
   const storedHueSamples=a.cmyk?backend.storage.allocate(width*height*32):undefined;
-  const cx=state.gradientCenter?.x??(width-1)/2,cy=state.gradientCenter?.y??(height-1)/2,axes=gradientRadii(width,height,state.gradientExtent,state.gradientRadii),box=state.gradientBoundingBox;
+  const {x:cx,y:cy}=state.gradientCenter??gradientCenter(width,height,state.gradientDirection),axes=gradientRadii(width,height,state.gradientExtent,state.gradientRadii),box=state.gradientBoundingBox;
   const projection=gradientProjection(width,height,state.gradientDirection??(state.gradientExtent===undefined?undefined:"southeast"),state.gradientAngle);
   const vectorFactor=gradientVector(width,height,(radial&&state.gradientCenter)?undefined:radial||state.gradientAngle===undefined?state.gradientVector:undefined,radial,axes);
   for(let start=0;start<width*height;start+=4096){

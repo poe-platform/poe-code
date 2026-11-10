@@ -11202,6 +11202,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
                             || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
                             || target === "stereowiden" || target?.startsWith("stereowiden@")
+                            // aphaser declines runtime commands without aborting the render.
+                            || target === "aphaser" || target?.startsWith("aphaser@")
                             || action === "delays" && (target === "adelay" || target?.startsWith("adelay@"))
                             || action === "level" && ["afreqshift", "aphaseshift"].some(name => target === name || target?.startsWith(`${name}@`))
                             || action === "wet" && (target === "asubboost" || target?.startsWith("asubboost@"))
@@ -11211,7 +11213,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME tremolo[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback|crossfeed|drymix|enable EXPR or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays DELAYS or TIME alimiter[@NAME] limit LIMIT or TIME agate[@NAME] makeup GAIN or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN");
+                            throw new Error("asendcmd: expected TIME tremolo[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback|crossfeed|drymix|enable EXPR or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays DELAYS or TIME alimiter[@NAME] limit LIMIT or TIME agate[@NAME] makeup GAIN or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN or TIME aphaser[@NAME] COMMAND ARG");
                           }
                           return { time, target, action: action!, expression };
                         });

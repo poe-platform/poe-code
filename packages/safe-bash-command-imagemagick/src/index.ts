@@ -9256,6 +9256,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-roll") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geom = tokens[++i] ?? "+0+0";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
@@ -9579,6 +9580,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }));
         }
         else if (t === "-rotate") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const spec = tokens[++i] ?? "0";
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(spec, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
@@ -9594,6 +9596,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps(image, sortPixelSteps(image, state.intensity), signal));
         }
         else if (t === "-flip") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* flipImageSteps(im),
                     ...(im.region ? { region: { ...im.region, y: im.height - im.region.y - im.region.height } } : {}),
@@ -9601,6 +9604,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }));
         }
         else if (t === "-flop") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* flopImageSteps(im),
                     ...(im.region ? { region: { ...im.region, x: im.width - im.region.x - im.region.width } } : {}),
@@ -9609,6 +9613,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }));
         }
         else if (t === "-transpose") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* rotateImageSteps((yield* flipImageSteps(im)), 90, state.background),
                     ...(im.region ? { region: orientRegion(im.region, { ...im, orientation: 5 }) } : {}),
@@ -9616,6 +9621,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }));
         }
         else if (t === "-transverse") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* rotateImageSteps((yield* flopImageSteps(im)), 90, state.background),
                     ...(im.region ? { region: orientRegion(im.region, { ...im, orientation: 7 }) } : {}),
@@ -11752,6 +11758,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return transformStoredMagickRaster(image, backend, raisePixelSteps(image, bw, bh, raised, [channels.r, channels.g, channels.b, image.hasAlpha && channels.a]), signal);
             });
         } else if (!operandsOnly && (token === "-transpose" || token === "-transverse")) {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const background = state.background, kind = token === "-transpose" ? "flip" : "flop";
             steps.push(async (image, backend) => image ? {
                 ...await transformStoredImage(await transformStoredImage(image, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal),
@@ -11852,7 +11862,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = tokens[++i] ?? "", offset = tokens[++i] ?? "";
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, copyMagickPixelSteps(image, geometry, offset, !!image.storedData16), signal) : undefined);
         } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
-            if (token === "-chop") stackStep(async stack => {
+            if (token === "-chop" || token === "-roll") stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
@@ -11916,7 +11926,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const intensity = state.intensity;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, sortPixelSteps(image, intensity), signal) : undefined);
         } else if (!operandsOnly && ["-flip", "-flop", "-auto-orient"].includes(token)) {
-            if (token === "-auto-orient") stackStep(async stack => {
+            stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
@@ -11954,6 +11964,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return { ...await transformStoredImage(rotated, backend.storage, { kind: "extract", left, top, width: Math.min(bounds.width, rotated.width - left), height: Math.min(bounds.height, rotated.height - top) }, signal), virtualCanvas: bounds.virtualCanvas! };
             });
         } else if (!operandsOnly && token === "-rotate") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const spec = tokens[++i] ?? "0", settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;

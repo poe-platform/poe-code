@@ -3792,8 +3792,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     if (token === "-rotate") {
         const { angle, applies } = parseMagickRotation(tokens[start + 1] ?? "0"), background = state.background, backgroundExplicit = state.backgroundExplicit, kernel = state.kernel, filter = state.resizeFilter;
         if (!Number.isFinite(angle) || angle % 90 === 0) return;
-        if (state.kernel === "nearest" && (state.interpolation === "blend" || state.interpolation === "mesh" || state.interpolation === "catrom" || state.interpolation === "spline")) throw new Error(`Unsupported rotation interpolation: ${state.interpolation}`);
-        const nearest = state.kernel === "nearest" && state.interpolation === "nearest", viewport = state.distortViewport;
+        const interpolation = state.interpolation ?? "bilinear", viewport = state.distortViewport;
         const scale = state.distortScale === undefined ? undefined : Math.abs(Number.parseFloat(state.distortScale));
         return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "backgroundColor" | "virtualCanvas">): (WarpPlan & { space?: RgbaImage["space"]; steps: ReturnType<typeof warpPixelSteps> }) | undefined => {
             if (!applies(image)) return;
@@ -3808,7 +3807,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
                 x: page.x + plan.virtualCanvas.x,
                 y: page.y + plan.virtualCanvas.y
             } };
-            plan = { ...applyMagickDistortViewport(plan, image, viewport, plan.virtualCanvas, analysis), nearest };
+            plan = { ...applyMagickDistortViewport(plan, image, viewport, plan.virtualCanvas, analysis), ...(kernel === "nearest" ? { interpolation } : {}) };
             if (page && viewport !== undefined && plan.virtualCanvas) plan = { ...plan, virtualCanvas: {
                 ...plan.virtualCanvas,
                 width: Math.floor(page.width * plan.width / image.width + 0.5),

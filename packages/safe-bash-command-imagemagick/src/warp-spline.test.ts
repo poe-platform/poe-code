@@ -39,7 +39,6 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
 for (const retained of [false, true]) {
     it.each([
         ["-fx", "p{0.5,0.5}"],
-        ["-filter", "point", "-rotate", "30"],
         ["-interpolative-resize", "5x4!"],
         ["/in.png", "-clut"],
         ["/in.png", "-hald-clut"],

@@ -45,7 +45,6 @@ for (const retained of [false, true]) {
         ["-fx", "p{0.5,0.5}"],
         ["-kuwahara", "1x1"],
         ["-interpolative-resize", "5x4!"],
-        ["-filter", "point", "-rotate", "30"],
         ["/in.png", "-clut"]
     ])(`rejects unsupported blend sampling in %s without replacing output, retained=${retained}`, async (...operation) => {
         const original = Buffer.from("KEEP"), files = new Map([["/in.png", input], ["/out.png", original]]);

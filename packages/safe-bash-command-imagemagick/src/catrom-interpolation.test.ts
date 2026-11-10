@@ -40,7 +40,6 @@ for (const retained of [false, true]) {
     it.each([
         ["-fx", "p{0.5,0.5}"], ["-kuwahara", "2x1"],
         ["/in.png", "-clut"], ["-interpolative-resize", "5x5!"],
-        ["-filter", "point", "-rotate", "30"],
     ])(`rejects unsupported Catrom consumers without replacing output, retained=${retained}: %j`, async (...operation) => {
         const existing = Buffer.from("KEEP"), files = new Map([["/in.png", Buffer.from(opaque, "base64")], ["/out.png", existing]]);
         const filesystem = new MemoryFileSystem();

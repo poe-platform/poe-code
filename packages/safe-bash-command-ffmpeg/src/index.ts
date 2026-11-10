@@ -10617,6 +10617,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               output[c]![i] = !enabled ? channel[i]! : precision === "fixed"
                                 ? Math.max(-sampleScale, Math.min(sampleScale - 1,
                                     (sampleScale === 2147483648 ? roundToEven(channel[i]! * sampleScale * fixedGain / 256)
+                                      // Native PCM16 narrows the Q8 result to signed 32-bit before clipping.
+                                      : sampleScale === 32768 ? Math.floor((channel[i]! * sampleScale * fixedGain + 128) / 256) | 0
                                       : Math.floor((channel[i]! * sampleScale * fixedGain + 128) / 256)))) / sampleScale
                                 : channel[i]! * (precision === "float" ? Math.fround(factor) : factor);
                             }

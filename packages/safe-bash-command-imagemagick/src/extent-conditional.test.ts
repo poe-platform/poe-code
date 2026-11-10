@@ -49,3 +49,37 @@ for (const mode of ["buffered", "sync", "retained", "command"] as const) {
         expect(output.data).toEqual(Uint8Array.from(values.flatMap(value => [value, value, value, 255])));
     });
 }
+
+// Native ImageMagick 7.1.2-35 Q16-HDRI: restrictions retain dimensions,
+// but still composite the source onto the background canvas.
+for (const mode of ["buffered", "sync", "retained", "command"] as const) {
+    it.each([
+        { geometry: "2x2<", compose: "Over", expected: "37809db0" },
+        { geometry: "2x2<", compose: "Clear", expected: "00000000" },
+        { geometry: "2x2<", compose: "Copy", expected: "4080c080" },
+        { geometry: "6x5>", compose: "Over", expected: "37809db0" },
+        { geometry: "4x3", compose: "Over", expected: "37809db0" },
+        { geometry: "2x2<", compose: undefined, expected: "4x3 4,3,+0,+0" },
+        { geometry: "6x5>", compose: undefined, expected: "4x3 4,3,+0,+0" },
+    ])(`composites retained extent dimensions $geometry $compose (${mode})`, async ({ geometry, compose, expected }) => {
+        const files = new Map([["out", Buffer.from("KEEP")]]), fs = new MemoryFileSystem();
+        await fs.writeFile("/out", Buffer.from("KEEP"));
+        const args = ["-size", "4x3", "xc:#4080c080",
+            ...(compose ? ["-background", "#20804060", "-compose", compose] : []), "-extent", geometry,
+            ...(compose ? ["+repage", "-crop", "1x1+0+0", "-depth", "8", "rgba:out"]
+                : ["-format", "%wx%h %W,%H,%X,%Y", "info:out"])];
+        let stdout = "", stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runMagickCliSync(args, files)
+            : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        expect("stdout" in result ? result.stdout : stdout).toBe("");
+        const bytes = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("out")!;
+        expect(Buffer.from(bytes).toString(compose ? "hex" : "utf8")).toBe(expected);
+    });
+}

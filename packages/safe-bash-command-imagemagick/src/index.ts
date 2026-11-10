@@ -5187,7 +5187,11 @@ function magickExtentLayout(img: Pick<RgbaImage, "width" | "height">, geomStr: s
     const targetW = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.width, img.height * g.aspectRatio) : g.isPercent ? img.width * (g.percentX || 100) / 100 : g.width || g.areaLimit || img.width));
     const targetH = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.height, img.width / g.aspectRatio) : g.isPercent ? img.height * (g.percentY || 100) / 100 : g.height || img.height));
     if ((g.enlargeOnly && img.width > targetW && img.height > targetH)
-        || (g.shrinkOnly && img.width < targetW && img.height < targetH)) return undefined;
+        || (g.shrinkOnly && img.width < targetW && img.height < targetH)) {
+        // Conditional extent keeps the dimensions, but still composites onto a new canvas.
+        return { width: img.width, height: img.height, left: 0, top: 0,
+            area: { left: 0, top: 0, width: img.width, height: img.height } };
+    }
     // Extent converts geometry offsets to integer pixels before applying gravity.
     const offset = gravityAdjustBox(img.width, img.height, targetW, targetH, Math.trunc(g.x), Math.trunc(g.y), state.gravity);
     const left = -offset.x;
@@ -5202,8 +5206,7 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
     yield;
     const layout = magickExtentLayout(img, geomStr, state);
     // Extent retains the read-mask channel but clears its selection on the new canvas.
-    const readMask = img.readMask ? yield* createSolidRgbaImageSteps(layout?.width ?? img.width, layout?.height ?? img.height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
-    if (!layout) return readMask ? { ...img, readMask } : img;
+    const readMask = img.readMask ? yield* createSolidRgbaImageSteps(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
     const virtualCanvas = magickResizeCanvas(img, layout.width, layout.height);
     const source = (img as MagickImage)[magickInput];
     const background = state.backgroundExplicit ? state.background : img.backgroundColor ?? state.background;
@@ -5244,7 +5247,7 @@ async function decodeStoredMagickSvg(svg: string, density: number, backend: Comp
     }
     return decodeImageToStorage({ size, async read(position, length) { return backend.storage.read(base + position, length); } }, backend.storage, signal, { density });
 }
-function* extentEvaluateSamples(image: Pick<RgbaImage, "width">, layout: NonNullable<ReturnType<typeof magickExtentLayout>>, background: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* extentEvaluateSamples(image: Pick<RgbaImage, "width">, layout: ReturnType<typeof magickExtentLayout>, background: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const color = [background.r, background.g, background.b, background.a];
     for (let y = 0; y < layout.height; y++) for (let x = 0; x < layout.width; x += 512) {
         yield;
@@ -5269,7 +5272,7 @@ function* extentEvaluateSamples(image: Pick<RgbaImage, "width">, layout: NonNull
     }
 }
 
-function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: NonNullable<ReturnType<typeof magickExtentLayout>>, background: RgbaColor, state: MagickState): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: ReturnType<typeof magickExtentLayout>, background: RgbaColor, state: MagickState): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = "data16" in image && !!image.data16 || "storedData16" in image && !!image.storedData16;
     const evaluate = "evaluateSamples" in image && !!image.evaluateSamples || "storedEvaluateSamples" in image && image.storedEvaluateSamples !== undefined;
     const clippedCopy = magickCompositeMode(state.composeRaw).name === "copy"
@@ -13279,8 +13282,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: captured.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 const layout = magickExtentLayout(image, expanded, captured);
-                const readMask = image.readMask ? await createStoredCanvas(layout?.width ?? image.width, layout?.height ?? image.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
-                if (!layout) return readMask ? { ...image, readMask } : image;
+                const readMask = image.readMask ? await createStoredCanvas(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                 const virtualCanvas = magickResizeCanvas(image, layout.width, layout.height);
                 const source = (image as StoredMagickImage)[magickInput];
                 const background = captured.backgroundExplicit ? captured.background : image.backgroundColor ?? captured.background;

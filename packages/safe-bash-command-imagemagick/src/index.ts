@@ -8301,7 +8301,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
             const data16 = im.data16 ? new Uint16Array(im.data16) : (im.writeMask || im.region) ? Uint16Array.from(im.data, value => value * 257) : undefined;
-            const evaluateSamples = im.evaluateSamples?.slice() ?? Float64Array.from(im.data16 ?? im.data, value => im.data16 ? value / 257 : value);
+            const hueSamples = im.space !== "cmyk" ? im.hueSamples?.slice() : undefined;
+            const evaluateSamples = (hueSamples ? Float64Array.from(hueSamples, value => value * 255) : im.evaluateSamples?.slice()) ?? Float64Array.from(im.data16 ?? im.data, value => im.data16 ? value / 257 : value);
             const spans = white.map((value, channel) => value - black[channel]!);
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
@@ -8347,12 +8348,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         }
                     }
                     evaluateSamples[idx + c] = Math.fround(value * 257) / 257;
+                    if (hueSamples) hueSamples[idx + c] = Math.fround(value * 257) / 65535;
                     out[idx + c] = clampByteVal(value);
                     if (data16) data16[idx + c] = Math.max(0, Math.min(65535, Math.round(value * 257)));
                 }
             }
             const colored = endpointColors?.some(color => color.r !== color.g || color.g !== color.b);
-            return { ...im, ...(im.writeMask ? { writeMask: { ...im.writeMask } } : {}), ...(im.region ? { region: { ...im.region } } : {}), ...(colored && (im.space === "b-w" || im.space === "grey16") ? { space: "srgb" as const, channels: im.hasAlpha ? 4 as const : 3 as const } : {}), data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
+            return { ...im, ...(im.writeMask ? { writeMask: { ...im.writeMask } } : {}), ...(im.region ? { region: { ...im.region } } : {}), ...(colored && (im.space === "b-w" || im.space === "grey16") ? { space: "srgb" as const, channels: im.hasAlpha ? 4 as const : 3 as const } : {}), data: out, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), ...(data16 ? { data16 } : {}) };
         };
     }
     else if (token === "-color-threshold") {

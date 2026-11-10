@@ -26,6 +26,29 @@ async function run(filter: string, graph: boolean) {
 }
 
 for (const graph of [false, true]) {
+  // Native FFmpeg 7.0.2 s16le SHA-256 prefixes for alternate option spellings.
+  for (const [filter, canonical, hash] of [
+    ["vibrato=f=4:d=0.6:7", "vibrato=f=7:d=0.6", "4b06397b874256ec"],
+    ["vibrato=5:0.5:", "vibrato=5:0.5", "655e3162c084f689"]
+  ] as const) {
+    it(`${filter} matches native option parsing (graph ${graph})`, async () => {
+      const expected = await run(canonical, graph);
+      assert.equal(expected.result.exitCode, 0, expected.stderr);
+      assert.equal(createHash("sha256").update(expected.output).digest("hex").slice(0, 16), hash);
+      const actual = await run(filter, graph);
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      assert.deepEqual(actual.output, expected.output);
+    });
+  }
+
+  for (const filter of ["vibrato=5:0.5::", "vibrato=5::0.5", "vibrato=:0.5", "vibrato=5:0.5:7"]) {
+    it(`${filter} rejects invalid shorthand without replacing output (graph ${graph})`, async () => {
+      const { result, stderr, output } = await run(filter, graph);
+      assert.notEqual(result.exitCode, 0, stderr);
+      assert.equal(output.toString(), "KEEP");
+    });
+  }
+
   for (const [filter, hash] of [
     ["vibrato=enable='gte(t,0.5)'", "482a20d4ad944dd6ece2e45f77409bc759c428f308dbb69d56e2120a36eedbcb"],
     ["vibrato=enable=gte(t\\,0.5)", "482a20d4ad944dd6ece2e45f77409bc759c428f308dbb69d56e2120a36eedbcb"],

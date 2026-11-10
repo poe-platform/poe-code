@@ -11,9 +11,16 @@ export async function vibratoAudio(
   let depth = 0.5;
   let enable: string | undefined;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  const options = argument ? argument.split(":") : [];
+  if (options.at(-1) === "") options.pop();
+  let optionPosition = 0;
+  for (const option of options) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? ["f", "d"][index] : option.slice(0, separator).trim();
+    const key = separator < 0 ? ["f", "d"][optionPosition] : option.slice(0, separator).trim();
+    // FFmpeg 7 restarts shorthand after named options, skipping the first slot
+    // when it was just visited. The named key does not select the next slot.
+    if (separator < 0) optionPosition++;
+    else optionPosition = optionPosition === 0 ? 1 : 0;
     if (key === "enable") {
       enable = option.slice(separator + 1).trim();
       parseFilterExpression(enable, "vibrato enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 });

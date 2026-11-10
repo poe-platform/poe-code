@@ -1108,7 +1108,24 @@ function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | 
     const writeMask = (typeof opRaw === "string" ? base.writeMask : normalized.some(image => image.writeMask)) ? yield* createSolidRgbaImageSteps(w, h, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
     const readMask = typeof opRaw === "string" && normalized.some(image => image.readMask)
         ? yield* createSolidRgbaImageSteps(w, h, { r: 0, g: 0, b: 0, a: 255 }) : base.readMask;
-    return { ...yield* applyMagickRasterSteps(base, (typeof opRaw === "string" ? evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16), state.seed ?? 0n, w) : polyPixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16))), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized), ...(typeof opRaw === "string" ? { isPalette: false, inactiveAlpha: false } : {}), region: typeof opRaw === "string" ? undefined : base.region, writeMask, readMask, ...(virtualCanvas ? { virtualCanvas } : {}) };
+    const result = { ...yield* applyMagickRasterSteps(base, (typeof opRaw === "string" ? evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16), state.seed ?? 0n, w) : polyPixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16))), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized), ...(typeof opRaw === "string" ? { isPalette: false, inactiveAlpha: false } : {}), region: typeof opRaw === "string" ? undefined : base.region, writeMask, readMask, ...(virtualCanvas ? { virtualCanvas } : {}) };
+    if (typeof opRaw === "string" && base.metaChannels?.length) {
+        result.metaChannels = [];
+        for (let channel = 0; channel < base.metaChannels.length; channel++) {
+            const planes: RgbaImage[] = [];
+            for (const image of normalized) {
+                let plane = image.metaChannels?.[channel]
+                    ?? (yield* createSolidRgbaImageSteps(w, h, { r: 0, g: 0, b: 0, a: 255 }));
+                if (plane.width !== w || plane.height !== h)
+                    plane = yield* applyMagickRasterSteps(plane, extendEdgePixelSteps(plane, w, h, !!plane.data16, image.virtualPixel, state.background), signal, { ...plane, width: w, height: h });
+                planes.push(plane);
+            }
+            const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(channel) === true;
+            result.metaChannels.push(yield* applyMagickRasterSteps(planes[0]!,
+                evaluateSequencePixelSteps(w * h * 4, planes, opRaw, [selected, selected, selected, false], planes.some(plane => !!plane.data16), state.seed ?? 0n, w), signal, planes[0]!, planes));
+        }
+    }
+    return result;
 }
 
 function parseMagickConvolveKernel(spec: string, normalize = true, reverse = false): ConvolveKernel {
@@ -12347,6 +12364,22 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     // Keep the native mask channel while resetting its protection.
                     const storedWriteMask = (terms ? frames.some(image => image.storedWriteMask) : base.storedWriteMask) ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                     const result = await transformStoredMagickRaster({ ...base, ...(!terms ? { isPalette: false, inactiveAlpha: false } : {}) }, backend, (terms ? polyPixelSteps(base.width * base.height * 4, frames, terms, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth) : evaluateSequencePixelSteps(base.width * base.height * 4, frames, operation, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a, settings.channels.k === true] : undefined, highDepth, settings.seed ?? 0n, base.width)), signal, { ...base, hasAlpha: frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);
+                    if (!terms && base.storedMetaChannels?.length) {
+                        result.storedMetaChannels = [];
+                        for (let channel = 0; channel < base.storedMetaChannels.length; channel++) {
+                            const planes: StoredRgbaImage[] = [];
+                            for (const frame of frames) {
+                                let plane = frame.storedMetaChannels?.[channel]
+                                    ?? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
+                                if (plane.width !== width || plane.height !== height)
+                                    plane = await transformStoredMagickRaster(plane, backend, extendEdgePixelSteps(plane, width, height, !!plane.storedData16, frame.virtualPixel, settings.background), signal, { ...plane, width, height });
+                                planes.push(plane);
+                            }
+                            const selected = !settings.channelExplicit || settings.channelDefault || settings.channels.meta?.includes(channel) === true;
+                            result.storedMetaChannels.push(await transformStoredMagickRaster(planes[0]!, backend,
+                                evaluateSequencePixelSteps(width * height * 4, planes, operation, [selected, selected, selected, false], planes.some(plane => !!plane.storedData16), settings.seed ?? 0n, width), signal, planes[0]!, planes));
+                        }
+                    }
                     if (!terms) result.region = undefined;
                     result.storedWriteMask = storedWriteMask;
                     if (!terms && frames.some(image => image.readMask))

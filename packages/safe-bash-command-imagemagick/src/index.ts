@@ -10406,7 +10406,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-sort-pixels") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                let result = yield* applyMagickRasterSteps(image, sortPixelSteps(image, state.intensity), signal);
+                const result = yield* applyMagickRasterSteps(image, sortPixelSteps(image, state.intensity), signal);
                 if (image.readMask) result.readMask = yield* applyMagickRasterSteps(image.readMask as RgbaImage,
                     sortPixelSteps(image, state.intensity, true), signal, image.readMask as RgbaImage, [image, image.readMask as RgbaImage]);
                 return result;
@@ -13006,7 +13006,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const intensity = state.intensity;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                let result = await transformStoredMagickRaster(image, backend, sortPixelSteps(image, intensity), signal);
+                const result = await transformStoredMagickRaster(image, backend, sortPixelSteps(image, intensity), signal);
                 if (image.readMask) result.readMask = await transformStoredMagickRaster(image.readMask as StoredRgbaImage, backend,
                     sortPixelSteps(image, intensity, true), signal, image.readMask as StoredRgbaImage, [image, image.readMask as StoredRgbaImage]);
                 return result;

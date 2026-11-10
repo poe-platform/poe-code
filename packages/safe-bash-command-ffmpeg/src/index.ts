@@ -11204,7 +11204,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || target === "stereowiden" || target?.startsWith("stereowiden@")
                             // aphaser declines runtime commands without aborting the render.
                             || target === "aphaser" || target?.startsWith("aphaser@")
-                            || action === "delays" && (target === "adelay" || target?.startsWith("adelay@"))
+                            || ["delays", "enable"].includes(action!) && (target === "adelay" || target?.startsWith("adelay@"))
                             || action === "level" && ["afreqshift", "aphaseshift"].some(name => target === name || target?.startsWith(`${name}@`))
                             || action === "wet" && (target === "asubboost" || target?.startsWith("asubboost@"))
                             || ["mm", "cm", "m", "dry", "wet", "temp", "enable"].includes(action!) && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
@@ -11214,7 +11214,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME tremolo[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback|crossfeed|drymix|enable EXPR or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] mm|cm|m|dry|wet|temp|enable VALUE or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays DELAYS or TIME alimiter[@NAME] limit LIMIT or TIME agate[@NAME] makeup GAIN or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN or TIME aphaser[@NAME] COMMAND ARG or TIME atilt[@NAME] freq|slope|width|order|level VALUE");
+                            throw new Error("asendcmd: expected TIME tremolo[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback|crossfeed|drymix|enable EXPR or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] mm|cm|m|dry|wet|temp|enable VALUE or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays|enable VALUE or TIME alimiter[@NAME] limit LIMIT or TIME agate[@NAME] makeup GAIN or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN or TIME aphaser[@NAME] COMMAND ARG or TIME atilt[@NAME] freq|slope|width|order|level VALUE");
                           }
                           return { time, target, action: action!, expression };
                         });
@@ -12991,6 +12991,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         };
                         const offsets = stretched.map((_, channel) => parseDelay(values[channel] ?? (all ? values.at(-1) ?? "0" : "0")));
                         const updates = commands.map(command => {
+                          if (command.action === "enable") return { ...command, offsets: [] };
                           const values = command.expression.split("|").filter(value => value !== "");
                           const offsets: number[] = [];
                           // A malformed runtime delay stops this update, retaining earlier
@@ -12998,7 +12999,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           for (const value of values.slice(0, stretched.length)) {
                             try { offsets.push(parseDelay(value)); } catch { break; }
                           }
-                          return { sample: command.sample, offsets };
+                          return { ...command, offsets };
                         });
                         const inputLength = stretched[0]?.length ?? 0;
                         const padding = Math.min(...offsets);
@@ -13041,6 +13042,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (start < padding + inputLength) {
                               while (nextCommand < updates.length && updates[nextCommand]!.sample <= start - padding) {
                                 const update = updates[nextCommand++]!;
+                                if (update.action === "enable") {
+                                  try {
+                                    parseFilterExpression(update.expression, "adelay enable", { n: 0, t: 0, pos: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity });
+                                    enable = update.expression;
+                                  } catch { /* Rejected runtime expressions retain the previous setting. */ }
+                                }
                                 for (const [channel, delay] of update.offsets.entries()) {
                                   const state = history[channel]!;
                                   const oldDelay = state.delay;

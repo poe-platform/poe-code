@@ -149,6 +149,9 @@ channel buffers while retaining their history; the EOF tail keeps the largest de
 used. Target `adelay` selects the first subsequent delay instance. Runtime lists update
 only the supplied channels, even with `all=1`; invalid entries stop the update while
 retaining earlier channel changes.
+`asendcmd=c='0.002 adelay@d enable 0',adelay@d=3S|0S` replaces the enable expression
+at the next incoming frame, bypassing the delay while retaining its buffers and tail.
+Use `enable 1` to resume; invalid runtime expressions retain the previous setting.
 Use uppercase `S` after an integer for sample frames, lowercase `s` after an integer
 for seconds, or a numeric prefix (optionally followed by `ms`) for milliseconds.
 Hexadecimal milliseconds accept fractions and binary exponents: `0x1p-2` delays by 0.25 ms.

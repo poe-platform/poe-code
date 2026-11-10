@@ -10115,7 +10115,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             else if (precision === "double" || precision === "2") filteredSampleFormat = "dbl";
                           }
                           if (filteredSampleFormat === "u8") filteredSampleFormat = "s16";
-                          stretched = await echoAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal);
+                          stretched = await echoAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal, async message => {
+                            if (logLevel >= 24) await writeBytes(context.stderr, encodeUtf8(message), context.signal);
+                          });
                           if (["flt", "fltp", "dbl", "dblp"].includes(filteredSampleFormat)) statsScale = 1;
                         }
                         if (!audioTimestamps) {

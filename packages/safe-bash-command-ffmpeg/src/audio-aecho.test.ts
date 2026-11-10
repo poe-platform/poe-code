@@ -34,6 +34,43 @@ for (const [filter, hex] of [
   });
 }
 
+// Saturation is predicted from gains, even when these input samples cannot clip.
+for (const [filter, level, warning, hex] of [
+  ["aecho=1:1:1:1", "warning", true, "803e000000000000c0e0000000000000803e000000000000c0e0000000000000"],
+  ["aecho=0.5:0.5:1:0.5", "warning", false, "a00f00000000000030f8000000000000a00f00000000000030f8000000000000"],
+  ["aecho=1:1:1:1", "error", false, "803e000000000000c0e0000000000000803e000000000000c0e0000000000000"],
+  ["aecho=0.5:1:1:1", "warning", false, "401f00000000000060f0000000000000803e000000000000c0e0000000000000"],
+  ["aecho=0.5:1:1:0.5", "warning", false, "401f00000000000060f0000000000000401f00000000000060f0000000000000"],
+  ["aecho=in_gain=1:out_gain=1:delays=1:decays=1", "24", true, "803e000000000000c0e0000000000000803e000000000000c0e0000000000000"]
+] as const) {
+  for (const graph of [false, true]) {
+    it(`${filter} saturation warning at ${level} (${graph ? "graph" : "simple"})`, async () => {
+      const volume = Volume.fromJSON({ "/out.pcm": "KEEP" });
+      volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from([16000, 0, 0, 0, -8000, 0, 0, 0], value => value / 32768)
+      ] }));
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-y", "-v", level, "-i", "/in.wav", ...(graph
+          ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+          "-f", "s16le", "/out.pcm"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.equal((volume.readFileSync("/out.pcm") as Buffer).toString("hex"), hex);
+      assert.equal(stderr.includes("out_gain 1.000000 can cause saturation of output"), warning, stderr);
+      assert.equal(stderr.includes("can cause saturation"), warning, stderr);
+    });
+  }
+}
+
 // Native FFmpeg 7.0.2: 16 stereo frames at 8 kHz, with independent impulses.
 for (const [filter, frames, left, right] of [
   ["anull", 16, [[0, 12000]], [[2, -8000]]],

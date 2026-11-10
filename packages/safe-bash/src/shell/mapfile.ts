@@ -87,7 +87,7 @@ export async function mapfileOptions(context: CommandContext, work: StringWork, 
     }
   }
   options.name = context.args[cursor] ?? "MAPFILE";
-  if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(options.name)) throw new MapfileUsageError(`${options.name}: invalid identifier`, 1);
+  if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(options.name)) throw new MapfileUsageError(`\`${options.name}': not a valid identifier`, 1);
   return options;
 }
 

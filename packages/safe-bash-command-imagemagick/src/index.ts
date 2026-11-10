@@ -3899,6 +3899,11 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
             else { scaleX = nums[2]!; scaleY = nums[3]!; angle = nums[4]!; }
             if (nums.length === 6) { nx = nums[4]!; ny = nums[5]!; }
             else if (nums.length >= 7) { nx = nums[5]!; ny = nums[6]!; }
+            // Best-fit samples in raster coordinates; explicit centers are on the virtual page.
+            if (token === "+distort" && img.virtualCanvas) {
+                ox -= img.virtualCanvas.x; oy -= img.virtualCanvas.y;
+                nx -= img.virtualCanvas.x; ny -= img.virtualCanvas.y;
+            }
         }
         if (scaleX === 0 || scaleY === 0) throw new Error("invalid argument for option ScaleRotateTranslate : 'Zero Scale Given'");
         const radians = (angle * Math.PI) / 180, cos = Math.cos(radians), sin = Math.sin(radians);

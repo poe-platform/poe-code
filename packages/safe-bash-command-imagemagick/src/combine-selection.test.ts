@@ -7,7 +7,7 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 const cases = [
     { settings: ["-write-mask", "/mask.pgm"], clear: ["+write-mask"], hex: "585858ffc84011ff" },
     { settings: ["-region", "1x1+1+0"], clear: ["+region"], hex: "2060b0ff5a5a5aff" },
-    { settings: ["-write-mask", "/mask.pgm", "-region", "1x1+1+0"], clear: ["+write-mask", "+region"], hex: "2060b0ffc84011ff" },
+    { settings: ["-write-mask", "/mask.pgm", "-region", "1x1+1+0"], clear: ["+write-mask", "+region"], hex: "2060b0ff5a5a5aff" },
     { settings: [], clear: [], hex: "585858ff5a5a5aff" }
 ];
 

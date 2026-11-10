@@ -7560,13 +7560,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     }
                     data16[idx + 3] = im.data16 ? im.data16[idx + 3]! : im.data[idx + 3]! * 257;
                 }
-                return { ...im, data: out, data16, hasAlpha: false };
+                return { ...im, data: out, data16, hasAlpha: false, alphaBlend: im.alphaBlend ?? im.hasAlpha };
             };
         }
         else if (mode === "deactivate" || mode === "discrete") {
             apply = function* (im) {
                 yield;
-                return { ...im, hasAlpha: false };
+                return { ...im, hasAlpha: false, alphaBlend: im.alphaBlend ?? im.hasAlpha };
             };
         }
         else if (mode === "background") {
@@ -7637,6 +7637,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         else if (mode === "extract") {
             apply = function* (im) {
+                if (im.alphaBlend !== true) im = yield* prepareInactiveAlphaOutput(im);
                 return yield* extractChannelImageSteps({ ...im, hasAlpha: true }, 3);
             };
         }

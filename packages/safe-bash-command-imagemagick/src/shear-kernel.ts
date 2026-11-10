@@ -35,6 +35,7 @@ export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "d
     for (let start = 0; start < plan.width * plan.height; start += 1024) {
         yield;
         const count = Math.min(1024, plan.width * plan.height - start), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
+        const values = new Float64Array(count * 4);
         for (let i = 0; i < count; i++) {
             const x = (start + i) % plan.width + plan.offsetX;
             const column = x - plan.columnOffset;
@@ -73,10 +74,14 @@ export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "d
                     channels[3]! += alpha;
                 }
             }
-            // Avoid floating-point drift below exact half-byte ties (notably tan(45°)).
-            for (let c = 0; c < 3; c++) data[i * 4 + c] = Math.round(channels[3]! > 1e-10 ? channels[c]! / channels[3]! + 1e-10 : 0);
-            data[i * 4 + 3] = Math.round(channels[3]!);
+            // Retain Q16-HDRI working samples even when the input has only eight bits.
+            for (let c = 0; c < 4; c++) {
+                const value = c === 3 ? channels[3]! : channels[3]! > 1e-10 ? channels[c]! / channels[3]! : 0;
+                values[i * 4 + c] = Math.fround(value * 257 / scale) / 257;
+                data[i * 4 + c] = Math.round(values[i * 4 + c]! * scale);
+            }
         }
         yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
+        yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(values.buffer) };
     }
 }

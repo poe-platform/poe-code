@@ -559,7 +559,7 @@ silence for negative indices, and caps high indices at the last input channel. E
 such as `c=FL+FR`, masks such as `c=0x3`, and channel aliases such as `c=2c`.
 With no layout option, each expression produces one output channel (up to 64),
 so `aeval=val(0)|val(1)|0` adds a silent third channel.
-Expressions support arithmetic, `val(channel)`, `ch`,
+Expressions support arithmetic, `exp(x)` (for example, `aeval=exp(n/4)/4`), `val(channel)`, `ch`,
 `n`, `t`, `s`, `nb_in_channels`, and `nb_out_channels`; `c=same` retains the input
 layout and repeats the last expression when needed. `aeval=abs(val(1))` rectifies negative
 right-channel samples; `abs(x)` also accepts constants and arithmetic expressions. `sin(x)` takes radians, and

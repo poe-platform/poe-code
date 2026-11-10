@@ -75,6 +75,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
         else if (name === "abs" && args.length === 1) value = Math.abs(args[0]!);
         else if (name === "sgn" && args.length === 1) value = Number(args[0]! > 0) - Number(args[0]! < 0);
         else if (name === "sqrt" && args.length === 1) value = Math.sqrt(args[0]!);
+        else if (name === "exp" && args.length === 1) value = Math.exp(args[0]!);
         else if (name === "gauss" && args.length === 1) value = Math.exp(-args[0]! * args[0]! / 2) / Math.sqrt(2 * Math.PI);
         else if (name === "sin" && args.length === 1) value = Math.sin(args[0]!);
         else if (name === "cos" && args.length === 1) value = Math.cos(args[0]!);

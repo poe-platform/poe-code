@@ -7580,7 +7580,7 @@ function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: M
         }
     }
 }
-function* applyMagickLookup(image: RgbaImage, lookup: (Uint8Array | Uint16Array | Float32Array)[]): Generator<void, RgbaImage, void> {
+function* applyMagickLookup(image: RgbaImage, lookup: (Uint8Array | Uint16Array | Float32Array)[], paletteLookup = lookup): Generator<void, RgbaImage, void> {
     const data = new Uint8Array(image.data);
     const fractional = lookup[0] instanceof Float32Array;
     const evaluateSamples = fractional ? new Float64Array(data.length) : undefined;
@@ -7597,8 +7597,21 @@ function* applyMagickLookup(image: RgbaImage, lookup: (Uint8Array | Uint16Array 
             if (hueSamples) hueSamples[i + channel] = value / (data16 || fractional ? 65535 : 255);
         }
     }
+    // Apply the raster-derived lookup to every colormap entry, including unused colors.
+    const paletteValue = (value: number, channel: number) => {
+        const adjusted = paletteLookup[channel]![value * (paletteLookup[channel]!.length === 65536 ? 257 : 1)]!;
+        return data16 || fractional ? clampByteVal(adjusted / 257) : adjusted;
+    };
+    const indexedColors = image.indexedColors?.map(color =>
+        paletteValue(color >>> 24, 3) * 16777216 + paletteValue(color >>> 16 & 255, 0) * 65536
+        + paletteValue(color >>> 8 & 255, 1) * 256 + paletteValue(color & 255, 2));
+    const pngPalette = image.pngPalette ? {
+        ...image.pngPalette,
+        bytes: image.pngPalette.bytes.map((value, index) => paletteValue(value, index % 3)),
+        ...(image.pngPalette.transparency ? { transparency: image.pngPalette.transparency.map(value => paletteValue(value, 3)) } : {}),
+    } : undefined;
     const { data16: ignored, ...metadata } = image;
-    return { ...metadata, data, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(hueSamples ? { hueSamples } : {}) };
+    return { ...metadata, data, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(hueSamples ? { hueSamples } : {}), ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) };
 }
 function parseConnectedComponents(tokens: readonly string[], start: number): number {
     const value = tokens[start + 1];
@@ -7853,6 +7866,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         const lookup = Array.from({ length: cmyk ? 5 : 4 }, () => stretch
             ? Float32Array.from({ length: levels }, (_, value) => value * 65535 / (levels - 1))
             : Uint16Array.from({ length: levels }, (_, value) => value * 65535 / (levels - 1)));
+        const paletteLookup = [...lookup];
         if (token === "-normalize" || token === "-contrast-stretch") {
             const maximum = 65535;
             const whiteValue = Number.isFinite(whitePoint) ? whitePoint : blackPoint;
@@ -7865,9 +7879,12 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 for (; low < bins.length - 1; low++) { sum += bins[low]!; if (sum > lowTarget) break; }
                 sum = 0;
                 for (; high > 0; high--) { sum += bins[high]!; if (sum > highTarget) break; }
+                // A collapsed range leaves raster samples alone but still clips colormap colors.
+                const values = high === low ? paletteLookup[channel] = lookup[channel]!.slice() : lookup[channel]!;
                 // Native clips against the black point first, even when the points cross.
-                if (high !== low) for (let value = 0; value < levels; value++) lookup[channel]![value] = value * scale < low ? 0
+                for (let value = 0; value < levels; value++) values[value] = value * scale < low ? 0
                     : value * scale > high ? maximum
+                    : high === low ? value * maximum / (levels - 1)
                     : (value * scale - low) / (high - low) * maximum;
             }
         } else if (token === "-equalize") {
@@ -7884,7 +7901,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 }
             }
         }
-        return image => cmyk ? applyCmykLookup(image, lookup, active) : applyMagickLookup(image, lookup);
+        return image => cmyk ? applyCmykLookup(image, lookup, active) : applyMagickLookup(image, lookup, paletteLookup);
     } };
 }
 

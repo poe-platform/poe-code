@@ -52,7 +52,7 @@ for (const extension of [false, true]) {
     });
     for (const options of ["--help", "-t --help", "-d : --help", "--help -Q"]) {
       test(`${command} prints help without reading or clearing arrays: ${options}, extension=${extension}`, async () => {
-        const expected = spawnSync("bash", ["--noprofile", "--norc", "-c", `${command} ${options}`], { encoding: "utf8", env: { LC_ALL: "C" } });
+        const expected = spawnSync("bash", ["--noprofile", "--norc", "-c", `${command} ${options}`], { encoding: "utf8", env: { PATH: process.env.PATH, LC_ALL: "C" } });
         assert.equal(expected.status, 2);
         assert.equal(expected.stderr, "");
         assert.ok(expected.stdout.startsWith(`${command}: ${command} `));

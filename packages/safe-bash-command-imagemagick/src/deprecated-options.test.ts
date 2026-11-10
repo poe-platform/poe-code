@@ -8,9 +8,13 @@ for (const mode of ["buffered", "sync", "retained", "command"] as const) {
     it.each([
         { options: ["+colors"], exitCode: 1, error: "option deprecated, unable to execute '+colors'" },
         { options: ["+solarize"], exitCode: 1, error: "option deprecated, unable to execute '+solarize'" },
+        { options: ["xc:blue", "xc:red", "+append", "+unique-colors"], exitCode: 1, error: "option deprecated, unable to execute '+unique-colors'" },
+        { options: ["xc:blue", "xc:red", "+append", "+sort-pixels"], exitCode: 1, error: "option deprecated, unable to execute '+sort-pixels'" },
+        { options: ["xc:blue", "xc:red", "+append", "-unique-colors"], exitCode: 0, error: "", pixels: [255, 0, 0, 255, 0, 0, 255, 255] },
+        { options: ["xc:blue", "xc:red", "+append", "-sort-pixels"], exitCode: 0, error: "", pixels: [0, 0, 255, 255, 255, 0, 0, 255, 255, 0, 0, 255] },
         { options: ["+bogus"], exitCode: 11, error: "unrecognized option '+bogus'" },
         { options: ["-colors", "2"], exitCode: 0, error: "" }
-    ])(`matches native status and destination for $options (${mode})`, async ({ options, exitCode, error }) => {
+    ])(`matches native status and destination for $options (${mode})`, async ({ options, exitCode, error, pixels }) => {
         const original = new TextEncoder().encode("KEEP");
         const files = new Map([["out", original]]), filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/out", original);
@@ -27,6 +31,6 @@ for (const mode of ["buffered", "sync", "retained", "command"] as const) {
         expect(result.stdout).toBe("");
         expect(result.stderr).toBe(error ? `magick: ${error}\n` : "");
         expect(mode === "buffered" || mode === "sync" ? files.get("out") : await filesystem.readFile("/out"))
-            .toEqual(exitCode === 0 ? Uint8Array.of(255, 0, 0, 255) : original);
+            .toEqual(exitCode === 0 ? Uint8Array.from(pixels ?? [255, 0, 0, 255]) : original);
     });
 }

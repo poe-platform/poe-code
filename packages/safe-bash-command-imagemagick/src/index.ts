@@ -11828,7 +11828,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else {
-            if (t === "+colors" || t === "+solarize") throw new Error(`option deprecated, unable to execute '${t}'`);
+            if (t === "+colors" || t === "+solarize" || t === "+unique-colors" || t === "+sort-pixels") throw new Error(`option deprecated, unable to execute '${t}'`);
             if ((t.startsWith("-") && t !== "-") || t.startsWith("+")) throw new UnrecognizedConvertOptionError(`unrecognized option '${t}'`);
             const isLabelOperand = /^(?:label|caption):/i.test(t);
             const mergeOntoCanvas = isLabelOperand && stack.length === 1 && state.hasSize && stack[0]!.width === state.sizeWidth && stack[0]!.height === state.sizeHeight && state.background.r === 255 && state.background.g === 255 && state.background.b === 255 && state.background.a === 255;
@@ -14605,7 +14605,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+"))) {
                 // Execute preceding writes before reporting the option error.
                 stackStep(async () => {
-                    if (token === "+colors" || token === "+solarize") throw new Error(`option deprecated, unable to execute '${token}'`);
+                    if (token === "+colors" || token === "+solarize" || token === "+unique-colors" || token === "+sort-pixels") throw new Error(`option deprecated, unable to execute '${token}'`);
                     throw new UnrecognizedConvertOptionError(`unrecognized option '${token}'`);
                 });
                 break;

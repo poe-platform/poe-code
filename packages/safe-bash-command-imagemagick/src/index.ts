@@ -1655,7 +1655,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     profiles: [...(meta.icc ? ["icc"] : []), ...(meta.xmp ? ["xmp"] : []), ...Object.keys(meta.gifApplications ?? {}).map(name => `gif:${name.toLowerCase()}`)].join(","),
     gamma: String(Number((meta.gamma ?? 1 / 2.2).toPrecision(6))),
     ...(meta.jpegSamplingFactor === undefined ? {} : { "jpeg:sampling-factor": meta.jpegSamplingFactor }),
-    "exif:orientation": !meta.exif || meta.orientation === undefined ? "" : String(meta.orientation),
+    "exif:orientation": Object.entries(meta.properties ?? {}).find(([key]) => key.toLowerCase() === "exif:orientation")?.[1] ?? (!meta.exif || meta.orientation === undefined ? "" : String(meta.orientation)),
     colorspace: space, channels: `${space.toLowerCase()}${meta.hasAlpha || meta.inactiveAlpha && meta.alphaBlend !== false ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (hasAlphaChannel ? 1 : 0) + (meta.isPalette ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.region || meta.writeMask || meta.storedWriteMask ? 1 : 0) + metaChannelCount}.${metaChannelCount}`,
     width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
     depth: bitDepth, size: context.outputFilePath === undefined ? short.b! : "0B", compression, page: short.P!,

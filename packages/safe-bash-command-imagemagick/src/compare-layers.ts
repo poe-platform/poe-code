@@ -55,13 +55,13 @@ export function* optimizeTransparencyPixels(previous: Frame, current: Frame & Pi
         for (let x = 0; x < current.width; x += 1024) {
             yield;
             const count = Math.min(1024, current.width - x), position = (y * current.width + x) * 4;
-            const data = new Uint8Array((yield { kind: "read", position, length: count * 4 })!);
+            const data = new Uint16Array((yield { kind: "read", highDepth: true, position, length: count * 4 })!.slice().buffer);
             // CMYK uses the fourth working sample for black, not alpha.
             const hue = current.space === "cmyk" ? undefined
                 : new Float64Array((yield { kind: "read", hue: true, position, length: count * 4 })!.slice().buffer);
             const start = Math.max(0, x + dx), end = Math.min(previous.width, x + dx + count), py = y + dy;
             const prior = py >= 0 && py < previous.height && end > start
-                ? (yield { kind: "read", image: 1, position: (py * previous.width + start) * 4, length: (end - start) * 4 })! : undefined;
+                ? new Uint16Array((yield { kind: "read", image: 1, highDepth: true, position: (py * previous.width + start) * 4, length: (end - start) * 4 })!.slice().buffer) : undefined;
             const maskX = mask ? Math.min(x, mask.width - 1) : 0;
             const maskCount = mask ? Math.min(count, mask.width - maskX) : 0;
             const protection = mask ? (yield { kind: "read", image: 2, position: (Math.min(y, mask.height - 1) * mask.width + maskX) * 4, length: maskCount * 4 })! : undefined;
@@ -70,12 +70,12 @@ export function* optimizeTransparencyPixels(previous: Frame, current: Frame & Pi
                 const m = Math.min(pixel, maskCount - 1) * 4;
                 if (protection && 0.212656 * protection[m]! + 0.715158 * protection[m + 1]! + 0.072186 * protection[m + 2]! > 127.5) continue;
                 const i = pixel * 4, px = x + pixel + dx, j = (px - start) * 4;
-                if (prior && px >= start && px < end && matchesAlphaFloodfill(data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!, prior[j]!, prior[j + 1]!, prior[j + 2]!, prior[j + 3]!, fuzz)) {
+                if (prior && px >= start && px < end && matchesAlphaFloodfill(data[i]! / 257, data[i + 1]! / 257, data[i + 2]! / 257, data[i + 3]! / 257, prior[j]! / 257, prior[j + 1]! / 257, prior[j + 2]! / 257, prior[j + 3]! / 257, fuzz)) {
                     data[i + 3] = 0;
                     if (hue?.length) hue[i + 3] = 0;
                 }
             }
-            yield { kind: "write", position, data };
+            yield { kind: "write", highDepth: true, position, data: new Uint8Array(data.buffer) };
             if (hue?.length) yield { kind: "write", hue: true, position, data: new Uint8Array(hue.buffer) };
         }
     }

@@ -11672,17 +11672,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 for (let n = 0; n < stack.length; n++) {
                     const current = stack[n]!, previous = canvas;
                     const x = current.virtualCanvas?.x ?? 0, y = current.virtualCanvas?.y ?? 0;
-                    if (n > 0) stack[n] = yield* applyMagickRasterSteps(current, optimizeTransparencyPixels(canvas, current, state.fuzz, current.writeMask), signal, { ...current, hasAlpha: true }, current.writeMask ? [current, canvas, current.writeMask] : [current, canvas]);
+                    if (n > 0) stack[n] = yield* applyMagickRasterSteps(current, optimizeTransparencyPixels(canvas, current, state.alphaFuzz, current.writeMask), signal, { ...current, hasAlpha: true }, current.writeMask ? [current, canvas, current.writeMask] : [current, canvas]);
                     // Compare later frames against the canvas left by the optimized frame.
-                    canvas = yield* compositeImageSteps(canvas, [rgbaToCompositeLayer(stack[n]!, x, y, "over")]);
+                    canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, stack[n]!, x, y, "over"), signal, canvas, [canvas, stack[n]!]);
                     if (current.disposal === 3) canvas = previous;
                     else if (current.disposal === 2) {
-                        const data = new Uint8Array(canvas.data);
-                        for (let row = Math.max(0, y); row < Math.min(height, y + current.height); row++) {
-                            yield;
-                            if (Math.min(width, x + current.width) > Math.max(0, x)) data.fill(0, (row * width + Math.max(0, x)) * 4, (row * width + Math.min(width, x + current.width)) * 4);
-                        }
-                        canvas = { ...canvas, data, hasAlpha: true };
+                        const clear = yield* createSolidRgbaImageSteps(current.width, current.height, { r: 0, g: 0, b: 0, a: 0 });
+                        canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, clear, x, y, "source", undefined, false, 0, true), signal, canvas, [canvas, clear]);
                     }
                 }
             }
@@ -15000,7 +14996,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-layers" && layerMethod === "optimizetransparency") {
             i++;
             if (state.channelExplicit && !state.channels.a) continue;
-            const fuzz = state.fuzz;
+            const fuzz = state.alphaFuzz;
             stackStep(async (stack, backend) => {
                 if (stack.length < 2) return stack;
                 const first = (await stack.get(0))!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
@@ -15010,11 +15006,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const x = current.virtualCanvas?.x ?? 0, y = current.virtualCanvas?.y ?? 0;
                     const optimized = n > 0 ? await transformStoredMagickRaster(current, backend, optimizeTransparencyPixels(canvas, current, fuzz, current.storedWriteMask), signal, { ...current, hasAlpha: true }, current.storedWriteMask ? [current, canvas, current.storedWriteMask] : [current, canvas]) : current;
                     if (n > 0) await stack.set(n, optimized);
-                    canvas = await compositeStoredMagick(canvas, optimized, backend, signal, x, y, "over", undefined, true);
+                    canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, optimized, x, y, "over"), signal, canvas, [canvas, optimized]);
                     if (current.disposal === 3) canvas = previous;
                     else if (current.disposal === 2) {
                         const clear = await createStoredCanvas(current.width, current.height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
-                        canvas = await compositeStoredMagick(canvas, clear, backend, signal, x, y, "source", undefined, true);
+                        canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, clear, x, y, "source", undefined, false, 0, true), signal, canvas, [canvas, clear]);
                     }
                 }
                 return stack;

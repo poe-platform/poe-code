@@ -11303,6 +11303,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const outputEnds: number[] = [];
                             stretched = await resampleAudio(stretched, length, origRate, targetRate, budget, context.signal,
                               undefined, undefined, undefined, undefined, undefined, undefined, undefined, { ends, outputEnds });
+                            // Resampling produces floats; later filters and encoders must round
+                            // these samples rather than narrow the original integer PCM.
+                            if (!autoConversionFilters) format ??= filteredSampleFormat;
+                            filteredSampleFormat = panSampleFormat = "flt";
                             audioStartSample = Math.round(audioStartSample * targetRate / origRate);
                             // Resampler startup buffers input frames; flush emits a separate tail frame.
                             budget.allocateMemory(outputEnds.length * 24);

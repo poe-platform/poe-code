@@ -10522,8 +10522,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
                             if (count === 0) continue;
                             const end = Math.min(inputLength, start + count);
-                            budget.allocateMemory(24);
-                            audioTimestamps.push({ start, end, pts: audioStartSample + start });
+                            budget.allocateMemory(32);
+                            audioTimestamps.push({ start, end, pts: audioStartSample + start, pos: packet?.offset });
                             start = end;
                           }
                         }

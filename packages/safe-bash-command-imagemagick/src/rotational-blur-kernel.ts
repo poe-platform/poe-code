@@ -4,7 +4,7 @@ import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
-export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { region?: Region | undefined; alphaBlend?: boolean | undefined; hasAlpha?: boolean }, angle: number, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { region?: Region | undefined; alphaBlend?: boolean | undefined; hasAlpha?: boolean }, angle: number, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(image.data16 || image.storedData16);
     const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
     const { width, height } = image, cx = (width - 1) / 2, cy = (height - 1) / 2, radius = Math.hypot(cx, cy);
@@ -19,7 +19,8 @@ export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "heig
         cosines[j] = Math.cos(theta); sines[j] = Math.sin(theta);
     }
     const alphaActive = image.hasAlpha || image.alphaBlend !== false;
-    const mask = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
+    const gray = image.space === "b-w" || image.space === "grey16";
+    const mask = channels ? [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a] : undefined;
     const cache = new Map<number, Float64Array>();
     function* readSamples(position: number, length: number): Generator<ConvolveRequest, Float64Array, Uint8Array | undefined> {
         const page = Math.floor(position / 4096) * 4096;

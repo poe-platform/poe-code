@@ -3,7 +3,7 @@ import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
-export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">>, geometry: { width?: number; height?: number; x?: number }, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">>, geometry: { width?: number; height?: number; x?: number }, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(image.data16 || image.storedData16);
     const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
     const scale = !evaluate && highDepth ? 257 : 1;
@@ -32,7 +32,8 @@ export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" 
         dy[j] = Math.ceil(j * px / Math.hypot(px, py) - 0.5);
     }
     for (let j = 0; j < samples; j++) weights[j]! /= total;
-    const mask = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
+    const gray = image.space === "b-w" || image.space === "grey16";
+    const mask = channels ? [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a] : undefined;
     // Native samples a one-sided Gaussian along rounded directional offsets.
     for (let start = 0; start < width * height; start += 1024) {
         yield;

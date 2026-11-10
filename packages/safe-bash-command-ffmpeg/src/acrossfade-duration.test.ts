@@ -38,7 +38,7 @@ for (const prefix of ["d=", "duration=", "4:"]) {
       assert.deepEqual(output, control.volume.readFileSync("/out.pcm"));
     });
   }
-  for (const value of ["0.12e-1", "1.6e-2", "16e-3s", "16badms", "0.016junk", "-16ms", "NaN", "Infinity", ""]) {
+  for (const value of ["0.12e-1", "1.6e-2", "16e-3s", "16badms", "0.016junk", "-16ms", "NaN", "Infinity", prefix === "4:" ? ":" : ""]) {
     for (const existingOutput of [false, true]) {
       it(`acrossfade rejects ${prefix}${value} without ${existingOutput ? "replacing" : "creating"} output`, async () => {
         const { result, volume, stderr } = await run(`${prefix}${value}`, existingOutput);

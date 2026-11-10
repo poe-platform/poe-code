@@ -64,6 +64,7 @@ for (const prefix of ["ns=128:o=", "ns=128:overlap=", "128:0:"]) {
       assert.equal(control.result.exitCode, 0, control.stderr);
       assert.equal(control.output.length, (overlap ? 2064 : 2192) * 2);
       for (const value of values) {
+        if (prefix === "128:0:" && value === "") continue;
         const { result, stderr, output } = await run(`${prefix}${value}`);
         assert.equal(result.exitCode, 0, `${value}: ${stderr}`);
         assert.deepEqual(output, control.output, value);

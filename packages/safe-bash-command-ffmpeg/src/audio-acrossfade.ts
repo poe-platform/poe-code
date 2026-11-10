@@ -31,8 +31,10 @@ export async function acrossfadeAudio(
   const curves = Object.entries(audioFadeCurves);
   const curveNames = Object.fromEntries(curves.map(([name], index) => [name, index - 1]));
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  const options = argument ? argument.split(":") : [];
+  if (argument.endsWith(":")) options.pop();
   let position = 0;
-  for (const option of argument ? argument.split(":") : []) {
+  for (const option of options) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["ns", "d", "o", "c1", "c2"][position] : option.slice(0, separator).trim();
     // FFmpeg restarts shorthand after a named option, skipping the slot just

@@ -10206,6 +10206,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const colors = parseMagickColorCount(tokens[++i] ?? "");
             state.colors = colors;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                // Native quantizes these working colorspaces in sRGB.
+                if (image.magickColorspace && image.magickColorspace !== "RGB") image = yield* convertHuePixels(image, "sRGB");
                 const { data16: ignored, hueSamples: ignoredHue, ...pixels } = image;
                 const output = yield* applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, colors, state.quantizeGray, state.treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, state.dither ? { width: image.width, height: image.height, method: state.dither, diffusionAmount: state.diffusionAmount ?? 1 } : undefined), signal);
                 // Native classifies the resulting colormap, even without reducing its size.
@@ -12769,6 +12771,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             state.colors = colors;
             steps.push(async (image, backend) => {
                 if (!image) return;
+                if (image.magickColorspace && image.magickColorspace !== "RGB") image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
                 const output = await transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, colors, grayscale, treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined), signal);
                 if (!output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
                 const { magickColorspace: ignoredSpace, ...gray } = output;

@@ -23,27 +23,35 @@ export async function filterTempo(
   let previous = -hop;
   let position = -hop;
   let work = 0;
+  let flushing = false;
   while (true) {
     let current = previous + Math.trunc(hop * tempo);
     position += hop;
     const drift = Math.trunc(position * tempo - (previous + hop));
     const start = Math.min(window, Math.max(0, -drift));
     const end = Math.max(0, Math.min(window - drift, window - window / 16));
-    let correction = -drift;
-    let best = -Infinity;
-    // Cross-correlate the dominant channel of successive fragments, then
-    // weight peaks by drift and distance from the search boundaries.
-    for (let lag = start; lag < end; lag++) {
-      let correlation = 0;
-      for (let j = Math.max(0, -current); j < Math.min(window - lag, length - current, length - previous - lag); j++) {
-        correlation += (mono[previous + j + lag] ?? 0) * mono[current + j]!;
-        if (++work % 16384 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+    // A complete fragment still advances at exact EOF. If alignment pushes
+    // its reload past EOF, native flushing aligns that partial fragment again.
+    for (let attempt = 0; attempt < 2; attempt++) {
+      flushing ||= current + window > length;
+      let correction = -drift;
+      let best = -Infinity;
+      // Cross-correlate the dominant channel of successive fragments, then
+      // weight peaks by drift and distance from the search boundaries.
+      for (let lag = start; lag < end; lag++) {
+        let correlation = 0;
+        for (let j = Math.max(0, -current); j < Math.min(window - lag, length - current, length - previous - lag); j++) {
+          correlation += (mono[previous + j + lag] ?? 0) * mono[current + j]!;
+          if (++work % 16384 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+        }
+        const metric = correlation * (drift + lag) * (lag - start) * (end - lag);
+        if (metric > best) { best = metric; correction = lag - hop; }
       }
-      const metric = correlation * (drift + lag) * (lag - start) * (end - lag);
-      if (metric > best) { best = metric; correction = lag - hop; }
+      current -= correction;
+      if (flushing || current + window <= length) break;
     }
-    current -= correction;
     const count = Math.max(0, Math.min(window, length - current));
+    const final = flushing && current + count >= length;
     const overlap = Math.min(hop, count, length - previous - hop);
     for (let c = 0; c < channels.length; c++) {
       const channel = channels[c]!;
@@ -56,12 +64,12 @@ export async function filterTempo(
         const sample = current + i < 0 ? a : Math.fround(a * hann[hop + i]! + Math.fround(b * hann[i]!));
         dst.push(pcm16 ? Math.trunc(sample * 32768) / 32768 : sample);
       }
-      if (current + count >= length) {
+      if (final) {
         for (let i = overlap; i < count; i++) dst.push(channel[current + i] ?? 0);
       }
     }
     budget.checkDuration((output[0]?.length ?? 0) / sampleRate);
-    if (current + count >= length) break;
+    if (final) break;
     previous = current;
   }
   return output.map(channel => Float32Array.from(channel));

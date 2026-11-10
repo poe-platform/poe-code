@@ -1,4 +1,5 @@
 import { FsError, getCommandArguments, shellValueBytes, type ShellValue, type CommandDefinition } from "safe-bash-contracts";
+import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { diagnostic } from "safe-bash-io-engine/internal";
 import { argument, command, empty, encode, fail, Inputs, settings, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
@@ -13,7 +14,17 @@ function delimiters(bytes: Uint8Array, locale: string): readonly Uint8Array[] {
   for (let offset = 0; offset < bytes.length;) {
     if (bytes[offset] === 92) {
       const escaped = bytes[++offset];
-      if (escaped === undefined) fail("delimiter list ends in an unescaped backslash");
+      if (escaped === undefined) {
+        // GNU quotes the entire list only when it contains a colon, quote, or nonprintable byte.
+        const quoted = bytes.some(byte => byte === 34 || byte === 58 || byte < 32 || byte >= 127);
+        const escapes: Record<number, string> = { 7: "\\a", 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r", 34: '\\"', 92: "\\\\" };
+        let list = "";
+        for (const byte of bytes) {
+          list += quoted ? escapes[byte] ?? (byte < 32 || byte >= 127 ? `\\${byte.toString(8).padStart(3, "0")}` : String.fromCharCode(byte))
+            : String.fromCharCode(byte);
+        }
+        throw new PublicDiagnostic(`delimiter list ends with an unescaped backslash: ${quoted ? `"${list}"` : list}`);
+      }
       if (escaped === 48) { result.push(empty); offset++; continue; }
       if (escapes[escaped] !== undefined) { result.push(Uint8Array.of(escapes[escaped]!)); offset++; continue; }
     }

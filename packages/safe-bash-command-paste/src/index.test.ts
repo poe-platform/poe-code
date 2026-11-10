@@ -173,7 +173,7 @@ for (const args of [
   const result = await run(["-s", ...args], {}, {}, "1\n2\n");
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
-  assert.ok(result.stderr.includes("delimiter list ends in an unescaped backslash"), result.stderr);
+  assert.equal(result.stderr, `paste: delimiter list ends with an unescaped backslash: ${"\\"}\n`);
  });
 }
 
@@ -215,3 +215,31 @@ for (const serial of [false, true]) {
   });
  }
 }
+
+for (const [delimiter, quoted] of [
+ ["a\\", "a\\"],
+ [":\\", '":\\\\"'],
+ ["a b\\", "a b\\"],
+ ['a"\\', '"a\\"\\\\"'],
+ ["\t\\", '"\\t\\\\"'],
+ ["é\\", '"\\303\\251\\\\"'],
+ [shellValueFromBytes(Uint8Array.of(255, 92)), '"\\377\\\\"'],
+] as const) {
+ for (const attached of typeof delimiter === "string" ? [false, true] : [false]) {
+  test(`paste includes the offending delimiter list (${quoted}, attached=${attached})`, async () => {
+   const args: ShellValue[] = attached && typeof delimiter === "string"
+    ? [`--delimiters=${delimiter}`] : ["-d", delimiter];
+   const result = await run([...args, "a", "b"], { "/a": "A\nB\nC", "/b": "1\n2\n" }, { LC_ALL: "C" }, "x\ny\nz\n");
+   assert.equal(result.exitCode, 1);
+   assert.equal(result.stdout, "");
+   assert.equal(result.stderr, `paste: delimiter list ends with an unescaped backslash: ${quoted}\n`);
+  });
+ }
+}
+
+test("paste ignores an invalid delimiter list overridden by a valid list", async () => {
+ const result = await run(["-d", "a\\", "-d", ":", "a", "b"], { "/a": "A\nB\nC", "/b": "1\n2\n" }, { LC_ALL: "C" }, "x\ny\nz\n");
+ assert.equal(result.exitCode, 0);
+ assert.equal(result.stdout, "A:1\nB:2\nC:\n");
+ assert.equal(result.stderr, "");
+});

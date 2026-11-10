@@ -9492,12 +9492,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let metadataValue: string | undefined;
                         let comparison = "same_str";
                         let file: string | undefined;
-                        for (const option of trimmed.slice("ametadata=".length).split(":").filter(Boolean)) {
+                        let sawNamed = false;
+                        for (const [index, option] of trimmed.slice("ametadata=".length).split(":").entries()) {
+                          if (!option) continue;
                           const separator = option.indexOf("=");
-                          const name = option.slice(0, separator);
-                          const value = option.slice(separator + 1);
-                          if (separator < 0) throw new Error(`ametadata: unsupported option ${option}`);
-                          if (name === "mode") mode = value;
+                          const name = separator < 0 ? ["mode", "key", "value"][index] : option.slice(0, separator);
+                          const value = separator < 0 ? option : option.slice(separator + 1);
+                          if (separator < 0 && (sawNamed || name === undefined)) throw new Error(`ametadata: unsupported positional option ${option}`);
+                          if (separator >= 0) sawNamed = true;
+                          if (name === "mode") mode = value === "1" ? "add" : value;
                           else if (name === "key") key = value;
                           else if (name === "value") metadataValue = value;
                           else if (name === "file") file = value;

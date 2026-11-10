@@ -5,6 +5,43 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
+for (const options of [
+  "add:label:sample",
+  "mode=1:key=label:value=sample",
+  "1:label:sample",
+  "mode=add:key=label:value=sample",
+  "add:label:value=sample",
+  "1:key=label:value=sample"
+]) {
+  it(`accepts ametadata=${options} without changing PCM or frame timing`, async () => {
+    const input = Buffer.from("e803d007b80ba00f88137017581b401f28231027", "hex");
+    const volume = Volume.fromJSON({ "/in.raw": input, "/tags": "KEEP" });
+    const stdout: Uint8Array[] = [];
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-hide_banner", "-nostats", "-v", "info", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "in.raw",
+        "-af", `asetnsamples=n=3:p=0,ametadata=${options},ametadata=mode=print:file=tags`, "-f", "s16le", "-"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(),
+      stdout: { async write(bytes: Uint8Array) { stdout.push(bytes.slice()); } },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, stderr);
+    assert.deepEqual(Buffer.concat(stdout), input);
+    // FFmpeg 7.0.2: ten PCM16 samples split into frames of three, without padding.
+    assert.equal(volume.readFileSync("/tags", "utf8"),
+      "frame:0    pts:0       pts_time:0\nlabel=sample\n" +
+      "frame:1    pts:3       pts_time:0.000375\nlabel=sample\n" +
+      "frame:2    pts:6       pts_time:0.00075\nlabel=sample\n" +
+      "frame:3    pts:9       pts_time:0.001125\nlabel=sample\n");
+  });
+}
+
 async function run(kind: string, filter: string) {
   const channels = [0, 1].map(channel => Float64Array.from({ length: 144000 }, (_, i) => {
     const s = (i % 48 < 24 ? 4096 : -4096) / 32768;

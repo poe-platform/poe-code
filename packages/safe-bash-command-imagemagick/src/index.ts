@@ -6931,10 +6931,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     if (token === "-colorspace" || token === "-grayscale" || token === "-type") {
         const value = tokens[++i];
         const imageType = token === "-type" ? (value ?? "").toLowerCase() : undefined;
-        if (imageType !== undefined && !["bilevel", "grayscale", "grayscalealpha", "truecolor", "truecoloralpha", "palette", "palettealpha", "palettematte"].includes(imageType)) {
+        if (imageType !== undefined && !["bilevel", "grayscale", "grayscalealpha", "truecolor", "truecoloralpha", "palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(imageType)) {
             throw new Error(`unsupported image type '${value ?? ""}'`);
         }
-        const paletteType = imageType !== undefined && ["palette", "palettealpha", "palettematte"].includes(imageType);
+        const bilevelAlpha = imageType === "palettebilevelalpha" || imageType === "palettebilevelmatte";
+        const paletteType = imageType !== undefined && ["palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(imageType);
         const space = imageType === undefined ? (value ?? "gray").toLowerCase()
             : imageType === "truecolor" || imageType === "truecoloralpha" || paletteType ? "srgb" : "gray";
         // ImageMagick 7.1.2 ColorspaceOptions, plus our existing grey and luma aliases.
@@ -6980,10 +6981,25 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 image = bounded;
             }
             if (imageType === "truecolor" || imageType === "truecoloralpha" || paletteType) {
-                const hasAlpha = imageType === "truecoloralpha" || imageType === "palettealpha" || imageType === "palettematte";
+                const hasAlpha = imageType === "truecoloralpha" || (paletteType && imageType !== "palette");
                 const source = image;
                 // Enabling absent alpha makes it opaque; TrueColor preserves hidden RGB.
                 if (!hasAlpha || !image.hasAlpha) image = yield* prepareInactiveAlphaOutput({ ...image, hasAlpha: false });
+                if (bilevelAlpha) {
+                    const data = new Uint8Array(image.data), data16 = image.data16?.slice();
+                    const samples = image.data16 ?? image.data, midpoint = image.data16 ? 32767.5 : 127.5;
+                    for (let offset = 0; offset < data.length; offset += 4) {
+                        if (offset % 65536 === 0) yield;
+                        const opaque = samples[offset + 3]! > midpoint;
+                        data[offset + 3] = opaque ? 255 : 0;
+                        if (data16) data16[offset + 3] = opaque ? 65535 : 0;
+                        if (!opaque) {
+                            data.fill(0, offset, offset + 3);
+                            data16?.fill(0, offset, offset + 3);
+                        }
+                    }
+                    image = { ...image, data, ...(data16 ? { data16 } : {}) };
+                }
                 if (imageType === "palette" && source.hasAlpha) {
                     const samples = source.data16 ?? source.data;
                     for (let offset = 0; offset < samples.length; offset += 4) {
@@ -9081,7 +9097,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (pixelOperation.warning) analysis.warnings += pixelOperation.warning;
             if (t === "-contrast" || t === "+contrast") analysis.warnings += `magick: option has been replaced '${t}', use "${t[0]}level"\n`;
             i = pixelOperation.end;
-            const palette = t === "-type" && ["palette", "palettealpha", "palettematte"].includes(tokens[i]?.toLowerCase() ?? "");
+            const palette = t === "-type" && ["palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(tokens[i]?.toLowerCase() ?? "");
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const { evaluateSamples: ignoredEvaluate, ...bounded } = image;
                 const input = pixelOperation.evaluate ? image : bounded;
@@ -11235,7 +11251,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             i = pixelOperation.end;
-            const palette = token === "-type" && ["palette", "palettealpha", "palettematte"].includes(tokens[i]?.toLowerCase() ?? "");
+            const palette = token === "-type" && ["palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(tokens[i]?.toLowerCase() ?? "");
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
                 const converted = await transformStoredMagickPixels(image, backend, pixelOperation, signal);

@@ -3,13 +3,13 @@ import type { RgbaColor } from "@poe-code/image-ast/portable";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 
-export type MagnifyMethod = "epbx2x" | "scale2x" | "eagle2x" | "scale3x";
+export type MagnifyMethod = "epbx2x" | "scale2x" | "eagle2x" | "scale3x" | "eagle3x";
 
 export function parseMagnifyMethod(value: string): MagnifyMethod {
     const method = value.toLowerCase();
-    if (method === "epbx2x" || method === "scale2x" || method === "eagle2x" || method === "scale3x") return method;
+    if (method === "epbx2x" || method === "scale2x" || method === "eagle2x" || method === "scale3x" || method === "eagle3x") return method;
     // Native defaults unknown names to Scale2x, but these names select distinct algorithms.
-    if (["eagle3x", "eagle3xb", "fish2x", "hq2x", "xbr2x"].includes(method)) {
+    if (["eagle3xb", "fish2x", "hq2x", "xbr2x"].includes(method)) {
         throw new Error(`Unsupported magnify method: ${value}`);
     }
     return "scale2x";
@@ -18,7 +18,7 @@ export function parseMagnifyMethod(value: string): MagnifyMethod {
 // Bounded three-row neighborhoods serve both in-memory and retained rasters.
 // Copy complete Q16 pixels so equality and output preserve alpha and precision.
 export function* magnifyPixelSteps(image: { width: number; height: number; hasAlpha: boolean }, method: MagnifyMethod = "scale2x", background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const factor = method === "scale3x" ? 3 : 2;
+    const factor = method === "scale3x" || method === "eagle3x" ? 3 : 2;
     const gray = virtualPixel === "white" ? 65535 : virtualPixel === "gray" ? 32768 : 0;
     const fill = virtualPixel === "background" || virtualPixel.endsWith("-tile")
         ? [background.r, background.g, background.b, background.a].map(value => Math.round(value * 257))
@@ -58,6 +58,18 @@ export function* magnifyPixelSteps(image: { width: number; height: number; hasAl
                 if (eq(1, 2) && eq(2, 5)) selected[1] = 2;
                 if (eq(3, 6) && eq(6, 7)) selected[2] = 6;
                 if (eq(5, 8) && eq(8, 7)) selected[3] = 8;
+            } else if (method === "eagle3x") {
+                const topLeft = eq(0, 1) && eq(0, 3), topRight = eq(1, 2) && eq(2, 5);
+                const bottomLeft = eq(3, 6) && eq(6, 7), bottomRight = eq(5, 7) && eq(7, 8);
+                if (topLeft) selected[0] = 0;
+                if (topRight) selected[2] = 1;
+                if (bottomLeft) selected[6] = 3;
+                if (bottomRight) selected[8] = 5;
+                // Adjacent matching corners have identical pixels, so their native average is a copy.
+                if (topLeft && topRight) selected[1] = 0;
+                if (topLeft && bottomLeft) selected[3] = 0;
+                if (topRight && bottomRight) selected[5] = 2;
+                if (bottomLeft && bottomRight) selected[7] = 6;
             } else if (method === "epbx2x") {
                 if (!eq(3, 5) && !eq(1, 7) && (
                     eq(4, 3) || eq(4, 7) || eq(4, 5) || eq(4, 1) ||

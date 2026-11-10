@@ -14660,7 +14660,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const value = separator < 0 ? option : option.slice(separator + 1);
                           if (key === "map") map = value;
                           else if (key === "channel_layout") layout = value;
-                          else throw new Error(`channelmap: unsupported option ${key}`);
+                          else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+                            const number = parseFilterExpression(value, "channelmap", key === "thread_type" ? { slice: 1 } : {});
+                            if (key === "thread_type"
+                              ? !Number.isInteger(number) || number < -2147483648 || number > 4294967295
+                              : number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
+                              throw new RangeError(`channelmap: invalid ${key}`);
+                            }
+                            // Scheduling and hardware frame reservations do not change PCM samples.
+                          } else throw new Error(`channelmap: unsupported option ${key}`);
                         }
                         const speakers = Object.keys(audioSpeakerMasks);
                         const channelName = (name: string) => {

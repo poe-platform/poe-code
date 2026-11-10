@@ -636,6 +636,8 @@ options, and `234` for unexpected positional arguments.
 Swap stereo PCM channels with `-af 'channelmap=FR|FL'` or
 `-af 'channelmap=map=1|0:channel_layout=stereo'`.
 Channel maps accept input speaker names or numeric indices and allow repeated sources.
+The filter accepts `threads`, `thread_type`, and `extra_hw_frames` without changing
+the mapped PCM samples, for example `channelmap=1|0:threads=1`.
 A single trailing `|` is accepted without adding a channel; leading, interior, or
 repeated empty entries are rejected.
 With only `channel_layout=stereo`, `channelmap` preserves the input channels;

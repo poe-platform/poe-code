@@ -10,6 +10,7 @@ import { whiteBalancePixelSteps } from "./white-balance-kernel.js";
 import { compareColorspaceSteps } from "./compare-colorspace.js";
 import { setColorspacePixels } from "./set-colorspace.js";
 import { magickIntensity } from "./intensity.js";
+import { whiteThresholdMetaPixelSteps } from "./white-threshold-meta.js";
 import { sortPixelSteps } from "./sort-pixels.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import { maximumWorkingPixelSteps } from "./maximum-kernel.js";
@@ -9089,6 +9090,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     }
                 }
             }
+            if (!isBlack && im.metaChannels?.length) {
+                const metaChannels = [...im.metaChannels];
+                for (const [index, plane] of im.metaChannels.entries()) {
+                    if (!channels || channels.meta?.includes(index))
+                        metaChannels[index] = yield* applyMagickRasterSteps(plane, whiteThresholdMetaPixelSteps(im, !!channels, state.intensity), signal, plane, [plane, im]);
+                }
+                im = { ...im, metaChannels };
+            }
             return { ...im, isPalette: false, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
         };
     }
@@ -9182,6 +9191,16 @@ function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 
     }
     const writeMask = image.writeMask || image.region ? yield* createSolidRgbaImageSteps(image.width, image.height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
     return { ...separated, evaluateSamples, writeMask };
+}
+
+async function whiteThresholdStoredMetaChannels(image: StoredRgbaImage, result: StoredRgbaImage, backend: CompareFileSession, state: MagickState, signal: AbortSignal): Promise<void> {
+    if (!image.storedMetaChannels?.length) return;
+    result.storedMetaChannels = [...image.storedMetaChannels];
+    for (const [index, plane] of image.storedMetaChannels.entries()) {
+        if (state.channelDefault || state.channels.meta?.includes(index))
+            result.storedMetaChannels[index] = await transformStoredMagickRaster(plane, backend,
+                whiteThresholdMetaPixelSteps(image, !state.channelDefault, state.intensity), signal, plane, [plane, image]);
+    }
 }
 
 async function transformStoredMagickPixels(image: StoredRgbaImage, backend: CompareFileSession, operation: MagickPixelOperation, signal: AbortSignal, highDepth = false): Promise<StoredRgbaImage> {
@@ -13194,6 +13213,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const operation = parseMagickPixelOperation([token, expanded], settings, 0, signal)!;
                 if (operation.warning) analysis.warnings += operation.warning;
                 const result = await transformStoredMagickPixels(image, backend, operation, signal);
+                if (token === "-white-threshold") await whiteThresholdStoredMetaChannels(image, result, backend, settings, signal);
                 if ((token === "-solarize" || token === "-gamma" || token === "+gamma") && image.storedMetaChannels?.length) {
                     const metaOperation = parseMagickPixelOperation([token, expanded], { ...settings, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, 0, signal)!;
                     result.storedMetaChannels = [];
@@ -13236,11 +13256,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             i = pixelOperation.end;
+            const settings = { ...state };
             const palette = token === "-type" && ["palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(tokens[i]?.toLowerCase() ?? "");
             const bilevel = token === "-type" && tokens[i]?.toLowerCase() === "bilevel";
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession): Promise<StoredRgbaImage | undefined> => {
                 if (!image) return;
                 const converted = await transformStoredMagickPixels(image, backend, pixelOperation, signal);
+                if (token === "-white-threshold") await whiteThresholdStoredMetaChannels(image, converted, backend, settings, signal);
                 if (bilevel) {
                     const source = converted.storedData16 ? { ...converted, position: converted.storedData16.position } : converted;
                     return transformStoredMagickRaster(converted, backend, bilevelPixelSteps(converted.width * converted.height, !!converted.storedData16), signal, converted, [source]);

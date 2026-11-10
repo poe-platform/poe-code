@@ -8452,22 +8452,34 @@ function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<
     return { ...image, data, ...(data16 ? { data16 } : {}), space: "srgb", channels: image.hasAlpha ? 4 : 3 };
 }
 
-function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 4 | null): Generator<void, RgbaImage> {
+function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 4 | null, pixelOffset = 0, imageWidth = image.width): Generator<void, RgbaImage> {
     const missingChannel = channel === null || (channel === 4 ? image.space !== "cmyk" : channel === 3 ? !image.hasAlpha : channel !== 0 && (image.space === "b-w" || image.space === "grey16"));
     const { magickColorspace: ignoredSpace, hueSamples, storedHueSamples: ignoredStoredHue, ...components } = image;
     const separated = yield* extractChannelImageSteps(missingChannel ? yield* ensureAlphaImageSteps({ ...components, hasAlpha: false }, 0) : components, missingChannel ? 3 : channel === 4 ? 0 : channel);
     // CMYK stores K at working offset 3; alpha remains in the RGBA backing.
     const workingSamples = channel === 3 ? undefined : hueSamples;
     const samples = workingSamples ?? image.evaluateSamples;
-    if (!samples) return separated;
-    const evaluateSamples = new Float64Array(samples.length);
+    if (!samples && !image.writeMask && !image.region) return separated;
+    const evaluateSamples = new Float64Array(image.data.length);
     for (let offset = 0; offset < evaluateSamples.length; offset += 4) {
         if (offset % 65536 === 0) yield;
         // Native HDRI stores quantum-scaled components as floats before encoding the gray plane.
-        const value = missingChannel ? 0 : workingSamples ? Math.fround(samples[offset + (channel === 4 ? 3 : channel)]! * 65535) / 257 : samples[offset + channel]!;
+        let value = missingChannel ? 0 : workingSamples ? Math.fround(workingSamples[offset + (channel === 4 ? 3 : channel)]! * 65535) / 257
+            : image.evaluateSamples?.[offset + channel] ?? (separated.data16 ? separated.data16[offset]! / 257 : separated.data[offset]!);
+        const pixel = pixelOffset + offset / 4;
+        const outsideRegion = image.region && !regionContains(image.region, pixel % imageWidth, Math.floor(pixel / imageWidth));
+        const mask = image.writeMask;
+        const maskOffset = mask ? (Math.min(Math.floor(offset / 4 / image.width), mask.height - 1) * mask.width + Math.min(offset / 4 % image.width, mask.width - 1)) * 4 : 0;
+        const protection = outsideRegion ? 1 : mask ? (0.212656 * mask.data[maskOffset]! + 0.715158 * mask.data[maskOffset + 1]! + 0.072186 * mask.data[maskOffset + 2]!) / 255 : 0;
+        if (protection > 0) {
+            // Native clips after disabling alpha and mapping the cloned red sample to gray.
+            const original = hueSamples ? Math.fround(hueSamples[offset]! * 65535) / 257
+                : image.evaluateSamples?.[offset] ?? (image.data16 ? image.data16[offset]! / 257 : image.data[offset]!);
+            value = Math.fround((original * protection + value * (1 - protection)) * 257) / 257;
+        }
         evaluateSamples[offset] = evaluateSamples[offset + 1] = evaluateSamples[offset + 2] = value;
         evaluateSamples[offset + 3] = 255;
-        if (workingSamples) {
+        if (workingSamples || image.writeMask || image.region) {
             const bounded = Math.max(0, Math.min(255, value));
             separated.data[offset] = separated.data[offset + 1] = separated.data[offset + 2] = Math.round(bounded);
             if (separated.data16) separated.data16[offset] = separated.data16[offset + 1] = separated.data16[offset + 2] = Math.round(bounded * 257);
@@ -11474,7 +11486,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             (channel === 4 ? image.space === "cmyk" : channel === 3 ? image.hasAlpha : channel === 0 || (image.space !== "b-w" && image.space !== "grey16")) && (!settings.channelExplicit || mask[channel]));
                         if (channels.length === 0) channels.push(null);
                         for (const channel of channels) {
-                            await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: image => separateMagickChannelSteps(image, channel) }, signal));
+                            await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, handlesWriteMask: true, apply: (image, offset, width) => separateMagickChannelSteps(image, channel, offset, width) }, signal));
                         }
                     }
                     return result;
@@ -14314,8 +14326,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 let separated = image;
                 if ("data" in image) separated = yield* separateMagickChannelSteps(image, channel);
                 else yield { async run() {
-                    separated = await transformStoredMagickPixels(image, backend!, { end: 0, highDepth: true, evaluate: true,
-                        apply: image => separateMagickChannelSteps(image, channel) }, signal!);
+                    separated = await transformStoredMagickPixels(image, backend!, { end: 0, highDepth: true, evaluate: true, handlesWriteMask: true,
+                        apply: (image, offset, width) => separateMagickChannelSteps(image, channel, offset, width) }, signal!);
                 } };
                 yield* acceptImage(separated, operations, index + 1);
             }

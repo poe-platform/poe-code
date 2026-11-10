@@ -50,18 +50,12 @@ function parseMicrodvd(bytes: Uint8Array, options?: ParseMediaOptions): MediaDoc
       if (next) sampleDuration = next.pts - sample.pts;
       else if (options?.decodeSubtitles !== false) {
         // FFmpeg stores decoded subtitle durations as unsigned milliseconds.
-        sampleDuration = (Math.round(sampleDuration * 1000 / timescale) >>> 0) * timescale / 1000;
+        sampleDuration = (-Math.round(-sampleDuration * 1000 / timescale) >>> 0) * timescale / 1000;
       }
     }
     samples[index] = { ...sample, duration: sampleDuration };
     duration = Math.max(duration, sample.pts + sampleDuration);
   }
-  samples.sort((a, b) => a.pts - b.pts);
-  samples = samples.filter((sample, index) => {
-    const previous = samples[index - 1];
-    return !previous || sample.pts !== previous.pts || sample.duration !== previous.duration
-      || !bytesEqual(sample.data, previous.data);
-  });
   return { containerFormat: "microdvd", timescale, duration, durationSeconds: duration / timescale,
     tracks: [{ id: 1, type: "subtitle", handlerType: "sbtl", timescale, duration,
       language: "und", enabled: true, codecDescriptions: [{ formatFourCC: "text", codecName: "microdvd" }], samples }],

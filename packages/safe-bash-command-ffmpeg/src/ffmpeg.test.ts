@@ -5581,6 +5581,36 @@ describe("decoded audio editing", () => {
     }
   });
 
+  // Native FFmpeg 7.0.2 and 9.0.1 emit no PCM before the first half-window.
+  for (const [rate, length] of [[8000, 80], [8000, 255], [8000, 256], [16000, 511]] as const) {
+    for (const tempo of length === 256 ? [1] : [0.5, 1, 2]) {
+      for (const tone of [false, true]) {
+        it(`matches native atempo fragment boundary: rate=${rate}, length=${length}, tempo=${tempo}, tone=${tone}`, async () => {
+          const input = new Uint8Array(length * 2);
+          for (let i = 0; i < length; i++) {
+            new DataView(input.buffer).setInt16(i * 2, tone ? (i % 32 - 16) * 1000 : 16000, true);
+          }
+          const vfs = createTestVfs({ "/in.raw": input, "/out.raw": "KEEP" });
+          const result = await runCmd(createFfmpegCommand(), [
+            "-v", "error", "-y", "-f", "s16le", "-ar", String(rate), "-ac", "1", "-i", "/in.raw",
+            "-af", `atempo=${tempo}`, "-f", "s16le", "/out.raw"
+          ], vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+          const output = vfs.store.get("/out.raw")!;
+          if (length === 256) {
+            assert.equal(output.length, 512);
+            assert.equal(createHash("sha256").update(output).digest("hex"), tone
+              ? "ec398f2c5809df00914cb9bcfd09857516500b4f56a98856e44610d5fb91dc4b"
+              : "c5513c0ecb777c0bf05ea37b7a643f3be73ef13bd375a2203c7969035e789ab0");
+          } else {
+            assert.deepEqual(output, new Uint8Array(0));
+          }
+          assert.deepEqual(vfs.store.get("/in.raw"), input);
+        });
+      }
+    }
+  }
+
   // Native FFmpeg 9.0.1 PCM16 reference digests, generated with
   // -f s16le -ar RATE -ac CHANNELS -i pipe:0 -af atempo=1 -f s16le pipe:1.
   for (const [length, channels, silent, expectedLength, hash] of [

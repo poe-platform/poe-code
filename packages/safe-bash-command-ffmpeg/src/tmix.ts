@@ -1,5 +1,6 @@
 import { scaleVideoPicture, type MediaVideoFrame, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterFloat } from "./filter-float.js";
 
 export async function tmix(
   frames: MediaVideoFrame[], argument: string, budget: MediaBudgetTracker, signal?: AbortSignal
@@ -16,7 +17,7 @@ export async function tmix(
   if (!Number.isInteger(count) || count < 1 || count > 1024) {
     throw new Error("tmix: frames must be an integer from 1 to 1024");
   }
-  const supplied = (options.weights || "1").split(" ").filter(Boolean).slice(0, count).map(Number);
+  const supplied = (options.weights || "1").split(" ").filter(Boolean).slice(0, count).map(value => Math.fround(parseFilterFloat(value)));
   if (supplied.some(weight => !Number.isFinite(weight))) {
     throw new Error("tmix: weights must be finite numbers");
   }

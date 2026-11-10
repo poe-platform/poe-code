@@ -12724,6 +12724,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             const { width, height, virtualCanvas, offsets } = next.value;
             let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, background), hasAlpha: stack.some(frame => frame.hasAlpha) || background.a < 255, ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}), space: image.space };
+            if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b)) {
+                canvas = { ...canvas, space: "srgb" };
+                delete canvas.magickColorspace;
+            }
             // Smush composites retained alpha samples even when the channel is inactive.
             for (const [n, frame] of stack.entries()) {
                 canvas = yield* applyMagickRasterSteps(canvas, overCompositePixelSteps(canvas, { ...frame, hasAlpha: frame.hasAlpha || frame.alphaBlend === true || frame.alphaSeparate === true }, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || frame.data16)), signal, canvas, [canvas, frame]);
@@ -14414,6 +14418,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 const { width, height, virtualCanvas, offsets } = next.value;
                 let canvas: StoredRgbaImage = { gravity: images[0]!.gravity, ...await createStoredCanvas(width, height, background, backend, signal), hasAlpha: images.some(frame => frame.hasAlpha) || background.a < 255, ...(images[0]!.magickColorspace ? { magickColorspace: images[0]!.magickColorspace } : {}), space: image.space };
+                if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b)) {
+                    canvas = { ...canvas, space: "srgb" };
+                    delete canvas.magickColorspace;
+                }
                 for (const [n, frame] of images.entries()) {
                     canvas = await transformStoredMagickRaster(canvas, backend, overCompositePixelSteps(canvas, { ...frame, hasAlpha: frame.hasAlpha || frame.alphaBlend === true || frame.alphaSeparate === true }, offsets[n]!.left, offsets[n]!.top, !!(canvas.storedData16 || frame.storedData16)), signal, canvas, [canvas, frame]);
                 }

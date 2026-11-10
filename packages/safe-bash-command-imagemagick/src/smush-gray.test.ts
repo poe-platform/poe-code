@@ -39,3 +39,32 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         });
     }
 }
+
+// ImageMagick 7.1.2-35 Q16-HDRI: colored backgrounds promote the gray canvas.
+for (const mode of ["command", "retained", "buffered", "sync"] as const) {
+    for (const operation of ["+smush", "-smush"]) {
+        for (const format of ["rgb", "info"]) {
+            it.each([
+                { background: "red", pixels: "000000ff0000ffffff", metadata: "sRGB:srgb  3.0" },
+                { background: "blue", pixels: "0000000000ffffffff", metadata: "sRGB:srgb  3.0" },
+                { background: "white", pixels: "000000ffffffffffff", metadata: "Gray:gray  1.0" },
+            ])(`${mode}: ${operation} keeps $background background in grayscale ${format} output`, async ({ background, pixels, metadata }) => {
+                const argv = ["xc:black", "xc:white", "-colorspace", "Gray", "-background", background, operation, "1",
+                    ...(format === "info" ? ["-format", "%[colorspace]:%[channels]"] : ["-depth", "8"]), `${format}:/out`];
+                const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
+                const argumentValues = createCommandArguments(argv);
+                let stderr = "";
+                const result = mode === "command" ? await createMagickCommand().execute({
+                    command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+                    signal: new AbortController().signal, stdin: (async function* () {})(),
+                    stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+                }) : mode === "sync" ? runConvertCliSync(argv, files)
+                    : await runConvertCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+                expect("stderr" in result ? result.stderr : stderr).toBe("");
+                expect(result.exitCode).toBe(0);
+                const output = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
+                expect(format === "info" ? new TextDecoder().decode(output) : Buffer.from(output).toString("hex")).toBe(format === "info" ? metadata : pixels);
+            });
+        }
+    }
+}

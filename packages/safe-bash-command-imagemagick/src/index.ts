@@ -11596,9 +11596,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             if (t === "-layers") i++;
             const frames: MagickImage[] = stack.length ? [stack[0]!] : [];
+            let canvas: RgbaImage | undefined;
+            if (!removeDups && stack.length > 1) {
+                const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
+                canvas = { ...yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 0 }), virtualCanvas: { width, height, x: 0, y: 0 } };
+                canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, first, first.virtualCanvas?.x ?? 0, first.virtualCanvas?.y ?? 0, "copy", undefined, false, 0, true), signal, canvas, [canvas, first]);
+            }
             for (let n = 1; n < stack.length; n++) {
                 let current = stack[n]!;
-                const previous = stack[n - 1]!;
+                const previous = canvas ?? stack[n - 1]!;
                 if (removeDups && (previous.width !== current.width || previous.height !== current.height ||
                     (previous.virtualCanvas?.x ?? 0) !== (current.virtualCanvas?.x ?? 0) ||
                     (previous.virtualCanvas?.y ?? 0) !== (current.virtualCanvas?.y ?? 0))) {
@@ -11634,13 +11640,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
                 const fuzz = method === "removedups"
                     ? Math.max(previous[magickInput]?.fuzz ?? 0, current[magickInput]?.fuzz ?? 0) : state.alphaFuzz;
-                const bounds = compareLayerBounds(previous, current, fuzz, method, removeDups ? undefined : stack[0]);
+                // Copy original patches even when the comparison omits their output.
+                if (canvas) canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, current, current.virtualCanvas?.x ?? 0, current.virtualCanvas?.y ?? 0, "copy", undefined, false, 0, true), signal, canvas, [canvas, current]);
+                const comparison = canvas ?? current;
+                const bounds = compareLayerBounds(previous, comparison, fuzz, method, removeDups ? undefined : stack[0]);
                 let next = bounds.next();
                 while (!next.done) {
                     if (!next.value) { yield; next = bounds.next(); }
                     else {
                         const { image, position, length } = next.value;
-                        const source = image ? current : previous;
+                        const source = image ? comparison : previous;
                         next = bounds.next((source.data16 ?? source.data).subarray(position, position + length));
                     }
                 }
@@ -11660,7 +11669,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                             [magickInput]: { ...(survivor as MagickImage)[magickInput], ticksPerSecond, delayTicks },
                             delay: Array(survivor.delay?.length ?? 1).fill(optimizePlus ? delay : delayTicks * 10) };
                     }
-                } else if (next.value) frames.push({ ...yield* extractImageSteps(current, next.value), virtualCanvas: magickCropCanvas(current, next.value.left, next.value.top) });
+                } else if (next.value) {
+                    const crop = { ...next.value, left: next.value.left - (current.virtualCanvas?.x ?? 0), top: next.value.top - (current.virtualCanvas?.y ?? 0) };
+                    frames.push({ ...yield* extractImageSteps(current, crop), virtualCanvas: magickCropCanvas(current, crop.left, crop.top) });
+                }
             }
             stack = frames;
         }
@@ -14909,6 +14921,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const first = await stack.get(0);
                 let previous = first;
                 if (previous) await frames.push(previous);
+                if (!removeDups && first && stack.length > 1) {
+                    const width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
+                    const canvas = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
+                    previous = { ...await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, first, first.virtualCanvas?.x ?? 0, first.virtualCanvas?.y ?? 0, "copy", undefined, false, 0, true), signal, canvas, [canvas, first]), virtualCanvas: { width, height, x: 0, y: 0 } };
+                }
                 for (let n = 1; n < stack.length; n++) {
                     let current = (await stack.get(n))!;
                     if (removeDups && (previous!.width !== current.width || previous!.height !== current.height ||
@@ -14954,13 +14971,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     const frameFuzz = method === "removedups"
                         ? Math.max(previous![magickInput]?.fuzz ?? 0, current[magickInput]?.fuzz ?? 0) : fuzz;
-                    const bounds = compareLayerBounds(previous!, current, frameFuzz, method, removeDups ? undefined : first);
+                    // Disposal and cropped outputs do not alter the original comparison canvas.
+                    const comparison = removeDups ? current : await transformStoredMagickRaster(previous!, backend,
+                        composite16PixelSteps(previous!, current, current.virtualCanvas?.x ?? 0, current.virtualCanvas?.y ?? 0, "copy", undefined, false, 0, true), signal, previous!, [previous!, current]);
+                    const bounds = compareLayerBounds(previous!, comparison, frameFuzz, method, removeDups ? undefined : first);
                     let next = bounds.next();
                     while (!next.done) {
                         if (!next.value) { await yieldTurn(signal); next = bounds.next(); }
                         else {
                             const { image, position, length } = next.value;
-                            const source = image ? current : previous!;
+                            const source = image ? comparison : previous!;
                             const data = source.storedData16
                                 ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
                                 : await backend.storage.read(source.position + position, length);
@@ -14986,8 +15006,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                                     async at() { return optimizePlus ? delay : delayTicks * 10; },
                                 } });
                         }
-                    } else if (next.value) await frames.push({ ...await transformStoredImage(current, backend.storage, { kind: "extract", ...next.value }, signal), virtualCanvas: magickCropCanvas(current, next.value.left, next.value.top) });
-                    previous = current;
+                    } else if (next.value) {
+                        const crop = { ...next.value, left: next.value.left - (current.virtualCanvas?.x ?? 0), top: next.value.top - (current.virtualCanvas?.y ?? 0) };
+                        await frames.push({ ...await transformStoredImage(current, backend.storage, { kind: "extract", ...crop }, signal), virtualCanvas: magickCropCanvas(current, crop.left, crop.top) });
+                    }
+                    previous = comparison;
                 }
                 return frames;
             });

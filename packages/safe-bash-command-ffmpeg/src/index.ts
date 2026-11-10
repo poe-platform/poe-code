@@ -11565,13 +11565,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           let start = Math.min(startPts - pts, startSample - frame.start);
                           if (start === Infinity) start = 0;
                           if (start >= count) continue;
-                          start = Math.max(0, start);
                           firstPts ??= pts + start;
                           let end = Math.max(endPts - pts, endSample - frame.start,
                             duration > 0 ? firstPts + duration - pts : -Infinity);
                           if (end === -Infinity) end = count;
                           // Only a frame wholly past every end bound ends the stream.
                           if (end <= 0) break;
+                          start = Math.max(0, start);
                           end = Math.min(count, end);
                           if (end <= start) continue;
                           budget.allocateMemory(48);

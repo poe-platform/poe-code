@@ -2830,9 +2830,9 @@ function sampleFxPixel(data: ArrayLike<number>, offset: number, ch: number, maxi
 
 function propToChannel(prop: string): number {
   const p = prop.toLowerCase();
-  if (p === "r") return 0;
-  if (p === "g") return 1;
-  if (p === "b") return 2;
+  if (p === "r" || p === "c") return 0;
+  if (p === "g" || p === "m") return 1;
+  if (p === "b" || p === "y") return 2;
   if (p === "a" || p === "o") return 3;
   if (p === "intensity") return 4;
   if (p === "hue") return 5;

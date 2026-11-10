@@ -2152,7 +2152,8 @@ function* createPatternImageSteps(width: number, height: number, pattern: Return
     };
 }
 
-function resolveMagickSpliceGeometry(raw: string, width: number, height: number) {
+function resolveMagickSpliceGeometry(raw: string, image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">) {
+    const { width, height } = image;
     // Rectangle geometry ends at the first comma-separated field.
     raw = raw.split(",", 1)[0]!.replaceAll("(", "").replaceAll(")", "");
     // GetGeometry accepts modifiers anywhere without interrupting dimensions or offsets.
@@ -2168,12 +2169,12 @@ function resolveMagickSpliceGeometry(raw: string, width: number, height: number)
     // A second decimal point in the width leaves the entire native rectangle untouched.
     if (dimensionSeparator >= 0 && !raw.trimStart().startsWith("+") && !raw.trimStart().startsWith("-")
         && raw.slice(0, dimensionSeparator).split(".").length > 2) {
-        return { ...g, width, height, x: 0, y: 0 };
+        return { ...g, width: image.virtualCanvas?.width || width, height: image.virtualCanvas?.height || height, x: 0, y: 0 };
     }
     const suffix = [...raw].findIndex(character => character === ":" || character === "/");
     if (dimensionSeparator >= 0 && suffix > dimensionSeparator) {
         // GetGeometry stops before parsing dimensions when it encounters a slash.
-        if (raw[suffix] === "/") return { ...g, width, height, x: 0, y: 0 };
+        if (raw[suffix] === "/") return { ...g, width: image.virtualCanvas?.width || width, height: image.virtualCanvas?.height || height, x: 0, y: 0 };
         // A colon normalizes the first two dimensions as an aspect ratio,
         // retaining offsets before it and ignoring the trailing component.
         const dimensions = parseMagickGeometry(raw.slice(0, suffix));
@@ -2188,11 +2189,11 @@ function resolveMagickSpliceGeometry(raw: string, width: number, height: number)
     const geometry = { ...g,
         width: Math.max(0, Math.round(g.aspectRatio !== undefined ? Math.min(width, height * g.aspectRatio) : g.isPercent
             ? (g.width ?? 100) * width / 100
-            : g.width ?? (hasDimensions ? 0 : width))),
+            : g.width ?? (hasDimensions ? 0 : image.virtualCanvas?.width || width))),
         height: Math.max(0, Math.round(g.aspectRatio !== undefined ? Math.min(height, width / g.aspectRatio) : g.isPercent
             ? (g.height ?? g.width ?? 100) * height / 100
-            // An omitted height followed by offsets retains the input height; bare 2x inserts no rows.
-            : g.height ?? (hasDimensions && !g.hasOffset ? 0 : height)))
+            // An omitted height followed by offsets retains the page height; bare 2x inserts no rows.
+            : g.height ?? (hasDimensions && !g.hasOffset ? 0 : image.virtualCanvas?.height || height)))
     };
     // Native conditions compare both nonzero axes and reset the entire region.
     if ((g.enlargeOnly && geometry.width > 0 && geometry.height > 0 && geometry.width < width && geometry.height < height)
@@ -2339,7 +2340,7 @@ function validateMagickSpliceGeometry(raw: string): void {
 
 function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor, gravity: GravityPosition = "northwest", signal?: AbortSignal, virtualPixel: VirtualPixelMethod = "edge"): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
-    const g = resolveMagickSpliceGeometry(geomStr, img.width, img.height);
+    const g = resolveMagickSpliceGeometry(geomStr, img);
     const sw = g.width, sh = g.height;
     // Native splice truncates offsets before adjusting the gravity box.
     const box = gravityAdjustBox(img.width, img.height, sw, sh, Math.trunc(g.x), Math.trunc(g.y), gravity);
@@ -13371,7 +13372,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         xs = [{ source: w - dx, target: 0, length: dx }, { source: 0, target: dx, length: w - dx }];
         ys = [{ source: h - dy, target: 0, length: dy }, { source: 0, target: dy, length: h - dy }];
     } else if (token === "-splice") {
-        const splice = resolveMagickSpliceGeometry(geometry, w, h);
+        const splice = resolveMagickSpliceGeometry(geometry, image);
         const sw = splice.width, sh = splice.height;
         const box = gravityAdjustBox(w, h, sw, sh, Math.trunc(splice.x), Math.trunc(splice.y), state.gravity);
         // Native West splice uses the width for its vertical anchor.

@@ -2407,7 +2407,9 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     }
     if (img.metaChannels?.length) {
         const metaChannels: BaseRgbaImage[] = [];
-        for (const plane of img.metaChannels) metaChannels.push(yield* applyMagickSpliceSteps(plane, geomStr, { r: 0, g: 0, b: 0, a: 255 }, gravity, signal, virtualPixel));
+        // Constant white/gray virtual pixels have zero extra-channel samples.
+        const metaVirtualPixel = virtualPixel === "white" || virtualPixel === "gray" ? "black" : virtualPixel;
+        for (const plane of img.metaChannels) metaChannels.push(yield* applyMagickSpliceSteps(plane, geomStr, { r: 0, g: 0, b: 0, a: 255 }, gravity, signal, metaVirtualPixel));
         img = { ...img, metaChannels };
     }
     if (img.writeMask) img = { ...img, writeMask: yield* applyMagickSpliceSteps(img.writeMask, geomStr, { r: 0, g: 0, b: 0, a: 255 }, gravity, signal, virtualPixel) };
@@ -13373,8 +13375,10 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     }
     if (token === "-splice" && image.storedMetaChannels?.length) {
         const storedMetaChannels: BaseStoredRgbaImage[] = [];
+        // Constant white/gray virtual pixels have zero extra-channel samples.
+        const virtualPixel = state.virtualPixel === "white" || state.virtualPixel === "gray" ? "black" : state.virtualPixel ?? "edge";
         for (const plane of image.storedMetaChannels) storedMetaChannels.push(await transformStoredMagickCoordinates(plane, backend, token, geometry,
-            { ...state, backgroundExplicit: true, background: { r: 0, g: 0, b: 0, a: 255 } }, signal, analysis));
+            { ...state, ...(virtualPixel === undefined ? {} : { virtualPixel }), backgroundExplicit: true, background: { r: 0, g: 0, b: 0, a: 255 } }, signal, analysis));
         image = { ...image, storedMetaChannels };
     }
     if (token === "-splice" && image.storedWriteMask) image = { ...image, storedWriteMask: await transformStoredMagickCoordinates(image.storedWriteMask, backend, token, geometry, { ...state, backgroundExplicit: true, background: { r: 0, g: 0, b: 0, a: 255 } }, signal, analysis) };

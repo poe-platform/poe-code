@@ -1267,8 +1267,9 @@ async function renderShowwavespic(
   const splitOption = options.split_channels ?? "0";
   if (!["0", "1", "false", "true"].includes(splitOption)) throw new Error("showwavespic: invalid split_channels");
   const split = splitOption === "1" || splitOption === "true";
-  if (options.scale !== undefined && options.scale !== "lin" && options.scale !== "0") {
-    throw new Error("showwavespic: only linear scaling is supported");
+  const scale = options.scale ?? "lin";
+  if (!["lin", "log", "sqrt", "cbrt", "0", "1", "2", "3"].includes(scale)) {
+    throw new Error("showwavespic: invalid scale");
   }
   const draw = options.draw ?? "scale";
   if (!["scale", "full", "0", "1"].includes(draw)) throw new Error("showwavespic: invalid draw");
@@ -1305,7 +1306,17 @@ async function renderShowwavespic(
         magnitude = peak ? Math.max(magnitude, value) : magnitude + value;
       }
       if (!peak) magnitude /= Math.max(1, end - start);
-      const size = Math.min(rowHeight, Math.round(magnitude * rowHeight));
+      let size = Math.round(magnitude * rowHeight);
+      // Native nonlinear scales use the aggregated int16 amplitude and truncate the height.
+      const sample = Math.min(32768, Math.floor(magnitude * 32768));
+      if (scale === "log" || scale === "1") {
+        size = Math.floor(Math.log10(1 + sample) * rowHeight / Math.log10(32768));
+      } else if (scale === "sqrt" || scale === "2") {
+        size = Math.floor(Math.sqrt(sample) * rowHeight / Math.sqrt(32767));
+      } else if (scale === "cbrt" || scale === "3") {
+        size = Math.floor(Math.cbrt(sample) * rowHeight / Math.cbrt(32767));
+      }
+      size = Math.min(rowHeight, size);
       const top = (split ? channel * rowHeight : 0) + Math.floor((rowHeight - size) / 2);
       for (let y = top; y < top + size; y++) {
         if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }

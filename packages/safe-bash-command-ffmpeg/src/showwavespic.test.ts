@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
@@ -55,10 +56,46 @@ for (const kind of ["mix", "same", "inverse"]) {
   }
 }
 
+// Decoded RGBA hashes from native FFmpeg 7.0.2, using signed 16-bit stereo PCM.
+for (const [index, [scale, hash]] of ([
+  ["lin", "0c1b0a28714a0e3725c4b36e0176198d12e20709b43e5aeb729215a5b110dd95"],
+  ["log", "ecda00497d597f85fff606a98c3a0d8fd5acdd5a9b75f6fc29bee8470ffab30b"],
+  ["sqrt", "7ed2340ded22a6482485fb6369ce1d8e81e47660b1d113892d9a8ee35ee3ebbf"],
+  ["cbrt", "02776dcb38dbb77384c8d2f01dac98d47ed8de7053275c1128dd6195988350ac"]
+] as const).entries()) {
+  for (const option of [scale, String(index)]) {
+    it(`matches native showwavespic amplitude scale ${option}`, async () => {
+      const channels = [
+        [1000, -1000, 4000, -8000, 16000, -16000, 32000, -32000],
+        [24000, -2000, 12000, -24000]
+      ].map(samples => Float64Array.from({ length: 32 }, (_, i) => samples[i % samples.length]! / 32768));
+      const volume = Volume.fromJSON({ "/in.wav": Buffer.from(encodeWav({ sampleRate: 8000, channels })) });
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error", "-i", "/in.wav", "-filter_complex",
+          `showwavespic=s=8x8:split_channels=1:scale=${option}`, "-frames:v", "1", "/out.png"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, stderr);
+      const output = decodeImage(volume.readFileSync("/out.png") as Buffer);
+      assert.equal(output.width, 8);
+      assert.equal(output.height, 8);
+      assert.equal(createHash("sha256").update(output.data).digest("hex"), hash);
+    });
+  }
+}
+
 for (const [expression, limits, error] of [
   ["showwavespic=s=0x12", {}, "invalid image size"],
   ["showwavespic=split_channels=2", {}, "invalid split_channels"],
-  ["showwavespic=scale=log", {}, "linear scaling"],
+  ["showwavespic=scale=invalid", {}, "invalid scale"],
   ["showwavespic=draw=invalid", {}, "invalid draw"],
   ["showwavespic=s=12x12", { maxPixelsPerFrame: 100 }, "maxPixelsPerFrame"],
   ["showwavespic=s=1200x1200", { maxMemoryBytes: 10000 }, "maxMemoryBytes"]

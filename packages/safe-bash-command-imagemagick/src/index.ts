@@ -11008,6 +11008,21 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     result.metaChannels = [];
                     for (const plane of metaChannels) result.metaChannels.push(yield* apply(plane));
                 }
+                if (t === "-sepia-tone" && image.metaChannels) {
+                    result.metaChannels = [...image.metaChannels];
+                    for (const [index, plane] of image.metaChannels.entries()) {
+                        if (!state.channelDefault && !state.channels.meta?.includes(index)) continue;
+                        // Sepia only normalizes extra channels: default uses toned RGB intensity,
+                        // while an explicit selection uses the extra plane's own range.
+                        const bins = Array.from({ length: 4 }, () => new Float64Array(plane.data16 ? 65536 : 256));
+                        if (state.channelDefault) bins.push(histogram[4]!);
+                        if (!state.channelDefault) yield* accumulateMagickHistogram(plane.data16 ?? plane.data, bins, state.intensity, false);
+                        const normalize = parseMagickAnalysisOperation(["-normalize"], {
+                            ...state, channels: { r: true, g: true, b: true, a: false },
+                        }, 0)!;
+                        result.metaChannels[index] = yield* normalize.transform(bins, plane)(plane);
+                    }
+                }
                 return result;
             }, undefined, t === "-sepia-tone");
         }
@@ -14171,6 +14186,26 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (metaChannels) {
                     result.storedMetaChannels = [];
                     for (const plane of metaChannels) result.storedMetaChannels.push(await transformStoredMagickPixels(plane, backend, transform, signal, true));
+                }
+                if (token === "-sepia-tone" && image.storedMetaChannels) {
+                    result.storedMetaChannels = [...image.storedMetaChannels];
+                    for (const [index, plane] of image.storedMetaChannels.entries()) {
+                        if (!settings.channelDefault && !settings.channels.meta?.includes(index)) continue;
+                        const bins = Array.from({ length: 4 }, () => new Float64Array(plane.storedData16 ? 65536 : 256));
+                        if (settings.channelDefault) bins.push(histogram[4]!);
+                        if (!settings.channelDefault) {
+                            const original = plane.storedData16;
+                            for (let offset = 0; offset < size; offset += 8192) {
+                                const bytes = await backend.storage.read((original?.position ?? plane.position) + offset * (original ? 2 : 1), Math.min(8192, size - offset) * (original ? 2 : 1));
+                                await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, bins, intensity, false), signal);
+                            }
+                        }
+                        const normalize = parseMagickAnalysisOperation(["-normalize"], {
+                            ...settings, channels: { r: true, g: true, b: true, a: false },
+                        }, 0)!;
+                        result.storedMetaChannels[index] = await transformStoredMagickPixels(plane, backend,
+                            { end: 0, evaluate: true, apply: normalize.transform(bins, plane) }, signal, true);
+                    }
                 }
                 return result;
             }, { handlesRegion: token === "-sepia-tone" }));

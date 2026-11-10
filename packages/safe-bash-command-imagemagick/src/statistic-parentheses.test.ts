@@ -23,9 +23,9 @@ it.each([
         stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
     }) : mode === "sync" ? runMagickCliSync(args, files)
         : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
-    stderr = "stderr" in result ? result.stderr : stderr;
+    stderr = "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr;
     expect(result.exitCode, stderr).toBe(0);
     expect(stderr).toBe("");
-    const output = "stdoutBytes" in result ? result.stdoutBytes! : Uint8Array.from(stdout);
+    const output = "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : Uint8Array.from(stdout);
     expect(Buffer.from(output).toString("hex")).toBe(expected);
 });

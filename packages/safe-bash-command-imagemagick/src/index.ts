@@ -10719,6 +10719,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-sort-pixels") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                if (image.region) {
+                    // Sorting can scatter a rectangle, so carry it as a per-pixel mask.
+                    const writeMask = yield* applyMagickRasterSteps({ width: image.width, height: image.height, data: image.data,
+                        format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, regionMaskPixelSteps(image, image.region), signal);
+                    image = { ...image, region: undefined, writeMask };
+                }
                 let result = yield* applyMagickRasterSteps(image, sortPixelSteps(image, state.intensity), signal);
                 if (image.readMask) result.readMask = yield* applyMagickRasterSteps(image.readMask as RgbaImage,
                     sortPixelSteps(image, state.intensity, true), signal, image.readMask as RgbaImage, [image, image.readMask as RgbaImage]);
@@ -13454,6 +13460,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const channels = state.channels;
             steps.push(async (image, backend) => {
                 if (!image) return;
+                if (image.region) {
+                    const storedWriteMask = await transformStoredMagickRaster({ width: image.width, height: image.height, position: image.position,
+                        format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, backend, regionMaskPixelSteps(image, image.region), signal);
+                    image = { ...image, region: undefined, storedWriteMask };
+                }
                 let result = await transformStoredMagickRaster(image, backend, sortPixelSteps(image, intensity), signal);
                 if (image.readMask) result.readMask = await transformStoredMagickRaster(image.readMask as StoredRgbaImage, backend,
                     sortPixelSteps(image, intensity, true), signal, image.readMask as StoredRgbaImage, [image, image.readMask as StoredRgbaImage]);

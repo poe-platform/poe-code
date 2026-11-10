@@ -7071,9 +7071,10 @@ function parseMagickDuplicateCount(spec: string): number {
 
 function parseMagickDuplicateScenes(spec: string): string {
   if (spec === "") return spec;
-  // Native skips leading separators; a nonempty list with only commas selects frame zero.
-  while (spec.startsWith(",")) spec = spec.slice(1);
-  spec ||= "0";
+  // Native skips leading commas and whitespace; a nonempty separator-only list selects frame zero.
+  let start = 0;
+  while (start < spec.length && (spec[start] === "," || !spec[start]!.trim())) start++;
+  spec = spec.slice(start) || "0";
   parseMagickIndices(spec);
   return spec;
 }

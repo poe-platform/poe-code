@@ -42,17 +42,19 @@ it(`${mode}: separating ${channel} preserves sibling files, alpha=${alpha}, eval
 
 // ImageMagick 7.1.2-35 Q16-HDRI: RGB has no black ink, even with linear samples.
 for (const mode of ["command", "retained", "buffered", "sync"] as const)
+for (const sort of [false, true])
 for (const [alpha, colorspace, channel, expected] of [
     ["38", "RGB", "K", "000000ff"],
     ["80", "RGB", "K", "000000ff"],
     ["38", "RGB", "A", "383838ff"],
-    ["38", "sRGB", "K", "000000ff"]
+    ["38", "sRGB", "K", "000000ff"],
+    ["38", "sRGB", "A", "383838ff"]
 ] as const)
-it(`${mode}: separates ${channel} in ${colorspace} with alpha=${alpha}`, async () => {
+it(`${mode}: separates ${channel} in ${colorspace} with alpha=${alpha}, sort=${sort}`, async () => {
     const files = new Map([["out", Buffer.from("KEEP")]]);
     const fs = new MemoryFileSystem();
     await fs.writeFile("/out", files.get("out")!);
-    const argv = [`xc:#2060b0${alpha}`, "-colorspace", colorspace, "-channel", channel, "-separate", "-depth", "8", "rgba:out"];
+    const argv = [`xc:#2060b0${alpha}`, "-colorspace", colorspace, ...(sort ? ["-sort-pixels"] : []), "-channel", channel, "-separate", "-depth", "8", "rgba:out"];
     const args = createCommandArguments(argv);
     let stdout = "", stderr = "";
     const result = mode === "command" ? await createMagickCommand().execute({

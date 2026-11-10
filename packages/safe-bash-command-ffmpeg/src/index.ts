@@ -90,7 +90,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { convertAudioSampleFormat, resampleAudio } from "./audio-resample.js";
 import { resampleStreamselectInput } from "./audio-astreamselect-resample.js";
 import { resampleSoxr } from "./audio-soxr.js";
-import { filterTempo } from "./audio-tempo.js";
+import { filterTempo, parseTempo } from "./audio-tempo.js";
 import { filterScheduledTempo } from "./audio-tempo-commands.js";
 import { datascopeFrame } from "./datascope.js";
 import { scaleFrame } from "./scale.js";
@@ -12930,6 +12930,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (resampleSupport && duration !== undefined) {
                               minimum = Math.max(resampleSupport + 1, minimum + resampleSupport / 2);
                             }
+                            if (duration !== undefined && next?.split("=", 1)[0]!.split("@", 1)[0] === "atempo") {
+                              const tempo = parseTempo(next.includes("=") ? next.slice(next.indexOf("=") + 1).trim() : "");
+                              const outputSamples = Math.max(0, firstPts + Math.round(duration * origRate)
+                                - (audioTimestamps[0]?.pts ?? audioStartSample));
+                              const window = 2 ** Math.ceil(Math.log2(Math.max(2, Math.floor(origRate / 24))));
+                              // Tempo consumes input at its own rate and needs overlapping windows
+                              // beyond the requested output, even when tempo is one.
+                              minimum = Math.ceil((outputSamples + window) * tempo) + window;
+                            }
                             if (duration !== undefined && packetSize > 0) {
                               let rate = origRate;
                               const clocks: ReturnType<typeof createAudioTimestampTransform>[] = [];
@@ -13341,17 +13350,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioInitialFrameDropped = false;
                       } else if (trimmed === "atempo" || trimmed.startsWith("atempo=")) {
                         const argument = trimmed.slice("atempo=".length).trim();
-                        let tempo = 1;
-                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
-                          const separator = option.indexOf("=");
-                          const key = separator < 0 ? (index === 0 ? "tempo" : "") : option.slice(0, separator).trim();
-                          if (key === "enable") throw new Error("atempo: timeline is unsupported");
-                          if (key !== "tempo") throw new Error("atempo: unknown option");
-                          tempo = parseFilterExpression(separator < 0 ? option : option.slice(separator + 1), "atempo", {});
-                          if (tempo < 0.5 || tempo > 100) {
-                            throw new RangeError("atempo: must be in the range [0.5, 100]");
-                          }
-                        }
+                        const tempo = parseTempo(argument);
                         const inputFrame = audioTimestamps?.[0];
                         const packet = t.samples[0];
                         const inputLength = stretched[0]?.length ?? 0;

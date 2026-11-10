@@ -41,6 +41,15 @@ function* miffFrameHeader(size: number): Generator<number, MiffHeader, number | 
         fields.set(key, text.slice(valueStart, index));
         if (delimiter) index++;
     }
+    // MIFF stores user properties alongside structural image fields.
+    const properties = Object.fromEntries([...fields].filter(([key]) => ![
+        "alpha-trait", "background-color", "blue-primary", "border-color", "channel-mask", "class",
+        "colors", "colorspace", "columns", "compression", "delay", "depth", "dispose", "endian",
+        "gamma", "gravity", "green-primary", "id", "iterations", "matte", "mattecolor", "montage",
+        "number-channels", "number-meta-channels", "orientation", "page", "pixel-intensity", "profile",
+        "quality", "quantum-format", "quantum:format", "red-primary", "rendering-intent", "resolution",
+        "rows", "scene", "ticks-per-second", "tile-offset", "type", "units", "version", "white-point"
+    ].includes(key.toLowerCase())));
     const width = Number(fields.get("columns")), height = Number(fields.get("rows")), depth = Number(fields.get("depth"));
     if (fields.get("id") !== "ImageMagick") throw new Error("Invalid MIFF signature");
     if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0 || !Number.isSafeInteger(width * height * 16)) throw new Error("Invalid MIFF dimensions");
@@ -73,7 +82,7 @@ function* miffFrameHeader(size: number): Generator<number, MiffHeader, number | 
     const disposal = Math.max(0, ["undefined", "none", "background", "previous"].indexOf(fields.get("dispose")?.toLowerCase() ?? "undefined"));
     const delay = Number(fields.get("delay") ?? 0), ticksPerSecond = Number(fields.get("ticks-per-second") ?? 100) || 100;
     if (!Number.isSafeInteger(delay) || delay < 0 || !Number.isSafeInteger(ticksPerSecond) || ticksPerSecond < 0) throw new Error("Invalid MIFF timing");
-    return { metadata: { disposal, ...(orientation ? { orientation } : {}), ...(virtualCanvas ? { virtualCanvas } : {}), delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, format: "miff", width, height, channels, hasAlpha, depth: floating ? "float" : depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: 72, size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes };
+    return { metadata: { disposal, ...(orientation ? { orientation } : {}), ...(virtualCanvas ? { virtualCanvas } : {}), delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, ...(Object.keys(properties).length ? { properties } : {}), format: "miff", width, height, channels, hasAlpha, depth: floating ? "float" : depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: 72, size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes };
 }
 
 /** Scan adjacent rasters and collect animation timing without reading their pixels. */

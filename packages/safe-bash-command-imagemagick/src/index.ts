@@ -9200,12 +9200,15 @@ function magickResampleGeometry(image: ImageMetadata, value: string): string {
     validateMagickTransformGeometry(value, "-resample");
     const geometry = parseMagickGeometry(value);
     if (geometry.aspectRatio !== undefined) throw new Error("negative or zero image size");
-    const x = geometry.width ?? 72, y = geometry.height ?? x;
+    if (geometry.width === undefined) throw new Error(`negative or zero image size '${value}'`);
+    const x = geometry.width, y = geometry.height ?? x;
     if (!(x > 0) || !(y > 0)) throw new Error(`invalid argument '-resample' '${value}'`);
     const scale = image.resolution?.unit === "meter" ? 100 : 1;
     const sourceX = (image.resolution ? image.resolution.x / scale : image.density) || 72;
     const sourceY = (image.resolution ? image.resolution.y / scale : image.density) || 72;
-    return `${Math.max(1, Math.round(image.width * x / sourceX))}x${Math.max(1, Math.round(image.height * y / sourceY))}!`;
+    const width = Math.round(image.width * x / sourceX), height = Math.round(image.height * y / sourceY);
+    if (width < 1 || height < 1) throw new Error(`negative or zero image size '${value}'`);
+    return `${width}x${height}!`;
 }
 
 function updateMagickProperty(properties: ImageMetadata["properties"], key: string, value?: string): Record<string, string> {

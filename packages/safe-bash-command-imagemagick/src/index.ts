@@ -640,7 +640,7 @@ interface MagickState {
   borderColor: RgbaColor;
   matteColor: RgbaColor;
   pointsize: number;
-  gravity: GravityPosition;
+  gravity: GravityPosition | undefined;
   jpegProgressive?: boolean;
   jpegArithmeticCoding?: boolean;
   jpegOptimizeCoding?: boolean;
@@ -741,7 +741,7 @@ function createDefaultState(): MagickState {
     borderColor: { r: 223, g: 223, b: 223, a: 255 },
     matteColor: { r: 189, g: 189, b: 189, a: 255 },
     pointsize: 12,
-    gravity: "northwest",
+    gravity: undefined,
     quality: 92,
     density: 72,
     fuzz: 10,
@@ -4121,7 +4121,7 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
 function resolveGravityOffset(
   spaceW: number,
   spaceH: number,
-  gravity: GravityPosition
+  gravity: GravityPosition | undefined
 ): { readonly left: number; readonly top: number } {
   let left = 0;
   let top = 0;
@@ -4145,7 +4145,7 @@ function gravityAdjustBox(
   boxH: number,
   offX: number,
   offY: number,
-  gravity: GravityPosition
+  gravity: GravityPosition | undefined
 ): { readonly x: number; readonly y: number } {
   let x = Math.trunc(offX);
   let y = Math.trunc(offY);
@@ -4162,9 +4162,12 @@ function gravityAdjustBox(
   return { x, y };
 }
 
-function parseGravity(raw: string): GravityPosition {
+function parseGravity(raw: string): GravityPosition | undefined {
   const norm = raw.toLowerCase().replace(/[-_\s]/g, "");
   switch (norm) {
+    case "none":
+    case "undefined":
+      return undefined;
     case "north":
       return "north";
     case "northeast":
@@ -4722,7 +4725,7 @@ function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtual
     };
 }
 
-function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition, analysis?: { warnings: string }, warningSource = geomStr, background: RgbaColor = { r: 255, g: 255, b: 255, a: 255 }): Generator<void, RgbaImage[], void> {
+function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition | undefined, analysis?: { warnings: string }, warningSource = geomStr, background: RgbaColor = { r: 255, g: 255, b: 255, a: 255 }): Generator<void, RgbaImage[], void> {
     const tiles: RgbaImage[] = [];
     for (const area of magickCropAreas(img, geomStr, gravity)) {
         yield;
@@ -4744,7 +4747,7 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
     return tiles;
 }
 
-function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geomStr: string, gravity: GravityPosition): Generator<Parameters<typeof extractImageSteps>[1] | undefined | null | false> {
+function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geomStr: string, gravity: GravityPosition | undefined): Generator<Parameters<typeof extractImageSteps>[1] | undefined | null | false> {
     const g = parseMagickGeometry(geomStr.replaceAll("#", ""));
     if (g.enlargeOnly) {
         const width = g.isPercent ? Math.round(img.width * (g.percentX ?? 100) / 100) : Math.round(g.width ?? (img.virtualCanvas?.width || img.width));
@@ -4772,7 +4775,7 @@ function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanv
                 yield { left, top, width: nextLeft - left, height: nextTop - top };
             }
         }
-    } else if (!g.hasOffset) {
+    } else if (!g.hasOffset && !(g.isPercent && gravity !== undefined)) {
         const pageWidth = img.virtualCanvas?.width || img.width;
         const pageHeight = img.virtualCanvas?.height || img.height;
         const width = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.width, img.height * g.aspectRatio) : g.isPercent ? img.width * (g.percentX ?? 100) / 100 : g.width || pageWidth));
@@ -4803,7 +4806,7 @@ function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanv
     }
 }
 
-function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geomStr:string,gravity:GravityPosition):Parameters<typeof extractImageSteps>[1]|undefined|null {
+function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geomStr:string,gravity:GravityPosition | undefined):Parameters<typeof extractImageSteps>[1]|undefined|null {
  const g=parseMagickGeometry(geomStr.replaceAll("#", ""));
     // Native crop leaves the image intact for a single percentage with offsets.
     if (g.isPercent && g.hasOffset && g.width !== undefined && !geomStr.toLowerCase().includes("x")) {
@@ -5448,7 +5451,7 @@ function* annotatePixelSteps(img: Pick<RgbaImage, "width" | "height">, offsetStr
 }
 
 // Scan bounded pixel chunks into edge profiles, shared by buffered and stored execution.
-function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "gravity">[], vertical: boolean, gap: number, gravity: GravityPosition, method: VirtualPixelMethod | undefined, background: RgbaColor): Generator<{ index: number; position: number; length: number }, { width: number; height: number; virtualCanvas: NonNullable<RgbaImage["virtualCanvas"]>; offsets: { left: number; top: number }[] }, Uint8Array | Uint16Array> {
+function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "gravity">[], vertical: boolean, gap: number, gravity: GravityPosition | undefined, method: VirtualPixelMethod | undefined, background: RgbaColor): Generator<{ index: number; position: number; length: number }, { width: number; height: number; virtualCanvas: NonNullable<RgbaImage["virtualCanvas"]>; offsets: { left: number; top: number }[] }, Uint8Array | Uint16Array> {
     const cross = Math.max(...images.map(image => vertical ? image.width : image.height));
     const offsets: { left: number; top: number }[] = [];
     const edgeGap = (profile: Float64Array, line: number, empty: number): number => {
@@ -8370,7 +8373,7 @@ if (t === "-seed") {
             state.gravity = parseGravity(tokens[++i] ?? "center");
         }
         else if (t === "+gravity") {
-            state.gravity = "northwest";
+            state.gravity = undefined;
         }
         else if (t === "-comment" || t === "-label") {
             state[t === "-comment" ? "comment" : "label"] = tokens[++i] ?? "";
@@ -8708,7 +8711,7 @@ if (t === "-seed") {
     return i;
 }
 
-function magickRegion(image: Pick<RgbaImage, "width" | "height">, spec: string, gravity: GravityPosition): Region {
+function magickRegion(image: Pick<RgbaImage, "width" | "height">, spec: string, gravity: GravityPosition | undefined): Region {
     const g = parseMagickGeometry(spec);
     const width = Math.round(g.isPercent ? image.width * (g.percentX ?? 100) / 100 : g.width ?? image.width);
     const height = Math.round(g.isPercent ? image.height * (g.percentY ?? 100) / 100 : g.height ?? image.height);
@@ -11489,7 +11492,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && (token === "+adjoin" || token === "-adjoin")) { state.adjoin = token === "-adjoin"; continue; }
         if (!operandsOnly && token === "-geometry") { state.geometry = tokens[++i] ?? "+0+0"; continue; }
-        if (!operandsOnly && token === "+gravity") { state.gravity = "northwest"; continue; }
+        if (!operandsOnly && token === "+gravity") { state.gravity = undefined; continue; }
         if (!operandsOnly && (token === "-encipher" || token === "-decipher")) {
             const name = tokens[++i];
             if (!name) throw new Error(`missing argument '${token}'`);
@@ -12928,7 +12931,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const operandLevels: MagickPixelOperation[][] = [];
     let readMask: RgbaImage | StoredRgbaImage | undefined;
     type Rotation = { rotation: string; settings: MagickState };
-    type CompareOperation = { geometry: string; gravity: GravityPosition } | "auto-orient" | Rotation | { separate: readonly number[] | undefined } | { trim: number } | { property: { key: string; value: string } } | { profile: Uint8Array; name: string };
+    type CompareOperation = { geometry: string; gravity: GravityPosition | undefined } | "auto-orient" | Rotation | { separate: readonly number[] | undefined } | { trim: number } | { property: { key: string; value: string } } | { profile: Uint8Array; name: string };
     const pixelOperations: MagickPixelOperation[] = [];
     const operationFlushes = new Map<number, readonly MagickPixelOperation[]>();
     let pending = false;
@@ -13217,9 +13220,9 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             if (value === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-gravity'\n" };
             if (!["undefined", "none", "northwest", "north", "northeast", "west", "center", "east", "southwest", "south", "southeast"].includes(value.toLowerCase()))
                 return { exitCode: 2, stdout: "", stderr: `compare: unrecognized gravity type '${value}'\n` };
-            state.gravity = ["undefined", "none"].includes(value.toLowerCase()) ? "northwest" : parseGravity(value);
+            state.gravity = parseGravity(value);
         }
-        else if (t === "+gravity") state.gravity = "northwest";
+        else if (t === "+gravity") state.gravity = undefined;
         else if (t === "-crop") {
             const geometry = argv[++i];
             if (geometry === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-crop'\n" };

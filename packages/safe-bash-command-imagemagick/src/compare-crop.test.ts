@@ -20,6 +20,11 @@ for (const mode of ["sync", "async", "magick", "retained"] as const) {
             [["a.pgm", "b.pgm", "-crop", "2x2+0+0"], "0 (0)", 2],
             [["-crop", "2x2+0+0", "a.pgm", "+crop", "b.pgm"], "16506.1 (0.251867)", 4],
             [["-crop", "2x2", "a.pgm", "b.pgm"], "5140 (0.0784314)", 2],
+            [["-gravity", "West", "-crop", "50x100%", "a.pgm", "b.pgm"], "0 (0)", 2],
+            [["-gravity", "East", "-crop", "50x100%", "a.pgm", "b.pgm"], "20560 (0.313725)", 2],
+            [["-crop", "50x100%", "a.pgm", "b.pgm"], "5140 (0.0784314)", 2],
+            [["-gravity", "East", "+gravity", "-crop", "50x100%", "a.pgm", "b.pgm"], "5140 (0.0784314)", 2],
+            [["-gravity", "None", "-crop", "50x100%", "a.pgm", "b.pgm"], "5140 (0.0784314)", 2],
             [["-gravity", "West", "-crop", "2x2+0+0", "a.pgm", "b.pgm"], "0 (0)", 2],
             [["-crop", "2x2+0+0", "-gravity", "East", "a.pgm", "b.pgm"], "20560 (0.313725)", 2],
             [["-gravity", "East", "-crop", "2x2+0+0", "a.pgm", "b.pgm"], "20560 (0.313725)", 2]

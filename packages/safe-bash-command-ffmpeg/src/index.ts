@@ -9885,8 +9885,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "ashowinfo") {
                         if (logLevel < 32) continue;
                         const format = filteredSampleFormat;
-                        const planar = format === "s16p" || format === "fltp" || format === "dblp";
-                        const bytesPerSample = format === "u8" ? 1 : format === "s16" || format === "s16p" ? 2 : format === "dbl" || format === "dblp" ? 8 : 4;
+                        const planar = format.endsWith("p");
+                        const packed = planar ? format.slice(0, -1) : format;
+                        const bytesPerSample = packed === "u8" ? 1 : packed === "s16" ? 2 : packed === "dbl" ? 8 : 4;
                         const sample = new DataView(new ArrayBuffer(bytesPerSample));
                         const length = stretched[0]?.length ?? 0;
                         const channels = stretched.length;
@@ -9912,10 +9913,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                               for (let c = planar ? plane : 0; c < (planar ? plane + 1 : channels); c++) {
                                 const value = stretched[c]![i]!;
-                                if (format === "u8") sample.setUint8(0, Math.max(0, Math.min(255, Math.round(value * 128) + 128)));
-                                else if (format === "s16" || format === "s16p") sample.setInt16(0, Math.max(-32768, Math.min(32767, Math.round(value * 32768))), true);
-                                else if (format === "s32") sample.setInt32(0, Math.max(-2147483648, Math.min(2147483647, Math.round(value * 2147483648))), true);
-                                else if (format === "flt" || format === "fltp") sample.setFloat32(0, value, true);
+                                if (packed === "u8") sample.setUint8(0, Math.max(0, Math.min(255, Math.round(value * 128) + 128)));
+                                else if (packed === "s16") sample.setInt16(0, Math.max(-32768, Math.min(32767, Math.round(value * 32768))), true);
+                                else if (packed === "s32") sample.setInt32(0, Math.max(-2147483648, Math.min(2147483647, Math.round(value * 2147483648))), true);
+                                else if (packed === "flt") sample.setFloat32(0, value, true);
                                 else sample.setFloat64(0, value, true);
                                 for (let byte = 0; byte < bytesPerSample; byte++) {
                                   const value = sample.getUint8(byte);
@@ -11940,7 +11941,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           if (key === "sample_fmts" || key === "f") {
                             const formats = value.split("|");
-                            if (formats.some(format => !["u8", "s16", "s32", "flt", "fltp", "dbl", "dblp"].includes(format))) {
+                            if (formats.some(format => !["u8", "u8p", "s16", "s16p", "s32", "s32p", "flt", "fltp", "dbl", "dblp"].includes(format))) {
                               throw new Error(`aformat: unsupported sample format ${value}`);
                             }
                             const bytes: Record<string, number> = { u8: 1, s16: 2, s32: 4, flt: 4, dbl: 8 };
@@ -11956,11 +11957,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               : formats.reduce((best, candidate) => score(best) < score(candidate) ? best : candidate);
                             if (!autoConversionFilters && format !== filteredSampleFormat) throw new Error(audioConversionDisabled);
                             panSampleFormat = format;
-                            const truncate = format === "u8" && ["u8", "u8p", "s16", "s16p", "s32", "s32p"].includes(filteredSampleFormat);
+                            const truncate = (format === "u8" || format === "u8p") && ["u8", "u8p", "s16", "s16p", "s32", "s32p"].includes(filteredSampleFormat);
                             filteredSampleFormat = format;
                             if (format === "dbl" || format === "dblp") continue;
                             const floating = format === "flt" || format === "fltp";
-                            const scale = format === "u8" ? 128 : format === "s32" ? 2147483648 : 32768;
+                            const scale = format === "u8" || format === "u8p" ? 128 : format === "s32" || format === "s32p" ? 2147483648 : 32768;
                             const output = stretched.map(channel => new Float64Array(channel.length));
                             for (let i = 0; i < stretched[0]!.length; i++) {
                               if (i % 4096 === 0) {

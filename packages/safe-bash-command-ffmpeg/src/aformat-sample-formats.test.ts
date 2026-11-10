@@ -5,7 +5,7 @@ import { createFfmpegCommand } from "./index.js";
 
 const samples = [-32670, -31718, -32677, -30955, 30955, 32677, 31718, 32670];
 
-for (const format of ["flt", "fltp", "dbl", "dblp", "s32", "s16", "u8"]) {
+for (const format of ["flt", "fltp", "dbl", "dblp", "s32", "s32p", "s16", "s16p", "u8", "u8p"]) {
   for (const key of ["f", "sample_fmts"]) {
     for (const graph of [false, true]) {
       it(`converts aformat ${key}=${format} through ${graph ? "filter_complex" : "af"}`, async () => {
@@ -31,7 +31,7 @@ for (const format of ["flt", "fltp", "dbl", "dblp", "s32", "s16", "u8"]) {
         assert.equal(result.exitCode, 0, stderr);
         const expected = Buffer.alloc(input.length);
         // Native FFmpeg 7.0.2: u8 discards the low eight bits of PCM16 input.
-        const levels = format === "u8"
+        const levels = (format === "u8" || format === "u8p")
           ? [-32768, -31744, -32768, -30976, 30720, 32512, 31488, 32512] : samples;
         levels.forEach((sample, index) => expected.writeInt16LE(sample, index * 2));
         assert.deepEqual(volume.readFileSync("/out.raw"), expected);

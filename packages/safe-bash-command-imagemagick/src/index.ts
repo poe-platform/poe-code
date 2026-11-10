@@ -8985,7 +8985,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const expanded = geometry?.includes("%[") ? yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }) : geometry;
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
-                const output = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
+                let output = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
+                if (image.writeMask && (t === "-swirl" || t === "-implode")) {
+                    // Clip against the original mask, then retain its warped channel.
+                    output = yield* applyMagickRasterSteps(output, writeMaskPixelSteps(output, image.writeMask, !!(output.data16 || image.data16), false, state.channels), signal, output, [output, image, image.writeMask]);
+                    const maskPlan = warpOperation.plan(image.writeMask, expanded)!;
+                    output.writeMask = yield* applyMagickRasterSteps(image.writeMask, maskPlan.steps, signal, maskPlan);
+                }
                 return { ...output, ...("space" in plan && plan.space ? { space: plan.space, channels: plan.space === "srgb" ? 4 as const : output.channels } : {}), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
             });
         }
@@ -10783,7 +10789,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const colorspace = token === "-hald-clut" ? lut.magickColorspace : image.magickColorspace;
                     let result = await transformStoredMagickRaster({ ...metadata, ...(colorspace ? { magickColorspace: colorspace } : {}), space: "srgb", channels: hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16), settings.interpolation), signal, { ...image, hasAlpha }, [image, lut]);
                     if (image.region) result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, image.region, !!result.storedData16, settings.channels), signal, result, [result, image]);
-                    if (image.storedWriteMask) result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!result.storedData16, false, settings.channels), signal, result, [result, image, { ...image, ...image.storedWriteMask }]);
+                    if (image.storedWriteMask) result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!result.storedData16, false, settings.channels), signal, result, [result, image, image.storedWriteMask]);
                     await stack.set(0, result);
                     stack.length = 1;
                 } else if (token === "-separate") {
@@ -10990,7 +10996,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const expanded = geometry?.includes("%[") ? await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal) : geometry;
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
-                const output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);
+                let output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);
+                if (image.storedWriteMask && (token === "-swirl" || token === "-implode")) {
+                    const mask = image.storedWriteMask;
+                    output = await transformStoredMagickRaster(output, backend, writeMaskPixelSteps(output, mask, !!(output.storedData16 || image.storedData16), false, maskChannels), signal, output, [output, image, mask]);
+                    const maskPlan = warpOperation.plan(mask, expanded)!;
+                    output.storedWriteMask = await transformStoredMagickRaster(mask, backend, maskPlan.steps, signal, maskPlan);
+                }
                 return { ...output, ...("space" in plan && plan.space ? { space: plan.space, channels: plan.space === "srgb" ? 4 as const : output.channels } : {}), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
             });
             continue;
@@ -12257,7 +12269,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const original = (await stack.get(n))! as StoredRgbaImage;
                     let result = await step(original, backend);
                     if (result && step.maskAlpha !== "transparent" && original.storedWriteMask && (!result.storedWriteMask || result.storedWriteMask === original.storedWriteMask) && result.position !== original.position && result.width === original.width && result.height === original.height) {
-                        result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, original.storedWriteMask, !!(result.storedData16 || original.storedData16), step.maskAlpha === "opaque", maskChannels), signal, result, [result, original, { ...original, ...original.storedWriteMask }]);
+                        result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, original.storedWriteMask, !!(result.storedData16 || original.storedData16), step.maskAlpha === "opaque", maskChannels), signal, result, [result, original, original.storedWriteMask]);
                     }
                     if (result && !step.handlesRegion && original.region && result.region === original.region && result.position !== original.position && result.width === original.width && result.height === original.height) {
                         result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, original.region, !!(result.storedData16 || original.storedData16), maskChannels), signal, result, [result, original]);

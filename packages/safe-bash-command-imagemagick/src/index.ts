@@ -7795,7 +7795,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         }
                     }
                 } else {
-                    const intensity = (0.212656 * samples[idx]! + 0.715158 * samples[idx + 1]! + 0.072186 * samples[idx + 2]!) * quantumScale;
+                    const intensity = magickIntensity(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!, state.intensity, maximum, image.magickColorspace === "RGB") * quantumScale;
                     const result = intensity > value ? 255 : 0;
                     samples[idx] = samples[idx + 1] = samples[idx + 2] = result ? maximum : 0;
                     out[idx] = out[idx + 1] = out[idx + 2] = result;

@@ -12206,7 +12206,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         audioTimestamps = retained;
                         audioStartSample = retained[0]?.pts ?? audioStartSample + start;
-                      } else if (trimmed === "areverse") {
+                      } else if (trimmed === "areverse" || trimmed === "areverse=") {
                         stretched = await mapWork(stretched, async channel => channel.slice().reverse(), context.signal);
                         audioMetadata.reverse();
                         if (audioTimestamps) {

@@ -6930,11 +6930,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     if (token === "-colorspace" || token === "-grayscale" || token === "-type") {
         const value = tokens[++i];
         const imageType = token === "-type" ? (value ?? "").toLowerCase() : undefined;
-        if (imageType !== undefined && !["bilevel", "grayscale", "grayscalealpha", "truecolor", "truecoloralpha", "palette"].includes(imageType)) {
+        if (imageType !== undefined && !["bilevel", "grayscale", "grayscalealpha", "truecolor", "truecoloralpha", "palette", "palettealpha", "palettematte"].includes(imageType)) {
             throw new Error(`unsupported image type '${value ?? ""}'`);
         }
+        const paletteType = imageType !== undefined && ["palette", "palettealpha", "palettematte"].includes(imageType);
         const space = imageType === undefined ? (value ?? "gray").toLowerCase()
-            : imageType === "truecolor" || imageType === "truecoloralpha" || imageType === "palette" ? "srgb" : "gray";
+            : imageType === "truecolor" || imageType === "truecoloralpha" || paletteType ? "srgb" : "gray";
         // ImageMagick 7.1.2 ColorspaceOptions, plus our existing grey and luma aliases.
         if (token === "-colorspace" && !["undefined", "adobe98", "cat02lms", "cielab", "cmy", "cmyk", "displayp3", "gray", "grey", "hcl", "hclp", "hsb", "hsi", "hsl", "hsv", "hwb", "jzazbz", "lab", "lch", "lchab", "lchuv", "lineargray", "lms", "log", "luv", "ohta", "oklab", "oklch", "prophoto", "rec601luma", "rec601ycbcr", "rec709luma", "rec709ycbcr", "rgb", "scrgb", "srgb", "transparent", "xyy", "xyz", "ycbcr", "ydbdr", "ycc", "yiq", "ypbpr", "yuv"].includes(space)) {
             throw new Error(`unrecognized colorspace '${value}'`);
@@ -6977,11 +6978,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 const { evaluateSamples: ignoredEvaluate, ...bounded } = image;
                 image = bounded;
             }
-            if (imageType === "truecolor" || imageType === "truecoloralpha" || imageType === "palette") {
-                const hasAlpha = imageType === "truecoloralpha";
+            if (imageType === "truecolor" || imageType === "truecoloralpha" || paletteType) {
+                const hasAlpha = imageType === "truecoloralpha" || imageType === "palettealpha" || imageType === "palettematte";
                 // Enabling absent alpha makes it opaque; TrueColor and Palette discard alpha without compositing RGB.
                 if (!hasAlpha || !image.hasAlpha) image = yield* prepareInactiveAlphaOutput({ ...image, hasAlpha: false });
-                return { ...image, isPalette: imageType === "palette", hasAlpha, channels: hasAlpha ? 4 : 3, space: "srgb" };
+                return { ...image, isPalette: paletteType, hasAlpha, channels: hasAlpha ? 4 : 3, space: "srgb" };
             }
             if (space === "cmyk") return yield* convertCmykPixels(image);
             if (space === "lab" || space === "cielab") return yield* convertHuePixels(image, "CIELab");
@@ -9069,7 +9070,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (pixelOperation.warning) analysis.warnings += pixelOperation.warning;
             if (t === "-contrast" || t === "+contrast") analysis.warnings += `magick: option has been replaced '${t}', use "${t[0]}level"\n`;
             i = pixelOperation.end;
-            const palette = t === "-type" && tokens[i]?.toLowerCase() === "palette";
+            const palette = t === "-type" && ["palette", "palettealpha", "palettematte"].includes(tokens[i]?.toLowerCase() ?? "");
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const { evaluateSamples: ignoredEvaluate, ...bounded } = image;
                 const input = pixelOperation.evaluate ? image : bounded;
@@ -11223,7 +11224,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             i = pixelOperation.end;
-            const palette = token === "-type" && tokens[i]?.toLowerCase() === "palette";
+            const palette = token === "-type" && ["palette", "palettealpha", "palettematte"].includes(tokens[i]?.toLowerCase() ?? "");
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
                 const converted = await transformStoredMagickPixels(image, backend, pixelOperation, signal);

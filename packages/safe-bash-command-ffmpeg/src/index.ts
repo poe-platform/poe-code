@@ -10722,16 +10722,24 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           budget.checkDuration(length / origRate);
                           const previous = audioTimestamps;
                           audioTimestamps = [];
-                          // Keep incoming frames, splitting at the loop boundary. The cached
-                          // region is replayed in frames of at most 1024 samples.
-                          for (let offset = 0, n = 0; offset < inputLength; n++) {
+                          // Collect loops starting at the first sample in requests of at most
+                          // 1024 samples; after replay, retain unconsumed input frame splits.
+                          for (let offset = 0, frameOffset = 0, n = 0; offset < inputLength;) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             const frame = previous?.[n];
                             const packet = t.samples[n];
                             const count = frame ? frame.end - frame.start
                               : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
-                            const end = Math.min(inputLength, offset + count);
-                            const pts = frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + offset);
+                            const frameEnd = frameOffset + count;
+                            if (frameEnd <= offset) {
+                              frameOffset = frameEnd;
+                              n++;
+                              continue;
+                            }
+                            const end = Math.min(inputLength, loopStart === 0 && loop! > 0 && offset < regionEnd
+                              ? offset + Math.min(1024, regionEnd - offset) : frameEnd);
+                            const pts = (frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + frameOffset))
+                              + offset - frameOffset;
                             const pos = previous ? frame?.pos : packet?.offset;
                             if (offset < regionEnd) {
                               const prefixEnd = Math.min(end, regionEnd);

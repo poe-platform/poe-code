@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function removeSilence(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -33,7 +34,7 @@ export async function removeSilence(
       const periods = key.endsWith("periods");
       const scale = !threshold && !periods && value.endsWith("ms") ? 0.001
         : !threshold && !periods && value.endsWith("us") ? 0.000001 : 1;
-      const number = threshold && value.endsWith("dB") ? 10 ** (Number(value.slice(0, -2)) / 20)
+      const number = threshold ? parseFilterExpression(value, "silenceremove", {})
         : Number(!threshold && !periods && value.endsWith("s") ? value.slice(0, scale === 1 ? -1 : -2) : value) * scale;
       const min = key === "stop_periods" ? -9000 : 0;
       const max = periods ? 9000 : key === "window" ? 100 : threshold ? Number.MAX_VALUE : 2147.483647;

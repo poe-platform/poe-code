@@ -1122,6 +1122,7 @@ async function panAudio(
   const assigned = new Set<number>();
   let numberedInputs: boolean | undefined;
   for (const assignment of assignments) {
+    if (assignment === "") continue;
     const normalize = assignment.includes("<");
     const parts = assignment.split(normalize ? "<" : "=");
     if (parts.length !== 2 || !parts[1]?.trim()) throw new Error("pan: invalid channel assignment");

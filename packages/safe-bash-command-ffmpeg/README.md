@@ -634,7 +634,9 @@ Terms accept hexadecimal gains (`0x1`, `0x1p-1`), subtraction (`c0-c1`), compact
 (`1e+0*c1` or `5e-1c1`). Nonfinite gains such as `nan`, `inf`, and `1e999` are accepted;
 `pan=mono|c0=nan*c0` produces silence on PCM16 input/output. Floating-point paths retain nonfinite samples.
 Stereo layouts also accept `0x3` and `FL+FR`. `pan=5.1|FC=c1|LFE=c0` routes
-stereo into center and LFE; unassigned speakers stay silent. Output preserves
+stereo into center and LFE; unassigned speakers stay silent. Empty equation fields
+between or after assignments are ignored, so `pan=stereo|c0=c0||c1=c1` preserves
+both channels and `pan=stereo|c0=c0|` leaves the right channel silent. Output preserves
 the layout’s speaker order and channel mask.
 Each input channel may appear only once per output equation, including zero-gain
 terms; the same input may be used in separate output equations.

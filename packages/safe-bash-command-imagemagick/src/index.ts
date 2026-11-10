@@ -12314,6 +12314,11 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             const image = stack[index]!;
             stack[index] = { ...image, properties: { ...image.properties, compose: state.composeRaw } };
         }
+        if (state.interlace !== undefined) for (let index = 0; index < stack.length; index++) {
+            yield;
+            const image = stack[index]!;
+            stack[index] = { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace } };
+        }
         if (state.orientation !== undefined || state.units !== undefined || state.densityGeometry !== undefined) for (let index = 0; index < stack.length; index++) {
             yield;
             let image = stack[index]!;
@@ -15211,6 +15216,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 await yieldTurn(signal);
                 const image = (await stack.get(index))!;
                 await stack.set(index, { ...image, properties: { ...image.properties, compose: state.composeRaw } });
+            }
+            if (state.interlace !== undefined) for (let index = 0; index < stack.length; index++) {
+                await yieldTurn(signal);
+                const image = (await stack.get(index))!;
+                await stack.set(index, { ...image, [magickInput]: { ...(image as StoredMagickImage)[magickInput], interlace: state.interlace } });
             }
             if (state.orientation !== undefined || state.units !== undefined || state.densityGeometry !== undefined) for (let index = 0; index < stack.length; index++) {
                 await yieldTurn(signal);

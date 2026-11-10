@@ -2127,7 +2127,13 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
     const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
     const hueSamples = img.hueSamples ? new Float64Array(out.length) : undefined;
-    const workingBackground = [bg.r, bg.g, bg.b, bg.a].map(value => value / 255);
+    if (img.space === "cmyk") {
+        // Native CMYK canvas fills convert linear RGB background values to inks.
+        const rgb = [bg.r, bg.g, bg.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+        bg = { ...bg, r: rgb[0]! * 255, g: rgb[1]! * 255, b: rgb[2]! * 255 };
+    }
+    const workingBackground = img.space === "cmyk" ? rgbToCmyk(bg.r / 255, bg.g / 255, bg.b / 255)
+        : [bg.r, bg.g, bg.b, bg.a].map(value => value / 255);
     const background = [bg.r, bg.g, bg.b, bg.a].map(value => Math.round(value * 257));
     for (let y = 0; y < outH; y++) {
         if (++cooperativeWork % 65536 === 0)
@@ -11071,14 +11077,21 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         xs = [{ source: 0, target: 0, length: x0 }, { source: x1, target: x0, length: w - x1 }];
         ys = [{ source: 0, target: 0, length: y0 }, { source: y1, target: y0, length: h - y1 }];
     }
-    const background = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
+    let background = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
+    if (token === "-splice" && image.space === "cmyk") {
+        // Keep the RGB backing and the CMYK working plane in agreement.
+        const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+        background = { ...background, r: rgb[0]! * 255, g: rgb[1]! * 255, b: rgb[2]! * 255 };
+    }
     const position = token === "-splice" ? (await createStoredCanvas(width, height, background, backend, signal)).position : backend.storage.allocate(width * height * 4);
     const storedData16 = image.storedData16 ? { position: backend.storage.allocate(width * height * 8), length: width * height * 4 } : undefined;
     const storedEvaluateSamples = image.storedEvaluateSamples === undefined ? undefined : backend.storage.allocate(width * height * 32);
     const storedHueSamples = image.storedHueSamples === undefined ? undefined : backend.storage.allocate(width * height * 32);
     for (const [target, range] of [[storedEvaluateSamples, 1], [storedHueSamples, 255]] as const) {
         if (target === undefined || token !== "-splice") continue;
-        const color = [background.r, background.g, background.b, background.a].map(value => value / range);
+        const color = target === storedHueSamples && image.space === "cmyk"
+            ? rgbToCmyk(background.r / 255, background.g / 255, background.b / 255)
+            : [background.r, background.g, background.b, background.a].map(value => value / range);
         for (let offset = 0; offset < width * height * 4; offset += 2048) {
             await yieldTurn(signal);
             const samples = new Float64Array(Math.min(2048, width * height * 4 - offset));

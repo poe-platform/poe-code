@@ -10514,11 +10514,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const key = separator < 0 ? (["volume", "precision", "eval", "replaygain", "replaygain_preamp", "replaygain_noclip"][index] ?? "") : option.slice(0, separator).trim();
                           const value = separator < 0 ? option.trim() : option.slice(separator + 1).trim();
                           if (key === "volume") volSpec = value;
-                          else if (key === "precision") precision = value;
-                          else if (key === "eval") evaluation = value;
-                          else if (key === "replaygain") replayGain = value;
+                          else if (key === "precision" || key === "eval" || key === "replaygain") {
+                            const names = key === "precision" ? ["fixed", "float", "double"]
+                              : key === "eval" ? ["once", "frame"] : ["drop", "ignore", "track", "album"];
+                            const number = parseFilterExpression(value, "volume", Object.fromEntries(names.map((name, i) => [name, i])));
+                            if (!Number.isFinite(number) || number < 0 || number > names.length - 1) {
+                              throw new Error(`volume: invalid ${key}`);
+                            }
+                            const mode = names[roundToEven(number)]!;
+                            if (key === "precision") precision = mode;
+                            else if (key === "eval") evaluation = mode;
+                            else replayGain = mode;
+                          }
                           else if (key === "replaygain_preamp") {
-                            replayGainPreamp = Number(value);
+                            replayGainPreamp = parseFilterExpression(value, "volume", {});
                             if (!value || !Number.isFinite(replayGainPreamp) || Math.abs(replayGainPreamp) > 60) {
                               throw new Error("volume: invalid replaygain_preamp");
                             }
@@ -10532,13 +10541,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else if (key === "enable") enable = value;
                           else throw new Error(`volume: unsupported option ${key}`);
                         }
-                        precision = precision === "0" ? "fixed" : precision === "1" ? "float" : precision === "2" ? "double" : precision;
-                        evaluation = evaluation === "0" ? "once" : evaluation === "1" ? "frame" : evaluation;
-                        if (!["fixed", "float", "double"].includes(precision)) throw new Error("volume: invalid precision");
                         if (precision !== "fixed") statsScale = 1;
-                        if (evaluation !== "once" && evaluation !== "frame") throw new Error("volume: invalid eval");
-                        replayGain = ["drop", "ignore", "track", "album"][Number(replayGain)] ?? replayGain;
-                        if (!["drop", "ignore", "track", "album"].includes(replayGain)) throw new Error("volume: invalid replaygain");
                         let replayGainFactor: number | undefined;
                         if (replayGainAvailable && (replayGain === "track" || replayGain === "album")) {
                           const tags = Object.fromEntries(Object.entries({ ...doc.metadata, ...doc.metadata.custom, ...t.metadata })

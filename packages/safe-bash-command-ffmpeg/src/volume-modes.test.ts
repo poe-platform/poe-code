@@ -14,6 +14,10 @@ for (const [numeric, named] of [
       [`0.333:${p}:${e}`, `0.333:${precision}:${evaluation}`]
     ])),
   ["n/10:precision=1:eval=1", "n/10:precision=float:eval=frame"],
+  ["n/10:precision=1+0:eval=1+0", "n/10:precision=float:eval=frame"],
+  ["0.333:precision=1/2", "0.333:precision=fixed"],
+  ["0.5000000001:precision=3/2", "0.5000000001:precision=double"],
+  ["0.333:eval=1/2", "0.333:eval=once"],
   ...["precision=-1", "precision=3", "precision=bogus", "eval=-1", "eval=2", "eval=bogus"]
     .map(option => [`0.5:${option}`, null])
 ]) {

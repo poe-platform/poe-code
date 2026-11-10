@@ -731,6 +731,7 @@ The volume counters `nb_samples` and `nb_consumed_samples` are unavailable (NaN)
 `volume` supports ReplayGain `drop` (default), `ignore`, `track`, and `album` modes,
 with `replaygain_preamp` (-60–60 dB) and `replaygain_noclip` (enabled by default; accepts `0`/`1` and case-insensitive `false`/`true`, `no`/`yes`, `off`/`on`).
 Tagged gain replaces the volume multiplier; untagged audio keeps the requested volume.
+`precision`, `eval`, `replaygain`, and `replaygain_preamp` accept arithmetic expressions, such as `volume=0.5:precision=1+1:eval=1+0:replaygain=track+0:replaygain_preamp=1/2`. Numeric modes round to the nearest integer with ties to even; out-of-range or invalid expressions fail before replacing output.
 With `eval=frame`, `startt` and `startpts` retain the first audio frame's timestamp in seconds and sample time-base units; both are NaN with `eval=once`.
 With `eval=frame`, a NaN gain becomes silence; `isnan()` can supply a fallback gain.
 `atempo` aligns and blends audio windows, including at tempo 1. The aligned terminal fragment determines clip length, which can differ from input length divided by tempo. Output timestamps start at the first input timestamp and advance by emitted samples, closing gaps introduced by earlier filters.

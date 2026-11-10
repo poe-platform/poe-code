@@ -294,7 +294,7 @@ function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly
   const low = s.toLowerCase();
   if (X11_NAMED_COLORS[low]) {
     const [r, g, b, a] = X11_NAMED_COLORS[low]!;
-    return { r, g, b, a };
+    return { r, g, b, a, ...(low === "gray" || low === "grey" ? { space: "b-w" as const } : {}) };
   }
   const grayMatch = /^gr[ae]y(\d{1,3})$/.exec(low);
   if (grayMatch) {

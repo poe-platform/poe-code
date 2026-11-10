@@ -4252,9 +4252,12 @@ async function applyVideoFilterChain(
       if (values.loop === -1 && size > 0) throw new Error("loop: infinite replay is not supported");
       if (values.loop > 0 && size > 0) {
         const end = start + size;
-        const first = current[start]!;
-        const last = current[end - 1]!;
-        const duration = last.ptsSeconds + last.durationSeconds - first.ptsSeconds;
+        // FFmpeg sums buffered frame durations, not the span between their PTS.
+        // After setpts, FFmpeg 7 clears durations and advertises an unknown rate.
+        let duration = 0;
+        if (frameRateKnown) {
+          for (let index = start; index < end; index++) duration += current[index]!.durationSeconds;
+        }
         const added = values.loop * size;
         const count = current.length + added;
         if (!Number.isSafeInteger(count) || count > 4294967295) throw new Error("loop: output frame count is too large");

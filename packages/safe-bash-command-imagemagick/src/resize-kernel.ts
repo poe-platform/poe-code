@@ -500,7 +500,7 @@ export function* pointResizePixelSteps(image: { width: number; height: number; h
             // SampleImage checks the resized clone's initially zero write-mask
             // channel before copying pixels. Its color and alpha channels stay zero.
             if (sample && writeMask) {
-                if (!image.hasAlpha) for (let x = 0; x < count; x++) {
+                if (pixelBytes !== 1 && !image.hasAlpha) for (let x = 0; x < count; x++) {
                     if (pixelBytes === 32) new Float64Array(data.buffer)[x * 4 + 3] = 255;
                     else data.fill(255, x * pixelBytes + pixelBytes * 3 / 4, (x + 1) * pixelBytes);
                 }
@@ -520,7 +520,7 @@ export function* pointResizePixelSteps(image: { width: number; height: number; h
                 }
                 data.set(pixels.subarray(position - start, position - start + pixelBytes), x * pixelBytes);
                 // Resize filters premultiply alpha; SampleImage copies hidden color unchanged.
-                if (!sample && image.hasAlpha && samples[x * 4 + 3] === 0) data.fill(0, x * pixelBytes, x * pixelBytes + pixelBytes * 3 / 4);
+                if (pixelBytes !== 1 && !sample && image.hasAlpha && samples[x * 4 + 3] === 0) data.fill(0, x * pixelBytes, x * pixelBytes + pixelBytes * 3 / 4);
             }
             yield { kind: "write", position: (y * width + left) * pixelBytes, data };
         }

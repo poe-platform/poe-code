@@ -2424,6 +2424,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
     const outW = img.width - choppedW;
     const outH = img.height - choppedH;
     const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
+    const pngIndices = img.pngIndices ? new Uint8Array(out.length / 4) : undefined;
     const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
     const hueSamples = img.hueSamples ? new Float64Array(out.length) : undefined;
     const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
@@ -2441,6 +2442,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
             out[dstIdx + 1] = img.data[srcIdx + 1]!;
             out[dstIdx + 2] = img.data[srcIdx + 2]!;
             out[dstIdx + 3] = img.data[srcIdx + 3]!;
+            if (pngIndices) pngIndices[dstIdx / 4] = img.pngIndices![srcIdx / 4]!;
             if (data16) data16.set(img.data16!.subarray(srcIdx, srcIdx + 4), dstIdx);
             if (hueSamples) hueSamples.set(img.hueSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
             if (evaluateSamples) evaluateSamples.set(img.evaluateSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
@@ -2460,7 +2462,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
         const { virtualCanvas: ignoredCanvas, ...mask } = img.writeMask;
         img = { ...img, writeMask: yield* applyMagickChopSteps({ ...mask, ...(img.virtualCanvas ? { virtualCanvas: img.virtualCanvas } : {}) }, geomStr, gravity, signal) };
     }
-    return { ...img, alphaSeparate: img.alphaBlend === false ? false : img.alphaSeparate, ...(img.region ? { region: chopRegion(img.region, cx0, cy0, cx1, cy1) } : {}), width: outW, height: outH, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
+    return { ...img, alphaSeparate: img.alphaBlend === false ? false : img.alphaSeparate, ...(img.region ? { region: chopRegion(img.region, cx0, cy0, cx1, cy1) } : {}), width: outW, height: outH, data: out, ...(pngIndices ? { pngIndices } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
@@ -2599,6 +2601,7 @@ function* applyMagickRollSteps(img: RgbaImage, geomStr: string, signal?: AbortSi
     const w = img.width;
     const h = img.height;
     const out = new Uint8Array(img.data.length);
+    const pngIndices = img.pngIndices ? new Uint8Array(out.length / 4) : undefined;
     const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
     const hueSamples = img.hueSamples ? new Float64Array(out.length) : undefined;
     const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
@@ -2616,12 +2619,13 @@ function* applyMagickRollSteps(img: RgbaImage, geomStr: string, signal?: AbortSi
             out[dstIdx + 1] = img.data[srcIdx + 1]!;
             out[dstIdx + 2] = img.data[srcIdx + 2]!;
             out[dstIdx + 3] = img.data[srcIdx + 3]!;
+            if (pngIndices) pngIndices[dstIdx / 4] = img.pngIndices![srcIdx / 4]!;
             if (data16) data16.set(img.data16!.subarray(srcIdx, srcIdx + 4), dstIdx);
             if (hueSamples) hueSamples.set(img.hueSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
             if (evaluateSamples) evaluateSamples.set(img.evaluateSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
         }
     }
-    return { ...img, alphaSeparate: img.alphaBlend === false ? false : img.alphaSeparate, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
+    return { ...img, alphaSeparate: img.alphaBlend === false ? false : img.alphaSeparate, data: out, ...(pngIndices ? { pngIndices } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
 }
 
 function parseMagickColorCount(argument: string): number {
@@ -5154,13 +5158,13 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     let resized: RgbaImage = !preserveSamples && !settings && !img.data16 && !scale && (kernel === "linear")
         ? yield* resizeImageSteps(img, { ...options, kernel })
         : yield* applyMagickRasterSteps(img, point ? pointResizePixelSteps(img, width, height, sample, 4, sampleOffset, writeMask) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings, preserveSamples, writeMask), undefined, { ...img, width, height });
-    for (const key of point ? ["data16", "evaluateSamples", ...(img.space !== "cmyk" ? ["hueSamples"] as const : [])] as const : []) {
+    for (const key of point ? ["pngIndices", "data16", "evaluateSamples", ...(img.space !== "cmyk" ? ["hueSamples"] as const : [])] as const : []) {
         const samples = img[key];
         if (!samples) continue;
         const source = new Uint8Array(samples.buffer, samples.byteOffset, samples.byteLength);
-        const output = samples instanceof Uint16Array ? new Uint16Array(width * height * 4) : new Float64Array(width * height * 4);
+        const output = samples instanceof Uint8Array ? new Uint8Array(width * height) : samples instanceof Uint16Array ? new Uint16Array(width * height * 4) : new Float64Array(width * height * 4);
         const bytes = new Uint8Array(output.buffer);
-        const steps = pointResizePixelSteps(img, width, height, sample, 4 * samples.BYTES_PER_ELEMENT, sampleOffset, writeMask);
+        const steps = pointResizePixelSteps(img, width, height, sample, key === "pngIndices" ? 1 : 4 * samples.BYTES_PER_ELEMENT, sampleOffset, writeMask);
         let next = steps.next();
         while (!next.done) {
             const request = next.value;
@@ -5215,7 +5219,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
     let resized: StoredRgbaImage = !preserveSamples && !settings && !image.storedData16 && !scale && (options.kernel === "linear")
         ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options, kernel: options.kernel }, signal)
         : await transformStoredMagickRaster(image, backend, point ? pointResizePixelSteps(image, width, height, sample, 4, sampleOffset, writeMask) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings, preserveSamples, writeMask), signal, { ...image, width, height });
-    for (const [source, pixelBytes, key] of point ? [[image.storedData16?.position, 8, "storedData16"], [image.storedEvaluateSamples, 32, "storedEvaluateSamples"], [image.space !== "cmyk" ? image.storedHueSamples : undefined, 32, "storedHueSamples"]] as const : []) {
+    for (const [source, pixelBytes, key] of point ? [[image.storedPngIndices?.position, 1, "storedPngIndices"], [image.storedData16?.position, 8, "storedData16"], [image.storedEvaluateSamples, 32, "storedEvaluateSamples"], [image.space !== "cmyk" ? image.storedHueSamples : undefined, 32, "storedHueSamples"]] as const : []) {
         if (source === undefined) continue;
         const position = backend.storage.allocate(width * height * pixelBytes);
         const steps = pointResizePixelSteps(image, width, height, sample, pixelBytes, sampleOffset, writeMask);
@@ -5227,7 +5231,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
             else if (request.kind === "read") next = steps.next(await backend.storage.read(source + request.position, request.length));
             else { await backend.storage.write(position + request.position, request.data); next = steps.next(); }
         }
-        resized = { ...resized, [key]: pixelBytes === 8 ? { position, length: width * height * 4 } : position };
+        resized = { ...resized, [key]: pixelBytes === 1 ? { position, width, height } : pixelBytes === 8 ? { position, length: width * height * 4 } : position };
     }
 
     if (point && image.storedMetaChannels?.length) {
@@ -13077,6 +13081,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         image = { ...image, storedData16: { position, length } };
     }
     const position = token === "-splice" ? (await createStoredCanvas(width, height, background, backend, signal)).position : backend.storage.allocate(width * height * 4);
+    const storedPngIndices = token !== "-splice" && image.storedPngIndices ? { position: backend.storage.allocate(width * height), width, height } : undefined;
     const storedData16 = image.storedData16 ? { position: backend.storage.allocate(width * height * 8), length: width * height * 4 } : undefined;
     const storedEvaluateSamples = image.storedEvaluateSamples === undefined ? undefined : backend.storage.allocate(width * height * 32);
     const storedHueSamples = image.storedHueSamples === undefined ? undefined : backend.storage.allocate(width * height * 32);
@@ -13102,7 +13107,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         }
     }
     let work = 0;
-    for (const plane of [{ source: image.position, target: position, stride: 4 }, ...(storedData16 ? [{ source: image.storedData16!.position, target: storedData16.position, stride: 8 }] : []), ...(storedEvaluateSamples === undefined ? [] : [{ source: image.storedEvaluateSamples!, target: storedEvaluateSamples, stride: 32 }]), ...(storedHueSamples === undefined ? [] : [{ source: image.storedHueSamples!, target: storedHueSamples, stride: 32 }])]) {
+    for (const plane of [{ source: image.position, target: position, stride: 4 }, ...(storedPngIndices ? [{ source: image.storedPngIndices!.position, target: storedPngIndices.position, stride: 1 }] : []), ...(storedData16 ? [{ source: image.storedData16!.position, target: storedData16.position, stride: 8 }] : []), ...(storedEvaluateSamples === undefined ? [] : [{ source: image.storedEvaluateSamples!, target: storedEvaluateSamples, stride: 32 }]), ...(storedHueSamples === undefined ? [] : [{ source: image.storedHueSamples!, target: storedHueSamples, stride: 32 }])]) {
         if (token === "-splice" && (image.region || image.storedWriteMask)) {
             // Keep horizontal insertions colored, including their intersections with columns.
             const start = xs[0]!.length, end = Math.min(width, xs[1]!.target);
@@ -13172,7 +13177,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         const { virtualCanvas: ignoredCanvas, ...mask } = image.storedWriteMask;
         image = { ...image, storedWriteMask: await transformStoredMagickCoordinates({ ...mask, ...(image.virtualCanvas ? { virtualCanvas: image.virtualCanvas } : {}) }, backend, token, geometry, state, signal, analysis) };
     }
-    return { ...image, alphaSeparate: image.alphaBlend === false ? false : image.alphaSeparate, region, position, width, height, ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}),
+    return { ...image, alphaSeparate: image.alphaBlend === false ? false : image.alphaSeparate, region, position, width, height, ...(storedPngIndices ? { storedPngIndices } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}),
         ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 

@@ -86,6 +86,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
     const { name } = magickCompositeMode(compose);
     const sourceIn = name === "srcin" || name === "in", destinationOut = name === "dstout" || name === "destout";
     const copySource = ["src", "source", "copy"].includes(name), copyDestination = ["dst", "destination"].includes(name);
+    const blend = name === "multiply" || name === "screen" || name === "difference";
     const copyAlpha = name === "copyalpha" || name === "copyopacity";
     const { width, height } = source, cx = width / 2, cy = height / 2;
     const insetX = geometry.hasOffset ? geometry.x : width * 0.1, insetY = geometry.hasYOffset ? geometry.y : height * 0.1;
@@ -193,6 +194,15 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                 for (let channel = 0; channel < 3; channel++) {
                     const color = channel === 0 ? background.r : channel === 1 ? background.g : background.b;
                     const selected = !channels || (channel === 0 ? channels.r : channel === 1 ? channels.g : channels.b);
+                    if (selected && blend) {
+                        const source = data[x * 4 + channel]! / scale, destinationAlpha = background.a / 255;
+                        const mixed = name === "multiply" ? source * color / 255
+                            : name === "screen" ? source + color - source * color / 255 : Math.abs(source - color);
+                        const value = mixed * foreground * destinationAlpha + source * foreground * (1 - destinationAlpha) + color * back;
+                        // Native Screen keeps premultiplied RGB; Multiply and Difference unpremultiply.
+                        data[x * 4 + channel] = Math.round((name === "screen" ? value : alpha === 0 ? 0 : value / alpha) * scale);
+                        continue;
+                    }
                     data[x * 4 + channel] = !selected || copyDestination || copyAlpha ? Math.round(color * scale) : copySource ? data[x * 4 + channel]!
                         : sourceIn ? Math.round(data[x * 4 + channel]! * alpha)
                         : destinationOut ? (alpha === 0 ? 0 : Math.round(color * scale))
@@ -200,7 +210,8 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                         : name === "plus" ? Math.round(Math.min(255 * scale, data[x * 4 + channel]! * foreground + color * scale * back))
                         : alpha === 0 ? 0 : Math.round((data[x * 4 + channel]! * foreground + color * scale * back) / alpha);
                 }
-                data[x * 4 + 3] = Math.round(((!channels || channels.a) && !copyDestination ? (copySource || copyAlpha ? foreground : alpha) * 255 : background.a) * scale);
+                data[x * 4 + 3] = Math.round(((!channels || channels.a) && !copyDestination ? (copySource || copyAlpha ? foreground
+                    : name === "difference" ? Math.abs(foreground - background.a / 255) : alpha) * 255 : background.a) * scale);
             }
             yield { kind: "write", highDepth, position: ((y + offsetY) * canvas.width + left + offsetX) * 4, data: new Uint8Array(data.buffer) };
         }

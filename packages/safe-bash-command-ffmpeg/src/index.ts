@@ -4103,6 +4103,8 @@ async function applyVideoFilterChain(
       videoCommands = videoCommands.filter(command => command.target !== name && command.target !== instance);
       commands.sort((a, b) => a.time - b.time);
       let nextCommand = 0;
+      const packedAlpha = pixelFormat === "rgba" || pixelFormat === "bgra";
+      const hasAlpha = packedAlpha || pixelFormat === "gbrap" || pixelFormat === "ya8" || pixelFormat === "rgba64be";
       const blended: typeof current = [];
       for (let index = 1; index < current.length; index++) {
         const frame = current[index]!;
@@ -4137,10 +4139,16 @@ async function applyVideoFilterChain(
         const sampleBytes = useNative && [49, 68].includes(native.format) ? 2 : 1;
         for (let offset = 0; offset < data.length; offset += sampleBytes) {
           if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-          const first = a[offset]! + (sampleBytes === 2 ? a[offset + 1]! * 256 : 0);
-          const second = b[offset]! + (sampleBytes === 2 ? b[offset + 1]! * 256 : 0);
+          let first = a[offset]! + (sampleBytes === 2 ? a[offset + 1]! * 256 : 0);
+          let second = b[offset]! + (sampleBytes === 2 ? b[offset + 1]! * 256 : 0);
+          if (mode === 6 && !useNative && offset % 4 === 3 && packedAlpha) {
+            // swscale rounds packed alpha when converting to planar GBR for tblend.
+            first = Math.min(255, Math.round(first * 257 / 256));
+            second = Math.min(255, Math.round(second * 257 / 256));
+          }
           const maximum = sampleBytes === 1 ? 255 : native!.format === 68 ? 1023 : 65535;
-          const value = mode === 1 ? Math.min(maximum, first + second) : mode === 3 ? Math.floor((first + second) / 2) : Math.abs(first - second);
+          const value = mode === 1 ? Math.min(maximum, first + second) : mode === 3 ? Math.floor((first + second) / 2) :
+            !useNative && offset % 4 === 3 && !hasAlpha ? 255 : Math.abs(first - second);
           data[offset] = value & 255;
           if (sampleBytes === 2) data[offset + 1] = value >> 8;
         }
@@ -4155,6 +4163,7 @@ async function applyVideoFilterChain(
         }
       }
       current = blended;
+      if (mode === 6 && packedAlpha) pixelFormat = "gbrap";
     } else if (name === "shuffleframes") {
       for (const key of Object.keys(named)) {
         if (key !== "mapping" && key !== "enable") throw new Error(`shuffleframes: unsupported option ${key}`);

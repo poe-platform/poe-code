@@ -2,11 +2,12 @@ import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import { compositePixelsSteps, magickCompositeMode } from "./composite-pixels.js";
 
-type Raster = Pick<RgbaImage, "width" | "height" | "hasAlpha" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples">>;
+type Raster = Pick<RgbaImage, "width" | "height" | "hasAlpha" | "evaluateSamples" | "data16"> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples" | "storedData16">>;
 
 // Use the shared compose formulas on bounded spans, retaining working samples and all 16 source bits.
 export function* composite16PixelSteps(base: Raster, overlay: Raster, left: number, top: number, mode: string,
     args?: string, tile = false, fuzz = 0, clipToOverlay = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const highDepth = !!(base.data16 || overlay.data16 || base.storedData16 || overlay.storedData16);
     const baseEvaluate = !!base.evaluateSamples || base.storedEvaluateSamples !== undefined;
     const overlayEvaluate = !!overlay.evaluateSamples || overlay.storedEvaluateSamples !== undefined;
     left = Math.round(left);
@@ -38,8 +39,10 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
             for (let i = 0; i < samples.length; i++) samples[i] = baseEvaluate || overlayEvaluate ? Math.fround(result[i]! * 257) / 257 : result[i]!;
         }
         if (baseEvaluate || overlayEvaluate) yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
-        const data = Uint16Array.from(samples, value => Math.round(Math.max(0, Math.min(65535, value * 257))));
-        yield { kind: "write", highDepth: true, position, data: new Uint8Array(data.buffer) };
+        const data = highDepth
+            ? Uint16Array.from(samples, value => Math.round(Math.max(0, Math.min(65535, value * 257))))
+            : Uint8Array.from(samples, value => Math.round(Math.max(0, Math.min(255, value))));
+        yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
         x += count;
     }
 }

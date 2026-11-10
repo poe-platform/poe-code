@@ -4964,6 +4964,12 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
         resized = { ...resized, ...(output instanceof Uint16Array ? { data16: output } : { evaluateSamples: output }) };
     }
 
+    if (point && img.metaChannels?.length) {
+        resized.metaChannels = [];
+        for (const plane of img.metaChannels)
+            resized.metaChannels.push(yield* applyMagickResizeSteps(plane, `${width}x${height}!`, kernel, thumbnail, sample, scale, settings, sampleOffset, preserveSamples));
+    }
+
     if ((sample || scale) && img.writeMask) resized = { ...resized, writeMask: { ...resized, hasAlpha: false } };
     const virtualCanvas = magickResizeCanvas(img, width, height);
     return virtualCanvas ? { ...resized, virtualCanvas } : resized;
@@ -5015,6 +5021,12 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
             else { await backend.storage.write(position + request.position, request.data); next = steps.next(); }
         }
         resized = { ...resized, ...(pixelBytes === 8 ? { storedData16: { position, length: width * height * 4 } } : { storedEvaluateSamples: position }) };
+    }
+
+    if (point && image.storedMetaChannels?.length) {
+        resized.storedMetaChannels = [];
+        for (const plane of image.storedMetaChannels)
+            resized.storedMetaChannels.push(await resizeStoredMagickImage(plane, backend, options, signal, thumbnail, sample, scale, settings, sampleOffset, preserveSamples));
     }
 
     if ((sample || scale) && image.storedWriteMask) {

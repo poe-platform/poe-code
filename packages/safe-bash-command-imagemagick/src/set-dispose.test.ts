@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import sharp from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli } from "./index.js";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 function disposals(bytes: Uint8Array): number[] {
   const values: number[] = [];
@@ -31,7 +31,7 @@ for (const retained of [false, true]) {
     [["in.gif", "-set", "dispose", "previous"], [3, 3], [100, 200]],
     [["in.gif", "-set", "dispose", "Background"], [2, 2], [100, 200]],
     [["in.gif", "-set", "dispose", "none"], [1, 1], [100, 200]],
-    [["in.gif", "-set", "dispose", "invalid"], [0, 0], [100, 200]],
+    [["in.gif", "-set", "dispose", "invalid"], [1, 1], [100, 200]],
     [["in.gif", "-set", "dispose", "0"], [0, 0], [100, 200]],
     [["in.gif", "-set", "dispose", "3", "in.gif", "-reverse"], [1, 1, 3, 3], [200, 100, 200, 100]],
     [["in.gif", "-set", "dispose", "previous", "-resize", "2x2!"], [3, 3], [100, 200]],
@@ -61,4 +61,31 @@ for (const retained of [false, true]) {
       expect((await sharp(output, { animated: true }).metadata()).delay).toEqual(delays);
     });
   }
+}
+
+// Native ImageMagick ignores invalid assignments, but 0/Undefined explicitly reset disposal.
+for (const mode of ["command", "buffered", "retained", "sync"]) {
+  it.each([
+    { inputs: ["-dispose", "Background", "xc:red"], value: "typo", names: "Background;", expected: [2] },
+    { inputs: ["-dispose", "Background", "xc:red"], value: "4", names: "Background;", expected: [2] },
+    { inputs: ["-dispose", "Previous", "xc:red", "xc:blue"], value: "typo", names: "Previous;Previous;", expected: [3, 3] },
+    { inputs: ["-dispose", "Background", "xc:red", "-dispose", "Previous", "xc:blue"], value: "4", names: "Background;Previous;", expected: [2, 3] },
+    { inputs: ["-dispose", "Background", "xc:red"], value: "0", names: "Undefined;", expected: [0] },
+    { inputs: ["-dispose", "Background", "xc:red"], value: "Undefined", names: "Undefined;", expected: [0] },
+    { inputs: ["xc:red", "xc:blue"], value: "Previous", names: "Previous;Previous;", expected: [3, 3] },
+  ])(`preserves or sets loaded frame disposal (${mode}, $inputs, $value)`, async ({ inputs, value, names, expected }) => {
+    const args = [...inputs, "-set", "dispose", value, "-write", "out.gif", "-format", "%D;", "info:-"];
+    const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+    let stdout = "", stderr = "";
+    const result = mode === "command" ? await createMagickCommand().execute({
+      command: "magick", args, cwd: "/", env: {}, fs: filesystem,
+      stdin: (async function* () {})(), signal: new AbortController().signal,
+      stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+      stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+    }) : mode === "sync" ? runConvertCliSync(args, files)
+      : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+    expect({ stdout, stderr, ...result }).toMatchObject({ exitCode: 0, stdout: names, stderr: "" });
+    const output = mode === "command" || mode === "retained" ? await filesystem.readFile("/out.gif") : files.get("out.gif")!;
+    expect(disposals(output)).toEqual(expected);
+  });
 }

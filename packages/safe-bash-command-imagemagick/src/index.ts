@@ -9822,12 +9822,12 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     return transformStoredMagickRaster({ ...image, space: "b-w", channels: 1, hasAlpha: false }, backend, bilevelPixelSteps(image.width * image.height, !!image.storedData16), signal, { ...image, hasAlpha: false }, [source]);
 }
 
-function parseMagickDisposal(value: string): number {
+function parseMagickDisposal(value: string): number | undefined {
     const names = ["undefined", "none", "background", "previous"];
     const disposal = names.indexOf(value.toLowerCase());
     if (disposal >= 0) return disposal;
     if (["0", "1", "2", "3"].includes(value)) return Number(value);
-    return 0;
+    return undefined;
 }
 
 function parseMagickOrientation(value: string): number {
@@ -10600,7 +10600,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         if (t === "-set" && tokens[i + 1]?.toLowerCase() === "dispose") {
             const disposal = parseMagickDisposal(tokens[i + 2] ?? "");
-            stack = yield* mapMagickImagesSteps(stack, function* (image) {
+            if (disposal !== undefined) stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 yield;
                 return { ...image, disposal };
             });
@@ -11055,7 +11055,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-dispose") {
             const value = tokens[++i] ?? "";
-            state.disposal = parseMagickDisposal(value);
+            state.disposal = parseMagickDisposal(value) ?? 0;
             state.optionProperties = { ...state.optionProperties, dispose: value };
         }
         else if (t === "-layers" && layerMethod === "trimbounds") {
@@ -13414,7 +13414,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-set" && tokens[i + 1]?.toLowerCase() === "dispose") {
             const disposal = parseMagickDisposal(tokens[i + 2] ?? "");
-            steps.push(async image => image ? { ...image, disposal } : undefined);
+            if (disposal !== undefined) steps.push(async image => image ? { ...image, disposal } : undefined);
             i += 2;
             continue;
         }
@@ -14183,7 +14183,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-dispose") {
             const value = tokens[++i] ?? "";
-            state.disposal = parseMagickDisposal(value);
+            state.disposal = parseMagickDisposal(value) ?? 0;
             state.optionProperties = { ...state.optionProperties, dispose: value };
             continue;
         }

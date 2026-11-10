@@ -214,10 +214,17 @@ export function* interpolatePixelSteps(size: number, fraction: number, blendAlph
     }
 }
 
-export type ChannelAssignment = { target: number } & ({ image: number; source: number } | { value: number });
+export type ChannelAssignment = { image: number; target: number } & ({ source: number; activateAlpha?: boolean; reverse?: boolean } | { value: number });
 
-export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">[], assignments: readonly ChannelAssignment[], highDepth: boolean): Steps {
+export function* channelFxPixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space"> & { inactiveAlpha?: boolean | undefined })[], assignments: readonly ChannelAssignment[], highDepth: boolean): Steps {
     const { width, height } = inputs[0]!;
+    const targetAlpha = inputs[0]!.hasAlpha || inputs[0]!.inactiveAlpha || assignments.some(assignment => "activateAlpha" in assignment && assignment.activateAlpha);
+    for (const assignment of assignments) {
+        const input = inputs[Math.min(assignment.image, inputs.length - 1)]!;
+        const source = "source" in assignment ? assignment.source : assignment.target;
+        if (source === 3 && !input.hasAlpha && !input.inactiveAlpha && !("reverse" in assignment && assignment.reverse))
+            throw new Error("missing image channel 'a'");
+    }
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x += 512) {
         yield;
         const position = (y * width + x) * 4, length = Math.min(512, width - x) * 4;
@@ -233,13 +240,16 @@ export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | 
         if (colorSamples?.length) base.set(new Float64Array(colorSamples.slice().buffer).map(value => value * 255));
         const data = base.slice(), inks = baseInks?.slice();
         for (const assignment of assignments) {
+            const input = inputs[Math.min(assignment.image, inputs.length - 1)]!;
+            // Missing destinations and the reverse half of an exchange are no-ops.
+            if (assignment.target === 3 && !targetAlpha || "source" in assignment && assignment.source === 3 && !input.hasAlpha && !input.inactiveAlpha) continue;
             const target = inks && assignment.target < 3 ? inks : data;
             const scale = target === inks ? 255 : 1;
             if ("value" in assignment) {
                 for (let offset = assignment.target; offset < length; offset += 4) target[offset] = assignment.value / scale;
                 continue;
             }
-            const image = Math.min(assignment.image, inputs.length - 1), input = inputs[image]!;
+            const image = Math.min(assignment.image, inputs.length - 1);
             if (y >= input.height || x >= input.width) continue;
             const count = Math.min(length, (input.width - x) * 4);
             let samples = base;
@@ -259,7 +269,7 @@ export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | 
             for (let offset = 0; offset < count; offset += 4) {
                 const value = input.space === "cmyk" && assignment.source < 3
                     ? (sourceInks?.[offset + assignment.source] ?? rgbToCmyk(samples[offset]! / 255, samples[offset + 1]! / 255, samples[offset + 2]! / 255)[assignment.source]!) * 255
-                    : assignment.source === 3 && !input.hasAlpha ? 255 : samples[offset + assignment.source]!;
+                    : samples[offset + assignment.source]!;
                 target[offset + assignment.target] = value / scale;
             }
         }

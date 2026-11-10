@@ -9264,7 +9264,7 @@ function parseChannelAssignments(expression: string): ChannelAssignment[] {
             if (parts.length !== 2 || target < 0 || !Number.isFinite(value) || Number.parseFloat(number) !== value)
                 throw new Error(`unsupported channel-fx assignment '${assignment}'`);
             selectionTarget = target;
-            return [{ target, value: Math.fround(percent ? value * 65535 / 100 : value) / 257 }];
+            return [{ image, target, value: Math.fround(percent ? value * 65535 / 100 : value) / 257 }];
         }
         const exchange = assignment.includes("<=>");
         const parts = assignment.split(exchange ? "<=>" : "=>");
@@ -9274,7 +9274,9 @@ function parseChannelAssignments(expression: string): ChannelAssignment[] {
         const source = channels[0]!, target = channels[1]!;
         // Explicit destinations reset the cursor used by subsequent bare selectors.
         selectionTarget = target;
-        return exchange ? [{ image, source, target }, { image, source: target, target: source }] : [{ image, source, target }];
+        // Only the full destination name activates alpha; a/4/o preserve absence.
+        const copy = { image, source, target, activateAlpha: parts[1]!.trim().toLowerCase() === "alpha" };
+        return exchange ? [copy, { image, source: target, target: source, reverse: true }] : [copy];
     });
 }
 
@@ -9343,6 +9345,7 @@ function parseChannelSelections(expression: string): number[][] {
 }
 
 function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<void, RgbaImage> {
+    if (channels.includes(3) && !image.hasAlpha && !image.inactiveAlpha) throw new Error("missing image channel 'a'");
     const single = channels.length === 1;
     const data = new Uint8Array(image.data), data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
     const evaluateSamples = single && (image.hueSamples || image.evaluateSamples)
@@ -9351,10 +9354,10 @@ function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<
         if (offset % 65536 === 0) yield;
         for (let target = 0; target < 3; target++) {
             const source = channels[target] ?? (single ? channels[0]! : target);
-            data[offset + target] = source === 3 && !image.hasAlpha ? 255 : image.data[offset + source]!;
-            if (data16) data16[offset + target] = source === 3 && !image.hasAlpha ? 65535 : image.data16![offset + source]!;
+            data[offset + target] = source === 3 && !image.hasAlpha && !image.inactiveAlpha ? 255 : image.data[offset + source]!;
+            if (data16) data16[offset + target] = source === 3 && !image.hasAlpha && !image.inactiveAlpha ? 65535 : image.data16![offset + source]!;
             if (evaluateSamples) {
-                const value = source === 3 && !image.hasAlpha ? 255
+                const value = source === 3 && !image.hasAlpha && !image.inactiveAlpha ? 255
                     : source !== 3 && image.hueSamples ? Math.fround(image.hueSamples[offset + source]! * 65535) / 257
                     : image.evaluateSamples?.[offset + source] ?? (image.data16 ? image.data16[offset + source]! / 257 : image.data[offset + source]!);
                 evaluateSamples[offset + target] = value;
@@ -12010,7 +12013,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (image) for (const group of groups) {
                     const { assignments } = group, base = stack[Math.min(group.image, stack.length - 1)]!;
                     const sources = [base, ...stack.slice(1)];
-                    const hasAlpha = base.hasAlpha || assignments.some(({ target }) => target === 3);
+                    const hasAlpha = base.hasAlpha || assignments.some(assignment => "activateAlpha" in assignment && assignment.activateAlpha);
                     result.push(yield* applyMagickRasterSteps({ ...base, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: base.space === "cmyk" ? 4 : hasAlpha ? 4 : 3 }, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.data16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources));
                 }
             } else {
@@ -13030,7 +13033,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const sources = [base];
                     const lastSource = assignments.reduce((last, assignment) => "image" in assignment ? Math.max(last, assignment.image) : last, 0);
                     for (let source = 1; source <= Math.min(lastSource, stack.length - 1); source++) sources.push((await stack.get(source))!);
-                    const hasAlpha = base.hasAlpha || assignments.some(({ target }) => target === 3);
+                    const hasAlpha = base.hasAlpha || assignments.some(assignment => "activateAlpha" in assignment && assignment.activateAlpha);
                     await result.push(await transformStoredMagickRaster({ ...base, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: base.space === "cmyk" ? 4 : hasAlpha ? 4 : 3 }, backend, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.storedData16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources));
                 } else if (image) for (const channels of selections) {
                     await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: channels.length === 1, apply: image => selectMagickChannels(image, channels) }, signal));

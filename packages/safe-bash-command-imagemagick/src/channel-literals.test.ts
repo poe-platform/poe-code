@@ -75,9 +75,9 @@ for (const retained of [false, true]) {
     });
 }
 
-it("sets literals and activates alpha across retained chunk boundaries", async () => {
+it("sets literals and existing alpha across retained chunk boundaries", async () => {
     const filesystem = new MemoryFileSystem();
-    expect(await runConvertCli(["-size", "4097x1", "xc:red", "-channel-fx", "green=50%,alpha=25%", "-depth", "8", "rgba:/out.rgba"], { filesystem, cwd: "/" })).toMatchObject({ exitCode: 0, stderr: "" });
+    expect(await runConvertCli(["-size", "4097x1", "xc:red", "-alpha", "set", "-channel-fx", "green=50%,alpha=25%", "-depth", "8", "rgba:/out.rgba"], { filesystem, cwd: "/" })).toMatchObject({ exitCode: 0, stderr: "" });
     const output = await filesystem.readFile("/out.rgba");
     expect(output.length).toBe(4097 * 4);
     for (let offset = 0; offset < output.length; offset += 4) expect([...output.subarray(offset, offset + 4)]).toEqual([255, 128, 0, 64]);

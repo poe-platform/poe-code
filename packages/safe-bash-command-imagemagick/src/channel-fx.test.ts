@@ -26,7 +26,7 @@ for (const mode of ["buffered", "retained", "sync", "mogrify"] as const) {
         const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAD0lEQVQI12P4z8DAwPAfAAcAAf921adgAAAAAElFTkSuQmCC", "base64");
         const files = new Map([["/input.png", input]]), filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/input.png", input);
-        const options = ["-channel-fx", expression];
+        const options = ["-alpha", "set", "-channel-fx", expression];
         const args = ["/input.png", ...options, "/out.png"];
         const result = mode === "sync" ? runConvertCliSync(args, files)
             : mode === "mogrify" ? await runMogrifyCli([...options, "/input.png"], { filesystem, cwd: "/" })
@@ -154,7 +154,7 @@ it.each([
     expect(result.exitCode, stderr).toBe(expected === undefined ? 1 : 0);
     const output = await fs.readFile("/out.png");
     if (expected === undefined) {
-        expect(stderr).toContain("channel-fx");
+        expect(stderr).toContain("channel");
         expect(output).toEqual(original);
     } else {
         expect(stderr).toBe("");

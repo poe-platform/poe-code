@@ -154,6 +154,7 @@ export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | 
 
 export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "height"> & { space?: RgbaImage["space"] | undefined; magickColorspace?: string | undefined })[], highDepth = false, intensity = "rec709luma"): Steps {
     const { width, height } = inputs[0]!, chunkPixels = 512;
+    // The storage planes are RGBA plus CMYK inks; reduce C, M, Y, alpha and K together.
     const cmyk = inputs[0]!.space === "cmyk", range = highDepth ? 65535 : 255;
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x += chunkPixels) {
         yield;
@@ -204,27 +205,43 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
 
 /** Median ranks selected channel sums, retaining stable input order for equal sums. */
 export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette"> & { magickColorspace?: string })[], raw: string, channels?: readonly boolean[], highDepth = false, seed = 0n, width = size / 4): Steps {
+    const cmyk = inputs[0]!.space === "cmyk", stride = cmyk ? 5 : 4;
+    size = size / 4 * stride;
     const frames = inputs.length, hasAlpha = inputs.some(image => image.hasAlpha);
     const hue = !!inputs[0]?.magickColorspace && inputs[0].magickColorspace !== "RGB" && inputs[0].space !== "cmyk";
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
-    const fractional = ["divide", "mean", "multiply", "rms", "rootmeansquare"].includes(operation);
+    const fractional = cmyk || ["divide", "mean", "multiply", "rms", "rootmeansquare"].includes(operation);
     const retainRange = ["add", "sum", "subtract", "min", "max"].includes(operation);
     function* read(image: number, position: number, length: number, retainWorking = retainRange || fractional): Generator<ConvolveRequest, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
-        const working = retainWorking ? yield { kind: "read", evaluate: true, image, position, length } : undefined;
-        const input = working?.length ? working : (yield { kind: "read", highDepth, image, position, length })!;
-        const bytes = working?.length ? Float64Array.from(new Float64Array(input.slice().buffer), value => highDepth ? value * 257 : value)
+        const storagePosition = position / stride * 4, storageLength = length / stride * 4;
+        const working = retainWorking ? yield { kind: "read", evaluate: true, image, position: storagePosition, length: storageLength } : undefined;
+        const input = working?.length ? working : (yield { kind: "read", highDepth, image, position: storagePosition, length: storageLength })!;
+        let bytes: Uint8Array | Uint16Array | Float64Array = working?.length ? Float64Array.from(new Float64Array(input.slice().buffer), value => highDepth ? value * 257 : value)
             : highDepth ? new Uint16Array(input.slice().buffer) : input;
         const inputImage = inputs[image]!;
+        if (cmyk) {
+            const hue = inputs[image]!.space === "cmyk" ? yield { kind: "read", hue: true, image, position: storagePosition, length: storageLength } : undefined;
+            const inks = hue?.length ? new Float64Array(hue.slice().buffer) : undefined;
+            const samples = new Float64Array(length);
+            for (let offset = 0; offset < length; offset += stride) {
+                const source = offset / stride * 4;
+                const ink = inks?.subarray(source, source + 4) ?? rgbToCmyk(bytes[source]! / range, bytes[source + 1]! / range, bytes[source + 2]! / range);
+                for (let channel = 0; channel < 3; channel++) samples[offset + channel] = ink[channel]! * range;
+                samples[offset + 3] = bytes[source + 3]!;
+                samples[offset + 4] = ink[3]! * range;
+            }
+            bytes = samples;
+        }
         const gray = colorOutput && (inputImage.space === "b-w" || inputImage.space === "grey16");
         // Native Mean visits the input's channel slots using the output channel map.
         // An opaque 8-bit gray PNG has a palette-index slot in addition to gray.
-        const colorSlots = gray ? 1 + Number(inputImage.hasAlpha || (inputImage.format === "png" && inputImage.depth === "uchar")) : 3;
+        const colorSlots = cmyk ? stride : gray ? 1 + Number(inputImage.hasAlpha || (inputImage.format === "png" && inputImage.depth === "uchar")) : 3;
         const maskedMedian = operation === "median" && channels?.some(selected => !selected);
         if ((!hasAlpha || inputImage.hasAlpha) && (!gray || operation !== "mean") && !maskedMedian) return bytes;
         const data = bytes.slice();
         for (let offset = 0; offset < length; offset++) {
-            const channel = offset % 4;
+            const channel = offset % stride;
             // Mask candidates before ranking so unused samples cannot choose the median.
             if (maskedMedian && !channels![channel] && (channel !== 3 || hasAlpha)) data[offset] = 0;
             if (channel === 3 ? hasAlpha && (!inputImage.hasAlpha || (gray && operation === "mean")) : operation === "mean" && channel >= colorSlots) data[offset] = 0;
@@ -241,34 +258,54 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
         "thresholdwhite", "undefined", "uniformnoise", "xor"].includes(operation)) {
         throw new Error(`unrecognized evaluate operator '-evaluate-sequence' '${raw}'`);
     }
+    function* write(position: number, values: Uint8Array | Uint16Array | Float64Array, evaluate = false): Steps {
+        if (!cmyk) {
+            yield { kind: "write", highDepth: !evaluate && highDepth, evaluate, position, data: new Uint8Array(values.buffer) };
+            if (hue && (evaluate || !retainRange)) yield { kind: "write", hue: true, position, data: new Uint8Array(Float64Array.from(values, value => value / (evaluate ? 255 : range)).buffer) };
+            return;
+        }
+        const inks = new Float64Array(values.length / stride * 4), rgba = new Float64Array(inks.length);
+        const quantum = evaluate ? 255 : range;
+        for (let offset = 0; offset < values.length; offset += stride) {
+            const target = offset / stride * 4;
+            for (let channel = 0; channel < 4; channel++) inks[target + channel] = values[offset + (channel === 3 ? 4 : channel)]! / quantum;
+            for (let channel = 0; channel < 3; channel++) rgba[target + channel] = (1 - inks[target + channel]!) * (1 - inks[target + 3]!) * 255;
+            rgba[target + 3] = values[offset + 3]! / quantum * 255;
+        }
+        const encoded = highDepth ? Uint16Array.from(rgba, value => clamp(value * 257)) : Uint8Array.from(rgba, clamp);
+        const target = position / stride * 4;
+        yield { kind: "write", hue: true, position: target, data: new Uint8Array(inks.buffer) };
+        yield { kind: "write", evaluate: true, position: target, data: new Uint8Array(rgba.buffer) };
+        yield { kind: "write", highDepth, position: target, data: new Uint8Array(encoded.buffer) };
+    }
     if (noise) {
         const random = createMagickRandom(seed);
-        const outputChannels = colorOutput ? [0, 1, 2] : [0];
+        const outputChannels = cmyk ? [0, 1, 2, 4] : colorOutput ? [0, 1, 2] : [0];
         if (hasAlpha) outputChannels.push(3);
         // Native visits input slots through the output channel map. Unmapped
         // palette slots alias red and still consume randomness.
         const inputSlots = inputs.map(image => {
             const gray = image.space === "b-w" || image.space === "grey16";
             const indexed = image.isPalette || gray && !image.hasAlpha && image.format === "png" && image.depth === "uchar";
-            return (gray ? 1 : 3) + Number(image.hasAlpha) + Number(!!indexed);
+            return (gray ? 1 : image.space === "cmyk" ? 4 : 3) + Number(image.hasAlpha) + Number(!!indexed);
         });
         const slots = inputSlots.reduce((count, value) => Math.max(count, value), outputChannels.length);
         // Native consumes randomness row first, then frame, pixel and channel.
         // Keep one HDRI accumulator row; transfer pixels in bounded spans.
         const values = new Float64Array(width * slots);
-        for (let row = 0; row < size; row += width * 4) {
+        for (let row = 0; row < size; row += width * stride) {
             values.fill(0);
             for (let image = 0; image < frames; image++) {
                 for (let left = 0; left < width; left += 1024) {
                     yield;
                     const count = Math.min(1024, width - left);
-                    const samples = yield* read(image, row + left * 4, count * 4);
+                    const samples = yield* read(image, row + left * stride, count * stride);
                     for (let pixel = 0; pixel < count; pixel++) {
                         if (pixel % 64 === 0) yield;
                         for (let slot = 0; slot < inputSlots[image]!; slot++) {
                             const channel = outputChannels[slot] ?? 0;
                             if (channels && !channels[channel] || channel === 3 && !inputs[image]!.hasAlpha) continue;
-                            const sample = samples[pixel * 4 + channel]! * scale / 257;
+                            const sample = samples[pixel * stride + channel]! * scale / 257;
                             const offset = (left + pixel) * slots + slot;
                             values[offset] = image === 0 ? sample
                                 : yield* evaluateNoiseSteps(sample, operation, values[offset]! * 257, random);
@@ -279,19 +316,18 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
             for (let left = 0; left < width; left += 1024) {
                 yield;
                 const count = Math.min(1024, width - left);
-                const data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
-                for (let pixel = 0; pixel < count; pixel++) for (let channel = 0; channel < 4; channel++) {
-                    const slot = colorOutput ? channel : channel === 3 ? 1 : 0;
-                    data[pixel * 4 + channel] = channel === 3 && !hasAlpha ? range
+                const data = highDepth ? new Uint16Array(count * stride) : new Uint8Array(count * stride);
+                for (let pixel = 0; pixel < count; pixel++) for (let channel = 0; channel < stride; channel++) {
+                    const slot = cmyk ? channel === 3 ? 4 : channel === 4 ? 3 : channel : colorOutput ? channel : channel === 3 ? 1 : 0;
+                    data[pixel * stride + channel] = channel === 3 && !hasAlpha ? range
                         : Math.max(0, Math.min(range, Math.round(values[(left + pixel) * slots + slot]! * (highDepth ? 257 : 1))));
                 }
-                yield { kind: "write", highDepth, position: row + left * 4, data: new Uint8Array(data.buffer) };
-                if (hue) yield { kind: "write", hue: true, position: row + left * 4, data: new Uint8Array(Float64Array.from(data, value => value / range).buffer) };
+                yield* write(row + left * stride, data);
             }
         }
         return;
     }
-    const median = operation === "median", window = median ? 512 : fractional || retainRange ? 2048 : 4096;
+    const median = operation === "median", window = (median ? 128 : fractional || retainRange ? 512 : 1024) * stride;
     let work = 0;
     for (let position = 0; position < size; position += window) {
         if (position % 16384 === 0) yield;
@@ -300,7 +336,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
         if (operation === "undefined" && frames > 1) {
             // Native Undefined clears active samples after the first input.
             for (let offset = 0; offset < length; offset++) {
-                if (offset % 4 !== 3 || hasAlpha) data[offset] = 0;
+                if (offset % stride !== 3 || hasAlpha) data[offset] = 0;
             }
         } else if (["and", "or", "xor"].includes(operation)) {
             for (let image = 1; image < frames; image++) {
@@ -326,14 +362,14 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 }
             }
             for (let offset = 0; offset < length; offset++) {
-                if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(values[offset]! / scale);
+                if (offset % stride !== 3 || hasAlpha) data[offset] = clamp(values[offset]! / scale);
             }
         } else if (["threshold", "thresholdblack", "thresholdwhite"].includes(operation)) {
             for (let image = 1; image < frames; image++) {
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
                 for (let offset = 0; offset < length; offset++) {
-                    if (offset % 4 === 3 && !hasAlpha) continue;
+                    if (offset % stride === 3 && !hasAlpha) continue;
                     // Each incoming sample uses the accumulated result as its threshold.
                     const sample = bytes[offset]!, threshold = data[offset]!;
                     if (operation === "threshold") data[offset] = sample <= threshold ? 0 : range;
@@ -342,16 +378,16 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 }
             }
         } else if (median) {
-            const pixels = length / 4, histogram = new Float64Array(pixels * 32), ranks = new Float64Array(pixels), sums = new Uint32Array(pixels);
+            const pixels = length / stride, histogram = new Float64Array(pixels * 32), ranks = new Float64Array(pixels), sums = new Uint32Array(pixels);
             ranks.fill(Math.floor(frames / 2));
             // Bounded radix passes cover 10-bit byte sums or 18-bit quantum sums.
-            for (const shift of highDepth ? [15, 10, 5, 0] : [5, 0]) {
+            for (const shift of highDepth ? [15, 10, 5, 0] : cmyk ? [10, 5, 0] : [5, 0]) {
                 histogram.fill(0);
                 for (let image = 0; image < frames; image++) {
                     if (++work % 64 === 0) yield;
                     const bytes = yield* read(image, position, length);
                     for (let pixel = 0; pixel < pixels; pixel++) {
-                        const offset = pixel * 4, sum = bytes[offset]! + bytes[offset + 1]! + bytes[offset + 2]! + bytes[offset + 3]!;
+                        const offset = pixel * stride, sum = Math.trunc(bytes[offset]! + bytes[offset + 1]! + bytes[offset + 2]! + bytes[offset + 3]! + (cmyk ? bytes[offset + 4]! : 0));
                         if ((sum >> (shift + 5)) === (sums[pixel]! >> (shift + 5))) histogram[pixel * 32 + ((sum >> shift) & 31)]!++;
                     }
                 }
@@ -367,8 +403,8 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 // Preserve the selected tuple's working samples after bounded ranking.
                 const samples = yield* read(image, position, length, true);
                 for (let pixel = 0; pixel < pixels; pixel++) {
-                    const offset = pixel * 4, sum = bytes[offset]! + bytes[offset + 1]! + bytes[offset + 2]! + bytes[offset + 3]!;
-                    if (sum === sums[pixel]) { if (ranks[pixel] === 0) data.set(samples.subarray(offset, offset + 4), offset); ranks[pixel]! -= 1; }
+                    const offset = pixel * stride, sum = Math.trunc(bytes[offset]! + bytes[offset + 1]! + bytes[offset + 2]! + bytes[offset + 3]! + (cmyk ? bytes[offset + 4]! : 0));
+                    if (sum === sums[pixel]) { if (ranks[pixel] === 0) data.set(samples.subarray(offset, offset + stride), offset); ranks[pixel]! -= 1; }
                 }
             }
         } else if (["sin", "sine", "cos", "cosine"].includes(operation)) {
@@ -381,7 +417,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 for (let offset = 0; offset < length; offset++) values[offset] = 65535 * (0.5 + 0.5 * wave(2 * Math.PI * (1 / 65535) * (bytes[offset]! * scale) * values[offset]!));
             }
             for (let offset = 0; offset < length; offset++) {
-                if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(values[offset]! / scale);
+                if (offset % stride !== 3 || hasAlpha) data[offset] = clamp(values[offset]! / scale);
             }
         } else if (operation === "exp" || operation === "exponential") {
             const values = Float64Array.from(data, value => value * scale);
@@ -392,7 +428,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 for (let offset = 0; offset < length; offset++) values[offset] = 65535 * Math.exp(values[offset]! * (bytes[offset]! / range));
             }
             for (let offset = 0; offset < length; offset++) {
-                if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(values[offset]! / scale);
+                if (offset % stride !== 3 || hasAlpha) data[offset] = clamp(values[offset]! / scale);
             }
         } else if (operation === "log" || operation === "inverselog") {
             const values = Float64Array.from(data, value => value * scale);
@@ -408,7 +444,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 }
             }
             for (let offset = 0; offset < length; offset++) {
-                if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(values[offset]! / scale);
+                if (offset % stride !== 3 || hasAlpha) data[offset] = clamp(values[offset]! / scale);
             }
         } else if (operation === "rootmeansquare" || operation === "rms") {
             // Native Q16 seeds the accumulator with the first unsquared quantum.
@@ -419,7 +455,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 for (let offset = 0; offset < length; offset++) values[offset]! += (bytes[offset]! * scale) ** 2;
             }
             for (let offset = 0; offset < length; offset++) {
-                if (offset % 4 !== 3 || hasAlpha) data[offset] = Math.sqrt(values[offset]! / frames) / scale;
+                if (offset % stride !== 3 || hasAlpha) data[offset] = Math.sqrt(values[offset]! / frames) / scale;
             }
         } else if (["mean", "min", "max", "add", "addmodulus", "sum", "abs", "subtract", "divide", "multiply", "pow"].includes(operation)) {
             const values = new Float64Array(length), multiplication = operation === "multiply", addition = ["mean", "add", "addmodulus", "sum", "abs"].includes(operation);
@@ -449,30 +485,24 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
             if (operation === "addmodulus") for (let offset = 0; offset < length; offset++) values[offset]! /= scale;
             if (retainRange) {
                 // Keep HDRI arithmetic separate from the bounded encoding views.
-                const samples = Float64Array.from(values, (value, offset) => offset % 4 === 3 && !hasAlpha ? 255 : highDepth ? value / 257 : value);
-                yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
-                if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(samples.map(value => value / 255).buffer) };
+                const samples = Float64Array.from(values, (value, offset) => offset % stride === 3 && !hasAlpha ? 255 : highDepth ? value / 257 : value);
+                yield* write(position, samples, true);
             }
             const average = operation === "mean";
             for (let offset = 0; offset < length; offset++) {
-                if (average && channels && !channels[offset % 4] && (offset % 4 !== 3 || hasAlpha)) data[offset] = 0;
-                else if (multiplication && (offset % 4 !== 3 || hasAlpha)) data[offset] = values[offset]! * range;
-                else if (average && (offset % 4 !== 3 || hasAlpha)) data[offset] = values[offset]! / frames;
-                else if (operation === "divide" && (offset % 4 !== 3 || hasAlpha)) data[offset] = values[offset]! / scale;
-                else if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(quantum ? values[offset]! / scale : values[offset]!);
+                if (average && channels && !channels[offset % stride] && (offset % stride !== 3 || hasAlpha)) data[offset] = 0;
+                else if (multiplication && (offset % stride !== 3 || hasAlpha)) data[offset] = values[offset]! * range;
+                else if (average && (offset % stride !== 3 || hasAlpha)) data[offset] = values[offset]! / frames;
+                else if (operation === "divide" && (offset % stride !== 3 || hasAlpha)) data[offset] = values[offset]! / scale;
+                else if (offset % stride !== 3 || hasAlpha) data[offset] = cmyk ? (quantum ? values[offset]! / scale : values[offset]!) : clamp(quantum ? values[offset]! / scale : values[offset]!);
             }
         }
         if (fractional || median) {
             // Keep working precision for subsequent arithmetic; integer views are only for encoding.
             const samples = Float64Array.from(data, value => operation === "mean" || median ? highDepth ? value / 257 : value : Math.fround(value * scale) / 257);
             const encoded = highDepth ? Uint16Array.from(samples, value => clamp(value * 257)) : Uint8Array.from(samples, clamp);
-            yield { kind: "write", highDepth, position, data: new Uint8Array(encoded.buffer) };
-            yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
-            if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(samples.map(value => value / 255).buffer) };
-        } else {
-            yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
-            // Replace the first input's working plane with the reduced pixels.
-            if (hue && !retainRange) yield { kind: "write", hue: true, position, data: new Uint8Array(Float64Array.from(data, value => value / range).buffer) };
-        }
+            if (!cmyk) yield* write(position, encoded);
+            yield* write(position, samples, true);
+        } else yield* write(position, data);
     }
 }

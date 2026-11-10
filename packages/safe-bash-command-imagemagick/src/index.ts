@@ -17871,8 +17871,11 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             borderW = Math.max(0, Math.trunc(parseMagickGeometry(argv[++i] ?? "0").width ?? 0));
         }
         else if (t === "-gravity") {
-            const gravity = argv[++i] ?? "center";
-            state.gravity = gravity.toLowerCase() === "forget" ? undefined : parseGravity(gravity);
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -gravity\n" };
+            if (!["undefined", "none", "forget", "northwest", "north", "northeast", "west", "center", "east", "southwest", "south", "southeast"].includes(value.toLowerCase()))
+                return { exitCode: 1, stdout: "", stderr: `montage: unrecognized gravity type '${value}'\n` };
+            state.gravity = value.toLowerCase() === "forget" ? undefined : parseGravity(value);
         }
         else if (t === "+gravity") {
             state.gravity = undefined;

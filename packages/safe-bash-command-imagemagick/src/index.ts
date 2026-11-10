@@ -12264,15 +12264,21 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const plan = deskewPlan(image, yield* deskewAngleSteps(image, expanded), background, state.pointFilter, state.interpolation);
                 image = discardDisassociatedAlpha(image);
                 const rotated = { ...yield* applyMagickRasterSteps(image, warpPixelSteps(image, plan, background, "background", state.kernel, state.resizeFilter), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
+                if (image.metaChannels) rotated.metaChannels = yield* mapSteps(image.metaChannels, function* (plane) {
+                    return yield* applyMagickRasterSteps(plane, warpPixelSteps(plane, plan, { r: 0, g: 0, b: 0, a: 255 }, "background", state.kernel, state.resizeFilter), signal, plan);
+                });
                 // Deskew initializes the retained read-mask channel to zero on its new canvas.
                 if (image.readMask) rotated.readMask = yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 });
                 if (!["1", "true", "yes", "on"].includes(state.deskewAutoCrop ?? "")) return rotated;
                 const median = yield* applyMagickRasterSteps(rotated, morphologyPixelSteps(rotated, magickMedianRows("3"), "median", undefined, "background", background), signal);
                 // Native crop geometry is relative to the virtual page, not the raster origin.
                 const bounds = yield* trimMagickSteps({ ...median, virtualCanvas: { ...plan.virtualCanvas, x: 0, y: 0 } }, state.alphaFuzz);
-                if (bounds.virtualCanvas!.x === -1 && bounds.virtualCanvas!.y === -1) return bounds;
-                const left = bounds.virtualCanvas!.x - plan.virtualCanvas.x, top = bounds.virtualCanvas!.y - plan.virtualCanvas.y;
-                return { ...yield* extractImageSteps(rotated, { left, top, width: Math.min(bounds.width, rotated.width - left), height: Math.min(bounds.height, rotated.height - top) }), virtualCanvas: bounds.virtualCanvas! };
+                const missed = bounds.virtualCanvas!.x === -1 && bounds.virtualCanvas!.y === -1;
+                const left = missed ? 0 : bounds.virtualCanvas!.x - plan.virtualCanvas.x, top = missed ? 0 : bounds.virtualCanvas!.y - plan.virtualCanvas.y;
+                const area = { left, top, width: Math.min(bounds.width, rotated.width - left), height: Math.min(bounds.height, rotated.height - top) };
+                const cropped = missed ? bounds : { ...yield* extractImageSteps(rotated, area), virtualCanvas: bounds.virtualCanvas! };
+                if (rotated.metaChannels) cropped.metaChannels = yield* mapSteps(rotated.metaChannels, function* (plane) { return yield* extractImageSteps(plane, area); });
+                return cropped;
             });
         }
         else if (t === "-blur" || t === "-gaussian-blur") {
@@ -15547,14 +15553,25 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const plan = deskewPlan(image, await storedDeskewAngle(image, backend.storage, expanded, signal), color, pointFilter, interpolation);
                 image = discardDisassociatedAlpha(image);
                 const rotated = { ...await transformStoredMagickRaster(image, backend, warpPixelSteps(image, plan, color, "background", kernel, filter), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
+                if (image.storedMetaChannels) {
+                    rotated.storedMetaChannels = [];
+                    for (const plane of image.storedMetaChannels) rotated.storedMetaChannels.push(await transformStoredMagickRaster(plane, backend,
+                        warpPixelSteps(plane, plan, { r: 0, g: 0, b: 0, a: 255 }, "background", kernel, filter), signal, plan));
+                }
                 // Deskew initializes the retained read-mask channel to zero on its new canvas.
                 if (image.readMask) rotated.readMask = await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 if (!["1", "true", "yes", "on"].includes(autoCrop ?? "")) return rotated;
                 const median = await transformStoredMagickRaster(rotated, backend, morphologyPixelSteps(rotated, magickMedianRows("3"), "median", undefined, "background", color), signal);
                 const bounds = await trimStoredMagick({ ...median, virtualCanvas: { ...plan.virtualCanvas, x: 0, y: 0 } }, backend.storage, fuzz, signal);
-                if (bounds.virtualCanvas!.x === -1 && bounds.virtualCanvas!.y === -1) return bounds;
-                const left = bounds.virtualCanvas!.x - plan.virtualCanvas.x, top = bounds.virtualCanvas!.y - plan.virtualCanvas.y;
-                return { ...await transformStoredImage(rotated, backend.storage, { kind: "extract", left, top, width: Math.min(bounds.width, rotated.width - left), height: Math.min(bounds.height, rotated.height - top) }, signal), virtualCanvas: bounds.virtualCanvas! };
+                const missed = bounds.virtualCanvas!.x === -1 && bounds.virtualCanvas!.y === -1;
+                const left = missed ? 0 : bounds.virtualCanvas!.x - plan.virtualCanvas.x, top = missed ? 0 : bounds.virtualCanvas!.y - plan.virtualCanvas.y;
+                const area = { kind: "extract" as const, left, top, width: Math.min(bounds.width, rotated.width - left), height: Math.min(bounds.height, rotated.height - top) };
+                const cropped = missed ? bounds : { ...await transformStoredImage(rotated, backend.storage, area, signal), virtualCanvas: bounds.virtualCanvas! };
+                if (rotated.storedMetaChannels) {
+                    cropped.storedMetaChannels = [];
+                    for (const plane of rotated.storedMetaChannels) cropped.storedMetaChannels.push(await transformStoredImage(plane, backend.storage, area, signal));
+                }
+                return cropped;
             });
         } else if (!operandsOnly && token === "-rotate") {
             let images: StoredImageStack, sceneIdx = 0;

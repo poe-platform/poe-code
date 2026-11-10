@@ -5,6 +5,30 @@ import { getCommandArguments } from "../../src/contracts/command.js";
 import { setup } from "./helpers.js";
 
 for (const builtin of ["mapfile", "readarray"]) {
+  for (const option of ["-d", "-n", "-s", "-O", "-C", "-c", "-u", "-x", "-tx"]) {
+    test(`${builtin} ${option} reports the diagnostic followed by usage`, async context => {
+      const { shell } = setup();
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`\n${builtin} ${option}`);
+      const detail = option.endsWith("x") ? "-x: invalid option" : `${option}: option requires an argument`;
+      assert.equal(result.exitCode, 2);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, `shell: line 2: ${builtin}: ${detail}\n${builtin}: usage: ${builtin} [-d delim] [-n count] [-O origin] [-s count] [-t] [-u fd] [-C callback] [-c quantum] [array]\n`);
+    });
+  }
+
+  for (const args of ["-n bad", "-c 0", "rows"]) {
+    test(`${builtin} ${args} does not print usage for numeric or destination errors`, async context => {
+      const { shell } = setup();
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`readonly rows; ${builtin} ${args}`);
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stdout, "");
+      assert.ok(result.stderr.startsWith(`shell: line 1: ${builtin}: `));
+      assert.equal(result.stderr.includes("usage:"), false);
+    });
+  }
+
   test(`${builtin} callback leaves the retained memory file descriptor open`, async () => {
     const { shell, fs } = setup({ env: { LC_ALL: "C" } });
     const seen: Uint8Array[][] = [];

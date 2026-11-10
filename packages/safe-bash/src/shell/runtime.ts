@@ -8659,6 +8659,7 @@ export class Runtime {
       this.signal.throwIfAborted();
       if (!(error instanceof MapfileUsageError)) throw error;
       await this.diagnostic(context, `${context.command}: ${error.message}`);
+      if (error.status === 2) await writeDiagnostic(context.stderr, `${context.command}: usage: ${context.command} [-d delim] [-n count] [-O origin] [-s count] [-t] [-u fd] [-C callback] [-c quantum] [array]\n`);
       return error.status;
     } finally { try { await pinned?.release(); } finally { try { releaseHolding?.(); } finally { allocation.close(); } } }
   }

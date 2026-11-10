@@ -21,7 +21,8 @@ describe("PDF.js explicit simple-font widths", () => {
     page.setRawContentStream("BT /F1 10 Tf 5 Tw 10 30 Td (AB A) Tj ET");
     const glyphs = page.evaluateDisplayList().glyphs;
     const missingAdvance = (missingWidth ?? 0) / 100;
-    expect(glyphs.map(glyph => glyph.advanceWidth)).toEqual([6, missingAdvance, missingAdvance + 5, 6]);
+    // Ordinary glyph widths exclude word spacing; cursor positions below include it.
+    expect(glyphs.map(glyph => glyph.advanceWidth)).toEqual([6, missingAdvance, missingAdvance + (subtype === "Type3" ? 5 : 0), 6]);
     expect(glyphs.map(glyph => glyph.matrix[4])).toEqual([10, 16, 16 + missingAdvance, 21 + missingAdvance * 2]);
     expect(glyphs[1]!.unicode).toBe(mapped ? "A" : "B");
   });

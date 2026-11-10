@@ -10860,16 +10860,18 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             applyMagickReadSetting([t, expanded], state, 0);
             setting = i + 1;
         } else setting = applyMagickReadSetting(tokens, state, i);
-        if (setting === undefined && (t === "-solarize" || t === "-threshold" || ((t === "-colorize" || t === "-black-threshold" || t === "-white-threshold" || t === "-random-threshold" || t === "-range-threshold") && tokens[i + 1]?.includes("%[")) || ((t === "-modulate" || t === "-posterize" || t === "-ordered-dither") && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%")) || ((t === "-level-colors" || t === "+level-colors") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
+        if (setting === undefined && ((t === "-function" && tokens[i + 2]?.includes("%")) || t === "-solarize" || t === "-threshold" || ((t === "-colorize" || t === "-black-threshold" || t === "-white-threshold" || t === "-random-threshold" || t === "-range-threshold") && tokens[i + 1]?.includes("%[")) || ((t === "-modulate" || t === "-posterize" || t === "-ordered-dither") && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%")) || ((t === "-level-colors" || t === "+level-colors") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
+            const functionName = t === "-function" ? tokens[++i]! : undefined;
             const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-threshold" ? "" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" || t === "-tint" ? "" : "1");
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" ? value.trimEnd() : value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
-                const operation = parseMagickPixelOperation([t, expanded], state, 0, signal)!;
+                const operationTokens = functionName === undefined ? [t, expanded] : [t, functionName, expanded];
+                const operation = parseMagickPixelOperation(operationTokens, state, 0, signal)!;
                 if (operation.warning) analysis.warnings += operation.warning;
                 const result = yield* operation.apply(image);
                 if (t === "-threshold" && image.metaChannels?.length) {
-                    const metaOperation = parseMagickPixelOperation([t, expanded], { ...state, channelExplicit: true, channelDefault: false, channels: { r: true, g: true, b: true, a: false } }, 0, signal)!;
+                    const metaOperation = parseMagickPixelOperation(operationTokens, { ...state, channelExplicit: true, channelDefault: false, channels: { r: true, g: true, b: true, a: false } }, 0, signal)!;
                     result.metaChannels = [];
                     for (const [index, plane] of image.metaChannels.entries()) {
                         const selected = state.channels.meta?.includes(index);
@@ -10883,7 +10885,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     }
                 }
                 if ((t === "-solarize" || t === "-gamma" || t === "+gamma") && image.metaChannels?.length) {
-                    const metaOperation = parseMagickPixelOperation([t, expanded], { ...state, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, 0, signal)!;
+                    const metaOperation = parseMagickPixelOperation(operationTokens, { ...state, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, 0, signal)!;
                     result.metaChannels = [];
                     for (const [index, plane] of image.metaChannels.entries()) {
                         const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
@@ -13919,22 +13921,24 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (!stack.length) throw new Error(`no images found for operation '${token}'`);
             return stack;
         });
-        if (!operandsOnly && (token === "-solarize" || token === "-threshold" || ((token === "-colorize" || token === "-black-threshold" || token === "-white-threshold" || token === "-random-threshold" || token === "-range-threshold") && tokens[i + 1]?.includes("%[")) || (token === "-modulate" && tokens[i + 1]?.includes("%[")) || ((token === "-level" || token === "+level" || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%")) || ((token === "-level-colors" || token === "+level-colors") && tokens[i + 1]?.includes("%[")) || token === "-color-matrix" || token === "-gamma" || token === "+gamma" || token === "-brightness-contrast" || token === "-tint")) {
+        if (!operandsOnly && ((token === "-function" && tokens[i + 2]?.includes("%")) || token === "-solarize" || token === "-threshold" || ((token === "-colorize" || token === "-black-threshold" || token === "-white-threshold" || token === "-random-threshold" || token === "-range-threshold") && tokens[i + 1]?.includes("%[")) || (token === "-modulate" && tokens[i + 1]?.includes("%[")) || ((token === "-level" || token === "+level" || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%")) || ((token === "-level-colors" || token === "+level-colors") && tokens[i + 1]?.includes("%[")) || token === "-color-matrix" || token === "-gamma" || token === "+gamma" || token === "-brightness-contrast" || token === "-tint")) {
             if (token === "-solarize") stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
+            const functionName = token === "-function" ? tokens[++i]! : undefined;
             const value = tokens[++i] ?? (token === "-solarize" ? "50%" : token === "-threshold" ? "" : token === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : token === "-brightness-contrast" || token === "-tint" ? "" : "1"), settings = { ...state };
             let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => { images = stack; return stack; });
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" ? value.trimEnd() : value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
-                const operation = parseMagickPixelOperation([token, expanded], settings, 0, signal)!;
+                const operationTokens = functionName === undefined ? [token, expanded] : [token, functionName, expanded];
+                const operation = parseMagickPixelOperation(operationTokens, settings, 0, signal)!;
                 if (operation.warning) analysis.warnings += operation.warning;
                 const result = await transformStoredMagickPixels(image, backend, operation, signal);
                 if (token === "-threshold" && image.storedMetaChannels?.length) {
-                    const metaOperation = parseMagickPixelOperation([token, expanded], { ...settings, channelExplicit: true, channelDefault: false, channels: { r: true, g: true, b: true, a: false } }, 0, signal)!;
+                    const metaOperation = parseMagickPixelOperation(operationTokens, { ...settings, channelExplicit: true, channelDefault: false, channels: { r: true, g: true, b: true, a: false } }, 0, signal)!;
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries()) {
                         const selected = settings.channels.meta?.includes(index);
@@ -13948,8 +13952,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                 }
                 if (token === "-white-threshold") await whiteThresholdStoredMetaChannels(image, result, backend, settings, signal);
-                if ((token === "-solarize" || token === "-gamma" || token === "+gamma") && image.storedMetaChannels?.length) {
-                    const metaOperation = parseMagickPixelOperation([token, expanded], { ...settings, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, 0, signal)!;
+                if ((token === "-function" || token === "-solarize" || token === "-gamma" || token === "+gamma") && image.storedMetaChannels?.length) {
+                    const metaOperation = parseMagickPixelOperation(operationTokens, { ...settings, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, 0, signal)!;
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries()) {
                         const selected = !settings.channelExplicit || settings.channelDefault || settings.channels.meta?.includes(index);

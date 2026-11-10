@@ -2529,6 +2529,14 @@ function parseMagickRollGeometry(raw: string): MagickGeometry {
     return { ...geometry, x: Math.trunc(geometry.x), y: Math.trunc(geometry.y) };
 }
 
+function magickRollReadMaskPlan(image: Pick<RgbaImage, "width" | "height">, geometry: string): WarpPlan {
+    const { width, height } = image;
+    const { x: dx, y: dy } = parseMagickRollGeometry(geometry);
+    // Read-mask pixels outside the mask are unselected; wrap on the image canvas.
+    return { width, height, hasAlpha: false, nearest: true,
+        map: (x, y) => [((x - dx) % width + width) % width, ((y - dy) % height + height) % height] };
+}
+
 function* applyMagickRollSteps(img: RgbaImage, geomStr: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const g = parseMagickRollGeometry(geomStr);
@@ -10986,7 +10994,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     const offsets = parseMagickRollGeometry(expanded);
                     result.region = rollRegion(im.region, im, offsets.x, offsets.y);
                 }
-                if (im.readMask) result.readMask = yield* applyMagickRollSteps(im.readMask as RgbaImage, expanded, signal);
+                if (im.readMask) {
+                    const mask = im.readMask as RgbaImage;
+                    const plan = magickRollReadMaskPlan(im, expanded);
+                    result.readMask = yield* applyMagickRasterSteps(mask, warpPixelSteps(mask, plan, { r: 0, g: 0, b: 0, a: 255 }, "background", "nearest"), signal, plan);
+                }
                 if (im.writeMask) {
                     // Roll honors the destination mask before moving it with the pixels.
                     result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, im.writeMask, !!(result.data16 || im.data16), false, state.channels), signal, result, [result, im, im.writeMask]);
@@ -14468,8 +14480,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const offsets = parseMagickRollGeometry(expanded);
                     result.region = rollRegion(image.region, image, offsets.x, offsets.y);
                 }
-                if ((token === "-roll" || token === "-splice") && image.readMask) result.readMask = await transformStoredMagickCoordinates(image.readMask as StoredRgbaImage, backend, token, expanded,
-                    token === "-splice" ? { ...captured, backgroundExplicit: true, background: { r: 0, g: 0, b: 0, a: 255 } } : captured, signal, analysis);
+                if (token === "-roll" && image.readMask) {
+                    const mask = image.readMask as StoredRgbaImage;
+                    const plan = magickRollReadMaskPlan(image, expanded);
+                    result.readMask = await transformStoredMagickRaster(mask, backend, warpPixelSteps(mask, plan, { r: 0, g: 0, b: 0, a: 255 }, "background", "nearest"), signal, plan);
+                }
+                if (token === "-splice" && image.readMask) result.readMask = await transformStoredMagickCoordinates(image.readMask as StoredRgbaImage, backend, token, expanded,
+                    { ...captured, backgroundExplicit: true, background: { r: 0, g: 0, b: 0, a: 255 } }, signal, analysis);
                 if (token === "-splice" && image.region && (result.width !== image.width || result.height !== image.height)) {
                     const mask = await transformStoredMagickRaster({ width: image.width, height: image.height, position: image.position,
                         format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, backend, regionMaskPixelSteps(image, image.region), signal);

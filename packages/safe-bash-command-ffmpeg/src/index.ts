@@ -11530,8 +11530,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (key === "duration" || key === "durationi") {
                             const seconds = parseHlsDuration(value);
                             duration = Math.round(seconds * origRate);
-                            if (!value || seconds < 0 || !Number.isSafeInteger(duration)) {
-                              throw new Error(`atrim: invalid ${key}`);
+                            if (!value || Number.isNaN(seconds)) throw new Error(`atrim: invalid ${key}`);
+                            if (seconds < 0 || !Number.isSafeInteger(duration)) {
+                              throw new RangeError(`atrim: invalid ${key}`);
                             }
                             continue;
                           }
@@ -11539,13 +11540,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (key === undefined || (!samples && !pts && key !== "start" && key !== "end")) {
                             throw new Error(`atrim: unsupported option ${key}`);
                           }
-                          const number = samples || pts ? parseFilterExpression(value, "atrim", {}) : parseHlsDuration(value);
+                          const number = samples || pts ? parseFilterExpression(value, "atrim", { inf: Infinity, Infinity, NaN }) : parseHlsDuration(value);
                           const boundary = samples || pts ? roundToEven(number) : Math.round(number * origRate);
                           // Native int64 options use doubles, including INT64_MAX rounded to 2^63.
-                          if (!value || !Number.isFinite(number) ||
-                              (samples || pts ? Math.abs(number) > 2 ** 63 : !Number.isSafeInteger(boundary)) ||
+                          if (!value || Number.isNaN(number)) throw new Error(`atrim: invalid ${key}`);
+                          if ((samples || pts ? Math.abs(number) > 2 ** 63 : !Number.isSafeInteger(boundary)) ||
                               (samples && number < (key === "start_sample" ? -1 : 0))) {
-                            throw new Error(`atrim: invalid ${key}`);
+                            throw new RangeError(`atrim: invalid ${key}`);
                           }
                           // INT64_MIN is the unset PTS sentinel, including when an option is repeated.
                           if (pts && boundary === -(2 ** 63)) {
@@ -13038,6 +13039,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
               }
               return { exitCode: err instanceof CompandError ? err.exitCode : 234 };
+            }
+            if (msg.startsWith("atrim:") && !msg.startsWith("atrim: unsupported option")) {
+              return { exitCode: err instanceof RangeError ? 222 : 234 };
             }
             if (msg === "aeval: invalid expression" || msg === "aeval: invalid or unsupported expression") {
               return { exitCode: 234 };

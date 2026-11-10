@@ -42,7 +42,7 @@ for (const complex of [false, true]) {
             stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
           } as never);
           if (count < 0) {
-            assert.equal(result.exitCode, 1, stderr);
+            assert.equal(result.exitCode, 234, stderr);
             if (existing) assert.deepEqual(volume.readFileSync("/out.raw"), original);
             else assert.equal(volume.existsSync("/out.raw"), false);
           } else {

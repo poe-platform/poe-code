@@ -40,7 +40,7 @@ for (const graph of [false, true]) {
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
         if (start < 0) {
-          assert.equal(result.exitCode, 1, stderr);
+          assert.equal(result.exitCode, filter.startsWith("atrim=duration=") ? 222 : 234, stderr);
           assert.ok(stderr.includes("atrim: invalid"), stderr);
           if (outputExists) assert.deepEqual(volume.readFileSync("/out.raw"), existing);
           else assert.equal(volume.existsSync("/out.raw"), false);

@@ -6,13 +6,13 @@ import { parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
 for (const channels of [1, 2]) {
-  for (const [filter, start, end] of [
+  for (const [filter, start, end, exitCode = 234] of [
     ["atrim=start_sample=-1", 0, 16000],
     ["atrim=start_sample=-1:end_sample=3", 0, 3],
-    ["atrim=start_sample=-2", -1, 0],
-    ["atrim=end_sample=-1", -1, 0],
-    ["atrim=start_sample=-1.1", -1, 0],
-    ["atrim=end_sample=-0.1", -1, 0],
+    ["atrim=start_sample=-2", -1, 0, 222],
+    ["atrim=end_sample=-1", -1, 0, 222],
+    ["atrim=start_sample=-1.1", -1, 0, 222],
+    ["atrim=end_sample=-0.1", -1, 0, 222],
     ["atrim=start_sample=1.5", 2, 16000],
     ["atrim=start_sample=2.5:end_sample=8", 2, 8],
     ["atrim=start_sample=3.5:end_sample=8", 4, 8],
@@ -22,14 +22,14 @@ for (const channels of [1, 2]) {
     ["atrim=end_sample=2.5", 0, 2],
     ["atrim=end_sample=3.5", 0, 4],
     ["atrim=start_sample=invalid", -1, 0],
-    ["atrim=start_sample=1/0", -1, 0],
+    ["atrim=start_sample=1/0", -1, 0, 222],
     ["atrim=end_sample=", -1, 0],
     ["atrim=start=0.000625:start_sample=-1:end_sample=8", 5, 8],
     ["atrim=start_sample=5:start_sample=-1:end_sample=8", 0, 8],
     ["atrim=start=invalid", -1, 0],
     ["atrim=end=", -1, 0],
-    ["atrim=unknown=1", -1, 0],
-    ["atrim=duration=-0.0005", -1, 0],
+    ["atrim=unknown=1", -1, 0, 1],
+    ["atrim=duration=-0.0005", -1, 0, 222],
     ["atrim=duration=invalid", -1, 0],
     ["atrim=durationi=", -1, 0],
     ["atrim=duration=0", 0, 16000],
@@ -92,7 +92,7 @@ for (const channels of [1, 2]) {
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
       if (start === -1) {
-        assert.equal(result.exitCode, 1, stderr);
+        assert.equal(result.exitCode, exitCode, stderr);
         assert.ok(stderr.includes("atrim:"), stderr);
         assert.equal(volume.readFileSync("/out.wav", "utf8"), "existing");
         return;

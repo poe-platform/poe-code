@@ -59,7 +59,7 @@ for (const complex of [false, true]) {
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
       if (start === -1) {
-        assert.notEqual(result.exitCode, 0, stderr);
+        assert.equal(result.exitCode, 222, stderr);
         assert.ok(stderr.includes("atrim: invalid"), stderr);
         assert.equal(volume.existsSync("/out.raw"), false);
       } else {

@@ -37,7 +37,7 @@ for (const channels of [1, 2]) {
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
       if (start === -1) {
-        assert.equal(result.exitCode, 1, stderr);
+        assert.equal(result.exitCode, 234, stderr);
         assert.ok(stderr.includes("atrim: invalid"), stderr);
         assert.equal(volume.readFileSync("/out.wav", "utf8"), "existing");
         return;

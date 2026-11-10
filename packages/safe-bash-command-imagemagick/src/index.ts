@@ -2457,7 +2457,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
 }
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
-    let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
+    let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal", "-density"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
     if (["-swirl", "-implode", "-wave", "-spread"].includes(option)) value = value.replaceAll("(", "").replaceAll(")", "");
     const forcedRegionResize = (option === "-liquid-rescale" || option === "-adaptive-resize") && value.includes("!");
     let dimensions = false;
@@ -10148,7 +10148,9 @@ if (t === "-intent" || t === "+intent") {
             state.qualityExplicit = true;
         }
         else if (t === "-density") {
-            const g = parseMagickDensity(state.densityGeometry = tokens[++i] ?? "72");
+            const value = state.densityGeometry = tokens[++i] ?? "72";
+            validateMagickTransformGeometry(value, t);
+            const g = parseMagickDensity(value);
             state.density = Math.max(1, Math.round(g.width));
         }
         else if (t === "+density") {
@@ -10620,6 +10622,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         if (t === "-density") {
             const value = state.densityGeometry = tokens[++i] ?? "72";
+            validateMagickTransformGeometry(value, "-density");
             state.density = Math.max(1, Math.round(parseMagickDensity(value).width));
             stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return applyMagickDensity(image, value); });
             i++;
@@ -13438,6 +13441,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-density") {
             const value = state.densityGeometry = tokens[++i] ?? "72";
+            validateMagickTransformGeometry(value, "-density");
             state.density = Math.max(1, Math.round(parseMagickDensity(value).width));
             steps.push(async image => image ? applyMagickDensity(image, value) : undefined);
             continue;
@@ -16605,6 +16609,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         else if (t === "+depth") { delete state.inputDepth; }
         else if (t === "-density") {
             density = argv[++i] ?? "72";
+            try { validateMagickTransformGeometry(density, t); }
+            catch (error) { return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` }; }
             state.density = Math.max(1, Math.round(parseMagickDensity(density).width));
         }
         else if (t === "(") {

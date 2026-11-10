@@ -2,7 +2,7 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 import { magickIntensity } from "./intensity.js";
 
 // Stable merge sort uses one scanline of pixels and yields during wide-row work.
-export function* sortPixelSteps(image: { width: number; height: number; space?: string | undefined; magickColorspace?: string | undefined }, method: string, writeMask = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* sortPixelSteps(image: { width: number; height: number; space?: string | undefined; magickColorspace?: string | undefined }, method: string, mask = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image;
     const row = new Uint16Array(width * 4), intensities = new Float64Array(width);
     // 512 RGBA float pixels fit the 16 KiB paged-storage read limit.
@@ -10,7 +10,7 @@ export function* sortPixelSteps(image: { width: number; height: number; space?: 
     let order = new Uint32Array(width), scratch = new Uint32Array(width);
     for (let y = 0; y < height; y++) {
         // Derive order from image 0, then optionally emit the mask from image 1.
-        for (let source = 0; source < (writeMask ? 2 : 1); source++) {
+        for (let source = 0; source < (mask ? 2 : 1); source++) {
             for (let left = 0; left < width; left += 512) {
                 yield;
                 const count = Math.min(512, width - left);

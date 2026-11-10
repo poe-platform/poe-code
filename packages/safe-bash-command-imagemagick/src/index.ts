@@ -1487,8 +1487,8 @@ function* formatMagickPropertyStringSteps<Step=never>(
     d: filePath.slice(0, Math.max(0, filePath.lastIndexOf("/"))),
     o: "", u: "",
     b: `${context.byteLen ?? 0}B`, B: String(context.byteLen ?? 0),
-    x: String(resolution ? Number((resolution.x / resolutionScale).toPrecision(6)) : meta.density ?? 72),
-    y: String(resolution ? Number((resolution.y / resolutionScale).toPrecision(6)) : meta.density ?? 72),
+    x: formatSignificantMetric(resolution ? resolution.x / resolutionScale : meta.density ?? 72, 17),
+    y: formatSignificantMetric(resolution ? resolution.y / resolutionScale : meta.density ?? 72, 17),
     U: resolution?.unit === "meter" ? "PixelsPerCentimeter" : "Undefined",
     s: String(context.sceneIdx ?? 0), p: String(context.listIndex ?? context.sceneIdx ?? 0), n: String(context.sceneCount ?? meta.pages ?? 1),
     N: (context.listIndex ?? context.sceneIdx ?? 0) === (context.sceneCount ?? meta.pages ?? 1) - 1 ? `${context.sceneCount ?? meta.pages ?? 1}\n` : "",
@@ -1513,7 +1513,8 @@ function* formatMagickPropertyStringSteps<Step=never>(
     colorspace: space, channels: `${space === "LinearGray" ? "gray" : space.toLowerCase()}${meta.hasAlpha ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (meta.hasAlpha ? 1 : 0) + (meta.isPalette ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.writeMask || meta.storedWriteMask ? 1 : 0)}.0`,
     width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
     depth: bitDepth, size: short.b!, compression, quality: String(meta.quality ?? 0), page: short.P!,
-    "resolution.x": short.x!, "resolution.y": short.y!,
+    "resolution.x": formatSignificantMetric(resolution ? resolution.x / resolutionScale : 0),
+    "resolution.y": formatSignificantMetric(resolution ? resolution.y / resolutionScale : 0),
     units: short.U!
   };
   let img: RgbaImage | undefined;

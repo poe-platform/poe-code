@@ -11923,7 +11923,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-channel-fx") {
-            const expression = tokens[++i] ?? "", image = stack[0];
+            const argument = tokens[++i] ?? "", image = stack[0];
+            const expression = image ? yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties }) : argument;
             const result: RgbaImage[] = [];
             if (expression.includes("=")) {
                 const groups = expression.split(";").map(parseChannelAssignments);
@@ -12936,11 +12937,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             return stack;
         });
         if (!operandsOnly && token === "-channel-fx") {
-            const expression = tokens[++i] ?? "";
-            const groups = expression.includes("=") ? expression.split(";").map(parseChannelAssignments) : undefined;
-            const selections = groups ? [] : parseChannelSelections(expression);
+            const argument = tokens[++i] ?? "", { optionProperties } = state;
             stackStep(async (stack, backend) => {
                 const result = new StoredImageStack(backend.storage, signal, stack), image = await stack.get(0);
+                const expression = image ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack) : argument;
+                const groups = expression.includes("=") ? expression.split(";").map(parseChannelAssignments) : undefined;
+                const selections = groups ? [] : parseChannelSelections(expression);
                 if (image && groups) for (const assignments of groups) {
                     const sources = [image];
                     if (assignments.some(assignment => "image" in assignment && assignment.image === 1) && stack.length > 1) sources.push((await stack.get(1))!);

@@ -1742,7 +1742,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
 
 class FxPixelDemand { constructor(readonly position:number, readonly image = 0){} }
 function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,getStatistics:()=>Generator<IdentifyStep,Record<string,number>,void>,signal?:AbortSignal,context:MagickFormatContext = {},stack?: StoredImageStack):Generator<IdentifyStep,string,void>{
- const fn=compileFxExpression(property.slice(property.indexOf(":")+1)),key=property.toLowerCase(),samples=new Map<string,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array}>();
+ const fn=compileFxExpression(property.slice(property.indexOf(":")+1)),key=property.toLowerCase(),samples=new Map<string,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array;evaluateSamples?:Float64Array}>();
  const frames = new Map<number, StoredRgbaImage>();
  let demanded = 0;
  const source: FxStack = { length: stack?.length ?? 1, get(index) {
@@ -1760,7 +1760,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
   const data=samples.get(`${index}:${position}`);if(!data)throw new FxPixelDemand(position,index);
   // ImageMagick discards hidden PNG colors only when alpha is exactly zero.
   if(target.format === "png" && target.hasAlpha && (data.data16 ?? data.data)[3] === 0){
-   data.data.fill(0,0,3);data.data16?.fill(0,0,3);
+   data.data.fill(0,0,3);data.data16?.fill(0,0,3);data.evaluateSamples?.fill(0,0,3);
   }
   return sampleFxImage({...target,width:1,height:1,...data},0,0,ch);
  }};
@@ -1778,7 +1778,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
     if (error instanceof FxFrameDemand) { yield { async run() { frames.set(demanded, (await stack!.get(demanded))!); } }; continue; }
     if(!(error instanceof FxPixelDemand))throw error;
     const target = source.get(error.image) as StoredRgbaImage;
-    yield {async run(){const data=await storage.read(target.position+error.position,4,signal?{signal}:undefined);const hue = target.storedHueSamples; const floatBytes = hue === undefined ? undefined : await storage.read(hue+error.position*8,32,signal?{signal}:undefined); const original=target.storedData16 ? await storage.read(target.storedData16.position+error.position*2,8,signal?{signal}:undefined) : undefined; samples.set(`${error.image}:${error.position}`,{data:new Uint8Array(data),...(floatBytes?{hueSamples:new Float64Array(floatBytes.buffer.slice(floatBytes.byteOffset,floatBytes.byteOffset+32))}:{}),...(original?{data16:new Uint16Array(original.buffer.slice(original.byteOffset,original.byteOffset+8))}:{})});}};
+    yield {async run(){const data=await storage.read(target.position+error.position,4,signal?{signal}:undefined);const hue = target.storedHueSamples; const evaluateBytes = target.storedEvaluateSamples === undefined ? undefined : await storage.read(target.storedEvaluateSamples+error.position*8,32,signal?{signal}:undefined); const floatBytes = hue === undefined ? undefined : await storage.read(hue+error.position*8,32,signal?{signal}:undefined); const original=target.storedData16 ? await storage.read(target.storedData16.position+error.position*2,8,signal?{signal}:undefined) : undefined; samples.set(`${error.image}:${error.position}`,{data:new Uint8Array(data),...(evaluateBytes?{evaluateSamples:new Float64Array(evaluateBytes.slice().buffer)}:{}),...(floatBytes?{hueSamples:new Float64Array(floatBytes.buffer.slice(floatBytes.byteOffset,floatBytes.byteOffset+32))}:{}),...(original?{data16:new Uint16Array(original.buffer.slice(original.byteOffset,original.byteOffset+8))}:{})});}};
    }
   }
   if(key.startsWith("fx:"))return formatSignificantMetric(value, context.precision);
@@ -2785,7 +2785,7 @@ function sampleFxImage(
   }
   if ((img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "OHTA" || img.magickColorspace === "YUV" || img.magickColorspace === "Luv" || img.magickColorspace === "CIELab") && img.hueSamples && ch < 4) return img.hueSamples[idx + ch]!;
   if ((img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "OHTA" || img.magickColorspace === "YUV" || img.magickColorspace === "Luv" || img.magickColorspace === "CIELab") && img.data16 && ch < 4) return img.data16[idx + ch]! / 65535;
-  return sampleFxPixel(img.data16 ?? img.data!, idx, ch, img.data16 ? 65535 : 255);
+  return sampleFxPixel(img.evaluateSamples ?? img.data16 ?? img.data!, idx, ch, img.evaluateSamples ? 255 : img.data16 ? 65535 : 255);
 }
 function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number, interpolation?: LookupInterpolation): number {
   if (interpolation === "average9" || interpolation === "average16" || interpolation === "blend" || interpolation === "mesh" || interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported FX interpolation: ${interpolation}`);

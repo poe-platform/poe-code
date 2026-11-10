@@ -21,10 +21,13 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
  const output=new Output(metadata,width,height,storage,signal);let position=dataOffset;
  const storedData16=maxval>255?{position:storage.allocate(width*height*8),length:width*height*4}:undefined;
  const storedHueSamples=cmyk?storage.allocate(width*height*32):undefined;
+ const storedEvaluateSamples=cmyk?storage.allocate(width*height*32):undefined;
+ const evaluated=cmyk?new Float64Array(2048):undefined;
  const inks=new Float64Array(2048);let usedInks=0,offsetInks=0;
  const flushInks=async():Promise<void>=>{
   if(storedHueSamples===undefined||!usedInks)return;
   await storage.write(storedHueSamples+offsetInks,new Uint8Array(inks.buffer,0,usedInks*8),{signal});
+  if(storedEvaluateSamples!==undefined&&evaluated)await storage.write(storedEvaluateSamples+offsetInks,new Uint8Array(evaluated.buffer,0,usedInks*8),{signal});
   offsetInks+=usedInks*8;usedInks=0;
  };
  const samples16=storedData16?new Uint16Array(2048):undefined;let used16=0,offset16=0;
@@ -63,6 +66,7 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
   else {
    const r=format==="pgm"?Math.min(await sample(),maxval):await sample(),g=channels>=3?await sample():r,b=channels>=3?await sample():r,k=cmyk?await sample():0,a=hasAlpha?await sample():maxval;
    const values=cmyk?[(maxval-r)*(maxval-k)/maxval,(maxval-g)*(maxval-k)/maxval,(maxval-b)*(maxval-k)/maxval,a]:[r,g,b,a];
+   if(evaluated)for(let channel=0;channel<4;channel++)evaluated[usedInks+channel]=values[channel]!*255/maxval;
    if(cmyk){for(const value of [r,g,b,k])inks[usedInks++]=value/maxval;if(usedInks===inks.length)await flushInks();}
    await output.pixel(Math.round(values[0]!*255/maxval),Math.round(values[1]!*255/maxval),Math.round(values[2]!*255/maxval),hasAlpha?Math.round(a*255/maxval):255);
    if(samples16) {
@@ -73,7 +77,7 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
  }
  await flush16();
  await flushInks();
- return {...await output.finish(),...(storedData16?{storedData16}:{}),...(storedHueSamples===undefined?{}:{storedHueSamples})};
+ return {...await output.finish(),...(storedData16?{storedData16}:{}),...(storedHueSamples===undefined?{}:{storedHueSamples}),...(storedEvaluateSamples===undefined?{}:{storedEvaluateSamples})};
 }
 /** Owned output chunks and pull-driven backpressure; rows never require full buffers. */
 export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:ImageByteStorage,signal:AbortSignal,format:"ppm"|"pgm"|"pbm"|"pam",depth=image.storedData16?16:8,ascii=false):AsyncGenerator<Uint8Array> {

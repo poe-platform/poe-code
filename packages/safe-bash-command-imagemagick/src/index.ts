@@ -8393,14 +8393,18 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const geometry = parseMagickGeometry(raw);
         // Two offsets supply no contrast magnitude; numeric prefixes are not complete dimensions.
         const magnitude = geometry.aspectRatio ?? geometry.width ?? (geometry.hasOffset && !geometry.hasYOffset ? geometry.x : undefined);
-        const [cStr, mStr] = raw.replaceAll("X", "x").replaceAll(":", "x").split("x");
+        const fields = raw.replaceAll("X", "x").replaceAll(":", "x");
+        const separator = fields.indexOf("x");
+        // Split only the first field so a hexadecimal midpoint keeps its 0x prefix.
+        const cStr = separator < 0 ? fields : fields.slice(0, separator);
+        const mStr = separator < 0 ? undefined : fields.slice(separator + 1);
         const ratio = raw.includes(":");
         const strength = parseFloat(cStr ?? "") / (ratio ? parseFloat(mStr ?? "1") : 1);
         if (!Number.isFinite(magnitude) || !Number.isFinite(strength)) {
             throw new Error(`invalid argument for option '${token}': ${raw}`);
         }
         const beta = Math.max(1e-4, strength);
-        const mRaw = ratio ? 1 : mStr && mStr !== "%" ? parseFloat(mStr) : 65535 / 2;
+        const mRaw = ratio ? 1 : mStr && mStr !== "%" ? (mStr.startsWith("0x") ? parseInt(mStr, 16) : parseFloat(mStr)) : 65535 / 2;
         const alpha = raw.includes("%") ? mRaw / 100 : mRaw / 65535;
         const sig = (u: number) => Math.tanh(0.5 * beta * (u - alpha));
         const s0 = sig(0);

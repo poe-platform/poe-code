@@ -182,10 +182,14 @@ export function* interpolatePixelSteps(size: number, fraction: number, blendAlph
     for (let position = 0; position < size; position += 16384) {
         yield;
         const length = Math.min(16384, size - position);
-        const bytes = (yield { kind: "read", highDepth, position, length })!;
-        const otherBytes = (yield { kind: "read", highDepth, image: 1, position, length })!;
-        const data = Float64Array.from(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
-        const other = highDepth ? new Uint16Array(otherBytes.slice().buffer) : otherBytes;
+        const hue = yield { kind: "read", hue: true, position, length };
+        const otherHue = yield { kind: "read", hue: true, image: 1, position, length };
+        const bytes = hue?.length ? hue : (yield { kind: "read", highDepth, position, length })!;
+        const otherBytes = otherHue?.length ? otherHue : (yield { kind: "read", highDepth, image: 1, position, length })!;
+        const data = hue?.length ? new Float64Array(bytes.slice().buffer).map(value => value * range)
+            : Float64Array.from(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
+        const other = otherHue?.length ? new Float64Array(otherBytes.slice().buffer).map(value => value * range)
+            : highDepth ? new Uint16Array(otherBytes.slice().buffer) : otherBytes;
         for (let offset = 0; offset < length; offset++) {
             if (offset % 4 === 3 && !blendAlpha) continue;
             if (gray && (offset % 4 === 1 || offset % 4 === 2)) {
@@ -196,6 +200,8 @@ export function* interpolatePixelSteps(size: number, fraction: number, blendAlph
         }
         // Morphing byte inputs still produces fractional Q16-HDRI samples.
         const working = data.map(value => Math.fround(value * (highDepth ? 1 : 257)) / 257);
+        // Conversion back to sRGB must use the blended working colorspace samples.
+        if (hue?.length) yield { kind: "write", hue: true, position, data: new Uint8Array(working.map(value => value / 255).buffer) };
         yield { kind: "write", evaluate: true, position, data: new Uint8Array(working.buffer) };
         const rounded = data.map(value => Math.max(0, Math.min(range, Math.round(value))));
         const pixels = highDepth ? Uint16Array.from(rounded) : Uint8Array.from(rounded);

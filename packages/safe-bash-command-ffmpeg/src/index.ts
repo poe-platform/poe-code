@@ -12211,6 +12211,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (audioTimestamps) {
                           let start = 0;
                           const firstPts = audioTimestamps[0]?.pts ?? audioStartSample;
+                          const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
                           audioTimestamps.reverse();
                           for (const frame of audioTimestamps) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -12218,7 +12219,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             frame.start = start;
                             frame.end = start + count;
                             // Native areverse advances AV_NOPTS_VALUE (INT64_MIN) after the first frame.
-                            frame.pts = start === 0 ? firstPts : (Number.isNaN(firstPts) ? -(2 ** 63) : firstPts) + start;
+                            // PTS advances by sample count in time-base ticks; stored timestamps use samples.
+                            frame.pts = start === 0 ? firstPts
+                              : (Number.isNaN(firstPts) ? -(2 ** 63) * samplesPerTick : firstPts) + start * samplesPerTick;
                             start += count;
                           }
                         }

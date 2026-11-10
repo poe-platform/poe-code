@@ -53,6 +53,7 @@ export function fastDecimalLiteral(text: string | undefined, budget: ParseBudget
     num = num * 10 + (code - 48);
   }
   budget.admit(negative ? 4 : 2);
+  if (!Number.isSafeInteger(num)) return BigInt(text);
   return BigInt(negative ? -num : num);
 }
 

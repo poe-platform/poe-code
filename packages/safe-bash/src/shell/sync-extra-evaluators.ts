@@ -34,7 +34,7 @@ import type { ShellCommandContext, ShellExecOptions, ShellInvokeOptions, ShellRe
 import { ShellInput } from "./input.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
 import { isCleanAbsolutePath, tryOpenMemoryRedirectHandleSync, tryResolveMemoryDevicePath, tryWriteMemoryFileInDirSync, type MemoryRedirectHandle } from "@poe-code/safe-fs/runtime-core";
-import { arithmeticEvaluation, binaryArithmeticOp, evaluateArithmeticReferences, formatArithmeticError, parseArithmetic, precedence, prepareArithmetic, type Arithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
+import { arithmeticEvaluation, binaryArithmeticOp, evaluateArithmeticReferences, fastDecimalLiteral, formatArithmeticError, parseArithmetic, precedence, prepareArithmetic, type Arithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { tryFastExpandBraceRange } from "./brace-expansion.js";
 import { expandTildes } from "./tilde-expansion.js";
@@ -2292,31 +2292,6 @@ export function evaluateArithmeticSyncNonZero(program: ArithmeticProgram, refere
     budget.restore(savedBudget);
   }
   return evaluateArithmeticBigInt(program, references, budget) !== 0n;
-}
-
-function fastDecimalLiteral(text: string | undefined, budget: ParseBudget): bigint | undefined {
-  if (text === undefined || text === "0") { budget.admit(2); return 0n; }
-  if (text === "") { budget.admit(1); return 0n; }
-  const len = text.length;
-  if (len > 16) return undefined;
-  let start = 0;
-  let negative = false;
-  if (text.charCodeAt(0) === 45) {
-    if (len === 1) return undefined;
-    if (text === "-0") { budget.admit(4); return 0n; }
-    negative = true;
-    start = 1;
-  }
-  const first = text.charCodeAt(start);
-  if (first < 49 || first > 57) return undefined;
-  let num = first - 48;
-  for (let i = start + 1; i < len; i++) {
-    const code = text.charCodeAt(i);
-    if (code < 48 || code > 57) return undefined;
-    num = num * 10 + (code - 48);
-  }
-  budget.admit(negative ? 4 : 2);
-  return BigInt(negative ? -num : num);
 }
 
 export function evaluateArithmeticSync(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): bigint {

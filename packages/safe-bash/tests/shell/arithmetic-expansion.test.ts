@@ -7,6 +7,34 @@ import { basicCommands, printfCommand } from "../../src/commands/basic.js";
 import { streamCommands } from "../../src/commands/streams.js";
 import { writeText } from "../../src/contracts/index.js";
 
+for (const [source, stdout, exitCode = 0] of [
+  ['n=9007199254740993; echo "$((n))"; (( n == 9007199254740993 )); echo "$?"', "9007199254740993\n0\n"],
+  ['n=9007199254740993; ((++n)); echo "$n"', "9007199254740994\n"],
+  ['echo "$((9007199254740993))"', "9007199254740993\n"],
+  ['n=-9007199254740993; echo "$((n))"', "-9007199254740993\n"],
+  ['n=9007199254740992; echo "$((n))"', "9007199254740992\n"],
+  ['n=9007199254740991; echo "$((n++)):$n"', "9007199254740991:9007199254740992\n"],
+  ['n=9999999999999999; echo "$((n++)):$n"', "9999999999999999:10000000000000000\n"],
+  ['n=9007199254740993; (( n != 9007199254740993 ))', "", 1],
+  ['n=9007199254740993; a[0]=$n; echo "$((++a[$(echo 0)]))"; echo "${a[0]}"', "9007199254740994\n9007199254740994\n"],
+  ['n=9007199254740993; for ((i=0;i<2;i++)); do ((++n)); done; echo "$n"', "9007199254740995\n"],
+] as const) test(`decimal arithmetic retains integer precision: ${source}`, async context => {
+  const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], {
+    encoding: "utf8", env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 10000,
+  });
+  assert.ifError(native.error);
+  assert.equal(native.stdout, stdout);
+  assert.equal(native.stderr, "");
+  assert.equal(native.status, exitCode);
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  for (const command of basicCommands()) shell.commands.register(command);
+  const result = await shell.exec(source);
+  assert.equal(result.stdout, native.stdout);
+  assert.equal(result.stderr, native.stderr);
+  assert.equal(result.exitCode, native.status);
+});
+
 for (const [source, stdout] of [
   ['i=0; (( (++i, 1 / 0) )); echo "status=$? i=$i"', 'status=1 i=1\n'],
   ['i=0; (( ++i / (i - 1) )); echo "status=$? i=$i"', 'status=1 i=1\n'],

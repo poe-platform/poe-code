@@ -9814,7 +9814,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const commands = audioCommands.filter(command => command.target === "afade" || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);
                           audioCommands = audioCommands.filter(command => command.target !== "afade" && command.target !== filterTarget);
-                          stretched = await fadeAudio(stretched, origRate, trimmed, audioTimestamps, audioStartSample, commands, budget, context.signal, panPcm16);
+                          stretched = await fadeAudio(stretched, origRate, trimmed, audioTimestamps, audioStartSample, commands, budget, context.signal, panPcm16 ? "s16" : filteredSampleFormat);
                         } else if (filterName === "alimiter") {
                           filteredSampleFormat = "dbl";
                           const commands = audioCommands.filter(command => command.target === "alimiter" || command.target === filterTarget)

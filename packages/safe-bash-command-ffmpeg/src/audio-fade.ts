@@ -8,7 +8,7 @@ export async function fadeAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number }[] | undefined, startSample: number,
   commands: readonly { sample: number; expression: string }[],
-  budget: MediaBudgetTracker, signal?: AbortSignal, pcm16 = false
+  budget: MediaBudgetTracker, signal?: AbortSignal, sampleFormat = "dbl"
 ): Promise<Float64Array[]> {
   let type = "in";
   const maxSamples = (1n << 63n) - 1n;
@@ -118,8 +118,9 @@ export async function fadeAudio(
     const gain = enabled ? silence + (unity - silence) * curve(fraction) : 1;
     for (let c = 0; c < channels.length; c++) {
       const sample = channels[c]![i]! * gain;
-      // Native integer fades truncate before the next filter consumes the samples.
-      output[c]![i] = pcm16 ? Math.trunc(sample * 32768) / 32768 : sample;
+      // Store at the negotiated precision before the next filter consumes samples.
+      output[c]![i] = sampleFormat === "s16" ? Math.trunc(sample * 32768) / 32768
+        : sampleFormat === "flt" || sampleFormat === "fltp" ? Math.fround(sample) : sample;
     }
   }
   return output;

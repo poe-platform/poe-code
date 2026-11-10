@@ -114,10 +114,11 @@ export function rawRasterInput(width: number, height: number, depth: number, end
     };
 }
 
-export function rgbPartitionPaths(path: string, format = "rgb"): string[] {
+export function rawPartitionPaths(path: string, format = "rgb"): string[] {
     const dot = path.lastIndexOf("."), slash = path.lastIndexOf("/");
     const stem = dot > slash ? path.slice(0, dot) : path;
-    return [...(format.endsWith("o") ? format.slice(0, -1) : format).toUpperCase()].map(channel => `${stem}.${channel}`);
+    const channels = format === "gray" ? "G" : format === "graya" ? "GA" : (format.endsWith("o") ? format.slice(0, -1) : format).toUpperCase();
+    return [...channels].map(channel => `${stem}.${channel}`);
 }
 
 function rawSamplesTo16(input: Uint8Array, depth: number, endian: string, floatingPoint: boolean): Uint8Array {

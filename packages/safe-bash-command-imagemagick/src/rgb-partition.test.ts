@@ -57,6 +57,39 @@ for (const mode of ["command", "sync"] as const) {
         }
     });
 
+    it.each([
+        { format: "gray", planes: { G: "3ea96c4d" } },
+        { format: "graya", planes: { G: "3ea96c4d", A: "9a43ff00" } },
+        { format: "cmyk", planes: { C: "d9000092", M: "6c2a6a49", Y: "00c12700", K: "8732638c" } },
+        { format: "cmyka", planes: { C: "d9000092", M: "6c2a6a49", Y: "00c12700", K: "8732638c", A: "9a43ff00" } }
+    ].flatMap(fixture => [1, 2].map(frames => ({ ...fixture, frames }))))(`writes $format Partition channel files for $frames frames (${mode})`, async ({ format, planes, frames }) => {
+        const files = new Map<string, Uint8Array>([["/out", keep], ["/copy.raw", keep]]);
+        const result = await execute([
+            "xc:#1245789a", "xc:#cdab3243", "+append", "(", "xc:#9c5b84ff", "xc:#31527300", "+append", ")", "-append",
+            ...(frames === 2 ? ["-clone", "0"] : []),
+            "-depth", "8", "-endian", "MSB", "-interlace", "Partition", "-write", `${format}:/copy.raw`, "-write", `${format}:/out`,
+            "-interlace", "Plane", `${format}:/plane`
+        ], files);
+        expect(result.stderr).toBe("");
+        expect(result.exitCode).toBe(0);
+        expect(await result.read("/out")).toEqual(keep);
+        expect(await result.read("/copy.raw")).toEqual(keep);
+        for (const [channel, hex] of Object.entries(planes)) {
+            const expected = Uint8Array.from(Buffer.from(hex!.repeat(frames), "hex"));
+            expect(await result.read(`/out.${channel}`)).toEqual(expected);
+            expect(await result.read(`/copy.${channel}`)).toEqual(expected);
+        }
+        expect(await result.read("/plane")).toEqual(Uint8Array.from(Buffer.from(Object.values(planes).join("").repeat(frames), "hex")));
+        const final = await execute([
+            "xc:#1245789a", "xc:#cdab3243", "+append", "(", "xc:#9c5b84ff", "xc:#31527300", "+append", ")", "-append",
+            ...(frames === 2 ? ["-clone", "0"] : []),
+            "-depth", "8", "-endian", "MSB", "-interlace", "Partition", `${format}:/out`
+        ], files);
+        expect(final.exitCode).toBe(0);
+        expect(await final.read("/out")).toEqual(keep);
+        for (const [channel, hex] of Object.entries(planes)) expect(await final.read(`/out.${channel}`)).toEqual(Uint8Array.from(Buffer.from(hex!.repeat(frames), "hex")));
+    });
+
     it.each(["Partition", "None"])(`reads %s RGB samples (${mode})`, async interlace => {
         const rgb = Uint8Array.from({ length: 36 }, (_, i) => (7 * i + 1) % 256);
         const files = new Map<string, Uint8Array>([["/out.png", keep]]);

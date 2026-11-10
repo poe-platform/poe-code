@@ -1,4 +1,4 @@
-import { rgbPartitionPaths } from "./raw-rgb.js";
+import { rawPartitionPaths } from "./raw-rgb.js";
 import { decodeMagickImage as decodeImage } from "./image-raster.js";
 import { magickInput } from "./stored-stack.js";
 import { encodeStoredImage, isRawCoder, type OutputEncodeOptions, type StoredRawImage } from "./raw-output.js";
@@ -107,7 +107,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                 }
             };
         const stage = async (image: StoredRawImage, path: string, encoding: OutputEncodeOptions) => {
-            if (!["rgb", "rgba", "rgbo", "bgr", "bgra", "bgro"].includes(encoding.format) || encoding.rawInterlace !== "partition") return snapshots.stage(image, path, encoding);
+            if (!isRawCoder(encoding.format) || encoding.rawInterlace !== "partition") return snapshots.stage(image, path, encoding);
             let size = 0;
             for (let index = 0; index < (image.rawFrames?.length ?? 1); index++) {
                 const frame = image.rawFrames ? await image.rawFrames.at(index) : image;
@@ -117,12 +117,12 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
             }
             const encoder = encodeStoredImage(image, storage, signal, encoding);
             try {
-                for (const target of rgbPartitionPaths(path, encoding.format)) {
+                for (const target of rawPartitionPaths(path, encoding.format)) {
                     const source = (async function* () {
                         let written = 0;
                         while (written < size) {
                             const next = await encoder.next();
-                            if (next.done || written + next.value.length > size) throw new Error("Invalid RGB partition size");
+                            if (next.done || written + next.value.length > size) throw new Error("Invalid raw partition size");
                             written += next.value.length;
                             yield next.value;
                         }

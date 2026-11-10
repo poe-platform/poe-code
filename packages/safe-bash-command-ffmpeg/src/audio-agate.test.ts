@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
 import { parseWav } from "@poe-code/mp4-ast";
+import { createCommandArguments } from "safe-bash-contracts";
 import { createFfmpegCommand } from "./index.js";
 
 // Native FFmpeg PCM16 references for the reported 7200-sample fixture.
@@ -20,8 +22,9 @@ for (const [filter, expected] of [
     .flatMap(([amplitude, count]) => Array.from({ length: count! }, (_, i) => (i % 2 ? -1 : 1) * amplitude! / 32768)));
   fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [samples] }));
   const errors: Uint8Array[] = [];
+  const argumentValues = createCommandArguments(["-i", "/in.wav", ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-c:a", "pcm_s16le", "/out.wav"]);
   const result = await createFfmpegCommand().execute({
-    args: ["-i", "/in.wav", ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-c:a", "pcm_s16le", "/out.wav"],
+    args: argumentValues.args, argumentValues,
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
     stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write(b: Uint8Array) { errors.push(b); } }
@@ -37,16 +40,45 @@ for (const [filter, expected] of [
   }
 });
 
-for (const filter of ["agate=threshold=-1", "agate=ratio=0", "agate=attack=0", "agate=release=9001", "agate=knee=0", "agate=range=2", "agate=detection=bad", "agate=link=2", "agate=mode=bad", "agate=threshold=NaN", "agate=attack=", "agate=unknown=1"]) {
-  it(`${filter} fails without replacing output`, async () => {
+for (const [filter, status] of [
+  ["agate=level_in=0", 222], ["agate=threshold=-1", 222], ["agate=ratio=0", 222],
+  ["agate=attack=0", 222], ["agate=release=9001", 222], ["agate=knee=0", 222],
+  ["agate=range=2", 222], ["agate=detection=bad", 234], ["agate=link=2", 222],
+  ["agate=mode=bad", 234], ["agate=threshold=oops", 234], ["agate=threshold=NaN", 234],
+  ["agate=attack=", 234], ["agate=foo=1", 8], ["agate=unknown=1", 8]
+] as const) for (const graph of [false, true]) {
+  it(`${filter} fails without replacing output (${graph ? "graph" : "simple"})`, async () => {
     const fs = Volume.fromJSON({ "/out.wav": "keep" });
     fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array([0.25])] }));
+    const argumentValues = createCommandArguments(["-y", "-i", "/in.wav", ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "/out.wav"]);
     const result = await createFfmpegCommand().execute({
-      args: ["-y", "-i", "/in.wav", "-af", filter, "/out.wav"], cwd: "/", env: {}, signal: new AbortController().signal,
+      args: argumentValues.args, argumentValues, cwd: "/", env: {}, signal: new AbortController().signal,
       fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
       stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} }
     } as never);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, status);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
   });
 }
+
+for (const [filter, hash] of [
+  ["agate=level_in=1", "080a910cf94a6c0fb40d244fbad9515d2ac1d1d14176886ba64b35076e9c06dc"],
+  ["agate=link=1", "4f0a0862ea395c385ed321db215f4d4fbd51763bd0bd3847ae77fdff66760373"]
+] as const) it(`${filter} preserves native stereo PCM output`, async () => {
+  const fs = Volume.fromJSON({});
+  const channels = [
+    Float64Array.from({ length: 6400 }, (_, i) => ((i * 131) % 4001 - 2000) * [1, 6, 2, 0][Math.floor(i / 512) % 4]! / 32768),
+    Float64Array.from({ length: 6400 }, (_, i) => ((i * 47) % 1801 - 900) * [2, 1, 16, 0][Math.floor(i / 512) % 4]! / 32768)
+  ];
+  fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels }));
+  const argumentValues = createCommandArguments(["-i", "/in.wav", "-af", filter, "-f", "s16le", "/out.raw"]);
+  const result = await createFfmpegCommand().execute({
+    args: argumentValues.args, argumentValues, cwd: "/", env: {}, signal: new AbortController().signal,
+    fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
+    stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} }
+  } as never);
+  assert.equal(result.exitCode, 0);
+  const output = fs.readFileSync("/out.raw") as Buffer;
+  assert.equal(output.length, 25600);
+  assert.equal(createHash("sha256").update(output).digest("hex"), hash);
+});

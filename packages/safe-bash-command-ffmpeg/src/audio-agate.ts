@@ -1,6 +1,12 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
+export class AgateError extends Error {
+  constructor(message: string, readonly exitCode: number) {
+    super(message);
+  }
+}
+
 export async function applyAudioGate(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
@@ -14,12 +20,13 @@ export async function applyAudioGate(
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
-    if (!key || !Object.hasOwn(options, key)) throw new Error(`${name}: unsupported option ${key}`);
+    if (!key || !Object.hasOwn(options, key)) throw new AgateError(`${name}: unsupported option ${key}`, 8);
     options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
   }
   const number = (key: string, min: number, max: number): number => {
     const value = Number(options[key]);
-    if (!options[key] || !Number.isFinite(value) || value < min || value > max) throw new Error(`${name}: invalid ${key}`);
+    if (!options[key] || !Number.isFinite(value)) throw new AgateError(`${name}: invalid ${key}`, 234);
+    if (value < min || value > max) throw new AgateError(`${name}: invalid ${key}`, 222);
     return value;
   };
   const choice = (key: string, values: readonly string[]): number => {
@@ -27,7 +34,7 @@ export async function applyAudioGate(
     const index = values.indexOf(value);
     if (index >= 0) return index;
     if (value === "0" || value === "1") return Number(value);
-    throw new Error(`${name}: invalid ${key}`);
+    throw new AgateError(`${name}: invalid ${key}`, value && Number.isFinite(Number(value)) ? 222 : 234);
   };
   const level = number("level_in", 0.015625, 64);
   const upward = choice("mode", ["downward", "upward"]) === 1;

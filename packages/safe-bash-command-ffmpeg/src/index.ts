@@ -50,7 +50,7 @@ import { listenDynamicEqualizer } from "./audio-adynamicequalizer.js";
 import { tiltAudio } from "./audio-atilt.js";
 import { softClipAudio } from "./audio-asoftclip.js";
 import { AlimiterError, limitAudio } from "./audio-alimiter.js";
-import { applyAudioGate } from "./audio-agate.js";
+import { AgateError, applyAudioGate } from "./audio-agate.js";
 import { compressAudio } from "./audio-acompressor.js";
 import { normalizeSpeech } from "./audio-speechnorm.js";
 import { normalizeAudio } from "./audio-dynaudnorm.js";
@@ -14658,6 +14658,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               return { exitCode: 234 };
             }
+            if (err instanceof AgateError) return { exitCode: err.exitCode };
             const unnamedChannel = msg.startsWith("channelmap: unavailable input channel") && msg.endsWith(" (unnamed layout)");
             const unsupportedPanOrder = msg.startsWith("pan: unsupported output channel order ");
             if (err instanceof AlimiterError || err instanceof CompandError || unnamedChannel || unsupportedPanOrder) {

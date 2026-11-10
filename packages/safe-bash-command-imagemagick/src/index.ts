@@ -6846,11 +6846,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     if (token === "-colorspace" || token === "-grayscale" || token === "-type") {
         const value = tokens[++i];
         const imageType = token === "-type" ? (value ?? "").toLowerCase() : undefined;
-        if (imageType !== undefined && !["bilevel", "grayscale", "grayscalealpha", "truecoloralpha", "palette"].includes(imageType)) {
+        if (imageType !== undefined && !["bilevel", "grayscale", "grayscalealpha", "truecolor", "truecoloralpha", "palette"].includes(imageType)) {
             throw new Error(`unsupported image type '${value ?? ""}'`);
         }
         const space = imageType === undefined ? (value ?? "gray").toLowerCase()
-            : imageType === "truecoloralpha" || imageType === "palette" ? "srgb" : "gray";
+            : imageType === "truecolor" || imageType === "truecoloralpha" || imageType === "palette" ? "srgb" : "gray";
         // ImageMagick 7.1.2 ColorspaceOptions, plus our existing grey and luma aliases.
         if (token === "-colorspace" && !["undefined", "adobe98", "cat02lms", "cielab", "cmy", "cmyk", "displayp3", "gray", "grey", "hcl", "hclp", "hsb", "hsi", "hsl", "hsv", "hwb", "jzazbz", "lab", "lch", "lchab", "lchuv", "lineargray", "lms", "log", "luv", "ohta", "oklab", "oklch", "prophoto", "rec601luma", "rec601ycbcr", "rec709luma", "rec709ycbcr", "rgb", "scrgb", "srgb", "transparent", "xyy", "xyz", "ycbcr", "ydbdr", "ycc", "yiq", "ypbpr", "yuv"].includes(space)) {
             throw new Error(`unrecognized colorspace '${value}'`);
@@ -6893,11 +6893,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 const { evaluateSamples: ignoredEvaluate, ...bounded } = image;
                 image = bounded;
             }
-            if (imageType === "truecoloralpha" || imageType === "palette") {
+            if (imageType === "truecolor" || imageType === "truecoloralpha" || imageType === "palette") {
                 const hasAlpha = imageType === "truecoloralpha";
-                // Enabling absent alpha makes it opaque; Palette discards alpha without compositing RGB.
+                // Enabling absent alpha makes it opaque; TrueColor and Palette discard alpha without compositing RGB.
                 if (!hasAlpha || !image.hasAlpha) image = yield* prepareInactiveAlphaOutput({ ...image, hasAlpha: false });
-                return { ...image, isPalette: !hasAlpha, hasAlpha, channels: hasAlpha ? 4 : 3, space: "srgb" };
+                return { ...image, isPalette: imageType === "palette", hasAlpha, channels: hasAlpha ? 4 : 3, space: "srgb" };
             }
             if (space === "cmyk") return yield* convertCmykPixels(image);
             if (space === "lab" || space === "cielab") return yield* convertHuePixels(image, "CIELab");

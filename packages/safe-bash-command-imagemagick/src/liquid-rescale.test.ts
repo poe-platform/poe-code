@@ -1,8 +1,9 @@
+import { createHash } from "node:crypto";
 import { expect, it } from "vitest";
 import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import fixtures from "./liquid-rescale-fixtures.json" with { type: "json" };
 import { createCommandArguments } from "safe-bash-contracts/command";
+import fixtures from "./liquid-rescale-fixtures.json" with { type: "json" };
 import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js";
 
 // Native ImageMagick 7.1.2-35 Q16-HDRI: identical pixels with and without a page offset.
@@ -113,5 +114,34 @@ for (const mode of ["buffered", "retained", "sync", "public"] as const) {
         expect(result.exitCode, stderr).toBe(0);
         const output = mode === "public" || mode === "retained" ? await filesystem.readFile("/out") : files.get("/out")!;
         expect(new TextDecoder().decode(output)).toBe("4x3,4x3+0+0,DirectClass sRGB ");
+    });
+}
+
+// ImageMagick 7.1.2-35 Q16-HDRI: insertion retains interpolated samples until export.
+for (const mode of ["command", "retained", "buffered", "sync"] as const) {
+    it.each([
+        ["6x4!", [], "16", 144, "bba7d9acc0993cb6e7036c7e3cc00f0baf3369aa1188e691330d97c03d76a9de"],
+        ["6x4!", ["-depth", "16"], "16", 144, "bba7d9acc0993cb6e7036c7e3cc00f0baf3369aa1188e691330d97c03d76a9de"],
+        ["6x4!", [], "8", 72, "0f859db4fdc85eaa62dbbfb64486f862a1e1e3185b4812afd505f7134206fb5f"],
+        ["4x4!", [], "16", 96, "a6f53fe739881ab5bcc09a10034e164db7daa249f984cb4cedd21f56bcdd0d29"],
+        ["5x4!", [], "16", 120, "d173472f34909a392ba40ae2d31830a3c115ecc2735a9a8a5dc02613d9417d5a"],
+    ] as const)(`${mode}: exports native RGB samples for %s with %j before rescaling at depth %s`, async (geometry, before, depth, length, hash) => {
+        const input = Buffer.concat([Buffer.from("P6\n5 4\n255\n"), Buffer.from(Array.from({ length: 60 }, (_, i) => (i * 53 + 11) % 256))]);
+        const files = new Map<string, Uint8Array>([["/im.ppm", input], ["/out", Buffer.from("KEEP")]]);
+        const filesystem = new MemoryFileSystem();
+        for (const [path, bytes] of files) await filesystem.writeFile(path, bytes);
+        const argv = ["/im.ppm", ...before, "-liquid-rescale", geometry, "-depth", depth, "-endian", "MSB", "rgb:/out"];
+        const args = createCommandArguments(argv);
+        let stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs: filesystem,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runMagickCliSync(argv, files)
+            : await runMagickCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result, stderr).toMatchObject({ exitCode: 0 });
+        const output = mode === "command" || mode === "retained" ? await filesystem.readFile("/out") : files.get("/out")!;
+        expect(output).toHaveLength(length);
+        expect(createHash("sha256").update(output).digest("hex")).toBe(hash);
     });
 }

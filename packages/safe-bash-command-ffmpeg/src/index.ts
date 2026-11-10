@@ -2672,9 +2672,9 @@ async function applyVideoFilterChain(
         const selected = (components === undefined || relative && mask === 0b0111111 ? available & 0b0111111 : mask) |
           (negateAlpha ? available & 0b1000000 : 0);
         if (selected & ~available) throw new Error("negate: Requested components not available");
-        if (named.enable !== undefined && Math.abs(parseFilterExpression(named.enable, "negate enable", {
-          n, t: f.ptsSeconds, w: f.width, h: f.height
-        })) < 0.5) return f;
+        if (named.enable !== undefined && !(Math.abs(parseFilterExpression(named.enable, "negate enable", {
+          n, t: f.ptsSeconds, w: f.width, h: f.height, NAN: NaN, INF: Infinity
+        })) >= 0.5)) return f;
         // Negate planar 8-bit YUV before RGB conversion, including full-range YUV.
         if (planar) {
           const lumaSize = f.width * f.height;

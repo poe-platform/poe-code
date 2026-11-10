@@ -10298,7 +10298,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const expanded = yield* formatMagickPropertyStringSteps(t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" ? value.trimEnd() : value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, sceneIdx: sceneIdx++, optionProperties: state.optionProperties });
                 const operation = parseMagickPixelOperation([t, expanded], state, 0, signal)!;
                 if (operation.warning) analysis.warnings += operation.warning;
-                return yield* operation.apply(image);
+                const result = yield* operation.apply(image);
+                if (t === "-solarize" && image.metaChannels?.length) {
+                    const metaOperation = parseMagickPixelOperation([t, expanded], { ...state, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, 0, signal)!;
+                    result.metaChannels = [];
+                    for (const [index, plane] of image.metaChannels.entries()) {
+                        const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
+                        result.metaChannels.push(selected ? yield* metaOperation.apply(plane) : plane);
+                    }
+                }
+                return result;
             });
             i++;
             continue;
@@ -13180,7 +13189,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const expanded = await formatRetainedIdentify(token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" ? value.trimEnd() : value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, sceneIdx: sceneIdx++, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 const operation = parseMagickPixelOperation([token, expanded], settings, 0, signal)!;
                 if (operation.warning) analysis.warnings += operation.warning;
-                return transformStoredMagickPixels(image, backend, operation, signal);
+                const result = await transformStoredMagickPixels(image, backend, operation, signal);
+                if (token === "-solarize" && image.storedMetaChannels?.length) {
+                    const metaOperation = parseMagickPixelOperation([token, expanded], { ...settings, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, 0, signal)!;
+                    result.storedMetaChannels = [];
+                    for (const [index, plane] of image.storedMetaChannels.entries()) {
+                        const selected = !settings.channelExplicit || settings.channelDefault || settings.channels.meta?.includes(index);
+                        result.storedMetaChannels.push(selected ? await transformStoredMagickPixels(plane, backend, metaOperation, signal) : plane);
+                    }
+                }
+                return result;
             });
             continue;
         }

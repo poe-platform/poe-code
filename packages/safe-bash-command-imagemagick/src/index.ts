@@ -7906,19 +7906,22 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         evaluate = true;
         const raw = [...(tokens[++i] ?? "")].filter(c => c.trim() !== "").join("").replaceAll("X", "x");
         validateMagickTransformGeometry(raw.replaceAll(",", "x").replaceAll("/", "x"), token);
-        const parts = [...raw].filter(c => !"()#".includes(c)).join("").replaceAll(",", "x").replaceAll("/", "x").replaceAll(":", "x").split("x");
-        for (const [index, part] of parts.entries()) {
+        const geometry = [...raw].filter(c => !"()#".includes(c)).join("").replaceAll(",", "x").replaceAll("/", "x").replaceAll(":", "x");
+        const separator = geometry.indexOf("x");
+        const denominator = separator < 0 ? "" : geometry.slice(separator + 1);
+        for (const [index, part] of (separator < 0 ? [geometry] : [geometry.slice(0, separator), denominator]).entries()) {
             const field = [...part].filter(c => !"!#%()<>@\\^".includes(c)).join("");
             // Only a complete brightness/contrast pair may have trailing offsets.
             const offset = index === 0 ? -1 : [...field].findIndex((c, position) =>
                 position > 0 && "+-".includes(c) && !"eE".includes(field[position - 1]!));
             const number = offset < 0 ? field : field.slice(0, offset);
-            if ((!number && index === 0) || (number && (!Number.isFinite(Number(number)) || Number.parseFloat(number) !== Number(number)))) {
+            if ((!number && index === 0) || (number && (!Number.isFinite(Number(number)) || (index === 1 && number.startsWith("0x") ? Number.parseInt(number, 16) : Number.parseFloat(number)) !== Number(number)))) {
                 throw new Error(`invalid argument for option '${token}': ${raw}`);
             }
         }
-        let [brightness = 0, contrast = 0] = parts.map(value => parseFloat(value) || 0);
-        const denominator = parts[1]?.trimStart() ?? "";
+        let brightness = parseFloat(geometry) || 0;
+        // Keep the hexadecimal prefix in the second field intact.
+        let contrast = (denominator.startsWith("0x") ? parseInt(denominator, 16) : parseFloat(denominator)) || 0;
         // A plus after x starts an offset; comma/slash retain signed contrast.
         if ([...raw].find(c => "x,:/".includes(c)) === "x" && denominator.startsWith("+")) contrast = 0;
         // Native colon geometry divides rho by sigma, then sets sigma to one.

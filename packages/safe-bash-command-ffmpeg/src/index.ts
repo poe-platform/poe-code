@@ -9928,7 +9928,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const channels = stretched.length;
                         const counts = new Array<number>(mono ? channels : 1).fill(0);
                         const starts = new Array<number | undefined>(counts.length).fill(undefined);
-                        const minimum = Math.max(1, Math.trunc(duration * origRate) * (mono ? 1 : channels));
+                        const minimum = Math.round(duration * origRate) * (mono ? 1 : channels);
                         const length = stretched[0]?.length ?? 0;
                         for (let frame = 0; frame < length; frame++) {
                           for (let channel = 0; channel < channels; channel++) {
@@ -9937,7 +9937,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const prefix = mono ? `channel: ${channel} | ` : "";
                             if (Math.abs(stretched[channel]![frame]!) < noise) {
                               counts[slot]!++;
-                              if (counts[slot] === minimum) {
+                              if (starts[slot] === undefined && counts[slot]! >= minimum) {
                                 const start = frame / origRate - (minimum / (mono ? 1 : channels) - 1) / origRate;
                                 starts[slot] = start;
                                 await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_start: ${Number(start.toPrecision(6))}\n`), context.signal);

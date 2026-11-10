@@ -5,15 +5,19 @@ import { parseFilterFloat } from "./filter-float.js";
 export async function tmix(
   frames: MediaVideoFrame[], argument: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaVideoFrame[]> {
-  const options: Record<string, string> = { frames: "3", weights: "1" };
+  const options: Record<string, string> = { frames: "3", weights: "1", planes: "15" };
   if (argument.endsWith(":")) argument = argument.slice(0, -1);
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["frames", "weights"][index] : option.slice(0, separator).trim();
-    if (key !== "frames" && key !== "weights") throw new Error(`tmix: unsupported option ${key}`);
+    if (key !== "frames" && key !== "weights" && key !== "planes") throw new Error(`tmix: unsupported option ${key}`);
     options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
   }
   const count = Number(options.frames);
+  const planes = Number(options.planes);
+  if (!Number.isInteger(planes) || planes < 0 || planes > 15) {
+    throw new Error("tmix: planes must be an integer from 0 to 15");
+  }
   if (!Number.isInteger(count) || count < 1 || count > 1024) {
     throw new Error("tmix: frames must be an integer from 1 to 1024");
   }
@@ -43,7 +47,16 @@ export async function tmix(
     const sources = history.map(previous => useNative ? previous.native!.pixels : previous.data);
     budget.allocateMemory(useNative ? native.pixels.length + frame.data.length : frame.data.length);
     const data = new Uint8Array(sources[0]!.length);
+    const lumaSize = frame.width * frame.height;
+    const chromaSize = useNative ? (native.pixels.length - lumaSize) / 2 : 0;
     for (let offset = 0; offset < data.length; offset++) {
+      const plane = useNative && offset >= lumaSize ? (offset < lumaSize + chromaSize ? 1 : 2) : 0;
+      if ((planes & (1 << plane)) === 0) {
+        // Native tmix copies unselected planes from the oldest history frame.
+        if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+        data[offset] = sources[0]![offset]!;
+        continue;
+      }
       let value = 0;
       for (let slot = 0; slot < count; slot++) {
         if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }

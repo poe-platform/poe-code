@@ -18,7 +18,7 @@ for (const [filter, expected] of [
   ["tmix=frames=3:weights=1 0 0", [12, 12, 12, 40, 40, 112, 144, 176]],
   ["tmix=weights=0 0 0", [12, 21, 31, 64, 99, 144, 165, 195]],
   ["tmix=frames=2:weights=-1 1", values.map(() => 0)],
-  ...["frames=0", "frames=1025", "frames=2.5", "weights=no", "weights=Infinity", "weights=1e308", "unknown=1"].map(value => [`tmix=${value}`, null] as const)
+  ...["frames=0", "frames=1025", "frames=2.5", "weights=no", "weights=Infinity", "weights=1e308", "unknown=1", "planes=-1", "planes=16", "planes=1.5", "planes=no"].map(value => [`tmix=${value}`, null] as const)
 ] as const) {
   it(`tmix selects frames or safely rejects ${filter}`, async () => {
     const volume = Volume.fromJSON(expected === null ? { "/o01.png": "existing output" } : {});
@@ -68,6 +68,12 @@ const colorSamples = [[55, 80, 172], [55, 180, 60], [122, 62, 72], [230, 20, 230
 const graySamples = [16, 17, 18, 30, 90, 235].map(value => [value, 128, 128]);
 for (const [samples, filter, expected] of [
   [colorSamples, "null", colorSamples],
+  [graySamples, "tmix=frames=2:planes=0", [16, 16, 17, 18, 30, 90].map(value => [value, 128, 128])],
+  [colorSamples, "tmix=frames=2:planes=1", [[55, 80, 172], [55, 80, 172], [89, 180, 60], [176, 62, 72], [145, 20, 230], [70, 120, 100]]],
+  [colorSamples, "tmix=frames=2:planes=2", [[55, 80, 172], [55, 130, 172], [55, 121, 60], [122, 41, 72], [230, 70, 230], [60, 148, 100]]],
+  [colorSamples, "tmix=frames=2:planes=4", [[55, 80, 172], [55, 80, 116], [55, 180, 66], [122, 62, 151], [230, 20, 165], [60, 120, 95]]],
+  [colorSamples, "tmix=frames=3:planes=0", [colorSamples[0]!, colorSamples[0]!, colorSamples[0]!, colorSamples[1]!, colorSamples[2]!, colorSamples[3]!]],
+  [colorSamples, "tmix=frames=2:planes=15", [[55, 80, 172], [55, 130, 116], [89, 121, 66], [176, 41, 151], [145, 70, 165], [70, 148, 95]]],
   [colorSamples, "tmix=frames=1", colorSamples],
   [colorSamples, "tmix=frames=2:weights=0 1", colorSamples],
   [colorSamples, "tmix=frames=2:weights=1 1", [[55, 80, 172], [55, 130, 116], [89, 121, 66], [176, 41, 151], [145, 70, 165], [70, 148, 95]]],

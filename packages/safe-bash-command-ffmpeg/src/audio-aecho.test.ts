@@ -248,7 +248,7 @@ it("aecho makes the complete tail available to downstream frame filters", async 
 for (const filter of [
   "aecho=delays=-0x10", "aecho=delays=0x0", "aecho=delays=0x15f91", "aecho=decays=0x2",
   "aecho=0.5:1:-1:0.5", "aecho=delays=0", "aecho=delays=90001",
-  "aecho=delays=0.01", "aecho=delays=1|2:decays=0.5", "aecho=decays=0",
+  "aecho=delays=1|2:decays=0.5", "aecho=decays=0",
   "aecho=decays=1.1", "aecho=delays=bad", "aecho=decays=bad",
   "aecho=in_gain=-1", "aecho=out_gain=1.1", "aecho=in_gain=NaN",
   "aecho=delays=Infinity", "aecho=unknown=1", "aecho=delays=2000"
@@ -294,6 +294,12 @@ for (const [filter, exitCode, output] of [
     });
   }
 }
+
+it("zero-sample echo truncates existing WAV output on configuration failure", async () => {
+  const { volume, result } = await run("aecho=delays=0.01");
+  assert.equal(result.exitCode, 234);
+  assert.equal((volume.readFileSync("/out.wav") as Buffer).length, 0);
+});
 
 async function run(filter: string, graph = false, frames = 16) {
   const channels = frames === 16 ? [new Float64Array(16), new Float64Array(16)] : [

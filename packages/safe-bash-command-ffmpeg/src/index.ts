@@ -14488,7 +14488,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
             if (msg === audioConversionDisabled) return { exitCode: 234 };
             if (msg === "negate: invalid expression" || msg === "negate: invalid or unsupported expression") return { exitCode: 234 };
-            if (msg === "negate: Requested components not available" || msg.startsWith("fps: frame rate:")) {
+            if ((overwrite && msg === "aecho: delay is too small") ||
+                msg === "negate: Requested components not available" || msg.startsWith("fps: frame rate:")) {
               // Filter configuration can fail after file
               // muxers open their output. Image sequences have not opened a frame.
               const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";

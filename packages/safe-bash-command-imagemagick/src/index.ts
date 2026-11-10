@@ -6978,7 +6978,7 @@ function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" 
 type MagickHistogram = Float64Array[];
 type MagickChannelSums = { count: number; values: number[] };
 type MagickAnalysisOperation = { end: number; luminance: boolean; highDepth?: boolean; sepiaThreshold?: number; transform(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "region" | "alphaBlend" | "magickColorspace">, sums?: MagickChannelSums): MagickPixelOperation["apply"] };
-function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: MagickHistogram, method: string, linear: boolean, selection?: Uint8Array, sepiaThreshold?: number, gray = false, image?: Pick<RgbaImage, "width" | "region" | "hasAlpha" | "alphaBlend">, pixelOffset = 0, channels?: MagickState["channels"], workingSamples?: Float64Array, hue = false, cmyk = false, sums?: MagickChannelSums): Generator<void, void, void> {
+function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: MagickHistogram, method: string, linear: boolean, selection?: Uint8Array, sepiaThreshold?: number, gray = false, image?: Pick<RgbaImage, "width" | "region" | "hasAlpha" | "alphaBlend">, pixelOffset = 0, channels?: MagickState["channels"], workingSamples?: Float64Array, hue = false, cmyk = false, sums?: MagickChannelSums, autoLevel = false): Generator<void, void, void> {
     for (let i = 0; i < data.length; i += 4) {
         if (i && i % 65536 === 0) yield;
         if (selection && !selection[i / 4]) continue;
@@ -6987,6 +6987,19 @@ function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: M
             const scale = workingSamples ? hue ? 1 : 255 : data instanceof Uint16Array ? 65535 : 255;
             for (let channel = 0; channel < 4; channel++) sums.values[channel]! += samples[i + channel]! / scale;
             sums.count++;
+            continue;
+        }
+        if (autoLevel) {
+            // Auto-level needs exact extrema, not rounded histogram bins.
+            for (let channel = 0; channel < histogram.length; channel++) {
+                const offset = i + (channel === 4 ? 3 : channel);
+                const value = workingSamples && (!cmyk || channel !== 3)
+                    ? Math.fround(workingSamples[offset]! * (hue ? 65535 : 257))
+                    : data[offset]! * (data instanceof Uint16Array ? 1 : 257);
+                const range = histogram[channel]!;
+                range[0] = Math.min(range[0]!, value);
+                range[1] = Math.max(range[1]!, value);
+            }
             continue;
         }
         if (sepiaThreshold !== undefined) {
@@ -7205,25 +7218,24 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         const levels = histogram[0]!.length;
         const count = Math.max(1, image.width * image.height);
         if (token === "-auto-level") {
-            const mins = [levels - 1, levels - 1, levels - 1, levels - 1], maxs = [0, 0, 0, 0];
-            const gray = image.space === "b-w" || image.space === "grey16";
-            // Native independent auto-level adjusts color channels, never alpha.
-            const active = [channels.r, !gray && channels.g, !gray && channels.b, false];
-            for (let channel = 0; channel < 4; channel++) for (let value = 0; value < levels; value++) if (histogram[channel]![value]! > 0) { mins[channel] = Math.min(mins[channel]!, value); maxs[channel] = Math.max(maxs[channel]!, value); }
+            const mins = histogram.map(range => range[0]!), maxs = histogram.map(range => range[1]!);
+            const gray = image.space === "b-w" || image.space === "grey16", cmyk = image.space === "cmyk";
+            // CMYK independent levels include alpha; RGB independent levels only adjust color.
+            const active = [channels.r, !gray && channels.g, !gray && channels.b, cmyk && channels.a && image.hasAlpha, cmyk && settings.channels.k];
             if (!independent) {
-                // Native default channels share one range, including alpha when present.
-                const channelCount = image.hasAlpha ? 4 : 3;
-                mins.fill(Math.min(...mins.slice(0, channelCount)));
-                maxs.fill(Math.max(...maxs.slice(0, channelCount)));
+                // Default channels share the range of every ink and alpha when present.
+                const included = histogram.filter((_, channel) => channel !== 3 || image.hasAlpha);
+                mins.fill(Math.min(...included.map(range => range[0]!)));
+                maxs.fill(Math.max(...included.map(range => range[1]!)));
             }
             const operations: MagickPixelOperation[] = [];
-            for (let channel = 0; channel < (independent ? 4 : 1); channel++) {
+            for (let channel = 0; channel < (independent ? histogram.length : 1); channel++) {
                 if (independent && !active[channel] || maxs[channel]! <= mins[channel]!) continue;
                 const selected = independent ? {
-                    r: channel === 0, g: channel === 1 || gray && channel === 0, b: channel === 2 || gray && channel === 0, a: channel === 3, k: false,
-                } : { r: true, g: true, b: true, a: true, k: false };
+                    r: channel === 0, g: channel === 1 || gray && channel === 0, b: channel === 2 || gray && channel === 0, a: channel === 3, k: channel === 4,
+                } : { r: true, g: true, b: true, a: true, k: cmyk };
                 // Reuse levels' HDRI samples and both masked cache syncs.
-                operations.push(parseMagickPixelOperation(["-level", `${mins[channel]! * 65535 / (levels - 1)},${maxs[channel]! * 65535 / (levels - 1)}`], {
+                operations.push(parseMagickPixelOperation(["-level", `${mins[channel]},${maxs[channel]}`], {
                     ...settings, channelExplicit: true, channels: selected,
                 }, 0)!);
             }
@@ -8312,14 +8324,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const gamma = !colorEndpoints && parts[2] !== undefined ? parseFloat(parts[2]) : 1.0;
         const exponent = 1 / (Math.abs(gamma) >= 1e-12 ? gamma : gamma < 0 ? -1e-12 : 1e-12);
         const inverse = token === "+level-colors" || token === "+level" || !colorEndpoints && raw.includes("!");
-        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = function* (im, pixelOffset = 0, imageWidth = im.width) {
-            const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha];
+            const cmyk = !colorEndpoints && im.space === "cmyk";
+            if (cmyk) im = yield* convertCmykPixels(im);
+            const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha, cmyk && channels.k];
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
             const data16 = im.data16 ? new Uint16Array(im.data16) : (im.writeMask || im.region) ? Uint16Array.from(im.data, value => value * 257) : undefined;
-            const hueSamples = im.space !== "cmyk" ? im.hueSamples?.slice() : undefined;
-            const evaluateSamples = (hueSamples ? Float64Array.from(hueSamples, value => value * 255) : im.evaluateSamples?.slice()) ?? Float64Array.from(im.data16 ?? im.data, value => im.data16 ? value / 257 : value);
+            const hueSamples = cmyk || im.space !== "cmyk" ? im.hueSamples?.slice() : undefined;
+            const evaluateSamples = (hueSamples && !cmyk ? Float64Array.from(hueSamples, value => value * 255) : im.evaluateSamples?.slice()) ?? Float64Array.from(im.data16 ?? im.data, value => im.data16 ? value / 257 : value);
             const spans = white.map((value, channel) => value - black[channel]!);
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
@@ -8337,20 +8351,22 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     editedAlpha = inverse ? (black[3]! + Math.pow(Math.max(0, Math.min(1, alpha)), gamma) * spans[3]!) / 255
                         : norm < 0 ? norm : Math.pow(norm, exponent);
                 }
-                for (let c = 0; c < 4; c++) {
+                for (let c = 0; c < mask.length; c++) {
                     if (++pixelWork % 16384 === 0)
                         yield;
                     if (!mask[c])
                         continue;
-                    const v = evaluateSamples[idx + c]!;
-                    const span = spans[c]!;
+                    const ink = cmyk && hueSamples && c !== 3;
+                    const offset = idx + (c === 4 ? 3 : c), endpoint = c === 4 ? 3 : c;
+                    const v = ink ? hueSamples[offset]! * 255 : evaluateSamples[offset]!;
+                    const span = spans[endpoint]!;
                     let value: number;
                     if (inverse) {
                         const gVal = Math.pow(Math.max(0, Math.min(1, v / 255)), gamma);
-                        value = black[c]! + gVal * span;
+                        value = black[endpoint]! + gVal * span;
                     }
                     else {
-                        const norm = (v - black[c]!) / (span === 0 ? 1e-6 : span);
+                        const norm = (v - black[endpoint]!) / (span === 0 ? 1e-6 : span);
                         // Native gamma_pow leaves negative samples unchanged, then -level clamps the curve.
                         const curve = (norm < 0 ? norm : Math.pow(norm, exponent)) * 255;
                         value = protection > 0 ? curve : Math.max(0, Math.min(255, curve));
@@ -8364,10 +8380,18 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                             if (!inverse) value = value * sourceAlpha + Math.max(0, Math.min(255, value)) * alpha * (1 - sourceAlpha);
                         }
                     }
-                    evaluateSamples[idx + c] = Math.fround(value * 257) / 257;
-                    if (hueSamples) hueSamples[idx + c] = Math.fround(value * 257) / 65535;
-                    out[idx + c] = clampByteVal(value);
-                    if (data16) data16[idx + c] = Math.max(0, Math.min(65535, Math.round(value * 257)));
+                    if (hueSamples && (ink || !cmyk)) hueSamples[offset] = Math.fround(value * 257) / 65535;
+                    if (!ink) {
+                        evaluateSamples[offset] = Math.fround(value * 257) / 257;
+                        out[offset] = clampByteVal(value);
+                        if (data16) data16[offset] = Math.max(0, Math.min(65535, Math.round(value * 257)));
+                    }
+                }
+                if (cmyk && hueSamples) for (let c = 0; c < 3; c++) {
+                    const value = Math.fround((1 - hueSamples[idx + c]!) * (1 - hueSamples[idx + 3]!) * 65535);
+                    evaluateSamples[idx + c] = value / 257;
+                    out[idx + c] = clampByteVal(value / 257);
+                    if (data16) data16[idx + c] = Math.max(0, Math.min(65535, Math.round(value)));
                 }
             }
             const colored = endpointColors?.some(color => color.r !== color.g || color.g !== color.b);
@@ -9615,9 +9639,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties })
                 ], state, 0)! : analysisOperation;
                 const sums = t === "-auto-gamma" ? { count: 0, values: [0, 0, 0, 0] } : undefined;
-                const histogram = sums ? [] : Array.from({ length: operation.sepiaThreshold !== undefined && image.space === "cmyk" ? 6 : analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.data16 ? 65536 : 256));
+                const histogram = sums ? [] : t === "-auto-level" ? Array.from({ length: image.space === "cmyk" ? 5 : 4 }, () => new Float64Array([Infinity, -Infinity])) : Array.from({ length: operation.sepiaThreshold !== undefined && image.space === "cmyk" ? 6 : analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.data16 ? 65536 : 256));
                 const selection = t === "-auto-gamma" ? yield* readMaskSelectionSteps(image, 0, image.data.length) : undefined;
-                yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram, state.intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, 0, state.channels, operation.sepiaThreshold !== undefined || t === "-auto-threshold" || sums ? image.hueSamples ?? image.evaluateSamples : undefined, !!image.hueSamples, image.space === "cmyk", sums);
+                yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram, state.intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, 0, state.channels, operation.sepiaThreshold !== undefined || t === "-auto-level" || t === "-auto-threshold" || sums ? image.hueSamples ?? image.evaluateSamples : undefined, !!image.hueSamples, image.space === "cmyk", sums, t === "-auto-level");
                 return yield* operation.transform(histogram, image, sums)(image);
             }, undefined, t === "-sepia-tone");
         }
@@ -12035,9 +12059,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal)
                 ], settings, 0)! : analysisOperation;
                 const sums = token === "-auto-gamma" ? { count: 0, values: [0, 0, 0, 0] } : undefined;
-                const histogram = sums ? [] : Array.from({ length: operation.sepiaThreshold !== undefined && image.space === "cmyk" ? 6 : analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.storedData16 ? 65536 : 256)), size = image.width * image.height * 4;
+                const histogram = sums ? [] : token === "-auto-level" ? Array.from({ length: image.space === "cmyk" ? 5 : 4 }, () => new Float64Array([Infinity, -Infinity])) : Array.from({ length: operation.sepiaThreshold !== undefined && image.space === "cmyk" ? 6 : analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.storedData16 ? 65536 : 256)), size = image.width * image.height * 4;
                 const original = analysisOperation.highDepth ? image.storedData16 : undefined;
-                const workingPosition = operation.sepiaThreshold !== undefined || token === "-auto-threshold" && image.space === "cmyk" || sums ? image.storedHueSamples ?? image.storedEvaluateSamples : undefined;
+                const workingPosition = operation.sepiaThreshold !== undefined || token === "-auto-level" || token === "-auto-threshold" && image.space === "cmyk" || sums ? image.storedHueSamples ?? image.storedEvaluateSamples : undefined;
                 const chunkSize = workingPosition !== undefined ? 2048 : original ? 8192 : 16384;
                 for (let offset = 0; offset < size; offset += chunkSize) {
                     if (offset % 1048576 === 0) await yieldTurn(signal);
@@ -12049,7 +12073,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }), signal) : undefined;
                     const workingBytes = workingPosition !== undefined ? await backend.storage.read(workingPosition + offset * 8, Math.min(chunkSize, size - offset) * 8) : undefined;
                     const workingSamples = workingBytes ? new Float64Array(workingBytes.buffer.slice(workingBytes.byteOffset, workingBytes.byteOffset + workingBytes.byteLength)) : undefined;
-                    await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, histogram, intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, offset / 4, settings.channels, workingSamples, image.storedHueSamples !== undefined, image.space === "cmyk", sums), signal);
+                    await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, histogram, intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, offset / 4, settings.channels, workingSamples, image.storedHueSamples !== undefined, image.space === "cmyk", sums, token === "-auto-level"), signal);
                 }
                 return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, evaluate: operation.sepiaThreshold !== undefined || token === "-auto-gamma" || token === "-auto-level", handlesWriteMask: token === "-auto-gamma" || token === "-auto-level", apply: operation.transform(histogram, image, sums) }, signal, analysisOperation.highDepth);
             }, { handlesRegion: token === "-sepia-tone" }));

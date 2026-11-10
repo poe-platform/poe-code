@@ -1050,7 +1050,7 @@ describe("dcshift", () => {
       assert.deepEqual(Array.from(output.channelData[0]!), samples.map(value => Math.max(-1, Math.min(32767 / 32768, value + shift))));
     });
   }
-  for (const filter of ["dcshift=", "dcshift=2", "dcshift=NaN", "dcshift=shift=", "dcshift=0.1:0.5", "dcshift=unknown=0.1"]) {
+  for (const filter of ["dcshift=2", "dcshift=NaN", "dcshift=shift=", "dcshift=0.1:0.5", "dcshift=unknown=0.1"]) {
     it(`rejects ${filter} without replacing output`, async () => {
       const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] }), "/out.wav": "keep" });
       const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af", filter, "/out.wav"], vfs);

@@ -10204,7 +10204,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let shift = 0;
                         let limitergain = 0;
                         let enable: string | undefined;
-                        for (const [index, option] of argument.split(":").entries()) {
+                        const options = argument.split(":");
+                        if (options.at(-1) === "") options.pop();
+                        for (const [index, option] of options.entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["shift", "limitergain"][index] : option.slice(0, separator).trim();
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();

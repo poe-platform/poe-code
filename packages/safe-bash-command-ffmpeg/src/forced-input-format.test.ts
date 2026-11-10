@@ -30,7 +30,7 @@ for (const sync of [false, true]) {
           stdin: (async function* () {})(), stdout: { async write() {} },
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
-        assert.equal(result.exitCode, valid ? 0 : 1, stderr);
+        assert.equal(result.exitCode, valid ? 0 : format === "a_not_real_format" ? 234 : 1, stderr);
         if (format === "a_not_real_format") assert.ok(stderr.includes("Unknown input format"), stderr);
       }
       assert.equal(volume.existsSync("/out.wav"), valid);

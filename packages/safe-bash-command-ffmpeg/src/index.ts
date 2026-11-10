@@ -9393,7 +9393,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             : registry.findByFilename(outputTarget);
           const format = outputFormat ?? outputTarget.split(".").pop()?.toLowerCase();
           if (!plugin?.canMux && !["null", "segment", "data", "rawvideo", "image2pipe", "ico", "apng", "framemd5", "framehash", "framecrc", "streamhash", "hash", "md5", "crc"].includes(format ?? "")) {
-            throw new Error(`Unable to find a suitable output format for '${outputFormat ?? outputTarget}' (format AST not registered)`);
+            await writeBytes(context.stderr,
+              encodeUtf8(`ffmpeg: Unable to find a suitable output format for '${outputFormat ?? outputTarget}' (format AST not registered)\n`), context.signal);
+            return { exitCode: outputFormat !== undefined ? 234 : 1 };
           }
           // Open every protocol destination in order, reporting partial open failures.
           if ((target.startsWith("tee:") || progressOutputIndex < outputs.length - 1) &&
@@ -16221,9 +16223,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
             if (!checksumOutput && (!outPlugin || !outPlugin.canMux)) {
               const fmtDesc = outputFormat ?? outputTarget;
-              throw new Error(
-                `Unable to find a suitable output format for '${fmtDesc}' (format AST not registered)`
-              );
+              await writeBytes(context.stderr,
+                encodeUtf8(`ffmpeg: Unable to find a suitable output format for '${fmtDesc}' (format AST not registered)\n`), context.signal);
+              return { exitCode: outputFormat !== undefined ? 234 : 1 };
             }
 
             { const gc = (globalThis as { gc?: () => void }).gc; if (typeof gc === "function") { gc(); gc(); } }
@@ -16388,6 +16390,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             rethrowRuntimeError(context, err);
             const msg = err instanceof Error ? err.message : String(err);
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
+            if (msg.startsWith("Unknown input format:")) return { exitCode: 234 };
             if (msg === audioConversionDisabled) return { exitCode: 234 };
             if (msg === "metadata: unsupported mode") return { exitCode: 234 };
             if (msg === "metadata: unsupported option") return { exitCode: 8 };

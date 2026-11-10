@@ -332,7 +332,8 @@ export async function formatPrintf(context: CommandContext, shellStartedAt = (co
           number = parsed?.binary ?? parsed?.value ?? NaN;
           specialFloat = parsed?.special;
           if (parsed?.error) {
-            await writeDiagnostic(context.stderr, `printf: '${supplied}': ${parsed.error}\n`, context.signal);
+            const operand = parsed.error === "Numerical result out of range" ? supplied : `'${supplied}'`;
+            await writeDiagnostic(context.stderr, `printf: ${operand}: ${parsed.error}\n`, context.signal);
             exitCode = 1;
           }
         }

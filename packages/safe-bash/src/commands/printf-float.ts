@@ -26,17 +26,19 @@ export function printfBinary(value: number | PrintfBinary): PrintfBinary {
   };
 }
 
-function extendedFloat(significand: bigint, exponent: number, radix: 2 | 10, negative: boolean): PrintfFloat | undefined {
+function extendedFloat(significand: bigint, exponent: number, radix: 2 | 10, negative: boolean): PrintfFloat {
   if (significand === 0n) return { value: negative ? -0 : 0 };
+  const overflow = { value: negative ? -Infinity : Infinity, special: negative ? "-inf" : "inf", error: "Numerical result out of range" };
+  const underflow = { value: negative ? -0 : 0, error: "Numerical result out of range" };
   const order = significand.toString(radix).length - 1 + exponent;
   // Bound powers before allocation, including operands with enormous exponents.
-  if (order > (radix === 2 ? 16383 : 4932)) return undefined;
-  if (order < (radix === 2 ? -16446 : -4951)) return { value: negative ? -0 : 0 };
+  if (order > (radix === 2 ? 16383 : 4932)) return overflow;
+  if (order < (radix === 2 ? -16446 : -4951)) return underflow;
   let numerator = significand * BigInt(radix) ** BigInt(Math.max(0, exponent));
   let denominator = BigInt(radix) ** BigInt(Math.max(0, -exponent));
   let top = numerator.toString(2).length - denominator.toString(2).length;
   if (top >= 0 ? numerator < denominator << BigInt(top) : numerator << BigInt(-top) < denominator) top--;
-  if (top > 16383) return undefined;
+  if (top > 16383) return overflow;
   // x86-64 long double has 64 significand bits and subnormals down to 2^-16445.
   const power = Math.max(top - 63, -16445);
   if (power < 0) numerator <<= BigInt(-power);
@@ -44,13 +46,14 @@ function extendedFloat(significand: bigint, exponent: number, radix: 2 | 10, neg
   let rounded = numerator / denominator;
   const remainder = numerator % denominator;
   if (remainder * 2n > denominator || remainder * 2n === denominator && (rounded & 1n) !== 0n) rounded++;
-  if (rounded === 0n) return { value: negative ? -0 : 0 };
-  if (power + rounded.toString(2).length - 1 > 16383) return undefined;
+  if (rounded === 0n) return underflow;
+  if (power + rounded.toString(2).length - 1 > 16383) return overflow;
   const value = Number(rounded) * 2 ** power * (negative ? -1 : 1);
   const binary = { significand: rounded, exponent: power, negative };
   return {
     value: Number.isFinite(value) && value !== 0 ? value : binary,
     binary,
+    ...(top < -16382 && remainder !== 0n ? { error: "Numerical result out of range" } : {}),
   };
 }
 
@@ -104,7 +107,7 @@ export function parsePrintfFloat(operand: string): PrintfFloat | undefined {
     }
     const parts = magnitude.slice(0, significandEnd).split(".");
     const extended = extendedFloat(BigInt(parts.join("")), exponent - (parts[1]?.length ?? 0), 10, negative);
-    return extended === undefined ? undefined : converted(extended.value, offset, extended.special, extended.error, extended.binary);
+    return converted(extended.value, offset, extended.special, extended.error, extended.binary);
   }
   let offset = 2, digits = "", fractionDigits = 0, point = false;
   while (offset < magnitude.length) {
@@ -130,5 +133,5 @@ export function parsePrintfFloat(operand: string): PrintfFloat | undefined {
   if (significand === 0n) return converted(negative ? -0 : 0, offset);
   const scale = exponent - fractionDigits * 4;
   const extended = extendedFloat(significand, scale, 2, negative);
-  return extended === undefined ? undefined : converted(extended.value, offset, extended.special, extended.error, extended.binary);
+  return converted(extended.value, offset, extended.special, extended.error, extended.binary);
 }

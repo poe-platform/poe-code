@@ -236,6 +236,7 @@ test("basic command audit regressions remain in active discovery", () => {
     "tests/commands/basic-printf-Q.test.ts",
     "tests/commands/basic-printf-wide.test.ts",
     "tests/commands/basic-printf-float-prefix.test.ts",
+    "tests/commands/basic-printf-float-range.test.ts",
     "tests/commands/basic-pwd-environment.test.ts",
   ]) assert.ok(selected.includes(path), path);
 });

@@ -10191,10 +10191,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       } else if (trimmed === "dcshift" || trimmed.startsWith("dcshift=")) {
                         const argument = trimmed === "dcshift" ? "0" : trimmed.slice("dcshift=".length).trim();
-                        const value = argument.startsWith("shift=") ? argument.slice("shift=".length).trim() : argument;
-                        const shift = Number(value);
-                        if (!value || !Number.isFinite(shift) || shift < -1 || shift > 1) {
-                          throw new Error("dcshift: expected shift between -1 and 1; limiter options are unsupported");
+                        let shift = 0;
+                        for (const [index, option] of argument.split(":").entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? (index === 0 ? "shift" : "") : option.slice(0, separator).trim();
+                          const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                          shift = Number(value);
+                          if (key !== "shift" || !value || !Number.isFinite(shift) || shift < -1 || shift > 1) {
+                            throw new Error("dcshift: expected shift between -1 and 1; limiter options are unsupported");
+                          }
                         }
                         for (const channel of stretched) {
                           for (let i = 0; i < channel.length; i++) {

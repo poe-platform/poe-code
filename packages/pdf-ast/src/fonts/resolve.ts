@@ -7,7 +7,7 @@ import type {StoredCMap} from "./stored-cmap.js";
 import type { StoredCidMap } from "./stored-cid-map.js";
 import { FontWidths } from "./widths.js";
 import { PdfFontAllocation, type PdfFontAllocationOptions } from "./memory.js";
-import { getEncoding, type Type1Properties, type CMap } from "../vendor/pdfjs-fonts.mjs";
+import { getEncoding, getGlyphsUnicode, type Type1Properties, type CMap } from "../vendor/pdfjs-fonts.mjs";
 import { parseEmbeddedType1Font } from "./type1.js";
 import { parseEmbeddedCffFont, type EmbeddedCffFont } from "./cff.js";
 import { getStandardFontOutlines, type StandardFontOutlines } from "./standard-outlines.js";
@@ -151,6 +151,17 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
         allocation.admit(32768 + (!storedEncoding && differenceArray?.kind === "array" ? differenceArray.items.length * 128 : 0));
         const differences = storedEncoding ? new Map<number,string>() : buildFontEncodingDifferencesMap(encNode);
         const glyphNames = storedEncoding ? new Map<number,string>() : buildFontEncodingGlyphNamesMap(encNode);
+        const baseEncoding = encNode?.kind === "dict" ? (yield* resolve((yield* field(encNode, "BaseEncoding")))) : encNode;
+        const encoding = subtype !== "Type0" && baseEncoding?.kind === "name" ? getEncoding(baseEncoding.decoded) : undefined;
+        if (encoding) {
+            const unicodeByName = getGlyphsUnicode();
+            // Explicit Differences (including empty labels) and ToUnicode take precedence.
+            for (let code = 0; code < encoding.length; code++) {
+                const unicode = unicodeByName[encoding[code]!];
+                if (unicode !== undefined && !differences.has(code))
+                    differences.set(code, String.fromCodePoint(unicode));
+            }
+        }
         function* glyphName(code:number):Generator<FontResolutionRequest,string|undefined,FontResolutionResult>{
             if(!storedEncoding)return glyphNames.get(code);
             const result=yield {kind:"font-label",lookup:storedEncoding.glyphName,code};
@@ -305,7 +316,6 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
             const program = (yield* resolve((yield* field(fDesc, "FontFile2")))) ?? (yield* resolve((yield* field(fDesc, "FontFile3")))) ?? type1Program;
             if (program?.kind === "stream") {
                 const programType = (yield* resolve((yield* field(program.dict, "Subtype"))));
-                const baseEncoding = encNode?.kind === "dict" ? (yield* resolve((yield* field(encNode, "BaseEncoding")))) : encNode;
                 if (program === type1Program) {
                     const length1 = (yield* resolve((yield* field(program.dict, "Length1"))));
                     const length2 = (yield* resolve((yield* field(program.dict, "Length2"))));

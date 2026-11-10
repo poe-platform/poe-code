@@ -2166,7 +2166,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     if (box.y + anchor.top > outH) throw new Error("pixels are not authentic");
     // Identity geometry retains the selection without compositing it again.
     if (sw === 0 && sh === 0 && img.region) img = { ...img, region: { ...img.region } };
-    const sy = Math.max(0, box.y + anchor.top);
+    const sy = box.y + anchor.top;
     if ((img.space === "b-w" || img.space === "grey16") && (bg.r !== bg.g || bg.g !== bg.b))
         img = { ...img, space: "srgb", channels: 4 };
     const virtualCanvas = magickResizeCanvas(img, outW, outH);
@@ -11658,9 +11658,11 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         if (box.y + anchor.top > height) throw new Error("pixels are not authentic");
         // A fresh selection prevents the pipeline from compositing the region again.
         if (sw === 0 && sh === 0 && region) region = { ...region };
-        const y = Math.max(0, box.y + anchor.top);
+        const y = box.y + anchor.top;
+        // Keep negative source rows exposed when the inserted band lies above the canvas.
+        const rowStart = Math.max(0, y + sh);
         xs = [{ source: 0, target: 0, length: x }, { source: x, target: x + spliceWidth, length: Math.max(0, width - x - spliceWidth) }];
-        ys = [{ source: 0, target: 0, length: y }, { source: y, target: y + sh, length: Math.max(0, h - y) }];
+        ys = [{ source: 0, target: 0, length: Math.max(0, y) }, { source: rowStart - sh, target: rowStart, length: Math.max(0, height - rowStart) }];
     } else {
         const g = resolveMagickChopGeometry(geometry, w, h);
         const { width: cw, height: ch } = g;
@@ -11747,7 +11749,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
                 if (work++ % 64 === 0) await yieldTurn(signal);
                 const length = Math.min(16384 / plane.stride, x.length - offset) * plane.stride;
                 const sourceX = x.source + offset;
-                const sourceLength = y.source + row >= h ? 0 : Math.max(0, Math.min(length, (w - sourceX) * plane.stride));
+                const sourceLength = y.source + row < 0 || y.source + row >= h ? 0 : Math.max(0, Math.min(length, (w - sourceX) * plane.stride));
                 let bytes = sourceLength > 0 ? await backend.storage.read(plane.source + ((y.source + row) * w + sourceX) * plane.stride, sourceLength) : new Uint8Array();
                 if (sourceLength < length) {
                     const extended = new Uint8Array(length);

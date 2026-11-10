@@ -12519,6 +12519,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let discard = 0;
                         let firstPts: number | undefined;
                         let format: string | undefined;
+                        let internalFormat: "fltp" | "dblp" | undefined;
                         let cutoff: number | undefined;
                         let window: "cubic" | "kaiser" | "blackman_nuttall" = "kaiser";
                         const options = trimmed === "aresample" ? [] : trimmed.slice("aresample=".length).split(":");
@@ -12553,6 +12554,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               throw new Error(`aresample: unsupported sample format ${raw ?? ""}`);
                             }
                             format = raw;
+                            continue;
+                          }
+                          if (key === "tsf" || key === "internal_sample_fmt") {
+                            if (extra !== undefined || (raw !== "fltp" && raw !== "dblp")) {
+                              throw new Error(`aresample: unsupported internal sample format ${raw ?? ""}`);
+                            }
+                            internalFormat = raw;
                             continue;
                           }
                           if (key === "lfe_mix_level") {
@@ -12625,19 +12633,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           audioStartSample = firstPts;
                           audioTimestamps = undefined;
                         }
-                        if (cutoff !== undefined || rate !== undefined || format !== undefined) {
+                        if (cutoff !== undefined || rate !== undefined || format !== undefined || internalFormat !== undefined) {
                           const targetRate = rate || (index === undefined ? undefined : audioRate) || origRate;
                           if (targetRate !== origRate) {
                             const length = Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate);
                             if (!Number.isSafeInteger(length)) throw new Error("aresample: output sample count is too large");
                             budget.checkDuration(length / targetRate);
-                            const internalFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
+                            internalFormat ??= filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
                             budget.allocateMemory(length * stretched.length * (internalFormat === "dblp"
                               ? Float64Array.BYTES_PER_ELEMENT : Float32Array.BYTES_PER_ELEMENT));
                             const ends = audioTimestamps?.map(frame => frame.end) ??
                               t.samples.map(sample => (sample.dts + sample.duration - (t.samples[0]?.dts ?? 0)) * origRate / t.timescale);
                             const firstPts = Math.round((audioTimestamps?.[0]?.pts ?? audioStartSample) * targetRate / origRate);
                             const outputEnds: number[] = [];
+                            if (internalFormat === "fltp") {
+                              stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, internalFormat, budget, context.signal);
+                            }
                             stretched = await resampleAudio(stretched, length, origRate, targetRate, budget, context.signal,
                               window, undefined, undefined, cutoff, undefined, undefined, undefined, { ends, outputEnds }, internalFormat);
                             // Resampling produces floats; later filters and encoders must round

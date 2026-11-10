@@ -10273,7 +10273,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let packetSize = 4096;
                         const names = ["packet_size", "pad_len", "whole_len", "pad_dur", "whole_dur"];
                         const argument = trimmed.slice("apad=".length);
-                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                        const optionTokens: string[] = [];
+                        let option = "";
+                        let quoted = false;
+                        // Decode the option layer after parseFilterChain decoded the graph layer.
+                        for (let i = 0; i < argument.length; i++) {
+                          const char = argument[i]!;
+                          if (char === "'") quoted = !quoted;
+                          else if (!quoted && char === "\\" && i + 1 < argument.length) option += argument[++i]!;
+                          else if (!quoted && char === ":") {
+                            optionTokens.push(option);
+                            option = "";
+                          } else option += char;
+                        }
+                        if (argument) optionTokens.push(option);
+                        for (const [index, option] of optionTokens.entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
                           const value = separator < 0 ? option : option.slice(separator + 1);

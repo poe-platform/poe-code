@@ -95,6 +95,16 @@ export function parseFilterExpression(expression: string, filter: string, variab
         else if (name === "gt" && args.length === 2) value = Number(args[0]! > args[1]!);
         else if (name === "pow" && args.length === 2) value = Math.pow(args[0]!, args[1]!);
         else if (name === "mod" && args.length === 2) value = args[0]! - Math.floor(args[0]! / args[1]!) * args[1]!;
+        else if (name === "gcd" && args.length === 2) {
+          value = Math.abs(Math.trunc(args[0]!));
+          let divisor = Math.abs(Math.trunc(args[1]!));
+          if (!Number.isFinite(value) || !Number.isFinite(divisor)) value = NaN;
+          else while (divisor !== 0) {
+            const remainder = value % divisor;
+            value = divisor;
+            divisor = remainder;
+          }
+        }
         // FFmpeg's ordered comparisons select the second operand for NaN.
         else if (name === "min" && args.length === 2) value = args[0]! < args[1]! ? args[0]! : args[1]!;
         else if (name === "max" && args.length === 2) value = args[0]! > args[1]! ? args[0]! : args[1]!;

@@ -572,6 +572,8 @@ Use `st(index,seed)` to seed or reset a generator; `ld(index)` reads its last un
 roots remain NaN during evaluation and encode as zero in PCM16 output.
 `sgn(x)` returns -1, 0, or 1 for negative, zero, or positive values;
 `aeval=sgn(val(ch))/10:c=same` extracts each channel’s sign at one-tenth amplitude.
+`gcd(a,b)` returns the greatest common divisor of two nonnegative integers;
+`aeval=gcd(n\,6)/8` produces a repeating sequence based on the sample index.
 `enable=0` bypasses the filter; `enable=1` applies it. Timeline expressions use
 frame index `n` and timestamp `t`. Empty fields between `|` separators
 are skipped, including leading and trailing fields; at least one expression is required.

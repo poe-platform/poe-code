@@ -7785,7 +7785,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const mode = (tokens[++i] ?? "on").toLowerCase();
         if (mode === "transparent" || mode === "opaque") maskAlpha = mode;
         highDepth = ["discrete", "deactivate", "associate", "disassociate", "off", "opaque", "transparent", "activate", "on", "set", "extract"].includes(mode);
-        if (mode === "offifopaque") {
+        if (mode === "undefined") {
+            highDepth = evaluate = true;
+            apply = function* (im) { yield; return im; };
+        }
+        else if (mode === "offifopaque") {
             highDepth = true;
             apply = function* (im) {
                 if (!im.hasAlpha) return im;

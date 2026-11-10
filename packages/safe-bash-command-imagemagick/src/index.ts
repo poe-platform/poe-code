@@ -10274,6 +10274,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* flipImageSteps(im),
                     ...(im.region ? { region: { ...im.region, y: im.height - im.region.y - im.region.height } } : {}),
+                    ...(im.writeMask ? { writeMask: yield* flipImageSteps(im.writeMask) } : {}),
                     virtualCanvas: magickMirrorCanvas(im, "flip") };
             }));
         }
@@ -12752,7 +12753,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 let output: StoredRgbaImage = await transformStoredImage(image, backend.storage, { kind }, signal);
-                if (kind === "flop" && image.storedWriteMask) output.storedWriteMask = await transformStoredImage(image.storedWriteMask, backend.storage, { kind }, signal);
+                if ((kind === "flip" || kind === "flop") && image.storedWriteMask) output.storedWriteMask = await transformStoredImage(image.storedWriteMask, backend.storage, { kind }, signal);
                 if (image.region) output.region = kind === "autoOrient" ? orientRegion(image.region, image)
                     : kind === "flip" ? { ...image.region, y: image.height - image.region.y - image.region.height }
                     : { ...image.region, x: image.width - image.region.x - image.region.width };

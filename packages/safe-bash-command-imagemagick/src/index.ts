@@ -8421,9 +8421,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         else if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
             throw new Error(`invalid argument for option '${token}': ${raw}`);
         }
-<<<<<<< HEAD
+        const geometry = colorEndpoints ? raw : [...raw].filter(c => c.trim() !== "" && c !== "(" && c !== ")").join("");
         // Only the first x/X separates endpoints; a trailing x field is not gamma.
-        const parts = raw.toLowerCase().replaceAll("!", "").replace("x", ",").replaceAll("/", ",").replaceAll(":", ",").split(",");
+        const parts = geometry.toLowerCase().replaceAll("!", "").replace("x", ",").replaceAll("/", ",").replaceAll(":", ",").split(",");
         if (!colorEndpoints) {
             const whiteField = parts[1]?.trim() ?? "";
             // A sign after the white point starts gamma, except in an exponent.
@@ -8432,15 +8432,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     parts.splice(1, 1, whiteField.slice(0, index), whiteField.slice(index));
                     break;
                 }
-=======
-        const parts = raw.replaceAll("!", "").replaceAll("x", ",").replaceAll("/", ",").replaceAll(":", ",").split(",");
+            }
+        }
         if (!colorEndpoints && parts[0]) {
             // Native validates the first numeric field before parsing the remaining geometry.
             const first = parts[0].trim();
             const number = first.endsWith("%") ? first.slice(0, -1) : first;
             if (!Number.isFinite(Number(number)) || Number.parseFloat(number) !== Number(number)) {
                 throw new Error(`invalid argument for option '${token}': ${raw}`);
->>>>>>> 04d491488a (fix(imagemagick): reject malformed initial level numbers)
             }
         }
         // Colon geometry expresses a ratio with a unit white point.

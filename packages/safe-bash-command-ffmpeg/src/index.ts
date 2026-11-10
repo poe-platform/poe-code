@@ -10297,8 +10297,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else optionPosition = optionPosition === 0 ? 1 : 0;
                           const value = separator < 0 ? option : option.slice(separator + 1);
                           if (key === "packet_size") {
-                            packetSize = Number(value);
-                            if (!value.trim() || !Number.isInteger(packetSize) || packetSize < 0 || packetSize > 2147483647) {
+                            const number = parseFilterExpression(value, "apad packet_size", {});
+                            packetSize = roundToEven(number);
+                            if (number < 0 || number > 2147483647) {
                               throw new Error("apad: invalid packet_size");
                             }
                             continue;
@@ -13123,7 +13124,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("atrim:") && !msg.startsWith("atrim: unsupported option")) {
               return { exitCode: err instanceof RangeError ? 222 : 234 };
             }
-            if (msg === "aeval: invalid expression" || msg === "aeval: invalid or unsupported expression") {
+            if (msg.startsWith("apad packet_size:") || msg === "aeval: invalid expression" || msg === "aeval: invalid or unsupported expression") {
               return { exitCode: 234 };
             }
             return { exitCode: 1 };

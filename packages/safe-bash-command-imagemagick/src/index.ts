@@ -3776,7 +3776,6 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
         if (["-wave", "-swirl", "-implode"].includes(token)) validateMagickTransformGeometry(geometry, token);
         let plan = magickWarpPlan(image, token, geometry, args);
         if (plan && (token === "-swirl" || token === "-implode")) {
-            if (interpolation === "mesh") throw new Error(`Unsupported ${token.slice(1)} interpolation: mesh`);
             plan = { ...plan, interpolation, channels,
                 hasAlpha: plan.hasAlpha || virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255 };
         }

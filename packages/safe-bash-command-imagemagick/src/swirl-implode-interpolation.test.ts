@@ -27,15 +27,3 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         expect(fixture.depth === 16 ? actual.data16 : actual.data).toEqual(fixture.depth === 16 ? expected.data16 : expected.data);
     });
 }
-
-for (const retained of [false, true]) {
-    it.each(["-swirl", "-implode"])(`preserves existing output for unsupported %s interpolation, retained=${retained}`, async operation => {
-        const input = Buffer.from(fixtures[0]!.input, "base64"), existing = Buffer.from("existing output");
-        const files = new Map([["/input.png", input], ["/out.png", existing]]), filesystem = new MemoryFileSystem();
-        for (const [path, bytes] of files) await filesystem.writeFile(path, bytes);
-        const result = await runConvertCli(["/input.png", "-interpolate", "mesh", operation, "1.5", "/out.png"], retained ? { filesystem, cwd: "/" } : files);
-        expect(result.exitCode).toBe(1);
-        expect(result.stderr).toContain("interpolation: mesh");
-        expect(Buffer.from(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")!)).toEqual(existing);
-    });
-}

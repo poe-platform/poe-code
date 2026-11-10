@@ -82,7 +82,19 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
     const evaluate = !!source.evaluateSamples || source.storedEvaluateSamples !== undefined;
     const cache = new Map<number, Float64Array>();
-    function* readPixel(position: number): Generator<ConvolveRequest, ArrayLike<number>, Uint8Array | undefined> {
+    function* readPixel(x: number, y: number): Generator<ConvolveRequest, ArrayLike<number>, Uint8Array | undefined> {
+        if (x < 0 || y < 0 || x >= width || y >= height) {
+            const index = virtualPixelIndex(x, y, width, height, virtualPixel);
+            if (index >= 0) {
+                x = index % width; y = Math.floor(index / width);
+            } else {
+                const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
+                return (virtualPixel === "background" || virtualPixel?.endsWith("-tile"))
+                    ? [background.r * scale, background.g * scale, background.b * scale, background.a * scale]
+                    : [gray * scale, gray * scale, gray * scale, virtualPixel === "transparent" ? 0 : maximum];
+            }
+        }
+        const position = (y * width + x) * 4;
         if (evaluate) {
             const page = Math.floor(position / 1024) * 1024;
             let samples = cache.get(page);
@@ -108,7 +120,7 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
             const px = (start + i) % plan.width, py = Math.floor((start + i) / plan.width);
             const [sx, sy, copy] = plan.map(px, py), offset = i * 4;
             if (copy) {
-                const pixel = yield* readPixel((sy * width + sx) * 4);
+                const pixel = yield* readPixel(sx, sy);
                 for (let c = 0; c < 4; c++) {
                     evaluateSamples[offset + c] = pixel[c]! / scale;
                     data[offset + c] = Math.max(0, Math.min(maximum, Math.round(pixel[c]!)));
@@ -135,36 +147,31 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
             const outside = filter && virtualPixel === "background" && (sx + support < 0 || sy + support < 0 || sx - support > width - 1 || sy - support > height - 1);
             const interpolation = plan.interpolation;
             for (let filtered = !!derivatives && kernel !== "nearest" && !plan.nearest; ; filtered = false) {
+                let meshPixels: ArrayLike<number>[] | undefined;
+                let meshWeights: number[] | undefined;
+                if (interpolation === "mesh") {
+                    meshPixels = [yield* readPixel(x0, y0), yield* readPixel(x1, y0), yield* readPixel(x0, y1), yield* readPixel(x1, y1)];
+                    const luma = meshPixels.map(pixel => 0.212656 * pixel[0]! + 0.715158 * pixel[1]! + 0.072186 * pixel[2]!);
+                    // Split along the diagonal with the smaller luminance difference.
+                    meshWeights = Math.abs(luma[0]! - luma[3]!) < Math.abs(luma[1]! - luma[2]!)
+                        ? fx <= fy ? [1 - fy, 0, fy - fx, fx] : [1 - fx, fx - fy, 0, fy]
+                        : fx <= 1 - fy ? [1 - fx - fy, fx, fy, 0] : [0, 1 - fy, 1 - fx, fx + fy - 1];
+                }
                 const samples: Iterable<readonly [number, number, number] | undefined> = outside ? [[Math.floor(sx), Math.floor(sy), 1]] : plan.nearest || interpolation === "nearest" ? [[Math.floor(sx + 0.5), Math.floor(sy + 0.5), 1]] : interpolation === "integer" ? [[x0, y0, 1]] : interpolation === "average" ? [[x0, y0, 0.25], [x1, y0, 0.25], [x0, y1, 0.25], [x1, y1, 0.25]] : filtered ? ellipseSamples(sx, sy, derivatives!, weights, support) : interpolation === "catrom" ? catromSamples(sx, sy) : interpolation === "spline" ? splineSamples(sx, sy) : [
-                    [x0, y0, (1 - fx) * (1 - fy)], [x1, y0, fx * (1 - fy)],
-                    [x0, y1, (1 - fx) * fy], [x1, y1, fx * fy]
+                    [x0, y0, meshWeights?.[0] ?? (1 - fx) * (1 - fy)], [x1, y0, meshWeights?.[1] ?? fx * (1 - fy)],
+                    [x0, y1, meshWeights?.[2] ?? (1 - fx) * fy], [x1, y1, meshWeights?.[3] ?? fx * fy]
                 ];
                 let red = 0, green = 0, blue = 0, alpha = 0, total = 0, colorTotal = 0;
+                let sampleIndex = 0;
                 for (const sample of samples) {
                     if (!sample) { yield; continue; }
-                    let [x, y, weight] = sample;
-                    let pixel: ArrayLike<number> | undefined;
-                    if (x < 0 || y < 0 || x >= width || y >= height) {
-                        const index = virtualPixelIndex(x, y, width, height, virtualPixel);
-                        if (index >= 0) {
-                            x = index % width; y = Math.floor(index / width);
-                        } else {
-                            const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
-                            pixel = (virtualPixel === "background" || virtualPixel?.endsWith("-tile"))
-                                ? [background.r * scale, background.g * scale, background.b * scale, background.a * scale]
-                                : [gray * scale, gray * scale, gray * scale, virtualPixel === "transparent" ? 0 : maximum];
-                        }
-                    }
-                    if (pixel === undefined) {
-                        pixel = yield* readPixel((y * width + x) * 4);
-                        // Disabled alpha must not suppress source RGB during sampling.
-                        if (source.alphaBlend === false) pixel = [pixel[0]!, pixel[1]!, pixel[2]!, maximum];
-                    }
+                    const [x, y] = sample;
+                    let weight = sample[2];
+                    const pixel = meshPixels?.[sampleIndex++] ?? (yield* readPixel(x, y));
                     const opacity = pixel[3]!, unassociatedWeight = weight;
                     alpha += opacity * weight; total += weight;
-                    // Wave's x coordinate is integral, so mesh triangles reduce to
-                    // the same vertical weights as bilinear. Native mesh divides
-                    // unassociated colors by alpha; average excludes transparent RGB.
+                    // Native mesh divides unassociated colors by interpolated alpha;
+                    // average excludes transparent RGB.
                     if (interpolation === "mesh") colorTotal += weight * opacity / maximum;
                     else if (interpolation === "average" || interpolation === "catrom" || interpolation === "spline") colorTotal += weight;
                     // Native Catrom and spline keep the interpolated premultiplied colors.

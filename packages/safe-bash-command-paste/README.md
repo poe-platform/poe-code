@@ -13,6 +13,6 @@ const result = await shell.exec("paste --help");
 
 With `POSIXLY_CORRECT` set, options must precede the first filename or `-` operand. `--` explicitly ends option parsing in either mode. If an input read fails, paste preserves the records already read, including a final partial record and its terminator, and reports the error with exit status 1.
 
-Delimiter cycling uses `LC_ALL`, then `LC_CTYPE`, then `LANG` (skipping empty values). With no locale set, `C`, or `POSIX`, delimiters cycle byte by byte; an explicit UTF-8 locale keeps each character together.
+Delimiter cycling uses `LC_ALL`, then `LC_CTYPE`, then `LANG` (skipping empty values). With no locale set, `C`, or `POSIX`, delimiters cycle byte by byte; an explicit UTF-8 locale keeps each character together. If any effective locale category is invalid or unsupported, all categories fall back to `C` and delimiters cycle byte by byte. A nonempty `LC_ALL` overrides the other category settings.
 
 The module also exports `createPasteCommand`, its command-list factory, and typed options and limits.

@@ -30,6 +30,19 @@ function delimiters(bytes: Uint8Array, locale: string): readonly Uint8Array[] {
   return result.length ? result : [empty];
 }
 
+function validLocale(locale: string): boolean {
+  if (locale === "C" || locale === "POSIX") return true;
+  const [name, codeset] = locale.split("@")[0]!.split(".");
+  const encoding = codeset?.toLowerCase();
+  if (!encoding) return false;
+  if (name === "C" && encoding !== "utf-8" && encoding !== "utf8") return false;
+  try {
+    if (name !== "C" && !Intl.Collator.supportedLocalesOf([name!.split("_").join("-")]).length) return false;
+    new TextDecoder(encoding === "eucjp" ? "euc-jp" : encoding);
+    return true;
+  } catch { return false; }
+}
+
 function operandName(value: ShellValue): string {
   if (typeof value === "string") return value;
   try {
@@ -43,7 +56,11 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
   const limits = settings(options);
   return command("paste", limits, async (context, budget) => {
     const files: ShellValue[] = [];
-    const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C";
+    // GNU initializes all locale categories together; any failure leaves C active.
+    const locales = ["LC_CTYPE", "LC_NUMERIC", "LC_TIME", "LC_COLLATE", "LC_MONETARY", "LC_MESSAGES",
+      "LC_PAPER", "LC_NAME", "LC_ADDRESS", "LC_TELEPHONE", "LC_MEASUREMENT", "LC_IDENTIFICATION"]
+      .map(category => context.env.LC_ALL || context.env[category] || context.env.LANG || "C");
+    const locale = locales.every(validLocale) ? locales[0]! : "C";
     let serial = false, separator = 10, delimiterList = encode("\t"), literal = false;
     for (let index = 0; index < context.args.length; index++) {
       const token = context.args[index]!;

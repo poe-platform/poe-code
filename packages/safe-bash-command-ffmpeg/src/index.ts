@@ -2607,12 +2607,13 @@ async function applyVideoFilterChain(
         diagnostics.sarHeight = diagnostics.sarHeight * ih * cw / numerator;
         diagnostics.sar = diagnostics.sarWidth / diagnostics.sarHeight || 1;
       }
-      const variables = { ...dimensions, ow: cw, oh: ch, out_w: cw, out_h: ch, n: 0, t: 0, x: NaN, y: NaN };
+      const variables = { ...dimensions, ow: cw, oh: ch, out_w: cw, out_h: ch, n: 0, t: 0, pos: NaN, x: NaN, y: NaN };
       const xExpression = crop.x ?? String((iw - cw) / 2);
       const yExpression = crop.y ?? String((ih - ch) / 2);
       current = await mapWork(current, async (f, n) => {
         variables.n = n;
         variables.t = f.ptsSeconds;
+        variables.pos = f.offset ?? NaN;
         // FFmpeg evaluates x again after y so either coordinate can depend on the other.
         variables.x = parseFilterExpression(xExpression, "crop", variables);
         variables.y = parseFilterExpression(yExpression, "crop", variables);

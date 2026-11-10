@@ -11476,6 +11476,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           continue;
                         }
                         const startPts = audioTimestamps[0]?.pts ?? 0;
+                        let previousOutputPts = NaN;
                         let previousInputPts = NaN;
                         // Validate even an empty stream; expressions use the audio sample time base.
                         if (audioTimestamps.length === 0) parseFilterExpression(expression, "asetpts", {
@@ -11483,7 +11484,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           NAN: NaN, PTS: 0, STARTPTS: 0, STARTT: 0, T: 0, TB: 1 / origRate, SR: origRate, INTERLACED: 0,
                           FR: NaN, FRAME_RATE: NaN,
                           PREV_INPTS: NaN, PREV_INT: NaN,
-                          N: 0, NB_CONSUMED_SAMPLES: 0, NB_SAMPLES: 0, S: 0
+                          N: 0, NB_CONSUMED_SAMPLES: 0, NB_SAMPLES: 0, S: 0,
+                          PREV_OUTPTS: NaN, PREV_OUTT: NaN
                         });
                         for (const frame of audioTimestamps) {
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -11494,8 +11496,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             FR: NaN, FRAME_RATE: NaN,
                             PREV_INPTS: previousInputPts, PREV_INT: previousInputPts / origRate,
                             N: frame.start, NB_CONSUMED_SAMPLES: frame.start,
-                            NB_SAMPLES: frame.end - frame.start, S: frame.end - frame.start
+                            NB_SAMPLES: frame.end - frame.start, S: frame.end - frame.start,
+                            PREV_OUTPTS: previousOutputPts, PREV_OUTT: previousOutputPts / origRate
                           }));
+                          previousOutputPts = frame.pts;
                           previousInputPts = inputPts;
                         }
                       } else if (trimmed === "atrim" || trimmed.startsWith("atrim=")) {

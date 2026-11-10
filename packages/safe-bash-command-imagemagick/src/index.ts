@@ -11992,7 +11992,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     const { assignments } = group, base = stack[Math.min(group.image, stack.length - 1)]!;
                     const sources = [base, ...stack.slice(1)];
                     const hasAlpha = base.hasAlpha || assignments.some(({ target }) => target === 3);
-                    result.push(yield* applyMagickRasterSteps({ ...base, space: "srgb", channels: hasAlpha ? 4 : 3 }, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.data16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources));
+                    result.push(yield* applyMagickRasterSteps({ ...base, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: base.space === "cmyk" ? 4 : hasAlpha ? 4 : 3 }, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.data16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources));
                 }
             } else {
                 const selections = parseChannelSelections(expression);
@@ -13012,7 +13012,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const lastSource = assignments.reduce((last, assignment) => "image" in assignment ? Math.max(last, assignment.image) : last, 0);
                     for (let source = 1; source <= Math.min(lastSource, stack.length - 1); source++) sources.push((await stack.get(source))!);
                     const hasAlpha = base.hasAlpha || assignments.some(({ target }) => target === 3);
-                    await result.push(await transformStoredMagickRaster({ ...base, space: "srgb", channels: hasAlpha ? 4 : 3 }, backend, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.storedData16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources));
+                    await result.push(await transformStoredMagickRaster({ ...base, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: base.space === "cmyk" ? 4 : hasAlpha ? 4 : 3 }, backend, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.storedData16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources));
                 } else if (image) for (const channels of selections) {
                     await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: image => selectMagickChannels(image, channels) }, signal));
                 }

@@ -216,7 +216,7 @@ export function* interpolatePixelSteps(size: number, fraction: number, blendAlph
 
 export type ChannelAssignment = { target: number } & ({ image: number; source: number } | { value: number });
 
-export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | "height" | "hasAlpha">[], assignments: readonly ChannelAssignment[], highDepth: boolean): Steps {
+export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">[], assignments: readonly ChannelAssignment[], highDepth: boolean): Steps {
     const { width, height } = inputs[0]!;
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x += 512) {
         yield;
@@ -225,10 +225,16 @@ export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | 
         const base = working?.length ? new Float64Array(working.slice().buffer)
             : Float64Array.from(highDepth ? new Uint16Array((yield { kind: "read", highDepth, position, length })!.slice().buffer)
                 : (yield { kind: "read", position, length })!, value => highDepth ? value / 257 : value);
-        const data = base.slice();
+        const hue = inputs[0]!.space === "cmyk" ? yield { kind: "read", hue: true, position, length } : undefined;
+        const baseInks = inputs[0]!.space === "cmyk" ? hue?.length ? new Float64Array(hue.slice().buffer) : new Float64Array(length) : undefined;
+        if (baseInks && !hue?.length) for (let offset = 0; offset < length; offset += 4)
+            baseInks.set(rgbToCmyk(base[offset]! / 255, base[offset + 1]! / 255, base[offset + 2]! / 255), offset);
+        const data = base.slice(), inks = baseInks?.slice();
         for (const assignment of assignments) {
+            const target = inks && assignment.target < 3 ? inks : data;
+            const scale = target === inks ? 255 : 1;
             if ("value" in assignment) {
-                for (let offset = assignment.target; offset < length; offset += 4) data[offset] = assignment.value;
+                for (let offset = assignment.target; offset < length; offset += 4) target[offset] = assignment.value / scale;
                 continue;
             }
             const image = Math.min(assignment.image, inputs.length - 1), input = inputs[image]!;
@@ -242,8 +248,20 @@ export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | 
                 samples = working?.length ? new Float64Array(bytes.slice().buffer)
                     : Float64Array.from(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes, value => highDepth ? value / 257 : value);
             }
-            for (let offset = 0; offset < count; offset += 4)
-                data[offset + assignment.target] = assignment.source === 3 && !input.hasAlpha ? 255 : samples[offset + assignment.source]!;
+            const sourceHue = image !== 0 && input.space === "cmyk" ? yield { kind: "read", hue: true, image, position: (y * input.width + x) * 4, length: count } : undefined;
+            const sourceInks = image === 0 ? baseInks : sourceHue?.length ? new Float64Array(sourceHue.slice().buffer) : undefined;
+            for (let offset = 0; offset < count; offset += 4) {
+                const value = input.space === "cmyk" && assignment.source < 3
+                    ? (sourceInks?.[offset + assignment.source] ?? rgbToCmyk(samples[offset]! / 255, samples[offset + 1]! / 255, samples[offset + 2]! / 255)[assignment.source]!) * 255
+                    : assignment.source === 3 && !input.hasAlpha ? 255 : samples[offset + assignment.source]!;
+                target[offset + assignment.target] = value / scale;
+            }
+        }
+        if (inks) {
+            // K is the fourth ink; alpha stays independent in the RGBA backing.
+            for (let offset = 0; offset < length; offset += 4) for (let channel = 0; channel < 3; channel++)
+                data[offset + channel] = (1 - inks[offset + channel]!) * (1 - inks[offset + 3]!) * 255;
+            yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
         }
         yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
         const bounded = highDepth ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(65535, value * 257))))

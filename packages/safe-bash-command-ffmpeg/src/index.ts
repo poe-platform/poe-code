@@ -12160,10 +12160,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         });
                         // Haas requires doubles; negotiate before rematrixing unconstrained aformat input.
                         if (nextFilter === "haas" && !hasSampleFormat) options.unshift("sample_fmts=dbl");
-                        for (const [index, option] of options.entries()) {
+                        const inputSampleFormat = filteredSampleFormat;
+                        const parsed = options.map((option, index) => {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["sample_fmts", "sample_rates", "channel_layouts"][index] : option.slice(0, separator).trim();
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                          return { key, value };
+                        });
+                        // Negotiate the sample format before mixing, regardless of option order.
+                        parsed.sort((a, b) => Number(b.key === "sample_fmts" || b.key === "f")
+                          - Number(a.key === "sample_fmts" || a.key === "f"));
+                        for (const { key, value } of parsed) {
                           if (!value) throw new Error(`aformat: unsupported empty value for ${key}`);
                           if (key === "sample_rates" || key === "r") {
                             let targetRate = origRate;
@@ -12275,7 +12282,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             ? `stereo|FL${assignment}FL+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BL+${Math.SQRT1_2}*SL|FR${assignment}FR+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BR+${Math.SQRT1_2}*SR`
                             : layouts[0] === "mono" ? "mono|c0=0.5*c0+0.5*c1"
                             : `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`;
-                          const mixed = await panAudio(expression, stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
+                          // swresample mixes <=32-bit input in float even when the destination is double.
+                          const mixSampleFormat = (panSampleFormat === "dbl" || panSampleFormat === "dblp") &&
+                            !["dbl", "dblp", "s64", "s64p"].includes(inputSampleFormat) ? "flt" : panSampleFormat;
+                          const mixed = await panAudio(expression, stretched, filteredChannelMask, mixSampleFormat, budget, context.signal);
                           stretched = mixed.channels;
                           filteredChannelMask = mixed.channelMask;
                           filteredChannelNames = undefined;

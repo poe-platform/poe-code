@@ -2,7 +2,7 @@ import type { MediaVideoFrame, MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
 export async function decimate(
-  frames: MediaVideoFrame[], cycle: number, budget: MediaBudgetTracker, signal?: AbortSignal
+  frames: MediaVideoFrame[], cycle: number, mixed: boolean, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaVideoFrame[]> {
   const output: MediaVideoFrame[] = [];
   const duration = (frames[0]?.durationSeconds ?? 0) * cycle / (cycle - 1);
@@ -67,13 +67,18 @@ export async function decimate(
       previous = native;
     }
     // Prefer a duplicate; otherwise drop the last scene change or the least changed frame.
-    const drop = end - base < cycle ? -1 :
+    const drop = end - base < cycle || mixed && lowestDifference >= Math.floor(255 * 32 * 32 * 0.011) ? -1 :
       scene >= 0 && lowestDifference >= Math.floor(255 * 32 * 32 * 0.011) ? scene : lowest;
+    const outputDuration = mixed && drop < 0 ? frames[0]!.durationSeconds : duration;
     for (let i = base; i < end; i++) {
       if (i === drop) continue;
       const frame = frames[i]!;
-      if (output.length === 0) start = Math.round(frame.ptsSeconds / duration) * duration;
-      output.push({ ...frame, ptsSeconds: start + output.length * duration, durationSeconds: duration });
+      if (output.length === 0) start = mixed ? frame.ptsSeconds : Math.round(frame.ptsSeconds / duration) * duration;
+      const previousOutput = output.at(-1);
+      const ptsSeconds = mixed && previousOutput
+        ? previousOutput.ptsSeconds + previousOutput.durationSeconds
+        : start + output.length * duration;
+      output.push({ ...frame, ptsSeconds, durationSeconds: outputDuration });
     }
   }
   return output;

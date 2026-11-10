@@ -3519,17 +3519,19 @@ async function applyVideoFilterChain(
         return selected;
       });
     } else if (name === "decimate") {
-      const cycle = Number(named.cycle ?? (argStr || "5"));
-      if (positional.length > 1 || Object.keys(named).some(key => key !== "cycle") ||
+      const cycle = Number(named.cycle ?? (positional[0]?.includes("=") ? "5" : positional[0] || "5"));
+      const mixed = parseFilterBoolean(named.mixed ?? "0", "decimate: mixed must be a Boolean");
+      if (named.mixed === "" || positional.some((part, index) => index > 0 && !part.includes("=")) ||
+          Object.keys(named).some(key => key !== "cycle" && key !== "mixed") ||
           !Number.isInteger(cycle) || cycle < 2 || cycle > 25) {
-        throw new Error("decimate: only cycle is supported; expected an integer from 2 to 25");
+        throw new Error("decimate: expected cycle from 2 to 25 and optional mixed Boolean");
       }
       if (!frameRateKnown) {
         throw new Error("decimate: The input needs a constant frame rate; current rate of 1/0 is invalid");
       }
       // Decimate retimes frames but forwards the input EOF to downstream filters.
       if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
-      current = await decimate(current, cycle, budget, signal);
+      current = await decimate(current, cycle, mixed, budget, signal);
     } else if (name === "mpdecimate") {
       if (argStr) throw new Error("mpdecimate: custom options are unsupported");
       const retained: typeof current = [];

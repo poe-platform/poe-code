@@ -4,7 +4,8 @@ import { parseFilterFloat } from "./filter-float.js";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function tmix(
-  frames: MediaVideoFrame[], argument: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  frames: MediaVideoFrame[], argument: string, budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { time: number; expression: string }[] = []
 ): Promise<MediaVideoFrame[]> {
   const options: Record<string, string> = { frames: "3", weights: "1", scale: "0", planes: "15" };
   if (argument.endsWith(":")) argument = argument.slice(0, -1);
@@ -27,7 +28,7 @@ export async function tmix(
   if (!Number.isInteger(planes) || planes < 0 || planes > 15) {
     throw new Error("tmix: planes must be an integer from 0 to 15");
   }
-  const scale = Math.fround(Number(options.scale));
+  let scale = Math.fround(Number(options.scale));
   if (!Number.isFinite(scale) || scale < 0 || scale > 32767) {
     throw new Error("tmix: scale must be a finite number from 0 to 32767");
   }
@@ -39,14 +40,23 @@ export async function tmix(
   const sum = weights.reduce((total, weight) => Math.fround(total + weight), 0);
   if (!Number.isFinite(sum)) throw new Error("tmix: weights must have a finite sum");
   const output: MediaVideoFrame[] = [];
-  const factor = scale || Math.fround(1 / sum);
-  const average = weights.every(weight => weight === weights[0]) && (scale === 0 || scale === Math.fround(1 / sum));
   const registers = new Float64Array(10);
   const randomStates: BigUint64Array[] = [];
   let runningSum: Uint16Array | undefined;
   let work = 0;
+  let nextCommand = 0;
   for (const [index, frame] of frames.entries()) {
     if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+    while (nextCommand < commands.length && commands[nextCommand]!.time <= frame.ptsSeconds) {
+      if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+      const command = commands[nextCommand++]!;
+      try {
+        const value = Math.fround(parseFilterExpression(command.expression, "tmix", {}));
+        if (Number.isFinite(value) && value >= 0 && value <= 32767) scale = value;
+      } catch { /* Rejected runtime commands preserve the current scale. */ }
+    }
+    const factor = scale || Math.fround(1 / sum);
+    const average = weights.every(weight => weight === weights[0]) && (scale === 0 || scale === Math.fround(1 / sum));
     // Pad the initial history with the first frame; weights run oldest to newest.
     const history = weights.map((_, slot) => frames[Math.max(0, index - count + 1 + slot)]!);
     if (history.some(previous => previous.width !== frame.width || previous.height !== frame.height)) {

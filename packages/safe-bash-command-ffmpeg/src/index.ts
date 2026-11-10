@@ -2063,9 +2063,10 @@ async function applyVideoFilterChain(
         const time = Number(words.shift());
         if (words[0] === "[enter]") words.shift();
         const [target, action, expression] = words;
-        if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target ||
-            !(target === "negate" || target.startsWith("negate@")) || action !== "components" || !expression) {
-          throw new Error("sendcmd: expected TIME negate[@NAME] components FLAGS");
+        const filter = target?.split("@", 1)[0];
+        if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !expression ||
+            !(filter === "negate" && action === "components" || filter === "tmix" && action === "scale")) {
+          throw new Error("sendcmd: expected TIME negate[@NAME] components FLAGS or TIME tmix[@NAME] scale VALUE");
         }
         budget.allocateMemory(64);
         scheduled.push({ time, target, expression });
@@ -3771,7 +3772,11 @@ async function applyVideoFilterChain(
       }
       current = output;
     } else if (name === "tmix") {
-      current = await tmix(current, argStr, budget, signal);
+      const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
+      const commands = videoCommands.filter(command => command.target === name || command.target === instance);
+      videoCommands = videoCommands.filter(command => command.target !== name && command.target !== instance);
+      commands.sort((a, b) => a.time - b.time);
+      current = await tmix(current, argStr, budget, signal, commands);
     } else if (name === "tblend") {
       if (positional.length !== 1 || named.all_mode !== "difference" || Object.keys(named).length !== 1) {
         throw new Error("tblend: only all_mode=difference is supported");

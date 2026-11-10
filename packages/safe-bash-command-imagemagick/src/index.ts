@@ -7100,6 +7100,7 @@ function* applyMagickLookup(image: RgbaImage, lookup: (Uint8Array | Uint16Array 
     const fractional = lookup[0] instanceof Float32Array;
     const evaluateSamples = fractional ? new Float64Array(data.length) : undefined;
     const data16 = lookup[0] instanceof Uint16Array || fractional && image.data16 ? new Uint16Array(data.length) : undefined;
+    const hueSamples = image.space !== "cmyk" ? image.hueSamples?.slice() : undefined;
     const samples = lookup[0]!.length === 65536 ? image.data16 ?? image.data : image.data;
     for (let i = 0; i < data.length; i += 4) {
         if (i && i % 65536 === 0) yield;
@@ -7108,10 +7109,11 @@ function* applyMagickLookup(image: RgbaImage, lookup: (Uint8Array | Uint16Array 
             if (data16) data16[i + channel] = Math.round(value);
             if (evaluateSamples) evaluateSamples[i + channel] = value / 257;
             data[i + channel] = data16 || fractional ? clampByteVal(value / 257) : value;
+            if (hueSamples) hueSamples[i + channel] = value / (data16 || fractional ? 65535 : 255);
         }
     }
     const { data16: ignored, ...metadata } = image;
-    return { ...metadata, data, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
+    return { ...metadata, data, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(hueSamples ? { hueSamples } : {}) };
 }
 function parseConnectedComponents(tokens: readonly string[], start: number): number {
     const value = tokens[start + 1];

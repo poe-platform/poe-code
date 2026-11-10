@@ -8926,7 +8926,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = function* (image) {
             const cmyk = image.space === "cmyk";
             if (cmyk) image = yield* convertCmykPixels(image);
-            const hueSamples = cmyk ? image.hueSamples!.slice() : undefined;
+            const hueSamples = image.hueSamples?.slice();
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
             const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);

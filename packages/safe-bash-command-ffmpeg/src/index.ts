@@ -2795,6 +2795,17 @@ async function applyVideoFilterChain(
         if (key === "out_w") key = "w";
         if (key === "out_h") key = "h";
         if (key === "enable") throw new Error("crop: timeline is unsupported");
+        if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+          const value = parseFilterExpression(part.slice(separator + 1).trim(), "crop: generic option",
+            key === "thread_type" ? { slice: 1 } : {});
+          if (key === "thread_type"
+            ? !Number.isInteger(value) || value < -2147483648 || value > 4294967295
+            : value < (key === "extra_hw_frames" ? -1 : 0) || value > 2147483647) {
+            throw new RangeError(`crop: generic option ${key} is out of range`);
+          }
+          // Scheduling and hardware frame reservations do not change software crop pixels.
+          continue;
+        }
         if (!key || !keys.includes(key)) {
           throw new Error(`crop: unknown or misplaced option ${part}`);
         }
@@ -16340,6 +16351,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "tile: unknown option enable") return { exitCode: 176 };
             if (msg.startsWith("tile: unknown option ")) return { exitCode: 8 };
             if (msg.startsWith("tile:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg.startsWith("crop: generic option")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg === "crop: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("crop: unknown or misplaced option ")) return { exitCode: 8 };
             if (msg === "crop: exact must be a boolean" || msg === "crop: keep_aspect must be a boolean") return { exitCode: 234 };

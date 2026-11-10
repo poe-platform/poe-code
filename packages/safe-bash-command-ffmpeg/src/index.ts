@@ -2267,14 +2267,22 @@ async function applyVideoFilterChain(
     } else if (name === "metadata") {
       const mode = named.mode ?? positional[0];
       if (positional[1] !== undefined && !positional[1].includes("=")) named.key ??= positional[1];
-      if ((mode !== "modify" && mode !== "add" && mode !== "select" && mode !== "print" && mode !== "delete" && mode !== "4") || Object.keys(named).some(key => key !== "mode" && key !== "key" && !((mode === "add" || mode === "modify" || mode === "select") && key === "value") && !(mode === "select" && key === "function") && !((mode === "print" || mode === "4") && (key === "file" || key === "direct"))) ||
+      if ((mode !== "modify" && mode !== "add" && mode !== "select" && mode !== "print" && mode !== "delete" && mode !== "4") || Object.keys(named).some(key => key !== "mode" && key !== "key" && key !== "enable" && !((mode === "add" || mode === "modify" || mode === "select") && key === "value") && !(mode === "select" && key === "function") && !((mode === "print" || mode === "4") && (key === "file" || key === "direct"))) ||
           positional.some((part, index) => !part.includes("=") &&
             (index > 1 || index === 1 && positional[0]!.includes("=")))) {
         throw new Error("metadata: unsupported mode or option");
       }
+      if (named.enable !== undefined && current.length === 0) {
+        parseFilterExpression(named.enable, "metadata enable", { n: 0, t: 0, w: 0, h: 0, pos: NaN, NAN: NaN, INF: Infinity });
+      }
+      const enabled = (frame: typeof current[number], n: number) => named.enable === undefined ||
+        Math.abs(parseFilterExpression(named.enable, "metadata enable", {
+          n, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN, NAN: NaN, INF: Infinity
+        })) >= 0.5;
       if (mode === "delete") {
-        current = await mapWork(current, frame => {
+        current = await mapWork(current, (frame, n) => {
           budget.checkCpu();
+          if (!enabled(frame, n)) return frame;
           return { ...frame, filterMetadata: Object.fromEntries(
             Object.entries(frame.filterMetadata ?? {}).filter(([key]) =>
               named.key !== undefined && key.toLowerCase() !== named.key.toLowerCase())
@@ -2286,8 +2294,9 @@ async function applyVideoFilterChain(
         const { key, value } = named;
         if (!key || value === undefined) throw new Error(`metadata: ${mode} requires key and value`);
         const lookupKey = key.toLowerCase();
-        current = await mapWork(current, frame => {
+        current = await mapWork(current, (frame, n) => {
           budget.checkCpu();
+          if (!enabled(frame, n)) return frame;
           if (mode === "modify" ? !Object.hasOwn(frame.filterMetadata ?? {}, key)
             : Object.keys(frame.filterMetadata ?? {}).some(name => name.toLowerCase() === lookupKey)) return frame;
           budget.allocateMemory(64 + 2 * (key.length + value.length));
@@ -2301,8 +2310,9 @@ async function applyVideoFilterChain(
         if (comparison !== "same_str" && comparison !== "greater") throw new Error(`metadata: unsupported function ${comparison}`);
         const lookupKey = named.key.toLowerCase();
         const selected: typeof current = [];
-        for (const frame of current) {
+        for (const [n, frame] of current.entries()) {
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          if (!enabled(frame, n)) { selected.push(frame); continue; }
           const tag = Object.entries(frame.filterMetadata ?? {}).find(([key]) => key.toLowerCase() === lookupKey);
           if (tag && (named.value === undefined || (comparison === "greater"
             ? Number.parseFloat(tag[1]) > Number.parseFloat(named.value) : tag[1] === named.value))) {
@@ -2314,9 +2324,10 @@ async function applyVideoFilterChain(
       }
       if (named.direct !== undefined) parseFilterBoolean(named.direct, "metadata: invalid direct");
       const file = named.file;
-      if (!file && diagnostics.logLevel < 32) continue;
       let report = "";
       for (const [index, frame] of current.entries()) {
+        budget.checkCpu();
+        if (!enabled(frame, index) || !file && diagnostics.logLevel < 32) continue;
         const entries = Object.entries(frame.filterMetadata ?? {}).filter(([key]) => !named.key || key === named.key);
         if (!entries.length) continue;
         const pts = Math.round(frame.ptsSeconds * diagnostics.timescale);

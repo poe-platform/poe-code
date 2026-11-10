@@ -38,7 +38,7 @@ for (const mode of ["modify", "mode=modify"]) {
       assert.equal(createHash("sha256").update(output).digest("hex"),
         "4d240453b9d26c288a7fb339c50f2c0385b0484486434ef7365e15258e7a1278");
       assert.equal(error, existing ? frames.map((_, n) =>
-        `frame:${n} pts:${n} pts_time:${n / 4}\n${key}=99\n`).join("") : "");
+        `frame:${String(n).padEnd(4)} pts:${String(n).padEnd(7)} pts_time:${n / 4}\n${key}=99\n`).join("") : "");
     });
   }
 }

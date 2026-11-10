@@ -17873,6 +17873,13 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         else if (t === "+depth") {
             delete state.inputDepth;
         }
+        else if (t === "-format") {
+            state.formatStr = argv[++i];
+            if (state.formatStr === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -format\n" };
+        }
+        else if (t === "+format") {
+            state.formatStr = undefined;
+        }
         else if (t === "-quality") {
             state.quality = Math.max(1, Math.min(100, Number(argv[++i] ?? 92)));
         }
@@ -18040,6 +18047,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     }
 
     const stdoutChunks: Uint8Array[] = [];
+    let stdout = "";
     function* writePage(canvas: RgbaImage, page: number, multiple: boolean): Generator<void, void, void> {
         if (title !== undefined) {
             const { svg, height } = montageTitleSvg(title, canvas.width, state, padY);
@@ -18053,6 +18061,13 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (!anyTransparent) {
             (canvas as { hasAlpha?: boolean; channels?: number }).hasAlpha = false;
             (canvas as { hasAlpha?: boolean; channels?: number }).channels = 3;
+        }
+        if (outSpec.toLowerCase().startsWith("info:")) {
+            stdout += state.formatStr !== undefined
+                ? yield* formatMagickPropertyStringSteps(state.formatStr, canvas, () => canvas, { outputFilePath: outSpec.slice(5), sceneIdx: page, outputScene: page, quality: state.quality })
+                : `${canvas.width}x${canvas.height} ${canvas.magickColorspace ?? "sRGB"} 8-bit\n`;
+            detachRgbaBuffer(canvas.data);
+            return;
         }
         const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png");
         const outPath = path === "-" ? path : multiple || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, page) : path.replaceAll("%%", "%");
@@ -18304,7 +18319,11 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
     let offset = 0;
     for (const chunk of stdoutChunks) { stdoutBytes.set(chunk, offset); offset += chunk.length; }
-    return { exitCode: inputErrors ? 1 : 0, stdout: "", stderr: inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
+    if (outSpec.toLowerCase().startsWith("info:") && outSpec.slice(5) && outSpec.slice(5) !== "-") {
+        files.set(outSpec.slice(5), new TextEncoder().encode(stdout));
+        stdout = "";
+    }
+    return { exitCode: inputErrors ? 1 : 0, stdout, stderr: inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
 }
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
     const parsed = await drainSteps(parseMontageArguments(argv), signal);
@@ -18424,6 +18443,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n))))), rows = tileRows ?? Math.ceil(n / cols);
         const slotW = maxThumbW + padX * 2 + (frame ? frame.size * 2 : 0), slotH = maxThumbH + padY * 2 + (frame ? frame.size * 2 : 0) + (shadow ? 4 : 0);
         const stdoutChunks: Uint8Array[] = [];
+        let stdout = "";
         for (let pageStart = 0; pageStart < n; pageStart += cols * rows) {
             const pageSize = Math.min(n - pageStart, cols * rows);
             const rowHeights = new IntegerTable(backend.storage, 128);
@@ -18505,6 +18525,19 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 canvas = await compositeStoredMagick(canvas, caption, backend, signal, 0, 0, "over", undefined, false, true);
             }
             if (!anyTransparent) canvas = { ...canvas, hasAlpha: false, channels: 3 };
+            if (outSpec.toLowerCase().startsWith("info:")) {
+                const target = outSpec.slice(5), page = pageStart / (cols * rows);
+                const text = state.formatStr !== undefined
+                    ? await formatRetainedIdentify(state.formatStr, canvas, { outputFilePath: target, sceneIdx: page, outputScene: page, quality: state.quality }, async () => ({ image: canvas, storage: backend.storage }), signal)
+                    : `${canvas.width}x${canvas.height} ${canvas.magickColorspace ?? "sRGB"} 8-bit\n`;
+                if ((!target || target === "-") && input.stdout) await writeIdentifyText(input.stdout, text, signal);
+                else stdout += text;
+                if (target && target !== "-" && pageStart + pageSize === n) {
+                    await backend.publishText(canvas, target, encodeText((async function* () { yield stdout; })(), signal));
+                    stdout = "";
+                }
+                continue;
+            }
             const { format, path } = inferOutputFormat(outSpec, "png");
             const outputPath = path === "-" ? path : n > cols * rows || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, pageStart / (cols * rows)) : path.replaceAll("%%", "%");
             const stdoutBytes = await (n > cols * rows ? backend.stage : backend.publish)(canvas, outputPath, { format, netpbmDepth: state.inputDepth ?? 16, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });
@@ -18514,7 +18547,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
         let offset = 0;
         for (const chunk of stdoutChunks) { stdoutBytes.set(chunk, offset); offset += chunk.length; }
-        return { exitCode: inputErrors ? 1 : 0, stdout: "", stderr: inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
+        return { exitCode: inputErrors ? 1 : 0, stdout, stderr: inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
     });
 }
 export async function runMontageCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {

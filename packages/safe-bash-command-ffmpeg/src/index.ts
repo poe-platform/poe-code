@@ -3212,7 +3212,7 @@ async function applyVideoFilterChain(
       }
       const constants = { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 };
       const directions = { ...constants, cclock_flip: 0, clock: 1, cclock: 2, clock_flip: 3 };
-      let dir = parseFilterExpression(direction, "transpose", directions);
+      let dir = parseFilterExpression(direction, "transpose", directions, undefined, new Float64Array(10));
       if (dir < 0 || dir > 7) throw new RangeError("transpose: invalid direction");
       const modes = { ...constants, none: 0, landscape: 1, portrait: 2 };
       let pass = parseFilterExpression(passthrough, "transpose", modes);

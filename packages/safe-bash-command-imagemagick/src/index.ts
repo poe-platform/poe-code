@@ -7914,7 +7914,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     }
                     data16[idx + 3] = im.data16 ? im.data16[idx + 3]! : im.data[idx + 3]! * 257;
                 }
-                return { ...im, data: out, data16, ...(hueSamples ? { hueSamples } : {}), hasAlpha: false, alphaBlend: mode === "associate" && (im.alphaBlend ?? im.hasAlpha), alphaSeparate: mode === "disassociate" };
+                return { ...im, data: out, data16, ...(hueSamples ? { hueSamples } : {}), hasAlpha: false, inactiveAlpha: im.hasAlpha || im.inactiveAlpha, alphaBlend: mode === "associate" && (im.alphaBlend ?? im.hasAlpha), alphaSeparate: mode === "disassociate" };
             };
         }
         else if (mode === "deactivate" || mode === "discrete") {

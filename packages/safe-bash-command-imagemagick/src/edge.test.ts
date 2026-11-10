@@ -110,9 +110,11 @@ it(`${mode}: edge uses ${virtualPixel} virtual pixels (highDepth=${highDepth})`,
     const output = decodeImage(mode === "command" || mode === "retained" ? await fs.readFile("/out.png") : files.get("/out.png")!);
     const contrast = ["black", "background", "transparent"].includes(virtualPixel);
     expect(output.data).toEqual(Uint8Array.from(data, (_, i) => {
-        if (i % 4 === 3) return 255;
         const x = Math.floor(i / 4) % width, y = Math.floor(i / 4 / width);
-        return contrast && (x === 0 || x === width - 1 || y === 0 || y === height - 1) ? 255 : 0;
+        const boundary = x === 0 || x === width - 1 || y === 0 || y === height - 1;
+        // Transparent virtual pixels activate alpha; native filters it too.
+        if (i % 4 === 3) return virtualPixel === "transparent" && !boundary ? 0 : 255;
+        return contrast && boundary ? 255 : 0;
     }));
 });
 
@@ -158,4 +160,27 @@ it.each(["oops", "NaN", "Infinity", "", " "])(`${mode}: rejects invalid edge rad
         if (existing) expect(new Uint8Array(await fs.readFile("/out.png"))).toEqual(new Uint8Array(input));
         else await expect(fs.readFile("/out.png")).rejects.toMatchObject({ code: "ENOENT" });
     } else expect(files.get("/out.png")).toEqual(existing ? input : undefined);
+});
+
+// Native ImageMagick 7.1.2-35 Q16-HDRI: CMYK ink filtering and sRGB controls.
+for (const mode of ["command", "buffered", "retained", "sync"] as const)
+it.each([
+    [["-colorspace", "CMYK", "-channel", "K", "-separate", "+channel"], "gray", "9f7fcf"],
+    [["-colorspace", "CMYK", "-channel", "K", "-edge", "1", "-separate", "+channel"], "gray", "6000f0"],
+    [["-colorspace", "CMYK", "+channel", "-colorspace", "sRGB"], "rgba", "405060ff506080ff203030ff"],
+    [["-colorspace", "CMYK", "-edge", "1", "+channel", "-colorspace", "sRGB"], "rgba", "b3c79fffff00ffff111a0fff"],
+    [["-colorspace", "sRGB", "-edge", "1", "+channel", "-colorspace", "sRGB"], "rgba", "000000ffc0c0ffff000000ff"],
+] as const)(`${mode}: matches native CMYK edge pipeline %j`, async (operations, format, expected) => {
+    const files = new Map([["/out.raw", Buffer.from("KEEP")]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/out.raw", Buffer.from("KEEP"));
+    const args = ["xc:#405060", "xc:#506080", "xc:#203030", "+append", ...operations, "-depth", "8", `${format}:/out.raw`];
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} },
+    }) : mode === "sync" ? runMagickCliSync(args, files)
+        : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result).toMatchObject({ exitCode: 0 });
+    const output = mode === "command" || mode === "retained" ? await fs.readFile("/out.raw") : files.get("/out.raw")!;
+    expect(Buffer.from(output).toString("hex")).toBe(expected);
 });

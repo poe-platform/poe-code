@@ -9,7 +9,8 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 /** Feed the active color planes to the edge filter, retaining alpha from RGBA. */
 export function* charcoalEdgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">>, radius: number, channels: { r: boolean; g: boolean; b: boolean; a: boolean } | undefined, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const hue = !!image.hueSamples || image.storedHueSamples !== undefined;
-    const steps = edgePixelSteps(image, radius, channels, virtualPixel, background);
+    // This adapter already projects the active color planes into RGB slots.
+    const steps = edgePixelSteps({ ...image, space: "srgb" }, radius, channels, virtualPixel, background);
     let next = steps.next();
     while (!next.done) {
         const request = next.value;

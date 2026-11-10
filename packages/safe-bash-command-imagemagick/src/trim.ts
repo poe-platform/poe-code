@@ -5,8 +5,8 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
 import type { HueMetadata } from "./colorspace-hue.js";
 
-type RgbaImage = BaseRgbaImage & HueMetadata & { writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { storedWriteMask?: BaseStoredRgbaImage | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & { inactiveAlpha?: boolean | undefined; writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { inactiveAlpha?: boolean | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
 
 type Area = { left: number; top: number; width: number; height: number };
 type Read = { position: number; length: number };
@@ -139,7 +139,7 @@ function cropTrimBounds(area: Area, width: number, height: number, minSize?: { w
 }
 
 export function* formatTrimBoundsSteps<Step = never>(
-    image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "magickColorspace">,
+    image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "inactiveAlpha" | "space" | "magickColorspace">,
     load: (position: number, length: number) => Generator<Step, { data: Uint8Array; data16?: Uint16Array; evaluateSamples?: Float64Array; hueSamples?: Float64Array }, void>,
     format: "trim-geometry" | "bounding-box",
     fuzz: number,
@@ -149,7 +149,7 @@ export function* formatTrimBoundsSteps<Step = never>(
     background?: RgbaColor
 ): Generator<Step | void, string, void> {
     const first = yield* load(0, 4);
-    const steps = trimBounds(image.width, image.height, image.hasAlpha, fuzz, first.evaluateSamples ? 1 : first.data16 ? 257 : 1, image.magickColorspace, edges, percentBackground, background, image.space === "cmyk");
+    const steps = trimBounds(image.width, image.height, image.hasAlpha || image.inactiveAlpha === true, fuzz, first.evaluateSamples ? 1 : first.data16 ? 257 : 1, image.magickColorspace, edges, percentBackground, background, image.space === "cmyk");
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }
@@ -187,7 +187,7 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
         return image;
     }
     const pixels = image.evaluateSamples ?? image.data16 ?? image.data;
-    const steps = trimBounds(image.width, image.height, image.hasAlpha, fuzz, image.evaluateSamples ? 1 : image.data16 ? 257 : 1, image.magickColorspace, edges, percentBackground, background, image.space === "cmyk");
+    const steps = trimBounds(image.width, image.height, image.hasAlpha || image.inactiveAlpha === true, fuzz, image.evaluateSamples ? 1 : image.data16 ? 257 : 1, image.magickColorspace, edges, percentBackground, background, image.space === "cmyk");
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }
@@ -239,7 +239,7 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     }
     const sampleBytes = image.storedEvaluateSamples !== undefined ? 8 : image.storedData16 ? 2 : 1;
     const position = image.storedEvaluateSamples ?? image.storedData16?.position ?? image.position;
-    const steps = trimBounds(image.width, image.height, image.hasAlpha, fuzz, sampleBytes === 2 ? 257 : 1, image.magickColorspace, edges, percentBackground, background, image.space === "cmyk");
+    const steps = trimBounds(image.width, image.height, image.hasAlpha || image.inactiveAlpha === true, fuzz, sampleBytes === 2 ? 257 : 1, image.magickColorspace, edges, percentBackground, background, image.space === "cmyk");
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { await yieldTurn(signal); next = steps.next(); }

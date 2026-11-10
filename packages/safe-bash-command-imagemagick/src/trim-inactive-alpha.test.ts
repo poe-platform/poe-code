@@ -32,3 +32,29 @@ it(`${mode} ${format}: ${operation} keeps the foreground with alpha off=${alphaO
         .toBe(format === "info" ? (operation === "bounds" ? "2x2+2+1 2,1 4,3" : "2x2 6x5+2+1;") : "ff0000ffff0000ffff0000ffff0000ff");
     expect("stderr" in result ? result.stderr : stderr).toBe("");
 });
+
+// ImageMagick 7.1.2-35 Q16-HDRI compares retained alpha even when blending is disabled.
+for (const mode of ["command", "retained", "buffered", "sync"] as const)
+for (const alpha of ["discrete", "deactivate", "on"])
+for (const format of ["page", "bounds", "rgba"])
+it(`${mode}: ${format} keeps the center defined only by ${alpha} alpha`, async () => {
+    const fs = new MemoryFileSystem();
+    const files = new Map<string, Uint8Array>();
+    const argv = ["xc:#40608020", "-compose", "Copy", "-bordercolor", "#40608080", "-border", "1x1",
+        "-alpha", alpha, ...(format === "bounds" ? [] : ["-trim"]),
+        ...(format === "rgba" ? ["-alpha", "on", "-depth", "8", "rgba:/out"]
+            : ["-format", format === "bounds" ? "%@" : "%wx%h:%g", "info:/out"])];
+    const argumentValues = createCommandArguments(argv);
+    let stderr = "";
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+    }) : mode === "sync" ? runMagickCliSync(argv, files)
+        : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result.exitCode).toBe(0);
+    const output = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
+    expect(format === "rgba" ? Buffer.from(output).toString("hex") : new TextDecoder().decode(output))
+        .toBe(format === "bounds" ? "1x1+1+1" : format === "page" ? "1x1:3x3+1+1" : alpha === "on" ? "40608020" : "406080ff");
+    expect("stderr" in result ? result.stderr : stderr).toBe("");
+});

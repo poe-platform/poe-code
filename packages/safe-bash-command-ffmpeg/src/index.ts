@@ -1099,7 +1099,8 @@ function parseAtrim(argument: string, origRate: number) {
     const samples = key === "start_sample" || key === "end_sample";
     if (key === "duration" || key === "durationi") {
       const seconds = parseHlsDuration(value);
-      duration = Math.round(seconds * origRate);
+      // Recover the parsed integer microseconds before rescaling to samples.
+      duration = Math.round(Math.round(seconds * 1_000_000) * origRate / 1_000_000);
       if (!value || Number.isNaN(seconds)) throw new Error(`atrim: invalid ${key}`);
       if (seconds < 0 || !Number.isSafeInteger(duration)) {
         throw new RangeError(`atrim: invalid ${key}`);
@@ -1118,7 +1119,8 @@ function parseAtrim(argument: string, origRate: number) {
       default: pts ? -(2 ** 63) : key === "start_sample" ? -1 : 2 ** 63,
       none: 0
     }, undefined, new Float64Array(10)) : parseHlsDuration(value);
-    const boundary = samples || pts ? roundToEven(number) : Math.sign(number) * Math.round(Math.abs(number) * origRate);
+    const boundary = samples || pts ? roundToEven(number)
+      : Math.sign(number) * Math.round(Math.round(Math.abs(number) * 1_000_000) * origRate / 1_000_000);
     // Native int64 options use doubles, including INT64_MAX rounded to 2^63.
     if (!value || Number.isNaN(number)) throw new Error(`atrim: invalid ${key}`);
     if ((samples || pts ? Math.abs(number) > 2 ** 63 : !Number.isSafeInteger(boundary)) ||

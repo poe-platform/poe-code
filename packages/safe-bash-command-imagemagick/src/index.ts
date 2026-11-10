@@ -22,7 +22,7 @@ import { identifyHullSteps, formatIdentifyHull } from "./identify-hull.js";
 import { identifyMomentsSteps } from "./identify-moments.js";
 import { identifyMaximumSteps, identifyStoredMaximum } from "./identify-locate.js";
 import { hilbertPixels, riemersmaRemapSteps } from "./riemersma.js";
-import { convertCmykPixels, copyCmykChannelsToRgb, formatCmykPixel, rgbToCmyk } from "./colorspace-cmyk.js";
+import { fillCmykPixels, convertCmykPixels, copyCmykChannelsToRgb, formatCmykPixel, rgbToCmyk } from "./colorspace-cmyk.js";
 import { modulateRgb } from "./modulate.js";
 import { cyclePixelSteps } from "./cycle.js";
 import { magnifyPixelSteps, parseMagnifyMethod, type MagnifyMethod } from "./magnify-kernel.js";
@@ -274,7 +274,7 @@ const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   yellowgreen: [154, 205, 50, 255]
 };
 
-function parseColor(raw: string, precise = false): RgbaColor {
+function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly number[] } {
   const s = raw.trim();
   const low = s.toLowerCase();
   if (X11_NAMED_COLORS[low]) {
@@ -329,7 +329,7 @@ function parseColor(raw: string, precise = false): RgbaColor {
         if (!p) return 0;
         if (p.endsWith("%")) return Math.max(0, Math.min(1, parseFloat(p) / 100));
         const num = parseFloat(p);
-        return num <= 1 ? Math.max(0, Math.min(1, num)) : Math.max(0, Math.min(1, num / 255));
+        return Math.max(0, Math.min(1, num / 255));
       };
       const c = parseUnit(parts[0]);
       const m = parseUnit(parts[1]);
@@ -340,7 +340,8 @@ function parseColor(raw: string, precise = false): RgbaColor {
         r: Math.round(255 * (1 - c) * (1 - k)),
         g: Math.round(255 * (1 - m) * (1 - k)),
         b: Math.round(255 * (1 - y) * (1 - k)),
-        a
+        a,
+        cmyk: [c, m, y, k]
       };
     }
     const r = parseChanByte(parts[0], 0);
@@ -6231,7 +6232,9 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     if (lower.startsWith("xc:") || lower.startsWith("canvas:")) {
         const colorStr = baseToken.slice(baseToken.indexOf(":") + 1) || "white";
         const c = parseColor(colorStr, true);
-        return yield* applyMod([{ ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c, [c.r, c.g, c.b, c.a].some(value => !Number.isInteger(value)))), hasAlpha: c.a < 255 }]);
+        let image = { ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c, [c.r, c.g, c.b, c.a].some(value => !Number.isInteger(value)))), hasAlpha: c.a < 255 };
+        if (c.cmyk) image = yield* fillCmykPixels(image, c.cmyk);
+        return yield* applyMod([image]);
     }
     if (lower.startsWith("gradient:") || lower.startsWith("radial-gradient:")) {
         const radial = lower.startsWith("radial-gradient:");
@@ -13518,6 +13521,10 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
   const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(baseToken.slice(baseToken.indexOf(":")+1)||"white",true),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
   image={...await createStoredCanvas(width,height,color,backend,signal,[color.r,color.g,color.b,color.a].some(value=>!Number.isInteger(value))),hasAlpha:color.a<255,...(lower==="null:"?{[magickInput]:{filePath:"null:"}}:{})};
+  if ("cmyk" in color && color.cmyk) {
+   const inks = color.cmyk;
+   image = await transformStoredMagickPixels(image, backend, { end: 0, apply: image => fillCmykPixels(image, inks) }, signal);
+  }
  }else if(lower.startsWith("plasma:")){
   const spec=baseToken.slice(7),fractal=spec.toLowerCase()==="fractal",[first,last]=fractal?[]:spec.split("-");
   const metadata={width:state.sizeWidth,height:state.sizeHeight,format:"png" as const,channels:3 as const,depth:"ushort" as const,space:"srgb" as const,density:72,hasAlpha:false};

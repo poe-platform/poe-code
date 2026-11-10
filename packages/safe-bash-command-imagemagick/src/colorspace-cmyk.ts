@@ -7,6 +7,24 @@ export function rgbToCmyk(r: number, g: number, b: number): number[] {
     return maximum === 0 ? [0, 0, 0, 1] : [1 - r / maximum, 1 - g / maximum, 1 - b / maximum, 1 - maximum];
 }
 
+export function* fillCmykPixels(image: RgbaImage & HueMetadata, inks: readonly number[]): Generator<void, RgbaImage & HueMetadata, void> {
+    const hueSamples = new Float64Array(image.data.length);
+    const data16 = new Uint16Array(image.data.length);
+    const evaluateSamples = new Float64Array(image.data.length);
+    const rgb = inks.slice(0, 3).map(ink => (1 - ink) * (1 - inks[3]!) * 255);
+    for (let offset = 0; offset < image.data.length; offset += 4) {
+        if (offset % 65536 === 0) yield;
+        hueSamples.set(inks, offset);
+        for (let channel = 0; channel < 4; channel++) {
+            const value = channel === 3 ? image.data[offset + channel]! : rgb[channel]!;
+            evaluateSamples[offset + channel] = value;
+            data16[offset + channel] = Math.round(value * 257);
+            image.data[offset + channel] = Math.round(value);
+        }
+    }
+    return { ...image, data16, evaluateSamples, space: "cmyk", channels: 4, hueSamples };
+}
+
 export function* convertCmykPixels(image: RgbaImage & HueMetadata): Generator<void, RgbaImage & HueMetadata, void> {
     if (image.space === "cmyk" && image.hueSamples) return image;
     // The codec backing remains RGBA; the working plane holds C, M, Y and K.

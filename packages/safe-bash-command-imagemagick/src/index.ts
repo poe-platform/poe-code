@@ -3952,9 +3952,11 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
 }
 
 function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: string) {
-    const g = parseMagickGeometry(geometry), opacity = Math.max(0, g.width ?? 0) / 100, sigma = Math.max(0, g.height ?? 1);
-    if (![...geometry].every(char => "0123456789.eExX+- %!<>^@".includes(char)) ||
-        (!Number.isFinite(g.width) && !Number.isFinite(g.height))) {
+    // Shadow accepts alternate separators and ignores fields after sigma and offsets.
+    const normalized = normalizeMagickOffsets(geometry).replaceAll("X", "x").replaceAll(",", "x").replaceAll("/", "x").split("x", 2).join("x");
+    const g = parseMagickGeometry(normalized), opacity = Math.max(0, g.aspectRatio ?? g.width ?? 0) / 100, sigma = Math.max(0, g.height ?? 1);
+    if (![...geometry].every(char => "0123456789.eExX+- %!<>^@,/:".includes(char)) ||
+        (!Number.isFinite(g.aspectRatio) && !Number.isFinite(g.width) && !Number.isFinite(g.height))) {
         throw new Error(`invalid argument for option '-shadow': ${geometry}`);
     }
     // The general geometry parser supplies zero for missing offsets; shadow defaults each to four.

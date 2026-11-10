@@ -3832,7 +3832,7 @@ function solveLinearSystem(A: number[][], b: number[]): number[] {
   return M.map((row) => row[n]!);
 }
 
-function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, token: string, spec: string, args = "0"): WarpPlan | undefined {
+function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">, token: string, spec: string, args = "0"): WarpPlan | undefined {
     if (token === "-swirl" || token === "-implode" || token === "-wave")
         spec = [...spec].filter(character => character.trim() !== "").join("").replaceAll("(", "").replaceAll(")", "");
     const w = img.width, h = img.height, cx = (w - 1) / 2, cy = (h - 1) / 2;
@@ -3885,6 +3885,12 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
     if (method === "arc") throw new Error("Unsupported distortion method: Arc");
     if (method === "srt" || method === "scalerotatetranslate") {
         let ox = cx, oy = cy, scaleX = 1, scaleY = 1, angle = 0, nx = cx, ny = cy;
+        // Native's default center includes the page offset. Unlike best-fit,
+        // -distort samples in raster coordinates without removing that offset.
+        if (token === "-distort") {
+            ox = nx = cx + (img.virtualCanvas?.x ?? 0);
+            oy = ny = cy + (img.virtualCanvas?.y ?? 0);
+        }
         if (nums.length === 1) angle = nums[0]!;
         else if (nums.length === 2) { scaleX = scaleY = nums[0] || 1; angle = nums[1]!; }
         else if (nums.length >= 3) {

@@ -39,7 +39,7 @@ export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: numbe
     if (right >= left) return { left, top, width: right - left + 1, height: bottom - top + 1 };
 }
 
-export function* optimizeTransparencyPixels(previous: Frame, current: Frame & { region?: Region | undefined }, fuzz: number, mask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* optimizeTransparencyPixels(previous: Frame, current: Frame & Pick<RgbaImage, "space"> & { region?: Region | undefined }, fuzz: number, mask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const dx = (current.virtualCanvas?.x ?? 0) - (previous.virtualCanvas?.x ?? 0);
     const dy = (current.virtualCanvas?.y ?? 0) - (previous.virtualCanvas?.y ?? 0);
     for (let y = 0; y < current.height; y++) {
@@ -47,6 +47,9 @@ export function* optimizeTransparencyPixels(previous: Frame, current: Frame & { 
             yield;
             const count = Math.min(1024, current.width - x), position = (y * current.width + x) * 4;
             const data = new Uint8Array((yield { kind: "read", position, length: count * 4 })!);
+            // CMYK uses the fourth working sample for black, not alpha.
+            const hue = current.space === "cmyk" ? undefined
+                : new Float64Array((yield { kind: "read", hue: true, position, length: count * 4 })!.slice().buffer);
             const start = Math.max(0, x + dx), end = Math.min(previous.width, x + dx + count), py = y + dy;
             const prior = py >= 0 && py < previous.height && end > start
                 ? (yield { kind: "read", image: 1, position: (py * previous.width + start) * 4, length: (end - start) * 4 })! : undefined;
@@ -58,9 +61,13 @@ export function* optimizeTransparencyPixels(previous: Frame, current: Frame & { 
                 const m = Math.min(pixel, maskCount - 1) * 4;
                 if (protection && 0.212656 * protection[m]! + 0.715158 * protection[m + 1]! + 0.072186 * protection[m + 2]! > 127.5) continue;
                 const i = pixel * 4, px = x + pixel + dx, j = (px - start) * 4;
-                if (prior && px >= start && px < end && matchesAlphaFloodfill(data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!, prior[j]!, prior[j + 1]!, prior[j + 2]!, prior[j + 3]!, fuzz)) data[i + 3] = 0;
+                if (prior && px >= start && px < end && matchesAlphaFloodfill(data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!, prior[j]!, prior[j + 1]!, prior[j + 2]!, prior[j + 3]!, fuzz)) {
+                    data[i + 3] = 0;
+                    if (hue?.length) hue[i + 3] = 0;
+                }
             }
             yield { kind: "write", position, data };
+            if (hue?.length) yield { kind: "write", hue: true, position, data: new Uint8Array(hue.buffer) };
         }
     }
 }

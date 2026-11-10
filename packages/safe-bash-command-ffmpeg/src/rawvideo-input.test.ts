@@ -131,3 +131,60 @@ it("enforces the gray output byte limit before writing", async () => {
   assert.match(result.stderr, /maxOutputBytes/);
   assert.equal(result.volume.existsSync("/out.raw"), false);
 });
+
+// Byte-for-byte FFmpeg 7.0.2 reference outputs, including a short final BGRA packet.
+const bgra = Buffer.from("113a638cb5de07305982abd4fd264f78a1caf31c456e97c0e9123b648db6df08", "hex");
+for (const [format, input, frameBytes] of [
+  ["bgra", bgra, 16],
+  ["rgb24", pixels, 12],
+  ["yuv420p", pixels, 6]
+] as const) {
+  for (const frameLimit of [false, true]) {
+    it(`copies ${format} packets without decoding (one frame=${frameLimit})`, async () => {
+      const result = await run(["-v", "error", "-f", "rawvideo", "-pix_fmt", format, "-s", "2x2", "-r", "1",
+        "-i", "/in.raw", "-c:v", "copy", ...(frameLimit ? ["-frames:v", "1"] : []),
+        "-f", "rawvideo", "/out.raw"], input, { limits: { maxFrames: 0 } });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.volume.readFileSync("/out.raw"), Buffer.from(frameLimit ? input.subarray(0, frameBytes) : input));
+    });
+  }
+}
+
+it("serializes RGB24 frames as BGRA with opaque alpha", async () => {
+  const result = await run(["-v", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "2x2", "-r", "1",
+    "-i", "/in.raw", "-vf", "null", "-pix_fmt", "bgra", "-f", "rawvideo", "/out.raw"],
+  Buffer.from("113a638cb5de07305982abd4fd264f78a1caf31c456e97c0", "hex"));
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((result.volume.readFileSync("/out.raw") as Buffer).toString("hex"),
+    "633a11ffdeb58cff593007ffd4ab82ff4f26fdffcaa178ff451cf3ffc0976eff");
+});
+
+for (const format of ["bgra", "rgba"]) {
+  it(`decodes complete BGRA frames to ${format} preserving alpha`, async () => {
+    const input = Buffer.concat([bgra.subarray(0, 16), Buffer.from("113a63008cb5deff0730590182abd480", "hex"), bgra.subarray(0, 2)]);
+    const result = await run(["-f", "rawvideo", "-pix_fmt", "bgra", "-s", "2x2", "-r", "1",
+      "-i", "/in.raw", "-vf", "null", "-pix_fmt", format, "-f", "rawvideo", "/out.raw"], input);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const expected = format === "bgra" ? input.subarray(0, 32)
+      : Buffer.from("633a118c07deb530ab8259d44f26fd78633a1100deb58cff59300701d4ab8280", "hex");
+    assert.deepEqual(result.volume.readFileSync("/out.raw"), expected);
+  });
+}
+
+for (const limits of [{ maxSamplesPerTrack: 1 }, { maxOutputBytes: 15 }]) {
+  it(`enforces BGRA stream-copy resource limits ${JSON.stringify(limits)}`, async () => {
+    const result = await run(["-f", "rawvideo", "-pix_fmt", "bgra", "-s", "2x2", "-i", "/in.raw",
+      "-c:v", "copy", "-f", "rawvideo", "/out.raw"], bgra, { limits });
+    assert.notEqual(result.exitCode, 0);
+    assert.match(result.stderr, /Resource limit exceeded/);
+    assert.equal(result.volume.existsSync("/out.raw"), false);
+  });
+}
+
+it("checks BGRA output size before writing", async () => {
+  const result = await run(["-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "2x2", "-i", "/in.raw",
+    "-pix_fmt", "bgra", "-f", "rawvideo", "/out.raw"], pixels.subarray(0, 12), { limits: { maxOutputBytes: 15 } });
+  assert.notEqual(result.exitCode, 0);
+  assert.match(result.stderr, /maxOutputBytes/);
+  assert.equal(result.volume.existsSync("/out.raw"), false);
+});

@@ -9,10 +9,10 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
   }
   const gray = pixelFormat === "gray" || pixelFormat === "gray8";
   const yuv = pixelFormat === "yuv420p" || pixelFormat === "yuv444p";
-  if (!gray && pixelFormat !== "rgb24" && pixelFormat !== "gray16be" && !yuv && pixelFormat !== "ya8") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
+  if (!gray && pixelFormat !== "bgra" && pixelFormat !== "rgb24" && pixelFormat !== "gray16be" && !yuv && pixelFormat !== "ya8") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
   const ySize = width * height;
   const chromaSize = pixelFormat === "yuv444p" ? ySize : Math.ceil(width / 2) * Math.ceil(height / 2);
-  const frameBytes = pixelFormat === "yuv420p" ? ySize + chromaSize * 2 : ySize * (gray ? 1 : pixelFormat === "gray16be" || pixelFormat === "ya8" ? 2 : 3);
+  const frameBytes = pixelFormat === "bgra" ? ySize * 4 : pixelFormat === "yuv420p" ? ySize + chromaSize * 2 : ySize * (gray ? 1 : pixelFormat === "gray16be" || pixelFormat === "ya8" ? 2 : 3);
   if (!Number.isSafeInteger(frameBytes)) throw new Error("Invalid rawvideo frame size");
   const count = Math.ceil(bytes.length / frameBytes);
   budget.checkSamples(count);
@@ -35,6 +35,13 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
       : new Uint8Array(width * height * 4);
     for (let pixel = 0; !yuv && pixel < width * height; pixel++) {
       if (pixel % 4096 === 0) budget.checkCpu();
+      if (pixelFormat === "bgra") {
+        rgba[pixel * 4] = data[pixel * 4 + 2]!;
+        rgba[pixel * 4 + 1] = data[pixel * 4 + 1]!;
+        rgba[pixel * 4 + 2] = data[pixel * 4]!;
+        rgba[pixel * 4 + 3] = data[pixel * 4 + 3]!;
+        continue;
+      }
       if (pixelFormat === "gray16be") {
         const value = Math.min(255, (data[pixel * 2]! * 256 + data[pixel * 2 + 1]! + 128) >> 8);
         rgba.fill(value, pixel * 4, pixel * 4 + 3);
@@ -130,16 +137,17 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
           view.setUint16(pixel * 2, Math.max(0, Math.min(65535, gray)));
         }
         append(bytes);
-      } else if (format === "rgb24" || format === "bgr24" || format === "rgba") {
-        const channels = format === "rgba" ? 4 : 3;
+      } else if (format === "rgb24" || format === "bgr24" || format === "rgba" || format === "bgra") {
+        const channels = format === "rgba" || format === "bgra" ? 4 : 3;
+        const blueFirst = format === "bgr24" || format === "bgra";
         const length = frame.width * frame.height * channels;
         budget.checkOutputBytes(size + length);
         const bytes = new Uint8Array(length);
         for (let pixel = 0; pixel < frame.width * frame.height; pixel++) {
           if (pixel % 4096 === 0) budget.checkCpu();
-          bytes[pixel * channels] = frame.data[pixel * 4 + (format === "bgr24" ? 2 : 0)]!;
+          bytes[pixel * channels] = frame.data[pixel * 4 + (blueFirst ? 2 : 0)]!;
           bytes[pixel * channels + 1] = frame.data[pixel * 4 + 1]!;
-          bytes[pixel * channels + 2] = frame.data[pixel * 4 + (format === "bgr24" ? 0 : 2)]!;
+          bytes[pixel * channels + 2] = frame.data[pixel * 4 + (blueFirst ? 0 : 2)]!;
           if (channels === 4) bytes[pixel * channels + 3] = frame.data[pixel * 4 + 3]!;
         }
         append(bytes);

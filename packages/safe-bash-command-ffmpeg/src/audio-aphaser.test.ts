@@ -36,6 +36,9 @@ for (const [filter, hash, frames = 2048] of [
 // Native FFmpeg 7.0.2 validation statuses and eight-sample signed 16-bit control.
 for (const [filter, exitCode] of [
   ["aphaser=wrong=1", 8],
+  ["aphaser=:", 234],
+  ["aphaser=delay=3::", 234],
+  ["aphaser=delay=3::decay=0.4", 234],
   ["aphaser=type=garbage", 234],
   ["aphaser=type=42", 222],
   ["aphaser=type=t:enable=0", 176],
@@ -78,6 +81,23 @@ for (const [expression, literal, hash] of [
         assert.equal(createHash("sha256").update(output).digest("hex"), hash);
       });
     }
+  }
+}
+
+// Native FFmpeg 7.0.2 accepts one trailing option separator in either graph form.
+for (const filter of ["aphaser=delay=3", "aphaser=delay=3:"]) {
+  for (const graph of [false, true]) {
+    it(`${filter} matches native trailing-separator status and complete output (${graph ? "graph" : "simple"})`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from({ length: 16 }, (_, i) => ((i * 7919 + 3467) % 49001 - 24500) / 32768)
+      ] }, { bitsPerSample: 16 });
+      const { volume, result, stderr } = await run(filter, graph, 16, input);
+      assert.equal(result.exitCode, 0, stderr);
+      const output = volume.readFileSync("/out.raw") as Buffer;
+      assert.equal(output.length, 32);
+      assert.equal(createHash("sha256").update(output).digest("hex"),
+        "a131cc632affa5d8e011b45e4baafd4b6d7dfdc47a3727a560f5044255fda00c");
+    });
   }
 }
 

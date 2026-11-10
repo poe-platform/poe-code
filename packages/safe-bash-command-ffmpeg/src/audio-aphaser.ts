@@ -11,8 +11,10 @@ export async function phaseAudio(
   const ranges = { in_gain: [0, 1], out_gain: [0, 1e9], delay: [0, 5], decay: [0, 0.99], speed: [0.1, 2], type: [0, 1] };
   const names = Object.keys(options) as (keyof typeof options)[];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  const optionValues = argument ? argument.split(":") : [];
+  if (optionValues.at(-1) === "") optionValues.pop();
   let optionPosition = 0;
-  for (const option of argument ? argument.split(":") : []) {
+  for (const option of optionValues) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[optionPosition] : option.slice(0, separator).trim() as keyof typeof options;
     // FFmpeg 7 restarts shorthand after named options, skipping the first slot

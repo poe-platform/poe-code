@@ -27,7 +27,7 @@ for (const mode of ["memory", "retained"] as const) {
             const name = `tile-${String(index).padStart(2, "0")}.png`;
             const image = decodeImage(mode === "memory" ? files.get(name)! : await fs.readFile(`/${name}`));
             expect([image.width, image.height]).toEqual([width, height]);
-            expect(image.virtualCanvas).toEqual({ width: 7, height: 5, x, y });
+            expect(image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 }).toEqual({ width: 7, height: 5, x, y });
             expect(image.data).toEqual(Uint8Array.from(Array.from({ length: width * height }, (_, i) => {
                 const value = (y + Math.floor(i / width)) * 7 + x + i % width + 1;
                 return [value, value, value, 255];

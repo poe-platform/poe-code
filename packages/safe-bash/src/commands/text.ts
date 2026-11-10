@@ -622,7 +622,23 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
   const identityKey = skipFields === 0 && skipCharacters === 0 && width === Infinity && !ignoreCase;
   const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG;
   const byteLocale = locale === "C" || locale === "POSIX";
-  const uniqDecoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+  const advanceCharacters = (bytes: Uint8Array, offset: number, count: number) => {
+    if (byteLocale) return Math.min(bytes.length, offset + count);
+    for (let character = 0; character < count && offset < bytes.length; character++) {
+      const first = bytes[offset]!;
+      let size = first >= 0xc2 && first <= 0xdf ? 2 : first >= 0xe0 && first <= 0xef ? 3 : first >= 0xf0 && first <= 0xf4 ? 4 : 1;
+      for (let index = 1; index < size; index++) {
+        const next = bytes[offset + index];
+        if (next === undefined || next < 0x80 || next > 0xbf || index === 1 && (first === 0xe0 && next < 0xa0 || first === 0xed && next >= 0xa0 || first === 0xf0 && next < 0x90 || first === 0xf4 && next >= 0x90)) {
+          // An invalid byte consumes one position without changing valid neighbors.
+          size = 1;
+          break;
+        }
+      }
+      offset += size;
+    }
+    return offset;
+  };
   const key = (bytes: Uint8Array) => {
     if (identityKey) return bytes;
     let offset = 0;
@@ -630,21 +646,8 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
       while (offset < bytes.length && (bytes[offset] === 32 || bytes[offset] === 9)) offset++;
       while (offset < bytes.length && bytes[offset] !== 32 && bytes[offset] !== 9) offset++;
     }
-    let result: Uint8Array;
-    try {
-      if (byteLocale) {
-        offset += skipCharacters;
-        result = bytes.subarray(offset, width === Infinity ? undefined : offset + width);
-      } else {
-        const chars = Array.from(uniqDecoder.decode(bytes.subarray(offset)));
-        result = encoder.encode((width === Infinity ? chars.slice(skipCharacters) : chars.slice(skipCharacters, skipCharacters + width)).join(""));
-      }
-    } catch (error) {
-      if (!(error instanceof TypeError)) throw error;
-      // Invalid UTF-8 records retain byte comparisons without replacement characters.
-      offset += skipCharacters;
-      result = bytes.subarray(offset, width === Infinity ? undefined : offset + width);
-    }
+    offset = advanceCharacters(bytes, offset, skipCharacters);
+    const result = bytes.subarray(offset, width === Infinity ? undefined : advanceCharacters(bytes, offset, width));
     return ignoreCase ? fold(result) : result;
   };
   const records = (async function* (): ByteSource {

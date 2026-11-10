@@ -6,6 +6,26 @@ import { registerYieldCheckpoint, scheduleTurn } from "../../src/contracts/yield
 import { createStandardCommands } from "../../src/commands/index.js";
 import { chunks, fixture, run } from "./helpers.js";
 
+for (const [label, input, args, expected] of [
+  ["invalid suffix width", "c3a9ff0ac3aaff0a", ["-w1"], "c3a9ff0ac3aaff0a"],
+  ["invalid suffix skip", "c3a9ff0ac3aaff0a", ["-s1"], "c3a9ff0a"],
+  ["valid width", "c3a90ac3aa0a", ["-w1"], "c3a90ac3aa0a"],
+  ["valid skip", "c3a90ac3aa0a", ["-s1"], "c3a90a"],
+  ["invalid prefix", "ffc3a90affc3aa0a", ["-s1", "-w1"], "ffc3a90affc3aa0a"],
+  ["three byte skip", "e282acff0ae29883ff0a", ["-s1"], "e282acff0a"],
+  ["four byte skip", "f09f9880ff0af09f9881ff0a", ["-s1"], "f09f9880ff0a"],
+  ["distinct invalid bytes", "c3a9ff0ac3a9fe0a", ["-s1"], "c3a9ff0ac3a9fe0a"],
+] as const) {
+  test(`uniq preserves mixed UTF-8 character boundaries: ${label}`, async () => {
+    const result = await run("uniq", args, {
+      stdin: chunks(Buffer.from(input, "hex")), env: { LC_ALL: "C.utf8" }, commands: textCommands(),
+    });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdoutBytes.toString("hex"), expected);
+  });
+}
+
 function sortProbe(args: readonly string[], stdin: string, signal: AbortSignal, fs: FileSystem) {
   const stdout: Uint8Array[] = [];
   const stderr: Uint8Array[] = [];

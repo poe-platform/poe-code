@@ -43,3 +43,36 @@ for (const [expression, expected] of [
     ), expected);
   });
 }
+
+// FFmpeg 7.0.2 clears the advertised frame rate after setpts, even for identity PTS.
+for (const [filter, exitCode, expected] of [
+  ["setpts=PTS,fps=source_fps", 234, []],
+  ["setpts=2*PTS,fps=source_fps", 234, []],
+  ["setpts=PTS,fps=5", 0, source],
+  ["fps=source_fps", 0, source],
+  ["setpts=PTS,fps=5,fps=source_fps", 0, source],
+  ["fps=5,setpts=PTS,fps=source_fps", 234, []],
+  ["setpts=PTS,fps=source_fps+5", 234, []],
+  ["setpts=PTS,fps='if(isinf(source_fps),5,source_fps)'", 0, source]
+] as const) {
+  it(`uses the advertised frame rate for ${filter}`, async () => {
+    const volume = Volume.fromJSON({ "/in.gray": Buffer.from(source), "/out": "KEEP" });
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-y", "-f", "rawvideo", "-pixel_format", "gray", "-video_size", "1x1",
+        "-framerate", "5", "-i", "/in.gray", "-vf", filter, "-fps_mode", "passthrough",
+        "-pix_fmt", "gray", "-f", "rawvideo", "/out"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(), stdout: { async write() {} },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, exitCode, stderr);
+    assert.deepEqual([...volume.readFileSync("/out") as Buffer], expected);
+    if (exitCode !== 0) assert.match(stderr, /[Ee]ncoder timebase is not set/);
+  });
+}

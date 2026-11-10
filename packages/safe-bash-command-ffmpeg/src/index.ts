@@ -2016,6 +2016,7 @@ async function applyVideoFilterChain(
   let endTimeSeconds: number | undefined;
   let current: (MediaVideoFrame & { filterMetadata?: Record<string, string> })[] = frames;
   if (current.length === 0) return current;
+  let frameRateKnown = true;
 
   for (const filterSpec of parseFilterChain(filterChainStr)) {
     if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
@@ -3074,10 +3075,12 @@ async function applyVideoFilterChain(
       if (eofValue < 0 || eofValue > 1) throw new RangeError("fps: invalid eof_action value");
       // Validate options before evaluating the rate, which happens after output opens.
       const targetFps = parseFilterExpression(options.fps ?? "25", "fps: frame rate", {
-        source_fps: 1 / current[0]!.durationSeconds,
+        source_fps: frameRateKnown ? 1 / (current[0]?.durationSeconds ?? 1 / timescale) : Infinity,
         ntsc: 30000 / 1001, pal: 25, film: 24, "ntsc_film": 24000 / 1001
       });
+      if (targetFps === Infinity) throw new Error("fps: frame rate: The encoder timebase is not set.");
       if (targetFps <= 0) throw new Error("fps: frame rate: must be positive");
+      frameRateKnown = true;
       const rounding = roundToEven(roundValue);
       if (rounding === 4) {
         // Native accepts 4 but rescaling produces unknown timestamps, discarding every frame.
@@ -3642,6 +3645,8 @@ async function applyVideoFilterChain(
         ...f, ptsSeconds: current[index]!.ptsSeconds
       }), signal);
     } else if (name === "setpts") {
+      // FFmpeg 7 advertises 1/0 after setpts, independently of frame durations.
+      frameRateKnown = false;
       const expr = named.expr ?? positional[0] ?? "PTS";
       const startPts = Math.round((current[0]?.ptsSeconds ?? 0) * timescale);
       let previousInput = NaN;

@@ -809,7 +809,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     return fmt === "flat" ? '"' + escaped + '"' : escaped;
   }
 
-  const qualifiedXml = fmt === "xml" && parseWriterBoolean(paramMap.fully_qualified ?? "0");
+  const qualifiedXml = fmt === "xml" && (parseWriterBoolean(paramMap.xsd_strict ?? "0") || parseWriterBoolean(paramMap.fully_qualified ?? "0"));
   if (fmt === "xml") {
     yield '<?xml version="1.0" encoding="UTF-8"?>\n';
     yield qualifiedXml
@@ -1089,11 +1089,12 @@ function parseProbeArguments(args: readonly string[]) {
     compact: ["nokey", "nk", "print_section", "p", "item_sep", "s", "escape", "e"],
     csv: ["nokey", "nk", "print_section", "p", "item_sep", "s", "escape", "e"],
     flat: ["s", "sep_char", "h", "hierarchical"],
-    xml: ["q", "fully_qualified"],
+    xml: ["q", "fully_qualified", "x", "xsd_strict"],
     ini: ["h", "hierarchical"]
   };
   if (!Object.hasOwn(writerOptions, writer)) throw new Error(`Unknown output format ${writer}`);
   if (equals >= 0) parameters.unshift(head.slice(equals + 1));
+  let xsdStrict = false;
   for (const parameter of parameters) {
     const key = parameter.split("=")[0]!;
     if (!writerOptions[writer]!.includes(key))
@@ -1103,10 +1104,16 @@ function parseProbeArguments(args: readonly string[]) {
       throw new Error(`Invalid escape mode ${value}`);
     if (key !== "s" && key !== "item_sep" && key !== "sep_char" && key !== "escape" && key !== "e") {
       const equals = parameter.indexOf("=");
-      parseWriterBoolean(equals < 0 ? "1" : parameter.slice(equals + 1));
+      const enabled = parseWriterBoolean(equals < 0 ? "1" : parameter.slice(equals + 1));
+      if (key === "x" || key === "xsd_strict") xsdStrict = enabled;
     }
     if ((writer === "compact" || writer === "csv") && (key === "item_sep" || key === "s") && encodeUtf8(parameter.slice(key.length + 1)).length !== 1)
       throw new Error("Item separator must be a single byte");
+  }
+  if (writer === "xml" && xsdStrict && (showPrivateData || unit || prefix)) {
+    const option = showPrivateData ? "private" : unit ? "unit" : "prefix";
+    throw new Error(`XSD-compliant output selected but option '${option}' was selected, XML output may be non-compliant.
+You need to disable such option with '-no${option}'`);
   }
   const entryFilter = parseEntryFilter(showEntries);
   showPackets ||= entryFilter.has("packet") && entryFilter.get("packet")?.size !== 0;

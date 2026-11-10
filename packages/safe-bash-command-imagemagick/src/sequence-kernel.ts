@@ -211,7 +211,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
     const hue = !!inputs[0]?.magickColorspace && inputs[0].magickColorspace !== "RGB" && inputs[0].space !== "cmyk";
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
-    const fractional = cmyk || ["divide", "mean", "multiply", "rms", "rootmeansquare"].includes(operation);
+    const fractional = cmyk || ["cos", "cosine", "divide", "log", "mean", "multiply", "rms", "rootmeansquare", "sin", "sine"].includes(operation);
     const retainRange = ["add", "addmodulus", "sum", "subtract", "min", "max"].includes(operation);
     function* read(image: number, position: number, length: number, retainWorking = retainRange || fractional): Generator<ConvolveRequest, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
         const storagePosition = position / stride * 4, storageLength = length / stride * 4;
@@ -417,7 +417,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 for (let offset = 0; offset < length; offset++) values[offset] = 65535 * (0.5 + 0.5 * wave(2 * Math.PI * (1 / 65535) * (bytes[offset]! * scale) * values[offset]!));
             }
             for (let offset = 0; offset < length; offset++) {
-                if (offset % stride !== 3 || hasAlpha) data[offset] = clamp(values[offset]! / scale);
+                if (offset % stride !== 3 || hasAlpha) data[offset] = values[offset]! / scale;
             }
         } else if (operation === "exp" || operation === "exponential") {
             const values = Float64Array.from(data, value => value * scale);
@@ -444,7 +444,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 }
             }
             for (let offset = 0; offset < length; offset++) {
-                if (offset % stride !== 3 || hasAlpha) data[offset] = clamp(values[offset]! / scale);
+                if (offset % stride !== 3 || hasAlpha) data[offset] = operation === "log" ? values[offset]! / scale : clamp(values[offset]! / scale);
             }
         } else if (operation === "rootmeansquare" || operation === "rms") {
             // Native Q16 seeds the accumulator with the first unsquared quantum.

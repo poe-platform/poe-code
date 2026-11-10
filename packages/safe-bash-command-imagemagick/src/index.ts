@@ -8940,7 +8940,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const exponent = 1 / (Math.abs(gamma) >= 1e-12 ? gamma : gamma < 0 ? -1e-12 : 1e-12);
         const inverse = token === "+level-colors" || token === "+level" || !colorEndpoints && raw.includes("!");
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
-        apply = function* (im, pixelOffset = 0, imageWidth = im.width) {
+        const adjust = function* (im: RgbaImage, channels: MagickState["channels"], pixelOffset = 0, imageWidth = im.width): Generator<void, RgbaImage> {
             const cmyk = im.space === "cmyk";
             if (cmyk) im = yield* convertCmykPixels(im);
             const mask = [channels.r, channels.g, channels.b, channels.a && im.hasAlpha, cmyk && channels.k];
@@ -9011,6 +9011,22 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             }
             const colored = endpointColors?.some(color => color.r !== color.g || color.g !== color.b);
             return { ...im, ...(im.writeMask ? { writeMask: { ...im.writeMask } } : {}), ...(im.region ? { region: { ...im.region } } : {}), ...(colored && (im.space === "b-w" || im.space === "grey16") ? { space: "srgb" as const, channels: im.hasAlpha ? 4 as const : 3 as const } : {}), data: out, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), ...(data16 ? { data16 } : {}) };
+        };
+        if (!colorEndpoints) meta = {
+            channels: !state.channelExplicit || state.channelDefault ? "all" : state.channels.meta ?? [],
+            apply: (image, offset, width) => adjust(image, { r: true, g: true, b: true, a: false }, offset, width),
+        };
+        const extra = meta;
+        apply = function* (image, offset, width) {
+            const result = yield* adjust(image, channels, offset, width);
+            if (extra && image.metaChannels?.length) {
+                result.metaChannels = [...image.metaChannels];
+                for (const [index, plane] of image.metaChannels.entries()) {
+                    if (extra.channels === "all" || extra.channels.includes(index))
+                        result.metaChannels[index] = yield* extra.apply(plane);
+                }
+            }
+            return result;
         };
     }
     else if (token === "-color-threshold") {

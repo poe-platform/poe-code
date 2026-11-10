@@ -17876,6 +17876,11 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "+units") {
             delete state.units;
         }
+        else if (t === "-interlace" || t === "+interlace") {
+            if (t === "-interlace" && argv[i + 1] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -interlace\n" };
+            try { i = applyMagickReadSetting(argv, state, i)!; }
+            catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
+        }
         else if (t === "-tile") {
             const g = parseMagickGeometry(argv[++i] ?? "2x2");
             tileCols = g.width;

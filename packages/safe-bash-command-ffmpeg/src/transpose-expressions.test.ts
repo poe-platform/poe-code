@@ -10,6 +10,9 @@ const flippedClockwise = "3d5a77946d8aa7c4c9e60320f916335055728fac85a2bfdce1fe1b
 
 for (const [options, exitCode, expected] of [
   ["unknown=1", 8, "4b454550"],
+  ["clock:threads=-1", 222, "4b454550"],
+  ["clock:extra_hw_frames=-2", 222, "4b454550"],
+  ["clock:thread_type=bogus", 234, "4b454550"],
   ["enable=0", 176, "4b454550"],
   ["enable=1", 176, "4b454550"],
   ["dir=-1", 222, "4b454550"],

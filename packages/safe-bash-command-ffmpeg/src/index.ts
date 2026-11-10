@@ -3200,7 +3200,15 @@ async function applyVideoFilterChain(
         const value = (separator < 0 ? part : part.slice(separator + 1)).trim();
         if (key === "dir") direction = value;
         else if (key === "passthrough") passthrough = value;
-        else throw new Error(`transpose: unsupported option ${key}`);
+        else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+          const number = parseFilterExpression(value, "transpose", key === "thread_type" ? { slice: 1 } : {});
+          if (key === "thread_type"
+            ? !Number.isInteger(number) || number < -2147483648 || number > 4294967295
+            : number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
+            throw new RangeError(`transpose: invalid ${key}`);
+          }
+          // Scheduling and hardware frame reservations do not change the pixels.
+        } else throw new Error(`transpose: unsupported option ${key}`);
       }
       const constants = { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 };
       const directions = { ...constants, cclock_flip: 0, clock: 1, cclock: 2, clock_flip: 3 };

@@ -13,8 +13,9 @@ export function parseAudioChannelLayout(layout: string): string[] {
   if (layout === "3.0") return ["FL", "FR", "FC"];
   if (layout === "quad") return ["FL", "FR", "BL", "BR"];
   if (layout === "5.1" || layout === "6c") return ["FL", "FR", "FC", "LFE", "BL", "BR"];
-  const digits = layout.startsWith("0x") ? layout.slice(2) : layout;
-  const alphabet = layout.startsWith("0x") ? "0123456789abcdefABCDEF" : "0123456789";
+  const hexadecimal = layout.startsWith("0x") || layout.startsWith("0X");
+  const digits = hexadecimal ? layout.slice(2) : layout;
+  const alphabet = hexadecimal ? "0123456789abcdefABCDEF" : "0123456789";
   if (digits.length && [...digits].every(digit => alphabet.includes(digit))) {
     const mask = Number(layout);
     const names = Object.keys(audioSpeakerMasks).filter(name => Math.floor(mask / audioSpeakerMasks[name]!) % 2 === 1);

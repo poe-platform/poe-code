@@ -4208,15 +4208,17 @@ async function applyVideoFilterChain(
         if (key !== "loop" && key !== "size" && key !== "start") throw new Error(`loop: unsupported option ${key}`);
         const text = (separator < 0 ? option : option.slice(separator + 1)).trim();
         const value = Number(text);
+        const min = key === "loop" ? -1 : 0;
         const max = key === "loop" ? 2147483647 : key === "size" ? 32767 : Number.MAX_SAFE_INTEGER;
-        if (!text || !Number.isSafeInteger(value) || value < 0 || value > max) {
-          throw new Error(`loop: ${key} must be a finite nonnegative integer no greater than ${max}`);
+        if (!text || !Number.isSafeInteger(value) || value < min || value > max) {
+          throw new Error(`loop: ${key} must be an integer between ${min} and ${max}`);
         }
         values[key] = value;
       }
       // FFmpeg starts buffering when its one-based input count reaches start.
       const start = Math.max(0, values.start - 1);
       const size = Math.min(values.size, Math.max(0, current.length - start));
+      if (values.loop === -1 && size > 0) throw new Error("loop: infinite replay is not supported");
       if (values.loop > 0 && size > 0) {
         const end = start + size;
         const first = current[start]!;

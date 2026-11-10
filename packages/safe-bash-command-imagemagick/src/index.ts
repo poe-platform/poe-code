@@ -10609,9 +10609,19 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         if (t === "-set" && !tokens[i + 1]?.toLowerCase().startsWith("option:") && !tokens[i + 1]?.toLowerCase().startsWith("connected-components:")) {
             const key = tokens[++i] ?? "", value = tokens[++i] ?? "";
+            const properties: { key: string; value: string }[] = [];
+            for (let sceneIdx = 0; sceneIdx < stack.length; sceneIdx++) {
+                const image = stack[sceneIdx]!;
+                const context = { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, optionProperties: state.optionProperties };
+                properties.push({
+                    key: yield* formatMagickPropertyStringSteps(key, image, () => image, context),
+                    value: yield* formatMagickPropertyStringSteps(value, image, () => image, context)
+                });
+            }
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const expandedKey = yield* formatMagickPropertyStringSteps(key, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                yield;
+                const { key: expandedKey, value: expanded } = properties[sceneIdx++]!;
                 if (["width", "height", "size"].includes(expandedKey.toLowerCase())) {
                     analysis.warnings += `magick: attempt to set read-only property '${expandedKey}'\n`;
                     return image;
@@ -13405,10 +13415,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-set" && !tokens[i + 1]?.toLowerCase().startsWith("option:") && !tokens[i + 1]?.toLowerCase().startsWith("connected-components:")) {
             const key = tokens[++i] ?? "", value = tokens[++i] ?? "";
             const optionProperties = state.optionProperties, units = state.units === "unknown" ? undefined : state.units;
+            let images: StoredImageStack, sceneIdx = 0;
+            stackStep(async stack => {
+                images = stack;
+                return stack;
+            });
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expandedKey = await formatRetainedIdentify(key, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                const expanded = await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const context = { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties };
+                const expandedKey = await formatRetainedIdentify(key, image, context, async () => ({ image, storage: backend.storage }), signal, images);
+                const expanded = await formatRetainedIdentify(value, image, context, async () => ({ image, storage: backend.storage }), signal, images);
                 if (["width", "height", "size"].includes(expandedKey.toLowerCase())) {
                     analysis.warnings += `magick: attempt to set read-only property '${expandedKey}'\n`;
                     return image;

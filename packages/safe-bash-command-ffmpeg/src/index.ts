@@ -10528,7 +10528,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         if (padding === undefined && minimum === undefined) {
-                          const next = audioFilters[filterIndex + 1];
+                          let nextIndex = filterIndex + 1;
+                          let reframed = false;
+                          for (; nextIndex < audioFilters.length; nextIndex++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const name = audioFilters[nextIndex]!.split("=", 1)[0]!.split("@", 1)[0];
+                            if (name === "asetnsamples") reframed = true;
+                            else if (!["anull", "acopy", "volume"].includes(name!)) break;
+                          }
+                          const next = audioFilters[nextIndex];
                           if (outputDuration === undefined && outputTo === undefined && maxAudioFrames === undefined && next?.split("=", 1)[0]!.split("@", 1)[0] === "atrim") {
                             const { duration, startPts, endPts, startSample, endSample } = parseAtrim(
                               next.includes("=") ? next.slice(next.indexOf("=") + 1) : "", origRate);
@@ -10551,7 +10559,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             // atrim keeps samples until every end condition is satisfied.
                             const end = Math.max(endSample, inputLength + endPts - paddingPts,
                               duration > 0 ? inputLength + firstPts + duration - paddingPts : -Infinity);
-                            if (Number.isFinite(end)) minimum = Math.max(0, end);
+                            // Reframing preserves sample positions but can change discontinuous PTS.
+                            // Only sample end bounds are safe to propagate through asetnsamples.
+                            if (Number.isFinite(end) && (!reframed || endPts === -Infinity && duration === 0)) {
+                              minimum = Math.max(0, end);
+                            }
                           }
                           if (minimum === undefined) {
                             const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;

@@ -8387,8 +8387,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     }
     else if (token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") {
         highDepth = true;
-        const raw = [...(tokens[++i] ?? "")].filter(character => character.trim() !== "" && !"()#".includes(character)).join("")
-            .replaceAll(",", "x").replaceAll("/", "x");
+        const argument = [...(tokens[++i] ?? "")].filter(character => character.trim() !== "" && !"()#".includes(character)).join("");
+        const raw = argument.replaceAll(",", "x").replaceAll("/", "x");
         validateMagickTransformGeometry(raw, token);
         const geometry = parseMagickGeometry(raw.replaceAll(":", "x"));
         // Two offsets supply no contrast magnitude; numeric prefixes are not complete dimensions.
@@ -8408,8 +8408,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         const beta = Math.max(1e-4, strength);
         // A negative offset supplies the midpoint; a positive one leaves the default.
+        // Positive x offsets omit the midpoint; comma/slash signs and negative midpoints stay explicit.
+        const midpointOffset = argument.includes("x+") || argument.includes("X+");
         const mRaw = signedRatio ? mStr!.startsWith("-") ? parseFloat(mStr!) : 65535 / 2
-            : ratio ? 1 : mStr && mStr !== "%" ? (mStr.startsWith("0x") ? parseInt(mStr, 16) : parseFloat(mStr)) : 65535 / 2;
+            : ratio ? 1 : !midpointOffset && mStr && mStr !== "%" ? (mStr.startsWith("0x") ? parseInt(mStr, 16) : parseFloat(mStr)) : 65535 / 2;
         const alpha = raw.includes("%") ? mRaw / 100 : mRaw / 65535;
         const sig = (u: number) => Math.tanh(0.5 * beta * (u - alpha));
         const s0 = sig(0);

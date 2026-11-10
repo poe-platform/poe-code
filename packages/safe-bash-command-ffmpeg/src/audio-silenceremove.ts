@@ -5,7 +5,7 @@ import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
 
 export async function removeSilence(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  frames: { start: number; end: number; pts: number }[],
+  frames: { start: number; end: number; pts: number; pos?: number | undefined }[],
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<{ channels: (Float32Array | Float64Array)[]; frames: typeof frames }> {
   let enable: string | undefined;
@@ -46,7 +46,7 @@ export async function removeSilence(
       // Scheduling and hardware-frame options do not change the rendered PCM.
     } else if (key === "enable") {
       enable = value;
-      parseFilterExpression(enable, "silenceremove enable", { n: 0, t: 0 });
+      parseFilterExpression(enable, "silenceremove enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 });
     } else if (key === "start_mode" || key === "stop_mode" || key === "detection" || key === "timestamp") {
       const names = key === "detection" ? ["avg", "rms", "peak", "median", "ptp", "dev"]
         : key === "timestamp" ? ["write", "copy"] : ["any", "all"];
@@ -83,7 +83,8 @@ export async function removeSilence(
   for (const [n, frame] of frames.entries()) {
     if (n % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
     enabledFrames[n] = Number(enable === undefined || Math.abs(parseFilterExpression(enable, "silenceremove enable", {
-      n, t: frame.pts / sampleRate
+      n, t: frame.pts / sampleRate,
+      pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0, h: 0
     })) >= 0.5);
   }
   const firstPts = frames[0]?.pts ?? 0;

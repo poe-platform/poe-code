@@ -10595,8 +10595,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-polaroid") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const argument = tokens[++i] ?? "";
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const expanded = yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx: sceneIdx++, optionProperties: state.optionProperties });
                 const angle = Number(expanded);
                 if (!expanded.trim() || !Number.isFinite(angle)) throw new Error(`invalid argument for option '-polaroid': ${expanded}`);
                 const border = Math.trunc(Math.max(image.width / 25, image.height / 25, 10));
@@ -13441,14 +13442,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return { ...await transformStoredMagickRaster(image, backend, vignettePixelSteps(image, backgroundExplicit ? background : image.backgroundColor ?? background, geometry, channels, compose), signal, layout), region: undefined, virtualCanvas: layout.virtualCanvas };
             });
         } else if (!operandsOnly && token === "-polaroid") {
+            let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
                 return stack;
             });
             const argument = tokens[++i] ?? "", settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx, sceneIdx: sceneIdx++, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 const angle = Number(expanded);
                 if (!expanded.trim() || !Number.isFinite(angle)) throw new Error(`invalid argument for option '-polaroid': ${expanded}`);
                 const border = Math.trunc(Math.max(image.width / 25, image.height / 25, 10));

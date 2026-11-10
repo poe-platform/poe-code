@@ -292,7 +292,7 @@ export function* channelFxPixelSteps(inputs: readonly (Pick<RgbaImage, "width" |
     }
 }
 
-export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "height"> & { space?: RgbaImage["space"] | undefined; magickColorspace?: string | undefined })[], highDepth = false, intensity = "rec709luma", gray = false, cmyk = inputs[0]!.space === "cmyk"): Steps {
+export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "height"> & { space?: RgbaImage["space"] | undefined; magickColorspace?: string | undefined })[], highDepth = false, intensity = "rec709luma", gray = false, cmyk = inputs[0]!.space === "cmyk", initializeChannels = false): Steps {
     const { width, height } = inputs[0]!, chunkPixels = 512;
     // The storage planes are RGBA plus CMYK inks; reduce C, M, Y, alpha and K together.
     const range = highDepth ? 65535 : 255;
@@ -306,7 +306,9 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
             : Float64Array.from(data, value => highDepth ? value / 257 : value);
         const baseHue = inputs[0]!.space === "cmyk" ? yield { kind: "read", hue: true, position, length } : undefined;
         const inks = cmyk ? baseHue?.length ? new Float64Array(baseHue.slice().buffer) : new Float64Array(length) : undefined;
-        if (inks && !baseHue?.length) for (let offset = 0; offset < length; offset += 4)
+        if (inks && initializeChannels) for (let offset = 0; offset < length; offset += 4)
+            inks.set([data[offset]! / range, data[offset + 1]! / range, data[offset + 2]! / range, 0], offset);
+        if (inks && !baseHue?.length && !initializeChannels) for (let offset = 0; offset < length; offset += 4)
             inks.set(rgbToCmyk(data[offset]! / range, data[offset + 1]! / range, data[offset + 2]! / range), offset);
         for (let image = 0; image < inputs.length; image++) {
             const sourceImage = inputs[image]!;

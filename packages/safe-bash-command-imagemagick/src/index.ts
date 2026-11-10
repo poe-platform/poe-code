@@ -3956,7 +3956,7 @@ function parsePosterizeLevels(value: string): number {
     return levels;
 }
 
-function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">, levelsRaw: number, dither: MagickState["dither"], diffusionAmount: number, channels: MagickState["channels"], signal?: AbortSignal): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">, levelsRaw: number, dither: MagickState["dither"], diffusionAmount: number, channels: MagickState["channels"], signal?: AbortSignal, reducePalette = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     let cooperativeWork = 0;
     const levels = Math.max(2, Math.trunc(levelsRaw));
     const step = 255 / (levels - 1);
@@ -3968,7 +3968,7 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
     if (!dither && levelsRaw >= 2) {
         // Gray occupies all RGB slots, but only the red channel mask selects it.
         if (img.space === "b-w" || img.space === "grey16") mask[1] = mask[2] = channels.r;
-        if (img.hasAlpha || !channels.r || !channels.g || !channels.b) {
+        if (reducePalette && (img.hasAlpha || !channels.r || !channels.g || !channels.b)) {
             // Native rounds samples, then reduces the resulting RGBA palette to
             // levels³ colors. Alpha and unselected RGB channels can exceed that limit.
             const colors = Math.min(65536, levels ** 3);
@@ -9203,7 +9203,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i = setting;
             if (t === "-depth" && state.inputDepth! < 16) {
                 const levels = 2 ** state.inputDepth!, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-                stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, false, 1, channels, signal), signal));
+                stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps(image, posterizePixelSteps(image, levels, false, 1, channels, signal, false), signal));
             }
             if (t === "-interlace" || t === "+interlace") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
             if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity }; });
@@ -11292,7 +11292,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }
             if (token === "-depth" && state.inputDepth! < 16) {
                 const levels = 2 ** state.inputDepth!, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-                steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, false, 1, channels, signal), signal) : undefined);
+                steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, posterizePixelSteps(image, levels, false, 1, channels, signal, false), signal) : undefined);
             }
             if (token === "-interlace" || token === "+interlace") {
                 const interlace = state.interlace!;

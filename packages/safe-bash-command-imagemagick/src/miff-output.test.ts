@@ -91,7 +91,9 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
                 for (let frame = 0; frame < count; frame++) {
                     const end = bytes.indexOf(26, offset);
                     expect(new TextDecoder().decode(bytes.subarray(offset, end))).toContain(`depth=${outputDepth}\n`);
-                    expect(bytes.subarray(end + 1, end + 1 + expected.length)).toEqual(expected);
+                    // -depth rounds existing Q16 samples; the later input has not run that operator.
+                    const frameExpected = frame === 0 && highDepth && depth === 8 ? Uint8Array.from(samples, value => Math.round(value / 257)) : expected;
+                    expect(bytes.subarray(end + 1, end + 1 + expected.length)).toEqual(frameExpected);
                     offset = end + 1 + expected.length;
                 }
                 expect(offset).toBe(bytes.length);

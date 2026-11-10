@@ -125,7 +125,7 @@ export function* formatTrimBoundsSteps<Step = never>(
             next = steps.next(chunk.evaluateSamples ?? chunk.data16 ?? chunk.data);
         }
     }
-    if (!next.value && analysis) {
+    if (!next.value && analysis && !analysis.boundsWarning) {
         analysis.warnings += "magick: geometry does not contain image\n";
         analysis.boundsWarning = true;
     }

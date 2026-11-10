@@ -12,7 +12,15 @@ for (const mode of ["sync", "map", "retained", "command"] as const) {
             { options: [], format: "%[bounding-box]", draw: false, output: "6,5 6,5", exitCode: 0 },
             { options: ["-regard-warnings", "+regard-warnings"], format: "%@", draw: false, output: "0x0+6+5", exitCode: 0 },
             { options: ["-regard-warnings", "+regard-warnings"], format: "%[bounding-box]", draw: false, output: "6,5 6,5", exitCode: 0 },
-            { options: ["-regard-warnings"], format: "%@|%[bounding-box];", draw: true, output: "2x2+2+1|2,1 4,3;", exitCode: 0 }
+            { options: ["-regard-warnings"], format: "%@|%[bounding-box];", draw: true, output: "2x2+2+1|2,1 4,3;", exitCode: 0 },
+            ...[
+                { format: "%@|%[bounding-box]", output: "0x0+6+5|6,5 6,5" },
+                { format: "%[bounding-box]|%@", output: "6,5 6,5|0x0+6+5" },
+                { format: "%@|%@", output: "0x0+6+5|0x0+6+5" },
+                { format: "%[bounding-box]|%[bounding-box]", output: "6,5 6,5|6,5 6,5" }
+            ].flatMap(test => [[], ["-quiet"], ["-regard-warnings"], ["-quiet", "-regard-warnings"]].map(options => ({
+                ...test, options, draw: false, exitCode: options.includes("-regard-warnings") ? 1 : 0
+            })))
         ])(`${mode} ${target}: $options $format (draw=$draw)`, async ({ options, format, draw, output, exitCode }) => {
             const keep = new TextEncoder().encode("KEEP"), files = new Map([["/out", keep]]);
             const fs = new MemoryFileSystem();
@@ -31,7 +39,7 @@ for (const mode of ["sync", "map", "retained", "command"] as const) {
                 result = { ...status, stdout, stderr };
             } else result = mode === "sync" ? runMagickCliSync(args, files)
                 : await runMagickCli(args, mode === "map" ? files : { filesystem: fs, cwd: "/" });
-            expect(result).toEqual({ exitCode, stdout: target === "info:-" ? output : "", stderr: draw ? "" : "magick: geometry does not contain image\n" });
+            expect(result).toEqual({ exitCode, stdout: target === "info:-" ? output : "", stderr: draw || options.includes("-quiet") ? "" : "magick: geometry does not contain image\n" });
             const written = mode === "map" || mode === "sync" ? files.get("/out") : await fs.readFile("/out");
             expect(new TextDecoder().decode(written)).toBe(target === "info:-" ? "KEEP" : output);
         });

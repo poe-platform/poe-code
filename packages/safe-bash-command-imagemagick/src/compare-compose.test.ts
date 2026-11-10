@@ -49,7 +49,7 @@ for (const retained of [false, true]) {
         ["Clear", "0000000000000000"],
         ["Multiply", "102030ff7a1d2fff"],
         ["Dst", "ffffffffffffffff"],
-        ["Difference", "10203033726f4133"],
+        ["Difference", "3d465033756f4733"],
         ["Xor", "0000003300000033"],
         ["Screen", "ffffffffffffffff"],
         ["SrcIn", "ccccccccc10018cc"],

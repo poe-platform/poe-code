@@ -342,9 +342,14 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
             if (norm === "difference") {
                 if (saByte === 0)
                     continue;
-                out[dIdx] = Math.abs(sr - dr);
-                out[dIdx + 1] = Math.abs(sg - dg);
-                out[dIdx + 2] = Math.abs(sb - db);
+                const alpha = sa + da - sa * da;
+                for (let c = 0; c < 3; c++) {
+                    const source = src.data[sIdx + c]!;
+                    const destination = dst.data[dIdx + c]!;
+                    const channel = Math.abs(source - destination) * sa * da
+                        + source * sa * (1 - da) + destination * da * (1 - sa);
+                    out[dIdx + c] = clampByteVal(channel / alpha);
+                }
                 out[dIdx + 3] = dst.hasAlpha ? Math.abs(saByte - daByte) : daByte;
                 continue;
             }

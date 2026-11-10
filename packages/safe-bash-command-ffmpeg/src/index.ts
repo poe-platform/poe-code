@@ -3628,14 +3628,21 @@ async function applyVideoFilterChain(
         ...f, ptsSeconds: current[index]!.ptsSeconds
       }), signal);
     } else if (name === "setpts") {
-      const expr = (named.expr ?? positional[0] ?? "PTS").toUpperCase();
+      const expr = named.expr ?? positional[0] ?? "PTS";
       const startPts = (current[0]?.ptsSeconds ?? 0) * timescale;
-      current = await mapWork(current, async (f) => ({
-        ...f,
-        ptsSeconds: Math.trunc(parseFilterExpression(expr, "setpts", {
-          PTS: f.ptsSeconds * timescale, STARTPTS: startPts
-        })) / timescale
-      }), signal);
+      let previousInput = NaN;
+      let previousOutput = NaN;
+      current = await mapWork(current, (f) => {
+        const input = f.ptsSeconds * timescale;
+        const output = parseFilterExpression(expr, "setpts", {
+          PTS: input, STARTPTS: startPts, TB: 1 / timescale,
+          PREV_INPTS: previousInput, PREV_INT: previousInput / timescale,
+          PREV_OUTPTS: previousOutput, PREV_OUTT: previousOutput / timescale
+        });
+        previousInput = input;
+        previousOutput = output;
+        return { ...f, ptsSeconds: Math.trunc(output) / timescale };
+      }, signal);
     } else if (name === "drawbox") {
       const values = positional.map(part => part === "" || part.includes("=") ? undefined : part);
       for (const key of Object.keys(named)) {

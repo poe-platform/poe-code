@@ -6184,7 +6184,7 @@ function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlph
 
 function* overCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "magickColorspace" | "space">, frame: Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha">, left: number, top: number, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = canvas.space === "cmyk", gray = canvas.space === "b-w" || canvas.space === "grey16";
-    const hue = cmyk || canvas.magickColorspace !== undefined && canvas.magickColorspace !== "RGB";
+    const hue = cmyk || canvas.magickColorspace !== undefined && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "Gray";
     const sourceCmyk = frame.space === "cmyk", sourceHue = sourceCmyk || !cmyk && hue;
     const quantum = hue ? 1 : 255;
     for (let y = 0; y < canvas.height; y++) {
@@ -7773,7 +7773,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 imageType: imageType === "bilevel" ? "Bilevel" : imageType === "grayscale" ? "Grayscale" : imageType === "grayscalealpha" ? "GrayscaleAlpha" : undefined
             } };
             if (space === "srgb" && (image.space === "b-w" || image.space === "grey16" || image.magickColorspace === "RGB")) image = { ...image, isPalette: false };
-            const linearGray = (image.space === "b-w" || image.space === "grey16") && image.gamma === 1;
+            const linearGray = (image.space === "b-w" || image.space === "grey16") && image.gamma === 1 && image.magickColorspace !== "Gray";
+            if (token === "-colorspace" && image.magickColorspace === "Gray" && (space === "gray" || space === "grey")) return image;
             if (linearGray && space === "lineargray") return image;
             if (linearGray && space === "rgb") return { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3, magickColorspace: "RGB" };
             if (image.magickColorspace === "RGB" && space === "rgb") return image;
@@ -7843,7 +7844,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (space === "ohta") return yield* convertHuePixels(image, "OHTA");
             if (space === "hsl" || space === "hsb" || space === "hsv" || space === "hwb" || space === "xyz" || space === "ycbcr" || space === "yuv") return yield* convertHuePixels(image, space === "yuv" ? "YUV" : space === "ycbcr" ? "YCbCr" : space === "xyz" ? "XYZ" : space === "hwb" ? "HWB" : space === "hsv" ? "HSV" : space === "hsb" ? "HSB" : "HSL");
             if (token !== "-grayscale" && !["gray", "grey", "lineargray", "rec709luma", "rec601luma"].includes(space)) {
-                if (space === "srgb") return { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
+                if (space === "srgb") {
+                    const { magickColorspace: ignoredSpace, ...rgb } = image;
+                    return { ...rgb, ...(image.magickColorspace === "Gray" ? { gamma: 1 / 2.2 } : {}), space: "srgb", channels: image.hasAlpha ? 4 : 3 };
+                }
                 throw new Error(`unsupported colorspace '${value}'`);
             }
             const out = new Uint8Array(image.data), data16 = new Uint16Array(out.length);
@@ -7854,7 +7858,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 if (idx % 65536 === 0) yield;
                 let r = samples[idx]! * scale, g = samples[idx + 1]! * scale, b = samples[idx + 2]! * scale;
                 // Grayscale reads active channels; LinearGray also linearizes nonlinear gray.
-                if (luminance && !image.magickColorspace && (image.space === "srgb" || image.space === "rgb16" || space === "lineargray" && (image.space === "b-w" || image.space === "grey16"))) {
+                if (luminance && (!image.magickColorspace || image.magickColorspace === "Gray") && (image.space === "srgb" || image.space === "rgb16" || space === "lineargray" && (image.space === "b-w" || image.space === "grey16"))) {
                     r = 65535 * (r / 65535 <= 0.04045 ? r / 65535 / 12.92 : ((r / 65535 + 0.055) / 1.055) ** 2.4);
                     g = 65535 * (g / 65535 <= 0.04045 ? g / 65535 / 12.92 : ((g / 65535 + 0.055) / 1.055) ** 2.4);
                     b = 65535 * (b / 65535 <= 0.04045 ? b / 65535 / 12.92 : ((b / 65535 + 0.055) / 1.055) ** 2.4);
@@ -9254,7 +9258,7 @@ function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 
     const missingChannel = channel === null || (channel === 4 ? image.space !== "cmyk" : channel === 3 ? !(image.hasAlpha || image.alphaSeparate === true) : channel !== 0 && (image.space === "b-w" || image.space === "grey16"));
     // Extraction clips against the source selection, then retains a fully editable mask.
     const { writeMask: ignoredMask, region: ignoredRegion, magickColorspace: ignoredSpace, hueSamples, storedHueSamples: ignoredStoredHue, metaChannels: ignoredMeta, storedMetaChannels: ignoredStoredMeta, ...components } = image;
-    const separated = { ...yield* extractChannelImageSteps(missingChannel ? yield* ensureAlphaImageSteps({ ...components, hasAlpha: false }, 0) : { ...components, hasAlpha: image.hasAlpha || image.alphaSeparate === true }, missingChannel ? 3 : channel === 4 ? 0 : channel), isPalette: false, alphaBlend: false, inactiveAlpha: false };
+    const separated = { ...yield* extractChannelImageSteps(missingChannel ? yield* ensureAlphaImageSteps({ ...components, hasAlpha: false }, 0) : { ...components, hasAlpha: image.hasAlpha || image.alphaSeparate === true }, missingChannel ? 3 : channel === 4 ? 0 : channel), magickColorspace: "Gray" as const, isPalette: false, alphaBlend: false, inactiveAlpha: false };
     // CMYK stores K at working offset 3; alpha remains in the RGBA backing.
     const workingSamples = channel === 3 ? undefined : hueSamples;
     const samples = workingSamples ?? image.evaluateSamples;
@@ -10546,7 +10550,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const count = quantization.count = colors ?? parseMagickColorCount(yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }));
                 const colorspace = state.quantizeColorspace;
                 if (colorspace && colorspace !== "gray") image = yield* parseMagickPixelOperation(["-colorspace", colorspace === "cmyk" ? "sRGB" : colorspace], state, 0, signal)!.apply(image);
-                else if (image.magickColorspace && image.magickColorspace !== "RGB") image = yield* convertHuePixels(image, "sRGB");
+                else if (image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "Gray") image = yield* convertHuePixels(image, "sRGB");
                 const working = colorspace === "cmyk" ? "cmyk" : colorspace && colorspace !== "gray" && image.hueSamples ? "hue" : undefined;
                 const { hueSamples: ignoredHue, ...pixels } = image;
                 const output = yield* applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, count, state.quantizeColorspace === "gray", state.treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, state.dither ? { width: image.width, height: image.height, method: state.dither, diffusionAmount: state.diffusionAmount ?? 1 } : undefined, true, working), signal, image, [image]);
@@ -13309,7 +13313,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const source = image;
                 const count = quantization.count = colors ?? parseMagickColorCount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image: source, storage: backend.storage }), signal));
                 if (conversion) image = await transformStoredMagickPixels(image, backend, conversion, signal);
-                else if (image.magickColorspace && image.magickColorspace !== "RGB") image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
+                else if (image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "Gray") image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
                 const working = colorspace === "cmyk" ? "cmyk" : colorspace && colorspace !== "gray" && image.storedHueSamples !== undefined ? "hue" : undefined;
                 const output = await transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, count, colorspace === "gray", treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true, working), signal);
                 if (working === "cmyk") return { ...output, space: "cmyk", channels: 4 };

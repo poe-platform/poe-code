@@ -2,7 +2,7 @@ import type { RgbaImage } from "@poe-code/image-ast/portable";
 import { formatMetricNum } from "./compare-kernel.js";
 
 export interface HueMetadata {
-    magickColorspace?: "HCL" | "HCLp" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "xyY" | "CIELab" | "YCbCr" | "Log" | "OHTA" | "YUV" | "Luv" | "LCH" | "LCHab" | "LCHuv" | "Oklab" | "Oklch" | "RGB";
+    magickColorspace?: "HCL" | "HCLp" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "xyY" | "CIELab" | "YCbCr" | "Log" | "OHTA" | "YUV" | "Luv" | "LCH" | "LCHab" | "LCHuv" | "Oklab" | "Oklch" | "RGB" | "Gray";
     // Preserve native HDRI precision for expressions; codecs use the integer planes.
     hueSamples?: Float64Array;
     storedHueSamples?: number;

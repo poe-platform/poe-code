@@ -335,7 +335,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
     const canvas = sequenceCanvas(inputs), cmyk = canvas.space === "cmyk", stride = cmyk ? 5 : 4;
     size = size / 4 * stride;
     const frames = inputs.length, hasAlpha = inputs.some(image => image.hasAlpha);
-    const hue = !!canvas.magickColorspace && canvas.magickColorspace !== "RGB" && !cmyk;
+    const hue = !!canvas.magickColorspace && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "Gray" && !cmyk;
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
     const fractional = cmyk || ["cos", "cosine", "divide", "log", "mean", "multiply", "rms", "rootmeansquare", "sin", "sine"].includes(operation);

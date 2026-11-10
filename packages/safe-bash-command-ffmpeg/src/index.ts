@@ -10857,7 +10857,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           const next = audioFilters[nextIndex];
                           let resampleRate = origRate;
-                          if (!reframed && next?.split("=", 1)[0]!.split("@", 1)[0] === "aresample") {
+                          if (!reframe && next?.split("=", 1)[0]!.split("@", 1)[0] === "aresample") {
                             const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "0";
                             const [key, raw, extra] = argument.split("=");
                             if (extra === undefined && (raw === undefined || ["osr", "out_sample_rate", "sample_rate"].includes(key!))) {

@@ -119,7 +119,7 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
             // ImageMagick shifts out-of-gamut linear channels together before encoding.
             const minimum = Math.min(0, ...linear);
             [r, g, b] = linear.map(sample => {
-                const value = target === "Oklch" || image.magickColorspace === "Oklch" || sample - minimum;
+                const value = sample - minimum;
                 return value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055;
             }) as [number, number, number];
         } else if (!toHue && (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp")) {

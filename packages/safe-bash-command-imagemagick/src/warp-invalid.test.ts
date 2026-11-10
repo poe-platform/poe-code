@@ -7,7 +7,7 @@ const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAcAAAAFCAIAAAAG+GGPAAAAJUlEQ
 
 for (const mode of ["sync", "buffered", "retained", "command", "mogrify"] as const)
 for (const option of ["-wave", "-swirl", "-implode"]) {
-    it.each(["2+1", "2-1", "%[fx:2]+1", "%[fx:2]-1", "bad", "", "2xbad", "NaN", "+1+2", "-1-2", "x", "++2", "--2", "+-2", "-+2", "+%[fx:1]+2", ...(option === "-wave" ? [] : ["x7"])])(`${mode}: rejects ${option} %j without replacing output`, async (argument) => {
+    it.each(["bad", "", "2xbad", "NaN", "+1+2", "-1-2", "x", "++2", "--2", "+-2", "-+2", "+%[fx:1]+2", ...(option === "-wave" ? [] : ["x7"])])(`${mode}: rejects ${option} %j without replacing output`, async (argument) => {
         const destination = mode === "mogrify" ? input : new TextEncoder().encode("KEEP");
         const files = new Map<string, Uint8Array>([["/input.png", input], ["/out.png", destination]]);
         const filesystem = new MemoryFileSystem();

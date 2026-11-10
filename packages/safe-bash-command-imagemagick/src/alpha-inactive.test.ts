@@ -27,7 +27,7 @@ for (const execution of ["command", "buffered", "sync"] as const) {
             const output = execution === "command" ? await fs.readFile("/out.png") : files.get("out.png")!;
             const expected = pixels.map((value, index) => {
                 const alpha = mode === "off" ? 0 : pixels[Math.floor(index / 4) * 4 + 3]!;
-                if (action === "extract") return index % 4 === 3 || mode === "off" ? 255 : alpha;
+                if (action === "extract") return index % 4 === 3 || mode === "off" || mode === "disassociate" ? 255 : alpha;
                 if (index % 4 === 3) return action === "activate" ? alpha : 255;
                 const scale = pixels[Math.floor(index / 4) * 4 + 3]! / 255;
                 return mode === "associate" ? Math.round(value * scale)

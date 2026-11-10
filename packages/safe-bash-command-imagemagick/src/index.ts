@@ -2384,8 +2384,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
 }
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
-    let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
-    if (["-swirl", "-implode", "-wave"].includes(option)) value = value.replaceAll("(", "").replaceAll(")", "");
+    const value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
     const forcedRegionResize = (option === "-liquid-rescale" || option === "-adaptive-resize") && value.includes("!");
     let dimensions = false;
     for (const char of value) {
@@ -2396,7 +2395,7 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
         }
     }
     if (!value || value === "+" || value === "-") throw new Error(`invalid argument for option '${option}': ${raw}`);
-    if (["-chop", "-swirl", "-implode", "-wave"].includes(option) && !dimensions) {
+    if (option === "-chop" && !dimensions) {
         const geometry = parseMagickGeometry(value.replaceAll("#", ""));
         if (geometry.width !== undefined && geometry.hasOffset) {
             throw new Error(`invalid argument for option '${option}': ${raw}`);
@@ -3719,7 +3718,6 @@ function solveLinearSystem(A: number[][], b: number[]): number[] {
 }
 
 function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, token: string, spec: string, args = "0"): WarpPlan | undefined {
-    if (["-swirl", "-implode", "-wave"].includes(token)) spec = spec.replaceAll("(", "").replaceAll(")", "");
     const w = img.width, h = img.height, cx = (w - 1) / 2, cy = (h - 1) / 2;
     const result = (map: WarpPlan["map"], width = w, height = h, hasAlpha = true): WarpPlan => ({ width, height, hasAlpha, map });
     const bestFit = (plan: WarpPlan, forward: WarpPlan["map"]): WarpPlan => {
@@ -7887,7 +7885,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     out[idx + 3] = 255;
                     data16[idx + 3] = 65535;
                 }
-                return { ...im, data: out, data16, hasAlpha: false, inactiveAlpha: false, channels: im.channels === 4 ? 3 : im.channels === 2 ? 1 : im.channels };
+                return { ...im, data: out, data16, hasAlpha: false, inactiveAlpha: false, alphaSeparate: false, channels: im.channels === 4 ? 3 : im.channels === 2 ? 1 : im.channels };
             };
         }
         else if (mode === "associate" || mode === "disassociate") {
@@ -7913,7 +7911,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     }
                     data16[idx + 3] = im.data16 ? im.data16[idx + 3]! : im.data[idx + 3]! * 257;
                 }
-                return { ...im, data: out, data16, ...(hueSamples ? { hueSamples } : {}), hasAlpha: false, alphaBlend: im.alphaBlend ?? im.hasAlpha, alphaSeparate: mode === "disassociate" };
+                return { ...im, data: out, data16, ...(hueSamples ? { hueSamples } : {}), hasAlpha: false, alphaBlend: mode === "associate" && (im.alphaBlend ?? im.hasAlpha), alphaSeparate: mode === "disassociate" };
             };
         }
         else if (mode === "deactivate" || mode === "discrete") {
@@ -7949,7 +7947,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     out[idx] = mode === "opaque" ? 255 : 0;
                     if (data16) data16[idx] = mode === "opaque" ? 65535 : 0;
                 }
-                return { ...im, data: out, ...(data16 ? { data16 } : {}), hasAlpha: mode !== "off", inactiveAlpha: false, alphaBlend: mode !== "off" };
+                return { ...im, data: out, ...(data16 ? { data16 } : {}), hasAlpha: mode !== "off", inactiveAlpha: false, alphaBlend: mode !== "off", alphaSeparate: false };
             };
         }
         else if (mode === "copy" || mode === "shape") {
@@ -8033,7 +8031,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         if (extracted.data16) extracted.data16[offset] = extracted.data16[offset + 1] = extracted.data16[offset + 2] = Math.round(gray);
                     }
                 }
-                return { ...extracted, ...(hueSamples ? { hueSamples } : {}), inactiveAlpha: false, space: im.space };
+                return { ...extracted, ...(hueSamples ? { hueSamples } : {}), inactiveAlpha: false, alphaSeparate: false, space: im.space };
             };
         }
         else { throw new Error(`Unsupported alpha mode: ${mode}`); }
@@ -9051,10 +9049,10 @@ function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<
 }
 
 function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 4 | null, clipRed: boolean, pixelOffset = 0, imageWidth = image.width): Generator<void, RgbaImage> {
-    const missingChannel = channel === null || (channel === 4 ? image.space !== "cmyk" : channel === 3 ? !(image.hasAlpha || image.alphaBlend === true && image.alphaSeparate === true) : channel !== 0 && (image.space === "b-w" || image.space === "grey16"));
+    const missingChannel = channel === null || (channel === 4 ? image.space !== "cmyk" : channel === 3 ? !(image.hasAlpha || image.alphaSeparate === true) : channel !== 0 && (image.space === "b-w" || image.space === "grey16"));
     // The source selection clips extraction, but does not belong to the generated planes.
     const { writeMask: ignoredMask, region: ignoredRegion, magickColorspace: ignoredSpace, hueSamples, storedHueSamples: ignoredStoredHue, metaChannels: ignoredMeta, storedMetaChannels: ignoredStoredMeta, ...components } = image;
-    const separated = { ...yield* extractChannelImageSteps(missingChannel ? yield* ensureAlphaImageSteps({ ...components, hasAlpha: false }, 0) : { ...components, hasAlpha: image.hasAlpha || image.alphaBlend === true && image.alphaSeparate === true }, missingChannel ? 3 : channel === 4 ? 0 : channel), isPalette: false, alphaBlend: false, inactiveAlpha: false };
+    const separated = { ...yield* extractChannelImageSteps(missingChannel ? yield* ensureAlphaImageSteps({ ...components, hasAlpha: false }, 0) : { ...components, hasAlpha: image.hasAlpha || image.alphaSeparate === true }, missingChannel ? 3 : channel === 4 ? 0 : channel), isPalette: false, alphaBlend: false, inactiveAlpha: false };
     // CMYK stores K at working offset 3; alpha remains in the RGBA backing.
     const workingSamples = channel === 3 ? undefined : hueSamples;
     const samples = workingSamples ?? image.evaluateSamples;
@@ -11471,7 +11469,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     yield;
                 const mask = [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k];
                 const channels: (0 | 1 | 2 | 3 | 4 | null)[] = ([0, 1, 2, 4, 3] as const).filter(channel =>
-                    (channel === 4 ? im.space === "cmyk" : channel === 3 ? im.hasAlpha || im.alphaBlend === true && im.alphaSeparate === true : channel === 0 || (im.space !== "b-w" && im.space !== "grey16")) && (!state.channelExplicit || mask[channel]));
+                    (channel === 4 ? im.space === "cmyk" : channel === 3 ? im.hasAlpha || im.alphaSeparate === true : channel === 0 || (im.space !== "b-w" && im.space !== "grey16")) && (!state.channelExplicit || mask[channel]));
                 // ImageMagick emits a black plane when none of the selected channels exist.
                 const metaPlanes = (im.metaChannels ?? []).filter((_, index) => !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index));
                 if (channels.length === 0 && metaPlanes.length === 0) channels.push(null);
@@ -12529,7 +12527,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     for (let index = 0; index < stack.length; index++) {
                         const image = (await stack.get(index))!;
                         const channels: (0 | 1 | 2 | 3 | 4 | null)[] = ([0, 1, 2, 4, 3] as const).filter(channel =>
-                            (channel === 4 ? image.space === "cmyk" : channel === 3 ? image.hasAlpha || image.alphaBlend === true && image.alphaSeparate === true : channel === 0 || (image.space !== "b-w" && image.space !== "grey16")) && (!settings.channelExplicit || mask[channel]));
+                            (channel === 4 ? image.space === "cmyk" : channel === 3 ? image.hasAlpha || image.alphaSeparate === true : channel === 0 || (image.space !== "b-w" && image.space !== "grey16")) && (!settings.channelExplicit || mask[channel]));
                         const metaPlanes = ((image as StoredRgbaImage).storedMetaChannels ?? []).filter((_, index) => !settings.channelExplicit || settings.channelDefault || settings.channels.meta?.includes(index));
                         if (channels.length === 0 && metaPlanes.length === 0) channels.push(null);
                         for (const channel of channels) {
@@ -15863,7 +15861,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         if (typeof operation === "object" && "separate" in operation) {
             const selected: (0 | 1 | 2 | 3 | 4 | null)[] = ([0, 1, 2, 4, 3] as const).filter(channel =>
-                (channel === 4 ? image.space === "cmyk" : channel === 3 ? image.hasAlpha || image.alphaBlend === true && image.alphaSeparate === true : channel === 0 || (image.space !== "b-w" && image.space !== "grey16")) &&
+                (channel === 4 ? image.space === "cmyk" : channel === 3 ? image.hasAlpha || image.alphaSeparate === true : channel === 0 || (image.space !== "b-w" && image.space !== "grey16")) &&
                 (!operation.separate || operation.separate.includes(channel)));
             if (selected.length === 0) selected.push(null);
             for (const channel of selected) {

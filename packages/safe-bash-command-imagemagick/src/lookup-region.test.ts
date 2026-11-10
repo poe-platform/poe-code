@@ -65,7 +65,7 @@ for (const retained of [false, true])
 for (const operation of ["-clut", "-hald-clut"])
 it(`keeps ${operation} region across rows and chunk boundaries, retained=${retained}`, async () => {
     const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
-    const args = ["-size", "4098x2", "xc:red", "-region", "1x1+4096+1", "-size", "1x1", "xc:blue", operation, "+region", "rgba:/out.rgba"];
+    const args = ["-size", "4098x2", "xc:red", "-region", "1x1+4096+1", "-size", "1x1", "xc:blue", operation, "+region", "-depth", "8", "rgba:/out.rgba"];
     expect(await runMagickCli(args, retained ? { filesystem, cwd: "/" } : files)).toEqual({ exitCode: 0, stdout: "", stderr: "" });
     const expected = Uint8Array.from({ length: 4098 * 2 * 4 }, (_, offset) => offset % 4 === 0 || offset % 4 === 3 ? 255 : 0);
     expected.set([0, 0, 255, 255], (4098 + 4096) * 4);

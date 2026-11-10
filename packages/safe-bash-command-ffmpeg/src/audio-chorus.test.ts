@@ -88,27 +88,40 @@ it("chorus exposes its complete tail to downstream frame filters", async () => {
   assert.deepEqual(output, Buffer.alloc(88 * 2));
 });
 
-for (const filter of [
-  "chorus", "chorus=0.5:0.9:10:0.5:1", "chorus=0.5:0.9:10|20:0.5:1:1",
-  "chorus=0.5:0.9:10:0.5:0:1", "chorus=0.5:0.9:10:0.5:Infinity:1",
-  "chorus=0.5:0.9:-10:0.5:1:1", "chorus=0.5:0.9:-0x10:0.5:1:1", "chorus=0.5:0.9:10:0.5:1:-1",
-  "chorus=0.5:0.9:10:0.5:1:Infinity", "chorus=2:0.9:10:0.5:1:1",
-  "chorus=max+1:default:10:0.5:1:1", "chorus=default:min-1:10:0.5:1:1",
-  "chorus=default/0:max:10:0.5:1:1", "chorus=default:unknown:10:0.5:1:1",
-  "chorus=0.5:0.9:10:0.5:1:1:unknown=1", "chorus=0.5:0.9:2000:0.5:1:1"
-]) {
-  it(`${filter} fails without replacing output`, async () => {
-    const { result, output } = await run(filter);
-    assert.equal(result.exitCode, 1);
-    assert.equal(output.toString(), "keep");
-  });
+// Native FFmpeg 7.0.2 Linux statuses distinguish option parsing failures.
+for (const [filter, exitCode] of [
+  ["chorus", 234],
+  ["chorus=0.5:0.9:10:0.5:1", 234],
+  ["chorus=0.5:0.9:10|20:0.5:1:1", 234],
+  ["chorus=0.5:0.9:10:0.5:0:1", 1],
+  ["chorus=0.5:0.9:10:0.5:Infinity:1", 1],
+  ["chorus=0.5:0.9:-10:0.5:1:1", 1],
+  ["chorus=0.5:0.9:-0x10:0.5:1:1", 1],
+  ["chorus=0.5:0.9:10:0.5:1:-1", 1],
+  ["chorus=0.5:0.9:10:0.5:1:Infinity", 1],
+  ["chorus=2:0.9:10:0.5:1:1", 222],
+  ["chorus=0.5:2:10:0.5:1:1", 222],
+  ["chorus=max+1:default:10:0.5:1:1", 222],
+  ["chorus=default:min-1:10:0.5:1:1", 222],
+  ["chorus=default/0:max:10:0.5:1:1", 1],
+  ["chorus=default:unknown:10:0.5:1:1", 1],
+  ["chorus=0.5:0.9:10:0.5:1:1:foo=1", 8],
+  ["chorus=0.5:0.9:2000:0.5:1:1", 1]
+] as const) {
+  for (const graph of [false, true]) {
+    it(`${filter} returns ${exitCode} without replacing output (graph ${graph})`, async () => {
+      const { result, stderr, output } = await run(filter, graph);
+      assert.equal(output.toString(), "keep");
+      assert.equal(result.exitCode, exitCode, stderr);
+    });
+  }
 }
 
 for (const graph of [false, true]) {
   for (const suffix of ["unknown=1", "unknown=1:"]) {
     it(`chorus rejects ${suffix} without replacing output (graph ${graph})`, async () => {
       const { result, stderr, output } = await run(`chorus=0.5:0.9:10:0.5:1:1:${suffix}`, graph);
-      assert.equal(result.exitCode, 1);
+      assert.equal(result.exitCode, 8);
       assert.equal(stderr, "ffmpeg: chorus: unsupported option unknown\n");
       assert.equal(output.toString(), "keep");
     });

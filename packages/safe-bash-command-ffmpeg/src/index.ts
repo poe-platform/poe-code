@@ -16034,6 +16034,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("aecho: unsupported option ")) return { exitCode: 8 };
             if (msg === "aecho: invalid gain") return { exitCode: 222 };
             if (msg === "aecho: delays and decays must have matching entries") return { exitCode: 234 };
+            if (msg.startsWith("chorus: unsupported option ")) return { exitCode: 8 };
+            if (msg === "chorus: invalid gain") return { exitCode: 222 };
+            if (msg === "chorus: delays, decays, speeds and depths must have matching entries") return { exitCode: 234 };
             if (msg.startsWith("aformat: unsupported option ")) return { exitCode: 8 };
             if (msg === "aformat: invalid sample rate" || msg.startsWith("aformat: unsupported sample format ") ||
                 msg.startsWith("aformat: unsupported channel layout ")) return { exitCode: 234 };

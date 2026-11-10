@@ -14525,6 +14525,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (err instanceof RangeError && msg.startsWith("aphaser:")) return { exitCode: 222 };
             if (msg === "aphaser: invalid expression" || msg === "aphaser: invalid or unsupported expression") return { exitCode: 234 };
             if (msg === "atempo: timeline is unsupported") return { exitCode: 176 };
+            if (msg === "flanger: unsupported option enable") return { exitCode: 176 };
+            if (msg.startsWith("flanger: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("flanger:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg === "atempo: unknown option") return { exitCode: 8 };
             if (msg.startsWith("atempo:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg === "fps: timeline is unsupported") return { exitCode: 176 };

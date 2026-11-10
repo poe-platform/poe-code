@@ -95,6 +95,22 @@ for (const option of ["delay=-1", "depth=11", "regen=96", "width=101", "speed=0"
   });
 }
 
+for (const [option, exitCode] of [["phase=101", 222], ["foo=1", 8], ["shape=bad", 234], ["enable=0", 176]] as const) {
+  for (const graph of [false, true]) {
+    it(`returns native exit ${exitCode} for ${option} and preserves output (graph=${graph})`, async () => {
+      const { volume, result, stderr } = await run(`flanger=${option}`, 12, true, graph);
+      assert.equal(result.exitCode, exitCode, stderr);
+      assert.equal(volume.readFileSync("/out.s16", "utf8"), "keep");
+    });
+  }
+}
+
+it("accepts the maximum phase of 100", async () => {
+  const { volume, result, stderr } = await run("flanger=phase=100", 12, true);
+  assert.equal(result.exitCode, 0, stderr);
+  assert.equal((volume.readFileSync("/out.s16") as Buffer).length, 48);
+});
+
 async function run(filter: string, frames = 256, stereo = false, graph = false) {
   const channels = Array.from({ length: stereo ? 2 : 1 }, (_, c) =>
     Float64Array.from({ length: frames }, (_, i) =>

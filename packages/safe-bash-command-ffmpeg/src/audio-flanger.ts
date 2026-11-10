@@ -24,7 +24,7 @@ export async function flangeAudio(
       ...(key === "interp" ? { linear: 0, quadratic: 1 } : {})
     });
     const [min, max] = ranges[key];
-    if (!Number.isFinite(number) || number < min! || number > max!) throw new Error(`flanger: invalid ${key}`);
+    if (!Number.isFinite(number) || number < min! || number > max!) throw new RangeError(`flanger: invalid ${key}`);
     options[key] = key === "shape" || key === "interp" ? Number(number > 0.5) : number;
   }
   const size = Math.trunc((options.delay / 1000 + options.depth / 1000) * sampleRate + 2.5);

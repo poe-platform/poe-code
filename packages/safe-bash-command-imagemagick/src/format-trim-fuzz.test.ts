@@ -6,6 +6,14 @@ import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js"
 for (const mode of ["sync", "map", "retained", "command"] as const) {
     for (const format of ["%@", "%[bounding-box]"]) {
         it.each([
+            { options: ["-define", "trim:edges=north"], geometry: "7x6+0+0", box: "0,0 7,6" },
+            { options: ["-define", "trim:edges=east"], geometry: "4x6+0+0", box: "0,0 4,6" },
+            { options: ["-define", "trim:edges=south"], geometry: "7x4+0+0", box: "0,0 7,4" },
+            { options: ["-define", "trim:edges=west"], geometry: "6x6+1+0", box: "1,0 7,6" },
+            { options: ["-define", "trim:edges=north,east"], geometry: "4x6+0+0", box: "0,0 4,6" },
+            { options: ["-define", "trim:edges=north,east,south,west"], geometry: "3x4+1+0", box: "1,0 4,4" },
+            { options: ["-define", "trim:edges=none"], geometry: "7x6+0+0", box: "0,0 7,6" },
+            { options: ["-define", "trim:edges=east", "+define", "trim:edges"], geometry: "3x4+1+0", box: "1,0 4,4" },
             { options: [], geometry: "3x4+1+0", box: "1,0 4,4" },
             { options: ["-fuzz", "3%"], geometry: "2x2+2+2", box: "2,2 4,4" },
             { options: ["-fuzz", "3%", "+fuzz"], geometry: "3x4+1+0", box: "1,0 4,4" }

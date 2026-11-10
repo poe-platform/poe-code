@@ -16,6 +16,7 @@ export interface MagickFormatContext {
     sceneCount?: number;
     quality?: number;
     fuzz?: number;
+    trimEdges?: string | undefined;
     precision?: number;
     ticksPerSecond?: number;
     delayTicks?: number;

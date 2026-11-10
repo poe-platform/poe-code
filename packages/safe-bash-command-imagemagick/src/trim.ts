@@ -56,7 +56,8 @@ function* percentTrimBounds(width: number, height: number, fuzz: number, scale: 
 
 // ImageMagick uses the original corner colors independently for each bound,
 // unlike Sharp's median-filtered, single-background trim.
-function* cornerTrimBounds(width: number, height: number, fuzz: number, scale: number, edges?: string): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | Float64Array | undefined> {
+function* trimBounds(width: number, height: number, fuzz: number, scale: number, edges?: string, percentBackground?: number, background?: RgbaColor): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | Float64Array | undefined> {
+    if (percentBackground !== undefined) return yield* percentTrimBounds(width, height, fuzz, scale, percentBackground, background);
     const corners: (Uint8Array | Uint16Array | Float64Array)[] = [];
     for (const pixel of [0, width - 1, (height - 1) * width, width * height - 1]) {
         const bytes = yield { position: pixel * 4, length: 4 };
@@ -89,21 +90,19 @@ function* cornerTrimBounds(width: number, height: number, fuzz: number, scale: n
         const selected = edges.toLowerCase().split(",");
         if (!selected.includes("west")) left = 0;
         if (!selected.includes("north")) top = 0;
-        if (!selected.includes("east")) right = width - 1;
-        if (!selected.includes("south")) bottom = height - 1;
+        // Native bounding geometry retains the far edge past the raster.
+        if (!selected.includes("east")) right = width;
+        if (!selected.includes("south")) bottom = height;
     }
     if (left > right || top > bottom) return;
     return { left, top, width: right - left + 1, height: bottom - top + 1 };
 }
 
-function* trimBounds(width: number, height: number, fuzz: number, scale: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, background?: RgbaColor): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | Float64Array | undefined> {
-    const area = percentBackground === undefined
-        ? yield* cornerTrimBounds(width, height, fuzz, scale, edges)
-        : yield* percentTrimBounds(width, height, fuzz, scale, percentBackground, background);
-    if (!area) return;
-    const retainedWidth = Math.min(width, Math.max(area.width, Math.round(minSize?.width ?? 0)));
-    const retainedHeight = Math.min(height, Math.max(area.height, Math.round(minSize?.height ?? 0)));
-    return { left: Math.min(area.left, width - retainedWidth), top: Math.min(area.top, height - retainedHeight), width: retainedWidth, height: retainedHeight };
+function cropTrimBounds(area: Area, width: number, height: number, minSize?: { width?: number; height?: number }): Area {
+    const { left, top } = area;
+    const retainedWidth = Math.min(width, Math.max(Math.min(area.width, width - left), Math.round(minSize?.width ?? 0)));
+    const retainedHeight = Math.min(height, Math.max(Math.min(area.height, height - top), Math.round(minSize?.height ?? 0)));
+    return { left: Math.min(left, width - retainedWidth), top: Math.min(top, height - retainedHeight), width: retainedWidth, height: retainedHeight };
 }
 
 export function* formatTrimBoundsSteps<Step = never>(
@@ -111,10 +110,11 @@ export function* formatTrimBoundsSteps<Step = never>(
     load: (position: number, length: number) => Generator<Step, { data: Uint8Array; data16?: Uint16Array; evaluateSamples?: Float64Array }, void>,
     format: "trim-geometry" | "bounding-box",
     fuzz: number,
-    analysis?: { warnings: string }
+    analysis?: { warnings: string },
+    edges?: string
 ): Generator<Step | void, string, void> {
     const first = yield* load(0, 4);
-    const steps = trimBounds(image.width, image.height, fuzz, first.evaluateSamples ? 1 : first.data16 ? 257 : 1);
+    const steps = trimBounds(image.width, image.height, fuzz, first.evaluateSamples ? 1 : first.data16 ? 257 : 1, edges);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }
@@ -141,14 +141,14 @@ function emptyTrimPixel(image: RgbaImage | StoredRgbaImage): Uint8Array {
 export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor): Generator<void, RgbaImage, void> {
     if (image.width === 1 && image.height === 1) return image;
     const pixels = image.evaluateSamples ?? image.data16 ?? image.data;
-    const steps = trimBounds(image.width, image.height, fuzz, image.evaluateSamples ? 1 : image.data16 ? 257 : 1, edges, minSize, percentBackground, background);
+    const steps = trimBounds(image.width, image.height, fuzz, image.evaluateSamples ? 1 : image.data16 ? 257 : 1, edges, percentBackground, background);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }
         else { const { position, length } = next.value; next = steps.next(pixels.subarray(position, position + length)); }
     }
-    if (next.value) {
-        const area = next.value;
+    if (next.value && next.value.left < image.width && next.value.top < image.height) {
+        const area = cropTrimBounds(next.value, image.width, image.height, minSize);
         let cropped = yield* extractImageSteps(image, area);
         if (image.data16) {
             const data16 = new Uint16Array(cropped.width * cropped.height * 4);
@@ -180,7 +180,7 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     if (image.width === 1 && image.height === 1) return image;
     const sampleBytes = image.storedEvaluateSamples !== undefined ? 8 : image.storedData16 ? 2 : 1;
     const position = image.storedEvaluateSamples ?? image.storedData16?.position ?? image.position;
-    const steps = trimBounds(image.width, image.height, fuzz, sampleBytes === 2 ? 257 : 1, edges, minSize, percentBackground, background);
+    const steps = trimBounds(image.width, image.height, fuzz, sampleBytes === 2 ? 257 : 1, edges, percentBackground, background);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { await yieldTurn(signal); next = steps.next(); }
@@ -192,12 +192,15 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
                 : sampleBytes === 2 ? new Uint16Array(new Uint8Array(bytes).buffer) : bytes);
         }
     }
-    if (next.value) return {
-        ...await transformStoredImage(image, storage, { kind: "extract", ...next.value }, signal),
-        ...("readMask" in image && image.readMask ? { readMask: await transformStoredImage(image.readMask as StoredRgbaImage, storage, { kind: "extract", ...next.value }, signal) } : {}),
-        ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, storage, { kind: "extract", ...next.value }, signal) } : {}),
-        virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + next.value.left, y: (image.virtualCanvas?.y ?? 0) + next.value.top },
-    };
+    if (next.value && next.value.left < image.width && next.value.top < image.height) {
+        const area = cropTrimBounds(next.value, image.width, image.height, minSize);
+        return {
+            ...await transformStoredImage(image, storage, { kind: "extract", ...area }, signal),
+            ...("readMask" in image && image.readMask ? { readMask: await transformStoredImage(image.readMask as StoredRgbaImage, storage, { kind: "extract", ...area }, signal) } : {}),
+            ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, storage, { kind: "extract", ...area }, signal) } : {}),
+            virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + area.left, y: (image.virtualCanvas?.y ?? 0) + area.top },
+        };
+    }
     if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
     const emptyPosition = storage.allocate(4);
     await storage.write(emptyPosition, emptyTrimPixel(image), { signal });

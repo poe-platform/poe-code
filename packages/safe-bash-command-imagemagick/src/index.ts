@@ -9608,6 +9608,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-copy") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geometry = tokens[++i] ?? "", offset = tokens[++i] ?? "";
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
@@ -12351,6 +12352,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const kernel = parseMagickConvolveKernel(spec);
             steps.push(async (image, backend) => image && kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
         } else if (!operandsOnly && token === "-copy") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const geometry = tokens[++i] ?? "", offset = tokens[++i] ?? "";
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             const { virtualPixel, background } = state;

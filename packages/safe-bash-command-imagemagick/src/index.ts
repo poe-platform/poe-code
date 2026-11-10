@@ -3852,7 +3852,9 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas">, geometry = spec) => {
         if (token === "-shear") {
             const plan = shearPlan(image, geometry);
-            const virtualCanvas = plan.tx === 0 && plan.ty === 0 ? undefined : {
+            // Identity shear must retain fractional and over-range working samples.
+            if (plan.tx === 0 && plan.ty === 0) return;
+            const virtualCanvas = {
                 width: plan.width, height: plan.height, x: image.virtualCanvas?.x ?? 0, y: image.virtualCanvas?.y ?? 0
             };
             return { ...plan, virtualCanvas, steps: shearPixelSteps(image, plan, backgroundExplicit ? background : image.backgroundColor ?? background, compose, composeArgs, fuzz) };

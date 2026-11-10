@@ -35,12 +35,6 @@ export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "d
     for (let start = 0; start < plan.width * plan.height; start += 1024) {
         yield;
         const count = Math.min(1024, plan.width * plan.height - start), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
-        if (plan.tx === 0 && plan.ty === 0) {
-            const bytes = yield { kind: "read", highDepth, position: start * 4, length: count * 4 };
-            if (!bytes || bytes.length !== count * (highDepth ? 8 : 4)) throw new Error("Truncated shear pixels");
-            yield { kind: "write", highDepth, position: start * 4, data: bytes };
-            continue;
-        }
         for (let i = 0; i < count; i++) {
             const x = (start + i) % plan.width + plan.offsetX;
             const column = x - plan.columnOffset;

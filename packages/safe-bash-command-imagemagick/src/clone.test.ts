@@ -20,10 +20,15 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
             args: ["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "xc:white", "-delete", "1,"],
             pixels: [red, blue, [255, 255, 255, 255]]
         },
-        ...["1 2", "1\t2", "1\n2", " 1 , 2 ", "1, -1", "1-1 2"].flatMap(spec => [
+        ...["1 2", " 1 , 2 ", "1, -1", "1-1 2"].flatMap(spec => [
             { args: ["r.png", "g.png", "b.png", "-clone", spec], pixels: [red, green, blue, green, blue] },
             { args: ["r.png", "g.png", "b.png", "-duplicate", `1,${spec}`], pixels: [red, green, blue, green, blue] },
             { args: ["r.png", "g.png", "b.png", "-delete", spec], pixels: [red] }
+        ]),
+        ...["1\t2", "1\n2"].flatMap(spec => [
+            { args: ["r.png", "g.png", "b.png", "-clone", spec], pixels: null },
+            { args: ["r.png", "g.png", "b.png", "-duplicate", `1,${spec}`], pixels: [red, green, blue, green, blue] },
+            { args: ["r.png", "g.png", "b.png", "-delete", spec], pixels: null }
         ]),
         ...[
             { spec: "1 -", tail: [green, red], remaining: [red, green, blue] },
@@ -35,7 +40,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         ]),
         ...["1 x", "1 2x", "1 1.5", " "].flatMap(spec => [
             { args: ["r.png", "g.png", "b.png", "-clone", spec], pixels: null },
-            { args: ["r.png", "g.png", "b.png", "-duplicate", `1,${spec}`], pixels: null },
+            { args: ["r.png", "g.png", "b.png", "-duplicate", `1,${spec}`], pixels: spec === " " ? [red, green, blue, red] : null },
             { args: ["r.png", "g.png", "b.png", "-delete", spec], pixels: null }
         ]),
         { args: ["r.png", "g.png", "b.png", "-clone", ",1 2"], pixels: null },
@@ -75,7 +80,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         const result = mode === "sync" ? runMagickCliSync(command, files)
             : await runMagickCli(command, mode === "retained" ? { filesystem, cwd: "/" } : files);
         if (pixels === null) {
-            expect(result.exitCode).not.toBe(0);
+            expect(result.exitCode, JSON.stringify(args)).not.toBe(0);
             if (mode === "retained") await expect(filesystem.readFile("/out.png")).rejects.toThrow();
             else expect(files.has("out.png")).toBe(false);
             return;

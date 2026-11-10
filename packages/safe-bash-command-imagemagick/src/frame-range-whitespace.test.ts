@@ -14,7 +14,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         { operation: "-duplicate", spec: "1,2- 3", pixels: [red, green, blue, white, blue, white] },
         { operation: "-clone", spec: "2 3", pixels: [red, green, blue, white, blue, white] },
         { operation: "-clone", spec: "2-3", pixels: [red, green, blue, white, blue, white] },
-        { operation: "-clone", spec: "2\t-\n3", pixels: [red, green, blue, white, blue, white] },
+        { operation: "-duplicate", spec: "1,2\t-\n3", pixels: [red, green, blue, white, blue, white] },
         { operation: "-clone", spec: "-2 - -1", pixels: [red, green, blue, white, blue, white] },
         { operation: "-clone", spec: "3 - 2", pixels: [red, green, blue, white, white, blue] },
         { operation: "-clone", spec: "2 - 3 0", pixels: [red, green, blue, white, blue, white, red] },

@@ -9749,6 +9749,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const source = t === "-clone" ? parentStack ?? stack : stack;
             const image = source[0];
             if (image && frameListOperand.includes("%")) frameListOperand = yield* formatMagickPropertyStringSteps(frameListOperand, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: source, sceneCount: source.length, optionProperties: state.optionProperties });
+            if ((t === "-clone" || t === "-delete") && (frameListOperand.includes("\t") || frameListOperand.includes("\n"))) throw new Error(`invalid argument ${frameListOperand}`);
         }
         if (t === "-quiet" || t === "+quiet") { analysis.quiet = t === "-quiet"; i++; continue; }
         if (t === "-regard-warnings" || t === "+regard-warnings") { analysis.regardWarnings = t === "-regard-warnings"; i++; continue; }
@@ -11923,6 +11924,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const source = token === "-clone" ? parents.at(-1) ?? stack : stack;
                 const image = operand.includes("%") ? await source.get(0) : undefined;
                 let spec = image ? await formatRetainedIdentify(operand, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: source.length, optionProperties }, async () => ({ image, storage: backend.storage }), signal, source) : operand;
+                if ((token === "-clone" || token === "-delete") && (spec.includes("\t") || spec.includes("\n"))) throw new Error(`invalid argument ${spec}`);
                 let count = 1;
                 if (token === "-duplicate") {
                     const value = spec, comma = value.startsWith("x") ? 0 : value.indexOf(",");

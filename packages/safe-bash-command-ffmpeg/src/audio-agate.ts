@@ -21,9 +21,14 @@ export async function applyAudioGate(
   let enable: string | undefined;
   const names = Object.keys(options);
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  let optionPosition = 0;
+  for (const option of argument ? argument.split(":") : []) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
+    const key = separator < 0 ? names[optionPosition] : option.slice(0, separator).trim();
+    // FFmpeg 7 restarts shorthand after named options, skipping the first slot
+    // when it was just visited. The named key does not select the next slot.
+    if (separator < 0) optionPosition++;
+    else optionPosition = optionPosition === 0 ? 1 : 0;
     if (key === "enable") {
       enable = option.slice(separator + 1).trim();
       parseFilterExpression(enable, "agate enable", { n: 0, t: 0, pos: NaN });

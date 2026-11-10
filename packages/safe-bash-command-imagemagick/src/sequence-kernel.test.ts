@@ -54,12 +54,12 @@ it.each([false, true])("uses one-dimensional LUTs and channel mask, vertical=%s"
         if (index % 4 === 3) return Math.round(alpha);
         return alpha === 0 ? 0 : Math.round((lut[a + 1]! * lut[a + 3]! * weights[0]! + lut[b + 1]! * lut[b + 3]! * weights[1]!) / alpha);
     });
-    expect(run(clutPixelSteps(size, { width, height }, [false, true, false, true]), [source, lut], size)).toEqual(expected);
+    expect(run(clutPixelSteps(size, { width, height, hasAlpha: true }, [false, true, false, true]), [source, lut], size)).toEqual(expected);
 });
 
 it("uses a single LUT pixel for every input value", () => {
     const source = Uint8Array.of(0, 128, 255, 64), lut = Uint8Array.of(12, 34, 56, 78);
-    expect(run(clutPixelSteps(4, { width: 1, height: 1 }, [true, true, true, true]), [source, lut], 4)).toEqual(lut);
+    expect(run(clutPixelSteps(4, { width: 1, height: 1, hasAlpha: true }, [true, true, true, true]), [source, lut], 4)).toEqual(lut);
 });
 
 it("preserves interpolation rounding and missing channel samples", () => {
@@ -83,7 +83,7 @@ it("interpolates Hald cube corners and preserves unselected channels across chun
         expected[offset] = source[offset + 2]!;
         expected[offset + 2] = source[offset + 1]!;
     }
-    expect(run(haldClutPixelSteps(source.length, { width: 8, height: 8 }, [true, false, true, false]), [source, lut], source.length)).toEqual(expected);
+    expect(run(haldClutPixelSteps(source.length, { width: 8, height: 8, hasAlpha: false }, [true, false, true, false]), [source, lut], source.length)).toEqual(expected);
 });
 
 it.each([

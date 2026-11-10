@@ -10,7 +10,7 @@ type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined
 
 export type LookupInterpolation = "background" | "blend" | "bilinear" | "nearest" | "integer" | "average" | "average9" | "average16" | "mesh" | "catrom" | "spline";
 
-function* sampleLookup(lut: { width: number; height: number }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation, background: RgbaColor = { r: 255, g: 255, b: 255, a: 255 }, virtualPixel: VirtualPixelMethod = "edge", cmyk = false): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
+function* sampleLookup(lut: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & { inactiveAlpha?: boolean | undefined }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation, background: RgbaColor = { r: 255, g: 255, b: 255, a: 255 }, virtualPixel: VirtualPixelMethod = "edge", cmyk = false): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
     if (interpolation === "background") return [background.r, background.g, background.b, background.a].map(value => value * (highDepth ? 257 : 1));
     const nearest = interpolation === "nearest", single = nearest || interpolation === "integer";
     const averageSize = interpolation === "average" ? 2 : interpolation === "average9" ? 3 : interpolation === "average16" ? 4 : 0;
@@ -69,14 +69,15 @@ function* sampleLookup(lut: { width: number; height: number }, x: number, y: num
             const inks = hue?.length ? new Float64Array(hue.slice().buffer) : rgbToCmyk(pixel[0]! / range, pixel[1]! / range, pixel[2]! / range);
             pixel = [inks[0]! * range, inks[1]! * range, inks[2]! * range, pixel[3]!, inks[3]! * range];
         }
-        for (let channel = 0; channel < values.length; channel++) if (channel !== 3) values[channel]! += pixel[channel]! * weight * (single ? 1 : averageSize ? Number(pixel[3]! > 0) : cubic ? pixel[3]! / (highDepth ? 65535 : 255) : pixel[3]!);
-        values[3]! += pixel[3]! * weight;
+        const alpha = lut.hasAlpha || lut.inactiveAlpha ? pixel[3]! : range;
+        for (let channel = 0; channel < values.length; channel++) if (channel !== 3) values[channel]! += pixel[channel]! * weight * (single || !lut.hasAlpha ? 1 : averageSize ? Number(alpha > 0) : cubic ? alpha / range : alpha);
+        values[3]! += alpha * weight;
     }
-    if (interpolation === "bilinear" || interpolation === "blend" || interpolation === "mesh") for (let channel = 0; channel < values.length; channel++) if (channel !== 3) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
+    if (lut.hasAlpha && (interpolation === "bilinear" || interpolation === "blend" || interpolation === "mesh")) for (let channel = 0; channel < values.length; channel++) if (channel !== 3) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
     return values;
 }
 
-export function* clutPixelSteps(size: number, lut: { width: number; height: number; space?: string }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor, virtualPixel?: VirtualPixelMethod, sourceCmyk = false): Steps {
+export function* clutPixelSteps(size: number, lut: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & { space?: string; inactiveAlpha?: boolean | undefined }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor, virtualPixel?: VirtualPixelMethod, sourceCmyk = false): Steps {
     // Integer lookup partitions the full dimensions; other methods sample the diagonal endpoints.
     function* sample(value: number): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
         const adjust = interpolation === "integer" ? 0 : 1;
@@ -120,7 +121,7 @@ export function* clutPixelSteps(size: number, lut: { width: number; height: numb
 }
 
 /** Hald pixels store red fastest, then green, then blue in a flattened RGB cube. */
-export function* haldClutPixelSteps(size: number, lut: { width: number; height: number; space?: string }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor, virtualPixel?: VirtualPixelMethod, sourceCmyk = false): Steps {
+export function* haldClutPixelSteps(size: number, lut: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & { space?: string; inactiveAlpha?: boolean | undefined }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor, virtualPixel?: VirtualPixelMethod, sourceCmyk = false): Steps {
     const cmyk = lut.space === "cmyk";
     const range = highDepth ? 65535 : 255;
     const gray = lut.space === "b-w" || lut.space === "grey16";

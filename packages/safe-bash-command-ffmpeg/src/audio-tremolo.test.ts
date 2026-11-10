@@ -32,6 +32,27 @@ for (const [filter, hash] of [
   }
 }
 
+// Native FFmpeg 7.0.2 s16le output for 16 mono samples of value 16000.
+for (const [mixed, named, hex] of [
+  ["tremolo=1:d=1:500", "tremolo=f=500:d=1", "803e1f3c5935352b401f4b13270961020000610227094b13401f352b59351f3c"],
+  ["tremolo=1:enable=1:1000", "tremolo=f=1000:enable=1", "803eec39e02ed423401fd423e02eec39803eec39e02ed423401fd423e02eec39"]
+] as const) {
+  for (const graph of [false, true]) {
+    it(`${mixed} matches named options and native PCM (${graph ? "graph" : "simple"})`, async () => {
+      const channels = [new Float64Array(16).fill(16000 / 32768)];
+      const expected = await run(named, graph, channels);
+      const actual = await run(mixed, graph, channels);
+      assert.equal(expected.result.exitCode, 0, expected.stderr);
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      assert.deepEqual(actual.volume.readFileSync("/out.wav"), expected.volume.readFileSync("/out.wav"));
+      const samples = parseWav(actual.volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
+      const pcm = Buffer.alloc(samples.length * 2);
+      for (let i = 0; i < samples.length; i++) pcm.writeInt16LE(Math.round(samples[i]! * 32768), i * 2);
+      assert.equal(pcm.toString("hex"), hex);
+    });
+  }
+}
+
 for (const [expression, literal] of [
   ["tremolo=d=1/2", "tremolo"],
   ["tremolo=d=(1+2)/4", "tremolo=d=0.75"],

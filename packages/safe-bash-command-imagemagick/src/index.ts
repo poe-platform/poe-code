@@ -7246,7 +7246,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     const settings = { ...state, channels: { ...state.channels } };
     return { end, highDepth: true, luminance: token === "-linear-stretch" || token === "-equalize" && state.channelSync || (token === "-normalize" || token === "-contrast-stretch") && !independent, transform(histogram, image, channelSums) {
         if (token === "-contrast-stretch" || token === "-linear-stretch") {
-            if (!Number.isFinite(Number.parseFloat(argument)) || [...argument].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+            if (!Number.isFinite(Number.parseFloat(argument.replaceAll("(", "").replaceAll(")", ""))) || [...argument].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
                 throw new Error(`invalid argument for option '${token}': ${argument}`);
             }
         }

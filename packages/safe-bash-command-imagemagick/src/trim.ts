@@ -128,6 +128,7 @@ function emptyTrimPixel(image: RgbaImage | StoredRgbaImage): Uint8Array {
 }
 
 export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor): Generator<void, RgbaImage, void> {
+    if (image.width === 1 && image.height === 1) return image;
     const pixels = image.data16 ?? image.data;
     const steps = trimBounds(image.width, image.height, fuzz, image.data16 ? 257 : 1, edges, minSize, percentBackground, background);
     let next = steps.next();
@@ -163,6 +164,7 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
 }
 
 export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor): Promise<StoredRgbaImage> {
+    if (image.width === 1 && image.height === 1) return image;
     const sampleBytes = image.storedData16 ? 2 : 1;
     const position = image.storedData16?.position ?? image.position;
     const steps = trimBounds(image.width, image.height, fuzz, image.storedData16 ? 257 : 1, edges, minSize, percentBackground, background);

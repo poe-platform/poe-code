@@ -52,3 +52,31 @@ for (const mode of ["map", "retained"] as const) {
     }).flat());
   });
 }
+
+for (const mode of ["map", "retained", "command"] as const) {
+  // Native ImageMagick 7.1.2-35 Q16-HDRI reference bytes.
+  it.each([
+    ["gray", "b", "8", "213455b58c5e79849a808080"],
+    ["gray", "b", "16", "20a133b45555b5f58ccc5e9e793984c49a5a800080008000"],
+    ["edge", "b", "8", "21345590714c405482af9179"],
+    ["black", "b", "8", "213455764d1f39455a000000"],
+    ["gray", "c", "8", "213455af9179"],
+  ])(`${mode}: averages row and column with %s virtual pixels (%s, depth %s)`, async (method, second, depth, expected) => {
+    const files = new Map(Object.entries({
+      "/a.ppm": "P3\n2 1\n255\n13 30 79 235 153 61\n",
+      "/b.ppm": "P3\n1 2\n255\n52 73 91 114 137 180\n",
+      "/c.ppm": "P3\n2 1\n255\n52 73 91 114 137 180\n",
+      "/out": "KEEP",
+    }).map(([path, text]) => [path, new TextEncoder().encode(text)]));
+    const fs = createMemoryFileSystem();
+    for (const [path, bytes] of files) await fs.writeFile(path, bytes);
+    const args = ["-virtual-pixel", method!, "/a.ppm", `/${second}.ppm`, "-evaluate-sequence", "Mean", "-depth", depth!, "-endian", "MSB", "rgb:/out"];
+    const result = mode === "command"
+      ? await createMagickCommand().execute({ command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} } })
+      : await runMagickCli(args, mode === "map" ? files : { filesystem: fs, cwd: "/" });
+    expect(result.exitCode).toBe(0);
+    expect(Buffer.from(mode === "map" ? files.get("/out")! : await fs.readFile("/out")).toString("hex")).toBe(expected);
+  });
+}

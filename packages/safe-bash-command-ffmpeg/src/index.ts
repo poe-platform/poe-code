@@ -13008,7 +13008,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         budget.checkDuration(length / origRate);
                         budget.allocateMemory((length * stretched.length + offsets.reduce((sum, offset) => sum + offset - padding, 0)) * Float64Array.BYTES_PER_ELEMENT);
                         const output = stretched.map(() => new Float64Array(length));
-                        const history = offsets.map(offset => ({ samples: new Float64Array(offset - padding), index: 0, filled: 0 }));
+                        const history = offsets.map(offset => ({ samples: new Float64Array(offset - padding), delay: offset - padding, index: 0, filled: 0 }));
                         const previous = audioTimestamps;
                         const previousMetadata = audioMetadata;
                         audioMetadata = [];
@@ -13043,32 +13043,37 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 const update = updates[nextCommand++]!;
                                 for (const [channel, delay] of update.offsets.entries()) {
                                   const state = history[channel]!;
-                                  const oldDelay = state.samples.length;
+                                  const oldDelay = state.delay;
                                   if (delay === oldDelay) continue;
-                                  budget.allocateMemory(delay * Float64Array.BYTES_PER_ELEMENT);
-                                  const resized = new Float64Array(delay);
+                                  // Retain capacity on shrink: native may read beyond the new
+                                  // delay once before wrapping its ring index back to zero.
+                                  let resized = state.samples;
+                                  if (delay > resized.length || delay === 0) {
+                                    budget.allocateMemory(delay * Float64Array.BYTES_PER_ELEMENT);
+                                    resized = new Float64Array(delay);
+                                    if (delay) resized.set(state.samples);
+                                  }
                                   if (delay === 0) {
                                     state.index = 0;
                                     state.filled = 0;
                                   } else if (delay < oldDelay) {
-                                    resized.set(state.samples.subarray(0, delay));
                                     if (state.index > delay) {
                                       state.index -= delay;
-                                      resized.set(state.samples.subarray(delay, delay + state.index));
+                                      resized.copyWithin(0, delay, delay + state.index);
                                       state.filled = delay;
                                     } else if (state.filled > state.index) {
-                                      resized.set(state.samples.subarray(state.index + oldDelay - delay, oldDelay), state.index);
+                                      resized.copyWithin(state.index, state.index + oldDelay - delay, oldDelay);
                                       state.filled -= oldDelay - delay;
                                     }
                                   } else {
-                                    resized.set(state.samples);
                                     if (state.filled >= oldDelay) {
-                                      resized.set(state.samples.subarray(state.index), state.index + delay - oldDelay);
+                                      resized.copyWithin(state.index + delay - oldDelay, state.index, oldDelay);
                                       state.filled = delay;
                                     } else state.filled += delay - oldDelay;
                                     resized.fill(0, state.index, state.index + delay - oldDelay);
                                   }
                                   state.samples = resized;
+                                  state.delay = delay;
                                 }
                               }
                               const frame = previous?.[n];
@@ -13114,12 +13119,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 const buffer = state.samples;
                                 // An absent initial list keeps native adelay in passthrough
                                 // mode, even when commands grow its EOF tail.
-                                if (values.length === 0 || !enabled || buffer.length === 0) output[c]![i] = sample;
-                                else if (state.filled < buffer.length) buffer[state.filled++] = sample;
+                                if (values.length === 0 || !enabled || state.delay === 0) output[c]![i] = sample;
+                                else if (state.filled < state.delay) buffer[state.filled++] = sample;
                                 else {
                                   output[c]![i] = buffer[state.index]!;
                                   buffer[state.index] = sample;
-                                  state.index = (state.index + 1) % buffer.length;
+                                  state.index = state.index + 1 >= state.delay ? 0 : state.index + 1;
                                 }
                               }
                             }

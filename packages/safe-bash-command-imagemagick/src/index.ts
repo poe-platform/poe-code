@@ -9944,7 +9944,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             state.colors = colors;
             stack = yield* mapMagickImagesSteps(stack, image => {
                 const { data16: ignored, hueSamples: ignoredHue, ...pixels } = image;
-                return applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, colors, state.quantizeGray, state.treeDepth, image.hasAlpha), signal);
+                return applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, colors, state.quantizeGray, state.treeDepth, image.hasAlpha || image.inactiveAlpha === true), signal);
             });
         }
         else if (pixelOperation) {
@@ -12313,7 +12313,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-colors") {
             const colors = Number(tokens[++i]), grayscale = state.quantizeGray, treeDepth = state.treeDepth;
             state.colors = colors;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, colors, grayscale, treeDepth, image.hasAlpha), signal) : undefined);
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, colors, grayscale, treeDepth, image.hasAlpha || image.inactiveAlpha === true), signal) : undefined);
             continue;
         }
         if (!operandsOnly && token === "-ordered-dither") {

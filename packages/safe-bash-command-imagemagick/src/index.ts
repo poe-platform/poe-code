@@ -5405,7 +5405,7 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
     const virtualCanvas = magickResizeCanvas(img, layout.width, layout.height);
     const source = (img as MagickImage)[magickInput];
     const background = state.backgroundExplicit ? state.background : img.backgroundColor ?? state.background;
-    const canvas = { ...yield* createSolidRgbaImageSteps(layout.width, layout.height, background, true),
+    const canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(layout.width, layout.height, background, true),
         ...(img.orientation !== undefined ? { orientation: img.orientation } : {}),
         ...(readMask ? { readMask } : {}),
         ...(img.magickColorspace ? { magickColorspace: img.magickColorspace } : {}),
@@ -5413,6 +5413,16 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
         density: img.density, ...(img.resolution ? { resolution: img.resolution } : {}),
         ...(img.properties ? { properties: img.properties } : {}),
         ...(img.delay ? { delay: img.delay } : {}), ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
+    if (img.metaChannels?.length) {
+        canvas.metaChannels = [];
+        for (const [index, plane] of img.metaChannels.entries()) {
+            const selected = !state.channelExplicit || state.channelDefault || !!state.channels.meta?.includes(index);
+            const settings = { ...state, channelExplicit: true, channels: { ...state.channels, r: selected, g: selected, b: selected, a: false } };
+            canvas.metaChannels.push(yield* applyMagickRasterSteps(plane,
+                extentCompositeSteps(plane, layout, { r: 0, g: 0, b: 0, a: background.a }, settings, img), signal,
+                { ...layout, hasAlpha: false }, [plane, img]));
+        }
+    }
     if (!layout.area) return canvas;
     if (!["over", "srcover"].includes(magickCompositeMode(state.composeRaw).name)) return yield* applyMagickRasterSteps(canvas,
         extentCompositeSteps(img, layout, background, state), signal, canvas, [img]);
@@ -5470,7 +5480,7 @@ function* extentEvaluateSamples(image: Pick<RgbaImage, "width">, layout: ReturnT
     }
 }
 
-function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: ReturnType<typeof magickExtentLayout>, background: RgbaColor, state: MagickState): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: ReturnType<typeof magickExtentLayout>, background: RgbaColor, state: MagickState, alphaSource?: RgbaImage | StoredRgbaImage): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = "data16" in image && !!image.data16 || "storedData16" in image && !!image.storedData16;
     const evaluate = "evaluateSamples" in image && !!image.evaluateSamples || "storedEvaluateSamples" in image && image.storedEvaluateSamples !== undefined;
     const clippedCopy = magickCompositeMode(state.composeRaw).name === "copy"
@@ -5488,16 +5498,25 @@ function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: Retur
             if (!bytes || bytes.length !== (right - left) * 4 * (evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated extent pixels");
             const source = evaluate ? new Float64Array(bytes.slice().buffer)
                 : highDepth ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : Float64Array.from(bytes);
+            // Extra planes share the parent image's alpha, not their grayscale backing's opacity.
+            if (alphaSource) {
+                const alphaEvaluate = "evaluateSamples" in alphaSource && !!alphaSource.evaluateSamples
+                    || "storedEvaluateSamples" in alphaSource && alphaSource.storedEvaluateSamples !== undefined;
+                const alphaBytes = (yield { kind: "read", image: 1, evaluate: alphaEvaluate, highDepth: true, position, length: source.length })!;
+                const alpha = alphaEvaluate ? new Float64Array(alphaBytes.slice().buffer) : new Uint16Array(alphaBytes.slice().buffer);
+                for (let i = 3; i < source.length; i += 4) source[i] = alphaSource.hasAlpha && alphaSource.alphaBlend !== false ? alpha[i]! / (alphaEvaluate ? 1 : 257) : 255;
+            }
             // Native Copy's clipped path premultiplies colors; contained Copy and Src keep them unchanged.
             if (clippedCopy) for (let i = 0; i < source.length; i += 4)
                 for (let c = 0; c < 3; c++) source[i + c]! *= source[i + 3]! / 255;
             const destination = { width: count, height: 1, hasAlpha: true, data: samples };
-            const overlay = { width: right - left, height: 1, hasAlpha: image.hasAlpha, data: source };
+            const overlay = { width: right - left, height: 1, hasAlpha: alphaSource?.hasAlpha ?? image.hasAlpha, data: source };
             yield* compositePixelsSteps(destination, overlay, samples, state.composeRaw, left - x, 0, state.composeArgs, state.alphaFuzz, true);
             if (channels) for (let i = (left - x) * 4; i < (right - x) * 4; i += 4)
                 for (let c = 0; c < 4; c++) if (!channels[c]) samples[i + c] = color[c]!;
         }
         const position = (y * layout.width + x) * 4;
+        if (alphaSource) for (let i = 3; i < samples.length; i += 4) samples[i] = 255;
         if (evaluate) yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
         const data = highDepth ? new Uint8Array(Uint16Array.from(samples, value => Math.round(value * 257)).buffer)
             : Uint8Array.from(samples, value => Math.round(value));
@@ -14405,7 +14424,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const virtualCanvas = magickResizeCanvas(image, layout.width, layout.height);
                 const source = (image as StoredMagickImage)[magickInput];
                 const background = captured.backgroundExplicit ? captured.background : image.backgroundColor ?? captured.background;
-                const canvas = { ...await createStoredCanvas(layout.width, layout.height, background, backend, signal, true),
+                const canvas: StoredRgbaImage = { ...await createStoredCanvas(layout.width, layout.height, background, backend, signal, true),
                     ...(image.orientation !== undefined ? { orientation: image.orientation } : {}),
                     ...(readMask ? { readMask } : {}),
                     ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}),
@@ -14414,6 +14433,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     ...(image.properties ? { properties: image.properties } : {}),
                     ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
                     ...(source ? { [magickInput]: source } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
+                if (image.storedMetaChannels?.length) {
+                    canvas.storedMetaChannels = [];
+                    for (const [index, plane] of image.storedMetaChannels.entries()) {
+                        const selected = !captured.channelExplicit || captured.channelDefault || !!captured.channels.meta?.includes(index);
+                        const settings = { ...captured, channelExplicit: true, channels: { ...captured.channels, r: selected, g: selected, b: selected, a: false } };
+                        canvas.storedMetaChannels.push(await transformStoredMagickRaster(plane, backend,
+                            extentCompositeSteps(plane, layout, { r: 0, g: 0, b: 0, a: background.a }, settings, image), signal,
+                            { ...layout, hasAlpha: false }, [plane, image]));
+                    }
+                }
                 if (!layout.area) return canvas;
                 if (!["over", "srcover"].includes(magickCompositeMode(captured.composeRaw).name)) return transformStoredMagickRaster(canvas, backend,
                     extentCompositeSteps(image, layout, background, captured), signal, canvas, [image]);

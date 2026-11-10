@@ -97,3 +97,16 @@ export function* regionPixelSteps(image: { width: number; height: number; hasAlp
         }
     }
 }
+
+/** Materialize a region as a write-mask channel before it stops being rectangular. */
+export function* regionMaskPixelSteps(image: { width: number; height: number }, region: Region): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    for (let y = 0; y < image.height; y++) for (let x = 0; x < image.width; x += 4096) {
+        yield;
+        const count = Math.min(4096, image.width - x), data = new Uint8Array(count * 4);
+        for (let i = 0; i < count; i++) {
+            const value = regionContains(region, x + i, y) ? 0 : 255;
+            data.set([value, value, value, 255], i * 4);
+        }
+        yield { kind: "write", position: (y * image.width + x) * 4, data };
+    }
+}

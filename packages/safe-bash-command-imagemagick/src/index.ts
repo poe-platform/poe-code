@@ -32,7 +32,7 @@ import { ftxtPixels, storedFtxt } from "./ftxt.js";
 import { decodeApngSteps, readApng } from "./apng-input.js";
 import { signatureSteps } from "./signature.js";
 import { encipherPixelSteps } from "./encipher-kernel.js";
-import { chopRegion, orientRegion, rotateRegion, rollRegion, regionContains, regionPixelSteps, type Region } from "./region.js";
+import { chopRegion, orientRegion, rotateRegion, rollRegion, regionContains, regionPixelSteps, regionMaskPixelSteps, type Region } from "./region.js";
 import { clearWriteMaskPixelSteps, statisticWriteMaskPixelSteps, writeMaskExtentSteps, writeMaskPixelSteps } from "./write-mask.js";
 import { pngAlphaPixelSteps } from "./png-alpha.js";
 import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
@@ -119,8 +119,8 @@ import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage
 import { combineMetaPixelSteps, type MetaChannels } from "./combine-meta.js";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16" | "evaluateSamples">> & { position?: number; storedEvaluateSamples?: number | undefined };
-type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: (BaseRgbaImage & { fromRegion?: boolean }) | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: (BaseStoredRgbaImage & { fromRegion?: boolean }) | undefined };
 type ImageMetadata = BaseImageMetadata & HueMetadata & MetaChannels & Pick<RgbaImage, "inactiveAlpha">;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
@@ -9630,7 +9630,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         if (t === "-region" || t === "+region") {
             const geometry = t === "-region" ? tokens[++i] : undefined;
             if (t === "-region" && !geometry) throw new Error("missing argument '-region'");
-            stack = stack.map(image => ({ ...image, region: geometry === undefined ? undefined : magickRegion(image, geometry, state.gravity) }));
+            stack = stack.map(image => ({ ...image, region: geometry === undefined ? undefined : magickRegion(image, geometry, state.gravity), writeMask: image.writeMask?.fromRegion ? undefined : image.writeMask }));
             i++;
             continue;
         }
@@ -10050,6 +10050,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 validateMagickSpliceGeometry(expanded);
                 const result = yield* applyMagickSpliceSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, state.gravity, signal, state.virtualPixel);
                 if (im.readMask) result.readMask = yield* applyMagickSpliceSteps(im.readMask as RgbaImage, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, state.virtualPixel);
+                if (im.region && (result.width !== im.width || result.height !== im.height)) {
+                    // Inserted bands are editable; existing protection travels with its pixels.
+                    const mask = yield* applyMagickRasterSteps({ width: im.width, height: im.height, data: im.data,
+                        format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, regionMaskPixelSteps(im, im.region), signal);
+                    result.writeMask = { ...yield* applyMagickSpliceSteps(mask, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, state.virtualPixel), fromRegion: true };
+                    result.region = undefined;
+                }
                 return result;
             });
         }
@@ -11926,7 +11933,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && (token === "-region" || token === "+region")) {
             const geometry = token === "-region" ? tokens[++i] : undefined, gravity = state.gravity;
             if (token === "-region" && !geometry) throw new Error("missing argument '-region'");
-            steps.push(async image => image ? { ...image, region: geometry === undefined ? undefined : magickRegion(image, geometry, gravity) } : undefined);
+            steps.push(async image => image ? { ...image, region: geometry === undefined ? undefined : magickRegion(image, geometry, gravity), storedWriteMask: image.storedWriteMask?.fromRegion ? undefined : image.storedWriteMask } : undefined);
             continue;
         }
         if (!operandsOnly && (token === "-write-mask" || token === "+write-mask" || token === "-clip-mask" || token === "+clip-mask")) {
@@ -13078,6 +13085,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 if ((token === "-roll" || token === "-splice") && image.readMask) result.readMask = await transformStoredMagickCoordinates(image.readMask as StoredRgbaImage, backend, token, expanded,
                     token === "-splice" ? { ...captured, backgroundExplicit: true, background: { r: 0, g: 0, b: 0, a: 255 } } : captured, signal, analysis);
+                if (token === "-splice" && image.region && (result.width !== image.width || result.height !== image.height)) {
+                    const mask = await transformStoredMagickRaster({ width: image.width, height: image.height, position: image.position,
+                        format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, backend, regionMaskPixelSteps(image, image.region), signal);
+                    result.storedWriteMask = { ...await transformStoredMagickCoordinates(mask, backend, token, expanded,
+                        { ...captured, backgroundExplicit: true, background: { r: 0, g: 0, b: 0, a: 255 } }, signal, analysis), fromRegion: true };
+                    result.region = undefined;
+                }
                 if (token === "-roll" && image.storedWriteMask) {
                     // Roll honors the destination mask before moving it with the pixels.
                     result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!(result.storedData16 || image.storedData16), false, captured.channels), signal, result, [result, image, image.storedWriteMask]);

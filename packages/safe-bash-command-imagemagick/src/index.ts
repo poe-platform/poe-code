@@ -809,7 +809,7 @@ function parseMagickMorphologyMethod(raw: string): { method: string; iterations:
 }
 
 function validateMagickStatistic(name: string): void {
-  if (!["minimum", "maximum", "mean", "median", "mode", "nonpeak", "standarddeviation", "rootmeansquare", "rms", "gradient", "contrast"].includes(name.toLowerCase())) {
+  if (!["undefined", "minimum", "maximum", "mean", "median", "mode", "nonpeak", "standarddeviation", "rootmeansquare", "rms", "gradient", "contrast"].includes(name.toLowerCase())) {
     throw new Error(`unrecognized statistic type '-statistic' '${name}'`);
   }
 }
@@ -842,7 +842,7 @@ function explicitMorphologyRows(spec: string, match?: 0 | 1): number[][] | undef
 
 function magickMorphologyPlan(methodRaw: string, kernelSpec: string, statistic = false): { rows: MorphologyRow[]; backgroundRows?: MorphologyRow[]; dilateRows?: MorphologyRow[]; steps: MorphologyStep[]; iterations: number } {
   if (statistic) kernelSpec = kernelSpec.replace(",", "x").replace(":", "x").replace("/", "x");
-  const { method, iterations } = parseMagickMorphologyMethod(methodRaw);
+  const { method, iterations } = parseMagickMorphologyMethod(statistic && methodRaw.toLowerCase() === "undefined" ? "mean" : methodRaw);
   if (method === "distance") {
     const scale = manhattanDistanceScale(kernelSpec);
     return { iterations: iterations === 0 ? 0 : 1, rows: [], steps: [
@@ -9640,20 +9640,21 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const argument = tokens[++i], image = stack[0];
             const expanded = image && argument !== undefined ? yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties }) : argument;
             const operation = parseComplexOperator(expanded);
+            const polar = operation === "realimaginary" || operation === "magnitudephase";
             if (stack.length < 2) throw new Error("image sequence is required '-complex'");
             const extent = { width: Math.min(stack[0]!.width, stack[1]!.width), height: Math.min(stack[0]!.height, stack[1]!.height) };
             const result: RgbaImage[] = [];
-            const grayOnly = stack.slice(0, stack.length >= 4 ? 4 : 2).some(image => image.space === "b-w" || image.space === "grey16");
+            const grayOnly = stack.slice(0, !polar && stack.length >= 4 ? 4 : 2).some(image => image.space === "b-w" || image.space === "grey16");
             for (let part = 0; part < 2; part++) {
                 const base = stack[part]!;
                 const inputs: RgbaImage[] = [];
-                for (const index of operation === "conjugate" ? [part] : operation === "multiply" ? [part, part + 2, 1 - part, 3 - part] : [part, part + 2]) {
+                for (const index of polar ? [part, 1 - part] : operation === "conjugate" ? [part] : operation === "multiply" ? [part, part + 2, 1 - part, 3 - part] : [part, part + 2]) {
                     let input = stack[stack.length >= 4 ? index : index % 2]!;
                     if (input.width !== base.width || input.height !== base.height)
                         input = yield* applyMagickRasterSteps(input, extendEdgePixelSteps(input, base.width, base.height, true, input.virtualPixel, state.background), signal, { ...input, width: base.width, height: base.height });
                     inputs.push(input);
                 }
-                let output = yield* applyMagickRasterSteps(base, complexPixelSteps(extent, operation, inputs, base.space === "b-w" || base.space === "grey16", grayOnly, part), signal, base, inputs);
+                let output = yield* applyMagickRasterSteps(base, complexPixelSteps(extent, operation === "magnitudephase" ? (part === 0 ? "magnitude" : "phase") : operation === "realimaginary" ? (part === 0 ? "real" : "imaginary") : operation, inputs, base.space === "b-w" || base.space === "grey16", grayOnly, part), signal, base, inputs);
                 if (base.writeMask) output = yield* applyMagickRasterSteps(output, writeMaskPixelSteps(output, base.writeMask, true), signal, output, [output, base, base.writeMask]);
                 result.push(output);
             }
@@ -11111,25 +11112,26 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const image = await stack.get(0);
                 const expanded = image && argument !== undefined ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack) : argument;
                 const operation = parseComplexOperator(expanded);
+                const polar = operation === "realimaginary" || operation === "magnitudephase";
                 if (stack.length < 2) throw new Error("image sequence is required '-complex'");
                 const first = (await stack.get(0))!, imaginary = (await stack.get(1))!;
                 const extent = { width: Math.min(first.width, imaginary.width), height: Math.min(first.height, imaginary.height) };
                 const result = new StoredImageStack(backend.storage, signal, stack);
                 let grayOnly = false;
-                for (let index = 0; index < (stack.length >= 4 ? 4 : 2); index++) {
+                for (let index = 0; index < (!polar && stack.length >= 4 ? 4 : 2); index++) {
                     const image = (await stack.get(index))!;
                     grayOnly ||= image.space === "b-w" || image.space === "grey16";
                 }
                 for (let part = 0; part < 2; part++) {
                     const base: StoredRgbaImage = (await stack.get(part))!;
                     const inputs: StoredRgbaImage[] = [];
-                    for (const index of operation === "conjugate" ? [part] : operation === "multiply" ? [part, part + 2, 1 - part, 3 - part] : [part, part + 2]) {
+                    for (const index of polar ? [part, 1 - part] : operation === "conjugate" ? [part] : operation === "multiply" ? [part, part + 2, 1 - part, 3 - part] : [part, part + 2]) {
                         let input: StoredRgbaImage = (await stack.get(stack.length >= 4 ? index : index % 2))!;
                         if (input.width !== base.width || input.height !== base.height)
                             input = await transformStoredMagickRaster(input, backend, extendEdgePixelSteps(input, base.width, base.height, true, input.virtualPixel, background), signal, { ...input, width: base.width, height: base.height });
                         inputs.push(input);
                     }
-                    let output = await transformStoredMagickRaster(base, backend, complexPixelSteps(extent, operation, inputs, base.space === "b-w" || base.space === "grey16", grayOnly, part), signal, base, inputs);
+                    let output = await transformStoredMagickRaster(base, backend, complexPixelSteps(extent, operation === "magnitudephase" ? (part === 0 ? "magnitude" : "phase") : operation === "realimaginary" ? (part === 0 ? "real" : "imaginary") : operation, inputs, base.space === "b-w" || base.space === "grey16", grayOnly, part), signal, base, inputs);
                     if (base.storedWriteMask) output = await transformStoredMagickRaster(output, backend, writeMaskPixelSteps(output, base.storedWriteMask, true), signal, output, [output, base, base.storedWriteMask]);
                     await result.push(output);
                 }

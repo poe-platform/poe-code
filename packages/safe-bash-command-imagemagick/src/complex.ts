@@ -1,15 +1,15 @@
 import type { RgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-export function parseComplexOperator(value: string | undefined): "add" | "subtract" | "multiply" | "conjugate" {
+export function parseComplexOperator(value: string | undefined): "add" | "subtract" | "multiply" | "conjugate" | "magnitudephase" | "realimaginary" {
     if (!value) throw new Error("missing argument '-complex'");
     const operation = value.toLowerCase();
     if (operation === "undefined") return "conjugate";
-    if (operation !== "add" && operation !== "subtract" && operation !== "conjugate" && operation !== "multiply") throw new Error(`unsupported complex operator '${value}'`);
+    if (operation !== "add" && operation !== "subtract" && operation !== "conjugate" && operation !== "multiply" && operation !== "magnitudephase" && operation !== "realimaginary") throw new Error(`unsupported complex operator '${value}'`);
     return operation;
 }
 
-export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, operation: "add" | "subtract" | "multiply" | "conjugate", images: readonly Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha">[], gray: boolean, grayOnly: boolean, part: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, operation: "add" | "subtract" | "multiply" | "conjugate" | "magnitude" | "phase" | "real" | "imaginary", images: readonly Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha">[], gray: boolean, grayOnly: boolean, part: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const base = images[0]!;
     for (let y = 0; y < base.height; y++) for (let x = 0; x < base.width;) {
         yield;
@@ -48,6 +48,10 @@ export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, 
             if (operation === "multiply") return (part === 0
                 ? inputs[0]![offset]! * inputs[1]![offset]! - inputs[2]![offset]! * inputs[3]![offset]!
                 : inputs[0]![offset]! * inputs[3]![offset]! + inputs[2]![offset]! * inputs[1]![offset]!) / 255;
+            if (operation === "magnitude") return Math.hypot(inputs[0]![offset]!, inputs[1]![offset]!);
+            if (operation === "phase") return 255 * (Math.atan2(inputs[0]![offset]!, inputs[1]![offset]!) / (2 * Math.PI) + 0.5);
+            if (operation === "real") return inputs[0]![offset]! * Math.cos(2 * Math.PI * (inputs[1]![offset]! / 255 - 0.5));
+            if (operation === "imaginary") return inputs[1]![offset]! * Math.sin(2 * Math.PI * (inputs[0]![offset]! / 255 - 0.5));
             return operation === "add" ? inputs[0]![offset]! + inputs[1]![offset]!
                 : inputs[0]![offset]! - inputs[1]![offset]!;
         });

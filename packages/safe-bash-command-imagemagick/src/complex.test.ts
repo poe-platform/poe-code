@@ -162,3 +162,82 @@ it(`${mode}: complex preserves channel availability with ${name}`, async () => {
         expect([...output.data16!]).toEqual(samples);
     }
 });
+
+// Native ImageMagick 7.1.2-35 Q16-HDRI reference pixels.
+for (const mode of ["buffered", "sync", "retained", "command"])
+for (const [inputs, operation, expected] of [
+    [["xc:#406080", "xc:#102030"], "MagnitudePhase", [[0x423a, 0x6597, 0x893d, 0xffff], [0x89fb, 0x8d1b, 0x8e9e, 0xffff]]],
+    [["xc:#4080c0", "xc:#80a060"], "MagnitudePhase", [[0x8fab, 0xcdb3, 0xd780, 0xffff], [0xad1b, 0xa482, 0x92e3, 0xffff]]],
+    [["xc:#406080", "xc:#102030", "xc:#204060", "xc:#081018"], "MagnitudePhase", [[0x423a, 0x6597, 0x893d, 0xffff], [0x89fb, 0x8d1b, 0x8e9e, 0xffff]]],
+    [["xc:#406080", "xc:#102030"], "Add", [[0x8080, 0xc0c0, 0xffff, 0xffff], [0x2020, 0x4040, 0x6060, 0xffff]]],
+    [["xc:#406080", "xc:#102030"], "Bogus", []]
+] as const)
+it(`${mode}: complex ${operation} matches native for ${inputs.join(" ")}`, async () => {
+    const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
+    const original = new TextEncoder().encode("KEEP");
+    for (let index = 0; index < 2; index++) {
+        files.set(`/r-${index}.png`, original);
+        await fs.writeFile(`/r-${index}.png`, original);
+    }
+    const argv = [...inputs, "-complex", operation, "+adjoin", "PNG64:/r-%d.png"];
+    const args = createCommandArguments(argv);
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write() {} }, stderr: { async write() {} }
+    }) : mode === "sync" ? runConvertCliSync(argv, files)
+        : await runConvertCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result.exitCode).toBe(operation === "Bogus" ? 1 : 0);
+    for (let index = 0; index < 2; index++) {
+        const path = `/r-${index}.png`;
+        const bytes = mode === "command" || mode === "retained" ? await fs.readFile(path) : files.get(path)!;
+        if (operation === "Bogus") expect(bytes).toEqual(original);
+        else {
+            const output = decodeImage(bytes);
+            expect([output.width, output.height]).toEqual([1, 1]);
+            expect([...output.data16!]).toEqual(expected[index]);
+        }
+    }
+});
+
+// Native ImageMagick 7.1.2-35 Q16-HDRI decoded RGBA16 samples.
+for (const mode of ["buffered", "sync", "retained", "command"])
+for (const [name, inputs, operations, expected] of [
+    ["polar conversion", ["xc:#4080c0", "xc:#80a060"], ["-complex", "RealImaginary"],
+        [[0x403f, 0x5974, 0x898c, 0xffff], [0x00cb, 0x5c40, 0, 0xffff]]],
+    ["negative working values and extra pair", ["xc:#406080", "xc:#102030", "xc:#204060", "xc:#081018"],
+        ["-complex", "RealImaginary", "-evaluate", "multiply", "0.5", "-evaluate", "add", "25%"],
+        [[0x2257, 0x1e08, 0x27b0, 0xffff], [0x33a9, 0x1dd2, 0x0487, 0xffff]]],
+    ["polar round trip", ["xc:#406080", "xc:#102030"], ["-complex", "MagnitudePhase", "-complex", "RealImaginary"],
+        [[0x4040, 0x6060, 0x8080, 0xffff], [0x1010, 0x2020, 0x3030, 0xffff]]],
+    ["subtract control", ["xc:#406080", "xc:#102030", "xc:#204060", "xc:#081018"], ["-complex", "Subtract"],
+        [[0x2020, 0x2020, 0x2020, 0xffff], [0x0808, 0x1010, 0x1818, 0xffff]]],
+    ["invalid control", ["xc:#406080", "xc:#102030"], ["-complex", "Bogus"], []]
+] as const)
+it(`${mode}: complex ${name}`, async () => {
+    const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
+    const original = new TextEncoder().encode("KEEP");
+    for (let index = 0; index < 2; index++) {
+        files.set(`/r-${index}.png`, original);
+        await fs.writeFile(`/r-${index}.png`, original);
+    }
+    const argv = [...inputs, ...operations, "+adjoin", "PNG64:/r-%d.png"];
+    const args = createCommandArguments(argv);
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write() {} }, stderr: { async write() {} }
+    }) : mode === "sync" ? runConvertCliSync(argv, files)
+        : await runConvertCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result.exitCode).toBe(expected.length ? 0 : 1);
+    for (let index = 0; index < 2; index++) {
+        const path = `/r-${index}.png`;
+        const bytes = mode === "command" || mode === "retained" ? await fs.readFile(path) : files.get(path)!;
+        if (!expected.length) expect(bytes).toEqual(original);
+        else {
+            const output = decodeImage(bytes);
+            expect([output.width, output.height]).toEqual([1, 1]);
+            expect([...output.data16!]).toEqual(expected[index]);
+        }
+    }
+});

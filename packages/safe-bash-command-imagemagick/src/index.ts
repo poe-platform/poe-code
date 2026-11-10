@@ -10479,6 +10479,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }));
         }
         else if (t === "-raise" || t === "+raise") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const g = parseMagickRaiseGeometry(tokens[++i] ?? "", t);
             const raised = t === "-raise";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
@@ -12780,6 +12781,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 stack.length = 0; await stack.push(result); return stack;
             });
         } else if (!operandsOnly && (token === "-raise" || token === "+raise")) {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const g = parseMagickRaiseGeometry(tokens[++i] ?? "", token), raised = token === "-raise", channels = { ...state.channels, a: state.channels.a || !state.channelExplicit };
             steps.push(async (image, backend) => {
                 if (!image) return;

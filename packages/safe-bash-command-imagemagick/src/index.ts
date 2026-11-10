@@ -10841,8 +10841,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-rotate") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const spec = tokens[++i] ?? "0";
+            let sceneIdx = 0;
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(spec, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(spec, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx: sceneIdx++, optionProperties: state.optionProperties });
                 const operation = parseMagickWarpOperation(["-rotate", expanded], state, 0, analysis);
                 const { angle: deg, applies } = parseMagickRotation(expanded);
                 if (!applies(im)) return im;
@@ -13710,14 +13711,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return { ...await transformStoredImage(rotated, backend.storage, { kind: "extract", left, top, width: Math.min(bounds.width, rotated.width - left), height: Math.min(bounds.height, rotated.height - top) }, signal), virtualCanvas: bounds.virtualCanvas! };
             });
         } else if (!operandsOnly && token === "-rotate") {
+            let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
                 return stack;
             });
             const spec = tokens[++i] ?? "0", settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx, sceneIdx: sceneIdx++, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 const operation = parseMagickWarpOperation(["-rotate", expanded], settings, 0, analysis);
                 const { angle, applies } = parseMagickRotation(expanded);
                 if (!applies(image)) return image;

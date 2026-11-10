@@ -2054,7 +2054,7 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
                 if (++work % 16384 === 0)
                     yield;
                 const outside = box && (x < box.x || y < box.y || x >= box.x + (box.width ?? w) || y >= box.y + (box.height ?? h));
-                const t = outside ? 0 : vectorFactor ? vectorFactor(x, y) : radial ? Math.min(1, Math.hypot((x - cx) / axes[0], (y - cy) / axes[1])) : Math.max(0, Math.min(1, projection.offset + x * projection.x + y * projection.y));
+                const t = outside ? 0 : vectorFactor ? vectorFactor(x, y) : radial ? Math.min(1, Math.hypot((x - cx) / axes[0], (y - cy) / axes[1])) : projection(x, y);
                 const idx = (y * w + x) * 4;
                 writeGradientPixel(data, data16, idx, c1, c2, t);
             }
@@ -15993,7 +15993,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    for(let i=0;i<count;i++){
     const x=(start+i)%width,y=Math.floor((start+i)/width),offset=i*4;
     if(pattern){const cell=pattern.gray(x,y);bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}
-    else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:vectorFactor?vectorFactor(x,y):radial?Math.min(1,Math.hypot((x-cx)/axes[0],(y-cy)/axes[1])):Math.max(0,Math.min(1,projection.offset+x*projection.x+y*projection.y));writeGradientPixel(bytes,samples!,offset,a,b,t);}
+    else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:vectorFactor?vectorFactor(x,y):radial?Math.min(1,Math.hypot((x-cx)/axes[0],(y-cy)/axes[1])):projection(x,y);writeGradientPixel(bytes,samples!,offset,a,b,t);}
    }
    await backend.storage.write(position+start*4,bytes);
    if(storedData16&&samples)await backend.storage.write(storedData16.position+start*8,new Uint8Array(samples.buffer));

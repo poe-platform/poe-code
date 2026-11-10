@@ -13563,8 +13563,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                   }
 
+                  // Encoders choose integer narrowing versus floating-point rounding from
+                  // the decoded source format, which filters may have changed.
+                  const packedFormat = filteredSampleFormat.endsWith("p") ? filteredSampleFormat.slice(0, -1) : filteredSampleFormat;
+                  const filteredPcm: Record<string, { codecName: string; bitsPerSample: number }> = {
+                    u8: { codecName: "pcm_u8", bitsPerSample: 8 },
+                    s16: { codecName: "pcm_s16le", bitsPerSample: 16 },
+                    s32: { codecName: "pcm_s32le", bitsPerSample: 32 },
+                    s64: { codecName: "pcm_s64le", bitsPerSample: 64 },
+                    flt: { codecName: "pcm_f32le", bitsPerSample: 32 },
+                    dbl: { codecName: "pcm_f64le", bitsPerSample: 64 }
+                  };
                   const nextDescs = t.codecDescriptions.map((d) => ({
                     ...d,
+                    ...(filter ? filteredPcm[packedFormat] : {}),
                     sampleRate: targetRate,
                     channels: targetCh
                   }));

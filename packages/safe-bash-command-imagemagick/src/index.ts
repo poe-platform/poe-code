@@ -2417,7 +2417,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
     let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
-    if (["-swirl", "-implode", "-wave"].includes(option)) value = value.replaceAll("(", "").replaceAll(")", "");
+    if (["-swirl", "-implode", "-wave", "-spread"].includes(option)) value = value.replaceAll("(", "").replaceAll(")", "");
     const forcedRegionResize = (option === "-liquid-rescale" || option === "-adaptive-resize") && value.includes("!");
     let dimensions = false;
     for (const char of value) {
@@ -4102,6 +4102,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
         }
         if (["-wave", "-swirl", "-implode", "-spread"].includes(token)) validateMagickTransformGeometry(geometry, token);
         if (token === "-spread") {
+            geometry = geometry.replaceAll("(", "").replaceAll(")", "");
             const radius = parseMagickGeometry(geometry).aspectRatio ?? Number.parseFloat(geometry);
             // Native's automatic kernel width for sigma=0.5 is five, including radius zero.
             const width = radius > 1e-12 ? 2 * Math.ceil(radius) + 1 : 5;

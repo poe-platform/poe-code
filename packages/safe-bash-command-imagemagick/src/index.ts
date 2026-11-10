@@ -122,9 +122,9 @@ import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage
 import { combineMetaPixelSteps, type MetaChannels } from "./combine-meta.js";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16" | "evaluateSamples">> & { position?: number; storedEvaluateSamples?: number | undefined };
-type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
-type ImageMetadata = BaseImageMetadata & HueMetadata & MetaChannels & Pick<RgbaImage, "inactiveAlpha" | "alphaBlend">;
+type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
+type ImageMetadata = BaseImageMetadata & HueMetadata & MetaChannels & Pick<RgbaImage, "inactiveAlpha" | "alphaBlend" | "alphaSeparate">;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -7864,13 +7864,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     }
                     data16[idx + 3] = im.data16 ? im.data16[idx + 3]! : im.data[idx + 3]! * 257;
                 }
-                return { ...im, data: out, data16, ...(hueSamples ? { hueSamples } : {}), hasAlpha: false, alphaBlend: im.alphaBlend ?? im.hasAlpha };
+                return { ...im, data: out, data16, ...(hueSamples ? { hueSamples } : {}), hasAlpha: false, alphaBlend: im.alphaBlend ?? im.hasAlpha, alphaSeparate: mode === "disassociate" };
             };
         }
         else if (mode === "deactivate" || mode === "discrete") {
             apply = function* (im) {
                 yield;
-                return { ...im, hasAlpha: false, inactiveAlpha: im.hasAlpha || im.inactiveAlpha, alphaBlend: im.alphaBlend ?? im.hasAlpha };
+                return { ...im, hasAlpha: false, inactiveAlpha: im.hasAlpha || im.inactiveAlpha, alphaBlend: im.alphaBlend ?? im.hasAlpha, alphaSeparate: mode === "discrete" };
             };
         }
         else if (mode === "background") {
@@ -9002,10 +9002,10 @@ function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<
 }
 
 function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 4 | null, clipRed: boolean, pixelOffset = 0, imageWidth = image.width): Generator<void, RgbaImage> {
-    const missingChannel = channel === null || (channel === 4 ? image.space !== "cmyk" : channel === 3 ? !image.hasAlpha : channel !== 0 && (image.space === "b-w" || image.space === "grey16"));
+    const missingChannel = channel === null || (channel === 4 ? image.space !== "cmyk" : channel === 3 ? !(image.hasAlpha || image.alphaBlend === true && image.alphaSeparate === true) : channel !== 0 && (image.space === "b-w" || image.space === "grey16"));
     // The source selection clips extraction, but does not belong to the generated planes.
     const { writeMask: ignoredMask, region: ignoredRegion, magickColorspace: ignoredSpace, hueSamples, storedHueSamples: ignoredStoredHue, metaChannels: ignoredMeta, storedMetaChannels: ignoredStoredMeta, ...components } = image;
-    const separated = { ...yield* extractChannelImageSteps(missingChannel ? yield* ensureAlphaImageSteps({ ...components, hasAlpha: false }, 0) : components, missingChannel ? 3 : channel === 4 ? 0 : channel), isPalette: false, inactiveAlpha: false };
+    const separated = { ...yield* extractChannelImageSteps(missingChannel ? yield* ensureAlphaImageSteps({ ...components, hasAlpha: false }, 0) : { ...components, hasAlpha: image.hasAlpha || image.alphaBlend === true && image.alphaSeparate === true }, missingChannel ? 3 : channel === 4 ? 0 : channel), isPalette: false, alphaBlend: false, inactiveAlpha: false };
     // CMYK stores K at working offset 3; alpha remains in the RGBA backing.
     const workingSamples = channel === 3 ? undefined : hueSamples;
     const samples = workingSamples ?? image.evaluateSamples;
@@ -11397,7 +11397,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     yield;
                 const mask = [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k];
                 const channels: (0 | 1 | 2 | 3 | 4 | null)[] = ([0, 1, 2, 4, 3] as const).filter(channel =>
-                    (channel === 4 ? im.space === "cmyk" : channel === 3 ? im.hasAlpha : channel === 0 || (im.space !== "b-w" && im.space !== "grey16")) && (!state.channelExplicit || mask[channel]));
+                    (channel === 4 ? im.space === "cmyk" : channel === 3 ? im.hasAlpha || im.alphaBlend === true && im.alphaSeparate === true : channel === 0 || (im.space !== "b-w" && im.space !== "grey16")) && (!state.channelExplicit || mask[channel]));
                 // ImageMagick emits a black plane when none of the selected channels exist.
                 const metaPlanes = (im.metaChannels ?? []).filter((_, index) => !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index));
                 if (channels.length === 0 && metaPlanes.length === 0) channels.push(null);
@@ -12441,7 +12441,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     for (let index = 0; index < stack.length; index++) {
                         const image = (await stack.get(index))!;
                         const channels: (0 | 1 | 2 | 3 | 4 | null)[] = ([0, 1, 2, 4, 3] as const).filter(channel =>
-                            (channel === 4 ? image.space === "cmyk" : channel === 3 ? image.hasAlpha : channel === 0 || (image.space !== "b-w" && image.space !== "grey16")) && (!settings.channelExplicit || mask[channel]));
+                            (channel === 4 ? image.space === "cmyk" : channel === 3 ? image.hasAlpha || image.alphaBlend === true && image.alphaSeparate === true : channel === 0 || (image.space !== "b-w" && image.space !== "grey16")) && (!settings.channelExplicit || mask[channel]));
                         const metaPlanes = ((image as StoredRgbaImage).storedMetaChannels ?? []).filter((_, index) => !settings.channelExplicit || settings.channelDefault || settings.channels.meta?.includes(index));
                         if (channels.length === 0 && metaPlanes.length === 0) channels.push(null);
                         for (const channel of channels) {
@@ -15726,7 +15726,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         if (typeof operation === "object" && "separate" in operation) {
             const selected: (0 | 1 | 2 | 3 | 4 | null)[] = ([0, 1, 2, 4, 3] as const).filter(channel =>
-                (channel === 4 ? image.space === "cmyk" : channel === 3 ? image.hasAlpha : channel === 0 || (image.space !== "b-w" && image.space !== "grey16")) &&
+                (channel === 4 ? image.space === "cmyk" : channel === 3 ? image.hasAlpha || image.alphaBlend === true && image.alphaSeparate === true : channel === 0 || (image.space !== "b-w" && image.space !== "grey16")) &&
                 (!operation.separate || operation.separate.includes(channel)));
             if (selected.length === 0) selected.push(null);
             for (const channel of selected) {

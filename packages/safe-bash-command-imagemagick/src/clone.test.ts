@@ -7,6 +7,19 @@ const red = [255, 0, 0, 255], green = [0, 255, 0, 255], blue = [0, 0, 255, 255];
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
     it.each([
+        ...[
+            { options: ["-clone", "1,"], tail: [green, red] },
+            { options: ["-clone", "1,2,"], tail: [green, blue, red] },
+            { options: ["-duplicate", "1,1,"], tail: [green, red] },
+            { options: ["-clone", "1"], tail: [green] }
+        ].map(({ options, tail }) => ({
+            args: ["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "xc:white", ...options],
+            pixels: [red, green, blue, [255, 255, 255, 255], ...tail]
+        })),
+        {
+            args: ["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "xc:white", "-delete", "1,"],
+            pixels: [red, blue, [255, 255, 255, 255]]
+        },
         ...["1 2", "1\t2", "1\n2", " 1 , 2 ", "1 -1", "1-1 2"].flatMap(spec => [
             { args: ["r.png", "g.png", "b.png", "-clone", spec], pixels: [red, green, blue, green, blue] },
             { args: ["r.png", "g.png", "b.png", "-duplicate", `1,${spec}`], pixels: [red, green, blue, green, blue] },

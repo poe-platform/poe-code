@@ -6455,6 +6455,8 @@ function parseMagickIndices(spec: string, ranges = true): number[][] {
 
 function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" | "delete"): Generator<number> {
   const parts = parseMagickIndices(spec);
+  // Clone lists interpret a trailing comma as an additional frame-zero selection.
+  if (operation === "clone" && spec.trimEnd().endsWith(",")) parts.push([0]);
   if (length <= 0) return;
   const resolve = (n: number): number =>
     n < 0 ? Math.max(0, length + n) : Math.min(Math.max(0, n), length - 1);

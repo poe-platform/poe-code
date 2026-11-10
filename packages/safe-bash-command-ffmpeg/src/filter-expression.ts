@@ -77,6 +77,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
         else if (name === "sqrt" && args.length === 1) value = Math.sqrt(args[0]!);
         else if (name === "sin" && args.length === 1) value = Math.sin(args[0]!);
         else if (name === "cos" && args.length === 1) value = Math.cos(args[0]!);
+        else if (name === "cosh" && args.length === 1) value = Math.cosh(args[0]!);
         else if (name === "tanh" && args.length === 1) value = Math.tanh(args[0]!);
         else if (name === "isnan" && args.length === 1) value = Number(Number.isNaN(args[0]));
         else if (name === "not" && args.length === 1) value = Number(args[0] === 0);

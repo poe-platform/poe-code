@@ -7,6 +7,9 @@ import { createFfmpegCommand } from "./index.js";
 for (const [expression, expected] of [
   ["sin(PI*n/2)/2", [0, 16384, 0, -16384]],
   ["sin(n)", [0, 27573, 29796, 4624]],
+  ["cosh(n/4)/2", [16384, 16899, 18475, 21212]],
+  ["cosh(0)/2", [16384, 16384, 16384, 16384]],
+  ["cosh(-n/4)/2", [16384, 16899, 18475, 21212]],
   ["PI/32768", [3, 3, 3, 3]],
   ["n/32768", [0, 1, 2, 3]],
   ["clip(1/0,0,0.5)", [16384, 16384, 16384, 16384]],
@@ -28,7 +31,9 @@ for (const [expression, expected] of [
   ["pi/32768", undefined],
   ["PIbanana/32768", undefined],
   ["sin()", undefined],
-  ["sin(0,1)", undefined]
+  ["sin(0,1)", undefined],
+  ["cosh()", undefined],
+  ["cosh(0,1)", undefined]
 ] as const) {
   for (const complex of [false, true]) {
     it(`evaluates aeval waveforms (${complex ? "graph" : "simple"}): ${expression}`, async () => {

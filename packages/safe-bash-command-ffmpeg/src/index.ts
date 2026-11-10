@@ -1091,6 +1091,82 @@ function parseAtrim(argument: string, origRate: number) {
   return { duration, startPts, endPts, startSample, endSample };
 }
 
+type AudioFilterFrame = { start: number; end: number; pts: number; pos?: number | undefined };
+
+function createAudioSelection(argument: string, origRate: number, timeBase = 1 / origRate) {
+  let expression = "1";
+  for (const [index, option] of argument.split(":").entries()) {
+    const separator = option.indexOf("=");
+    const key = separator < 0 ? ["expr", "outputs"][index] : option.slice(0, separator);
+    const value = separator < 0 ? option : option.slice(separator + 1);
+    if (key === "expr" || key === "e") expression = value;
+    else if (key === "outputs" || key === "n") {
+      if (parseFilterExpression(value, "aselect", {}) !== 1) {
+        throw new Error("aselect: only one output is supported");
+      }
+    } else throw new Error("aselect: unsupported option");
+  }
+  const variables = {
+    samples_n: NaN, sample_rate: origRate, consumed_samples_n: NaN,
+    PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+    // Decoded audio is key; video classification and concat metadata are unavailable.
+    key: 1, pict_type: NaN, interlace_type: NaN, concatdec_select: NaN,
+    I: 1, PROGRESSIVE: 0,
+    n: 0, t: NaN, pts: NaN, TB: timeBase, start_pts: NaN, start_t: NaN, pos: NaN,
+    selected_n: 0, prev_pts: NaN, prev_t: NaN,
+    prev_selected_n: NaN, prev_selected_pts: NaN, prev_selected_t: NaN
+  };
+  const registers = new Float64Array(10);
+  const samplesPerTick = timeBase * origRate;
+  const toTicks = (pts: number) => Math.sign(pts) * Math.round(Math.abs(pts) / samplesPerTick);
+  return (frame?: AudioFilterFrame) => {
+    if (!frame) return parseFilterExpression(expression, "aselect", variables, undefined, registers) !== 0;
+    const n = variables.n;
+    variables.samples_n = frame.end - frame.start;
+    variables.pts = toTicks(frame.pts);
+    variables.pos = frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN;
+    variables.t = frame.pts / origRate;
+    if (Number.isNaN(variables.start_pts)) {
+      variables.start_pts = variables.pts;
+      variables.start_t = variables.t;
+    }
+    const keep = parseFilterExpression(expression, "aselect", variables, undefined, registers) !== 0;
+    variables.n++;
+    variables.prev_pts = variables.pts;
+    variables.prev_t = variables.t;
+    if (!keep) return false;
+    variables.selected_n++;
+    variables.prev_selected_n = n;
+    variables.prev_selected_pts = variables.pts;
+    variables.prev_selected_t = variables.t;
+    return true;
+  };
+}
+
+function createAudioTrim(argument: string, origRate: number) {
+  const { duration, startPts, endPts, startSample, endSample } = parseAtrim(argument, origRate);
+  let firstPts: number | undefined;
+  let nextPts = 0;
+  return (frame: AudioFilterFrame) => {
+    const count = frame.end - frame.start;
+    const pts = Number.isNaN(frame.pts) ? nextPts : Math.sign(frame.pts) * Math.round(Math.abs(frame.pts));
+    nextPts = pts + count;
+    // Timestamp bounds apply to every frame; sample bounds count all input samples.
+    let start = Math.min(startPts - pts, startSample - frame.start);
+    if (start === Infinity) start = 0;
+    if (start >= count) return undefined;
+    firstPts ??= pts + start;
+    let end = Math.max(endPts - pts, endSample - frame.start,
+      duration > 0 ? firstPts + duration - pts : -Infinity);
+    if (end === -Infinity) end = count;
+    // Only a frame wholly past every end bound ends the stream.
+    if (end <= 0) return null;
+    start = Math.max(0, start);
+    end = Math.min(count, end);
+    return end > start ? { start, end } : undefined;
+  };
+}
+
 function serializeFilterChain(filters: string[]): string {
   // Parsed filters have lost their quoting; protect literal separators before reparsing.
   return filters.map(filter => filter.replaceAll("\\", "\\\\").replaceAll("'", "\\'").replaceAll(",", "\\,")).join(",");
@@ -10965,17 +11041,67 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               const frameSamples = reframe !== undefined
                                 ? parseAsetnsamples(reframe.includes("=") ? reframe.slice(reframe.indexOf("=") + 1) : "").size
                                 : undefined;
-                              let frameBound = frameSamples === undefined
-                                ? inputLength + Math.max(0, maxAudioFrames - audioTimestamps.length) * packetSize
-                                : maxAudioFrames * frameSamples;
-                              if (resampleSupport && packetSize > 0 && maxAudioFrames > 0) {
-                                const emitted = audioTimestamps.filter(frame => frame.end > resampleSupport).length;
-                                // Startup consumes complete packets without emitting frames.
-                                const startupPackets = Math.max(0, Math.floor((resampleSupport - inputLength) / packetSize) + 1);
-                                frameBound = inputLength + (startupPackets + Math.max(0,
-                                  maxAudioFrames - emitted - (startupPackets > 0 ? 1 : 0))) * packetSize;
+                              const downstream = audioFilters.slice(filterIndex + 1).map(filter => {
+                                const separator = filter.indexOf("=");
+                                return { name: (separator < 0 ? filter : filter.slice(0, separator)).split("@", 1)[0],
+                                  argument: separator < 0 ? "" : filter.slice(separator + 1) };
+                              });
+                              if (downstream.some(filter => filter.name === "aselect" || filter.name === "atrim") &&
+                                  downstream.every(filter => ["aselect", "atrim", "anull", "acopy", "volume"].includes(filter.name!))) {
+                                const filters = downstream.filter(filter => filter.name === "aselect" || filter.name === "atrim")
+                                  .map(filter => ({
+                                    select: filter.name === "aselect" ? createAudioSelection(filter.argument || "1", origRate, audioTimeBase) : undefined,
+                                    trim: filter.name === "atrim" ? createAudioTrim(filter.argument, origRate) : undefined,
+                                    length: 0
+                                  }));
+                                let required = inputLength;
+                                let pts = paddingPts;
+                                let outputFrames = 0;
+                                let ended = false;
+                                // Count retained frames before allocating PCM, including padding packets
+                                // discarded downstream. Each filter keeps its own input sample position.
+                                for (let n = 0; outputFrames < maxAudioFrames && !ended; n++) {
+                                  if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                                  let frame = audioTimestamps[n];
+                                  if (!frame) {
+                                    if (required >= minimum) break;
+                                    if (packetSize === 0) throw new Error("apad: packet_size must be positive when padding is required");
+                                    const end = Math.min(minimum, required + packetSize);
+                                    budget.checkDuration(end / origRate);
+                                    budget.checkSamples(end);
+                                    frame = { start: required, end, pts };
+                                    pts += Math.round((end - required) / samplesPerTick) * samplesPerTick;
+                                    required = end;
+                                  }
+                                  let retained: AudioFilterFrame | undefined = frame;
+                                  for (const filter of filters) {
+                                    const count: number = retained.end - retained.start;
+                                    retained = { ...retained, start: filter.length, end: filter.length + count };
+                                    filter.length += count;
+                                    if (filter.select && !filter.select(retained)) { retained = undefined; break; }
+                                    if (filter.trim) {
+                                      const range = filter.trim(retained);
+                                      if (range == null) { ended = range === null; retained = undefined; break; }
+                                      retained = { ...retained, start: retained.start + range.start, end: retained.start + range.end,
+                                        pts: retained.pts + Math.round(range.start / samplesPerTick) * samplesPerTick };
+                                    }
+                                  }
+                                  if (retained && (outputSs === undefined || retained.pts + retained.end - retained.start > seek)) outputFrames++;
+                                }
+                                minimum = Math.min(minimum, required);
+                              } else {
+                                let frameBound = frameSamples === undefined
+                                  ? inputLength + Math.max(0, maxAudioFrames - audioTimestamps.length) * packetSize
+                                  : maxAudioFrames * frameSamples;
+                                if (resampleSupport && packetSize > 0 && maxAudioFrames > 0) {
+                                  const emitted = audioTimestamps.filter(frame => frame.end > resampleSupport).length;
+                                  // Startup consumes complete packets without emitting frames.
+                                  const startupPackets = Math.max(0, Math.floor((resampleSupport - inputLength) / packetSize) + 1);
+                                  frameBound = inputLength + (startupPackets + Math.max(0,
+                                    maxAudioFrames - emitted - (startupPackets > 0 ? 1 : 0))) * packetSize;
+                                }
+                                minimum = Math.min(minimum, frameBound);
                               }
-                              minimum = Math.min(minimum, frameBound);
                             }
                           }
                         }
@@ -12181,20 +12307,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           audioTimeBase = parseFilterExpression(expression, "asettb", { intb: timeBase, sr: origRate, AVTB: 1 / 1000000 });
                           if (audioTimeBase <= 0) throw new Error("asettb: time base must be positive");
                         }
-                        if (selecting) {
-                          expression = "1";
-                          for (const [index, option] of argument.split(":").entries()) {
-                            const separator = option.indexOf("=");
-                            const key = separator < 0 ? ["expr", "outputs"][index] : option.slice(0, separator);
-                            const value = separator < 0 ? option : option.slice(separator + 1);
-                            if (key === "expr" || key === "e") expression = value;
-                            else if (key === "outputs" || key === "n") {
-                              if (parseFilterExpression(value, "aselect", {}) !== 1) {
-                                throw new Error("aselect: only one output is supported");
-                              }
-                            } else throw new Error("aselect: unsupported option");
-                          }
-                        }
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
@@ -12216,18 +12328,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           continue;
                         }
                         if (selecting) {
-                          const variables = {
-                            samples_n: NaN, sample_rate: origRate, consumed_samples_n: NaN,
-                            PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
-                            // Decoded audio is key; video classification and concat metadata are unavailable.
-                            key: 1, pict_type: NaN, interlace_type: NaN, concatdec_select: NaN,
-                            I: 1, PROGRESSIVE: 0,
-                            n: 0, t: NaN, pts: NaN, TB: timeBase, start_pts: NaN, start_t: NaN, pos: NaN,
-                            selected_n: 0, prev_pts: NaN, prev_t: NaN,
-                            prev_selected_n: NaN, prev_selected_pts: NaN, prev_selected_t: NaN
-                          };
-                          const registers = new Float64Array(10);
-                          if (audioTimestamps.length === 0) parseFilterExpression(expression, "aselect", variables, undefined, registers);
+                          const select = createAudioSelection(argument, origRate, timeBase);
+                          if (audioTimestamps.length === 0) select();
                           const selected: typeof audioTimestamps = [];
                           const selectedMetadata: typeof audioMetadata = [];
                           const ranges: { start: number; end: number }[] = [];
@@ -12236,23 +12338,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             budget.checkCpu();
                             await yieldTurn(context.signal);
                             context.signal?.throwIfAborted();
-                            variables.n = n;
-                            variables.samples_n = frame.end - frame.start;
-                            variables.pts = toTicks(frame.pts);
-                            variables.pos = frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN;
-                            variables.t = frame.pts / origRate;
-                            if (Number.isNaN(variables.start_pts)) {
-                              variables.start_pts = variables.pts;
-                              variables.start_t = variables.t;
-                            }
-                            const keep = parseFilterExpression(expression, "aselect", variables, undefined, registers) !== 0;
-                            variables.prev_pts = variables.pts;
-                            variables.prev_t = variables.t;
-                            if (!keep) continue;
-                            variables.selected_n++;
-                            variables.prev_selected_n = n;
-                            variables.prev_selected_pts = variables.pts;
-                            variables.prev_selected_t = variables.t;
+                            if (!select(frame)) continue;
                             ranges.push(frame);
                             const end = length + frame.end - frame.start;
                             selected.push({ start: length, end, pts: frame.pts, pos: frame.pos });
@@ -12288,14 +12374,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           frame.pts = transform(frame);
                         }
                       } else if (trimmed === "atrim" || trimmed.startsWith("atrim=")) {
-                        const { duration, startPts, endPts, startSample, endSample } = parseAtrim(trimmed.slice("atrim=".length), origRate);
+                        const trim = createAudioTrim(trimmed.slice("atrim=".length), origRate);
                         const length = stretched[0]?.length ?? 0;
                         const ranges: { start: number; end: number }[] = [];
                         const retained: NonNullable<typeof audioTimestamps> = [];
                         const retainedMetadata: typeof audioMetadata = [];
-                        let firstPts: number | undefined;
                         let outputLength = 0;
-                        let nextPts = 0;
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           for (let start = 0, n = 0; start < length; n++) {
@@ -12313,22 +12397,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         for (const [n, frame] of audioTimestamps.entries()) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          const count = frame.end - frame.start;
-                          const pts = Number.isNaN(frame.pts) ? nextPts : Math.sign(frame.pts) * Math.round(Math.abs(frame.pts));
-                          nextPts = pts + count;
-                          // Timestamp bounds apply to every frame; sample bounds count all input samples.
-                          let start = Math.min(startPts - pts, startSample - frame.start);
-                          if (start === Infinity) start = 0;
-                          if (start >= count) continue;
-                          firstPts ??= pts + start;
-                          let end = Math.max(endPts - pts, endSample - frame.start,
-                            duration > 0 ? firstPts + duration - pts : -Infinity);
-                          if (end === -Infinity) end = count;
-                          // Only a frame wholly past every end bound ends the stream.
-                          if (end <= 0) break;
-                          start = Math.max(0, start);
-                          end = Math.min(count, end);
-                          if (end <= start) continue;
+                          const range = trim(frame);
+                          if (range === null) break;
+                          if (range === undefined) continue;
+                          const { start, end } = range;
                           budget.allocateMemory(48);
                           ranges.push({ start: frame.start + start, end: frame.start + end });
                           const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;

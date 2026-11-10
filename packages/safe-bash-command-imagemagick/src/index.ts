@@ -12305,9 +12305,13 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             const image = stack[index]!;
             stack[index] = { ...image, properties: { ...image.properties, compose: state.composeRaw } };
         }
-        if (state.orientation !== undefined) for (let index = 0; index < stack.length; index++) {
+        if (state.orientation !== undefined || state.units !== undefined || state.densityGeometry !== undefined) for (let index = 0; index < stack.length; index++) {
             yield;
-            stack[index] = { ...stack[index]!, orientation: state.orientation };
+            let image = stack[index]!;
+            if (state.orientation !== undefined) image = { ...image, orientation: state.orientation };
+            if (state.units !== undefined) image = applyMagickUnits(image, state.units);
+            if (state.densityGeometry !== undefined) image = applyMagickDensity(image, state.densityGeometry);
+            stack[index] = image;
         }
         if (stack.length === 0) {
             return {
@@ -15208,9 +15212,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const image = (await stack.get(index))!;
                 await stack.set(index, { ...image, properties: { ...image.properties, compose: state.composeRaw } });
             }
-            if (state.orientation !== undefined) for (let index = 0; index < stack.length; index++) {
+            if (state.orientation !== undefined || state.units !== undefined || state.densityGeometry !== undefined) for (let index = 0; index < stack.length; index++) {
                 await yieldTurn(signal);
-                await stack.set(index, { ...(await stack.get(index))!, orientation: state.orientation });
+                let image = (await stack.get(index))!;
+                if (state.orientation !== undefined) image = { ...image, orientation: state.orientation };
+                if (state.units !== undefined) image = applyMagickUnits(image, state.units);
+                if (state.densityGeometry !== undefined) image = applyMagickDensity(image, state.densityGeometry);
+                await stack.set(index, image);
             }
             image = await stack.get(stack.length - 1);
         }

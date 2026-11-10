@@ -4081,8 +4081,9 @@ async function applyVideoFilterChain(
       commands.sort((a, b) => a.time - b.time);
       current = await tmix(current, argStr, budget, signal, commands);
     } else if (name === "tblend") {
-      const mode = named.all_mode ?? "normal";
-      if (argStr !== "" && (positional.length !== 1 || !["normal", "difference"].includes(mode) || Object.keys(named).length !== 1 || named.all_mode === undefined)) {
+      const modeValue = parseFilterExpression(named.all_mode ?? "normal", "tblend", { normal: 0, difference: 6 });
+      const mode = roundToEven(modeValue);
+      if (modeValue < 0 || modeValue > 39 || ![0, 6].includes(mode) || (argStr !== "" && (positional.length !== 1 || Object.keys(named).length !== 1 || named.all_mode === undefined))) {
         throw new Error("tblend: only all_mode=normal or difference is supported");
       }
       const blended: typeof current = [];
@@ -4092,21 +4093,37 @@ async function applyVideoFilterChain(
         if (frame.width !== previous.width || frame.height !== previous.height) {
           throw new Error("tblend: adjacent frames must have matching dimensions");
         }
-        if (mode === "normal") {
+        if (mode === 0) {
           blended.push(frame);
           continue;
         }
-        const data = new Uint8Array(frame.data.length);
-        for (let offset = 0; offset < data.length; offset += 4) {
+        const native = frame.native;
+        const useNative = native && [0, 4, 5, 12, 13, 14, 49, 68].includes(native.format) && [frame, previous].every(input =>
+          input.native?.rgba === input.data && input.native.width === input.width && input.native.height === input.height &&
+          input.native.format === native.format && input.native.colorspace === native.colorspace &&
+          input.native.fullRange === native.fullRange && input.native.pixels.length === native.pixels.length);
+        const a = useNative ? native.pixels : frame.data;
+        const b = useNative ? previous.native!.pixels : previous.data;
+        budget.allocateMemory(a.length + (useNative ? frame.data.length : 0));
+        const data = new Uint8Array(a.length);
+        const sampleBytes = useNative && [49, 68].includes(native.format) ? 2 : 1;
+        for (let offset = 0; offset < data.length; offset += sampleBytes) {
           if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-          for (let channel = 0; channel < 3; channel++) {
-            data[offset + channel] = Math.abs(frame.data[offset + channel]! - previous.data[offset + channel]!);
-          }
-          data[offset + 3] = 255;
+          const first = a[offset]! + (sampleBytes === 2 ? a[offset + 1]! * 256 : 0);
+          const second = b[offset]! + (sampleBytes === 2 ? b[offset + 1]! * 256 : 0);
+          const value = Math.abs(first - second);
+          data[offset] = value & 255;
+          if (sampleBytes === 2) data[offset + 1] = value >> 8;
         }
-        const output = { ...frame, data };
-        delete output.native;
-        blended.push(output);
+        if (useNative) {
+          const mixedNative = { ...native, pixels: data };
+          const rgba = scaleVideoPicture({ ...frame, native: mixedNative }, frame.width, frame.height)!;
+          blended.push({ ...frame, data: rgba, native: { ...mixedNative, rgba } });
+        } else {
+          const output = { ...frame, data };
+          delete output.native;
+          blended.push(output);
+        }
       }
       current = blended;
     } else if (name === "shuffleframes") {

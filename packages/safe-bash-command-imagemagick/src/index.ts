@@ -6345,7 +6345,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     if (rgb) {
         if (!state.hasSize) throw new Error("must specify image size for RGB input");
-        const raw = rawNetpbmInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", partitions ? Math.min(...partitions.map(bytes => bytes!.length)) * 3 : rawBytes.length, 3, 0, state.rawInterlace);
+        const raw = rawNetpbmInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", partitions ? Math.min(...partitions.map(bytes => bytes!.length)) * 3 : rawBytes.length, 3, state.inputOffset, state.rawInterlace);
         const frames: RgbaImage[] = [];
         for (const page of selectedInputPages(pageSpec, raw.pages)) {
             const bytes = new Uint8Array(raw.size);
@@ -8860,10 +8860,12 @@ if (t === "-seed") {
             const g = parseMagickGeometry(tokens[++i] ?? "1x1");
             state.sizeWidth = Math.max(1, Math.round(g.width ?? 1));
             state.sizeHeight = Math.max(1, Math.round(g.height ?? state.sizeWidth));
+            state.inputOffset = g.x;
             state.hasSize = true;
         }
         else if (t === "+size") {
             state.hasSize = false;
+            delete state.inputOffset;
         }
         else if (t === "-respect-parentheses" || t === "+respect-parentheses") {
             state.respectParentheses = t === "-respect-parentheses";
@@ -13575,7 +13577,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   if(!state.hasSize)throw new Error("must specify image size for RGB input");
   const path=baseToken.slice(4);
   const consume=async(sources:ImageByteSource[])=>{
-   const raw=rawNetpbmInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,3,0,state.rawInterlace);
+   const raw=rawNetpbmInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,3,state.inputOffset,state.rawInterlace);
    for(const page of selectedInputPages(pageSpec,raw.pages)){
     image=await parseStoredCompareInput(`ppm:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
      const steps=raw.read(position,length,page);let next=steps.next();

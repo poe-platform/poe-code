@@ -35,7 +35,16 @@ export async function removeSilence(
     const separator = option.indexOf("=");
     const key = separator < 0 ? positional[index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    if (key === "enable") {
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      const number = parseFilterExpression(value, "silenceremove", key === "thread_type"
+        ? { slice: 1 } : key === "threads" ? { default: 0, min: 0 } : { default: -1, min: -1 });
+      if (key === "thread_type"
+        ? !Number.isInteger(number) || number < -2147483648 || number > 4294967295
+        : !Number.isFinite(number) || number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
+        throw new Error(`silenceremove: invalid ${key}`);
+      }
+      // Scheduling and hardware-frame options do not change the rendered PCM.
+    } else if (key === "enable") {
       enable = value;
       parseFilterExpression(enable, "silenceremove enable", { n: 0, t: 0 });
     } else if (key === "start_mode" || key === "stop_mode" || key === "detection" || key === "timestamp") {

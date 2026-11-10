@@ -14562,6 +14562,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("tremolo: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("tremolo:")) return { exitCode: 222 };
             if (msg === "tremolo: invalid expression" || msg === "tremolo: invalid or unsupported expression") return { exitCode: 234 };
+            if (msg === "areverse: timeline is unsupported") return { exitCode: 176 };
+            if (msg.startsWith("areverse: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("areverse:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg === "atempo: timeline is unsupported") return { exitCode: 176 };
             if (msg === "flanger: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("flanger: unsupported option ")) return { exitCode: 8 };

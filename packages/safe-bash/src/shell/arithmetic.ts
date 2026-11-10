@@ -126,6 +126,9 @@ function integer(text: string): bigint {
   if (/^\d+$/u.test(text)) return BigInt.asIntN(64, BigInt(text));
   const match = /^(\d+)#([\da-zA-Z@_#]*)$/u.exec(text);
   if (!match) throw new PublicDiagnostic("value too great for base");
+  if (text.startsWith("0")) {
+    throw new PublicDiagnostic(match[1]!.includes("8") || match[1]!.includes("9") ? "value too great for base" : "invalid number");
+  }
   const base = Number(match[1]);
   if (base < 2 || base > 64) throw new PublicDiagnostic("invalid arithmetic base");
   if (!match[2]) throw new PublicDiagnostic("invalid integer constant");

@@ -7,6 +7,44 @@ import { basicCommands, printfCommand } from "../../src/commands/basic.js";
 import { streamCommands } from "../../src/commands/streams.js";
 import { writeText } from "../../src/contracts/index.js";
 
+for (const [source, stdout, exitCode, diagnostic] of [
+  ['(( 02#11 )); echo "$?"', "1\n", 0, '02#11: invalid number (error token is "02#11")\n'],
+  ['let "016#f"; echo "$?"', "1\n", 0, '016#f: invalid number (error token is "016#f")\n'],
+  ['(( 02#11 ))', "", 1, '02#11: invalid number (error token is "02#11")\n'],
+  ['let "016#f"', "", 1, '016#f: invalid number (error token is "016#f")\n'],
+  ['(( 0#1 ))', "", 1, '0#1: invalid number (error token is "0#1")\n'],
+  ['(( 00#1 ))', "", 1, '00#1: invalid number (error token is "00#1")\n'],
+  ['(( 010#9 ))', "", 1, '010#9: invalid number (error token is "010#9")\n'],
+  ['(( 064#_ ))', "", 1, '064#_: invalid number (error token is "064#_")\n'],
+  ['(( 08#1 ))', "", 1, '08#1: value too great for base (error token is "08#1")\n'],
+  ['(( 09#1 ))', "", 1, '09#1: value too great for base (error token is "09#1")\n'],
+  ['n=5; (( n=02#11 )); echo "$?:$n"', "1:5\n", 0, 'n=02#11: invalid number (error token is "02#11")\n'],
+  ['i=0; n=5; let "i+=1" "n=016#f"; echo "$?:$i:$n"', "1:1:5\n", 0, 'n=016#f: invalid number (error token is "016#f")\n'],
+  ['(( 2#11 )); echo "$?"', "0\n", 0, ""],
+  ['let "16#f"; echo "$?"', "0\n", 0, ""],
+  ['echo "$((010))"', "8\n", 0, ""],
+  ['n=5; (( n=2#11 )); echo "$?:$n"', "0:3\n", 0, ""],
+  ['i=0; n=5; let "i+=1" "n=16#f"; echo "$?:$i:$n"', "0:1:15\n", 0, ""],
+  ['echo "$((36#z)):$((64#_)):$((0)):$((007))"', "35:63:0:7\n", 0, ""],
+] as const) test(`explicit arithmetic bases retain their spelling: ${source}`, async context => {
+  const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], {
+    encoding: "utf8", env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 5000,
+  });
+  assert.ifError(native.error);
+  assert.equal(native.stdout, stdout);
+  assert.equal(native.status, exitCode);
+  if (diagnostic) assert.ok(native.stderr.endsWith(diagnostic), native.stderr);
+  else assert.equal(native.stderr, "");
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  for (const command of basicCommands()) shell.commands.register(command);
+  const result = await shell.exec(source);
+  assert.equal(result.stdout, native.stdout);
+  assert.equal(result.exitCode, native.status);
+  if (diagnostic) assert.ok(result.stderr.endsWith(diagnostic), result.stderr);
+  else assert.equal(result.stderr, "");
+});
+
 for (const [source, stdout, exitCode = 0] of [
   ['n=9007199254740993; echo "$((n))"; (( n == 9007199254740993 )); echo "$?"', "9007199254740993\n0\n"],
   ['n=9007199254740993; ((++n)); echo "$n"', "9007199254740994\n"],

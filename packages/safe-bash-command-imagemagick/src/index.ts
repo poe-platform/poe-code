@@ -1633,9 +1633,25 @@ function* formatMagickPropertyStringSteps<Step=never>(
         pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection, context.precision);
         parts.push(pixels[key]!);
       } else if (key.startsWith("fx:") || key.startsWith("pixel:") || key.startsWith("hex:")) {
-        if(resolvePixels){parts.push(yield*resolvePixels(property));continue;}
+        // Expand only bracket properties from the expression's source. FX uses
+        // percent for remainder, and substituted values must stay literal.
+        const expanded: string[] = [];
+        let start = 0;
+        for (let nested = property.indexOf("%["); nested !== -1; nested = property.indexOf("%[", start)) {
+          let end = nested + 2, depth = 1;
+          for (; end < property.length && depth > 0; end++) {
+            if (end % 16384 === 0) yield;
+            if (property[end] === "[") depth++;
+            else if (property[end] === "]") depth--;
+          }
+          expanded.push(property.slice(start, nested), yield* formatMagickPropertyStringSteps(property.slice(nested, end), meta, getImage, context, resolvePixels));
+          start = end;
+        }
+        expanded.push(property.slice(start));
+        const expression = expanded.join("");
+        if(resolvePixels){parts.push(yield*resolvePixels(expression));continue;}
         img ??= getImage();
-        const fn = compileFxExpression(property.slice(property.indexOf(":") + 1));
+        const fn = compileFxExpression(expression.slice(expression.indexOf(":") + 1));
         if (fn.needsStatistics) pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection, context.precision);
         const ctx: FxEvalContext = { statistics, frameIndex: context.sceneIdx, stack: [img], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
         if (key.startsWith("fx:")) {

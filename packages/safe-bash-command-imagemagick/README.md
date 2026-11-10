@@ -129,7 +129,7 @@ Async `runIdentifyCli(args, { filesystem, cwd, stdin, stdout, stderr })` uses th
 
 `%S` reports the default scene setting (`2147483647`), independently of the current frame (`%s`) and image count (`%n`).
 
-`identify +format` restores the default description for subsequent images; earlier images keep their format.
+`identify +format` restores the default description for subsequent images; earlier images keep their format. Nested image properties expand before formatted FX arithmetic, so `identify -format '%[fx:%[width]*2]' image.png` prints twice the image width.
 
 Unknown properties such as `%a`, `%?`, and `%[missing_demo_property]` expand to an empty string and report an `unknown image property` warning; identify still exits successfully.
 Empty or unclosed bracket properties fail without emitting the formatted text. Escaped properties such as `%%[width]` remain literal text.

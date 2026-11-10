@@ -9,9 +9,12 @@ type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined
 export type LookupInterpolation = "background" | "blend" | "bilinear" | "nearest" | "integer" | "average" | "average9" | "average16" | "mesh" | "catrom" | "spline";
 
 function* sampleLookup(lut: { width: number; height: number }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
-    if (interpolation === "average9" || interpolation === "average16" || interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported lookup interpolation: ${interpolation}`);
+    if (interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported lookup interpolation: ${interpolation}`);
     const nearest = interpolation === "nearest", single = nearest || interpolation === "integer";
-    const left = Math.floor(x + (nearest ? 0.5 : 0)), top = Math.floor(y + (nearest ? 0.5 : 0));
+    const averageSize = interpolation === "average" ? 2 : interpolation === "average9" ? 3 : interpolation === "average16" ? 4 : 0;
+    // Odd neighborhoods center on the nearest pixel; even ones straddle floor(x/y).
+    const shift = averageSize > 2 ? 1 : 0, round = nearest || averageSize === 3 ? 0.5 : 0;
+    const left = Math.floor(x + round) - shift, top = Math.floor(y + round) - shift;
     let dx = x - left, dy = y - top;
     const values = [0, 0, 0, 0];
     // Blend selects the nearest edge neighbor and averages the middle half.
@@ -33,8 +36,9 @@ function* sampleLookup(lut: { width: number; height: number }, x: number, y: num
             ? dx <= dy ? [1 - dy, 0, dy - dx, dx] : [1 - dx, dx - dy, 0, dy]
             : dx <= 1 - dy ? [1 - dx - dy, dx, dy, 0] : [0, 1 - dy, 1 - dx, dx + dy - 1];
     }
-    for (let row = 0; row < (single ? 1 : 2); row++) for (let column = 0; column < (single ? 1 : 2); column++) {
-        const weight = meshWeights?.[row * 2 + column] ?? (single ? 1 : interpolation === "average" ? 0.25 : (column ? dx : 1 - dx) * (row ? dy : 1 - dy));
+    const size = single ? 1 : averageSize || 2;
+    for (let row = 0; row < size; row++) for (let column = 0; column < size; column++) {
+        const weight = meshWeights?.[row * 2 + column] ?? (single ? 1 : averageSize ? 1 / (size * size) : (column ? dx : 1 - dx) * (row ? dy : 1 - dy));
         if (!weight) continue;
         const position = (Math.max(0, Math.min(lut.height - 1, top + row)) * lut.width + Math.max(0, Math.min(lut.width - 1, left + column))) * 4;
         let pixel = meshPixels[row * 2 + column];
@@ -42,7 +46,7 @@ function* sampleLookup(lut: { width: number; height: number }, x: number, y: num
             const bytes = (yield { kind: "read", highDepth, image: 1, position, length: 4 })!;
             pixel = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
         }
-        for (let channel = 0; channel < 3; channel++) values[channel]! += pixel[channel]! * weight * (single ? 1 : interpolation === "average" ? Number(pixel[3]! > 0) : pixel[3]!);
+        for (let channel = 0; channel < 3; channel++) values[channel]! += pixel[channel]! * weight * (single ? 1 : averageSize ? Number(pixel[3]! > 0) : pixel[3]!);
         values[3]! += pixel[3]! * weight;
     }
     if (interpolation === "bilinear" || interpolation === "background" || interpolation === "blend" || interpolation === "mesh") for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;

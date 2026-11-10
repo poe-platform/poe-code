@@ -5,7 +5,8 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function vibratoAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
-  budget: MediaBudgetTracker, signal?: AbortSignal
+  budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; expression: string }[] = []
 ): Promise<Float64Array[]> {
   let frequency = 5;
   let depth = 0.5;
@@ -53,7 +54,16 @@ export async function vibratoAudio(
   let position = 0;
   // Validation uses separate registers so it does not advance the timeline state.
   const registers = new Float64Array(10);
+  let commandIndex = 0;
   for (const [n, timestamp] of frames.entries()) {
+    while (commandIndex < commands.length && commands[commandIndex]!.sample <= timestamp.start) {
+      const command = commands[commandIndex++]!;
+      try {
+        parseFilterExpression(command.expression, "vibrato enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
+        enable = command.expression;
+        registers.fill(0);
+      } catch { /* Native asendcmd retains the previous expression after a rejected command. */ }
+    }
     let enabled = true;
     if (enable !== undefined) {
       const variables = {

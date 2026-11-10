@@ -14765,6 +14765,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           stretched = stereo;
                           filteredChannelMask = 3;
                           filteredChannelNames = undefined;
+                        } else if (mask === 0x3f && stretched.length === 2 && (!filteredChannelMask || filteredChannelMask === 3)) {
+                          const length = stretched[0]!.length;
+                          budget.allocateMemory(length * 4 * 8);
+                          stretched = [...stretched, ...Array.from({ length: 4 }, () => new Float64Array(length))];
+                          filteredChannelMask = mask;
+                          filteredChannelNames = undefined;
                         }
                         if (stretched.length !== input.length || (filteredChannelMask && filteredChannelMask !== mask)) {
                           throw new Error("channelsplit: matching input channel layout required");

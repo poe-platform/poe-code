@@ -103,3 +103,57 @@ for (const [values, mixed, hash] of [
     assert.equal(createHash("sha256").update(volume.readFileSync("/out.raw")).digest("hex"), hash);
   });
 }
+
+const sceneLevels = [20, 50, 65, 100, 140, 170, 180, 205, 221];
+const defaultScenes = [1, 2, 3, 5, 6, 7, 8];
+const highThresholdScenes = [1, 2, 3, 4, 5, 7, 8];
+for (const [filter, expected] of [
+  ["null", sceneLevels.map((_, i) => i)],
+  ["decimate=cycle=4", defaultScenes],
+  ["decimate=cycle=4:scthresh=15", defaultScenes],
+  ["decimate=cycle=4:scthresh=15.5", defaultScenes],
+  ["decimate=cycle=4:scthresh=100", highThresholdScenes],
+  ["decimate=4:scthresh=100", highThresholdScenes],
+  ["decimate=scthresh=100:cycle=4", highThresholdScenes],
+  ["decimate=scthresh=100", [1, 2, 3, 4, 5, 6, 7, 8]],
+  ["decimate=cycle=4:scthresh=0", [0, 1, 2, 4, 5, 6, 8]],
+  ...["-1", "100.1", "NaN", "Infinity", "oops", ""].map(value =>
+    [`decimate=cycle=4:scthresh=${value}`, null] as const)
+] as const) {
+  it(`decimate scene threshold on native YUV: ${filter}`, async () => {
+    const frames = sceneLevels.map(value => Buffer.concat([
+      Buffer.alloc(32 * 32, value), Buffer.alloc(32 * 32 * 2, 128)
+    ]));
+    const volume = Volume.fromJSON({
+      "/unique.y4m": Buffer.concat([
+        Buffer.from("YUV4MPEG2 W32 H32 F10:1 Ip A1:1 C444\n"),
+        ...frames.flatMap(frame => [Buffer.from("FRAME\n"), frame])
+      ]),
+      "/out.raw": "KEEP"
+    });
+    const before = volume.toJSON();
+    const errors: Uint8Array[] = [];
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-y", "-i", "/unique.y4m", "-vf", filter,
+        "-fps_mode", "passthrough", "-pix_fmt", "yuv444p", "-f", "rawvideo", "/out.raw"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(),
+      stdout: { async write() {} },
+      stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+    } as never);
+    const stderr = Buffer.concat(errors).toString();
+    if (expected === null) {
+      assert.notEqual(result.exitCode, 0, stderr);
+      assert.ok(stderr.includes("decimate:"), stderr);
+      assert.deepEqual(volume.toJSON(), before);
+    } else {
+      assert.equal(result.exitCode, 0, stderr);
+      assert.deepEqual(volume.readFileSync("/out.raw"), Buffer.concat(expected.map(i => frames[i]!)));
+    }
+  });
+}

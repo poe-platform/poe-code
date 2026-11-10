@@ -2,7 +2,7 @@ import type { MediaVideoFrame, MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
 export async function decimate(
-  frames: MediaVideoFrame[], cycle: number, mixed: boolean, budget: MediaBudgetTracker, signal?: AbortSignal
+  frames: MediaVideoFrame[], cycle: number, mixed: boolean, sceneThreshold: number, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaVideoFrame[]> {
   const output: MediaVideoFrame[] = [];
   const duration = (frames[0]?.durationSeconds ?? 0) * cycle / (cycle - 1);
@@ -62,7 +62,7 @@ export async function decimate(
           }
         }
       }
-      if (total > Math.floor(255 * size * 0.15)) scene = i;
+      if (total > Math.floor(255 * size * (sceneThreshold / 100))) scene = i;
       if (maximum < lowestDifference) { lowest = i; lowestDifference = maximum; }
       previous = native;
     }

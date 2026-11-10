@@ -4348,6 +4348,22 @@ async function applyVideoFilterChain(
         current = repeated;
       }
     } else if (name === "reverse") {
+      const options = argStr ? argStr.split(":") : [];
+      if (options.at(-1) === "") options.pop();
+      for (const option of options) {
+        const separator = option.indexOf("=");
+        const key = option.slice(0, separator).trim();
+        if (separator < 0) throw new Error("reverse: unexpected positional argument");
+        if (key === "enable") throw new Error("reverse: timeline is unsupported");
+        if (!["threads", "thread_type", "extra_hw_frames"].includes(key)) {
+          throw new Error(`reverse: unsupported option ${key}`);
+        }
+        const value = parseFilterExpression(option.slice(separator + 1), "reverse",
+          key === "thread_type" ? { slice: 1 } : {});
+        if (value < (key === "extra_hw_frames" ? -1 : 0) || value > 2147483647) {
+          throw new RangeError(`reverse: invalid ${key}`);
+        }
+      }
       // Reverse pictures while retaining the input's ordered timestamp slots.
       current = await mapWork([...current].reverse(), (f, index) => ({
         ...f, ptsSeconds: current[index]!.ptsSeconds
@@ -15408,6 +15424,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "earwax: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("earwax: unsupported option ")) return { exitCode: 8 };
             if (msg === "earwax: unexpected positional argument") return { exitCode: 234 };
+            if (msg === "reverse: timeline is unsupported") return { exitCode: 176 };
+            if (msg.startsWith("reverse: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("reverse:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg === "areverse: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("areverse: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("areverse:")) return { exitCode: err instanceof RangeError ? 222 : 234 };

@@ -273,7 +273,6 @@ export function decodeMiffImage(bytes: Uint8Array, options?: SharpInputOptions):
     checkLimitInputPixels(metadata.width, metadata.height, options);
     const count = metadata.width * metadata.height, data = new Uint8Array(count * 4);
     const hueSamples = metadata.space === "cmyk" ? new Float64Array(count * 4) : undefined;
-    const hueSamples = metadata.space === "cmyk" ? new Float64Array(count * 4) : undefined;
     const data16 = metadata.bitsPerSample! > 8 || hueSamples ? new Uint16Array(count * 4) : undefined;
     const palette = header.colors ? bytes.subarray(header.offset, header.offset + header.colors * 3 * (metadata.depth === "ushort" ? 2 : 1)) : undefined;
     const steps = miffRaster(header);

@@ -22,8 +22,8 @@ export async function removeSilence(
       if (!["any", "all", "0", "1"].includes(value)) throw new Error(`silenceremove: invalid ${key}`);
       options[key] = value === "0" || value === "any" ? "any" : "all";
     } else if (key === "detection") {
-      if (!["avg", "rms", "peak", "ptp", "0", "1", "2", "4"].includes(value)) throw new Error("silenceremove: supported detection modes are avg, rms, peak and ptp");
-      options.detection = value === "4" ? "ptp" : ["avg", "rms", "peak"][Number(value)] ?? value;
+      if (!["avg", "rms", "peak", "ptp", "dev", "0", "1", "2", "4", "5"].includes(value)) throw new Error("silenceremove: supported detection modes are avg, rms, peak, ptp and dev");
+      options.detection = value === "4" ? "ptp" : value === "5" ? "dev" : ["avg", "rms", "peak"][Number(value)] ?? value;
     } else if (key === "timestamp" && (value === "write" || value === "0")) {
       // The audio pipeline emits a contiguous timeline.
     } else if ((key === "start_silence" || key === "stop_silence") && value === "0") {
@@ -60,8 +60,9 @@ export async function removeSilence(
     const duration = Math.round(options[`${phase}_duration`] * sampleRate);
     const threshold = options[`${phase}_threshold`];
     const mode = options[`${phase}_mode`];
-    budget.allocateMemory(output.length * (8 + (trackPeaks ? length * 4 : 0)));
+    budget.allocateMemory(output.length * (8 + (options.detection === "dev" ? 8 : 0) + (trackPeaks ? length * 4 : 0)));
     const sums = new Float64Array(output.length);
+    const squares = options.detection === "dev" ? new Float64Array(output.length) : undefined;
     // Monotonic queues keep peak detection linear even for long windows.
     const peaks = trackPeaks ? output.map(() => new Uint32Array(length)) : [];
     const fronts = output.map(() => 0);
@@ -100,6 +101,13 @@ export async function removeSilence(
           // Native ptp uses the signed maximum and the current sample.
           level = peakToPeak ? Math.abs(value) + Math.abs(channel[queue[front]!]! - value)
             : Math.abs(channel[queue[front]!]!);
+        } else if (squares) {
+          const sample = channel[i]!;
+          const previous = i >= window ? channel[i - window]! : 0;
+          const size = Math.min(i + 1, window);
+          sums[c] = sums[c]! + sample - previous;
+          squares[c] = Math.max(0, squares[c]! + sample * sample - previous * previous);
+          level = Math.sqrt(Math.max(0, squares[c]! - sums[c]! * sums[c]! / size) / size);
         } else {
           const previous = i >= window ? Math.abs(channel[i - window]!) : 0;
           sums[c] = Math.max(0, sums[c]! + (options.detection === "rms"

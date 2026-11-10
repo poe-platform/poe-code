@@ -93,6 +93,20 @@ for (const [mode, end] of [["any", 4], ["all", 12]] as const) {
     assert.deepEqual(actual.map(c => Array.from(c, v => v * 32768)), channels.map(c => c.slice(0, end)));
   });
 }
+for (const [options, expected] of [
+  ["start_periods=1:start_threshold=0.1:window=0.000375", [-8192, 8192, -8192, 0, 0, 0]],
+  ["stop_periods=-1:stop_threshold=0.1:window=0.000375", [8192, 8192, 8192, -8192, 8192, -8192, 0, 0]],
+  ["start_periods=1:start_threshold=0.1:window=0", []]
+] as const) {
+  it(`matches native signed deviation with ${options}`, async () => {
+    const { result, volume, error } = await run([[8192, 8192, 8192, -8192, 8192, -8192, 0, 0, 0]],
+      `silenceremove=detection=dev:${options}`);
+    assert.equal(result.exitCode, 0, error);
+    const actual = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
+    assert.deepEqual(Array.from(actual, v => v * 32768), expected);
+  });
+}
+
 for (const filter of ["anull", "silenceremove"]) {
   it(`${filter} preserves the complete source by default`, async () => {
     const { result, volume, error } = await run([source], filter);

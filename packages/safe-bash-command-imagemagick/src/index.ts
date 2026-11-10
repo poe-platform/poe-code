@@ -4750,8 +4750,8 @@ function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanv
             }
         }
     } else if (!g.hasOffset) {
-        const width = Math.max(1, Math.round(g.isPercent ? img.width * (g.percentX ?? 100) / 100 : g.width || img.width));
-        const height = Math.max(1, Math.round(g.isPercent ? img.height * (g.percentY ?? 100) / 100 : g.height || img.height));
+        const width = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.width, img.height * g.aspectRatio) : g.isPercent ? img.width * (g.percentX ?? 100) / 100 : g.width || img.width));
+        const height = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.height, img.width / g.aspectRatio) : g.isPercent ? img.height * (g.percentY ?? 100) / 100 : g.height || img.height));
         for (let top = 0; top < img.height; top += height)
             for (let left = 0; left < img.width; left += width)
                 yield { left, top, width: Math.min(width, img.width - left), height: Math.min(height, img.height - top) };
@@ -4762,10 +4762,14 @@ function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanv
 
 function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geomStr:string,gravity:GravityPosition):Parameters<typeof extractImageSteps>[1]|undefined|null {
  const g=parseMagickGeometry(geomStr.replaceAll("#", ""));
-    const rawW = g.isPercent
+    const rawW = g.aspectRatio !== undefined
+        ? Math.max(1, Math.round(Math.min(img.width, img.height * g.aspectRatio)))
+        : g.isPercent
         ? Math.max(1, Math.round((img.width * (g.percentX ?? 100)) / 100))
         : Math.max(1, Math.round(g.width ?? img.width));
-    const rawH = g.isPercent
+    const rawH = g.aspectRatio !== undefined
+        ? Math.max(1, Math.round(Math.min(img.height, img.width / g.aspectRatio)))
+        : g.isPercent
         ? Math.max(1, Math.round((img.height * (g.percentY ?? 100)) / 100))
         : Math.max(1, Math.round(g.height ?? img.height));
     const position = gravityAdjustBox(img.width, img.height, rawW, rawH, g.x, g.y, gravity);

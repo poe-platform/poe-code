@@ -596,6 +596,13 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
   };
 }
 
+function parseMagickSketchGeometry(raw: string): { width?: number; height?: number; x?: number } {
+    validateMagickTransformGeometry(raw.replaceAll(",", "x"), "-sketch");
+    if (!raw.includes(",")) return parseMagickGeometry(raw);
+    const [width = 0, height = 1, x = 0] = raw.split(",").map(Number);
+    return { width, height, x };
+}
+
 function parseDelay(value: string, ticksPerSecond = 100, current?: number): { milliseconds: number; ticksPerSecond: number; delayTicks: number } {
   const geometry = [...value].filter(character => !"%!^<>@".includes(character)).join("")
     .replaceAll("X", "x").replaceAll("/", "x").replaceAll(",", "x");
@@ -11877,8 +11884,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const raw = tokens[++i] ?? "0x1", seed = state.seed ?? 0n;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                validateMagickTransformGeometry(expanded, "-sketch");
-                const geometry = parseMagickGeometry(expanded);
+                const geometry = parseMagickSketchGeometry(expanded);
                 return yield* applyMagickRasterSteps(im, sketchPixelSteps(im, geometry, seed), signal);
             });
         }
@@ -15222,8 +15228,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                validateMagickTransformGeometry(expanded, "-sketch");
-                const geometry = parseMagickGeometry(expanded);
+                const geometry = parseMagickSketchGeometry(expanded);
                 return transformStoredMagickRaster(image, backend, sketchPixelSteps(image, geometry, seed), signal);
             });
         } else if (!operandsOnly && token === "-edge") {

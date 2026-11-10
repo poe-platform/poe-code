@@ -3914,7 +3914,9 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
                 height: Math.floor(page.height * plan.height / image.height + 0.5)
             } };
             if (scale !== undefined) plan = scaleMagickWarpPlan(plan, image, scale);
-            return { ...plan, steps: warpPixelSteps(image, plan, backgroundExplicit ? background : image.backgroundColor ?? background, "background", kernel, filter) };
+            const color = backgroundExplicit ? background : image.backgroundColor ?? background;
+            plan = { ...plan, hasAlpha: image.hasAlpha || color.a < 255 };
+            return { ...plan, steps: warpPixelSteps(image, plan, color, "background", kernel, filter) };
         } };
     }
     if (!["-shear", "-swirl", "-implode", "-wave", "-spread", "-distort", "+distort"].includes(token)) return;

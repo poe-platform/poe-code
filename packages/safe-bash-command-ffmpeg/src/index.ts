@@ -9954,7 +9954,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
                             || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
                             || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
-                            || (action === "feedback" || action === "enable") && (target === "stereowiden" || target?.startsWith("stereowiden@"))
+                            || target === "stereowiden" || target?.startsWith("stereowiden@")
                             || action === "delays" && (target === "adelay" || target?.startsWith("adelay@"))
                             || action === "level" && ["afreqshift", "aphaseshift"].some(name => target === name || target?.startsWith(`${name}@`))
                             || action === "wet" && (target === "asubboost" || target?.startsWith("asubboost@"))

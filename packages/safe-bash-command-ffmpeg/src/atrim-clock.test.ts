@@ -4,7 +4,7 @@ import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
 for (const graph of [false, true]) {
-  for (const [filter, start, end] of [
+  for (const [filter, start, end, exitCode = 0] of [
     [String.raw`atrim=end='00\:00\:00.00025'`, 0, 2],
     [String.raw`atrim=start=00\\:00\\:00.00025`, 2, 12],
     ["atrim=duration=250us", 0, 2],
@@ -14,9 +14,9 @@ for (const graph of [false, true]) {
     [String.raw`atrim='00\:00\:00.00025':'00\:00\:00.00075'`, 2, 6],
     [String.raw`atrim=end=\'00:00:00.00025\'`, 0, 2],
     [String.raw`atrim=end='00\:00\:00.0005',atrim=start_sample=2`, 2, 4],
-    [String.raw`atrim=end='00\:00\:invalid'`, -1, 0],
-    [String.raw`atrim=end='00\:60\:00'`, -1, 0],
-    [String.raw`atrim=duration='-00\:00\:00.00025'`, -1, 0]
+    [String.raw`atrim=end='00\:00\:invalid'`, -1, 0, 234],
+    [String.raw`atrim=end='00\:60\:00'`, -1, 0, 234],
+    [String.raw`atrim=duration='-00\:00\:00.00025'`, -1, 0, 222]
   ] as const) {
     it(`${filter} parses clock durations (${graph ? "graph" : "simple"})`, async () => {
       const input = Buffer.alloc(24);
@@ -40,7 +40,7 @@ for (const graph of [false, true]) {
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
         if (start < 0) {
-          assert.equal(result.exitCode, 1, stderr);
+          assert.equal(result.exitCode, exitCode, stderr);
           assert.ok(stderr.includes("atrim: invalid"), stderr);
           if (outputExists) assert.deepEqual(volume.readFileSync("/out.raw"), existing);
           else assert.equal(volume.existsSync("/out.raw"), false);

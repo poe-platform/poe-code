@@ -77,3 +77,23 @@ it("supports mean shift through the public magick command", async () => {
     expect(result.exitCode).toBe(0);
     expect(Array.from(decodeImage(await fs.readFile("/out.png")).data16!)).toEqual(fixtures.depth16.expected);
 });
+
+for (const execution of ["memory", "retained", "public"] as const)
+it.each([
+    ["#808080", "black", "16", "19b319b319b3"],
+    ["#9a405c", "black", "16", "1eec0cda1279"],
+    ["#808080", "edge", "16", "808080808080"],
+    ["#808080", "black", "8", "1a1a1a"],
+])(`retains fractional mean-shift samples for %s with %s padding at depth %s (${execution})`, async (color, padding, depth, expected) => {
+    const fs = new MemoryFileSystem(), files = new Map([["out", Buffer.from("KEEP")]]);
+    await fs.writeFile("/out", Buffer.from("KEEP"));
+    const argv = [`xc:${color}`, "-virtual-pixel", padding, "-mean-shift", "3x3+150%", "-depth", depth, "-endian", "MSB", "rgb:out"];
+    const args = createCommandArguments(argv);
+    const result = execution === "public" ? await createMagickCommand().execute({
+        command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write() {} }, stderr: { async write() {} },
+    }) : await runMagickCli(argv, execution === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result.exitCode).toBe(0);
+    expect(Buffer.from(execution === "memory" ? files.get("out")! : await fs.readFile("/out")).toString("hex")).toBe(expected);
+});

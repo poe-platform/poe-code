@@ -24,6 +24,7 @@ export function* meanShiftPixelSteps(image: Pick<RgbaImage, "width" | "height" |
         const original = yield { kind: "read", highDepth, position: start * 4, length: count * 4 };
         if (!original || original.length !== count * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated mean-shift pixels");
         const data = highDepth ? new Uint16Array(original.slice().buffer) : original.slice();
+        const samples = new Float64Array(count * 4);
         for (let i = 0; i < count; i++) {
             let mx = (start + i) % width, my = Math.floor((start + i) / width);
             let mean = Array.from(data.subarray(i * 4, i * 4 + 4));
@@ -61,8 +62,12 @@ export function* meanShiftPixelSteps(image: Pick<RgbaImage, "width" | "height" |
                 mx = nx; my = ny; mean = next;
                 if (movement <= 3) break;
             }
-            for (let c = 0; c < 4; c++) data[i * 4 + c] = Math.min(255 * scale, Math.max(0, Math.round(mean[c]!)));
+            for (let c = 0; c < 4; c++) {
+                samples[i * 4 + c] = Math.fround(mean[c]! * 257 / scale) / 257;
+                data[i * 4 + c] = Math.min(255 * scale, Math.max(0, Math.round(mean[c]!)));
+            }
         }
         yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer, data.byteOffset, data.byteLength) };
+        yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(samples.buffer) };
     }
 }

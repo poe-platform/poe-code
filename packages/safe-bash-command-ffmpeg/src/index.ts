@@ -98,6 +98,7 @@ import { super2xsaiFrame } from "./super2xsai.js";
 import { epxFrame } from "./epx.js";
 import { hqxFrame } from "./hqx.js";
 import { signalstats } from "./signalstats.js";
+import { blackdetect } from "./blackdetect.js";
 import { fixedSin, rotateYuvFrame } from "./rotate.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
@@ -2098,6 +2099,8 @@ async function applyVideoFilterChain(
           videoCommands.push({ ...scheduled[next++]!, time: frame.ptsSeconds });
         }
       }
+    } else if (name === "blackdetect") {
+      current = await blackdetect(current, argStr, budget, { ...diagnostics, timescale, pixelFormat }, signal);
     } else if (name === "signalstats") {
       const stat = named.stat ?? (positional[0]?.includes("=") ? "" : positional[0]) ?? "";
       const out = named.out ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "-1";
@@ -2164,7 +2167,7 @@ async function applyVideoFilterChain(
     } else if (name === "metadata") {
       const mode = named.mode ?? positional[0];
       if (positional[1] !== undefined && !positional[1].includes("=")) named.key ??= positional[1];
-      if ((mode !== "add" && mode !== "print" && mode !== "delete" && mode !== "4") || Object.keys(named).some(key => key !== "mode" && key !== "key" && !(mode === "add" && key === "value")) ||
+      if ((mode !== "add" && mode !== "select" && mode !== "print" && mode !== "delete" && mode !== "4") || Object.keys(named).some(key => key !== "mode" && key !== "key" && !(mode === "add" && key === "value")) ||
           positional.some((part, index) => !part.includes("=") &&
             (index > 1 || index === 1 && positional[0]!.includes("=")))) {
         throw new Error("metadata: unsupported mode or option");
@@ -2189,6 +2192,11 @@ async function applyVideoFilterChain(
           budget.allocateMemory(64 + 2 * (key.length + value.length));
           return { ...frame, filterMetadata: { ...frame.filterMetadata, [key]: value } };
         }, signal);
+        continue;
+      }
+      if (mode === "select") {
+        if (!named.key) throw new Error("metadata: select requires a key");
+        current = current.filter(frame => Object.hasOwn(frame.filterMetadata ?? {}, named.key!));
         continue;
       }
       if (diagnostics.logLevel < 32) continue;

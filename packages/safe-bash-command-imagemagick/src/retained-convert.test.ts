@@ -42,8 +42,10 @@ it("preserves JPEG reduced DCT decoding and ordered settings", async () => {
     const bytes = await sharp(Uint8Array.from({ length: 128 * 96 * 4 }, (_, i) => i * 37 % 256), { raw: { width: 128, height: 96, channels: 4 } }).jpeg().toBuffer();
     const files = new Map([["input", bytes]]), fs = new MemoryFileSystem();
     await fs.writeFile("/input", bytes);
-    const args = ["-quality", "43", "-rotate", "90", "input", "-resize", "32x24!", "-background", "red", "-rotate", "-20", "out.jpg"];
-    expect(await runConvertCli(args, { filesystem: fs, cwd: "/" })).toEqual(await runConvertCli(args, files));
+    const args = ["-quality", "43", "input", "-rotate", "90", "-resize", "32x24!", "-background", "red", "-rotate", "-20", "out.jpg"];
+    const result = await runConvertCli(args, { filesystem: fs, cwd: "/" });
+    expect(result.exitCode).toBe(0);
+    expect(result).toEqual(await runConvertCli(args, files));
     expect(decodeImage(await fs.readFile("/out.jpg"))).toEqual(decodeImage(files.get("out.jpg")!));
 });
 it.each(["-gamma", "-quality", "-resize"])("preserves the missing %s argument default", async option => {

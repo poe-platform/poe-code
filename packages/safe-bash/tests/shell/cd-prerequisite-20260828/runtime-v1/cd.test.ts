@@ -42,9 +42,9 @@ for (const [cdpath, expected, printed] of [
 for (const operand of ["/one/target", "./target", "../one/target", ".", "..", ""]) test(`oversized CDPATH bypass ${JSON.stringify(operand)}`, async () => {
   const { fs } = await fixture();
   const result = await execute(fs, `cd '${operand}'`, { env: { CDPATH: "x".repeat(65_537) } });
-  assert.equal(result.exitCode, 0);
+  assert.equal(result.exitCode, operand === "" ? 1 : 0);
   assert.equal(result.stdout, "");
-  assert.equal(result.stderr, "");
+  assert.equal(result.stderr, operand === "" ? "shell: line 1: cd: null directory\n" : "");
 });
 
 test("relative HOME and relative OLDPWD each print exactly once", async () => {

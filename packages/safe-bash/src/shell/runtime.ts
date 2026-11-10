@@ -1993,7 +1993,7 @@ class CdLookup {
         : cwdBytes + 1 + (component ? componentBytes + 1 : 0) + targetBytes;
       if (rawBytes > this.limits.maxCdPathBytes) throw new PublicDiagnostic("cd: path byte limit exceeded");
       await this.charge(2 * rawBytes);
-      const raw = absolute ? target : pathOf({ cwd }, component ? `${component}/${target}` : target);
+      const raw = absolute ? target : pathOf({ cwd }, component ? `${component}/${target}` : target || ".");
       let path = normalizePath(raw, cwd);
       const operand = physical ? raw : path;
       if (!physical) {
@@ -8108,16 +8108,17 @@ export class Runtime {
     }
     if (args.length - offset > 1) { await writeDiagnostic(context.stderr, `${name}: too many arguments\n`); return 1; }
     const operand = args[offset];
+    if (!stackHooks && operand === "") { await this.diagnostic(context, "cd: null directory"); return 1; }
     const target = operand === "-" ? state.variables.OLDPWD : (operand ?? state.variables.HOME);
     if (target === undefined) { await writeDiagnostic(context.stderr, `${name}: ${operand === "-" ? "OLDPWD" : "HOME"} not set\n`); return 1; }
     let selected: { path: string; physicalPath: string; print?: string };
     try {
       const cwd = physical ? state.cwd : state.logicalCwd ?? state.cwd;
       try {
-        selected = await lookup.find(this.fs, cwd, target || ".", state.variables.CDPATH, physical);
+        selected = await lookup.find(this.fs, cwd, target, state.variables.CDPATH, physical);
       } catch (error) {
         if (!(error instanceof FsError) || error.code !== "ENOENT" || cwd === state.cwd || target.startsWith("/")) throw error;
-        selected = await lookup.find(this.fs, state.cwd, target || ".", state.variables.CDPATH, physical);
+        selected = await lookup.find(this.fs, state.cwd, target, state.variables.CDPATH, physical);
       }
     } catch (error) {
       this.signal.throwIfAborted();

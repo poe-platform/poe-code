@@ -13,6 +13,30 @@ async function fixture() {
   return { fs, shell };
 }
 
+for (const option of ["", "-L", "-P"]) {
+  for (const operand of ["''", '"$empty"', "-- ''"]) {
+    test(`cd ${option} ${operand} rejects an explicit empty directory`, async context => {
+      const { shell } = await fixture();
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`OLDPWD=sentinel; empty=''; cd ${option} ${operand}; printf '%s|%s|%s|' "$?" "$PWD" "$OLDPWD"; pwd -P`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, "1|/work|sentinel|/work\n");
+      assert.equal(result.stderr, "shell: line 1: cd: null directory\n");
+    });
+  }
+  for (const operand of [".", ""]) {
+    test(`cd ${option} with ${operand || "no operand"} still succeeds`, async context => {
+      const { shell } = await fixture();
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`OLDPWD=sentinel; cd ${option} ${operand}; printf '%s|%s|%s' "$?" "$PWD" "$OLDPWD"`);
+      const destination = operand === "." ? "/work" : option === "-P" ? "/work/dir/child" : "/work/link";
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, `0|${destination}|/work`);
+      assert.equal(result.stderr, "");
+    });
+  }
+}
+
 for (const [before, command, destination, stack] of [
   ["", "cd dir", "/work/dir", "/work/dir\n"],
   ["", "cd -P link", "/work/dir/child", "/work/dir/child\n"],
@@ -213,6 +237,23 @@ for (const [prefix, oldpwd] of [["PWD=x OLDPWD=y", "x"], ["OLDPWD=x", "/work"], 
     context.after(() => shell.dispose());
     const result = await shell.exec(`OLDPWD=sentinel; ${prefix} cd dir; printf '%s|%s|%s|' "$?" "$PWD" "$OLDPWD"; pwd -P`);
     assert.equal(result.exitCode, 0);
+for (const [variable, command] of [["HOME", "cd"], ["OLDPWD", "cd -"]]) {
+  for (const [cdpath, destination, printed] of [
+    ["missing:/search", "/search", "/search\n"],
+    ["missing", "/work", variable === "OLDPWD" ? "\n" : ""],
+    ["", "/work", variable === "OLDPWD" ? "\n" : ""],
+  ]) {
+    test(`${command} with empty ${variable} searches CDPATH=${cdpath} in Bash 5.3`, async context => {
+      const { shell } = await fixture();
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`${variable}=; CDPATH=${cdpath}; ${command}; printf '%s|%s|%s' "$?" "$PWD" "$OLDPWD"`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `${printed}0|${destination}|/work`);
+    });
+  }
+}
+
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, `0|/work/dir|${oldpwd}|/work/dir\n`);
   });

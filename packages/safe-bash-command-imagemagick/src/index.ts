@@ -12515,7 +12515,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (channels.length === 0 && metaPlanes.length === 0) channels.push(null);
                 for (const channel of channels)
                     nextStack.push((yield* separateMagickChannelSteps(im, channel, !state.channelExplicit || state.channels.r)));
-                nextStack.push(...metaPlanes);
+                for (const plane of metaPlanes) nextStack.push({ ...plane, ...(im.virtualCanvas ? { virtualCanvas: im.virtualCanvas } : {}) });
             }
             stack = nextStack;
         }
@@ -13632,7 +13632,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         for (const channel of channels) {
                             await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, handlesWriteMask: true, apply: (image, offset, width) => separateMagickChannelSteps(image, channel, !settings.channelExplicit || settings.channels.r, offset, width) }, signal));
                         }
-                        for (const plane of metaPlanes) await result.push(plane);
+                        for (const plane of metaPlanes) await result.push({ ...plane, ...(image.virtualCanvas ? { virtualCanvas: image.virtualCanvas } : {}) });
                     }
                     return result;
                 } else if (token === "-combine" || token === "+combine") {

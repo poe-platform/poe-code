@@ -12208,12 +12208,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioStartSample = retained[0]?.pts ?? audioStartSample + start;
                       } else if (trimmed === "areverse") {
                         stretched = await mapWork(stretched, async channel => channel.slice().reverse(), context.signal);
+                        audioMetadata.reverse();
                         if (audioTimestamps) {
                           let start = 0;
                           const firstPts = audioTimestamps[0]?.pts ?? audioStartSample;
                           const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
                           audioTimestamps.reverse();
-                          for (const frame of audioTimestamps) {
+                          for (const [n, frame] of audioTimestamps.entries()) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             const count = frame.end - frame.start;
                             frame.start = start;
@@ -12222,6 +12223,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             // PTS advances by sample count in time-base ticks; stored timestamps use samples.
                             frame.pts = start === 0 ? firstPts
                               : (Number.isNaN(firstPts) ? -(2 ** 63) * samplesPerTick : firstPts) + start * samplesPerTick;
+                            const metadata = audioMetadata[n];
+                            if (metadata) metadata.pts = frame.pts;
                             start += count;
                           }
                         }

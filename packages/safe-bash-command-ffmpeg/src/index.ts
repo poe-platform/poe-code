@@ -10304,10 +10304,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const duration = key!.endsWith("_dur");
                           const number = duration ? parseHlsDuration(value ?? "") : parseFilterExpression(value ?? "", "apad", {});
                           const samples = duration ? Math.round(number * origRate) : roundToEven(number);
-                          if (!value?.trim() || number < (duration ? 0 : -1) || !Number.isSafeInteger(samples)) {
+                          if (!value?.trim() || number < (duration ? -0.000001 : -1) || !Number.isSafeInteger(samples)) {
                             throw new Error(`apad: invalid ${key}`);
                           }
-                          options[key!] = samples === -1 ? undefined : samples;
+                          options[key!] = (duration ? number === -0.000001 : samples === -1) ? undefined : samples;
                         }
                         const padding = options.pad_dur ?? options.pad_len;
                         let minimum = options.whole_dur ?? options.whole_len;

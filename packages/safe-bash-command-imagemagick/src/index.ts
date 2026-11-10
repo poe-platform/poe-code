@@ -7899,10 +7899,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             highDepth = true;
             evaluate = true;
             apply = function* (im) {
+                const cmyk = im.space === "cmyk";
+                if (cmyk) im = yield* convertCmykPixels(im);
                 let pixelWork = 0;
                 const out = new Uint8Array(im.data);
                 const data16 = im.data16 ? new Uint16Array(im.data16) : Uint16Array.from(im.data, value => value * 257);
                 const evaluateSamples = im.evaluateSamples?.slice() ?? Float64Array.from(data16, value => value / 257);
+                // CMYK intensity reads C, M and Y; alpha remains in the RGBA backing.
+                const samples = cmyk ? im.hueSamples! : evaluateSamples, scale = cmyk ? 65535 : 257;
                 const background = [state.background.r, state.background.g, state.background.b];
                 const hueSamples = mode === "shape" && im.hueSamples ? new Float64Array(im.hueSamples.length) : im.hueSamples;
                 const workingBackground = im.space === "cmyk"
@@ -7911,7 +7915,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (++pixelWork % 16384 === 0)
                         yield;
-                    const intensity = magickIntensity(evaluateSamples[idx]! * 257, evaluateSamples[idx + 1]! * 257, evaluateSamples[idx + 2]! * 257, state.intensity, 65535, im.magickColorspace === "RGB");
+                    const intensity = magickIntensity(samples[idx]! * scale, samples[idx + 1]! * scale, samples[idx + 2]! * scale, state.intensity, 65535, im.magickColorspace === "RGB");
                     if (mode === "shape") {
                         for (let channel = 0; channel < 3; channel++) {
                             evaluateSamples[idx + channel] = background[channel]!;

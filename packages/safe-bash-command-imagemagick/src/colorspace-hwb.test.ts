@@ -6,6 +6,24 @@ import { createCommandArguments } from "safe-bash-contracts/command";
 import { createConvertCommand, runConvertCliSync, runConvertCli } from "./index.js";
 
 for (const retained of [false, true]) {
+    it.each([
+        { color: "#66666680", edit: ["-channel", "G", "-negate"], channels: "-1,0.6,0.6", pixels: [102, 102, 102, 128] },
+        { color: "#66666680", edit: ["-channel", "B", "-solarize", "30%"], channels: "-1,0.4,0.4", pixels: [153, 153, 153, 128] },
+        { color: "#66446680", edit: ["-channel", "G", "-negate"], channels: "0.833333,0.733333,0.6", pixels: [102, 187, 102, 128] },
+    ])(`converts edited HWB $color $edit to sRGB, retained=${retained}`, async ({ color, edit, channels, pixels }) => {
+        const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
+        const input = retained ? { filesystem: fs, cwd: "/" } : files;
+        const args = [`xc:${color}`, "-colorspace", "HWB", ...edit, "+channel"];
+        const reported = await runConvertCli([...args, "-format", "%[fx:u.r],%[fx:u.g],%[fx:u.b]", "info:-"], input);
+        expect(reported.exitCode, reported.stderr).toBe(0);
+        expect(reported.stdout).toBe(channels);
+        const result = await runConvertCli([...args, "-colorspace", "sRGB", "-depth", "8", "rgba:out.rgba"], input);
+        expect(result.exitCode, result.stderr).toBe(0);
+        expect([...(retained ? await fs.readFile("/out.rgba") : files.get("out.rgba")!)]).toEqual(pixels);
+    });
+}
+
+for (const retained of [false, true]) {
     it(`converts real PNG pixels to HWB and back, retained=${retained}`, async () => {
         const pixels = [32, 64, 96, 128, 255, 0, 0, 255, 128, 128, 128, 255, 0, 255, 0, 255, 0, 0, 255, 255];
         const { data } = encodeImage({ width: 5, height: 1, data: Uint8Array.from(pixels), format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true }, { format: "png" });

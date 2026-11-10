@@ -175,6 +175,9 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
             const hcl = target === "HCL" || target === "HCLp", luma = 0.298839 * r + 0.586811 * g + 0.114350 * b;
             // ImageMagick HWB uses -1 for achromatic hue, 1 for red, and an HDRI epsilon for zero blackness.
             r = hwb ? !delta ? -1 : hue === 0 ? 1 : hue / 6 : hue / 6; g = hcl ? delta : hwb ? min : delta ? delta / (hsb ? max : 1 - Math.abs(2 * lightness - 1)) : 0; b = hcl ? luma : hwb ? Math.max(2 ** -64, 1 - max) : hsb ? max : lightness;
+        } else if (hwb && r === -1) {
+            // Achromatic HWB ignores whiteness, including after channel edits.
+            r = g = b = 1 - b;
         } else {
             // HSL arithmetic can move hue outside one turn in either direction.
             if (image.magickColorspace === "HSL") r -= Math.floor(r);

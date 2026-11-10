@@ -8378,8 +8378,8 @@ export class Runtime {
       const option = incoming.args[offset++]!;
       const target = option.slice(2) || incoming.args[offset++];
       if (target === undefined) {
-        await writeDiagnostic(context.stderr, "printf: -v: option requires an argument\n");
-        return 2;
+        await this.diagnostic(context, "printf: -v: option requires an argument");
+        break;
       }
       const bracket = target.indexOf("[");
       name = bracket < 0 ? target : target.slice(0, bracket);
@@ -8439,6 +8439,7 @@ export class Runtime {
     const arguments_ = incoming.slice(offset);
     const format = arguments_.args[0] === "--" ? arguments_.args[1] : arguments_.args[0];
     if (format === undefined || arguments_.args[0] !== "--" && format.startsWith("-") && format !== "-") {
+      if (format !== undefined) await this.diagnostic(context, `printf: ${format.slice(0, 2)}: invalid option`);
       await writeDiagnostic(context.stderr, "printf: usage: printf [-v var] format [arguments]\n");
       return 2;
     }

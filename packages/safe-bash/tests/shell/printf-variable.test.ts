@@ -91,6 +91,21 @@ for (const prefix of ["", "builtin ", "command "]) {
 }
 
 for (const prefix of ["", "builtin ", "command "]) {
+  for (const args of ["-x", "-xyz", "--bad", "-v", "-v value -v"]) {
+    test(`${prefix}printf ${args} prints the option diagnostic and usage`, async context => {
+      const source = `\n${prefix}printf ${args}`;
+      const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source, "shell"], { env: { LC_ALL: "C" }, timeout: 2000 });
+      assert.ifError(oracle.error);
+      assert.equal(oracle.status, 2);
+      assert.equal(oracle.stdout.length, 0);
+      const { shell } = fixture();
+      context.after(() => shell.dispose());
+      const result = await shell.exec(source, { env: { LC_ALL: "C" } });
+      assert.equal(result.exitCode, oracle.status);
+      assert.deepEqual(result.stdoutBytes, new Uint8Array(oracle.stdout));
+      assert.deepEqual(result.stderrBytes, new Uint8Array(oracle.stderr));
+    });
+  }
   for (const separator of ["", "-- "]) {
     for (const loop of [false, true]) {
       test(`${prefix}printf accepts a lone hyphen with ${separator || "no separator"}, loop=${loop}`, async context => {
@@ -116,10 +131,10 @@ for (const prefix of ["", "builtin ", "command "]) {
     const output = await shell.exec(`${prefix}printf -x`);
     assert.equal(output.exitCode, 2);
     assert.equal(output.stdout, "");
-    assert.match(output.stderr, /printf: usage:/);
+    assert.equal(output.stderr, "shell: line 1: printf: -x: invalid option\nprintf: usage: printf [-v var] format [arguments]\n");
     const assignment = await shell.exec(`value=old; ${prefix}printf -v value -x; echo "$?:$value"`);
     assert.equal(assignment.stdout, "2:old\n");
-    assert.match(assignment.stderr, /printf: usage:/);
+    assert.equal(assignment.stderr, output.stderr);
   });
 }
 
@@ -141,6 +156,17 @@ for (const initial of ["a=(old)", "declare -A a=([0]=old)"]) {
       assert.ok(result.stderr.endsWith(diagnostic), result.stderr);
     });
   }
+}
+
+for (const [args, diagnostic] of [["-x", "-x: invalid option"], ["-v", "-v: option requires an argument"]]) {
+  test(`printf ${args} uses the child shell command context`, async context => {
+    const { shell } = fixture();
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`bash -c '\nprintf ${args}' named`);
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, `named: line 2: printf: ${diagnostic}\nprintf: usage: printf [-v var] format [arguments]\n`);
+  });
 }
 
 for (const name of ["IFS", "OPTIND", "RANDOM", "SECONDS"]) {

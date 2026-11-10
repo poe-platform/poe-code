@@ -116,10 +116,12 @@ import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodePngToCanvas, FONT_5X7, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
+import { combineMetaPixelSteps, type MetaChannels } from "./combine-meta.js";
+
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16" | "evaluateSamples">> & { position?: number; storedEvaluateSamples?: number | undefined };
-type RgbaImage = BaseRgbaImage & HueMetadata & { gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
-type ImageMetadata = BaseImageMetadata & HueMetadata;
+type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
+type ImageMetadata = BaseImageMetadata & HueMetadata & MetaChannels;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -735,7 +737,7 @@ interface MagickState {
   colors?: number;
   treeDepth?: number;
   formatStr: string | undefined;
-  channels: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean };
+  channels: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean; meta?: number[] };
   channelExplicit: boolean;
   channelSync: boolean;
   channelDefault: boolean;
@@ -1542,6 +1544,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     g: `${page.width}x${page.height}${pageX}${pageY}`, O: `${pageX}${pageY}`, P: `${page.width}x${page.height}`, X: pageX, Y: pageY,
     c: meta.properties?.comment ?? "", l: meta.properties?.label ?? "", C: compression, Q: String(context.quality ?? meta.quality ?? 92)
   };
+  const metaChannelCount = meta.metaChannels?.length ?? meta.storedMetaChannels?.length ?? 0;
   const properties: Record<string, string> = {
     compose: "Over",
     ...meta.properties,
@@ -1555,7 +1558,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     orientation: ["Undefined", "TopLeft", "TopRight", "BottomRight", "BottomLeft", "LeftTop", "RightTop", "RightBottom", "LeftBottom"][meta.orientation ?? 0] ?? "Undefined",
     ...(meta.jpegSamplingFactor === undefined ? {} : { "jpeg:sampling-factor": meta.jpegSamplingFactor }),
     "exif:orientation": meta.orientation === undefined ? "" : String(meta.orientation),
-    colorspace: space, channels: `${space === "LinearGray" ? "gray" : space.toLowerCase()}${meta.hasAlpha ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (meta.hasAlpha ? 1 : 0) + (meta.isPalette ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.writeMask || meta.storedWriteMask ? 1 : 0)}.0`,
+    colorspace: space, channels: `${space === "LinearGray" ? "gray" : space.toLowerCase()}${meta.hasAlpha ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (meta.hasAlpha ? 1 : 0) + (meta.isPalette ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.writeMask || meta.storedWriteMask ? 1 : 0) + metaChannelCount}.${metaChannelCount}`,
     width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
     depth: bitDepth, size: context.outputFilePath === undefined ? short.b! : "0B", compression, quality: String(meta.quality ?? 0), page: short.P!,
     "resolution.x": formatSignificantMetric(resolution ? resolution.x / resolutionScale : 0),
@@ -2477,7 +2480,7 @@ function formatSceneOutputPath(pattern: string, index: number, literal = false, 
   return `${path}-${index}`;
 }
 
-function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a: boolean; k: boolean; sync: boolean; default: boolean } {
+function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a: boolean; k: boolean; meta: number[]; sync: boolean; default: boolean } {
   // Native Default includes every channel bit; RGBA plus Sync is not equivalent.
   const names: Record<string, number> = {
     r: 1, red: 1, c: 1, cyan: 1, gray: 1, h: 1, hue: 1,
@@ -2486,23 +2489,29 @@ function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a
     a: 16, alpha: 16, o: 16,
     all: 31, default: 0x7ffffff, sync: 0x20000, k: 8, black: 8,
     "0": 1, "1": 2, "2": 4, "3": 8, "4": 16,
-    readmask: 64, writemask: 128, meta0: 256
+    readmask: 64, writemask: 128
   };
   let selected = 0;
+  const meta = new Set<number>();
   for (const part of spec.toLowerCase().split(spec.includes("|") ? "|" : ",")) {
     // Native consumes one name per delimiter; whitespace ends that name.
     const trimmed = part.trim();
     let end = 0;
     while (end < trimmed.length && trimmed[end]!.trim() !== "") end++;
     const token = trimmed.slice(0, end);
-    if (token.startsWith("!") && Object.hasOwn(names, token.slice(1))) {
+    const name = token.startsWith("!") ? token.slice(1) : token;
+    const suffix = name.slice(4);
+    if (name.startsWith("meta") && suffix.length > 0 && [...suffix].every(c => c >= "0" && c <= "9") && Number.isSafeInteger(Number(suffix))) {
+      if (token.startsWith("!")) meta.delete(Number(suffix));
+      else meta.add(Number(suffix));
+    } else if (token.startsWith("!") && Object.hasOwn(names, token.slice(1))) {
       selected &= ~names[token.slice(1)]!;
     } else if (Object.hasOwn(names, token)) selected |= names[token]!;
     else if (token.length > 0 && [...token].every(c => "rgbacmyko".includes(c))) {
       for (const c of token) selected |= names[c]!;
     } else throw new Error(`unrecognized channel type '${spec}'`);
   }
-  return { r: !!(selected & 1), g: !!(selected & 2), b: !!(selected & 4), a: !!(selected & 16), k: !!(selected & 8), sync: !!(selected & 0x20000), default: selected === 0x7ffffff };
+  return { meta: [...meta], r: !!(selected & 1), g: !!(selected & 2), b: !!(selected & 4), a: !!(selected & 16), k: !!(selected & 8), sync: !!(selected & 0x20000), default: selected === 0x7ffffff };
 }
 
 function clampByteVal(n: number): number {
@@ -8462,7 +8471,7 @@ function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<
 
 function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 4 | null, pixelOffset = 0, imageWidth = image.width): Generator<void, RgbaImage> {
     const missingChannel = channel === null || (channel === 4 ? image.space !== "cmyk" : channel === 3 ? !image.hasAlpha : channel !== 0 && (image.space === "b-w" || image.space === "grey16"));
-    const { magickColorspace: ignoredSpace, hueSamples, storedHueSamples: ignoredStoredHue, ...components } = image;
+    const { magickColorspace: ignoredSpace, hueSamples, storedHueSamples: ignoredStoredHue, metaChannels: ignoredMeta, storedMetaChannels: ignoredStoredMeta, ...components } = image;
     const separated = yield* extractChannelImageSteps(missingChannel ? yield* ensureAlphaImageSteps({ ...components, hasAlpha: false }, 0) : components, missingChannel ? 3 : channel === 4 ? 0 : channel);
     // CMYK stores K at working offset 3; alpha remains in the RGBA backing.
     const workingSamples = channel === 3 ? undefined : hueSamples;
@@ -10545,9 +10554,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const channels: (0 | 1 | 2 | 3 | 4 | null)[] = ([0, 1, 2, 4, 3] as const).filter(channel =>
                     (channel === 4 ? im.space === "cmyk" : channel === 3 ? im.hasAlpha : channel === 0 || (im.space !== "b-w" && im.space !== "grey16")) && (!state.channelExplicit || mask[channel]));
                 // ImageMagick emits a black plane when none of the selected channels exist.
-                if (channels.length === 0) channels.push(null);
+                const metaPlanes = (im.metaChannels ?? []).filter((_, index) => !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index));
+                if (channels.length === 0 && metaPlanes.length === 0) channels.push(null);
                 for (const channel of channels)
                     nextStack.push((yield* separateMagickChannelSteps(im, channel)));
+                nextStack.push(...metaPlanes);
             }
             stack = nextStack;
         }
@@ -10563,7 +10574,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 delete result.hueSamples;
                 delete result.magickColorspace;
             }
-            stack = [{ ...result, space: rIm.space === "cmyk" ? "cmyk" : "srgb", channels: 4, hasAlpha: rIm.space !== "cmyk" && sources.length === 4 || rIm.hasAlpha }];
+            const metaChannels: BaseRgbaImage[] = [];
+            for (const source of stack.slice(4)) {
+                const plane = { width: rIm.width, height: rIm.height, format: rIm.format, depth: rIm.depth, density: rIm.density, space: "b-w" as const, channels: 1 as const, hasAlpha: false, data: source.data };
+                metaChannels.push(yield* applyMagickRasterSteps(plane, combineMetaPixelSteps(rIm, source, !!source.data16, state.intensity), signal, plane, [source]));
+            }
+            stack = [{ ...result, metaChannels, space: rIm.space === "cmyk" ? "cmyk" : "srgb", channels: 4, hasAlpha: rIm.space !== "cmyk" && sources.length === 4 || rIm.hasAlpha }];
         }
         else if (t === "-draw") {
             const drawSpec = tokens[++i] ?? "";
@@ -11516,10 +11532,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         const image = (await stack.get(index))!;
                         const channels: (0 | 1 | 2 | 3 | 4 | null)[] = ([0, 1, 2, 4, 3] as const).filter(channel =>
                             (channel === 4 ? image.space === "cmyk" : channel === 3 ? image.hasAlpha : channel === 0 || (image.space !== "b-w" && image.space !== "grey16")) && (!settings.channelExplicit || mask[channel]));
-                        if (channels.length === 0) channels.push(null);
+                        const metaPlanes = ((image as StoredRgbaImage).storedMetaChannels ?? []).filter((_, index) => !settings.channelExplicit || settings.channelDefault || settings.channels.meta?.includes(index));
+                        if (channels.length === 0 && metaPlanes.length === 0) channels.push(null);
                         for (const channel of channels) {
                             await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, handlesWriteMask: true, apply: (image, offset, width) => separateMagickChannelSteps(image, channel, offset, width) }, signal));
                         }
+                        for (const plane of metaPlanes) await result.push(plane);
                     }
                     return result;
                 } else if (token === "-combine") {
@@ -11534,7 +11552,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         delete result.storedHueSamples;
                         delete result.magickColorspace;
                     }
-                    stack.length = 0; await stack.push({ ...result, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: 4, hasAlpha: base.space !== "cmyk" && sources.length === 4 || base.hasAlpha });
+                    const storedMetaChannels: BaseStoredRgbaImage[] = [];
+                    for (let index = 4; index < stack.length; index++) {
+                        const source = (await stack.get(index))! as StoredRgbaImage;
+                        const plane = { width: base.width, height: base.height, format: base.format, depth: base.depth, density: base.density, space: "b-w" as const, channels: 1 as const, hasAlpha: false, position: source.position };
+                        storedMetaChannels.push(await transformStoredMagickRaster(plane, backend, combineMetaPixelSteps(base, source, !!source.storedData16, settings.intensity), signal, plane, [source]));
+                    }
+                    stack.length = 0; await stack.push({ ...result, storedMetaChannels, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: 4, hasAlpha: base.space !== "cmyk" && sources.length === 4 || base.hasAlpha });
                 } else if (token === "-morph") {
                     const image = await stack.get(0);
                     const expanded = image ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal) : argument;

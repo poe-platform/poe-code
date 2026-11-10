@@ -2,6 +2,8 @@ import type { StoredRgbaImage, ImageDelayReader } from "@poe-code/image-ast/port
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
+import type { MetaChannels } from "./combine-meta.js";
+
 export const magickInput = Symbol("magickInput");
 export interface MagickFormatContext {
     filePath?: string;
@@ -23,7 +25,7 @@ export interface MagickFormatContext {
     interlace?: string;
     channelSelection?: { r: boolean; g: boolean; b: boolean; a: boolean } | undefined;
 }
-export type StoredMagickImage = StoredRgbaImage & { [magickInput]?: MagickFormatContext };
+export type StoredMagickImage = StoredRgbaImage & MetaChannels & { [magickInput]?: MagickFormatContext };
 interface DelayRegion { position: number; length: number }
 interface FrameRecord { image: Omit<StoredMagickImage, "delay" | "storedDelay" | "icc" | "gifApplications">; source?: MagickFormatContext; delays?: DelayRegion; icc?: DelayRegion; gifApplications?: Record<string, DelayRegion> }
 

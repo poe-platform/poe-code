@@ -1,5 +1,5 @@
 import { virtualPixelIndex } from "./virtual-pixel.js";
-import type { RgbaColor } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
@@ -16,9 +16,11 @@ export function parseLocalThresholdGeometry(raw: string): { width: number; heigh
 }
 
 /** Sliding neighborhood sums with bounded source blocks and Q16 sample precision. */
-export function* localThresholdPixelSteps(image: { width: number; height: number; hasAlpha: boolean }, geometry: ReturnType<typeof parseLocalThresholdGeometry>, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* localThresholdPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">, geometry: ReturnType<typeof parseLocalThresholdGeometry>, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, rx = Math.floor(geometry.width / 2), ry = Math.floor(geometry.height / 2);
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a] : [true, true, true, image.hasAlpha];
+    // Gray's projected RGB samples share the logical red/gray channel.
+    if (image.space === "b-w" || image.space === "grey16") mask[1] = mask[2] = mask[0]!;
     const blocks = new Map<number, Uint16Array>();
     const gray = method === "white" ? 65535 : method === "gray" ? 65535 / 2 : 0;
     const fill = (method === "background" || method?.endsWith("-tile"))

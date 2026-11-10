@@ -10956,13 +10956,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               next.includes("=") ? next.slice(next.indexOf("=") + 1) : "", origRate);
                             const frames = audioTimestamps ?? [{ start: 0, end: inputLength, pts: audioStartSample }];
                             let firstPts: number | undefined;
+                            const timelineStart = frames[0]?.pts ?? 0;
+                            let continuous = samplesPerTick === 1 && paddingPts === timelineStart + inputLength;
                             for (const frame of frames) {
                               if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              continuous &&= frame.pts === timelineStart + frame.start;
+                              if (firstPts !== undefined) continue;
                               let start = Math.min(startPts - frame.pts, startSample - frame.start);
                               if (start === Infinity) start = 0;
                               if (start < frame.end - frame.start) {
                                 firstPts = frame.pts + start;
-                                break;
                               }
                             }
                             let start = Math.min(startPts - paddingPts, startSample - inputLength);
@@ -10971,9 +10974,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             // atrim keeps samples until every end condition is satisfied.
                             const end = Math.max(endSample, inputLength + endPts - paddingPts,
                               duration > 0 ? inputLength + firstPts + duration - paddingPts : -Infinity);
-                            // Reframing preserves sample positions but can change discontinuous PTS.
-                            // Only sample end bounds are safe to propagate through asetnsamples.
-                            if (Number.isFinite(end) && (!reframe || endPts === -Infinity && duration === 0)) {
+                            // Reframing preserves a continuous sample timeline; discontinuous PTS
+                            // still allow only sample end bounds to cross asetnsamples.
+                            if (Number.isFinite(end) && (!reframe || continuous || endPts === -Infinity && duration === 0)) {
                               minimum = Math.max(0, end);
                             }
                           }

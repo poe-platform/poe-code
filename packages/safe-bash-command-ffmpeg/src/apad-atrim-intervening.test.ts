@@ -25,8 +25,11 @@ for (const complex of [false, true]) {
     ["apad=2,asetnsamples=n=0,atrim=end_sample=14", null],
     ["apad=2,anull,asetpts=2*PTS,atrim=end_pts=14", null],
     ["apad=2,anull,aresample=16000,atrim=end_sample=14", null],
-    ["apad=2,asetnsamples=4:0,atrim=end_pts=14", null],
-    ["apad=2,asetnsamples=4:0,atrim=duration=0.00175", null],
+    ["apad=2,asetnsamples=4:0,atrim=end_pts=14", padded],
+    ["apad=2,asetnsamples=4:0,atrim=duration=0.00175", padded],
+    ["apad=2,asetnsamples=4:0,atrim=end=10", null],
+    ["asetnsamples=3:0,asetpts=2*PTS,apad=2,asetnsamples=4:0,atrim=end_pts=14", null],
+    ["asetnsamples=3:0,asetpts=PTS/2,apad=2,asetnsamples=4:0,atrim=duration=0.00175", null],
     ["apad=2,areverse,atrim=end_sample=14", null],
     ["apad=2,aselect=0,atrim=end_sample=14", null]
   ] as const) {

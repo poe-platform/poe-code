@@ -10850,6 +10850,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             else if (!["anull", "acopy", "volume"].includes(name!)) break;
                           }
                           const next = audioFilters[nextIndex];
+                          let resampleRate = origRate;
+                          if (!reframed && next?.split("=", 1)[0]!.split("@", 1)[0] === "aresample") {
+                            const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "0";
+                            const [key, raw, extra] = argument.split("=");
+                            if (extra === undefined && (raw === undefined || ["osr", "out_sample_rate", "sample_rate"].includes(key!))) {
+                              resampleRate = Math.round(parseFilterExpression(raw ?? key!, "aresample", {}))
+                                || (index === undefined ? undefined : audioRate) || origRate;
+                            }
+                          }
+                          const resampleSupport = resampleRate > 0 && resampleRate !== origRate
+                            ? 2 * Math.ceil(16 / Math.min(0.97 * resampleRate / origRate, 1)) : 0;
                           if (outputDuration === undefined && outputTo === undefined && maxAudioFrames === undefined && next?.split("=", 1)[0]!.split("@", 1)[0] === "atrim") {
                             const { duration, startPts, endPts, startSample, endSample } = parseAtrim(
                               next.includes("=") ? next.slice(next.indexOf("=") + 1) : "", origRate);
@@ -10888,15 +10899,26 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             // Padding starts at the final frame's end, which can differ from the sample count.
                             minimum = duration === undefined ? Infinity
                               : inputLength + Math.max(0, firstPts + Math.round(duration * origRate) - paddingPts);
+                            if (resampleSupport && duration !== undefined) {
+                              minimum = Math.max(resampleSupport + 1, minimum + resampleSupport / 2);
+                            }
                             if (maxAudioFrames !== undefined) {
                               // The output cap counts regrouped frames, not apad's packets.
                               const reframe = audioFilters[filterIndex + 1];
                               const frameSamples = reframe?.split("=", 1)[0]!.split("@", 1)[0] === "asetnsamples"
                                 ? parseAsetnsamples(reframe.includes("=") ? reframe.slice(reframe.indexOf("=") + 1) : "").size
                                 : undefined;
-                              minimum = Math.min(minimum, frameSamples === undefined
+                              let frameBound = frameSamples === undefined
                                 ? inputLength + Math.max(0, maxAudioFrames - audioTimestamps.length) * packetSize
-                                : maxAudioFrames * frameSamples);
+                                : maxAudioFrames * frameSamples;
+                              if (resampleSupport && packetSize > 0 && maxAudioFrames > 0) {
+                                const emitted = audioTimestamps.filter(frame => frame.end > resampleSupport).length;
+                                // Startup consumes complete packets without emitting frames.
+                                const startupPackets = Math.max(0, Math.floor((resampleSupport - inputLength) / packetSize) + 1);
+                                frameBound = inputLength + (startupPackets + Math.max(0,
+                                  maxAudioFrames - emitted - (startupPackets > 0 ? 1 : 0))) * packetSize;
+                              }
+                              minimum = Math.min(minimum, frameBound);
                             }
                           }
                         }

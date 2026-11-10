@@ -11752,6 +11752,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         if (selecting) {
                           const variables = {
+                            PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
                             // Decoded audio is key; video classification and concat metadata are unavailable.
                             key: 1, pict_type: NaN, interlace_type: NaN, concatdec_select: NaN,
                             I: 1, PROGRESSIVE: 0,

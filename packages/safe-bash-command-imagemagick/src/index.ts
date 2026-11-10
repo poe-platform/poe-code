@@ -10938,6 +10938,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ });
                 validateMagickSpliceGeometry(expanded);
+                im = discardDisassociatedAlpha(im);
                 const result = yield* applyMagickSpliceSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, state.gravity, signal, im.virtualPixel);
                 if (im.readMask) result.readMask = yield* applyMagickSpliceSteps(im.readMask as RgbaImage, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, im.virtualPixel);
                 if (im.region && (result.width !== im.width || result.height !== im.height)) {
@@ -10957,6 +10958,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ });
                 validateMagickTransformGeometry(expanded, t);
+                im = discardDisassociatedAlpha(im);
                 return (yield* applyMagickChopSteps(im, expanded, state.gravity, signal, analysis));
             });
         }
@@ -10985,6 +10987,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ });
                 validateMagickTransformGeometry(expanded, t);
+                im = discardDisassociatedAlpha(im);
                 let result = yield* applyMagickRollSteps(im, expanded, signal);
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
@@ -14470,6 +14473,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const expanded = await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ }, async () => ({ image, storage: backend.storage }), signal, images);
                 if (token === "-splice") validateMagickSpliceGeometry(expanded);
                 else validateMagickTransformGeometry(expanded, token);
+                image = discardDisassociatedAlpha(image);
                 let result = await transformStoredMagickCoordinates(image, backend, token, expanded, captured, signal, analysis);
                 if (token === "-roll" && image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];

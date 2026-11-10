@@ -40,10 +40,10 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
   it(`keeps input extent after resizing and reports zero for generated images (${mode})`, async () => {
     const files = new Map([["/tile.ppm", tile]]), filesystem = new MemoryFileSystem();
     await filesystem.writeFile("/tile.ppm", tile);
-    const args = ["/tile.ppm", "-resize", "1x1!", "xc:red", "-format", "%[fx:extent]|%b;", "info:"];
+    const args = ["/tile.ppm", "-resize", "1x1!", "xc:red", "-format", "%[fx:extent]|%b;\n", "info:"];
     const result = mode === "sync" ? runMagickCliSync(args, files)
       : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
-    expect(result).toEqual({ exitCode: 0, stdout: "67|67B;0|0B;\n", stderr: "" });
+    expect(result).toEqual({ exitCode: 0, stdout: "67|67B;\n0|0B;\n", stderr: "" });
   });
 
   it(`selects each input's encoded extent in pixel FX arithmetic (${mode})`, async () => {

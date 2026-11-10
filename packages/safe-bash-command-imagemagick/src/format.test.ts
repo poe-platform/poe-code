@@ -36,7 +36,7 @@ describe("ImageMagick property formatting", () => {
     it(`${mode}: expands geometry, metadata, compression, and literal escapes once`, async () => {
       const bytes = await sharp({ create: { width: 80, height: 40, channels: 3, background: "red" } }).png().toBuffer();
       expect(await format(bytes, "%g|%P|%%|%[channels]|%[WIDTH]x%[Height]|%[depth]|%[bit-depth]|%C|%Q|%S|%[size]"))
-        .toBe(`80x40+0+0|80x40|%|srgb  3.0|80x40|8|1|Zip|92|2147483647|${bytes.byteLength}B${newline}`);
+        .toBe(`80x40+0+0|80x40|%|srgb  3.0|80x40|8|1|Zip|92|2147483647|${mode === "info" ? 0 : bytes.byteLength}B${newline}`);
       expect(await format(bytes, "%%w|%%[mean]|%%%w|%%%%|\\n\\t%w|%%[unknown]|%%j|%%[unfinished"))
         .toBe(`%w|%[mean]|%80|%%|\nt80|%[unknown]|%j|%[unfinished${newline}`);
       expect(await format(bytes, "50%x1|50%w|%x|50%[width]|50%%|%w%h"))
@@ -79,11 +79,11 @@ describe("ImageMagick property formatting", () => {
     });
   }
 
-  it("preserves source filenames and sizes through info output transforms", async () => {
+  it("preserves source filenames and reports output size through info output transforms", async () => {
     const path = "/test%b-%n-%[mean].png";
     const bytes = await sharp({ create: { width: 8, height: 4, channels: 3, background: "red" } }).png().toBuffer();
     const result = await runMagickCli([path, "-resize", "4x2!", "-format", "%f|%i|%[width]x%[height]|%wx%h|%[size]|%[hex:p{0,0}]", "info:"], new Map([[path, bytes]]));
-    expect(result).toMatchObject({ exitCode: 0, stdout: `test%b-%n-%[mean].png||8x4|4x2|${bytes.byteLength}B|FF0000\n`, stderr: "" });
+    expect(result).toMatchObject({ exitCode: 0, stdout: `test%b-%n-%[mean].png||8x4|4x2|0B|FF0000\n`, stderr: "" });
   });
 
   it("preserves original dimensions when JPEG decoding is downscaled for a resize", async () => {

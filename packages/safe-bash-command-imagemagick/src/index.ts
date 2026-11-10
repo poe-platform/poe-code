@@ -1524,7 +1524,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     "exif:orientation": meta.orientation === undefined ? "" : String(meta.orientation),
     colorspace: space, channels: `${space === "LinearGray" ? "gray" : space.toLowerCase()}${meta.hasAlpha ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (meta.hasAlpha ? 1 : 0) + (meta.isPalette ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.writeMask || meta.storedWriteMask ? 1 : 0)}.0`,
     width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
-    depth: bitDepth, size: short.b!, compression, quality: String(meta.quality ?? 0), page: short.P!,
+    depth: bitDepth, size: context.outputFilePath === undefined ? short.b! : "0B", compression, quality: String(meta.quality ?? 0), page: short.P!,
     "resolution.x": formatSignificantMetric(resolution ? resolution.x / resolutionScale : 0),
     "resolution.y": formatSignificantMetric(resolution ? resolution.y / resolutionScale : 0),
     "printsize.x": formatSignificantMetric(meta.width / Math.max(resolution ? resolution.x / resolutionScale : 0, 1e-12)),

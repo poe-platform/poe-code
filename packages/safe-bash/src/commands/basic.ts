@@ -258,7 +258,16 @@ export async function formatPrintf(context: CommandContext, shellStartedAt = (co
         const operand = supplied.startsWith("'") || supplied.startsWith('"') ? String(quotedNumber(suppliedIndex)) : supplied;
         const parsed = printfInteger(suppliedIndex < args.length ? operand : "-1", false);
         if (parsed.error) {
-          await writeDiagnostic(context.stderr, `printf: '${supplied}': ${parsed.error}\n`, context.signal);
+          if (parsed.error === "Numerical result out of range") {
+            await writeDiagnostic(context.stderr, `printf: '${supplied}': ${parsed.error}\n`, context.signal);
+          } else {
+            const location = context as CommandContext & { scriptName?: string; diagnosticLine?: number };
+            const prefix = location.scriptName === undefined && location.diagnosticLine === undefined
+              ? "" : `${location.scriptName ?? "shell"}: line ${location.diagnosticLine ?? 1}: `;
+            const kind = supplied.startsWith("0x") ? "hex "
+              : supplied[0] === "0" && supplied.charCodeAt(1) >= 48 && supplied.charCodeAt(1) <= 57 ? "octal " : "";
+            await writeDiagnostic(context.stderr, `${prefix}printf: ${supplied}: invalid ${kind}number\n`, context.signal);
+          }
           exitCode = 1;
         }
         const seconds = parsed.value === -1n ? BigInt(Math.floor(Date.now() / 1000))

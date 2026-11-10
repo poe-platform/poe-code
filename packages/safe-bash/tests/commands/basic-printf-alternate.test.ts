@@ -7,6 +7,33 @@ import { Shell } from "../../src/shell/index.js";
 import { shellValueFromBytes } from "../../src/contracts/value.js";
 import { parsePrintfDirective } from "../../src/commands/printf-format.js";
 
+// GNU Bash 5.2 and 5.3, Linux, LC_ALL=C, TZ=UTC0.
+for (const [operand, seconds, error] of [
+  ["12x", "12", "invalid number"],
+  ["08", "00", "invalid octal number"],
+  ["00x", "00", "invalid octal number"],
+  ["0xG", "00", "invalid hex number"],
+  ["0XG", "00", "invalid number"],
+  ["-08", "00", "invalid number"],
+  ["+08", "00", "invalid number"],
+  [" 08", "00", "invalid number"],
+  ["010", "08", ""],
+  ["0x10", "16", ""],
+] as const) for (const assignment of [false, true]) {
+  test(`printf timestamp operand ${JSON.stringify(operand)} assignment=${assignment}`, async () => {
+    const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry(basicCommands()) });
+    try {
+      const format = "one:%(%F %T)T/two:%d";
+      const result = await shell.exec(assignment
+        ? `\nprintf -v stamp '${format}' '${operand}' 2; status=$?; printf %s "$stamp"; exit "$status"`
+        : `printf '${format}' '${operand}' 2`, { env: { TZ: "UTC0", LC_ALL: "C" } });
+      assert.equal(result.stdout, `one:1970-01-01 00:00:${seconds}/two:2`);
+      assert.equal(result.exitCode, error ? 1 : 0);
+      assert.equal(result.stderr, error ? `shell: line ${assignment ? 2 : 1}: printf: ${operand}: ${error}\n` : "");
+    } finally { await shell.dispose(); }
+  });
+}
+
 for (const [format, expected] of [
   ["%(stamp(%Y)_%m)T", "stamp(1970)_01"],
   ["%((%F))T", "(1970-01-01)"],

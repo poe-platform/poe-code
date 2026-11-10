@@ -2549,6 +2549,7 @@ async function applyVideoFilterChain(
         let key = separator < 0 ? keys[index] : part.slice(0, separator).trim();
         if (key === "out_w") key = "w";
         if (key === "out_h") key = "h";
+        if (key === "enable") throw new Error("crop: timeline is unsupported");
         if (!key || !keys.includes(key)) {
           throw new Error(`crop: unknown or misplaced option ${part}`);
         }
@@ -15734,6 +15735,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "tile: unknown option enable") return { exitCode: 176 };
             if (msg.startsWith("tile: unknown option ")) return { exitCode: 8 };
             if (msg.startsWith("tile:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg === "crop: timeline is unsupported") return { exitCode: 176 };
+            if (msg.startsWith("crop: unknown or misplaced option ")) return { exitCode: 8 };
+            if (msg === "crop: exact must be a boolean" || msg === "crop: keep_aspect must be a boolean") return { exitCode: 234 };
             if (msg === "decimate: timeline is unsupported") return { exitCode: 176 };
             if (msg === "decimate: unsupported option") return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("decimate:")) return { exitCode: 222 };

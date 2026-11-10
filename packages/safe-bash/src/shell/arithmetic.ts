@@ -15,6 +15,7 @@ export interface ArithmeticProgram {
   readonly source: string;
   readonly tree?: Arithmetic;
   readonly error?: ShellSyntaxError;
+  readonly completed?: Arithmetic;
   readonly hasSubscript?: boolean;
   readonly hasMutation?: boolean;
 }
@@ -31,6 +32,7 @@ const preparedArithmeticCache = new Map<string, { program: ArithmeticProgram; un
 
 let lastParsedHasSubscript = false;
 let lastParsedHasMutation = false;
+let lastParsedCompleted: Arithmetic | undefined;
 
 export function fastDecimalLiteral(text: string | undefined, budget: ParseBudget): bigint | undefined {
   if (text === undefined || text === "0") { budget.admit(2); return 0n; }
@@ -85,7 +87,7 @@ export function prepareArithmetic(source: string, budget = new ParseBudget()): A
     if (!(error instanceof ShellSyntaxError) || /nesting/u.test(error.reason)) throw error;
     budget.admit();
     const units = budget.admittedUnits - startUnits;
-    const program: ArithmeticProgram = { source, error };
+    const program: ArithmeticProgram = { source, error, completed: lastParsedCompleted };
     if (source.length <= 256) {
       if (preparedArithmeticCache.size >= 64) {
         const oldest = preparedArithmeticCache.keys().next().value;
@@ -179,6 +181,7 @@ function matchArithOperator(source: string, pos: number): string | undefined {
 export function parseArithmetic(source: string, offset = 0, budget = new ParseBudget()): Arithmetic {
   lastParsedHasSubscript = false;
   lastParsedHasMutation = false;
+  lastParsedCompleted = undefined;
   if (source.includes("\\\n")) source = source.replace(/\\\n/gu, "");
   const useShared = !sharedTokensBusy;
   if (useShared) sharedTokensBusy = true;
@@ -331,6 +334,8 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
           if (left!.kind !== "name" && token !== "(") error("Arithmetic assignment requires a variable");
           lastParsedHasMutation = true;
         }
+        // Only root comma operands are unconditional; nested ones may be skipped.
+        if (operator === "," && depth === 1) lastParsedCompleted = left!;
         const right = expression(priority + (assignment || operator === "**" ? 0 : 1));
         left = assignment && left!.kind !== "name"
           ? { kind: "invalid-write", operand: left!, reason: "attempted assignment to non-variable", offset: operatorOffset, start }
@@ -490,8 +495,8 @@ export function* arithmeticEvaluation(program: ArithmeticProgram, references: Ar
     | { kind: "invalid-write"; node: Extract<Arithmetic, { kind: "invalid-write" }> }
     | { kind: "logical" };
   try {
-    if (program.error) throw program.error;
-    const pending: Frame[] = [{ kind: "evaluate", node: program.tree! }];
+    if (program.error && !program.completed) throw program.error;
+    const pending: Frame[] = [{ kind: "evaluate", node: (program.tree ?? program.completed)! }];
     let value = 0n;
     while (pending.length) {
       const frame = pending.pop()!;
@@ -560,6 +565,7 @@ export function* arithmeticEvaluation(program: ArithmeticProgram, references: Ar
         value = BigInt.asIntN(64, value);
       } else value = BigInt(value !== 0n);
     }
+    if (program.error) throw program.error;
     return value;
   } catch (error) {
     formatArithmeticError(program, error);

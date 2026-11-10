@@ -2,11 +2,84 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
-import { prepareArithmetic, type ArithmeticReferences } from "../../src/shell/arithmetic.js";
+import { evaluateArithmeticReferences, prepareArithmetic, type ArithmeticReferences } from "../../src/shell/arithmetic.js";
 import { ParseBudget } from "../../src/shell/parse-budget.js";
 import { evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString } from "../../src/shell/sync-extra-evaluators.js";
 import { bashExecutable } from "../helpers/bash-oracle.js";
 import { setup } from "./helpers.js";
+
+for (const [expression, stdout, diagnostic] of [
+  ["x=1, 09", "1:1\n", "value too great for base"],
+  ["x++, 1+", "1:1\n", "operand expected"],
+  ["x=1, 1/0", "1:1\n", "division by 0"],
+  ["09, x=1", "1:0\n", "value too great for base"],
+  ["x=1, 2", "0:1\n", ""],
+  ["x++, x++, 09, x++", "1:2\n", "value too great for base"],
+  ["x++, 09, x++", "1:1\n", "value too great for base"],
+  ["09, x++, 2", "1:0\n", "value too great for base"],
+  ["x++, 0 && (x++, 09)", "1:1\n", "value too great for base"],
+  ["x++, 1 || (x++, 09)", "1:1\n", "value too great for base"],
+  ["x++, (1 ? 2 : x++), 09", "1:1\n", "value too great for base"],
+] as const) {
+  test(`arithmetic comma preserves completed writes: ${expression}`, async context => {
+    const source = `x=0; (( ${expression} )); echo "$?:$x"`;
+    const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], {
+      encoding: "utf8", env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000,
+    });
+    assert.ifError(native.error);
+    assert.equal(native.status, 0);
+    assert.equal(native.stdout, stdout);
+    const { shell, commands } = setup();
+    for (const command of basicCommands()) commands.register(command);
+    context.after(() => shell.dispose());
+    const result = await shell.exec(source);
+    assert.equal(result.stdout, native.stdout);
+    assert.equal(result.exitCode, native.status);
+    if (diagnostic) {
+      assert.ok(native.stderr.includes(diagnostic), native.stderr);
+      assert.ok(result.stderr.includes(diagnostic), result.stderr);
+    } else assert.equal(result.stderr, native.stderr);
+  });
+}
+
+for (const [route, body] of [
+  ["expanded command", '(( $expression ))'],
+  ["expansion", 'value=$(( x++, 09 ))'],
+  ["let", 'let "x++, 09"'],
+  ["loop initializer", 'for (( x++, 09; 0; )); do :; done'],
+] as const) {
+  test(`malformed comma operand retains writes in ${route}`, async context => {
+    const source = `x=0; expression='x++, 09'; trap 'echo "$x"' EXIT; ${body}`;
+    const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], {
+      encoding: "utf8", env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000,
+    });
+    assert.ifError(native.error);
+    assert.equal(native.stdout, "1\n");
+    const { shell, commands } = setup();
+    for (const command of basicCommands()) commands.register(command);
+    context.after(() => shell.dispose());
+    const result = await shell.exec(source);
+    assert.equal(result.stdout, native.stdout);
+    assert.equal(result.exitCode, native.status);
+    assert.ok(result.stderr.includes("value too great for base"), result.stderr);
+  });
+}
+
+for (const evaluate of [evaluateArithmeticSync, evaluateArithmeticSyncString, evaluateArithmeticSyncNonZero, evaluateArithmeticReferences]) {
+  test(`${evaluate.name} preserves cached comma writes exactly once`, async () => {
+    const variables: Record<string, string> = { x: "0" };
+    const writes: Array<[string, string]> = [];
+    const references: ArithmeticReferences = {
+      resolve: name => name,
+      read: name => variables[name],
+      write(name, value) { writes.push([name, value]); variables[name] = value; },
+    };
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await assert.rejects(async () => evaluate(prepareArithmetic("x++, 09"), references, new ParseBudget()), /value too great for base/);
+    }
+    assert.deepEqual(writes, [["x", "1"], ["x", "2"]]);
+  });
+}
 
 for (const [expression, exitCode, stdout, diagnostic] of [
   ["a[1/0]", 1, "", '1/0: division by 0 (error token is "0")'],

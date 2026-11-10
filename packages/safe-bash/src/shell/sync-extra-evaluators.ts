@@ -2307,7 +2307,7 @@ export function evaluateArithmeticSync(program: ArithmeticProgram, references: A
 
 function evaluateArithmeticBigInt(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): bigint {
   try {
-    if (program.error) throw program.error;
+    if (program.error && !program.completed) throw program.error;
     let visiting: Set<string> | undefined;
     const evalDeep = (root: Arithmetic): bigint => {
       const evaluation = arithmeticEvaluation({ source: program.source, tree: root }, references, budget);
@@ -2398,7 +2398,9 @@ function evaluateArithmeticBigInt(program: ArithmeticProgram, references: Arithm
         }
       }
     };
-    return evalNode(program.tree!, 0);
+    const value = evalNode((program.tree ?? program.completed)!, 0);
+    if (program.error) throw program.error;
+    return value;
   } catch (error) {
     formatArithmeticError(program, error);
   }

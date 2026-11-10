@@ -11127,7 +11127,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-smush" || t === "+smush") {
             const geometry = tokens[++i] ?? "", image = stack[0];
             if (!image) throw new Error(`no images found for operation '${t}'`);
-            const gap = smushGap(yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }));
+            const gap = smushGap(yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties }));
             const background = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
             const layout = smushLayoutSteps(stack, t === "-smush", gap, state.gravity, state.virtualPixel, background);
             let next = layout.next();
@@ -12438,7 +12438,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async (stack, backend) => {
                 const image = await stack.get(0);
                 if (!image) throw new Error(`no images found for operation '${token}'`);
-                const gap = smushGap(await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal));
+                const gap = smushGap(await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack));
                 const images: StoredRgbaImage[] = [];
                 for (let n = 0; n < stack.length; n++) images.push((await stack.get(n))!);
                 const background = settings.backgroundExplicit ? settings.background : image.backgroundColor ?? settings.background;

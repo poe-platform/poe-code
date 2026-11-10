@@ -13458,8 +13458,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const key = separator < 0 ? (index === 0 ? "sample_fmts" : undefined) : option.slice(0, separator).trim();
                           return key === "sample_fmts" || key === "f";
                         });
-                        // Haas requires doubles; negotiate before rematrixing unconstrained aformat input.
-                        if (nextFilter === "haas" && !hasSampleFormat) options.unshift("sample_fmts=dbl");
+                        // These filters require doubles; negotiate before rematrixing unconstrained aformat input.
+                        if ((nextFilter === "haas" || nextFilter === "apulsator") && !hasSampleFormat) options.unshift("sample_fmts=dbl");
                         const inputSampleFormat = filteredSampleFormat;
                         const parsed = options.map((option, index) => {
                           const separator = option.indexOf("=");

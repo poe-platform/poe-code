@@ -39,9 +39,10 @@ export function parseMagickPoly(value: string): number[] {
     return terms.slice(0, terms.length - terms.length % 2);
 }
 
-export function* polyPixelSteps(size: number, inputs: readonly Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth">[], terms: readonly number[], channels?: readonly boolean[], highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth"> & { magickColorspace?: string })[], terms: readonly number[], channels?: readonly boolean[], highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const hasAlpha = inputs.some(image => image.hasAlpha);
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
+    const hue = !!inputs[0]?.magickColorspace && inputs[0].magickColorspace !== "RGB" && inputs[0].space !== "cmyk";
     for (let position = 0; position < size; position += 4096) {
         yield;
         const length = Math.min(4096, size - position), values = new Float64Array(length);
@@ -62,6 +63,7 @@ export function* polyPixelSteps(size: number, inputs: readonly Pick<RgbaImage, "
         }
         for (let offset = 0; offset < length; offset++) values[offset] = offset % 4 === 3 && !hasAlpha ? 255 : values[offset]! * 255;
         yield { kind: "write", evaluate: true, position, data: new Uint8Array(values.buffer) };
+        if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(values.map(value => value / 255).buffer) };
         // Keep Q16 output even when all sources were bytes; later encoders choose depth.
         const data = Uint16Array.from(values, value => Math.max(0, Math.min(65535, Math.round(value * 257))));
         yield { kind: "write", highDepth: true, position, data: new Uint8Array(data.buffer) };

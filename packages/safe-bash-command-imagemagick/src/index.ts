@@ -6604,8 +6604,10 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 return pixels;
             };
         }
-        const lookup = Array.from({ length: 4 }, () => levels === 65536
-            ? Uint16Array.from({ length: levels }, (_, value) => value)
+        // Keep Q16 stretch values until after region compositing, even for 8-bit input.
+        const stretch = !!image.region && (token === "-normalize" || token === "-contrast-stretch");
+        const lookup = Array.from({ length: 4 }, () => levels === 65536 || stretch
+            ? Uint16Array.from({ length: levels }, (_, value) => value * 65535 / (levels - 1))
             : Uint8Array.from({ length: levels }, (_, value) => clampByteVal(value * 255 / (levels - 1))));
         if (token === "-linear-stretch") {
             const lowTarget = blackPoint * (percentage ? count / 100 : 1);
@@ -6624,6 +6626,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                     : Math.round(Math.max(0, Math.min(levels - 1, (value * 65535 / (levels - 1) - low) / (high - low) * (levels - 1))));
             }
         } else if (token === "-normalize" || token === "-contrast-stretch") {
+            const maximum = lookup[0] instanceof Uint16Array ? 65535 : 255;
             const whiteValue = Number.isFinite(whitePoint) ? whitePoint : blackPoint;
             const lowTarget = token === "-normalize" ? 0.02 * count : percentage ? blackPoint / 100 * count : blackPoint;
             const highTarget = token === "-normalize" ? 0.01 * count : percentage ? whiteValue / 100 * count : whiteValue;
@@ -6637,8 +6640,8 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 for (; high > 0; high--) { sum += bins[high]!; if (sum > highTarget) break; }
                 // Native clips against the black point first, even when the points cross.
                 if (high !== low) for (let value = 0; value < levels; value++) lookup[channel]![value] = value * scale < low ? 0
-                    : value * scale > high ? levels - 1
-                    : Math.round((value * scale - low) / (high - low) * (levels - 1));
+                    : value * scale > high ? maximum
+                    : Math.round((value * scale - low) / (high - low) * maximum);
             }
         } else if (token === "-equalize") {
             const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];

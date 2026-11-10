@@ -44,7 +44,7 @@ for (const mode of ["command", "buffered", "sync"] as const) {
             expect(result.exitCode).toBe(0);
             expect("stderr" in result ? result.stderr : stderr).toBe("");
             const output = destination === "stdout"
-                ? mode === "command" ? Buffer.concat(stdout) : "stdoutBytes" in result ? result.stdoutBytes! : new Uint8Array()
+                ? mode === "command" ? Buffer.concat(stdout) : "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : new Uint8Array()
                 : mode === "command" ? await fs.readFile("/out.raw") : files.get("/out.raw")!;
             if (coder === "PNG64") {
                 const decoded = decodeImage(output);

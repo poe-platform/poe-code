@@ -7587,6 +7587,9 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
     } };
 }
 
+// ImageMagick 7.1.2 ColorspaceOptions, including existing aliases.
+const magickColorspaces = ["undefined", "adobe98", "cat02lms", "cielab", "cmy", "cmyk", "displayp3", "gray", "grey", "hcl", "hclp", "hsb", "hsi", "hsl", "hsv", "hwb", "jzazbz", "lab", "lch", "lchab", "lchuv", "lineargray", "lms", "log", "luv", "ohta", "oklab", "oklch", "prophoto", "rec601luma", "rec601ycbcr", "rec709luma", "rec709ycbcr", "rgb", "scrgb", "srgb", "transparent", "xyy", "xyz", "ycbcr", "ydbdr", "ycc", "yiq", "ypbpr", "yuv"];
+
 type MagickPixelOperation = { handlesWriteMask?: boolean; maskAlpha?: "transparent" | "opaque" | undefined; warning?: string; evaluate?: boolean; highDepth?: boolean; end: number; apply(image: RgbaImage, pixelOffset?: number, imageWidth?: number): Generator<void, RgbaImage, void> };
 function parseMagickPixelOperation(tokens: readonly string[], settings: MagickState, start: number, signal?: AbortSignal): MagickPixelOperation | undefined {
     const state = { ...settings }, token = tokens[start];
@@ -7603,8 +7606,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const paletteType = imageType !== undefined && ["palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(imageType);
         let space = imageType === undefined ? (value ?? "gray").toLowerCase()
             : imageType === "truecolor" || imageType === "truecoloralpha" || paletteType ? "srgb" : "gray";
-        // ImageMagick 7.1.2 ColorspaceOptions, plus our existing grey and luma aliases.
-        if (token === "-colorspace" && !["undefined", "adobe98", "cat02lms", "cielab", "cmy", "cmyk", "displayp3", "gray", "grey", "hcl", "hclp", "hsb", "hsi", "hsl", "hsv", "hwb", "jzazbz", "lab", "lch", "lchab", "lchuv", "lineargray", "lms", "log", "luv", "ohta", "oklab", "oklch", "prophoto", "rec601luma", "rec601ycbcr", "rec709luma", "rec709ycbcr", "rgb", "scrgb", "srgb", "transparent", "xyy", "xyz", "ycbcr", "ydbdr", "ycc", "yiq", "ypbpr", "yuv"].includes(space)) {
+        if (token === "-colorspace" && !magickColorspaces.includes(space)) {
             throw new Error(`unrecognized colorspace '${value}'`);
         }
         if (token === "-grayscale" && !["average", "mean", "brightness", "lightness", "ms", "rms", "rec601luma", "rec601luminance", "rec709luma", "rec709luminance"].includes(space)) {
@@ -9394,7 +9396,9 @@ if (t === "-intent" || t === "+intent") {
         }
         else if (t === "+treedepth") { delete state.treeDepth; }
         else if (t === "-quantize") {
-            state.quantizeGray = (tokens[++i] ?? "").toLowerCase() === "gray";
+            const value = tokens[++i] ?? "", space = value.toLowerCase();
+            if (!magickColorspaces.includes(space)) throw new Error(`unrecognized colorspace '-quantize' '${value}'`);
+            state.quantizeGray = space === "gray";
         }
         else if (t === "+quantize") {
             state.quantizeGray = false;

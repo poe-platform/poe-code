@@ -2031,6 +2031,23 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "amerge" || filters[0]?.startsWith("amerge=")) {
+        // Split outputs share their inputs array. A downstream reverse drains that
+        // shared upstream to EOF, queuing the other branch before amerge runs.
+        const paths = node.inputs.map(label => {
+          const path = new Map<string[], boolean>();
+          let buffered = false;
+          let upstream = nodes.get(label);
+          while (upstream) {
+            path.set(upstream.inputs, buffered);
+            buffered ||= parseFilterChain(upstream.expression)
+              .some(filter => filter.split("=", 1)[0]!.split("@", 1)[0] === "areverse");
+            if (upstream.inputs.length !== 1) break;
+            upstream = nodes.get(upstream.inputs[0]!);
+          }
+          return path;
+        });
+        const queued = paths.map(path => paths.some(other => other !== path &&
+          Array.from(path).some(([inputs, buffered]) => !buffered && other.get(inputs) === true)));
         for (const source of sources) {
           if (source.expression && source.expression !== "anull") {
             source.track = await filterAudio(source.track, source.expression);
@@ -2115,7 +2132,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
               budget.checkCpu();
             }
           }
-          const end = Math.min(length, ...cursors.map(cursor => cursor.end));
+          const end = Math.min(length, ...cursors.map((cursor, input) => queued[input] ? length : cursor.end));
           const pts = cursors[0]!.pts + start - cursors[0]!.start;
           budget.allocateMemory(96);
           frames.push({ data: new Uint8Array(0), size: 0, pts, dts: pts, cts: 0,

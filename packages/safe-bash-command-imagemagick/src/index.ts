@@ -10263,7 +10263,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (!applies(im)) return im;
                 const plan = operation?.plan(im);
                 if (plan) return { ...yield* applyMagickRasterSteps({ ...im, isPalette: false }, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
-                return { ...yield* rotateImageSteps(im, deg, state.background), ...(im.region ? { region: rotateRegion(im.region, im, deg) } : {}), ...(im.virtualCanvas ? { virtualCanvas: magickRotateCanvas(im, deg) } : {}) };
+                return { ...yield* rotateImageSteps(im, deg, state.background),
+                    ...(im.writeMask ? { writeMask: yield* rotateImageSteps(im.writeMask, deg, state.background) } : {}),
+                    ...(im.region ? { region: rotateRegion(im.region, im, deg) } : {}), ...(im.virtualCanvas ? { virtualCanvas: magickRotateCanvas(im, deg) } : {}) };
             }));
         }
         else if (t === "-sort-pixels") {
@@ -12801,6 +12803,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (plan) return { ...await transformStoredMagickRaster({ ...image, isPalette: false }, backend, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
                 return {
                     ...await transformStoredImage(image, backend.storage, { kind: "rotate", angle, background: settings.background }, signal),
+                    ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, backend.storage, { kind: "rotate", angle, background: settings.background }, signal) } : {}),
                     ...(image.region ? { region: rotateRegion(image.region, image, angle) } : {}),
                     ...(image.virtualCanvas ? { virtualCanvas: magickRotateCanvas(image, angle) } : {})
                 };

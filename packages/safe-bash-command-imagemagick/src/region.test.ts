@@ -30,7 +30,7 @@ for (const mode of ["buffered", "retained", "sync", "mogrify"] as const) {
 
 it("keeps region placement across retained frame-cache and chunk boundaries", async () => {
     const filesystem = new MemoryFileSystem();
-    const args = ["-size", "4098x2", "xc:red", "-gravity", "southeast", "-region", "1x1+1+0", "-duplicate", "33", "-negate", "+region", "-delete", "0-32", "rgba:/out.rgba"];
+    const args = ["-size", "4098x2", "xc:red", "-gravity", "southeast", "-region", "1x1+1+0", "-duplicate", "33", "-negate", "+region", "-delete", "0-32", "-depth", "8", "rgba:/out.rgba"];
     expect(await runConvertCli(args, { filesystem, cwd: "/" })).toMatchObject({ exitCode: 0, stderr: "" });
     const output = await filesystem.readFile("/out.rgba");
     expect(output.length).toBe(4098 * 2 * 4);

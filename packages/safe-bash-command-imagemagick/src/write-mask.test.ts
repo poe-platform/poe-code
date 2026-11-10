@@ -63,7 +63,7 @@ for (const option of ["write-mask", "clip-mask"]) {
 
 it("retains masks across frame-cache and pixel-chunk boundaries", async () => {
     const filesystem = new MemoryFileSystem();
-    const args = ["-size", "4097x2", "xc:red", "-write-mask", "xc:white", "-duplicate", "33", "-negate", "+write-mask", "-delete", "0-32", "rgba:/out.rgba"];
+    const args = ["-size", "4097x2", "xc:red", "-write-mask", "xc:white", "-duplicate", "33", "-negate", "+write-mask", "-delete", "0-32", "-depth", "8", "rgba:/out.rgba"];
     expect(await runConvertCli(args, { filesystem, cwd: "/" })).toMatchObject({ exitCode: 0, stderr: "" });
     const output = await filesystem.readFile("/out.rgba");
     expect(output.length).toBe(4097 * 2 * 4);

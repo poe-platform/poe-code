@@ -111,10 +111,12 @@ export function* formatTrimBoundsSteps<Step = never>(
     format: "trim-geometry" | "bounding-box",
     fuzz: number,
     analysis?: { warnings: string },
-    edges?: string
+    edges?: string,
+    percentBackground?: number,
+    background?: RgbaColor
 ): Generator<Step | void, string, void> {
     const first = yield* load(0, 4);
-    const steps = trimBounds(image.width, image.height, fuzz, first.evaluateSamples ? 1 : first.data16 ? 257 : 1, edges);
+    const steps = trimBounds(image.width, image.height, fuzz, first.evaluateSamples ? 1 : first.data16 ? 257 : 1, edges, percentBackground, background);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }

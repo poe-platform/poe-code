@@ -1634,7 +1634,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
       short[key] ??= resolvePixels ? yield* resolvePixels(property) : yield* formatTrimBoundsSteps(img ??= getImage(), function*(position, length) {
         yield;
         return { data: img!.data.subarray(position, position + length), ...(img!.data16 ? { data16: img!.data16.subarray(position, position + length) } : {}), ...(img!.evaluateSamples ? { evaluateSamples: img!.evaluateSamples.subarray(position, position + length) } : {}) };
-      }, property, context.fuzz ?? 0, context.analysis, context.trimEdges);
+      }, property, context.fuzz ?? 0, context.analysis, context.trimEdges, context.trimPercentBackground, context.trimBackgroundColor);
       parts.push(short[key]!);
     } else if (token === "%T") {
       const delay = resolvePixels ? yield* resolvePixels("delay") : String((meta.delay ?? (img ??= getImage()).delay)?.[(meta as MagickImage)[magickInput]?.sceneIdx ?? context.sceneIdx ?? 0] ?? 0);
@@ -1841,7 +1841,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    }};
    return chunk;
   }
-  if(property === "trim-geometry" || property === "bounding-box")return yield*formatTrimBoundsSteps(raster!.image,load,property,context.fuzz ?? 0,context.analysis,context.trimEdges);
+  if(property === "trim-geometry" || property === "bounding-box")return yield*formatTrimBoundsSteps(raster!.image,load,property,context.fuzz ?? 0,context.analysis,context.trimEdges,context.trimPercentBackground,context.trimBackgroundColor);
   if(property === "signature")return yield*signatureSteps(raster!.image,load);
   if(property === "convex-hull" || property === "minimum-bounding-box") {
    if(!hull) {
@@ -11416,7 +11416,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             for (const [idx, im] of stack.entries()) {
                 formatted.push(histogramComment ? yield* formatHistogramOutputSteps(im) : state.formatStr !== undefined
                     ? yield* formatMagickPropertyStringSteps(state.formatStr, im, () => im, {
-                        ...(im as MagickImage)[magickInput], fxStack: stack, outputFilePath: outSpec.slice(5), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, analysis, sceneIdx: idx, outputScene: (state.scene ?? 0) + idx, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr }
+                        ...(im as MagickImage)[magickInput], fxStack: stack, outputFilePath: outSpec.slice(5), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, trimPercentBackground: state.trimPercentBackground, trimBackgroundColor: state.trimBackgroundColor, analysis, sceneIdx: idx, outputScene: (state.scene ?? 0) + idx, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr }
                     })
                     : `${im.width}x${im.height} ${im.magickColorspace ?? "sRGB"} 8-bit`);
             }
@@ -13879,7 +13879,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal, state.inputDepth); continue; }
                     if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal); continue; }
                     if (index && state.formatStr === undefined) yield "\n";
-                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], outputFilePath: outSpec.slice(5), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, analysis, sceneIdx: index, outputScene: (state.scene ?? 0) + index, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr } }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
+                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], outputFilePath: outSpec.slice(5), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, trimPercentBackground: state.trimPercentBackground, trimBackgroundColor: state.trimBackgroundColor, analysis, sceneIdx: index, outputScene: (state.scene ?? 0) + index, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr } }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
                     if (formatted) last = formatted.at(-1)!;
                     yield formatted;
                 }

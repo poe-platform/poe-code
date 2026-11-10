@@ -1,4 +1,4 @@
-import type { StoredRgbaImage, ImageDelayReader } from "@poe-code/image-ast/portable";
+import type { StoredRgbaImage, ImageDelayReader, RgbaColor } from "@poe-code/image-ast/portable";
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
@@ -20,6 +20,8 @@ export interface MagickFormatContext {
     quality?: number;
     fuzz?: number;
     trimEdges?: string | undefined;
+    trimPercentBackground?: number | undefined;
+    trimBackgroundColor?: RgbaColor | undefined;
     precision?: number;
     ticksPerSecond?: number;
     delayTicks?: number;

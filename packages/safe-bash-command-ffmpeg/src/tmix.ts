@@ -6,12 +6,12 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function tmix(
   frames: MediaVideoFrame[], argument: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaVideoFrame[]> {
-  const options: Record<string, string> = { frames: "3", weights: "1", planes: "15" };
+  const options: Record<string, string> = { frames: "3", weights: "1", scale: "0", planes: "15" };
   if (argument.endsWith(":")) argument = argument.slice(0, -1);
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? ["frames", "weights"][index] : option.slice(0, separator).trim();
-    if (key !== "frames" && key !== "weights" && key !== "enable" && key !== "planes") throw new Error(`tmix: unsupported option ${key}`);
+    const key = separator < 0 ? ["frames", "weights", "scale", "planes"][index] : option.slice(0, separator).trim();
+    if (key !== "frames" && key !== "weights" && key !== "enable" && key !== "planes" && key !== "scale") throw new Error(`tmix: unsupported option ${key}`);
     options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
   }
   const value = parseFilterExpression(options.frames!, "tmix", {
@@ -27,17 +27,20 @@ export async function tmix(
   if (!Number.isInteger(planes) || planes < 0 || planes > 15) {
     throw new Error("tmix: planes must be an integer from 0 to 15");
   }
+  const scale = Math.fround(Number(options.scale));
+  if (!Number.isFinite(scale) || scale < 0 || scale > 32767) {
+    throw new Error("tmix: scale must be a finite number from 0 to 32767");
+  }
   const supplied = (options.weights || "1").replaceAll("|", " ").split(" ").filter(Boolean).slice(0, count).map(value => Math.fround(parseFilterFloat(value)));
   if (supplied.some(weight => !Number.isFinite(weight))) {
     throw new Error("tmix: weights must be finite numbers");
   }
   const weights = Array.from({ length: count }, (_, index) => supplied[Math.min(index, supplied.length - 1)]!);
-  // FFmpeg averages equal weights through its fast path, including all-zero weights.
-  if (!weights.some(weight => weight !== 0)) weights.fill(1);
-  const sum = weights.reduce((total, weight) => total + weight, 0);
+  const sum = weights.reduce((total, weight) => Math.fround(total + weight), 0);
   if (!Number.isFinite(sum)) throw new Error("tmix: weights must have a finite sum");
   const output: MediaVideoFrame[] = [];
-  const average = weights.every(weight => weight === weights[0]);
+  const factor = scale || Math.fround(1 / sum);
+  const average = weights.every(weight => weight === weights[0]) && (scale === 0 || scale === Math.fround(1 / sum));
   const registers = new Float64Array(10);
   const randomStates: BigUint64Array[] = [];
   let runningSum: Uint16Array | undefined;
@@ -93,10 +96,14 @@ export async function tmix(
       let value = 0;
       for (let slot = 0; slot < count; slot++) {
         if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-        value += sources[slot]![offset]! * weights[slot]!;
+        value = Math.fround(value + Math.fround(sources[slot]![offset]! * weights[slot]!));
       }
-      // Native integer mixing converts the non-finite result of canceling weights to zero.
-      data[offset] = sum === 0 ? 0 : Math.max(0, Math.min(255, Math.round(value / sum)));
+      value = Math.fround(value * factor);
+      // Weighted mixing uses lrintf (ties to even).
+      const rounded = value - Math.floor(value) === 0.5
+        ? 2 * Math.round(value / 2) : Math.round(value);
+      // Native integer mixing converts non-finite results of canceling weights to zero.
+      data[offset] = Number.isFinite(rounded) ? Math.max(0, Math.min(255, rounded)) : 0;
     }
     if (useNative) {
       const mixedNative = { ...native, pixels: data };

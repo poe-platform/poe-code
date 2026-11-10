@@ -2042,7 +2042,7 @@ function resolveMagickSpliceGeometry(raw: string, width: number, height: number)
 function parseMagickShaveGeometry(raw: string, image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">): MagickGeometry {
     // Rectangle geometry ends at the first comma-separated field.
     raw = raw.split(",", 1)[0]!;
-    const geometry = parseMagickGeometry(raw.replace(":", "x").replaceAll("@", ""));
+    const geometry = parseMagickGeometry(raw.replace(":", "x").replaceAll("@", "").replaceAll("#", ""));
     if (!raw.includes("@")) return geometry;
     const hasDimensions = raw.toLowerCase().includes("x") || raw.includes(":");
     let width = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? 0));
@@ -2287,7 +2287,7 @@ function resolveMagickFrameGeometry(raw: string, image: Pick<RgbaImage, "width" 
     // Rectangle geometry ends at the first comma-separated field.
     raw = raw.split(",", 1)[0]!;
     const area = raw.includes("@");
-    const geometry = parseMagickGeometry(raw.replaceAll("@", "").replace(":", "x"));
+    const geometry = parseMagickGeometry(raw.replaceAll("@", "").replaceAll("#", "").replace(":", "x"));
     const hasAxes = raw.toLowerCase().includes("x");
     let width = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? (hasAxes ? 0 : image.width)));
     let height = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? (hasAxes ? 0 : area ? image.virtualCanvas?.height || image.height : geometry.width ?? image.height)));
@@ -2308,7 +2308,7 @@ function parseMagickBorderGeometry(raw: string): MagickGeometry {
     validateMagickTransformGeometry(raw, "-border");
     // Rectangle geometry ends at the first comma-separated field.
     raw = raw.split(",", 1)[0]!;
-    const geometry = parseMagickGeometry(raw.replace(":", "x"));
+    const geometry = parseMagickGeometry(raw.replace(":", "x").replaceAll("#", ""));
     if (geometry.width === undefined && geometry.height === undefined && geometry.aspectRatio === undefined && geometry.areaLimit === undefined) {
         throw new Error(`invalid argument for option '-border': ${raw}`);
     }

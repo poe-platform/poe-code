@@ -43,9 +43,10 @@ export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, 
     const hasAlpha = inputs.some(image => image.hasAlpha);
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     const hue = !!inputs[0]?.magickColorspace && inputs[0].magickColorspace !== "RGB" && inputs[0].space !== "cmyk";
-    for (let position = 0; position < size; position += 4096) {
+    // Float64 reads must fit the 16 KiB storage page limit.
+    for (let position = 0; position < size; position += 2048) {
         yield;
-        const length = Math.min(4096, size - position), values = new Float64Array(length);
+        const length = Math.min(2048, size - position), values = new Float64Array(length);
         for (let image = 0; image < Math.min(inputs.length, terms.length / 2); image++) {
             yield;
             const evaluated = (yield { kind: "read", evaluate: true, image, position, length })!;

@@ -24,22 +24,24 @@ const cases = [
 ];
 
 // The first five cases reproduce ImageMagick 7.1.2-35 Q16-HDRI results.
-for (const mode of ["sync", "buffered", "retained", "command"] as const) {
-    it.each(cases)(`${mode}: $name`, async ({ operation, channel, expected, frames = blackFrames, size = "1x1", depth = "8" }) => {
-        const files = new Map([["out", Buffer.from("KEEP")]]), fs = new MemoryFileSystem();
-        await fs.writeFile("/out", Buffer.from("KEEP"));
-        const argv = ["-size", size, ...frames, "-evaluate-sequence", operation, "+channel", "-channel", channel, "-separate", "+channel", "-depth", depth, "-endian", "MSB", "gray:out"];
-        const args = createCommandArguments(argv);
-        let stdout = "", stderr = "";
-        const result = mode === "command" ? await createMagickCommand().execute({
-            command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
-            signal: new AbortController().signal, stdin: (async function* () {})(),
-            stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
-            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
-        }) : mode === "sync" ? runMagickCliSync(argv, files)
-            : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
-        expect({ stdout, stderr, ...result }).toEqual({ exitCode: 0, stdout: "", stderr: "" });
-        const bytes = mode === "retained" || mode === "command" ? await fs.readFile("/out") : files.get("out")!;
-        expect(Buffer.from(bytes).toString("hex")).toBe(expected);
-    });
+for (const reduction of ["evaluate-sequence", "poly"] as const) {
+    for (const mode of ["sync", "buffered", "retained", "command"] as const) {
+        it.each(reduction === "poly" ? cases.filter(test => test.operation === "Mean") : cases)(`${reduction} ${mode}: $name`, async ({ operation, channel, expected, frames = blackFrames, size = "1x1", depth = "8" }) => {
+            const files = new Map([["out", Buffer.from("KEEP")]]), fs = new MemoryFileSystem();
+            await fs.writeFile("/out", Buffer.from("KEEP"));
+            const argv = ["-size", size, ...frames, ...(reduction === "poly" ? ["-poly", ".5,1,.5,1"] : ["-evaluate-sequence", operation]), "+channel", "-channel", channel, "-separate", "+channel", "-depth", depth, "-endian", "MSB", "gray:out"];
+            const args = createCommandArguments(argv);
+            let stdout = "", stderr = "";
+            const result = mode === "command" ? await createMagickCommand().execute({
+                command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+                signal: new AbortController().signal, stdin: (async function* () {})(),
+                stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+                stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+            }) : mode === "sync" ? runMagickCliSync(argv, files)
+                : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+            expect({ stdout, stderr, ...result }).toEqual({ exitCode: 0, stdout: "", stderr: "" });
+            const bytes = mode === "retained" || mode === "command" ? await fs.readFile("/out") : files.get("out")!;
+            expect(Buffer.from(bytes).toString("hex")).toBe(expected);
+        });
+    }
 }

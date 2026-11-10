@@ -7640,11 +7640,12 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 if (independent && !active[channel]) continue;
                 const mean = independent ? sums[channel]! / count : sharedMean;
                 const gamma = Math.log(mean) / Math.log(0.5);
-                if (!Number.isFinite(gamma)) continue;
+                if (!Number.isFinite(gamma) && mean !== 0) continue;
                 const selected = independent ? {
                     r: channel === 0, g: gray || channel === 1, b: gray || channel === 2, a: channel === 3, k: channel === 4,
                 } : { r: true, g: true, b: true, a: true, k: cmyk };
-                operations.push(parseMagickPixelOperation(["-level", `0,65535,${gamma}`], {
+                // Zero mean gives infinite gamma (exponent zero); spell it as numeric geometry.
+                operations.push(parseMagickPixelOperation(["-level", `0,65535,${mean === 0 ? "1e999" : gamma}`], {
                     ...settings, channelExplicit: true, channels: selected,
                 }, 0)!);
             }

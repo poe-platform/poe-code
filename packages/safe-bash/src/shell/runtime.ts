@@ -9737,6 +9737,27 @@ export class Runtime {
       throw completedExit(status, command, 1, state.status);
     }
     if (command === "break" || command === "continue") {
+      if (args[0] === "--help") {
+        await writeText(stdout, [
+          `${command}: ${command} [n]`,
+          ...(command === "break" ? [
+            "    Exit for, while, or until loops.",
+            "    ",
+            "    Exit a FOR, WHILE or UNTIL loop.  If N is specified, break N enclosing",
+            "    loops.",
+          ] : [
+            "    Resume for, while, or until loops.",
+            "    ",
+            "    Resumes the next iteration of the enclosing FOR, WHILE or UNTIL loop.",
+            "    If N is specified, resumes the Nth enclosing loop.",
+          ]),
+          "    ",
+          "    Exit Status:",
+          "    The exit status is 0 unless N is not greater than or equal to 1.",
+          "",
+        ].join("\n"));
+        return 2;
+      }
       if (!state.loopDepth) {
         if ((state as { _subshellInLoop?: boolean })._subshellInLoop) throw completedExit(0, command, 1);
         await this.diagnostic(context, `${command}: only meaningful in a \`for', \`while', or \`until' loop`);

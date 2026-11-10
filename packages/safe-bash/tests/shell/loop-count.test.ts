@@ -4,6 +4,37 @@ import test from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
 
+for (const command of ["break", "continue"]) {
+  for (const source of [
+    `${command} --help`,
+    `${command} --help; printf '/%s' "$?"`,
+    `${command} --help ignored; printf '/%s' "$?"`,
+    `builtin ${command} --help; printf '/%s' "$?"`,
+    `command ${command} --help; printf '/%s' "$?"`,
+    `for i in A B; do printf '%s' "$i"; ${command} --help; printf T; done; printf E`,
+    `i=0; while ((i++ < 2)); do ${command} --help; printf '/%s' "$?"; done; printf E`,
+    `i=0; until ((i++ >= 2)); do ${command} --help; printf '/%s' "$?"; done; printf E`,
+    `for i in A B; do ( ${command} --help; printf '/%s' "$?" ); printf T; done; printf E`,
+    `set -e; ${command} --help; printf unreachable`,
+    `${command} --help >&2; printf '/%s' "$?"`,
+    `for x in A B; do printf '%s;' "$x"; ${command} 1; printf 'tail:%s;' "$?"; done; printf 'done:%s;' "$?"`,
+  ]) {
+    for (const asyncLoop of [false, true]) {
+      test(`${command} help and control flow match Bash: ${source} (${asyncLoop ? "async" : "default"})`, async context => {
+        const expected = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source, "shell"], { encoding: "utf8", env: { ...process.env, LC_ALL: "C" } });
+        assert.equal(expected.error, undefined);
+        const { shell } = setup();
+        for (const builtin of basicCommands()) shell.commands.register(builtin);
+        context.after(() => shell.dispose());
+        const actual = await shell.exec(source, asyncLoop ? { signal: new AbortController().signal } : {});
+        assert.equal(actual.stdout, expected.stdout);
+        assert.equal(actual.stderr, expected.stderr);
+        assert.equal(actual.exitCode, expected.status);
+      });
+    }
+  }
+}
+
 for (const loop of ["for i in one", "for ((i=0; i<1; i++))", "while ((i++ < 1))", "until ((i++ >= 1))"]) {
   for (const command of ["break", "continue"]) {
     for (const body of [command, `! ${command}`, `! ! ${command}`, `! builtin ${command}`, `! ${command} >/dev/null`, `! { ${command}; }`, `! { ! ${command}; }`, `! eval '${command}'`, `for j in one; do ! ${command} 2; echo inner-unreachable; done`]) {

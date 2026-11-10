@@ -4,14 +4,23 @@ import { createMagickRandom } from "./random.js";
 import { quantizePixelSteps } from "./quantize.js";
 
 export function parseKmeansGeometry(raw: string): { colors: number; iterations: number; tolerance: number } {
-    const offset = raw.indexOf("+"), dimensions = (offset < 0 ? raw : raw.slice(0, offset)).split("x");
-    const colors = Number(dimensions[0]), iterations = dimensions[1] === undefined ? 300 : Number(dimensions[1]);
-    const tolerance = offset < 0 ? 0.0001 : Number(raw.slice(offset + 1));
-    if (dimensions.length > 2 || dimensions.some(part => !part.trim()) || !Number.isSafeInteger(colors) || colors < 1
-        || !Number.isSafeInteger(iterations) || iterations < 0 || !Number.isFinite(tolerance) || tolerance < 0
-        || (offset >= 0 && !raw.slice(offset + 1).trim())) throw new Error("Invalid kmeans geometry");
+    const value = raw.trim().replaceAll("%", "");
+    const offset = [...value].findIndex((character, index) => character === "+" && value[index - 1]?.toLowerCase() !== "e");
+    const dimensions = (offset < 0 ? value : value.slice(0, offset))
+        .replaceAll("X", "x").replaceAll(",", "x").replaceAll("/", "x").replaceAll(":", "x").split("x");
+    let colors = Number(dimensions[0]), iterations = dimensions[1]?.trim() ? Number(dimensions[1]) : 300;
+    const toleranceText = offset < 0 ? "" : value.slice(offset + 1).trim();
+    const tolerance = toleranceText ? Number(toleranceText) : 0.0001;
+    // Native colon geometry is a ratio with unit iterations; percent does not scale tolerance.
+    if (value.includes(":") && dimensions[1]?.trim()) {
+        colors /= iterations;
+        iterations = 1;
+    }
+    if (dimensions.length > 2 || !dimensions[0]?.trim() || !Number.isFinite(colors) || colors < 1
+        || !Number.isFinite(iterations) || iterations < 0 || !Number.isFinite(tolerance) || tolerance < 0)
+        throw new Error("Invalid kmeans geometry");
     if (colors > 65536 || iterations > 1000) throw new Error("Kmeans colors or iterations exceed limit");
-    return { colors, iterations, tolerance };
+    return { colors: Math.trunc(colors), iterations: Math.trunc(iterations), tolerance };
 }
 
 /** Quantization seeds followed by Lloyd refinement, with bounded raster reads. */

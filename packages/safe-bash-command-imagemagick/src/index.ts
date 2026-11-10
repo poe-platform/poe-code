@@ -10222,7 +10222,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const width = im.width + bw * 2, height = im.height + bh * 2;
                 if (state.composeRaw.toLowerCase() === "over") {
                     return { ...yield* applyMagickRasterSteps(im, borderPixels(im, bw, bh, state.borderColor, !!im.data16), signal,
-                        { width, height, hasAlpha: true }), virtualCanvas: magickBorderCanvas(im, bw, bh) };
+                        { width, height, hasAlpha: true }), region: undefined, virtualCanvas: magickBorderCanvas(im, bw, bh) };
                 }
                 const canvas = yield* createSolidRgbaImageSteps(width, height, state.borderColor);
                 const composed = yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, bw, bh, state.composeArgs, signal, state.alphaFuzz, true);
@@ -10345,7 +10345,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const fw = g.width, fh = g.height;
                 const width = im.width + 2 * fw, height = im.height + 2 * fh;
                 const canvas = { ...yield* applyMagickRasterSteps(im, magickFramePixels(im, width, height, state.borderColor, state.matteColor, fw, fh, g.x, g.y, state.composeRaw.toLowerCase() === "over"), signal,
-                    { width, height, hasAlpha: im.hasAlpha || state.matteColor.a < 255 || state.borderColor.a < 255 }), virtualCanvas: magickBorderCanvas(im, fw, fh) };
+                    { width, height, hasAlpha: im.hasAlpha || state.matteColor.a < 255 || state.borderColor.a < 255 }), region: undefined, virtualCanvas: magickBorderCanvas(im, fw, fh) };
                 if (state.composeRaw.toLowerCase() === "over") return canvas;
                 return yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, fw, fh, state.composeArgs, signal, state.alphaFuzz, true);
             });
@@ -13020,7 +13020,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const left = geometry.width, top = geometry.height;
                 const width = image.width + 2 * left, height = image.height + 2 * top;
                 const canvas = { ...await transformStoredMagickRaster(image, backend, magickFramePixels(image, width, height, borderColor, matteColor, left, top, geometry.x, geometry.y, composeRaw.toLowerCase() === "over"), signal,
-                    { width, height, hasAlpha: image.hasAlpha || matteColor.a < 255 || borderColor.a < 255 }), virtualCanvas: magickBorderCanvas(image, left, top) };
+                    { width, height, hasAlpha: image.hasAlpha || matteColor.a < 255 || borderColor.a < 255 }), region: undefined, virtualCanvas: magickBorderCanvas(image, left, top) };
                 if (composeRaw.toLowerCase() === "over") return canvas;
                 return compositeStoredMagick(canvas, image, backend, signal, left, top, composeRaw, composeArgs, false, true, false, false, alphaFuzz, true);
             });
@@ -13033,7 +13033,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const width = image.width + left * 2, height = image.height + top * 2;
                 if (compose.toLowerCase() === "over") {
                     return { ...await transformStoredMagickRaster(image, backend, borderPixels(image, left, top, background, !!image.storedData16), signal,
-                        { width, height, hasAlpha: true }), virtualCanvas: magickBorderCanvas(image, left, top) };
+                        { width, height, hasAlpha: true }), region: undefined, virtualCanvas: magickBorderCanvas(image, left, top) };
                 }
                 const canvas = await createStoredCanvas(width, height, background, backend, signal);
                 return { ...await compositeStoredMagick(canvas, image, backend, signal, left, top, compose, composeArgs, false, true, false, false, fuzz, true),

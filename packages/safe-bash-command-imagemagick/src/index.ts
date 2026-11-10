@@ -7432,7 +7432,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 if (idx % 65536 === 0) yield;
                 const intensity = (state.intensity === "rec709luma" || state.intensity === "rec601luma") && image.magickColorspace !== "RGB" && samples[idx] === samples[idx + 1] && samples[idx] === samples[idx + 2]
                     ? samples[idx]! * quantumScale
-                    : magickIntensity(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!, state.intensity, maximum, image.magickColorspace === "RGB") * quantumScale;
+                    : magickIntensity(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!, state.intensity, 255, image.magickColorspace === "RGB") * quantumScale;
                 for (let channel = 0; channel < 4; channel++) {
                     if (!mask[channel]) continue;
                     const value = explicit ? samples[idx + channel]! * quantumScale : intensity;

@@ -69,6 +69,25 @@ it("atilt defaults preserve PCM and positional options work in a linked filter c
   for (let i = 0; i < 4; i++) assert.equal(named.bytes.readInt16LE(i * 4 + 2), 0);
 });
 
+for (const [options, named, samples] of [
+  ["slope=0.5:level=1:400", "slope=0.5:level=1:freq=400", [5726, -3192, -1659, -826, 6436, -2919]],
+  ["width=300:slope=0.5:500", "width=300:slope=0.5:freq=500", [3836, -1393, -1128, -815, 4050, -1274]],
+  ["500:level=1:0.5", "freq=500:level=1:slope=0.5", [5241, -2872, -1455, -813, 5830, -2672]]
+] as const) {
+  it(`atilt binds mixed named and positional options ${options}`, async () => {
+    const input = [Float64Array.from({ length: 128 }, (_, i) => (i % 8 === 0 ? 3000 : -800) / 32768)];
+    const control = await run(`atilt=${named}`, input, false, 8000);
+    assert.equal(control.exitCode, 0, control.stderr);
+    for (const complex of [false, true]) {
+      const result = await run(`atilt=${options}`, input, complex, 8000);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.bytes, control.bytes);
+      // Native FFmpeg 7.0.2 reference samples.
+      assert.deepEqual([0, 1, 2, 31, 32, 33].map(i => result.bytes.readInt16LE(i * 2)), samples);
+    }
+  });
+}
+
 // Native FFmpeg 7.0.2 signed 16-bit PCM at indices 0, 1, 2, 31, 32, 33.
 for (const [order, rounded, samples] of [
   [2.5, 2, [7482, -5013, -1989, -847, 8646, -4644]],

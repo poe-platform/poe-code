@@ -10,9 +10,10 @@ export async function tiltAudio(
   const ranges = { freq: [20, 192000], slope: [-1, 1], width: [100, 10000], order: [2, 30], level: [0, 4] };
   const names = Object.keys(options) as (keyof typeof options)[];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  let positionalIndex = 0;
+  for (const option of argument ? argument.split(":") : []) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options;
+    const key = separator < 0 ? names[positionalIndex++] : option.slice(0, separator).trim() as keyof typeof options;
     if (!key || !Object.hasOwn(options, key)) throw new Error(`atilt: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     const number = parseFilterExpression(value, "atilt", {});

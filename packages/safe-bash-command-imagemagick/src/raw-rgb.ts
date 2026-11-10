@@ -18,7 +18,8 @@ export function rawRasterInput(width: number, height: number, depth: number, end
         : channels === 2 || channels === 4
         ? `P7\nWIDTH ${width}\nHEIGHT ${height}\nDEPTH ${channels}\nMAXVAL ${depth <= 8 ? 255 : 65535}\nTUPLTYPE ${channels === 2 ? "GRAYSCALE_ALPHA" : "RGB_ALPHA"}\nENDHDR\n`
         : `P${channels === 1 ? 5 : 6}\n${width} ${height}\n${depth <= 8 ? 255 : 65535}\n`);
-    const swap = !floatingPoint && depth === 16 && endian !== "msb";
+    // Explicit Undefined uses MSB order; callers resolve an omitted -endian to LSB.
+    const swap = !floatingPoint && depth === 16 && endian === "lsb";
     return {
         size: header.length + decodedLength,
         pages: interlace === "partition" && layout !== 3 ? 1 : Math.floor((byteLength - offset) / frameLength),

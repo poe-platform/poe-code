@@ -29,6 +29,7 @@ for (const mode of ["file", "stream", "sync"] as const) {
     it.each([
         { options: [], hex: "1234456789abcdef13792468", expected: "34126745ab89efcd79136824" },
         { options: ["-depth", "16", "-endian", "MSB"], hex: "1234456789abcdef13792468", expected: "1234456789abcdef13792468" },
+        { options: ["-depth", "16", "-endian", "Undefined"], hex: "123456789abc1234456789ab", expected: "123456789abc1234456789ab" },
         { options: ["-depth", "16", "-endian", "LSB"], hex: "1234456789abcdef13792468", expected: "34126745ab89efcd79136824" },
         { options: ["-depth", "8"], hex: "124589cd1324", expected: "124589cd1324" }
     ])(`decodes raw RGB ${mode}: $options`, async ({ options, hex, expected }) => {

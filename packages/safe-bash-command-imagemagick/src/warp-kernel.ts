@@ -124,8 +124,6 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
             if (!bytes || bytes.length !== (highDepth ? 8 : 4)) throw new Error("Truncated warp pixels");
             pixel = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
         }
-        // Disabled alpha must not suppress source colors during sampling.
-        if (source.alphaBlend === false) pixel = [pixel[0]!, pixel[1]!, pixel[2]!, maximum];
         if (!cmyk) return pixel;
         const page = Math.floor(position / 1024) * 1024;
         let inks = inkCache.get(page);
@@ -204,7 +202,8 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                     let weight = sample[2];
                     const pixel = meshPixels?.[sampleIndex++] ?? (yield* readPixel(x, y));
                     const opacity = source.alphaBlend === false ? maximum : pixel[3]!, unassociatedWeight = weight;
-                    alpha += opacity * weight; total += weight;
+                    // Stored alpha survives even when it does not weight colors.
+                    alpha += pixel[3]! * weight; total += weight;
                     // Native mesh divides unassociated colors by interpolated alpha;
                     // average excludes transparent RGB.
                     if (interpolation === "mesh") colorTotal += weight * opacity / maximum;

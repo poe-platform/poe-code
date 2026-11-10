@@ -10027,7 +10027,7 @@ if (t === "-intent" || t === "+intent") {
         else if (t === "+compress") { delete state.netpbmAscii; delete state.tiffCompression; delete state.bmpCompression; delete state.tgaCompression; delete state.miffCompression; }
         else if (t === "+depth") { delete state.inputDepth; }
         else if (t === "-endian") {
-            const endian = (tokens[++i] ?? "").toLowerCase();
+            const endian = (tokens[++i] ?? "").trim().toLowerCase().replaceAll("_", "").replaceAll("-", "");
             if (!["msb", "lsb", "undefined"].includes(endian)) throw new Error(`unrecognized endian type '${endian}'`);
             state.inputEndian = endian;
             state.optionProperties = { ...state.optionProperties, endian: tokens[i]! };

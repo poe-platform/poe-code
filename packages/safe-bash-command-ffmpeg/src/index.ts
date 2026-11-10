@@ -9504,7 +9504,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else if (name === "direct") parseFilterBoolean(value, "ametadata: invalid direct");
                           else throw new Error(`ametadata: unsupported option ${name}`);
                         }
-                        if (mode !== "print" && mode !== "add" && mode !== "modify") throw new Error("ametadata: only mode=add, mode=modify and mode=print are supported");
+                        if (mode !== "print" && mode !== "add" && mode !== "modify" && mode !== "delete") throw new Error("ametadata: only mode=add, mode=modify, mode=delete and mode=print are supported");
                         const lookupKey = key?.toLowerCase();
                         if (mode === "add" || mode === "modify") {
                           if (!key || metadataValue === undefined) throw new Error(`ametadata: mode=${mode} requires key and value`);
@@ -9528,10 +9528,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let report = "";
                         for (const [n, frame] of audioMetadata.entries()) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          if (mode === "delete" && key === undefined) {
+                            frame.tags.clear();
+                            continue;
+                          }
                           let tags = "";
                           for (const [name, value] of frame.tags) {
                             if (lookupKey !== undefined && lookupKey !== name.toLowerCase()) continue;
                             if (metadataValue !== undefined && metadataValue !== value) continue;
+                            if (mode === "delete") {
+                              frame.tags.delete(name);
+                              continue;
+                            }
                             const line = `${key ?? name}=${value}\n`;
                             budget.allocateMemory(line.length * 2);
                             tags += line;
@@ -9544,6 +9552,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           budget.allocateMemory(header.length * 2);
                           report += header + tags;
                         }
+                        if (mode === "delete") continue;
                         if (file === "-") await writeBytes(context.stdout, encodeUtf8(report), context.signal);
                         else if (file) await writeFileOutput(context, encodeUtf8(report), data => context.fs.writeFile(resolvePath(context.cwd, file!), data, { signal: context.signal }));
                         else if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);

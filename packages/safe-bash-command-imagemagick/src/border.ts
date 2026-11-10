@@ -24,8 +24,9 @@ export function* borderPixels(image: Pick<RgbaImage, "width" | "height" | "hasAl
                 const src = (pixel - first) * 4, dst = (pixel - x) * 4;
                 const alpha = image.hasAlpha || image.inactiveAlpha ? source[src + 3]! / maximum : 1, behind = background[3]! / maximum * (1 - alpha), combined = alpha + behind;
                 for (let channel = 0; channel < 4; channel++) {
-                    const value = channel === 3 ? combined * maximum : combined
-                        ? (source[src + channel]! * alpha + background[channel]! * behind) / combined : background[channel]!;
+                    // Native Over clamps each composited channel, including retained HDRI samples.
+                    const value = Math.max(0, Math.min(maximum, channel === 3 ? combined * maximum : combined
+                        ? (source[src + channel]! * alpha + background[channel]! * behind) / combined : background[channel]!));
                     data[dst + channel] = Math.round(value);
                     // Retain Q16-HDRI palette means for the following warp/interpolation.
                     if (samples) samples[dst + channel] = Math.fround(value * 65535 / maximum) / 257;

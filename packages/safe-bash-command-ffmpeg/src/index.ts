@@ -10615,13 +10615,63 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         const { loop, size, start, time } = values;
                         if (loop === -1 && size! > 0) {
-                          if (start !== 0) throw new Error("aloop: indefinite loops require start=0");
-                          const regionLength = Math.min(size!, stretched[0]?.length ?? 0);
-                          if (regionLength === 0) continue;
-                          const firstPts = audioTimestamps?.[0]?.pts ?? audioStartSample;
+                          const inputLength = stretched[0]?.length ?? 0;
+                          const prefix: AudioFilterFrame[] = [];
+                          const regions: { start: number; end: number }[] = [];
+                          let regionLength = 0;
+                          let consumed = 0;
+                          let ignored = 0;
+                          let loopStart = start!;
+                          let replayPts = 0;
+                          let frameIndex = 0;
+                          let frameStart = 0;
+                          // Native collects chunks of at most 1024 samples, merging short
+                          // upstream frames. Skipped chunks still reach the output.
+                          while (consumed < inputLength && regionLength < size!) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const count = Math.min(1024, size! - regionLength, inputLength - consumed);
+                            let frame = audioTimestamps?.[frameIndex];
+                            let packet = t.samples[frameIndex];
+                            let frameLength = frame ? frame.end - frame.start
+                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : inputLength;
+                            while (frameStart + frameLength <= consumed) {
+                              frameStart += frameLength;
+                              frameIndex++;
+                              frame = audioTimestamps?.[frameIndex];
+                              packet = t.samples[frameIndex];
+                              frameLength = frame ? frame.end - frame.start
+                                : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : inputLength;
+                            }
+                            const inputPts = (frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + frameStart))
+                              + consumed - frameStart;
+                            let pts = replayPts;
+                            if ((loopStart >= 0 && ignored + count > loopStart) ||
+                              (start === -1 && inputPts >= Math.round(time! * origRate))) {
+                              if (loopStart < 0) loopStart = consumed;
+                              const drain = regionLength === 0 ? Math.max(0, loopStart - ignored) : 0;
+                              if (regionLength === 0) replayPts = inputPts + drain;
+                              budget.allocateMemory(16);
+                              regions.push({ start: consumed + drain, end: consumed + count });
+                              regionLength += count - drain;
+                              pts = inputPts;
+                            } else {
+                              ignored += count;
+                            }
+                            budget.allocateMemory(24);
+                            prefix.push({ start: consumed, end: consumed + count, pts,
+                              pos: audioTimestamps ? frame?.pos : packet?.offset });
+                            replayPts += count;
+                            consumed += count;
+                          }
+                          if (regionLength === 0) {
+                            audioTimestamps = prefix;
+                            continue;
+                          }
+                          const firstPts = prefix[0]?.pts ?? audioStartSample;
                           const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
                           let length = endSeconds === undefined ? Infinity
-                            : Math.max(0, Math.round(endSeconds * origRate) - Math.min(firstPts, Math.round((outputSs ?? 0) * origRate)));
+                            : consumed + Math.max(0, Math.round(endSeconds * origRate)
+                              + Math.max(0, firstPts - Math.round((outputSs ?? 0) * origRate)) - replayPts);
                           let nextIndex = filterIndex + 1;
                           for (; nextIndex < audioFilters.length; nextIndex++) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -10651,13 +10701,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               // loop samples, but do not count as output frames.
                               let required = 0;
                               let frames: AsyncIterable<AudioFilterFrame> = (async function* () {
+                                for (const frame of prefix) {
+                                  if (frame.start >= length) return;
+                                  required = Math.min(length, frame.end);
+                                  yield { ...frame, end: required };
+                                }
                                 while (required < length) {
                                   if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                                   const start = required;
-                                  required = Math.min(length, start + Math.min(1024, regionLength - start % regionLength));
+                                  required = Math.min(length, start + Math.min(1024, regionLength - (start - consumed) % regionLength));
                                   budget.checkDuration(required / origRate);
                                   budget.checkSamples(required);
-                                  yield { start, end: required, pts: firstPts + start };
+                                  yield { start, end: required, pts: replayPts + start - consumed };
                                 }
                               })();
                               for (const filter of downstream) {
@@ -10717,28 +10772,39 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               length = required;
                             } else {
                               const framesPerLoop = Math.ceil(regionLength / 1024);
-                              length = Math.min(length, Math.floor(maxAudioFrames / framesPerLoop) * regionLength
-                                + (maxAudioFrames % framesPerLoop) * 1024);
+                              const remainingFrames = Math.max(0, maxAudioFrames - prefix.length);
+                              length = Math.min(length, consumed + Math.floor(remainingFrames / framesPerLoop) * regionLength
+                                + (remainingFrames % framesPerLoop) * 1024);
                             }
                           }
                           if (!Number.isSafeInteger(length)) throw new Error("aloop: a finite consumer limit is required");
                           budget.checkDuration(length / origRate);
-                          audioTimestamps = [];
-                          for (let start = 0; start < length;) {
+                          audioTimestamps = prefix.filter(frame => frame.start < length)
+                            .map(frame => ({ ...frame, end: Math.min(frame.end, length) }));
+                          for (let start = consumed; start < length;) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            const end = Math.min(length, start + Math.min(1024, regionLength - start % regionLength));
+                            const end = Math.min(length, start + Math.min(1024, regionLength - (start - consumed) % regionLength));
                             budget.allocateMemory(24);
-                            audioTimestamps.push({ start, end, pts: firstPts + start });
+                            audioTimestamps.push({ start, end, pts: replayPts + start - consumed });
                             start = end;
                           }
                           stretched = await mapWork(stretched, async channel => {
                             budget.allocateMemory(length * channel.BYTES_PER_ELEMENT);
                             const output = channel instanceof Float64Array ? new Float64Array(length) : new Float32Array(length);
-                            for (let offset = 0; offset < length; offset += 16384) {
+                            output.set(channel.subarray(0, Math.min(consumed, length)));
+                            let regionIndex = 0;
+                            let source = regions[0]!.start;
+                            for (let offset = consumed; offset < length; offset += 16384) {
                               await yieldTurn(context.signal);
                               context.signal?.throwIfAborted();
                               budget.checkCpu();
-                              for (let i = offset; i < Math.min(length, offset + 16384); i++) output[i] = channel[i % regionLength]!;
+                              for (let i = offset; i < Math.min(length, offset + 16384); i++) {
+                                output[i] = channel[source++]!;
+                                if (source === regions[regionIndex]!.end) {
+                                  regionIndex = (regionIndex + 1) % regions.length;
+                                  source = regions[regionIndex]!.start;
+                                }
+                              }
                             }
                             return output;
                           }, context.signal);

@@ -48,7 +48,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
     });
 }
 
-for (const mode of ["buffered", "retained", "sync"] as const) {
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     it.each([
         ["1x+2", [0, 3, 2, 1]],
         ["+1x+2", [0, 3, 2, 1]],
@@ -61,21 +61,25 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         const files = new Map<string, Uint8Array>();
         const filesystem = new MemoryFileSystem();
         const command = ["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "xc:white", "-swap", spec, "+append", "PNG24:out.png"];
-        const result = mode === "sync" ? runMagickCliSync(command, files)
+        const execute = async () => mode === "command" ? createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(command).args, fs: filesystem, cwd: "/", env: {},
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write() {} }, stderr: { async write() {} }
+        }) : mode === "sync" ? runMagickCliSync(command, files)
             : await runMagickCli(command, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        const result = await execute();
         expect(result.exitCode).toBe(order === null ? 1 : 0);
         if (order === null) {
-            if (mode === "retained") await expect(filesystem.readFile("/out.png")).rejects.toThrow();
+            if (mode === "retained" || mode === "command") await expect(filesystem.readFile("/out.png")).rejects.toThrow();
             else expect(files.has("out.png")).toBe(false);
             const existing = await sharp(new Uint8Array([0, 0, 0, 255]), { raw: { width: 1, height: 1, channels: 4 } }).png().toBuffer();
             files.set("out.png", existing);
             await filesystem.writeFile("/out.png", existing);
-            const retry = mode === "sync" ? runMagickCliSync(command, files)
-                : await runMagickCli(command, mode === "retained" ? { filesystem, cwd: "/" } : files);
+            const retry = await execute();
             expect(retry.exitCode).toBe(1);
-            expect(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")).toEqual(existing);
+            expect((mode === "retained" || mode === "command") ? await filesystem.readFile("/out.png") : files.get("out.png")).toEqual(existing);
         } else {
-            const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!);
+            const output = decodeImage((mode === "retained" || mode === "command") ? await filesystem.readFile("/out.png") : files.get("out.png")!);
             expect([output.width, output.height]).toEqual([4, 1]);
             expect([...output.data]).toEqual(order.flatMap(index => [red, green, blue, [255, 255, 255, 255]][index]!));
         }

@@ -408,17 +408,18 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
             bytes = samples;
         }
         const gray = colorOutput && (inputImage.space === "b-w" || inputImage.space === "grey16");
-        // Native Mean visits the input's channel slots using the output channel map.
+        // Native reductions visit the input's channel slots using the output channel map.
         // An opaque 8-bit gray PNG has a palette-index slot in addition to gray.
         const colorSlots = cmyk ? stride : gray ? 1 + Number(inputImage.hasAlpha || (inputImage.format === "png" && inputImage.depth === "uchar")) : 3;
         const maskedMedian = operation === "median" && channels?.some(selected => !selected);
-        if ((!hasAlpha || inputImage.hasAlpha) && (!gray || operation !== "mean") && !maskedMedian) return bytes;
+        const graySlots = gray && ["mean", "sum", "max"].includes(operation);
+        if ((!hasAlpha || inputImage.hasAlpha) && !graySlots && !maskedMedian) return bytes;
         const data = bytes.slice();
         for (let offset = 0; offset < length; offset++) {
             const channel = offset % stride;
             // Mask candidates before ranking so unused samples cannot choose the median.
             if (maskedMedian && !channels![channel] && (channel !== 3 || hasAlpha)) data[offset] = 0;
-            if (channel === 3 ? hasAlpha && (!inputImage.hasAlpha || (gray && operation === "mean")) : operation === "mean" && channel >= colorSlots) data[offset] = 0;
+            if (channel === 3 ? hasAlpha && (!inputImage.hasAlpha || graySlots) : graySlots && channel >= colorSlots) data[offset] = 0;
         }
         return data;
     }

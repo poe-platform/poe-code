@@ -11710,7 +11710,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     // Native DisposeImages repeats the first input, including its timing.
                     const frame = dispose ? first : inputFrame;
                     const previous = canvas, x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
-                    canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, frame, x, y, "over"), signal, canvas, [canvas, frame]);
+                    // Native coalesce copies the first frame, including RGB under transparent pixels.
+                    canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, frame, x, y, !dispose && frames.length === 0 ? "copy" : "over", undefined, false, 0, true), signal, canvas, [canvas, frame]);
                     let disposal = 1;
                     const prior = frames.at(-1), priorInput = stack[frames.length - 1];
                     if (!dispose && prior && priorInput) {
@@ -15060,7 +15061,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const frames = new StoredImageStack(backend.storage, signal);
                 for (let index = 0; index < stack.length; index++) {
                     const frame = dispose ? first : (await stack.get(index))!, previous = canvas, x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
-                    canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, frame, x, y, "over"), signal, canvas, [canvas, frame]);
+                    // Native coalesce copies the first frame, including RGB under transparent pixels.
+                    canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, frame, x, y, !dispose && index === 0 ? "copy" : "over", undefined, false, 0, true), signal, canvas, [canvas, frame]);
                     let disposal = 1;
                     if (!dispose && index > 0) {
                         const prior = (await frames.get(index - 1))!, priorInput = (await stack.get(index - 1))!;

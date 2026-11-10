@@ -15,7 +15,7 @@ import { autoConvertConcatTrack } from "./concat-auto-convert.js";
 import { filterBitstream } from "./bitstream.js";
 import { mergeVp9Superframes } from "./vp9-superframe.js";
 import { authorTimecode } from "./timecode.js";
-import { parseRawVideo, serializeRawVideo } from "./rawvideo.js";
+import { parseRawVideo, serializeRawVideo, synchronizeRawVideoFrames } from "./rawvideo.js";
 import { formatYuv } from "./format-yuv.js";
 import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
@@ -2085,7 +2085,7 @@ async function applyVideoFilterChain(
   frames: MediaVideoFrame[],
   filterChainStr: string,
   budget: MediaBudgetTracker,
-  diagnostics: { sar: number; sarWidth: number; sarHeight: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void>; writeReport: (file: string, text: string) => Promise<void> },
+  diagnostics: { frameRateKnown?: boolean; sar: number; sarWidth: number; sarHeight: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void>; writeReport: (file: string, text: string) => Promise<void> },
   readSubtitle: (filename: string) => Promise<Uint8Array>,
   registry: ReturnType<typeof createMediaAstRegistry>,
   signal?: AbortSignal,
@@ -5162,6 +5162,7 @@ async function applyVideoFilterChain(
   }
 
   diagnostics.timescale = timescale;
+  diagnostics.frameRateKnown = frameRateKnown;
   return current;
 }
 
@@ -10821,6 +10822,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const offsetTicks = Math.round(presentationOffset * t.timescale);
                   const decoded = await ensureDecodedFrames(t, workingDoc.timescale, budget, context.signal);
                   const diagnostics = {
+                    frameRateKnown: true,
                     timescale: workingDoc.containerFormat === "image2" && decoded[0]?.durationSeconds
                       ? 1 / decoded[0].durationSeconds : t.timescale,
                     sarWidth: t.codecDescriptions[0]?.sarWidth ?? 1,
@@ -10852,6 +10854,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     const end = Math.round((outputDuration === undefined ? outputTo ?? Infinity : (outputSs ?? 0) + outputDuration) * diagnostics.timescale) / diagnostics.timescale;
                     filtered = filtered.filter(frame => frame.ptsSeconds >= start && frame.ptsSeconds < end)
                       .map(frame => ({ ...frame, ptsSeconds: frame.ptsSeconds - start }));
+                  }
+                  if (outputFormat === "rawvideo" && !diagnostics.frameRateKnown &&
+                      ["auto", "-1", "cfr", "1"].includes(videoSync)) {
+                    filtered = await synchronizeRawVideoFrames(filtered, budget, streamFrameLimits[index], context.signal);
                   }
                   const first = filtered[0];
                   const filteredTimescale = Math.max(t.timescale, diagnostics.timescale);

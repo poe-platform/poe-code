@@ -1,4 +1,5 @@
 import { concatBytes, scaleVideoPicture, rgbaToYuv420p, yuv420pToRgba, type MediaDocument, type MediaSample, type MediaVideoFrame, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { formatYuv } from "./format-yuv.js";
 
 export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixelFormat: string | undefined, fps: number, budget: MediaBudgetTracker, decode = true): MediaDocument {
@@ -226,4 +227,43 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
     }
   }
   return concatBytes(chunks);
+}
+
+// FFmpeg 7 falls back to 25 fps when setpts clears the filter's rate and durations.
+export async function synchronizeRawVideoFrames(
+  frames: MediaVideoFrame[], budget: MediaBudgetTracker, limit = Infinity, signal?: AbortSignal
+): Promise<MediaVideoFrame[]> {
+  const output: MediaVideoFrame[] = [];
+  const previousCopies = [0, 0, 0];
+  let nextPts = Math.round((frames[0]?.ptsSeconds ?? 0) * 25);
+  for (let index = 0; index <= frames.length && output.length < limit; index++) {
+    if (index % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+    budget.checkCpu();
+    const frame = frames[index];
+    let copies: number;
+    let previous: number;
+    if (frame) {
+      // FFmpeg adds a small positive bias before float32 rate-conversion rounding.
+      const delta = frame.ptsSeconds * 25 + 1 / 131072 - nextPts;
+      copies = delta < -1.1 ? 0 : delta > 1.1 ? Math.round(Math.fround(delta)) : 1;
+      previous = delta > 1.1 ? Math.round(Math.fround(delta - 0.6)) : 0;
+      previousCopies.pop();
+      previousCopies.unshift(previous);
+    } else {
+      // EOF repeats the last picture by the median of the last three duplication counts.
+      copies = previous = [...previousCopies].sort((a, b) => a - b)[1]!;
+    }
+    if (!Number.isSafeInteger(copies)) throw new Error("Invalid output frame timestamp");
+    for (let copy = 0; copy < copies && output.length < limit; copy++, nextPts++) {
+      if (output.length % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+      const source = copy < previous ? frames[index - 1]! : frame!;
+      budget.checkCpu();
+      budget.checkSamples(output.length + 1);
+      budget.checkDuration((output.length + 1) / 25);
+      if (copy !== previous) budget.recordFrame(source.width, source.height);
+      budget.allocateMemory(128);
+      output.push({ ...source, ptsSeconds: nextPts / 25, durationSeconds: 1 / 25 });
+    }
+  }
+  return output;
 }

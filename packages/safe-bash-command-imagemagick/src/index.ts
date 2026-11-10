@@ -10020,6 +10020,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }));
         }
         else if (t === "-trim") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return (yield* trimMagickSteps(im, state.alphaFuzz, state.trimEdges, state.trimMinSize, state.trimPercentBackground, analysis, state.trimBackgroundColor));
             }));
@@ -12690,6 +12691,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     virtualCanvas: magickBorderCanvas(image, -width, -height) };
             });
         } else if (!operandsOnly && token === "-trim") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const fuzz = state.alphaFuzz, edges = state.trimEdges, minSize = state.trimMinSize, percentBackground = state.trimPercentBackground, background = state.trimBackgroundColor;
             steps.push(async (image, backend) => image ? trimStoredMagick(image, backend.storage, fuzz, signal, edges, minSize, percentBackground, analysis, background) : undefined);
         } else if (!operandsOnly && token === "-despeckle") {

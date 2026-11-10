@@ -21,8 +21,8 @@ export async function removeSilence(
       if (!["any", "all", "0", "1"].includes(value)) throw new Error(`silenceremove: invalid ${key}`);
       options[key] = value === "0" || value === "any" ? "any" : "all";
     } else if (key === "detection") {
-      if (!["avg", "rms", "peak", "0", "1", "2"].includes(value)) throw new Error("silenceremove: supported detection modes are avg, rms and peak");
-      options.detection = ["avg", "rms", "peak"][Number(value)] ?? value;
+      if (!["avg", "rms", "peak", "ptp", "0", "1", "2", "4"].includes(value)) throw new Error("silenceremove: supported detection modes are avg, rms, peak and ptp");
+      options.detection = value === "4" ? "ptp" : ["avg", "rms", "peak"][Number(value)] ?? value;
     } else if (key === "timestamp" && (value === "write" || value === "0")) {
       // The audio pipeline emits a contiguous timeline.
     } else if ((key === "start_silence" || key === "stop_silence") && value === "0") {
@@ -46,6 +46,8 @@ export async function removeSilence(
 
   let output = [...channels];
   const window = Math.max(1, Math.round(options.window * sampleRate));
+  const peakToPeak = options.detection === "ptp";
+  const trackPeaks = options.detection === "peak" || peakToPeak;
   for (const phase of ["start", "stop"] as const) {
     const periods = options[`${phase}_periods`];
     if (!periods) continue;
@@ -53,10 +55,10 @@ export async function removeSilence(
     const duration = Math.round(options[`${phase}_duration`] * sampleRate);
     const threshold = options[`${phase}_threshold`];
     const mode = options[`${phase}_mode`];
-    budget.allocateMemory(output.length * (8 + (options.detection === "peak" ? length * 4 : 0)));
+    budget.allocateMemory(output.length * (8 + (trackPeaks ? length * 4 : 0)));
     const sums = new Float64Array(output.length);
     // Monotonic queues keep peak detection linear even for long windows.
-    const peaks = options.detection === "peak" ? output.map(() => new Uint32Array(length)) : [];
+    const peaks = trackPeaks ? output.map(() => new Uint32Array(length)) : [];
     const fronts = output.map(() => 0);
     const backs = output.map(() => 0);
     let count = 0;
@@ -75,20 +77,24 @@ export async function removeSilence(
       let matches = mode === "all";
       for (let c = 0; c < output.length; c++) {
         const channel = output[c]!;
-        const value = Math.abs(channel[i]!);
+        const value = peakToPeak ? channel[i]! : Math.abs(channel[i]!);
         let level: number;
-        if (options.detection === "peak") {
+        if (trackPeaks) {
           const queue = peaks[c]!;
           let front = fronts[c]!;
           let back = backs[c]!;
           // Native peak detection expires by value, including repeated equal peaks.
-          const previous = i >= window ? Math.abs(channel[i - window]!) : 0;
-          if (front < back && Math.abs(channel[queue[front]!]!) === previous) front++;
-          while (front < back && Math.abs(channel[queue[back - 1]!]!) <= value) back--;
+          const previous = i >= window ? channel[i - window]! : 0;
+          if (front < back && (peakToPeak ? channel[queue[front]!]! === previous
+            : Math.abs(channel[queue[front]!]!) === Math.abs(previous))) front++;
+          while (front < back && (peakToPeak ? channel[queue[back - 1]!]!
+            : Math.abs(channel[queue[back - 1]!]!)) <= value) back--;
           queue[back++] = i;
           fronts[c] = front;
           backs[c] = back;
-          level = Math.abs(channel[queue[front]!]!);
+          // Native ptp uses the signed maximum and the current sample.
+          level = peakToPeak ? Math.abs(value) + Math.abs(channel[queue[front]!]! - value)
+            : Math.abs(channel[queue[front]!]!);
         } else {
           const previous = i >= window ? Math.abs(channel[i - window]!) : 0;
           sums[c] = Math.max(0, sums[c]! + (options.detection === "rms"

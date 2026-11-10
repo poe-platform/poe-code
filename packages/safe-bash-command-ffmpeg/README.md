@@ -813,8 +813,9 @@ WebVTT input `-kind subtitles|captions|descriptions|metadata` applies to the nex
 - **Consumer-Defined Limits**: Imposes no default limits while offering `cloudflareWorkerLimits()` and opt-in/opt-out feature controls (`features: { videoTranscode, filterGraph, lavfiSources }`).
 
 `silenceremove` supports start/stop periods, durations, linear or dB thresholds,
-`any`/`all` channel modes, and `avg`, `rms` (default), or `peak` detection with
-a configurable window. Negative stop periods remove repeated silent sections.
+`any`/`all` channel modes, and `avg`, `rms` (default), `peak`, or `ptp` (peak-to-peak)
+detection with a configurable window. Numeric detector aliases are `0`, `1`, `2`,
+and `4`, respectively. Negative stop periods remove repeated silent sections.
 Extra retained silence and copied timestamps are unsupported; invalid or unsupported
 options fail without replacing output.
 

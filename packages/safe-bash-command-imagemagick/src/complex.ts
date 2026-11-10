@@ -32,11 +32,11 @@ export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, 
                 const bytes = (yield { kind: "read", highDepth: true, image, position, length })!;
                 inputs.push(Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257));
             }
-            if (images[image]!.space === "cmyk") {
-                const bytes = (yield { kind: "read", hue: true, image, position, length })!;
+            const bytes = yield { kind: "read", hue: true, image, position, length };
+            if (bytes?.length) {
                 inks[image] = new Float64Array(bytes.slice().buffer);
                 if (active) for (let offset = 0; offset < length; offset++)
-                    if (offset % 4 !== 3) inputs[image]![offset] = inks[image]![offset]! * 255;
+                    if (images[image]!.space !== "cmyk" || offset % 4 !== 3) inputs[image]![offset] = inks[image]![offset]! * 255;
             }
         }
         const samples = !active ? inputs[0]! : Float64Array.from(inputs[0]!, (value, offset) => {
@@ -63,7 +63,7 @@ export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, 
             return operation === "add" ? inputs[0]![offset]! + inputs[1]![offset]!
                 : inputs[0]![offset]! - inputs[1]![offset]!;
         });
-        if (inks[0]) {
+        if (inks[0] && base.space === "cmyk") {
             // CMYK has four ink channels; alpha remains separate in the RGBA backing.
             const output = new Float64Array(inks[0]);
             if (active) for (let offset = 0; offset < length; offset += 4) {
@@ -83,6 +83,9 @@ export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, 
                     samples[offset + channel] = (255 - samples[offset + channel]!) * (1 - output[offset + 3]!);
                 }
             }
+            yield { kind: "write", hue: true, position, data: new Uint8Array(output.buffer) };
+        } else if (inks[0]) {
+            const output = active ? samples.map(value => value / 255) : inks[0];
             yield { kind: "write", hue: true, position, data: new Uint8Array(output.buffer) };
         }
         const encoded = Uint16Array.from(samples, value => Math.max(0, Math.min(65535, Math.round(value * 257))));

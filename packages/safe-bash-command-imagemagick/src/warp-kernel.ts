@@ -49,7 +49,7 @@ function* ellipseSamples(sx: number, sy: number, [ux, uy, vx, vy]: readonly [num
     }
 }
 
-export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">>, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { alphaBlend?: boolean | undefined }, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = source;
     const filter = kernel === "nearest" ? undefined : resizeFilter(kernel ?? "robidoux", settings, true);
     const blur = Math.max(1e-12, (settings?.blur ?? 1) * (kernel === "lanczos2sharp" ? 0.9549963639785485 : kernel === "lanczossharp" ? 0.9812505644269356 : 1));
@@ -128,6 +128,8 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                     }
                     if (pixel === undefined) {
                         pixel = yield* readPixel((y * width + x) * 4);
+                        // Disabled alpha must not suppress source RGB during sampling.
+                        if (source.alphaBlend === false) pixel = [pixel[0]!, pixel[1]!, pixel[2]!, maximum];
                     }
                     const opacity = pixel[3]!, unassociatedWeight = weight;
                     alpha += opacity * weight; total += weight;

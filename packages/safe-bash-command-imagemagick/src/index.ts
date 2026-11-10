@@ -10385,6 +10385,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const area = { left: sw, top: sh, width: im.width - sw * 2, height: im.height - sh * 2 };
                 return { ...yield* extractImageSteps(im, area),
                     ...(im.writeMask ? { writeMask: yield* extractImageSteps(im.writeMask, area) } : {}),
+                    ...(im.region ? { region: { ...im.region, x: im.region.x - sw, y: im.region.y - sh } } : {}),
                     virtualCanvas: magickBorderCanvas(im, -sw, -sh) };
             }));
         }
@@ -13221,6 +13222,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const area = { left: width, top: height, width: image.width - width * 2, height: image.height - height * 2 };
                 return { ...await transformStoredImage(image, backend.storage, { kind: "extract", ...area }, signal),
                     ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, backend.storage, { kind: "extract", ...area }, signal) } : {}),
+                    ...(image.region ? { region: { ...image.region, x: image.region.x - width, y: image.region.y - height } } : {}),
                     virtualCanvas: magickBorderCanvas(image, -width, -height) };
             });
         } else if (!operandsOnly && token === "-trim") {

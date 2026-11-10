@@ -6,7 +6,7 @@ type Read = { position: number; length: number };
 
 // ImageMagick's fast Radon transform counts dark pixels in eight-pixel groups,
 // then scores the differences between adjacent projected scanlines.
-function* deskewAngle(width: number, height: number, spec: string, range: number): Generator<Read | undefined, number, Uint8Array | Uint16Array | undefined> {
+function* deskewAngle(width: number, height: number, spec: string, range: number): Generator<Read | undefined, number, Uint8Array | Uint16Array | Float64Array | undefined> {
     if ([...spec].some(character => character.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@^".includes(character))) {
         throw new Error("Invalid deskew threshold");
     }
@@ -72,9 +72,11 @@ function* deskewAngle(width: number, height: number, spec: string, range: number
     return -Math.atan(skew / columns / 8);
 }
 
-export function* deskewAngleSteps(image: Pick<RgbaImage, "width" | "height" | "data" | "data16">, spec: string): Generator<void, number, void> {
-    const data = image.data16 ?? image.data;
-    const steps = deskewAngle(image.width, image.height, spec, image.data16 ? 65535 : 255);
+export function* deskewAngleSteps(image: Pick<RgbaImage, "width" | "height" | "data" | "data16" | "hueSamples"> & Partial<Pick<RgbaImage, "space">>, spec: string): Generator<void, number, void> {
+    // Native deskew tests C, M and Y in CMYK; K and alpha do not enter the projection.
+    const inks = image.space === "cmyk" ? image.hueSamples : undefined;
+    const data = inks ?? image.data16 ?? image.data;
+    const steps = deskewAngle(image.width, image.height, spec, inks ? 1 : image.data16 ? 65535 : 255);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }
@@ -84,9 +86,10 @@ export function* deskewAngleSteps(image: Pick<RgbaImage, "width" | "height" | "d
 }
 
 export async function storedDeskewAngle(image: StoredRgbaImage, storage: ImageByteStorage, spec: string, signal: AbortSignal): Promise<number> {
-    const sampleBytes = image.storedData16 ? 2 : 1;
-    const position = image.storedData16?.position ?? image.position;
-    const steps = deskewAngle(image.width, image.height, spec, image.storedData16 ? 65535 : 255);
+    const inks = image.space === "cmyk" ? image.storedHueSamples : undefined;
+    const sampleBytes = inks !== undefined ? 8 : image.storedData16 ? 2 : 1;
+    const position = inks ?? image.storedData16?.position ?? image.position;
+    const steps = deskewAngle(image.width, image.height, spec, inks !== undefined ? 1 : image.storedData16 ? 65535 : 255);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { await yieldTurn(signal); next = steps.next(); }
@@ -94,7 +97,8 @@ export async function storedDeskewAngle(image: StoredRgbaImage, storage: ImageBy
             const { position: offset, length } = next.value;
             const bytes = await storage.read(position + offset * sampleBytes, length * sampleBytes, { signal });
             if (bytes.length !== length * sampleBytes) throw new Error("Truncated deskew pixels");
-            next = steps.next(image.storedData16 ? new Uint16Array(new Uint8Array(bytes).buffer) : bytes);
+            next = steps.next(inks !== undefined ? new Float64Array(new Uint8Array(bytes).buffer)
+                : image.storedData16 ? new Uint16Array(new Uint8Array(bytes).buffer) : bytes);
         }
     }
     return next.value;

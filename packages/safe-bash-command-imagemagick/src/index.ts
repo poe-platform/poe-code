@@ -1666,7 +1666,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     } as Partial<Record<GravityPosition, string>>)[meta.gravity] ?? "" }),
     ...(context.virtualPixel === undefined ? {} : { "virtual-pixel": context.virtualPixel }),
     scenes: short.n!,
-    profiles: [...(meta.icc ? ["icc"] : []), ...(meta.xmp ? ["xmp"] : []), ...Object.keys(meta.gifApplications ?? {}).map(name => `gif:${name.toLowerCase()}`)].join(","),
+    profiles: [...(meta.exif ? ["exif"] : []), ...(meta.icc ? ["icc"] : []), ...(meta.xmp ? ["xmp"] : []), ...Object.keys(meta.gifApplications ?? {}).map(name => `gif:${name.toLowerCase()}`)].join(","),
     gamma: String(Number((meta.gamma ?? 1 / 2.2).toPrecision(6))),
     ...(meta.jpegSamplingFactor === undefined ? {} : { "jpeg:sampling-factor": meta.jpegSamplingFactor }),
     "exif:orientation": Object.entries(meta.properties ?? {}).find(([key]) => key.toLowerCase() === "exif:orientation")?.[1] ?? (!meta.exif || meta.orientation === undefined ? "" : String(meta.orientation)),

@@ -2682,12 +2682,12 @@ async function applyVideoFilterChain(
         throw new Error(`${name}: unsupported option`);
       }
       if (named.enable !== undefined && current.length === 0) {
-        parseFilterExpression(named.enable, `${name} enable`, { n: 0, t: 0, w: 0, h: 0, pos: 0 });
+        parseFilterExpression(named.enable, `${name} enable`, { n: 0, t: 0, w: 0, h: 0, pos: 0, NAN: NaN, INF: Infinity });
       }
       current = await mapWork(current, async (f, n) => {
-        if (named.enable !== undefined && Math.abs(parseFilterExpression(named.enable, `${name} enable`, {
-          n, t: f.ptsSeconds, w: f.width, h: f.height, pos: f.offset ?? NaN
-        })) < 0.5) return f;
+        if (named.enable !== undefined && !(Math.abs(parseFilterExpression(named.enable, `${name} enable`, {
+          n, t: f.ptsSeconds, w: f.width, h: f.height, NAN: NaN, INF: Infinity, pos: f.offset ?? NaN
+        })) >= 0.5)) return f;
         const image = makeRgbaImg(f.width, f.height, f.data);
         const out = name === "hflip" ? flopImage(image) : flipImage(image);
         const native = f.native;

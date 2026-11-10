@@ -8337,10 +8337,15 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         const parameters = value.split(",").flatMap(part => part.trim().split(/\s+/));
-        if (parameters.some(parameter => !Number.isFinite(Number(parameter)) || Number.parseFloat(parameter) !== Number(parameter))) {
-            throw new Error(`invalid list of numbers '-function' '${value}'`);
-        }
-        const coefficients = parameters.map(Number);
+        const coefficients = parameters.map(parameter => {
+            const unsigned = (parameter.startsWith("+") || parameter.startsWith("-") ? parameter.slice(1) : parameter).toLowerCase();
+            const hexadecimal = unsigned.startsWith("0x");
+            const number = hexadecimal ? Number(unsigned) * (parameter.startsWith("-") ? -1 : 1) : Number(parameter);
+            if (!Number.isFinite(number) || (!hexadecimal && Number.parseFloat(parameter) !== number)) {
+                throw new Error(`invalid list of numbers '-function' '${value}'`);
+            }
+            return number;
+        });
         apply = function* (image) {
             const result = yield* applyMagickFunctionSteps(image, operation, coefficients, channels, signal);
             if (image.metaChannels?.length) {

@@ -11,6 +11,32 @@ import { ShellLimitError } from "../../src/shell/types.js";
 import { ValueArena, ValueStore } from "../../src/shell/value-state.js";
 import { setup } from "./helpers.js";
 
+for (const script of [
+  "printf -v bad-name %s hello",
+  "printf -vbad-name %s hello",
+  "builtin printf -v bad-name %s hello",
+  "command printf -v bad-name %s hello",
+  "printf -v '' %s hello",
+  'value=old\nprintf -v "value[0" %s hello\nstatus=$?\nprintf "%s" "$value"\nexit "$status"',
+  "bash -c '\n\nprintf -v bad-name %s hello' named-script",
+]) {
+  test(`printf -v invalid destination keeps Bash diagnostic context: ${script}`, async () => {
+    const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script, "shell"], {
+      env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000,
+    });
+    assert.ifError(oracle.error);
+    assert.equal(oracle.signal, null);
+    assert.equal(oracle.status, 2);
+    const shell = new BrowserShell({ fs: new BrowserMemoryFileSystem(), env: { LC_ALL: "C" } }).use(standardCommands());
+    try {
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, oracle.status);
+      assert.deepEqual(result.stdoutBytes, new Uint8Array(oracle.stdout));
+      assert.deepEqual(result.stderrBytes, new Uint8Array(oracle.stderr));
+    } finally { await shell.dispose(); }
+  });
+}
+
 for (const prefix of ["", "builtin ", "command "]) {
   for (const readonly of [false, true]) {
     test(`${prefix}printf -v stops the script on malformed subscript arithmetic, readonly=${readonly}`, async context => {

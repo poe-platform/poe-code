@@ -8384,7 +8384,7 @@ export class Runtime {
       const bracket = target.indexOf("[");
       name = bracket < 0 ? target : target.slice(0, bracket);
       if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name) || bracket >= 0 && (!target.endsWith("]") || bracket + 2 === target.length)) {
-        await writeDiagnostic(context.stderr, `printf: '${target}': not a valid identifier\n`);
+        await this.diagnostic(context, `printf: \`${target}': not a valid identifier`);
         return 2;
       }
       index = undefined;

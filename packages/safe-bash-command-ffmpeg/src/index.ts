@@ -2595,7 +2595,7 @@ async function applyVideoFilterChain(
         }
         diagnostics.sarWidth = diagnostics.sarWidth * iw * ch / numerator;
         diagnostics.sarHeight = diagnostics.sarHeight * ih * cw / numerator;
-        diagnostics.sar = diagnostics.sarWidth / diagnostics.sarHeight;
+        diagnostics.sar = diagnostics.sarWidth / diagnostics.sarHeight || 1;
       }
       const variables = { ...dimensions, ow: cw, oh: ch, out_w: cw, out_h: ch, n: 0, t: 0, x: NaN, y: NaN };
       const xExpression = crop.x ?? String((iw - cw) / 2);
@@ -2730,14 +2730,14 @@ async function applyVideoFilterChain(
       }
       pw ||= iw;
       if (aspect > 0) {
-        const pixelAspect = aspect / diagnostics.sar;
+        const pixelAspect = aspect / (diagnostics.sarWidth / diagnostics.sarHeight);
         const aspectHeight = Math.round(pw / pixelAspect);
         if (ph < aspectHeight) ph = aspectHeight;
         else pw = Math.round(ph * pixelAspect);
       }
       pw = Math.floor(pw / hsub) * hsub;
       ph = Math.floor(ph / vsub) * vsub;
-      if (pw < iw || ph < ih) {
+      if (!Number.isFinite(pw) || !Number.isFinite(ph) || pw < iw || ph < ih) {
         throw new Error("Padded dimensions cannot be smaller than input dimensions");
       }
       const variables = { ...dimensions, ow: pw, oh: ph, out_w: pw, out_h: ph, x: NaN, y: NaN };
@@ -4112,7 +4112,7 @@ async function applyVideoFilterChain(
           diagnostics.sarWidth /= 2;
           diagnostics.sarHeight /= 2;
         }
-        diagnostics.sar = diagnostics.sarWidth / diagnostics.sarHeight;
+        diagnostics.sar = diagnostics.sarWidth / diagnostics.sarHeight || 1;
       }
       if (roundToEven(mode) === 3) {
         current = await padTinterlace(current, budget, signal);
@@ -10475,7 +10475,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const diagnostics = {
                     timescale: workingDoc.containerFormat === "image2" && decoded[0]?.durationSeconds
                       ? 1 / decoded[0].durationSeconds : t.timescale,
-                    sarWidth: t.codecDescriptions[0]?.sarWidth || 1,
+                    sarWidth: t.codecDescriptions[0]?.sarWidth ?? 1,
                     sarHeight: t.codecDescriptions[0]?.sarHeight || 1,
                     sar: (t.codecDescriptions[0]?.sarWidth || 1) / (t.codecDescriptions[0]?.sarHeight || 1),
                     pixelFormat: t.codecDescriptions[0]?.pixFmt,
@@ -15654,6 +15654,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "shuffleframes: mapping must contain frame indices from -1 to the group size minus one") return { exitCode: 234 };
             if (msg === "negate: invalid expression" || msg === "negate: invalid or unsupported expression") return { exitCode: 234 };
             if ((overwrite && msg === "aecho: delay is too small") ||
+                msg === "Padded dimensions cannot be smaller than input dimensions" ||
                 msg === "negate: Requested components not available" || msg.startsWith("fps: frame rate:") ||
                 msg === "decimate: The input needs a constant frame rate; current rate of 1/0 is invalid") {
               // Filter configuration can fail after file

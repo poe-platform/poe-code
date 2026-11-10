@@ -70,7 +70,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     byteLength: bytes.length, metadata: {}, tracks: [{
       id: 1, type: "video", handlerType: "vide", timescale, duration: count,
       language: "und", enabled: true, width, height,
-      codecDescriptions: [{ formatFourCC: "raw ", codecName: "rawvideo", width, height, pixFmt: pixelFormat }],
+      codecDescriptions: [{ formatFourCC: "raw ", codecName: "rawvideo", width, height, pixFmt: pixelFormat, sarWidth: 0, sarHeight: 1 }],
       samples, decodedVideoFrames: frames
     }]
   };

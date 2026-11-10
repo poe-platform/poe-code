@@ -9343,6 +9343,10 @@ if (t === "-intent" || t === "+intent") {
             const g = parseMagickGeometry(state.densityGeometry = tokens[++i] ?? "72");
             state.density = Math.max(1, Math.round(g.width ?? 72));
         }
+        else if (t === "+density") {
+            delete state.densityGeometry;
+            state.density = 72;
+        }
         else if (t === "+fuzz") {
             state.optionProperties = { ...state.optionProperties, fuzz: "0" };
             state.alphaFuzz = 0;

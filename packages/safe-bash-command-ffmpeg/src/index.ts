@@ -12775,7 +12775,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             option = "";
                           } else option += char;
                         }
-                        if (argument) optionTokens.push(option);
+                        if (argument && (option || !argument.endsWith(":"))) optionTokens.push(option);
                         let optionPosition = 0;
                         for (const option of optionTokens) {
                           const separator = option.indexOf("=");

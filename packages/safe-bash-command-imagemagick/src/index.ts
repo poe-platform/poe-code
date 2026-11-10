@@ -11886,7 +11886,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const raw = token === "-repage" ? tokens[++i] ?? "0x0" : undefined;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
-                const geometry = raw === undefined ? undefined : parseMagickGeometry(raw);
+                const geometry = raw === undefined ? undefined : parseMagickRepageGeometry(raw);
                 for (let index = 0; index < stack.length; index++) {
                     const image = (await stack.get(index))!;
                     const reset = { ...image, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } };

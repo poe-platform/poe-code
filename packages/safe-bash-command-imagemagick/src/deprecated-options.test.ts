@@ -1,0 +1,32 @@
+import { expect, it } from "vitest";
+import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
+
+// ImageMagick 7.1.2-35 Q16-HDRI: deprecated options fail with 1, unknown options with 11.
+for (const mode of ["buffered", "sync", "retained", "command"] as const) {
+    it.each([
+        { options: ["+colors"], exitCode: 1, error: "option deprecated, unable to execute '+colors'" },
+        { options: ["+solarize"], exitCode: 1, error: "option deprecated, unable to execute '+solarize'" },
+        { options: ["+bogus"], exitCode: 11, error: "unrecognized option '+bogus'" },
+        { options: ["-colors", "2"], exitCode: 0, error: "" }
+    ])(`matches native status and destination for $options (${mode})`, async ({ options, exitCode, error }) => {
+        const original = new TextEncoder().encode("KEEP");
+        const files = new Map([["out", original]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/out", original);
+        const args = ["xc:red", ...options, "-depth", "8", "rgba:out"];
+        let stdout = "", stderr = "";
+        const argumentValues = createCommandArguments(args);
+        const result = mode === "command" ? { ...await createMagickCommand().execute({
+            command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs: filesystem,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+        }), stdout, stderr } : mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "buffered" ? files : { filesystem, cwd: "/" });
+        expect(result.exitCode).toBe(exitCode);
+        expect(result.stdout).toBe("");
+        expect(result.stderr).toBe(error ? `magick: ${error}\n` : "");
+        expect(mode === "buffered" || mode === "sync" ? files.get("out") : await filesystem.readFile("/out"))
+            .toEqual(exitCode === 0 ? Uint8Array.of(255, 0, 0, 255) : original);
+    });
+}

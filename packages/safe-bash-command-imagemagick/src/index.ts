@@ -5182,7 +5182,7 @@ async function createStoredCanvas(width: number, height: number, color: RgbaColo
 type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor });
 type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
 
-function* copyMagickPixelSteps(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string, highDepth: boolean, channels?: boolean[], evaluateSamples = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* copyMagickPixelSteps(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string, highDepth: boolean, channels?: boolean[], evaluateSamples = false, virtualPixel?: VirtualPixelMethod, background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     validateMagickTransformGeometry(geometry, "-copy");
     validateMagickTransformGeometry(offset, "-copy");
     const source = parseMagickGeometry(geometry), destination = parseMagickGeometry(offset);
@@ -5192,6 +5192,11 @@ function* copyMagickPixelSteps(image: Pick<RgbaImage, "width" | "height">, geome
     const dx = left - source.x, dy = top - source.y;
     for (const evaluate of evaluateSamples ? [false, true] : [false]) {
         const pixelBytes = evaluate ? 32 : highDepth ? 8 : 4;
+        const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
+        const color = background && (virtualPixel === "background" || virtualPixel?.endsWith("-tile"))
+            ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
+        const samples = evaluate ? Float64Array.from(color) : highDepth ? Uint16Array.from(color, value => Math.round(value * 257)) : Uint8Array.from(color, Math.round);
+        const virtualBytes = new Uint8Array(samples.buffer);
         for (let y = 0; y < image.height; y++) for (let start = 0; start < image.width; start += 1024) {
             yield;
             const count = Math.min(1024, image.width - start), data = new Uint8Array(count * pixelBytes);
@@ -5211,12 +5216,15 @@ function* copyMagickPixelSteps(image: Pick<RgbaImage, "width" | "height">, geome
                         x -= copies * dx;
                         sy -= copies * dy;
                     }
-                    position = (Math.max(0, Math.min(image.height - 1, sy)) * image.width + Math.max(0, Math.min(image.width - 1, x))) * 4;
+                    position = virtualPixelIndex(x, sy, image.width, image.height, virtualPixel ?? "edge") * 4;
                 }
-                if (i > runStart && (i === count || position !== previous + 4)) {
-                    const bytes = yield { kind: "read", position: runSource, length: (i - runStart) * 4, highDepth, evaluate };
-                    if (!bytes || bytes.length !== (i - runStart) * pixelBytes) throw new Error("Truncated copy pixels");
-                    data.set(bytes, runStart * pixelBytes);
+                if (i > runStart && (i === count || position < 0 || previous < 0 || position !== previous + 4)) {
+                    if (runSource < 0) data.set(virtualBytes, runStart * pixelBytes);
+                    else {
+                        const bytes = yield { kind: "read", position: runSource, length: (i - runStart) * 4, highDepth, evaluate };
+                        if (!bytes || bytes.length !== (i - runStart) * pixelBytes) throw new Error("Truncated copy pixels");
+                        data.set(bytes, runStart * pixelBytes);
+                    }
                     runStart = i;
                 }
                 if (i === runStart) runSource = position;
@@ -9602,7 +9610,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geometry = tokens[++i] ?? "", offset = tokens[++i] ?? "";
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                return yield* applyMagickRasterSteps(image, copyMagickPixelSteps(image, geometry, offset, !!image.data16, channels, !!image.evaluateSamples), signal);
+                return yield* applyMagickRasterSteps(image, copyMagickPixelSteps(image, geometry, offset, !!image.data16, channels, !!image.evaluateSamples, state.virtualPixel, state.background), signal, { ...image, hasAlpha: image.hasAlpha || (!channels || channels[3] === true) && (state.virtualPixel === "transparent" || (state.virtualPixel === "background" || state.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255) });
             });
         }
         else if (t === "-roll") {
@@ -12344,7 +12352,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-copy") {
             const geometry = tokens[++i] ?? "", offset = tokens[++i] ?? "";
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, copyMagickPixelSteps(image, geometry, offset, !!image.storedData16, channels, image.storedEvaluateSamples !== undefined), signal) : undefined);
+            const { virtualPixel, background } = state;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, copyMagickPixelSteps(image, geometry, offset, !!image.storedData16, channels, image.storedEvaluateSamples !== undefined, virtualPixel, background), signal, { ...image, hasAlpha: image.hasAlpha || (!channels || channels[3] === true) && (virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255) }) : undefined);
         } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
             if (token === "-chop" || token === "-roll") stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);

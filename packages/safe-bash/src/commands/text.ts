@@ -573,6 +573,9 @@ function isSyncResolved(promise: unknown): boolean {
 async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteSource): Promise<{ exitCode: number }> {
   const longOptions = { count: "c", repeated: "d", unique: "u", "all-repeated": "all-repeated:", group: "group:", "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z" };
   let ended = false;
+  let skipFields = 0;
+  let skipCharacters = 0;
+  let width = Infinity;
   let repeatedMethod = "none";
   let groupMethod: string | undefined;
   const args = context.args.map(argument => {
@@ -590,7 +593,17 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
   });
   const operandIndices: number[] = [];
   const parsed = options(args, "cduiDf:s:w:z", longOptions, context.env.POSIXLY_CORRECT !== undefined, index => { operandIndices.push(index); }, undefined, (option, method) => {
-    if (option === "D") repeatedMethod = "none";
+    if (option === "f" || option === "s" || option === "w") {
+      let count: number;
+      try { count = integer(method!); }
+      catch (error) {
+        if (error instanceof UsageError) throw new PublicDiagnostic(error.message);
+        throw error;
+      }
+      if (option === "f") skipFields = count;
+      else if (option === "s") skipCharacters = count;
+      else width = count;
+    } else if (option === "D") repeatedMethod = "none";
     else if (option === "all-repeated") {
       if (!["none", "prepend", "separate"].includes(method!)) throw new UsageError(`invalid argument '${method}' for 'all-repeated'`);
       repeatedMethod = method!;
@@ -622,9 +635,6 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
       if (identity === "unknown") throw new FsError("ENOTSUP", { syscall: "uniq", path: source, dest: destination, message: "cannot determine whether input and output are distinct files" });
     }
   }
-  const skipFields = integer(value(parsed, "f") ?? "0");
-  const skipCharacters = integer(value(parsed, "s") ?? "0");
-  const width = value(parsed, "w") === undefined ? Infinity : integer(value(parsed, "w")!);
   const delimiter = parsed.flags.has("z") ? 0 : 10;
   const ignoreCase = parsed.flags.has("i");
   const hasCount = parsed.flags.has("c");

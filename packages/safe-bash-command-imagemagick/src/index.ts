@@ -10621,7 +10621,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         if (t === "-density") {
-            const value = state.densityGeometry = tokens[++i] ?? "72";
+            const argument = tokens[++i] ?? "72", image = stack[0];
+            const value = state.densityGeometry = image ? yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties }) : argument;
             validateMagickTransformGeometry(value, "-density");
             state.density = Math.max(1, Math.round(parseMagickDensity(value).width));
             stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return applyMagickDensity(image, value); });
@@ -13440,6 +13441,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-density") {
+            // Resolve expressions before subsequent inputs capture the density setting.
+            if (tokens[i + 1]?.includes("%")) return;
             const value = state.densityGeometry = tokens[++i] ?? "72";
             validateMagickTransformGeometry(value, "-density");
             state.density = Math.max(1, Math.round(parseMagickDensity(value).width));

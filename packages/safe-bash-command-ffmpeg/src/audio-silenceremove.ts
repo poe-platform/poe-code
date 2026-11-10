@@ -61,7 +61,8 @@ export async function removeSilence(
       key === "start_silence" || key === "stop_silence" || key === "window") {
       const threshold = key.endsWith("threshold");
       const periods = key.endsWith("periods");
-      const number = threshold || periods ? parseFilterExpression(value, "silenceremove", {})
+      const number = threshold || periods ? parseFilterExpression(value, "silenceremove", threshold
+        ? { min: 0, max: Number.MAX_VALUE, default: 0 } : {})
         : parseHlsDuration(value);
       const min = key === "stop_periods" ? -9000 : 0;
       const max = periods ? 9000 : key === "window" ? 100 : threshold ? Number.MAX_VALUE : 2147.483647;

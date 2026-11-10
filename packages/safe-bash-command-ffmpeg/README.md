@@ -936,6 +936,7 @@ WebVTT input `-kind subtitles|captions|descriptions|metadata` applies to the nex
 `any`/`all` channel modes, and `avg`, `rms` (default), `peak`, `median`, `ptp`
 (peak-to-peak), or `dev` (standard deviation) detection with a configurable window.
 Numeric detector aliases are `0`, `1`, `2`, `3`, `4`, and `5`, respectively.
+Threshold expressions accept `min` and `default` (both `0`) and `max` (the largest finite double).
 Negative stop periods remove repeated silent sections.
 A single trailing option separator is accepted, for example `silenceremove=start_periods=1:window=0:`.
 Shortened frames stay separate for downstream filters, frame limits, and checksums;

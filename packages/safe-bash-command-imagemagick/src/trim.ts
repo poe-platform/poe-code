@@ -56,8 +56,7 @@ function* percentTrimBounds(width: number, height: number, fuzz: number, scale: 
 
 // ImageMagick uses the original corner colors independently for each bound,
 // unlike Sharp's median-filtered, single-background trim.
-function* trimBounds(width: number, height: number, fuzz: number, scale: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, background?: RgbaColor): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | undefined> {
-    if (percentBackground !== undefined) return yield* percentTrimBounds(width, height, fuzz, scale, percentBackground, background);
+function* cornerTrimBounds(width: number, height: number, fuzz: number, scale: number, edges?: string): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | undefined> {
     const corners: (Uint8Array | Uint16Array)[] = [];
     for (const pixel of [0, width - 1, (height - 1) * width, width * height - 1]) {
         const bytes = yield { position: pixel * 4, length: 4 };
@@ -94,9 +93,17 @@ function* trimBounds(width: number, height: number, fuzz: number, scale: number,
         if (!selected.includes("south")) bottom = height - 1;
     }
     if (left > right || top > bottom) return;
-    const retainedWidth = Math.min(width, Math.max(right - left + 1, Math.round(minSize?.width ?? 0)));
-    const retainedHeight = Math.min(height, Math.max(bottom - top + 1, Math.round(minSize?.height ?? 0)));
-    return { left: Math.min(left, width - retainedWidth), top: Math.min(top, height - retainedHeight), width: retainedWidth, height: retainedHeight };
+    return { left, top, width: right - left + 1, height: bottom - top + 1 };
+}
+
+function* trimBounds(width: number, height: number, fuzz: number, scale: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, background?: RgbaColor): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | undefined> {
+    const area = percentBackground === undefined
+        ? yield* cornerTrimBounds(width, height, fuzz, scale, edges)
+        : yield* percentTrimBounds(width, height, fuzz, scale, percentBackground, background);
+    if (!area) return;
+    const retainedWidth = Math.min(width, Math.max(area.width, Math.round(minSize?.width ?? 0)));
+    const retainedHeight = Math.min(height, Math.max(area.height, Math.round(minSize?.height ?? 0)));
+    return { left: Math.min(area.left, width - retainedWidth), top: Math.min(area.top, height - retainedHeight), width: retainedWidth, height: retainedHeight };
 }
 
 export function* formatTrimBoundsSteps<Step = never>(

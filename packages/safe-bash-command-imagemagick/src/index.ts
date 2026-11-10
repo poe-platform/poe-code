@@ -4850,7 +4850,12 @@ function parseMagickPageSetting(raw: string, operation: "page" | "set"): MagickG
 
 function parseMagickRepageGeometry(raw: string): MagickGeometry {
     validateMagickTransformGeometry(raw, "-repage");
-    return parseMagickGeometry(raw);
+    const geometry = parseMagickGeometry(raw);
+    // Native requires an x separator between a width and any offsets.
+    if (geometry.width !== undefined && geometry.hasOffset && !raw.toLowerCase().includes("x")) {
+        throw new Error(`invalid argument for option '-repage': ${raw}`);
+    }
+    return geometry;
 }
 
 function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: MagickGeometry, operation: "repage" | "set") {
@@ -9748,8 +9753,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             if (t === "-repage") {
                 const value = tokens[++i] ?? "0x0";
-                validateMagickTransformGeometry(value, "-repage");
-                const geometry = parseMagickGeometry(value);
+                const geometry = parseMagickRepageGeometry(value);
                 stack = yield* mapMagickImagesSteps(stack, function* (image) {
                     yield;
                     return { ...image, virtualCanvas: magickRepageCanvas(image, geometry, "repage") };

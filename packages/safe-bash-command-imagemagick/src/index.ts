@@ -3226,9 +3226,12 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
           if (propName === "x") return targetImg?.virtualCanvas?.x ?? 0;
           if (propName === "y") return targetImg?.virtualCanvas?.y ?? 0;
         }
-        if (name === "resolution" && (propName === "x" || propName === "y")) {
+        if ((name === "resolution" || name === "printsize") && (propName === "x" || propName === "y")) {
           const resolution = targetImg?.resolution;
-          return resolution ? resolution[propName] / (resolution.unit === "meter" ? 100 : 1) : 0;
+          const density = resolution ? resolution[propName] / (resolution.unit === "meter" ? 100 : 1) : 0;
+          if (name === "resolution") return density;
+          const dimension = propName === "x" ? targetImg?.width ?? ctx.w : targetImg?.height ?? ctx.h;
+          return dimension / Math.max(density, 1e-12);
         }
         if (name === "depth") return targetImg?.bitsPerSample ?? (targetImg?.depth === "ushort" ? 16 : targetImg?.depth === "bit" ? 1 : 8);
         if (propName === "w") return targetImg?.width ?? ctx.w;

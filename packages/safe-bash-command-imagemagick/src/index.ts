@@ -2134,6 +2134,11 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     // Identity geometry retains the selection without compositing it again.
     if (sw === 0 && sh === 0 && img.region) img = { ...img, region: { ...img.region } };
     const sy = Math.max(0, box.y + anchor.top);
+    if ((img.space === "b-w" || img.space === "grey16") && (bg.r !== bg.g || bg.g !== bg.b))
+        img = { ...img, space: "srgb", channels: 4 };
+    const virtualCanvas = magickResizeCanvas(img, outW, outH);
+    img = { ...img, isPalette: false, hasAlpha: img.hasAlpha || bg.a < 255, ...(virtualCanvas ? { virtualCanvas } : {}) };
+    if (sw === 0 && sh === 0) return img;
     const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
     const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
     const hueSamples = img.hueSamples ? new Float64Array(out.length) : undefined;
@@ -2184,10 +2189,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
             }
         }
     }
-    if ((img.space === "b-w" || img.space === "grey16") && (bg.r !== bg.g || bg.g !== bg.b))
-        img = { ...img, space: "srgb", channels: 4 };
-    const virtualCanvas = magickResizeCanvas(img, outW, outH);
-    return { ...img, isPalette: false, width: outW, height: outH, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), hasAlpha: img.hasAlpha || bg.a < 255, ...(virtualCanvas ? { virtualCanvas } : {}) };
+    return { ...img, width: outW, height: outH, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
 }
 
 function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition = "northwest", signal?: AbortSignal, analysis?: { warnings: string }): Generator<void, RgbaImage, void> {
@@ -11243,6 +11245,13 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         ys = [{ source: 0, target: 0, length: y0 }, { source: y1, target: y0, length: h - y1 }];
     }
     let background = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
+    const virtualCanvas = token !== "-roll" ? magickResizeCanvas(image, width, height) : undefined;
+    if (token === "-splice") {
+        if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
+            image = { ...image, space: "srgb", channels: 4 };
+        image = { ...image, isPalette: false, hasAlpha: image.hasAlpha || background.a < 255, ...(virtualCanvas ? { virtualCanvas } : {}) };
+        if (width === w && height === h) return image;
+    }
     if (token === "-splice" && image.space === "cmyk") {
         // Keep the RGB backing and the CMYK working plane in agreement.
         const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
@@ -11319,15 +11328,12 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
             }
         }
     }
-    if (token === "-splice" && (image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
-        image = { ...image, space: "srgb", channels: 4 };
-    const virtualCanvas = token !== "-roll" ? magickResizeCanvas(image, width, height) : undefined;
     if (token === "-chop" && image.readMask) image = { ...image, readMask: await transformStoredMagickCoordinates({ ...image.readMask, ...(image.virtualCanvas ? { virtualCanvas: image.virtualCanvas } : {}) } as StoredRgbaImage, backend, token, geometry, state, signal, { warnings: "" }) };
     if (token === "-chop" && image.storedWriteMask) {
         const { virtualCanvas: ignoredCanvas, ...mask } = image.storedWriteMask;
         image = { ...image, storedWriteMask: await transformStoredMagickCoordinates({ ...mask, ...(image.virtualCanvas ? { virtualCanvas: image.virtualCanvas } : {}) }, backend, token, geometry, state, signal, analysis) };
     }
-    return { ...image, region, position, width, height, ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}), ...(token === "-splice" ? { isPalette: false, hasAlpha: image.hasAlpha || background.a < 255 } : {}),
+    return { ...image, region, position, width, height, ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}),
         ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 

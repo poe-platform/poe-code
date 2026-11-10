@@ -3,11 +3,12 @@ import { it } from "node:test";
 import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
-const invalidFilters = [
-  "areverse=unknown=1", "areverse@flip=unknown=1", "areverse=threads=-1",
-  "areverse=threads=2147483648", "areverse=threads=", "areverse=thread_type=bogus",
-  "areverse=extra_hw_frames=-2", "areverse=2"
-];
+const invalidFilters = new Map<string, number>([
+  ["areverse=unknown=1", 8], ["areverse@flip=unknown=1", 8],
+  ["areverse=threads=-1", 222], ["areverse=threads=2147483648", 222],
+  ["areverse=threads=", 234], ["areverse=thread_type=bogus", 234],
+  ["areverse=extra_hw_frames=-2", 222], ["areverse=2", 234]
+]);
 
 for (const graph of [false, true]) {
   for (const filter of [
@@ -16,7 +17,7 @@ for (const graph of [false, true]) {
     ...["threads=2", "thread_type=slice", "extra_hw_frames=1", "threads=1:thread_type=slice"].flatMap(options => [
       `areverse=${options}`, `areverse@rev=${options}`, `asetnsamples=n=3:p=0,areverse=${options}`
     ]),
-    ...invalidFilters
+    ...invalidFilters.keys()
   ]) {
     it(`handles ${filter} options (${graph ? "graph" : "simple"})`, async () => {
       const input = Buffer.alloc(22);
@@ -37,8 +38,8 @@ for (const graph of [false, true]) {
         stdout: { async write() {} },
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
-      const invalid = invalidFilters.includes(filter);
-      assert.equal(result.exitCode, invalid ? 8 : 0, stderr);
+      const invalid = invalidFilters.has(filter);
+      assert.equal(result.exitCode, invalidFilters.get(filter) ?? 0, stderr);
       // Native FFmpeg 7.0.2 reverses all eleven samples, including the short final frame.
       assert.equal(volume.readFileSync("/out").toString("hex"), invalid ? "4b454550" : "f82a10272823401f581b70178813a00fb80bd007e803");
       if (filter.includes("unknown=")) assert.ok(stderr.includes("areverse: unsupported option unknown"), stderr);

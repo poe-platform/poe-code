@@ -20,19 +20,18 @@ export async function pulsateAudio(
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options | "mode" | "timing";
     if (!key || (key !== "mode" && key !== "timing" && !Object.hasOwn(options, key))) throw new Error(`apulsator: unsupported option ${option}`);
     const value = option.slice(separator + 1).trim();
-    if (key === "mode") {
-      const modes = ["sine", "triangle", "square", "sawup", "sawdown"];
-      mode = modes[Number(value)] ?? value;
-      if (!value || !modes.includes(mode)) {
-        throw new Error("apulsator: invalid mode");
-      }
-      continue;
-    }
-    if (key === "timing") {
-      if (!["bpm", "ms", "hz", "0", "1", "2"].includes(value)) {
-        throw new Error("apulsator: invalid timing");
-      }
-      timing = value;
+    if (key === "mode" || key === "timing") {
+      const values = key === "mode" ? ["sine", "triangle", "square", "sawup", "sawdown"] : ["bpm", "ms", "hz"];
+      const number = parseFilterExpression(value, "apulsator", {
+        PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+        ...Object.fromEntries(values.map((name, index) => [name, index]))
+      });
+      if (number < 0 || number > values.length - 1) throw new Error(`apulsator: invalid ${key}`);
+      // Native integer options validate bounds before rounding ties to even.
+      const rounded = Math.round(number);
+      const selected = values[number % 1 === 0.5 && rounded % 2 !== 0 ? rounded - 1 : rounded]!;
+      if (key === "mode") mode = selected;
+      else timing = selected;
       continue;
     }
     const gain = key === "level_in" || key === "level_out";
@@ -50,8 +49,8 @@ export async function pulsateAudio(
       ? number % 1 === 0.5 && rounded % 2 !== 0 ? rounded - 1 : rounded
       : number;
   }
-  const frequency = timing === "bpm" || timing === "0" ? options.bpm / 60
-    : timing === "ms" || timing === "1" ? 1000 / options.ms : options.hz;
+  const frequency = timing === "bpm" ? options.bpm / 60
+    : timing === "ms" ? 1000 / options.ms : options.hz;
   const length = channels[0]!.length;
   budget.allocateMemory(length * 2 * 8);
   const output = [new Float64Array(length), new Float64Array(length)];

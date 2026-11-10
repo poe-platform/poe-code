@@ -124,3 +124,27 @@ it.each([
     const output = execution === "memory" ? files.get("out")! : await fs.readFile("/out");
     expect(Buffer.from(output).toString("hex")).toBe(expected);
 });
+
+// Native ImageMagick 7.1.2-35 Q16-HDRI: mean shift promotes palette images.
+for (const mode of ["buffered", "retained", "command"] as const)
+for (const type of ["PaletteAlpha", "TrueColorAlpha"])
+it.each([
+    { output: "class", args: ["-format", "%r", "info:/out"], expected: "DirectClass sRGB Alpha" },
+    { output: "pixels", args: ["-depth", "8", "rgba:/out"], expected: "2636465f708093b39aaac6e1" },
+    { output: "cycled pixels", args: ["-cycle", "1", "-depth", "8", "rgba:/out"], expected: "708093ff9aaac6ff263646ff" },
+])(`matches native mean-shift $output for ${type} via ${mode}`, async ({ output, args: suffix, expected }) => {
+    const files = new Map([["/out", new TextEncoder().encode("KEEP")]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/out", files.get("/out")!);
+    const args = ["xc:#10203012", "xc:#8090a093", "xc:#a0b0d0b5", "+append", "-type", type, "-mean-shift", "3x3+150%", ...suffix];
+    let stdout = "", stderr = "";
+    const argumentValues = createCommandArguments(args);
+    const result = mode === "command" ? { ...await createMagickCommand().execute({
+        command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write(chunk) { stdout += new TextDecoder().decode(chunk); } },
+        stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } },
+    }), stdout, stderr } : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result).toMatchObject({ exitCode: 0, stdout: "", stderr: "" });
+    const bytes = mode === "buffered" ? files.get("/out")! : await fs.readFile("/out");
+    expect(Buffer.from(bytes).toString(output === "class" ? "utf8" : "hex")).toBe(expected);
+});

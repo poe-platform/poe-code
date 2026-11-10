@@ -11167,7 +11167,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geometry = parseMeanShiftGeometry(tokens[++i] ?? "");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return yield* applyMagickRasterSteps(im, meanShiftPixelSteps(im, geometry, state.background, state.virtualPixel), signal);
+                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, meanShiftPixelSteps(im, geometry, state.background, state.virtualPixel), signal);
             });
         }
         else if (t === "-bilateral-blur") {
@@ -14031,7 +14031,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const geometry = parseMeanShiftGeometry(tokens[++i] ?? ""), background = state.background, virtualPixel = state.virtualPixel;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, meanShiftPixelSteps(image, geometry, background, virtualPixel), signal) : undefined);
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: false }, backend, meanShiftPixelSteps(image, geometry, background, virtualPixel), signal) : undefined);
         } else if (!operandsOnly && token === "-bilateral-blur") {
             const geometry = parseMagickGeometry(tokens[++i] ?? ""), { background, virtualPixel, intensity } = state, channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, bilateralBlurPixelSteps(image, geometry, background, virtualPixel, channels, intensity), signal, { ...image, hasAlpha: image.hasAlpha || virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255 }) : undefined);

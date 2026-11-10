@@ -47,20 +47,22 @@ function* miffFrameHeader(size: number): Generator<number, MiffHeader, number | 
     const colorspace = fields.get("colorspace") ?? "sRGB", gray = colorspace === "Gray";
     const hasAlpha = fields.get("matte")?.toLowerCase() === "true" || fields.get("alpha-trait") === "Blend";
     const channels = gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3;
+    const floating = fields.get("quantum:format") === "floating-point";
     const indexed = fields.get("class") === "PseudoClass", colors = Number(fields.get("colors") ?? 0);
     const sampleBytes = depth / 8, indexBytes = Math.max(sampleBytes, colors > 256 ? 2 : 1);
     const pixelBytes = indexed ? indexBytes + (hasAlpha ? sampleBytes : 0) : channels * sampleBytes;
     if ((!indexed && fields.get("class") !== "DirectClass") || (fields.get("compression") ?? "None") !== "None" || !(indexed ? [8, 16] : [8, 16, 32]).includes(depth) || !["sRGB", "RGB", "Gray"].includes(colorspace) && (fields.get("class") !== "DirectClass" || !["CIELab", "XYZ", "HSL", "YCbCr"].includes(colorspace))
+        || floating && (indexed || ![16, 32].includes(depth))
         || indexed && (!Number.isSafeInteger(colors) || colors < 1 || colors > 65536)
         || Number(fields.get("number-meta-channels") ?? 0) !== 0
-        || Number(fields.get("number-channels") ?? channels + Number(indexed)) !== channels + Number(indexed) || fields.has("quantum:format") && fields.get("quantum:format") !== "unsigned"
+        || Number(fields.get("number-channels") ?? channels + Number(indexed)) !== channels + Number(indexed) || fields.has("quantum:format") && fields.get("quantum:format") !== "unsigned" && !floating
         || [...fields.keys()].some(key => key.startsWith("profile:") || key === "montage")) throw new Error("Unsupported MIFF encoding");
     if (indexed && size - offset < colors * 3 * sampleBytes) throw new Error("Truncated MIFF palette");
     if (size - offset < (indexed ? colors * 3 * sampleBytes : 0) + width * height * pixelBytes) throw new Error("Truncated MIFF raster");
     const orientation = ["topleft", "topright", "bottomright", "bottomleft", "lefttop", "righttop", "rightbottom", "leftbottom"].indexOf(fields.get("orientation")?.toLowerCase() ?? "") + 1;
     const delay = Number(fields.get("delay") ?? 0), ticksPerSecond = Number(fields.get("ticks-per-second") ?? 100) || 100;
     if (!Number.isSafeInteger(delay) || delay < 0 || !Number.isSafeInteger(ticksPerSecond) || ticksPerSecond < 0) throw new Error("Invalid MIFF timing");
-    return { metadata: { ...(orientation ? { orientation } : {}), delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, format: "miff", width, height, channels, hasAlpha, depth: depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: 72, size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes };
+    return { metadata: { ...(orientation ? { orientation } : {}), delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, format: "miff", width, height, channels, hasAlpha, depth: floating ? "float" : depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: 72, size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes };
 }
 
 /** Scan adjacent rasters and collect animation timing without reading their pixels. */
@@ -102,7 +104,17 @@ export function miffPixels(bytes: Uint8Array, metadata: ImageMetadata, palette?:
             const source = colormap ? channel === 3 ? pixel * pixelBytes + indexBytes : (index * 3 + channel) * sampleBytes
                 : (pixel * channels + (channel === 3 ? channels - 1 : gray ? 0 : channel)) * sampleBytes;
             const samples = channel < 3 && colormap ? colormap : view;
-            const value = channel === 3 && !hasAlpha ? 65535 : sampleBytes === 4 ? samples.getUint32(source) / 65537 : sampleBytes === 2 ? samples.getUint16(source) : samples.getUint8(source) * 257;
+            let value: number;
+            if (channel === 3 && !hasAlpha) value = 65535;
+            else if (metadata.depth === "float") {
+                if (sampleBytes === 4) value = samples.getFloat32(source);
+                else {
+                    const half = samples.getUint16(source), exponent = (half >>> 10) & 31, fraction = half & 1023;
+                    value = exponent === 0 ? fraction * 2 ** -24 : exponent === 31 ? fraction ? NaN : Infinity : (1 + fraction / 1024) * 2 ** (exponent - 15);
+                    if (half & 0x8000) value = -value;
+                }
+                value = Number.isNaN(value) ? 0 : Math.max(0, Math.min(1, value)) * 65535;
+            } else value = sampleBytes === 4 ? samples.getUint32(source) / 65537 : sampleBytes === 2 ? samples.getUint16(source) : samples.getUint8(source) * 257;
             data[pixel * 4 + channel] = Math.round(value / 257);
             if (data16) data16[pixel * 4 + channel] = Math.round(value);
         }

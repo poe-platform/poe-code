@@ -12,7 +12,7 @@ import { captureIgnoredTrapSignals } from "./trap.js";
 import { writeDiagnostic } from "../escaping.js";
 import { cancelTurn, hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, registerInternalYieldCheckpoint, runYieldCheckpoint, scheduleTurn, yieldTurn, type TurnHandle } from "../contracts/yield.js";
 import {
-  ACCESS_MODES, FsError, basename, composeMiddleware, createBytePipe, dirname, normalizePath, pipeBytes, resolvePath, validateExitCode, writeBytes, writeText, } from "../contracts/index.js";
+  ACCESS_MODES, FsError, basename, composeMiddleware, createBytePipe, dirname, normalizePath, pipeBytes, resolvePath, toByteSource, validateExitCode, writeBytes, writeText, } from "../contracts/index.js";
 import type {
   ByteSink, ByteSource, CommandContext, CommandDefinition, CommandInvoker, CommandRegistry, CommandResult, FileSystem, FileType, Middleware, } from "../contracts/index.js";
 import { concatShellValues, setEnvironmentValue, shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
@@ -8538,7 +8538,7 @@ export class Runtime {
     try {
       const selectDescriptor = (number: number) => {
         const descriptor = context.descriptors?.get(number);
-        const source = descriptor?.closed ? undefined : descriptor?.input ?? (number === 0 && !context.descriptors ? context.stdin : undefined);
+        const source = descriptor?.closed ? undefined : descriptor?.input ?? (descriptor?.output ? toByteSource("") : number === 0 && !context.descriptors ? context.stdin : undefined);
         if (!source || source === closedSource) throw new MapfileUsageError(`${number}: invalid file descriptor: Bad file descriptor`, 1);
         return source;
       };

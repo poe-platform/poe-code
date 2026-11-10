@@ -283,7 +283,7 @@ for (const command of ["mapfile", "readarray"]) {
     });
   }
 
-  for (const operand of ["1", "9", "-1", "nope"]) test(`${command} refuses unavailable or invalid descriptor ${operand} before input or array mutation`, async () => {
+  for (const operand of ["9", "-1", "nope"]) test(`${command} refuses unavailable or invalid descriptor ${operand} before input or array mutation`, async () => {
     const { shell } = setup();
     let pulls = 0;
     const stdin = { async *[Symbol.asyncIterator]() { pulls++; yield Uint8Array.of(97, 10); } };

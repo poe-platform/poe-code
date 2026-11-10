@@ -25,10 +25,18 @@ export function parseMagickPoly(value: string): number[] {
         }
         if (field) fields.push(field);
     }
-    if (!fields.length || fields.some(part => !Number.isFinite(Number(part)) || Number.parseFloat(part) !== Number(part)))
-        throw new Error(`invalid list of numbers '-poly' '${value}'`);
+    if (!fields.length) throw new Error(`invalid list of numbers '-poly' '${value}'`);
+    const terms = fields.map(part => {
+        const name = (part.startsWith("+") || part.startsWith("-") ? part.slice(1) : part).toLowerCase();
+        if (name === "nan") return NaN;
+        if (name === "inf" || name === "infinity") return part.startsWith("-") ? -Infinity : Infinity;
+        const number = Number(part);
+        if (Number.isNaN(number) || (!part.toLowerCase().startsWith("0x") && Number.parseFloat(part) !== number))
+            throw new Error(`invalid list of numbers '-poly' '${value}'`);
+        return number;
+    });
     // Native ignores an unmatched final coefficient and terms beyond the image list.
-    return fields.slice(0, fields.length - fields.length % 2).map(Number);
+    return terms.slice(0, terms.length - terms.length % 2);
 }
 
 export function* polyPixelSteps(size: number, inputs: readonly Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth">[], terms: readonly number[], channels?: readonly boolean[], highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {

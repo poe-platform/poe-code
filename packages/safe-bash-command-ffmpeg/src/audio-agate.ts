@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { gateExp, gateLog } from "./audio-gate-math.js";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export class AgateError extends Error {
@@ -68,13 +69,19 @@ export async function applyAudioGate(
   const level = number("level_in", 0.015625, 64);
   const upward = choice("mode", ["downward", "upward"]) === 1;
   const rms = choice("detection", ["peak", "rms"]) === 1;
-  const threshold = Math.log(number("threshold", 0, 1)) * (rms ? 2 : 1);
+  const thresholdValue = number("threshold", 0, 1);
   const range = number("range", 0, 1);
-  const expansion = number("ratio", 1, 9000) - 1;
-  const attack = Math.min(1, 4000 / (number("attack", 0.01, 9000) * sampleRate));
-  const release = Math.min(1, 4000 / (number("release", 0.01, 9000) * sampleRate));
+  const ratio = number("ratio", 1, 9000);
+  const attack = Math.min(1, 1 / (number("attack", 0.01, 9000) * sampleRate / 4000));
+  const release = Math.min(1, 1 / (number("release", 0.01, 9000) * sampleRate / 4000));
   let makeup = number("makeup", 1, 64);
-  const width = Math.log(number("knee", 1, 8));
+  const knee = number("knee", 1, 8);
+  const linearThreshold = rms ? thresholdValue * thresholdValue : thresholdValue;
+  const linearKneeStart = linearThreshold / Math.sqrt(knee);
+  const linearKneeStop = linearThreshold * Math.sqrt(knee);
+  const threshold = gateLog(linearThreshold);
+  const kneeStart = gateLog(linearKneeStart);
+  const kneeStop = gateLog(linearKneeStop);
   const maximum = choice("link", ["average", "maximum"]) === 1;
   // Like native agate, the detector uses level_in; level_sc is only validated.
   number("level_sc", 0.015625, 64);
@@ -111,14 +118,26 @@ export async function applyAudioGate(
       if (rms) detected *= detected;
       envelope += (detected - envelope) * (detected > envelope ? attack : release);
       let gain = 1;
-      if (envelope > 0) {
-        // RMS gating works in squared amplitude, including its threshold and knee.
-        const distance = (Math.log(envelope) - threshold) * (upward ? 1 : -1);
-        const expanded = distance >= width / 2 ? distance
-          : distance > -width / 2 ? (distance + width / 2) ** 2 / (2 * width) : 0;
-        // Native's unsimplified gain adds -Infinity to Infinity at zero threshold.
-        gain = upward && threshold === -Infinity ? -NaN
-          : Math.max(range, Math.exp((upward ? 1 : -1) * expansion * expanded));
+      if (envelope > 0 && (upward ? envelope > linearKneeStart : envelope < linearKneeStop)) {
+        const slope = gateLog(envelope);
+        // Preserve Infinity + -Infinity at zero threshold, as in native agate.
+        let outputLevel = (slope - threshold) * ratio + threshold;
+        // Keep FFmpeg's Hermite evaluation order: simplifying the curve changes
+        // the low bits that decide integer and float32 rounding boundaries.
+        if (knee > 1 && (upward ? slope < kneeStop : slope > kneeStart)) {
+          const start = upward ? kneeStop : kneeStart;
+          const stop = upward ? kneeStart : kneeStop;
+          const width = stop - start;
+          const t = (slope - start) / width;
+          const t2 = t * t;
+          const t3 = t2 * t;
+          const p0 = (start - threshold) * ratio + threshold;
+          const m0 = ratio * width;
+          const ct2 = -3 * p0 - 2 * m0 + 3 * stop - width;
+          const ct3 = 2 * p0 + m0 - 2 * stop + width;
+          outputLevel = ct3 * t3 + ct2 * t2 + m0 * t + p0;
+        }
+        gain = Math.max(range, gateExp(outputLevel - slope));
       }
       const scale = level * gain * makeup;
       for (let c = 0; c < channels.length; c++) output[c]![i] = channels[c]![i]! * scale;

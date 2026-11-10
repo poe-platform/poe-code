@@ -19,7 +19,7 @@ for (const retained of [false, true]) for (const write of [false, true]) {
 }
 
 for (const retained of [false, true]) {
-  it.each([0, 1, 2])(`writes GIF loop %i (retained=${retained})`, async loop => {
+  it.each([[0, 0], [1, undefined], [2, 1], [-1, 65534], [-2, 65533], [65535, 65534], [65536, 65535]])(`writes GIF loop %i (retained=${retained})`, async (loop, repeats) => {
     const pixels = new Uint8Array(3 * 3 * 2 * 4);
     for (let i = 0; i < 18; i++) pixels.set(i < 9 ? [255, 0, 0, 255] : [0, 0, 255, 255], i * 4);
     const input = await sharp(pixels, { raw: { width: 3, height: 6, channels: 4 } })
@@ -30,10 +30,10 @@ for (const retained of [false, true]) {
       .toMatchObject({ exitCode: 0 });
     const output = retained ? await fs.readFile("/out.gif") : files.get("out.gif")!;
     const extension = Buffer.from(output).indexOf("NETSCAPE2.0");
-    if (loop === 1) expect(extension).toBe(-1);
+    if (repeats === undefined) expect(extension).toBe(-1);
     else {
       expect(extension).toBeGreaterThan(-1);
-      expect([...output.subarray(extension + 11, extension + 16)]).toEqual([3, 1, loop === 0 ? 0 : 1, 0, 0]);
+      expect([...output.subarray(extension + 11, extension + 16)]).toEqual([3, 1, repeats & 255, repeats >>> 8, 0]);
     }
     expect(await sharp(output, { animated: true }).metadata()).toMatchObject({ pages: 2, delay: [100, 200] });
   });

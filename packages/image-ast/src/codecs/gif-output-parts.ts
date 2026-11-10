@@ -154,7 +154,7 @@ export function gifHeader(
   ]);
   if (options.globalPalette !== false) out.set(palette.bytes, 13);
   if (loop !== undefined && loop !== 1) {
-    const value = loop === 0 ? 0 : Math.max(0, loop - 1);
+    const value = loop === 0 ? 0 : loop - 1;
     out.set(
       [
         33,

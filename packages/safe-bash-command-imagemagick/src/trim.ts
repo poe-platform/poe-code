@@ -5,8 +5,8 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
 import type { HueMetadata } from "./colorspace-hue.js";
 
-type RgbaImage = BaseRgbaImage & HueMetadata & { inactiveAlpha?: boolean | undefined; writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { inactiveAlpha?: boolean | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & { inactiveAlpha?: boolean | undefined; writeMask?: BaseRgbaImage | undefined; metaChannels?: BaseRgbaImage[] | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { inactiveAlpha?: boolean | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined; storedMetaChannels?: BaseStoredRgbaImage[] | undefined };
 
 type Area = { left: number; top: number; width: number; height: number };
 type Read = { position: number; length: number };
@@ -219,6 +219,10 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
             }
             cropped = { ...cropped, data16 };
         }
+        if (image.metaChannels) {
+            cropped.metaChannels = [];
+            for (const plane of image.metaChannels) cropped.metaChannels.push(yield* extractImageSteps(plane, area));
+        }
         return { ...cropped,
             ...("readMask" in image && image.readMask ? { readMask: yield* cropReadMaskSteps(image.readMask as RgbaImage, area) } : {}),
             ...(image.writeMask ? { writeMask: yield* extractImageSteps(image.writeMask, area) } : {}),
@@ -257,8 +261,13 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     if (next.value && next.value.left < image.width && next.value.top < image.height) {
         const area = cropTrimBounds(next.value, image.width, image.height, minSize);
         image = discardDisassociatedAlpha(image);
+        const cropped: StoredRgbaImage = await transformStoredImage(image, storage, { kind: "extract", ...area }, signal);
+        if (image.storedMetaChannels) {
+            cropped.storedMetaChannels = [];
+            for (const plane of image.storedMetaChannels) cropped.storedMetaChannels.push(await transformStoredImage(plane, storage, { kind: "extract", ...area }, signal));
+        }
         return {
-            ...await transformStoredImage(image, storage, { kind: "extract", ...area }, signal),
+            ...cropped,
             ...("readMask" in image && image.readMask ? { readMask: await cropStoredReadMask(image.readMask as StoredRgbaImage, area, storage, signal) } : {}),
             ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, storage, { kind: "extract", ...area }, signal) } : {}),
             virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + area.left, y: (image.virtualCanvas?.y ?? 0) + area.top },

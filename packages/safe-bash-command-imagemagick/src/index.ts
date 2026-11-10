@@ -2321,11 +2321,12 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
     const value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
+    const forcedLiquidRescale = option === "-liquid-rescale" && value.includes("!");
     let dimensions = false;
     for (const char of value) {
         if (char === "x" || char === "X" || char === ":") dimensions = true;
         if ((char.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(char)) ||
-            (!dimensions && (char === "/" || (char === "," && value[0] !== "+" && value[0] !== "-")))) {
+            (!dimensions && (char === "/" || (char === "," && !forcedLiquidRescale && value[0] !== "+" && value[0] !== "-")))) {
             throw new Error(`invalid argument for option '${option}': ${raw}`);
         }
     }

@@ -582,6 +582,9 @@ other input rates to 44100 Hz and converting mono to stereo with native gain.
 It preserves the resampled frame count, including the drained tail, with native
 signed 16-bit filtering and clipping. Other channel counts are rejected. Downstream
 `ashowinfo` reports planar PCM16 (`s16p`) frames with separate channel checksums.
+Invalid `earwax` options preserve the destination and return Linux FFmpeg exit
+statuses: `176` for unsupported timeline options (`enable`), `8` for unknown named
+options, and `234` for unexpected positional arguments.
 
 Swap stereo PCM channels with `-af 'channelmap=FR|FL'` or
 `-af 'channelmap=map=1|0:channel_layout=stereo'`.

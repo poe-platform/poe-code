@@ -12434,7 +12434,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         stretched = output;
-                      } else if (trimmed === "earwax") {
+                      } else if (filterName === "earwax") {
+                        const argument = trimmed.slice("earwax=".length);
+                        if (argument) {
+                          const option = argument.split(":", 1)[0]!;
+                          const separator = option.indexOf("=");
+                          if (separator < 0) throw new Error("earwax: unexpected positional argument");
+                          const key = option.slice(0, separator).trim();
+                          if (key === "enable") throw new Error("earwax: timeline is unsupported");
+                          throw new Error(`earwax: unsupported option ${key}`);
+                        }
                         if (stretched.length > 2) {
                           if (!autoConversionFilters) throw new Error(audioConversionDisabled);
                           const inputMask = filteredChannelMask || ({ 3: 0xb, 4: 0x107, 6: 0x3f }[stretched.length]);
@@ -14664,6 +14673,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("tremolo: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("tremolo:")) return { exitCode: 222 };
             if (msg === "tremolo: invalid expression" || msg === "tremolo: invalid or unsupported expression") return { exitCode: 234 };
+            if (msg === "earwax: timeline is unsupported") return { exitCode: 176 };
+            if (msg.startsWith("earwax: unsupported option ")) return { exitCode: 8 };
+            if (msg === "earwax: unexpected positional argument") return { exitCode: 234 };
             if (msg === "areverse: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("areverse: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("areverse:")) return { exitCode: err instanceof RangeError ? 222 : 234 };

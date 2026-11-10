@@ -67,6 +67,7 @@ function* miffFrameHeader(size: number): Generator<MiffRead, MiffHeader, Uint8Ar
     const compression = fields.get("compression") ?? "None";
     if ((!indexed && fields.get("class") !== "DirectClass") || !["None", "LZMA", "Zip", "LZW", "BZip", "RLE"].includes(compression) || indexed && compression !== "None" || !(indexed ? [8, 16] : [8, 16, 32]).includes(depth) || !["sRGB", "RGB", "Gray", "CMYK"].includes(colorspace) && (fields.get("class") !== "DirectClass" || !["CIELab", "XYZ", "HSL", "YCbCr"].includes(colorspace))
         || compression === "LZMA" && (floating || ![8, 16].includes(depth) || !["sRGB", "RGB", "Gray"].includes(colorspace))
+        || compression === "LZMA" && (floating || ![8, 16].includes(depth) || !["sRGB", "RGB", "Gray"].includes(colorspace))
         || floating && (indexed || ![16, 32].includes(depth))
         || indexed && (cmyk || !Number.isSafeInteger(colors) || colors < 1 || colors > 65536)
         || Number(fields.get("number-meta-channels") ?? 0) !== 0
@@ -271,6 +272,7 @@ export function decodeMiffImage(bytes: Uint8Array, options?: SharpInputOptions):
     const header = readMiffHeader(bytes, options?.page, options), { metadata } = header;
     checkLimitInputPixels(metadata.width, metadata.height, options);
     const count = metadata.width * metadata.height, data = new Uint8Array(count * 4);
+    const hueSamples = metadata.space === "cmyk" ? new Float64Array(count * 4) : undefined;
     const hueSamples = metadata.space === "cmyk" ? new Float64Array(count * 4) : undefined;
     const data16 = metadata.bitsPerSample! > 8 || hueSamples ? new Uint16Array(count * 4) : undefined;
     const palette = header.colors ? bytes.subarray(header.offset, header.offset + header.colors * 3 * (metadata.depth === "ushort" ? 2 : 1)) : undefined;

@@ -11736,7 +11736,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         result.metaChannels.push(selected ? yield* applyMagickMorphology4ChSteps(plane, plan, signal, undefined, state.virtualPixel, state.background) : plane);
                     }
                 }
-                return im.writeMask ? yield* applyMagickRasterSteps(result, statisticWriteMaskPixelSteps(im, magickMedianRows(geometry), state.virtualPixel), signal, result, [result, im, im.writeMask]) : result;
+                return im.region || im.writeMask ? yield* applyMagickRasterSteps(result, statisticWriteMaskPixelSteps(im, magickMedianRows(geometry), state.virtualPixel), signal, result, im.writeMask ? [result, im, im.writeMask] : [result, im]) : result;
             });
         }
         else if (t === "-channel-fx") {
@@ -14302,7 +14302,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         result.storedMetaChannels.push(!meta || meta.includes(index)
                             ? await morphStoredMagickImage(plane, backend, plan, signal, undefined, virtualPixel, background) : plane);
                 }
-                return image.storedWriteMask ? transformStoredMagickRaster(result, backend, statisticWriteMaskPixelSteps(image, magickMedianRows(geometry), virtualPixel), signal, result, [result, image, image.storedWriteMask]) : result;
+                return image.region || image.storedWriteMask ? transformStoredMagickRaster(result, backend, statisticWriteMaskPixelSteps(image, magickMedianRows(geometry), virtualPixel), signal, result, image.storedWriteMask ? [result, image, image.storedWriteMask] : [result, image]) : result;
             });
         } else if (!operandsOnly && token === "-morphology") {
             const method = (tokens[++i] ?? "dilate").toLowerCase();

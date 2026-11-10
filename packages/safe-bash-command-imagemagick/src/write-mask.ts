@@ -1,4 +1,5 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { regionContains, type Region } from "./region.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
@@ -79,7 +80,7 @@ export function blendMaskedPixel(output: Uint8Array | Uint16Array | Float64Array
 }
 
 /** StatisticImage checks the mask at the window's upper-left sample before output clipping. */
-export function* statisticWriteMaskPixelSteps(image: { width: number; height: number }, rows: readonly number[], virtualPixel: VirtualPixelMethod = "edge"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* statisticWriteMaskPixelSteps(image: { width: number; height: number; region?: Region | undefined }, rows: readonly number[], virtualPixel: VirtualPixelMethod = "edge"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const left = Math.ceil(rows[0]!), top = Math.floor(rows.length / 2);
     for (let y = 0; y < image.height; y++) {
         for (let x = 0; x < image.width; x += 1024) {
@@ -94,8 +95,10 @@ export function* statisticWriteMaskPixelSteps(image: { width: number; height: nu
             const edited = samples[0]!, original = samples[1]!;
             for (let i = 0; i < count; i++) {
                 const pixel = virtualPixelIndex(x + i - left, y - top, image.width, image.height, virtualPixel);
-                const mask = pixel < 0 ? undefined : new Uint16Array((yield { kind: "read", highDepth: true, image: 2, position: pixel * 4, length: 4 })!.slice().buffer);
-                const intensity = mask ? 0.212656 * mask[0]! + 0.715158 * mask[1]! + 0.072186 * mask[2]! : 0;
+                const mask = pixel < 0 || image.region ? undefined : new Uint16Array((yield { kind: "read", highDepth: true, image: 2, position: pixel * 4, length: 4 })!.slice().buffer);
+                const intensity = image.region && pixel >= 0
+                    ? regionContains(image.region, pixel % image.width, Math.floor(pixel / image.width)) ? 0 : 65535
+                    : mask ? 0.212656 * mask[0]! + 0.715158 * mask[1]! + 0.072186 * mask[2]! : 0;
                 if (intensity <= 65535 / 2) edited.set(original.subarray(i * 4, i * 4 + 4), i * 4);
             }
             yield { kind: "write", evaluate: true, position, data: new Uint8Array(edited.buffer) };

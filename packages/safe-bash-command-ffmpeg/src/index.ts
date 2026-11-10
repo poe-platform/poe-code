@@ -2045,6 +2045,7 @@ async function applyVideoFilterChain(
     if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
     budget.checkCpu();
+    diagnostics.timescale = timescale;
     const eqIdx = filterSpec.indexOf("=");
     const name = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).split("@", 1)[0]!.trim().toLowerCase();
     // Keep replay lazy through filters that can discard frames or stop the source.
@@ -4849,6 +4850,27 @@ async function applyVideoFilterChain(
       current = await mapWork([...current].reverse(), (f, index) => ({
         ...f, ptsSeconds: current[index]!.ptsSeconds
       }), signal);
+    } else if (name === "settb") {
+      let expression = "intb";
+      for (const [index, option] of (argStr ? positional : []).entries()) {
+        const separator = option.indexOf("=");
+        const key = separator < 0 && index === 0 ? "expr" : option.slice(0, separator).trim();
+        if (key !== "expr" && key !== "tb") throw new Error("settb: unsupported option");
+        expression = separator < 0 ? option : option.slice(separator + 1);
+      }
+      const timeBase = parseFilterExpression(expression, "settb", { intb: 1 / timescale, AVTB: 1 / 1000000, sr: 0 });
+      if (timeBase <= 0 || !Number.isFinite(1 / timeBase)) throw new Error("settb: time base must be positive");
+      const rescale = (seconds: number) => {
+        const ticks = Math.round(seconds * timescale) / timescale / timeBase;
+        return Math.sign(ticks) * Math.round(Math.abs(ticks)) * timeBase;
+      };
+      // The EOF timestamp is independent of the rounded last frame duration.
+      const endTime = endTimeSeconds ?? (lastInputFrame ? lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds : 0);
+      endTimeSeconds = rescale(endTime);
+      current = await mapWork(current, frame => ({
+        ...frame, ptsSeconds: rescale(frame.ptsSeconds), durationSeconds: rescale(frame.durationSeconds)
+      }), signal);
+      timescale = 1 / timeBase;
     } else if (name === "setpts") {
       const inputFrameRate = frameRateKnown ? 1 / (current[0]?.durationSeconds ?? 1 / timescale) : NaN;
       // FFmpeg 7 advertises 1/0 after setpts, independently of frame durations.
@@ -5008,7 +5030,7 @@ async function applyVideoFilterChain(
     }
     // Filters that change the final frame's timing establish a new endpoint.
     const lastOutputFrame = current.at(-1);
-    if (name !== "setpts" && name !== "fps" && name !== "select" && name !== "trim" && name !== "decimate" &&
+    if (name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "trim" && name !== "decimate" &&
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;

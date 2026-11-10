@@ -17906,6 +17906,15 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             const angle = parseMagickRotation(argv[++i] ?? "0").angle;
             if (angle !== 0) queuedTransforms.push({ kind: "rotate", angle });
         }
+        else if (t === "-compress") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -compress\n" };
+            if (value.toLowerCase() !== "none") return { exitCode: 1, stdout: "", stderr: `montage: unsupported compression '${value}'\n` };
+            state.netpbmAscii = true;
+        }
+        else if (t === "+compress") {
+            delete state.netpbmAscii;
+        }
         else if (t === "-crop") {
             const geometry = argv[++i];
             if (geometry === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -crop\n" };

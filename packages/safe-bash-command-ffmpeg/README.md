@@ -709,6 +709,10 @@ persist across samples and remain separate even when the last expression is repe
 Duplicate an audio input into independently filtered outputs with
 `-filter_complex '[1:a]asplit=2[x][t];[t]volume=0.5[y]' -map '[x]' one.wav -map '[y]' two.wav`.
 `asplit` defaults to two outputs; `asplit=outputs=3` selects three.
+Audio `concat=n=2:v=0:a=1` joins connected branches in pad order, including
+multiple branches from one input. For example,
+`-filter_complex '[0:a]asplit[a][b];[b][a]concat=n=2:v=0:a=1[out]' -map '[out]' twice.wav`
+plays the input twice; filters on each branch run before concatenation.
 Consume an unused audio branch with `anullsink`, which has no output:
 `-filter_complex '[0:a]channelsplit[L][R];[L]anullsink;[R]anull[out]' -map '[out]' right.wav`.
 The retained channel keeps its speaker layout; dropping the sink leaves an invalid

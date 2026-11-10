@@ -11,6 +11,7 @@ interface Options {
   separator: number;
   delimiter: Uint8Array | undefined;
   whole: boolean;
+  utf8: boolean;
   replacement: Uint8Array;
   format: Field[] | "auto" | undefined;
   fold: boolean;
@@ -39,11 +40,12 @@ function number(value: string, label: string): bigint {
 }
 
 function parse(context: CommandContext, budget: Budget): Options {
-  const options: Options = { files: [], fields: [0, 0], unpaired: new Set(), paired: true, separator: 10, delimiter: undefined, whole: false, replacement: empty, format: undefined, fold: false, header: false, order: "default" };
+  const options: Options = { files: [], fields: [0, 0], unpaired: new Set(), paired: true, separator: 10, delimiter: undefined, whole: false, utf8: false, replacement: empty, format: undefined, fold: false, header: false, order: "default" };
   let literal = false;
   let delimiterChoice: Uint8Array | undefined;
   const locale = (context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C").toUpperCase().split("@")[0]!;
   const utf8 = locale.endsWith("UTF-8") || locale.endsWith("UTF8");
+  options.utf8 = utf8;
   const explicitFields: [bigint | undefined, bigint | undefined] = [undefined, undefined];
   let replacementSet = false;
   const fieldCandidates: ("1" | "2" | "o" | undefined)[] = [];
@@ -177,23 +179,59 @@ function split(bytes: Uint8Array, options: Options, budget: Budget): readonly Ui
     }
     add(start, bytes.length);
   } else {
-    const blank = (byte: number): boolean => byte === 32 || byte === 9 || (options.separator === 0 && byte === 10);
+    const blankWidth = (offset: number): number => {
+      const byte = bytes[offset];
+      if (byte === 32 || byte === 9 || (options.separator === 0 && byte === 10)) return 1;
+      if (!options.utf8) return 0;
+      const second = bytes[offset + 1], third = bytes[offset + 2];
+      // GNU UTF-8 blanks: U+1680, U+2000..U+200A except U+2007, U+205F, U+3000.
+      // Match bytes directly so malformed UTF-8 in fields remains untouched.
+      if (byte === 0xe1 && second === 0x9a && third === 0x80) return 3;
+      if (byte === 0xe2 && ((second === 0x80 && third !== undefined && third >= 0x80 && third <= 0x8a && third !== 0x87) || (second === 0x81 && third === 0x9f))) return 3;
+      if (byte === 0xe3 && second === 0x80 && third === 0x80) return 3;
+      return 0;
+    };
     let offset = 0;
     while (offset < bytes.length) {
-      while (offset < bytes.length && blank(bytes[offset]!)) offset++;
+      let width: number;
+      while (offset < bytes.length && (width = blankWidth(offset)) > 0) offset += width;
       const start = offset;
-      while (offset < bytes.length && !blank(bytes[offset]!)) offset++;
+      while (offset < bytes.length && blankWidth(offset) === 0) offset++;
       if (offset > start) add(start, offset);
     }
   }
   return fields;
 }
 
+function keyComparison(env: Readonly<Record<string, string>>): typeof compare {
+  const locale = env.LC_ALL || env.LC_COLLATE || env.LANG || "C";
+  if (["C", "POSIX", "C.UTF-8", "C.utf8"].includes(locale)) return compare;
+  const language = locale.split(".")[0]!.split("_").join("-");
+  let collator: Intl.Collator;
+  try {
+    if (!Intl.Collator.supportedLocalesOf([language]).length || locale.includes("@")) throw new RangeError();
+    collator = new Intl.Collator(language, { usage: "sort", sensitivity: "variant", caseFirst: "lower" });
+  } catch {
+    fail(`unsupported collation locale '${locale}'`);
+  }
+  const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+  return (left, right, fold) => {
+    // GNU ignore-case uses folded byte comparison, bypassing collation.
+    if (fold) return compare(left, right, true);
+    let first: string | undefined, second: string | undefined;
+    try { first = decoder.decode(left); } catch { /* Invalid bytes follow valid text. */ }
+    try { second = decoder.decode(right); } catch { /* Preserve byte ordering for invalid text. */ }
+    if (first === undefined) return second === undefined ? compare(left, right) : 1;
+    return second === undefined ? -1 : collator.compare(first, second);
+  };
+}
+
 export function createJoinCommand(factory: TableTextCommandsOptions = {}): CommandDefinition {
   const limits = settings(factory);
   return command("join", limits, async (context, budget) => {
     const options = parse(context, budget);
-    const inputs = new Inputs(context, budget, options.separator), order = new OrderCheck(options.order, context, budget);
+    const compareKeys = keyComparison(context.env);
+    const inputs = new Inputs(context, budget, options.separator), order = new OrderCheck(options.order, context, budget, compareKeys);
     const terminator = Uint8Array.of(options.separator), delimiter = options.delimiter ?? Uint8Array.of(32);
     try {
       const readers = [await inputs.open(options.files[0]!), await inputs.open(options.files[1]!)];
@@ -290,7 +328,7 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
       }
       while (rows[0] && rows[1]) {
         { const step = budget.step(); if (step) await step; }
-        const comparison = compare(rows[0].key, rows[1].key, options.fold);
+        const comparison = compareKeys(rows[0].key, rows[1].key, options.fold);
         if (comparison !== 0) {
           const file = comparison < 0 ? 0 : 1;
           if (options.unpaired.has(file)) await emit(file === 0 ? rows[file] : undefined, file === 1 ? rows[file] : undefined);
@@ -303,7 +341,7 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
         const key = rows[0].key, groups: Row[][] = [[], []];
         let groupBytes = 0, groupRecords = 0;
         for (let file = 0; file < 2; file++) {
-          while (rows[file] && compare(rows[file]!.key, key, options.fold) === 0) {
+          while (rows[file] && compareKeys(rows[file]!.key, key, options.fold) === 0) {
             const row = rows[file]!;
             groupBytes += row.bytes.length;
             budget.check(groupBytes, limits.maxGroupBytes, "join group byte");

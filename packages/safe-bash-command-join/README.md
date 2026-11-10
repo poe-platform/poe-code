@@ -19,4 +19,6 @@ With `-z`, trailing spaces, tabs and newlines do not create extra fields, matchi
 
 `-t` accepts a single UTF-8 character when the locale selected by `LC_ALL`, `LC_CTYPE`, or `LANG` uses UTF-8. For example, `LC_ALL=C.UTF-8 join -t é left right` splits and joins fields with `é`. Without `-t`, UTF-8 locales also split on GNU locale blanks such as em spaces and ideographic spaces; nonbreaking spaces remain part of fields. C/POSIX locales and an unset locale retain single-byte delimiters and ASCII blank splitting.
 
+Merging, matching key groups, and order checks use `LC_ALL`, then `LC_COLLATE`, then `LANG` (ignoring empty values). C/POSIX locales retain byte order; supported language locales use runtime Unicode collation. `--ignore-case` retains folded byte comparison.
+
 Default order checking starts after reading past the first unpaired row while both files still have rows, matching GNU coreutils. Earlier descending keys are not reported retroactively. Rows remaining after the other file ends do not start default checking. Use `--check-order` to check all input rows, or `--nocheck-order` to disable checking.

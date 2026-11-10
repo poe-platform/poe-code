@@ -6230,8 +6230,8 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     if (lower.startsWith("xc:") || lower.startsWith("canvas:")) {
         const colorStr = baseToken.slice(baseToken.indexOf(":") + 1) || "white";
-        const c = parseColor(colorStr);
-        return yield* applyMod([{ ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c)), hasAlpha: c.a < 255 }]);
+        const c = parseColor(colorStr, true);
+        return yield* applyMod([{ ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c, [c.r, c.g, c.b, c.a].some(value => !Number.isInteger(value)))), hasAlpha: c.a < 255 }]);
     }
     if (lower.startsWith("gradient:") || lower.startsWith("radial-gradient:")) {
         const radial = lower.startsWith("radial-gradient:");
@@ -13499,8 +13499,8 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const metadata=haldInputMetadata(baseToken);
   image=await transformStoredMagickRaster({...metadata,position:0},backend,haldInputPixelSteps(metadata.width),signal);
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
-  const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(baseToken.slice(baseToken.indexOf(":")+1)||"white"),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
-  image={...await createStoredCanvas(width,height,color,backend,signal),hasAlpha:color.a<255,...(lower==="null:"?{[magickInput]:{filePath:"null:"}}:{})};
+  const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(baseToken.slice(baseToken.indexOf(":")+1)||"white",true),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
+  image={...await createStoredCanvas(width,height,color,backend,signal,[color.r,color.g,color.b,color.a].some(value=>!Number.isInteger(value))),hasAlpha:color.a<255,...(lower==="null:"?{[magickInput]:{filePath:"null:"}}:{})};
  }else if(lower.startsWith("plasma:")){
   const spec=baseToken.slice(7),fractal=spec.toLowerCase()==="fractal",[first,last]=fractal?[]:spec.split("-");
   const metadata={width:state.sizeWidth,height:state.sizeHeight,format:"png" as const,channels:3 as const,depth:"ushort" as const,space:"srgb" as const,density:72,hasAlpha:false};

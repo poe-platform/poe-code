@@ -1101,7 +1101,7 @@ function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | 
         throw new Error("evaluate-sequence requires at least one image");
     }
     const first = typeof opRaw === "string" ? sequenceCanvas(stack) : stack[0]!;
-    const base = (typeof opRaw !== "string" || first.space !== "cmyk") && stack.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
+    const base = first.space !== "cmyk" && stack.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
     const w = stack.reduce((width, image) => Math.max(width, image.width), 0);
     const h = stack.reduce((height, image) => Math.max(height, image.height), 0);
     const normalized = (yield* mapSteps(stack, function* (im) {
@@ -12731,10 +12731,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }
                     }
                     const first = (await stack.get(terms ? 0 : frames.indexOf(sequenceCanvas(frames))))!;
-                    const base: StoredRgbaImage = (terms || first.space !== "cmyk") && frames.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
+                    const base: StoredRgbaImage = first.space !== "cmyk" && frames.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
                     // Keep the native mask channel while resetting its protection.
                     const storedWriteMask = (terms ? frames.some(image => image.storedWriteMask) : base.storedWriteMask) ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
-                    const result = await transformStoredMagickRaster({ ...base, isPalette: false, inactiveAlpha: false }, backend, (terms ? polyPixelSteps(base.width * base.height * 4, frames, terms, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth) : evaluateSequencePixelSteps(base.width * base.height * 4, frames, operation, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a, settings.channels.k === true] : undefined, highDepth, settings.seed ?? 0n, base.width)), signal, { ...base, hasAlpha: frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);
+                    const result = await transformStoredMagickRaster({ ...base, isPalette: false, inactiveAlpha: false }, backend, (terms ? polyPixelSteps(base.width * base.height * 4, frames, terms, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a, settings.channels.k === true] : undefined, highDepth) : evaluateSequencePixelSteps(base.width * base.height * 4, frames, operation, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a, settings.channels.k === true] : undefined, highDepth, settings.seed ?? 0n, base.width)), signal, { ...base, hasAlpha: frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);
                     if (base.storedMetaChannels?.length) {
                         result.storedMetaChannels = [];
                         for (let channel = 0; channel < base.storedMetaChannels.length; channel++) {

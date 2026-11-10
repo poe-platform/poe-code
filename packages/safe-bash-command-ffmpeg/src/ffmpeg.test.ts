@@ -1469,7 +1469,7 @@ describe("input -sseof", () => {
     it(`rejects missing value or output placement: ${args.join(" ")}`, async () => {
       const vfs = createTestVfs();
       const result = await runCmd(createFfmpegCommand(), args, vfs);
-      assert.equal(result.exitCode, 1);
+      assert.equal(result.exitCode, args.length === 1 ? 1 : 234);
       assert.ok(result.stderr.includes("-sseof"), result.stderr);
       assert.equal(vfs.store.size, 0);
     });
@@ -1479,7 +1479,7 @@ describe("input -sseof", () => {
       const vfs = createTestVfs({ "/out.wav": "keep" });
       const args = ["-y", "-sseof", value, "-i", "/in.wav", "/out.wav"];
       const result = await runCmd(createFfmpegCommand(), args, vfs);
-      assert.equal(result.exitCode, 1);
+      assert.equal(result.exitCode, 234);
       assert.ok(result.stderr.includes("-sseof"), result.stderr);
       assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path), () => { assert.fail("unexpected write"); }), undefined);
       assert.equal(new TextDecoder().decode(vfs.store.get("/out.wav")), "keep");

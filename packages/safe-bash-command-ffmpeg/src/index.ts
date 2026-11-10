@@ -7832,7 +7832,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const val = parseHlsDuration(args[++i] ?? "");
             if (!Number.isFinite(val) || val >= 0 || !args.slice(i + 1).includes("-i")) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: -sseof requires a negative duration before an input\n"), context.signal);
-              return { exitCode: 1 };
+              return { exitCode: i < args.length ? 234 : 1 };
             }
             pendingSseof = val;
           } else if (arg === "-ss") {

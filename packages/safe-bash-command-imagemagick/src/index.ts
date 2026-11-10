@@ -17907,6 +17907,21 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
                 [sizes[left], sizes[right]] = [sizes[right]!, sizes[left]!];
             }
         }
+        else if (t === "-swap" || t === "+swap") {
+            const spec = t === "-swap" ? argv[++i] : "-2,-1";
+            if (spec === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -swap\n" };
+            try {
+                const [first, second] = parseMagickSwapPositions(spec);
+                const a = first! < 0 ? operands.length + first! : first!;
+                const b = second! < 0 ? operands.length + second! : second!;
+                if (operands[a] === undefined || operands[b] === undefined) throw new Error(`invalid image index ${t}`);
+                [operands[a], operands[b]] = [operands[b]!, operands[a]!];
+                [labels[a], labels[b]] = [labels[b]!, labels[a]!];
+                [sizes[a], sizes[b]] = [sizes[b]!, sizes[a]!];
+            } catch (error) {
+                return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
+            }
+        }
         else if (t === "-duplicate" || t === "+duplicate" || t === "-clone" || t === "+clone") {
             const operation = t.endsWith("clone") ? "clone" : "duplicate";
             let count = 1, spec = "-1";

@@ -9149,12 +9149,12 @@ function parseMagickOrientation(value: string): number {
     return orientation;
 }
 
-function parseMagickUnits(value: string): NonNullable<MagickState["units"]> {
+function parseMagickUnits(value: string): MagickState["units"] {
     switch (value.toLowerCase()) {
         case "pixelsperinch": return "inch";
         case "pixelspercentimeter": return "cm";
         case "undefined": return "unknown";
-        default: throw new Error(`unrecognized units type '-units' '${value}'`);
+        default: return undefined;
     }
 }
 
@@ -9816,7 +9816,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         if (t === "-units") {
-            const units = state.units = parseMagickUnits(tokens[++i] ?? "");
+            const value = tokens[++i] ?? "";
+            const units = parseMagickUnits(value);
+            if (units === undefined) throw new Error(`unrecognized units type '-units' '${value}'`);
+            state.units = units;
             stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return applyMagickUnits(image, units); });
             i++;
             continue;
@@ -9860,7 +9863,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     analysis.warnings += `magick: attempt to set read-only property '${expandedKey}'\n`;
                     return image;
                 }
-                if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
+                if (expandedKey.toLowerCase() === "units") {
+                    const unit = (state.units === "unknown" ? undefined : state.units) ?? parseMagickUnits(expanded);
+                    return unit === undefined ? image : applyMagickUnits(image, unit);
+                }
                 if (expandedKey.toLowerCase() === "colorspace") return yield* setColorspacePixels(image, expanded);
                 if (expandedKey.toLowerCase() === "type") return setMagickType(image, expanded);
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: parseInt(expanded, 10) || 0 };
@@ -12188,7 +12194,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-units") {
-            const units = state.units = parseMagickUnits(tokens[++i] ?? "");
+            const value = tokens[++i] ?? "";
+            const units = parseMagickUnits(value);
+            if (units === undefined) throw new Error(`unrecognized units type '-units' '${value}'`);
+            state.units = units;
             steps.push(async image => image ? applyMagickUnits(image, units) : undefined);
             continue;
         }
@@ -12226,7 +12235,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-set" && !tokens[i + 1]?.toLowerCase().startsWith("option:") && !tokens[i + 1]?.toLowerCase().startsWith("connected-components:")) {
             const key = tokens[++i] ?? "", value = tokens[++i] ?? "";
-            const optionProperties = state.optionProperties;
+            const optionProperties = state.optionProperties, units = state.units === "unknown" ? undefined : state.units;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expandedKey = await formatRetainedIdentify(key, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
@@ -12235,7 +12244,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     analysis.warnings += `magick: attempt to set read-only property '${expandedKey}'\n`;
                     return image;
                 }
-                if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
+                if (expandedKey.toLowerCase() === "units") {
+                    const unit = units ?? parseMagickUnits(expanded);
+                    return unit === undefined ? image : applyMagickUnits(image, unit);
+                }
                 if (expandedKey.toLowerCase() === "colorspace") return transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: image => setColorspacePixels(image, expanded) }, signal);
                 if (expandedKey.toLowerCase() === "type") return setMagickType(image, expanded);
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: parseInt(expanded, 10) || 0 };

@@ -93,3 +93,46 @@ for (const mode of ["buffered", "retained", "command"]) {
     });
   }
 }
+
+for (const mode of ["buffered", "retained", "command"]) {
+  for (const [active, assigned, expected] of [
+    ["PixelsPerCentimeter", "PixelsPerInch", "PixelsPerCentimeter"],
+    ["PixelsPerInch", "PixelsPerCentimeter", "PixelsPerInch"],
+    ["PixelsPerInch", "marker", "PixelsPerInch"],
+    [undefined, "marker", "Undefined"],
+    ["PixelsPerInch", "PixelsPerInch", "PixelsPerInch"],
+    ["PixelsPerCentimeter", "PixelsPerCentimeter", "PixelsPerCentimeter"],
+    [undefined, "PixelsPerCentimeter", "PixelsPerCentimeter"],
+    ["Undefined", "PixelsPerCentimeter", "PixelsPerCentimeter"],
+  ] as const) {
+    it(`sets units ${assigned} with active ${active ?? "default"} (${mode})`, async () => {
+      const keep = new TextEncoder().encode("KEEP");
+      const fs = new MemoryFileSystem(), files = new Map([["/out", keep]]);
+      await fs.writeFile("/out", keep);
+      const args = ["xc:red", "-density", "120", ...(active ? ["-units", active] : []),
+        "-set", "units", assigned, "-format", "%x/%y/%U;", "info:/out"];
+      const result = mode === "command" ? await createMagickCommand().execute({ command: "magick",
+        args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} } })
+        : await runConvertCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+      expect(result).toMatchObject({ exitCode: 0 });
+      const output = mode === "buffered" ? files.get("/out")! : await fs.readFile("/out");
+      expect(new TextDecoder().decode(output)).toBe(`120/120/${expected};`);
+    });
+  }
+}
+
+for (const mode of ["buffered", "retained"] as const) {
+  it(`uses the units active at each property assignment (${mode})`, async () => {
+    const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
+    const result = await runConvertCli(["xc:red", "-density", "120", "-set", "units", "PixelsPerCentimeter",
+      "-set", "units", "marker", "-write", "/first.tiff", "-units", "PixelsPerInch", "-set", "units", "marker", "/second.tiff"],
+      mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+    expect(result).toMatchObject({ exitCode: 0 });
+    for (const [path, unit] of [["/first.tiff", "cm"], ["/second.tiff", "inch"]] as const) {
+      expect(readImageMetadata(mode === "buffered" ? files.get(path)! : await fs.readFile(path)))
+        .toMatchObject({ resolution: { x: 120, y: 120, unit } });
+    }
+  });
+}

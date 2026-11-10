@@ -4,6 +4,11 @@ import { magickIntensity } from "./intensity.js";
 // Stable merge sort uses one scanline of pixels and yields during wide-row work.
 export function* sortPixelSteps(image: { width: number; height: number; space?: string | undefined; magickColorspace?: string | undefined }, method: string, mask = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image;
+    const colorspace = image.magickColorspace ?? (image.space === "cmyk" ? "CMYK" : "sRGB");
+    // Native luminance decodes gamma only for sRGB/Gray, not other working spaces.
+    const linear = method === "rec601luminance" || method === "rec709luminance"
+        ? colorspace !== "sRGB" && colorspace !== "Gray"
+        : colorspace === "RGB";
     const row = new Uint16Array(width * 4), intensities = new Float64Array(width);
     // 512 RGBA float pixels fit the 16 KiB paged-storage read limit.
     const working: { hue?: Float64Array; evaluate?: Float64Array } = {};
@@ -29,7 +34,7 @@ export function* sortPixelSteps(image: { width: number; height: number; space?: 
                 const quantum = working.hue ? 1 : working.evaluate ? 255 : 65535;
                 for (let x = left; x < left + count; x++) {
                     order[x] = x;
-                    intensities[x] = magickIntensity(samples[x * 4]!, samples[x * 4 + 1]!, samples[x * 4 + 2]!, method, quantum, image.magickColorspace === "RGB");
+                    intensities[x] = magickIntensity(samples[x * 4]!, samples[x * 4 + 1]!, samples[x * 4 + 2]!, method, quantum, linear);
                 }
             }
         }

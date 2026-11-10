@@ -73,7 +73,7 @@ import { parseMagickPoly, polyPixelSteps } from "./poly-kernel.js";
 import { type LookupInterpolation, type ChannelAssignment, clutPixelSteps, haldClutPixelSteps, channelFxPixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { withImageInputs } from "./image-input.js";
-import { srgbDepthEnumerationLine, gray16EnumerationLine, pixelEnumerationLine, histogramLine, storedPixelEnumeration, storedHistogram, sparseColorPoints, storedSparseColor, encodeText } from "./text-output.js";
+import { srgbDepthEnumerationLine, gray16EnumerationLine, pixelEnumerationLine, histogramLine, floatingHistogramKey, floatingHistogramLine, storedPixelEnumeration, storedHistogram, sparseColorPoints, storedSparseColor, encodeText } from "./text-output.js";
 import { StoredImageStack, magickInput, type MagickFormatContext, type StoredMagickImage } from "./stored-stack.js";
 import { remapColorOrder, remapStoredImage } from "./remap.js";
 import { drawReplacePixelSteps } from "./draw-replace.js";
@@ -1931,19 +1931,20 @@ function* formatTxtEnumerationSteps(img: RgbaImage, depth?: number): Generator<v
 }
 
 function* formatHistogramOutputSteps(img: RgbaImage): Generator<void, string, void> {
+    const floating = img.space === "srgb" && img.evaluateSamples !== undefined && (!img.magickColorspace || img.magickColorspace === "RGB");
     let work = 0;
     const counts = new Map<number | bigint | string, number>();
     for (let i = 0; i < img.data.length; i += 4) {
         if (++work % 16384 === 0)
             yield;
-        const key = (img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "OHTA" || img.magickColorspace === "YUV" || img.magickColorspace === "Luv" || img.magickColorspace === "CIELab") ? hueTextPixel(Array.from(img.data16?.subarray(i, i + 4) ?? img.data.subarray(i, i + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace, (img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "OHTA" || img.magickColorspace === "YUV" || img.magickColorspace === "Luv" || img.magickColorspace === "CIELab") && img.hueSamples ? Array.from(img.hueSamples.subarray(i, i + 4)) : undefined) : img.data16 ? img.data16.subarray(i, i + 4).reduce((key, value) => (key << 16n) | BigInt(value), 0n) : ((img.data[i]! << 24) | (img.data[i + 1]! << 16) | (img.data[i + 2]! << 8) | img.data[i + 3]!) >>> 0;
+        const key = floating ? floatingHistogramKey(img.evaluateSamples!.subarray(i, i + 4), img.hasAlpha) : (img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "OHTA" || img.magickColorspace === "YUV" || img.magickColorspace === "Luv" || img.magickColorspace === "CIELab") ? hueTextPixel(Array.from(img.data16?.subarray(i, i + 4) ?? img.data.subarray(i, i + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace, (img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "OHTA" || img.magickColorspace === "YUV" || img.magickColorspace === "Luv" || img.magickColorspace === "CIELab") && img.hueSamples ? Array.from(img.hueSamples.subarray(i, i + 4)) : undefined) : img.data16 ? img.data16.subarray(i, i + 4).reduce((key, value) => (key << 16n) | BigInt(value), 0n) : ((img.data[i]! << 24) | (img.data[i + 1]! << 16) | (img.data[i + 2]! << 8) | img.data[i + 3]!) >>> 0;
         counts.set(key, (counts.get(key) ?? 0) + 1);
     }
     const lines: string[] = [];
     for (const [key, cnt] of [...counts.entries()].sort(([a], [b]) => typeof a !== "string" && typeof b !== "string" ? a < b ? -1 : a > b ? 1 : 0 : 0)) {
         if (++work % 16384 === 0)
             yield;
-        lines.push(typeof key === "string" ? `  ${cnt}: ${key}` : histogramLine(key, cnt, img.hasAlpha));
+        lines.push(floating ? floatingHistogramLine(key as bigint, cnt, img.hasAlpha, !!img.data16) : typeof key === "string" ? `  ${cnt}: ${key}` : histogramLine(key, cnt, img.hasAlpha));
     }
     return lines.join("\n") + "\n";
 }

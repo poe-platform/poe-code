@@ -1123,6 +1123,7 @@ function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | 
     const w = stack.reduce((width, image) => Math.max(width, image.width), 0);
     const h = stack.reduce((height, image) => Math.max(height, image.height), 0);
     const normalized = (yield* mapSteps(stack, function* (im) {
+        if (state.virtualPixel !== undefined) im = { ...im, virtualPixel: state.virtualPixel };
         if (im.virtualPixel === "transparent" || (im.virtualPixel === "background" || im.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255) im = { ...im, hasAlpha: true };
         if (im.width === w && im.height === h) return im;
         return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h, !!im.data16, im.virtualPixel, state.background), signal, { ...im, width: w, height: h });
@@ -13865,13 +13866,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const frames: StoredRgbaImage[] = [];
                     let highDepth = false;
                     for (let index = 0; index < stack.length; index++) {
-                        const image: StoredRgbaImage = (await stack.get(index))!;
+                        let image: StoredRgbaImage = (await stack.get(index))!;
+                        if (settings.virtualPixel !== undefined) image = { ...image, virtualPixel: settings.virtualPixel };
                         width = Math.max(width, image.width); height = Math.max(height, image.height);
                         frames.push({ ...image, hasAlpha: image.hasAlpha || image.virtualPixel === "transparent" || (image.virtualPixel === "background" || image.virtualPixel?.endsWith("-tile") === true) && settings.background.a < 255 });
                         highDepth ||= !!image.storedData16;
                     }
                     for (let index = 0; index < stack.length; index++) {
-                        const image: StoredRgbaImage = (await stack.get(index))!;
+                        const image = frames[index]!;
                         if (image.width !== width || image.height !== height) {
                             const virtualCanvas = magickResizeCanvas(image, width, height);
                             await stack.set(index, { ...await transformStoredMagickRaster(image, backend, extendEdgePixelSteps(image, width, height, !!image.storedData16, image.virtualPixel, settings.background), signal, { ...image, width, height }), ...(virtualCanvas ? { virtualCanvas } : {}) });

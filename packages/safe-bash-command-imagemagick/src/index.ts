@@ -9020,6 +9020,7 @@ if (t === "-intent" || t === "+intent") {
             state.density = Math.max(1, Math.round(g.width ?? 72));
         }
         else if (t === "+fuzz") {
+            state.optionProperties = { ...state.optionProperties, fuzz: "0" };
             state.alphaFuzz = 0;
             state.fuzz = 0;
         }
@@ -9030,6 +9031,7 @@ if (t === "-intent" || t === "+intent") {
             if (value.trim() === "" || !Number.isFinite(fuzz)) {
                 throw new Error(`invalid argument for option '-fuzz': ${rawFuzz}`);
             }
+            state.optionProperties = { ...state.optionProperties, fuzz: rawFuzz };
             // Keep existing color-operation tolerance; alpha uses native Q16 units.
             state.alphaFuzz = rawFuzz.endsWith("%") ? fuzz * 255 / 100 : fuzz / 257;
             state.fuzz = rawFuzz.endsWith("%")

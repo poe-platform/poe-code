@@ -2589,6 +2589,7 @@ function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a
     a: 16, alpha: 16, o: 16,
     all: 31, default: 0x7ffffff, sync: 0x20000, k: 8, black: 8,
     "0": 1, "1": 2, "2": 4, "3": 8, "4": 16,
+    "5": 32, "6": 64, "7": 128, "8": 256, "9": 512,
     readmask: 64, writemask: 128, meta: 256
   };
   let selected = 0;
@@ -2599,7 +2600,9 @@ function parseChannelMask(spec: string): { r: boolean; g: boolean; b: boolean; a
     let end = 0;
     while (end < trimmed.length && trimmed[end]!.trim() !== "") end++;
     const token = trimmed.slice(0, end);
-    const name = token.startsWith("!") ? token.slice(1) : token;
+    let name = token.startsWith("!") ? token.slice(1) : token;
+    const channelNumber = Number(name);
+    if (Number.isInteger(channelNumber) && channelNumber >= 10 && channelNumber <= 31 && name === String(channelNumber)) name = `meta${channelNumber - 10}`;
     const suffix = name.slice(4);
     if (name.startsWith("meta") && suffix.length > 0 && [...suffix].every(c => c >= "0" && c <= "9") && Number.isSafeInteger(Number(suffix))) {
       if (token.startsWith("!")) meta.delete(Number(suffix));

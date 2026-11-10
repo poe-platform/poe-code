@@ -24,9 +24,9 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
     .flatMap(output => Object.entries(output.inputs))
     .filter(([path, input]) => path.includes("/media-codecs/") && input.bytesInOutput > 0);
   assert.equal(codecImplementations.length, 1);
-  // Current portable codec runtime measures 9,069,919 emitted bytes.
+  // Current portable codec runtime measures 9,075,704 emitted bytes.
   const codecBytes = codecImplementations[0]![1].bytesInOutput;
-  assert.ok(codecBytes < 9_075_000, "the focused portable codec must remain bounded");
+  assert.ok(codecBytes < 9_080_000, "the focused portable codec must remain bounded");
   const otherCodeBytes = Object.values(result.metafile.outputs)
     .flatMap(output => Object.entries(output.inputs))
     .filter(([path]) => !["/media-codecs/", "/image-ast/", "/pdf-ast/"].some(owner => path.includes(owner)))
@@ -192,7 +192,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Current dependency graph and scheduled stereowiden feedback measure about 1.463 MB.
   // Current command graph with scheduled afade unity updates measures about 1.473 MB.
   // Current dependency graph and per-frame atrim bounds measure about 1.49 MB.
-  assert.ok(otherCodeBytes < 1_500_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes current decimate options and clean-source graph routing (1,555,037 bytes).
+  assert.ok(otherCodeBytes < 1_560_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.
@@ -294,6 +295,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Current dependencies plus the dialogue FFT measure 12,817,734 bytes.
   // Current dependencies and scheduled stereowiden feedback measure about 12.839 MB.
   // Current dependencies and per-frame atrim bounds measure about 12.873 MB.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 12_885_000,
+  // Current portable graph with two-input decimation measures 13,212,355 bytes.
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 13_225_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

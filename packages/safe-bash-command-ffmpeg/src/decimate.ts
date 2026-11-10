@@ -3,16 +3,19 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 
 export async function decimate(
   frames: MediaVideoFrame[], cycle: number, mixed: boolean, dupthresh: number, sceneThreshold: number, chroma: boolean,
-  blockx: number, blocky: number, budget: MediaBudgetTracker, signal?: AbortSignal
+  blockx: number, blocky: number, budget: MediaBudgetTracker, signal?: AbortSignal, cleanFrames?: MediaVideoFrame[]
 ): Promise<MediaVideoFrame[]> {
   const output: MediaVideoFrame[] = [];
   const duration = (frames[0]?.durationSeconds ?? 0) * cycle / (cycle - 1);
   if (!(duration > 0)) throw new Error("decimate: a positive input frame rate is required");
   let previous: MediaVideoFrame["native"];
   let start = 0;
-  for (let base = 0; base < frames.length; base += cycle) {
+  const length = cleanFrames ? Math.min(frames.length, cleanFrames.length) : frames.length;
+  for (let base = 0; base < length; base += cycle) {
     let lowest = base, lowestDifference = Infinity, scene = -1;
-    const end = Math.min(base + cycle, frames.length);
+    const end = Math.min(base + cycle, length);
+    // Native two-input EOF drops a pending singleton rather than flushing a cycle.
+    if (cleanFrames && end - base === 1) break;
     for (let i = base; i < end; i++) {
       await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
       const frame = frames[i]!;
@@ -81,7 +84,7 @@ export async function decimate(
       const ptsSeconds = mixed && previousOutput
         ? previousOutput.ptsSeconds + previousOutput.durationSeconds
         : start + output.length * duration;
-      output.push({ ...frame, ptsSeconds, durationSeconds: outputDuration });
+      output.push({ ...(cleanFrames?.[i] ?? frame), ptsSeconds, durationSeconds: outputDuration });
     }
   }
   return output;

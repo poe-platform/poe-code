@@ -21,6 +21,7 @@ import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
 import { tmix } from "./tmix.js";
 import { decimate } from "./decimate.js";
+import { parseDecimateGraph } from "./decimate-graph.js";
 import { cutSubAudio } from "./audio-asubcut.js";
 import { boostSubAudio } from "./audio-asubboost.js";
 import { highpassAudio } from "./audio-highpass.js";
@@ -2016,7 +2017,8 @@ async function applyVideoFilterChain(
   diagnostics: { sar: number; sarWidth: number; sarHeight: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void> },
   readSubtitle: (filename: string) => Promise<Uint8Array>,
   registry: ReturnType<typeof createMediaAstRegistry>,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  cleanFrames?: MediaVideoFrame[]
 ): Promise<MediaVideoFrame[]> {
   let work = 0;
 
@@ -3527,7 +3529,7 @@ async function applyVideoFilterChain(
       const dupthresh = Number(named.dupthresh ?? "1.1");
       const sceneThreshold = Number(named.scthresh ?? "15");
       if (named.mixed === "" || positional.slice(1, argStr.endsWith(":") ? -1 : undefined).some(part => !part.includes("=")) ||
-          Object.keys(named).some(key => key !== "cycle" && key !== "mixed" && key !== "dupthresh" && key !== "scthresh" && key !== "chroma" && key !== "blockx" && key !== "blocky") ||
+          Object.keys(named).some(key => key !== "ppsrc" && key !== "cycle" && key !== "mixed" && key !== "dupthresh" && key !== "scthresh" && key !== "chroma" && key !== "blockx" && key !== "blocky") ||
           cycle < 2 || cycle > 25) {
         throw new Error("decimate: expected cycle from 2 to 25 and optional mixed/chroma Booleans");
       }
@@ -3549,7 +3551,11 @@ async function applyVideoFilterChain(
           throw new Error("decimate: blockx and blocky must be powers of two from 4 to 512");
         }
       }
-      current = await decimate(current, roundToEven(cycle), mixed, dupthresh, sceneThreshold, chroma, blockx, blocky, budget, signal);
+      if (named.ppsrc === "") throw new Error("decimate: ppsrc must be a boolean");
+      const ppsrc = parseFilterBoolean(named.ppsrc ?? "0", "decimate: ppsrc must be a boolean");
+      if (ppsrc !== (cleanFrames !== undefined)) throw new Error("decimate: ppsrc requires exactly two inputs when enabled and one when disabled");
+      current = await decimate(current, roundToEven(cycle), mixed, dupthresh, sceneThreshold, chroma, blockx, blocky, budget, signal, cleanFrames);
+      cleanFrames = undefined;
     } else if (name === "mpdecimate") {
       if (argStr) throw new Error("mpdecimate: custom options are unsupported");
       const retained: typeof current = [];
@@ -8839,6 +8845,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             let workingDoc: MediaDocument;
             let audioOrdinal = 0;
             let audioSinks: { track: MediaTrack; expression: string }[] = [];
+            let decimateSource: { doc: MediaDocument; track: MediaTrack } | undefined;
+            const decimateGraph = filterComplex ? parseDecimateGraph(filterComplex, maps) : undefined;
             const feedback = filterComplex ? parseFeedbackGraph(filterComplex, maps) : undefined;
             if (filterComplex) {
               if (features.filterGraph === false) {
@@ -8852,6 +8860,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (!doc || !track) throw new Error("feedback: video input is unavailable");
                 workingDoc = { ...doc, tracks: [track] };
                 vfFilters.push("null");
+              } else if (decimateGraph) {
+                if (vfFilters.length) throw new Error("decimate: cannot combine simple and complex video filters");
+                const selected = decimateGraph.inputs.map(({ input, ordinal }) => {
+                  const doc = loadedDocs[input];
+                  const track = doc?.tracks.filter(track => track.type === "video")[ordinal];
+                  if (!doc || !track) throw new Error(`decimate: video input ${input}:v:${ordinal} is unavailable`);
+                  return { doc, track };
+                });
+                const main = selected[0]!;
+                decimateSource = selected[1];
+                workingDoc = { ...main.doc, tracks: [main.track] };
+                vfFilters.push(decimateGraph.expression);
               } else if (filterComplex.includes("showwavespic")) {
                 let expression = filterComplex.trim();
                 let input = "0:a:0";
@@ -9571,7 +9591,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       tiles, feedback.filter, budget, { ...diagnostics }, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal
                     ), budget, context.signal)
                     : displayed;
-                  const filtered = await applyVideoFilterChain(inputFrames, combinedChain, budget, diagnostics, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal);
+                  const cleanFrames = decimateSource
+                    ? await ensureDecodedFrames(decimateSource.track, decimateSource.doc.timescale, budget, context.signal) : undefined;
+                  const filtered = await applyVideoFilterChain(inputFrames, combinedChain, budget, diagnostics, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal, cleanFrames);
                   const first = filtered[0];
                   return {
                     ...t,

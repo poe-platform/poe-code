@@ -26,7 +26,7 @@ for (const { inputs, expected } of [...cases, ...(layers ? [{ inputs: ["xc:#1245
         stderr: { async write() {} },
       }) : route === "sync" ? runMagickCliSync(args, new Map()) : await runMagickCli(args, new Map());
       expect(result.exitCode).toBe(0);
-      const hex = "stdoutBytes" in result ? Buffer.from(result.stdoutBytes!).toString("hex") : stdout;
+      const hex = "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? Buffer.from(result.stdoutBytes).toString("hex") : stdout;
       expect(hex).toBe(expected);
     });
   }

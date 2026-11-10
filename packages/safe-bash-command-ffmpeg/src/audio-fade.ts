@@ -50,7 +50,7 @@ export async function fadeAudio(
       const index = number - floor === 0.5 ? floor + Math.abs(floor % 2) : Math.round(number);
       curve = entries[index + 1]![1];
     } else if (key === "enable") {
-      parseFilterExpression(value, "afade enable", { n: 0, t: 0, pos: NaN, w: 0 });
+      parseFilterExpression(value, "afade enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 });
       enable = value;
     } else {
       const time = key === "st" || key === "start_time" || key === "d" || key === "duration";
@@ -124,7 +124,7 @@ export async function fadeAudio(
     if (enable !== undefined && (i === 0 || i === frame?.start)) {
       enabled = Math.abs(parseFilterExpression(enable, "afade enable", {
         n: frameIndex, t: (frame?.pts ?? startSample) / sampleRate,
-        pos: frame?.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0
+        pos: frame?.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0, h: 0
       })) >= 0.5;
     }
     let pts = frame ? frame.pts + i - frame.start : startSample + i;

@@ -8493,7 +8493,7 @@ function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 
     // CMYK stores K at working offset 3; alpha remains in the RGBA backing.
     const workingSamples = channel === 3 ? undefined : hueSamples;
     const samples = workingSamples ?? image.evaluateSamples;
-    if (!samples && !image.writeMask && !image.region) return separated;
+    if (!missingChannel && !samples && !image.writeMask && !image.region) return separated;
     const evaluateSamples = new Float64Array(image.data.length);
     for (let offset = 0; offset < evaluateSamples.length; offset += 4) {
         if (offset % 65536 === 0) yield;
@@ -8513,7 +8513,8 @@ function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 
         }
         evaluateSamples[offset] = evaluateSamples[offset + 1] = evaluateSamples[offset + 2] = value;
         evaluateSamples[offset + 3] = 255;
-        if (workingSamples || image.writeMask || image.region) {
+        // Missing channels must clear both encoding views, including retained 16-bit alpha.
+        if (missingChannel || workingSamples || image.writeMask || image.region) {
             const bounded = Math.max(0, Math.min(255, value));
             separated.data[offset] = separated.data[offset + 1] = separated.data[offset + 2] = Math.round(bounded);
             if (separated.data16) separated.data16[offset] = separated.data16[offset + 1] = separated.data16[offset + 2] = Math.round(bounded * 257);

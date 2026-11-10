@@ -59,7 +59,7 @@ for (const [expression, limits, error] of [
   ["showwavespic=s=0x12", {}, "invalid image size"],
   ["showwavespic=split_channels=2", {}, "invalid split_channels"],
   ["showwavespic=scale=log", {}, "linear scaling"],
-  ["showwavespic=draw=full", {}, "scaled drawing"],
+  ["showwavespic=draw=invalid", {}, "invalid draw"],
   ["showwavespic=s=12x12", { maxPixelsPerFrame: 100 }, "maxPixelsPerFrame"],
   ["showwavespic=s=1200x1200", { maxMemoryBytes: 10000 }, "maxMemoryBytes"]
 ] as const) {

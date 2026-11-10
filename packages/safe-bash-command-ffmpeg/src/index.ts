@@ -1263,9 +1263,9 @@ async function renderShowwavespic(
   if (options.scale !== undefined && options.scale !== "lin" && options.scale !== "0") {
     throw new Error("showwavespic: only linear scaling is supported");
   }
-  if (options.draw !== undefined && options.draw !== "scale" && options.draw !== "0") {
-    throw new Error("showwavespic: only scaled drawing is supported");
-  }
+  const draw = options.draw ?? "scale";
+  if (!["scale", "full", "0", "1"].includes(draw)) throw new Error("showwavespic: invalid draw");
+  const full = draw === "full" || draw === "1";
   const filter = options.filter ?? "average";
   if (!["average", "peak", "0", "1"].includes(filter)) throw new Error("showwavespic: invalid filter");
   const peak = filter === "peak" || filter === "1";
@@ -1282,7 +1282,7 @@ async function renderShowwavespic(
   let work = 0;
   for (const [channel, samples] of channels.entries()) {
     const color = parseColorRgba(colors[Math.min(channel, colors.length - 1)]!);
-    if (!split) {
+    if (!split && !full) {
       // FFmpeg truncates the shared intensity before scaling each RGBA component.
       const intensity = Math.floor(255 / channels.length);
       for (let c = 0; c < 4; c++) color[c] = Math.floor(color[c]! * intensity / 255);
@@ -1303,7 +1303,7 @@ async function renderShowwavespic(
       for (let y = top; y < top + size; y++) {
         if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
         const offset = (y * width + x) * 4;
-        for (let c = 0; c < 4; c++) data[offset + c] = data[offset + c]! + color[c]!;
+        for (let c = 0; c < 4; c++) data[offset + c] = full ? color[c]! : data[offset + c]! + color[c]!;
       }
     }
   }

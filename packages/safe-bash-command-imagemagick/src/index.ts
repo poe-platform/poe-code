@@ -724,6 +724,7 @@ interface MagickState {
   magnifyMethod?: MagnifyMethod;
   modulateColorspace?: string;
   whiteBalanceVibrance?: string;
+  kmeansSeedColors?: string;
   complexSnr?: number;
   resizeFilter?: ResizeFilterSettings;
   sampleOffset?: { x: number; y: number };
@@ -9636,6 +9637,7 @@ if (t === "-intent" || t === "+intent") {
             if (key === "dither:diffusion-amount") delete state.diffusionAmount;
             if (key === "modulate:colorspace") delete state.modulateColorspace;
             if (key === "complex:snr") delete state.complexSnr;
+            if (key === "kmeans:seed-colors") delete state.kmeansSeedColors;
             if (key === "white-balance:vibrance") delete state.whiteBalanceVibrance;
             if (key === "magnify:method") delete state.magnifyMethod;
             if (key === "trim:edges") delete state.trimEdges;
@@ -9667,6 +9669,7 @@ if (t === "-intent" || t === "+intent") {
                 const unsigned = value.startsWith("+") || value.startsWith("-") ? value.slice(1) : value;
                 state.complexSnr = (unsigned.toLowerCase().startsWith("0x") ? Number.parseInt(value, 16) : Number.parseFloat(value)) || 0;
             }
+            if (filterKey === "kmeans:seed-colors") state.kmeansSeedColors = filterValue ?? "";
             if (filterKey === "white-balance:vibrance") state.whiteBalanceVibrance = filterValue ?? "";
             if (filterKey === "sample:offset") {
                 const geometry = parseMagickGeometry((filterValue ?? "").replaceAll(",", "x").replaceAll("/", "x"));
@@ -11161,7 +11164,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-kmeans") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const geometry = parseKmeansGeometry(tokens[++i] ?? "");
+            const geometry = { ...parseKmeansGeometry(tokens[++i] ?? ""), seed: state.seed, seedColors: state.kmeansSeedColors?.split(";").map(color => parseColor(color, true)) };
             if (geometry.iterations > 0) stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps({ ...image, isPalette: true }, kmeansPixelSteps(image, geometry), signal));
         }
         else if (t === "-mean-shift") {
@@ -14030,7 +14033,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const geometry = parseKmeansGeometry(tokens[++i] ?? "");
+            const geometry = { ...parseKmeansGeometry(tokens[++i] ?? ""), seed: state.seed, seedColors: state.kmeansSeedColors?.split(";").map(color => parseColor(color, true)) };
             if (geometry.iterations > 0) steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, kmeansPixelSteps(image, geometry), signal) : undefined);
         } else if (!operandsOnly && token === "-mean-shift") {
             stackStep(async stack => {

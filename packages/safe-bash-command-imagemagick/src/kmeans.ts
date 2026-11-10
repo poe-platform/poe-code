@@ -1,5 +1,6 @@
-import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { createMagickRandom } from "./random.js";
 import { quantizePixelSteps } from "./quantize.js";
 
 export function parseKmeansGeometry(raw: string): { colors: number; iterations: number; tolerance: number } {
@@ -14,32 +15,43 @@ export function parseKmeansGeometry(raw: string): { colors: number; iterations: 
 }
 
 /** Quantization seeds followed by Lloyd refinement, with bounded raster reads. */
-export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, options: ReturnType<typeof parseKmeansGeometry>): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, options: ReturnType<typeof parseKmeansGeometry> & { seedColors?: RgbaColor[] | undefined; seed?: bigint | undefined }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const length = image.width * image.height * 4, highDepth = !!(image.data16 || image.storedData16), quantum = highDepth ? 65535 : 255;
-    let depth = 1;
-    for (let n = options.colors; n > 0; n = Math.floor(n / 4)) depth++;
-    const seeds = quantizePixelSteps(length, options.colors, false, depth), colors = new Map<number, number[]>();
-    let next = seeds.next();
-    while (!next.done) {
-        const request = next.value;
-        if (request?.kind === "write") {
-            if (request.evaluate) { next = seeds.next(); continue; }
-            for (let i = 0; i < request.data.length; i += 4) {
-                const data = request.data, key = data[i]! * 0x1000000 + data[i + 1]! * 0x10000 + data[i + 2]! * 256 + data[i + 3]!;
-                if (!colors.has(key)) colors.set(key, Array.from(data.subarray(i, i + 4), value => value / 255));
-            }
-            next = seeds.next();
-        } else next = seeds.next(yield request);
+    let palette: number[][];
+    if (options.seedColors) {
+        palette = options.seedColors.slice(0, options.colors).map(color => [color.r / 255, color.g / 255, color.b / 255, color.a / 255]);
+        const random = createMagickRandom(options.seed);
+        while (palette.length < options.colors) palette.push([random(), random(), random(), image.hasAlpha ? random() : 1]);
+    } else {
+        let depth = 1;
+        for (let n = options.colors; n > 0; n = Math.floor(n / 4)) depth++;
+        const seeds = quantizePixelSteps(length, options.colors, false, depth), colors = new Map<number, number[]>();
+        let next = seeds.next();
+        while (!next.done) {
+            const request = next.value;
+            if (request?.kind === "write") {
+                if (request.evaluate) { next = seeds.next(); continue; }
+                for (let i = 0; i < request.data.length; i += 4) {
+                    const data = request.data, key = data[i]! * 0x1000000 + data[i + 1]! * 0x10000 + data[i + 2]! * 256 + data[i + 3]!;
+                    if (!colors.has(key)) colors.set(key, Array.from(data.subarray(i, i + 4), value => value / 255));
+                }
+                next = seeds.next();
+            } else next = seeds.next(yield request);
+        }
+        palette = [...colors.values()];
     }
-    let palette = [...colors.values()], assignments = palette, previousDistortion = 0, work = 0;
+    // Explicit opaque colors retain an undefined alpha trait in the native colormap.
+    const alphaTraits = palette.map((_, index) => options.seedColors ? (options.seedColors[index]?.a ?? 255) < 255 : image.hasAlpha);
+    let assignments = palette, previousDistortion = 0, work = 0;
     function* nearest(pixel: ArrayLike<number>, offset: number, centers: number[][]): Generator<undefined, { index: number; distance: number }> {
         let index = 0, distance = Infinity;
         for (let k = 0; k < centers.length; k++) {
             if (++work % 4096 === 0) yield;
             const center = centers[k]!, alpha = pixel[offset + 3]! / quantum;
-            const weight = image.hasAlpha ? alpha * center[3]! : 1;
+            const centerAlpha = alphaTraits[k] ? center[3]! : 1;
+            const weight = (image.hasAlpha ? alpha : 1) * centerAlpha;
             // Native alpha distance uses Q16 units; RGB distances are normalized.
-            let candidate = image.hasAlpha ? 3 * ((alpha - center[3]!) * 65535) ** 2 : 0;
+            let candidate = (image.hasAlpha || alphaTraits[k]) ? 3 * ((alpha - centerAlpha) * 65535) ** 2 : 0;
             for (let c = 0; c < 3; c++) candidate += weight * (pixel[offset + c]! / quantum - center[c]!) ** 2;
             if (candidate < distance) { distance = candidate; index = k; }
             if (distance === 0) break;
@@ -76,7 +88,7 @@ export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
         const output = new Uint16Array(size);
         for (let i = 0; i < size; i += 4) {
             const { index } = yield* nearest(data, i, assignments);
-            for (let c = 0; c < 4; c++) output[i + c] = Math.round(palette[index]![c]! * 65535);
+            for (let c = 0; c < 4; c++) output[i + c] = Math.round((c === 3 && !alphaTraits[index] ? 1 : palette[index]![c]!) * 65535);
         }
         yield { kind: "write", highDepth: true, position, data: new Uint8Array(output.buffer) };
     }

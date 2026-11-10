@@ -11729,6 +11729,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const plan = magickMorphologyPlan(method, geometry, true);
                 if (state.virtualPixel === "transparent" && (!state.channelExplicit || state.channels.a)) im = { ...im, hasAlpha: true };
                 const result = yield* applyMagickMorphology4ChSteps({ ...im, isPalette: false }, plan, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.virtualPixel, state.background);
+                if (im.metaChannels?.length) {
+                    result.metaChannels = [];
+                    for (const [index, plane] of im.metaChannels.entries()) {
+                        const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
+                        result.metaChannels.push(selected ? yield* applyMagickMorphology4ChSteps(plane, plan, signal, undefined, state.virtualPixel, state.background) : plane);
+                    }
+                }
                 return im.writeMask ? yield* applyMagickRasterSteps(result, statisticWriteMaskPixelSteps(im, magickMedianRows(geometry), state.virtualPixel), signal, result, [result, im, im.writeMask]) : result;
             });
         }
@@ -14277,6 +14284,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             const statType = tokens[++i] ?? "median", geom = tokens[++i] ?? "3x3";
             const optionProperties = state.optionProperties, virtualPixel = state.virtualPixel, background = state.background;
+            const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
@@ -14286,7 +14294,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const geometry = await formatRetainedIdentify(geom, image, context, async () => ({ image: image!, storage: backend.storage }), signal);
                 validateMagickStatisticGeometry(geometry);
                 if (virtualPixel === "transparent" && (!channels || channels[3])) image = { ...image, hasAlpha: true };
-                const result = await morphStoredMagickImage({ ...image, isPalette: false }, backend, magickMorphologyPlan(method, geometry, true), signal, channels, virtualPixel, background);
+                const plan = magickMorphologyPlan(method, geometry, true);
+                const result = await morphStoredMagickImage({ ...image, isPalette: false }, backend, plan, signal, channels, virtualPixel, background);
+                if (image.storedMetaChannels?.length) {
+                    result.storedMetaChannels = [];
+                    for (const [index, plane] of image.storedMetaChannels.entries())
+                        result.storedMetaChannels.push(!meta || meta.includes(index)
+                            ? await morphStoredMagickImage(plane, backend, plan, signal, undefined, virtualPixel, background) : plane);
+                }
                 return image.storedWriteMask ? transformStoredMagickRaster(result, backend, statisticWriteMaskPixelSteps(image, magickMedianRows(geometry), virtualPixel), signal, result, [result, image, image.storedWriteMask]) : result;
             });
         } else if (!operandsOnly && token === "-morphology") {

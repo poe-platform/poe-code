@@ -5721,7 +5721,8 @@ function* extentEvaluateSamples(image: Pick<RgbaImage, "width" | "hasAlpha" | "i
 function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: ReturnType<typeof magickExtentLayout>, background: RgbaColor, state: MagickState, alphaSource?: RgbaImage | StoredRgbaImage): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = "data16" in image && !!image.data16 || "storedData16" in image && !!image.storedData16;
     const evaluate = "evaluateSamples" in image && !!image.evaluateSamples || "storedEvaluateSamples" in image && image.storedEvaluateSamples !== undefined;
-    const clippedCopy = magickCompositeMode(state.composeRaw).name === "copy"
+    const compose = magickCompositeMode(state.composeRaw).name;
+    const clippedCopy = compose === "copy"
         && (layout.area?.width !== image.width || layout.area.height !== image.height);
     const color = [background.r, background.g, background.b, background.a];
     const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
@@ -5750,6 +5751,9 @@ function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: Retur
             const destination = { width: count, height: 1, hasAlpha: true, data: samples };
             const overlay = { width: right - left, height: 1, hasAlpha: alphaSource?.hasAlpha ?? image.hasAlpha, data: source };
             yield* compositePixelsSteps(destination, overlay, samples, state.composeRaw, left - x, 0, state.composeArgs, state.alphaFuzz, true);
+            // Zero CMYK inks are white in the RGB backing; black would restore full K ink.
+            if (image.space === "cmyk" && compose === "clear")
+                for (let i = (left - x) * 4; i < (right - x) * 4; i += 4) samples.fill(255, i, i + 3);
             if (channels) for (let i = (left - x) * 4; i < (right - x) * 4; i += 4)
                 for (let c = 0; c < 4; c++) if (!channels[c]) samples[i + c] = color[c]!;
         }

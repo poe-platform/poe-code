@@ -5138,7 +5138,7 @@ function thumbnailProperties(image: ImageMetadata & { [magickInput]?: MagickForm
     };
 }
 
-function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false, thumbnailPages?: number): Generator<void, RgbaImage, void> {
+function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false, thumbnailPages?: number, channels?: readonly boolean[]): Generator<void, RgbaImage, void> {
     if (thumbnail) {
         const { virtualCanvas: ignoredCanvas, xmp: ignoredXmp, ...reset } = img;
         img = { ...reset, bitsPerSample: 8, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, properties: updateMagickProperty(thumbnailProperties(reset, thumbnailPages), "comment") };
@@ -5157,15 +5157,15 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
             ? resizePixelSteps(mask, width, height, false, true, kernel, !!mask.data16, settings, true)
             : point ? pointResizePixelSteps(mask, width, height, sample, 4, sampleOffset) : resizeMaskPixelSteps(mask, width, height), undefined, { ...mask, width, height }) };
     }
-    if (img.writeMask && !sample && !scale && !point) {
+    if ((img.writeMask || channels?.some(selected => !selected)) && !sample && !scale && !point) {
         const horizontalFirst = width / img.width > height / img.height;
         let resized = img;
         for (const horizontal of [horizontalFirst, !horizontalFirst]) {
             const w = horizontal ? width : resized.width, h = horizontal ? resized.height : height;
-            const mask = resized.writeMask!;
+            const mask = resized.writeMask;
             const dimensions = { ...resized, width: w, height: h };
-            const output = yield* applyMagickRasterSteps(resized, resizePixelSteps(resized, w, h, thumbnail, false, kernel, !!resized.data16, settings, true, true, horizontal ? "horizontal" : "vertical"), undefined, dimensions, [resized, mask]);
-            resized = { ...output, writeMask: yield* applyMagickRasterSteps(mask, resizeMaskPixelSteps(mask, w, h, horizontal), undefined, dimensions) };
+            const output = yield* applyMagickRasterSteps(resized, resizePixelSteps(resized, w, h, thumbnail, false, kernel, !!resized.data16, settings, true, !!mask, horizontal ? "horizontal" : "vertical", channels), undefined, dimensions, mask ? [resized, mask] : [resized]);
+            resized = mask ? { ...output, writeMask: yield* applyMagickRasterSteps(mask, resizeMaskPixelSteps(mask, w, h, horizontal), undefined, dimensions) } : output;
         }
         const virtualCanvas = magickResizeCanvas(img, width, height);
         return virtualCanvas ? { ...resized, virtualCanvas } : resized;
@@ -5201,7 +5201,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     return virtualCanvas ? { ...resized, virtualCanvas } : resized;
 }
 
-async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: ReturnType<typeof magickResizeOptions>, signal: AbortSignal, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false, thumbnailPages?: number): Promise<StoredRgbaImage> {
+async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: ReturnType<typeof magickResizeOptions>, signal: AbortSignal, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false, thumbnailPages?: number, channels?: readonly boolean[]): Promise<StoredRgbaImage> {
     if (thumbnail) {
         const { virtualCanvas: ignoredCanvas, xmp: ignoredXmp, ...reset } = image;
         image = { ...reset, bitsPerSample: 8, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, properties: updateMagickProperty(thumbnailProperties(reset, thumbnailPages), "comment") };
@@ -5218,15 +5218,15 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
             ? resizePixelSteps(mask, width, height, false, true, options.kernel, !!mask.storedData16, settings, true)
             : point ? pointResizePixelSteps(mask, width, height, sample, 4, sampleOffset) : resizeMaskPixelSteps(mask, width, height), signal, { ...mask, width, height }) };
     }
-    if (image.storedWriteMask && !sample && !scale && !point) {
+    if ((image.storedWriteMask || channels?.some(selected => !selected)) && !sample && !scale && !point) {
         const horizontalFirst = width / image.width > height / image.height;
         let resized = image;
         for (const horizontal of [horizontalFirst, !horizontalFirst]) {
             const w = horizontal ? width : resized.width, h = horizontal ? resized.height : height;
-            const mask = resized.storedWriteMask!;
+            const mask = resized.storedWriteMask;
             const dimensions = { ...resized, width: w, height: h };
-            const output = await transformStoredMagickRaster(resized, backend, resizePixelSteps(resized, w, h, thumbnail, false, options.kernel, !!resized.storedData16, settings, true, true, horizontal ? "horizontal" : "vertical"), signal, dimensions, [resized, mask]);
-            resized = { ...output, storedWriteMask: await transformStoredMagickRaster(mask, backend, resizeMaskPixelSteps(mask, w, h, horizontal), signal, dimensions) };
+            const output = await transformStoredMagickRaster(resized, backend, resizePixelSteps(resized, w, h, thumbnail, false, options.kernel, !!resized.storedData16, settings, true, !!mask, horizontal ? "horizontal" : "vertical", channels), signal, dimensions, mask ? [resized, mask] : [resized]);
+            resized = mask ? { ...output, storedWriteMask: await transformStoredMagickRaster(mask, backend, resizeMaskPixelSteps(mask, w, h, horizontal), signal, dimensions) } : output;
         }
         const virtualCanvas = magickResizeCanvas(image, width, height);
         return virtualCanvas ? { ...resized, virtualCanvas } : resized;
@@ -12021,7 +12021,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
-                return (yield* applyMagickResizeSteps(im, expanded, k, t === "-thumbnail", t === "-sample", t === "-scale", state.resizeFilter, state.sampleOffset, false, stack.length));
+                return (yield* applyMagickResizeSteps(im, expanded, k, t === "-thumbnail", t === "-sample", t === "-scale", state.resizeFilter, state.sampleOffset, false, stack.length, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined));
             }));
         }
         else if (t === "-crop") {
@@ -15476,13 +15476,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail", settings = state.resizeFilter, sampleOffset = state.sampleOffset;
-            const optionProperties = state.optionProperties;
+            const optionProperties = state.optionProperties, channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 validateMagickTransformGeometry(expanded, token);
                 const options = magickResizeOptions(image, expanded, kernel ?? (thumbnail ? "lanczossharp" : undefined));
-                return resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, sampleOffset, false, thumbnailPages);
+                return resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, sampleOffset, false, thumbnailPages, channels);
             });
         } else if (!operandsOnly && token === "-sort-pixels") {
             stackStep(async stack => {

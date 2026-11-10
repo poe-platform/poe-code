@@ -238,7 +238,7 @@ type ResizeImage = { width: number; height: number; hasAlpha: boolean; inactiveA
 type ResizeSamples = Generator<ConvolveRequest | { kind: "samples"; position: number; data: Float64Array } | undefined, void, Uint8Array | undefined>;
 
 /** Keep HDRI samples unclamped until all resizing and morph blending is finished. */
-function* resizeSamples(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale: boolean, kernel: MagickResizeKernel, highDepth = false, settings: ResizeFilterSettings = {}, inks = false, preserveSamples = false): ResizeSamples {
+function* resizeSamples(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale: boolean, kernel: MagickResizeKernel, highDepth = false, settings: ResizeFilterSettings = {}, inks = false, preserveSamples = false, axis?: "horizontal" | "vertical"): ResizeSamples {
     // An explicit window selects the Sinc weighting function with four-lobe support.
     if (settings.window) kernel = "sinc";
     // Working CMYK rows use C, M, Y, alpha, K; black is never an alpha weight.
@@ -251,11 +251,11 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
         : kernel === "lanczossharp" ? 0.9812505644269356 : 1));
     const thumbnailFactor = thumbnail ? Math.floor(Math.min(image.width / width, image.height / height)) : 0;
     for (let left = 0; left < width; left += 256) {
-        const count = Math.min(256, width - left), horizontal = Array.from({ length: count }, (_, x) => contributions(left + x, image.width, width, blur, scale, kernel, thumbnailFactor, settings));
+        const count = Math.min(256, width - left), horizontal = Array.from({ length: count }, (_, x) => axis === "vertical" ? { first: left + x, weights: [1] } : contributions(left + x, image.width, width, blur, scale, kernel, thumbnailFactor, settings));
         const rows = new Map<number, Float64Array>();
         for (let y = 0; y < height; y++) {
             yield;
-            const vertical = contributions(y, image.height, height, blur, scale, kernel, thumbnailFactor, settings), sums = new Float64Array(count * stride);
+            const vertical = axis === "horizontal" ? { first: y, weights: [1] } : contributions(y, image.height, height, blur, scale, kernel, thumbnailFactor, settings), sums = new Float64Array(count * stride);
             for (let k = 0; k < vertical.weights.length; k++) {
                 const sy = vertical.first + k;
                 let row = rows.get(sy);
@@ -336,7 +336,7 @@ export function* resizeMaskPixelSteps(image: ResizeImage, width: number, height:
     }
 }
 
-export function* resizePixelSteps(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale = false, kernel: MagickResizeKernel = "lanczos3", highDepth = false, settings?: ResizeFilterSettings, preserveSamples = false, writeMask = false, maskedAxis?: "horizontal" | "vertical"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* resizePixelSteps(image: ResizeImage, width: number, height: number, thumbnail: boolean, scale = false, kernel: MagickResizeKernel = "lanczos3", highDepth = false, settings?: ResizeFilterSettings, preserveSamples = false, writeMask = false, axis?: "horizontal" | "vertical", channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (scale && writeMask) {
         // ScaleImage checks the resized clone's zero write-mask channel before
         // writing area averages, leaving its color and active alpha channels zero.
@@ -352,7 +352,7 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
     const inactiveAlpha = thumbnail && !image.hasAlpha && image.inactiveAlpha;
     // Deactivation retains RGB blending; disassociation retains unclamped colors.
-    const samples = resizeSamples(inactiveAlpha ? { ...image, hasAlpha: image.alphaBlend === true } : image, width, height, thumbnail, scale, kernel, highDepth, settings, cmyk, preserveSamples || !!inactiveAlpha);
+    const samples = resizeSamples(inactiveAlpha ? { ...image, hasAlpha: image.alphaBlend === true } : image, width, height, thumbnail, scale, kernel, highDepth, settings, cmyk, preserveSamples || !!inactiveAlpha, axis);
     const range = highDepth ? 65535 : 255;
     let next = samples.next();
     while (!next.done) {
@@ -373,33 +373,36 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
                 request.data[i + 3] = values[3]! * (samples?.length && highDepth ? 257 : 1);
             }
         }
-        if (maskedAxis) {
-            const horizontal = maskedAxis === "horizontal";
+        if (axis) {
+            const horizontal = axis === "horizontal";
             for (let i = 0; i < request.data.length; i += stride) {
                 const pixel = request.position / 4 + i / stride, x = pixel % width, y = Math.floor(pixel / width);
                 const sx = horizontal ? resizeCopyIndex(x, image.width, width) : x;
                 const sy = horizontal ? y : resizeCopyIndex(y, image.height, height);
                 // The authentic row/column cache starts with a zero mask and
                 // retains the copied mask from the preceding row/column.
-                let mask = 0;
-                if (horizontal ? x > 0 : y > 0) {
+                let mask = writeMask ? 0 : 65535;
+                if (writeMask && (horizontal ? x > 0 : y > 0)) {
                     const mx = horizontal ? resizeCopyIndex(x - 1, image.width, width) : x;
                     const my = horizontal ? y : resizeCopyIndex(y - 1, image.height, height);
                     const bytes = (yield { kind: "read", image: 1, highDepth: true, position: (my * image.width + mx) * 4, length: 4 })!;
                     const pixels = new Uint16Array(bytes.slice().buffer);
                     mask = 0.212656 * pixels[0]! + 0.715158 * pixels[1]! + 0.072186 * pixels[2]!;
                 }
-                if (mask <= 65535 / 2) {
+                if (mask <= 65535 / 2 || channels) {
                     const position = (sy * image.width + sx) * 4;
-                    const samples = yield { kind: "read", evaluate: true, position, length: 4 };
+                    const hue = !cmyk && !!image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "Gray";
+                    const samples = yield { kind: "read", hue, evaluate: !hue, position, length: 4 };
                     const bytes = samples?.length ? samples : (yield { kind: "read", highDepth, position, length: 4 })!;
                     const values = samples?.length ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
-                    for (let c = 0; c < 4; c++) request.data[i + c] = values[c]! * (samples?.length && highDepth ? 257 : 1);
+                    for (let c = 0; c < 4; c++) if (mask <= 65535 / 2 || channels?.[c] === false)
+                        request.data[i + c] = values[c]! * (samples?.length ? hue ? range : highDepth ? 257 : 1 : 1);
                     if (cmyk) {
                         const bytes = yield { kind: "read", hue: true, position, length: 4 };
                         const inks = bytes?.length ? new Float64Array(bytes.slice().buffer)
                             : rgbToCmyk(request.data[i]! / range, request.data[i + 1]! / range, request.data[i + 2]! / range);
-                        for (let c = 0; c < 4; c++) request.data[i + (c === 3 ? 4 : c)] = inks[c]! * range;
+                        for (let c = 0; c < 4; c++) if (mask <= 65535 / 2 || channels?.[c === 3 ? 4 : c] === false)
+                            request.data[i + (c === 3 ? 4 : c)] = inks[c]! * range;
                     }
                 }
             }

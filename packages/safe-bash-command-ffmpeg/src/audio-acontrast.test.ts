@@ -78,6 +78,37 @@ for (const filter of ["acontrast=contrast=-1", "acontrast=101", "acontrast=NaN",
   });
 }
 
+for (const graph of [false, true]) {
+  for (const [filter, status] of [
+    ["acontrast=bad", 234], ["acontrast=-1", 222], ["acontrast=101", 222],
+    ["acontrast=enable=1", 176], ["acontrast=unknown=1", 8], ["acontrast=contrast=50", 0]
+  ] as const) {
+    it(`${filter} matches native status and raw output (${graph ? "graph" : "simple"})`, async () => {
+      const pcm = Buffer.alloc(18);
+      [-30000, -12345, -401, -1, 0, 1, 401, 12345, 30000].forEach((value, i) => pcm.writeInt16LE(value, i * 2));
+      const volume = Volume.fromJSON({ "/out.raw": "KEEP", "/in.raw": pcm });
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error", "-y", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/in.raw",
+          ...(graph ? ["-filter_complex", `[0:a]${filter}[o]`, "-map", "[o]"] : ["-af", filter]),
+          "-f", "s16le", "/out.raw"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} }
+      } as never);
+      assert.equal(result.exitCode, status);
+      const expected = status === 0 ? Buffer.alloc(18) : Buffer.from("KEEP");
+      if (status === 0) {
+        [-32315, -19527, -798, -2, 0, 2, 798, 19527, 32315].forEach((value, i) => expected.writeInt16LE(value, i * 2));
+      }
+      assert.deepEqual(volume.readFileSync("/out.raw"), expected);
+    });
+  }
+}
+
 it("matches the native 7200-sample mono gain transfer", async () => {
   const samples = [[0, 600], [400, 1600], [12000, 1600], [0, 800], [4000, 1600], [0, 1000]]
     .flatMap(([amplitude, length]) => Array.from({ length: length! }, (_, i) => (i % 2 ? -amplitude! : amplitude!) / 32768));

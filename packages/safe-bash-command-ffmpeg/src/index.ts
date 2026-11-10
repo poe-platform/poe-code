@@ -10174,9 +10174,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? (index === 0 ? "contrast" : "") : option.slice(0, separator).trim();
                           const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                          if (key === "enable") throw new Error("acontrast: timeline is unsupported");
+                          if (key && key !== "contrast") throw new Error("acontrast: unknown option");
                           const value = Number(raw);
-                          if (key !== "contrast" || !raw || !Number.isFinite(value) || value < 0 || value > 100) {
+                          if (key !== "contrast" || !raw) {
                             throw new Error("acontrast: expected contrast between 0 and 100");
+                          }
+                          if (Number.isNaN(value)) throw new Error("acontrast: invalid expression");
+                          if (!Number.isFinite(value) || value < 0 || value > 100) {
+                            throw new RangeError("acontrast: contrast outside 0 to 100");
                           }
                           contrast = Math.fround(value);
                         }
@@ -13358,6 +13364,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("atrim:") && !msg.startsWith("atrim: unsupported option")) {
               return { exitCode: err instanceof RangeError ? 222 : 234 };
             }
+            if (msg === "acontrast: timeline is unsupported") return { exitCode: 176 };
+            if (msg === "acontrast: unknown option") return { exitCode: 8 };
+            if (msg === "acontrast: invalid expression") return { exitCode: 234 };
+            if (err instanceof RangeError && msg.startsWith("acontrast:")) return { exitCode: 222 };
             if (msg.startsWith("apad packet_size:") || msg === "aloop: invalid expression" || msg === "aloop: invalid or unsupported expression" ||
                 msg === "aeval: invalid expression" || msg === "aeval: invalid or unsupported expression") {
               return { exitCode: 234 };

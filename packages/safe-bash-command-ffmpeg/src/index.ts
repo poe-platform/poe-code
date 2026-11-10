@@ -1344,9 +1344,11 @@ async function panAudio(
   const inputMask = channelMask || ([0, 0x4, 0x3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][channels.length] ?? 0);
   const inputNames = speakers.filter(name => Math.floor(inputMask / audioSpeakerMasks[name]!) % 2 === 1);
   const channelIndex = (name: string, labels: string[], count: number) => {
-    const index = name.startsWith("c") && name.length > 1 &&
-      [...name.slice(1)].every(char => char >= "0" && char <= "9")
-      ? Number(name.slice(1)) : labels.indexOf(name);
+    const number = name.slice(1).trimStart();
+    const digits = number.startsWith("+") || number.startsWith("-") ? number.slice(1) : number;
+    const index = name.startsWith("c") && digits.length > 0 &&
+      [...digits].every(char => char >= "0" && char <= "9")
+      ? Number(number) : labels.indexOf(name);
     if (!name || !Number.isInteger(index) || index < 0 || index >= count) throw new Error(`pan: invalid channel ${name}`);
     return index;
   };
@@ -1405,6 +1407,12 @@ async function panAudio(
       while (expression[offset]?.trim() === "") offset++;
       if (hasGain && expression[offset] === "*") offset++;
       const channelStart = offset;
+      while (expression[offset]?.trim() === "") offset++;
+      if (expression[offset] === "c") {
+        offset++;
+        while (expression[offset]?.trim() === "") offset++;
+        if (expression[offset] === "+" || expression[offset] === "-") offset++;
+      }
       while (offset < expression.length && expression[offset] !== "+" && expression[offset] !== "-") offset++;
       const inputName = expression.slice(channelStart, offset).trim();
       const input = channelIndex(inputName, speakers, 64);

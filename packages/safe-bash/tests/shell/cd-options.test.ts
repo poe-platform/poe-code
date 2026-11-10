@@ -233,7 +233,7 @@ for (const [variable, command] of [["HOME", "cd"], ["OLDPWD", "cd -"]]) {
 for (const [script, status, diagnostic] of [
   ["cd -P link dir", 1, "cd: too many arguments\n"],
   ["cd link -P", 1, "cd: too many arguments\n"],
-  ["cd -Z link", 2, "cd: -Z: invalid option\n"],
+  ["cd -Z link", 2, "shell: line 1: cd: -Z: invalid option\ncd: usage: cd [-L|[-P [-e]]] [-@] [dir]\n"],
   ["unset HOME; cd -P", 1, "cd: HOME not set\n"],
   ["unset OLDPWD; cd -L -", 1, "cd: OLDPWD not set\n"],
 ] as const) {
@@ -276,6 +276,25 @@ test("prefixed cd preserves unexported directory attributes and restores unrelat
   assert.equal(result.stderr, "");
   assert.equal(result.stdout, 'declare -- PWD="/work/dir"\ndeclare -- OLDPWD="x"\nouter');
 });
+
+for (const [source, prefix, flag] of [
+  ["cd -x dir", "shell: line 1", "x"],
+  [":\ncd -LxP dir", "shell: line 2", "x"],
+  ["bash -c 'cd -Z dir' named-script", "named-script: line 1", "Z"],
+  ["bash /work/invalid-cd.sh", "/work/invalid-cd.sh: line 2", "x"],
+] as const) {
+  test(`invalid cd flags include Bash 5.3 usage and context: ${source}`, async context => {
+    const { fs, shell } = await fixture();
+    context.after(() => shell.dispose());
+    await fs.writeFile("/work/invalid-cd.sh", new TextEncoder().encode(":\ncd -x dir\n"));
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, `${prefix}: cd: -${flag}: invalid option\ncd: usage: cd [-L|[-P [-e]]] [-@] [dir]\n`);
+    const state = await shell.exec('printf "%s|%s|" "$PWD" "$OLDPWD"; pwd -P');
+    assert.equal(state.stdout, "/work|/search/link|/work\n");
+  });
+}
 
 test("cd -P publishes prefix bindings and keeps subshell cwd isolated", async context => {
   const { shell } = await fixture();

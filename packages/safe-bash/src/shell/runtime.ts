@@ -8103,7 +8103,11 @@ export class Runtime {
         await lookup.charge(1);
         const flag = option[index]!;
         if (flag === "L" || flag === "P") physical = flag === "P";
-        else { await writeDiagnostic(context.stderr, `cd: -${flag}: invalid option\n`); return 2; }
+        else {
+          await this.diagnostic(context, `cd: -${flag}: invalid option`);
+          await writeDiagnostic(context.stderr, "cd: usage: cd [-L|[-P [-e]]] [-@] [dir]\n");
+          return 2;
+        }
       }
     }
     if (args.length - offset > 1) { await writeDiagnostic(context.stderr, `${name}: too many arguments\n`); return 1; }

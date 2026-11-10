@@ -14498,13 +14498,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (err instanceof AlimiterError || err instanceof CompandError || unnamedChannel || unsupportedPanOrder) {
               if ((unnamedChannel || unsupportedPanOrder || ((err instanceof AlimiterError || err instanceof CompandError) && err.stage === "configuration")) && outputFormat !== "null" &&
                   !isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {
-                (msg.startsWith("transpose:") && !msg.startsWith("transpose: unsupported option")) ||
                 await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
               }
               return { exitCode: err instanceof CompandError ? err.exitCode : 234 };
             }
             if (msg.startsWith("pan:") && !msg.startsWith("pan: unsupported output layout ")) return { exitCode: 234 };
             if ((msg.startsWith("atrim:") && !msg.startsWith("atrim: unsupported option")) ||
+                (msg.startsWith("transpose:") && !msg.startsWith("transpose: unsupported option")) ||
                 (msg.startsWith("asetnsamples:") && !msg.startsWith("asetnsamples: unsupported option")) ||
                 (err instanceof RangeError && msg.startsWith("dcshift:"))) {
               return { exitCode: err instanceof RangeError ? 222 : 234 };

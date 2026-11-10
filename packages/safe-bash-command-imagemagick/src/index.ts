@@ -11022,7 +11022,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
-        if ((t === "-blue-shift" || t === "-color-matrix" || t === "-ordered-dither" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-auto-threshold" || t === "-random-threshold" || t === "-range-threshold" || t === "-solarize" || t === "-channel-fx" || t === "-level" || t === "+level" || t === "-level-colors" || t === "+level-colors" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" || t === "-negate" || t === "+negate" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast") && !stack.length) throw new Error(`no images found for operation '${t}'`);
+        if ((t === "-channel" || t === "+channel" || t === "-blue-shift" || t === "-color-matrix" || t === "-ordered-dither" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-auto-threshold" || t === "-random-threshold" || t === "-range-threshold" || t === "-solarize" || t === "-channel-fx" || t === "-level" || t === "+level" || t === "-level-colors" || t === "+level-colors" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" || t === "-negate" || t === "+negate" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast") && !stack.length) throw new Error(`no images found for operation '${t}'`);
         if (t === "-page") {
             const raw = tokens[++i] ?? "";
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
@@ -13947,7 +13947,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             i = setting;
             if (token === "-channel" || token === "+channel") {
                 const channels = state.channels;
-                stackStep(async stack => { maskChannels = channels; return stack; });
+                stackStep(async stack => {
+                    if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                    maskChannels = channels;
+                    return stack;
+                });
             }
             if (token === "-bordercolor" || token === "+bordercolor") {
                 const borderColor = state.borderColor;

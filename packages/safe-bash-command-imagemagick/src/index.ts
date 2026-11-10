@@ -119,8 +119,8 @@ import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage
 import { combineMetaPixelSteps, type MetaChannels } from "./combine-meta.js";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16" | "evaluateSamples">> & { position?: number; storedEvaluateSamples?: number | undefined };
-type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: (BaseRgbaImage & { fromRegion?: boolean }) | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: (BaseStoredRgbaImage & { fromRegion?: boolean }) | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
 type ImageMetadata = BaseImageMetadata & HueMetadata & MetaChannels & Pick<RgbaImage, "inactiveAlpha">;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
@@ -9634,7 +9634,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         if (t === "-region" || t === "+region") {
             const geometry = t === "-region" ? tokens[++i] : undefined;
             if (t === "-region" && !geometry) throw new Error("missing argument '-region'");
-            stack = stack.map(image => ({ ...image, region: geometry === undefined ? undefined : magickRegion(image, geometry, state.gravity), writeMask: image.writeMask?.fromRegion ? undefined : image.writeMask }));
+            stack = stack.map(image => ({ ...image, region: geometry === undefined ? undefined : magickRegion(image, geometry, state.gravity), writeMask: undefined }));
             i++;
             continue;
         }
@@ -9646,7 +9646,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapSteps(stack, function* (image) {
                 const writeMask = mask && (mask.width !== image.width || mask.height !== image.height)
                     ? yield* applyMagickRasterSteps(mask, writeMaskExtentSteps(image, mask), signal, { ...mask, width: image.width, height: image.height }) : mask;
-                return { ...image, writeMask };
+                return { ...image, region: undefined, writeMask };
             });
             i++;
             continue;
@@ -10058,7 +10058,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     // Inserted bands are editable; existing protection travels with its pixels.
                     const mask = yield* applyMagickRasterSteps({ width: im.width, height: im.height, data: im.data,
                         format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, regionMaskPixelSteps(im, im.region), signal);
-                    result.writeMask = { ...yield* applyMagickSpliceSteps(mask, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, state.virtualPixel), fromRegion: true };
+                    result.writeMask = yield* applyMagickSpliceSteps(mask, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, state.virtualPixel);
                     result.region = undefined;
                 }
                 return result;
@@ -11940,7 +11940,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && (token === "-region" || token === "+region")) {
             const geometry = token === "-region" ? tokens[++i] : undefined, gravity = state.gravity;
             if (token === "-region" && !geometry) throw new Error("missing argument '-region'");
-            steps.push(async image => image ? { ...image, region: geometry === undefined ? undefined : magickRegion(image, geometry, gravity), storedWriteMask: image.storedWriteMask?.fromRegion ? undefined : image.storedWriteMask } : undefined);
+            steps.push(async image => image ? { ...image, region: geometry === undefined ? undefined : magickRegion(image, geometry, gravity), storedWriteMask: undefined } : undefined);
             continue;
         }
         if (!operandsOnly && (token === "-write-mask" || token === "+write-mask" || token === "-clip-mask" || token === "+clip-mask")) {
@@ -11953,7 +11953,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const image = (await stack.get(n))!;
                     const storedWriteMask = mask && (mask.width !== image.width || mask.height !== image.height)
                         ? await transformStoredMagickRaster(mask, backend, writeMaskExtentSteps(image, mask), signal, { ...mask, width: image.width, height: image.height }) : mask;
-                    await stack.set(n, { ...image, storedWriteMask } as StoredRgbaImage);
+                    await stack.set(n, { ...image, region: undefined, storedWriteMask } as StoredRgbaImage);
                 }
                 return stack;
             });
@@ -13095,8 +13095,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (token === "-splice" && image.region && (result.width !== image.width || result.height !== image.height)) {
                     const mask = await transformStoredMagickRaster({ width: image.width, height: image.height, position: image.position,
                         format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, backend, regionMaskPixelSteps(image, image.region), signal);
-                    result.storedWriteMask = { ...await transformStoredMagickCoordinates(mask, backend, token, expanded,
-                        { ...captured, backgroundExplicit: true, background: { r: 0, g: 0, b: 0, a: 255 } }, signal, analysis), fromRegion: true };
+                    result.storedWriteMask = await transformStoredMagickCoordinates(mask, backend, token, expanded,
+                        { ...captured, backgroundExplicit: true, background: { r: 0, g: 0, b: 0, a: 255 } }, signal, analysis);
                     result.region = undefined;
                 }
                 if (token === "-roll" && image.storedWriteMask) {

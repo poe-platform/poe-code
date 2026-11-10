@@ -1248,9 +1248,6 @@ async function renderShowwavespic(
   audio: MediaAudioData, spec: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaVideoFrame | undefined> {
   const equals = spec.indexOf("=");
-  if ((equals < 0 ? spec : spec.slice(0, equals)) !== "showwavespic") {
-    throw new Error("showwavespic: preceding filters are unsupported");
-  }
   const options: Record<string, string> = {};
   for (const [index, part] of (equals < 0 ? [] : spec.slice(equals + 1).split(":")).entries()) {
     const separator = part.indexOf("=");
@@ -10189,10 +10186,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const track = type === "a" && index !== "" && extra.length === 0
                   ? doc?.tracks.filter(track => track.type === "audio")[Number(ordinal)] : undefined;
                 if (!doc || !track) throw new Error(`showwavespic: invalid audio input ${input}`);
-                const audio = track.decodedAudio ?? (track.codecDescriptions[0]?.codecName === "aac"
-                  ? decodeAacTrack(doc, track) : undefined);
-                if (!audio) throw new Error("showwavespic requires decoded PCM audio");
                 const filters = parseFilterChain(expression);
+                const waveformIndex = filters.findIndex(filter => filter.split("=", 1)[0] === "showwavespic");
+                if (waveformIndex < 0) throw new Error("showwavespic: invalid filter chain");
+                const upstream = filters.splice(0, waveformIndex);
+                const filteredTrack = upstream.length ? await filterAudio(track, serializeFilterChain(upstream)) : track;
+                const audio = filteredTrack.decodedAudio ?? (filteredTrack.codecDescriptions[0]?.codecName === "aac"
+                  ? decodeAacTrack(doc, filteredTrack) : undefined);
+                if (!audio) throw new Error("showwavespic requires decoded PCM audio");
                 const frame = await renderShowwavespic(audio, filters.shift() ?? "", budget, context.signal);
                 if (!frame) {
                   if (logLevel >= 16) await writeBytes(context.stderr, encodeUtf8("showwavespic: Too few samples.\n"), context.signal);

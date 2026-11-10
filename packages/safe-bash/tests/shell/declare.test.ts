@@ -7,6 +7,37 @@ import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs";
 import { Shell } from "../../src/shell/shell.js";
 
+for (const extensions of [[], [arraysExtension()]]) for (const flags of ["a", "A", "ai"]) {
+  for (const [assignment, suffix] of [["", ""], ["=()", "=()"]]) {
+    test(`declare -p preserves array initialization (${extensions.length}, ${flags}, ${assignment})`, async t => {
+      const { shell, commands } = setup({ extensions });
+      for (const command of basicCommands()) commands.register(command);
+      t.after(() => shell.dispose());
+      const result = await shell.exec(`declare -${flags} v${assignment}; declare -p v; printf '<%s>' "\${v+set}"`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `declare -${flags} v${suffix}\n<>`);
+    });
+  }
+  test(`array initialization survives scopes and removal (${extensions.length}, ${flags})`, async t => {
+    const { shell } = setup({ extensions });
+    t.after(() => shell.dispose());
+    const result = await shell.exec(`
+      declare -${flags} v
+      (typeset -p v; v=(); declare -p v)
+      f() { local -${flags} v; local -p v; v=(); local -p v; }
+      f
+      declare -p v
+      v[0]=1
+      unset 'v[0]'
+      declare -p v
+    `);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, ["", "=()", "", "=()", "", "=()"].map(suffix => `declare -${flags} v${suffix}\n`).join(""));
+  });
+}
+
 for (const extensions of [[], [arraysExtension()]]) for (const [declaration, expected] of [
   ["declare OPTIND", "a:1"],
   ["typeset OPTIND", "a:1"],
@@ -230,8 +261,8 @@ for (const [source, expected] of [
   ['typeset -a x=(hello); typeset -a x+=world; printf %s "${x[0]}"', 'helloworld'],
   ['x=outer; f(){ local -urx x=inner; }; f; x=next; printf %s "$x"; envget x', 'next<unset>'],
   ['f(){ local -A x=([key]=value); local -p x; }; f', 'declare -A x=(["key"]="value")\n'],
-  ['f(){ local -a x; local -p; }; f', 'declare -a x=()\n'],
-  ['declare -i ZZ=2; declare -p', 'declare -r BASHOPTS="globskipdots:patsub_replacement:sourcepath"\ndeclare -- BASH_COMMAND="declare -p"\n' + "declare -- IFS=$' \\t\\n'\n" + 'declare -- OPTERR="1"\ndeclare -- OPTIND="1"\ndeclare -a PIPESTATUS=([0]="0")\ndeclare -x PWD="/"\ndeclare -r SHELLOPTS="braceexpand:hashall"\ndeclare -i ZZ="2"\n'],
+  ['f(){ local -a x; local -p; }; f', 'declare -a x\n'],
+  ['declare -i ZZ=2; declare -p', 'declare -r BASHOPTS="globskipdots:patsub_replacement:sourcepath"\ndeclare -- BASH_ARGV0="virtual-bash"\ndeclare -- BASH_COMMAND="declare -p"\n' + "declare -- IFS=$' \\t\\n'\n" + 'declare -- OPTERR="1"\ndeclare -- OPTIND="1"\ndeclare -a PIPESTATUS=([0]="0")\ndeclare -x PWD="/"\ndeclare -r SHELLOPTS="braceexpand:hashall"\ndeclare -i ZZ="2"\n'],
   ['declare x; declare -p x', 'declare -- x\n'],
 ] as const) test(`declaration compatibility: ${source}`, async t => {
   const { shell, commands } = setup();

@@ -9168,7 +9168,7 @@ export class Runtime {
           const attributes = state.variableAttributes?.get(name) ?? "";
           const flags = [..."aAilnrux"].filter(flag => flag === "a" ? binding && !binding.associative : flag === "A" ? binding?.associative : flag === "r" ? state.readonlyVariables?.has(name) : flag === "x" ? state.exported.has(name) : attributes.includes(flag)).join("");
           await writeText(stdout, `declare ${flags ? `-${flags}` : "--"} ${name}`);
-          if (binding) {
+          if (binding?.assigned) {
             binding.retain();
             try {
               await writeText(stdout, "=(");
@@ -9183,7 +9183,7 @@ export class Runtime {
               }
               await writeText(stdout, ")");
             } finally { await binding.release(); }
-          } else if (Object.hasOwn(state.variables, name)) {
+          } else if (!binding && Object.hasOwn(state.variables, name)) {
             await writeText(stdout, "=");
             await this.printDeclarationValue(stateMonitor(state)?.values.get(name, state.variables[name]!) ?? state.variables[name]!, state, context);
           }

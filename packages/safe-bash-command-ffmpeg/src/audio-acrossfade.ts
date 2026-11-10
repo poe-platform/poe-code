@@ -29,7 +29,10 @@ export async function acrossfadeAudio(
   let curve1 = audioFadeCurves.tri!;
   let curve2 = audioFadeCurves.tri!;
   const curves = Object.entries(audioFadeCurves);
-  const curveNames = Object.fromEntries(curves.map(([name], index) => [name, index - 1]));
+  const curveNames = {
+    ...Object.fromEntries(curves.map(([name], index) => [name, index - 1])),
+    min: -1, max: curves.length - 2, default: 0
+  };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const options = argument ? argument.split(":") : [];
   if (argument.endsWith(":")) options.pop();

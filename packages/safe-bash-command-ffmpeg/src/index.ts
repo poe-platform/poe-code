@@ -2544,6 +2544,7 @@ async function applyVideoFilterChain(
       const crop: Record<string, string> = {};
       const keys = ["w", "h", "x", "y", "keep_aspect", "exact"];
       for (const [index, part] of (argStr ? positional : []).entries()) {
+        if (index === positional.length - 1 && part === "") break;
         const separator = part.indexOf("=");
         let key = separator < 0 ? keys[index] : part.slice(0, separator).trim();
         if (key === "out_w") key = "w";
@@ -2570,6 +2571,7 @@ async function applyVideoFilterChain(
       const hsub = exact ? 1 : inputHsub;
       const vsub = exact ? 1 : inputVsub;
       const dimensions = {
+        PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
         iw, ih, in_w: iw, in_h: ih, ow: NaN, oh: NaN, out_w: NaN, out_h: NaN,
         a: iw / ih, sar: diagnostics.sar, dar: iw / ih * diagnostics.sar,
         hsub: inputHsub, vsub: inputVsub

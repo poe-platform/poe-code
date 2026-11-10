@@ -30,7 +30,7 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
     const chromaScale = Number.parseFloat(modulation[1] ?? "100") / 100;
     const [product = 0, source = 0, destination = 0, constant = 0] = norm === "mathematics"
         ? (composeArgs ?? "").toLowerCase().replaceAll("x", ",").split(",").map(Number) : [];
-    // Shear keeps fractional samples until resampling; ordinary composites quantize here.
+    // Float64 destinations retain fractional samples until output quantization.
     const clampByteVal = (value: number) => Number.isFinite(value)
         ? Math.max(0, Math.min(255, out instanceof Uint8Array ? Math.round(value) : value)) : 0;
     out.set(dst.data);
@@ -121,8 +121,10 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                             + source * (1 - destinationIntensity * 257) + destination * (1 - sourceIntensity * 257));
                     }
                 }
-                // Native writes normalized alpha as a quantum value, which rounds to zero at 8 bits.
-                if (dst.hasAlpha) out[dIdx + 3] = 0;
+                // Native writes normalized alpha as a Q16 quantum, not a full-range alpha.
+                const sourceWins = norm === "lightenintensity"
+                    ? sa * sourceIntensity > da * destinationIntensity : sa * sourceIntensity < da * destinationIntensity;
+                if (dst.hasAlpha) out[dIdx + 3] = clampByteVal((sourceWins ? sa : da) / 257);
                 continue;
             }
             if (norm === "intensity") {

@@ -4872,30 +4872,24 @@ function* compositeMaskPixelSteps(image: Pick<RgbaImage, "width" | "height">, ma
 function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal, fuzz = 0, clipToOverlay = false): Generator<void, RgbaImage, void> {
     const { name, delegated, preservesAlpha } = magickCompositeMode(modeRaw);
     if (name === "dst" || name === "dest") return dst;
-    if ((clipToOverlay && name === "copy") || ["dstatop", "destatop", "pegtoplight"].includes(name) || dst.data16 || src.data16 || dst.evaluateSamples || src.evaluateSamples) {
+    if (!delegated || dst.data16 || src.data16 || dst.evaluateSamples || src.evaluateSamples) {
         const hasAlpha = dst.hasAlpha || (!delegated && !preservesAlpha);
         return yield* applyMagickRasterSteps(dst, composite16PixelSteps(dst, src, left, top, modeRaw, composeArgs, false, fuzz, clipToOverlay), signal,
             { ...dst, hasAlpha }, [dst, src]);
     }
-    if (delegated) {
-        const ox = Math.round(left);
-        const oy = Math.round(top);
-        if (ox >= 0 && oy >= 0 && ox + src.width <= dst.width && oy + src.height <= dst.height) {
-            return (yield* compositeImageSteps(dst, [rgbaToCompositeLayer(src, ox, oy, parseCompose(modeRaw))]));
-        }
-        const sx0 = Math.max(0, -ox);
-        const sy0 = Math.max(0, -oy);
-        const sx1 = Math.min(src.width, dst.width - ox);
-        const sy1 = Math.min(src.height, dst.height - oy);
-        if (sx1 <= sx0 || sy1 <= sy0)
-            return dst;
-        const clipped = (yield* extractImageSteps(src, { left: sx0, top: sy0, width: sx1 - sx0, height: sy1 - sy0 }));
-        return (yield* compositeImageSteps(dst, [rgbaToCompositeLayer(clipped, Math.max(0, ox), Math.max(0, oy), parseCompose(modeRaw))]));
+    const ox = Math.round(left);
+    const oy = Math.round(top);
+    if (ox >= 0 && oy >= 0 && ox + src.width <= dst.width && oy + src.height <= dst.height) {
+        return (yield* compositeImageSteps(dst, [rgbaToCompositeLayer(src, ox, oy, parseCompose(modeRaw))]));
     }
-    const out = new Uint8Array(dst.data.length);
-    yield* compositePixelsSteps(dst, src, out, modeRaw, left, top, composeArgs, fuzz, clipToOverlay);
-    const hasAlpha = preservesAlpha ? dst.hasAlpha : true;
-    return { ...dst, data: out, hasAlpha, channels: hasAlpha ? dst.channels : dst.channels <= 2 ? 1 : 3 };
+    const sx0 = Math.max(0, -ox);
+    const sy0 = Math.max(0, -oy);
+    const sx1 = Math.min(src.width, dst.width - ox);
+    const sy1 = Math.min(src.height, dst.height - oy);
+    if (sx1 <= sx0 || sy1 <= sy0)
+        return dst;
+    const clipped = (yield* extractImageSteps(src, { left: sx0, top: sy0, width: sx1 - sx0, height: sy1 - sy0 }));
+    return (yield* compositeImageSteps(dst, [rgbaToCompositeLayer(clipped, Math.max(0, ox), Math.max(0, oy), parseCompose(modeRaw))]));
 }
 
 function rgbaToCss(c: RgbaColor): string {
@@ -13522,7 +13516,7 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
     const compositeMode = magickCompositeMode(mode);
     if (!generic && (compositeMode.name === "dst" || compositeMode.name === "dest")) return base;
     let hasAlpha = base.hasAlpha || (!generic && !compositeMode.delegated && !compositeMode.preservesAlpha);
-    if (!generic && ((clipToOverlay && compositeMode.name === "copy") || ["dstatop", "destatop", "pegtoplight"].includes(compositeMode.name) || base.storedData16 || overlay.storedData16 || base.storedEvaluateSamples !== undefined || overlay.storedEvaluateSamples !== undefined)) {
+    if (!generic && (!compositeMode.delegated || base.storedData16 || overlay.storedData16 || base.storedEvaluateSamples !== undefined || overlay.storedEvaluateSamples !== undefined)) {
         return transformStoredMagickRaster({ ...base, storedEvaluateSamples: undefined }, backend,
             composite16PixelSteps(base, overlay, left, top, mode, args, tile, fuzz, clipToOverlay), signal,
             { ...base, hasAlpha }, [base, overlay]);

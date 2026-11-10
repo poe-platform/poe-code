@@ -1,14 +1,16 @@
 export function parseFilterExpression(expression: string, filter: string, variables: Record<string, number>, sampleValue?: (channel: number) => number, registers?: Float64Array, randomStates?: BigUint64Array[]): number {
   let offset = 0;
-  const source = expression.trim();
+  // FFmpeg removes ASCII whitespace before tokenizing, including inside tokens.
+  let source = "";
+  for (const character of expression) {
+    if (character !== " " && !(character >= "\t" && character <= "\r")) source += character;
+  }
   function parse(minPrecedence = 0, depth = 0, evaluate = true): number {
     if (depth > 64) throw new Error(`${filter}: expression is too deeply nested`);
-    while (source[offset] === " ") offset++;
     let value: number;
     let sign = 1;
     if (source[offset] === "+" || source[offset] === "-") {
       sign = source[offset++] === "-" ? -1 : 1;
-      while (source[offset] === " ") offset++;
     }
     const first = source[offset];
     if (first === "+" || first === "-") {
@@ -26,7 +28,6 @@ export function parseFilterExpression(expression: string, filter: string, variab
         else break;
       }
       const name = source.slice(start, offset);
-      while (source[offset] === " ") offset++;
       if (source[offset] === "(") {
         offset++;
         const args = [parse(0, depth + 1, evaluate)];
@@ -148,14 +149,12 @@ export function parseFilterExpression(expression: string, filter: string, variab
     }
     // FFmpeg groups powers left to right, before the leading sign.
     while (minPrecedence <= 3) {
-      while (source[offset] === " ") offset++;
       if (source[offset] !== "^") break;
       offset++;
       value = Math.pow(value, parse(4, depth + 1, evaluate));
     }
     value *= sign;
     for (;;) {
-      while (source[offset] === " ") offset++;
       const operator = source[offset];
       const precedence = operator === ";" ? 0 : operator === "+" || operator === "-" ? 1 : operator === "*" || operator === "/" ? 2 : -1;
       if (precedence < minPrecedence) break;

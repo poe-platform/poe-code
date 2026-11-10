@@ -9646,7 +9646,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = result;
         }
         else if (t === "-evaluate-sequence" || t === "-average" || t === "-poly") {
-            const op = t === "-poly" ? parseMagickPoly(tokens[++i] ?? "") : t === "-average" ? "Mean" : tokens[++i] ?? "Mean";
+            let op: string | number[] = t === "-average" ? "Mean" : tokens[++i] ?? (t === "-poly" ? "" : "Mean");
+            if (t === "-poly") {
+                const image = stack[0];
+                const expanded = image ? yield* formatMagickPropertyStringSteps(op, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties }) : op;
+                op = parseMagickPoly(expanded);
+            }
             if (t === "-poly" && !stack.length) throw new Error("no images found for operation '-poly'");
             if (t === "-evaluate-sequence" && !stack.length) throw new Error("no images found for operation '-evaluate-sequence'");
             if (t === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
@@ -11102,7 +11107,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const argument = token === "-morph" || token === "-evaluate-sequence" || token === "-poly" ? tokens[++i] ?? (token === "-morph" ? "1" : "Mean") : token === "-average" ? "Mean" : "", settings = { ...state, channels: { ...state.channels } };
             stackStep(async (stack, backend) => {
                 if (token === "-evaluate-sequence" && !stack.length) throw new Error("no images found for operation '-evaluate-sequence'");
-                const terms = token === "-poly" ? parseMagickPoly(argument) : undefined;
+                let terms: number[] | undefined;
+                if (token === "-poly") {
+                    const image = await stack.get(0);
+                    const expanded = image ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack) : argument;
+                    terms = parseMagickPoly(expanded);
+                }
                 if (terms && !stack.length) throw new Error("no images found for operation '-poly'");
                 if (token === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
                 if (token === "-clut" || token === "-hald-clut") {

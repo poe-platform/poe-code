@@ -14783,6 +14783,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredChannelMask = mask;
                           filteredChannelNames = undefined;
                         }
+                        if (mask === 4 && (stretched.length === 2 || stretched.length === 6)) {
+                          const stereo = stretched.length === 2;
+                          if (filteredChannelMask && (stereo ? filteredChannelMask !== 3
+                            : filteredChannelMask !== 0x3f && filteredChannelMask !== 0x60f)) {
+                            throw new Error(`channelsplit: unsupported input channel layout (mask ${filteredChannelMask})`);
+                          }
+                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                          const mixed = await panAudio(stereo ? "mono|c0=0.5*c0+0.5*c1"
+                            : `mono|c0<${Math.SQRT1_2}*c0+${Math.SQRT1_2}*c1+c2+0.5*c4+0.5*c5`,
+                            stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
+                          stretched = mixed.channels;
+                          filteredChannelMask = mixed.channelMask;
+                          filteredChannelNames = undefined;
+                        }
                         if (stretched.length !== input.length || (filteredChannelMask && filteredChannelMask !== mask)) {
                           throw new Error("channelsplit: matching input channel layout required");
                         }

@@ -2494,6 +2494,17 @@ function parseMagickRollGeometry(raw: string): MagickGeometry {
     // Roll ignores geometry modifiers wherever they occur between offsets.
     let normalized = raw;
     for (const modifier of ["#", "!", ">", "^", "<", "@"]) normalized = normalized.replaceAll(modifier, "");
+    // Native reads hexadecimal offsets as integers and stops at the decimal point.
+    for (let i = 0; i < normalized.length; i++) {
+        if ((normalized[i] !== "+" && normalized[i] !== "-")
+            || normalized[i + 1] !== "0" || normalized[i + 2]?.toLowerCase() !== "x") continue;
+        let end = i + 3;
+        while (normalized[end]! >= "0" && normalized[end]! <= "9") end++;
+        if (end > i + 3 && normalized[end] === ".") {
+            normalized = normalized.slice(0, end);
+            break;
+        }
+    }
     normalized = normalizeMagickOffsets(normalized);
     // Native roll consumes at most two offsets; comma, colon or a trailing dimension ends the list.
     let offsets = 0;

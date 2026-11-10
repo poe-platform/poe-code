@@ -9798,12 +9798,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
                             || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
                             || action === "feedback" && (target === "stereowiden" || target?.startsWith("stereowiden@"))
+                            || action === "delays" && (target === "adelay" || target?.startsWith("adelay@"))
                             || action === "dry" && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
                             || action === "limit" && (target === "alimiter" || target?.startsWith("alimiter@"))
                             || ["unity", "silence", "curve", "c", "nb_samples", "ns", "type", "t"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME stereowiden[@NAME] feedback GAIN or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME alimiter[@NAME] limit LIMIT or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|type|t VALUE or TIME dialoguenhance[@NAME] original GAIN");
+                            throw new Error("asendcmd: expected TIME stereowiden[@NAME] feedback GAIN or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME adelay[@NAME] delays DELAYS or TIME alimiter[@NAME] limit LIMIT or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|type|t VALUE or TIME dialoguenhance[@NAME] original GAIN");
                           }
                           return { time, target, action: action!, expression };
                         });
@@ -11180,6 +11181,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             parseFilterExpression(enable, "adelay enable", { n: 0, t: 0, pos: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity });
                           } else throw new Error(`adelay: unsupported option ${key}`);
                         }
+                        const commands = audioCommands.filter(command => command.target === "adelay" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        audioCommands = audioCommands.filter(command => command.target !== "adelay" && command.target !== filterTarget);
                         const values = delays.split("|").filter(value => value !== "");
                         // adelay negotiates sample-rate ticks even for empty or zero delays.
                         audioTimeBase = 1 / origRate;
@@ -11190,8 +11194,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           continue;
                         }
-                        const offsets = stretched.map((_, channel) => {
-                          const value = (values[channel] ?? (all ? values.at(-1)! : "0")).trimStart();
+                        const parseDelay = (argument: string): number => {
+                          const value = argument.trimStart();
                           // Native reads a signed integer and its next character for S/s
                           // units, otherwise using a floating-point prefix in milliseconds.
                           let end = value[0] === "+" || value[0] === "-" ? 1 : 0;
@@ -11231,14 +11235,27 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             throw new Error(`adelay: invalid delay ${value}`);
                           }
                           return offset;
+                        };
+                        const offsets = stretched.map((_, channel) => parseDelay(values[channel] ?? (all ? values.at(-1)! : "0")));
+                        const updates = commands.map(command => {
+                          const values = command.expression.split("|").filter(value => value !== "");
+                          const offsets: number[] = [];
+                          // A malformed runtime delay stops this update, retaining earlier
+                          // channel changes and leaving remaining channels unchanged.
+                          for (const value of values.slice(0, stretched.length)) {
+                            try { offsets.push(parseDelay(value)); } catch { break; }
+                          }
+                          return { sample: command.sample, offsets };
                         });
                         const inputLength = stretched[0]?.length ?? 0;
                         const padding = Math.min(...offsets);
-                        const length = inputLength + Math.max(0, ...offsets);
+                        let tail = Math.max(0, ...offsets) - padding;
+                        for (const update of updates) tail = Math.max(tail, ...update.offsets);
+                        const length = inputLength + padding + tail;
                         budget.checkDuration(length / origRate);
                         budget.allocateMemory((length * stretched.length + offsets.reduce((sum, offset) => sum + offset - padding, 0)) * Float64Array.BYTES_PER_ELEMENT);
                         const output = stretched.map(() => new Float64Array(length));
-                        const history = offsets.map(offset => new Float64Array(offset - padding));
+                        const history = offsets.map(offset => ({ samples: new Float64Array(offset - padding), index: 0, filled: 0 }));
                         const previous = audioTimestamps;
                         const previousMetadata = audioMetadata;
                         audioMetadata = [];
@@ -11250,7 +11267,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         nextPts = Math.sign(nextPts) * Math.round(Math.abs(nextPts));
                         let nextExactPts: bigint | undefined;
                         let enabled = true;
-                        let position = 0;
+                        let nextCommand = 0;
                         // Common silence is unconditional. Bypassed input freezes the delay
                         // buffers; EOF drains them using the final input frame's enable state.
                         for (let start = 0, n = 0; start < length;) {
@@ -11269,6 +11286,38 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             nextPts = nextExactPts === undefined ? nextPts + end - start : Number(nextExactPts);
                           } else {
                             if (start < padding + inputLength) {
+                              while (nextCommand < updates.length && updates[nextCommand]!.sample <= start - padding) {
+                                const update = updates[nextCommand++]!;
+                                for (const [channel, delay] of update.offsets.entries()) {
+                                  const state = history[channel]!;
+                                  const oldDelay = state.samples.length;
+                                  if (delay === oldDelay) continue;
+                                  budget.allocateMemory(delay * Float64Array.BYTES_PER_ELEMENT);
+                                  const resized = new Float64Array(delay);
+                                  if (delay === 0) {
+                                    state.index = 0;
+                                    state.filled = 0;
+                                  } else if (delay < oldDelay) {
+                                    resized.set(state.samples.subarray(0, delay));
+                                    if (state.index > delay) {
+                                      state.index -= delay;
+                                      resized.set(state.samples.subarray(delay, delay + state.index));
+                                      state.filled = delay;
+                                    } else if (state.filled > state.index) {
+                                      resized.set(state.samples.subarray(state.index + oldDelay - delay, oldDelay), state.index);
+                                      state.filled -= oldDelay - delay;
+                                    }
+                                  } else {
+                                    resized.set(state.samples);
+                                    if (state.filled >= oldDelay) {
+                                      resized.set(state.samples.subarray(state.index), state.index + delay - oldDelay);
+                                      state.filled = delay;
+                                    } else state.filled += delay - oldDelay;
+                                    resized.fill(0, state.index, state.index + delay - oldDelay);
+                                  }
+                                  state.samples = resized;
+                                }
+                              }
                               const frame = previous?.[n];
                               const packet = t.samples[n];
                               pos = previous ? frame?.pos : packet?.offset;
@@ -11308,15 +11357,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                               for (let c = 0; c < stretched.length; c++) {
                                 const sample = stretched[c]![i - padding] ?? 0;
-                                const buffer = history[c]!;
+                                const state = history[c]!;
+                                const buffer = state.samples;
                                 if (!enabled || buffer.length === 0) output[c]![i] = sample;
+                                else if (state.filled < buffer.length) buffer[state.filled++] = sample;
                                 else {
-                                  const slot = position % buffer.length;
-                                  output[c]![i] = buffer[slot]!;
-                                  buffer[slot] = sample;
+                                  output[c]![i] = buffer[state.index]!;
+                                  buffer[state.index] = sample;
+                                  state.index = (state.index + 1) % buffer.length;
                                 }
                               }
-                              if (enabled) position++;
                             }
                           }
                           budget.allocateMemory(exactPts === undefined ? 32 : 48);

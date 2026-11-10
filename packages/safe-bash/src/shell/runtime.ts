@@ -8500,27 +8500,8 @@ export class Runtime {
       }
       // Bash ignores assignments to its function-stack variable.
       if (name === "FUNCNAME") return status;
-      if (index || arrayStore(state)?.get(name)) {
-        const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
-        const decode = (bytes: Uint8Array): string | undefined => {
-          try { return decoder.decode(bytes); }
-          catch (error) {
-            this.signal.throwIfAborted();
-            if (!(error instanceof TypeError)) throw error;
-            return undefined;
-          }};
-        let text = decode(shellValueBytes(value, allocation));
-        if (text !== undefined && index && numericIndex(index) !== 0 && !arrayStore(state)?.get(name) && state.variables[name] !== undefined) {
-          const previous = stateMonitor(state)!.values.get(name, state.variables[name]!);
-          if (decode(shellValueBytes(previous, allocation)) === undefined) text = undefined;
-        }
-        if (text === undefined) {
-          await writeDiagnostic(context.stderr, "printf: indexed variables do not support non-UTF-8 bytes\n");
-          return 1;
-        }
-        if (index) await this.arrayAssignment({ kind: "element", name, index, append: false, value: { offset: 0, parts: [{ kind: "text", value: text, quoted: true }] } }, state, context);
-        else await this.assignVariable(state, name, text, context);
-      } else await this.writeVariable(state, name, value, context);
+      if (index) await this.arrayAssignment({ kind: "element", name, index, append: false, value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, context);
+      else await this.assignVariable(state, name, value, context);
       const previous = assignments.get(name);
       if (previous) {
         if (!previous.exported) state.exported.delete(name);

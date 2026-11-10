@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
-import { agentCommands, MemoryFileSystem as BrowserMemoryFileSystem, Shell as BrowserShell } from "../../src/index.js";
+import { MemoryFileSystem as BrowserMemoryFileSystem, Shell as BrowserShell } from "../../src/index.js";
 import { basicCommands } from "../../src/commands/basic.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { createCommandArguments } from "../../src/contracts/command.js";
@@ -261,6 +261,35 @@ const bashVersion = version.stdout.toString();
 const bashMajor = Number(bashVersion.split(".")[0]);
 assert.ok(Number.isInteger(bashMajor) && bashMajor > 0, `Invalid Bash version: ${bashVersion}`);
 
+for (const [name, source, expected] of [
+  ["indexed escape", "a=(old keep); printf -v 'a[0]' '%b' '\\xff'; printf '%s|%s|%s' \"$?\" \"${a[0]}\" \"${a[1]}\"", [48, 124, 255, 124, 107, 101, 101, 112]],
+  ["associative escape", "declare -A a; a[key]=old; a[other]=keep; printf -v 'a[key]' '%b' '\\xff'; printf '%s|%s|%s' \"$?\" \"${a[key]}\" \"${a[other]}\"", [48, 124, 255, 124, 107, 101, 101, 112]],
+  ["indexed raw argument", "a=(old keep); printf -v 'a[0]' '%s' $'\\xff'; printf '%s|%s|%s' \"$?\" \"${a[0]}\" \"${a[1]}\"", [48, 124, 255, 124, 107, 101, 101, 112]],
+  ["associative raw argument", "declare -A a; printf -v 'a[key]' '%s' $'\\xff'; printf '%s|%s' \"$?\" \"${a[key]}\"", [48, 124, 255]],
+  ["implicit index zero", "a=(old keep); printf -v a '%s' $'\\xff'; printf '%s|%s|%s' \"$?\" \"${a[0]}\" \"${a[1]}\"", [48, 124, 255, 124, 107, 101, 101, 112]],
+  ["byte scalar promotion", "a=$'\\xff'; printf -v 'a[1]' '%s' new; printf '%s|%s|%s' \"$?\" \"${a[0]}\" \"${a[1]}\"", [48, 124, 255, 124, 110, 101, 119]],
+  ["indexed NUL truncation", "a=(old keep); printf -v 'a[0]' '%b' '\\xff\\0discard'; printf '%s|%s|%s' \"$?\" \"${a[0]}\" \"${a[1]}\"", [48, 124, 255, 124, 107, 101, 101, 112]],
+] as const) {
+  test(`printf -v preserves bytes: ${name}`, async context => {
+    const { shell } = fixture({ env: { LC_ALL: "C" } });
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(result.stdoutBytes, Uint8Array.from(expected));
+      await context.test("GNU Bash 5+ native comparison", { skip: bashMajor < 5 }, () => {
+        const oracle = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], {
+          env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000,
+        });
+        assert.ifError(oracle.error);
+        assert.equal(oracle.status, result.exitCode);
+        assert.equal(oracle.stderr.length, 0);
+        assert.deepEqual(new Uint8Array(oracle.stdout), result.stdoutBytes);
+      });
+    } finally { await shell.dispose(); }
+  });
+}
+
 for (const unlimited of [false, true]) {
   for (const [name, script] of cases) {
     test(`printf -v: ${name}${unlimited ? " (unlimited expansion)" : ""}`, async context => {
@@ -367,108 +396,6 @@ for (const target of ["value[2147483648]", "value[]", "value[-2]"]) {
   });
 }
 
-for (const target of ["value", "value[1]"]) {
-  test(`printf -v refuses non-UTF-8 indexed publication: ${target}`, async () => {
-    const { shell } = fixture();
-    try {
-      const result = await shell.exec(`value=(old tail); printf -v '${target}' '\\377'; printf '<%s:%s:%s>' "$?" "\${value[0]}" "\${value[1]}"`);
-      assert.equal(result.stdout, "<1:old:tail>");
-      assert.match(result.stderr, /non-UTF-8/u);
-    } finally { await shell.dispose(); }
-  });
-}
-
-test("printf -v refuses lossy promotion of an existing byte scalar", async () => {
-  const { shell } = fixture();
-  try {
-    const result = await shell.exec('value=$(printf "\\377"); printf -v "value[1]" %s new; printf "%s:" "$?"; printf "%s" "$value"');
-    assert.deepEqual(result.stdoutBytes, Uint8Array.of(49, 58, 255));
-    assert.match(result.stderr, /non-UTF-8/u);
-  } finally { await shell.dispose(); }
-});
-
-for (const [name, script, expected] of [
-  ["bare indexed binding", 'value=(old tail); printf -v value "\\377"; printf "<%s:%s:%s>" "$?" "${value[0]}" "${value[1]}"', new TextEncoder().encode("<1:old:tail>")],
-  ["indexed lvalue", 'value=(old tail); printf -v "value[1]" "\\377"; printf "<%s:%s:%s>" "$?" "${value[0]}" "${value[1]}"', new TextEncoder().encode("<1:old:tail>")],
-  ["byte scalar promotion", 'printf -v value "\\377"; printf -v "value[1]" %s new; printf "%s:" "$?"; printf "%s" "$value"', Uint8Array.of(49, 58, 255)],
-] as const) {
-  test(`printf -v browser decoder TypeError has no Node code: ${name}`, async context => {
-    const decode = TextDecoder.prototype.decode;
-    let failures = 0;
-    context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
-      try { return decode.apply(this, args); }
-      catch (error) {
-        if (!this.fatal || !(error instanceof TypeError)) throw error;
-        failures++;
-        const platformError = new TypeError("The encoded data was not valid UTF-8");
-        assert.equal("code" in platformError, false);
-        throw platformError;
-      }
-    });
-    const shell = new BrowserShell({ fs: new BrowserMemoryFileSystem() }).use(agentCommands());
-    try {
-      const result = await shell.exec(script);
-      assert.equal(result.exitCode, 0, result.stderr);
-      assert.deepEqual(result.stdoutBytes, expected);
-      assert.equal(result.stderr, "printf: indexed variables do not support non-UTF-8 bytes\n");
-      assert.equal(failures, 1);
-      const valid = await shell.exec('printf -v "value[1]" "\\357\\273\\277é"; printf "%s" "${value[1]}"');
-      assert.equal(valid.exitCode, 0, valid.stderr);
-      assert.equal(valid.stderr, "");
-      assert.deepEqual(valid.stdoutBytes, Uint8Array.of(239, 187, 191, 195, 169));
-    } finally { await shell.dispose(); }
-  });
-}
-
-test("printf -v browser decoding does not relabel a storage TypeError", async context => {
-  const decode = TextDecoder.prototype.decode;
-  let failStorage = false;
-  const failure = new TypeError("storage read failed");
-  const observed: unknown[] = [];
-  context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
-    const result = decode.apply(this, args);
-    if (this.fatal) failStorage = true;
-    return result;
-  });
-  const get = ValueStore.prototype.get;
-  let failures = 0;
-  context.mock.method(ValueStore.prototype, "get", function (this: ValueStore, ...args: Parameters<ValueStore["get"]>) {
-    if (failStorage) {
-      failStorage = false;
-      failures++;
-      throw failure;
-    }
-    return get.apply(this, args);
-  });
-  const shell = new BrowserShell({ fs: new BrowserMemoryFileSystem() }).use(agentCommands());
-  try {
-    const result = await shell.exec('value=old; printf -v "value[1]" %s new; printf "<%s:%s>" "$?" "$value"', { onInternalError(error) { observed.push(error); } });
-    assert.equal(result.stdout, "<1:old>");
-    assert.equal(result.stderr, "shell: line 1: internal error\n");
-    assert.equal(observed.length, 1);
-    assert.equal(observed[0], failure);
-    assert.doesNotMatch(result.stderr, /non-UTF-8/u);
-    assert.equal(failures, 1);
-  } finally { await shell.dispose(); }
-});
-
-for (const reason of [false, 0, null, ""]) test(`printf -v browser decoder cancellation wins: ${String(reason)}`, async context => {
-  const controller = new AbortController();
-  const decode = TextDecoder.prototype.decode;
-  context.mock.method(TextDecoder.prototype, "decode", function (this: InstanceType<typeof TextDecoder>, ...args: Parameters<typeof decode>) {
-    if (this.fatal) {
-      controller.abort(reason);
-      throw new TypeError("The encoded data was not valid UTF-8");
-    }
-    return decode.apply(this, args);
-  });
-  const writes = context.mock.method(Runtime.prototype, "arrayAssignment");
-  const shell = new BrowserShell({ fs: new BrowserMemoryFileSystem() }).use(agentCommands());
-  try {
-    await assert.rejects(shell.exec('printf -v "value[1]" "\\377"', { signal: controller.signal }), error => error === reason);
-    assert.equal(writes.mock.callCount(), 0);
-  } finally { await shell.dispose(); }
-});
 
 test("printf -v stores raw argv bytes without retaining a mutable producer", async () => {
   const { shell } = fixture();

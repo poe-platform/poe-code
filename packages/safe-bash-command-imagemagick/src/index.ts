@@ -17788,7 +17788,7 @@ interface MontageArguments {
     warnings: string;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset">[];
     trim: boolean; shadow: boolean;
-    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -17938,6 +17938,11 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         }
         else if (t === "-shadow" || t === "+shadow") {
             shadow = t === "-shadow";
+        }
+        else if (t === "-resize") {
+            const geometry = argv[++i];
+            if (geometry === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -resize\n" };
+            queuedTransforms.push({ kind: "resize", geometry });
         }
         else if (t === "-thumbnail") {
             thumbnail = argv[++i];
@@ -18473,6 +18478,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 for (const transform of transforms[inputIndex]!) {
                     const previous = thumb;
                     thumb = yield* ("operation" in transform ? transform.operation.apply(thumb)
+                        : transform.kind === "resize" ? applyMagickResizeSteps(thumb, transform.geometry, state.kernel, false, false, false, state.resizeFilter)
                         : transform.kind === "rotate" ? rotateImageSteps(thumb, transform.angle, state.background)
                         : transform.kind === "flop" ? flopImageSteps(thumb) : flipImageSteps(thumb));
                     if (transform.kind === "bilevel") {
@@ -18747,6 +18753,11 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                         const isNull = (image as StoredMagickImage)[magickInput]?.filePath === "null:";
                         if (trim) image = await trimStoredMagick(image, backend.storage, state.alphaFuzz, signal);
                         for (const transform of transforms[index]!) {
+                            if (transform.kind === "resize") {
+                                const resize = magickResizeOptions(image, transform.geometry, state.kernel);
+                                if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, false, false, false, state.resizeFilter);
+                                continue;
+                            }
                             image = "operation" in transform
                                 ? await transformStoredMagickPixels(image, backend, transform.operation, signal)
                                 : await transformStoredImage(image, backend.storage, transform.kind === "rotate"

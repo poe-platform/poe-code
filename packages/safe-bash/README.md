@@ -79,6 +79,8 @@ and `readarray -u FD` collect its remaining records. `readExtension` and
 Use `caller [depth]` to inspect function/source call sites, and
 `printf '%(%Y-%m-%d)T\n' 1700000000` to format timestamps (`-1` means now,
 `-2` means shell start). Time formatting uses the virtual `TZ`, defaulting to UTC.
+`LC_ALL`, then `LC_TIME`, then `LANG` selects C or US-English (`en_US`) formats
+for `%x`, `%X`, and `%c`; `%D` and `%T` retain their fixed numeric formats.
 Creation modes use the filesystem's capabilities; advisory modes do not enforce
 physical permissions, and the host process mask remains unchanged.
 Core, shell, and command imports use Web-standard bytes without installing

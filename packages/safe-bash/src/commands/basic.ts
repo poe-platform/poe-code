@@ -272,7 +272,7 @@ export async function formatPrintf(context: CommandContext, shellStartedAt = (co
         }
         const seconds = parsed.value === -1n ? BigInt(Math.floor(Date.now() / 1000))
           : parsed.value === -2n ? BigInt(Math.floor(shellStartedAt / 1000)) : parsed.value;
-        const formatted = await printfTime(directive.timeFormat || "%X", seconds, context.env.TZ ?? "UTC", context.signal);
+        const formatted = await printfTime(directive.timeFormat || "%X", seconds, context.env, context.signal);
         const bytes = utf8Encoder.encode(formatted).subarray(0, precision);
         const padding = " ".repeat(Math.max(0, width - bytes.length));
         if (!flags.includes("-")) await output(context, padding);

@@ -7,6 +7,45 @@ import { shellValueFromBytes } from "../../src/contracts/value.js";
 import { Shell } from "../../src/shell/index.js";
 import { registerYieldCheckpoint } from "../../src/contracts/yield.js";
 
+for (const entry of [
+  { setup: "unset LC_ALL; export LC_TIME=en_US.utf8", us: true },
+  { setup: "export LC_TIME=en_US.utf8", us: false },
+  { setup: "unset LC_ALL; export LC_TIME=C", us: false },
+  { setup: "export LC_ALL=en_US.utf8 LC_TIME=C", us: true },
+  { setup: "unset LC_ALL LC_TIME; export LANG=en_US.UTF-8", us: true },
+  { setup: "export LC_ALL='' LC_TIME='' LANG=en_US.utf8", us: true },
+  { setup: "unset LC_ALL; export LC_TIME=POSIX LANG=en_US.utf8", us: false },
+  { setup: "export LC_ALL=C.UTF-8 LC_TIME=en_US.utf8", us: false },
+  { setup: "unset LC_ALL LC_TIME LANG", us: false },
+]) test(`printf timestamps honor time locale precedence: ${entry.setup}`, async t => {
+  const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry(basicCommands()), env: { LC_ALL: "C", TZ: "UTC0" } });
+  t.after(() => shell.dispose());
+  for (const [format, expected] of [
+    ["%D/%x", entry.us ? "01/01/21/01/01/2021" : "01/01/21/01/01/21"],
+    ["%T/%X", entry.us ? "00:00:00/12:00:00 AM" : "00:00:00/00:00:00"],
+    ["%c", entry.us ? "Fri 01 Jan 2021 12:00:00 AM UTC" : "Fri Jan  1 00:00:00 2021"],
+    ["%F", "2021-01-01"],
+  ]) {
+    const result = await shell.exec(`${entry.setup}; printf '%(${format})T' 1609459200`);
+    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, expected, ""], format);
+  }
+});
+
+for (const script of [
+  "printf '%(%X)T' 1609506307",
+  "builtin printf '%(%X)T' 1609506307",
+  "command printf '%(%X)T' 1609506307",
+  "printf -v value '%(%X)T' 1609506307; printf %s \"$value\"",
+  "for value in 1609506307; do printf '%(%X)T' \"$value\"; done",
+  "printf '%()T' 1609506307",
+  "printf '%(%EX)T' 1609506307",
+]) test(`printf locale timestamps work through shell routes: ${script}`, async t => {
+  const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry(basicCommands()), env: { LC_TIME: "en_US.utf8", TZ: "UTC0" } });
+  t.after(() => shell.dispose());
+  const result = await shell.exec(script);
+  assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "01:05:07 PM", ""]);
+});
+
 const cases = [
   { input: "f09f90b3", quoted: "f09f90b3" },
   { input: "c3a9ff", quoted: "2427c3a95c33373727" },

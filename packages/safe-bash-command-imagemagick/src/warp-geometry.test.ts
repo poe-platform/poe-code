@@ -22,6 +22,10 @@ for (const [option, amount, geometry] of [
     ["-swirl", "1", "1@"],
     ["-implode", "1", "+1"],
     ["-implode", "-1", "-1"],
+    ["-swirl", "20", "2 0"],
+    ["-implode", "20", "2 0"],
+    ["-wave", "20", "2 0"],
+    ["-wave", "2x10", " 2 x 1 0 "],
     ["-wave", "0x7", "x7"],
     ["-wave", "2x1", "2"],
     ["-wave", "2x1", "2x"]

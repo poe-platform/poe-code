@@ -3719,7 +3719,8 @@ function solveLinearSystem(A: number[][], b: number[]): number[] {
 }
 
 function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, token: string, spec: string, args = "0"): WarpPlan | undefined {
-    if (["-swirl", "-implode", "-wave"].includes(token)) spec = spec.replaceAll("(", "").replaceAll(")", "");
+    if (token === "-swirl" || token === "-implode" || token === "-wave")
+        spec = [...spec].filter(character => character.trim() !== "").join("").replaceAll("(", "").replaceAll(")", "");
     const w = img.width, h = img.height, cx = (w - 1) / 2, cy = (h - 1) / 2;
     const result = (map: WarpPlan["map"], width = w, height = h, hasAlpha = true): WarpPlan => ({ width, height, hasAlpha, map });
     const bestFit = (plan: WarpPlan, forward: WarpPlan["map"]): WarpPlan => {

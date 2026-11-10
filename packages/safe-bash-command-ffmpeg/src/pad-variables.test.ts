@@ -23,6 +23,10 @@ for (const [expression, sar, format, width, height, left, top] of [
     const input = encodeImage({ width: 6, height: 4, channels: 4, data,
       format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
     }, { format: "png" }).data;
+    const hsub = format !== undefined && [0, 4, 12, 13].includes(format) ? 2 : 1;
+    const vsub = format === 0 || format === 12 ? 2 : 1;
+    const pixels = new Uint8Array(24 + 2 * (6 / hsub) * (4 / vsub)).fill(128);
+    for (let i = 0; i < 24; i++) pixels[i] = data[i * 4]!;
     const image = image2Ast();
     // Supply decoded format and SAR metadata through the public AST interface.
     const ast = { ...image, parse(bytes: Uint8Array) {
@@ -31,7 +35,7 @@ for (const [expression, sar, format, width, height, left, top] of [
         codecDescriptions: track.codecDescriptions.map(codec => ({ ...codec, sarWidth: sar, sarHeight: 1 })),
         decodedVideoFrames: Array.from({ length: 3 }, (_, n) => ({
           width: 6, height: 4, data, ptsSeconds: n / 2, durationSeconds: 0.5, keyframe: true,
-          ...(format === undefined ? {} : { native: { rgba: data, pixels: data, width: 6, height: 4, format, colorspace: 0, fullRange: 1 } })
+          ...(format === undefined ? {} : { native: { rgba: data, pixels, width: 6, height: 4, format, colorspace: 0, fullRange: 1 } })
         }))
       })) };
     } };

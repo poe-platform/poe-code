@@ -2792,6 +2792,56 @@ async function applyVideoFilterChain(
           const data = scaleVideoPicture({ ...f, width: pw, height: ph, native }, pw, ph)!;
           return { ...f, width: pw, height: ph, data, native: { ...native, rgba: data } };
         }
+        const planar = f.native;
+        if (planar && planar.rgba === f.data && planar.width === f.width && planar.height === f.height &&
+            [0, 4, 5, 12, 13, 14, 49, 68].includes(planar.format)) {
+          const depth = planar.format === 49 ? 16 : planar.format === 68 ? 10 : 8;
+          const sampleBytes = depth > 8 ? 2 : 1;
+          const size = (pw * ph + 2 * Math.ceil(pw / hsub) * Math.ceil(ph / vsub)) * sampleBytes;
+          budget.recordFrame(pw, ph);
+          budget.allocateMemory(size + pw * ph * 4);
+          const pixels = new Uint8Array(size);
+          const view = new DataView(pixels.buffer);
+          // Draw the border in the source colorspace without converting its image samples.
+          const [kr, kb] = planar.colorspace === 1 ? [0.2126, 0.0722]
+            : planar.colorspace === 4 ? [0.3, 0.11] : planar.colorspace === 7 ? [0.212, 0.087]
+              : [9, 10].includes(planar.colorspace) ? [0.2627, 0.0593] : [0.299, 0.114];
+          const luma = (kr! * col[0] + (1 - kr! - kb!) * col[1] + kb! * col[2]) / 255;
+          const u = (col[2] / 255 - luma) / (2 * (1 - kb!));
+          const v = (col[0] / 255 - luma) / (2 * (1 - kr!));
+          const fullRange = planar.fullRange || [12, 13, 14].includes(planar.format);
+          const fill = fullRange ? [luma, u + 0.5, v + 0.5]
+            : [(luma * 219 + 16) / 255, (u * 224 + 128) / 255, (v * 224 + 128) / 255];
+          let inputOffset = 0;
+          let outputOffset = 0;
+          let work = 0;
+          for (let plane = 0; plane < 3; plane++) {
+            const sx = plane === 0 ? 1 : hsub;
+            const sy = plane === 0 ? 1 : vsub;
+            const width = Math.ceil(f.width / sx);
+            const height = Math.ceil(f.height / sy);
+            const outputWidth = Math.ceil(pw / sx);
+            const outputHeight = Math.ceil(ph / sy);
+            const planeSize = outputWidth * outputHeight * sampleBytes;
+            const value = Math.round(fill[plane]! * (2 ** depth - 1));
+            if (sampleBytes === 1) pixels.fill(value, outputOffset, outputOffset + planeSize);
+            else for (let offset = outputOffset; offset < outputOffset + planeSize; offset += 2) {
+              if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+              view.setUint16(offset, value, true);
+            }
+            for (let row = 0; row < height; row++) {
+              if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+              const start = inputOffset + row * width * sampleBytes;
+              const target = outputOffset + ((py / sy + row) * outputWidth + px / sx) * sampleBytes;
+              pixels.set(planar.pixels.subarray(start, start + width * sampleBytes), target);
+            }
+            inputOffset += width * height * sampleBytes;
+            outputOffset += planeSize;
+          }
+          const native = { ...planar, width: pw, height: ph, pixels };
+          const data = scaleVideoPicture({ ...f, width: pw, height: ph, native }, pw, ph)!;
+          return { ...f, width: pw, height: ph, data, native: { ...native, rgba: data } };
+        }
         const padded = extendImage(makeRgbaImg(f.width, f.height, f.data), {
           left: px,
           top: py,

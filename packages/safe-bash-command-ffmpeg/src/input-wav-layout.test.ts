@@ -72,11 +72,13 @@ it("retains stereo raw-input interpretation", async () => {
     Array.from({ length: 8 }, (_, i) => 1100 + i));
 });
 
-it("keeps unsupported raw layouts rejected instead of silently relabelling samples", async () => {
+it("routes explicitly assigned raw FC+LFE speakers", async () => {
   const result = await run(front.subarray(68), ["-ch_layout", "FC+LFE", "-f", "s16le", "-ar", "8000",
     "-i", "/in.wav", "-af", "pan=mono|c0=LFE"]);
-  assert.notEqual(result.exitCode, 0);
-  assert.equal(result.volume.readFileSync("/out.wav", "utf8"), "KEEP");
+  assert.equal(result.exitCode, 0, result.stderr);
+  const audio = parseWav(result.volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+  assert.deepEqual(Array.from(audio.channelData[0]!, sample => sample * 32768),
+    Array.from({ length: 8 }, (_, i) => 1100 + i));
 });
 
 it("does not reinterpret WAV samples or change the channel count without a filter", async () => {

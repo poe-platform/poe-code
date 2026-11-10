@@ -21,6 +21,7 @@ export function parseAudioChannelLayout(layout: string): string[] {
   if (layout === "mono" || layout === "1c") return ["FC"];
   if (layout === "stereo" || layout === "2c") return ["FL", "FR"];
   if (layout === "downmix") return ["DL", "DR"];
+  if (layout === "2.1") return ["FL", "FR", "LFE"];
   if (layout === "3.0") return ["FL", "FR", "FC"];
   if (layout === "quad") return ["FL", "FR", "BL", "BR"];
   if (layout === "5.1" || layout === "6c") return ["FL", "FR", "FC", "LFE", "BL", "BR"];

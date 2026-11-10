@@ -6055,6 +6055,7 @@ function matchesImageGlob(pattern: string, name: string, budget: MediaBudgetTrac
 }
 
 interface InputSpec {
+  readonly channelLayout?: string | undefined;
   readonly guessLayoutMax?: number | undefined;
   readonly videoSize?: string | undefined;
   readonly pixelFormat?: string | undefined;
@@ -7079,14 +7080,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const beforeInput = args.slice(i + 1).includes("-i");
             const channels = parseAudioChannelLayout(layout ?? "");
             const names = channels.join("+");
-            if (beforeInput ? !["FC", "FL+FR", "FC+LFE", "FL+FR+BL+BR", "FL+FR+FC+LFE+BL+BR"].includes(names) : layout !== "mono") {
+            if (beforeInput ? !["FC", "FL+FR", "FC+LFE", "FL+FR+LFE", "FL+FR+FC", "FL+FR+BL+BR", "FL+FR+FC+LFE+BL+BR"].includes(names) : layout !== "mono") {
               await writeBytes(context.stderr, encodeUtf8(beforeInput
                 ? `ffmpeg: unsupported input channel layout '${layout ?? ""}'\n`
                 : "ffmpeg: only mono output channel layout is supported\n"), context.signal);
               return { exitCode: 1 };
             }
             audioChannelOptions.push(["", channels.length]);
-            if (beforeInput) pendingChannelLayout = names;
+            if (beforeInput) pendingChannelLayout = layout;
           } else if (arg === "-auto_conversion_filters" || arg === "-noauto_conversion_filters") {
             autoConversionFilters = arg === "-auto_conversion_filters";
           } else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats" || arg === "-nostats") {
@@ -7337,14 +7338,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             pendingAudioDecoder = undefined;
-            const inputPlugin = pendingFormat === undefined ? undefined : registry.findByFormatName(pendingFormat);
-            if (pendingChannelLayout && pendingChannelLayout !== "FC" && pendingChannelLayout !== "FL+FR" &&
-                inputPlugin?.supportedAudioCodecs.includes(`pcm_${inputPlugin.id}`)) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: only mono and stereo raw input channel layouts are supported\n"), context.signal);
-              return { exitCode: 1 };
-            }
             const path = args[++i] ?? "";
             inputs.push({
+              channelLayout: pendingChannelLayout,
               guessLayoutMax: pendingChannelLayout ? undefined : pendingGuessLayoutMax,
               dumpAttachments: pendingDumpAttachments,
               path,
@@ -8524,6 +8520,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 limits: options.limits,
                 budget
               });
+              if (input?.channelLayout && plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)) {
+                const channelMask = parseAudioChannelLayout(input.channelLayout)
+                  .reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0);
+                return { ...document, tracks: document.tracks.map(track => ({ ...track,
+                  codecDescriptions: track.codecDescriptions.map(codec => ({ ...codec, channelLayout: input.channelLayout })),
+                  ...(track.decodedAudio ? { decodedAudio: { ...track.decodedAudio, channelMask } } : {})
+                })) };
+              }
               if (plugin.id === "aac" && audioCodec === "copy" && checksumOutput) {
                 // Checksum muxers receive original ADTS packets; container muxers
                 // and decoders continue to receive raw AAC access units.

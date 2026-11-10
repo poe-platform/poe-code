@@ -17775,6 +17775,7 @@ export function runCompareCliSync(argv: readonly string[], files: Map<string, Ui
 }
 
 interface MontageArguments {
+    sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset">[];
     trim: boolean; shadow: boolean;
     orientations: ("flip" | "flop" | "transpose")[]; rotation: number; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined; texture: string | undefined;
@@ -17803,6 +17804,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
     let matte = parseColor("#bdbdbd");
     const operands: string[] = [];
     const labels: string[] = [];
+    const sizes: MontageArguments["sizes"] = [];
     let label = "";
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
@@ -17812,6 +17814,10 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             const g = parseMagickGeometry(argv[++i] ?? "2x2");
             tileCols = g.width;
             tileRows = g.height;
+        }
+        else if (t === "-size" || t === "+size") {
+            if (t === "-size" && argv[i + 1] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -size\n" };
+            i = applyMagickReadSetting(argv, state, i)!;
         }
         else if (t === "-flip" || t === "-flop" || t === "-transpose") {
             orientations.push(t === "-flip" ? "flip" : t === "-flop" ? "flop" : "transpose");
@@ -17879,6 +17885,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         else if (t === "-reverse") {
             operands.reverse();
             labels.reverse();
+            sizes.reverse();
         }
         else if (t === "-duplicate" || t === "+duplicate") {
             if (!operands.length) return { exitCode: 1, stdout: "", stderr: `montage: no images found for operation ${t}\n` };
@@ -17898,6 +17905,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
                         if (++cooperativeWork % 64 === 0) yield;
                         operands.push(operands[index]!);
                         labels.push(labels[index]!);
+                        sizes.push(sizes[index]!);
                     }
                 }
             } catch (error) {
@@ -17961,9 +17969,10 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         else {
             operands.push(t);
             labels.push(label);
+            sizes.push({ hasSize: state.hasSize, sizeWidth: state.sizeWidth, sizeHeight: state.sizeHeight, inputOffset: state.inputOffset ?? 0 });
         }
     }
-    return { trim, shadow, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title, texture };
+    return { trim, shadow, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture };
 }
 function montageTitleSvg(title: string, width: number, state: MagickState, padY: number): { svg: string; height: number } {
     // Montage doubles the title point size and reserves twice the normal line metrics.
@@ -17978,7 +17987,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let cooperativeWork = 63;
     const parsed = yield* parseMontageArguments(argv);
     if ("exitCode" in parsed) return parsed;
-    const { trim, shadow, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title, texture } = parsed;
+    const { trim, shadow, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture } = parsed;
     const variableCells = !frame && cellW === undefined && cellH === undefined;
     if (operands.length < 2) {
         return {
@@ -18105,7 +18114,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 }
                 let loadedList: RgbaImage[] | undefined;
                 try {
-                    loadedList = (yield* parseInputOperandsSteps(p, files, state, stdinBytes));
+                    loadedList = (yield* parseInputOperandsSteps(p, files, { ...state, ...sizes[idx] }, stdinBytes));
                 } catch (err) {
                     detachRgbaBuffer(canvas.data);
                     return {
@@ -18139,7 +18148,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             yield;
             let loadedList: RgbaImage[] | undefined;
             try {
-                loadedList = (yield* parseInputOperandsSteps(p, files, state, stdinBytes));
+                loadedList = (yield* parseInputOperandsSteps(p, files, { ...state, ...sizes[inputIndex] }, stdinBytes));
             }
             catch (err) {
                 return {
@@ -18291,7 +18300,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
     const parsed = await drainSteps(parseMontageArguments(argv), signal);
     if ("exitCode" in parsed) return parsed;
-    const { trim, shadow, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, geometry, thumbnail, frame, matte, title, texture } = parsed;
+    const { trim, shadow, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture } = parsed;
     const variableCells = !frame && cellW === undefined && cellH === undefined;
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
@@ -18362,7 +18371,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             for (let index = 0; index < paths.length; index++) {
                 const path = paths[index]!;
                 try {
-                    const loaded = await parseStoredCompareInput(path, state, backend, signal, { source: await sourceAt(index), visit: async image => {
+                    const loaded = await parseStoredCompareInput(path, { ...state, ...sizes[index] }, backend, signal, { source: await sourceAt(index), visit: async image => {
                         if (trim) image = await trimStoredMagick(image, backend.storage, state.alphaFuzz, signal);
                         for (const orientation of orientations) {
                             image = await transformStoredImage(image, backend.storage, { kind: orientation === "transpose" ? "flip" : orientation }, signal);
@@ -18436,7 +18445,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 let image: StoredRgbaImage | undefined, directPng = false;
                 if (fast) {
                     const path = paths[pageStart + index]!;
-                    try { image = await parseStoredCompareInput(path, state, backend, signal, { source: await sourceAt(pageStart + index) }); }
+                    try { image = await parseStoredCompareInput(path, { ...state, ...sizes[pageStart + index] }, backend, signal, { source: await sourceAt(pageStart + index) }); }
                     catch (error) {
                         signal.throwIfAborted(); if (error instanceof CompareInputFailure) throw error.reason;
                         return { exitCode: 1, stdout: "", stderr: `montage: improper image header '${path}': ${(error as Error).message}\n` };

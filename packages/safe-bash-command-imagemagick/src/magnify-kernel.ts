@@ -1,15 +1,16 @@
+import { hq2xPixels } from "./hq2x-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { RgbaColor } from "@poe-code/image-ast/portable";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 
-export type MagnifyMethod = "epbx2x" | "scale2x" | "eagle2x" | "scale3x" | "eagle3x" | "xbr2x";
+export type MagnifyMethod = "hq2x" | "epbx2x" | "scale2x" | "eagle2x" | "scale3x" | "eagle3x" | "xbr2x";
 
 export function parseMagnifyMethod(value: string): MagnifyMethod {
     const method = value.toLowerCase();
-    if (method === "epbx2x" || method === "scale2x" || method === "eagle2x" || method === "scale3x" || method === "eagle3x" || method === "xbr2x") return method;
+    if (method === "hq2x" || method === "epbx2x" || method === "scale2x" || method === "eagle2x" || method === "scale3x" || method === "eagle3x" || method === "xbr2x") return method;
     // Native defaults unknown names to Scale2x, but these names select distinct algorithms.
-    if (["eagle3xb", "fish2x", "hq2x"].includes(method)) {
+    if (["eagle3xb", "fish2x"].includes(method)) {
         throw new Error(`Unsupported magnify method: ${value}`);
     }
     return "scale2x";
@@ -53,6 +54,13 @@ export function* magnifyPixelSteps(image: { width: number; height: number; hasAl
                 return row.subarray(offset, offset + 4);
             }));
             const eq = (a: number, b: number) => pixels[a]!.every((value, channel) => channel === 3 && !image.hasAlpha || value === pixels[b]![channel]);
+            if (method === "hq2x") {
+                const blended = hq2xPixels(pixels, eq);
+                for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
+                    output[dy]!.set(blended[dy * 2 + dx]!, (x * 2 + dx) * 4);
+                }
+                continue;
+            }
             const selected = new Array<number>(factor * factor).fill(method === "xbr2x" ? 12 : 4);
             if (method === "xbr2x") {
                 // ImageMagick Xbr2X: equality weights over a row-major 5x5 neighborhood.

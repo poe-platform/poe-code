@@ -38,22 +38,22 @@ export async function removeSilence(
     if (key === "enable") {
       enable = value;
       parseFilterExpression(enable, "silenceremove enable", { n: 0, t: 0 });
-    } else if (key === "start_mode" || key === "stop_mode") {
-      if (!["any", "all", "0", "1"].includes(value)) throw new Error(`silenceremove: invalid ${key}`);
-      options[key] = value === "0" || value === "any" ? "any" : "all";
-    } else if (key === "detection") {
-      if (!["avg", "rms", "peak", "median", "ptp", "dev", "0", "1", "2", "3", "4", "5"].includes(value)) throw new Error("silenceremove: supported detection modes are avg, rms, peak, median, ptp and dev");
-      options.detection = ["avg", "rms", "peak", "median", "ptp", "dev"][Number(value)] ?? value;
-    } else if (key === "timestamp") {
-      if (!["write", "copy", "0", "1"].includes(value)) throw new Error("silenceremove: invalid timestamp");
-      options.timestamp = value === "copy" || value === "1" ? "copy" : "write";
+    } else if (key === "start_mode" || key === "stop_mode" || key === "detection" || key === "timestamp") {
+      const names = key === "detection" ? ["avg", "rms", "peak", "median", "ptp", "dev"]
+        : key === "timestamp" ? ["write", "copy"] : ["any", "all"];
+      const number = parseFilterExpression(value, "silenceremove", Object.fromEntries(names.map((name, i) => [name, i])));
+      if (!Number.isFinite(number) || number < 0 || number > names.length - 1) {
+        throw new Error(`silenceremove: invalid ${key}`);
+      }
+      const lower = Math.floor(number);
+      options[key] = names[number - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(number)]!;
     } else if (key === "start_periods" || key === "stop_periods" || key === "start_threshold" ||
       key === "stop_threshold" || key === "start_duration" || key === "stop_duration" ||
       key === "start_silence" || key === "stop_silence" || key === "window") {
       const threshold = key.endsWith("threshold");
       const periods = key.endsWith("periods");
-      const number = threshold ? parseFilterExpression(value, "silenceremove", {})
-        : periods ? Number(value) : parseHlsDuration(value);
+      const number = threshold || periods ? parseFilterExpression(value, "silenceremove", {})
+        : parseHlsDuration(value);
       const min = key === "stop_periods" ? -9000 : 0;
       const max = periods ? 9000 : key === "window" ? 100 : threshold ? Number.MAX_VALUE : 2147.483647;
       if (!value || !Number.isFinite(number) || number < min || number > max) {

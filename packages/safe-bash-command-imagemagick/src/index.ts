@@ -2607,7 +2607,7 @@ function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, c
             let frame = yield* applyMagickRasterSteps(source, morphPixelSteps(source, b, w, h, t, channels, !!(source.data16 || b.data16), kernel, settings), signal, { ...source, width: w, height: h }, [source, b]);
             if (source.writeMask) frame = yield* applyMagickRasterSteps(frame, writeMaskPixelSteps(frame, source.writeMask, !!frame.data16, false, undefined, source.hasAlpha && source.alphaBlend !== false), signal, frame, [frame, source, source.writeMask]);
             if (source.region) frame = yield* applyMagickRasterSteps(frame, regionPixelSteps(frame, source.region, !!frame.data16), signal, frame, [frame, source]);
-            out.push({ ...frame, isPalette: false, ...(virtualCanvas ? { virtualCanvas } : {}) });
+            out.push({ ...frame, alphaSeparate: source.alphaBlend === false ? false : source.alphaSeparate, isPalette: false, ...(virtualCanvas ? { virtualCanvas } : {}) });
         }
     }
     out.push(stack[stack.length - 1]!);
@@ -12709,7 +12709,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             let frame = await transformStoredMagickRaster(source, backend, morphPixelSteps(source, b, width, height, fraction, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a, settings.channels.k === true] : undefined, !!(source.storedData16 || b.storedData16), settings.kernel, settings.resizeFilter), signal, { ...source, width, height }, [source, b]);
                             if (source.storedWriteMask) frame = await transformStoredMagickRaster(frame, backend, writeMaskPixelSteps(frame, source.storedWriteMask, !!frame.storedData16, false, undefined, source.hasAlpha && source.alphaBlend !== false), signal, frame, [frame, source, source.storedWriteMask]);
                             if (source.region) frame = await transformStoredMagickRaster(frame, backend, regionPixelSteps(frame, source.region, !!frame.storedData16), signal, frame, [frame, source]);
-                            await result.push({ ...frame, isPalette: false, ...(virtualCanvas ? { virtualCanvas } : {}) });
+                            await result.push({ ...frame, alphaSeparate: source.alphaBlend === false ? false : source.alphaSeparate, isPalette: false, ...(virtualCanvas ? { virtualCanvas } : {}) });
                         }
                     }
                     await result.push((await stack.get(stack.length - 1))!); return result;

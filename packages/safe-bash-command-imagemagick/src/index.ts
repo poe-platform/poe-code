@@ -7927,27 +7927,30 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             };
         }
         else if (mode === "remove") {
-            highDepth = true;
+            highDepth = evaluate = true;
             apply = function* (im) {
                 const out = new Uint8Array(im.data.length);
                 const data16 = new Uint16Array(im.data.length);
+                const evaluateSamples = new Float64Array(im.data.length);
                 const color = state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background;
                 const background = [color.r, color.g, color.b];
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (idx % 65536 === 0) yield;
-                    const alpha = im.hasAlpha ? (im.data16 ? im.data16[idx + 3]! / 65535 : im.data[idx + 3]! / 255) : 1;
+                    const alpha = im.hasAlpha ? (im.evaluateSamples ? im.evaluateSamples[idx + 3]! / 255 : im.data16 ? im.data16[idx + 3]! / 65535 : im.data[idx + 3]! / 255) : 1;
                     for (let channel = 0; channel < 3; channel++) {
                         const bg = background[im.channels === 2 ? 0 : channel]!;
-                        const source = im.data16 ? im.data16[idx + channel]! : im.data[idx + channel]! * 257;
+                        const source = im.evaluateSamples ? im.evaluateSamples[idx + channel]! * 257 : im.data16 ? im.data16[idx + channel]! : im.data[idx + channel]! * 257;
                         const blended = source * alpha + bg * 257 * (1 - alpha);
-                        data16[idx + channel] = Math.round(blended);
+                        evaluateSamples[idx + channel] = Math.fround(blended) / 257;
+                        data16[idx + channel] = Math.round(Math.max(0, Math.min(65535, blended)));
                         // Round the unquantized blend directly for 8-bit output.
                         out[idx + channel] = clampByteVal(blended / 257);
                     }
                     out[idx + 3] = 255;
                     data16[idx + 3] = 65535;
+                    evaluateSamples[idx + 3] = 255;
                 }
-                return { ...im, data: out, data16, hasAlpha: false, inactiveAlpha: false, alphaSeparate: false, channels: im.channels === 4 ? 3 : im.channels === 2 ? 1 : im.channels };
+                return { ...im, data: out, data16, evaluateSamples, hasAlpha: false, inactiveAlpha: false, alphaSeparate: false, channels: im.channels === 4 ? 3 : im.channels === 2 ? 1 : im.channels };
             };
         }
         else if (mode === "associate" || mode === "disassociate") {
@@ -8004,17 +8007,20 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             };
         }
         else if (mode === "off" || mode === "opaque" || mode === "transparent") {
+            evaluate = mode === "opaque";
             apply = function* (im) {
                 let pixelWork = 0;
                 const out = new Uint8Array(im.data);
+                const evaluateSamples = im.evaluateSamples?.slice();
                 const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
                 for (let idx = 3; idx < out.length; idx += 4) {
                     if (++pixelWork % 16384 === 0)
                         yield;
                     out[idx] = mode === "opaque" ? 255 : 0;
+                    if (evaluateSamples) evaluateSamples[idx] = out[idx]!;
                     if (data16) data16[idx] = mode === "opaque" ? 65535 : 0;
                 }
-                return { ...im, data: out, ...(data16 ? { data16 } : {}), hasAlpha: mode !== "off", inactiveAlpha: false, alphaBlend: mode !== "off", alphaSeparate: false };
+                return { ...im, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), hasAlpha: mode !== "off", inactiveAlpha: false, alphaBlend: mode !== "off", alphaSeparate: false };
             };
         }
         else if (mode === "copy" || mode === "shape") {
@@ -8075,6 +8081,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             };
         }
         else if (mode === "on" || mode === "set") {
+            evaluate = true;
             apply = function* (im) {
                 if (im.hasAlpha && im.alphaBlend !== false) return im;
                 const opaque = yield* prepareInactiveAlphaOutput({ ...im, hasAlpha: false });
@@ -9342,14 +9349,16 @@ async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareF
 // Inactive alpha remains in the working pixels, but must not leak into encoded output.
 function* prepareInactiveAlphaOutput(image: RgbaImage): Generator<void, RgbaImage, void> {
     if (image.hasAlpha) return image;
+    const evaluateSamples = image.evaluateSamples?.slice();
     const data = new Uint8Array(image.data);
     const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
     for (let index = 3; index < data.length; index += 4) {
         if (index % 65536 === 3) yield;
         data[index] = 255;
+        if (evaluateSamples) evaluateSamples[index] = 255;
         if (data16) data16[index] = 65535;
     }
-    return { ...image, data, ...(data16 ? { data16 } : {}) };
+    return { ...image, data, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}) };
 }
 
 function* prepareFloatOutput(image: RgbaImage): Generator<void, RgbaImage, void> {

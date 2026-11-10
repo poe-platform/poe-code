@@ -181,6 +181,7 @@ export async function restoreShellSessionState(
   }
   if (snapshot.variableAttributes) {
     state.variableAttributes ??= new Map();
+    state.variableAttributes.delete("OPTIND");
     for (const [name, attrs] of Object.entries(snapshot.variableAttributes)) {
       if (attrs) state.variableAttributes.set(name, attrs);
     }

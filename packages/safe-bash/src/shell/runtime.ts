@@ -891,7 +891,6 @@ Object.assign(Capture.prototype, {
   _chunks: undefined, _first: undefined, _scratch4k: undefined, _scratchLen: 0, length: 0, _tail: undefined, _tailLength: 0, budget: undefined, signal: undefined, file: undefined, });
 interface GetoptsBinding {
   cursor: GetoptsState;
-  integer: boolean;
 }
 export interface SavedVariable {
   attributes?: string | undefined;
@@ -1671,7 +1670,7 @@ function cloneRawState(raw: State, hasLocals: boolean): State {
         ? {
             entries: raw.directoryStack.entries.length ? [...raw.directoryStack.entries] : [], bytes: raw.directoryStack.bytes, }
         : undefined, locals: hasLocals
-        ? raw.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }])))
+        ? raw.locals.map((scope) => new Map([...scope].map(([name, saved]) => [name, { ...saved, ...(saved.getopts ? { getopts: { cursor: cloneGetoptsState(saved.getopts.cursor) } } : {}) }])))
         : [], }, );
   if (raw.exportedFunctions) cloned.exportedFunctions = new Set(raw.exportedFunctions);
   if (raw.readonlyVariables) cloned.readonlyVariables = new Set(raw.readonlyVariables);
@@ -1736,7 +1735,7 @@ async function cloneState(state: State, signal: AbortSignal, scope?: InvocationS
   } catch (error) { stateMonitor(destination)?.closeValues(); throw error; }
 }
 export function cloneGetoptsBinding(state: State): GetoptsBinding {
-  return { cursor: state.getopts ? cloneGetoptsState(state.getopts.cursor) : createGetoptsState(), integer: state.getopts?.integer ?? true };
+  return { cursor: state.getopts ? cloneGetoptsState(state.getopts.cursor) : createGetoptsState() };
 }
 function shellCharacterWidth(bytes: Uint8Array, offset: number, byteCount: boolean): number {
   if (byteCount) return 1;
@@ -1781,7 +1780,9 @@ export function saveVariable(state: State, name: string): SavedVariable {
 export function hasActiveVariableAttributes(state: State): boolean {
   const attrs = state.variableAttributes;
   if (!attrs || attrs.size === 0) return false;
-  for (const val of attrs.values()) {
+  for (const [name, val] of attrs) {
+    // OPTIND already has dedicated assignment and scanner guards in fast paths.
+    if (name === "OPTIND" && val === "i") continue;
     if (val.length > 0) return true;
   }
   return false;
@@ -1831,7 +1832,7 @@ export function tryRestoreVariableSync(state: State, name: string, saved: SavedV
     if (saved.exported) state.exported.add(name);
     else state.exported.delete(name);
     if (name === "OPTIND" && saved.getopts) {
-      state.getopts = { integer: saved.getopts.integer, cursor: cloneGetoptsState(saved.getopts.cursor) };
+      state.getopts = { cursor: cloneGetoptsState(saved.getopts.cursor) };
       if (!saved.readOnly) state.readonlyVariables?.delete(name);
       else { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
     }
@@ -2923,10 +2924,6 @@ export class Runtime {
     const maxBytes = this.budget.limits.maxExpansionBytes;
     if ((typeof value !== "string" || value.length * 3 > maxBytes) && shellValueByteLength(value) > maxBytes) this.budget.fail("maxExpansionBytes");
     if (state.variableAttributes?.get(name)) value = await this.attributeValue(state, name, value, io, origin);
-    if (name === "OPTIND" && (state.getopts === undefined || state.getopts.integer) && origin !== "arithmetic") {
-      try { value = String(await this.shellArithmetic(prepareArithmetic(shellValueText(value) || "0", this.budget.parsing), state, io)); }
-      catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error, this.budget.onInternalError)); }
-    }
     publishVariable(state, name, value);
     if (state.allexport) state.exported.add(name);
     if (name === "OPTIND" && origin !== "getopts") this.syncGetopts(state);
@@ -2973,7 +2970,6 @@ export class Runtime {
     state.getopts ??= cloneGetoptsBinding(state);
     const value = state.variables.OPTIND;
     if (value === undefined) {
-      state.getopts.integer = false;
       state.getopts.cursor = createGetoptsState();
     } else state.getopts.cursor = withGetoptsIndex(state.getopts.cursor, decimalIndex(value));
   }
@@ -6158,7 +6154,7 @@ export class Runtime {
         }
         redirectState.redirectAssignments = redirectAssignments;
         const savedIndex = previous.get("OPTIND");
-        if (savedIndex?.getopts) redirectState.getopts = { integer: savedIndex.getopts.integer, cursor: cloneGetoptsState(savedIndex.getopts.cursor) };
+        if (savedIndex?.getopts) redirectState.getopts = { cursor: cloneGetoptsState(savedIndex.getopts.cursor) };
         const parentStore = arrayStore(state);
         const copyOwner = parentStore ? ArrayOwner.create(parentStore.owner.ledger, parentStore.owner) : undefined;
         const holding = parentStore?.owner.hold();
@@ -7054,7 +7050,7 @@ export class Runtime {
     variables.OPTERR = "1";
     const child = trackState(Object.assign(new RootShellState(state.cwd, variables, exported, forkExtensions(state.extensions, "process")), {
       directoryFileSystem: this.fs, logicalCwd: state.logicalCwd,
-      umask: state.umask ?? 0o022, functions: new Map(), getopts: { cursor: createGetoptsState(), integer: true }, directoryStack: { entries: [], bytes: 0 }, dotglob: false, globstar: false, positional: [], arg0: shellValueText(arg0), profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true, errexit: false, }), this.budget, io[invocationScope]);
+      umask: state.umask ?? 0o022, functions: new Map(), getopts: { cursor: createGetoptsState() }, directoryStack: { entries: [], bytes: 0 }, dotglob: false, globstar: false, positional: [], arg0: shellValueText(arg0), profile: context.command === "sh" ? "sh" : "bash", status: 0, substitutionStatus: 0, depth: state.depth + 1, loopDepth: 0, functionDepth: 0, locals: [], pipefail: false, isolated: true, errexit: false, }), this.budget, io[invocationScope]);
     for (const name of state.exportedFunctions ?? []) {
       const body = state.functions.get(name);
       const key = `BASH_FUNC_${name}%%`;
@@ -9463,10 +9459,6 @@ export class Runtime {
               stateMonitor(state)?.values.invalidate(name);
             }
           }
-          if (name === "OPTIND") {
-            state.getopts ??= cloneGetoptsBinding(state);
-            state.getopts.integer = false;
-          }
         }
         const attributeName = namerefDeclaration || disabled.has("n") ? name : variableTarget(this.referenceName(state, name))!.name;
         if (command === "declare" || command === "local") this.declareAttributes(state, attributeName, enabled, disabled);
@@ -11569,6 +11561,7 @@ export class RootShellState implements State {
     this.directoryReference = undefined;
   }
   declare variables: Record<string, string>;
+  declare variableAttributes: Map<string, string>;
   declare _functions: Map<string, Command> | undefined;
   declare getopts: GetoptsBinding | undefined;
   declare directoryStack: { entries: string[]; bytes: number } | undefined;
@@ -11591,6 +11584,7 @@ export class RootShellState implements State {
     this.cwd = cwd;
     this.logicalCwd = cwd;
     this.variables = variables;
+    this.variableAttributes = new Map([["OPTIND", "i"]]);
     this.shift_verbose = variables.POSIXLY_CORRECT !== undefined;
     this._exported = exported;
     this.extensions = extensions;

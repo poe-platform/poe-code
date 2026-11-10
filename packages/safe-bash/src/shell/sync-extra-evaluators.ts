@@ -3344,7 +3344,7 @@ const syncExtraRuntimeMethods = {
       rawRoot.globskipdots === false ||
       Boolean(rawRoot.aliases?.size) ||
       Boolean(rawRoot._locals?.length) ||
-      Boolean(rawRoot.readonlyVariables?.size) ||
+      Boolean(rawRoot.readonlyVariables && [...rawRoot.readonlyVariables].some(name => name !== "SHELLOPTS" && name !== "BASHOPTS")) ||
       Boolean(rawRoot.readonlyFunctions?.size) ||
       Boolean(rawRoot._positional?.length) ||
       Boolean(rawRoot.directoryStack?.entries?.length) ||
@@ -3390,6 +3390,7 @@ const syncExtraRuntimeMethods = {
     }
     if (rawRoot._functions?.size) rawRoot._functions.clear();
     if (rawRoot.variableAttributes?.size) rawRoot.variableAttributes.clear();
+    rawRoot.variableAttributes.set("OPTIND", "i");
     if (rawRoot._exported && (rawRoot._exported.size > 1 || (rawRoot._exported.size === 1 && !rawRoot._exported.has("PWD")))) {
       rawRoot._exported.clear();
       rawRoot._exported.add("PWD");
@@ -7743,7 +7744,7 @@ const syncExtraRuntimeMethods = {
       const isNoBraceSyncAssignWord = (w: Word) =>
         this.isPureSyncValueWord(w, rawState, true) && !w.parts.some(part => rawState.braceexpand !== false && part.kind === "text" && !part.quoted && part.value.includes("{"));
       const isCanonicalOptindWord = (w: Word) =>
-        rawState.getopts?.integer !== false && w.parts.length === 1 && w.parts[0]!.kind === "text" && /^(?:0|[1-9][0-9]{0,5})$/.test(w.parts[0]!.value);
+        rawState.variableAttributes?.get("OPTIND") === "i" && w.parts.length === 1 && w.parts[0]!.kind === "text" && /^(?:0|[1-9][0-9]{0,5})$/.test(w.parts[0]!.value);
       const isNoBraceSyncWord = (w: Word) =>
         this.isPureSyncValueWord(w, rawState, false) && !w.parts.some(part => rawState.braceexpand !== false && part.kind === "text" && !part.quoted && part.value.includes("{")) && !w.parts.some(part => part.kind === "substitution");
       if (command.words.length === 1) {
@@ -9891,7 +9892,7 @@ const syncExtraRuntimeMethods = {
       const hasSubPart = assignment.value.parts.some((part: WordPart) => part.kind === "substitution");
       const existingArrAssign = store?.get(targetAssignName);
       if (
-        (targetAssignName === "OPTIND" && (assignment.append || rawState.variableAttributes?.get("OPTIND") || rawState.getopts?.integer === false)) ||
+        (targetAssignName === "OPTIND" && (assignment.append || rawState.variableAttributes?.get("OPTIND") !== "i")) ||
         targetAssignName === "PIPESTATUS" ||
         targetAssignName.includes("[") ||
         (hasSubPart && !this.isPureSyncValueWord(assignment.value, rawState)) ||
@@ -10096,7 +10097,7 @@ const syncExtraRuntimeMethods = {
       }
       if ( command.words.length >= 3 && command.words.length <= 16 && w0Plain === "getopts" && command.redirects.length === 0 && !hasShellFunction(rawState, "getopts") && !rawState.extensions?.builtins.has("getopts")) {
         const optVar = command.words[2]?.plain;
-        if ( optVar && isShellIdentifier(optVar) && optVar !== "OPTIND" && optVar !== "PIPESTATUS" && optVar !== "_" && !rawState.readonlyVariables?.has(optVar) && !rawState.readonlyVariables?.has("OPTIND") && !rawState.readonlyVariables?.has("OPTARG") && !rawState.variableAttributes?.get(optVar) && !rawState.variableAttributes?.get("OPTIND") && !rawState.variableAttributes?.get("OPTARG") && !store?.get(optVar) && !store?.get("OPTIND") && !store?.get("OPTARG") && !monitor.hasOverlay(optVar)) {
+        if ( optVar && isShellIdentifier(optVar) && optVar !== "OPTIND" && optVar !== "PIPESTATUS" && optVar !== "_" && !rawState.readonlyVariables?.has(optVar) && !rawState.readonlyVariables?.has("OPTIND") && !rawState.readonlyVariables?.has("OPTARG") && !rawState.variableAttributes?.get(optVar) && (!rawState.variableAttributes?.get("OPTIND") || rawState.variableAttributes.get("OPTIND") === "i") && !rawState.variableAttributes?.get("OPTARG") && !store?.get(optVar) && !store?.get("OPTIND") && !store?.get("OPTARG") && !monitor.hasOverlay(optVar)) {
           let optstring: ShellValue | undefined;
           let scanArgs: readonly string[] | undefined;
           let lastArg: string = optVar;
@@ -11383,7 +11384,7 @@ const syncExtraRuntimeMethods = {
           const assignment = !getArrayAssignment(wArg) ? this.assignment(wArg) : undefined;
           if (assignment) {
             const curAttr = rawState.variableAttributes?.get(assignment.name);
-            if ( (!isNamerefDecl && curAttr && curAttr !== "i" && curAttr !== "l" && curAttr !== "u") || (assignment.name === "OPTIND" && (assignment.append || curAttr || (!isGlobalDecl && rawState.locals.length > 0) || rawState.getopts?.integer === false)) || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || rawState.readonlyVariables?.has(assignment.name) || store?.get(assignment.name)) {
+            if ( (!isNamerefDecl && curAttr && curAttr !== "i" && curAttr !== "l" && curAttr !== "u") || (assignment.name === "OPTIND" && (assignment.append || curAttr !== "i" || (!isGlobalDecl && rawState.locals.length > 0))) || assignment.name === "PIPESTATUS" || assignment.name.includes("[") || rawState.readonlyVariables?.has(assignment.name) || store?.get(assignment.name)) {
               allValidLocal = false;
               break;
             }
@@ -11690,7 +11691,7 @@ const syncExtraRuntimeMethods = {
                     if (previous.value === undefined) delete rawState.variables[k];
                     else rawState.variables[k] = shellValueText(previous.value);
                     if (k === "OPTIND" && previous.getopts) {
-                      rawState.getopts = { integer: previous.getopts.integer, cursor: cloneGetoptsState(previous.getopts.cursor) };
+                      rawState.getopts = { cursor: cloneGetoptsState(previous.getopts.cursor) };
                     }
                     rawState.variableAttributes?.delete(k);
                     this._syncArithTouched.add(k);
@@ -15397,7 +15398,7 @@ const syncExtraRuntimeMethods = {
             rawState.readonlyVariables?.has("OPTIND") ||
             rawState.readonlyVariables?.has("OPTARG") ||
             rawState.variableAttributes?.get(optVar) ||
-            rawState.variableAttributes?.get("OPTIND") ||
+            (rawState.variableAttributes?.get("OPTIND") && rawState.variableAttributes.get("OPTIND") !== "i") ||
             rawState.variableAttributes?.get("OPTARG") ||
             store?.get(optVar) ||
             store?.get("OPTIND") ||

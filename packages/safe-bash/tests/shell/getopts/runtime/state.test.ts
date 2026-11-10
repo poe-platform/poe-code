@@ -5,6 +5,53 @@ import { test } from "node:test";
 import { arraysExtension } from "../../../../src/shell/extensions/arrays/index.js";
 import { runtimeSetup } from "./helpers.js";
 
+for (const bounded of [false, true]) {
+  for (const [source, expected] of [
+    ['declare +i OPTIND; OPTIND=1+1; getopts :ab v -a -b; printf "%s/%s" "$v" "$OPTIND"', "a/2"],
+    ['declare +i OPTIND; OPTIND=1+1; printf %s "$OPTIND"', "1+1"],
+    [':; printf "%s/%s" "${OPTIND@a}" "${OPTIND-unset}"', "i/1"],
+    ['declare -i OPTIND; OPTIND=1+1; getopts :ab v -a -b; printf "%s/%s" "$v" "$OPTIND"', "b/3"],
+    ['declare -i OPTIND; printf "%s/%s" "${OPTIND@a}" "${OPTIND-unset}"', "i/1"],
+    ['declare -p OPTIND', 'declare -i OPTIND="1"\n'],
+    ['declare +i OPTIND; declare -i OPTIND; OPTIND=1+1; printf "%s/%s" "${OPTIND@a}" "$OPTIND"', "i/2"],
+    ['f(){ local OPTIND=1+1; printf "%s/%s;" "${OPTIND@a}" "$OPTIND"; }; f; printf "%s/%s" "${OPTIND@a}" "$OPTIND"', "/1+1;i/1"],
+    ['f(){ local -I OPTIND; OPTIND=1+1; printf "%s/%s;" "${OPTIND@a}" "$OPTIND"; }; f; printf "%s/%s" "${OPTIND@a}" "$OPTIND"', "i/2;i/1"],
+    ['unset OPTIND; OPTIND=1+1; printf "%s/%s" "${OPTIND@a}" "$OPTIND"', "/1+1"],
+    ['declare +i OPTIND; bash -c \'printf "%s/%s" "${OPTIND@a}" "$OPTIND"\'', "i/1"],
+    ['OPTIND+=1+1; printf %s "$OPTIND"', "3"],
+  ] as const) {
+    test(`OPTIND integer attribute: ${source} (bounded=${bounded})`, async () => {
+      const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { ...process.env, LC_ALL: "C" } });
+      assert.equal(native.status, 0, native.stderr);
+      assert.equal(native.stdout, expected);
+      assert.equal(native.stderr, "");
+      const { shell } = runtimeSetup(bounded ? { limits: { maxExpansionBytes: 4096 } } : {});
+      try {
+        for (let run = 0; run < 2; run++) {
+          const result = await shell.exec(source);
+          assert.equal(result.exitCode, native.status, result.stderr);
+          assert.equal(result.stdout, native.stdout);
+          assert.equal(result.stderr, native.stderr);
+        }
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+test("OPTIND integer attributes persist across session turns", async () => {
+  const { shell } = runtimeSetup();
+  try {
+    const session = shell.createSession();
+    for (const [declaration, expected] of [[":", "i/2"], ["declare +i OPTIND", "/1+1"], ["declare -i OPTIND", "i/2"]] as const) {
+      assert.equal((await session.exec(declaration)).exitCode, 0);
+      const result = await session.exec('OPTIND=1+1; printf "%s/%s" "${OPTIND@a}" "$OPTIND"');
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, expected);
+      assert.equal(result.stderr, "");
+    }
+  } finally { await shell.dispose(); }
+});
+
 for (const [source, line, prefix] of [
   ["getopts ':a' OPTIND rest\nprintf done", 1, "getopts: "],
   ["declare -i n\ngetopts ':a' n rest\nprintf done", 2, "getopts: "],

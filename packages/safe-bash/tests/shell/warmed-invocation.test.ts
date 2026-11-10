@@ -5,6 +5,18 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { InvocationScope } from "../../src/shell/cleanup.js";
 import { resolveLimits } from "../../src/shell/runtime.js";
 
+test("warmed invocations restore the default OPTIND integer attribute", async t => {
+  const shell = new Shell({ fs: new MemoryFileSystem() });
+  t.after(() => shell.dispose());
+  for (const source of ["", "declare +i OPTIND", "unset OPTIND"]) {
+    await shell.exec(source);
+    const result = await shell.exec("declare -p OPTIND");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, 'declare -i OPTIND="1"\n');
+    assert.equal(result.stderr, "");
+  }
+});
+
 for (const registration of ["shell", "registry"] as const) {
   test(`registration through ${registration} after warming supplies a native signal`, async t => {
     const shell = new Shell({ fs: new MemoryFileSystem() });

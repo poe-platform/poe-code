@@ -4249,14 +4249,17 @@ async function applyVideoFilterChain(
       for (const [index, option] of options.entries()) {
         const separator = option.indexOf("=");
         const key = separator < 0 ? ["loop", "size", "start", "time"][index] : option.slice(0, separator).trim();
+        if (key === undefined) throw new Error("loop: surplus positional option");
         if (key !== "loop" && key !== "size" && key !== "start" && key !== "time") throw new Error(`loop: unsupported option ${key}`);
         const text = (separator < 0 ? option : option.slice(separator + 1)).trim();
         const value = key === "time" ? parseHlsDuration(text) : Number(text);
         const max = key === "time" ? (2 ** 63 - 1) / 1_000_000
           : key === "loop" ? 2147483647 : key === "size" ? 32767 : 2 ** 63;
-        if (!text || !Number.isFinite(value) || (key !== "time" && !Number.isInteger(value)) ||
-          value < (key === "start" || key === "loop" ? -1 : 0) || value > max) {
+        if (!text || !Number.isFinite(value) || (key !== "time" && !Number.isInteger(value))) {
           throw new Error(`loop: invalid ${key}`);
+        }
+        if (value < (key === "start" || key === "loop" ? -1 : 0) || value > max) {
+          throw new RangeError(`loop: invalid ${key}`);
         }
         values[key] = value;
       }
@@ -15361,6 +15364,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "tmix: invalid expression" || msg === "tmix: invalid or unsupported expression" ||
                 msg === "tmix: weights must be finite numbers") return { exitCode: 234 };
             if (msg.startsWith("framestep:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg.startsWith("loop: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("loop: invalid ") || msg === "loop: surplus positional option") {
+              return { exitCode: err instanceof RangeError ? 222 : 234 };
+            }
             if (msg === "tile: unknown option enable") return { exitCode: 176 };
             if (msg.startsWith("tile: unknown option ")) return { exitCode: 8 };
             if (msg.startsWith("tile:")) return { exitCode: err instanceof RangeError ? 222 : 234 };

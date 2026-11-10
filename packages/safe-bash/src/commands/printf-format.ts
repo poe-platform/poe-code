@@ -7,6 +7,7 @@ interface PrintfDirective {
   readonly width: number | "*";
   readonly precision: number | "*" | undefined;
   readonly specifier: string;
+  readonly wide?: boolean;
   readonly timeFormat?: string;
 }
 
@@ -60,13 +61,12 @@ export async function parsePrintfDirective(format: string | Uint8Array, start: n
     offset++;
     if ((offset - start) % 1024 === 0) await yieldTurn(signal);
   }
-  let specifier = character();
-  if (wide && (specifier === "s" || specifier === "c")) specifier = specifier.toUpperCase();
+  const specifier = character();
   if (!specifier) {
     const end = start + 64;
     const preview = typeof format === "string" ? format.slice(start, end) : decoder.decode(format.subarray(start, end));
     throw new UsageError(`\`${preview}${format.length > end ? "..." : ""}': missing format character`);
   }
   if (!"nsbqQcCSdiouxXfFeEgGaA".includes(specifier)) throw new UsageError(`\`${specifier}': invalid format character`);
-  return { end: offset + 1, flags, width, precision, specifier };
+  return { end: offset + 1, flags, width, precision, specifier, wide };
 }

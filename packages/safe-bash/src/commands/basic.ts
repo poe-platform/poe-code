@@ -238,7 +238,8 @@ export async function formatPrintf(context: CommandContext, shellStartedAt = (co
       const suppliedPrecision = directive.precision === "*" ? await dynamic() : directive.precision;
       const precision = suppliedPrecision !== undefined && suppliedPrecision < 0 ? undefined : suppliedPrecision;
       if (width > 1_000_000 || (precision ?? 0) > 1000) throw new UsageError("format width or precision is too large");
-      const specifier = directive.specifier;
+      const specifier = unicode.utf8 && directive.wide && (directive.specifier === "s" || directive.specifier === "c")
+        ? directive.specifier.toUpperCase() : directive.specifier;
       if (/[fFeEgGaA]/u.test(specifier) && (precision ?? 0) > 100) throw new UsageError("floating-point precision is too large");
       const suppliedIndex = argument++;
       const supplied = args[suppliedIndex] ?? "";
@@ -270,6 +271,10 @@ export async function formatPrintf(context: CommandContext, shellStartedAt = (co
         const wide = unicode.utf8 ? await widePrintf(suppliedBytes, specifier === "C", precision, context.signal)
           : specifier === "C" ? { bytes: suppliedBytes.length ? suppliedBytes.subarray(0, 1) : Uint8Array.of(0), characters: 1 }
           : { bytes: suppliedBytes.subarray(0, precision), characters: Math.min(suppliedBytes.length, precision ?? suppliedBytes.length) };
+        if (!unicode.utf8 && wide.bytes.some(byte => byte >= 128)) {
+          await writeDiagnostic(context.stderr, "printf: Invalid or incomplete multibyte or wide character\n", context.signal);
+          return { exitCode: 1 };
+        }
         const padding = " ".repeat(Math.max(0, width - wide.characters));
         if (!flags.includes("-")) await output(context, padding);
         await output(context, wide.bytes);

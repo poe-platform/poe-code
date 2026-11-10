@@ -235,6 +235,28 @@ for (const entry of [
   });
 }
 
+for (const locale of ["C", "POSIX", "C.UTF-8"]) {
+  for (const specifier of ["C", "S"]) for (const value of specifier === "C" || locale === "C.UTF-8" ? ["é", "A"] : ["é"]) {
+    for (const assignment of [false, true]) {
+      test(`uppercase wide printf %${specifier} ${locale} ${value} assignment=${assignment}`, async () => {
+        const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry(basicCommands()) });
+        try {
+          const fails = locale !== "C.UTF-8" && value === "é";
+          const script = assignment
+            ? `v=KEEP; printf -v v 'A%${specifier}Z' '${value}'; s=$?; printf '[%s/%s]' "$s" "$v"`
+            : `printf '[%${specifier}]' '${value}'`;
+          const result = await shell.exec(script, { env: { LC_ALL: locale, TZ: "UTC" } });
+          assert.equal(result.exitCode, assignment ? 0 : fails ? 1 : 0);
+          assert.deepEqual(Buffer.from(result.stdoutBytes), Buffer.from(assignment
+            ? fails ? "[1/A]" : `[0/A${value}Z]`
+            : fails ? "[" : `[${value}]`));
+          assert.equal(result.stderr, fails ? "printf: Invalid or incomplete multibyte or wide character\n" : "");
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+}
+
 for (const format of ["%S", "%.0ls", "%" + "l".repeat(8192) + "s"]) {
   for (const reason of [false, 0, "", null, new Error("wide printf cancelled")]) {
     test(`wide printf cooperates during ${format.length > 20 ? "length modifiers" : format} with reason ${String(reason)}`, async () => {

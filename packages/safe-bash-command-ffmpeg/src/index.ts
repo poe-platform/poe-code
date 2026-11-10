@@ -3523,7 +3523,7 @@ async function applyVideoFilterChain(
       const mixed = parseFilterBoolean(named.mixed ?? "0", "decimate: mixed must be a Boolean");
       const dupthresh = Number(named.dupthresh ?? "1.1");
       const sceneThreshold = Number(named.scthresh ?? "15");
-      if (named.mixed === "" || positional.some((part, index) => index > 0 && !part.includes("=")) ||
+      if (named.mixed === "" || positional.slice(1, argStr.endsWith(":") ? -1 : undefined).some(part => !part.includes("=")) ||
           Object.keys(named).some(key => key !== "cycle" && key !== "mixed" && key !== "dupthresh" && key !== "scthresh") ||
           !Number.isInteger(cycle) || cycle < 2 || cycle > 25) {
         throw new Error("decimate: expected cycle from 2 to 25 and optional mixed Boolean");

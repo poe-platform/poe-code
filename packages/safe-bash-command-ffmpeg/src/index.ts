@@ -4413,7 +4413,9 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
         }
         if (codec === "microdvd" || codec === "mpl2" || codec === "pjs") {
           const text = decodeUtf8(sample.data);
-          const data = encodeUtf8(codec === "microdvd" ? decodeMicrodvd(text) : text.replaceAll("|", "\n"));
+          const data = encodeUtf8(codec === "microdvd" ? decodeMicrodvd(text) : text.split("|")
+            .map(line => codec === "mpl2" && line.startsWith("/") ? `<i>${line.slice(1)}</i>` : line)
+            .join("\n"));
           return { ...sample, data, size: data.byteLength };
         }
         return { ...sample, webvtt: undefined };

@@ -802,7 +802,7 @@ TTML output (`-f ttml` or `.ttml`) preserves subtitle cue timing, line breaks, a
 PJS input (`-f pjs` or automatic detection) reads quoted cues with decisecond timing, converts `|` to line breaks, and preserves commas within dialogue.
 JACOsub input (`-f jacosub` or automatic detection) reads tick rates and timing shifts, and exports alignment and inline line breaks to SRT.
 
-MPL2 input (`-f mpl2`) reads decisecond cue timing and converts `|` to line breaks.
+MPL2 input (`-f mpl2`) reads decisecond cue timing, converts `|` to line breaks, and decodes a leading `/` on each line as italics when writing SRT.
 
 SubViewer v1 input (`-f subviewer1` or detected script header) reads bracketed timestamps and ends each cue at the next marker, omitting headers and empty trailing cues.
 

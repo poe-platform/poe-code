@@ -12,10 +12,14 @@ export async function acrossfadeAudio(
   const a = first.decodedAudio;
   const b = second.decodedAudio;
   if (!a || !b) throw new Error("acrossfade requires decoded PCM audio");
-  const layoutA = a.channelMask || (a.channels === 1 ? 4 : a.channels === 2 ? 3 : undefined);
-  const layoutB = b.channelMask || (b.channels === 1 ? 4 : b.channels === 2 ? 3 : undefined);
+  const layoutA = a.channelMask || (a.channels === 1 ? 4 : a.channels === 2 ? 3 : a.channels === 6 ? 0x3f : undefined);
+  const layoutB = b.channelMask || (b.channels === 1 ? 4 : b.channels === 2 ? 3 : b.channels === 6 ? 0x3f : undefined);
   const remix = a.channels !== b.channels &&
-    (layoutA === 4 && layoutB === 3 || layoutA === 3 && layoutB === 4);
+    [a, b].every((audio, index) => {
+      const layout = index === 0 ? layoutA : layoutB;
+      return audio.channels === 1 && layout === 4 || audio.channels === 2 && layout === 3 ||
+        audio.channels === 6 && (layout === 0x3f || layout === 0x60f);
+    });
   if (!remix && (a.channels !== b.channels || layoutA !== layoutB)) {
     throw new Error("acrossfade requires matching channel layouts");
   }
@@ -95,9 +99,32 @@ export async function acrossfadeAudio(
     const secondGain = secondIndex < 0 ? 0 : secondIndex >= samples ? 1 : curve2(secondIndex / samples);
     for (let channel = 0; channel < a.channels; channel++) {
       const firstValue = i >= aLength ? 0 : a.channelData[channel]![i]! * firstGain;
-      const secondSample = secondIndex < 0 ? 0 : !remix ? secondChannels[channel]![secondIndex]!
-        : b.channels === 1 ? secondChannels[0]![secondIndex]! * (pcm16 ? 23170 / 32768 : Math.SQRT1_2)
+      let secondSample = 0;
+      if (secondIndex >= 0) {
+        if (!remix) secondSample = secondChannels[channel]![secondIndex]!;
+        else if (a.channels === 6) {
+          // Mono occupies front center; stereo occupies FL/FR. Other speakers are silent.
+          secondSample = b.channels === 1
+            ? channel === 2 ? secondChannels[0]![secondIndex]! : 0
+            : channel < 2 ? secondChannels[channel]![secondIndex]! : 0;
+        } else if (b.channels === 6) {
+          const center = secondChannels[2]![secondIndex]!;
+          if (a.channels === 1) {
+            const front = secondChannels[0]![secondIndex]! + secondChannels[1]![secondIndex]!;
+            const surround = secondChannels[4]![secondIndex]! + secondChannels[5]![secondIndex]!;
+            secondSample = pcm16 ? (front * 6786 + center * 9598 + surround * 4799) / 32768
+              : front * Math.SQRT1_2 + center + surround / 2;
+          } else {
+            const front = secondChannels[channel]![secondIndex]!;
+            const surround = secondChannels[channel + 4]![secondIndex]!;
+            // S16 stereo rematrixing distributes Q15 rounding between center and surrounds.
+            secondSample = pcm16 ? (front * 13573 + center * 9597 + surround * 9598) / 32768
+              : front + (center + surround) * Math.SQRT1_2;
+          }
+        } else secondSample = b.channels === 1
+          ? secondChannels[0]![secondIndex]! * (pcm16 ? 23170 / 32768 : Math.SQRT1_2)
           : (secondChannels[0]![secondIndex]! + secondChannels[1]![secondIndex]!) / 2;
+      }
       // Automatic rate/layout conversion negotiates S16 before the fade's truncating cast.
       const secondValue = (pcm16 && (ratio !== 1 || remix)
         ? Math.max(-32768, Math.min(32767, Math.round(secondSample * 32768))) / 32768

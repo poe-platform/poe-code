@@ -570,6 +570,21 @@ function isSyncResolved(promise: unknown): boolean {
   return Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
 }
 
+function uniqFieldBlankWidth(bytes: Uint8Array, offset: number, byteLocale: boolean): number {
+  const first = bytes[offset];
+  if (first === 9 || first === 10 || first === 32) return 1;
+  if (byteLocale) return 0;
+  // GNU/Linux UTF-8 isblank, plus LF above. Match complete byte sequences so
+  // malformed UTF-8 elsewhere in a record cannot hide a valid field boundary.
+  const second = bytes[offset + 1];
+  const third = bytes[offset + 2];
+  if (first === 0xe1 && second === 0x9a && third === 0x80
+    || first === 0xe2 && second === 0x80 && third !== undefined && third >= 0x80 && third <= 0x8a && third !== 0x87
+    || first === 0xe2 && second === 0x81 && third === 0x9f
+    || first === 0xe3 && second === 0x80 && third === 0x80) return 3;
+  return 0;
+}
+
 async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteSource): Promise<{ exitCode: number }> {
   const longOptions = { count: "c", repeated: "d", unique: "u", "all-repeated": "all-repeated:", group: "group:", "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z" };
   let ended = false;
@@ -663,9 +678,10 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
   const key = (bytes: Uint8Array) => {
     if (identityKey) return bytes;
     let offset = 0;
-    for (let field = 0; field < skipFields; field++) {
-      while (offset < bytes.length && (bytes[offset] === 32 || bytes[offset] === 9)) offset++;
-      while (offset < bytes.length && bytes[offset] !== 32 && bytes[offset] !== 9) offset++;
+    for (let field = 0; field < skipFields && offset < bytes.length; field++) {
+      let blankWidth: number;
+      while (offset < bytes.length && (blankWidth = uniqFieldBlankWidth(bytes, offset, byteLocale)) > 0) offset += blankWidth;
+      while (offset < bytes.length && uniqFieldBlankWidth(bytes, offset, byteLocale) === 0) offset++;
     }
     offset = advanceCharacters(bytes, offset, skipCharacters);
     const result = bytes.subarray(offset, width === Infinity ? undefined : advanceCharacters(bytes, offset, width));

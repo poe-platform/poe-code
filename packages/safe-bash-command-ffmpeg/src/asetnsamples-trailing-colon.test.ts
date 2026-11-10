@@ -12,7 +12,7 @@ for (const graph of [false, true]) {
     ["4", true], ["4:", true], ["n=4:", true],
     ["n=4:p=1:", true], ["n=4:p=0:", false],
     ["4:0:", false], ["nb_out_samples=4:pad=false:", false],
-    ["4::", undefined], ["n=4:p=:", undefined], ["n=:", undefined]
+    ["4::", false], ["n=4:p=:", false], ["n=:", undefined]
   ] as const) {
     it(`asetnsamples=${options} handles a trailing colon (${graph ? "graph" : "simple"})`, async () => {
       const volume = Volume.fromJSON({ "/in.raw": input });

@@ -3533,6 +3533,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
       let coordX: ((ctx: FxEvalContext) => number) | undefined;
       let coordY: ((ctx: FxEvalContext) => number) | undefined;
       let propName: string | undefined;
+      let pageProperty = name === "page";
       let relative = false;
 
       if (name === "p" && (peek()?.val === "{" || peek()?.val === "[")) {
@@ -3559,6 +3560,8 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
           expectToken(",");
           coordY = parseTernary();
           expectToken(relative ? "]" : "}");
+        } else if (sub === "page" && (name === "u" || name === "v" || name === "s")) {
+          pageProperty = true;
         } else {
           propName = sub;
         }
@@ -3603,7 +3606,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
         if (name === "t" || propName === "t") return targetIdx;
         const targetImg = "get" in ctx.stack ? ctx.stack.get(targetIdx) ?? ctx.stack.get(0) : ctx.stack[targetIdx] ?? ctx.stack[0];
         if (name === "extent" || propName === "extent") return targetImg?.[magickInput]?.byteLen ?? 0;
-        if (name === "page") {
+        if (pageProperty) {
           if (propName === "width") return targetImg?.virtualCanvas?.width ?? targetImg?.width ?? ctx.w;
           if (propName === "height") return targetImg?.virtualCanvas?.height ?? targetImg?.height ?? ctx.h;
           if (propName === "x") return targetImg?.virtualCanvas?.x ?? 0;

@@ -10163,10 +10163,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-evaluate-sequence" || t === "-average" || t === "-poly") {
             let op: string | number[] = t === "-average" ? "Mean" : tokens[++i] ?? (t === "-poly" ? "" : "Mean");
-            if (t === "-poly") {
+            if (t === "-poly" || t === "-evaluate-sequence") {
                 const image = stack[0];
                 const expanded = image ? yield* formatMagickPropertyStringSteps(op, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties }) : op;
-                op = parseMagickPoly(expanded);
+                op = t === "-poly" ? parseMagickPoly(expanded) : expanded;
             }
             if (t === "-poly" && !stack.length) throw new Error("no images found for operation '-poly'");
             if ((t === "-evaluate-sequence" || t === "-average") && !stack.length) throw new Error(`no images found for operation '${t}'`);
@@ -11748,10 +11748,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async (stack, backend) => {
                 if ((token === "-evaluate-sequence" || token === "-average" || token === "-separate" || token === "-combine") && !stack.length) throw new Error(`no images found for operation '${token}'`);
                 let terms: number[] | undefined;
-                if (token === "-poly") {
+                let operation = argument;
+                if (token === "-poly" || token === "-evaluate-sequence") {
                     const image = await stack.get(0);
-                    const expanded = image ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack) : argument;
-                    terms = parseMagickPoly(expanded);
+                    operation = image ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack) : argument;
+                    if (token === "-poly") terms = parseMagickPoly(operation);
                 }
                 if (terms && !stack.length) throw new Error("no images found for operation '-poly'");
                 if (token === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
@@ -11846,7 +11847,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const base: StoredRgbaImage = (terms || first.space !== "cmyk") && frames.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
                     // Keep the native mask channel while resetting its protection.
                     const storedWriteMask = (terms ? frames.some(image => image.storedWriteMask) : base.storedWriteMask) ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
-                    const result = await transformStoredMagickRaster(base, backend, (terms ? polyPixelSteps(base.width * base.height * 4, frames, terms, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth) : evaluateSequencePixelSteps(base.width * base.height * 4, frames, argument, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth, settings.seed ?? 0n, base.width)), signal, { ...base, hasAlpha: frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);
+                    const result = await transformStoredMagickRaster(base, backend, (terms ? polyPixelSteps(base.width * base.height * 4, frames, terms, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth) : evaluateSequencePixelSteps(base.width * base.height * 4, frames, operation, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, highDepth, settings.seed ?? 0n, base.width)), signal, { ...base, hasAlpha: frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);
                     if (!terms) result.region = undefined;
                     result.storedWriteMask = storedWriteMask;
                     if (!terms && frames.some(image => image.readMask))

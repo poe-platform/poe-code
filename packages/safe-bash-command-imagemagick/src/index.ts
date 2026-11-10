@@ -10360,6 +10360,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = nextStack;
         }
         else if (t === "-extent") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geom = tokens[++i] ?? "100%";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
@@ -13269,6 +13270,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const rows = magickMedianRows(tokens[++i] ?? "3");
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, morphologyPixelSteps(image, rows, "median"), signal) : undefined);
         } else if (!operandsOnly && token === "-extent") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const geometry = tokens[++i] ?? "100%", captured = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;

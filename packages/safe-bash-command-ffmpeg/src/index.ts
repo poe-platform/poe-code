@@ -997,6 +997,65 @@ function parseFilterChain(filterChainStr: string): string[] {
   return filters;
 }
 
+function parseAtrim(argument: string, origRate: number) {
+  let duration = 0;
+  const bounds = new Map<string, number>();
+  const options: string[] = [];
+  let option = "";
+  let quoted = false;
+  // Decode the option layer after parseFilterChain decoded the graph layer.
+  for (let i = 0; i < argument.length; i++) {
+    const char = argument[i]!;
+    if (char === "'") quoted = !quoted;
+    else if (!quoted && char === "\\" && i + 1 < argument.length) option += argument[++i]!;
+    else if (!quoted && char === ":") {
+      options.push(option);
+      option = "";
+    } else option += char;
+  }
+  if (argument) options.push(option);
+  for (const [index, option] of options.entries()) {
+    const separator = option.indexOf("=");
+    let key = separator < 0 ? ["start", "end", "start_pts", "end_pts", "duration", "start_sample", "end_sample"][index] : option.slice(0, separator).trim();
+    if (key === "starti" || key === "endi") key = key.slice(0, -1);
+    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    const samples = key === "start_sample" || key === "end_sample";
+    if (key === "duration" || key === "durationi") {
+      const seconds = parseHlsDuration(value);
+      duration = Math.round(seconds * origRate);
+      if (!value || Number.isNaN(seconds)) throw new Error(`atrim: invalid ${key}`);
+      if (seconds < 0 || !Number.isSafeInteger(duration)) {
+        throw new RangeError(`atrim: invalid ${key}`);
+      }
+      continue;
+    }
+    const pts = key === "start_pts" || key === "end_pts";
+    if (key === undefined || (!samples && !pts && key !== "start" && key !== "end")) {
+      throw new Error(`atrim: unsupported option ${key}`);
+    }
+    const number = samples || pts ? parseFilterExpression(value, "atrim", { inf: Infinity, Infinity, NaN }) : parseHlsDuration(value);
+    const boundary = samples || pts ? roundToEven(number) : Math.round(number * origRate);
+    // Native int64 options use doubles, including INT64_MAX rounded to 2^63.
+    if (!value || Number.isNaN(number)) throw new Error(`atrim: invalid ${key}`);
+    if ((samples || pts ? Math.abs(number) > 2 ** 63 : !Number.isSafeInteger(boundary)) ||
+        (samples && number < (key === "start_sample" ? -1 : 0))) {
+      throw new RangeError(`atrim: invalid ${key}`);
+    }
+    // INT64_MIN is the unset PTS sentinel, including when an option is repeated.
+    if (pts && boundary === -(2 ** 63)) {
+      bounds.delete(key);
+      continue;
+    }
+    if (key === "start_sample" && boundary === -1) bounds.delete(key);
+    else bounds.set(key, boundary);
+  }
+  const startPts = Math.min(bounds.get("start") ?? Infinity, bounds.get("start_pts") ?? Infinity);
+  const endPts = Math.max(bounds.get("end") ?? -Infinity, bounds.get("end_pts") ?? -Infinity);
+  const startSample = bounds.get("start_sample") ?? Infinity;
+  const endSample = bounds.get("end_sample") ?? -Infinity;
+  return { duration, startPts, endPts, startSample, endSample };
+}
+
 function serializeFilterChain(filters: string[]): string {
   // Parsed filters have lost their quoting; protect literal separators before reparsing.
   return filters.map(filter => filter.replaceAll("\\", "\\\\").replaceAll("'", "\\'").replaceAll(",", "\\,")).join(",");
@@ -9267,7 +9326,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     : t.codecDescriptions[0]?.codecName === "pcm_s32le" ? 2147483648 / 2147483647 : 1;
                   if (filter) {
                     let audioCommands: { sample: number; target: string; expression: string }[] = [];
-                    for (const item of parseFilterChain(filter.expression)) {
+                    const audioFilters = parseFilterChain(filter.expression);
+                    for (const [filterIndex, item] of audioFilters.entries()) {
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
                       let trimmed = item.trim();
@@ -10337,17 +10397,44 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         if (padding === undefined && minimum === undefined) {
-                          const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
-                          if (endSeconds === undefined && maxAudioFrames === undefined) {
-                            throw new Error("apad: a finite padding or minimum length is required");
+                          const next = audioFilters[filterIndex + 1];
+                          if (outputDuration === undefined && outputTo === undefined && maxAudioFrames === undefined && next?.split("=", 1)[0]!.split("@", 1)[0] === "atrim") {
+                            const { duration, startPts, endPts, startSample, endSample } = parseAtrim(
+                              next.includes("=") ? next.slice(next.indexOf("=") + 1) : "", origRate);
+                            const frames = audioTimestamps ?? [{ start: 0, end: inputLength, pts: audioStartSample }];
+                            const last = frames.at(-1);
+                            const paddingPts = last ? last.pts + last.end - last.start : audioStartSample;
+                            let firstPts: number | undefined;
+                            for (const frame of frames) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              let start = Math.min(startPts - frame.pts, startSample - frame.start);
+                              if (start === Infinity) start = 0;
+                              if (start < frame.end - frame.start) {
+                                firstPts = frame.pts + start;
+                                break;
+                              }
+                            }
+                            let start = Math.min(startPts - paddingPts, startSample - inputLength);
+                            if (start === Infinity) start = 0;
+                            firstPts ??= paddingPts + start;
+                            // atrim keeps samples until every end condition is satisfied.
+                            const end = Math.max(endSample, inputLength + endPts - paddingPts,
+                              duration > 0 ? inputLength + firstPts + duration - paddingPts : -Infinity);
+                            if (Number.isFinite(end)) minimum = Math.max(0, end);
                           }
-                          // Output duration starts at the first retained frame, or the output seek if later.
-                          const firstPts = audioTimestamps?.[0]?.pts ?? audioStartSample;
-                          const seek = Math.round((outputSs ?? 0) * origRate);
-                          minimum = endSeconds === undefined ? Infinity
-                            : Math.max(0, Math.round(endSeconds * origRate) - Math.min(firstPts, seek));
-                          if (maxAudioFrames !== undefined) {
-                            minimum = Math.min(minimum, inputLength + Math.max(0, maxAudioFrames - audioTimestamps.length) * packetSize);
+                          if (minimum === undefined) {
+                            const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
+                            if (endSeconds === undefined && maxAudioFrames === undefined) {
+                              throw new Error("apad: a finite padding or minimum length is required");
+                            }
+                            // Output duration starts at the first retained frame, or the output seek if later.
+                            const firstPts = audioTimestamps?.[0]?.pts ?? audioStartSample;
+                            const seek = Math.round((outputSs ?? 0) * origRate);
+                            minimum = endSeconds === undefined ? Infinity
+                              : Math.max(0, Math.round(endSeconds * origRate) - Math.min(firstPts, seek));
+                            if (maxAudioFrames !== undefined) {
+                              minimum = Math.min(minimum, inputLength + Math.max(0, maxAudioFrames - audioTimestamps.length) * packetSize);
+                            }
                           }
                         }
                         const length = padding !== undefined ? inputLength + padding : Math.max(inputLength, minimum!);
@@ -11583,63 +11670,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           previousInputPts = inputPts;
                         }
                       } else if (trimmed === "atrim" || trimmed.startsWith("atrim=")) {
-                        let duration = 0;
-                        const bounds = new Map<string, number>();
+                        const { duration, startPts, endPts, startSample, endSample } = parseAtrim(trimmed.slice("atrim=".length), origRate);
                         const length = stretched[0]?.length ?? 0;
-                        const argument = trimmed.slice("atrim=".length);
-                        const options: string[] = [];
-                        let option = "";
-                        let quoted = false;
-                        // Decode the option layer after parseFilterChain decoded the graph layer.
-                        for (let i = 0; i < argument.length; i++) {
-                          const char = argument[i]!;
-                          if (char === "'") quoted = !quoted;
-                          else if (!quoted && char === "\\" && i + 1 < argument.length) option += argument[++i]!;
-                          else if (!quoted && char === ":") {
-                            options.push(option);
-                            option = "";
-                          } else option += char;
-                        }
-                        if (argument) options.push(option);
-                        for (const [index, option] of options.entries()) {
-                          const separator = option.indexOf("=");
-                          let key = separator < 0 ? ["start", "end", "start_pts", "end_pts", "duration", "start_sample", "end_sample"][index] : option.slice(0, separator).trim();
-                          if (key === "starti" || key === "endi") key = key.slice(0, -1);
-                          const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-                          const samples = key === "start_sample" || key === "end_sample";
-                          if (key === "duration" || key === "durationi") {
-                            const seconds = parseHlsDuration(value);
-                            duration = Math.round(seconds * origRate);
-                            if (!value || Number.isNaN(seconds)) throw new Error(`atrim: invalid ${key}`);
-                            if (seconds < 0 || !Number.isSafeInteger(duration)) {
-                              throw new RangeError(`atrim: invalid ${key}`);
-                            }
-                            continue;
-                          }
-                          const pts = key === "start_pts" || key === "end_pts";
-                          if (key === undefined || (!samples && !pts && key !== "start" && key !== "end")) {
-                            throw new Error(`atrim: unsupported option ${key}`);
-                          }
-                          const number = samples || pts ? parseFilterExpression(value, "atrim", { inf: Infinity, Infinity, NaN }) : parseHlsDuration(value);
-                          const boundary = samples || pts ? roundToEven(number) : Math.round(number * origRate);
-                          // Native int64 options use doubles, including INT64_MAX rounded to 2^63.
-                          if (!value || Number.isNaN(number)) throw new Error(`atrim: invalid ${key}`);
-                          if ((samples || pts ? Math.abs(number) > 2 ** 63 : !Number.isSafeInteger(boundary)) ||
-                              (samples && number < (key === "start_sample" ? -1 : 0))) {
-                            throw new RangeError(`atrim: invalid ${key}`);
-                          }
-                          // INT64_MIN is the unset PTS sentinel, including when an option is repeated.
-                          if (pts && boundary === -(2 ** 63)) {
-                            bounds.delete(key);
-                            continue;
-                          }
-                          if (key === "start_sample" && boundary === -1) bounds.delete(key);
-                          else bounds.set(key, boundary);
-                        }
-                        const startPts = Math.min(bounds.get("start") ?? Infinity, bounds.get("start_pts") ?? Infinity);
-                        const endPts = Math.max(bounds.get("end") ?? -Infinity, bounds.get("end_pts") ?? -Infinity);
-                        const startSample = bounds.get("start_sample") ?? Infinity;
-                        const endSample = bounds.get("end_sample") ?? -Infinity;
                         const ranges: { start: number; end: number }[] = [];
                         const retained: NonNullable<typeof audioTimestamps> = [];
                         let firstPts: number | undefined;

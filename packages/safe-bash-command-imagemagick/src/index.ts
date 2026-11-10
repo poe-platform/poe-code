@@ -9638,12 +9638,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const operation = parseComplexOperator(tokens[++i]);
             if (stack.length < 2) throw new Error("image sequence is required '-complex'");
             const result: RgbaImage[] = [];
+            const grayOnly = stack.slice(0, stack.length >= 4 ? 4 : 2).some(image => image.space === "b-w" || image.space === "grey16");
             for (let part = 0; part < 2; part++) {
                 const base = stack[part]!;
                 let other = stack[stack.length >= 4 ? part + 2 : part]!;
                 if (other.width !== base.width || other.height !== base.height)
                     other = yield* applyMagickRasterSteps(other, extendEdgePixelSteps(other, base.width, base.height, true, other.virtualPixel, state.background), signal, { ...other, width: base.width, height: base.height });
-                result.push(yield* applyMagickRasterSteps(base, complexPixelSteps(base.width * base.height * 4, operation, base.hasAlpha), signal, base, [base, other]));
+                result.push(yield* applyMagickRasterSteps(base, complexPixelSteps(base.width * base.height * 4, operation, base.hasAlpha, base.space === "b-w" || base.space === "grey16", grayOnly), signal, base, [base, other]));
             }
             stack = result;
         }
@@ -11094,12 +11095,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async (stack, backend) => {
                 if (stack.length < 2) throw new Error("image sequence is required '-complex'");
                 const result = new StoredImageStack(backend.storage, signal, stack);
+                let grayOnly = false;
+                for (let index = 0; index < (stack.length >= 4 ? 4 : 2); index++) {
+                    const image = (await stack.get(index))!;
+                    grayOnly ||= image.space === "b-w" || image.space === "grey16";
+                }
                 for (let part = 0; part < 2; part++) {
                     const base = (await stack.get(part))!;
                     let other: StoredRgbaImage = (await stack.get(stack.length >= 4 ? part + 2 : part))!;
                     if (other.width !== base.width || other.height !== base.height)
                         other = await transformStoredMagickRaster(other, backend, extendEdgePixelSteps(other, base.width, base.height, true, other.virtualPixel, background), signal, { ...other, width: base.width, height: base.height });
-                    await result.push(await transformStoredMagickRaster(base, backend, complexPixelSteps(base.width * base.height * 4, operation, base.hasAlpha), signal, base, [base, other]));
+                    await result.push(await transformStoredMagickRaster(base, backend, complexPixelSteps(base.width * base.height * 4, operation, base.hasAlpha, base.space === "b-w" || base.space === "grey16", grayOnly), signal, base, [base, other]));
                 }
                 return result;
             });

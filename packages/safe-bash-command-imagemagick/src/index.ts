@@ -10107,6 +10107,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-loop") {
             state.loop = Number(tokens[++i] ?? 0);
         }
+        else if (t === "+dispose") {
+            delete state.disposal;
+        }
         else if (t === "-dispose") {
             state.disposal = parseMagickDisposal(tokens[++i] ?? "");
         }
@@ -12744,6 +12747,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-transparent-color") { state.transparentColor = parseColor(tokens[++i] ?? ""); continue; }
         if (!operandsOnly && token === "-loop") { state.loop = Number(tokens[++i] ?? 0); continue; }
+        if (!operandsOnly && token === "+dispose") { delete state.disposal; continue; }
         if (!operandsOnly && token === "-dispose") { state.disposal = parseMagickDisposal(tokens[++i] ?? ""); continue; }
         if (!operandsOnly && token === "-tile") { state.tile = tokens[++i]; continue; }
         if (!operandsOnly && token === "-layers" && tokens[i + 1]?.toLowerCase() === "trimbounds") {
@@ -14118,7 +14122,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin", "+remap",
         "+seed", "+region", "+write-mask", "+clip-mask", "+repage", "+channel", "+quantize", "+treedepth", "+compress", "+depth", "+endian", "+size",
         "+read-mask", "+interpolate", "+intensity", "+filter", "+page", "+orient",
-        "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete"
+        "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete", "+dispose"
     ]);
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)

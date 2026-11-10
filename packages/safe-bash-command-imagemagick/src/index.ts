@@ -11554,6 +11554,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const width = image.width * factor, height = image.height * factor;
                 const output = yield* applyMagickRasterSteps({ ...image, isPalette: false }, magnifyPixelSteps(image, state.magnifyMethod, state.background, state.virtualPixel, state.intensity), signal, { ...image, width, height });
+                if (image.alphaBlend === false) output.alphaSeparate = false;
                 if (image.metaChannels) {
                     output.metaChannels = [];
                     for (const plane of image.metaChannels) output.metaChannels.push(yield* applyMagickRasterSteps(plane,
@@ -14824,6 +14825,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const width = image.width * factor, height = image.height * factor;
                 const output = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, magnifyPixelSteps(image, method, background, virtualPixel, intensity), signal, { ...image, width, height });
+                if (image.alphaBlend === false) output.alphaSeparate = false;
                 if (image.storedMetaChannels) {
                     output.storedMetaChannels = [];
                     for (const plane of image.storedMetaChannels) output.storedMetaChannels.push(await transformStoredMagickRaster(plane, backend,

@@ -1,3 +1,4 @@
+import { createAudioTimestampTransform } from "./audio-clock.js";
 import { audioSpeakerMasks, parseAudioChannelCount, parseAudioChannelLayout } from "./audio-channel-layout.js";
 import { ffmpegColors } from "./ffmpeg-colors.js";
 import { encodeH264PresetTrack, h264Presets } from "@poe-code/mp4-ast";
@@ -800,6 +801,19 @@ async function ensureDecodedFrames(
     if (maxFrames !== undefined && frames.length >= maxFrames) break;
   }
   return frames;
+}
+
+function parseAsetrate(argument: string): number {
+  let rate = 44100;
+  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+    const separator = option.indexOf("=");
+    const key = separator < 0 ? (index === 0 ? "sample_rate" : undefined) : option.slice(0, separator);
+    const value = separator < 0 ? option : option.slice(separator + 1);
+    if (key !== "sample_rate" && key !== "r") throw new Error(`asetrate: unsupported option ${key}`);
+    rate = roundToEven(parseFilterExpression(value, "asetrate", {}));
+    if (rate < 1 || rate > 2147483647) throw new Error("asetrate: invalid sample rate");
+  }
+  return rate;
 }
 
 function roundToEven(value: number): number {
@@ -9734,16 +9748,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           start += count;
                         }
                       } else if (trimmed === "asetrate" || trimmed.startsWith("asetrate=")) {
-                        let rate = 44100;
-                        const argument = trimmed === "asetrate" ? "" : trimmed.slice("asetrate=".length);
-                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
-                          const separator = option.indexOf("=");
-                          const key = separator < 0 ? (index === 0 ? "sample_rate" : undefined) : option.slice(0, separator);
-                          const value = separator < 0 ? option : option.slice(separator + 1);
-                          if (key !== "sample_rate" && key !== "r") throw new Error(`asetrate: unsupported option ${key}`);
-                          rate = roundToEven(parseFilterExpression(value, "asetrate", {}));
-                          if (rate < 1 || rate > 2147483647) throw new Error("asetrate: invalid sample rate");
-                        }
+                        const rate = parseAsetrate(trimmed === "asetrate" ? "" : trimmed.slice("asetrate=".length));
                         budget.checkDuration((stretched[0]?.length ?? 0) / rate);
                         // Capture incoming frames before changing the rate used to interpret packets.
                         if (!audioTimestamps) {
@@ -10907,6 +10912,53 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               : inputLength + Math.max(0, firstPts + Math.round(duration * origRate) - paddingPts);
                             if (resampleSupport && duration !== undefined) {
                               minimum = Math.max(resampleSupport + 1, minimum + resampleSupport / 2);
+                            }
+                            if (duration !== undefined && packetSize > 0) {
+                              let rate = origRate;
+                              const clocks: ReturnType<typeof createAudioTimestampTransform>[] = [];
+                              let changedClock = false;
+                              let supported = true;
+                              for (const item of audioFilters.slice(filterIndex + 1)) {
+                                const separator = item.indexOf("=");
+                                const name = (separator < 0 ? item : item.slice(0, separator)).split("@", 1)[0];
+                                const argument = separator < 0 ? "" : item.slice(separator + 1);
+                                if (name === "asetrate") {
+                                  rate = parseAsetrate(argument);
+                                  changedClock = true;
+                                } else if (name === "asetpts") {
+                                  clocks.push(createAudioTimestampTransform(
+                                    separator < 0 ? "PTS" : argument.startsWith("expr=") ? argument.slice(5) : argument,
+                                    rate, audioTimeBase ?? 1 / rate));
+                                  changedClock = true;
+                                } else if (!["anull", "acopy", "volume"].includes(name!)) {
+                                  supported = false;
+                                  break;
+                                }
+                              }
+                              if (changedClock && supported) {
+                                // Follow the downstream clock packet by packet, including stateful
+                                // asetpts expressions, before allocating any silence. Output trimming
+                                // still decides which samples survive overlapping timestamps.
+                                let endPts: number | undefined;
+                                minimum = inputLength;
+                                for (let n = 0, start = inputLength, pts = paddingPts; ; n++) {
+                                  if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                                  const source = audioTimestamps[n];
+                                  if (!source && maxAudioFrames !== undefined && n >= maxAudioFrames) break;
+                                  const frame = source ? { ...source } : { start, end: start + packetSize, pts };
+                                  for (const clock of clocks) frame.pts = clock(frame);
+                                  if (!Number.isFinite(frame.pts)) throw new Error("apad: cannot bound a non-finite output timestamp");
+                                  endPts ??= Math.max(frame.pts, outputSs === undefined ? -Infinity : Math.round(outputSs * rate))
+                                    + Math.round(duration * rate);
+                                  if (frame.pts >= endPts) break;
+                                  if (source) continue;
+                                  minimum = start + Math.min(packetSize, Math.max(0, endPts - frame.pts));
+                                  budget.checkDuration(minimum / origRate);
+                                  budget.checkSamples(minimum);
+                                  start += packetSize;
+                                  pts += Math.round(packetSize / samplesPerTick) * samplesPerTick;
+                                }
+                              }
                             }
                             if (maxAudioFrames !== undefined) {
                               // The output cap counts regrouped frames, not apad's packets.
@@ -12226,32 +12278,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           audioMetadata = selectedMetadata;
                           continue;
                         }
-                        const startPts = audioTimestamps[0]?.pts ?? 0;
-                        let previousOutputPts = NaN;
-                        let previousInputPts = NaN;
+                        const transform = createAudioTimestampTransform(expression, origRate, timeBase);
                         // Validate even an empty stream; expressions use the current filter time base.
-                        if (audioTimestamps.length === 0) parseFilterExpression(expression, "asetpts", {
-                          POS: NaN,
-                          NAN: NaN, PTS: 0, STARTPTS: 0, STARTT: 0, T: 0, TB: timeBase, SR: origRate, INTERLACED: 0,
-                          FR: NaN, FRAME_RATE: NaN,
-                          PREV_INPTS: NaN, PREV_INT: NaN,
-                          N: 0, NB_CONSUMED_SAMPLES: 0, NB_SAMPLES: 0, S: 0,
-                          PREV_OUTPTS: NaN, PREV_OUTT: NaN
-                        });
+                        if (audioTimestamps.length === 0) transform({ start: 0, end: 0, pts: 0 });
                         for (const frame of audioTimestamps) {
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          const inputPts = frame.pts;
-                          frame.pts = Math.trunc(parseFilterExpression(expression, "asetpts", {
-                            POS: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN,
-                            NAN: NaN, PTS: toTicks(frame.pts), STARTPTS: toTicks(startPts), STARTT: startPts / origRate, T: frame.pts / origRate, TB: timeBase, SR: origRate, INTERLACED: 0,
-                            FR: NaN, FRAME_RATE: NaN,
-                            PREV_INPTS: toTicks(previousInputPts), PREV_INT: previousInputPts / origRate,
-                            N: frame.start, NB_CONSUMED_SAMPLES: frame.start,
-                            NB_SAMPLES: frame.end - frame.start, S: frame.end - frame.start,
-                            PREV_OUTPTS: toTicks(previousOutputPts), PREV_OUTT: previousOutputPts / origRate
-                          })) * samplesPerTick;
-                          previousOutputPts = frame.pts;
-                          previousInputPts = inputPts;
+                          frame.pts = transform(frame);
                         }
                       } else if (trimmed === "atrim" || trimmed.startsWith("atrim=")) {
                         const { duration, startPts, endPts, startSample, endSample } = parseAtrim(trimmed.slice("atrim=".length), origRate);

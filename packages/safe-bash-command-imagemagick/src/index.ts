@@ -7917,27 +7917,39 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         // ImageMagick BrightnessContrastImage: a polynomial centered at midgray.
         const slope = contrast < 0 ? 1 + contrast / 100 : 100 / (contrast === 100 ? 1e-12 : 100 - contrast);
-        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = function* (image) {
-            const hueSamples = image.space === "cmyk" ? undefined : image.hueSamples?.slice();
+            const cmyk = image.space === "cmyk";
+            if (cmyk) image = yield* convertCmykPixels(image);
+            const hueSamples = image.hueSamples?.slice();
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
             const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
             const quantum = data16 ? 65535 : 255;
             const offset = (brightness / 100 * 65535 - 65535 / 2) * slope + 65535 / 2;
-            const mask = [channels.r, channels.g, channels.b, channels.a && image.hasAlpha];
+            const mask = [channels.r, channels.g, channels.b, channels.a && image.hasAlpha, cmyk && channels.k];
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
-                for (let channel = 0; channel < 4; channel++) {
+                for (let channel = 0; channel < mask.length; channel++) {
                     if (!mask[channel]) continue;
+                    const working = hueSamples && (!cmyk || channel !== 3);
+                    const position = idx + (channel === 4 ? 3 : channel);
                     // Keep Q16-HDRI working samples unclipped until encoding or -clamp.
-                    const source = hueSamples ? hueSamples[idx + channel]! * 65535 : evaluateSamples[idx + channel]! * 257;
+                    const source = working ? hueSamples[position]! * 65535 : evaluateSamples[idx + channel]! * 257;
                     const value = Math.fround(source * slope + offset);
-                    if (hueSamples) hueSamples[idx + channel] = value / 65535;
+                    if (working) hueSamples[position] = value / 65535;
+                    if (cmyk && working) continue;
                     evaluateSamples[idx + channel] = value / 257;
                     const sample = Math.max(0, Math.min(quantum, Math.round(data16 ? value : Math.fround(value / 257))));
                     if (data16) data16[idx + channel] = sample;
                     out[idx + channel] = data16 ? Math.round(sample / 257) : sample;
+                }
+                // Black ink changes the RGB backing without changing its independent alpha.
+                if (cmyk && hueSamples) for (let channel = 0; channel < 3; channel++) {
+                    const value = Math.fround((1 - hueSamples[idx + channel]!) * (1 - hueSamples[idx + 3]!) * 65535);
+                    evaluateSamples[idx + channel] = value / 257;
+                    if (data16) data16[idx + channel] = Math.max(0, Math.min(65535, Math.round(value)));
+                    out[idx + channel] = clampByteVal(value / 257);
                 }
             }
             return { ...image, data: out, evaluateSamples, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };

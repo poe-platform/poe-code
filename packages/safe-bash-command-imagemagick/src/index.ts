@@ -2200,6 +2200,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
             }
         }
     }
+    if (img.writeMask) img = { ...img, writeMask: yield* applyMagickSpliceSteps(img.writeMask, geomStr, { r: 0, g: 0, b: 0, a: 255 }, gravity, signal, virtualPixel) };
     return { ...img, width: outW, height: outH, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
 }
 
@@ -11470,6 +11471,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
             }
         }
     }
+    if (token === "-splice" && image.storedWriteMask) image = { ...image, storedWriteMask: await transformStoredMagickCoordinates(image.storedWriteMask, backend, token, geometry, { ...state, backgroundExplicit: true, background: { r: 0, g: 0, b: 0, a: 255 } }, signal, analysis) };
     if (token === "-chop" && image.readMask) image = { ...image, readMask: await transformStoredMagickCoordinates({ ...image.readMask, ...(image.virtualCanvas ? { virtualCanvas: image.virtualCanvas } : {}) } as StoredRgbaImage, backend, token, geometry, state, signal, { warnings: "" }) };
     if (token === "-chop" && image.storedWriteMask) {
         const { virtualCanvas: ignoredCanvas, ...mask } = image.storedWriteMask;

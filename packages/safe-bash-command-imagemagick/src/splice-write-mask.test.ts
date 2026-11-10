@@ -63,3 +63,36 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
         } else expect(new TextDecoder().decode(output)).toBe(expected);
     });
 }
+
+// Native ImageMagick 7.1.2-35 Q16-HDRI RGB stdout for these exact fixtures.
+const input = Buffer.from("P3\n3 2\n255\n10 25 40 50 65 80 90 105 120\n130 145 160 170 185 200 210 225 240\n");
+const mask = Buffer.from("P2\n3 2\n255\n255 0 0 0 255 0\n");
+const followupCases = [
+    { name: "insert column", geometry: "1x0+0+0", after: [], expected: "0000000a19283241505a69780000008291a0aab9c8d2e1f0" },
+    { name: "negate after column", geometry: "1x0+0+0", after: ["-negate"], expected: "ffffff0a1928cdbeafa59687ffffff7d6e5faab9c82d1e0f" },
+    { name: "clear mask before negate", geometry: "1x0+0+0", after: ["+write-mask", "-negate"], expected: "fffffff5e6d7cdbeafa59687ffffff7d6e5f5546372d1e0f" },
+    { name: "negate after row", geometry: "0x1+0+0", after: ["-negate"], expected: "0000000000000000000a1928cdbeafa596877d6e5faab9c82d1e0f" },
+    { name: "identity splice", geometry: "0x0+0+0", after: ["-negate"], expected: "0a1928cdbeafa596877d6e5faab9c82d1e0f" },
+];
+
+for (const mode of ["command", "buffered", "retained", "sync"] as const) {
+    it.each(followupCases)(`keeps the write mask aligned through splice: $name (${mode})`, async ({ geometry, after, expected }) => {
+        const files = new Map([["in.ppm", input], ["mask.pgm", mask]]);
+        const filesystem = new MemoryFileSystem();
+        for (const [path, bytes] of files) await filesystem.writeFile(`/${path}`, bytes);
+        const args = ["in.ppm", "-write-mask", "mask.pgm", "-splice", geometry, ...after, "-depth", "8", "rgb:-"];
+        const stdout: Uint8Array[] = [];
+        let stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write(bytes) { stdout.push(bytes.slice()); } },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runMagickCliSync(args, files)
+            : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        const bytes = "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : Buffer.concat(stdout);
+        expect(Buffer.from(bytes).toString("hex")).toBe(expected);
+    });
+}

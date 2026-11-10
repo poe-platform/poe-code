@@ -7413,6 +7413,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     case "rec601luma": case "rec601luminance": intensity = 0.298839 * r + 0.586811 * g + 0.11435 * b; break;
                     default: intensity = 0.212656 * r + 0.715158 * g + 0.072186 * b;
                 }
+                // Native Q16-HDRI caches the quantum as a float before output rounding.
+                intensity = Math.fround(intensity);
                 const gray = imageType === "bilevel" ? (intensity > 32767.5 ? 65535 : 0) : Math.max(0, Math.min(65535, intensity));
                 out[idx] = out[idx + 1] = out[idx + 2] = clampByteVal(gray / 257);
                 data16[idx] = data16[idx + 1] = data16[idx + 2] = Math.round(gray);

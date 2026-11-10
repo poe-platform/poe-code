@@ -11082,13 +11082,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     if (!step) { yield; continue; }
                     if ((im.space === "b-w" || im.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
                         im = { ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 };
-                    if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step, !!im.data16, tile), signal, im, tile ? [im, tile] : [im]);
+                    if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step, !!im.data16, tile), signal, { ...im, hasAlpha: true }, tile ? [im, tile] : [im]);
                     else if (step.kind === "paint-point" || step.kind === "reset") im = yield* applyMagickRasterSteps(im, drawPointPixelSteps(im, step, !!im.data16), signal, { ...im, hasAlpha: im.hasAlpha || step.color.a < 255 });
                     else if (step.kind === "replace") im = yield* applyMagickRasterSteps(im, drawReplacePixelSteps(im, step.x, step.y, step.color, step.alphaOnly, state.alphaFuzz, !!im.data16), signal, { ...im, hasAlpha: true });
                     else if (step.kind === "floodfill") im = yield* applyMagickFloodfillSteps(im, `+${step.x}+${step.y}`, step.fillToBorder ? state.borderColor : undefined, step.color, state.alphaFuzz, signal, step.alphaOnly, undefined, step.fillToBorder);
                     else {
                         const overlay = decodeImage(new TextEncoder().encode(step.svg), { density: state.density });
-                        im = yield* applyMagickRasterSteps(im, drawOverlayPixelSteps(im, overlay), signal, im, [im, overlay]);
+                        im = yield* applyMagickRasterSteps(im, drawOverlayPixelSteps(im, overlay), signal, { ...im, hasAlpha: true }, [im, overlay]);
                         detachRgbaBuffer(overlay.data);
                     }
                 }
@@ -13186,13 +13186,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (!step) { await yieldTurn(signal); continue; }
                     if ((image.space === "b-w" || image.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
                         image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
-                    if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step, !!image.storedData16, tile), signal, image, tile ? [image, tile] : [image]);
+                    if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step, !!image.storedData16, tile), signal, { ...image, hasAlpha: true }, tile ? [image, tile] : [image]);
                     else if (step.kind === "paint-point" || step.kind === "reset") image = await transformStoredMagickRaster(image, backend, drawPointPixelSteps(image, step, !!image.storedData16), signal, { ...image, hasAlpha: image.hasAlpha || step.color.a < 255 });
                     else if (step.kind === "replace") image = await transformStoredMagickRaster(image, backend, drawReplacePixelSteps(image, step.x, step.y, step.color, step.alphaOnly, settings.alphaFuzz, !!image.storedData16), signal, { ...image, hasAlpha: true });
                     else if (step.kind === "floodfill") image = await floodfillStoredImage(image, backend.storage, step.x, step.y, step.fillToBorder ? settings.borderColor : undefined, step.color, settings.alphaFuzz, signal, step.alphaOnly, undefined, step.fillToBorder);
                     else {
                         const overlay = await decodeStoredMagickSvg(step.svg, settings.density, backend, signal);
-                        image = await transformStoredMagickRaster(image, backend, drawOverlayPixelSteps(image, overlay), signal, image, [image, overlay]);
+                        image = await transformStoredMagickRaster(image, backend, drawOverlayPixelSteps(image, overlay), signal, { ...image, hasAlpha: true }, [image, overlay]);
                     }
                 }
                 return image;

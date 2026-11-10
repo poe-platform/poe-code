@@ -6348,7 +6348,11 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const images: RgbaImage[] = [];
         for (const index of selectedInputPages(pageSpec, saved.length)) {
             yield;
-            const image = { ...saved[index]!, data: new Uint8Array(saved[index]!.data) };
+            let image = { ...saved[index]!, data: new Uint8Array(saved[index]!.data) };
+            if (state.label !== undefined) {
+                const label = yield* formatMagickPropertyStringSteps(state.label, image, () => image, { filePath: baseToken });
+                image = { ...image, properties: { ...image.properties, label } };
+            }
             images.push(inlineGeom ? yield* applyInlineReadModifierSteps(image, inlineGeom, baseToken, state.kernel, state.resizeFilter, false, analysis) : image);
         }
         return images;
@@ -14356,7 +14360,11 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
      if (!saved) throw new Error(`unable to open image '${token}'`);
      for (const index of selectedInputPages(pageSpec, saved.length)) {
          await yieldTurn(signal);
-         const savedImage = (await saved.get(index))!;
+         let savedImage = (await saved.get(index))!;
+         if (state.label !== undefined) {
+             const label = await formatRetainedIdentify(state.label, savedImage, { filePath: baseToken }, async () => ({ image: savedImage, storage: backend.storage }), signal);
+             savedImage = { ...savedImage, properties: { ...savedImage.properties, label } };
+         }
          image = inlineGeom ? await applyStoredInlineReadModifier(savedImage, inlineGeom, baseToken, state, backend, signal, false, readOptions.analysis) : savedImage;
          await readOptions.visit?.(image);
          if (!readOptions.visit && !readOptions.lastPage) break;

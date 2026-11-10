@@ -364,6 +364,10 @@ disabled frames pass through unchanged and pause the gate envelope.
 audio frame at or after the requested time, preserving the gate envelope.
 Target `agate` selects the first subsequent gate; a named target selects that
 instance. Invalid runtime gains retain the previous setting.
+Numeric options accept expressions (`ratio=1+2*3`), units (`threshold=-12dB`,
+`release=2k`), mathematical constants (`level_in=PI`), and option constants
+(`min`, `max`, `default`, `none`, `all`). Evaluated values must remain within each
+option’s bounds; invalid values fail without replacing existing output.
 The `mode`, `link`, and `detection` options accept numeric and named expressions,
 such as `mode=1.0` and `link=average+1`. Values must be between 0 and 1 before
 rounding to the nearest integer; the `0.5` tie selects 0.

@@ -14,11 +14,12 @@ export async function applyAudioGate(
   commands: readonly { sample: number; expression: string }[] = []
 ): Promise<Float64Array[]> {
   const name = "agate";
-  const options: Record<string, string> = {
+  const defaults: Record<string, string> = {
     level_in: "1", mode: "downward", range: "0.06125", threshold: "0.125", ratio: "2",
     attack: "20", release: "250", makeup: "1", knee: "2.828427125", detection: "rms", link: "average", level_sc: "1"
   };
   let enable: string | undefined;
+  const options = { ...defaults };
   const names = Object.keys(options);
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   let optionPosition = 0;
@@ -40,7 +41,15 @@ export async function applyAudioGate(
     options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
   }
   const number = (key: string, min: number, max: number): number => {
-    const value = Number(options[key]);
+    let value: number;
+    try {
+      value = parseFilterExpression(options[key]!, name, {
+        E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2,
+        min, max, default: Number(defaults[key]), none: 0, all: -1
+      }, undefined, new Float64Array(10));
+    } catch {
+      throw new AgateError(`${name}: invalid ${key}`, 234);
+    }
     if (!options[key] || !Number.isFinite(value)) throw new AgateError(`${name}: invalid ${key}`, 234);
     if (value < min || value > max) throw new AgateError(`${name}: invalid ${key}`, 222);
     return value;
@@ -107,7 +116,9 @@ export async function applyAudioGate(
         const distance = (Math.log(envelope) - threshold) * (upward ? 1 : -1);
         const expanded = distance >= width / 2 ? distance
           : distance > -width / 2 ? (distance + width / 2) ** 2 / (2 * width) : 0;
-        gain = Math.max(range, Math.exp((upward ? 1 : -1) * expansion * expanded));
+        // Native's unsimplified gain adds -Infinity to Infinity at zero threshold.
+        gain = upward && threshold === -Infinity ? -NaN
+          : Math.max(range, Math.exp((upward ? 1 : -1) * expansion * expanded));
       }
       const scale = level * gain * makeup;
       for (let c = 0; c < channels.length; c++) output[c]![i] = channels[c]![i]! * scale;

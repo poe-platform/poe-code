@@ -2173,6 +2173,60 @@ async function applyVideoFilterChain(
         await diagnostics.write(`frame:${index} pts:${Math.round(frame.ptsSeconds * diagnostics.timescale)} pts_time:${frame.ptsSeconds}\n` +
           entries.map(([key, value]) => `${key}=${value}\n`).join(""));
       }
+    } else if (name === "setdar") {
+      let expression = "0";
+      let maximum = "100";
+      let position = 0;
+      for (const part of argStr ? positional : []) {
+        const separator = part.indexOf("=");
+        const key = separator < 0 ? ["dar", "max"][position++] : part.slice(0, separator).trim();
+        const value = separator < 0 ? part : part.slice(separator + 1);
+        if (key === "dar" || key === "ratio" || key === "r") expression = value;
+        else if (key === "max") maximum = value;
+        else throw new Error("setdar: unsupported option");
+      }
+      const frame = current[0]!;
+      const format = frame.native?.format;
+      const dar = parseFilterExpression(expression, "setdar", {
+        w: frame.width, h: frame.height, a: frame.width / frame.height,
+        sar: diagnostics.sar, dar: frame.width / frame.height * diagnostics.sar,
+        hsub: [0, 4, 12, 13].includes(format!) ? 2 : 1,
+        vsub: [0, 12].includes(format!) ? 2 : 1
+      });
+      const max = roundToEven(parseFilterExpression(maximum, "setdar", {}));
+      if (!Number.isFinite(dar) || dar <= 0 || !Number.isFinite(max) || max < 1 || max > 2147483647) {
+        throw new Error("setdar: expected a positive finite display aspect and max in 1..2147483647");
+      }
+      // Bound the requested display ratio before converting it to a sample ratio.
+      let remainder = dar;
+      let numerator = 1, denominator = 0, previousNumerator = 0, previousDenominator = 1;
+      for (let step = 0; step < 64; step++) {
+        const whole = Math.floor(remainder);
+        const nextNumerator = whole * numerator + previousNumerator;
+        const nextDenominator = whole * denominator + previousDenominator;
+        if (nextNumerator > max || nextDenominator > max) {
+          const bound = Math.min(numerator ? Math.floor((max - previousNumerator) / numerator) : Infinity,
+            denominator ? Math.floor((max - previousDenominator) / denominator) : Infinity);
+          const boundedNumerator = bound * numerator + previousNumerator;
+          const boundedDenominator = bound * denominator + previousDenominator;
+          if (!denominator || Math.abs(boundedNumerator / boundedDenominator - dar) < Math.abs(numerator / denominator - dar)) {
+            numerator = boundedNumerator;
+            denominator = boundedDenominator;
+          }
+          break;
+        }
+        [previousNumerator, numerator] = [numerator, nextNumerator];
+        [previousDenominator, denominator] = [denominator, nextDenominator];
+        if (Math.abs(numerator / denominator - dar) < 1e-12) break;
+        remainder = 1 / (remainder - whole);
+      }
+      numerator *= frame.height;
+      denominator *= frame.width;
+      let divisor = numerator, rest = denominator;
+      while (rest) [divisor, rest] = [rest, divisor % rest];
+      diagnostics.sarWidth = numerator / divisor;
+      diagnostics.sarHeight = denominator / divisor;
+      diagnostics.sar = diagnostics.sarWidth / diagnostics.sarHeight;
     } else if (name === "showinfo") {
       const option = named.checksum ?? positional[0];
       if (positional.length > 1 || Object.keys(named).some(key => key !== "checksum") ||

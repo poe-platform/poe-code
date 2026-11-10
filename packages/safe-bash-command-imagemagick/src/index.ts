@@ -7331,7 +7331,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = function* (image) {
             const cmyk = image.space === "cmyk";
             if (cmyk) image = yield* convertCmykPixels(image);
-            const hueSamples = cmyk ? image.hueSamples!.slice() : undefined;
+            const hueSamples = image.hueSamples?.slice();
             const gray = image.space === "b-w" || image.space === "grey16";
             const mask = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a && image.hasAlpha];
             // CMYK stores black in the working plane and alpha in the RGBA backing.
@@ -7345,19 +7345,19 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 if (idx % 65536 === 0) yield;
                 for (let channel = 0; channel < mask.length; channel++) {
                     if (!mask[channel]) continue;
-                    const ink = hueSamples && channel < 4;
+                    const working = hueSamples && channel < 4;
                     const offset = idx + (cmyk && channel === 4 ? 3 : channel);
-                    const sample = ink ? hueSamples[offset]! : evaluateSamples[offset]! / 255;
+                    const sample = working ? hueSamples[offset]! : evaluateSamples[offset]! / 255;
                     const value = Math.min(1, Math.pow(sample, exponent)) * 65535;
                     // Keep HDRI quantum precision until output, including samples below one byte.
-                    if (ink) hueSamples[offset] = Math.fround(value) / 65535;
-                    else {
+                    if (working) hueSamples[offset] = Math.fround(value) / 65535;
+                    if (!cmyk || !working) {
                         evaluateSamples[offset] = Math.fround(value) / 257;
                         if (data16) data16[offset] = Math.round(value);
                         data[offset] = clampByteVal(data16 ? data16[offset]! / 257 : value / 257);
                     }
                 }
-                if (hueSamples) for (let channel = 0; channel < 3; channel++) {
+                if (cmyk && hueSamples) for (let channel = 0; channel < 3; channel++) {
                     const offset = idx + channel, value = (1 - hueSamples[offset]!) * (1 - hueSamples[idx + 3]!) * 65535;
                     evaluateSamples[offset] = value / 257;
                     if (data16) data16[offset] = Math.round(value);

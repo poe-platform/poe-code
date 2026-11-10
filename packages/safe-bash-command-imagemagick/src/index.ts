@@ -10225,8 +10225,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-splice") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geom = tokens[++i] ?? "0x0";
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
+                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ });
                 validateMagickSpliceGeometry(expanded);
                 const result = yield* applyMagickSpliceSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, state.gravity, signal, state.virtualPixel);
                 if (im.readMask) result.readMask = yield* applyMagickSpliceSteps(im.readMask as RgbaImage, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, state.virtualPixel);
@@ -10243,8 +10244,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-chop") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geom = tokens[++i] ?? "0x0";
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
+                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ });
                 validateMagickTransformGeometry(expanded, t);
                 return (yield* applyMagickChopSteps(im, expanded, state.gravity, signal, analysis));
             });
@@ -10270,8 +10272,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-roll") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geom = tokens[++i] ?? "+0+0";
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
+                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ });
                 validateMagickTransformGeometry(expanded, t);
                 let result = yield* applyMagickRollSteps(im, expanded, signal);
                 if (im.region) {
@@ -13289,14 +13292,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return result;
             });
         } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
+            let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
                 return stack;
             });
             const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), captured = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, (image as StoredMagickImage)[magickInput] ?? {}, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ }, async () => ({ image, storage: backend.storage }), signal, images);
                 if (token === "-splice") validateMagickSpliceGeometry(expanded);
                 else validateMagickTransformGeometry(expanded, token);
                 let result = await transformStoredMagickCoordinates(image, backend, token, expanded, captured, signal, analysis);

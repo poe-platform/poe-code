@@ -7327,25 +7327,44 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         if (parts.some(part => !part.trim() || !Number.isFinite(Number(part)))) throw new Error(`Invalid gamma: ${value}`);
         const gamma = Number(parts[0]);
         const exponent = token === "+gamma" ? gamma : gamma === 0 ? Number.MAX_VALUE : 1 / gamma;
-        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = function* (image) {
+            const cmyk = image.space === "cmyk";
+            if (cmyk) image = yield* convertCmykPixels(image);
+            const hueSamples = cmyk ? image.hueSamples!.slice() : undefined;
             const gray = image.space === "b-w" || image.space === "grey16";
-            const mask = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a];
+            const mask = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a && image.hasAlpha];
+            // CMYK stores black in the working plane and alpha in the RGBA backing.
+            if (cmyk) mask.splice(3, 0, channels.k === true);
             // Native PNG readback treats the rounded sRGB gAMA value as 1/2.2.
             const inputGamma = image.gamma === undefined || image.gamma === 0.45455 ? 1 / 2.2 : image.gamma;
             const data = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
             const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
-            for (let idx = 0; idx < data.length; idx++) {
+            for (let idx = 0; idx < data.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
-                if (!mask[idx % 4] || idx % 4 === 3 && !image.hasAlpha) continue;
-                const value = 255 * Math.min(1, Math.pow(evaluateSamples[idx]! / 255, exponent));
-                // Keep HDRI quantum precision until output, including samples below one byte.
-                evaluateSamples[idx] = Math.fround(value * 257) / 257;
-                if (data16) data16[idx] = Math.round(value * 257);
-                data[idx] = clampByteVal(data16 ? data16[idx]! / 257 : value);
+                for (let channel = 0; channel < mask.length; channel++) {
+                    if (!mask[channel]) continue;
+                    const ink = hueSamples && channel < 4;
+                    const offset = idx + (cmyk && channel === 4 ? 3 : channel);
+                    const sample = ink ? hueSamples[offset]! : evaluateSamples[offset]! / 255;
+                    const value = Math.min(1, Math.pow(sample, exponent)) * 65535;
+                    // Keep HDRI quantum precision until output, including samples below one byte.
+                    if (ink) hueSamples[offset] = Math.fround(value) / 65535;
+                    else {
+                        evaluateSamples[offset] = Math.fround(value) / 257;
+                        if (data16) data16[offset] = Math.round(value);
+                        data[offset] = clampByteVal(data16 ? data16[offset]! / 257 : value / 257);
+                    }
+                }
+                if (hueSamples) for (let channel = 0; channel < 3; channel++) {
+                    const offset = idx + channel, value = (1 - hueSamples[offset]!) * (1 - hueSamples[idx + 3]!) * 65535;
+                    evaluateSamples[offset] = value / 257;
+                    if (data16) data16[offset] = Math.round(value);
+                    data[offset] = clampByteVal(value / 257);
+                }
             }
-            return { ...image, isPalette: false, data, evaluateSamples, ...(data16 ? { data16 } : {}), gamma: inputGamma * gamma };
+            return { ...image, isPalette: false, data, evaluateSamples, ...(data16 ? { data16 } : {}), gamma: inputGamma * gamma, ...(hueSamples ? { hueSamples } : {}) };
         };
     }
     else if (token === "-alpha") {

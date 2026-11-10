@@ -2,7 +2,7 @@ import type { ImageMetadata, RgbaImage, SharpInputOptions } from "../ast.js";
 import { checkLimitInputPixels } from "../limits.js";
 
 export interface MiffHeader {
-    metadata: ImageMetadata & { magickColorspace: string };
+    metadata: ImageMetadata & { magickColorspace: string; disposal: number };
     offset: number;
     colors: number;
     pixelBytes: number;
@@ -70,9 +70,10 @@ function* miffFrameHeader(size: number): Generator<number, MiffHeader, number | 
             || !Number.isSafeInteger(x) || !Number.isSafeInteger(y)) throw new Error("Invalid MIFF page geometry");
         virtualCanvas = { width: pageWidth!, height: pageHeight!, x, y };
     }
+    const disposal = Math.max(0, ["undefined", "none", "background", "previous"].indexOf(fields.get("dispose")?.toLowerCase() ?? "undefined"));
     const delay = Number(fields.get("delay") ?? 0), ticksPerSecond = Number(fields.get("ticks-per-second") ?? 100) || 100;
     if (!Number.isSafeInteger(delay) || delay < 0 || !Number.isSafeInteger(ticksPerSecond) || ticksPerSecond < 0) throw new Error("Invalid MIFF timing");
-    return { metadata: { ...(orientation ? { orientation } : {}), ...(virtualCanvas ? { virtualCanvas } : {}), delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, format: "miff", width, height, channels, hasAlpha, depth: floating ? "float" : depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: 72, size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes };
+    return { metadata: { disposal, ...(orientation ? { orientation } : {}), ...(virtualCanvas ? { virtualCanvas } : {}), delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, format: "miff", width, height, channels, hasAlpha, depth: floating ? "float" : depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: 72, size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes };
 }
 
 /** Scan adjacent rasters and collect animation timing without reading their pixels. */

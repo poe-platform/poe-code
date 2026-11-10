@@ -9791,8 +9791,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         const setting = applyMagickReadSetting(tokens, state, i);
         if (setting === undefined && (t === "-solarize" || ((t === "-colorize" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-random-threshold" || t === "-range-threshold") && tokens[i + 1]?.includes("%[")) || ((t === "-modulate" || t === "-posterize" || t === "-ordered-dither") && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%")) || ((t === "-level-colors" || t === "+level-colors") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
             const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" || t === "-tint" ? "" : "1");
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const expanded = yield* formatMagickPropertyStringSteps(t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" ? value.trimEnd() : value, image, () => image, { ...(image as MagickImage)[magickInput], sceneCount: stack.length, optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" ? value.trimEnd() : value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, sceneIdx: sceneIdx++, optionProperties: state.optionProperties });
                 const operation = parseMagickPixelOperation([t, expanded], state, 0, signal)!;
                 if (operation.warning) analysis.warnings += operation.warning;
                 return yield* operation.apply(image);
@@ -12258,11 +12259,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const value = tokens[++i] ?? (token === "-solarize" ? "50%" : token === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : token === "-brightness-contrast" || token === "-tint" ? "" : "1"), settings = { ...state };
-            let sceneCount: number;
-            stackStep(async stack => { sceneCount = stack.length; return stack; });
+            let images: StoredImageStack, sceneIdx = 0;
+            stackStep(async stack => { images = stack; return stack; });
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" ? value.trimEnd() : value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" ? value.trimEnd() : value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, sceneIdx: sceneIdx++, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 const operation = parseMagickPixelOperation([token, expanded], settings, 0, signal)!;
                 if (operation.warning) analysis.warnings += operation.warning;
                 return transformStoredMagickPixels(image, backend, operation, signal);

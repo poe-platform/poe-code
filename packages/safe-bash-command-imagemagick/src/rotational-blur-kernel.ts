@@ -73,8 +73,8 @@ export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "heig
             const protectedPixel = region && !regionContains(region, x, y);
             const sourceAlpha = alphaActive ? values[i * 4 + 3]! / 65535 : 1;
             const editedAlpha = alphaActive ? (mask && !mask[3] ? values[i * 4 + 3]! : sums[3]! / total) / 65535 : 1;
-            // Inactive alpha still weights colors, but its original samples are retained.
-            for (let c = 0; c < (image.inactiveAlpha ? 3 : 4); c++) if (!mask || mask[c]) {
+            // Retain inactive or disabled alpha instead of storing opaque RGB weights.
+            for (let c = 0; c < (alphaActive && !image.inactiveAlpha ? 4 : 3); c++) if (!mask || mask[c]) {
                 let value = c === 3 ? sums[3]! / total : sums[3] ? sums[c]! / sums[3] : 0;
                 // Composite before quantizing: native retains fractional blur samples in its cache.
                 if (protectedPixel) value = c === 3 ? values[i * 4 + c]! : values[i * 4 + c]! * sourceAlpha + value * editedAlpha * (1 - sourceAlpha);

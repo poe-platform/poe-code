@@ -340,6 +340,38 @@ test("uniq groups adjacent records and supports counts, repeated/unique selectio
   assert.equal((await run("uniq", ["-z"], { stdin: "a\0a\0b\0" })).stdout, "a\0b\0");
 });
 
+test("uniq stops options at the first operand when POSIXLY_CORRECT is present", async () => {
+  const input = "A x\nB x\nC y";
+  const output = `${input}\n`;
+  const counts = "      1 A x\n      1 B x\n      1 C y\n";
+  for (const setting of ["1", ""]) {
+    for (const destination of ["-c", "--group", "--all-repeated", "--"]) {
+      const fs = await fixture({ in: input });
+      const result = await run("uniq", ["in", destination], { fs, env: { POSIXLY_CORRECT: setting }, commands: textCommands() });
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.equal(new TextDecoder().decode(await fs.readFile(`/work/${destination}`)), output);
+    }
+    const fs = await fixture({ in: input, out: "KEEP" });
+    const result = await run("uniq", ["in", "out", "-c"], { fs, env: { POSIXLY_CORRECT: setting }, commands: textCommands() });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/out")), "KEEP");
+    await assert.rejects(fs.stat("/work/-c"), { code: "ENOENT" });
+  }
+  for (const [args, env] of [
+    [["in", "-c"], {}],
+    [["-c", "in"], { POSIXLY_CORRECT: "1" }],
+    [["-f", "1", "-c", "in"], { POSIXLY_CORRECT: "1" }],
+  ] as const) {
+    const result = await run("uniq", args, { fs: await fixture({ in: input }), env, commands: textCommands() });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, args.some(argument => argument === "-f") ? "      2 A x\n      1 C y\n" : counts);
+  }
+});
+
 test("uniq emits every repeated record and separates selected groups", async () => {
   const fs = await fixture({ input: "a\na\nb\nc\nc\n" });
   for (const [option, expected] of [

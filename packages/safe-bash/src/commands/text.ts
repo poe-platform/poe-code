@@ -2,7 +2,7 @@ import "../shell/sync-extra-evaluators.js";
 import { compareByteArrays, decodeBytes, encodeBytes, indexOfBytes } from "../byte-encoding.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { createBufferedOutput, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
-import { RETURN_EXIT_ONE, RETURN_EXIT_ZERO, assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, options, output, outputRange, pathOf, requireOperands, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
+import { RETURN_EXIT_ONE, RETURN_EXIT_ZERO, assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, options, output, outputRange, pathOf, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { inputRequirements, textOutputRequirements } from "./portable-requirements.js";
 import { hasYieldCheckpoint, runYieldCheckpoint } from "../contracts/yield.js";
@@ -581,7 +581,8 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
     if (argument === "--group") return "--group=separate";
     return argument;
   });
-  const parsed = options(args, "cduiDf:s:w:z", { count: "c", repeated: "d", unique: "u", "all-repeated": "all-repeated:", group: "group:", "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z" }, false, undefined, undefined, (option, method) => {
+  const operandIndices: number[] = [];
+  const parsed = options(args, "cduiDf:s:w:z", { count: "c", repeated: "d", unique: "u", "all-repeated": "all-repeated:", group: "group:", "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z" }, context.env.POSIXLY_CORRECT !== undefined, index => { operandIndices.push(index); }, undefined, (option, method) => {
     if (option === "D") repeatedMethod = "none";
     else if (option === "all-repeated") {
       if (!["none", "prepend", "separate"].includes(method!)) throw new UsageError(`invalid argument '${method}' for 'all-repeated'`);
@@ -591,10 +592,12 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
       groupMethod = method;
     }
   });
+  // Optional-argument normalization must not rename literal operand paths.
+  operandIndices.forEach((index, operand) => { parsed.operands[operand] = context.args[index]!; });
   const allRepeated = parsed.flags.has("D") || parsed.flags.has("all-repeated");
   if (allRepeated && parsed.flags.has("c")) throw new UsageError("printing all duplicated lines and repeat counts is meaningless");
   if (groupMethod !== undefined && (allRepeated || ["c", "d", "u"].some(flag => parsed.flags.has(flag)))) throw new UsageError("--group is mutually exclusive with -c/-d/-D/-u");
-  requireOperands(parsed.operands, 0, 2);
+  if (parsed.operands.length > 2) throw new PublicDiagnostic(`extra operand '${parsed.operands[2]}'`);
   await assertInputRequirements(context, parsed.operands.slice(0, 1));
   await admitTextOutput(context, parsed.operands[1]);
   if (parsed.operands[1] !== undefined && parsed.operands[0] !== "-") {

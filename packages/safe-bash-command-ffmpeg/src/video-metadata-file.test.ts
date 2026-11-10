@@ -53,7 +53,7 @@ for (const [options, level] of [[":file=stats.log", "info"], [":file=stats.log:d
     assert.equal(Buffer.byteLength(report), 499);
     assert.equal(result.volume.readFileSync("/stats.log", "utf8"), options!.includes("file=stats.log") ? report : "KEEP");
     assert.equal(result.stdout, options === ":file=-" ? report : "");
-    if (!options && level === "info") assert.ok(result.stderr.includes(report.replaceAll("    pts:", " pts:").replaceAll("       pts_time:", " pts_time:")), result.stderr);
+    if (!options && level === "info") assert.ok(result.stderr.includes(report), result.stderr);
     else assert.ok(!result.stderr.includes("frame:"), result.stderr);
   });
 }

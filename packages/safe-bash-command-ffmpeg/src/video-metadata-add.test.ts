@@ -44,7 +44,7 @@ for (const graph of [false, true]) {
       const output = volume.readFileSync("/o.raw") as Buffer;
       assert.equal(output.length, 96);
       assert.equal(createHash("sha256").update(output).digest("hex"), "4d240453b9d26c288a7fb339c50f2c0385b0484486434ef7365e15258e7a1278");
-      assert.equal(stderr, values.map((value, index) => `frame:${index} pts:${index} pts_time:${index / 4}\n${key}=${value}\n`).join(""));
+      assert.equal(stderr, values.map((value, index) => `frame:${String(index).padEnd(4)} pts:${String(index).padEnd(7)} pts_time:${index / 4}\n${key}=${value}\n`).join(""));
     });
   }
 }

@@ -52,7 +52,7 @@ for (const key of ["lavfi.signalstats.YMIN", "absent", ""]) {
     assert.equal(result.exitCode, 0, error);
     assert.deepEqual(output, Buffer.concat(frames));
     assert.equal(error, frames.map((_, n) =>
-      `frame:${n} pts:${n} pts_time:${n / 4}\nlavfi.signalstats.UMIN=128\n`).join(""));
+      `frame:${String(n).padEnd(4)} pts:${String(n).padEnd(7)} pts_time:${n / 4}\nlavfi.signalstats.UMIN=128\n`).join(""));
   });
 }
 it("prints signalstats values before deletion", async () => {
@@ -60,7 +60,7 @@ it("prints signalstats values before deletion", async () => {
   assert.equal(result.exitCode, 0, error);
   assert.deepEqual(output, Buffer.concat(frames));
   assert.equal(error, luma.map((values, n) =>
-    `frame:${n} pts:${n} pts_time:${n / 4}\nlavfi.signalstats.YMIN=${Math.min(...values)}\n`).join(""));
+    `frame:${String(n).padEnd(4)} pts:${String(n).padEnd(7)} pts_time:${n / 4}\nlavfi.signalstats.YMIN=${Math.min(...values)}\n`).join(""));
 });
 it("deletes successfully with logging disabled", async () => {
   const { result, output, error } = await run("signalstats,metadata=delete:key=lavfi.signalstats.YMIN,metadata=print:key=lavfi.signalstats.YMIN", "error");

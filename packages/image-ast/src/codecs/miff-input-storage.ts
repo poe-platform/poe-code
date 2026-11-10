@@ -12,17 +12,26 @@ export async function readMiffFromSource(source: ImageByteSource, signal: AbortS
 }
 
 export async function decodeMiffToStorage(source: ImageByteSource, storage: ImageByteStorage, signal: AbortSignal, options?: SharpInputOptions): Promise<StoredRgbaImage> {
-    const { metadata, offset } = await readMiffFromSource(source, signal, options?.page);
+    const { metadata, offset, colors, pixelBytes } = await readMiffFromSource(source, signal, options?.page);
     checkLimitInputPixels(metadata.width, metadata.height, options);
     const count = metadata.width * metadata.height, position = storage.allocate(count * 4), sampleBytes = metadata.depth === "ushort" ? 2 : 1;
     const storedData16 = sampleBytes === 2 ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;
+    const palette = colors ? new Uint8Array(colors * 3 * sampleBytes) : undefined;
+    if (palette) for (let start = 0; start < palette.length; start += 8192) {
+        await defaultRuntime.yieldTurn(signal);
+        const length = Math.min(8192, palette.length - start), bytes = await source.read(offset + start, length, { signal });
+        signal.throwIfAborted();
+        if (bytes.length !== length) throw new Error("Truncated MIFF palette");
+        palette.set(bytes, start);
+    }
+    const raster = offset + (palette?.length ?? 0);
     for (let pixel = 0; pixel < count; pixel += 1024) {
         await defaultRuntime.yieldTurn(signal);
-        const length = Math.min(1024, count - pixel) * metadata.channels * sampleBytes;
-        const input = await source.read(offset + pixel * metadata.channels * sampleBytes, length, { signal });
+        const length = Math.min(1024, count - pixel) * pixelBytes;
+        const input = await source.read(raster + pixel * pixelBytes, length, { signal });
         signal.throwIfAborted();
         if (input.length !== length) throw new Error("Truncated MIFF raster");
-        const pixels = miffPixels(input, metadata);
+        const pixels = miffPixels(input, metadata, palette);
         await storage.write(position + pixel * 4, pixels.data, { signal });
         if (storedData16) await storage.write(storedData16.position + pixel * 8, new Uint8Array(pixels.data16!.buffer), { signal });
     }

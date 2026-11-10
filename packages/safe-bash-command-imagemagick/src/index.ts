@@ -69,6 +69,7 @@ import { bilateralBlurPixelSteps } from "./bilateral-blur-kernel.js";
 import { kuwaharaPixelSteps } from "./kuwahara-kernel.js";
 import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
 import { magickFramePixels, montageShadowPixels } from "./montage-frame.js";
+import { montageInputNames } from "./montage-input-list.js";
 import { borderPixels } from "./border.js";
 import { adaptiveResizePixelSteps, morphPixelSteps, pointResizePixelSteps, resizeMaskPixelSteps, resizePixelSteps, type MagickResizeKernel as ResizeKernel, type ResizeFilterSettings } from "./resize-kernel.js";
 import { formatTrimBoundsSteps, trimMagickSteps, trimStoredMagick } from "./trim.js";
@@ -18183,7 +18184,11 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const bytes = path === "-" ? stdinBytes : files.get(path);
         try { return bytes?.[0] === 0x47 ? readImageMetadata(bytes).pages ?? 1 : 1; }
         catch { return 1; } // The image reader reports malformed headers.
-    }, path => mogrifyTargets(path, files.keys()));
+    }, function* (path): Generator<void, string[], void> {
+        const bytes = path.startsWith("@") ? files.get(path.slice(1)) : undefined;
+        if (bytes) return yield* montageInputNames(bytes);
+        return yield* mogrifyTargets(path, files.keys());
+    });
     if ("exitCode" in parsed) return parsed;
     const { warnings, trim, shadow, transforms, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture } = parsed;
     const variableCells = !frame && cellW === undefined && cellH === undefined;
@@ -18566,8 +18571,20 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         return count;
     }, function* (path): Generator<IdentifyStep, string[], void> {
         let targets: string[] = [];
-        yield { async run() { targets = await mogrifyFileTargets(path, input.filesystem, input.cwd, signal); } };
-        return targets;
+        let bytes: Uint8Array | undefined;
+        yield { async run() {
+            if (path.startsWith("@")) {
+                await backend.read(path.slice(1), async source => {
+                    bytes = new Uint8Array(source.size);
+                    for (let offset = 0; offset < source.size; offset += 16384) {
+                        await yieldTurn(signal);
+                        bytes.set(await source.read(offset, Math.min(16384, source.size - offset), { signal }), offset);
+                    }
+                });
+            }
+            if (!bytes) targets = await mogrifyFileTargets(path, input.filesystem, input.cwd, signal);
+        } };
+        return bytes ? yield* montageInputNames(bytes) : targets;
     }), signal);
     if ("exitCode" in parsed) return parsed;
     const { warnings, trim, shadow, transforms, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture } = parsed;

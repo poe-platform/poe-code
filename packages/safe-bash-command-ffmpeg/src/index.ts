@@ -12498,6 +12498,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredSampleFormat = "s16p";
                         panSampleFormat = "s16";
                       } else if (trimmed === "haas" || trimmed.startsWith("haas=")) {
+                        if (stretched.length > 2) {
+                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                          // Haas negotiates double-precision stereo; omit LFE without normalizing the mix.
+                          const stereo = await panAudio(
+                            `stereo|FL=FL+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BL+${Math.SQRT1_2}*SL|FR=FR+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BR+${Math.SQRT1_2}*SR`,
+                            stretched, filteredChannelMask, "dbl", budget, context.signal);
+                          stretched = stereo.channels;
+                          filteredChannelMask = stereo.channelMask;
+                          filteredChannelNames = undefined;
+                        }
                         if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) {
                           const stereo = await panAudio(`stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`,
                             stretched, filteredChannelMask, "flt", budget, context.signal);

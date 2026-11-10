@@ -10192,6 +10192,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           contrast = Math.fround(value);
                         }
+                        filteredSampleFormat = "flt";
                         const amount = Math.fround(contrast / 750);
                         for (const channel of stretched) {
                           for (let i = 0; i < channel.length; i++) {
@@ -11113,12 +11114,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (key === "sample_fmts" || key === "f") {
                             if (!["u8", "s16", "s32", "flt", "fltp", "dbl", "dblp"].includes(value)) throw new Error(`aformat: unsupported sample format ${value}`);
                             panPcm16 = value === "s16";
+                            const truncate = value === "u8" && ["u8", "u8p", "s16", "s16p", "s32", "s32p"].includes(filteredSampleFormat);
                             filteredSampleFormat = value;
                             if (value === "dbl" || value === "dblp") continue;
                             const floating = value === "flt" || value === "fltp";
                             const scale = value === "u8" ? 128 : value === "s32" ? 2147483648 : 32768;
-                            const codec = t.codecDescriptions[0]?.codecName;
-                            const truncate = value === "u8" && (codec === "pcm_s16le" || codec === "pcm_s32le" || codec === "pcm_u8");
                             const output = stretched.map(channel => new Float64Array(channel.length));
                             for (let i = 0; i < stretched[0]!.length; i++) {
                               if (i % 4096 === 0) {

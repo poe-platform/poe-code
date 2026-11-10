@@ -16,6 +16,35 @@ import {
   type FfmpegCommandsOptions
 } from "./index.js";
 
+describe("aformat u8 quantization", () => {
+  const samples = [-30000, -12345, -401, -1, 0, 1, 401, 12345, 30000];
+  const cases: [string, number[]][] = [
+    ["volume=1:precision=float,aformat=f=u8", [-29952, -12288, -512, 0, 0, 0, 512, 12288, 29952]],
+    ["volume=0.5:precision=float,aformat=f=u8", [-15104, -6144, -256, 0, 0, 0, 256, 6144, 15104]],
+    ["acontrast,aformat=f=u8", [-32256, -19200, -768, 0, 0, 0, 768, 19200, 32256]],
+    ["volume=0.5:precision=fixed,aformat=f=u8", [-15104, -6400, -256, 0, 0, 0, 0, 6144, 14848]],
+    ["aformat=f=u8", [-30208, -12544, -512, -256, 0, 0, 256, 12288, 29952]]
+  ];
+  for (const [filter, expected] of cases) {
+    for (const complex of [false, true]) {
+      it(`quantizes the current sample format: ${filter} (complex=${complex})`, async () => {
+        const input = new Uint8Array(samples.length * 2);
+        const expectedBytes = new Uint8Array(expected.length * 2);
+        samples.forEach((sample, index) => new DataView(input.buffer).setInt16(index * 2, sample, true));
+        expected.forEach((sample, index) => new DataView(expectedBytes.buffer).setInt16(index * 2, sample, true));
+        const vfs = createTestVfs({ "/in.raw": input, "/out.raw": "KEEP" });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-v", "error", "-y", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/in.raw",
+          ...(complex ? ["-filter_complex", `[0:a]${filter}[o]`, "-map", "[o]"] : ["-af", filter]),
+          "-f", "s16le", "/out.raw"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.deepEqual(vfs.store.get("/out.raw"), expectedBytes);
+      });
+    }
+  }
+});
+
 describe("audio channel stream specifiers", () => {
   const left = [100, 300, 500, 700];
   const right = [-200, -400, -600, -800];

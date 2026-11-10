@@ -151,8 +151,10 @@ export async function joinAudio(
       - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
     if (count === 0) continue;
     const end = Math.min(length, start + count);
+    const pts = packet ? Math.round(packet.pts * sampleRate / first.timescale)
+      + (packet.skipSamples ?? 0) : start;
     budget.allocateMemory(96);
-    frames.push({ data: new Uint8Array(0), size: 0, dts: start, pts: start, cts: 0,
+    frames.push({ data: new Uint8Array(0), size: 0, dts: pts, pts, cts: 0,
       duration: end - start, isKeyframe: true, sampleDescriptionIndex: 1 });
     start = end;
   }

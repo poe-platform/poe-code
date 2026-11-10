@@ -363,7 +363,7 @@ For example, `[0:a][1:a]join[mix]` selects both channels of a stereo second inpu
 when the first input is mono. Each input branch applies its single-input filters
 before routing channels, for example
 `[1:a]volume=0.5[x];[0:a][x]join=map=0.0-FL|1.0-FR[o]`.
-Filters after join are supported.
+Filters after join are supported and use the first input's frame timestamps.
 `agate=threshold=0.05:ratio=4:attack=0.1:release=1` attenuates quiet PCM sections
 while preserving sample count and timing. It supports native defaults, range, knee,
 attack/release, peak/RMS detection, channel linking, input/makeup gain, and downward/upward modes.

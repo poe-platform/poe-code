@@ -1,6 +1,6 @@
 import { concatBytes, rgbaToYuv420p, yuv420pToRgba, type MediaDocument, type MediaSample, type MediaVideoFrame, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 
-export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixelFormat: string | undefined, fps: number, budget: MediaBudgetTracker): MediaDocument {
+export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixelFormat: string | undefined, fps: number, budget: MediaBudgetTracker, decode = true): MediaDocument {
   const dimensions = size?.split("x").map(Number) ?? [];
   const [width = 0, height = 0] = dimensions;
   if (dimensions.length !== 2 || !Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width <= 0 || height <= 0) {
@@ -24,7 +24,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     samples.push({ data, offset: index * frameBytes, size: data.length, dts: index * ticks, pts: index * ticks, cts: 0,
       duration: ticks, isKeyframe: true, sampleDescriptionIndex: 1 });
     // Stream copy retains the final short packet; decoding only emits complete frames.
-    if (data.length !== frameBytes) continue;
+    if (!decode || data.length !== frameBytes) continue;
     budget.recordFrame(width, height);
     budget.allocateMemory(width * height * 4);
     const rgba = pixelFormat === "yuv420p"

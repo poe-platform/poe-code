@@ -78,9 +78,9 @@ it("keeps input and output pixel formats independent", async () => {
 for (const limits of [{ maxFrames: 3 }, { maxSamplesPerTrack: 3 }, { maxPixelsPerFrame: 5 }, { maxMemoryBytes: 1 }]) {
   it(`enforces rawvideo input resource limits ${JSON.stringify(limits)}`, async () => {
     const result = await run(["-f", "rawvideo", "-pixel_format", "rgb24", "-video_size", "3x2",
-      "-i", "/in.raw", "-c", "copy", "/out.mov"], pixels, { limits });
+      "-i", "/in.raw", "-f", "rawvideo", "/out.raw"], pixels, { limits });
     assert.notEqual(result.exitCode, 0);
-    assert.equal(result.volume.existsSync("/out.mov"), false);
+    assert.equal(result.volume.existsSync("/out.raw"), false);
   });
 }
 
@@ -91,7 +91,7 @@ for (const format of ["gray", "gray8"]) {
     it(`copies ${format} packets with frame limit ${frameLimit}`, async () => {
       const result = await run(["-f", "rawvideo", "-pix_fmt", format, "-s", "2x2", "-r", "1",
         "-i", "/in.raw", "-c:v", "copy", ...(frameLimit ? ["-frames:v", frameLimit] : []),
-        "-f", "rawvideo", "/out.raw"], grayPixels);
+        "-f", "rawvideo", "/out.raw"], grayPixels, { limits: { maxFrames: 0 } });
       assert.equal(result.exitCode, 0, result.stderr);
       assert.deepEqual(result.volume.readFileSync("/out.raw"), frameLimit ? grayPixels.subarray(0, 4) : grayPixels);
     });

@@ -7966,7 +7966,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
 
               if (explicitFormat === "rawvideo") {
-                return parseRawVideo(rawBytes, input?.videoSize, input?.pixelFormat, fpsHint ?? 25, budget);
+                return parseRawVideo(rawBytes, input?.videoSize, input?.pixelFormat, fpsHint ?? 25, budget, videoCodec !== "copy");
               }
 
               const concatSignature = "ffconcat version 1.0";

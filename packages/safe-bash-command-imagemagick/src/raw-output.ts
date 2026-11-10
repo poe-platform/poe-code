@@ -72,7 +72,7 @@ export function encodeImage(image: RawImage, options: OutputEncodeOptions): Retu
 
 function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channels: readonly number[]): Uint8Array {
     const format = options.format;
-    const depth = (options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 ? 16 : 8;
+    const depth = options.tiffFloatDepth ?? ((options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 ? 16 : 8);
     const pixels = image.width * image.height;
     const data = new Uint8Array(pixels * channels.length * depth / 8);
     const view = new DataView(data.buffer), samples = image.data16 ?? image.data;
@@ -95,7 +95,19 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
                 : options.rawInterlace === "line" ? Math.floor(pixel / image.width) * image.width * channels.length + c * image.width + pixel % image.width
                 : pixel * channels.length + c;
             const offset = sample * depth / 8;
-            if (depth === 16) view.setUint16(offset, quantum, options.endian === undefined || options.endian === "lsb");
+            const little = options.endian === undefined || options.endian === "lsb";
+            if (options.tiffFloatDepth) {
+                // ImageMagick scales Q16 samples by the reciprocal quantum range.
+                const normalized = value * (65535 / scale) * (1 / 65535);
+                if (depth === 64) view.setFloat64(offset, normalized, little);
+                else if (depth === 32) view.setFloat32(offset, normalized, little);
+                else {
+                    const exponent = Math.floor(Math.log2(normalized));
+                    const half = normalized < 2 ** -14 ? Math.round(normalized * 2 ** 24)
+                        : (exponent + 15) * 1024 + Math.round((normalized / 2 ** exponent - 1) * 1024);
+                    view.setUint16(offset, half, little);
+                }
+            } else if (depth === 16) view.setUint16(offset, quantum, little);
             else data[offset] = quantum;
         }
     }

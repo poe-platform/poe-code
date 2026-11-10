@@ -9264,7 +9264,7 @@ function parseChannelAssignments(expression: string): ChannelAssignment[] {
 
 function parseChannelSelections(expression: string): number[][] {
     if (expression === "") return [[0, 1, 2]];
-    const names = [["r", "red"], ["g", "green"], ["b", "blue"], ["a", "alpha"]];
+    const names = [["0", "r", "red", "c", "cyan", "gray"], ["1", "g", "green", "m", "magenta"], ["2", "b", "blue", "y", "yellow"], ["4", "a", "alpha", "o"]];
     return expression.split(";").map(group => group.split(",").map(name => {
         const channel = names.findIndex(aliases => aliases.includes(name.trim().toLowerCase()));
         if (channel < 0) throw new Error(`unsupported channel-fx selection '${name}'`);

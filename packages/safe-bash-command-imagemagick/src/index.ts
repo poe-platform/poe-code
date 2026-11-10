@@ -2239,6 +2239,12 @@ function validateMagickSpliceGeometry(raw: string): void {
     if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
         throw new Error(`invalid argument for option '-splice': ${raw}`);
     }
+    if (!raw.toLowerCase().includes("x") && !raw.includes(":")) {
+        const geometry = parseMagickGeometry(raw.replaceAll("#", ""));
+        if (geometry.width !== undefined && geometry.hasOffset) {
+            throw new Error(`invalid argument for option '-splice': ${raw}`);
+        }
+    }
     // Slash and comma cannot separate scalar dimensions; colon ratios remain valid.
     if ((raw.includes("/") || raw.includes(",")) && !raw.toLowerCase().includes("x") && !raw.includes(":")) {
         throw new Error(`invalid geometry: ${raw}`);
@@ -2415,7 +2421,7 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
     // Chop and shave accept a lone minus and warn without changing the image.
     if (value === "-" && (option === "-chop" || option === "-shave")) return;
     if (!value || value === "+" || value === "-") throw new Error(`invalid argument for option '${option}': ${raw}`);
-    if (["-chop", "-swirl", "-implode", "-wave"].includes(option) && !dimensions) {
+    if (["-chop", "-shave", "-swirl", "-implode", "-wave"].includes(option) && !dimensions) {
         const geometry = parseMagickGeometry(value.replaceAll("#", ""));
         if (geometry.width !== undefined && geometry.hasOffset) {
             throw new Error(`invalid argument for option '${option}': ${raw}`);

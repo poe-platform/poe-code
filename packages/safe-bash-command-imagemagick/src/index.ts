@@ -11728,7 +11728,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const geometry = parseMagickStatisticGeometry(yield* formatMagickPropertyStringSteps(geom, im, () => im, context));
                 const plan = magickMorphologyPlan(method, geometry, true);
                 if (state.virtualPixel === "transparent" && (!state.channelExplicit || state.channels.a)) im = { ...im, hasAlpha: true };
-                const result = yield* applyMagickMorphology4ChSteps({ ...im, isPalette: false }, plan, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.virtualPixel, state.background);
+                let channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
+                // Deactivation keeps alpha samples, but excludes them from statistics.
+                if (!im.hasAlpha && im.inactiveAlpha && !im.alphaSeparate)
+                    channels = (channels ?? [true, true, true, true]).map((selected, channel) => selected && channel !== 3);
+                const result = yield* applyMagickMorphology4ChSteps({ ...im, isPalette: false }, plan, signal, channels, state.virtualPixel, state.background);
                 if (im.alphaBlend === false) result.alphaSeparate = false;
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
@@ -14295,7 +14299,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const geometry = parseMagickStatisticGeometry(await formatRetainedIdentify(geom, image, context, async () => ({ image: image!, storage: backend.storage }), signal));
                 if (virtualPixel === "transparent" && (!channels || channels[3])) image = { ...image, hasAlpha: true };
                 const plan = magickMorphologyPlan(method, geometry, true);
-                const result = await morphStoredMagickImage({ ...image, isPalette: false }, backend, plan, signal, channels, virtualPixel, background);
+                const selectedChannels = !image.hasAlpha && image.inactiveAlpha && !image.alphaSeparate
+                    ? (channels ?? [true, true, true, true]).map((selected, channel) => selected && channel !== 3) : channels;
+                const result = await morphStoredMagickImage({ ...image, isPalette: false }, backend, plan, signal, selectedChannels, virtualPixel, background);
                 if (image.alphaBlend === false) result.alphaSeparate = false;
                 if (image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];

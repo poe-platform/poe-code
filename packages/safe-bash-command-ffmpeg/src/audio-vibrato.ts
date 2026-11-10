@@ -4,7 +4,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function vibratoAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  frames: readonly { start: number; end: number; pts: number }[],
+  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
   let frequency = 5;
@@ -16,7 +16,7 @@ export async function vibratoAudio(
     const key = separator < 0 ? ["f", "d"][index] : option.slice(0, separator).trim();
     if (key === "enable") {
       enable = option.slice(separator + 1).trim();
-      parseFilterExpression(enable, "vibrato enable", { n: 0, t: 0 });
+      parseFilterExpression(enable, "vibrato enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 });
       continue;
     }
     if (key !== "f" && key !== "d") throw new Error(`vibrato: unsupported option ${key}`);
@@ -41,7 +41,8 @@ export async function vibratoAudio(
   let position = 0;
   for (const [n, timestamp] of frames.entries()) {
     const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "vibrato enable", {
-      n, t: timestamp.pts / sampleRate
+      n, t: timestamp.pts / sampleRate, pos: timestamp.pos ?? NaN, w: 0, h: 0,
+      E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2
     })) >= 0.5;
     for (let frame = timestamp.start; frame < timestamp.end; frame++) {
       const point = (position % period + phaseOffset) % period;

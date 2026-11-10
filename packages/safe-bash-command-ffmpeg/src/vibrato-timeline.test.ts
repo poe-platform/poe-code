@@ -29,6 +29,7 @@ for (const graph of [false, true]) {
   for (const [filter, hash] of [
     ["vibrato=enable='gte(t,0.5)'", "482a20d4ad944dd6ece2e45f77409bc759c428f308dbb69d56e2120a36eedbcb"],
     ["vibrato=enable=gte(t\\,0.5)", "482a20d4ad944dd6ece2e45f77409bc759c428f308dbb69d56e2120a36eedbcb"],
+    ["vibrato=enable='gte(n,1)'", "456d11ff062a4b322fedac6d03a7d5216cbcc470ebe417b939c7f3d111c53d37"],
     ["vibrato=enable='mod(n,2)'", "d51a74a27a797feb6cbacbb667d57aa8b68371244c6fca776b759dcc11dc88f9"],
     ["asetpts=PTS+4096,vibrato=enable='gte(t,0.5)'", "655e3162c084f689beb0de04bb60f156f73ead69125edf602b35504774904e59"],
     ["asetnsamples=n=128:p=0,vibrato=enable='mod(n,2)'", "451435ea76301ce193ada1fd46a60dcbaff14383dd59032881b80da2e17a91ea"]
@@ -44,6 +45,27 @@ for (const graph of [false, true]) {
         assert.deepEqual(output.subarray(0, 4096 * 2), bypass.output.subarray(0, 4096 * 2));
         assert.notDeepEqual(output.subarray(4096 * 2), bypass.output.subarray(4096 * 2));
       }
+    });
+  }
+
+  // FFmpeg 7.0.2 reference: newer FFmpeg versions removed the pos variable.
+  it(`vibrato uses input packet positions (graph ${graph})`, async () => {
+    const { result, stderr, output } = await run("vibrato=enable='gte(pos,4096)'", graph);
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal(createHash("sha256").update(output).digest("hex").slice(0, 16), "8f6554bf598b1c3a");
+  });
+
+  for (const [enable, expectedFilter] of [
+    ["w", "anull"], ["h", "anull"], ["PI", "vibrato"],
+    ["E", "vibrato"], ["PHI", "vibrato"],
+    ["pos", "vibrato"]
+  ]) {
+    it(`vibrato exposes native enable variable ${enable} (graph ${graph})`, async () => {
+      const expected = await run(expectedFilter!, graph);
+      const actual = await run(`vibrato=enable='${enable}'`, graph);
+      assert.equal(expected.result.exitCode, 0, expected.stderr);
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      assert.deepEqual(actual.output, expected.output);
     });
   }
 

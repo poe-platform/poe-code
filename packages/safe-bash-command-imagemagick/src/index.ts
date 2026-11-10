@@ -8918,8 +8918,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-blue-shift") {
         highDepth = true;
         const value = tokens[++i] ?? "";
-        const factor = Number(value);
-        if (!value.trim() || !Number.isFinite(factor)) throw new Error(`invalid argument '-blue-shift' '${value}'`);
+        validateMagickTransformGeometry(value, token);
+        const geometry = [...value].filter(character => character.trim() !== "" && !"()".includes(character)).join("");
+        // BlueShiftImage uses the leading geometry value, including a literal percent.
+        const factor = Number.parseFloat(geometry);
+        if (!Number.isFinite(factor)) throw new Error(`invalid argument '-blue-shift' '${value}'`);
         apply = function* (image) {
             const cmyk = image.space === "cmyk";
             if (cmyk) image = yield* convertCmykPixels(image);

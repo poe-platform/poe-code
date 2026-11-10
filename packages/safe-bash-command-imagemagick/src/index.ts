@@ -3043,6 +3043,8 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: read
     const data16 = img.data16?.slice();
     const evaluateSamples = img.evaluateSamples?.slice() ?? Float64Array.from(img.data16 ?? img.data, value => img.data16 ? value / 257 : value);
     const mask = [channels.r, channels.g, channels.b, channels.a && (img.hasAlpha || img.alphaSeparate === true && img.alphaBlend !== false)];
+    // Gray has one intensity channel, replicated across the RGB storage slots.
+    if (img.space === "b-w" || img.space === "grey16") mask[1] = mask[2] = channels.r;
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;

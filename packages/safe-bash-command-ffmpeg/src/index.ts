@@ -11751,7 +11751,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         if (selecting) {
-                          if (audioTimestamps.length === 0) parseFilterExpression(expression, "aselect", { n: 0, t: 0 });
+                          const variables = { n: 0, t: NaN, pts: NaN, TB: 1 / origRate, start_pts: NaN, start_t: NaN };
+                          if (audioTimestamps.length === 0) parseFilterExpression(expression, "aselect", variables);
                           const selected: typeof audioTimestamps = [];
                           const ranges: { start: number; end: number }[] = [];
                           let length = 0;
@@ -11759,7 +11760,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             budget.checkCpu();
                             await yieldTurn(context.signal);
                             context.signal?.throwIfAborted();
-                            if (parseFilterExpression(expression, "aselect", { n, t: frame.pts / origRate }) === 0) continue;
+                            variables.n = n;
+                            variables.pts = frame.pts;
+                            variables.t = frame.pts / origRate;
+                            if (Number.isNaN(variables.start_pts)) {
+                              variables.start_pts = frame.pts;
+                              variables.start_t = variables.t;
+                            }
+                            if (parseFilterExpression(expression, "aselect", variables) === 0) continue;
                             ranges.push(frame);
                             const end = length + frame.end - frame.start;
                             selected.push({ start: length, end, pts: frame.pts, pos: frame.pos });

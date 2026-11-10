@@ -4,7 +4,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
     const bgr = typeof layout === "string" && layout.startsWith("bgr"), sampleBytes = Math.min(depth, 16) / 8, pixelBytes = channels * sampleBytes;
     const coder = typeof layout === "string" ? layout.toUpperCase() : channels === 1 ? "GRAY" : channels === 2 ? "GRAYA" : channels === 3 ? "RGB" : channels === 4 ? "CMYK" : "CMYKA";
     if (interlace === "line" && layout === 1) throw new Error("ImageDoesNotHaveAnAlphaChannel in GRAY input");
-    const packed = (depth === 1 || depth === 2 || depth === 4 || depth === 10 || depth === 12) && (layout === 1 || layout === 3);
+    const packed = depth === 4 && interlace === "none" || (depth === 1 || depth === 2 || depth === 4 || depth === 10 || depth === 12) && (layout === 1 || layout === 3);
     if (floatingPoint ? depth !== 16 && depth !== 32 && depth !== 64 : !packed && depth !== 8 && depth !== 16 && (depth !== 32 || channels === 2 || typeof layout === "string")) throw new Error(`unsupported ${coder} input depth '${depth}'`);
     const rowChannels = packed && interlace !== "none" ? 1 : channels;
     const rowSamples = width * channels, rowLength = Math.ceil(width * rowChannels * depth / 8);
@@ -14,7 +14,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
     // A complete packed scanline starts another frame; a shorter tail is ignored.
     if (interlace === "none" && (byteLength - offset) % frameLength >= frameLength / height) throw new Error(`unexpected end-of-file in ${coder} input`);
     const header = new TextEncoder().encode(typeof layout !== "string" && channels >= 4
-        ? `id=ImageMagick class=DirectClass colorspace=CMYK matte=${channels === 5 ? "True" : "False"} columns=${width} rows=${height} depth=${Math.min(16, depth)}\n:\x1a`
+        ? `id=ImageMagick class=DirectClass colorspace=CMYK matte=${channels === 5 ? "True" : "False"} columns=${width} rows=${height} depth=${Math.max(8, Math.min(16, depth))}\n:\x1a`
         : channels === 2 || channels === 4
         ? `P7\nWIDTH ${width}\nHEIGHT ${height}\nDEPTH ${channels}\nMAXVAL ${depth <= 8 ? 255 : 65535}\nTUPLTYPE ${channels === 2 ? "GRAYSCALE_ALPHA" : "RGB_ALPHA"}\nENDHDR\n`
         : `P${channels === 1 ? 5 : 6}\n${width} ${height}\n${depth <= 8 ? 255 : 65535}\n`);
@@ -46,8 +46,10 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                             for (let i = 0; i < count; i++) {
                                 const bit = (firstSample + i) * depth - firstByte * 8, byte = Math.floor(bit / 8);
                                 const sample = ((input[byte]! << 16 | (input[byte + 1] ?? 0) << 8 | (input[byte + 2] ?? 0)) >>> (24 - depth - bit % 8)) & (2 ** depth - 1);
-                                const value = Math.round(sample * (sampleBytes === 1 ? 255 : 65535) / (2 ** depth - 1));
-                                const output = (interlace === "none" ? pixel * channels + i : (pixel + i) * channels + channel) * sampleBytes;
+                                const sampleChannel = interlace === "none" ? i % channels : channel;
+                                let value = Math.round(sample * (sampleBytes === 1 ? 255 : 65535) / (2 ** depth - 1));
+                                if ((layout === "bgro" || layout === "rgbo") && sampleChannel === 3) value = 255 - value;
+                                const output = ((interlace === "none" ? pixel * channels + i : (pixel + i) * channels + channel) + (bgr && sampleChannel < 3 ? 2 - 2 * sampleChannel : 0)) * sampleBytes;
                                 if (output >= start && output < end) bytes[headerLength + output - start] = sampleBytes === 1 ? value : value >>> 8;
                                 if (sampleBytes === 2 && output + 1 >= start && output + 1 < end) bytes[headerLength + output + 1 - start] = value & 255;
                             }

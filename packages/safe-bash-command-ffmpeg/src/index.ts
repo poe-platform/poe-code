@@ -3842,6 +3842,47 @@ async function applyVideoFilterChain(
       }
     } else if (name === "doubleweave") {
       current = await doubleweave(current, argStr, budget, signal);
+    } else if (name === "fieldorder") {
+      if (Object.keys(named).some(key => key !== "order") || positional.length > 1) {
+        throw new Error("fieldorder: unsupported option");
+      }
+      const order = parseFilterExpression(named.order ?? (argStr || "tff"), "fieldorder", { tff: 1, bff: 0 });
+      if (!Number.isFinite(order) || order < 0 || order > 1) throw new Error("fieldorder: invalid order");
+      const topFieldFirst = roundToEven(order) === 1;
+      current = await mapWork(current, async f => {
+        if (!f.interlaced || Boolean(f.topFieldFirst) === topFieldFirst) return f;
+        const native = f.native;
+        const planar = native?.rgba === f.data && native.width === f.width && native.height === f.height &&
+          [4, 5, 13, 14, 49, 68].includes(native.format);
+        const source = planar ? native.pixels : f.data;
+        budget.allocateMemory(source.byteLength + (planar ? f.data.byteLength : 0) + 128);
+        const pixels = new Uint8Array(source.byteLength);
+        const sampleBytes = planar && [49, 68].includes(native.format) ? 2 : 1;
+        let offset = 0;
+        for (let plane = 0; plane < (planar ? 3 : 1); plane++) {
+          const stride = planar ? Math.ceil(f.width / (plane > 0 && [4, 13].includes(native.format) ? 2 : 1)) * sampleBytes : f.width * 4;
+          for (let row = 0; row < f.height; row++) {
+            if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            // Replicate the nearest row of the same field at the exposed edge.
+            const inputRow = f.height < 2 ? 0 : topFieldFirst
+              ? row === f.height - 1 ? row - 1 : row + 1
+              : row === 0 ? 1 : row - 1;
+            const start = offset + inputRow * stride;
+            pixels.set(source.subarray(start, start + stride), offset + row * stride);
+          }
+          offset += stride * f.height;
+        }
+        const output = { ...f, topFieldFirst };
+        if (planar) {
+          output.native = { ...native, pixels };
+          output.data = scaleVideoPicture(output, f.width, f.height)!;
+          output.native = { ...output.native, rgba: output.data };
+        } else {
+          output.data = pixels;
+          delete output.native;
+        }
+        return output;
+      }, signal);
     } else if (name === "tinterlace") {
       if (positional.length > 1 && positional.at(-1) === "") positional.pop();
       for (const key of Object.keys(named)) {

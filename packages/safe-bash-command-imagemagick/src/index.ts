@@ -4695,6 +4695,17 @@ function magickCropCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCa
     return { ...page, x: page.x + left, y: page.y + top };
 }
 
+function magickCropViewport<T extends Pick<RgbaImage, "width" | "height" | "virtualCanvas">>(image: T, crop: T, geometry: string, gravity: GravityPosition | undefined): T {
+    const g = parseMagickGeometry(geometry);
+    if (!g.forceExact || !g.hasOffset || g.isSubdivide || crop === image) return crop;
+    const width = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(image.width, image.height * g.aspectRatio) : g.isPercent ? image.width * (g.percentX ?? 100) / 100 : g.width ?? (image.virtualCanvas?.width || image.width)));
+    const height = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(image.height, image.width / g.aspectRatio) : g.isPercent ? image.height * (g.percentY ?? 100) / 100 : g.height ?? (image.virtualCanvas?.height || image.height)));
+    const origin = gravityAdjustBox(image.width, image.height, width, height, g.x, g.y, gravity ?? "northwest");
+    const page = crop.virtualCanvas ?? { x: 0, y: 0 };
+    // Bang crops keep the requested viewport, even when clipping or missing the raster.
+    return { ...crop, virtualCanvas: { width, height, x: page.x - origin.x, y: page.y - origin.y } };
+}
+
 function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: MagickGeometry, operation: "repage" | "set") {
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
     let width = geometry.width ?? page.width;
@@ -9508,7 +9519,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     yield;
                 const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
-                nextStack.push(...(yield* applyMagickCropToStackSteps(im, expanded, state.gravity, analysis, expanded, state.background)));
+                nextStack.push(...(yield* applyMagickCropToStackSteps(im, expanded, state.gravity, analysis, expanded, state.background)).map(crop => magickCropViewport(im, crop, expanded, state.gravity)));
             }
             stack = nextStack;
         }
@@ -12024,17 +12035,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         if (!area) analysis.warnings += `magick: geometry does not contain image '${expanded}'\n`;
                         if (area === false) break;
                         if (area === null) {
-                            await frames.push({ ...await createStoredCanvas(1, 1, { ...background, a: 0 }, backend, signal),
+                            await frames.push(magickCropViewport(image, { ...await createStoredCanvas(1, 1, { ...background, a: 0 }, backend, signal),
                                 ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
                                 ...(image[magickInput] ? { [magickInput]: image[magickInput] } : {}),
-                                virtualCanvas: { ...magickCropCanvas(image, 0, 0), x: -1, y: -1 } });
+                                virtualCanvas: { ...magickCropCanvas(image, 0, 0), x: -1, y: -1 } }, expanded, gravity));
                             continue;
                         }
-                        await frames.push(area ? {
+                        await frames.push(magickCropViewport(image, area ? {
                             ...await transformStoredImage(image, backend.storage, { kind: "extract", ...area }, signal),
                             ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, backend.storage, { kind: "extract", ...area }, signal) } : {}),
                             virtualCanvas: magickCropCanvas(image, area.left, area.top)
-                        } : image);
+                        } : image, expanded, gravity));
                     }
                 }
                 return frames;
@@ -13450,7 +13461,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         if ("data" in image) {
             for (const tile of yield* applyMagickCropToStackSteps(image, operation.geometry, operation.gravity))
-                yield* acceptImage(tile, operations, index + 1);
+                yield* acceptImage(magickCropViewport(image, tile, operation.geometry, operation.gravity), operations, index + 1);
         } else {
             for (const area of magickCropAreas(image, operation.geometry, operation.gravity)) {
                 if (area === false) break;
@@ -13464,7 +13475,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                         virtualCanvas: magickCropCanvas(image, area.left, area.top)
                     };
                 } };
-                yield* acceptImage(tile, operations, index + 1);
+                yield* acceptImage(magickCropViewport(image, tile, operation.geometry, operation.gravity), operations, index + 1);
             }
         }
     }

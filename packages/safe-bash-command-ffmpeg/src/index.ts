@@ -14794,6 +14794,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "stereowiden: invalid expression" || msg === "stereowiden: invalid or unsupported expression") return { exitCode: 234 };
             if (msg === "atempo: unknown option") return { exitCode: 8 };
             if (msg.startsWith("atempo:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg.startsWith("tmix: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("tmix:")) return { exitCode: 222 };
+            if (msg === "tmix: invalid expression" || msg === "tmix: invalid or unsupported expression" ||
+                msg === "tmix: weights must be finite numbers") return { exitCode: 234 };
             if (msg === "decimate: timeline is unsupported") return { exitCode: 176 };
             if (msg === "decimate: unsupported option") return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("decimate:")) return { exitCode: 222 };

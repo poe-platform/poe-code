@@ -11831,8 +11831,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const argument = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(argument, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties });
-                const radius = Number(expanded);
-                if (!expanded.trim() || !Number.isFinite(radius)) throw new Error(`invalid argument for option '-edge': ${expanded}`);
+                validateMagickTransformGeometry(expanded, "-edge");
+                const radius = Number.parseFloat(expanded.replaceAll("(", "").replaceAll(")", ""));
+                if (!Number.isFinite(radius)) throw new Error(`invalid argument for option '-edge': ${expanded}`);
                 return (yield* applyMagickRasterSteps(im, edgePixelSteps(im, radius, state.channelExplicit ? state.channels : undefined, state.virtualPixel, state.background), signal));
             });
         }
@@ -15245,8 +15246,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                const radius = Number(expanded);
-                if (!expanded.trim() || !Number.isFinite(radius)) throw new Error(`invalid argument for option '-edge': ${expanded}`);
+                validateMagickTransformGeometry(expanded, "-edge");
+                const radius = Number.parseFloat(expanded.replaceAll("(", "").replaceAll(")", ""));
+                if (!Number.isFinite(radius)) throw new Error(`invalid argument for option '-edge': ${expanded}`);
                 return transformStoredMagickRaster(image, backend, edgePixelSteps(image, radius, channels, virtualPixel, background), signal);
             });
         } else if (!operandsOnly && token === "-convolve") {

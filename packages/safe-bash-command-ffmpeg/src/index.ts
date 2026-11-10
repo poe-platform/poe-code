@@ -9376,7 +9376,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let stretched: typeof audio.channelData = audio.channelData;
                   let replayGainAvailable = true;
                   let audioStartSample = 0;
-                  const audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
+                  let audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
                   let audioTimestamps: { start: number; end: number; pts: number; pos?: number | undefined }[] | undefined;
                   if (!sink && ((index !== undefined && (audioSegment || frameChecksumOutput)) || (filter && parseFilterChain(filter.expression)
                     .some(item => item.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse")))) {
@@ -12065,6 +12065,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const registers = new Float64Array(10);
                           if (audioTimestamps.length === 0) parseFilterExpression(expression, "aselect", variables, undefined, registers);
                           const selected: typeof audioTimestamps = [];
+                          const selectedMetadata: typeof audioMetadata = [];
                           const ranges: { start: number; end: number }[] = [];
                           let length = 0;
                           for (const [n, frame] of audioTimestamps.entries()) {
@@ -12091,6 +12092,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             ranges.push(frame);
                             const end = length + frame.end - frame.start;
                             selected.push({ start: length, end, pts: frame.pts, pos: frame.pos });
+                            const metadata = audioMetadata[n];
+                            if (metadata) selectedMetadata.push({ ...metadata, pts: frame.pts });
                             length = end;
                           }
                           budget.allocateMemory(length * stretched.length * 8);
@@ -12110,6 +12113,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           stretched = output;
                           audioTimestamps = selected;
+                          audioMetadata = selectedMetadata;
                           continue;
                         }
                         const startPts = audioTimestamps[0]?.pts ?? 0;
@@ -12144,6 +12148,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const length = stretched[0]?.length ?? 0;
                         const ranges: { start: number; end: number }[] = [];
                         const retained: NonNullable<typeof audioTimestamps> = [];
+                        const retainedMetadata: typeof audioMetadata = [];
                         let firstPts: number | undefined;
                         let outputLength = 0;
                         let nextPts = 0;
@@ -12162,7 +12167,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
-                        for (const frame of audioTimestamps) {
+                        for (const [n, frame] of audioTimestamps.entries()) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           const count = frame.end - frame.start;
                           const pts = Number.isNaN(frame.pts) ? nextPts : Math.sign(frame.pts) * Math.round(Math.abs(frame.pts));
@@ -12185,6 +12190,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
                           retained.push({ start: outputLength, end: outputLength + end - start,
                             pts: frame.pts + Math.round(start / samplesPerTick) * samplesPerTick, pos: frame.pos });
+                          const metadata = audioMetadata[n];
+                          if (metadata) retainedMetadata.push({ ...metadata, pts: retained.at(-1)!.pts });
                           outputLength += end - start;
                         }
                         const start = ranges[0]?.start ?? length;
@@ -12210,6 +12217,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           stretched = output;
                         }
                         audioTimestamps = retained;
+                        audioMetadata = retainedMetadata;
                         audioStartSample = retained[0]?.pts ?? audioStartSample + start;
                       } else if (trimmed === "areverse" || trimmed === "areverse=") {
                         stretched = await mapWork(stretched, async channel => channel.slice().reverse(), context.signal);

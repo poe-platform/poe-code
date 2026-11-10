@@ -12516,11 +12516,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredChannelNames = undefined;
                         }
                         if (stretched.length !== 2) throw new Error("haas: stereo input required");
-                        const options = {
+                        const defaults = {
                           level_in: 1, level_out: 1, side_gain: 1, middle_source: 2, middle_phase: 0,
                           left_delay: 2.05, left_balance: -1, left_gain: 1, left_phase: 0,
                           right_delay: 2.12, right_balance: 1, right_gain: 1, right_phase: 1
                         };
+                        const options = { ...defaults };
                         const argument = trimmed.slice("haas=".length);
                         const entries = argument ? argument.split(":") : [];
                         if (argument.endsWith(":")) entries.pop();
@@ -12537,16 +12538,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const name = key as keyof typeof options;
                           const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           const phase = key.endsWith("_phase");
-                          const value = phase
-                            ? Number(parseFilterBoolean(raw, `haas: ${key} must be in the range [0, 1]`))
-                            : parseFilterExpression(raw, "haas", {
-                              PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
-                              ...(key === "middle_source" ? { left: 0, right: 1, mid: 2, side: 3 } : {})
-                            });
                           const delay = key.endsWith("_delay");
                           const balance = key.endsWith("_balance");
                           const min = balance ? -1 : delay || phase || key === "middle_source" ? 0 : 0.015625;
                           const max = balance || phase ? 1 : delay ? 40 : key === "middle_source" ? 3 : 64;
+                          const value = phase
+                            ? Number(parseFilterBoolean(raw, `haas: ${key} must be in the range [0, 1]`))
+                            : parseFilterExpression(raw, "haas", {
+                              min, max, default: defaults[name],
+                              PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+                              ...(key === "middle_source" ? { left: 0, right: 1, mid: 2, side: 3 } : {})
+                            });
                           if (!Number.isFinite(value) || value < min || value > max) {
                             throw new RangeError(`haas: ${key} must be in the range [${min}, ${max}]`);
                           }

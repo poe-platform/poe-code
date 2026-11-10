@@ -7207,10 +7207,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (linearGray && space === "rgb") return { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3, magickColorspace: "RGB" };
             if (image.magickColorspace === "RGB" && space === "rgb") return image;
             if ((image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "OHTA" || image.magickColorspace === "YUV" || image.magickColorspace === "Luv" || image.magickColorspace === "CIELab") && (space === image.magickColorspace.toLowerCase() || (space === "lab" && image.magickColorspace === "CIELab"))) return image;
-            if (token !== "-grayscale" && (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "OHTA" || image.magickColorspace === "YUV" || image.magickColorspace === "Luv" || image.magickColorspace === "CIELab")) image = yield* convertHuePixels(image, "sRGB");
+            if (token !== "-grayscale" && (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "OHTA" || image.magickColorspace === "YUV" || image.magickColorspace === "Luv" || image.magickColorspace === "CIELab")) image = { ...(yield* convertHuePixels(image, "sRGB")), gamma: 1 / 2.2 };
             if (token !== "-grayscale" && image.space === "cmyk" && space !== "cmyk") {
                 const { hueSamples: ignoredCmyk, storedHueSamples: ignoredStoredCmyk, ...rgb } = image;
-                image = { ...rgb, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
+                image = { ...rgb, space: "srgb", gamma: 1 / 2.2, channels: image.hasAlpha ? 4 : 3 };
             }
             if (token !== "-grayscale" && (space === "rgb" || image.magickColorspace === "RGB" || linearGray)) {
                 const linearize = space === "rgb";

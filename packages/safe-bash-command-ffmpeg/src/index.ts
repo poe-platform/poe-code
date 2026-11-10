@@ -98,6 +98,7 @@ import { super2xsaiFrame } from "./super2xsai.js";
 import { epxFrame } from "./epx.js";
 import { hqxFrame } from "./hqx.js";
 import { signalstats } from "./signalstats.js";
+import { freezedetect } from "./freezedetect.js";
 import { blackdetect } from "./blackdetect.js";
 import { fixedSin, rotateYuvFrame } from "./rotate.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -2149,6 +2150,8 @@ async function applyVideoFilterChain(
           await diagnostics.write(`[blackframe] frame:${index} pblack:${percentage} pts:${Math.round(frame.ptsSeconds * diagnostics.timescale)} t:${frame.ptsSeconds.toFixed(6)} type:${type} last_keyframe:${lastKeyframe}\n`);
         }
       }
+    } else if (name === "freezedetect") {
+      current = await freezedetect(current, argStr, pixelFormat, budget, diagnostics, signal);
     } else if (name === "signalstats") {
       const stat = named.stat ?? (positional[0]?.includes("=") ? "" : positional[0]) ?? "";
       const out = named.out ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "-1";

@@ -14,6 +14,12 @@ it.each([
 // Expected pixels from native ImageMagick on an opaque 4x3 grayscale grid.
 for (const mode of ["buffered", "retained", "sync"] as const) {
     it.each([
+        ["25%", 3, 2, [6, 7, 8, 10, 11, 12]],
+        ["50%", 2, 1, [11, 12]],
+        ["25x%", 3, 2, [6, 7, 8, 10, 11, 12]],
+        ["25x25%", 3, 2, [6, 7, 8, 10, 11, 12]],
+        ["50x50%", 2, 1, [11, 12]],
+        ["25x0%", 3, 3, [2, 3, 4, 6, 7, 8, 10, 11, 12]],
         ["25x50%", 3, 1, [10, 11, 12]],
         ["1x1%", 4, 3, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]],
         ["1x2", 3, 1, [10, 11, 12]],
@@ -26,6 +32,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         const result = mode === "sync" ? runMagickCliSync(args, files)
             : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
         expect(result.exitCode, result.stderr).toBe(0);
+        expect(result.stderr).toBe("");
         const output = decodeImage(mode === "retained" ? await filesystem.readFile("/output.png") : files.get("/output.png")!);
         expect([output.width, output.height]).toEqual([width, height]);
         expect(output.data).toEqual(Uint8Array.from(values.flatMap(value => [value, value, value, 255])));

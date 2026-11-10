@@ -2039,7 +2039,7 @@ function resolveMagickChopGeometry(raw: string, width: number, height: number) {
     return {
         ...g,
         width: offsetOnly ? width : Math.max(0, Math.round((g.width ?? 0) * (g.isPercent ? width / 100 : 1))),
-        height: offsetOnly ? height : Math.max(0, Math.round((g.height ?? (g.isPercent || raw.toLowerCase().includes("x") ? 0 : height)) * (g.isPercent ? height / 100 : 1)))
+        height: offsetOnly ? height : Math.max(0, Math.round((g.height ?? (g.isPercent ? g.width ?? 0 : raw.toLowerCase().includes("x") ? 0 : height)) * (g.isPercent ? height / 100 : 1)))
     };
 }
 

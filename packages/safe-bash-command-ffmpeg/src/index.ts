@@ -9610,9 +9610,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         budget.checkDuration(padded / origRate);
                         budget.allocateMemory(Math.ceil(padded / size) * 24);
                         if (padded !== length) {
-                          budget.allocateMemory(padded * stretched.length * 4);
                           stretched = stretched.map(channel => {
-                            const output = new Float32Array(padded);
+                            budget.allocateMemory(padded * channel.BYTES_PER_ELEMENT);
+                            const output = channel instanceof Float64Array ? new Float64Array(padded) : new Float32Array(padded);
                             output.set(channel);
                             return output;
                           });

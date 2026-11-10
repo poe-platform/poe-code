@@ -8434,7 +8434,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-posterize") {
         highDepth = true;
         const levels = parsePosterizeLevels(tokens[++i] ?? "");
-        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = function* (image) {
             const working = (!state.dither || levels < 2 || Math.trunc(levels) > 16) && (image.hueSamples !== undefined || image.magickColorspace === "RGB");
             let output = yield* applyMagickRasterSteps({ ...image, isPalette: true }, posterizePixelSteps(image, levels, state.dither, state.diffusionAmount ?? 1, channels, signal, !working), signal);
@@ -13899,7 +13899,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-posterize") {
             const value = tokens[++i] ?? "", optionProperties = state.optionProperties;
             const levels = value.includes("%[") ? undefined : parsePosterizeLevels(value);
-            const dither = state.dither, diffusionAmount = state.diffusionAmount ?? 1, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+            const dither = state.dither, diffusionAmount = state.diffusionAmount ?? 1, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expandedLevels = levels ?? parsePosterizeLevels(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal));

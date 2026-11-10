@@ -8156,8 +8156,23 @@ export class Runtime {
     if (!stackHooks && operand === "") { await this.diagnostic(context, "cd: null directory"); return 1; }
     const target = operand === "-" ? state.variables.OLDPWD : (operand ?? state.variables.HOME);
     if (target === undefined) { await writeDiagnostic(context.stderr, `${name}: ${operand === "-" ? "OLDPWD" : "HOME"} not set\n`); return 1; }
+    let diagnosticTarget = target;
     let selected: { path: string; physicalPath: string; print?: string };
     try {
+      if (!stackHooks && operand !== undefined && operand !== "-") {
+        const value = getCommandArguments(context).values[offset]!;
+        if (typeof value !== "string") {
+          const length = shellValueByteLength(value);
+          if (length > this.budget.limits.maxCdPathBytes) throw new PublicDiagnostic("cd: path byte limit exceeded");
+          await lookup.charge(length);
+          const bytes = shellValueBytes(value, context[valueScope]);
+          try { fatalUtf8Decoder.decode(bytes); }
+          catch {
+            diagnosticTarget = shellValueText(diagnosticCommandName(value, byteLocale(state.variables), context[valueScope]));
+            throw new FsError("ENOENT", { path: target });
+          }
+        }
+      }
       const cwd = physical ? state.cwd : state.logicalCwd ?? state.cwd;
       try {
         selected = await lookup.find(this.fs, cwd, target, state.variables.CDPATH, physical);
@@ -8169,7 +8184,7 @@ export class Runtime {
       this.signal.throwIfAborted();
       const description = filesystemDiagnostic(error, "", this.budget.onInternalError);
       const text = description ? "" : message(error, this.budget.onInternalError);
-      diagnose?.(error, cdDiagnostic(description ? [name, ": ", target, description]
+      diagnose?.(error, cdDiagnostic(description ? [name, ": ", diagnosticTarget, description]
         : stackHooks && text.startsWith("cd: ") ? [name, text.slice(2)] : [text], this.budget.limits.maxDirectoryDiagnosticBytes));
       throw error;
     }

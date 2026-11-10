@@ -75,6 +75,25 @@ test("cd does not recognize --help after a directory operand", async context => 
   assert.equal(result.stderr, "cd: too many arguments\n");
 });
 
+for (const command of ["cd", "cd -P --", "command cd", "builtin cd"]) {
+  for (const [operand, status, destination, diagnostic] of [
+    ["$'\\xff'", 1, "/start", "shell: line 1: cd: $'\\377': No such file or directory\n"],
+    ["'�'", 0, "/start/�", ""],
+    ["$'\\xef\\xbf\\xbd'", 0, "/start/�", ""],
+  ] as const) {
+    test(`${command} preserves the directory identity of ${operand}`, async context => {
+      const fs = new MemoryFileSystem();
+      await fs.mkdir("/start/�", { recursive: true });
+      const shell = new Shell({ fs, cwd: "/start", env: { LC_ALL: "C", OLDPWD: "/previous" } }).use(agentCommands());
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`${command} ${operand}; printf '%s|%s|%s|' "$?" "$PWD" "$OLDPWD"; pwd -P`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, `${status}|${destination}|${status ? "/previous" : "/start"}|${destination}\n`);
+      assert.equal(result.stderr, diagnostic);
+    });
+  }
+}
+
 async function fixture() {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/work/dir/child", { recursive: true });

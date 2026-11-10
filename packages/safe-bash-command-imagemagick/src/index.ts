@@ -12128,10 +12128,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (((deg % 360) + 360) % 360 >= 1e-6) im = discardDisassociatedAlpha(im);
                 const plan = operation?.plan(im);
                 if (plan) {
-                    // Arbitrary rotation retains a zero-valued write-mask channel on its new canvas.
+                    // Arbitrary rotation initializes auxiliary channels to zero on its new canvas.
+                    const metaChannels: BaseRgbaImage[] = [];
+                    for (const plane of im.metaChannels ?? [])
+                        metaChannels.push(yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16));
                     const writeMask = im.region || im.writeMask
                         ? yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
                     return { ...yield* applyMagickRasterSteps({ ...im, isPalette: false }, plan.steps, signal, plan), region: undefined, writeMask,
+                    ...(im.metaChannels ? { metaChannels } : {}),
                     ...(im.readMask ? { readMask: yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }) } : {}),
                     ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
                 }
@@ -15611,9 +15615,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (((angle % 360) + 360) % 360 >= 1e-6) image = discardDisassociatedAlpha(image);
                 const plan = operation?.plan(image);
                 if (plan) {
+                    const storedMetaChannels: BaseStoredRgbaImage[] = [];
+                    for (const plane of image.storedMetaChannels ?? [])
+                        storedMetaChannels.push(await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal, !!plane.storedData16));
                     const storedWriteMask = image.region || image.storedWriteMask
                         ? await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                     return { ...await transformStoredMagickRaster({ ...image, isPalette: false }, backend, plan.steps, signal, plan), region: undefined, storedWriteMask,
+                    ...(image.storedMetaChannels ? { storedMetaChannels } : {}),
                     ...(image.readMask ? { readMask: await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) } : {}),
                     ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
                 }

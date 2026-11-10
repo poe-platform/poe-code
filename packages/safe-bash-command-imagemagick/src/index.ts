@@ -9635,6 +9635,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "+repage" || t === "-repage") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             if (t === "-repage") {
                 const geometry = parseMagickGeometry(tokens[++i] ?? "0x0");
                 stack = yield* mapMagickImagesSteps(stack, function* (image) {
@@ -11770,17 +11771,19 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async image => { if (!image) return image; const {gifApplications: ignoredGifApplications, icc: ignored, exif: ignoredExif, xmp: ignoredXmp, properties: ignoredProperties, ...rest} = image; return rest; });
             continue;
         }
-        if (!operandsOnly && token === "+repage") {
-            steps.push(async image => {
-                if (!image) return;
-                const { virtualCanvas: ignoredCanvas, ...reset } = image;
-                return reset;
+        if (!operandsOnly && (token === "+repage" || token === "-repage")) {
+            const raw = token === "-repage" ? tokens[++i] ?? "0x0" : undefined, optionProperties = state.optionProperties;
+            stackStep(async (stack, backend) => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                for (let index = 0; index < stack.length; index++) {
+                    const image = (await stack.get(index))!;
+                    const expanded = raw === undefined ? undefined : await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                    const geometry = expanded === undefined ? undefined : parseMagickRepageGeometry(expanded);
+                    const { virtualCanvas: ignoredCanvas, ...reset } = image;
+                    await stack.set(index, geometry ? { ...image, virtualCanvas: magickRepageCanvas(image, geometry, "repage") } : reset);
+                }
+                return stack;
             });
-            continue;
-        }
-        if (!operandsOnly && token === "-repage") {
-            const geometry = parseMagickGeometry(tokens[++i] ?? "0x0");
-            steps.push(async image => image ? { ...image, virtualCanvas: magickRepageCanvas(image, geometry, "repage") } : undefined);
             continue;
         }
         if (!operandsOnly && (token === "-write" || token === "+write")) {

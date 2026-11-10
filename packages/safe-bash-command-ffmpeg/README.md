@@ -716,6 +716,8 @@ unconnected output.
 Split stereo PCM into distinct mono files with
 `-filter_complex '[0:a]channelsplit=channel_layout=stereo[L][R]' -map '[L]' left.wav -map '[R]' right.wav`.
 Mono and 5.1 input are remixed to stereo before selecting a stereo output channel.
+Custom input channel orders such as `FR+FL` cannot be converted to stereo;
+`channelsplit` exits with status 234 and leaves an empty output file.
 Stereo input is expanded to 5.1 before selecting a 5.1 output channel: front left/right
 keep their samples, while center, LFE, and rear channels contain silence.
 Use `-af channelsplit=channel_layout=stereo:channels=FR` to extract only the right

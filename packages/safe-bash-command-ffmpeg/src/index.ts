@@ -14741,6 +14741,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "channelsplit" || trimmed.startsWith("channelsplit=")) {
                         const { input, selected } = parseChannelSplit(trimmed);
                         if (selected.length !== 1) throw new Error("channelsplit: simple audio filters require exactly one output");
+                        if (!filteredChannelMask && filteredChannelNames?.some(name => name !== "")) {
+                          throw new Error(`channelsplit: unsupported input channel order ${filteredChannelNames.join("+")}`);
+                        }
                         const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR"];
                         const mask = input.reduce((value, speaker) => value | (1 << speakers.indexOf(speaker)), 0);
                         const quad = stretched.length === 4 && filteredChannelMask === 0x33;
@@ -16511,6 +16514,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "negate: invalid expression" || msg === "negate: invalid or unsupported expression") return { exitCode: 234 };
             if ((overwrite && msg === "aecho: delay is too small") ||
                 msg === "aphaser: delay is too small" ||
+                msg.startsWith("channelsplit: unsupported input channel order ") ||
                 msg === "Padded dimensions cannot be smaller than input dimensions" ||
                 msg === "negate: Requested components not available" || msg.startsWith("fps: frame rate:") ||
                 msg === "decimate: The input needs a constant frame rate; current rate of 1/0 is invalid") {

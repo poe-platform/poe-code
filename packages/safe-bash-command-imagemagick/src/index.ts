@@ -10730,6 +10730,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             state.optimizeLayers = true; i++;
         }
         else if (t === "-flatten" || t === "-mosaic" || (t === "-layers" && ["flatten", "merge", "mosaic"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const flatten = t === "-flatten" || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "flatten");
             const merge = t === "-layers" && tokens[i + 1]?.toLowerCase() === "merge";
             const mosaic = t === "-mosaic" || (t === "-layers" && tokens[i + 1]?.toLowerCase() === "mosaic");
@@ -10742,7 +10743,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const maxW = flatten ? oldStack[0]!.virtualCanvas?.width || oldStack[0]!.width : Math.max(mosaic ? oldStack[0]!.virtualCanvas?.width || oldStack[0]!.width : -Infinity, ...oldStack.map(im => im.width + (im.virtualCanvas?.x ?? 0))) - originX;
                 const maxH = flatten ? oldStack[0]!.virtualCanvas?.height || oldStack[0]!.height : Math.max(mosaic ? oldStack[0]!.virtualCanvas?.height || oldStack[0]!.height : -Infinity, ...oldStack.map(im => im.height + (im.virtualCanvas?.y ?? 0))) - originY;
                 const highDepth = oldStack.some(image => !!image.data16);
-                let canvas = (yield* createSolidRgbaImageSteps(maxW, maxH, state.background, highDepth));
+                const background = state.backgroundExplicit ? state.background : oldStack[0]!.backgroundColor ?? state.background;
+                let canvas = (yield* createSolidRgbaImageSteps(maxW, maxH, background, highDepth));
                 const layers: CompositeLayer[] = [];
                 for (const im of oldStack) {
                     const x = (im.virtualCanvas?.x ?? 0) - originX, y = (im.virtualCanvas?.y ?? 0) - originY;
@@ -12022,6 +12024,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const settings = { ...state };
             stackStep(async (stack, backend) => {
                 if (token === "-composite" && stack.length < 2) throw new Error("image sequence is required '-composite'");
+                if ((flatten || merge || mosaic) && !stack.length) throw new Error(`no images found for operation '${token}'`);
                 if (!stack.length) return stack;
                 let result: StoredRgbaImage;
                 if (token === "-composite") {
@@ -12062,7 +12065,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     width = first.virtualCanvas?.width || first.width;
                     height = first.virtualCanvas?.height || first.height;
                 }
-                const background = append && !settings.backgroundExplicit ? (await stack.get(0))!.backgroundColor ?? settings.background : settings.background;
+                const background = settings.backgroundExplicit ? settings.background : (await stack.get(0))!.backgroundColor ?? settings.background;
                 result = await createStoredCanvas(width, height, background, backend, signal, highDepth);
                 if (append) {
                     const first = (await stack.get(0))!, scene = first[magickInput]?.sceneIdx ?? 0;

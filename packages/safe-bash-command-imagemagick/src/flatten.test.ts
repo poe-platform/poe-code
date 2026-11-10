@@ -4,6 +4,41 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+    for (const operation of [["-flatten"], ["-layers", "flatten"], ["-mosaic"], ["-layers", "merge"], ["-layers", "mosaic"]]) {
+        it(`${mode} rejects empty-list ${operation.join(" ")} without replacing the destination`, async () => {
+            const keep = new TextEncoder().encode("KEEP");
+            const files = new Map([["out", keep]]);
+            const fs = new MemoryFileSystem();
+            await fs.writeFile("/out", keep);
+            const args = [...operation, "-size", "2x1", "xc:#3070b080", "-repage", "3x2+0+0", "-depth", "8", "rgba:out"];
+            let stderr = "";
+            const result = mode === "command" ? await createMagickCommand().execute({ command: "magick",
+                args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+                stdin: (async function* () {})(), signal: new AbortController().signal,
+                stdout: { write: async () => {} }, stderr: { write: async chunk => { stderr += new TextDecoder().decode(chunk); } } })
+                : mode === "sync" ? runConvertCliSync(args, files)
+                : await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+            expect(result.exitCode).toBe(1);
+            expect("stderr" in result ? result.stderr : stderr).toContain(`no images found for operation '${operation[0]}'`);
+            expect(mode === "retained" || mode === "command" ? await fs.readFile("/out") : files.get("out")).toEqual(keep);
+        });
+    }
+    it(`${mode} retains valid single-image flatten compositing`, async () => {
+        const files = new Map<string, Uint8Array>();
+        const fs = new MemoryFileSystem();
+        const args = ["xc:#3070b080", "-background", "#206030", "-compose", "Over", "-flatten", "-depth", "8", "rgba:out"];
+        const result = mode === "command" ? await createMagickCommand().execute({ command: "magick",
+            args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { write: async () => {} }, stderr: { write: async () => {} } })
+            : mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        expect(mode === "retained" || mode === "command" ? await fs.readFile("/out") : files.get("out")).toEqual(Uint8Array.of(0x28, 0x68, 0x70, 0xff));
+    });
+}
+
 for (const mode of ["buffered", "retained", "sync"] as const) {
     for (const reverse of [false, true]) {
         for (const operation of [["-flatten"], ["-layers", "flatten"], ["-mosaic"], ["-layers", "merge"], ["-layers", "mosaic"]]) {

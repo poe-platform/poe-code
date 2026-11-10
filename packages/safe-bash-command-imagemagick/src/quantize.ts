@@ -1,3 +1,4 @@
+import { rgbToCmyk } from "./colorspace-cmyk.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import { hilbertPixels } from "./riemersma.js";
 import { regionContains, type Region } from "./region.js";
@@ -39,20 +40,21 @@ interface ColorNode {
 }
 
 /** A bounded histogram and error-pruned color tree shared by both raster backends. */
-export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; alphaActive: boolean; channels?: MaskChannels | undefined }, dither?: { width: number; height: number; method: "riemersma" | "floydsteinberg"; diffusionAmount: number }, evaluate = false): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
+export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; alphaActive: boolean; channels?: MaskChannels | undefined }, dither?: { width: number; height: number; method: "riemersma" | "floydsteinberg"; diffusionAmount: number }, evaluate = false, working?: "hue" | "cmyk"): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
     // Keep fractional palette means alongside byte output for later arithmetic and deeper output.
     const round = (value: number) => highDepth ? Math.round(value * 257) / 257 : Math.fround(value * 257) / 257;
     function* readPixels(position: number, length: number): Generator<ConvolveRequest, Float64Array, Uint8Array | undefined> {
-        const working = evaluate ? yield { kind: "read", evaluate: true, position, length } : undefined;
+        const samples = working === "hue" ? yield { kind: "read", hue: true, position, length } : evaluate ? yield { kind: "read", evaluate: true, position, length } : undefined;
         let data: Float64Array;
-        if (working?.length) data = new Float64Array(working.slice().buffer);
+        if (samples?.length) data = new Float64Array(samples.slice().buffer);
         else {
             const source = yield { kind: "read", highDepth: highDepth || evaluate, position, length };
             if (!source || source.length !== length * (highDepth || evaluate ? 2 : 1)) throw new Error("Truncated quantization pixels");
             data = highDepth || evaluate ? Float64Array.from(new Uint16Array(source.slice().buffer), value => value / 257) : Float64Array.from(source);
         }
         for (let i = 0; i < data.length; i += 4) {
+            if (working === "hue" && samples?.length) for (let c = 0; c < 4; c++) data[i + c]! *= 255;
             if (!hasAlpha) data[i + 3] = 255;
             if (grayscale) {
                 const luma = 0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!;
@@ -110,7 +112,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
     const palette: number[][] = [];
     let work = 0;
     const channels = [...bins.values()].some(bin => bin.sums[3] !== 255 * bin.count) ? 4 : 3;
-    if (bins.size <= requested && (channels === 3 || cycle !== undefined)) {
+    if (working !== "cmyk" && bins.size <= requested && (channels === 3 || cycle !== undefined)) {
         for (const bin of bins.values()) {
             if (++work % 1024 === 0) yield;
             bin.color = bin.sums.slice(0, 4).map((value, channel) => round(
@@ -227,6 +229,11 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             let node = bin.node!;
             while (node.removed) node = node.parent!;
             const pixel = bin.sums.slice(0, 4).map((value, c) => c < 3 ? bin.sums[c + 4]! / bin.count / 255 : value / bin.count);
+            // CMYK classification uses RGB, but assignment compares the converted inks.
+            if (working === "cmyk") {
+                const inks = rgbToCmyk(bin.sums[0]! / bin.count / 255, bin.sums[1]! / bin.count / 255, bin.sums[2]! / bin.count / 255);
+                for (let c = 0; c < 3; c++) pixel[c] = inks[c]! * pixel[3]!;
+            }
             // Native assignment searches the deepest surviving cube's
             // siblings and descendants, comparing unrounded palette means.
             let cube = root;
@@ -256,6 +263,18 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             }
             yield* search(cube.parent ?? root);
             bin.color = nodeColors.get(node)!;
+        }
+    }
+    function* writeWorkingPixels(position: number, data: Float64Array): Generator<ConvolveRequest, void, Uint8Array | undefined> {
+        if (working === "hue") yield { kind: "write", hue: true, position, data: new Uint8Array(data.map(value => value / 255).buffer) };
+        if (working === "cmyk") {
+            const inks = new Float64Array(data.length);
+            for (let i = 0; i < data.length; i += 4) for (let c = 0; c < 3; c++) {
+                inks[i + c] = data[i + c]! / 255;
+                data[i + c] = 255 - data[i + c]!;
+            }
+            // SyncImage copies a zero black component from the native colormap.
+            yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
         }
     }
     const assigned = new Float64Array(4), clipped = new Float64Array(4);
@@ -288,6 +307,10 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         for (const position of dither.method === "riemersma" ? hilbertPixels(dither) : scan()) {
             if (++work % 1024 === 0) yield;
             const target = yield* readPixels(position, 4), x = position / 4 % dither.width;
+            if (working === "cmyk") {
+                const inks = rgbToCmyk(target[0]! / 255, target[1]! / 255, target[2]! / 255);
+                for (let c = 0; c < 3; c++) target[c] = inks[c]! * 255;
+            }
             let id = 0;
             for (let c = 0; c < 3; c++) {
                 if (dither.method === "riemersma") for (let i = 0; i < 16; i++) target[c]! += weights[i]! * errors[i * 4 + c]!;
@@ -321,8 +344,10 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
                     nextRow[x * 3 + c]! += error * 5;
                 }
             }
-            if (evaluate) yield { kind: "write", evaluate: true, position, data: new Uint8Array(Float64Array.from(color!).buffer) };
-            yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(color!, value => Math.round(value * 257)).buffer) : Uint8Array.from(color!, Math.round) };
+            const data = Float64Array.from(color!);
+            yield* writeWorkingPixels(position, data);
+            if (evaluate) yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
+            yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) : Uint8Array.from(data, Math.round) };
         }
     } else for (let position = 0; position < length; position += chunkSize) {
         yield;
@@ -342,9 +367,11 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             } else data.set(cycle ? palette[(indices!.get(color)! + shift) % palette.length]! : color, i);
             if (cycle) data[i + 3] = 255;
         }
+        yield* writeWorkingPixels(position, data);
         if (!highDepth || cycle?.region) yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
         yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) : Uint8Array.from(data, Math.round) };
     }
+    if (working === "cmyk") for (const color of palette) for (let c = 0; c < 3; c++) color[c] = 255 - color[c]!;
     if (cycle) for (const color of palette) color[3] = 255;
     return palette.map(color => Math.round(color[3]!) * 16777216 + Math.round(color[0]!) * 65536 + Math.round(color[1]!) * 256 + Math.round(color[2]!));
 }

@@ -16,7 +16,9 @@ export async function shiftAudioPhase(
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options;
     if (!key || !Object.hasOwn(options, key)) throw new Error(`${name}: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    const number = frequencyShift ? parseFilterExpression(value, name, {}) : Number(value);
+    const number = frequencyShift
+      ? parseFilterExpression(value, name, { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 })
+      : Number(value);
     const min = key === "shift" ? (frequencyShift ? -2147483647 : -1) : key === "order" ? 1 : 0;
     const max = key === "shift" && frequencyShift ? 2147483647 : key === "order" ? 16 : 1;
     if (!value || !Number.isFinite(number) || number < min || number > max) {

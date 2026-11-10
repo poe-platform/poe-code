@@ -1,15 +1,16 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
+import { createHash } from "node:crypto";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
 import { createFfmpegCommand } from "./index.js";
 import { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { shiftAudioPhase } from "./audio-aphaseshift.js";
 
-async function shift(filter: string, complex = false, frequencies = [500]) {
+async function shift(filter: string, complex = false, frequencies = [500], frames = 4000) {
   const fs = Volume.fromJSON({ "/out.raw": "KEEP" });
   fs.writeFileSync("/tone.wav", encodeWav({ sampleRate: 8000,
-    channels: frequencies.map(frequency => Float64Array.from({ length: 4000 }, (_, i) =>
+    channels: frequencies.map(frequency => Float64Array.from({ length: frames }, (_, i) =>
       Math.round(12000 * Math.sin(2 * Math.PI * frequency * i / 8000)) / 32768)) }));
   let stderr = "";
   const filters = complex
@@ -73,6 +74,32 @@ it("shifts each stereo channel independently and retains filter chain gain", asy
     assert.ok(amplitude(output, channel === 0 ? 1250 : 750, channel, 2) < 1);
   }
 });
+
+// Native FFmpeg 7.0.2 hashes for 8192 mono PCM16 samples of the 500 Hz tone.
+for (const [constant, decimal, hash] of [
+  ["PI", "3.141592653589793", "e1da0d57b2a62c24473338d2a132d0a87dca4d67e501b50ef580d06328ff548d"],
+  ["E", "2.718281828459045", "b96df66c48d9301dbac56115d1c48f12f4fdd8ea555e19e3800b0b980b0c1fd0"],
+  ["PHI", "1.618033988749895", "b6411ad3bd1917b10499d72bb28744f7896d60ecbf5855b123722acad1dd21ae"]
+] as const) {
+  for (const option of [constant, `shift=${constant}`, decimal]) {
+    for (const complex of [false, true]) {
+      it(`matches native PCM for afreqshift=${option} (${complex ? "graph" : "simple"})`, async () => {
+        const { result, stderr, output } = await shift(`afreqshift=${option}`, complex, [500], 8192);
+        assert.equal(result.exitCode, 0, stderr);
+        assert.equal(output.length, 16384);
+        assert.equal(createHash("sha256").update(output).digest("hex"), hash);
+      });
+    }
+  }
+}
+
+for (const option of ["shift=pi", "shift=PI*1e9", "level=PI", "order=PI*10"]) {
+  it(`rejects invalid afreqshift constant expressions without replacing output: ${option}`, async () => {
+    const { result, output } = await shift(`afreqshift=${option}`);
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(output.toString(), "KEEP");
+  });
+}
 
 for (const options of ["shift=NaN", "shift=2147483648", "shift=-2147483648", "shift=", "level=-0.1", "level=1.1", "order=0", "order=17", "unknown=1", "1:1:8:1"]) {
   it(`rejects invalid afreqshift options without replacing output: ${options}`, async () => {

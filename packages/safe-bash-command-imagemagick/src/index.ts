@@ -6322,13 +6322,13 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         }
         return yield* applyMod(selected);
     }
-    const packedCoder = ["gray", "graya", "cmyk", "cmyka"].find(coder => lower.startsWith(`${coder}:`) || (!lower.includes(":") && lower.endsWith(`.${coder}`)));
+    const packedCoder = (["gray", "graya", "cmyk", "cmyka", "rgba", "rgbo"] as const).find(coder => lower.startsWith(`${coder}:`) || (!lower.includes(":") && lower.endsWith(`.${coder}`)));
     if (packedCoder) {
         if (!state.hasSize) throw new Error(`must specify image size for ${packedCoder.toUpperCase()} input`);
         const path = lower.startsWith(`${packedCoder}:`) ? baseToken.slice(packedCoder.length + 1) : baseToken;
         const source = path === "-" ? stdinBytes : files.get(path);
         if (!source) return undefined;
-        const raw = rawRasterInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", source.length, packedCoder === "gray" ? 1 : packedCoder === "graya" ? 2 : packedCoder === "cmyk" ? 4 : 5, state.inputOffset);
+        const raw = rawRasterInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", source.length, packedCoder === "gray" ? 1 : packedCoder === "graya" ? 2 : packedCoder === "cmyk" ? 4 : packedCoder === "cmyka" ? 5 : packedCoder, state.inputOffset);
         const frames: RgbaImage[] = [];
         for (const page of selectedInputPages(pageSpec, raw.pages)) {
             const bytes = new Uint8Array(raw.size);
@@ -13571,7 +13571,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
      }
      return image;
  }
- const packedCoder=["gray","graya","cmyk","cmyka"].find(coder=>lower.startsWith(`${coder}:`)||(!lower.includes(":")&&lower.endsWith(`.${coder}`)));
+ const packedCoder=(["gray","graya","cmyk","cmyka","rgba","rgbo"] as const).find(coder=>lower.startsWith(`${coder}:`)||(!lower.includes(":")&&lower.endsWith(`.${coder}`)));
  if(lower.startsWith("tile:")){
   if(!state.hasSize)throw new Error("must specify image size for TILE input");
   if(readOptions.visit){
@@ -13600,7 +13600,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   if(!state.hasSize)throw new Error(`must specify image size for ${packedCoder.toUpperCase()} input`);
   const path=lower.startsWith(`${packedCoder}:`)?baseToken.slice(packedCoder.length+1):baseToken;
   const consume=async(source:ImageByteSource)=>{
-   const raw=rawRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",source.size,packedCoder==="gray"?1:packedCoder==="graya"?2:packedCoder==="cmyk"?4:5,state.inputOffset);
+   const raw=rawRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",source.size,packedCoder==="gray"?1:packedCoder==="graya"?2:packedCoder==="cmyk"?4:packedCoder==="cmyka"?5:packedCoder,state.inputOffset);
    for(const page of selectedInputPages(pageSpec,raw.pages)){
     image=await parseStoredCompareInput(`${packedCoder==="gray"?"pgm":packedCoder==="graya"?"pam":"miff"}:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
      const steps=raw.read(position,length,page);let next=steps.next();

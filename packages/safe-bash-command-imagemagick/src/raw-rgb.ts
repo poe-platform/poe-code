@@ -1,18 +1,19 @@
 // Present headerless samples as Netpbm or MIFF for both decoding paths.
-export function rawRasterInput(width: number, height: number, depth: number, endian: string, byteLength: number, channels: 1 | 2 | 3 | 4 | 5, offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none") {
-    const coder = channels === 1 ? "GRAY" : channels === 2 ? "GRAYA" : channels === 3 ? "RGB" : channels === 4 ? "CMYK" : "CMYKA";
+export function rawRasterInput(width: number, height: number, depth: number, endian: string, byteLength: number, layout: 1 | 2 | 3 | 4 | 5 | "rgba" | "rgbo", offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none") {
+    const channels = typeof layout === "string" ? 4 : layout;
+    const coder = typeof layout === "string" ? layout.toUpperCase() : channels === 1 ? "GRAY" : channels === 2 ? "GRAYA" : channels === 3 ? "RGB" : channels === 4 ? "CMYK" : "CMYKA";
     const packed = (depth === 10 || depth === 12) && (channels === 1 || channels === 3);
-    if (!packed && depth !== 8 && depth !== 16 && (depth !== 32 || channels === 2) && !((depth === 1 || depth === 2 || depth === 4) && (channels === 1 || channels === 3) && interlace === "none")) throw new Error(`unsupported ${coder} input depth '${depth}'`);
+    if (!packed && depth !== 8 && depth !== 16 && (depth !== 32 || channels === 2 || typeof layout === "string") && !((depth === 1 || depth === 2 || depth === 4) && (channels === 1 || channels === 3) && interlace === "none")) throw new Error(`unsupported ${coder} input depth '${depth}'`);
     const rowChannels = packed && interlace !== "none" ? 1 : channels;
     const rowSamples = width * channels, rowLength = Math.ceil(width * rowChannels * depth / 8);
     const frameLength = rowLength * height * (channels / rowChannels), decodedLength = rowSamples * height * Math.ceil(Math.min(depth, 16) / 8);
     if (!Number.isSafeInteger(decodedLength) || !Number.isSafeInteger(frameLength) || frameLength > byteLength - offset || !Number.isSafeInteger(offset) || offset < 0) throw new Error(`unexpected end-of-file in ${coder} input`);
     // A complete packed scanline starts another frame; a shorter tail is ignored.
     if (interlace === "none" && (byteLength - offset) % frameLength >= frameLength / height) throw new Error(`unexpected end-of-file in ${coder} input`);
-    const header = new TextEncoder().encode(channels >= 4
+    const header = new TextEncoder().encode(typeof layout !== "string" && channels >= 4
         ? `id=ImageMagick class=DirectClass colorspace=CMYK matte=${channels === 5 ? "True" : "False"} columns=${width} rows=${height} depth=${Math.min(16, depth)}\n:\x1a`
-        : channels === 2
-        ? `P7\nWIDTH ${width}\nHEIGHT ${height}\nDEPTH 2\nMAXVAL ${depth <= 8 ? 255 : 65535}\nTUPLTYPE GRAYSCALE_ALPHA\nENDHDR\n`
+        : channels === 2 || channels === 4
+        ? `P7\nWIDTH ${width}\nHEIGHT ${height}\nDEPTH ${channels}\nMAXVAL ${depth <= 8 ? 255 : 65535}\nTUPLTYPE ${channels === 2 ? "GRAYSCALE_ALPHA" : "RGB_ALPHA"}\nENDHDR\n`
         : `P${channels === 1 ? 5 : 6}\n${width} ${height}\n${depth <= 8 ? 255 : 65535}\n`);
     const swap = depth === 16 && endian !== "msb";
     return {
@@ -99,7 +100,8 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                     if (input.length !== length * ratio) throw new Error(`unexpected end-of-file in ${coder} input`);
                     if (depth === 32) input = unsigned32To16(input, endian);
                     for (let i = Math.max(start, cursor); i < Math.min(end, cursor + length); i++) {
-                        bytes[headerLength + i - start] = input[(swap ? i ^ 1 : i) - cursor]!;
+                        const value = input[(swap ? i ^ 1 : i) - cursor]!;
+                        bytes[headerLength + i - start] = layout === "rgbo" && Math.floor(i / (depth / 8)) % channels === 3 ? 255 - value : value;
                     }
                 }
             }

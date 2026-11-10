@@ -1,4 +1,4 @@
-import { concatBytes, rgbaToYuv420p, yuv420pToRgba, type MediaDocument, type MediaSample, type MediaVideoFrame, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
+import { concatBytes, scaleVideoPicture, rgbaToYuv420p, yuv420pToRgba, type MediaDocument, type MediaSample, type MediaVideoFrame, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { formatYuv } from "./format-yuv.js";
 
 export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixelFormat: string | undefined, fps: number, budget: MediaBudgetTracker, decode = true): MediaDocument {
@@ -9,10 +9,11 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
   }
   const gray = pixelFormat === "gray" || pixelFormat === "gray8";
   const yuv = pixelFormat === "yuv420p" || pixelFormat === "yuv444p";
-  if (!gray && pixelFormat !== "bgra" && pixelFormat !== "rgb24" && pixelFormat !== "rgba" && pixelFormat !== "gray16be" && !yuv && pixelFormat !== "ya8") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
+  const rgb16 = pixelFormat === "rgb48be" || pixelFormat === "rgba64be";
+  if (!rgb16 && !gray && pixelFormat !== "bgra" && pixelFormat !== "rgb24" && pixelFormat !== "rgba" && pixelFormat !== "gray16be" && !yuv && pixelFormat !== "ya8") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
   const ySize = width * height;
   const chromaSize = pixelFormat === "yuv444p" ? ySize : Math.ceil(width / 2) * Math.ceil(height / 2);
-  const frameBytes = pixelFormat === "bgra" || pixelFormat === "rgba" ? ySize * 4 : pixelFormat === "yuv420p" ? ySize + chromaSize * 2 : ySize * (gray ? 1 : pixelFormat === "gray16be" || pixelFormat === "ya8" ? 2 : 3);
+  const frameBytes = rgb16 ? ySize * (pixelFormat === "rgba64be" ? 8 : 6) : pixelFormat === "bgra" || pixelFormat === "rgba" ? ySize * 4 : pixelFormat === "yuv420p" ? ySize + chromaSize * 2 : ySize * (gray ? 1 : pixelFormat === "gray16be" || pixelFormat === "ya8" ? 2 : 3);
   if (!Number.isSafeInteger(frameBytes)) throw new Error("Invalid rawvideo frame size");
   const count = Math.ceil(bytes.length / frameBytes);
   budget.checkSamples(count);
@@ -28,11 +29,14 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     if (!decode || data.length !== frameBytes) continue;
     budget.recordFrame(width, height);
     budget.allocateMemory(width * height * 4);
-    const rgba = yuv
+    const rgba = rgb16
+      ? scaleVideoPicture({ data, width, height, native: { rgba: data, pixels: data, width, height,
+        format: pixelFormat === "rgb48be" ? 34 : 104, colorspace: 5, fullRange: 1 } }, width, height)!
+      : yuv
       ? yuv420pToRgba(data.subarray(0, ySize), data.subarray(ySize, ySize + chromaSize), data.subarray(ySize + chromaSize), width, height,
         pixelFormat === "yuv444p" ? 0 : 1, pixelFormat === "yuv444p" ? 0 : 1)
       : pixelFormat === "rgba" ? new Uint8Array(data) : new Uint8Array(width * height * 4);
-    for (let pixel = 0; !yuv && pixelFormat !== "rgba" && pixel < width * height; pixel++) {
+    for (let pixel = 0; !rgb16 && !yuv && pixelFormat !== "rgba" && pixel < width * height; pixel++) {
       if (pixel % 4096 === 0) budget.checkCpu();
       if (pixelFormat === "bgra") {
         rgba[pixel * 4] = data[pixel * 4 + 2]!;
@@ -49,8 +53,8 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
       rgba[pixel * 4 + 3] = pixelFormat === "ya8" ? data[pixel * 2 + 1]! : 255;
     }
     frames.push({ width, height, data: rgba, offset: index * frameBytes,
-      ...(yuv || pixelFormat === "gray16be" ? { native: { rgba, pixels: data, width, height,
-        format: pixelFormat === "gray16be" ? 29 : pixelFormat === "yuv444p" ? 5 : 0, colorspace: 5, fullRange: pixelFormat === "gray16be" ? 1 : 0 } } : {}),
+      ...(rgb16 || yuv || pixelFormat === "gray16be" ? { native: { rgba, pixels: data, width, height,
+        format: pixelFormat === "rgb48be" ? 34 : pixelFormat === "rgba64be" ? 104 : pixelFormat === "gray16be" ? 29 : pixelFormat === "yuv444p" ? 5 : 0, colorspace: 5, fullRange: rgb16 || pixelFormat === "gray16be" ? 1 : 0 } } : {}),
       ptsSeconds: index / timescale,
       durationSeconds: 1 / timescale, keyframe: true });
   }
@@ -108,6 +112,35 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
           if (pixel % 4096 === 0) budget.checkCpu();
           bytes[pixel * channels] = frame.data[pixel * 4]!;
           if (channels === 2) bytes[pixel * channels + 1] = frame.data[pixel * 4 + 3]!;
+        }
+        append(bytes);
+      } else if (format === "rgb48be" || format === "rgba64be") {
+        const native = frame.native;
+        if (native?.format === (format === "rgb48be" ? 34 : 104) &&
+            native.rgba === frame.data && native.width === frame.width && native.height === frame.height) {
+          append(native.pixels);
+          continue;
+        }
+        const channels = format === "rgba64be" ? 4 : 3;
+        const length = frame.width * frame.height * channels * 2;
+        budget.checkOutputBytes(size + length);
+        const bytes = new Uint8Array(length);
+        const view = new DataView(bytes.buffer);
+        for (let pixel = 0; pixel < frame.width * frame.height; pixel++) {
+          if (pixel % 4096 === 0) budget.checkCpu();
+          const r = frame.data[pixel * 4]!;
+          const g = frame.data[pixel * 4 + 1]!;
+          const b = frame.data[pixel * 4 + 2]!;
+          // swscale converts RGB through 14-bit limited-range BT.601, then
+          // uses 19-bit intermediates and rounded 13-bit inverse coefficients.
+          const y = (((8414 * r + 16519 * g + 3208 * b + 524544) >> 9) * 8 - 8192) * 9539 + 8192;
+          const u = ((-4865 * r - 9528 * g + 14392 * b + 4194560) >> 9) * 8 - 65536;
+          const v = ((14392 * r - 12061 * g - 2332 * b + 4194560) >> 9) * 8 - 65536;
+          const offset = pixel * channels * 2;
+          view.setUint16(offset, Math.max(0, Math.min(65535, (y + v * 13075) >> 14)));
+          view.setUint16(offset + 2, Math.max(0, Math.min(65535, (y - v * 6660 - u * 3209) >> 14)));
+          view.setUint16(offset + 4, Math.max(0, Math.min(65535, (y + u * 16525) >> 14)));
+          if (channels === 4) view.setUint16(offset + 6, frame.data[pixel * 4 + 3]! * 257);
         }
         append(bytes);
       } else if (format === "gray16be") {

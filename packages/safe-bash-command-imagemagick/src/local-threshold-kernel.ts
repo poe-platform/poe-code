@@ -4,14 +4,31 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
 export function parseLocalThresholdGeometry(raw: string): { width: number; height: number; offset: number } {
-    const percent = raw.endsWith("%"), value = percent ? raw.slice(0, -1) : raw;
-    const sign = [...value].findIndex(character => character === "+" || character === "-");
-    const dimensions = (sign < 0 ? value : value.slice(0, sign)).split("x");
-    const width = Number(dimensions[0]), height = dimensions[1] === undefined ? 1 : Number(dimensions[1]);
-    const offset = sign < 0 ? 0 : Number(value.slice(sign));
-    if (dimensions.length > 2 || !dimensions.every(part => part.trim().length > 0) || ![width, height].every(Number.isSafeInteger)
-        || width < 0 || height < 0 || !Number.isFinite(offset) || (sign >= 0 && sign === value.length - 1)) throw new Error("Invalid local threshold geometry");
-    if (width > 1000 || height > 1000) throw new Error("Local threshold window exceeds limit");
+    const percent = raw.includes("%");
+    const value = [...raw].filter(character => character.trim() !== "" && !"%!<>^@#()".includes(character)).join("");
+    const parts: string[] = [];
+    let start = 0;
+    for (let i = 0; i < value.length; i++) {
+        if ((value[i] === "+" || value[i] === "-") && value[i - 1]?.toLowerCase() !== "e") {
+            parts.push(value.slice(start, i));
+            start = i;
+        }
+    }
+    parts.push(value.slice(start));
+    const dimensions = parts[0]!.replaceAll("X", "x").replaceAll(",", "x").replaceAll("/", "x").replaceAll(":", "x").split("x");
+    let width = Number(dimensions[0]), height = dimensions[1] ? Number(dimensions[1]) : 1;
+    const offsets = parts.slice(1).map(part => part === "+" || part === "-" ? 0 : Number(part));
+    if (dimensions.length > 2 || !dimensions.some(part => part.length > 0) || offsets.length > 2
+        || ![width, height, ...offsets].every(Number.isFinite) || width < 0 || height < 0) throw new Error("Invalid local threshold geometry");
+    if (value.includes(":")) {
+        width /= height;
+        height = 1;
+    }
+    // Native casts the window dimensions to size_t and uses only the first offset.
+    width = Math.trunc(width);
+    height = Math.trunc(height);
+    if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width > 1000 || height > 1000) throw new Error("Local threshold window exceeds limit");
+    const offset = offsets[0] ?? 0;
     return { width, height, offset: percent ? offset * 65535 / 100 : offset };
 }
 

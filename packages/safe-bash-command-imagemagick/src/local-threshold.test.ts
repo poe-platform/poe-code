@@ -54,7 +54,7 @@ for (const mode of ["sync", "retained"] as const) {
     });
 }
 
-it.each(["", "bad", "3x", "3x1+", "3x1+NaN", "1001x1", "3x1x2"])("rejects invalid local threshold %s without replacing output", geometry => {
+it.each(["", "bad", "3x1+NaN", "1001x1", "3x1x2"])("rejects invalid local threshold %s without replacing output", geometry => {
     const sentinel = new Uint8Array([1, 2, 3]);
     const files = new Map([["out.png", sentinel]]);
     expect(runConvertCliSync(["xc:red", "-lat", geometry, "out.png"], files).exitCode).not.toBe(0);

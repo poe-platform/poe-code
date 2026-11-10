@@ -16,17 +16,23 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
         const argumentValues = createCommandArguments(argv);
         const stdout: Buffer[] = [], stderr: Buffer[] = [];
-        const result = mode === "command" ? await createMagickCommand().execute({
-            command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
-            signal: new AbortController().signal, stdin: (async function* () {})(),
-            stdout: { async write(bytes) { stdout.push(Buffer.from(bytes)); } },
-            stderr: { async write(bytes) { stderr.push(Buffer.from(bytes)); } },
-        }) : mode === "sync" ? runMagickCliSync(argv, files)
-            : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
-        expect(result.exitCode).toBe(0);
-        expect("stderr" in result ? result.stderr : Buffer.concat(stderr).toString()).toBe("");
-        const bytes = "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? Buffer.from(result.stdoutBytes)
-            : "stdout" in result && typeof result.stdout === "string" ? Buffer.from(result.stdout) : Buffer.concat(stdout);
+        let bytes: Buffer;
+        if (mode === "command") {
+            const result = await createMagickCommand().execute({
+                command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+                signal: new AbortController().signal, stdin: (async function* () {})(),
+                stdout: { async write(chunk) { stdout.push(Buffer.from(chunk)); } },
+                stderr: { async write(chunk) { stderr.push(Buffer.from(chunk)); } },
+            });
+            expect(result.exitCode).toBe(0);
+            expect(Buffer.concat(stderr).toString()).toBe("");
+            bytes = Buffer.concat(stdout);
+        } else {
+            const result = mode === "sync" ? runMagickCliSync(argv, files)
+                : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+            expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+            bytes = Buffer.from(result.stdoutBytes ?? result.stdout);
+        }
         expect(bytes.toString(output === "info" ? "utf8" : "hex")).toBe(expected);
     });
 }

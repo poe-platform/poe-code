@@ -3781,16 +3781,43 @@ async function applyVideoFilterChain(
         if (first.width !== second.width || first.height !== second.height) {
           throw new Error("tinterlace: adjacent frames must have matching dimensions");
         }
-        budget.allocateMemory(first.data.byteLength + 128);
-        const data = new Uint8Array(first.data.byteLength);
-        const stride = first.width * 4;
-        for (let row = 0; row < first.height; row++) {
-          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-          const source = row % 2 === 0 ? first : second;
-          data.set(source.data.subarray(row * stride, (row + 1) * stride), row * stride);
+        const native = first.native;
+        const combined = { ...first, durationSeconds: first.durationSeconds + second.durationSeconds, interlaced: true, topFieldFirst: true };
+        if (native && [0, 4, 5, 12, 13, 14, 49, 68].includes(native.format) && [first, second].every(frame =>
+          frame.native?.rgba === frame.data && frame.native.width === frame.width && frame.native.height === frame.height &&
+          frame.native.format === native.format && frame.native.colorspace === native.colorspace && frame.native.fullRange === native.fullRange)) {
+          budget.allocateMemory(native.pixels.byteLength + first.data.byteLength + 128);
+          const pixels = new Uint8Array(native.pixels.byteLength);
+          const hsub = [0, 4, 12, 13].includes(native.format) ? 2 : 1;
+          const vsub = [0, 12].includes(native.format) ? 2 : 1;
+          const sampleBytes = [49, 68].includes(native.format) ? 2 : 1;
+          let offset = 0;
+          for (let plane = 0; plane < 3; plane++) {
+            const stride = Math.ceil(first.width / (plane === 0 ? 1 : hsub)) * sampleBytes;
+            const height = Math.ceil(first.height / (plane === 0 ? 1 : vsub));
+            for (let row = 0; row < height; row++) {
+              if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+              const source = row % 2 === 0 ? native : second.native!;
+              const start = offset + row * stride;
+              pixels.set(source.pixels.subarray(start, start + stride), start);
+            }
+            offset += stride * height;
+          }
+          combined.native = { ...native, pixels };
+          // Subsampled chroma fields must be woven before rendering RGB rows.
+          combined.data = scaleVideoPicture(combined, first.width, first.height)!;
+          combined.native = { ...combined.native, rgba: combined.data };
+        } else {
+          budget.allocateMemory(first.data.byteLength + 128);
+          combined.data = new Uint8Array(first.data.byteLength);
+          const stride = first.width * 4;
+          for (let row = 0; row < first.height; row++) {
+            if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            const source = row % 2 === 0 ? first : second;
+            combined.data.set(source.data.subarray(row * stride, (row + 1) * stride), row * stride);
+          }
+          delete combined.native;
         }
-        const combined = { ...first, data, durationSeconds: first.durationSeconds + second.durationSeconds, interlaced: true, topFieldFirst: true };
-        delete combined.native;
         output.push(combined);
       }
       current = output;

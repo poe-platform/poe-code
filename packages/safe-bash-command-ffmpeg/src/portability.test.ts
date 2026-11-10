@@ -193,7 +193,8 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Current command graph with scheduled afade unity updates measures about 1.473 MB.
   // Current dependency graph and per-frame atrim bounds measure about 1.49 MB.
   // Includes current decimate options and clean-source graph routing (1,555,037 bytes).
-  assert.ok(otherCodeBytes < 1_560_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
+  // Includes native tinterlace plane weaving and the current command graph (1,565,735 bytes).
+  assert.ok(otherCodeBytes < 1_570_000, `command code and streaming parsers: ${otherCodeBytes} bytes`);
   // Audio decoders add their tables to the bounded portable codec runtime.
   // Retained PDF rendering shares the image codec graph. Include that required
   // implementation, plus legal notices and stream-map validation, in the complete Worker bundle budget.

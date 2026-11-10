@@ -1422,10 +1422,11 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     if (uniqueColors) {
       // Arithmetic retains unclamped fractional samples separately from output pixels.
       const working = chunk.evaluateSamples ?? samples;
-      const alpha = img.hasAlpha ? working[i + 3]! : chunk.evaluateSamples ? 255 : range;
+      const hasAlpha = img.hasAlpha || img.inactiveAlpha === true;
+      const alpha = hasAlpha ? working[i + 3]! : chunk.evaluateSamples ? 255 : range;
       const color = inks ?? working.slice(i, i + 4);
       if (!inks) color[3] = alpha;
-      uniqueColors.add(color, inks ? i : 0, colorOrder(samples, i, img.hasAlpha, inks), inks ? a : undefined);
+      uniqueColors.add(color, inks ? i : 0, colorOrder(samples, i, hasAlpha, inks), inks ? (hasAlpha ? samples[i + 3]! : range) : undefined);
     }
     // Copy retains alpha samples without enabling transparency.
     opaque &&= img.alphaBlend === false || a === range;

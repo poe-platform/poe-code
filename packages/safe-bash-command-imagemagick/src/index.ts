@@ -2364,6 +2364,12 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
         }
     }
     if (!value || value === "+" || value === "-") throw new Error(`invalid argument for option '${option}': ${raw}`);
+    if (option === "-chop" && !dimensions) {
+        const geometry = parseMagickGeometry(value.replaceAll("#", ""));
+        if (geometry.width !== undefined && geometry.hasOffset) {
+            throw new Error(`invalid argument for option '${option}': ${raw}`);
+        }
+    }
     if (option === "-swirl" || option === "-implode" || option === "-wave" || option === "-spread") {
         const geometry = parseMagickGeometry(value.replaceAll("#", ""));
         // A single signed magnitude parses as an offset; two offsets supply no magnitude.

@@ -7095,20 +7095,23 @@ function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: M
         }
     }
 }
-function* applyMagickLookup(image: RgbaImage, lookup: (Uint8Array | Uint16Array)[]): Generator<void, RgbaImage, void> {
+function* applyMagickLookup(image: RgbaImage, lookup: (Uint8Array | Uint16Array | Float32Array)[]): Generator<void, RgbaImage, void> {
     const data = new Uint8Array(image.data);
-    const data16 = lookup[0] instanceof Uint16Array ? new Uint16Array(data.length) : undefined;
+    const fractional = lookup[0] instanceof Float32Array;
+    const evaluateSamples = fractional ? new Float64Array(data.length) : undefined;
+    const data16 = lookup[0] instanceof Uint16Array || fractional && image.data16 ? new Uint16Array(data.length) : undefined;
     const samples = lookup[0]!.length === 65536 ? image.data16 ?? image.data : image.data;
     for (let i = 0; i < data.length; i += 4) {
         if (i && i % 65536 === 0) yield;
         for (let channel = 0; channel < 4; channel++) {
             const value = lookup[channel]![samples[i + channel]!]!;
-            if (data16) data16[i + channel] = value;
-            data[i + channel] = data16 ? clampByteVal(value / 257) : value;
+            if (data16) data16[i + channel] = Math.round(value);
+            if (evaluateSamples) evaluateSamples[i + channel] = value / 257;
+            data[i + channel] = data16 || fractional ? clampByteVal(value / 257) : value;
         }
     }
     const { data16: ignored, ...metadata } = image;
-    return { ...metadata, data, ...(data16 ? { data16 } : {}) };
+    return { ...metadata, data, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 function parseConnectedComponents(tokens: readonly string[], start: number): number {
     const value = tokens[start + 1];
@@ -7338,13 +7341,14 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 channels: { ...channels, a: !independent || channels.a, k: !independent || settings.channels.k === true },
             }, 0)!.apply;
         }
-        // Keep Q16 stretch values until after region compositing, even for 8-bit input.
-        const stretch = !!image.region && (token === "-normalize" || token === "-contrast-stretch");
-        const lookup = Array.from({ length: 4 }, () => levels === 65536 || stretch
-            ? Uint16Array.from({ length: levels }, (_, value) => value * 65535 / (levels - 1))
-            : Uint8Array.from({ length: levels }, (_, value) => clampByteVal(value * 255 / (levels - 1))));
+        // Retain HDRI stretch fractions without changing the input's output depth.
+        const stretch = token === "-normalize" || token === "-contrast-stretch";
+        const lookup = Array.from({ length: 4 }, () => stretch
+            ? Float32Array.from({ length: levels }, (_, value) => value * 65535 / (levels - 1))
+            : levels === 65536 ? Uint16Array.from({ length: levels }, (_, value) => value)
+            : Uint8Array.from({ length: levels }, (_, value) => value));
         if (token === "-normalize" || token === "-contrast-stretch") {
-            const maximum = lookup[0] instanceof Uint16Array ? 65535 : 255;
+            const maximum = 65535;
             const whiteValue = Number.isFinite(whitePoint) ? whitePoint : blackPoint;
             const lowTarget = token === "-normalize" ? 0.02 * count : percentage ? blackPoint / 100 * count : blackPoint;
             const highTarget = token === "-normalize" ? 0.01 * count : percentage ? whiteValue / 100 * count : whiteValue;
@@ -7359,7 +7363,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 // Native clips against the black point first, even when the points cross.
                 if (high !== low) for (let value = 0; value < levels; value++) lookup[channel]![value] = value * scale < low ? 0
                     : value * scale > high ? maximum
-                    : Math.round((value * scale - low) / (high - low) * maximum);
+                    : (value * scale - low) / (high - low) * maximum;
             }
         } else if (token === "-equalize") {
             const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha];

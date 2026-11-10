@@ -404,7 +404,7 @@ it.each([
   const root = process.cwd();
   const pkg = JSON.parse(readFileSync(path.join(root, "packages", directory, "package.json"), "utf8"));
   expect(pkg.private).toBe(true);
-  expect(pkg.dependencies).toEqual({});
+  expect(pkg.dependencies).toEqual(directory === "safe-bash-command-ffprobe" ? { "@noble/hashes": "2.4.0" } : {});
   const result = await build({
     entryPoints: [path.join(root, "packages", directory, "dist/index.js")],
     bundle: true, packages: "external", platform: "browser", format: "esm",

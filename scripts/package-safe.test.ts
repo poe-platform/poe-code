@@ -228,7 +228,7 @@ it.each(["workspace", "root", "undeclared-root"])("admits only declared portable
   const commandManifest = JSON.parse(readFileSync(new URL(`../packages/${name}/package.json`, import.meta.url), "utf8"));
   expect(bashManifest.devDependencies[name]).toBe("*");
   expect(bashManifest.poeCode.integration.privateWorkspaces[name]).toEqual({
-    version: commandManifest.version, dependencies: {}, devDependencies: commandManifest.devDependencies, portable: true,
+    version: commandManifest.version, dependencies: { "@noble/hashes": "2.4.0" }, devDependencies: commandManifest.devDependencies, portable: true,
   });
   expect(commandManifest.files).toEqual(["dist", "LICENSE"]);
   expect(commandManifest.scripts.test).toBe("node --import tsx --test --test-concurrency=1 src/*.test.ts");

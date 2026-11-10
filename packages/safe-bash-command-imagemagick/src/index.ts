@@ -8450,7 +8450,18 @@ function* prepareFloatOutput(image: RgbaImage): Generator<void, RgbaImage, void>
     return { ...image, dataFloat };
 }
 
+function* preparePng16Output(image: RgbaImage): Generator<void, RgbaImage, void> {
+    if (!image.evaluateSamples) return image;
+    const data16 = new Uint16Array(image.evaluateSamples.length);
+    for (let offset = 0; offset < data16.length; offset++) {
+        if (offset % 16384 === 0) yield;
+        data16[offset] = Math.round(Math.max(0, Math.min(65535, image.evaluateSamples[offset]! * 257)));
+    }
+    return { ...image, data16 };
+}
+
 function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: MagickState["dither"] = false, diffusionAmount = 1, pngCoder?: ReturnType<typeof inferOutputFormat>["pngCoder"]): Generator<void, RgbaImage, void> {
+    if (pngCoder === "png48" || pngCoder === "png64") image = yield* preparePng16Output(image);
     if ((pngCoder === "png32" || pngCoder === "png64") && (image.alphaBlend === false || !image.hasAlpha && (image.writeMask || image.region))) {
         image = { ...yield* applyMagickRasterSteps(image, pngAlphaPixelSteps(image, image.writeMask, !!image.data16), undefined, { ...image, hasAlpha: true }, image.writeMask ? [image, image.writeMask] : [image]), channels: 4 };
     }
@@ -8471,6 +8482,9 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
 }
 
 async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFormat, backend: CompareFileSession, signal: AbortSignal, dither: MagickState["dither"] = false, diffusionAmount = 1, pngCoder?: ReturnType<typeof inferOutputFormat>["pngCoder"]): Promise<StoredRgbaImage> {
+    if ((pngCoder === "png48" || pngCoder === "png64") && image.storedEvaluateSamples !== undefined) {
+        image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: preparePng16Output }, signal);
+    }
     if ((pngCoder === "png32" || pngCoder === "png64") && (image.alphaBlend === false || !image.hasAlpha && (image.storedWriteMask || image.region))) {
         image = { ...await transformStoredMagickRaster(image, backend, pngAlphaPixelSteps(image, image.storedWriteMask, !!image.storedData16), signal, { ...image, hasAlpha: true }, image.storedWriteMask ? [image, image.storedWriteMask] : [image]), channels: 4 };
     }

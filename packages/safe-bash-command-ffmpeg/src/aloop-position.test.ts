@@ -13,7 +13,7 @@ for (const complex of [false, true]) {
     ["anull,aselect='not(isnan(pos))'", 10, [0, 10]],
     ["anull,aselect='isnan(pos)'", 10, [0, 0]],
     ["asetnsamples=3:0,aloop=1:4,aselect='not(isnan(pos))'", 10, [0, 10]],
-    ["aloop=1:4,aloop=0:14,aselect='isnan(pos)'", 10, [0, 4]],
+    ["aloop=1:4,aloop=0:14,aselect='isnan(pos)'", 10, [0, 0]],
     ["aloop=1:4,aselect='eq(pos,1024)'", 1200, [512, 1024]],
     ["aloop=1:4,aselect='eq(pos,2048)'", 1200, [1024, 1200]]
   ] as const) {

@@ -10721,47 +10721,69 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (!Number.isSafeInteger(length)) throw new Error("aloop: output sample count is too large");
                           budget.checkDuration(length / origRate);
                           const previous = audioTimestamps;
+                          const previousMetadata = audioMetadata;
                           audioTimestamps = [];
-                          // Collect loops starting at the first sample in requests of at most
-                          // 1024 samples; after replay, retain unconsumed input frame splits.
-                          for (let offset = 0, frameOffset = 0, n = 0; offset < inputLength;) {
+                          audioMetadata = [];
+                          let frameIndex = 0;
+                          let frameStart = 0;
+                          let frameEnd = previous?.[0]?.end ?? (t.samples[0]
+                            ? Math.max(1, Math.round(t.samples[0].duration * origRate / t.timescale)) : 1024);
+                          let collected = 0;
+                          let regionIndex = 0;
+                          // Native requests size-limited groups while filling the cache
+                          // (also with loop=0), then resumes the remaining input frames.
+                          for (let offset = 0; offset < inputLength;) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            const frame = previous?.[n];
-                            const packet = t.samples[n];
-                            const count = frame ? frame.end - frame.start
-                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
-                            const frameEnd = frameOffset + count;
-                            if (frameEnd <= offset) {
-                              frameOffset = frameEnd;
-                              n++;
-                              continue;
+                            while (frameEnd <= offset) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              frameStart = frameEnd;
+                              frameIndex++;
+                              const packet = t.samples[frameIndex];
+                              frameEnd = previous?.[frameIndex]?.end ?? frameStart + (packet
+                                ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024);
                             }
-                            const end = Math.min(inputLength, loopStart === 0 && loop! > 0 && offset < regionEnd
-                              ? offset + Math.min(1024, regionEnd - offset) : frameEnd);
-                            const pts = (frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + frameOffset))
-                              + offset - frameOffset;
+                            const frame = previous?.[frameIndex];
+                            const packet = t.samples[frameIndex];
+                            const count = loop === 0 || offset < regionEnd ? Math.min(1024, size! - collected) : frameEnd - offset;
+                            const end = Math.min(inputLength, offset + count);
+                            const pts = (frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + frameStart))
+                              + offset - frameStart;
                             const pos = previous ? frame?.pos : packet?.offset;
+                            const tags = previousMetadata[frameIndex]?.tags;
+                            if (tags) budget.allocateMemory(tags.size * 64);
                             if (offset < regionEnd) {
                               const prefixEnd = Math.min(end, regionEnd);
-                              budget.allocateMemory(24);
+                              budget.allocateMemory(88);
                               audioTimestamps.push({ start: offset, end: prefixEnd, pts, pos });
+                              audioMetadata.push({ pts, tags: new Map(tags) });
+                              if (loop !== 0) {
+                                while (regionIndex < regions.length && regions[regionIndex]!.start < prefixEnd) {
+                                  const region = regions[regionIndex]!;
+                                  collected += Math.max(0, Math.min(prefixEnd, region.end) - Math.max(offset, region.start));
+                                  if (region.end > prefixEnd) break;
+                                  regionIndex++;
+                                }
+                              }
                               if (prefixEnd === regionEnd) {
                                 for (let repeat = 0; repeat < loop!; repeat++) {
                                   for (let sample = 0; sample < regionLength; sample += 1024) {
                                     if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                                     const start = regionEnd + regionLength * repeat + sample;
-                                    budget.allocateMemory(24);
-                                    audioTimestamps.push({ start, end: start + Math.min(1024, regionLength - sample),
-                                      pts: pts + prefixEnd - offset + repeat * regionLength + sample });
+                                    const repeatPts = (pts + prefixEnd - offset) + repeat * regionLength + sample;
+                                    budget.allocateMemory(88);
+                                    audioTimestamps.push({ start, end: start + Math.min(1024, regionLength - sample), pts: repeatPts });
+                                    // FIFO replay allocates fresh frames without input tags.
+                                    audioMetadata.push({ pts: repeatPts, tags: new Map<string, string>() });
                                   }
                                 }
                               }
                             }
                             if (end > regionEnd) {
                               const tailStart = Math.max(offset, regionEnd);
-                              budget.allocateMemory(24);
-                              audioTimestamps.push({ start: tailStart + repeatedLength, end: end + repeatedLength,
-                                pts: pts + tailStart - offset + repeatedLength, pos });
+                              const tailPts = (pts + tailStart - offset) + repeatedLength;
+                              budget.allocateMemory(88);
+                              audioTimestamps.push({ start: tailStart + repeatedLength, end: end + repeatedLength, pts: tailPts, pos });
+                              audioMetadata.push({ pts: tailPts, tags: new Map(tags) });
                             }
                             offset = end;
                           }

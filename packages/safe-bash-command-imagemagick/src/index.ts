@@ -17786,7 +17786,7 @@ export function runCompareCliSync(argv: readonly string[], files: Map<string, Ui
 
 interface MontageArguments {
     warnings: string;
-    sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset">[];
+    sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
     trim: boolean; shadow: boolean;
     transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined; texture: string | undefined;
@@ -18235,7 +18235,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
                     operands.push(input);
                     transforms.push([]);
                     labels.push(label);
-                    sizes.push({ hasSize: state.hasSize, sizeWidth: state.sizeWidth, sizeHeight: state.sizeHeight, inputOffset: state.inputOffset ?? 0 });
+                    sizes.push({ hasSize: state.hasSize, sizeWidth: state.sizeWidth, sizeHeight: state.sizeHeight, inputOffset: state.inputOffset ?? 0, inputDepth: state.inputDepth ?? 16 });
                 }
             }
         }

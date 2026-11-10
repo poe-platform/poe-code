@@ -3082,7 +3082,7 @@ async function applyVideoFilterChain(
       if (targetFps <= 0) throw new Error("fps: frame rate: must be positive");
       frameRateKnown = true;
       const rounding = roundToEven(roundValue);
-      if (rounding === 4) {
+      if (rounding === 4 || current.length === 0) {
         // Native accepts 4 but rescaling produces unknown timestamps, discarding every frame.
         current = [];
         timescale = targetFps;
@@ -3183,6 +3183,7 @@ async function applyVideoFilterChain(
         }
       }
       let firstPts: number | undefined;
+      if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       current = current
         .filter((f, index) => {
           const afterStart = startFrame === undefined
@@ -3194,6 +3195,7 @@ async function applyVideoFilterChain(
           const beforeEnd = endFrame === undefined
             ? finalEnd === -Infinity || f.ptsSeconds < finalEnd
             : index < endFrame || (Number.isFinite(finalEnd) && f.ptsSeconds < finalEnd);
+          if (!beforeEnd) endTimeSeconds = Math.min(endTimeSeconds!, f.ptsSeconds);
           return afterStart && beforeEnd;
         });
     } else if (name === "drawtext") {
@@ -3415,6 +3417,8 @@ async function applyVideoFilterChain(
       }
       current = tiledFrames;
     } else if (name === "select") {
+      // Dropping pictures does not move the input's EOF timestamp.
+      if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       const expr = named.e ?? named.expr ?? positional[0] ?? "1";
       const variables = {
         n: 0, t: NaN, key: 0, selected_n: 0,
@@ -3808,7 +3812,7 @@ async function applyVideoFilterChain(
     }
     // Filters that change the final frame's timing establish a new endpoint.
     const lastOutputFrame = current.at(-1);
-    if (name !== "setpts" && name !== "fps" &&
+    if (name !== "setpts" && name !== "fps" && name !== "select" && name !== "trim" &&
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;

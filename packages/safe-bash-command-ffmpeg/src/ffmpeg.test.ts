@@ -7727,7 +7727,7 @@ it("rejects unsupported surround downmix layouts without overwriting output", as
 });
 
 
-it("rejects unsupported setpts offsets before downstream time selection without overwriting output", async () => {
+it("rejects unknown setpts variables before downstream time selection without overwriting output", async () => {
   const vfs = createTestVfs({ "/out.gif": "existing" });
   const input = await runCmd(createFfmpegCommand(), [
     "-f", "lavfi", "-i", "testsrc2=size=16x16:rate=1:duration=3", "/in.gif"
@@ -7735,7 +7735,7 @@ it("rejects unsupported setpts offsets before downstream time selection without 
   assert.equal(input.exitCode, 0, input.stderr);
   const before = new Map(vfs.store);
   const result = await runCmd(createFfmpegCommand(), [
-    "-y", "-i", "/in.gif", "-vf", "setpts=PTS+1/TB,select=gt(t\\,1.5)",
+    "-y", "-i", "/in.gif", "-vf", "setpts=PTS+1/UNKNOWN,select=gt(t\\,1.5)",
     "-fps_mode", "passthrough", "/out.gif"
   ], vfs);
   assert.equal(result.exitCode, 1);

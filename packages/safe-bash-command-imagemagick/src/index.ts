@@ -11735,7 +11735,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 // Deactivation keeps alpha samples, but excludes them from statistics.
                 if (!im.hasAlpha && im.inactiveAlpha && !im.alphaSeparate)
                     channels = (channels ?? [true, true, true, true]).map((selected, channel) => selected && channel !== 3);
-                const result = yield* applyMagickMorphology4ChSteps({ ...im, isPalette: false }, plan, signal, channels, state.virtualPixel, state.background);
+                let result = yield* applyMagickMorphology4ChSteps({ ...im, isPalette: false }, plan, signal, channels, state.virtualPixel, state.background);
                 if (im.alphaBlend === false) result.alphaSeparate = false;
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
@@ -11744,7 +11744,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         result.metaChannels.push(selected ? yield* applyMagickMorphology4ChSteps(plane, plan, signal, undefined, state.virtualPixel, state.background) : plane);
                     }
                 }
-                return { ...(im.region || im.writeMask ? yield* applyMagickRasterSteps(result, statisticWriteMaskPixelSteps(im, magickMedianRows(geometry), state.virtualPixel), signal, result, im.writeMask ? [result, im, im.writeMask] : [result, im]) : result), region: undefined, writeMask: undefined };
+                result = im.region || im.writeMask ? yield* applyMagickRasterSteps(result, statisticWriteMaskPixelSteps(im, magickMedianRows(geometry), state.virtualPixel), signal, result, im.writeMask ? [result, im, im.writeMask] : [result, im]) : result;
+                if (im.region) result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, im.region, !!(result.data16 || im.data16), state.channels), signal, result, [result, im]);
+                return { ...result, region: undefined, writeMask: undefined };
             });
         }
         else if (t === "-channel-fx") {
@@ -14293,7 +14295,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const statType = tokens[++i] ?? "median", geom = tokens[++i] ?? "3x3";
             const optionProperties = state.optionProperties, virtualPixel = state.virtualPixel, background = state.background;
             const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
-            const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k ?? true] : undefined;
+            const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const context = { ...(image as StoredMagickImage)[magickInput], optionProperties };
@@ -14304,7 +14306,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const plan = magickMorphologyPlan(method, geometry, true);
                 const selectedChannels = !image.hasAlpha && image.inactiveAlpha && !image.alphaSeparate
                     ? (channels ?? [true, true, true, true]).map((selected, channel) => selected && channel !== 3) : channels;
-                const result = await morphStoredMagickImage({ ...image, isPalette: false }, backend, plan, signal, selectedChannels, virtualPixel, background);
+                let result = await morphStoredMagickImage({ ...image, isPalette: false }, backend, plan, signal, selectedChannels, virtualPixel, background);
                 if (image.alphaBlend === false) result.alphaSeparate = false;
                 if (image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];
@@ -14312,7 +14314,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         result.storedMetaChannels.push(!meta || meta.includes(index)
                             ? await morphStoredMagickImage(plane, backend, plan, signal, undefined, virtualPixel, background) : plane);
                 }
-                return { ...(image.region || image.storedWriteMask ? await transformStoredMagickRaster(result, backend, statisticWriteMaskPixelSteps(image, magickMedianRows(geometry), virtualPixel), signal, result, image.storedWriteMask ? [result, image, image.storedWriteMask] : [result, image]) : result), region: undefined, storedWriteMask: undefined };
+                result = image.region || image.storedWriteMask ? await transformStoredMagickRaster(result, backend, statisticWriteMaskPixelSteps(image, magickMedianRows(geometry), virtualPixel), signal, result, image.storedWriteMask ? [result, image, image.storedWriteMask] : [result, image]) : result;
+                if (image.region) result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, image.region, !!(result.storedData16 || image.storedData16), maskChannels), signal, result, [result, image]);
+                return { ...result, region: undefined, storedWriteMask: undefined };
             });
         } else if (!operandsOnly && token === "-morphology") {
             const method = (tokens[++i] ?? "dilate").toLowerCase();

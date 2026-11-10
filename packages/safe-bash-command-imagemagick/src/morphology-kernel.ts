@@ -1,6 +1,6 @@
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { HueMetadata } from "./colorspace-hue.js";
-import { maximumWorkingPixelSteps } from "./maximum-kernel.js";
+import { morphologyWorkingPixelSteps } from "./morphology-working.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
@@ -52,7 +52,7 @@ export function* morphologyPixelSteps(image: HueMetadata & Pick<RgbaImage, "widt
     const cmyk = image.space === "cmyk", channelCount = cmyk ? 5 : 4;
     const { width, height } = image, highDepth = cmyk || virtualPixel === "gray" || !!(image.data16 || image.storedData16);
     const retainHue = !cmyk && image.magickColorspace !== undefined && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
-    if (retainHue && mode === "max") return yield* maximumWorkingPixelSteps(image, rows, channels, virtualPixel, background);
+    if (retainHue && mode === "max") return yield* morphologyWorkingPixelSteps(image, rows, mode, channels, virtualPixel, background);
     const working = retainHue && (mode === "mean" || mode === "rms" || mode === "standarddeviation");
     const outputHighDepth = highDepth || mode === "mean" || mode === "rms" || mode === "standarddeviation" || mode === "contrast";
     const scale = highDepth ? 257 : 1, bins = highDepth ? 65536 : 256, maximumSample = bins - 1;

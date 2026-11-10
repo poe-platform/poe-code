@@ -2954,7 +2954,8 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                     next = vFactor === 0 ? 255 : 255 * Math.pow(vFactor + 1, cur / 255 - 1) / vFactor;
                     break;
                 case "set":
-                    next = vByte;
+                    // Native percentages use QuantumRange + 1 before scaling to bytes.
+                    next = isPct ? (rawNum / 100) * 65536 / 257 : vByte;
                     break;
                 case "min":
                     next = Math.min(cur, vByte);

@@ -9744,7 +9744,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expandedAmount = amount ?? parseMagickCycleAmount(yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, sceneIdx: sceneIdx++, optionProperties: state.optionProperties }));
-                return yield* applyMagickRasterSteps(image, cyclePixelSteps(image, expandedAmount), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha });
+                const output = yield* applyMagickRasterSteps(image, cyclePixelSteps(image, expandedAmount), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha });
+                if (image.space !== "cmyk") return output;
+                // CMYK keeps an RGB backing; the cycled output no longer uses the ink plane.
+                const { hueSamples: ignoredCmyk, storedHueSamples: ignoredStoredCmyk, ...rgb } = output;
+                return { ...rgb, space: "srgb", gamma: 1 / 2.2, channels: output.hasAlpha ? 4 : 3 };
             });
         }
         else if (t === "-unique-colors") {
@@ -12086,7 +12090,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expandedAmount = amount ?? parseMagickCycleAmount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, sceneIdx: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images));
-                return transformStoredMagickRaster(image, backend, cyclePixelSteps(image, expandedAmount), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha });
+                const output = await transformStoredMagickRaster(image, backend, cyclePixelSteps(image, expandedAmount), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha });
+                if (image.space !== "cmyk") return output;
+                const { storedHueSamples: ignoredCmyk, ...rgb } = output;
+                return { ...rgb, space: "srgb", gamma: 1 / 2.2, channels: output.hasAlpha ? 4 : 3 };
             });
             continue;
         }

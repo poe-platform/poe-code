@@ -30,7 +30,9 @@ for (const mode of ["buffered", "sync", "retained", "command"] as const) {
                 : exitCode === 1 ? `magick: option deprecated, unable to execute '${option}'\n`
                     : `magick: unrecognized option '${option}'\n`);
             const pixels = Uint8Array.from([0, 0, 255, 255, 0, 0]);
-            const output = "stdout" in result ? result.stdoutBytes ?? new TextEncoder().encode(result.stdout) : Buffer.concat(stdout);
+            const output = "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array
+                ? result.stdoutBytes : "stdout" in result && typeof result.stdout === "string"
+                    ? new TextEncoder().encode(result.stdout) : Buffer.concat(stdout);
             expect(Array.from(output)).toEqual(exitCode === 0 && destination === "-" ? Array.from(pixels) : []);
             expect(mode === "buffered" || mode === "sync" ? files.get("out") : await filesystem.readFile("/out"))
                 .toEqual(exitCode === 0 && destination === "out" ? pixels : original);

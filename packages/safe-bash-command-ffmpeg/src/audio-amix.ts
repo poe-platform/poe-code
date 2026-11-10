@@ -73,6 +73,7 @@ export async function mixAudio(
   // Native WAV PCM frames use the largest power of two within 100 ms.
   // amix updates normalization once per frame, including a partial frame at EOF.
   const frameSize = 2 ** Math.floor(Math.log2(Math.max(1, Math.floor(a.sampleRate / 10))));
+  const startPts = Math.round((tracks[0]!.samples[0]?.pts ?? 0) * a.sampleRate / tracks[0]!.timescale);
   for (let start = 0; start < length;) {
     await yieldTurn(signal);
     signal?.throwIfAborted();
@@ -114,7 +115,7 @@ export async function mixAudio(
     }
     // Keep the mixer frames for every downstream filter, including partial EOF frames.
     budget.allocateMemory(96);
-    frames.push({ data: new Uint8Array(0), size: 0, dts: start, pts: start, cts: 0,
+    frames.push({ data: new Uint8Array(0), size: 0, dts: startPts + start, pts: startPts + start, cts: 0,
       duration: end - start, isKeyframe: true, sampleDescriptionIndex: 1 });
     start = end;
   }

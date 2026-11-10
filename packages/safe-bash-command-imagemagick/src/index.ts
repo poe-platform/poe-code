@@ -1476,7 +1476,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   fmt: string,
   meta: ImageMetadata & Pick<RgbaImage, "readMask" | "writeMask"> & Pick<StoredRgbaImage, "storedWriteMask">,
   getImage: () => RgbaImage,
-  context: MagickFormatContext & { analysis?: { warnings: string }; optionProperties?: Record<string, string> | undefined } = {},
+  context: MagickFormatContext & { analysis?: { warnings: string; errors?: string }; optionProperties?: Record<string, string> | undefined } = {},
   resolvePixels?: (property:string)=>Generator<Step,string,void>
 ): Generator<void|Step, string, void> {
   const filePath = context.filePath ?? "";
@@ -1633,56 +1633,61 @@ function* formatMagickPropertyStringSteps<Step=never>(
         pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection, context.precision);
         parts.push(pixels[key]!);
       } else if (key.startsWith("fx:") || key.startsWith("pixel:") || key.startsWith("hex:")) {
-        // Expand only bracket properties from the expression's source. FX uses
-        // percent for remainder, and substituted values must stay literal.
-        const expanded: string[] = [];
-        let start = 0;
-        for (let nested = property.indexOf("%["); nested !== -1; nested = property.indexOf("%[", start)) {
-          let end = nested + 2, depth = 1;
-          for (; end < property.length && depth > 0; end++) {
-            if (end % 16384 === 0) yield;
-            if (property[end] === "[") depth++;
-            else if (property[end] === "]") depth--;
-          }
-          expanded.push(property.slice(start, nested), yield* formatMagickPropertyStringSteps(property.slice(nested, end), meta, getImage, context, resolvePixels));
-          start = end;
-        }
-        expanded.push(property.slice(start));
-        const expression = expanded.join("");
-        if(resolvePixels){parts.push(yield*resolvePixels(expression));continue;}
-        img ??= getImage();
-        const fn = compileFxExpression(expression.slice(expression.indexOf(":") + 1));
-        if (fn.needsStatistics) pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection, context.precision);
-        const ctx: FxEvalContext = { statistics, frameIndex: context.sceneIdx, stack: [{ ...img, [magickInput]: { ...img[magickInput], ...context } }], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
-        if (key.startsWith("fx:")) {
-          parts.push(formatSignificantMetric(fn(ctx), context.precision));
-        } else {
-          const channels: number[] = [];
-          const hexMaximum = (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8 ? 65535 : 255;
-          for (const ch of img.space === "cmyk" ? (img.hasAlpha ? [0, 1, 2, 8, 3] : [0, 1, 2, 8]) : (img.hasAlpha ? [0, 1, 2, 3] : [0, 1, 2])) {
-            ctx.vars.clear();
-            if (key.startsWith("hex:")) {
-              channels.push(Math.max(0, Math.min(hexMaximum, Math.round(fn({ ...ctx, ch }) * hexMaximum))));
-              continue;
+        try {
+          // Expand only bracket properties from the expression's source. FX uses
+          // percent for remainder, and substituted values must stay literal.
+          const expanded: string[] = [];
+          let start = 0;
+          for (let nested = property.indexOf("%["); nested !== -1; nested = property.indexOf("%[", start)) {
+            let end = nested + 2, depth = 1;
+            for (; end < property.length && depth > 0; end++) {
+              if (end % 16384 === 0) yield;
+              if (property[end] === "[") depth++;
+              else if (property[end] === "]") depth--;
             }
-            channels.push((img.space === "cmyk" || img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") && key.startsWith("pixel:") ? fn({ ...ctx, ch }) : clampByteVal(fn({ ...ctx, ch }) * 255));
+            expanded.push(property.slice(start, nested), yield* formatMagickPropertyStringSteps(property.slice(nested, end), meta, getImage, context, resolvePixels));
+            start = end;
           }
-          if (key.startsWith("hex:")) {
-            parts.push(channels.map(value => value.toString(16).toUpperCase().padStart(hexMaximum === 65535 ? 4 : 2, "0")).join(""));
+          expanded.push(property.slice(start));
+          const expression = expanded.join("");
+          if(resolvePixels){parts.push(yield*resolvePixels(expression));continue;}
+          img ??= getImage();
+          const fn = compileFxExpression(expression.slice(expression.indexOf(":") + 1));
+          if (fn.needsStatistics) pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection, context.precision);
+          const ctx: FxEvalContext = { statistics, frameIndex: context.sceneIdx, stack: [{ ...img, [magickInput]: { ...img[magickInput], ...context } }], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
+          if (key.startsWith("fx:")) {
+            parts.push(formatSignificantMetric(fn(ctx), context.precision));
           } else {
-            if (img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") { parts.push(formatHuePixel(channels, img.magickColorspace, img.hasAlpha)); continue; }
-            if (img.space === "cmyk") { parts.push(formatCmykPixel(channels, img.hasAlpha)); continue; }
-            if (img.space === "b-w" || img.space === "grey16") {
-              parts.push(channels[3] !== undefined && channels[3] !== 255
-                ? `graya(${channels[0]},${formatMetricNum(channels[3] / 255)})`
-                : `gray(${channels[0]})`);
-              continue;
+            const channels: number[] = [];
+            const hexMaximum = (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8 ? 65535 : 255;
+            for (const ch of img.space === "cmyk" ? (img.hasAlpha ? [0, 1, 2, 8, 3] : [0, 1, 2, 8]) : (img.hasAlpha ? [0, 1, 2, 3] : [0, 1, 2])) {
+              ctx.vars.clear();
+              if (key.startsWith("hex:")) {
+                channels.push(Math.max(0, Math.min(hexMaximum, Math.round(fn({ ...ctx, ch }) * hexMaximum))));
+                continue;
+              }
+              channels.push((img.space === "cmyk" || img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") && key.startsWith("pixel:") ? fn({ ...ctx, ch }) : clampByteVal(fn({ ...ctx, ch }) * 255));
             }
-            // Preserve the existing RGB pixel spelling for opaque samples.
-            parts.push(channels[3] !== undefined && channels[3] !== 255
-              ? `srgba(${channels.slice(0, 3).join(",")},${formatMetricNum(channels[3] / 255)})`
-              : `srgb(${channels.slice(0, 3).join(",")})`);
+            if (key.startsWith("hex:")) {
+              parts.push(channels.map(value => value.toString(16).toUpperCase().padStart(hexMaximum === 65535 ? 4 : 2, "0")).join(""));
+            } else {
+              if (img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "YUV" || img.magickColorspace === "CIELab") { parts.push(formatHuePixel(channels, img.magickColorspace, img.hasAlpha)); continue; }
+              if (img.space === "cmyk") { parts.push(formatCmykPixel(channels, img.hasAlpha)); continue; }
+              if (img.space === "b-w" || img.space === "grey16") {
+                parts.push(channels[3] !== undefined && channels[3] !== 255
+                  ? `graya(${channels[0]},${formatMetricNum(channels[3] / 255)})`
+                  : `gray(${channels[0]})`);
+                continue;
+              }
+              // Preserve the existing RGB pixel spelling for opaque samples.
+              parts.push(channels[3] !== undefined && channels[3] !== 255
+                ? `srgba(${channels.slice(0, 3).join(",")},${formatMetricNum(channels[3] / 255)})`
+                : `srgb(${channels.slice(0, 3).join(",")})`);
+            }
           }
+        } catch (error) {
+          if (!(error instanceof FxExpressionError) || !context.analysis) throw error;
+          context.analysis.errors = (context.analysis.errors ?? "") + `magick: ${error.message}\n`;
         }
       } else if (["*", "?", "["].some(character => property.includes(character))) {
         // Wildcards enumerate stored properties, not computed fields or artifacts.
@@ -1741,7 +1746,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  return channels[3]!==undefined&&channels[3]!==255?`srgba(${channels.slice(0,3).join(",")},${formatMetricNum(channels[3]/255)})`:`srgb(${channels.slice(0,3).join(",")})`;
 }
 
-async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string }; optionProperties?: Record<string, string> | undefined },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal):Promise<string>{
+async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string; errors?: string }; optionProperties?: Record<string, string> | undefined },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal):Promise<string>{
  let raster:IdentifyRaster|undefined,properties:Record<string,string>|undefined,hull:Record<string,string>|undefined;
  const statistics:Record<string,number>={};
  function* resolve(property:string):Generator<IdentifyStep,string,void>{
@@ -2777,6 +2782,8 @@ function propToChannel(prop: string): number {
   throw new Error(`Bad channel qualifier: ${prop}`);
 }
 
+class FxExpressionError extends Error {}
+
 function compileFxExpression(exprStr: string) {
   let needsStatistics = false;
   const requireStatistics = () => { needsStatistics = true; };
@@ -2851,7 +2858,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
       k++;
       continue;
     }
-    throw new Error(`Invalid FX character: ${ch}`);
+    throw new FxExpressionError(`Invalid FX character: ${ch}`);
   }
 
   let pos = 0;
@@ -2859,7 +2866,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
   const next = () => tokens[pos++];
 
   function expectToken(value: string): void {
-    if (next()?.val !== value) throw new Error(`Expected '${value}' in FX expression`);
+    if (next()?.val !== value) throw new FxExpressionError(`Expected '${value}' in FX expression`);
   }
 
   function parseTernary(): (ctx: FxEvalContext) => number {
@@ -2966,7 +2973,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
       const prev = left;
       left = (ctx) => {
         const value = bitwiseInteger(prev(ctx)), shift = bitwiseInteger(right(ctx));
-        if (shift >= 64n) throw new Error(`Undefined FX shift: ${shift}`);
+        if (shift >= 64n) throw new FxExpressionError(`Undefined FX shift: ${shift}`);
         return Number(op === "<<" ? BigInt.asUintN(64, value << shift) : value >> shift);
       };
     }
@@ -3031,11 +3038,11 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
 
   function parsePrimary(): (ctx: FxEvalContext) => number {
     const tok = peek();
-    if (!tok) throw new Error("Expected operand in FX expression");
+    if (!tok) throw new FxExpressionError("Expected operand in FX expression");
     if (tok.type === "num") {
       next();
       const val = Number(tok.val);
-      if (!Number.isFinite(val)) throw new Error(`Invalid FX number: ${tok.val}`);
+      if (!Number.isFinite(val)) throw new FxExpressionError(`Invalid FX number: ${tok.val}`);
       return () => val;
     }
     if (tok.val === "(") {
@@ -3065,7 +3072,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         expectToken(")");
         if (name === "channel") {
           if (args.length < 1 || args.length > 5) {
-            throw new Error(`FX function 'channel' expects 1 to 5 arguments, got ${args.length}`);
+            throw new FxExpressionError(`FX function 'channel' expects 1 to 5 arguments, got ${args.length}`);
           }
           // The fourth argument is CMYK black; alpha is the fifth.
           return ctx => args[ctx.ch === 3 ? 4 : ctx.ch]?.(ctx) ?? 0;
@@ -3073,12 +3080,12 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         if (!["sin", "sinc", "gauss", "cos", "tan", "asin", "acos", "atan", "atan2", "sinh", "cosh", "tanh", "squish", "j0", "j1",
           "sqrt", "pow", "exp", "log", "log10", "ln", "abs", "min", "max", "floor", "ceil",
           "round", "int", "trunc", "sign", "isnan", "not", "hypot", "mod", "gcd", "clamp", "if", "rand"].includes(name)) {
-          throw new Error(`Unknown FX function: ${name}`);
+          throw new FxExpressionError(`Unknown FX function: ${name}`);
         }
         const arity = name === "rand" ? 0 : name === "if" ? 3
           : ["atan2", "pow", "min", "max", "hypot", "mod", "gcd"].includes(name) ? 2 : 1;
         if (args.length !== arity) {
-          throw new Error(`FX function '${name}' expects ${arity} arguments, got ${args.length}`);
+          throw new FxExpressionError(`FX function '${name}' expects ${arity} arguments, got ${args.length}`);
         }
         return (ctx) => {
           const vals = args.map((a) => a(ctx));
@@ -3172,14 +3179,14 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
             case "rand":
               return 0.5;
             default:
-              throw new Error(`Unknown FX function: ${name}`);
+              throw new FxExpressionError(`Unknown FX function: ${name}`);
           }
         };
       }
 
       const color = X11_NAMED_COLORS[name];
       if (color && peek()?.val === ".") {
-        throw new Error(`Expected operator at '.${tokens[pos + 1]?.val ?? ""}'`);
+        throw new FxExpressionError(`Expected operator at '.${tokens[pos + 1]?.val ?? ""}'`);
       }
 
       // Check for array index e.g. u[1]
@@ -3205,11 +3212,11 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
       }
       while (peek()?.val === ".") {
         if (name === "entropy") {
-          throw new Error(`Expected operator at '.${tokens[pos + 1]?.val ?? ""}'`);
+          throw new FxExpressionError(`Expected operator at '.${tokens[pos + 1]?.val ?? ""}'`);
         }
         next();
         const property = next();
-        if (property?.type !== "id") throw new Error("Expected property in FX expression");
+        if (property?.type !== "id") throw new FxExpressionError("Expected property in FX expression");
         const sub = property.val.toLowerCase();
         if (sub === "p" && (peek()?.val === "{" || peek()?.val === "[")) {
           relative = next()!.val === "[";
@@ -3249,7 +3256,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         const len = Math.max(1, ctx.stack.length);
         const targetIdx = rawIdx < 0 ? ((rawIdx % len) + len) % len : rawIdx;
         if (imgIndex && (!Number.isFinite(targetIdx) || targetIdx >= ctx.stack.length)) {
-          throw new Error(`ImgNum ${rawIdx} bad for ImgListLen ${ctx.stack.length}`);
+          throw new FxExpressionError(`ImgNum ${rawIdx} bad for ImgListLen ${ctx.stack.length}`);
         }
         if (name === "t" || propName === "t") return targetIdx;
         const targetImg = "get" in ctx.stack ? ctx.stack.get(targetIdx) ?? ctx.stack.get(0) : ctx.stack[targetIdx] ?? ctx.stack[0];
@@ -3292,11 +3299,11 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         return interpolateFxImage(ctx.sample ?? sampleFxImage, targetImg, px, py, ch, ctx.interpolation);
       };
     }
-    throw new Error(`Expected operand in FX expression, got: ${tok.val}`);
+    throw new FxExpressionError(`Expected operand in FX expression, got: ${tok.val}`);
   }
 
   const expression = parseTernary();
-  if (peek()) throw new Error(`Unexpected token in FX expression: ${peek()!.val}`);
+  if (peek()) throw new FxExpressionError(`Unexpected token in FX expression: ${peek()!.val}`);
   return expression;
 }
 
@@ -6261,7 +6268,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         }
         const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
         const sceneCount = target.sceneCount ?? (pageIdx === undefined ? undefined : 1);
-        const analysis = { warnings: "" };
+        const analysis = { warnings: "", errors: "" };
         let inspected:IdentifyInspection|undefined;
         if(reader)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,originalInput:target.originalInput,byteLen:size,sceneIdx:pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis,optionProperties:{format:customFormat!}},pixels,signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision);}};
         const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
@@ -6359,6 +6366,10 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 outParts.push(`${inPath} ${meta.format.toUpperCase()} ${meta.width}x${meta.height} ${meta.width}x${meta.height}+0+0 ${bitDepth}-bit ${spaceLabel} ${size}B 0.000u 0:00.000\n`);
             }
             if (analysis.warnings) errParts.push(analysis.warnings);
+            if (analysis.errors) {
+                errParts.push(analysis.errors.replaceAll("magick: ", "identify: "));
+                exitCode = 1;
+            }
         }
         catch (err) {
             errParts.push(`identify: improper image header '${inPath}': ${(err as Error).message}\n`);
@@ -9971,14 +9982,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
 function createConvertAnalysis() {
     let warnings = "";
     return {
-        text: "", bytes: [] as Uint8Array[], quiet: false,
+        text: "", errors: "", bytes: [] as Uint8Array[], quiet: false,
         get warnings() { return warnings; },
         set warnings(value: string) { if (!this.quiet) warnings = value; }
     };
 }
 
-function combineConvertOutput(result: ImageMagickCliResult, analysis: { text: string; warnings: string; bytes: Uint8Array[] }): ImageMagickCliResult {
-    const stdout = analysis.text + result.stdout, stderr = analysis.warnings + result.stderr;
+function combineConvertOutput(result: ImageMagickCliResult, analysis: { text: string; warnings: string; errors: string; bytes: Uint8Array[] }): ImageMagickCliResult {
+    const stdout = analysis.text + result.stdout, stderr = analysis.warnings + analysis.errors + result.stderr;
+    if (analysis.errors) result = { ...result, exitCode: 1 };
     if (!analysis.bytes.length) return { ...result, stdout, stderr };
     const chunks = [...analysis.bytes, ...(result.stdoutBytes ? [result.stdoutBytes] : stdout ? [new TextEncoder().encode(stdout)] : [])];
     const stdoutBytes = new Uint8Array(chunks.reduce((size, chunk) => size + chunk.length, 0));
@@ -10050,7 +10062,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
                     : `${im.width}x${im.height} ${im.magickColorspace ?? "sRGB"} 8-bit`);
             }
             const outText = formatted.join(state.formatStr !== undefined ? "" : "\n");
-            const result = histogramInfo && state.formatStr !== undefined || outText.endsWith("\n") ? outText : `${outText}\n`;
+            const result = analysis.errors || histogramInfo && state.formatStr !== undefined || outText.endsWith("\n") ? outText : `${outText}\n`;
             const target = outSpec.slice(5);
             if (target && target !== "-") {
                 files.set(target, new TextEncoder().encode(result));
@@ -12091,7 +12103,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (formatted) last = formatted.at(-1)!;
                     yield formatted;
                 }
-                if (!text && !ftxt && !(histogramInfo && state.formatStr !== undefined) && last !== "\n") yield "\n";
+                if (!analysis.errors && !text && !ftxt && !(histogramInfo && state.formatStr !== undefined) && last !== "\n") yield "\n";
             }
             try {
                 const parts = info || text || ftxt ? information() : storedHistogram(image, backend.storage, signal);

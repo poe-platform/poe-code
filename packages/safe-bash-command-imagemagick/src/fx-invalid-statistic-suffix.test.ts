@@ -14,7 +14,7 @@ for (const retained of [false, true]) {
         const bytes = await sharp(Uint8Array.from(pixels), { raw: { width: 5, height: 1, channels: 3 } }).png().toBuffer();
         const fs = new MemoryFileSystem();
         await fs.writeFile("/input.png", bytes);
-        for (const format of ["%[fx:entropy.r]", "%[fx:entropy.r]|%[fx:skewness.r]|%[fx:kurtosis.r]", "%[fx:mean.r]|%[entropy]"]) {
+        for (const format of ["w=%w;%[fx:entropy.r];h=%h", "%[fx:entropy.r]", "%[fx:entropy.r]|%[fx:entropy.r]|%[fx:entropy.r]", "%[fx:mean.r]|%[entropy]\n"]) {
           const argv = identify
             ? ["identify", "-format", format, "/input.png"]
             : ["/input.png", "-format", format, "info:"];
@@ -32,11 +32,12 @@ for (const retained of [false, true]) {
           } else {
             result = await runMagickCli(argv, new Map([["/input.png", bytes]]));
           }
-          if (format === "%[fx:mean.r]|%[entropy]") {
-            expect(result).toEqual({ exitCode: 0, stdout: "0.6|0.804936" + (identify ? "" : "\n"), stderr: "" });
+          if (format === "%[fx:mean.r]|%[entropy]\n") {
+            expect(result).toEqual({ exitCode: 0, stdout: "0.6|0.804936\n", stderr: "" });
           } else {
             expect(result.exitCode).toBe(1);
-            expect(result.stdout).toBe("");
+            expect(result.stdout).toBe(format.startsWith("w=") ? "w=5;;h=1" : format.includes("|") ? "||" : "");
+            expect(result.stderr).not.toContain("improper image header");
             expect(result.stderr).toContain("Expected operator at '.r'");
           }
         }

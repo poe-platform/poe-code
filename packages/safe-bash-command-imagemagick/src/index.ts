@@ -1530,7 +1530,9 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const short: Record<string, string> = {
     w: String(meta.width), h: String(meta.height), m: meta.format.toUpperCase(),
     A: meta.hasAlpha ? "Blend" : "Undefined",
-    W: String(page.width), H: String(page.height),
+    // Native formats page dimensions as unsigned 64-bit size_t values.
+    W: page.width < 0 ? Number(BigInt.asUintN(64, BigInt(page.width))).toExponential(16) : String(page.width),
+    H: page.height < 0 ? Number(BigInt.asUintN(64, BigInt(page.height))).toExponential(16) : String(page.height),
     G: `${context.originalWidth ?? meta.width}x${context.originalHeight ?? meta.height}`,
     z: bitDepth, q: "16", r: `${meta.isPalette ? "PseudoClass" : "DirectClass"} ${space} ${meta.hasAlpha ? "Alpha" : ""}`,
     f: baseName, t: dot < 0 ? baseName : baseName.slice(0, dot), e: dot < 0 ? "" : baseName.slice(dot + 1), i: context.outputFilePath ?? filePath, M: context.originalInput ?? filePath,

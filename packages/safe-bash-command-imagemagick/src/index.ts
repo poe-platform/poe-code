@@ -17887,8 +17887,9 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             labels.reverse();
             sizes.reverse();
         }
-        else if (t === "-duplicate" || t === "+duplicate") {
+        else if (t === "-duplicate" || t === "+duplicate" || t === "-clone" || t === "+clone") {
             if (!operands.length) return { exitCode: 1, stdout: "", stderr: `montage: no images found for operation ${t}\n` };
+            const operation = t.endsWith("clone") ? "clone" : "duplicate";
             let count = 1, spec = "-1";
             const length = operands.length;
             try {
@@ -17898,10 +17899,18 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
                     if (!value || !Number.isSafeInteger(count)) return { exitCode: 1, stdout: "", stderr: `montage: invalid argument '${value}'\n` };
                     spec = comma < 0 ? "-1" : value.slice(comma + 1);
                 }
-                spec = parseMagickDuplicateScenes(spec);
-                if (spec === "") count = 0;
+                if (t === "-clone") {
+                    const value = argv[++i];
+                    if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -clone\n" };
+                    if (value.includes("\t") || value.includes("\n")) throw new Error(`invalid argument ${value}`);
+                    spec = value;
+                }
+                if (operation === "duplicate") {
+                    spec = parseMagickDuplicateScenes(spec);
+                    if (spec === "") count = 0;
+                }
                 for (let repeat = 0; repeat < count; repeat++) {
-                    for (const index of parseMagickIndexSpec(spec, length, "duplicate")) {
+                    for (const index of parseMagickIndexSpec(spec, length, operation)) {
                         if (++cooperativeWork % 64 === 0) yield;
                         operands.push(operands[index]!);
                         labels.push(labels[index]!);

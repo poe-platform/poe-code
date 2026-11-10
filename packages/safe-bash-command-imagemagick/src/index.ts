@@ -10757,7 +10757,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geometry = tokens[++i] ?? "100%";
             validateMagickTransformGeometry(geometry, t);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const options = magickResizeOptions(image, geometry === "x" ? "0x0" : geometry, undefined);
+                const options = magickResizeOptions(image, geometry === "x" ? "0x0" : geometry.replaceAll("(", "").replaceAll(")", ""), undefined);
                 if (!options || (options.width === image.width && options.height === image.height)) return image;
                 const width = options.width!, height = options.height!;
                 const resized = yield* applyMagickRasterSteps({ ...image, isPalette: false }, adaptiveResizePixelSteps(image, width, height, !!image.data16), signal, { ...image, width, height });
@@ -13663,7 +13663,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             validateMagickTransformGeometry(geometry, token);
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const options = magickResizeOptions(image, geometry === "x" ? "0x0" : geometry, undefined);
+                const options = magickResizeOptions(image, geometry === "x" ? "0x0" : geometry.replaceAll("(", "").replaceAll(")", ""), undefined);
                 if (!options || (options.width === image.width && options.height === image.height)) return image;
                 const width = options.width!, height = options.height!;
                 const resized = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, adaptiveResizePixelSteps(image, width, height, !!image.storedData16), signal, { ...image, width, height });

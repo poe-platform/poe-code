@@ -10213,14 +10213,50 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           values[key] = number;
                         }
                         const { loop, size, start } = values;
-                        if (loop! > 0 && size! > 0) {
-                          if (start !== 0) throw new Error("aloop: active loops require start=0");
+                        if (loop! > 0 && size! > 0 && start !== 0) throw new Error("aloop: active loops require start=0");
+                        if (size! > 0 && start === 0) {
                           const inputLength = stretched[0]?.length ?? 0;
                           const regionLength = Math.min(size!, inputLength);
                           const repeatedLength = regionLength * loop!;
                           const length = inputLength + repeatedLength;
                           if (!Number.isSafeInteger(length)) throw new Error("aloop: output sample count is too large");
                           budget.checkDuration(length / origRate);
+                          const previous = audioTimestamps;
+                          audioTimestamps = [];
+                          // Keep incoming frames, splitting at the loop boundary. The cached
+                          // region is replayed in frames of at most 1024 samples.
+                          for (let offset = 0, n = 0; offset < inputLength; n++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const frame = previous?.[n];
+                            const packet = t.samples[n];
+                            const count = frame ? frame.end - frame.start
+                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                            const end = Math.min(inputLength, offset + count);
+                            const pts = frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + offset);
+                            if (offset < regionLength) {
+                              const prefixEnd = Math.min(end, regionLength);
+                              budget.allocateMemory(24);
+                              audioTimestamps.push({ start: offset, end: prefixEnd, pts });
+                              if (prefixEnd === regionLength) {
+                                for (let repeat = 0; repeat < loop!; repeat++) {
+                                  for (let sample = 0; sample < regionLength; sample += 1024) {
+                                    if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                                    const start = regionLength * (repeat + 1) + sample;
+                                    budget.allocateMemory(24);
+                                    audioTimestamps.push({ start, end: start + Math.min(1024, regionLength - sample),
+                                      pts: pts + prefixEnd - offset + repeat * regionLength + sample });
+                                  }
+                                }
+                              }
+                            }
+                            if (end > regionLength) {
+                              const tailStart = Math.max(offset, regionLength);
+                              budget.allocateMemory(24);
+                              audioTimestamps.push({ start: tailStart + repeatedLength, end: end + repeatedLength,
+                                pts: pts + tailStart - offset + repeatedLength });
+                            }
+                            offset = end;
+                          }
                           budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
                           stretched = await mapWork(stretched, async channel => {
                             const output = new Float32Array(length);

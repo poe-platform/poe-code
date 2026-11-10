@@ -1062,6 +1062,63 @@ describe("dcshift", () => {
 });
 
 describe("aloop", () => {
+  it("preserves incoming frame splits and chunks replayed regions into 1024 samples", async () => {
+    const channels = [1, -1].map(sign => Float64Array.from({ length: 2300 }, (_, i) => sign * (i + 1) / 32768));
+    const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels }) });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af",
+      "asetnsamples=512:0,aloop=2:1100:0,volume='if(eq(n,4),0,1)':eval=frame", "-frames:a", "8", "/out.wav"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const output = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData;
+    // Frames: 512, 512, 76, 1024, 76, 1024, 76, 436, 512, 252.
+    for (let c = 0; c < channels.length; c++) {
+      const input = Array.from(channels[c]!);
+      const expected = [...input.slice(0, 1100), ...input.slice(0, 1100), ...input].slice(0, 3736);
+      expected.fill(0, 2124, 2200);
+      assert.deepEqual(Array.from(output[c]!), expected);
+    }
+  });
+  for (const complex of [false, true]) {
+    for (const [filter, frames, left] of [
+      ["aloop=2:3:0,volume='if(eq(n,1),0,1)':eval=frame", undefined, [101, 102, 103, 0, 0, 0, 101, 102, 103, 104, 105, 106, 107, 108]],
+      ["aloop=2:3:0,volume='if(eq(t,0.000375),0,1)':eval=frame", undefined, [101, 102, 103, 0, 0, 0, 101, 102, 103, 104, 105, 106, 107, 108]],
+      ["aloop=2:3:0", 1, [101, 102, 103]],
+      ["aloop=2:3:0", 2, [101, 102, 103, 101, 102, 103]],
+      ["aloop=0:3:0", 1, [101, 102, 103]],
+      ["anull", 1, [101, 102, 103, 104, 105, 106, 107, 108]],
+      ["aloop=2:3:0", undefined, [101, 102, 103, 101, 102, 103, 101, 102, 103, 104, 105, 106, 107, 108]],
+    ] as const) {
+      it(`matches FFmpeg 7 loop frames for ${filter}, frames=${frames}, complex=${complex}`, async () => {
+        const raw = new Uint8Array(32);
+        const view = new DataView(raw.buffer);
+        for (let i = 0; i < 8; i++) {
+          view.setInt16(i * 4, 101 + i, true);
+          view.setInt16(i * 4 + 2, -901 - i, true);
+        }
+        const vfs = createTestVfs({ "/in.raw": raw, "/out.raw": "KEEP" });
+        const result = await runCmd(createFfmpegCommand(), ["-y", "-f", "s16le", "-ar", "8000", "-ac", "2", "-i", "/in.raw",
+          ...(complex ? ["-filter_complex", `[0:a]${filter}[o]`, "-map", "[o]"] : ["-af", filter]),
+          ...(frames === undefined ? [] : ["-frames:a", String(frames)]), "-f", "s16le", "/out.raw"], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const expected = new Uint8Array(left.length * 4);
+        const expectedView = new DataView(expected.buffer);
+        left.forEach((sample, i) => {
+          expectedView.setInt16(i * 4, sample, true);
+          expectedView.setInt16(i * 4 + 2, sample === 0 ? 0 : -800 - sample, true);
+        });
+        assert.deepEqual(vfs.store.get("/out.raw"), expected);
+      });
+    }
+    it(`preserves the destination on invalid loop input, complex=${complex}`, async () => {
+      const vfs = createTestVfs({ "/in.raw": new Uint8Array(32), "/out.raw": "KEEP" });
+      const filter = "aloop=2:-3:0";
+      const result = await runCmd(createFfmpegCommand(), ["-y", "-f", "s16le", "-ar", "8000", "-ac", "2", "-i", "/in.raw",
+        ...(complex ? ["-filter_complex", `[0:a]${filter}[o]`, "-map", "[o]"] : ["-af", filter]),
+        "-f", "s16le", "/out.raw"], vfs);
+      assert.notEqual(result.exitCode, 0);
+      assert.match(result.stderr, /aloop:/);
+      assert.equal(new TextDecoder().decode(vfs.store.get("/out.raw")), "KEEP");
+    });
+  }
   for (const [filter, repeats, size] of [
     ["aloop=loop=2:size=8:start=0", 2, 8],
     ["aloop=2:8:0", 2, 8],

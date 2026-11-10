@@ -9,6 +9,7 @@ export interface WarpPlan {
     readonly hasAlpha: boolean;
     readonly nearest?: boolean;
     readonly interpolation?: LookupInterpolation;
+    readonly channels?: readonly boolean[] | undefined;
     readonly virtualCanvas?: RgbaImage["virtualCanvas"];
     derivatives?(x: number, y: number): readonly [number, number, number, number];
     map(x: number, y: number): readonly [x: number, y: number, copy?: boolean];
@@ -48,7 +49,7 @@ function* ellipseSamples(sx: number, sy: number, [ux, uy, vx, vy]: readonly [num
     }
 }
 
-export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { alphaBlend?: boolean | undefined }, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">>, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = source;
     const filter = kernel === "nearest" ? undefined : resizeFilter(kernel ?? "robidoux", settings, true);
     const blur = Math.max(1e-12, (settings?.blur ?? 1) * (kernel === "lanczos2sharp" ? 0.9549963639785485 : kernel === "lanczossharp" ? 0.9812505644269356 : 1));
@@ -127,10 +128,8 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                     }
                     if (pixel === undefined) {
                         pixel = yield* readPixel((y * width + x) * 4);
-                        // Disabled alpha must not suppress source RGB during sampling.
-                        if (source.alphaBlend === false) pixel = [pixel[0]!, pixel[1]!, pixel[2]!, maximum];
                     }
-                    const opacity = pixel[3]!;
+                    const opacity = pixel[3]!, unassociatedWeight = weight;
                     alpha += opacity * weight; total += weight;
                     // Wave's x coordinate is integral, so mesh triangles reduce to
                     // the same vertical weights as bilinear. Native mesh divides
@@ -139,15 +138,17 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                     else if (interpolation === "average") colorTotal += weight;
                     if (derivatives || interpolation === "bilinear") weight *= opacity / maximum;
                     else if (interpolation === "average") weight *= Number(opacity > 0);
-                    red += pixel[0]! * weight;
-                    green += pixel[1]! * weight;
-                    blue += pixel[2]! * weight;
+                    red += pixel[0]! * (plan.channels?.[0] === false ? unassociatedWeight : weight);
+                    green += pixel[1]! * (plan.channels?.[1] === false ? unassociatedWeight : weight);
+                    blue += pixel[2]! * (plan.channels?.[2] === false ? unassociatedWeight : weight);
                     if (interpolation !== "mesh" && interpolation !== "average") colorTotal += weight;
                 }
                 // Native EWA falls back to interpolation for nonpositive filter coverage.
                 if (filtered && (total <= 1e-12 || colorTotal <= 1e-12)) continue;
                 const colorScale = 1 / Math.max(1e-12, colorTotal), alphaScale = 1 / total;
-                const values = [red * colorScale, green * colorScale, blue * colorScale, alpha * alphaScale];
+                // Unselected colors are still interpolated, but without alpha weighting.
+                const values = [red, green, blue].map((value, channel) => value * (plan.channels?.[channel] === false ? alphaScale : colorScale));
+                values.push(alpha * alphaScale);
                 // Q16-HDRI stores float32 quantum samples before output-depth rounding.
                 const quantumScale = highDepth ? 1 : 257;
                 for (let c = 0; c < 4; c++) {

@@ -3750,6 +3750,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     const interpolation = state.interpolation ?? "bilinear";
     const background = state.background, backgroundExplicit = state.backgroundExplicit, virtualPixel = state.virtualPixel ?? (distort || token === "-implode" || token === "-swirl" ? "edge" : undefined);
     const kernel = distort ? state.kernel : undefined, filter = distort ? state.resizeFilter : undefined;
+    const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b] : undefined;
     const compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz;
     return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas">, geometry = spec) => {
         if (token === "-shear") {
@@ -3763,7 +3764,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
         let plan = magickWarpPlan(image, token, geometry, args);
         if (plan && (token === "-swirl" || token === "-implode")) {
             if (interpolation === "mesh") throw new Error(`Unsupported ${token.slice(1)} interpolation: mesh`);
-            plan = { ...plan, interpolation,
+            plan = { ...plan, interpolation, channels,
                 hasAlpha: plan.hasAlpha || virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255 };
         }
         const samplingOrigin = plan?.virtualCanvas;
@@ -3791,7 +3792,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             // Wave always uses background virtual pixels. Explicit background mode
             // promotes grayscale to RGB; otherwise native's gray cache uses blue.
             if (gray && virtualPixel !== "background") color = { r: color.b, g: color.b, b: color.b, a: color.a };
-            return { ...plan, space: gray && virtualPixel === "background" ? "srgb" as const : image.space, steps: warpPixelSteps(image, { ...plan, interpolation }, color, "background") };
+            return { ...plan, space: gray && virtualPixel === "background" ? "srgb" as const : image.space, steps: warpPixelSteps(image, { ...plan, interpolation, channels }, color, "background") };
         }
         if (plan && scale !== undefined) plan = scaleMagickWarpPlan(plan, image, scale);
         return plan ? { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel, kernel, filter) } : undefined;

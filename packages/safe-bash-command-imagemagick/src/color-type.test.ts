@@ -30,6 +30,7 @@ for (const mode of ["sync", "buffered", "command"] as const) {
     it.each([
         { input: "indexed", types: [], expected: [75, 100, 60, 255] },
         { input: "direct", types: [], expected: [75, 155, 195, 255] },
+        { input: "indexed", types: ["TrueColor"], expected: [75, 155, 195, 255] },
         { input: "indexed", types: ["TrueColorAlpha"], expected: [75, 155, 195, 255] },
         { input: "direct", types: ["Palette"], expected: [75, 100, 60, 255] },
         { input: "direct", types: ["Palette", "TrueColorAlpha"], expected: [75, 155, 195, 255] },
@@ -39,7 +40,7 @@ for (const mode of ["sync", "buffered", "command"] as const) {
         expect([...output.data.slice(8, 12)]).toEqual(expected);
     });
 
-    it.each(["TrueColorAlpha", "Palette"])(`converts to %s without another operator via ${mode}`, async type => {
+    it.each(["TrueColor", "TrueColorAlpha", "Palette"])(`converts to %s without another operator via ${mode}`, async type => {
         const output = await convert(fixtures.indexed, ["-type", type]);
         expect([...output.data]).toEqual([...decodeImage(fixtures.indexed).data]);
     });
@@ -53,10 +54,16 @@ for (const mode of ["sync", "buffered", "command"] as const) {
         expect([...opaque.data].filter((_, index) => index % 4 === 3)).toEqual([255, 255, 255]);
     });
 
-    it(`removes alpha without losing hidden RGB for Palette via ${mode}`, async () => {
+    it.each(["TrueColor", "Palette"])(`removes alpha without losing hidden RGB for %s via ${mode}`, async type => {
         const input = encodeImage({ ...decodeImage(fixtures.direct), data: new Uint8Array([20, 60, 100, 0, 180, 100, 60, 128, 75, 155, 195, 255]) }, { format: "png", pngColorType: 6 }).data;
-        const output = await convert(input, ["-type", "palette"]);
+        const output = await convert(input, ["-type", type.toLowerCase()]);
         expect([...output.data]).toEqual([20, 60, 100, 255, 180, 100, 60, 255, 75, 155, 195, 255]);
+    });
+
+    it(`converts PGM to TrueColor before cropping via ${mode}`, async () => {
+        const output = await convert(Buffer.from("P2\n2 1\n255\n17 34\n"), ["-type", "TrueColor", "-crop", "1x1+1+0"]);
+        expect([output.width, output.height]).toEqual([1, 1]);
+        expect([...output.data]).toEqual([34, 34, 34, 255]);
     });
 
     it(`limits the whole image to 256 palette colors across retained chunks via ${mode}`, async () => {
@@ -70,3 +77,18 @@ for (const mode of ["sync", "buffered", "command"] as const) {
         expect(colors.size).toBeLessThanOrEqual(256);
     });
 }
+
+it.each([
+    { type: [], alpha: 68 },
+    { type: ["-type", "TrueColorAlpha"], alpha: 68 },
+    { type: ["-type", "TrueColor"], alpha: 255 },
+])("writes numbered PNG output with alpha $alpha for $type", async ({ type, alpha }) => {
+    const fs = new MemoryFileSystem();
+    const result = await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(["-size", "1x1", "xc:#11223344", ...type, "tile-%02d.png"]).args,
+        cwd: "/", env: {}, fs, stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} },
+    });
+    expect(result.exitCode).toBe(0);
+    expect([...decodeImage(await fs.readFile("/tile-00.png")).data]).toEqual([17, 34, 51, alpha]);
+});

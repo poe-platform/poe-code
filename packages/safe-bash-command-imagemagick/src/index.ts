@@ -4711,13 +4711,13 @@ function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtual
     };
 }
 
-function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition, analysis?: { warnings: string }, warningSource = geomStr): Generator<void, RgbaImage[], void> {
+function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition, analysis?: { warnings: string }, warningSource = geomStr, background: RgbaColor = { r: 255, g: 255, b: 255, a: 255 }): Generator<void, RgbaImage[], void> {
     const tiles: RgbaImage[] = [];
     for (const area of magickCropAreas(img, geomStr, gravity)) {
         yield;
         if (!area && analysis) analysis.warnings += `magick: geometry does not contain image '${warningSource}'\n`;
         if (area === null) {
-            tiles.push({ ...(yield* createSolidRgbaImageSteps(1, 1, { r: 255, g: 255, b: 255, a: 0 })),
+            tiles.push({ ...(yield* createSolidRgbaImageSteps(1, 1, { ...background, a: 0 })),
                 ...(img.delay ? { delay: img.delay } : {}),
                 ...((img as MagickImage)[magickInput] ? { [magickInput]: (img as MagickImage)[magickInput] } : {}),
                 virtualCanvas: { ...magickCropCanvas(img, 0, 0), x: -1, y: -1 } });
@@ -9472,7 +9472,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     yield;
                 const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
-                nextStack.push(...(yield* applyMagickCropToStackSteps(im, expanded, state.gravity, analysis)));
+                nextStack.push(...(yield* applyMagickCropToStackSteps(im, expanded, state.gravity, analysis, expanded, state.background)));
             }
             stack = nextStack;
         }
@@ -11976,7 +11976,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = parseUnsharpGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, false, channels, geometry), signal) : undefined);
         } else if (!operandsOnly && token === "-crop") {
-            const geometry = tokens[++i] ?? "100%", gravity = state.gravity, optionProperties = state.optionProperties;
+            const geometry = tokens[++i] ?? "100%", gravity = state.gravity, optionProperties = state.optionProperties, background = state.background;
             stackStep(async (stack, backend) => {
                 const frames = new StoredImageStack(backend.storage, signal);
                 for (let n = 0; n < stack.length; n++) {
@@ -11987,7 +11987,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         await yieldTurn(signal);
                         if (!area) analysis.warnings += `magick: geometry does not contain image '${expanded}'\n`;
                         if (area === null) {
-                            await frames.push({ ...await createStoredCanvas(1, 1, { r: 255, g: 255, b: 255, a: 0 }, backend, signal),
+                            await frames.push({ ...await createStoredCanvas(1, 1, { ...background, a: 0 }, backend, signal),
                                 ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
                                 ...(image[magickInput] ? { [magickInput]: image[magickInput] } : {}),
                                 virtualCanvas: { ...magickCropCanvas(image, 0, 0), x: -1, y: -1 } });

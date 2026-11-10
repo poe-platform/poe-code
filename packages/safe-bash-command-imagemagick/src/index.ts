@@ -10188,6 +10188,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-colors") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const colors = Number(tokens[++i]);
             state.colors = colors;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
@@ -12745,6 +12746,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-colors") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const colors = Number(tokens[++i]), grayscale = state.quantizeGray, treeDepth = state.treeDepth, dither = state.dither, diffusionAmount = state.diffusionAmount ?? 1;
             state.colors = colors;
             steps.push(async (image, backend) => {

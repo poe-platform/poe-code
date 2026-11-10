@@ -1,4 +1,4 @@
-import { parseAudioChannelLayout } from "./audio-channel-layout.js";
+import { audioSpeakerMasks, parseAudioChannelLayout } from "./audio-channel-layout.js";
 import { ffmpegColors } from "./ffmpeg-colors.js";
 import { encodeH264PresetTrack, h264Presets } from "@poe-code/mp4-ast";
 import { parseFeedbackGraph, applyFeedback } from "./feedback.js";
@@ -1102,15 +1102,14 @@ async function panAudio(
 ): Promise<{ channels: Float32Array[]; channelMask: number }> {
   const [layout, ...assignments] = spec.split("|").map(value => value.trim());
   const names = parseAudioChannelLayout(layout ?? "");
-  if (!["FC", "FL+FR", "FL+FR+BL+BR", "FL+FR+FC+LFE+BL+BR"].includes(names.join("+"))) {
+  if (names.some(name => audioSpeakerMasks[name] === undefined) || new Set(names).size !== names.length) {
     throw new Error(`pan: unsupported output layout ${layout}`);
   }
-  const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR",
-    "TC", "TFL", "TFC", "TFR", "TBL", "TBC", "TBR"];
+  const speakers = Object.keys(audioSpeakerMasks);
   // Default layouts are mono, stereo, 2.1, 4.0, 5.0, 5.1, 6.1 and 7.1.
   // An explicit mask takes precedence; four unmasked channels are not quad.
   const inputMask = channelMask || ([0, 0x4, 0x3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][channels.length] ?? 0);
-  const inputNames = speakers.filter((_, index) => (inputMask & (1 << index)) !== 0);
+  const inputNames = speakers.filter(name => Math.floor(inputMask / audioSpeakerMasks[name]!) % 2 === 1);
   const channelIndex = (name: string, labels: string[], count: number) => {
     const index = name.startsWith("c") && name.length > 1 &&
       [...name.slice(1)].every(char => char >= "0" && char <= "9")
@@ -1175,9 +1174,7 @@ async function panAudio(
       const channelStart = offset;
       while (offset < expression.length && expression[offset] !== "+" && expression[offset] !== "-") offset++;
       const inputName = expression.slice(channelStart, offset).trim();
-      const input = channelIndex(inputName, [
-        ...speakers, "DL", "DR", "WL", "WR", "SDL", "SDR", "TSL", "TSR", "BFC", "BFL", "BFR"
-      ], 64);
+      const input = channelIndex(inputName, speakers, 64);
       const numbered = inputName.startsWith("c");
       if (numberedInputs !== undefined && numberedInputs !== numbered) {
         throw new Error("pan: cannot mix named and numbered input channels");
@@ -1237,7 +1234,7 @@ async function panAudio(
       output[out]![sample] = value;
     }
   }
-  return { channels: output, channelMask: names.reduce((mask, name) => mask | (1 << speakers.indexOf(name)), 0) };
+  return { channels: output, channelMask: names.reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0) };
 }
 
 function parseAmergeInputs(filter: string): number {
@@ -11343,6 +11340,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else if (key === "channel_layout") layout = value;
                           else throw new Error(`channelmap: unsupported option ${key}`);
                         }
+<<<<<<< HEAD
                         const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR",
                           "TC", "TFL", "TFC", "TFR", "TBL", "TBC", "TBR"];
                         const inputNames = filteredChannelNames ?? (filteredChannelMask
@@ -11364,7 +11362,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (outputNames.some(name => !speakers.includes(name)) || new Set(outputNames).size !== outputNames.length) {
                               throw new Error("channelmap: unsupported channel layout");
                             }
+=======
+                        const speakers = Object.keys(audioSpeakerMasks);
+                        const inputNames = filteredChannelMask
+                          ? speakers.filter(name => Math.floor(filteredChannelMask! / audioSpeakerMasks[name]!) % 2 === 1)
+                          : stretched.length === 1 ? ["FC"] : stretched.length === 2 ? ["FL", "FR"] : [];
+                        let outputNames: string[] | undefined;
+                        if (layout) {
+                          outputNames = parseAudioChannelLayout(layout);
+                          if (outputNames.some(name => !speakers.includes(name)) || new Set(outputNames).size !== outputNames.length) {
+                            throw new Error("channelmap: unsupported channel layout");
+>>>>>>> 3407fa5d4f (fix(ffmpeg): support extended speaker layouts)
                           }
+                          outputNames = speakers.filter(name => outputNames!.includes(name));
                         }
                         if (map?.endsWith("|")) map = map.slice(0, -1);
                         const entries = map === undefined && outputNames
@@ -11388,7 +11398,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // FFmpeg's default layouts by channel count: mono, stereo, 2.1,
                         // 4.0, 5.0, 5.1, 6.1, and 7.1 (four channels are not quad).
                         const defaultMask = [0, 0x4, 0x3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][entries.length] ?? 0;
-                        outputNames ??= speakers.filter((_, index) => (defaultMask & (1 << index)) !== 0);
+                        outputNames ??= speakers.filter(name => Math.floor(defaultMask / audioSpeakerMasks[name]!) % 2 === 1);
                         if (!outputNames.length || entries.length !== outputNames.length) {
                           throw new Error("channelmap: unsupported or mismatched channel layout");
                         }
@@ -11405,8 +11415,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           selected[output] = stretched[input]!;
                         }
                         stretched = selected;
+<<<<<<< HEAD
                         filteredChannelMask = outputNames.reduce((mask, name) => mask | (1 << speakers.indexOf(name)), 0);
                         filteredChannelNames = outputNames;
+=======
+                        filteredChannelMask = outputNames.reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0);
+>>>>>>> 3407fa5d4f (fix(ffmpeg): support extended speaker layouts)
                       } else if (trimmed === "channelsplit" || trimmed.startsWith("channelsplit=")) {
                         const { input, selected } = parseChannelSplit(trimmed);
                         if (selected.length !== 1) throw new Error("channelsplit: simple audio filters require exactly one output");

@@ -26,6 +26,7 @@ import { weave } from "./weave.js";
 import { separateFields } from "./separatefields.js";
 import { decimate } from "./decimate.js";
 import { meanFrameDifference } from "./select.js";
+import { sceneChangeDifference } from "./scdet.js";
 import { parseDecimateGraph } from "./decimate-graph.js";
 import { cutSubAudio } from "./audio-asubcut.js";
 import { boostSubAudio } from "./audio-asubboost.js";
@@ -2166,6 +2167,53 @@ async function applyVideoFilterChain(
         ((450*r - 377*g - 73*b + 511) >> 10) + 128
       ];
       current = await signalstats(current, stat === "brng" || stat === "4", color, budget, signal);
+    } else if (name === "scdet") {
+      let threshold = 10;
+      let pass = false;
+      let position = 0;
+      for (const option of positional) {
+        if (!option) continue;
+        const equals = option.indexOf("=");
+        const key = equals < 0 ? ["threshold", "t", "sc_pass", "s"][position++] : option.slice(0, equals);
+        const value = equals < 0 ? option : option.slice(equals + 1);
+        if (key === "threshold" || key === "t") {
+          threshold = parseFilterExpression(value, "scdet", { default: 10, min: 0, max: 100 });
+          if (!Number.isFinite(threshold) || threshold < 0 || threshold > 100) {
+            throw new Error("scdet: threshold must be between 0 and 100");
+          }
+        } else if (key === "sc_pass" || key === "s") {
+          pass = parseFilterBoolean(value, "scdet: sc_pass must be a boolean");
+        } else throw new Error(`scdet: unsupported option ${key}`);
+      }
+      if (pass && lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
+      let previous: typeof current[number] | undefined;
+      let previousDifference = 0;
+      const retained: typeof current = [];
+      for (const frame of current) {
+        if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+        let score = 0;
+        if (previous && previous.width === frame.width && previous.height === frame.height) {
+          const difference = await sceneChangeDifference(frame, previous, pixelFormat, budget, signal);
+          score = Math.fround(Math.min(100, Math.min(difference, Math.abs(difference - previousDifference))));
+          previousDifference = difference;
+        }
+        const metadata = { ...frame.filterMetadata,
+          "lavfi.scd.mafd": previousDifference.toFixed(3), "lavfi.scd.score": score.toFixed(3) };
+        const detected = score >= threshold;
+        if (detected) {
+          const time = String(Number(frame.ptsSeconds.toPrecision(6)));
+          Object.assign(metadata, { "lavfi.scd.time": time });
+          if (diagnostics.logLevel >= 32) {
+            await diagnostics.write(`lavfi.scd.score: ${score.toFixed(3)}, lavfi.scd.time: ${time}\n`);
+          }
+        }
+        previous = frame;
+        if (!pass || detected) {
+          budget.allocateMemory(128);
+          retained.push({ ...frame, filterMetadata: metadata });
+        }
+      }
+      current = retained;
     } else if (name === "bitplanenoise") {
       const bitplane = Number(named.bitplane ?? (positional[0]?.includes("=") ? undefined : positional[0] || undefined) ?? 1);
       const filter = named.filter ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "0";

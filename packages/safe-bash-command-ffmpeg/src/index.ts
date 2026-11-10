@@ -9745,7 +9745,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (filteredSampleFormat === "u8") filteredSampleFormat = "s16";
                         stretched = await phaseAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal);
                       } else if (filterName === "aphaseshift" || filterName === "afreqshift") {
-                        stretched = await shiftAudioPhase(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
+                        filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
+                        stretched = await shiftAudioPhase(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal);
                         statsScale = 1;
                       } else if (trimmed === "apulsator" || trimmed.startsWith("apulsator=")) {
                         stretched = await pulsateAudio(stretched, origRate, trimmed, budget, context.signal);

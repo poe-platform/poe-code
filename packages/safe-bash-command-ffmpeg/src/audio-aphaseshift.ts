@@ -4,7 +4,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function shiftAudioPhase(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  codec: string | undefined, budget: MediaBudgetTracker, signal?: AbortSignal
+  format: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
   const frequencyShift = filter.split("=", 1)[0] === "afreqshift";
   const name = frequencyShift ? "afreqshift" : "aphaseshift";
@@ -31,8 +31,7 @@ export async function shiftAudioPhase(
   signal?.throwIfAborted();
   budget.checkCpu();
   budget.allocateMemory((length * channels.length + stages * (channels.length * 4 + 1)) * 8);
-  // Match native planar-float arithmetic for integer/float inputs, and double for PCM64.
-  const round = codec === "pcm_f64le" ? (value: number) => value : Math.fround;
+  const round = format === "dblp" ? (value: number) => value : Math.fround;
   const coefficients = new Float64Array(stages);
   // Elliptic all-pass design with a 40 Hz transition, split into even/odd paths.
   const k = Math.tan((1 - 80 / sampleRate) * Math.PI / 4) ** 2;

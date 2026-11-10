@@ -96,9 +96,9 @@ for (const [order, startup, steady] of [[1, [0, 2908, 3378, -792, -5269, -9564, 
 
 it("honors frequency shift memory and CPU limits and cancellation", async () => {
   const input = [new Float32Array(4000)];
-  await assert.rejects(shiftAudioPhase(input, 8000, "afreqshift", "pcm_s16le", new MediaBudgetTracker({ maxMemoryBytes: 64 })), /maxMemoryBytes/);
-  await assert.rejects(shiftAudioPhase(input, 8000, "afreqshift", "pcm_s16le", new MediaBudgetTracker({ maxCpuMs: -1 })), /maxCpuMs/);
-  await assert.rejects(shiftAudioPhase(input, 8000, "afreqshift", "pcm_s16le", new MediaBudgetTracker(), AbortSignal.abort()));
+  await assert.rejects(shiftAudioPhase(input, 8000, "afreqshift", "fltp", new MediaBudgetTracker({ maxMemoryBytes: 64 })), /maxMemoryBytes/);
+  await assert.rejects(shiftAudioPhase(input, 8000, "afreqshift", "fltp", new MediaBudgetTracker({ maxCpuMs: -1 })), /maxCpuMs/);
+  await assert.rejects(shiftAudioPhase(input, 8000, "afreqshift", "fltp", new MediaBudgetTracker(), AbortSignal.abort()));
 });
 
 for (const [fractional, integer] of [[2.5, 2], [3.5, 4]]) {

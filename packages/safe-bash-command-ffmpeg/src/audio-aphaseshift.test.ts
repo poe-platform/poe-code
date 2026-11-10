@@ -79,9 +79,9 @@ for (const [sampleRate, filter, start, tail] of [
 
 it("bounds phase-shift memory and honors cancellation", async () => {
   const channels = [new Float32Array(4000)];
-  await assert.rejects(shiftAudioPhase(channels, 8000, "aphaseshift", "pcm_s16le",
+  await assert.rejects(shiftAudioPhase(channels, 8000, "aphaseshift", "fltp",
     new MediaBudgetTracker({ maxMemoryBytes: 128 })), /maxMemoryBytes/);
-  await assert.rejects(shiftAudioPhase(channels, 8000, "aphaseshift", "pcm_s16le",
+  await assert.rejects(shiftAudioPhase(channels, 8000, "aphaseshift", "fltp",
     new MediaBudgetTracker(), AbortSignal.abort()));
 });
 

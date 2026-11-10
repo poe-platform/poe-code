@@ -683,6 +683,7 @@ interface MagickState {
   kernel: ResizeKernel | undefined;
   magnifyMethod?: MagnifyMethod;
   modulateColorspace?: string;
+  whiteBalanceVibrance?: string;
   resizeFilter?: ResizeFilterSettings;
   sampleOffset?: { x: number; y: number };
   pointFilter?: boolean;
@@ -8609,6 +8610,7 @@ if (t === "-seed") {
             if (key === "tiff:rows-per-strip") delete state.tiffRowsPerStrip;
             if (key === "dither:diffusion-amount") delete state.diffusionAmount;
             if (key === "modulate:colorspace") delete state.modulateColorspace;
+            if (key === "white-balance:vibrance") delete state.whiteBalanceVibrance;
             if (key === "magnify:method") delete state.magnifyMethod;
             if (key === "trim:edges") delete state.trimEdges;
         }
@@ -8634,6 +8636,7 @@ if (t === "-seed") {
                 state.diffusionAmount = Number.isFinite(amount) ? amount / (filterValue?.includes("%") ? 100 : 1) : 0;
             }
             if (filterKey === "modulate:colorspace") state.modulateColorspace = filterValue ?? "hsl";
+            if (filterKey === "white-balance:vibrance") state.whiteBalanceVibrance = filterValue ?? "";
             if (filterKey === "sample:offset") {
                 const geometry = parseMagickGeometry(filterValue ?? "");
                 const x = geometry.width ?? 0;
@@ -9562,7 +9565,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const lab = yield* toLab.apply(image);
                 const { magickColorspace: ignoredSpace, hueSamples: ignoredHue, ...metadata } = lab;
-                return yield* applyMagickRasterSteps({ ...metadata, isPalette: false }, whiteBalancePixelSteps(lab), signal, lab, [lab]);
+                return yield* applyMagickRasterSteps({ ...metadata, isPalette: false }, whiteBalancePixelSteps(lab, state.whiteBalanceVibrance), signal, lab, [lab]);
             });
         }
         else if (t === "-charcoal") {
@@ -11967,11 +11970,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, cannyPixelSteps(image, spec, channels, virtualPixel, background), signal, { ...image, hasAlpha: false }) : undefined);
         } else if (!operandsOnly && token === "-white-balance") {
             const toLab = parseMagickPixelOperation(["-colorspace", "Lab"], state, 0, signal)!;
+            const vibrance = state.whiteBalanceVibrance;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const lab = await transformStoredMagickPixels(image, backend, toLab, signal);
                 const { magickColorspace: ignoredSpace, storedHueSamples: ignoredHue, ...metadata } = lab;
-                return transformStoredMagickRaster({ ...metadata, isPalette: false }, backend, whiteBalancePixelSteps(lab), signal, lab, [lab]);
+                return transformStoredMagickRaster({ ...metadata, isPalette: false }, backend, whiteBalancePixelSteps(lab, vibrance), signal, lab, [lab]);
             });
         } else if (!operandsOnly && token === "-charcoal") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");

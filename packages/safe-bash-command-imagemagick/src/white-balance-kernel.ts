@@ -3,8 +3,12 @@ import { convertHuePixels } from "./colorspace-hue.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Gray-world correction in Lab, including colors beneath transparent pixels. */
-export function* whiteBalancePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* whiteBalancePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">, vibrance?: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const size = image.width * image.height * 4;
+    // Native levels Lab chroma in Q16 units; bare values are not percentages.
+    const black = (Number.parseFloat(vibrance ?? "") || 0) * (vibrance?.includes("%") ? 65535 / 100 : 1);
+    const range = 65535 - 2 * black;
+    const scale = 1 / (Math.abs(range) >= 1e-12 ? range : range < 0 ? -1e-12 : 1e-12);
     let a = 0, b = 0;
     for (let pass = 0; pass < 2; pass++) {
         for (let position = 0; position < size; position += 2048) {
@@ -23,6 +27,11 @@ export function* whiteBalancePixelSteps(image: Pick<RgbaImage, "width" | "height
                 else {
                     samples[offset + 1]! -= 1.1 * samples[offset]! * a;
                     samples[offset + 2]! -= 1.1 * samples[offset]! * b;
+                    if (vibrance !== undefined) {
+                        // ImageMagick 7.1.2 aliases both aChannel and bChannel to
+                        // GreenChannel, so its vibrance mask levels only Lab a.
+                        samples[offset + 1] = Math.max(0, Math.min(1, (samples[offset + 1]! * 65535 - black) * scale));
+                    }
                 }
             }
             if (pass === 1) {

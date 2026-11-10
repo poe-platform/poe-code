@@ -1,3 +1,4 @@
+import { readIccDescription } from "./icc-description.js";
 import { readExifTextProperties } from "./exif-text.js";
 import { discardDisassociatedAlpha } from "./alpha-state.js";
 import { cropReadMaskSteps, cropStoredReadMask } from "./crop-read-mask.js";
@@ -1763,6 +1764,10 @@ function* formatMagickPropertyStringSteps<Step=never>(
         parts.push(properties[`artifact:${key}`]!);
       } else if (Object.hasOwn(context.optionProperties ?? {}, optionKey)) {
         parts.push(context.optionProperties![optionKey]!);
+      } else if (key === "icc:description") {
+        const value = meta.icc ? readIccDescription(meta.icc) : undefined;
+        if (value !== undefined) parts.push(value);
+        else if (context.analysis) warnUnknownMagickProperty(token, context.analysis);
       } else if (key.startsWith("exif:")) {
         exifProperties ??= meta.exif ? readExifTextProperties(meta.exif) : {};
         const value = exifProperties[key];

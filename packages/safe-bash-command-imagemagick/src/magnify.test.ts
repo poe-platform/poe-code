@@ -71,7 +71,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     });
 }
 
-it.each(["eagle3xb", "fish2x", "hq2x", "xbr2x"])("does not silently substitute Scale2x for unsupported %s", async method => {
+it.each(["eagle3xb", "fish2x", "hq2x"])("does not silently substitute Scale2x for unsupported %s", async method => {
     const filesystem = new MemoryFileSystem();
     const original = new TextEncoder().encode("KEEP");
     await filesystem.writeFile("/out", original);

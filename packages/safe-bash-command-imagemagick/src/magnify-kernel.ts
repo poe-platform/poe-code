@@ -3,22 +3,23 @@ import type { RgbaColor } from "@poe-code/image-ast/portable";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 
-export type MagnifyMethod = "epbx2x" | "scale2x" | "eagle2x" | "scale3x" | "eagle3x";
+export type MagnifyMethod = "epbx2x" | "scale2x" | "eagle2x" | "scale3x" | "eagle3x" | "xbr2x";
 
 export function parseMagnifyMethod(value: string): MagnifyMethod {
     const method = value.toLowerCase();
-    if (method === "epbx2x" || method === "scale2x" || method === "eagle2x" || method === "scale3x" || method === "eagle3x") return method;
+    if (method === "epbx2x" || method === "scale2x" || method === "eagle2x" || method === "scale3x" || method === "eagle3x" || method === "xbr2x") return method;
     // Native defaults unknown names to Scale2x, but these names select distinct algorithms.
-    if (["eagle3xb", "fish2x", "hq2x", "xbr2x"].includes(method)) {
+    if (["eagle3xb", "fish2x", "hq2x"].includes(method)) {
         throw new Error(`Unsupported magnify method: ${value}`);
     }
     return "scale2x";
 }
 
-// Bounded three-row neighborhoods serve both in-memory and retained rasters.
+// Bounded row neighborhoods serve both in-memory and retained rasters.
 // Copy complete Q16 pixels so equality and output preserve alpha and precision.
 export function* magnifyPixelSteps(image: { width: number; height: number; hasAlpha: boolean }, method: MagnifyMethod = "scale2x", background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const factor = method === "scale3x" || method === "eagle3x" ? 3 : 2;
+    const radius = method === "xbr2x" ? 2 : 1;
     const gray = virtualPixel === "white" ? 65535 : virtualPixel === "gray" ? 32768 : 0;
     const fill = virtualPixel === "background" || virtualPixel.endsWith("-tile")
         ? [background.r, background.g, background.b, background.a].map(value => Math.round(value * 257))
@@ -27,17 +28,17 @@ export function* magnifyPixelSteps(image: { width: number; height: number; hasAl
         yield;
         const count = Math.min(1024, image.width - left);
         const rows: Uint16Array[] = [];
-        for (let dy = -1; dy <= 1; dy++) {
-            const row = new Uint16Array((count + 2) * 4);
-            for (let column = 0; column < count + 2;) {
-                const pixel = virtualPixelIndex(left + column - 1, y + dy, image.width, image.height, virtualPixel);
+        for (let dy = -radius; dy <= radius; dy++) {
+            const row = new Uint16Array((count + 2 * radius) * 4);
+            for (let column = 0; column < count + 2 * radius;) {
+                const pixel = virtualPixelIndex(left + column - radius, y + dy, image.width, image.height, virtualPixel);
                 if (pixel < 0) {
                     row.set(fill, column++ * 4);
                     continue;
                 }
                 // Keep contiguous reads bounded, splitting where virtual pixels wrap.
                 let length = 1;
-                while (column + length < count + 2 && virtualPixelIndex(left + column + length - 1, y + dy, image.width, image.height, virtualPixel) === pixel + length) length++;
+                while (column + length < count + 2 * radius && virtualPixelIndex(left + column + length - radius, y + dy, image.width, image.height, virtualPixel) === pixel + length) length++;
                 const bytes = yield { kind: "read", highDepth: true, position: pixel * 4, length: length * 4 };
                 if (!bytes || bytes.length !== length * 8) throw new Error("Truncated magnify pixels");
                 row.set(new Uint16Array(bytes.slice().buffer), column * 4);
@@ -47,13 +48,24 @@ export function* magnifyPixelSteps(image: { width: number; height: number; hasAl
         }
         const output = Array.from({ length: factor }, () => new Uint16Array(count * factor * 4));
         for (let x = 0; x < count; x++) {
-            const pixels = rows.flatMap(row => [-1, 0, 1].map(dx => {
-                const offset = (x + dx + 1) * 4;
+            const pixels = rows.flatMap(row => Array.from({ length: 2 * radius + 1 }, (_, dx) => {
+                const offset = (x + dx) * 4;
                 return row.subarray(offset, offset + 4);
             }));
             const eq = (a: number, b: number) => pixels[a]!.every((value, channel) => channel === 3 && !image.hasAlpha || value === pixels[b]![channel]);
-            const selected = new Array<number>(factor * factor).fill(4);
-            if (method === "eagle2x") {
+            const selected = new Array<number>(factor * factor).fill(method === "xbr2x" ? 12 : 4);
+            if (method === "xbr2x") {
+                // ImageMagick Xbr2X: equality weights over a row-major 5x5 neighborhood.
+                const w = (a: number, b: number) => eq(a, b) ? 0 : 1;
+                if (w(12, 16) + w(12, 8) + w(6, 10) + w(6, 2) + 4 * w(11, 7) <
+                    w(11, 17) + w(11, 5) + w(7, 13) + w(7, 1) + 4 * w(12, 6)) selected[0] = w(12, 11) <= w(12, 7) ? 11 : 7;
+                if (w(12, 18) + w(12, 6) + w(8, 14) + w(8, 2) + 4 * w(7, 13) <
+                    w(13, 17) + w(13, 9) + w(11, 7) + w(7, 3) + 4 * w(12, 8)) selected[1] = w(12, 7) <= w(12, 13) ? 7 : 13;
+                if (w(12, 6) + w(12, 18) + w(16, 10) + w(16, 22) + 4 * w(11, 17) <
+                    w(11, 7) + w(11, 15) + w(13, 17) + w(17, 21) + 4 * w(12, 16)) selected[2] = w(12, 11) <= w(12, 17) ? 11 : 17;
+                if (w(12, 8) + w(12, 16) + w(18, 14) + w(18, 22) + 4 * w(13, 17) <
+                    w(11, 17) + w(17, 23) + w(17, 19) + w(7, 13) + 4 * w(12, 18)) selected[3] = w(12, 13) <= w(12, 17) ? 13 : 17;
+            } else if (method === "eagle2x") {
                 if (eq(0, 1) && eq(1, 3)) selected[0] = 0;
                 if (eq(1, 2) && eq(2, 5)) selected[1] = 2;
                 if (eq(3, 6) && eq(6, 7)) selected[2] = 6;
@@ -94,7 +106,11 @@ export function* magnifyPixelSteps(image: { width: number; height: number; hasAl
                 }
             }
             for (let dy = 0; dy < factor; dy++) for (let dx = 0; dx < factor; dx++) {
-                output[dy]!.set(pixels[selected[dy * factor + dx]!]!, (x * factor + dx) * 4);
+                const pixel = pixels[selected[dy * factor + dx]!]!, offset = (x * factor + dx) * 4;
+                if (method === "xbr2x") {
+                    // Native Mix2Pixels uses integer division, including the alpha channel.
+                    for (let channel = 0; channel < 4; channel++) output[dy]![offset + channel] = Math.floor((pixel[channel]! + pixels[12]![channel]!) / 2);
+                } else output[dy]!.set(pixel, offset);
             }
         }
         for (let dy = 0; dy < factor; dy++) yield { kind: "write", highDepth: true, position: ((y * factor + dy) * image.width * factor + left * factor) * 4, data: new Uint8Array(output[dy]!.buffer) };

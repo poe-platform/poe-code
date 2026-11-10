@@ -20,7 +20,7 @@ for (const mode of ["sync", "buffered", "retained", "magick", "montage"] as cons
   ])(`${mode} preserves GIF frame selection with $options and $input`, async ({ options, input, hex }) => {
     const fs = new MemoryFileSystem(), files = new Map([["/trio.gif", gif]]);
     await fs.writeFile("/trio.gif", gif);
-    const args = ["-geometry", "1x1+0+0", "-tile", "x1", ...options, input, "rgb:-"];
+    const args = ["-geometry", "1x1+0+0", "-tile", "x1", ...options, input, "-depth", "8", "rgb:-"];
     let output: Uint8Array;
     if (mode === "magick" || mode === "montage") {
       const command = mode === "magick" ? createMagickCommand() : createMontageCommand();

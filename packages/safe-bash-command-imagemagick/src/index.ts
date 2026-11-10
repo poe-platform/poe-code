@@ -10443,6 +10443,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 // Displacements clear disassociated alpha's separate-channel trait.
                 if (image.alphaBlend === false && ["-swirl", "-implode", "-wave", "-spread"].includes(t)) output.alphaSeparate = false;
                 if (["-swirl", "-implode", "-wave", "-spread"].includes(t)) output = { ...output, isPalette: false };
+                // Wave and spread create fresh meta channels at the output dimensions.
+                if (image.metaChannels?.length && (t === "-wave" || t === "-spread")) {
+                    output.metaChannels = [];
+                    for (const plane of image.metaChannels)
+                        output.metaChannels.push(yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16));
+                }
                 if (image.metaChannels?.length && (t === "-swirl" || t === "-implode")) {
                     output.metaChannels = [];
                     for (const plane of image.metaChannels) {
@@ -13003,6 +13009,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 // Displacements clear disassociated alpha's separate-channel trait.
                 if (image.alphaBlend === false && ["-swirl", "-implode", "-wave", "-spread"].includes(token)) output.alphaSeparate = false;
                 if (["-swirl", "-implode", "-wave", "-spread"].includes(token)) output = { ...output, isPalette: false };
+                // Wave and spread create fresh meta channels at the output dimensions.
+                if (image.storedMetaChannels?.length && (token === "-wave" || token === "-spread")) {
+                    output.storedMetaChannels = [];
+                    for (const plane of image.storedMetaChannels)
+                        output.storedMetaChannels.push(await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal, !!plane.storedData16));
+                }
                 if (image.storedMetaChannels?.length && (token === "-swirl" || token === "-implode")) {
                     output.storedMetaChannels = [];
                     for (const plane of image.storedMetaChannels) {

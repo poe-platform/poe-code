@@ -126,7 +126,7 @@ export async function buildBrowserEngine(options = {}) {
     ...(options.entry
       ? { entryPoints: [resolve(directory, options.entry)] }
       : options.kernelOnly
-      ? { stdin: { contents: 'export * from "virtual:safe-bash-kernel";', resolveDir: directory } }
+      ? { stdin: { contents: 'export * from "virtual:safe-bash-kernel"; export { Worker, browserWorkerRuntime } from "./workers.mjs";', resolveDir: directory } }
       : { entryPoints: [resolve(directory, "index.ts")] }),
     format: "esm",
     plugins: [browserPlugin()]
@@ -148,8 +148,9 @@ export async function buildBrowserEngine(options = {}) {
 
 export function safeBashBrowserPlugin() {
   let compiled;
+  let production = false;
   const watched = new Set();
-  const prepare = () => compiled ??= buildBrowserEngine({ workersOnly: true });
+  const prepare = () => compiled ??= buildBrowserEngine(production ? { kernelOnly: true, minify: true } : { workersOnly: true });
   const globals = {
     name: "safe-bash-module-globals",
     setup(builder) {
@@ -162,7 +163,15 @@ export function safeBashBrowserPlugin() {
   return {
     name: "safe-bash-browser-kernel",
     enforce: "pre",
+    configResolved(config) {
+      production = config.command === "build";
+    },
     resolveId(id, importer) {
+      // Keep the large kernel out of Rollup's graph and share its worker runtime.
+      if (production && (id === "virtual:safe-bash-kernel" ||
+          (importer && resolve(dirname(importer), id) === resolve(directory, "workers.mjs")))) {
+        return { id: "./safe-bash-kernel.js", external: true };
+      }
       if (id === "virtual:safe-bash-kernel") return "\0safe-bash-browser-kernel";
       if (id === "virtual:safe-bash-worker-sources") return "\0safe-bash-browser-workers";
       if (["poe-code/safe-fs", "poe-code/safe-fs/core", "@poe-code/safe-fs", "@poe-code/safe-fs/core"].includes(id)) return "\0safe-bash-browser-filesystem";
@@ -202,6 +211,10 @@ export function safeBashBrowserPlugin() {
       if (id.startsWith(`${directory}/`) || watched.has(id)) compiled = undefined;
     },
     async generateBundle() {
+      if (production) {
+        const result = await prepare();
+        this.emitFile({ type: "asset", fileName: "assets/safe-bash-kernel.js", source: result.code });
+      }
       if (compiled) {
         const result = await compiled;
         this.emitFile({

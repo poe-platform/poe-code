@@ -1236,7 +1236,7 @@ function serializeFilterChain(filters: string[]): string {
 
 async function renderShowwavespic(
   audio: MediaAudioData, spec: string, budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<MediaVideoFrame> {
+): Promise<MediaVideoFrame | undefined> {
   const equals = spec.indexOf("=");
   if ((equals < 0 ? spec : spec.slice(0, equals)) !== "showwavespic") {
     throw new Error("showwavespic: preceding filters are unsupported");
@@ -1275,6 +1275,7 @@ async function renderShowwavespic(
   if (!count) throw new Error("showwavespic: no audio samples");
   const rowHeight = split ? Math.floor(height / channels.length) : height;
   if (!rowHeight) throw new Error("showwavespic: image height is smaller than the channel count");
+  if (count < width) return undefined;
   budget.recordFrame(width, height);
   budget.allocateMemory(width * height * 4);
   const data = new Uint8Array(width * height * 4);
@@ -10180,6 +10181,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (!audio) throw new Error("showwavespic requires decoded PCM audio");
                 const filters = parseFilterChain(expression);
                 const frame = await renderShowwavespic(audio, filters.shift() ?? "", budget, context.signal);
+                if (!frame) {
+                  if (logLevel >= 16) await writeBytes(context.stderr, encodeUtf8("showwavespic: Too few samples.\n"), context.signal);
+                  hasEmptyOutput = true;
+                  emptyOutputStreams.push(`${progressOutputIndex}:0`);
+                  options.onMetrics?.(budget.getStats());
+                  return { exitCode: 0 };
+                }
                 vfFilters.push(...filters);
                 workingDoc = { ...doc, duration: doc.timescale, durationSeconds: 1, tracks: [{
                   id: 1, type: "video", handlerType: "vide", timescale: 1, duration: 1,

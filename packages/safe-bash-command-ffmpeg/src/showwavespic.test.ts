@@ -64,7 +64,7 @@ for (const [expression, limits, error] of [
   ["showwavespic=s=1200x1200", { maxMemoryBytes: 10000 }, "maxMemoryBytes"]
 ] as const) {
   it(`rejects unsupported or over-budget waveform rendering: ${expression} ${error}`, async () => {
-    const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(80).fill(0.5)] });
+    const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(1200).fill(0.5)] });
     const volume = Volume.fromJSON({ "/in.wav": Buffer.from(input) });
     let stderr = "";
     const result = await createFfmpegCommand({ limits }).execute({

@@ -11755,7 +11755,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             // Decoded audio is key; video classification and concat metadata are unavailable.
                             key: 1, pict_type: NaN, interlace_type: NaN, concatdec_select: NaN,
                             I: 1, PROGRESSIVE: 0,
-                            n: 0, t: NaN, pts: NaN, TB: 1 / origRate, start_pts: NaN, start_t: NaN
+                            n: 0, t: NaN, pts: NaN, TB: 1 / origRate, start_pts: NaN, start_t: NaN, pos: NaN
                           };
                           if (audioTimestamps.length === 0) parseFilterExpression(expression, "aselect", variables);
                           const selected: typeof audioTimestamps = [];
@@ -11767,6 +11767,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             context.signal?.throwIfAborted();
                             variables.n = n;
                             variables.pts = frame.pts;
+                            variables.pos = frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN;
                             variables.t = frame.pts / origRate;
                             if (Number.isNaN(variables.start_pts)) {
                               variables.start_pts = frame.pts;

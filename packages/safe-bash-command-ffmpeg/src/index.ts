@@ -2822,6 +2822,8 @@ async function applyVideoFilterChain(
       let variables: Record<string, number> = {};
       let xExpression = crop.x ?? "(iw-ow)/2";
       let yExpression = crop.y ?? "(ih-oh)/2";
+      const xRegisters = new Float64Array(10);
+      const yRegisters = new Float64Array(10);
       const configureCrop = () => {
         const dimensions = {
           PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
@@ -2840,8 +2842,11 @@ async function applyVideoFilterChain(
         }
         const x = crop.x ?? "(iw-ow)/2";
         const y = crop.y ?? "(ih-oh)/2";
-        parseFilterExpression(x, "crop", dimensions);
-        parseFilterExpression(y, "crop", dimensions);
+        // Validation must not advance the registers used by the first frame.
+        parseFilterExpression(x, "crop", dimensions, undefined, new Float64Array(10));
+        parseFilterExpression(y, "crop", dimensions, undefined, new Float64Array(10));
+        xRegisters.fill(0);
+        yRegisters.fill(0);
         cw = width;
         ch = height;
         variables = { ...dimensions, ow: cw, oh: ch, out_w: cw, out_h: ch };
@@ -2883,9 +2888,9 @@ async function applyVideoFilterChain(
         variables.t = f.ptsSeconds;
         variables.pos = f.offset ?? NaN;
         // FFmpeg evaluates x again after y so either coordinate can depend on the other.
-        variables.x = parseFilterExpression(xExpression, "crop", variables);
-        variables.y = parseFilterExpression(yExpression, "crop", variables);
-        variables.x = parseFilterExpression(xExpression, "crop", variables);
+        variables.x = parseFilterExpression(xExpression, "crop", variables, undefined, xRegisters);
+        variables.y = parseFilterExpression(yExpression, "crop", variables, undefined, yRegisters);
+        variables.x = parseFilterExpression(xExpression, "crop", variables, undefined, xRegisters);
         if (!Number.isNaN(variables.x)) {
           left = Math.floor(Math.max(0, Math.min(iw - cw, roundToEven(variables.x))) / hsub) * hsub;
         }

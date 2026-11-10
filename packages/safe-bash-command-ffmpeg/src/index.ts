@@ -13957,6 +13957,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let drymix = Math.fround(options.drymix);
                         const output = stretched.map(channel => new Float32Array(channel.length));
                         const length = stretched[0]!.length;
+                        const registers = new Float64Array(10);
                         for (let start = 0, n = 0; start < length; n++) {
                           const packet = t.samples[n];
                           const timestamp = audioTimestamps?.[n];
@@ -13969,8 +13970,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               if (command.action === "enable") {
                                 parseFilterExpression(command.expression, "stereowiden enable", {
                                   n: 0, t: 0, pos: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-                                });
+                                }, undefined, new Float64Array(10));
                                 enable = command.expression;
+                                registers.fill(0);
                               } else if (command.action === "feedback" || command.action === "crossfeed" || command.action === "drymix") {
                                 const max = command.action === "feedback" ? 0.9 : command.action === "crossfeed" ? 0.8 : 1;
                                 const value = parseFilterExpression(command.expression, "stereowiden", {
@@ -13985,10 +13987,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             } catch { /* Rejected runtime commands retain the current setting. */ }
                           }
                           const end = Math.min(length, start + count);
-                          const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "stereowiden enable", {
-                            n, t: pts / origRate, pos: (audioTimestamps ? timestamp?.pos : packet?.offset) ?? NaN, w: 0, h: 0,
-                            PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-                          })) >= 0.5;
+                          let enabled = true;
+                          if (enable !== undefined) {
+                            const variables = {
+                              n, t: pts / origRate, pos: (audioTimestamps ? timestamp?.pos : packet?.offset) ?? NaN, w: 0, h: 0,
+                              PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+                            };
+                            // FFmpeg evaluates on frame consumption and again before filter_frame.
+                            parseFilterExpression(enable, "stereowiden enable", variables, undefined, registers);
+                            enabled = Math.abs(parseFilterExpression(enable, "stereowiden enable", variables, undefined, registers)) >= 0.5;
+                          }
                           for (let i = start; i < end; i++) {
                             if (i % 4096 === 0) {
                               await yieldTurn(context.signal);

@@ -575,6 +575,8 @@ Schedule bypass changes with
 invalid expressions leave the previous expression unchanged.
 `enable` selects frames by time (`t`) or frame number (`n`); bypassed frames still
 feed the delay history, so re-enabling retains their delayed contributions.
+Timeline `st`/`ld` registers persist across frames, with two evaluations per frame;
+a successful `enable` command starts the replacement expression with fresh registers.
 Downstream `ashowinfo` reports packed float (`flt`) frames before output encoding.
 `haas` applies the default stereo enhancer: the channel average plus a 2.05 ms
 delayed tap on the right and minus a 2.12 ms delayed tap on the left. It preserves

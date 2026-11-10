@@ -3474,7 +3474,7 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         }, w, h, img.hasAlpha);
     }
     if (token === "-wave") {
-        const g = parseMagickGeometry(spec), amplitude = g.width ?? 0, padding = Math.abs(amplitude);
+        const amplitude = Number.parseFloat(spec) || 0, padding = Math.abs(amplitude);
         const wavelength = Number.parseFloat(spec.toLowerCase().split("x")[1] ?? "");
         const length = Number.isNaN(wavelength) ? 1 : wavelength;
         // Native uses a safe reciprocal and stores the sine displacement as a float.

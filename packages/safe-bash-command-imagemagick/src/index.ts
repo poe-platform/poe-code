@@ -2026,6 +2026,7 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
     const h = Math.max(1, Math.round(height));
     const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
     const data16 = new Uint16Array(w * h * 4);
+    if (!radial && extent !== undefined) direction ??= "southeast";
     const axes = gradientRadii(w, h, extent, radii);
     const vectorFactor = gradientVector(w, h, (radial && center) ? undefined : radial || angle === undefined ? vector : undefined, radial, axes);
     if (!radial && direction === undefined && angle === undefined && !vectorFactor && box === undefined) {
@@ -15989,7 +15990,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const storedData16=checker?undefined:{position:backend.storage.allocate(width*height*8),length:width*height*4};
   const spec=baseToken.slice(baseToken.indexOf(":")+1),separator=spec.indexOf("-"),first=separator<0?spec:spec.slice(0,separator),last=separator<0?"":spec.slice(separator+1),a=parseColor(checker?"white":first||"#ffffff",true),b=parseColor(checker||separator<0?"#000000":last||"#ffffff",true);
   const cx=state.gradientCenter?.x??(width-1)/2,cy=state.gradientCenter?.y??(height-1)/2,axes=gradientRadii(width,height,state.gradientExtent,state.gradientRadii),box=state.gradientBoundingBox;
-  const projection=gradientProjection(width,height,state.gradientDirection,state.gradientAngle);
+  const projection=gradientProjection(width,height,state.gradientDirection??(state.gradientExtent===undefined?undefined:"southeast"),state.gradientAngle);
   const vectorFactor=gradientVector(width,height,(radial&&state.gradientCenter)?undefined:radial||state.gradientAngle===undefined?state.gradientVector:undefined,radial,axes);
   for(let start=0;start<width*height;start+=4096){
    if(start%262144===0)await yieldTurn(signal);

@@ -2127,7 +2127,16 @@ function resolveMagickChopGeometry(raw: string, image: Pick<RgbaImage, "width" |
     // Rectangle geometry ends at the first comma-separated field.
     raw = raw.split(",", 1)[0]!.replaceAll("(", "").replaceAll(")", "");
     // Chop ignores # and treats % anywhere as a dimension modifier, preserving pixel offsets.
-    const g = parseMagickGeometry(raw.replaceAll("#", "").replaceAll("%", "") + (raw.includes("%") ? "%" : ""));
+    let g = parseMagickGeometry(raw.replaceAll("#", "").replaceAll("%", "") + (raw.includes("%") ? "%" : ""));
+    const dimensionSeparator = raw.toLowerCase().indexOf("x");
+    const suffix = [...raw].findIndex(character => character === ":" || character === "/");
+    if (dimensionSeparator >= 0 && suffix > dimensionSeparator) {
+        // A slash stops GetGeometry before dimensions or offsets are read.
+        if (raw[suffix] === "/") return { ...g, width: image.virtualCanvas?.width || width, height: image.virtualCanvas?.height || height, x: 0, y: 0 };
+        // A colon uses the first two dimensions as a ratio, retaining preceding offsets.
+        const dimensions = parseMagickGeometry(raw.slice(0, suffix).replaceAll("#", "").replaceAll("%", ""));
+        g = { ...dimensions, aspectRatio: (dimensions.width ?? 0) / (dimensions.height ?? 1) };
+    }
     // Native GetGeometry leaves the page rectangle untouched when a scalar @
     // width is followed by an offset sign, rather than a dimension separator.
     if (g.areaLimit !== undefined && g.hasOffset && !g.isPercent) {
@@ -2308,8 +2317,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
     const { x: x0, y: y0 } = gravityAdjustBox(img.width, img.height,
         cw || ((img.virtualCanvas?.width ?? 0) | img.width), ch || ((img.virtualCanvas?.height ?? 0) | img.height),
         Math.trunc(g.x), Math.trunc(g.y), gravity);
-    if ((geomStr.toLowerCase().includes("x") && (geomStr.includes("/") || geomStr.includes(":")))
-        || (g.enlargeOnly && cw > 0 && cw < img.width && ch > 0 && ch < img.height)
+    if ((g.enlargeOnly && cw > 0 && cw < img.width && ch > 0 && ch < img.height)
         || x0 + cw < 0 || y0 + ch < 0 || x0 > img.width || y0 > img.height) {
         if (analysis) analysis.warnings += `magick: geometry does not contain image '${geomStr}'\n`;
         return img;
@@ -11952,8 +11960,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         const { x, y } = gravityAdjustBox(w, h,
             cw || ((image.virtualCanvas?.width ?? 0) | w), ch || ((image.virtualCanvas?.height ?? 0) | h),
             Math.trunc(g.x), Math.trunc(g.y), state.gravity);
-        if ((geometry.toLowerCase().includes("x") && (geometry.includes("/") || geometry.includes(":")))
-            || (g.enlargeOnly && cw > 0 && cw < w && ch > 0 && ch < h)
+        if ((g.enlargeOnly && cw > 0 && cw < w && ch > 0 && ch < h)
             || x + cw < 0 || y + ch < 0 || x > w || y > h) {
             analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
             return image;

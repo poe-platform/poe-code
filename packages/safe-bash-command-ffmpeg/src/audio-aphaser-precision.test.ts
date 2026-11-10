@@ -35,9 +35,50 @@ for (const [bits, format, control, phased] of [
   }
 }
 
+// Complete destination hashes from native FFmpeg 7.0.2, including implicit conversions.
+for (const [source, format, working, hash] of [
+  ["u8", "f64le", "dbl", "d0fe2b147da4b5fbddfd9b390302965ca8357b2e9d277a4f65a48b13dc70f575"],
+  ["u8p", "s16le", "s16", "d6802aadc4cd5aa72d57a3fa8d433a07726a77b977a918b400e470576f8a26a6"],
+  ["s64", "s16le", "s16", "a131cc632affa5d8e011b45e4baafd4b6d7dfdc47a3727a560f5044255fda00c"],
+  ["s64p", "s16le", "s16", "a131cc632affa5d8e011b45e4baafd4b6d7dfdc47a3727a560f5044255fda00c"]
+] as const) {
+  for (const graph of [false, true]) {
+    for (const explicit of [false, true]) {
+      it(`aphaser negotiates ${source} through ${format} (${graph ? "graph" : "simple"}, ${explicit ? "explicit" : "implicit"})`, async () => {
+        const input = encodeWav({ sampleRate: 8000, channels: [
+          Float64Array.from({ length: 16 }, (_, i) => ((i * 7919 + 3467) % 49001 - 24500) / 32768)
+        ] }, { bitsPerSample: 16 });
+        const filter = `aformat=sample_fmts=${source},${explicit ? `aformat=sample_fmts=${working},` : ""}aphaser`;
+        const { volume, result, stderr } = await run(input, filter, format, graph);
+        assert.equal(result.exitCode, 0, stderr);
+        const output = volume.readFileSync("/out.raw") as Buffer;
+        assert.equal(output.length, 16 * (format === "f64le" ? 8 : 2));
+        assert.equal(createHash("sha256").update(output).digest("hex"), hash);
+      });
+    }
+  }
+}
+
+for (const [source, format, hash] of [
+  ["u8", "f64le", "9f39dcc75cb918b7dade5a27032b2629b58f48659bfc0cccac6e51cdd01c51a2"],
+  ["s64", "s16le", "1a533a93c97558cd6d93d24fe4d18f9a9a2e4acfe80dc54aabb64fe94f47c3c2"]
+] as const) {
+  it(`converts ${source} through ${format} without aphaser`, async () => {
+    const input = encodeWav({ sampleRate: 8000, channels: [
+      Float64Array.from({ length: 16 }, (_, i) => ((i * 7919 + 3467) % 49001 - 24500) / 32768)
+    ] }, { bitsPerSample: 16 });
+    const { volume, result, stderr } = await run(input, `aformat=sample_fmts=${source}`, format, false);
+    assert.equal(result.exitCode, 0, stderr);
+    const output = volume.readFileSync("/out.raw") as Buffer;
+    assert.equal(output.length, 16 * (format === "f64le" ? 8 : 2));
+    assert.equal(createHash("sha256").update(output).digest("hex"), hash);
+  });
+}
+
 async function run(input: Uint8Array, filter: string, format: string, graph: boolean) {
   const volume = new Volume();
   volume.writeFileSync("/in.wav", input);
+  volume.writeFileSync("/out.raw", "KEEP");
   let stderr = "";
   const result = await createFfmpegCommand({ limits: { maxDurationSeconds: 3 } }).execute({
     args: ["-y", "-v", "error", "-i", "/in.wav", ...(graph

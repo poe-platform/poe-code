@@ -11401,7 +11401,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             pts: tailPts + start - inputLength });
                         }
                       } else if (trimmed === "aphaser" || trimmed.startsWith("aphaser=")) {
-                        if (filteredSampleFormat === "u8") filteredSampleFormat = "s16";
+                        // Preserve supported input precision; otherwise let the output
+                        // constrain the shared input/output format before processing.
+                        if (["u8", "u8p", "s64", "s64p"].includes(filteredSampleFormat)) {
+                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                          const plugin = outputFormat === "segment" ? segmentPlugin : outPlugin;
+                          const codec = audioCodec ?? (plugin?.supportedAudioCodecs.includes(`pcm_${plugin.id}`)
+                            ? `pcm_${plugin.id}` : ["wav", "w64", "null"].includes(outputFormat ?? plugin?.id ?? "") ? "pcm_s16le" : undefined);
+                          const target = filterIndex === audioFilters.length - 1 ? sampleFormat ?? pcmSampleFormat(codec) : undefined;
+                          const format = target && ["s16", "s16p", "s32", "s32p", "flt", "fltp", "dbl", "dblp"].includes(target)
+                            ? target : (filteredSampleFormat.startsWith("u8") ? "s16" : "dbl") + (filteredSampleFormat.endsWith("p") ? "p" : "");
+                          stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
+                          filteredSampleFormat = format;
+                        }
                         stretched = await phaseAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal);
                       } else if (trimmed === "apulsator" || trimmed.startsWith("apulsator=")) {
                         stretched = await pulsateAudio(stretched, origRate, trimmed, budget, context.signal);

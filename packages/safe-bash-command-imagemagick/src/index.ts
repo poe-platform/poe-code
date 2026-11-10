@@ -17886,9 +17886,10 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             tileCols = g.width;
             tileRows = g.height;
         }
-        else if (t === "-size" || t === "+size") {
-            if (t === "-size" && argv[i + 1] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -size\n" };
-            i = applyMagickReadSetting(argv, state, i)!;
+        else if (t === "-size" || t === "+size" || t === "-endian" || t === "+endian") {
+            if (t.startsWith("-") && argv[i + 1] === undefined) return { exitCode: 1, stdout: "", stderr: `montage: missing argument for ${t}\n` };
+            try { i = applyMagickReadSetting(argv, state, i)!; }
+            catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
         }
         else if (t === "-flip" || t === "-flop" || t === "-transpose") {
             queuedTransforms.push({ kind: t === "-flop" ? "flop" : "flip" });

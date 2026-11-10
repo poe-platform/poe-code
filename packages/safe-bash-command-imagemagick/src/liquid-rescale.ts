@@ -1,10 +1,12 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Width-first seam carving with liblqr's brightness gradient and leftmost ties. */
-export function* liquidRescalePixelSteps(image: { width: number; height: number; hasAlpha: boolean; depth: string; isPalette?: boolean; pngPalette?: { readonly bytes: Uint8Array }; indexedColors?: readonly number[] }, width: number, height: number, delta = 1, rigidity = 0): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* liquidRescalePixelSteps(image: { width: number; height: number; hasAlpha: boolean; depth: string; space?: string; hueSamples?: Float64Array; storedHueSamples?: number; isPalette?: boolean; pngPalette?: { readonly bytes: Uint8Array }; indexedColors?: readonly number[] }, width: number, height: number, delta = 1, rigidity = 0): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     // Account for source/output samples, seam indices, brightness and path maps.
     const pixels = Math.max(image.width, width) * Math.max(image.height, height);
     if (!Number.isSafeInteger(pixels) || pixels * 64 > 0x7fffffff) throw new Error("Liquid rescale dimensions exceed resource limits");
+    // Carve the working colorspace plane used by the later sRGB conversion.
+    const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
     const palette = new Map<number, number>();
     if (image.isPalette && image.pngPalette) {
         const colors = image.pngPalette.bytes;
@@ -17,12 +19,12 @@ export function* liquidRescalePixelSteps(image: { width: number; height: number;
     for (let offset = 0; offset < image.width * image.height * 4; offset += 4096) {
         yield;
         const length = Math.min(4096, image.width * image.height * 4 - offset);
-        const bytes = yield { kind: "read", highDepth: true, position: offset, length };
-        if (!bytes || bytes.length !== length * 2) throw new Error("Truncated liquid rescale pixels");
-        const samples = new Uint16Array(bytes.slice().buffer);
+        const bytes = yield { kind: "read", hue, highDepth: !hue, position: offset, length };
+        if (!bytes || bytes.length !== length * (hue ? 8 : 2)) throw new Error("Truncated liquid rescale pixels");
+        const samples = hue ? new Float64Array(bytes.slice().buffer) : new Uint16Array(bytes.slice().buffer);
         for (let i = 0; i < length; i += 4) {
             const p = (offset + i) / 4 * stride;
-            for (let c = 0; c < 4; c++) data[p + c] = samples[i + c]! / 65535;
+            for (let c = 0; c < 4; c++) data[p + c] = samples[i + c]! / (hue ? 1 : 65535);
             if (palette.size) {
                 const color = Math.round(samples[i]! / 257) * 65536 + Math.round(samples[i + 1]! / 257) * 256 + Math.round(samples[i + 2]! / 257);
                 data[p + 4] = (palette.get(color) ?? 0) / 65535;
@@ -118,10 +120,13 @@ export function* liquidRescalePixelSteps(image: { width: number; height: number;
     for (let offset = 0; offset < width * height * 4; offset += 4096) {
         yield;
         const length = Math.min(4096, width * height * 4 - offset), samples = new Uint16Array(length);
+        const hueSamples = hue ? new Float64Array(length) : undefined;
         for (let i = 0; i < length; i++) {
             const quantum = Math.fround(data[Math.floor((offset + i) / 4) * stride + i % 4]! * 65535);
-            samples[i] = image.depth === "uchar" || image.depth === "bit" ? Math.round(quantum / 257) * 257 : Math.round(quantum);
+            samples[i] = !hue && (image.depth === "uchar" || image.depth === "bit") ? Math.round(quantum / 257) * 257 : Math.round(quantum);
+            if (hueSamples) hueSamples[i] = quantum / 65535;
         }
         yield { kind: "write", highDepth: true, position: offset, data: new Uint8Array(samples.buffer) };
+        if (hueSamples) yield { kind: "write", hue: true, position: offset, data: new Uint8Array(hueSamples.buffer) };
     }
 }

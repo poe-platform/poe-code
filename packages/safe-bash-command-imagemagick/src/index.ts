@@ -9348,6 +9348,9 @@ if (t === "-intent" || t === "+intent") {
         else if (t === "-comment" || t === "-label") {
             state[t === "-comment" ? "comment" : "label"] = tokens[++i] ?? "";
         }
+        else if (t === "+label") {
+            delete state.label;
+        }
         else if (t === "-sampling-factor") {
             state.samplingFactor = tokens[++i] ?? "";
         }

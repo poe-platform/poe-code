@@ -8509,6 +8509,11 @@ export class Runtime {
         assignments.delete(name);
       }
       return status;
+    } catch (error) {
+      this.signal.throwIfAborted();
+      // Destination arithmetic errors terminate the script; ArrayFailure remains recoverable.
+      if (index && error instanceof PublicDiagnostic) throw new ExpansionFailure(error.message, context.diagnosticLine);
+      throw error;
     } finally { close(); }
   }
   private async mapfileBuiltin(context: CommandContext & IO, state: State): Promise<number> {

@@ -11,6 +11,29 @@ import { ShellLimitError } from "../../src/shell/types.js";
 import { ValueArena, ValueStore } from "../../src/shell/value-state.js";
 import { setup } from "./helpers.js";
 
+for (const prefix of ["", "builtin ", "command "]) {
+  for (const readonly of [false, true]) {
+    test(`${prefix}printf -v stops the script on malformed subscript arithmetic, readonly=${readonly}`, async context => {
+      const shell = new BrowserShell({ fs: new BrowserMemoryFileSystem() }).use(standardCommands());
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`a=(old); ${readonly ? "readonly -a a; " : ""}${prefix}printf -v 'a[1+]' 'ok%n' n; printf 'continued:%s' "$?"`);
+      assert.equal(result.exitCode, 1);
+      assert.deepEqual(result.stdoutBytes, new Uint8Array());
+      assert.ok(result.stderr.includes("1+: arithmetic syntax error"), result.stderr);
+    });
+  }
+  for (const [subscript, status] of [["", 2], ["-2", 1]] as const) {
+    test(`${prefix}printf -v keeps subscript ${JSON.stringify(subscript)} recoverable`, async context => {
+      const shell = new BrowserShell({ fs: new BrowserMemoryFileSystem() }).use(standardCommands());
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`a=(old); ${prefix}printf -v 'a[${subscript}]' 'ok%n' n; printf 'continued:%s:%s' "$?" "\${a[0]}"`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, `continued:${status}:old`);
+      assert.notEqual(result.stderr, "");
+    });
+  }
+}
+
 function fixture(options: Parameters<typeof setup>[0] = {}) {
   const result = setup(options);
   for (const command of basicCommands()) result.commands.register(command);

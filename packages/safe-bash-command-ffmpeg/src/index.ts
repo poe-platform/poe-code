@@ -1067,7 +1067,8 @@ function parseAtrim(argument: string, origRate: number) {
     if (key === "starti" || key === "endi") key = key.slice(0, -1);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
-      const number = parseFilterExpression(value, "atrim", key === "thread_type" ? { slice: 1 } : {});
+      const number = parseFilterExpression(value, "atrim",
+        key === "thread_type" ? { slice: 1 } : { default: key === "threads" ? 0 : -1 });
       if (!value || Number.isNaN(number)) throw new Error(`atrim: invalid ${key}`);
       if (number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
         throw new RangeError(`atrim: invalid ${key}`);

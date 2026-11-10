@@ -2155,10 +2155,10 @@ function resolveMagickSpliceGeometry(raw: string, width: number, height: number)
     if (dimensionSeparator >= 0 && suffix > dimensionSeparator) {
         // GetGeometry stops before parsing dimensions when it encounters a slash.
         if (raw[suffix] === "/") return { ...g, width, height, x: 0, y: 0 };
-        // A colon normalizes the first two dimensions as an aspect ratio;
-        // the trailing component and offsets do not move the splice region.
+        // A colon normalizes the first two dimensions as an aspect ratio,
+        // retaining offsets before it and ignoring the trailing component.
         const dimensions = parseMagickGeometry(raw.slice(0, suffix));
-        g = { ...g, aspectRatio: (dimensions.width ?? 0) / (dimensions.height ?? 1), x: 0, y: 0 };
+        g = { ...g, aspectRatio: (dimensions.width ?? 0) / (dimensions.height ?? 1), x: dimensions.x, y: dimensions.y };
     } else if (dimensionSeparator < 0 && raw[suffix] === ":") {
         const dimensions = parseMagickGeometry(raw.replace(":", "x").replaceAll("@", "").replaceAll("#", ""));
         // A zero numerator, including 0:0, inserts no columns; a zero denominator inserts no rows.

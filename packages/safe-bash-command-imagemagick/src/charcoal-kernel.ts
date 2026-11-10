@@ -130,9 +130,10 @@ export function* charcoalPixelSteps(image: Pick<RgbaImage, "width" | "height" | 
                 const protection = yield* protections(left, y, count);
                 for (let x = 0; x < count; x++) for (let c = 0; c < 3; c++) sums[x * 3 + c] = sums[x * 3 + c]! * (1 - protection[x]!) + original![x * 3 + c]! * protection[x]!;
                 if (channels && mask.some(selected => !selected)) {
-                    const bytes = yield { kind: "read", position: (y * width + left) * 4, length: count * 4 };
-                    if (!bytes || bytes.length !== count * 4) throw new Error("Truncated charcoal pixels");
-                    for (let x = 0; x < count; x++) for (let c = 0; c < 3; c++) if (!mask[c]) sums[x * 3 + c] = bytes[x * 4 + c]!;
+                    const bytes = yield { kind: "read", highDepth, position: (y * width + left) * 4, length: count * 4 };
+                    if (!bytes || bytes.length !== count * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated charcoal pixels");
+                    const values = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes;
+                    for (let x = 0; x < count; x++) for (let c = 0; c < 3; c++) if (!mask[c]) sums[x * 3 + c] = values[x * 4 + c]! / (highDepth ? 257 : 1);
                 }
                 if (pass === 0) {
                     for (let x = 0; x < count; x++) {

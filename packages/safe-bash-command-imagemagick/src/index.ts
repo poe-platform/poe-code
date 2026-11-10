@@ -2168,7 +2168,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
 }
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
-    const value = raw.trim();
+    const value = (["-wave", "-swirl", "-implode"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
     let dimensions = false;
     for (const char of value) {
         if (char === "x" || char === "X" || char === ":") dimensions = true;
@@ -3474,6 +3474,7 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         }, w, h, img.hasAlpha);
     }
     if (token === "-wave") {
+        spec = spec.replaceAll("/", "x").replaceAll(",", "x");
         const amplitude = Number.parseFloat(spec) || 0, padding = Math.abs(amplitude);
         const wavelength = Number.parseFloat(spec.toLowerCase().split("x")[1] ?? "");
         const length = Number.isNaN(wavelength) ? 1 : wavelength;

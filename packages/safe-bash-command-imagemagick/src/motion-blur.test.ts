@@ -2,7 +2,8 @@ import { createHash } from "node:crypto";
 import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli, runMogrifyCli, runIdentifyCliSync } from "./index.js";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCliSync, runConvertCli, runMogrifyCli, runIdentifyCliSync } from "./index.js";
 
 const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAcAAAAFCAIAAAAG+GGPAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAD/AP8A/6C9p5MAAAAHdElNRQfqCwcMLAChJwkmAAAAJXRFWHRkYXRlOmNyZWF0ZQAyMDI2LTExLTA3VDEyOjQ0OjAwKzAwOjAwdXD43AAAACV0RVh0ZGF0ZTptb2RpZnkAMjAyNi0xMS0wN1QxMjo0NDowMCswMDowMAQtQGAAAAAodEVYdGRhdGU6dGltZXN0YW1wADIwMjYtMTEtMDdUMTI6NDQ6MDArMDA6MDBTOGG/AAAAEGNhTnYAAAANAAAACwAAAAMAAAACP+HC8wAAABtJREFUCNdjZGD4L8L+DQ2xMHP9ZmZHR5SLAgCpQyQPCtg/oQAAAABJRU5ErkJggg==", "base64");
 for (const retained of [false, true])
@@ -58,4 +59,29 @@ it(`rejects oversized motion kernels without replacing output (retained=${retain
     expect(result.exitCode).toBe(1);
     expect(result.stderr).toContain("limit");
     expect(Array.from(retained ? await fs.readFile("/out.png") : files.get("out.png")!)).toEqual(Array.from(input));
+});
+
+for (const mode of ["command", "buffered", "sync"] as const)
+it.each([
+    ["+35", "65448c4b3e5899748c3e4f97c01060e0435054528287766c866d5e9b90102080"],
+    ["-35", "65448c4b3e5899748c3e4f97c01060e0435054528287766c866d5e9b90102080"],
+    ["35", "65448c4b3e5899748c3e4f97c01060e0435054528287766c866d5e9b90102080"],
+    ["0x1+35", "a25e5e40546fa6876050286eb2104db7435255528287766c866d5e9b90102080"]
+])(`matches native signed motion blur geometry %s via ${mode}`, async (geometry, expected) => {
+    const input = Buffer.concat([
+        Buffer.from("P7\nWIDTH 4\nHEIGHT 2\nDEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n"),
+        Buffer.from("d02030302050e07030903060c01060e0112233508080804080a080b090102080", "hex")
+    ]);
+    const files = new Map([["/in.pam", input], ["/out", Buffer.from("KEEP")]]), fs = new MemoryFileSystem();
+    for (const [path, bytes] of files) await fs.writeFile(path, bytes);
+    const argv = ["/in.pam", "-motion-blur", geometry, "-depth", "8", "rgba:/out"];
+    const argumentValues = createCommandArguments(argv);
+    let stderr = "";
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: argumentValues.args, argumentValues, fs, cwd: "/", env: {},
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+    }) : mode === "sync" ? runConvertCliSync(argv, files) : await runConvertCli(argv, files);
+    expect(result.exitCode, stderr).toBe(0);
+    expect(Buffer.from(mode === "command" ? await fs.readFile("/out") : files.get("/out")!).toString("hex")).toBe(expected);
 });

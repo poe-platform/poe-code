@@ -8942,7 +8942,23 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     if (data16) data16[idx + channel] = Math.round(value * (65535 / range));
                 }
             }
-            return { ...image, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : { evaluateSamples: samples }) };
+            // Indexed operations must see the adjusted colormap, including unused entries.
+            const contrastColor = (r: number, g: number, b: number): number[] => {
+                const brightness = Math.max(r, g, b) / 255;
+                const adjusted = brightness + sign * 0.5 * (0.5 * (Math.sin(Math.PI * (brightness - 0.5)) + 1) - brightness);
+                return [r, g, b].map(value => clampByteVal(Math.fround(Math.max(0, Math.min(255, brightness === 0 ? 0 : value * adjusted / brightness)) * 257) / 257));
+            };
+            const indexedColors = image.indexedColors?.map(color => {
+                const [r, g, b] = contrastColor((color >>> 16) & 255, (color >>> 8) & 255, color & 255);
+                return (color >>> 24) * 16777216 + r! * 65536 + g! * 256 + b!;
+            });
+            let pngPalette = image.pngPalette;
+            if (pngPalette) {
+                const bytes = new Uint8Array(pngPalette.bytes);
+                for (let i = 0; i < bytes.length; i += 3) bytes.set(contrastColor(bytes[i]!, bytes[i + 1]!, bytes[i + 2]!), i);
+                pngPalette = { ...pngPalette, bytes };
+            }
+            return { ...image, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : { evaluateSamples: samples }), ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) };
         };
     }
     else if (token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") {

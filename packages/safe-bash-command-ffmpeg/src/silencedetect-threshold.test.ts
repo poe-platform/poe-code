@@ -45,3 +45,44 @@ for (const noise of [0.03125, 0.03126, 0.04]) {
     }
   }
 }
+
+// Native FFmpeg 7.0.2 wraps s16 thresholds above full scale; floating-point
+// filters keep the original noise value. Every case preserves all 32 PCM bytes.
+for (const noise of ["1.01", "2", "60dB", "1", "3"]) {
+  for (const prefix of ["", "volume=1,"]) {
+    for (const graph of [false, true]) {
+      it(`matches native full-scale silencedetect at ${noise} (prefix=${prefix}, graph=${graph})`, async () => {
+        const pcm = Buffer.alloc(32);
+        for (let frame = 8; frame < 12; frame++) pcm.writeInt16LE(8000, frame * 2);
+        const input = encodeWav({ sampleRate: 8,
+          channels: [Float64Array.from({ length: 16 }, (_, frame) => pcm.readInt16LE(frame * 2) / 32768)] });
+        const volume = Volume.fromJSON({ "/in.wav": Buffer.from(input) });
+        const filter = `${prefix}silencedetect=d=0.25:n=${noise}`;
+        const stdout: Uint8Array[] = [];
+        let stderr = "";
+        const result = await createFfmpegCommand().execute({
+          args: ["-hide_banner", "-nostats", "-loglevel", "info", "-i", "/in.wav",
+            ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+            "-f", "s16le", "-"],
+          cwd: "/", env: {}, signal: new AbortController().signal,
+          fs: {
+            async readFile(path: string) { return volume.readFileSync(path); },
+            async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+            async stat(path: string) { return volume.statSync(path); }
+          },
+          stdin: (async function* () {})(),
+          stdout: { async write(bytes: Uint8Array) { stdout.push(bytes.slice()); } },
+          stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+        } as never);
+        assert.equal(result.exitCode, 0, stderr);
+        assert.deepEqual(Buffer.concat(stdout), pcm);
+        assert.deepEqual(volume.readFileSync("/in.wav"), Buffer.from(input));
+        const silent = prefix !== "" || noise === "1" || noise === "3";
+        assert.deepEqual(stderr.trim().split("\n").filter(line => line.includes("silence_")), silent ? [
+          "silence_start: 0",
+          "silence_end: 2 | silence_duration: 2"
+        ] : []);
+      });
+    }
+  }
+}

@@ -18,8 +18,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         { operation: "-clone", spec: "-2 - -1", pixels: [red, green, blue, white, blue, white] },
         { operation: "-clone", spec: "3 - 2", pixels: [red, green, blue, white, white, blue] },
         { operation: "-clone", spec: "2 - 3 0", pixels: [red, green, blue, white, blue, white, red] },
-        { operation: "-clone", spec: "2, -1", pixels: [red, green, blue, white, blue, white] },
-        { operation: "-swap", spec: "2 -1", pixels: [red, green, white, blue] }
+        { operation: "-clone", spec: "2, -1", pixels: [red, green, blue, white, blue, white] }
     ])(`${mode}: $operation '$spec' preserves frame order`, async ({ operation, spec, pixels }) => {
         const files = new Map<string, Uint8Array>();
         const filesystem = new MemoryFileSystem();

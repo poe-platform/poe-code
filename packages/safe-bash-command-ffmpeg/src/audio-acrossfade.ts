@@ -7,7 +7,7 @@ import { audioFadeCurves } from "./audio-fade-curves.js";
 import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
 
 export async function acrossfadeAudio(
-  first: MediaTrack, second: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  first: MediaTrack, second: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal, simultaneousEof = false
 ): Promise<MediaTrack> {
   const a = first.decodedAudio;
   const b = second.decodedAudio;
@@ -82,8 +82,9 @@ export async function acrossfadeAudio(
   const aLength = a.channelData[0]!.length;
   const bLength = secondChannels[0]!.length;
   if (samples < 1) throw new Error("acrossfade: invalid sample count");
-  // FFmpeg 7 ends before the transition if either input cannot fill it.
-  const length = samples > aLength || samples > bLength
+  // FFmpeg 7 checks second-input EOF before starting the transition, even
+  // when enough PCM is queued on both unbuffered branches of a split.
+  const length = simultaneousEof || samples > aLength || samples > bLength
     ? Math.max(0, aLength - samples)
     : aLength + bLength - (overlap ? samples : 0);
   budget.checkSamples(length);
@@ -162,6 +163,7 @@ export async function acrossfadeAudio(
   const frames: MediaSample[] = [];
   let pts = 0;
   function appendFrame(count: number): void {
+    count = Math.min(count, length - pts);
     if (count <= 0) return;
     budget.allocateMemory(96);
     frames.push({ data: new Uint8Array(0), size: 0, dts: pts, pts, cts: 0,

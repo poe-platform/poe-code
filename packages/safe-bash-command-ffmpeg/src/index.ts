@@ -1656,7 +1656,7 @@ function audioConcatInputs(filter: string): number | undefined {
 
 // Resolve audio graph inputs and transitions before the PCM filter evaluator runs.
 async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string) => Promise<MediaTrack>, mixCommands: { target: string; action: string; expression: string }[], budget: MediaBudgetTracker, signal?: AbortSignal) {
-  const nodes = new Map<string, { inputs: string[]; expression: string }>();
+  const nodes = new Map<string, { inputs: string[]; expression: string; asplit?: boolean }>();
   const inputTrack = (label: string): MediaTrack => {
     const [input, selector, ordinal, ...extra] = label.split(":");
     const numeric = selector === "a" ? [input, ordinal ?? "0"] : [input, selector ?? "0"];
@@ -1739,7 +1739,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       if (!output || nodes.has(output)) throw new Error("Duplicate or empty audio filter output");
       // Each graph edge evaluates the preceding chain, then selects its own PCM channel.
       const selected = split ? expression + (last.includes("=") ? ":" : "=") + `channels=${split.selected[index]}` : expression;
-      nodes.set(output, { inputs, expression: selected });
+      nodes.set(output, { inputs, expression: selected, asplit: last === "asplit" || last.startsWith("asplit=") });
     }
     for (const input of inputs) {
       if (consumed.has(input)) reused.add(input);
@@ -2085,7 +2085,19 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             source.track = await filterAudio(source.track, source.expression);
           }
         }
-        const track = await acrossfadeAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal);
+        // Split outputs share their input list. Only pass-through branches
+        // forward EOF together; buffering/reframing filters schedule it separately.
+        const splitInputs = node.inputs.map(input => {
+          let branch = nodes.get(input);
+          while (branch && !branch.asplit && branch.inputs.length === 1 &&
+            parseFilterChain(branch.expression).every(filter =>
+              ["anull", "acopy"].includes(filter.split("=", 1)[0]!.split("@", 1)[0]!))) {
+            branch = nodes.get(branch.inputs[0]!);
+          }
+          return branch?.asplit ? branch.inputs : undefined;
+        });
+        const simultaneousEof = splitInputs[0] !== undefined && splitInputs[0] === splitInputs[1];
+        const track = await acrossfadeAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal, simultaneousEof);
         return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "amerge" || filters[0]?.startsWith("amerge=")) {

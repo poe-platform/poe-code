@@ -1613,7 +1613,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
       const count = context.delayTicks ?? Number(delay) * (meta.ticksPerSecond ?? 100) / 1000;
       // Preserve signed counts internally: converting to Number(size_t) here is
       // safe for display, but would lose the low bits needed by the GIF coder.
-      parts.push(count < 0 ? Number(BigInt.asUintN(64, BigInt(Math.floor(count)))).toExponential(16) : String(count));
+      parts.push(count < 0 ? Number(BigInt.asUintN(64, BigInt(Math.floor(count)))).toExponential(16) : String(Math.round(count)));
     } else if (token === "%D") {
       const disposal = (meta as RgbaImage).disposal;
       parts.push(["Undefined", "None", "Background", "Previous"][(typeof disposal === "number" ? disposal : disposal?.[context.sceneIdx ?? 0]) ?? 0] ?? "Undefined");

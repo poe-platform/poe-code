@@ -16509,6 +16509,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 234 };
             }
             if (err instanceof AgateError) return { exitCode: err.exitCode };
+            if (msg === "channelmap: invalid or duplicate output channel") return { exitCode: 234 };
             const unnamedChannel = msg.startsWith("channelmap: unavailable input channel") && msg.endsWith(" (unnamed layout)");
             const unsupportedPanOrder = msg.startsWith("pan: unsupported output channel order ");
             if (err instanceof AlimiterError || err instanceof CompandError || unnamedChannel || unsupportedPanOrder) {

@@ -8366,6 +8366,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             numbers.push(part.slice(start));
             return numbers;
         });
+        if (parameters.length > 1 && parameters.at(-1) === "") parameters.pop();
         const coefficients = parameters.map(parameter => {
             const unsigned = (parameter.startsWith("+") || parameter.startsWith("-") ? parameter.slice(1) : parameter).toLowerCase();
             const hexadecimal = unsigned.startsWith("0x");

@@ -50,3 +50,34 @@ for (const [enable, prefix, inputCount, outputLimit, paddingCount] of [
     });
   }
 }
+
+// Native FFmpeg 7.0.2: frames split from one packet retain its byte position.
+for (const filter of [
+  "asetnsamples=n=3:p=0,apad=pad_len=3:enable='eq(pos,0)'",
+  "apad=pad_len=3:enable='eq(pos,0)'",
+  "asetnsamples=n=3:p=0,apad=pad_len=3:enable=1"
+]) {
+  for (const graph of [false, true]) {
+    it(`apad uses incoming frame positions: ${filter} (${graph ? "graph" : "simple"})`, async () => {
+      const input = Buffer.alloc(8 * 2);
+      for (let i = 0; i < 8; i++) input.writeInt16LE(101 + i, i * 2);
+      const volume = Volume.fromJSON({ "/in.raw": input, "/out.raw": "KEEP" });
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error", "-y", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/in.raw",
+          ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+          "-f", "s16le", "/out.raw"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.deepEqual(volume.readFileSync("/out.raw"), Buffer.concat([input, Buffer.alloc(3 * 2)]));
+    });
+  }
+}

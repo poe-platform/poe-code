@@ -10579,7 +10579,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           for (const [n, frame] of audioTimestamps.entries()) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             enabled = Math.abs(parseFilterExpression(enable, "apad enable", {
-                              n, t: frame.pts / origRate, pos: t.samples[n]?.offset ?? NaN, w: 0, h: 0
+                              n, t: frame.pts / origRate, pos: frame.pos ?? NaN, w: 0, h: 0
                             })) >= 0.5;
                           }
                         }

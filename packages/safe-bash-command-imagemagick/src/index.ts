@@ -10470,6 +10470,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     const maskPlan = warpOperation.plan(mask, expanded)!;
                     output.readMask = yield* applyMagickRasterSteps(mask, maskPlan.steps, signal, maskPlan);
                 }
+                if (t === "-spread" && image.region) {
+                    // Clip this edit with the original rectangle, then displace its mask.
+                    output = yield* applyMagickRasterSteps(output, regionPixelSteps(output, image.region, !!(output.data16 || image.data16), state.channels), signal, output, [output, image]);
+                    const mask = yield* applyMagickRasterSteps({ width: image.width, height: image.height, data: image.data,
+                        format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, regionMaskPixelSteps(image, image.region), signal);
+                    const maskPlan = warpOperation.plan(mask, expanded)!;
+                    output.writeMask = yield* applyMagickRasterSteps(mask, maskPlan.steps, signal, maskPlan);
+                    output.region = undefined;
+                }
                 // Nonzero shear creates a fresh canvas without the original region.
                 if ("tx" in plan && (plan.tx !== 0 || plan.ty !== 0)) output.region = undefined;
                 if (t === "-wave" && image.readMask && "map" in plan) {
@@ -13033,6 +13042,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const mask = image.readMask as StoredRgbaImage;
                     const maskPlan = warpOperation.plan(mask, expanded)!;
                     output.readMask = await transformStoredMagickRaster(mask, backend, maskPlan.steps, signal, maskPlan);
+                }
+                if (token === "-spread" && image.region) {
+                    // Clip this edit with the original rectangle, then displace its mask.
+                    output = await transformStoredMagickRaster(output, backend, regionPixelSteps(output, image.region, !!(output.storedData16 || image.storedData16), maskChannels), signal, output, [output, image]);
+                    const mask = await transformStoredMagickRaster({ width: image.width, height: image.height, position: image.position,
+                        format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, backend, regionMaskPixelSteps(image, image.region), signal);
+                    const maskPlan = warpOperation.plan(mask, expanded)!;
+                    output.storedWriteMask = await transformStoredMagickRaster(mask, backend, maskPlan.steps, signal, maskPlan);
+                    output.region = undefined;
                 }
                 // Nonzero shear creates a fresh canvas without the original region.
                 if ("tx" in plan && (plan.tx !== 0 || plan.ty !== 0)) output.region = undefined;

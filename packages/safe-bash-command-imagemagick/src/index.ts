@@ -596,7 +596,7 @@ function parseDelay(value: string, ticksPerSecond = 100, current?: number): { mi
     // Native SetImageProperty uses sigma (zero when omitted) for the '<' assignment.
     else if (value.includes("<")) next = previous < next ? Math.round(Number(ticks ?? 0)) : previous;
   }
-  if (ticks) ticksPerSecond = Number(ticks) || 1;
+  if (ticks) ticksPerSecond = Math.round(Number(ticks)) || 1;
   return { milliseconds: Math.floor(next * 1000 / ticksPerSecond), ticksPerSecond, delayTicks: next };
 }
 

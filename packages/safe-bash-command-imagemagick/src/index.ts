@@ -7772,9 +7772,20 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                     ...settings, channelExplicit: true, channels: selected,
                 }, 0)!);
             }
+            // The raster determines the range, but native also levels unused colormap entries.
+            const adjust = (value: number, channel: number): number =>
+                independent && !active[channel] || maxs[channel]! <= mins[channel]! ? value
+                    : clampByteVal(Math.fround(Math.max(0, Math.min(65535,
+                        (value * 257 - mins[channel]!) * 65535 / (maxs[channel]! - mins[channel]!)))) / 257);
+            const indexedColors = image.indexedColors?.map(color =>
+                (color >>> 24) * 16777216 + adjust(color >>> 16 & 255, 0) * 65536
+                + adjust(color >>> 8 & 255, 1) * 256 + adjust(color & 255, 2));
+            const pngPalette = image.pngPalette ? {
+                ...image.pngPalette, bytes: image.pngPalette.bytes.map((value, index) => adjust(value, index % 3)),
+            } : undefined;
             return function* (pixels, pixelOffset = 0, imageWidth = image.width) {
                 for (const operation of operations) pixels = yield* operation.apply(pixels, pixelOffset, imageWidth);
-                return discardDisassociatedAlpha(pixels);
+                return discardDisassociatedAlpha({ ...pixels, ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) });
             };
         }
         if (token === "-linear-stretch") {

@@ -24,10 +24,11 @@ export class UniqueColors {
     private readonly leaves = new Map<number, { samples: Float64Array; alpha: number | undefined }[]>();
     size = 0;
 
+    // CMYK supplies alpha separately in the same 0..255 units as evaluateSamples.
     add(samples: Uint8Array | Uint16Array | Float64Array, offset: number, order: number, alpha?: number, hasAlpha = true, normalized = alpha !== undefined): boolean {
         if (samples instanceof Float64Array) {
             const leaf = this.leaves.get(order) ?? [];
-            if (leaf.some(color => (!hasAlpha || color.alpha === alpha) && equalWorkingColors(color.samples, 0, samples, offset, alpha !== undefined, hasAlpha, normalized))) return false;
+            if (leaf.some(color => (!hasAlpha || alpha === undefined || Math.abs(color.alpha! - alpha) < 1e-12 / 257) && equalWorkingColors(color.samples, 0, samples, offset, alpha !== undefined, hasAlpha, normalized))) return false;
             leaf.push({ samples: samples.slice(offset, offset + 4), alpha });
             this.leaves.set(order, leaf);
         } else {
@@ -66,7 +67,7 @@ export function* uniqueColorsSteps(image: RgbaImage & HueMetadata & { inactiveAl
     for (let offset = 0; offset < samples.length; offset += 4) {
         if (offset % 4096 === 0) yield;
         const order = colorOrder(samples, offset, hasAlpha, inks);
-        if (!seen.add(image.hueSamples ?? image.evaluateSamples ?? samples, offset, order, inks ? samples[offset + 3]! : undefined, !dropAlpha, image.hueSamples !== undefined)) continue;
+        if (!seen.add(image.hueSamples ?? image.evaluateSamples ?? samples, offset, order, inks ? (image.evaluateSamples?.[offset + 3] ?? samples[offset + 3]! / (image.data16 ? 257 : 1)) : undefined, !dropAlpha, image.hueSamples !== undefined)) continue;
         pixels.push({ offset, order });
     }
     // Stable radix sorting stays cooperative even for an all-unique raster.
@@ -128,8 +129,11 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & 
         const working = workingPosition === undefined ? undefined
             : new Float64Array((await storage.read(workingPosition + start * 8, length * 8)).slice().buffer);
         const inks = image.space === "cmyk" ? working : undefined;
+        const alphaSamples = inks && image.storedEvaluateSamples !== undefined
+            ? new Float64Array((await storage.read(image.storedEvaluateSamples + start * 8, length * 8)).slice().buffer) : undefined;
         for (let offset = 0; offset < length; offset += 4) {
             if (working) {
+                const alpha = alphaSamples?.[offset + 3] ?? samples[offset + 3]! / (image.storedData16 ? 257 : 1);
                 const leaf = BigInt(colorOrder(samples, offset, hasAlpha, inks));
                 let position = await seen.get(leaf);
                 if (position === undefined) {
@@ -143,7 +147,7 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & 
                     const used = block[1]!;
                     for (let index = 0; index < used; index++) {
                         const record = 2 + index * 5;
-                        if ((!inks || dropAlpha || block[record] === samples[offset + 3]) && equalWorkingColors(block, record + 1, working, offset, !!inks, !dropAlpha, image.storedHueSamples !== undefined)) {
+                        if ((!inks || dropAlpha || Math.abs(block[record]! - alpha) < 1e-12 / 257) && equalWorkingColors(block, record + 1, working, offset, !!inks, !dropAlpha, image.storedHueSamples !== undefined)) {
                             duplicate = true;
                             break;
                         }
@@ -151,7 +155,7 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & 
                     if (duplicate) break;
                     if (used < Math.floor((block.length - 2) / 5)) {
                         const record = 2 + used * 5;
-                        block[record] = inks ? samples[offset + 3]! : 0;
+                        block[record] = inks ? alpha : 0;
                         block.set(working.subarray(offset, offset + 4), record + 1);
                         block[1] = used + 1;
                         dirty = true;

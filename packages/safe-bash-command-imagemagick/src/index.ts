@@ -1445,7 +1445,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       const alpha = hasAlpha ? working[i + 3]! : chunk.hueSamples ? 1 : chunk.evaluateSamples ? 255 : range;
       const color = inks ?? working.slice(i, i + 4);
       if (!inks) color[3] = alpha;
-      uniqueColors.add(color, inks ? i : 0, colorOrder(samples, i, hasAlpha, inks), inks ? (hasAlpha ? samples[i + 3]! : range) : undefined, true, chunk.hueSamples !== undefined);
+      const cmykAlpha = hasAlpha ? (chunk.evaluateSamples?.[i + 3] ?? samples[i + 3]! / (chunk.data16 ? 257 : 1)) : 255;
+      uniqueColors.add(color, inks ? i : 0, colorOrder(samples, i, hasAlpha, inks), inks ? cmykAlpha : undefined, true, chunk.hueSamples !== undefined);
     }
     // Copy retains alpha samples without enabling transparency.
     opaque &&= img.alphaBlend === false || a === range;

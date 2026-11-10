@@ -4770,12 +4770,12 @@ function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geo
         ? Math.max(1, Math.round(Math.min(img.width, img.height * g.aspectRatio)))
         : g.isPercent
         ? Math.max(1, Math.round((img.width * (g.percentX ?? 100)) / 100))
-        : Math.max(1, Math.round(g.width ?? img.width));
+        : Math.max(1, Math.round(g.width ?? (img.virtualCanvas?.width || img.width)));
     const rawH = g.aspectRatio !== undefined
         ? Math.max(1, Math.round(Math.min(img.height, img.width / g.aspectRatio)))
         : g.isPercent
         ? Math.max(1, Math.round((img.height * (g.percentY ?? 100)) / 100))
-        : Math.max(1, Math.round(g.height ?? img.height));
+        : Math.max(1, Math.round(g.height ?? (img.virtualCanvas?.height || img.height)));
     const position = gravityAdjustBox(img.width, img.height, rawW, rawH, g.x, g.y, gravity);
     // Crop geometry uses page coordinates; extraction uses local raster coordinates.
     const x0 = position.x - (img.virtualCanvas?.x ?? 0);

@@ -10497,6 +10497,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = result;
         }
         else if (t === "-separate") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const nextStack: RgbaImage[] = [];
             for (const im of stack) {
                 if (++cooperativeWork % 65536 === 0)
@@ -10512,14 +10513,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = nextStack;
         }
         else if (t === "-combine") {
-            if (stack.length > 0) {
-                const rIm = stack[0]!;
-                const sources = stack.slice(0, 4);
-                const result = yield* applyMagickRasterSteps(rIm, combinePixelSteps(sources, sources.some(image => !!image.data16)), signal, rIm, sources);
-                // The first plane's evaluation cache no longer describes the combined pixels.
-                const { evaluateSamples: ignoredEvaluate, ...combined } = result;
-                stack = [{ ...combined, space: "srgb", channels: 4, hasAlpha: sources.length === 4 || sources[0]!.hasAlpha }];
-            }
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
+            const rIm = stack[0]!;
+            const sources = stack.slice(0, 4);
+            const result = yield* applyMagickRasterSteps(rIm, combinePixelSteps(sources, sources.some(image => !!image.data16)), signal, rIm, sources);
+            // The first plane's evaluation cache no longer describes the combined pixels.
+            const { evaluateSamples: ignoredEvaluate, ...combined } = result;
+            stack = [{ ...combined, space: "srgb", channels: 4, hasAlpha: sources.length === 4 || sources[0]!.hasAlpha }];
         }
         else if (t === "-draw") {
             const drawSpec = tokens[++i] ?? "";
@@ -11444,7 +11444,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && ["-clut", "-hald-clut", "-separate", "-combine", "-morph", "-evaluate-sequence", "-average", "-poly"].includes(token)) {
             const argument = token === "-morph" || token === "-evaluate-sequence" || token === "-poly" ? tokens[++i] ?? (token === "-morph" ? "1" : "Mean") : token === "-average" ? "Mean" : "", settings = { ...state, channels: { ...state.channels } };
             stackStep(async (stack, backend) => {
-                if (token === "-evaluate-sequence" && !stack.length) throw new Error("no images found for operation '-evaluate-sequence'");
+                if ((token === "-evaluate-sequence" || token === "-separate" || token === "-combine") && !stack.length) throw new Error(`no images found for operation '${token}'`);
                 let terms: number[] | undefined;
                 if (token === "-poly") {
                     const image = await stack.get(0);
@@ -11479,7 +11479,6 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     return result;
                 } else if (token === "-combine") {
-                    if (stack.length === 0) return stack;
                     const sources: StoredRgbaImage[] = [];
                     for (let index = 0; index < Math.min(4, stack.length); index++) sources.push((await stack.get(index))!);
                     const base = sources[0]!, result = await transformStoredMagickRaster(base, backend, combinePixelSteps(sources, sources.some(image => !!image.storedData16)), signal, base, sources);

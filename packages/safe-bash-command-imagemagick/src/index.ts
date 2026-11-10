@@ -4564,8 +4564,10 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geo
     else if (g.isPercent) {
         const sx = (g.width ?? 100) / 100;
         const sy = (g.percentY ?? 100) / 100;
-        targetW = Math.max(1, Math.round(srcW * sx));
-        targetH = Math.max(1, Math.round(srcH * sy));
+        targetW = Math.round(srcW * sx);
+        targetH = Math.round(srcH * sy);
+        if (targetW === 0 || targetH === 0)
+            throw new Error(`negative or zero image size '${geomStr}'`);
     }
     else if (g.forceExact) {
         targetW = Math.max(1, Math.round(g.width ?? srcW));

@@ -11535,8 +11535,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (key === undefined || (!samples && !pts && key !== "start" && key !== "end")) {
                             throw new Error(`atrim: unsupported option ${key}`);
                           }
-                          const number = samples ? parseFilterExpression(value, "atrim", {}) : pts ? Number(value) : parseHlsDuration(value);
-                          const boundary = samples ? roundToEven(number) : pts ? number : Math.round(number * origRate);
+                          const number = samples || pts ? parseFilterExpression(value, "atrim", {}) : parseHlsDuration(value);
+                          const boundary = samples || pts ? roundToEven(number) : Math.round(number * origRate);
                           let frame = samples ? boundary : boundary - audioStartSample;
                           if (!value || !Number.isFinite(number) || !Number.isSafeInteger(frame) || (samples && number < (key === "start_sample" ? -1 : 0))) {
                             throw new Error(`atrim: invalid ${key}`);

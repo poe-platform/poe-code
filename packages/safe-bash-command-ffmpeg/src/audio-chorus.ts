@@ -9,7 +9,8 @@ export async function chorusAudio(
 ): Promise<Float64Array[]> {
   const options = { in_gain: "0.4", out_gain: "0.4", delays: "", decays: "", speeds: "", depths: "" };
   const names = Object.keys(options) as (keyof typeof options)[];
-  const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  let argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  if (argument.endsWith(":")) argument = argument.slice(0, -1);
   let position = 0;
   for (const option of argument ? argument.split(":") : []) {
     const separator = option.indexOf("=");

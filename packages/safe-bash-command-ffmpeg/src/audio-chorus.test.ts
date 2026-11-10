@@ -10,6 +10,8 @@ for (const graph of [false, true]) {
   for (const [filter, frames, impulses] of [
     ["anull", 256, [[0, 16000]]],
     ["chorus=0.5:0.9:10:0.5:1:1", 344, [[0, 7200], [4, 7200]]],
+    ["chorus=0.5:0.9:10:0.5:1:1:", 344, [[0, 7200], [4, 7200]]],
+    ["chorus=in_gain=0.5:out_gain=0.9:delays=10:decays=0.5:speeds=1:depths=1:", 344, [[0, 7200], [4, 7200]]],
     ["chorus=default:max:10:0.5:1:1", 344, [[0, 6400], [4, 8000]]],
     ["chorus=max:default:10:0.5:1:1", 344, [[0, 6400], [4, 3200]]],
     ["chorus=min:max:10:0.5:1:1", 344, [[4, 8000]]],
@@ -100,6 +102,17 @@ for (const filter of [
     assert.equal(result.exitCode, 1);
     assert.equal(output.toString(), "keep");
   });
+}
+
+for (const graph of [false, true]) {
+  for (const suffix of ["unknown=1", "unknown=1:"]) {
+    it(`chorus rejects ${suffix} without replacing output (graph ${graph})`, async () => {
+      const { result, stderr, output } = await run(`chorus=0.5:0.9:10:0.5:1:1:${suffix}`, graph);
+      assert.equal(result.exitCode, 1);
+      assert.equal(stderr, "ffmpeg: chorus: unsupported option unknown\n");
+      assert.equal(output.toString(), "keep");
+    });
+  }
 }
 
 async function run(filter: string, graph = false, channels?: Float64Array[]) {

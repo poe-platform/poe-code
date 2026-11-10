@@ -16,6 +16,7 @@ export interface MagickFormatContext {
     sceneCount?: number;
     quality?: number;
     precision?: number;
+    ticksPerSecond?: number;
     interlace?: string;
     channelSelection?: { r: boolean; g: boolean; b: boolean; a: boolean } | undefined;
 }

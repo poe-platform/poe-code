@@ -573,7 +573,7 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
   };
 }
 
-function parseDelay(value: string, current?: number): number {
+function parseDelay(value: string, ticksPerSecond = 100, current?: number): { milliseconds: number; ticksPerSecond: number } {
   const geometry = [...value].filter(character => !"%!^<>@".includes(character)).join("")
     .replaceAll("X", "x").replaceAll("/", "x").replaceAll(",", "x");
   const fields: string[] = [];
@@ -587,23 +587,24 @@ function parseDelay(value: string, current?: number): number {
   fields.push(geometry.slice(start));
   const parts = fields[0]!.split("x");
   if (!geometry.trim() || fields.length > 3 || parts.length > 2 ||
-      [...parts, ...fields.slice(1)].some(part => !Number.isFinite(Number(part)))) return NaN;
-  const [ticks, rate = "100"] = parts;
+      [...parts, ...fields.slice(1)].some(part => !Number.isFinite(Number(part)))) return { milliseconds: NaN, ticksPerSecond };
+  const [ticks, rate] = parts;
   let delay = Math.round(Number(ticks));
   if (current !== undefined) {
     // Incoming delays are stored in milliseconds at the default 100 ticks/second.
     if (value.includes(">")) delay = Math.min(current / 10, delay);
     else if (value.includes("<")) delay = Math.max(current / 10, delay);
   }
-  return Math.floor(delay * 1000 / (Number(rate || "100") || 1));
+  if (rate) ticksPerSecond = Number(rate) || 1;
+  return { milliseconds: Math.floor(delay * 1000 / ticksPerSecond), ticksPerSecond };
 }
 
-function parseDelayOption(value: string, current: number): number {
-  const milliseconds = parseDelay(value, current);
-  if (!Number.isFinite(milliseconds)) {
+function parseDelayOption(value: string, current: number): { milliseconds: number; ticksPerSecond: number } {
+  const delay = parseDelay(value, 100, current);
+  if (!Number.isFinite(delay.milliseconds)) {
     throw new Error(`invalid argument for option '-delay' '${value}'`);
   }
-  return milliseconds;
+  return delay;
 }
 
 interface MagickState {
@@ -6102,7 +6103,8 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             if (state.disposal !== undefined) im = { ...im, disposal: state.disposal };
             if (state.delay !== undefined) {
                 const delay = state.delay.value;
-                im = { ...im, ticksPerSecond: 100, delay: (im.delay ?? [0]).map(current => parseDelayOption(delay, current)) };
+                im = { ...im, ticksPerSecond: parseDelayOption(delay, 0).ticksPerSecond, [magickInput]: { ...(im as MagickImage)[magickInput], ticksPerSecond: parseDelayOption(delay, 0).ticksPerSecond },
+                    delay: (im.delay ?? [0]).map(current => parseDelayOption(delay, current).milliseconds) } as MagickImage;
             }
             return inlineGeom ? yield* applyInlineReadModifierSteps(im, inlineGeom, baseToken, state.kernel, state.resizeFilter, extract !== undefined, analysis) : im;
         });
@@ -9113,8 +9115,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], sceneIdx: sceneIdx++, optionProperties: state.optionProperties });
-                const delay = parseDelay(expanded) || 0;
-                return { ...image, ticksPerSecond: 100, delay: Array(image.delay?.length ?? 1).fill(delay) };
+                const source = (image as MagickImage)[magickInput];
+                const delay = parseDelay(expanded, source?.ticksPerSecond ?? image.ticksPerSecond);
+                delay.milliseconds ||= 0;
+                return { ...image, ticksPerSecond: delay.ticksPerSecond, [magickInput]: { ...source, ticksPerSecond: delay.ticksPerSecond },
+                    delay: Array(image.delay?.length ?? 1).fill(delay.milliseconds) };
             });
             i += 3;
             continue;
@@ -9425,7 +9430,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 state.optimizeLayers = true;
             }
             if (t === "-layers") i++;
-            const frames: RgbaImage[] = stack.length ? [stack[0]!] : [];
+            const frames: MagickImage[] = stack.length ? [stack[0]!] : [];
             for (let n = 1; n < stack.length; n++) {
                 let current = stack[n]!;
                 const previous = stack[n - 1]!;
@@ -11204,10 +11209,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 for (let sceneIdx = 0; sceneIdx < stack.length; sceneIdx++) {
                     const image = (await stack.get(sceneIdx))!;
                     const expanded = await formatRetainedIdentify(value, image, { ...image[magickInput], sceneIdx, optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                    const delay = parseDelay(expanded) || 0;
+                    const delay = parseDelay(expanded, image[magickInput]?.ticksPerSecond ?? image.ticksPerSecond);
+                    delay.milliseconds ||= 0;
                     await stack.set(sceneIdx, {
-                        ...image, ticksPerSecond: 100,
-                        storedDelay: { length: image.storedDelay?.length ?? image.delay?.length ?? 1, async at() { return delay; } },
+                        ...image, ticksPerSecond: delay.ticksPerSecond, [magickInput]: { ...image[magickInput], ticksPerSecond: delay.ticksPerSecond },
+                        storedDelay: { length: image.storedDelay?.length ?? image.delay?.length ?? 1, async at() { return delay.milliseconds; } },
                     });
                 }
                 return stack;
@@ -13318,13 +13324,13 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  if(state.disposal!==undefined)image={...image,disposal:state.disposal};
  if (state.delay !== undefined) {
   const delay = state.delay.value, original = image;
-  image = { ...image, ticksPerSecond: 100, storedDelay: {
+  image = { ...image, ticksPerSecond: parseDelayOption(delay, 0).ticksPerSecond, [magickInput]: { ...(image as StoredMagickImage)[magickInput], ticksPerSecond: parseDelayOption(delay, 0).ticksPerSecond }, storedDelay: {
    length: original.storedDelay?.length ?? original.delay?.length ?? 1,
    async at(scene, options) {
     const current = await original.storedDelay?.at(scene, options) ?? original.delay?.[scene] ?? 0;
-    return parseDelayOption(delay, current);
+    return parseDelayOption(delay, current).milliseconds;
    },
-  } };
+  } } as StoredMagickImage;
  }
  if(inlineGeom)image=await applyStoredInlineReadModifier(image,inlineGeom,baseToken,state,backend,signal,readOptions.extract !== undefined,readOptions.analysis);
  return image;

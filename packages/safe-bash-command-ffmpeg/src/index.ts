@@ -3521,6 +3521,7 @@ async function applyVideoFilterChain(
         return selected;
       });
     } else if (name === "decimate") {
+      if (named.enable !== undefined) throw new Error("decimate: timeline is unsupported");
       const cycle = parseFilterExpression(
         named.cycle ?? (positional[0]?.includes("=") ? "5" : positional[0] || "5"),
         "decimate", { default: 5, min: 2, max: 25, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 }
@@ -3528,10 +3529,13 @@ async function applyVideoFilterChain(
       const mixed = parseFilterBoolean(named.mixed ?? "0", "decimate: mixed must be a Boolean");
       const dupthresh = Number(named.dupthresh ?? "1.1");
       const sceneThreshold = Number(named.scthresh ?? "15");
-      if (named.mixed === "" || positional.slice(1, argStr.endsWith(":") ? -1 : undefined).some(part => !part.includes("=")) ||
-          Object.keys(named).some(key => key !== "ppsrc" && key !== "cycle" && key !== "mixed" && key !== "dupthresh" && key !== "scthresh" && key !== "chroma" && key !== "blockx" && key !== "blocky") ||
-          cycle < 2 || cycle > 25) {
-        throw new Error("decimate: expected cycle from 2 to 25 and optional mixed/chroma Booleans");
+      if (named.mixed === "") throw new Error("decimate: mixed must be a Boolean");
+      if (positional.slice(1, argStr.endsWith(":") ? -1 : undefined).some(part => !part.includes("=")) ||
+          Object.keys(named).some(key => key !== "ppsrc" && key !== "cycle" && key !== "mixed" && key !== "dupthresh" && key !== "scthresh" && key !== "chroma" && key !== "blockx" && key !== "blocky")) {
+        throw new Error("decimate: unsupported option");
+      }
+      if (cycle < 2 || cycle > 25) {
+        throw new RangeError("decimate: cycle must be an integer from 2 to 25");
       }
       if (named.dupthresh === "" || !Number.isFinite(dupthresh) || dupthresh < 0 || dupthresh > 100) {
         throw new Error("decimate: dupthresh must be a number from 0 to 100");
@@ -14790,6 +14794,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "stereowiden: invalid expression" || msg === "stereowiden: invalid or unsupported expression") return { exitCode: 234 };
             if (msg === "atempo: unknown option") return { exitCode: 8 };
             if (msg.startsWith("atempo:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg === "decimate: timeline is unsupported") return { exitCode: 176 };
+            if (msg === "decimate: unsupported option") return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("decimate:")) return { exitCode: 222 };
+            if (msg === "decimate: invalid expression" || msg === "decimate: invalid or unsupported expression") return { exitCode: 234 };
             if (msg === "fps: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("fps: unsupported option ")) return { exitCode: 8 };
             if (msg === "fps: invalid round value" || msg === "fps: invalid eof_action value" ||

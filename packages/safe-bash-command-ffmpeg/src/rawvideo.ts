@@ -93,6 +93,12 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
         const shift = format === "yuv444p10le" ? 2 : format === "yuv444p16le" ? 8 : 0;
         const chromaWidth = format === "yuv422p" ? Math.ceil(frame.width / 2) : frame.width;
         budget.checkOutputBytes(size + (frame.width + 2 * chromaWidth) * frame.height * (shift ? 2 : 1));
+        const native = frame.native;
+        if (shift && native?.format === (shift === 2 ? 68 : 49) && native.rgba === frame.data &&
+            native.width === frame.width && native.height === frame.height) {
+          append(native.pixels);
+          continue;
+        }
         const converted = await formatYuv(frame, format === "yuv422p" ? "yuv422p" : "yuv444p", signal);
         const pixels = converted.native!.pixels;
         if (shift) {

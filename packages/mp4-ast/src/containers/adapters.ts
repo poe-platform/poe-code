@@ -27,7 +27,7 @@ import { nistSphereAst } from "./nistsphere.js";
 import { auAst } from "./au.js";
 import { aiffAst } from "./aiff.js";
 import { rawAudioAsts, mulawTable, alawTable } from "./raw-audio.js";
-import { encodeAudio } from "@poe-code/media-codecs";
+import { encodeAudio, scaleVideoPicture } from "@poe-code/media-codecs";
 import { compressedWavPackets, decodeCompressedWav } from "./wav-compressed.js";
 import { decodeG726, encodeG726 } from "./au-g726.js";
 import { decodeYamahaWav, encodeYamahaWav } from "./wav-yamaha.js";
@@ -161,6 +161,7 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
   let chromaLocation: string | undefined;
   let pixFmt = "yuv420p";
   let format = 0;
+  let sampleBytes = 1;
   let fieldOrder: "progressive" | "tt" | "bb" | undefined;
   let colorRange: "pc" | "tv" | undefined;
 
@@ -192,6 +193,11 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
     else if (token === "Cmono") { pixFmt = "gray"; format = 8; }
     else if (token === "C422") { pixFmt = "yuv422p"; format = 4; }
     else if (token === "C444") { pixFmt = "yuv444p"; format = 5; }
+    else if (token === "C444p10" || token === "C444p16") {
+      pixFmt = `yuv${token.slice(1)}le`;
+      format = token === "C444p10" ? 68 : 49;
+      sampleBytes = 2;
+    }
     else if (token === "XCOLORRANGE=FULL") colorRange = "pc";
     else if (token === "XCOLORRANGE=LIMITED") colorRange = "tv";
     else if (token.startsWith("F")) {
@@ -216,12 +222,12 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
 
   const fps = fpsNum / Math.max(1, fpsDen);
   const ySize = width * height;
-  const horizontalShift = format === 5 ? 0 : 1;
+  const horizontalShift = [5, 49, 68].includes(format) ? 0 : 1;
   const verticalShift = format === 0 ? 1 : 0;
   const uvWidth = Math.ceil(width / (1 << horizontalShift));
   const uvHeight = Math.ceil(height / (1 << verticalShift));
   const uvSize = format === 8 ? 0 : uvWidth * uvHeight;
-  const frameByteSize = ySize + uvSize * 2;
+  const frameByteSize = (ySize + uvSize * 2) * sampleBytes;
 
   const frames: MediaVideoFrame[] = [];
   const samples: MediaSample[] = [];
@@ -250,13 +256,17 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
       cursor + ySize + uvSize,
       cursor + ySize + uvSize * 2
     );
-    const rgba = yuv420pToRgba(yPlane, uPlane, vPlane, width, height, horizontalShift, verticalShift, colorRange === "pc");
+    let rgba: Uint8Array = new Uint8Array(0);
+    const native = { rgba, pixels: bytes.subarray(cursor, cursor + frameByteSize), width, height,
+      format, colorspace: 5, fullRange: colorRange === "pc" ? 1 : 0 };
+    rgba = sampleBytes === 2
+      ? scaleVideoPicture({ data: rgba, width, height, native }, width, height)!
+      : yuv420pToRgba(yPlane, uPlane, vPlane, width, height, horizontalShift, verticalShift, colorRange === "pc");
     frames.push({
       width,
       height,
       data: rgba,
-      native: { rgba, pixels: bytes.subarray(cursor, cursor + frameByteSize), width, height,
-        format, colorspace: 5, fullRange: colorRange === "pc" ? 1 : 0 },
+      native: { ...native, rgba },
       ptsSeconds: frameIdx / fps,
       durationSeconds: 1 / fps,
       keyframe: true
@@ -328,10 +338,12 @@ export function serializeY4m(doc: MediaDocument): Uint8Array {
   const interlace = codec?.fieldOrder === "tt" ? "t" : codec?.fieldOrder === "bb" ? "b" : "p";
   const range = codec?.colorRange === "pc" ? " XCOLORRANGE=FULL" : codec?.colorRange === "tv" ? " XCOLORRANGE=LIMITED" : "";
   const sourceFormat = frames[0]?.native?.format;
-  const preserveNative = sourceFormat !== undefined && [0, 4, 5, 8].includes(sourceFormat) &&
+  const preserveNative = sourceFormat !== undefined && [0, 4, 5, 8, 49, 68].includes(sourceFormat) &&
     frames.every(frame => frame.native?.format === sourceFormat && frame.native.rgba === frame.data &&
       frame.native.width === width && frame.native.height === height);
-  const chroma = preserveNative && sourceFormat === 8 ? "mono"
+  const chroma = preserveNative && sourceFormat === 49 ? "444p16"
+    : preserveNative && sourceFormat === 68 ? "444p10"
+    : preserveNative && sourceFormat === 8 ? "mono"
     : preserveNative && sourceFormat === 4 ? "422"
     : preserveNative && sourceFormat === 5 ? "444"
     : codec?.chromaLocation === "left" ? "420mpeg2 XYSCSS=420MPEG2" : "420jpeg";

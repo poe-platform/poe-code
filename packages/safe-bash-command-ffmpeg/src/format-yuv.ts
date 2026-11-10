@@ -16,6 +16,37 @@ export async function formatYuv(
   const lumaSize = width * height;
   const chromaSize = chromaWidth * chromaHeight;
   const pixels = new Uint8Array(lumaSize + chromaSize * 2);
+  const source = frame.native;
+  if (format === "yuv444p" && source && [49, 68].includes(source.format) &&
+      source.rgba === data && source.width === width && source.height === height) {
+    // swscale's planar depth reduction restarts its ordered dither per slice.
+    // Use the reference FFmpeg 7 build's 16 slices, including single-row slices.
+    const sliceHeight = Math.ceil(height / 16);
+    const dither = source.format === 68 ? [[1, 2], [3, 0]] : [
+      [36, 68, 60, 92, 34, 66, 58, 90], [100, 4, 124, 28, 98, 2, 122, 26],
+      [52, 84, 44, 76, 50, 82, 42, 74], [116, 20, 108, 12, 114, 18, 106, 10],
+      [32, 64, 56, 88, 38, 70, 62, 94], [96, 0, 120, 24, 102, 6, 126, 30],
+      [48, 80, 40, 72, 54, 86, 46, 78], [112, 16, 104, 8, 118, 22, 110, 14]
+    ];
+    const shift = source.format === 68 ? 2 : 8;
+    const view = new DataView(source.pixels.buffer, source.pixels.byteOffset, source.pixels.byteLength);
+    for (let plane = 0; plane < 3; plane++) {
+      for (let y = 0; y < height; y++) {
+        await yieldTurn(signal);
+        signal?.throwIfAborted();
+        const row = dither[(y % sliceHeight) % dither.length]!;
+        for (let x = 0; x < width; x++) {
+          const offset = plane * lumaSize + y * width + x;
+          const sample = view.getUint16(offset * 2, true);
+          const value = (sample + row[x % row.length]!) >> shift;
+          pixels[offset] = Math.min(255, value);
+        }
+      }
+    }
+    const native = { ...source, pixels, format: nativeFormat };
+    const rgba = scaleVideoPicture({ ...frame, native }, width, height)!;
+    return { ...frame, data: rgba, native: { ...native, rgba } };
+  }
   for (let y = 0; y < height; y++) {
     await yieldTurn(signal);
     signal?.throwIfAborted();

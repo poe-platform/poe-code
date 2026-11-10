@@ -24,6 +24,18 @@ const robidoux = Float64Array.from({ length: 1024 }, (_, i) => {
         : ((-b - 6 * c) * x ** 3 + (6 * b + 30 * c) * x * x + (-12 * b - 48 * c) * x + 8 * b + 24 * c) / 6;
 });
 
+function* catromSamples(sx: number, sy: number): Generator<readonly [number, number, number]> {
+    const left = Math.floor(sx), top = Math.floor(sy);
+    const weights = [sx - left, sy - top].map(x => {
+        const alpha = 1 - x, beta = -0.5 * x * alpha;
+        const first = alpha * beta, last = x * beta, gamma = last - first;
+        return [first, alpha - first + gamma, x - last - gamma, last];
+    });
+    for (let row = 0; row < 4; row++) for (let column = 0; column < 4; column++) {
+        yield [left + column - 1, top + row - 1, weights[0]![column]! * weights[1]![row]!];
+    }
+}
+
 function* ellipseSamples(sx: number, sy: number, [ux, uy, vx, vy]: readonly [number, number, number, number], weights: Float64Array, support: number): Generator<readonly [number, number, number] | undefined> {
     // Singular values of the inverse mapping, clamped to at least one source pixel.
     const xx = ux * ux + uy * uy, yy = vx * vx + vy * vy, xy = ux * vx + uy * vy;
@@ -106,7 +118,7 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
             const outside = filter && virtualPixel === "background" && (sx + support < 0 || sy + support < 0 || sx - support > width - 1 || sy - support > height - 1);
             const interpolation = plan.interpolation;
             for (let filtered = !!derivatives && kernel !== "nearest" && !plan.nearest; ; filtered = false) {
-                const samples: Iterable<readonly [number, number, number] | undefined> = outside ? [[Math.floor(sx), Math.floor(sy), 1]] : plan.nearest || interpolation === "nearest" ? [[Math.floor(sx + 0.5), Math.floor(sy + 0.5), 1]] : interpolation === "integer" ? [[x0, y0, 1]] : interpolation === "average" ? [[x0, y0, 0.25], [x1, y0, 0.25], [x0, y1, 0.25], [x1, y1, 0.25]] : filtered ? ellipseSamples(sx, sy, derivatives!, weights, support) : [
+                const samples: Iterable<readonly [number, number, number] | undefined> = outside ? [[Math.floor(sx), Math.floor(sy), 1]] : plan.nearest || interpolation === "nearest" ? [[Math.floor(sx + 0.5), Math.floor(sy + 0.5), 1]] : interpolation === "integer" ? [[x0, y0, 1]] : interpolation === "average" ? [[x0, y0, 0.25], [x1, y0, 0.25], [x0, y1, 0.25], [x1, y1, 0.25]] : filtered ? ellipseSamples(sx, sy, derivatives!, weights, support) : interpolation === "catrom" ? catromSamples(sx, sy) : [
                     [x0, y0, (1 - fx) * (1 - fy)], [x1, y0, fx * (1 - fy)],
                     [x0, y1, (1 - fx) * fy], [x1, y1, fx * fy]
                 ];
@@ -137,13 +149,14 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                     // the same vertical weights as bilinear. Native mesh divides
                     // unassociated colors by alpha; average excludes transparent RGB.
                     if (interpolation === "mesh") colorTotal += weight * opacity / maximum;
-                    else if (interpolation === "average") colorTotal += weight;
-                    if (derivatives || interpolation === "bilinear") weight *= opacity / maximum;
+                    else if (interpolation === "average" || interpolation === "catrom") colorTotal += weight;
+                    // Native Catrom keeps the interpolated premultiplied colors.
+                    if (derivatives || interpolation === "bilinear" || interpolation === "catrom") weight *= opacity / maximum;
                     else if (interpolation === "average") weight *= Number(opacity > 0);
                     red += pixel[0]! * (plan.channels?.[0] === false ? unassociatedWeight : weight);
                     green += pixel[1]! * (plan.channels?.[1] === false ? unassociatedWeight : weight);
                     blue += pixel[2]! * (plan.channels?.[2] === false ? unassociatedWeight : weight);
-                    if (interpolation !== "mesh" && interpolation !== "average") colorTotal += weight;
+                    if (interpolation !== "mesh" && interpolation !== "average" && interpolation !== "catrom") colorTotal += weight;
                 }
                 // Native EWA falls back to interpolation for nonpositive filter coverage.
                 if (filtered && (total <= 1e-12 || colorTotal <= 1e-12)) continue;

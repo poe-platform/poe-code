@@ -2741,7 +2741,7 @@ function sampleFxImage(
   return sampleFxPixel(img.data16 ?? img.data!, idx, ch, img.data16 ? 65535 : 255);
 }
 function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number, interpolation?: LookupInterpolation): number {
-  if (interpolation === "mesh") throw new Error("Unsupported FX interpolation: mesh");
+  if (interpolation === "mesh" || interpolation === "catrom") throw new Error(`Unsupported FX interpolation: ${interpolation}`);
   if (!img) return 0;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return NaN;
   const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
@@ -3707,7 +3707,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     if (token === "-interpolative-resize") {
         const geometry = tokens[start + 1] ?? "", interpolation = state.interpolation ?? "bilinear";
         validateMagickTransformGeometry(geometry, token);
-        if (interpolation === "mesh") throw new Error("Unsupported interpolative-resize interpolation: mesh");
+        if (interpolation === "mesh" || interpolation === "catrom") throw new Error(`Unsupported interpolative-resize interpolation: ${interpolation}`);
         const background = state.background, virtualPixel = state.virtualPixel ?? "edge";
         return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">) => {
             const options = magickResizeOptions(image, geometry, undefined);
@@ -3725,7 +3725,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     // use ImageMagick's best-fit SRT canvas and background virtual pixels.
     if (token === "-rotate") {
         const { angle, applies } = parseMagickRotation(tokens[start + 1] ?? "0"), background = state.background, backgroundExplicit = state.backgroundExplicit, kernel = state.kernel, filter = state.resizeFilter;
-        if (state.kernel === "nearest" && state.interpolation === "mesh") throw new Error("Unsupported rotation interpolation: mesh");
+        if (state.kernel === "nearest" && (state.interpolation === "mesh" || state.interpolation === "catrom")) throw new Error(`Unsupported rotation interpolation: ${state.interpolation}`);
         const nearest = state.kernel === "nearest" && state.interpolation === "nearest", viewport = state.distortViewport;
         if (!Number.isFinite(angle) || angle % 90 === 0) return;
         const scale = state.distortScale === undefined ? undefined : Math.abs(Number.parseFloat(state.distortScale));
@@ -8438,9 +8438,7 @@ if (t === "-seed") {
         else if (t === "-interpolate") {
             const method = (tokens[++i] ?? "").toLowerCase();
             if (method === "nearest" || method === "nearest-neighbor") state.interpolation = "nearest";
-            // ImageMagick's background method uses the default bilinear sampler.
-            else if (method === "background") state.interpolation = "bilinear";
-            else if (method === "integer" || method === "average" || method === "bilinear" || method === "mesh") state.interpolation = method;
+            else if (method === "integer" || method === "average" || method === "bilinear" || method === "mesh" || method === "catrom") state.interpolation = method;
             else throw new Error(`unrecognized interpolate method '${method}'`);
         }
         else if (t === "+interpolate") {

@@ -6,7 +6,7 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 
 /** Native Kuwahara: rank-three blur, minimum luma variance, quadrant-center interpolation. */
 export function* kuwaharaPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, interpolation: LookupInterpolation = "bilinear"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    if (interpolation === "mesh") throw new Error("Unsupported Kuwahara interpolation: mesh");
+    if (interpolation === "mesh" || interpolation === "catrom") throw new Error(`Unsupported Kuwahara interpolation: ${interpolation}`);
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
     if (!Number.isFinite(radius) || radius < 0 || radius >= 5000 || !Number.isFinite(sigma)) throw new Error("Kuwahara radius or sigma exceeds limit");
     const quadrant = Math.floor(radius) + 1, mask = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;

@@ -1165,6 +1165,7 @@ describe("aloop", () => {
   for (const [filter, repeats, size] of [
     ["aloop=loop=2:size=8:start=0", 2, 8],
     ["aloop=2:8:0", 2, 8],
+    ["aloop=1.5:8", 2, 8],
     ["aloop=loop=0:size=8:start=10", 0, 8],
     ["aloop", 0, 0],
     ["aloop=2:0", 0, 0],
@@ -1183,7 +1184,7 @@ describe("aloop", () => {
       }
     });
   }
-  for (const filter of ["aloop=-1:8", "aloop=1.5:8", "aloop=2:-8", "aloop=2:8:10", "aloop=loop=", "aloop=wat=1"]) {
+  for (const filter of ["aloop=-1:8", "aloop=2:-8", "aloop=2:8:10", "aloop=loop=", "aloop=wat=1"]) {
     it(`rejects unsupported or invalid ${filter} without replacing output`, async () => {
       const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(16)] }), "/out.wav": "keep" });
       const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af", filter, "/out.wav"], vfs);

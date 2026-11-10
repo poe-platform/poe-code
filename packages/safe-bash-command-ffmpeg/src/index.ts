@@ -10213,14 +10213,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else optionPosition = optionPosition === 0 ? 1 : 0;
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           if (!key || !Object.hasOwn(values, key)) throw new Error(`aloop: unsupported option ${key}`);
-                          const number = key === "time" ? parseHlsDuration(value) : Number(value);
+                          const number = key === "time" ? parseHlsDuration(value) : parseFilterExpression(value, "aloop", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
                           if (!value || !Number.isFinite(number) ||
-                            (key !== "time" && (!Number.isInteger(number) || number > (key === "start" ? 2 ** 63 : 2147483647))) ||
+                            (key !== "time" && number > (key === "start" ? 2 ** 63 : 2147483647)) ||
                             number < (key === "start" ? -1 : 0) ||
                             (key === "time" && number > (2 ** 63 - 1) / 1_000_000)) {
                             throw new Error(`aloop: invalid ${key}`);
                           }
-                          values[key] = number;
+                          values[key] = key === "time" ? number : roundToEven(number);
                         }
                         const { loop, size, start, time } = values;
                         const loopStart = start === -1 ? Math.round(time! * origRate) : start!;
@@ -13223,7 +13223,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("atrim:") && !msg.startsWith("atrim: unsupported option")) {
               return { exitCode: err instanceof RangeError ? 222 : 234 };
             }
-            if (msg.startsWith("apad packet_size:") || msg === "aeval: invalid expression" || msg === "aeval: invalid or unsupported expression") {
+            if (msg.startsWith("apad packet_size:") || msg === "aloop: invalid expression" || msg === "aloop: invalid or unsupported expression" ||
+                msg === "aeval: invalid expression" || msg === "aeval: invalid or unsupported expression") {
               return { exitCode: 234 };
             }
             return { exitCode: 1 };

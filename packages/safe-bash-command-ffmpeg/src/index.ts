@@ -2874,13 +2874,13 @@ async function applyVideoFilterChain(
         const out = name === "hflip" ? flopImage(image) : flipImage(image);
         const native = f.native;
         if (native?.rgba === f.data && native.width === f.width && native.height === f.height &&
-            [0, 4, 5, 12, 13, 14, 29, 34, 104].includes(native.format)) {
+            [0, 4, 5, 12, 13, 14, 29, 34, 49, 68, 104].includes(native.format)) {
           const pixels = new Uint8Array(native.pixels);
-          const sampleBytes = native.format === 104 ? 8 : native.format === 34 ? 6 : native.format === 29 ? 2 : 1;
-          const chromaWidth = Math.ceil(f.width / ([5, 14].includes(native.format) ? 1 : 2));
+          const sampleBytes = native.format === 104 ? 8 : native.format === 34 ? 6 : [29, 49, 68].includes(native.format) ? 2 : 1;
+          const chromaWidth = Math.ceil(f.width / ([5, 14, 49, 68].includes(native.format) ? 1 : 2));
           const chromaHeight = Math.ceil(f.height / ([0, 12].includes(native.format) ? 2 : 1));
           let offset = 0;
-          const planes = sampleBytes > 1 ? [[f.width, f.height]] as const
+          const planes = [29, 34, 104].includes(native.format) ? [[f.width, f.height]] as const
             : [[f.width, f.height], [chromaWidth, chromaHeight], [chromaWidth, chromaHeight]] as const;
           for (const [width, height] of planes) {
             for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
@@ -2924,13 +2924,13 @@ async function applyVideoFilterChain(
         const source = f.native;
         // Preserve native samples for packed RGB, grayscale and equally subsampled planar formats.
         if (source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
-            [0, 5, 12, 14, 29, 34, 104].includes(source.format)) {
+            [0, 5, 12, 14, 29, 34, 49, 68, 104].includes(source.format)) {
           budget.allocateMemory(source.pixels.length + f.data.byteLength);
           const pixels = new Uint8Array(source.pixels.length);
-          const sampleBytes = source.format === 104 ? 8 : source.format === 34 ? 6 : source.format === 29 ? 2 : 1;
+          const sampleBytes = source.format === 104 ? 8 : source.format === 34 ? 6 : [29, 49, 68].includes(source.format) ? 2 : 1;
           const subsampling = source.format === 0 || source.format === 12 ? 2 : 1;
           let offset = 0;
-          for (let plane = 0; plane < (sampleBytes > 1 ? 1 : 3); plane++) {
+          for (let plane = 0; plane < ([29, 34, 104].includes(source.format) ? 1 : 3); plane++) {
             const width = Math.ceil(f.width / (plane === 0 ? 1 : subsampling));
             const height = Math.ceil(f.height / (plane === 0 ? 1 : subsampling));
             for (let y = 0; y < height; y++) {

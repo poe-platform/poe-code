@@ -4,7 +4,9 @@ import { formatMetricNum } from "./compare-kernel.js";
 
 export function rgbToCmyk(r: number, g: number, b: number): number[] {
     const maximum = Math.max(r, g, b);
-    return maximum === 0 ? [0, 0, 0, 1] : [1 - r / maximum, 1 - g / maximum, 1 - b / maximum, 1 - maximum];
+    // Q16-HDRI stores converted inks as float quantum samples before export.
+    return maximum === 0 ? [0, 0, 0, 1] : [1 - r / maximum, 1 - g / maximum, 1 - b / maximum, 1 - maximum]
+        .map(value => Math.fround(value * 65535) / 65535);
 }
 
 export function* fillCmykPixels(image: RgbaImage & HueMetadata, inks: readonly number[]): Generator<void, RgbaImage & HueMetadata, void> {

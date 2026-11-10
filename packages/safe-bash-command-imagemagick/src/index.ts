@@ -11867,14 +11867,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "+repage" || token === "-repage")) {
-            const raw = token === "-repage" ? tokens[++i] ?? "0x0" : undefined, optionProperties = state.optionProperties;
-            stackStep(async (stack, backend) => {
+            const raw = token === "-repage" ? tokens[++i] ?? "0x0" : undefined;
+            stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                const geometry = raw === undefined ? undefined : parseMagickGeometry(raw);
                 for (let index = 0; index < stack.length; index++) {
                     const image = (await stack.get(index))!;
-                    const expanded = raw === undefined ? undefined : await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                    const geometry = expanded === undefined ? undefined : parseMagickRepageGeometry(expanded);
-                    const reset = { ...image, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } };
+                    const { virtualCanvas: ignoredCanvas, ...reset } = image;
                     await stack.set(index, geometry ? { ...image, virtualCanvas: magickRepageCanvas(image, geometry, "repage") } : reset);
                 }
                 return stack;

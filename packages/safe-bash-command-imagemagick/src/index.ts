@@ -9830,6 +9830,22 @@ function parseMagickDisposal(value: string): number | undefined {
     return undefined;
 }
 
+function parseMagickDisposalSetting(value: string): number {
+    const separators = " \t\r\n\v\f,|";
+    let start = 0;
+    while (start < value.length && separators.includes(value[start]!)) start++;
+    const negate = value[start] === "!";
+    if (negate) start++;
+    let end = start;
+    while (end < value.length && !separators.includes(value[end]!)) end++;
+    // Native option names ignore hyphens and underscores after the first character.
+    const token = value.slice(start, end);
+    const name = (token.slice(0, 1) + token.slice(1).replaceAll("-", "").replaceAll("_", "")).toLowerCase();
+    const disposal = parseMagickDisposal(name);
+    if (disposal === undefined) throw new Error(`unrecognized dispose method '-dispose' '${value}'`);
+    return negate ? 0 : disposal;
+}
+
 function parseMagickOrientation(value: string): number {
     const orientation = ["undefined", "topleft", "topright", "bottomright", "bottomleft", "lefttop", "righttop", "rightbottom", "leftbottom"].indexOf(value.toLowerCase().replaceAll("-", "").replaceAll("_", ""));
     if (orientation < 0) throw new Error(`unrecognized image orientation '-orient' '${value}'`);
@@ -11062,7 +11078,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const value = tokens[++i] ?? "";
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
             const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: 0, optionProperties: state.optionProperties });
-            state.disposal = parseMagickDisposal(expanded) ?? 0;
+            state.disposal = parseMagickDisposalSetting(expanded);
             state.optionProperties = { ...state.optionProperties, dispose: value };
         }
         else if (t === "-layers" && layerMethod === "trimbounds") {
@@ -14194,7 +14210,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             // Resolve image-dependent settings before subsequent input settings are captured.
             if (tokens[i + 1]?.includes("%")) return;
             const value = tokens[++i] ?? "";
-            state.disposal = parseMagickDisposal(value) ?? 0;
+            state.disposal = parseMagickDisposalSetting(value);
             state.optionProperties = { ...state.optionProperties, dispose: value };
             continue;
         }

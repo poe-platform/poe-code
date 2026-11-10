@@ -11,7 +11,7 @@ export interface ShadowLayout {
     readonly opacity: number;
     readonly sigma: number;
 }
-export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hasAlpha" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">>, layout: ShadowLayout, color: RgbaColor, alpha = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hasAlpha" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { region?: Region | undefined }, layout: ShadowLayout, color: RgbaColor, alpha = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(source.data16 || source.storedData16);
     const hue = source.space !== "cmyk" && (!!source.hueSamples || source.storedHueSamples !== undefined);
     const scale = hue ? 1 / 255 : highDepth ? 257 : 1, maximum = hue ? 1 : 255 * scale;
@@ -48,7 +48,8 @@ export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "
             yield;
             const sums = new Float64Array(count);
             // Native leaves the shadow transparent when alpha is not selected.
-            for (let ky = -half; alpha && ky <= half; ky++) {
+            // Its transparent border cache also clears source alpha with a region.
+            for (let ky = -half; alpha && !source.region && ky <= half; ky++) {
                 yield;
                 const sy = Math.max(0, Math.min(layout.height - 1, y + ky)) - layout.offsetY;
                 if (sy < 0 || sy >= source.height) continue;

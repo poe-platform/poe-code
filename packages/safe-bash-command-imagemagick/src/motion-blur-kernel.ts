@@ -3,7 +3,7 @@ import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
-export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">>, geometry: { width?: number; height?: number; x?: number }, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { inactiveAlpha?: boolean | undefined }, geometry: { width?: number; height?: number; x?: number }, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(image.data16 || image.storedData16);
     const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
     const scale = !evaluate && highDepth ? 257 : 1;
@@ -70,7 +70,8 @@ export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" 
                 sums[3]! += pixel[3]! * weights[j]!;
             }
             // Q16-HDRI retains float32 quantum samples until output encoding.
-            for (let c = 0; c < 4; c++) if (!mask || mask[c]) data[i * 4 + c] = Math.fround((c === 3 ? sums[3]! : sums[3] ? sums[c]! / sums[3] : 0) * 257 / scale) / 257;
+            // Inactive alpha still weights colors, but its original samples are retained.
+            for (let c = 0; c < (image.inactiveAlpha ? 3 : 4); c++) if (!mask || mask[c]) data[i * 4 + c] = Math.fround((c === 3 ? sums[3]! : sums[3] ? sums[c]! / sums[3] : 0) * 257 / scale) / 257;
         }
         const encoded = highDepth
             ? Uint16Array.from(data, value => Math.max(0, Math.min(65535, Math.round(value * 257))))

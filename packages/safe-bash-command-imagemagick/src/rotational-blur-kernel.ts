@@ -4,7 +4,7 @@ import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
-export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { region?: Region | undefined; alphaBlend?: boolean | undefined; hasAlpha?: boolean }, angle: number, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { region?: Region | undefined; alphaBlend?: boolean | undefined; hasAlpha?: boolean; inactiveAlpha?: boolean | undefined }, angle: number, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(image.data16 || image.storedData16);
     const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
     const { width, height } = image, cx = (width - 1) / 2, cy = (height - 1) / 2, radius = Math.hypot(cx, cy);
@@ -73,7 +73,8 @@ export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "heig
             const protectedPixel = region && !regionContains(region, x, y);
             const sourceAlpha = alphaActive ? values[i * 4 + 3]! / 65535 : 1;
             const editedAlpha = alphaActive ? (mask && !mask[3] ? values[i * 4 + 3]! : sums[3]! / total) / 65535 : 1;
-            for (let c = 0; c < 4; c++) if (!mask || mask[c]) {
+            // Inactive alpha still weights colors, but its original samples are retained.
+            for (let c = 0; c < (image.inactiveAlpha ? 3 : 4); c++) if (!mask || mask[c]) {
                 let value = c === 3 ? sums[3]! / total : sums[3] ? sums[c]! / sums[3] : 0;
                 // Composite before quantizing: native retains fractional blur samples in its cache.
                 if (protectedPixel) value = c === 3 ? values[i * 4 + c]! : values[i * 4 + c]! * sourceAlpha + value * editedAlpha * (1 - sourceAlpha);

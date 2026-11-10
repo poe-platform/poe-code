@@ -10207,12 +10207,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             throw new Error("dcshift: expected shift between -1 and 1; limiter options are unsupported");
                           }
                         }
-                        for (const channel of stretched) {
+                        // Native dcshift negotiates signed PCM32 and truncates the shifted sum.
+                        // Keep all 32 bits so integer encoders can discard low bits when narrowing.
+                        budget.allocateMemory((stretched[0]?.length ?? 0) * stretched.length * Float64Array.BYTES_PER_ELEMENT);
+                        const output = stretched.map(channel => new Float64Array(channel.length));
+                        for (const [c, channel] of stretched.entries()) {
                           for (let i = 0; i < channel.length; i++) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            channel[i] = Math.max(-1, Math.min(1, channel[i]! + shift));
+                            const sample = Math.max(-2147483648, Math.min(2147483647, roundToEven(channel[i]! * 2147483648)));
+                            output[c]![i] = Math.max(-2147483648, Math.min(2147483647,
+                              Math.trunc(sample + shift * 2147483648))) / 2147483648;
                           }
                         }
+                        stretched = output;
+                        filteredSampleFormat = "s32p";
+                        statsScale = 2147483648 / 2147483647;
+                        t = { ...t, codecDescriptions: t.codecDescriptions.map(description => ({ ...description,
+                          codecName: "pcm_s32le", bitsPerSample: 32 })) };
                       } else if (trimmed === "aloop" || trimmed.startsWith("aloop=")) {
                         const values: Record<string, number> = { loop: 0, size: 0, start: 0, time: Infinity };
                         const argument = trimmed.slice("aloop=".length);

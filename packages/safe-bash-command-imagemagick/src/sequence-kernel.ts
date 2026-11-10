@@ -185,11 +185,15 @@ export function* interpolatePixelSteps(size: number, fraction: number, blendAlph
         const length = Math.min(2048, size - position);
         const hue = yield { kind: "read", hue: true, position, length };
         const otherHue = yield { kind: "read", hue: true, image: 1, position, length };
-        const bytes = hue?.length ? hue : (yield { kind: "read", highDepth, position, length })!;
-        const otherBytes = otherHue?.length ? otherHue : (yield { kind: "read", highDepth, image: 1, position, length })!;
+        const samples = hue?.length ? undefined : yield { kind: "read", evaluate: true, position, length };
+        const otherSamples = otherHue?.length ? undefined : yield { kind: "read", evaluate: true, image: 1, position, length };
+        const bytes = hue?.length ? hue : samples?.length ? samples : (yield { kind: "read", highDepth, position, length })!;
+        const otherBytes = otherHue?.length ? otherHue : otherSamples?.length ? otherSamples : (yield { kind: "read", highDepth, image: 1, position, length })!;
         const data = hue?.length ? new Float64Array(bytes.slice().buffer).map(value => value * range)
+            : samples?.length ? new Float64Array(bytes.slice().buffer).map(value => highDepth ? value * 257 : value)
             : Float64Array.from(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
         const other = otherHue?.length ? new Float64Array(otherBytes.slice().buffer).map(value => value * range)
+            : otherSamples?.length ? new Float64Array(otherBytes.slice().buffer).map(value => highDepth ? value * 257 : value)
             : highDepth ? new Uint16Array(otherBytes.slice().buffer) : otherBytes;
         for (let offset = 0; offset < length; offset++) {
             if (offset % 4 === 3 && !blendAlpha) continue;

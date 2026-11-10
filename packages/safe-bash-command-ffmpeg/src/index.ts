@@ -11472,13 +11472,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const startPts = audioTimestamps[0]?.pts ?? 0;
                         // Validate even an empty stream; expressions use the audio sample time base.
                         if (audioTimestamps.length === 0) parseFilterExpression(expression, "asetpts", {
-                          PTS: 0, STARTPTS: 0, T: 0, TB: 1 / origRate, SR: origRate,
+                          NAN: NaN, PTS: 0, STARTPTS: 0, T: 0, TB: 1 / origRate, SR: origRate,
                           N: 0, NB_CONSUMED_SAMPLES: 0, NB_SAMPLES: 0, S: 0
                         });
                         for (const frame of audioTimestamps) {
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           frame.pts = Math.trunc(parseFilterExpression(expression, "asetpts", {
-                            PTS: frame.pts, STARTPTS: startPts, T: frame.pts / origRate, TB: 1 / origRate, SR: origRate,
+                            NAN: NaN, PTS: frame.pts, STARTPTS: startPts, T: frame.pts / origRate, TB: 1 / origRate, SR: origRate,
                             N: frame.start, NB_CONSUMED_SAMPLES: frame.start,
                             NB_SAMPLES: frame.end - frame.start, S: frame.end - frame.start
                           }));
@@ -11515,10 +11515,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (!samples && audioTimestamps) {
                             // Time bounds follow frame PTS; sample bounds count the input data.
                             frame = length;
+                            let nextPts = 0;
                             for (const timestamp of audioTimestamps) {
                               if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                              if (boundary <= timestamp.pts + timestamp.end - timestamp.start) {
-                                frame = timestamp.start + Math.max(0, boundary - timestamp.pts);
+                              // Missing PTS continues from the preceding frame, or zero initially.
+                              const pts = Number.isNaN(timestamp.pts) ? nextPts : timestamp.pts;
+                              nextPts = pts + timestamp.end - timestamp.start;
+                              if (boundary <= nextPts) {
+                                frame = timestamp.start + Math.max(0, boundary - pts);
                                 break;
                               }
                             }
@@ -11534,12 +11538,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (audioTimestamps) {
                             let boundary: number | undefined;
                             durationEnd = length;
+                            let nextPts = 0;
                             for (const frame of audioTimestamps) {
                               if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              const pts = Number.isNaN(frame.pts) ? nextPts : frame.pts;
+                              nextPts = pts + frame.end - frame.start;
                               if (frame.end <= start) continue;
-                              boundary ??= frame.pts + Math.max(0, start - frame.start) + duration;
-                              if (boundary <= frame.pts + frame.end - frame.start) {
-                                durationEnd = frame.start + Math.max(0, boundary - frame.pts);
+                              boundary ??= pts + Math.max(0, start - frame.start) + duration;
+                              if (boundary <= nextPts) {
+                                durationEnd = frame.start + Math.max(0, boundary - pts);
                                 break;
                               }
                             }

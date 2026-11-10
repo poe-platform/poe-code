@@ -127,7 +127,7 @@ When combined with `end` or `end_sample`, the latest end wins.
 Sample bounds accept expressions and round to the nearest integer, with ties to even; `start_sample=-1` leaves the sample start unset.
 Use `atrim=start=0.253:end=0.390` for time bounds in seconds; `starti` and `endi` are aliases for `start` and `end`. End bounds are exclusive.
 Repeated `atrim` options use their last value; distinct time and sample bounds keep the earliest start and latest end.
-Use `atrim=start_pts=2:end_pts=8` for bounds in timestamp ticks (one tick per audio sample). PTS bounds follow shifts from `asetpts`; `start_sample` and `end_sample` count input sample frames regardless of timestamps.
+Use `atrim=start_pts=2:end_pts=8` for bounds in timestamp ticks (one tick per audio sample). PTS bounds follow shifts from `asetpts`; `start_sample` and `end_sample` count input sample frames regardless of timestamps. When `asetpts=NAN` or an expression such as `asetpts=0/0` removes timestamps, `atrim` evaluates time and PTS bounds by counting samples from the preceding timestamp (or zero initially).
 Positional options follow `start:end:start_pts:end_pts:duration:start_sample:end_sample`.
 `asetpts=PTS-STARTPTS` resets audio timestamps; `asetpts=PTS+0.5/TB` shifts them by half a second. Expressions also accept `T` (current timestamp in seconds), `N`/`NB_CONSUMED_SAMPLES` (samples consumed before the current frame), and `S`/`NB_SAMPLES` (current frame size). Output time limits honor shifted audio frame timestamps while preserving the retained PCM samples. Overlapping timestamps such as `asetpts=PTS/2` and `asetpts=NB_SAMPLES` apply the duration to each frame, including partial frames.
 Both forms apply to every channel and may omit either bound.

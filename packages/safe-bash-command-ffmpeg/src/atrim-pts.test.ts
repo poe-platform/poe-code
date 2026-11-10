@@ -68,3 +68,39 @@ for (const channels of [1, 2]) {
     });
   }
 }
+
+for (const complex of [false, true]) {
+  for (const [filter, expected] of [
+    ["asetpts=NAN,atrim=end_pts=4", [1, 2, 3, 4]],
+    ["asetpts=0/0,atrim=end_pts=4", [1, 2, 3, 4]],
+    ["asetnsamples=3:0,asetpts=NAN,atrim=end_pts=4", [1, 2, 3, 4]],
+    ["asetnsamples=3:0,asetpts=PTS,atrim=end_pts=4", [1, 2, 3, 4]],
+    ["asetnsamples=3:0,asetpts=NAN,atrim=start_pts=2:end_pts=5", [3, 4, 5]],
+    ["asetnsamples=3:0,asetpts=NAN,atrim=start=0.00025:duration=0.000375", [3, 4, 5]],
+    ["asetnsamples=3:0,asetpts=if(eq(N\\,0)\\,8\\,NAN),atrim=end_pts=12", [1, 2, 3, 4]],
+    ["asetpts=NAN,asetpts=if(isnan(PTS)\\,N\\,PTS),atrim=end_pts=4", [1, 2, 3, 4]]
+  ] as const) {
+    it(`${complex ? "complex" : "simple"} ${filter} retains PCM with absent timestamps`, async () => {
+      const input = Buffer.alloc(24);
+      for (let i = 0; i < 12; i++) input.writeInt16LE(i + 1, i * 2);
+      const volume = Volume.fromJSON({ "/in.raw": input });
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/in.raw",
+          ...(complex ? ["-filter_complex", `[0:a]${filter}[s]`, "-map", "[s]"] : ["-af", filter]),
+          "-f", "s16le", "/out.raw"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, stderr);
+      const output = volume.readFileSync("/out.raw") as Buffer;
+      assert.deepEqual(Array.from({ length: output.length / 2 }, (_, i) => output.readInt16LE(i * 2)), expected);
+    });
+  }
+}

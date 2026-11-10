@@ -1998,7 +1998,7 @@ function* createPatternImageSteps(width: number, height: number, pattern: Return
 
 function resolveMagickSpliceGeometry(raw: string, width: number, height: number) {
     // Splice treats @ dimensions literally, unlike resize's area geometry.
-    let g = parseMagickGeometry(raw.replaceAll("@", ""));
+    let g = parseMagickGeometry(raw.split(",", 1)[0]!.replaceAll("@", ""));
     const dimensionSeparator = raw.toLowerCase().indexOf("x");
     const suffix = [...raw].findIndex(character => character === ":" || character === "/");
     if (dimensionSeparator >= 0 && suffix > dimensionSeparator) {
@@ -2096,6 +2096,10 @@ function validateMagickSpliceGeometry(raw: string): void {
     // Native geometry permits modifiers and separators, but never ignores unknown characters.
     if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
         throw new Error(`invalid argument for option '-splice': ${raw}`);
+    }
+    // Slash and comma cannot separate scalar dimensions; colon ratios remain valid.
+    if ((raw.includes("/") || raw.includes(",")) && !raw.toLowerCase().includes("x") && !raw.includes(":")) {
+        throw new Error(`invalid geometry: ${raw}`);
     }
 }
 

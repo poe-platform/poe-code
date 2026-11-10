@@ -2367,6 +2367,14 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
         }
     }
     const virtualCanvas = magickResizeCanvas(img, outW, outH);
+    if (img.metaChannels) {
+        const metaChannels: BaseRgbaImage[] = [];
+        for (const plane of img.metaChannels) {
+            const { virtualCanvas: ignoredCanvas, ...samples } = plane;
+            metaChannels.push(yield* applyMagickChopSteps({ ...samples, ...(img.virtualCanvas ? { virtualCanvas: img.virtualCanvas } : {}) }, geomStr, gravity, signal));
+        }
+        img = { ...img, metaChannels };
+    }
     if (img.readMask) img = { ...img, readMask: yield* applyMagickChopSteps({ ...img.readMask, ...(img.virtualCanvas ? { virtualCanvas: img.virtualCanvas } : {}) } as RgbaImage, geomStr, gravity, signal) };
     if (img.writeMask) {
         const { virtualCanvas: ignoredCanvas, ...mask } = img.writeMask;
@@ -5256,8 +5264,11 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
                 virtualCanvas: { ...magickCropCanvas(img, 0, 0), x: -1, y: -1 } });
             continue;
         }
+        const metaChannels: BaseRgbaImage[] | undefined = area && img.metaChannels ? [] : undefined;
+        if (metaChannels && area) for (const plane of img.metaChannels!) metaChannels.push(yield* extractImageSteps(plane, area));
         tiles.push(area ? {
             ...(yield* extractImageSteps(img, area)),
+            ...(metaChannels ? { metaChannels } : {}),
             ...(img.region ? { region: { ...img.region, x: img.region.x - area.left, y: img.region.y - area.top } } : {}),
             ...(img.readMask ? { readMask: yield* extractImageSteps(img.readMask as RgbaImage, area) } : {}),
             ...(img.writeMask ? { writeMask: yield* extractImageSteps(img.writeMask, area) } : {}),
@@ -11081,7 +11092,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     return im;
                 }
                 const area = { left: sw, top: sh, width: im.width - sw * 2, height: im.height - sh * 2 };
+                const metaChannels: BaseRgbaImage[] | undefined = im.metaChannels ? [] : undefined;
+                if (metaChannels) for (const plane of im.metaChannels!) metaChannels.push(yield* extractImageSteps(plane, area));
                 return { ...yield* extractImageSteps(im, area),
+                    ...(metaChannels ? { metaChannels } : {}),
                     ...(im.readMask ? { readMask: yield* extractImageSteps(im.readMask as RgbaImage, area) } : {}),
                     ...(im.writeMask ? { writeMask: yield* extractImageSteps(im.writeMask, area) } : {}),
                     ...(im.region ? { region: { ...im.region, x: im.region.x - sw, y: im.region.y - sh } } : {}),
@@ -12174,6 +12188,14 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         image = { ...image, storedMetaChannels };
     }
     if (token === "-splice" && image.storedWriteMask) image = { ...image, storedWriteMask: await transformStoredMagickCoordinates(image.storedWriteMask, backend, token, geometry, { ...state, backgroundExplicit: true, background: { r: 0, g: 0, b: 0, a: 255 } }, signal, analysis) };
+    if (token === "-chop" && image.storedMetaChannels) {
+        const storedMetaChannels: BaseStoredRgbaImage[] = [];
+        for (const plane of image.storedMetaChannels) {
+            const { virtualCanvas: ignoredCanvas, ...samples } = plane;
+            storedMetaChannels.push(await transformStoredMagickCoordinates({ ...samples, ...(image.virtualCanvas ? { virtualCanvas: image.virtualCanvas } : {}) }, backend, token, geometry, state, signal, { warnings: "" }));
+        }
+        image = { ...image, storedMetaChannels };
+    }
     if (token === "-chop" && image.readMask) image = { ...image, readMask: await transformStoredMagickCoordinates({ ...image.readMask, ...(image.virtualCanvas ? { virtualCanvas: image.virtualCanvas } : {}) } as StoredRgbaImage, backend, token, geometry, state, signal, { warnings: "" }) };
     if (token === "-chop" && image.storedWriteMask) {
         const { virtualCanvas: ignoredCanvas, ...mask } = image.storedWriteMask;
@@ -14310,8 +14332,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                                 virtualCanvas: { ...magickCropCanvas(image, 0, 0), x: -1, y: -1 } }, expanded, gravity));
                             continue;
                         }
+                        const storedMetaChannels: BaseStoredRgbaImage[] | undefined = area && image.storedMetaChannels ? [] : undefined;
+                        if (storedMetaChannels && area) for (const plane of image.storedMetaChannels!) storedMetaChannels.push(await transformStoredImage(plane, backend.storage, { kind: "extract", ...area }, signal));
                         await frames.push(magickCropViewport(image, area ? {
                             ...await transformStoredImage(image, backend.storage, { kind: "extract", ...area }, signal),
+                            ...(storedMetaChannels ? { storedMetaChannels } : {}),
                             ...(image.region ? { region: { ...image.region, x: image.region.x - area.left, y: image.region.y - area.top } } : {}),
                             ...(image.readMask ? { readMask: await transformStoredImage(image.readMask as StoredRgbaImage, backend.storage, { kind: "extract", ...area }, signal) } : {}),
                             ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, backend.storage, { kind: "extract", ...area }, signal) } : {}),
@@ -14340,7 +14365,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     return image;
                 }
                 const area = { left: width, top: height, width: image.width - width * 2, height: image.height - height * 2 };
+                const storedMetaChannels: BaseStoredRgbaImage[] | undefined = image.storedMetaChannels ? [] : undefined;
+                if (storedMetaChannels) for (const plane of image.storedMetaChannels!) storedMetaChannels.push(await transformStoredImage(plane, backend.storage, { kind: "extract", ...area }, signal));
                 return { ...await transformStoredImage(image, backend.storage, { kind: "extract", ...area }, signal),
+                    ...(storedMetaChannels ? { storedMetaChannels } : {}),
                     ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, backend.storage, { kind: "extract", ...area }, signal) } : {}),
                     ...(image.region ? { region: { ...image.region, x: image.region.x - width, y: image.region.y - height } } : {}),
                     virtualCanvas: magickBorderCanvas(image, -width, -height) };

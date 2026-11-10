@@ -2157,7 +2157,8 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
     const { x: x0, y: y0 } = gravityAdjustBox(img.width, img.height,
         cw || ((img.virtualCanvas?.width ?? 0) | img.width), ch || ((img.virtualCanvas?.height ?? 0) | img.height),
         Math.trunc(g.x), Math.trunc(g.y), gravity);
-    if ((g.enlargeOnly && cw > 0 && cw < img.width && ch > 0 && ch < img.height)
+    if ((geomStr.toLowerCase().includes("x") && (geomStr.includes("/") || geomStr.includes(":")))
+        || (g.enlargeOnly && cw > 0 && cw < img.width && ch > 0 && ch < img.height)
         || x0 + cw < 0 || y0 + ch < 0 || x0 > img.width || y0 > img.height) {
         if (analysis) analysis.warnings += `magick: geometry does not contain image '${geomStr}'\n`;
         return img;
@@ -9990,7 +9991,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const g = parseMagickShaveGeometry(expanded, im);
                 const sw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? 0));
                 const sh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? (expanded.toLowerCase().includes("x") ? 0 : sw)));
-                if ((!g.isPercent && hasSignedMagickShaveDimensions(expanded)) || (g.hasOffset && g.width === undefined && g.height === undefined) || sw * 2 >= im.width || sh * 2 >= im.height) {
+                if ((expanded.toLowerCase().includes("x") && expanded.includes("/"))
+                    || (!g.isPercent && hasSignedMagickShaveDimensions(expanded)) || (g.hasOffset && g.width === undefined && g.height === undefined) || sw * 2 >= im.width || sh * 2 >= im.height) {
                     analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
                     return im;
                 }
@@ -10868,7 +10870,8 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         const { x, y } = gravityAdjustBox(w, h,
             cw || ((image.virtualCanvas?.width ?? 0) | w), ch || ((image.virtualCanvas?.height ?? 0) | h),
             Math.trunc(g.x), Math.trunc(g.y), state.gravity);
-        if ((g.enlargeOnly && cw > 0 && cw < w && ch > 0 && ch < h)
+        if ((geometry.toLowerCase().includes("x") && (geometry.includes("/") || geometry.includes(":")))
+            || (g.enlargeOnly && cw > 0 && cw < w && ch > 0 && ch < h)
             || x + cw < 0 || y + ch < 0 || x > w || y > h) {
             analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
             return image;
@@ -12647,7 +12650,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const parsed = parseMagickShaveGeometry(expanded, image);
                 const width = Math.max(0, Math.round(parsed.isPercent ? image.width * (parsed.percentX ?? 100) / 100 : parsed.width ?? 0));
                 const height = Math.max(0, Math.round(parsed.isPercent ? image.height * (parsed.percentY ?? 100) / 100 : parsed.height ?? (expanded.toLowerCase().includes("x") ? 0 : width)));
-                if ((!parsed.isPercent && hasSignedMagickShaveDimensions(expanded)) || (parsed.hasOffset && parsed.width === undefined && parsed.height === undefined) || width * 2 >= image.width || height * 2 >= image.height) {
+                if ((expanded.toLowerCase().includes("x") && expanded.includes("/"))
+                    || (!parsed.isPercent && hasSignedMagickShaveDimensions(expanded)) || (parsed.hasOffset && parsed.width === undefined && parsed.height === undefined) || width * 2 >= image.width || height * 2 >= image.height) {
                     analysis.warnings += `magick: geometry does not contain image '${geometry}'\n`;
                     return image;
                 }

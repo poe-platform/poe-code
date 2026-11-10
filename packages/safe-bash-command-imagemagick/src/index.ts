@@ -7335,7 +7335,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             // Linear stretch applies levels to the original samples, retaining HDRI fractions.
             return parseMagickPixelOperation(["-level", `${low},${high}`], {
                 ...settings, channelExplicit: true,
-                channels: { ...channels, a: !independent || channels.a, k: !independent || settings.channels.k },
+                channels: { ...channels, a: !independent || channels.a, k: !independent || settings.channels.k === true },
             }, 0)!.apply;
         }
         // Keep Q16 stretch values until after region compositing, even for 8-bit input.

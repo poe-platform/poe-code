@@ -9917,7 +9917,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expandedAmount = amount ?? parseMagickCycleAmount(yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, sceneIdx: sceneIdx++, optionProperties: state.optionProperties }));
-                const output = yield* applyMagickRasterSteps(image, cyclePixelSteps(image, expandedAmount), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha });
+                const output = yield* applyMagickRasterSteps(image, cyclePixelSteps(image, expandedAmount, state.channels), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha });
+                // Direct images are clipped during palette conversion inside the cycle kernel.
+                if (image.region && !output.hasAlpha && !(image.isPalette !== false && (image.indexedColors?.length || image.pngPalette?.bytes.length))) output.region = { ...image.region };
                 if (image.space !== "cmyk") return output;
                 // CMYK keeps an RGB backing; the cycled output no longer uses the ink plane.
                 const { hueSamples: ignoredCmyk, storedHueSamples: ignoredStoredCmyk, ...rgb } = output;
@@ -12287,14 +12289,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const value = tokens[++i] ?? "", optionProperties = state.optionProperties;
+            const value = tokens[++i] ?? "", optionProperties = state.optionProperties, cycleChannels = state.channels;
             const amount = value.includes("%") ? undefined : parseMagickCycleAmount(value);
             let images: StoredImageStack, sceneIdx = 0;
             if (amount === undefined) stackStep(async stack => { images = stack; return stack; });
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expandedAmount = amount ?? parseMagickCycleAmount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, sceneIdx: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images));
-                const output = await transformStoredMagickRaster(image, backend, cyclePixelSteps(image, expandedAmount), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha });
+                const output = await transformStoredMagickRaster(image, backend, cyclePixelSteps(image, expandedAmount, cycleChannels), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha });
+                if (image.region && !output.hasAlpha && !(image.isPalette !== false && (image.indexedColors?.length || image.pngPalette?.bytes.length))) output.region = { ...image.region };
                 if (image.space !== "cmyk") return output;
                 const { storedHueSamples: ignoredCmyk, ...rgb } = output;
                 return { ...rgb, space: "srgb", gamma: 1 / 2.2, channels: output.hasAlpha ? 4 : 3 };

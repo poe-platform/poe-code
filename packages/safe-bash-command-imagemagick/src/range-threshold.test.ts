@@ -1,8 +1,31 @@
 import { expect, it } from "vitest";
+import { createHash } from "node:crypto";
 import { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
+
+it.each([
+    ["10,30,60,0%", "1996882cc06e8515178963a3c45f3b79d85adc96aac9ba2bddd21ef8bb3a1ece"],
+    ["10,30,60,1%", "1996882cc06e8515178963a3c45f3b79d85adc96aac9ba2bddd21ef8bb3a1ece"],
+    ["10,30,60,60%", "1996882cc06e8515178963a3c45f3b79d85adc96aac9ba2bddd21ef8bb3a1ece"],
+    ["10,30,0,0%", "4a55d6969b6624d325aff0178a8cea2117261dc38d99bc295f76b5810946ac72"],
+    ["10,30,30,30%", "4a55d6969b6624d325aff0178a8cea2117261dc38d99bc295f76b5810946ac72"],
+    ["10,30,60,65%", "b94f00c0baf1f78092aaf04fc4615bb4e32828decad73ab4a916fb2254b5f8ae"],
+])("preserves native range intervals for %s", async (threshold, expectedHash) => {
+    // Native ImageMagick 7.1.2-35 Q16-HDRI decoded RGBA reference pixels.
+    const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAgAAAAGCAIAAABxZ0isAAAAGElEQVR4nGNkYGBQtHbGREyi3JpYET0kABiDD81mogaEAAAAAElFTkSuQmCC", "base64");
+    const filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/in.png", input);
+    await filesystem.writeFile("/out.png", new TextEncoder().encode("KEEP"));
+    const argumentValues = createCommandArguments(["in.png", "-range-threshold", threshold, "PNG32:out.png"]);
+    const result = await createMagickCommand().execute({ command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, signal: new AbortController().signal, fs: filesystem,
+        stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} }, registerCleanup() {} } as unknown as CommandContext);
+    expect(result.exitCode).toBe(0);
+    const output = decodeImage(await filesystem.readFile("/out.png"));
+    expect([output.width, output.height]).toEqual([8, 6]);
+    expect(createHash("sha256").update(output.data).digest("hex")).toBe(expectedHash);
+});
 
 for (const mode of ["buffered", "sync", "magick"] as const) {
     it.each([

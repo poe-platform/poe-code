@@ -31,3 +31,31 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     expect(Buffer.from(output).toString("hex")).toBe(expected);
   });
 }
+
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+  for (const selection of ["region", "write-mask"] as const) {
+    it.each([
+      { space: "HSL", expected: "465689404936cabfad" },
+      { space: "Lab", expected: "4656890091c2cabfad" },
+    ])(`${mode}: $space clamp respects ${selection}`, async ({ space, expected }) => {
+      const mask = Buffer.concat([Buffer.from("P5\n3 1\n255\n"), Buffer.from([255, 0, 255])]);
+      const files = new Map<string, Uint8Array>([["/mask.pgm", mask]]);
+      const filesystem = createMemoryFileSystem();
+      await filesystem.writeFile("/mask.pgm", mask);
+      const args = ["xc:#465689", "xc:#796589", "xc:#cabfad", "+append",
+        "-colorspace", space, "-channel", "RGB", "-evaluate", "multiply", "4",
+        ...(selection === "region" ? ["-region", "1x1+1+0"] : ["-write-mask", "/mask.pgm"]),
+        "-clamp", selection === "region" ? "+region" : "+write-mask",
+        "-evaluate", "divide", "4", "+channel", "-colorspace", "sRGB", "-depth", "8", "rgb:/out"];
+      const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} },
+      }) : mode === "sync" ? runConvertCliSync(args, files)
+        : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+      expect(result).toMatchObject({ exitCode: 0 });
+      const output = mode === "retained" || mode === "command" ? await filesystem.readFile("/out") : files.get("/out")!;
+      expect(Buffer.from(output).toString("hex")).toBe(expected);
+    });
+  }
+}

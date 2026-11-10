@@ -10,7 +10,7 @@ export const magickComposeNames = [
     "Mathematics", "MinusDst", "MinusSrc", "Modulate", "ModulusAdd", "ModulusSubtract", "Multiply", "Negate", "None",
     "Out", "Overlay", "Over", "PegtopLight", "PinLight", "Plus", "Reflect", "Replace", "RMSE", "Saturate", "Screen",
     "SaliencyBlend", "SeamlessBlend", "SoftBurn", "SoftDodge", "SoftLight", "SrcAtop", "SrcIn", "SrcOut", "SrcOver",
-    "Src", "Stamp", "Stereo", "VividLight", "Xor", "CopyOpacity", "Add", "Subtract", "Minus", "Divide", "Undefined", "Source"
+    "Src", "Stamp", "Stereo", "Threshold", "VividLight", "Xor", "CopyOpacity", "Add", "Subtract", "Minus", "Divide", "Undefined", "Source"
 ];
 
 type CompositeRaster = Pick<RgbaImage, "width" | "height" | "hasAlpha"> & { data: Uint8Array | Float64Array };
@@ -30,6 +30,8 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
     const chromaScale = Number.parseFloat(modulation[1] ?? "100") / 100;
     const [product = 0, source = 0, destination = 0, constant = 0] = norm === "mathematics"
         ? (composeArgs ?? "").toLowerCase().replaceAll("x", ",").split(",").map(Number) : [];
+    const [thresholdAmount = 0.5, threshold = 0.05] = norm === "threshold" && composeArgs !== undefined
+        ? composeArgs.toLowerCase().replaceAll("x", ",").split(",").map(Number) : [];
     // Float64 destinations retain fractional samples until output quantization.
     const clampByteVal = (value: number) => Number.isFinite(value)
         ? Math.max(0, Math.min(255, out instanceof Uint8Array ? Math.round(value) : value)) : 0;
@@ -94,6 +96,19 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                     out[dIdx + c] = alpha === 0 ? 0 : clampByteVal(255 * blended / alpha);
                 }
                 out[dIdx + 3] = clampByteVal(alpha * 255);
+                continue;
+            }
+            if (norm === "threshold") {
+                for (let c = 0; c < 3; c++) {
+                    const sc = sa > 0 ? src.data[sIdx + c]! / 255 : 0;
+                    const dc = da > 0 ? dst.data[dIdx + c]! / 255 : 0;
+                    // Native compares normalized colors against a Q16-scaled threshold.
+                    const blend = Math.abs(2 * (sc - dc)) < threshold * 65535
+                        ? dc : dc + (sc - dc) * thresholdAmount;
+                    out[dIdx + c] = clampByteVal(255 * (sa * da * Math.max(0, Math.min(1, blend))
+                        + sc * sa * (1 - da) + dc * da * (1 - sa)));
+                }
+                out[dIdx + 3] = 255;
                 continue;
             }
             if (norm === "rmse") {

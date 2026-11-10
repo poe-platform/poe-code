@@ -1997,6 +1997,8 @@ function* createPatternImageSteps(width: number, height: number, pattern: Return
 }
 
 function resolveMagickSpliceGeometry(raw: string, width: number, height: number) {
+    // Rectangle geometry ends at the first comma-separated field.
+    raw = raw.split(",", 1)[0]!;
     // Splice treats @ dimensions literally, unlike resize's area geometry.
     let g = parseMagickGeometry(raw.split(",", 1)[0]!.replaceAll("@", ""));
     const dimensionSeparator = raw.toLowerCase().indexOf("x");
@@ -2044,6 +2046,8 @@ function parseMagickShaveGeometry(raw: string, image: Pick<RgbaImage, "width" | 
 }
 
 function resolveMagickChopGeometry(raw: string, width: number, height: number) {
+    // Rectangle geometry ends at the first comma-separated field.
+    raw = raw.split(",", 1)[0]!;
     // Chop ignores the # geometry modifier without dropping dimensions or offsets.
     const g = parseMagickGeometry(raw.replaceAll("#", ""));
     if (g.aspectRatio !== undefined) {

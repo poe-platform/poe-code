@@ -75,7 +75,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
             const { data } = encodeImage({ width: 2, height: 1, format: "png", space: "srgb", depth: highDepth ? "ushort" : "uchar", density: 72, channels: 4, hasAlpha: true, data: pixels, ...(highDepth ? { data16: samples } : {}) }, { format: "png", pngBitDepth: highDepth ? 16 : 8 });
             const files = new Map([["in.png", data]]), filesystem = new MemoryFileSystem();
             await filesystem.writeFile("/in.png", data);
-            const args = ["in.png", ...(depth === undefined ? [] : ["-depth", String(depth)]), "-write", "mid.miff", "in.png", "out.miff"];
+            const args = ["in.png", ...(depth === undefined ? [] : ["-depth", String(depth)]), "-write", "mid.miff", "in.png", ...(depth === undefined ? [] : ["-depth", String(depth)]), "out.miff"];
             const result = mode === "command" ? await createMagickCommand().execute({
                 command: "magick", args, cwd: "/", env: {}, fs: filesystem,
                 signal: new AbortController().signal, stdin: (async function* () {})(),
@@ -84,7 +84,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
                 : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
             expect(result.exitCode).toBe(0);
             const outputDepth = depth ?? (highDepth ? 16 : 8);
-            const expected = outputDepth === 8 ? pixels : Uint8Array.from([...samples].flatMap((value, index) => highDepth ? [value >>> 8, value & 255] : [pixels[index]!, pixels[index]!]));
+            const expected = outputDepth === 8 ? highDepth ? Uint8Array.from(samples, value => Math.round(value / 257)) : pixels : Uint8Array.from([...samples].flatMap((value, index) => highDepth ? [value >>> 8, value & 255] : [pixels[index]!, pixels[index]!]));
             for (const [name, count] of [["mid.miff", 1], ["out.miff", 2]] as const) {
                 const bytes = mode === "retained" || mode === "command" ? await filesystem.readFile(`/${name}`) : files.get(name)!;
                 let offset = 0;

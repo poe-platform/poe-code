@@ -2251,7 +2251,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
         img = { ...img, space: "srgb", channels: 4 };
     const virtualCanvas = magickResizeCanvas(img, outW, outH);
     if (!img.hasAlpha && bg.a < 255) img = yield* prepareInactiveAlphaOutput(img);
-    img = { ...img, isPalette: false, hasAlpha: img.hasAlpha || bg.a < 255, ...(virtualCanvas ? { virtualCanvas } : {}) };
+    img = { ...img, isPalette: false, hasAlpha: img.hasAlpha || bg.a < 255, ...(bg.a < 255 ? { alphaBlend: true } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
     if (sw === 0 && sh === 0) return img;
     const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
     const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
@@ -12065,7 +12065,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         if (!image.hasAlpha && background.a < 255) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: prepareInactiveAlphaOutput }, signal);
         if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
             image = { ...image, space: "srgb", channels: 4 };
-        image = { ...image, isPalette: false, hasAlpha: image.hasAlpha || background.a < 255, ...(virtualCanvas ? { virtualCanvas } : {}) };
+        image = { ...image, isPalette: false, hasAlpha: image.hasAlpha || background.a < 255, ...(background.a < 255 ? { alphaBlend: true } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
         if (width === w && height === h) return image;
     }
     if (token === "-splice" && image.space === "cmyk") {

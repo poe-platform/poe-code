@@ -158,3 +158,37 @@ for (const options of [
       [b, a.slice(0, b.length)]);
   });
 }
+
+for (const options of [
+  "2:stereo:0.0-FL|1.1-FR",
+  "channel_layout=stereo:inputs=2:2:stereo:0.0-FL|1.1-FR",
+  "inputs=3:2:channel_layout=mono:stereo:map=bad:0.0-FL|1.1-FR",
+  "2:stereo:0.0-FL|1.1-FR:",
+  "inputs=2:channel_layout=stereo:map=0.0-FL|1.1-FR:",
+  "channel_layout=stereo:inputs=2:2:stereo:0.0-FL|1.1-FR:"
+]) {
+  it(`parses join positional slots independently of named options: ${options}`, async () => {
+    const { result, stderr, bytes } = await run([
+      "-filter_complex", `[0:a][1:a]join=${options}[mix]`, "-map", "[mix]"
+    ], [[1000, 2000], [3000, 4000]].map(channels =>
+      channels.map(sample => Array<number>(512).fill(sample))));
+    assert.equal(result.exitCode, 0, stderr);
+    const audio = parseWav(bytes).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, 8000);
+    assert.equal(audio.channels, 2);
+    assert.deepEqual(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)),
+      [1000, 4000].map(sample => Array<number>(512).fill(sample)));
+  });
+}
+
+for (const options of [":", ":2:stereo", "2::0.0-FL|1.0-FR", "2:stereo:0.0-FL|1.0-FR::",
+  "2:stereo:0.0-FL|1.0-FR:extra", "inputs=bad:2:stereo:0.0-FL|1.0-FR:"]) {
+  it(`rejects invalid mixed join options without replacing output: ${options}`, async () => {
+    const { result, stderr, bytes } = await run([
+      "-filter_complex", `[0:a][1:a]join=${options}[mix]`, "-map", "[mix]"
+    ]);
+    assert.notEqual(result.exitCode, 0);
+    assert.match(stderr, /join/);
+    assert.equal(bytes.toString(), "preserve");
+  });
+}

@@ -12,9 +12,12 @@ export async function joinAudio(
   let layout = "stereo";
   let map = "";
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  const options = argument ? argument.split(":") : [];
+  if (options.at(-1) === "") options.pop();
+  let positional = 0;
+  for (const option of options) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? ["inputs", "channel_layout", "map"][index] : option.slice(0, separator);
+    const key = separator < 0 ? ["inputs", "channel_layout", "map"][positional++] : option.slice(0, separator);
     const value = separator < 0 ? option : option.slice(separator + 1);
     if (key === "inputs") {
       const numeric = parseFilterExpression(value, "join", {});

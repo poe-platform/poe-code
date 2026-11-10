@@ -39,9 +39,40 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     }
 }
 
-it("rejects unknown automatic threshold methods without replacing output", () => {
-    const sentinel = new Uint8Array([1, 2, 3]);
-    const files = new Map([["out.png", sentinel]]);
-    expect(runConvertCliSync(["xc:red", "-auto-threshold", "unknown", "out.png"], files).exitCode).not.toBe(0);
-    expect(files.get("out.png")).toBe(sentinel);
-});
+// Native ImageMagick 7.1.2-35 Q16-HDRI falls back to Otsu, ignoring option:method.
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+    it.each([
+        ["invalid-method", "method", "26.6667%"],
+        ["Undefined", "method", "26.6667%"],
+        ["bad", "meth", "26.6667%"],
+        ["Otsu", "method", "26.6667%"],
+        ["Kapur", "method", "25.098%"],
+    ] as const)(`${mode}: computes %s with option:%s set to Kapur`, async (method, option, threshold) => {
+        const original = new TextEncoder().encode("KEEP");
+        const files = new Map([["/out", original], ["/threshold", original]]);
+        const fs = new MemoryFileSystem();
+        for (const [path, bytes] of files) await fs.writeFile(path, bytes);
+        const argv = [
+            "xc:#a1256650", "xc:#174476f0", "xc:#7bc8b012", "xc:#e5649633", "xc:#1243ac99", "+append",
+            "-set", `option:${option}`, "Kapur", "-auto-threshold", method,
+            "-colorspace", "sRGB", "-depth", "8", "-write", "rgba:/out",
+            "-format", "%[auto-threshold:threshold]", "info:/threshold",
+        ];
+        let stdout = "", stderr = "";
+        const argumentValues = createCommandArguments(argv);
+        const result = mode === "command" ? { ...await createMagickCommand().execute({
+            command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }), stdout, stderr } : mode === "sync" ? runConvertCliSync(argv, files)
+            : await runConvertCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        expect(result).toMatchObject({ exitCode: 0, stdout: "", stderr: "" });
+        const output = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
+        const property = mode === "command" || mode === "retained" ? await fs.readFile("/threshold") : files.get("/threshold")!;
+        expect(new TextDecoder().decode(property)).toBe(threshold);
+        if (method !== "Kapur") expect([...output]).toEqual([
+            255, 255, 255, 255, 0, 0, 0, 0, 255, 255, 255, 255, 255, 255, 255, 255, 0, 0, 0, 0,
+        ]);
+    });
+}

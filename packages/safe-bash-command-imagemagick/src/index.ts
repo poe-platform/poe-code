@@ -7299,8 +7299,9 @@ function parseConnectedComponents(tokens: readonly string[], start: number): num
 function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickState, start: number): MagickAnalysisOperation | undefined {
     const token = tokens[start];
     if (token === "-auto-threshold") {
-        const method = tokens[start + 1]?.toLowerCase();
-        if (!method || !["otsu", "kapur", "triangle"].includes(method)) throw new Error(`invalid argument '-auto-threshold' '${tokens[start + 1] ?? ""}'`);
+        let method = tokens[start + 1]?.toLowerCase();
+        if (!method) throw new Error(`invalid argument '-auto-threshold' '${tokens[start + 1] ?? ""}'`);
+        if (!["otsu", "kapur", "triangle"].includes(method)) method = "otsu";
         const captured = { ...state, channels: { ...state.channels } };
         return { end: start + 1, luminance: true, highDepth: true, transform(histogram) {
             const threshold = automaticThreshold(histogram[4]!, method);

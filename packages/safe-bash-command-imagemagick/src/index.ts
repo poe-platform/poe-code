@@ -2113,8 +2113,8 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                 yield;
             const dstIdx = (y * outW + x) * 4;
             if ((x >= sx && x < sx + spliceWidth) || (y >= sy && y < sy + sh)) {
-                // Native region masks leave inserted columns unset; rows still use the background.
-                const unset = img.region && (y < sy || y >= sy + sh);
+                // Native write/region masks leave inserted columns unset; rows still use the background.
+                const unset = (img.region || img.writeMask) && (y < sy || y >= sy + sh);
                 out[dstIdx] = unset ? 0 : Math.round(bg.r);
                 out[dstIdx + 1] = unset ? 0 : Math.round(bg.g);
                 out[dstIdx + 2] = unset ? 0 : Math.round(bg.b);
@@ -10923,7 +10923,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     }
     let work = 0;
     for (const plane of [{ source: image.position, target: position, stride: 4 }, ...(storedData16 ? [{ source: image.storedData16!.position, target: storedData16.position, stride: 8 }] : []), ...(storedEvaluateSamples === undefined ? [] : [{ source: image.storedEvaluateSamples!, target: storedEvaluateSamples, stride: 32 }]), ...(storedHueSamples === undefined ? [] : [{ source: image.storedHueSamples!, target: storedHueSamples, stride: 32 }])]) {
-        if (token === "-splice" && image.region) {
+        if (token === "-splice" && (image.region || image.storedWriteMask)) {
             // Keep horizontal insertions colored, including their intersections with columns.
             const start = xs[0]!.length, end = Math.min(width, xs[1]!.target);
             const alpha = image.hasAlpha || background.a < 255 ? 0 : 255;

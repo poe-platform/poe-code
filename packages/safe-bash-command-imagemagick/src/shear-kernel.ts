@@ -59,12 +59,15 @@ export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "d
                         if (!bytes || bytes.length !== (hue ? 32 : highDepth ? 8 : 4)) throw new Error("Truncated shear pixels");
                         // Native BorderImage applies the selected compose operator before resampling.
                         const samples = hue ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => value * maximum) : highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
+                        // Disabled alpha leaves the stored colors fully opaque.
+                        const sourceAlpha = plan.hasAlpha ? samples[3]! : maximum;
                         if (over) {
-                            const remaining = bg[3]! * (1 - samples[3]! / maximum), alpha = samples[3]! + remaining;
-                            for (let c = 0; c < 3; c++) composite[c] = alpha > 0 ? (samples[c]! * samples[3]! + bg[c]! * remaining) / alpha : 0;
+                            const remaining = bg[3]! * (1 - sourceAlpha / maximum), alpha = sourceAlpha + remaining;
+                            for (let c = 0; c < 3; c++) composite[c] = alpha > 0 ? (samples[c]! * sourceAlpha + bg[c]! * remaining) / alpha : 0;
                             composite[3] = alpha;
                         } else {
                             for (let c = 0; c < 4; c++) overlay.data[c] = samples[c]! / scale;
+                            overlay.data[3] = sourceAlpha / scale;
                             yield* compositePixelsSteps(canvas, overlay, composite, compose, 0, 0, composeArgs, fuzz, true);
                             for (let c = 0; c < 4; c++) composite[c]! *= scale;
                         }

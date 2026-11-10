@@ -10202,26 +10202,45 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "dcshift" || trimmed.startsWith("dcshift=")) {
                         const argument = trimmed === "dcshift" ? "0" : trimmed.slice("dcshift=".length).trim();
                         let shift = 0;
+                        let enable: string | undefined;
                         for (const [index, option] of argument.split(":").entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? (index === 0 ? "shift" : "") : option.slice(0, separator).trim();
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-                          shift = parseFilterExpression(value, "dcshift", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
-                          if (key !== "shift" || !value || !Number.isFinite(shift) || shift < -1 || shift > 1) {
-                            throw new Error("dcshift: expected shift between -1 and 1; limiter options are unsupported");
-                          }
+                          if (key === "enable") {
+                            enable = value;
+                            parseFilterExpression(enable, "dcshift enable", { n: 0, t: 0 });
+                          } else if (key === "shift") {
+                            shift = parseFilterExpression(value, "dcshift", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+                            if (!value || !Number.isFinite(shift) || shift < -1 || shift > 1) {
+                              throw new Error("dcshift: expected shift between -1 and 1");
+                            }
+                          } else throw new Error(`dcshift: unsupported option ${key}; limiter options are unsupported`);
                         }
                         // Native dcshift negotiates signed PCM32 and truncates the shifted sum.
                         // Keep all 32 bits so integer encoders can discard low bits when narrowing.
                         budget.allocateMemory((stretched[0]?.length ?? 0) * stretched.length * Float64Array.BYTES_PER_ELEMENT);
                         const output = stretched.map(channel => new Float64Array(channel.length));
-                        for (const [c, channel] of stretched.entries()) {
-                          for (let i = 0; i < channel.length; i++) {
-                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            const sample = Math.max(-2147483648, Math.min(2147483647, roundToEven(channel[i]! * 2147483648)));
-                            output[c]![i] = Math.max(-2147483648, Math.min(2147483647,
-                              Math.trunc(sample + shift * 2147483648))) / 2147483648;
+                        const length = stretched[0]?.length ?? 0;
+                        for (let start = 0, n = 0; start < length; n++) {
+                          const packet = t.samples[n];
+                          const timestamp = audioTimestamps?.[n];
+                          const count = timestamp ? timestamp.end - timestamp.start
+                            : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                          const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
+                          const end = enable === undefined ? length : Math.min(length, start + count);
+                          const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "dcshift enable", {
+                            n, t: pts / origRate
+                          })) >= 0.5;
+                          for (const [c, channel] of stretched.entries()) {
+                            for (let i = start; i < end; i++) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              const sample = Math.max(-2147483648, Math.min(2147483647, roundToEven(channel[i]! * 2147483648)));
+                              output[c]![i] = enabled ? Math.max(-2147483648, Math.min(2147483647,
+                                Math.trunc(sample + shift * 2147483648))) / 2147483648 : sample / 2147483648;
+                            }
                           }
+                          start = end;
                         }
                         stretched = output;
                         filteredSampleFormat = "s32p";

@@ -1,3 +1,4 @@
+import { readExifTextProperties } from "./exif-text.js";
 import { discardDisassociatedAlpha } from "./alpha-state.js";
 import { cropReadMaskSteps, cropStoredReadMask } from "./crop-read-mask.js";
 import { decodeMagickImage as decodeImage } from "./image-raster.js";
@@ -1667,6 +1668,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   };
   let img: MagickImage | undefined;
   let pixels: Record<string, string> | undefined;
+  let exifProperties: Record<string, string> | undefined;
   let signature: string | undefined;
   let hull: Record<string, string> | undefined;
   const statistics: Record<string, number> = {};
@@ -1748,6 +1750,11 @@ function* formatMagickPropertyStringSteps<Step=never>(
         parts.push(properties[`artifact:${key}`]!);
       } else if (Object.hasOwn(context.optionProperties ?? {}, optionKey)) {
         parts.push(context.optionProperties![optionKey]!);
+      } else if (key.startsWith("exif:")) {
+        exifProperties ??= meta.exif ? readExifTextProperties(meta.exif) : {};
+        const value = exifProperties[key];
+        if (value !== undefined) parts.push(value);
+        else if (context.analysis) warnUnknownMagickProperty(token, context.analysis);
       } else if (key === "convex-hull" || key === "minimum-bounding-box") {
         let value: string | undefined;
         if (resolvePixels) value = yield* resolvePixels(key);

@@ -1043,7 +1043,9 @@ shorter resampled input. Mono/stereo inputs are
 remixed to the first input’s layout with equal-power gains before multiplication;
 other layouts must match.
 Single-input filters on either branch run before multiplication, for example
-`[0:a]volume=0.5[x];[x][1:a]amultiply[out]`.
+`[0:a]volume=0.5[x];[x][1:a]amultiply[out]`. Output frame boundaries are retained for
+frame selection (`aselect`), frame limits, and `framecrc`, including split branches
+where reversal buffers the other input.
 
 `amerge` input counts accept numeric expressions such as `1+1` and round to the
 nearest integer with ties to even (`1.5` and `2.5` both select two inputs).

@@ -1823,13 +1823,45 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         if (!remix && (a.channels !== b.channels || layoutA !== layoutB)) {
           throw new Error("amultiply requires matching layouts or mono/stereo inputs");
         }
+        // Split outputs share their inputs array. Reversal drains the shared
+        // source, queuing the other branch before multiplication starts.
+        const paths = node.inputs.map(label => {
+          const path = new Map<string[], boolean>();
+          let buffered = false;
+          let upstream = nodes.get(label);
+          while (upstream) {
+            budget.checkCpu();
+            path.set(upstream.inputs, buffered);
+            buffered ||= parseFilterChain(upstream.expression)
+              .some(filter => filter.split("=", 1)[0]!.split("@", 1)[0] === "areverse");
+            if (upstream.inputs.length !== 1) break;
+            upstream = nodes.get(upstream.inputs[0]!);
+          }
+          return path;
+        });
+        const queued = paths.map(path => paths.some(other => other !== path &&
+          Array.from(path).some(([inputs, buffered]) => !buffered && other.get(inputs) === true)));
         let multiplier = b.channelData;
+        let multiplierEnds: number[] | undefined;
         if (a.sampleRate !== b.sampleRate) {
           const resampledLength = Math.ceil(b.channelData[0]!.length * a.sampleRate / b.sampleRate);
           budget.checkSamples(resampledLength);
           budget.checkDuration(resampledLength / a.sampleRate);
           budget.allocateMemory(resampledLength * b.channels * Float32Array.BYTES_PER_ELEMENT);
-          multiplier = await resampleAudio(b.channelData, resampledLength, b.sampleRate, a.sampleRate, budget, signal);
+          const ends: number[] = [];
+          const track = sources[1]!.track;
+          for (let end = 0, n = 0; end < b.channelData[0]!.length; n++) {
+            budget.checkCpu();
+            const packet = track.samples[n];
+            end += packet ? Math.max(0, Math.round(packet.duration * b.sampleRate / track.timescale)
+              - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+            budget.allocateMemory(16);
+            ends.push(Math.min(end, b.channelData[0]!.length));
+          }
+          multiplierEnds = [];
+          multiplier = await resampleAudio(b.channelData, resampledLength, b.sampleRate, a.sampleRate, budget, signal,
+            undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+            { ends, outputEnds: multiplierEnds });
         }
         const length = Math.min(a.channelData[0]!.length, multiplier[0]!.length);
         budget.checkSamples(length);
@@ -1849,7 +1881,33 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             channelData[channel]![sample] = a.channelData[channel]![sample]! * gain;
           }
         }
-        return { track: { ...first, timescale: a.sampleRate, duration: length, samples: [], editList: undefined,
+        const frames: MediaTrack["samples"][number][] = [];
+        const cursors = sources.map(() => ({ index: 0, start: 0, end: 0, pts: 0 }));
+        for (let start = 0; start < length;) {
+          if (frames.length % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+          budget.checkCpu();
+          for (const [i, cursor] of cursors.entries()) {
+            const track = sources[i]!.track;
+            while (cursor.end <= start) {
+              budget.checkCpu();
+              const packet = track.samples[cursor.index];
+              cursor.start = cursor.end;
+              cursor.pts = packet ? Math.round(packet.pts * a.sampleRate / track.timescale)
+                + (packet.skipSamples ?? 0) : cursor.start;
+              cursor.end = i === 1 && multiplierEnds ? multiplierEnds[cursor.index] ?? length
+                : cursor.end + (packet ? Math.max(0, Math.round(packet.duration * a.sampleRate / track.timescale)
+                  - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024);
+              cursor.index++;
+            }
+          }
+          const end = Math.min(length, ...cursors.map((cursor, i) => queued[i] ? length : cursor.end));
+          const pts = cursors[0]!.pts + start - cursors[0]!.start;
+          budget.allocateMemory(96);
+          frames.push({ data: new Uint8Array(0), size: 0, pts, dts: pts, cts: 0,
+            duration: end - start, isKeyframe: true, sampleDescriptionIndex: 1 });
+          start = end;
+        }
+        return { track: { ...first, timescale: a.sampleRate, duration: length, samples: frames, editList: undefined,
           decodedAudio: { ...a, channelData } }, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "sidechaingate" || filters[0]?.startsWith("sidechaingate=")) {

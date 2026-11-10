@@ -12515,6 +12515,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "aresample" || trimmed.startsWith("aresample=")) {
                         let rate: number | undefined = trimmed === "aresample" ? 0 : undefined;
                         let format: string | undefined;
+                        let window: "kaiser" | "blackman_nuttall" = "kaiser";
                         const options = trimmed === "aresample" ? [] : trimmed.slice("aresample=".length).split(":");
                         if (options.at(-1) === "") options.pop();
                         for (const [position, option] of options.entries()) {
@@ -12525,6 +12526,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (extra !== undefined || rate < 0 || rate > 2147483647) {
                               throw new Error("aresample: invalid sample rate");
                             }
+                            continue;
+                          }
+                          if (key === "filter_type") {
+                            if (extra !== undefined || (raw !== "kaiser" && raw !== "blackman_nuttall")) {
+                              throw new Error("aresample: filter_type must be kaiser or blackman_nuttall");
+                            }
+                            window = raw;
+                            rate ??= 0;
                             continue;
                           }
                           if (key === "osf" || key === "out_sample_fmt") {
@@ -12612,7 +12621,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const firstPts = Math.round((audioTimestamps?.[0]?.pts ?? audioStartSample) * targetRate / origRate);
                             const outputEnds: number[] = [];
                             stretched = await resampleAudio(stretched, length, origRate, targetRate, budget, context.signal,
-                              undefined, undefined, undefined, undefined, undefined, undefined, undefined, { ends, outputEnds });
+                              window, undefined, undefined, undefined, undefined, undefined, undefined, { ends, outputEnds });
                             // Resampling produces floats; later filters and encoders must round
                             // these samples rather than narrow the original integer PCM.
                             if (!autoConversionFilters) format ??= filteredSampleFormat;

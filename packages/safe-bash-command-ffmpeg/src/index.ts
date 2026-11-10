@@ -1091,7 +1091,7 @@ function parseAtrim(argument: string, origRate: number) {
   return { duration, startPts, endPts, startSample, endSample };
 }
 
-type AudioFilterFrame = { start: number; end: number; pts: number; pos?: number | undefined };
+type AudioFilterFrame = { start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined };
 
 function createAudioSelection(argument: string, origRate: number, timeBase = 1 / origRate) {
   let expression = "1";
@@ -11181,7 +11181,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           } else throw new Error(`adelay: unsupported option ${key}`);
                         }
                         const values = delays.split("|").filter(value => value !== "");
-                        if (values.length === 0) continue;
+                        // adelay negotiates sample-rate ticks even for empty or zero delays.
+                        audioTimeBase = 1 / origRate;
+                        if (values.length === 0) {
+                          for (const frame of audioTimestamps ?? []) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            frame.pts = Math.sign(frame.pts) * Math.round(Math.abs(frame.pts));
+                          }
+                          continue;
+                        }
                         const offsets = stretched.map((_, channel) => {
                           const value = (values[channel] ?? (all ? values.at(-1)! : "0")).trimStart();
                           // Native reads a signed integer and its next character for S/s
@@ -11239,6 +11247,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // when native adelay first schedules its unconditional silence.
                         let nextPts = audioInitialFrameDropped ? NaN
                           : previous?.[0]?.pts ?? (t.samples[0] ? t.samples[0].pts * origRate / t.timescale : audioStartSample);
+                        nextPts = Math.sign(nextPts) * Math.round(Math.abs(nextPts));
                         let nextExactPts: bigint | undefined;
                         let enabled = true;
                         let position = 0;
@@ -11276,10 +11285,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               // Keep the integer as well as the expression engine's double.
                               const sourceExactPts = Number.isNaN(inputPts) ? -9223372036854775807n : frame?.exactPts;
                               exactPts = enabled && sourceExactPts !== undefined ? sourceExactPts + BigInt(padding) : frame?.exactPts;
-                              pts = exactPts === undefined ? inputPts + (enabled ? padding : 0) : Number(exactPts);
+                              const outputPts = Math.sign(inputPts) * Math.round(Math.abs(inputPts));
+                              pts = exactPts === undefined ? outputPts + (enabled ? padding : 0) : Number(exactPts);
                               if (enabled) {
                                 nextExactPts = sourceExactPts === undefined ? undefined : sourceExactPts + BigInt(end - start);
-                                nextPts = nextExactPts === undefined ? inputPts + end - start : Number(nextExactPts);
+                                nextPts = nextExactPts === undefined ? outputPts + end - start : Number(nextExactPts);
                               }
                             } else {
                               end = Math.min(length, start + 2048);

@@ -155,6 +155,7 @@ and case-insensitive `true`/`false`, `yes`/`no`, `y`/`n`, `on`/`off`,
 When false or omitted, unspecified channels are unchanged. Empty entries are skipped,
 so `adelay=|1S` delays the first channel. Omitted delays pass audio through unchanged,
 including `adelay`, `adelay=`, and `adelay=all=1`.
+Output timestamps use the sample-rate time base, even after `asettb` and with empty or zero delays.
 `enable` expressions accept the mathematical constants `PI`, `E`, and `PHI` and are evaluated at input frame timestamps, as in
 `adelay=0S|23S:enable='gte(t,0.3)'`. Expressions expose the frame index `n`, time `t`,
 input packet byte offset `pos` (NaN when unknown), and audio dimensions `w` and `h` (both zero).

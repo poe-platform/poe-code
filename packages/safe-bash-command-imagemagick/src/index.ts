@@ -5906,7 +5906,7 @@ function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlph
         virtualCanvas: { width: vertical ? cross : extent, height: vertical ? extent : cross, x: 0, y: 0 }, offsets };
 }
 
-function* overCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "magickColorspace" | "space">, frame: Pick<RgbaImage, "width" | "height">, left: number, top: number, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* overCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "magickColorspace" | "space">, frame: Pick<RgbaImage, "width" | "height" | "hasAlpha">, left: number, top: number, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = canvas.space === "cmyk";
     const hue = cmyk || canvas.magickColorspace !== undefined && canvas.magickColorspace !== "RGB";
     const quantum = hue ? 1 : 255;
@@ -5942,7 +5942,7 @@ function* overCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "
                 const inputBacking = rgba?.length ? new Float64Array(rgba.slice().buffer) : undefined;
                 for (let pixel = start; pixel < end; pixel++) {
                     const src = (pixel - start) * 4, dst = (pixel - x) * 4;
-                    const sa = cmyk ? inputBacking ? inputBacking[src + 3]! / 255 : integers[src + 3]! / (highDepth ? 65535 : 255) : samples[src + 3]! / quantum, da = backing[dst + 3]! / quantum * (1 - sa), alpha = sa + da;
+                    const sa = !frame.hasAlpha ? 1 : cmyk ? inputBacking ? inputBacking[src + 3]! / 255 : integers[src + 3]! / (highDepth ? 65535 : 255) : samples[src + 3]! / quantum, da = backing[dst + 3]! / quantum * (1 - sa), alpha = sa + da;
                     if (sa === 0) {
                         if (cmyk && alpha === 0) output.fill(0, dst, dst + 4);
                         continue;
@@ -11138,7 +11138,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 next = layout.next((image.data16 ?? image.data).subarray(request.position, request.position + request.length));
             }
             const { width, height, virtualCanvas, offsets } = next.value;
-            let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, background), ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}), ...(image.space === "cmyk" ? { space: "cmyk" as const } : {}) };
+            let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, background), hasAlpha: stack.some(frame => frame.hasAlpha) || background.a < 255, ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}), ...(image.space === "cmyk" ? { space: "cmyk" as const } : {}) };
             for (let n = 0; n < stack.length; n++) {
                 canvas = yield* applyMagickRasterSteps(canvas, overCompositePixelSteps(canvas, stack[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || stack[n]!.data16)), signal, canvas, [canvas, stack[n]!]);
             }
@@ -12454,7 +12454,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     } else next = layout.next(await backend.storage.read(image.position + request.position, request.length));
                 }
                 const { width, height, virtualCanvas, offsets } = next.value;
-                let canvas: StoredRgbaImage = { gravity: images[0]!.gravity, ...await createStoredCanvas(width, height, background, backend, signal), ...(images[0]!.magickColorspace ? { magickColorspace: images[0]!.magickColorspace } : {}), ...(image.space === "cmyk" ? { space: "cmyk" as const } : {}) };
+                let canvas: StoredRgbaImage = { gravity: images[0]!.gravity, ...await createStoredCanvas(width, height, background, backend, signal), hasAlpha: images.some(frame => frame.hasAlpha) || background.a < 255, ...(images[0]!.magickColorspace ? { magickColorspace: images[0]!.magickColorspace } : {}), ...(image.space === "cmyk" ? { space: "cmyk" as const } : {}) };
                 for (let n = 0; n < images.length; n++) canvas = await transformStoredMagickRaster(canvas, backend, overCompositePixelSteps(canvas, images[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.storedData16 || images[n]!.storedData16)), signal, canvas, [canvas, images[n]!]);
                 stack.length = 0;
                 await stack.push({ ...canvas, ...(image.orientation === undefined ? {} : { orientation: image.orientation }), virtualCanvas, density: image.density, ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) });

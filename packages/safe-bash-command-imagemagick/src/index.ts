@@ -1210,6 +1210,7 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
         parseMagickColorMatrix(kernels[i]!);
         yield;
     }
+    const hasAlpha = img.hasAlpha || img.inactiveAlpha === true;
     const cmyk = img.space === "cmyk";
     if (cmyk) img = yield* convertCmykPixels(img);
     const hueSamples = img.hueSamples?.slice();
@@ -1221,7 +1222,7 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        for (let channel = 0; channel < (cmyk ? img.hasAlpha ? 5 : 4 : img.hasAlpha ? 4 : 3); channel++) {
+        for (let channel = 0; channel < (cmyk ? hasAlpha ? 5 : 4 : hasAlpha ? 4 : 3); channel++) {
             // ImageMagick reserves the fourth matrix channel for CMYK black.
             const row = !cmyk && channel === 3 ? 4 : channel;
             if (row >= rows) continue;
@@ -1229,7 +1230,7 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
             for (let col = 0; col < 3; col++)
                 value += (col < cols ? m[row * cols + col]! : row === col ? 1 : 0) * (cmyk ? img.hueSamples![i + col]! * 255 : samples[i + col]! / scale);
             if (cmyk && cols >= 4) value += m[row * cols + 3]! * img.hueSamples![i + 3]! * 255;
-            if (cols >= 5 && img.hasAlpha) value += m[row * cols + 4]! * (samples[i + 3]! / scale);
+            if (cols >= 5 && hasAlpha) value += m[row * cols + 4]! * (samples[i + 3]! / scale);
             else if (row === 4) value += samples[i + 3]! / scale;
             if (cmyk && hueSamples && row < 4) {
                 hueSamples[i + row] = value / 255;

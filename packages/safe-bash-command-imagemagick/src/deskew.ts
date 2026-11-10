@@ -128,7 +128,7 @@ export function deskewPlan(image: Pick<RgbaImage, "width" | "height" | "hasAlpha
     const canvasWidth = page?.width ? Math.round(width / image.width * page.width) : width;
     const canvasHeight = page?.height ? Math.round(height / image.height * page.height) : height;
     return { width, height, hasAlpha: image.hasAlpha || background.a < 255, virtualCanvas: { width: canvasWidth, height: canvasHeight, x, y },
-        properties: { ...image.properties, "deskew:angle": Object.is(degrees, -0) ? "-0" : degrees.toPrecision(17) },
+        properties: { ...image.properties, "artifact:deskew:angle": Object.is(degrees, -0) ? "-0" : degrees.toPrecision(17) },
         // Point disables elliptical filtering and uses the selected interpolation method.
         ...(pointFilter ? { interpolation } : { derivatives: () => [cos, sin, -sin, cos] as const }),
         map: (px, py) => [(px + x + 0.5) * cos + (py + y + 0.5) * sin - left - 0.5, -(px + x + 0.5) * sin + (py + y + 0.5) * cos - top - 0.5] } satisfies WarpPlan & Pick<RgbaImage, "properties">;

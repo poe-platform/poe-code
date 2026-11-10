@@ -7,6 +7,12 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 for (const mode of ["sync", "buffered", "command", "mogrify"] as const)
 for (const [option, amount, geometry] of [
     ["-swirl", "120", "120x5"],
+    ["-swirl", "2", "2x1+1"],
+    ["-swirl", "2", "2x1-1"],
+    ["-implode", "2", "2x1+1"],
+    ["-implode", "2", "2x1-1"],
+    ["-wave", "2x1", "2x1+1"],
+    ["-wave", "2x1", "2x1-1"],
     ["-swirl", "120", "120%"],
     ["-implode", "1.5", "1.5x2"],
     ["-implode", "1.5", "1.5%"],

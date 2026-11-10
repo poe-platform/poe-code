@@ -53,3 +53,30 @@ it("preserves the native PNG48 reproduction through the public magick command", 
     expect(Array.from(output.data16!)).toEqual([0x5022, 0x8813, 0x8814, 65535]);
     expect(Array.from(output.data)).toEqual([0x50, 0x88, 0x88, 0xff]);
 });
+
+// Native ImageMagick 7.1.2-35 Q16-HDRI raw RGBA results.
+for (const mode of ["command", "filesystem", "map", "sync"] as const)
+it.each([
+    { name: "16-bit output", before: [], reducer: ["-evaluate-sequence", "Mean"], after: ["-depth", "16", "-endian", "MSB"], expected: "c6466ced35359d9d" },
+    { name: "multiply fractional mean", before: [], reducer: ["-evaluate-sequence", "Mean"], after: ["-evaluate", "Multiply", "2", "-depth", "8"], expected: "ffd96aff" },
+    { name: "8-bit output control", before: [], reducer: ["-evaluate-sequence", "Mean"], after: ["-depth", "8"], expected: "c66d359d" },
+    { name: "average alias", before: [], reducer: ["-average"], after: ["-depth", "16", "-endian", "MSB"], expected: "c6466ced35359d9d" },
+    { name: "out-of-range operands", before: ["-evaluate", "Multiply", "3"], reducer: ["-evaluate-sequence", "Mean"], after: ["-evaluate", "Divide", "3", "-depth", "8"], expected: "c66d359d" },
+    { name: "fractional operands", before: ["-evaluate", "Divide", "7"], reducer: ["-evaluate-sequence", "Mean"], after: ["-evaluate", "Multiply", "7", "-depth", "8"], expected: "c66d359d" },
+])(`${mode}: retains Mean working samples from 8-bit literals ($name)`, async ({ before, reducer, after, expected }) => {
+    const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
+    await fs.writeFile("/out", new TextEncoder().encode("KEEP"));
+    files.set("/out", new TextEncoder().encode("KEEP"));
+    const inputs = ["xc:#ef7f4359", "xc:#9c5a27e1"].flatMap(input => before.length ? ["(", input, ...before, ")"] : [input]);
+    const argv = [...inputs, ...reducer, ...after, "rgba:/out"];
+    const args = createCommandArguments(argv);
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write() {} }, stderr: { async write() {} },
+    }) : mode === "sync" ? runConvertCliSync(argv, files)
+        : await runConvertCli(argv, mode === "map" ? files : { filesystem: fs, cwd: "/" });
+    expect(result).toMatchObject({ exitCode: 0 });
+    const output = mode === "map" || mode === "sync" ? files.get("/out")! : await fs.readFile("/out");
+    expect(Buffer.from(output).toString("hex")).toBe(expected);
+});

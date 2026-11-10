@@ -207,7 +207,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
     const frames = inputs.length, hasAlpha = inputs.some(image => image.hasAlpha);
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
-    const fractional = ["multiply", "rms", "rootmeansquare"].includes(operation);
+    const fractional = ["mean", "multiply", "rms", "rootmeansquare"].includes(operation);
     const retainRange = ["add", "sum", "subtract", "min", "max"].includes(operation);
     function* read(image: number, position: number, length: number): Generator<ConvolveRequest, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
         const working = retainRange || fractional ? yield { kind: "read", evaluate: true, image, position, length } : undefined;
@@ -452,12 +452,13 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
             for (let offset = 0; offset < length; offset++) {
                 if (average && channels && !channels[offset % 4] && (offset % 4 !== 3 || hasAlpha)) data[offset] = 0;
                 else if (multiplication && (offset % 4 !== 3 || hasAlpha)) data[offset] = values[offset]! * range;
-                else if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(average ? values[offset]! / frames : quantum ? values[offset]! / scale : values[offset]!);
+                else if (average && (offset % 4 !== 3 || hasAlpha)) data[offset] = values[offset]! / frames;
+                else if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(quantum ? values[offset]! / scale : values[offset]!);
             }
         }
         if (fractional) {
-            // Preserve Q16-HDRI working samples; integer views are only for encoding.
-            const samples = Float64Array.from(data, value => Math.fround(value * scale) / 257);
+            // Mean keeps accumulator precision for subsequent arithmetic; integer views are only for encoding.
+            const samples = Float64Array.from(data, value => operation === "mean" ? highDepth ? value / 257 : value : Math.fround(value * scale) / 257);
             const encoded = highDepth ? Uint16Array.from(samples, value => clamp(value * 257)) : Uint8Array.from(samples, clamp);
             yield { kind: "write", highDepth, position, data: new Uint8Array(encoded.buffer) };
             yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };

@@ -12171,7 +12171,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     ...(im.readMask ? { readMask: yield* extractImageSteps(im.readMask as RgbaImage, area) } : {}),
                     ...(im.writeMask ? { writeMask: yield* extractImageSteps(im.writeMask, area) } : {}),
                     ...(im.region ? { region: { ...im.region, x: im.region.x - sw, y: im.region.y - sh } } : {}),
-                    virtualCanvas: magickBorderCanvas(im, -sw, -sh) };
+                    virtualCanvas: im.virtualCanvas && (!im.virtualCanvas.width || !im.virtualCanvas.height)
+                        ? { ...im.virtualCanvas, width: area.width, height: area.height }
+                        : magickBorderCanvas(im, -sw, -sh) };
             }));
         }
         else if (t === "-trim") {
@@ -15925,7 +15927,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     ...(storedMetaChannels ? { storedMetaChannels } : {}),
                     ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, backend.storage, { kind: "extract", ...area }, signal) } : {}),
                     ...(image.region ? { region: { ...image.region, x: image.region.x - width, y: image.region.y - height } } : {}),
-                    virtualCanvas: magickBorderCanvas(image, -width, -height) };
+                    virtualCanvas: image.virtualCanvas && (!image.virtualCanvas.width || !image.virtualCanvas.height)
+                        ? { ...image.virtualCanvas, width: area.width, height: area.height }
+                        : magickBorderCanvas(image, -width, -height) };
             });
         } else if (!operandsOnly && token === "-trim") {
             stackStep(async stack => {

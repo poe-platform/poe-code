@@ -10595,7 +10595,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                                 plane = yield* applyMagickRasterSteps(plane, extendEdgePixelSteps(plane, base.width, base.height, true, input.virtualPixel, state.background), signal, { ...plane, width: base.width, height: base.height });
                             planes.push(plane);
                         }
-                        let plane = yield* applyMagickRasterSteps(planes[0]!, complexPixelSteps(extent, operation === "magnitudephase" ? (part === 0 ? "magnitude" : "phase") : operation === "realimaginary" ? (part === 0 ? "real" : "imaginary") : operation, planes, false, false, part, state.complexSnr ?? 0), signal, planes[0]!, planes);
+                        let plane = yield* applyMagickRasterSteps(planes[0]!, complexPixelSteps(extent, operation === "magnitudephase" ? (part === 0 ? "magnitude" : "phase") : operation === "realimaginary" ? (part === 0 ? "real" : "imaginary") : operation, planes, false, false, part, false, state.complexSnr ?? 0), signal, planes[0]!, planes);
                         if (base.writeMask) plane = yield* applyMagickRasterSteps(plane, writeMaskPixelSteps(plane, base.writeMask, true), signal, plane, [plane, planes[0]!, base.writeMask]);
                         output.metaChannels[channel] = plane;
                     }
@@ -12280,7 +12280,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                                     plane = await transformStoredMagickRaster(plane, backend, extendEdgePixelSteps(plane, base.width, base.height, true, input.virtualPixel, background), signal, { ...plane, width: base.width, height: base.height });
                                 planes.push(plane);
                             }
-                            let plane = await transformStoredMagickRaster(planes[0]!, backend, complexPixelSteps(extent, operation === "magnitudephase" ? (part === 0 ? "magnitude" : "phase") : operation === "realimaginary" ? (part === 0 ? "real" : "imaginary") : operation, planes, false, false, part, complexSnr ?? 0), signal, planes[0]!, planes);
+                            let plane = await transformStoredMagickRaster(planes[0]!, backend, complexPixelSteps(extent, operation === "magnitudephase" ? (part === 0 ? "magnitude" : "phase") : operation === "realimaginary" ? (part === 0 ? "real" : "imaginary") : operation, planes, false, false, part, false, complexSnr ?? 0), signal, planes[0]!, planes);
                             if (base.storedWriteMask) plane = await transformStoredMagickRaster(plane, backend, writeMaskPixelSteps(plane, base.storedWriteMask, true), signal, plane, [plane, planes[0]!, base.storedWriteMask]);
                             output.storedMetaChannels[channel] = plane;
                         }

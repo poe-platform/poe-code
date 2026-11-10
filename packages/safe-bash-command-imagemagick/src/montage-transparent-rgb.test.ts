@@ -18,7 +18,7 @@ it.each([
 ])(`matches transparent montage RGB via ${mode}, ${format}, ${geometry}: $background, $tiles`, async ({ background, tiles, hex }) => {
   const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
   if (tiles.includes("/tile.png")) {
-    const { data } = encodeImage({ width: 1, height: 1, channels: 4, hasAlpha: true, data: new Uint8Array([255, 0, 0, 0]) }, { format: "png" });
+    const { data } = encodeImage({ width: 1, height: 1, channels: 4, hasAlpha: true, format: "png", space: "srgb", depth: "uchar", density: 72, data: new Uint8Array([255, 0, 0, 0]) }, { format: "png" });
     files.set("/tile.png", data);
     await fs.writeFile("/tile.png", data);
   }

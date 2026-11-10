@@ -2,9 +2,10 @@ import type { RgbaColor } from "@poe-code/image-ast/portable";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { magickIntensity } from "./intensity.js";
 
 /** Blur with virtual pixels, normalize, negate and grayscale without rounding intermediate pixels. */
-export function* charcoalPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* charcoalPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, intensity = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
     const mask = channels ? [channels.r, channels.g, channels.b] : [true, true, true];
     let half = 0;
@@ -96,12 +97,11 @@ export function* charcoalPixelSteps(image: { width: number; height: number }, ge
                     for (let x = 0; x < count; x++) {
                         if (channels) {
                             for (let c = 0; c < 3; c++) if (mask[c]) histograms[c]![Math.max(0, Math.min(65535, Math.round(257 * sums[x * 3 + c]!)))]!++;
-                        } else histograms[0]![Math.max(0, Math.min(65535, Math.round(257 * (sums[x * 3]! * 0.212656 + sums[x * 3 + 1]! * 0.715158 + sums[x * 3 + 2]! * 0.072186))))]!++;
+                        } else histograms[0]![Math.max(0, Math.min(65535, Math.round(257 * magickIntensity(sums[x * 3]!, sums[x * 3 + 1]!, sums[x * 3 + 2]!, intensity, 255, false))))]!++;
                     }
                 } else {
                     const data = new Uint8Array(count * 4);
                     for (let x = 0; x < count; x++) {
-                        let gray = 0;
                         for (let c = 0; c < 3; c++) {
                             const low = lows[channels ? c : 0]!, high = highs[channels ? c : 0]!;
                             let value = sums[x * 3 + c]!;
@@ -109,9 +109,11 @@ export function* charcoalPixelSteps(image: { width: number; height: number }, ge
                                 if (high > low) value = Math.max(0, Math.min(255, (value * 257 - low) / (high - low) * 255));
                                 value = 255 - value;
                             }
-                            gray += value * [0.212656, 0.715158, 0.072186][c]!;
+                            sums[x * 3 + c] = value;
                         }
-                        data.fill(Math.round(gray), x * 4, x * 4 + 3); data[x * 4 + 3] = 255;
+                        const gray = magickIntensity(sums[x * 3]!, sums[x * 3 + 1]!, sums[x * 3 + 2]!, intensity, 255, false);
+                        // Native grayscale MS uses squared Q16 samples without quantum normalization.
+                        data.fill(Math.min(255, Math.round(gray * (intensity === "ms" ? 65535 : 1))), x * 4, x * 4 + 3); data[x * 4 + 3] = 255;
                     }
                     yield { kind: "write", position: (y * width + left) * 4, data };
                 }

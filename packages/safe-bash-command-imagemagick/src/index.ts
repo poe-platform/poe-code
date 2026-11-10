@@ -9569,6 +9569,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }, "transparent", true);
         }
         else if (t === "-charcoal") {
+            const intensity = state.intensity;
             const raw = tokens[++i] ?? "0x1";
             const { virtualPixel, background } = state;
             const channels = state.channelExplicit ? { ...state.channels } : undefined;
@@ -9577,7 +9578,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 validateMagickTransformGeometry(expanded, t);
                 const geometry = parseMagickGeometry(expanded.replace(",", "x").replace("/", "x"));
                 const edges = yield* applyMagickRasterSteps(im, edgePixelSteps({ ...im, hasAlpha: im.hasAlpha || virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255 }, geometry.width ?? 0, channels, virtualPixel, background), signal, { ...im, hasAlpha: false });
-                return yield* applyMagickRasterSteps(edges, charcoalPixelSteps(edges, geometry, channels, virtualPixel, background), signal);
+                return yield* applyMagickRasterSteps(edges, charcoalPixelSteps(edges, geometry, channels, virtualPixel, background, intensity), signal);
             });
         }
         else if (t === "-sketch") {
@@ -11983,6 +11984,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return transformStoredMagickRaster({ ...metadata, isPalette: false }, backend, whiteBalancePixelSteps(lab, vibrance, !!image.storedWriteMask), signal, lab, image.storedWriteMask ? [lab, image, image.storedWriteMask] : [lab, image]);
             }, { maskAlpha: "transparent" as const, handlesRegion: true }));
         } else if (!operandsOnly && token === "-charcoal") {
+            const intensity = state.intensity;
             const raw = tokens[++i] ?? "0x1", optionProperties = state.optionProperties;
             const { virtualPixel, background } = state;
             const channels = state.channelExplicit ? { ...state.channels } : undefined;
@@ -11992,7 +11994,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 validateMagickTransformGeometry(expanded, token);
                 const geometry = parseMagickGeometry(expanded.replace(",", "x").replace("/", "x"));
                 const edges = await transformStoredMagickRaster(image, backend, edgePixelSteps({ ...image, hasAlpha: image.hasAlpha || virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255 }, geometry.width ?? 0, channels, virtualPixel, background), signal, { ...image, hasAlpha: false });
-                return transformStoredMagickRaster(edges, backend, charcoalPixelSteps(edges, geometry, channels, virtualPixel, background), signal);
+                return transformStoredMagickRaster(edges, backend, charcoalPixelSteps(edges, geometry, channels, virtualPixel, background, intensity), signal);
             });
         } else if (!operandsOnly && token === "-sketch") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), seed = state.seed ?? 0n;

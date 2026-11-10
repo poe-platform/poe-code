@@ -11498,7 +11498,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const bounds = new Map<string, number>();
                         const length = stretched[0]?.length ?? 0;
                         const argument = trimmed.slice("atrim=".length);
-                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                        const options: string[] = [];
+                        let option = "";
+                        let quoted = false;
+                        // Decode the option layer after parseFilterChain decoded the graph layer.
+                        for (let i = 0; i < argument.length; i++) {
+                          const char = argument[i]!;
+                          if (char === "'") quoted = !quoted;
+                          else if (!quoted && char === "\\" && i + 1 < argument.length) option += argument[++i]!;
+                          else if (!quoted && char === ":") {
+                            options.push(option);
+                            option = "";
+                          } else option += char;
+                        }
+                        if (argument) options.push(option);
+                        for (const [index, option] of options.entries()) {
                           const separator = option.indexOf("=");
                           let key = separator < 0 ? ["start", "end", "start_pts", "end_pts", "duration", "start_sample", "end_sample"][index] : option.slice(0, separator).trim();
                           if (key === "starti" || key === "endi") key = key.slice(0, -1);

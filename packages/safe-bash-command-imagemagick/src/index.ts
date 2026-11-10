@@ -17778,7 +17778,7 @@ interface MontageArguments {
     warnings: string;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset">[];
     trim: boolean; shadow: boolean;
-    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number })[]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments(argv: readonly string[]): Generator<void, MontageArguments | ImageMagickCliResult, void> {
@@ -17794,6 +17794,8 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
     let trim = false;
     let concatenate = false;
     const transforms: MontageArguments["transforms"] = [];
+    const queuedTransforms: MontageArguments["transforms"][number] = [];
+    let pending = false;
     let thumbnail: string | undefined;
     let title: string | undefined;
     let texture: string | undefined;
@@ -17809,15 +17811,27 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
     let label = "";
     const groups: number[] = [];
     let groupStart = 0;
+    function* applyTransforms(advance: boolean): Generator<void, void, void> {
+        if (operands.length === groupStart) return;
+        if (queuedTransforms.length) for (let index = groupStart; index < operands.length; index++) {
+            if (++cooperativeWork % 64 === 0) yield;
+            transforms[index] = transforms[index]!.concat(queuedTransforms);
+        }
+        if (advance) queuedTransforms.length = 0;
+        pending = false;
+    }
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
         const t = argv[i]!;
+        if (t.length > 1 && (t.startsWith("-") || t.startsWith("+"))) pending = operands.length > groupStart;
         if (t === "(") {
+            if (pending) yield* applyTransforms(true);
             groups.push(groupStart);
             groupStart = operands.length;
         }
         else if (t === ")") {
+            yield* applyTransforms(true);
             const parent = groups.pop();
             if (parent === undefined) return { exitCode: 1, stdout: "", stderr: "montage: unbalanced parenthesis\n" };
             groupStart = parent;
@@ -17832,12 +17846,12 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             i = applyMagickReadSetting(argv, state, i)!;
         }
         else if (t === "-flip" || t === "-flop" || t === "-transpose") {
-            transforms.push({ kind: t === "-flop" ? "flop" : "flip" });
-            if (t === "-transpose") transforms.push({ kind: "rotate", angle: 90 });
+            queuedTransforms.push({ kind: t === "-flop" ? "flop" : "flip" });
+            if (t === "-transpose") queuedTransforms.push({ kind: "rotate", angle: 90 });
         }
         else if (t === "-rotate") {
             const angle = parseMagickRotation(argv[++i] ?? "0").angle;
-            if (angle !== 0) transforms.push({ kind: "rotate", angle });
+            if (angle !== 0) queuedTransforms.push({ kind: "rotate", angle });
         }
         else if (t === "-trim") {
             trim = true;
@@ -17922,14 +17936,17 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             label = "";
         }
         else if (t === "-reverse") {
+            yield* applyTransforms(true);
             for (let left = groupStart, right = operands.length - 1; left < right; left++, right--) {
                 if (++cooperativeWork % 64 === 0) yield;
                 [operands[left], operands[right]] = [operands[right]!, operands[left]!];
                 [labels[left], labels[right]] = [labels[right]!, labels[left]!];
+                [transforms[left], transforms[right]] = [transforms[right]!, transforms[left]!];
                 [sizes[left], sizes[right]] = [sizes[right]!, sizes[left]!];
             }
         }
         else if (t === "-swap" || t === "+swap") {
+            yield* applyTransforms(true);
             const spec = t === "-swap" ? argv[++i] : "-2,-1";
             if (spec === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -swap\n" };
             try {
@@ -17939,12 +17956,14 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
                 if (operands[a] === undefined || operands[b] === undefined) throw new Error(`invalid image index ${t}`);
                 [operands[a], operands[b]] = [operands[b]!, operands[a]!];
                 [labels[a], labels[b]] = [labels[b]!, labels[a]!];
+                [transforms[a], transforms[b]] = [transforms[b]!, transforms[a]!];
                 [sizes[a], sizes[b]] = [sizes[b]!, sizes[a]!];
             } catch (error) {
                 return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
             }
         }
         else if (t === "-insert" || t === "+insert") {
+            yield* applyTransforms(true);
             const spec = t === "+insert" ? "0" : argv[++i];
             if (spec === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -insert\n" };
             const length = operands.length - groupStart;
@@ -17957,12 +17976,14 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
                 }
                 operands.splice(groupStart + target, 0, operands.pop()!);
                 labels.splice(groupStart + target, 0, labels.pop()!);
+                transforms.splice(groupStart + target, 0, transforms.pop()!);
                 sizes.splice(groupStart + target, 0, sizes.pop()!);
             } catch (error) {
                 return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
             }
         }
         else if (t === "-delete" || t === "+delete") {
+            yield* applyTransforms(true);
             if (operands.length === groupStart) return { exitCode: 1, stdout: "", stderr: `montage: no images found for operation ${t}\n` };
             const spec = t === "+delete" ? "-1" : argv[++i];
             if (spec === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -delete\n" };
@@ -17979,10 +18000,11 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
                     if (deleted.has(index)) continue;
                     operands[kept] = operands[index]!;
                     labels[kept] = labels[index]!;
+                    transforms[kept] = transforms[index]!;
                     sizes[kept] = sizes[index]!;
                     kept++;
                 }
-                operands.length = labels.length = kept;
+                operands.length = labels.length = transforms.length = kept;
                 sizes.length = kept;
             } catch (error) {
                 return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
@@ -17990,6 +18012,9 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         }
         else if (t === "-duplicate" || t === "+duplicate" || t === "-clone" || t === "+clone") {
             const operation = t.endsWith("clone") ? "clone" : "duplicate";
+            // Native clone snapshots its source before flushing pending operators.
+            const sourceTransforms = operation === "clone" ? transforms.slice() : transforms;
+            yield* applyTransforms(true);
             let count = 1, spec = "-1";
             const sourceStart = operation === "clone" ? groups.at(-1) ?? groupStart : groupStart;
             const length = operation === "clone" && groups.length ? groupStart - sourceStart : operands.length - sourceStart;
@@ -18016,6 +18041,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
                         if (++cooperativeWork % 64 === 0) yield;
                         operands.push(operands[sourceStart + index]!);
                         labels.push(labels[sourceStart + index]!);
+                        transforms.push(sourceTransforms[sourceStart + index]!);
                         sizes.push(sizes[sourceStart + index]!);
                     }
                 }
@@ -18078,7 +18104,12 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             return { exitCode: 1, stdout: "", stderr: `montage: unrecognized option '${t}'\n` };
         }
         else {
+            // Filename boundaries replay pending operators without consuming them;
+            // the output filename flushes the final batch exactly once.
+            if (i === argv.length - 1) yield* applyTransforms(true);
+            else if (pending) yield* applyTransforms(false);
             operands.push(t);
+            transforms.push([]);
             labels.push(label);
             sizes.push({ hasSize: state.hasSize, sizeWidth: state.sizeWidth, sizeHeight: state.sizeHeight, inputOffset: state.inputOffset ?? 0 });
         }
@@ -18120,7 +18151,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const inPaths = operands.slice(0, -1);
     let inputErrors = "";
     const fastMetaDims: { width: number; height: number }[] = [];
-    let canStreamTiles = !shadow && !trim && transforms.length === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean);
+    let canStreamTiles = !shadow && !trim && !transforms.some(operations => operations.length > 0) && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean);
     if (canStreamTiles) {
         for (const p of inPaths) {
             const rawBytes = files.get(p);
@@ -18289,7 +18320,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     thumb = yield* trimMagickSteps(loaded, state.alphaFuzz);
                     if (thumb !== loaded) detachRgbaBuffer(loaded.data);
                 }
-                for (const transform of transforms) {
+                for (const transform of transforms[inputIndex]!) {
                     const previous = thumb;
                     thumb = yield* (transform.kind === "rotate" ? rotateImageSteps(thumb, transform.angle, state.background)
                         : transform.kind === "flop" ? flopImageSteps(thumb) : flipImageSteps(thumb));
@@ -18439,7 +18470,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         }
         let inputErrors = "";
         const sources = new IntegerTable(backend.storage, 128), images = new StoredImageStack(backend.storage, signal);
-        let fast = !shadow && !trim && transforms.length === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
+        let fast = !shadow && !trim && !transforms.some(operations => operations.length > 0) && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
         const sourceAt = async (index: number): Promise<ImageByteSource | null> => {
             const size = Number(await sources.get(BigInt(index * 5 + 1)) ?? -1n);
             if (size < 0) return null;
@@ -18497,7 +18528,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     const loaded = await parseStoredCompareInput(path, { ...state, ...sizes[index] }, backend, signal, { source: await sourceAt(index), visit: async image => {
                         const isNull = (image as StoredMagickImage)[magickInput]?.filePath === "null:";
                         if (trim) image = await trimStoredMagick(image, backend.storage, state.alphaFuzz, signal);
-                        for (const transform of transforms) {
+                        for (const transform of transforms[index]!) {
                             image = await transformStoredImage(image, backend.storage, transform.kind === "rotate"
                                 ? { ...transform, background: state.background } : transform, signal);
                         }

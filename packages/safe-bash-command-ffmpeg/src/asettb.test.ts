@@ -7,13 +7,14 @@ import { createFfmpegCommand } from "./index.js";
 
 // PCM and frame traces from FFmpeg 7.0.2, including the default-time-base control.
 for (const complex of [false, true]) {
-  for (const [filter, start, ticksPerSample] of [
+  for (const [filter, start, ticksPerSample, timestampOffset = start ? 800 : 0] of [
     ["asettb=expr=1/1000", 0, 1 / 8],
     ["asettb=intb", 0, 1],
     ["asettb", 0, 1],
     ["asettb=1/1000,asetpts=PTS+100,atrim=start=0.15", 400, 1 / 8],
     ["asetpts=PTS+800,atrim=start=0.15", 400, 1],
     ["asettb=1/1000,asetpts=PTS+0.1/TB,atrim=start_pts=1200", 400, 1 / 8],
+    ["asettb=1/1000,asetpts=PTS+0.1/TB,atrim=start_pts=150", 0, 1 / 8, 800],
     ["asettb=1/1000,asettb=1/sr", 0, 1],
     ["asettb=tb=intb*8", 0, 1 / 8],
     ["asettb=1/1000,aselect='eq(pts,n*64)*eq(TB,0.001)'", 0, 1 / 8],
@@ -53,7 +54,7 @@ for (const complex of [false, true]) {
       });
       assert.deepEqual(frames, Array.from({ length: 10 }, (_, n) => {
         const offset = n === 0 ? start : n * 512;
-        const pts = offset + (start ? 800 : 0);
+        const pts = offset + timestampOffset;
         return [n, pts * ticksPerSample, Math.min(4707, (n + 1) * 512) - offset, pts / 8000];
       }));
     });

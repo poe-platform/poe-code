@@ -10898,7 +10898,10 @@ export class Runtime {
           const alternate = (part.quoted ? part.alternate!.parts : expandTildes(part.alternate!.parts, state, this.budget)).map((entry) => ({ part: copyArraySelector(entry, { ...entry, quoted: entry.quoted || part.quoted }), splitText: true, io: operandIO }));
           positionalOwned ||= split && alternate.some(({ part }) => part.kind === "variable" && part.name === "@" && part.quoted && !part.length && (!part.operator || defaultParameterOperators.includes(part.operator)) && !part.transform);
           if (!alternate.length && part.quoted) append("", false, true);
-          parts.splice(index + 1, 0, ...alternate);
+          // Array members provide field presence inside the operand's quotes.
+          // Keep outer quote markers and explicit empty quotes independent.
+          const arrayAlternate = alternate.some(({ part }) => getArraySelector(part) !== undefined);
+          parts.splice(index + 1, 0, ...alternate.filter(({ part }) => !arrayAlternate || !isQuoteMarker(part)));
           continue;
         }
       }

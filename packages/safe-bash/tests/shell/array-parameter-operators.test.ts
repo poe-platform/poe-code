@@ -3,6 +3,32 @@ import test from 'node:test';
 import { spawnSync } from 'node:child_process';
 import { setup } from './helpers.js';
 
+for (const [source, expected] of [
+  ['unset u; a=(); set --; set -- ${u:-"${a[@]}"}', []],
+  ['unset u; a=(); set --; set -- "${a[@]}"', []],
+  ['unset u; a=(""); set -- ""; set -- ${u:-"${a[@]}"}', ['']],
+  ['unset u; a=(); set --; set -- "${u:-${a[@]}}"', ['']],
+  ['unset u; a=(); set -- ${u-"${a[@]}"}', []],
+  ['u=set; a=(); set -- ${u:+"${a[@]}"}', []],
+  ['u=set; a=(); set -- ${u+"${a[@]}"}', []],
+  ['unset u; a=(); set -- ${u:-"""${a[@]}"}', ['']],
+  ['unset u; a=(); set -- ${u:-"${a[@]}"""}', ['']],
+  ['unset u; a=(); set -- ${u:-pre"${a[@]}"post}', ['prepost']],
+  ['unset u; a=("" "two words"); set -- ${u:-"${a[@]}"}', ['', 'two words']],
+] as const) test(`quoted array fallback preserves argument count: ${source}`, async t => {
+  const native = spawnSync(process.env.SAFE_BASH_TEST_BASH ?? '/bin/bash', ['--noprofile', '--norc', '-c', `${source}; printf '%s\\0' "$#"; for arg do printf '%s\\0' "$arg"; done`], { encoding: 'utf8', env: { LC_ALL: 'C', PATH: process.env.PATH } });
+  assert.equal(native.error, undefined);
+  assert.equal(native.status, 0, native.stderr);
+  assert.equal(native.stderr, '');
+  assert.deepEqual(native.stdout.slice(0, -1).split('\0'), [String(expected.length), ...expected]);
+  const { shell } = setup();
+  t.after(() => shell.dispose());
+  const result = await shell.exec(`${source}; args "$@"`);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, '');
+  assert.deepEqual(JSON.parse(result.stdout), expected);
+});
+
 for (const nounset of ['+u', '-u']) for (const selector of ['@', '*']) {
   for (const [initialize, slice] of [
     ['a=abc', '1:1'], ['a=abc', ' -2:1'], ['a=abc', '0:-1'],

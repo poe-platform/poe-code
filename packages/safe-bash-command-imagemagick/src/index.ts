@@ -1604,7 +1604,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
       parts.push(short[key]!);
     } else if (token === "%T") {
       const delay = resolvePixels ? yield* resolvePixels("delay") : String((meta.delay ?? (img ??= getImage()).delay)?.[(meta as MagickImage)[magickInput]?.sceneIdx ?? context.sceneIdx ?? 0] ?? 0);
-      const count = Number(delay) / 10;
+      const count = Number(delay) * (meta.ticksPerSecond ?? 100) / 1000;
       // Preserve signed counts internally: converting to Number(size_t) here is
       // safe for display, but would lose the low bits needed by the GIF coder.
       parts.push(count < 0 ? Number(BigInt.asUintN(64, BigInt(Math.floor(count)))).toExponential(16) : String(count));
@@ -6102,7 +6102,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             if (state.disposal !== undefined) im = { ...im, disposal: state.disposal };
             if (state.delay !== undefined) {
                 const delay = state.delay.value;
-                im = { ...im, delay: (im.delay ?? [0]).map(current => parseDelayOption(delay, current)) };
+                im = { ...im, ticksPerSecond: 100, delay: (im.delay ?? [0]).map(current => parseDelayOption(delay, current)) };
             }
             return inlineGeom ? yield* applyInlineReadModifierSteps(im, inlineGeom, baseToken, state.kernel, state.resizeFilter, extract !== undefined, analysis) : im;
         });
@@ -9114,7 +9114,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], sceneIdx: sceneIdx++, optionProperties: state.optionProperties });
                 const delay = parseDelay(expanded);
-                return { ...image, delay: Array(image.delay?.length ?? 1).fill(delay) };
+                return { ...image, ticksPerSecond: 100, delay: Array(image.delay?.length ?? 1).fill(delay) };
             });
             i += 3;
             continue;
@@ -11206,7 +11206,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const expanded = await formatRetainedIdentify(value, image, { ...image[magickInput], sceneIdx, optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                     const delay = parseDelay(expanded);
                     await stack.set(sceneIdx, {
-                        ...image,
+                        ...image, ticksPerSecond: 100,
                         storedDelay: { length: image.storedDelay?.length ?? image.delay?.length ?? 1, async at() { return delay; } },
                     });
                 }
@@ -13318,7 +13318,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  if(state.disposal!==undefined)image={...image,disposal:state.disposal};
  if (state.delay !== undefined) {
   const delay = state.delay.value, original = image;
-  image = { ...image, storedDelay: {
+  image = { ...image, ticksPerSecond: 100, storedDelay: {
    length: original.storedDelay?.length ?? original.delay?.length ?? 1,
    async at(scene, options) {
     const current = await original.storedDelay?.at(scene, options) ?? original.delay?.[scene] ?? 0;

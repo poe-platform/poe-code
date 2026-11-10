@@ -1070,7 +1070,7 @@ function parseAtrim(argument: string, origRate: number) {
       throw new Error(`atrim: unsupported option ${key}`);
     }
     const number = samples || pts ? parseFilterExpression(value, "atrim", { inf: Infinity, Infinity, NaN }) : parseHlsDuration(value);
-    const boundary = samples || pts ? roundToEven(number) : Math.round(number * origRate);
+    const boundary = samples || pts ? roundToEven(number) : Math.sign(number) * Math.round(Math.abs(number) * origRate);
     // Native int64 options use doubles, including INT64_MAX rounded to 2^63.
     if (!value || Number.isNaN(number)) throw new Error(`atrim: invalid ${key}`);
     if ((samples || pts ? Math.abs(number) > 2 ** 63 : !Number.isSafeInteger(boundary)) ||

@@ -6,6 +6,30 @@ import { createFfmpegCommand } from "./index.js";
 // Expected PCM slices were checked against native FFmpeg 7.0.2.
 for (const complex of [false, true]) {
   for (const [bound, start, end] of [
+    ["start_sample=min", 0, 12],
+    ["start_sample=max", 0, 0],
+    ["start_sample=default", 0, 12],
+    ["start_sample=none", 0, 12],
+    ["end_sample=min", 0, 0],
+    ["end_sample=max", 0, 12],
+    ["end_sample=default", 0, 12],
+    ["end_sample=none", 0, 0],
+    ["start_pts=min", 0, 12],
+    ["start_pts=max", 0, 0],
+    ["start_pts=default", 0, 12],
+    ["start_pts=none", 0, 12],
+    ["end_pts=min", 0, 12],
+    ["end_pts=max", 0, 12],
+    ["end_pts=default", 0, 12],
+    ["end_pts=none", 0, 0],
+    ["start_sample=min:end_sample=4", 0, 4],
+    ["start_pts=max:end_sample=4", 0, 0],
+    ["end_sample=0", 0, 0],
+    ["end_sample=4", 0, 4],
+    ["", 0, 12],
+    ["start_sample=4:start_sample=default", 0, 12],
+    ["end_pts=4:end_pts=default", 0, 12],
+    ["end_sample=min+4", 0, 4],
     ["start_pts=9007199254740992", 12, 12],
     ["end_pts=9007199254740992", 0, 12],
     ["start_sample=9007199254740992", 12, 12],
@@ -42,11 +66,11 @@ for (const complex of [false, true]) {
     it(`atrim=${bound} handles native int64 bounds (${complex ? "complex" : "simple"})`, async () => {
       const input = Buffer.alloc(24);
       for (let i = 0; i < 12; i++) input.writeInt16LE(i + 1, i * 2);
-      const volume = Volume.fromJSON({ "/in.raw": input });
+      const volume = Volume.fromJSON({ "/in.raw": input, "/out.raw": "KEEP" });
       const filter = `atrim=${bound}`;
       let stderr = "";
       const result = await createFfmpegCommand({ limits: { maxMemoryBytes: 65536 } }).execute({
-        args: ["-v", "error", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/in.raw",
+        args: ["-y", "-v", "error", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/in.raw",
           ...(complex ? ["-filter_complex", `[0:a]${filter}[s]`, "-map", "[s]"] : ["-af", filter]),
           "-f", "s16le", "/out.raw"],
         cwd: "/", env: {}, signal: new AbortController().signal,
@@ -61,7 +85,7 @@ for (const complex of [false, true]) {
       if (start === -1) {
         assert.equal(result.exitCode, 222, stderr);
         assert.ok(stderr.includes("atrim: invalid"), stderr);
-        assert.equal(volume.existsSync("/out.raw"), false);
+        assert.equal(volume.readFileSync("/out.raw", "utf8"), "KEEP");
       } else {
         assert.equal(result.exitCode, 0, stderr);
         assert.deepEqual(volume.readFileSync("/out.raw"), input.subarray(start * 2, end * 2));

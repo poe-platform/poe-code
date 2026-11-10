@@ -7,7 +7,7 @@ import { createMagickCommand, runConvertCli, runConvertCliSync, runMogrifyCli } 
 const input = new Uint8Array(readFileSync(new URL("./fixtures/deskew-threshold.png", import.meta.url)));
 
 for (const mode of ["buffered", "retained", "sync", "command", "mogrify", "retained-mogrify"] as const) {
-    it.each(["0b1", "0o10", "40junk", "NaN", "Infinity", "", " "])(`rejects invalid deskew threshold %j without replacing output (${mode})`, async threshold => {
+    it.each(["0b1", "0o10", "40junk", "bogus", "x40junk", "(bogus)", "e40", "e", ",", "()", "+", "NaN", "Infinity", "", " "])(`rejects invalid deskew threshold %j without replacing output (${mode})`, async threshold => {
         const mogrify = mode.endsWith("mogrify");
         const original = mogrify ? input : new TextEncoder().encode("KEEP");
         const destination = mogrify ? "/input.png" : "/output.png";
@@ -27,7 +27,7 @@ for (const mode of ["buffered", "retained", "sync", "command", "mogrify", "retai
     });
 
     // Native ImageMagick validates geometry but applies % only immediately after the first number.
-    it.each([["40x2%", "40"], ["40%x2", "40%"], ["4e1x2%", "40"], ["40+2%", "40"], ["40 %", "40"], ["+40%", "40%"], ["0x6666", "26214"], ["+0x28%", "40%"], ["40%", "26214"], ["0", "0"]])(`reads deskew threshold %s as %s (${mode})`, async (threshold, scalar) => {
+    it.each([["x40%", "0"], [",40%", "0"], ["(40%)", "0"], ["x", "0"], ["%", "0"], ["-", "0"], [".", "0"], ["40x2%", "40"], ["40%x2", "40%"], ["4e1x2%", "40"], ["40+2%", "40"], ["40 %", "40"], ["+40%", "40%"], ["0x6666", "26214"], ["+0x28%", "40%"], ["40%", "26214"], ["0", "0"]])(`reads deskew threshold %s as %s (${mode})`, async (threshold, scalar) => {
         const files = new Map([["/input.png", input]]), fs = new MemoryFileSystem();
         await fs.writeFile("/input.png", input);
         const mogrify = mode.endsWith("mogrify");

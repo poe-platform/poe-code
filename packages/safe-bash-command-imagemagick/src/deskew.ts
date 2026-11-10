@@ -12,7 +12,18 @@ function* deskewAngle(width: number, height: number, spec: string, range: number
     }
     const text = spec.trimStart(), sign = text[0] === "-" ? -1 : 1;
     const unsigned = text[0] === "+" || text[0] === "-" ? text.slice(1) : text;
-    const value = unsigned.toLowerCase().startsWith("0x") ? Number.parseInt(text, 16) : Number.parseFloat(text);
+    let value = unsigned.toLowerCase().startsWith("0x") ? Number.parseInt(text, 16) : Number.parseFloat(text);
+    if (Number.isNaN(value)) {
+        const geometry = [...spec].filter(c => c.trim() !== "" && c !== "(" && c !== ")").join("");
+        const [first, second] = geometry.split(",");
+        const component = (first || second || "").split("/")[0]!;
+        const hasGeometryFlag = geometry.startsWith("-") || [...geometry].some(c => "xX.!#%:<>@^".includes(c));
+        if (!hasGeometryFlag && !(component && Number.isFinite(Number(component)))) {
+            throw new Error("Invalid deskew threshold");
+        }
+        // Native accepts geometry without a leading scalar, then reads that scalar as zero.
+        value = 0;
+    }
     // Geometry suffixes are valid, but only % immediately after the number scales it.
     const percent = unsigned.indexOf("%"), prefix = unsigned.slice(0, percent);
     const isPercent = percent > 0 && prefix.trimEnd() === prefix && Number(prefix) * sign === value;

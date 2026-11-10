@@ -9623,7 +9623,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
                 validateMagickSpliceGeometry(expanded);
-                return (yield* applyMagickSpliceSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, state.gravity, signal, state.virtualPixel));
+                const result = yield* applyMagickSpliceSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, state.gravity, signal, state.virtualPixel);
+                if (im.readMask) result.readMask = yield* applyMagickSpliceSteps(im.readMask as RgbaImage, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, state.virtualPixel);
+                return result;
             });
         }
         else if (t === "-chop") {
@@ -12425,7 +12427,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const offsets = parseMagickRollGeometry(expanded);
                     result.region = rollRegion(image.region, image, offsets.x, offsets.y);
                 }
-                if (token === "-roll" && image.readMask) result.readMask = await transformStoredMagickCoordinates(image.readMask as StoredRgbaImage, backend, token, expanded, captured, signal, analysis);
+                if ((token === "-roll" || token === "-splice") && image.readMask) result.readMask = await transformStoredMagickCoordinates(image.readMask as StoredRgbaImage, backend, token, expanded,
+                    token === "-splice" ? { ...captured, backgroundExplicit: true, background: { r: 0, g: 0, b: 0, a: 255 } } : captured, signal, analysis);
                 if (token === "-roll" && image.storedWriteMask) {
                     // Roll honors the destination mask before moving it with the pixels.
                     result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!(result.storedData16 || image.storedData16), false, captured.channels), signal, result, [result, image, image.storedWriteMask]);

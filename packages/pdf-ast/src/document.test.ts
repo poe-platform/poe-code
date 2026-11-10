@@ -442,9 +442,10 @@ describe("Layer 2 & Layer 3 Unified PdfDocument SDK, Extraction, Editing, Redact
     const tmDl = tmPage.evaluateDisplayList();
     const glyphA = tmDl.glyphs.find(g => g.unicode === "A")!;
     const glyphB = tmDl.glyphs.find(g => g.unicode === "B")!;
-    // Advance of A (667/1000 * 1 + 0.5 Tc) * 12 = 1.167 * 12 = 14.004pt
+    // The text position advances by the glyph width plus character spacing.
     expect(glyphB.bbox[0] - glyphA.bbox[0]).toBeCloseTo(14.004, 2);
-    expect(glyphA.advanceWidth).toBeCloseTo(14.004, 2);
+    // Glyph geometry excludes the 6pt character-spacing gap.
+    expect(glyphA.advanceWidth).toBeCloseTo(8.004, 2);
 
     // 3. CMap beginbfrange with UTF-16BE surrogate pairs (U+1D400 Mathematical Bold Capital A -> U+1D402)
     const cmapText = [

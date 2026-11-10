@@ -12161,10 +12161,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             if (t === "-repage") {
                 const raw = tokens[++i] ?? "0x0";
-                stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                    const expanded = yield* formatMagickPropertyStringSteps(raw, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                    return { ...image, virtualCanvas: magickRepageCanvas(image, parseMagickRepageGeometry(expanded), "repage") };
-                });
+                for (let index = 0; index < stack.length; index++) {
+                    yield;
+                    const image = stack[index]!;
+                    const expanded = yield* formatMagickPropertyStringSteps(raw, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: index, optionProperties: state.optionProperties });
+                    stack[index] = { ...image, virtualCanvas: magickRepageCanvas(image, parseMagickRepageGeometry(expanded), "repage") };
+                }
             }
             else stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 yield;
@@ -15223,7 +15225,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 for (let index = 0; index < stack.length; index++) {
                     const image = (await stack.get(index))!;
-                    const expanded = raw === undefined ? undefined : await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                    const expanded = raw === undefined ? undefined : await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, listIndex: index, optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack);
                     const geometry = expanded === undefined ? undefined : parseMagickRepageGeometry(expanded);
                     const reset = { ...image, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } };
                     await stack.set(index, geometry ? { ...image, virtualCanvas: magickRepageCanvas(image, geometry, "repage") } : reset);

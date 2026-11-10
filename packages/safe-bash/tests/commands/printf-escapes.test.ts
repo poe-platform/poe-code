@@ -14,6 +14,21 @@ async function run(command: string, args: string[], options: { env?: Record<stri
   } finally { await shell.dispose(); }
 }
 
+for (const [script, stdout, stderr, exitCode] of [
+  ["printf 'X%' 0 end", "X", "printf: `%': missing format character\n", 1],
+  ["printf 'end%k' 0 end", "end", "printf: `k': invalid format character\n", 1],
+  ["printf '[%5%]' ''", "[", "printf: `%': invalid format character\n", 1],
+  ["printf '%(%Y)T:%s' 0 end", "1970:end", "", 0],
+] as const) for (const middleware of [false, true]) test(`printf conversion diagnostics: ${script}; middleware=${middleware}`, async t => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()), env: { LC_ALL: "C", TZ: "UTC" } });
+  t.after(() => shell.dispose());
+  if (middleware) shell.use((_context, next) => next());
+  const result = await shell.exec(script);
+  assert.equal(result.stdout, stdout);
+  assert.equal(result.stderr, stderr);
+  assert.equal(result.exitCode, exitCode);
+});
+
 for (const raw of [false, true]) for (const entry of [
   { format: "one\\ctwo\\n", operands: [], expected: "one\\ctwo\n" },
   { format: "\\'|\\\"|\\?|%s\\n", operands: ["one", "two"], expected: "'|\"|?|one\n'|\"|?|two\n" },

@@ -62,10 +62,11 @@ export async function parsePrintfDirective(format: string | Uint8Array, start: n
   }
   let specifier = character();
   if (wide && (specifier === "s" || specifier === "c")) specifier = specifier.toUpperCase();
-  if (!specifier || !"nsbqQcCSdiouxXfFeEgGaA".includes(specifier)) {
+  if (!specifier) {
     const end = start + 64;
     const preview = typeof format === "string" ? format.slice(start, end) : decoder.decode(format.subarray(start, end));
-    throw new UsageError(`invalid format near '${preview}${format.length > end ? "..." : ""}'`);
+    throw new UsageError(`\`${preview}${format.length > end ? "..." : ""}': missing format character`);
   }
+  if (!"nsbqQcCSdiouxXfFeEgGaA".includes(specifier)) throw new UsageError(`\`${specifier}': invalid format character`);
   return { end: offset + 1, flags, width, precision, specifier };
 }

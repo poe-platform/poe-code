@@ -101,7 +101,8 @@ test("printf scans directive grammar consistently for text and opaque byte forma
       const result = await runByteArguments("printf", [raw ? shellValueFromBytes(Buffer.from(format)) : format]);
       assert.equal(result.exitCode, 1, format);
       assert.equal(result.stdout.length, 0, format);
-      assert.match(result.stderr.toString(), /invalid format/, format);
+      const diagnostic = ["%", "% ", "%."].includes(format) ? "missing format character" : "invalid format character";
+      assert.ok(result.stderr.toString().includes(diagnostic), format);
     }
   }
 });
@@ -1057,8 +1058,8 @@ test("printf preserves Bash string conversion flags", async () => {
 });
 
 
-test("printf invalid conversions match native Bash status and retain partial output", async () => {
-  for (const format of ["%1$s %1$s", "%2$*1$d", "prefix%Z", "prefix%", "%8-2s"]) {
+test("printf invalid conversions match native Bash diagnostics, status and partial output", async () => {
+  for (const format of ["%1$s %1$s", "%2$*1$d", "prefix%Z", "prefix%", "%8-2s", "X%", "end%k", "[%5%]", "%5", "%.2", "%ll"]) {
     const native = spawnSync("bash", ["--noprofile", "--norc", "-c", 'printf -- "$@"', "printf", format, "hello"], {
       env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000,
     });
@@ -1070,6 +1071,7 @@ test("printf invalid conversions match native Bash status and retain partial out
       assert.equal(result.exitCode, native.status, format);
       assert.deepEqual(result.stdout, native.stdout, format);
       assert.ok(result.stderr.length > 0, format);
+      assert.ok(native.stderr.toString().endsWith(result.stderr.toString()), `${format}: ${result.stderr}`);
     }
   }
 });

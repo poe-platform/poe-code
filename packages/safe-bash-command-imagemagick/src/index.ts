@@ -12049,9 +12049,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }), signal) : undefined;
                     const workingBytes = workingPosition !== undefined ? await backend.storage.read(workingPosition + offset * 8, Math.min(chunkSize, size - offset) * 8) : undefined;
                     const workingSamples = workingBytes ? new Float64Array(workingBytes.buffer.slice(workingBytes.byteOffset, workingBytes.byteOffset + workingBytes.byteLength)) : undefined;
-                    await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, histogram, intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, offset / 4, settings.channels, workingSamples, image.storedHueSamples !== undefined, image.space === "cmyk"), signal);
+                    await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, histogram, intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, offset / 4, settings.channels, workingSamples, image.storedHueSamples !== undefined, image.space === "cmyk", sums), signal);
                 }
-                return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, evaluate: operation.sepiaThreshold !== undefined || token === "-auto-gamma" || token === "-auto-level", handlesWriteMask: token === "-auto-gamma" || token === "-auto-level", apply: operation.transform(histogram, image) }, signal, analysisOperation.highDepth);
+                return transformStoredMagickPixels(image, backend, { end: analysisOperation.end, evaluate: operation.sepiaThreshold !== undefined || token === "-auto-gamma" || token === "-auto-level", handlesWriteMask: token === "-auto-gamma" || token === "-auto-level", apply: operation.transform(histogram, image, sums) }, signal, analysisOperation.highDepth);
             }, { handlesRegion: token === "-sepia-tone" }));
             continue;
         }

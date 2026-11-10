@@ -104,7 +104,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
     const { name } = magickCompositeMode(compose);
     const sourceIn = name === "srcin" || name === "in", destinationOut = name === "dstout" || name === "destout";
     const copySource = ["src", "source", "copy"].includes(name), copyDestination = ["dst", "destination"].includes(name);
-    const blend = name === "multiply" || name === "screen" || name === "difference";
+    const blend = name === "multiply" || name === "screen" || name === "difference" || name === "hardlight";
     const copyAlpha = name === "copyalpha" || name === "copyopacity";
     const { width, height } = source, cx = width / 2, cy = height / 2;
     const insetX = geometry.hasOffset ? geometry.x : width * 0.1, insetY = geometry.hasYOffset ? geometry.y : height * 0.1;
@@ -251,12 +251,25 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                         samples[x * 4 + channel] = round((mixed + source * foreground * (1 - destinationAlpha) + color * back) * pixelScale);
                         continue;
                     }
+                    if (selected && name === "softlight") {
+                        // Native SoftLight blends premultiplied channels and adds the destination again.
+                        const destinationAlpha = background.a / 255;
+                        const sc = sourceColor / (255 * pixelScale) * foreground, dc = color / 255 * destinationAlpha;
+                        const mixed = sc <= 0.5 ? dc - (1 - 2 * sc) * dc * (1 - dc)
+                            : dc + (2 * sc - 1) * ((dc > 0.25 ? Math.sqrt(dc) : ((16 * dc - 12) * dc + 4) * dc) - dc);
+                        const value = alpha === 0 ? 0 : (dc * foreground + destinationAlpha * mixed
+                            + sc * (1 - destinationAlpha) + dc * (1 - foreground)) / alpha;
+                        samples[x * 4 + channel] = round((hue || inks ? value : Math.max(0, Math.min(1, value))) * 255 * pixelScale);
+                        continue;
+                    }
                     if (selected && blend) {
                         const source = sourceColor / pixelScale, destinationAlpha = background.a / 255;
                         const mixed = name === "multiply" ? source * color / 255
-                            : name === "screen" ? source + color - source * color / 255 : Math.abs(source - color);
+                            : name === "screen" ? source + color - source * color / 255
+                            : name === "hardlight" ? source <= 127.5 ? 2 * source * color / 255 : 255 - 2 * (255 - source) * (255 - color) / 255
+                            : Math.abs(source - color);
                         const value = mixed * foreground * destinationAlpha + source * foreground * (1 - destinationAlpha) + color * back;
-                        // Native Screen keeps premultiplied RGB; Multiply and Difference unpremultiply.
+                        // Native Screen keeps premultiplied RGB; the other blend modes unpremultiply.
                         samples[x * 4 + channel] = round((name === "screen" ? value : alpha === 0 ? 0 : value / alpha) * pixelScale);
                         continue;
                     }

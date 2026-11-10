@@ -12,6 +12,7 @@ const keep = new TextEncoder().encode("KEEP");
 for (const mode of ["buffered", "sync", "retained", "magick", "convert"] as const) {
     it.each([
         { placement: "before input", args: ["-magnify", "im.ppm"], valid: false },
+        { placement: "before missing input", args: ["-magnify", "missing.ppm"], valid: false },
         { placement: "after delete", args: ["im.ppm", "+delete", "-magnify", "im.ppm"], valid: false },
         { placement: "empty parentheses", args: ["im.ppm", "(", "-magnify", "im.ppm", ")"], valid: false },
         { placement: "after input", args: ["im.ppm", "-magnify"], valid: true },

@@ -2931,6 +2931,10 @@ async function applyVideoFilterChain(
       const first = current[0];
       current = await mapWork(current, async (f) => {
         if ((pass === 1 && f.width >= f.height) || (pass === 2 && f.width <= f.height)) return f;
+        if (f.native?.format === 4 && f.native.rgba === f.data && f.native.width === f.width && f.native.height === f.height) {
+          budget.allocateMemory(f.width * f.height * 7);
+          f = await formatYuv(f, "yuv444p", signal);
+        }
         const source = f.native;
         // Preserve native samples for packed RGB, grayscale and equally subsampled planar formats.
         if (source && source.rgba === f.data && source.width === f.width && source.height === f.height &&

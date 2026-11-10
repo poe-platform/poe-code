@@ -1,6 +1,6 @@
 import { yieldTurn } from "safe-bash-contracts/yield";
 
-function scaleWeights(source: number, target: number, algorithm: "bicubic" | "bilinear" | "area" | "lanczos") {
+export function scaleWeights(source: number, target: number, algorithm: "bicubic" | "bilinear" | "area" | "lanczos") {
   const step = Math.round(source * 65536 / target);
   // swscale limits kernel support on small inputs rather than extending a
   // full kernel beyond both edges.

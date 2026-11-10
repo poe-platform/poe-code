@@ -1,4 +1,5 @@
 import { scaleVideoPicture, type MediaVideoFrame } from "@poe-code/mp4-ast";
+import { scaleWeights } from "./scale.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
 /** Convert to limited-range BT.601 planes before subsequent filters see RGBA. */
@@ -17,6 +18,38 @@ export async function formatYuv(
   const chromaSize = chromaWidth * chromaHeight;
   const pixels = new Uint8Array(lumaSize + chromaSize * 2);
   const source = frame.native;
+  if (source && ((source.format === 4 && format === "yuv444p") || (source.format === 5 && format === "yuv422p")) &&
+      source.rgba === data && source.width === width && source.height === height) {
+    // Transpose negotiates 4:4:4 for asymmetric chroma; resample planes without an RGB round trip.
+    const sourceWidth = source.format === 4 ? Math.ceil(width / 2) : width;
+    const horizontal = scaleWeights(sourceWidth, chromaWidth, "bicubic");
+    // swscale normalizes horizontal coefficients to 14 bits with carried rounding error.
+    for (const taps of horizontal) {
+      let error = 0;
+      for (const tap of taps) {
+        const value = tap.weight * 16384 + error;
+        tap.weight = Math.round(value);
+        error = value - tap.weight;
+      }
+    }
+    pixels.set(source.pixels.subarray(0, lumaSize));
+    for (let plane = 0; plane < 2; plane++) {
+      for (let y = 0; y < height; y++) {
+        await yieldTurn(signal);
+        signal?.throwIfAborted();
+        for (let x = 0; x < chromaWidth; x++) {
+          let value = 0;
+          for (const tap of horizontal[x]!) {
+            value += source.pixels[lumaSize + plane * sourceWidth * height + y * sourceWidth + tap.index]! * tap.weight;
+          }
+          pixels[lumaSize + plane * chromaSize + y * chromaWidth + x] = Math.max(0, Math.min(255, Math.floor((value + 8192) / 16384)));
+        }
+      }
+    }
+    const native = { ...source, pixels, format: nativeFormat };
+    const rgba = scaleVideoPicture({ ...frame, native }, width, height)!;
+    return { ...frame, data: rgba, native: { ...native, rgba } };
+  }
   if (format === "yuv444p" && source && [49, 68].includes(source.format) &&
       source.rgba === data && source.width === width && source.height === height) {
     // swscale's planar depth reduction restarts its ordered dither per slice.

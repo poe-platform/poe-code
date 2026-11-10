@@ -11141,7 +11141,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (pixelOperation) {
-            const metaOperation = t === "-evaluate" ? parseMagickPixelOperation(tokens,
+            const metaOperation = t === "-evaluate" || t === "-clamp" ? parseMagickPixelOperation(tokens,
                 { ...state, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, i, signal) : undefined;
             if (pixelOperation.warning) analysis.warnings += pixelOperation.warning;
             if (t === "-contrast" || t === "+contrast") analysis.warnings += `magick: option has been replaced '${t}', use "${t[0]}level"\n`;
@@ -14154,7 +14154,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         const pixelOperation = operandsOnly ? undefined : parseMagickPixelOperation(tokens, state, i, signal);
         if (pixelOperation) {
             const selectedMeta = !state.channelExplicit || state.channelDefault ? undefined : state.channels.meta ?? [];
-            const metaOperation = token === "-evaluate" ? parseMagickPixelOperation(tokens,
+            const metaOperation = token === "-evaluate" || token === "-clamp" ? parseMagickPixelOperation(tokens,
                 { ...state, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, i, signal) : undefined;
             const functionMetaOperation = token === "-function" ? parseMagickPixelOperation(tokens,
                 { ...state, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, i, signal) : undefined;

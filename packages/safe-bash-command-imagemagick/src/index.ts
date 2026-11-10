@@ -1776,7 +1776,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
                 channels.push(Math.max(0, Math.min(hexMaximum, Math.round(fn({ ...ctx, ch }) * hexMaximum))));
                 continue;
               }
-              channels.push((img.space === "cmyk" || img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "OHTA" || img.magickColorspace === "YUV" || img.magickColorspace === "Oklab" || img.magickColorspace === "Luv" || img.magickColorspace === "Oklch" || img.magickColorspace === "CIELab") && key.startsWith("pixel:") ? fn({ ...ctx, ch }) : clampByteVal(fn({ ...ctx, ch }) * 255));
+              channels.push((ch === 3 || img.space === "cmyk" || img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "OHTA" || img.magickColorspace === "YUV" || img.magickColorspace === "Oklab" || img.magickColorspace === "Luv" || img.magickColorspace === "Oklch" || img.magickColorspace === "CIELab") && key.startsWith("pixel:") ? fn({ ...ctx, ch }) : clampByteVal(fn({ ...ctx, ch }) * 255));
             }
             if (key.startsWith("hex:")) {
               parts.push(channels.map(value => value.toString(16).toUpperCase().padStart(hexMaximum === 65535 ? 4 : 2, "0")).join(""));
@@ -1784,14 +1784,14 @@ function* formatMagickPropertyStringSteps<Step=never>(
               if (img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HWB" || img.magickColorspace === "XYZ" || img.magickColorspace === "YCbCr" || img.magickColorspace === "OHTA" || img.magickColorspace === "YUV" || img.magickColorspace === "Oklab" || img.magickColorspace === "Luv" || img.magickColorspace === "Oklch" || img.magickColorspace === "CIELab") { parts.push(formatHuePixel(channels, img.magickColorspace, img.hasAlpha)); continue; }
               if (img.space === "cmyk") { parts.push(formatCmykPixel(channels, img.hasAlpha)); continue; }
               if (img.space === "b-w" || img.space === "grey16") {
-                parts.push(channels[3] !== undefined && channels[3] !== 255
-                  ? `graya(${channels[0]},${formatMetricNum(channels[3] / 255)})`
+                parts.push(channels[3] !== undefined && channels[3] !== 1
+                  ? `graya(${channels[0]},${formatMetricNum(channels[3])})`
                   : `gray(${channels[0]})`);
                 continue;
               }
               // Preserve the existing RGB pixel spelling for opaque samples.
-              parts.push(channels[3] !== undefined && channels[3] !== 255
-                ? `srgba(${channels.slice(0, 3).join(",")},${formatMetricNum(channels[3] / 255)})`
+              parts.push(channels[3] !== undefined && channels[3] !== 1
+                ? `srgba(${channels.slice(0, 3).join(",")},${formatMetricNum(channels[3])})`
                 : `srgb(${channels.slice(0, 3).join(",")})`);
             }
           }
@@ -1859,13 +1859,13 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
   }
   if(key.startsWith("fx:"))return formatSignificantMetric(value, context.precision);
   if(key.startsWith("hex:")){channels.push(Math.max(0,Math.min(hexMaximum,Math.round(value*hexMaximum))));continue;}
-  channels.push((image.space === "cmyk" || (image as StoredRgbaImage).magickColorspace === "HCL" || (image as StoredRgbaImage).magickColorspace === "HCLp" || (image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HSV" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "YCbCr" || (image as StoredRgbaImage).magickColorspace === "OHTA" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "Oklab" || (image as StoredRgbaImage).magickColorspace === "Luv" || (image as StoredRgbaImage).magickColorspace === "Oklch" || (image as StoredRgbaImage).magickColorspace === "CIELab") && key.startsWith("pixel:") ? value : clampByteVal(value*255));
+  channels.push((ch === 3 || image.space === "cmyk" || (image as StoredRgbaImage).magickColorspace === "HCL" || (image as StoredRgbaImage).magickColorspace === "HCLp" || (image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HSV" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "YCbCr" || (image as StoredRgbaImage).magickColorspace === "OHTA" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "Oklab" || (image as StoredRgbaImage).magickColorspace === "Luv" || (image as StoredRgbaImage).magickColorspace === "Oklch" || (image as StoredRgbaImage).magickColorspace === "CIELab") && key.startsWith("pixel:") ? value : clampByteVal(value*255));
  }
  if(key.startsWith("hex:"))return channels.map(value=>value.toString(16).toUpperCase().padStart(hexMaximum === 65535 ? 4 : 2,"0")).join("");
  if(((image as StoredRgbaImage).magickColorspace === "HCL" || (image as StoredRgbaImage).magickColorspace === "HCLp" || (image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HSV" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "YCbCr" || (image as StoredRgbaImage).magickColorspace === "OHTA" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "Oklab" || (image as StoredRgbaImage).magickColorspace === "Luv" || (image as StoredRgbaImage).magickColorspace === "Oklch" || (image as StoredRgbaImage).magickColorspace === "CIELab"))return formatHuePixel(channels, (image as StoredRgbaImage).magickColorspace as "HCL" | "HCLp" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "OHTA" | "YUV" | "Luv" | "Oklch" | "Oklab", image.hasAlpha);
  if(image.space === "cmyk")return formatCmykPixel(channels,image.hasAlpha);
- if(image.space === "b-w" || image.space === "grey16")return channels[3]!==undefined&&channels[3]!==255?`graya(${channels[0]},${formatMetricNum(channels[3]/255)})`:`gray(${channels[0]})`;
- return channels[3]!==undefined&&channels[3]!==255?`srgba(${channels.slice(0,3).join(",")},${formatMetricNum(channels[3]/255)})`:`srgb(${channels.slice(0,3).join(",")})`;
+ if(image.space === "b-w" || image.space === "grey16")return channels[3]!==undefined&&channels[3]!==1?`graya(${channels[0]},${formatMetricNum(channels[3])})`:`gray(${channels[0]})`;
+ return channels[3]!==undefined&&channels[3]!==1?`srgba(${channels.slice(0,3).join(",")},${formatMetricNum(channels[3])})`:`srgb(${channels.slice(0,3).join(",")})`;
 }
 
 async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string; errors?: string; boundsWarning?: boolean }; optionProperties?: Record<string, string> | undefined },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal,stack?:StoredImageStack):Promise<string>{
@@ -7881,38 +7881,44 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         else if (mode === "copy" || mode === "shape") {
             highDepth = true;
+            evaluate = true;
             apply = function* (im) {
                 let pixelWork = 0;
                 const out = new Uint8Array(im.data);
                 const data16 = im.data16 ? new Uint16Array(im.data16) : Uint16Array.from(im.data, value => value * 257);
+                const evaluateSamples = im.evaluateSamples?.slice() ?? Float64Array.from(data16, value => value / 257);
                 const background = [state.background.r, state.background.g, state.background.b];
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (++pixelWork % 16384 === 0)
                         yield;
-                    const intensity = magickIntensity(data16[idx]!, data16[idx + 1]!, data16[idx + 2]!, state.intensity, 65535, im.magickColorspace === "RGB");
+                    const intensity = magickIntensity(evaluateSamples[idx]! * 257, evaluateSamples[idx + 1]! * 257, evaluateSamples[idx + 2]! * 257, state.intensity, 65535, im.magickColorspace === "RGB");
                     if (mode === "shape") {
                         for (let channel = 0; channel < 3; channel++) {
+                            evaluateSamples[idx + channel] = background[channel]!;
                             data16[idx + channel] = Math.round(background[channel]! * 257);
                             out[idx + channel] = clampByteVal(background[channel]!);
                         }
                     }
+                    evaluateSamples[idx + 3] = Math.fround(intensity) / 257;
                     data16[idx + 3] = Math.round(intensity);
                     out[idx + 3] = clampByteVal(intensity / 257);
                 }
-                return { ...im, data: out, data16, hasAlpha: true, inactiveAlpha: false, alphaBlend: mode === "shape" };
+                return { ...im, data: out, data16, evaluateSamples, hasAlpha: true, inactiveAlpha: false, alphaBlend: mode === "shape" };
             };
         }
         else if (mode === "activate") {
+            evaluate = true;
             apply = function* (im) {
                 // A canvas without an alpha channel gains zero samples when activated.
                 if (!im.hasAlpha && im.inactiveAlpha === false && im.alphaBlend !== true) {
-                    const data = new Uint8Array(im.data), data16 = im.data16?.slice();
+                    const data = new Uint8Array(im.data), data16 = im.data16?.slice(), evaluateSamples = im.evaluateSamples?.slice();
                     for (let index = 3; index < data.length; index += 4) {
                         if (index % 65536 === 3) yield;
                         data[index] = 0;
+                        if (evaluateSamples) evaluateSamples[index] = 0;
                         if (data16) data16[index] = 0;
                     }
-                    im = { ...im, data, ...(data16 ? { data16 } : {}) };
+                    im = { ...im, data, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
                 }
                 yield;
                 return { ...im, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, channels: im.channels <= 2 ? 2 : 4 };

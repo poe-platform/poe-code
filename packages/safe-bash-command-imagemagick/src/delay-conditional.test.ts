@@ -10,6 +10,10 @@ const second = Buffer.from("R0lGODlhBAACAPAAAAAA/wAAACH5BAwkAAAAIf4GU2Vjb25kACwA
 
 for (const mode of ["map", "sync", "retained", "command"] as const) {
   it.each([
+    { setting: "7x20<", expected: [800, 1800] },
+    { setting: "7x20>", expected: [350, 350] },
+    { setting: "20x20>", expected: [800, 1000] },
+    { setting: "20x20<", expected: [1000, 1800] },
     { setting: "20>", expected: [160, 200] },
     { setting: "20<", expected: [200, 360] },
     { setting: "20", expected: [200, 200] },
@@ -33,6 +37,9 @@ for (const mode of ["map", "sync", "retained", "command"] as const) {
     // Check separate inputs, then read the same frames from one animated input.
     expect(await run(["/first.gif", "/second.gif", "/pair.gif"])).toMatchObject({ exitCode: 0 });
     for (const inputs of [["/first.gif", "/second.gif"], ["/pair.gif"]]) {
+      const sentinel = new TextEncoder().encode("KEEP");
+      files.set("/out.gif", sentinel);
+      await fs.writeFile("/out.gif", sentinel);
       expect(await run(["-delay", setting, ...inputs, "/out.gif"])).toMatchObject({ exitCode: 0 });
       const output = await read("/out.gif");
       expect(decodeImage(output, { page: 0, coalesce: false }).delay).toEqual(expected);

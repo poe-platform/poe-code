@@ -573,7 +573,7 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
   };
 }
 
-function parseDelay(value: string): number {
+function parseDelay(value: string, current?: number): number {
   const geometry = [...value].filter(character => !"%!^<>@".includes(character)).join("")
     .replaceAll("X", "x").replaceAll("/", "x").replaceAll(",", "x");
   const fields: string[] = [];
@@ -588,17 +588,21 @@ function parseDelay(value: string): number {
   const parts = fields[0]!.split("x");
   if (!geometry.trim() || fields.length > 3 || parts.length > 2 ||
       [...parts, ...fields.slice(1)].some(part => !Number.isFinite(Number(part)))) return NaN;
-  const [delay, ticks = "100"] = parts;
-  return Math.floor(Math.round(Number(delay)) * 1000 / (Number(ticks || "100") || 1));
+  const [ticks, rate = "100"] = parts;
+  let delay = Math.round(Number(ticks));
+  if (current !== undefined) {
+    // Incoming delays are stored in milliseconds at the default 100 ticks/second.
+    if (value.includes(">")) delay = Math.min(current / 10, delay);
+    else if (value.includes("<")) delay = Math.max(current / 10, delay);
+  }
+  return Math.floor(delay * 1000 / (Number(rate || "100") || 1));
 }
 
 function parseDelayOption(value: string, current: number): number {
-  const milliseconds = parseDelay(value);
+  const milliseconds = parseDelay(value, current);
   if (!Number.isFinite(milliseconds)) {
     throw new Error(`invalid argument for option '-delay' '${value}'`);
   }
-  if (value.includes(">")) return Math.min(current, milliseconds);
-  if (value.includes("<")) return Math.max(current, milliseconds);
   return milliseconds;
 }
 

@@ -730,7 +730,7 @@ with `replaygain_preamp` (-60–60 dB) and `replaygain_noclip` (enabled by defau
 Tagged gain replaces the volume multiplier; untagged audio keeps the requested volume.
 With `eval=frame`, `startt` and `startpts` retain the first audio frame's timestamp in seconds and sample time-base units; both are NaN with `eval=once`.
 With `eval=frame`, a NaN gain becomes silence; `isnan()` can supply a fallback gain.
-`atempo` aligns and blends audio windows, including at tempo 1. The aligned terminal fragment determines clip length, which can differ from input length divided by tempo.
+`atempo` aligns and blends audio windows, including at tempo 1. The aligned terminal fragment determines clip length, which can differ from input length divided by tempo. Output timestamps start at the first input timestamp and advance by emitted samples, closing gaps introduced by earlier filters.
 `atempo` resizes output frames for downstream filters: a 512-sample input frame becomes 256 samples at `atempo=2` or 1024 at `atempo=0.5`.
 `-filter:a:0 volume=0` (or `-af:0 volume=0`)
 mutes the first output audio stream; numeric audio selectors follow output mapping

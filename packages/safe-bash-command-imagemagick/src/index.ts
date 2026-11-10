@@ -10327,6 +10327,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 let output: RgbaImage = yield* applyExifOrientationSteps(im);
+                if (im.readMask) output.readMask = yield* applyExifOrientationSteps({ ...im.readMask, orientation: im.orientation } as RgbaImage);
                 if (im.writeMask) output = { ...output, writeMask: yield* applyExifOrientationSteps({ ...im.writeMask, orientation: im.orientation ?? 1 }) };
                 if (im.region) output = { ...output, region: orientRegion(im.region, im) };
                 const virtualCanvas = magickAutoOrientCanvas(im);
@@ -12789,7 +12790,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 let output: StoredRgbaImage = await transformStoredImage(image, backend.storage, { kind }, signal);
-                if (kind !== "autoOrient" && image.readMask) output.readMask = await transformStoredImage(image.readMask as StoredRgbaImage, backend.storage, { kind }, signal);
+                if (image.readMask) output.readMask = await transformStoredImage({ ...image.readMask, orientation: image.orientation } as StoredRgbaImage, backend.storage, { kind }, signal);
                 if (image.storedWriteMask) output.storedWriteMask = await transformStoredImage({ ...image.storedWriteMask, orientation: image.orientation ?? 1 }, backend.storage, { kind }, signal);
                 if (image.region) output.region = kind === "autoOrient" ? orientRegion(image.region, image)
                     : kind === "flip" ? { ...image.region, y: image.height - image.region.y - image.region.height }

@@ -10377,7 +10377,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const delay = Number.parseFloat(value);
                           const offset = unit === "S" ? delay
                             : Math.trunc(Math.fround(Math.fround(Math.fround(delay) * origRate) / (unit === "s" ? 1 : 1000)));
-                          if (!Number.isFinite(delay) || delay < 0 || !Number.isSafeInteger(offset)) {
+                          if (!Number.isFinite(delay) || offset < 0 || !Number.isSafeInteger(offset)) {
                             throw new Error(`adelay: invalid delay ${value}`);
                           }
                           return offset;

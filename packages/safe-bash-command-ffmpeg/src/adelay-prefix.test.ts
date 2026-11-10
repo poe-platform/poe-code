@@ -17,7 +17,9 @@ for (const [delays, offsets] of [
   ["+0.5ms|1S", [4, 1]], ["2.0S|1S", [16, 1]],
   ["2.0s|1S", [16, 1]], ["2e0S|1S", [16, 1]],
   ["2 S|1S", [16, 1]], ["2foo|1S", [16, 1]],
-  ["+2Sabc:all=1", [2, 2]]
+  ["+2Sabc:all=1", [2, 2]],
+  ["-0.1249|1S", [0, 1]], ["1S|-0.02", [1, 0]],
+  ["-0.0", [0, 0]]
 ] as const) {
   for (const graph of [false, true]) {
     it(`adelay=${delays} matches native channel placement (${graph ? "graph" : "simple"})`, async () => {
@@ -35,12 +37,14 @@ for (const [delays, offsets] of [
   }
 }
 
-for (const delays of ["bad|1S", "-1S|1S", "-1s|1S", "NaNS|1S", "Infinity|1S", "1e400ms|1S"]) {
-  it(`adelay=${delays} rejects invalid input without replacing output`, async () => {
-    const { volume, result } = await run(delays);
-    assert.notEqual(result.exitCode, 0);
-    assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
-  });
+for (const delays of ["bad|1S", "-1S|1S", "-1s|1S", "-0.125|1S", "1S|-0.125", "NaNS|1S", "Infinity|1S", "1e400ms|1S"]) {
+  for (const graph of [false, true]) {
+    it(`adelay=${delays} rejects invalid input without replacing output (${graph ? "graph" : "simple"})`, async () => {
+      const { volume, result } = await run(delays, graph);
+      assert.notEqual(result.exitCode, 0);
+      assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
+    });
+  }
 }
 
 async function run(delays: string, graph = false) {

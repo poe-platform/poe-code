@@ -8301,13 +8301,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             let pngPalette = im.pngPalette;
             if (pngPalette) {
                 const bytes = new Uint8Array(pngPalette.bytes);
-                const transparency = pngPalette.transparency || mask[3] ? new Uint8Array(bytes.length / 3) : undefined;
                 for (let i = 0; i < bytes.length; i += 3) {
                     const color = negateColor(bytes[i]!, bytes[i + 1]!, bytes[i + 2]!, pngPalette.transparency?.[i / 3] ?? 255);
                     bytes[i] = color >>> 16; bytes[i + 1] = color >>> 8; bytes[i + 2] = color;
-                    if (transparency) transparency[i / 3] = color >>> 24;
                 }
-                pngPalette = { ...pngPalette, bytes, ...(transparency ? { transparency } : {}) };
+                // Native negation changes palette RGB while cycling retains the original entry alpha.
+                pngPalette = { ...pngPalette, bytes };
             }
             return { ...im, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(hueSamples ? { hueSamples } : {}), ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) };
         };

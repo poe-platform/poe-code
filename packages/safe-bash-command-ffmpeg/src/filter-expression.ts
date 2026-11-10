@@ -30,8 +30,8 @@ export function parseFilterExpression(expression: string, filter: string, variab
       }
       const name = source.slice(start, offset);
       if (source[offset] === "(") {
-        // FFmpeg's atrim integer options reject min/max function calls.
-        if (filter === "atrim" && (name === "min" || name === "max")) {
+        // Numeric AVOption constants shadow min/max functions, unlike timeline expressions.
+        if ((filter === "atrim" || filter === "tremolo") && (name === "min" || name === "max")) {
           throw new Error(`${filter}: invalid expression`);
         }
         offset++;

@@ -9,6 +9,11 @@ const counterclockwise = "6d8aa7c43d5a7794f9163350c9e6032085a2bfdc55728fac112e4b
 const flippedClockwise = "3d5a77946d8aa7c4c9e60320f916335055728fac85a2bfdce1fe1b38112e4b68ddfa17340d2a47646986a3c099b6d3f0f5122f4c25425f7c819ebbd8b1ceeb08";
 
 for (const [options, exitCode, expected] of [
+  ["unknown=1", 8, "4b454550"],
+  ["enable=0", 176, "4b454550"],
+  ["enable=1", 176, "4b454550"],
+  ["dir=-1", 222, "4b454550"],
+  ["dir=8", 222, "4b454550"],
   ["dir=0.5", 0, "112e4b68e1fe1b3885a2bfdc55728facf9163350c9e603206d8aa7c43d5a7794b1ceeb08819ebbd825425f7cf5122f4c99b6d3f06986a3c00d2a4764ddfa1734"],
   ["dir=1.5", 0, counterclockwise],
   ["dir=2.5", 0, counterclockwise],

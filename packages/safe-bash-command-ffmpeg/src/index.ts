@@ -10667,9 +10667,29 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }, context.signal);
                           continue;
                         }
-                        const loopStart = start === -1 ? Math.round(time! * origRate) : start!;
-                        if (size! > 0 && loopStart < (stretched[0]?.length ?? 0)) {
-                          const inputLength = stretched[0]?.length ?? 0;
+                        const inputLength = stretched[0]?.length ?? 0;
+                        let loopStart = start!;
+                        if (start === -1) {
+                          loopStart = Infinity;
+                          if (size! > 0 && loop! > 0 && Number.isFinite(time)) {
+                            // Native aloop checks time at the start of each consumed chunk,
+                            // combining upstream frames into at most min(size, 1024) samples.
+                            const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
+                            const timePts = Math.round(time! * origRate / samplesPerTick);
+                            for (let offset = 0, frameIndex = 0; offset < inputLength; offset += Math.min(size!, 1024)) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              while (audioTimestamps && frameIndex + 1 < audioTimestamps.length && audioTimestamps[frameIndex]!.end <= offset) frameIndex++;
+                              const frame = audioTimestamps?.[frameIndex];
+                              const pts = frame ? frame.pts + Math.round((offset - frame.start) / samplesPerTick) * samplesPerTick
+                                : audioStartSample + offset;
+                              if (Math.sign(pts) * Math.round(Math.abs(pts) / samplesPerTick) >= timePts) {
+                                loopStart = offset;
+                                break;
+                              }
+                            }
+                          }
+                        }
+                        if (size! > 0 && loopStart < inputLength) {
                           let regionLength = Math.min(size!, inputLength - loopStart);
                           let regionEnd = loopStart + regionLength;
                           const regions = [{ start: loopStart, end: regionEnd }];

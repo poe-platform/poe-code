@@ -41,7 +41,7 @@ export async function removeSilence(
       if (key === "thread_type"
         ? !Number.isInteger(number) || number < -2147483648 || number > 4294967295
         : !Number.isFinite(number) || number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
-        throw new Error(`silenceremove: invalid ${key}`);
+        throw new RangeError(`silenceremove: invalid ${key}`);
       }
       // Scheduling and hardware-frame options do not change the rendered PCM.
     } else if (key === "enable") {
@@ -52,7 +52,7 @@ export async function removeSilence(
         : key === "timestamp" ? ["write", "copy"] : ["any", "all"];
       const number = parseFilterExpression(value, "silenceremove", Object.fromEntries(names.map((name, i) => [name, i])));
       if (!Number.isFinite(number) || number < 0 || number > names.length - 1) {
-        throw new Error(`silenceremove: invalid ${key}`);
+        throw new RangeError(`silenceremove: invalid ${key}`);
       }
       const lower = Math.floor(number);
       options[key] = names[number - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(number)]!;
@@ -66,8 +66,9 @@ export async function removeSilence(
         : parseHlsDuration(value);
       const min = key === "stop_periods" ? -9000 : 0;
       const max = periods ? 9000 : key === "window" ? 100 : threshold ? Number.MAX_VALUE : 2147.483647;
-      if (!value || !Number.isFinite(number) || number < min || number > max) {
-        throw new Error(`silenceremove: invalid ${key}`);
+      if (!value || Number.isNaN(number)) throw new Error(`silenceremove: invalid ${key}`);
+      if (!Number.isFinite(number) || number < min || number > max) {
+        throw new RangeError(`silenceremove: invalid ${key}`);
       }
       // Native integer options validate bounds before rounding ties to even.
       const lower = Math.floor(number);

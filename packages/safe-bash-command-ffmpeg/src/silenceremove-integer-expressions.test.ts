@@ -46,12 +46,23 @@ for (const complex of [false, true]) {
       assert.equal(output.toString("hex"), hex);
     });
   }
-  for (const options of ["start_periods=9000+1", "stop_periods=-9000-1", "start_periods=0-0.1",
-    "start_mode=all+0.1", "stop_mode=any-0.1", "detection=dev+0.1", "timestamp=copy+0.1",
-    "start_periods=1/", "stop_periods=0/0", "start_mode=1/0", "detection=unknown", "timestamp=any"]) {
+  for (const [options, status] of [
+    ["start_periods=9000+1", 222],
+    ["stop_periods=-9000-1", 222],
+    ["start_periods=0-0.1", 222],
+    ["start_mode=all+0.1", 222],
+    ["stop_mode=any-0.1", 222],
+    ["detection=dev+0.1", 222],
+    ["timestamp=copy+0.1", 222],
+    ["start_periods=1/", 234],
+    ["stop_periods=0/0", 234],
+    ["start_mode=1/0", 222],
+    ["detection=unknown", 234],
+    ["timestamp=any", 234],
+  ] as const) {
     it(`rejects ${options} without replacing output (complex=${complex})`, async () => {
       const { result, output } = await run(options, complex);
-      assert.equal(result.exitCode, 1);
+      assert.equal(result.exitCode, status);
       assert.equal(output.toString(), "KEEP");
     });
   }

@@ -45,7 +45,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
             || (args.length === 1 ? selected : !selected));
           args.push(parse(0, depth + 1, evaluateArgument));
         }
-        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && !((filter === "fps: frame rate" || filter === "tremolo" || filter === "crop") && Math.abs(arg) === Infinity) && filter !== "asetpts" && filter !== "volume" && filter !== "atrim" && filter !== "aeval" && filter !== "tblend" && filter !== "aselect" && filter !== "tmix enable" && filter !== "framestep enable" && filter !== "metadata enable" && filter !== "negate enable" && filter !== "hflip enable" && filter !== "vflip enable" && filter !== "adelay enable" && filter !== "compensationdelay enable" && filter !== "afade enable" && filter !== "silenceremove enable" && filter !== "vibrato enable" && filter !== "tremolo enable" && !((filter === "setpts" || filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox") && Number.isNaN(arg)))) {
+        if (source[offset++] !== ")" || args.some(arg => !Number.isFinite(arg) && !((filter === "fps: frame rate" || filter === "tremolo" || filter === "crop" || filter === "silenceremove") && Math.abs(arg) === Infinity) && filter !== "asetpts" && filter !== "volume" && filter !== "atrim" && filter !== "aeval" && filter !== "tblend" && filter !== "aselect" && filter !== "tmix enable" && filter !== "framestep enable" && filter !== "metadata enable" && filter !== "negate enable" && filter !== "hflip enable" && filter !== "vflip enable" && filter !== "adelay enable" && filter !== "compensationdelay enable" && filter !== "afade enable" && filter !== "silenceremove enable" && filter !== "vibrato enable" && filter !== "tremolo enable" && !((filter === "setpts" || filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox") && Number.isNaN(arg)))) {
           throw new Error(`${filter}: invalid expression`);
         }
         if (name === "val" && args.length === 1 && sampleValue) value = evaluate ? sampleValue(args[0]!) : 0;
@@ -162,7 +162,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
         else throw new Error(`${filter}: invalid or unsupported expression`);
       } else if (filter === "crop" && name.toLowerCase() === "nan") {
         value = NaN;
-      } else if (filter === "tremolo" && (name.toLowerCase() === "inf" || name.toLowerCase() === "infinity")) {
+      } else if ((filter === "tremolo" || filter === "silenceremove") && (name.toLowerCase() === "inf" || name.toLowerCase() === "infinity")) {
         value = Infinity;
       } else {
         if (!Object.hasOwn(variables, name)) throw new Error(`${filter}: invalid or unsupported expression`);
@@ -234,7 +234,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
     return evaluate ? value : 0;
   }
   const angle = parse();
-  if (offset !== source.length || (!Number.isFinite(angle) && !((filter === "fps: frame rate" || filter === "tremolo" || filter === "crop") && Math.abs(angle) === Infinity) && filter !== "asetpts" && filter !== "volume" && filter !== "atrim" && filter !== "aeval" && filter !== "tblend" && filter !== "aselect" && filter !== "tmix enable" && filter !== "framestep enable" && filter !== "metadata enable" && filter !== "negate enable" && filter !== "hflip enable" && filter !== "vflip enable" && filter !== "adelay enable" && filter !== "compensationdelay enable" && filter !== "afade enable" && filter !== "silenceremove enable" && filter !== "vibrato enable" && filter !== "tremolo enable" && !((filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
+  if (offset !== source.length || (!Number.isFinite(angle) && !((filter === "fps: frame rate" || filter === "tremolo" || filter === "crop" || filter === "silenceremove") && Math.abs(angle) === Infinity) && filter !== "asetpts" && filter !== "volume" && filter !== "atrim" && filter !== "aeval" && filter !== "tblend" && filter !== "aselect" && filter !== "tmix enable" && filter !== "framestep enable" && filter !== "metadata enable" && filter !== "negate enable" && filter !== "hflip enable" && filter !== "vflip enable" && filter !== "adelay enable" && filter !== "compensationdelay enable" && filter !== "afade enable" && filter !== "silenceremove enable" && filter !== "vibrato enable" && filter !== "tremolo enable" && !((filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);
   return angle;
 }
 

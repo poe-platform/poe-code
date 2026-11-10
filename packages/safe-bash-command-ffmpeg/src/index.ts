@@ -16598,6 +16598,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === audioConversionDisabled) return { exitCode: 234 };
             if (msg === "metadata: unsupported mode") return { exitCode: 234 };
             if (msg === "metadata: unsupported option") return { exitCode: 8 };
+            if (msg.startsWith("silenceremove: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("silenceremove:") || msg.startsWith("silenceremove enable:")) {
+              return { exitCode: err instanceof RangeError ? 222 : 234 };
+            }
             if (msg.startsWith("tinterlace: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("tinterlace:")) return { exitCode: 222 };
             if (msg === "tinterlace: invalid expression" || msg === "tinterlace: invalid or unsupported expression") return { exitCode: 234 };

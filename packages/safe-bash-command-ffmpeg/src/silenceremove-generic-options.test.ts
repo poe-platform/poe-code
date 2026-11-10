@@ -11,12 +11,12 @@ for (const [options, status] of [
   [":threads=1+1:extra_hw_frames=2-1", 0],
   [":thread_type=+slice", 0], [":thread_type=-slice", 0],
   [":thread_type=4294967295", 0],
-  [":threads=-1", 1], [":threads=2147483648", 1],
-  [":extra_hw_frames=-2", 1], [":extra_hw_frames=2147483648", 1],
-  [":threads=", 1], [":threads=0/0", 1],
-  [":thread_type=bogus", 1], [":thread_type=", 1],
-  [":thread_type=0.5", 1], [":thread_type=4294967296", 1],
-  [":unknown=1", 1]
+  [":threads=-1", 222], [":threads=2147483648", 222],
+  [":extra_hw_frames=-2", 222], [":extra_hw_frames=2147483648", 222],
+  [":threads=", 234], [":threads=0/0", 234],
+  [":thread_type=bogus", 234], [":thread_type=", 234],
+  [":thread_type=0.5", 222], [":thread_type=4294967296", 222],
+  [":unknown=1", 8]
 ] as const) {
   for (const graph of [false, true]) {
     for (const outputExists of [false, true]) {

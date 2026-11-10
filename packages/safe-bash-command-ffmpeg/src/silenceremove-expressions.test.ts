@@ -38,10 +38,11 @@ for (const complex of [false, true]) {
         assert.deepEqual(Array.from({ length: output.length / 2 }, (_, i) => output.readInt16LE(i * 2)), expected);
       });
     }
-    for (const threshold of ["1/", "-1/10", "1/0", "0/0", "unknown", "0b1"]) {
+    for (const [threshold, status] of [["1/", 234], ["-1/10", 222], ["1/0", 222],
+      ["0/0", 234], ["unknown", 234], ["0b1", 234]] as const) {
       it(`silenceremove rejects ${phase}_threshold=${threshold} preserving output (complex=${complex})`, async () => {
         const { result, stderr, output } = await run(`${phase}_periods=1:${phase}_threshold=${threshold}`, complex);
-        assert.equal(result.exitCode, 1, stderr);
+        assert.equal(result.exitCode, status, stderr);
         assert.ok(stderr.includes("silenceremove:"), stderr);
         assert.equal(output.toString(), "KEEP");
       });

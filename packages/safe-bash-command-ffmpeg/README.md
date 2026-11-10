@@ -942,6 +942,8 @@ WebVTT input `-kind subtitles|captions|descriptions|metadata` applies to the nex
 Numeric detector aliases are `0`, `1`, `2`, `3`, `4`, and `5`, respectively.
 Threshold expressions accept `min` and `default` (both `0`) and `max` (the largest finite double).
 Negative stop periods remove repeated silent sections.
+Invalid options return native exit codes: `8` for unknown keys, `234` for malformed
+values, and `222` for out-of-range values, without creating or replacing output.
 A single trailing option separator is accepted, for example `silenceremove=start_periods=1:window=0:`.
 Shortened frames stay separate for downstream filters, frame limits, and checksums;
 `timestamp=write` (or `0`, the default) writes a continuous output timeline.

@@ -234,7 +234,7 @@ function contributions(index: number, source: number, target: number, blur: numb
     return { first, weights };
 }
 
-type ResizeImage = { width: number; height: number; hasAlpha: boolean; inactiveAlpha?: boolean | undefined; space?: string };
+type ResizeImage = { width: number; height: number; hasAlpha: boolean; inactiveAlpha?: boolean | undefined; space?: string; magickColorspace?: string };
 type ResizeSamples = Generator<ConvolveRequest | { kind: "samples"; position: number; data: Float64Array } | undefined, void, Uint8Array | undefined>;
 
 /** Keep HDRI samples unclamped until all resizing and morph blending is finished. */
@@ -243,6 +243,9 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
     if (settings.window) kernel = "sinc";
     // Working CMYK rows use C, M, Y, alpha, K; black is never an alpha weight.
     const range = highDepth ? 65535 : 255, stride = inks ? 5 : 4;
+    const hue = !!image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "Gray";
+    // Four Float64 samples per pixel must fit in a 16 KiB storage read.
+    const readPixels = hue || preserveSamples || inks ? 512 : 1024;
     // ImageMagick sharpens the sinc window by narrowing its support.
     const blur = Math.max(1e-12, (settings.blur ?? 1) * (kernel === "lanczos2sharp" ? 0.9549963639785485
         : kernel === "lanczossharp" ? 0.9812505644269356 : 1));
@@ -261,15 +264,15 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
                     row = new Float64Array(count * stride);
                     const first = horizontal[0]!.first, last = horizontal[count - 1]!;
                     const end = last.first + last.weights.length;
-                    for (let start = first; start < end; start += 1024) {
+                    for (let start = first; start < end; start += readPixels) {
                         if (start > first) yield;
-                        const length = Math.min(1024, end - start);
+                        const length = Math.min(readPixels, end - start);
                         const position = (sy * image.width + start) * 4;
-                        const samples = preserveSamples ? yield { kind: "read", evaluate: true, position, length: length * 4 } : undefined;
+                        const samples = hue || preserveSamples ? yield { kind: "read", hue, evaluate: !hue, position, length: length * 4 } : undefined;
                         let pixels: Uint8Array | Uint16Array | Float64Array;
                         if (samples?.length) {
                             pixels = new Float64Array(samples.slice().buffer);
-                            if (highDepth) pixels = pixels.map(value => value * 257);
+                            if (hue || highDepth) pixels = pixels.map(value => value * (hue ? range : 257));
                         } else {
                             const bytes = yield { kind: "read", highDepth, position, length: length * 4 };
                             if (!bytes || bytes.length !== length * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated resize pixels");
@@ -398,6 +401,8 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
         // and HDRI comparison, including negative filter lobes.
         const values = request.data.map(sample => Math.fround(sample * (highDepth ? 1 : 257)) / 257);
         yield { kind: "write", evaluate: true, position: request.position, data: new Uint8Array(values.buffer) };
+        if (image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "Gray")
+            yield { kind: "write", hue: true, position: request.position, data: new Uint8Array(values.map(value => value / 255).buffer) };
         const rounded = request.data.map(sample => {
             const value = Math.max(0, Math.min(range, highDepth ? Math.fround(sample) : sample));
             // Match the Q16-HDRI float quantum conversion at half-byte ties.
@@ -508,7 +513,7 @@ export function* pointResizePixelSteps(image: { width: number; height: number; h
                 const position = (sy * image.width + sx) * pixelBytes;
                 if (position < start || position >= start + pixels.length) {
                     start = position;
-                    const length = Math.min(1024, image.width - sx) * pixelBytes;
+                    const length = Math.min(1024, 16384 / pixelBytes, image.width - sx) * pixelBytes;
                     const bytes = yield { kind: "read", position, length };
                     if (!bytes || bytes.length !== length) throw new Error("Truncated resize pixels");
                     pixels = bytes;

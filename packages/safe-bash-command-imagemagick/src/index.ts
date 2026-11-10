@@ -5098,7 +5098,8 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     let resized: RgbaImage = !preserveSamples && !settings && !img.data16 && !scale && (kernel === "linear")
         ? yield* resizeImageSteps(img, { ...options, kernel })
         : yield* applyMagickRasterSteps(img, point ? pointResizePixelSteps(img, width, height, sample, 4, sampleOffset, writeMask) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings, preserveSamples, writeMask), undefined, { ...img, width, height });
-    for (const samples of point ? [img.data16, img.evaluateSamples] : []) {
+    for (const key of point ? ["data16", "evaluateSamples", ...(img.space !== "cmyk" ? ["hueSamples"] as const : [])] as const : []) {
+        const samples = img[key];
         if (!samples) continue;
         const source = new Uint8Array(samples.buffer, samples.byteOffset, samples.byteLength);
         const output = samples instanceof Uint16Array ? new Uint16Array(width * height * 4) : new Float64Array(width * height * 4);
@@ -5111,7 +5112,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
             else if (request.kind === "read") next = steps.next(source.subarray(request.position, request.position + request.length));
             else { bytes.set(request.data, request.position); next = steps.next(); }
         }
-        resized = { ...resized, ...(output instanceof Uint16Array ? { data16: output } : { evaluateSamples: output }) };
+        resized = { ...resized, [key]: output };
     }
 
     if (point && img.metaChannels?.length) {
@@ -5158,7 +5159,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
     let resized: StoredRgbaImage = !preserveSamples && !settings && !image.storedData16 && !scale && (options.kernel === "linear")
         ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options, kernel: options.kernel }, signal)
         : await transformStoredMagickRaster(image, backend, point ? pointResizePixelSteps(image, width, height, sample, 4, sampleOffset, writeMask) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings, preserveSamples, writeMask), signal, { ...image, width, height });
-    for (const [source, pixelBytes] of point ? [[image.storedData16?.position, 8], [image.storedEvaluateSamples, 32]] as const : []) {
+    for (const [source, pixelBytes, key] of point ? [[image.storedData16?.position, 8, "storedData16"], [image.storedEvaluateSamples, 32, "storedEvaluateSamples"], [image.space !== "cmyk" ? image.storedHueSamples : undefined, 32, "storedHueSamples"]] as const : []) {
         if (source === undefined) continue;
         const position = backend.storage.allocate(width * height * pixelBytes);
         const steps = pointResizePixelSteps(image, width, height, sample, pixelBytes, sampleOffset, writeMask);
@@ -5170,7 +5171,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
             else if (request.kind === "read") next = steps.next(await backend.storage.read(source + request.position, request.length));
             else { await backend.storage.write(position + request.position, request.data); next = steps.next(); }
         }
-        resized = { ...resized, ...(pixelBytes === 8 ? { storedData16: { position, length: width * height * 4 } } : { storedEvaluateSamples: position }) };
+        resized = { ...resized, [key]: pixelBytes === 8 ? { position, length: width * height * 4 } : position };
     }
 
     if (point && image.storedMetaChannels?.length) {

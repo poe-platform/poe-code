@@ -12533,8 +12533,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const phase = key.endsWith("_phase");
                           const value = phase
                             ? Number(parseFilterBoolean(raw, `haas: ${key} must be in the range [0, 1]`))
-                            : parseFilterExpression(raw, "haas", key === "middle_source"
-                              ? { left: 0, right: 1, mid: 2, side: 3 } : {});
+                            : parseFilterExpression(raw, "haas", {
+                              PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+                              ...(key === "middle_source" ? { left: 0, right: 1, mid: 2, side: 3 } : {})
+                            });
                           const delay = key.endsWith("_delay");
                           const balance = key.endsWith("_balance");
                           const min = balance ? -1 : delay || phase || key === "middle_source" ? 0 : 0.015625;

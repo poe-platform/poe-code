@@ -561,6 +561,7 @@ the sample rate and frame count. Mono input is first mixed to stereo with
 `left_delay`, `left_balance`, `left_gain`, `left_phase`,
 `right_delay`, `right_balance`, `right_gain`, `right_phase`.
 A final colon is accepted, so `haas=right_delay=10:` matches `haas=right_delay=10`.
+Mathematical constants `PI`, `E`, and `PHI` are also supported, such as `haas=level_in=PI/2`.
 For example, `haas=left_delay=1:right_delay=2` sets the tap delays in milliseconds
 (range 0–40, truncated to whole samples). `middle_source=left|right|mid|side`
 selects the source for both the direct signal and taps; `middle_phase=1` inverts

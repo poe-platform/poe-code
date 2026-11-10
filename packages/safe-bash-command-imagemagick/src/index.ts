@@ -8026,20 +8026,22 @@ function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<
     return { ...image, data, ...(data16 ? { data16 } : {}), space: "srgb", channels: image.hasAlpha ? 4 : 3 };
 }
 
-function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | null): Generator<void, RgbaImage> {
-    const missingChannel = channel === null || (channel === 3 ? !image.hasAlpha : channel !== 0 && (image.space === "b-w" || image.space === "grey16"));
+function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 4 | null): Generator<void, RgbaImage> {
+    const missingChannel = channel === null || (channel === 4 ? image.space !== "cmyk" : channel === 3 ? !image.hasAlpha : channel !== 0 && (image.space === "b-w" || image.space === "grey16"));
     const { magickColorspace: ignoredSpace, hueSamples, storedHueSamples: ignoredStoredHue, ...components } = image;
-    const separated = yield* extractChannelImageSteps(missingChannel ? yield* ensureAlphaImageSteps({ ...components, hasAlpha: false }, 0) : components, missingChannel ? 3 : channel);
-    const samples = hueSamples ?? image.evaluateSamples;
+    const separated = yield* extractChannelImageSteps(missingChannel ? yield* ensureAlphaImageSteps({ ...components, hasAlpha: false }, 0) : components, missingChannel ? 3 : channel === 4 ? 0 : channel);
+    // CMYK stores K at working offset 3; alpha remains in the RGBA backing.
+    const workingSamples = channel === 3 ? undefined : hueSamples;
+    const samples = workingSamples ?? image.evaluateSamples;
     if (!samples) return separated;
     const evaluateSamples = new Float64Array(samples.length);
     for (let offset = 0; offset < evaluateSamples.length; offset += 4) {
         if (offset % 65536 === 0) yield;
         // Native HDRI stores quantum-scaled components as floats before encoding the gray plane.
-        const value = missingChannel ? 0 : hueSamples ? Math.fround(samples[offset + channel]! * 65535) / 257 : samples[offset + channel]!;
+        const value = missingChannel ? 0 : workingSamples ? Math.fround(samples[offset + (channel === 4 ? 3 : channel)]! * 65535) / 257 : samples[offset + channel]!;
         evaluateSamples[offset] = evaluateSamples[offset + 1] = evaluateSamples[offset + 2] = value;
         evaluateSamples[offset + 3] = 255;
-        if (hueSamples) {
+        if (workingSamples) {
             const bounded = Math.max(0, Math.min(255, value));
             separated.data[offset] = separated.data[offset + 1] = separated.data[offset + 2] = Math.round(bounded);
             if (separated.data16) separated.data16[offset] = separated.data16[offset + 1] = separated.data16[offset + 2] = Math.round(bounded * 257);
@@ -9979,9 +9981,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             for (const im of stack) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
-                const mask = [state.channels.r, state.channels.g, state.channels.b, state.channels.a];
-                const channels: (0 | 1 | 2 | 3 | null)[] = ([0, 1, 2, 3] as const).filter(channel =>
-                    (channel === 3 ? im.hasAlpha : channel === 0 || (im.space !== "b-w" && im.space !== "grey16")) && (!state.channelExplicit || mask[channel]));
+                const mask = [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k];
+                const channels: (0 | 1 | 2 | 3 | 4 | null)[] = ([0, 1, 2, 4, 3] as const).filter(channel =>
+                    (channel === 4 ? im.space === "cmyk" : channel === 3 ? im.hasAlpha : channel === 0 || (im.space !== "b-w" && im.space !== "grey16")) && (!state.channelExplicit || mask[channel]));
                 // ImageMagick emits a black plane when none of the selected channels exist.
                 if (channels.length === 0) channels.push(null);
                 for (const channel of channels)
@@ -10905,11 +10907,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     await stack.set(0, result);
                     stack.length = 1;
                 } else if (token === "-separate") {
-                    const result = new StoredImageStack(backend.storage, signal, stack), mask = [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a];
+                    const result = new StoredImageStack(backend.storage, signal, stack), mask = [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a, settings.channels.k];
                     for (let index = 0; index < stack.length; index++) {
                         const image = (await stack.get(index))!;
-                        const channels: (0 | 1 | 2 | 3 | null)[] = ([0, 1, 2, 3] as const).filter(channel =>
-                            (channel === 3 ? image.hasAlpha : channel === 0 || (image.space !== "b-w" && image.space !== "grey16")) && (!settings.channelExplicit || mask[channel]));
+                        const channels: (0 | 1 | 2 | 3 | 4 | null)[] = ([0, 1, 2, 4, 3] as const).filter(channel =>
+                            (channel === 4 ? image.space === "cmyk" : channel === 3 ? image.hasAlpha : channel === 0 || (image.space !== "b-w" && image.space !== "grey16")) && (!settings.channelExplicit || mask[channel]));
                         if (channels.length === 0) channels.push(null);
                         for (const channel of channels) {
                             await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: image => separateMagickChannelSteps(image, channel) }, signal));
@@ -13647,8 +13649,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             return;
         }
         if (typeof operation === "object" && "separate" in operation) {
-            const selected: (0 | 1 | 2 | 3 | null)[] = ([0, 1, 2, 3] as const).filter(channel =>
-                (channel === 3 ? image.hasAlpha : channel === 0 || (image.space !== "b-w" && image.space !== "grey16")) &&
+            const selected: (0 | 1 | 2 | 3 | 4 | null)[] = ([0, 1, 2, 4, 3] as const).filter(channel =>
+                (channel === 4 ? image.space === "cmyk" : channel === 3 ? image.hasAlpha : channel === 0 || (image.space !== "b-w" && image.space !== "grey16")) &&
                 (!operation.separate || operation.separate.includes(channel)));
             if (selected.length === 0) selected.push(null);
             for (const channel of selected) {

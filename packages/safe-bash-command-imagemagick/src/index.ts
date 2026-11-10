@@ -6349,6 +6349,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         cursor += vertical ? im.height : im.width;
     }
     const first = stack[0]! as MagickImage;
+    canvas = { ...canvas, depth: first.depth, ...(first.bitsPerSample === undefined ? {} : { bitsPerSample: first.bitsPerSample }) };
     canvas.readMask = first.readMask;
     canvas.writeMask = first.writeMask;
     canvas[magickInput] = { imageType: first[magickInput]?.imageType };
@@ -12088,6 +12089,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             for (const image of stack) detachRgbaBuffer(image.data);
             const source = (image as MagickImage)[magickInput], scene = source?.sceneIdx ?? 0;
             Object.assign(canvas, {
+                depth: image.depth, ...(image.bitsPerSample === undefined ? {} : { bitsPerSample: image.bitsPerSample }),
                 [magickInput]: { delayTicks: source?.delayTicks },
                 delay: [image.delay?.[scene] ?? 0], delayTicks: image.delayTicks, ticksPerSecond: image.ticksPerSecond,
                 disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene],
@@ -12146,7 +12148,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     if (im.data.buffer !== canvas.data.buffer) detachRgbaBuffer(im.data);
                 }
                 const first = oldStack[0]! as MagickImage;
-                stack = [{ ...canvas, ...(first.properties ? { properties: first.properties } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0] }];
+                stack = [{ ...canvas, depth: first.depth, ...(first.bitsPerSample === undefined ? {} : { bitsPerSample: first.bitsPerSample }), ...(first.properties ? { properties: first.properties } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0] }];
                 if (state.units !== undefined) stack[0] = applyMagickUnits(stack[0]!, state.units);
                 if (state.densityGeometry !== undefined) stack[0] = applyMagickDensity(stack[0]!, state.densityGeometry);
                 if (merge) stack[0] = { ...stack[0]!, virtualCanvas: {
@@ -13683,6 +13685,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 for (let n = 0; n < images.length; n++) canvas = await transformStoredMagickRaster(canvas, backend, overCompositePixelSteps(canvas, images[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.storedData16 || images[n]!.storedData16)), signal, canvas, [canvas, images[n]!]);
                 const source = image[magickInput], scene = source?.sceneIdx ?? 0;
                 Object.assign(canvas, {
+                    depth: image.depth, ...(image.bitsPerSample === undefined ? {} : { bitsPerSample: image.bitsPerSample }),
                     [magickInput]: { delayTicks: source?.delayTicks },
                     delay: [await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] ?? 0], delayTicks: image.delayTicks, ticksPerSecond: image.ticksPerSecond,
                     disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene],
@@ -13796,7 +13799,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     height = first.virtualCanvas?.height || first.height;
                 }
                 const background = settings.backgroundExplicit ? settings.background : (await stack.get(0))!.backgroundColor ?? settings.background;
-                result = await createStoredCanvas(width, height, background, backend, signal, highDepth);
+                const first = (await stack.get(0))!;
+                result = { ...await createStoredCanvas(width, height, background, backend, signal, highDepth), depth: first.depth, ...(first.bitsPerSample === undefined ? {} : { bitsPerSample: first.bitsPerSample }) };
                 if (!append) {
                     const first = (await stack.get(0))! as StoredRgbaImage;
                     result = { ...result, space: first.space, ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }) };

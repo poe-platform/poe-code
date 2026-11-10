@@ -73,6 +73,10 @@ export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, 
                     : operation === "multiply" ? (part === 0
                     ? inks[0][offset + 3]! * black - (inks[2]?.[offset + 3] ?? 0) * (inks[3]?.[offset + 3] ?? 0)
                     : inks[0][offset + 3]! * (inks[3]?.[offset + 3] ?? 0) + (inks[2]?.[offset + 3] ?? 0) * black)
+                    : operation === "magnitude" ? Math.hypot(inks[0][offset + 3]!, black)
+                    : operation === "phase" ? Math.atan2(inks[0][offset + 3]!, black) / (2 * Math.PI) + 0.5
+                    : operation === "real" ? inks[0][offset + 3]! * Math.cos(2 * Math.PI * (black - 0.5))
+                    : operation === "imaginary" ? black * Math.sin(2 * Math.PI * (inks[0][offset + 3]! - 0.5))
                     : operation === "add" ? inks[0][offset + 3]! + black : inks[0][offset + 3]! - black;
                 for (let channel = 0; channel < 3; channel++) {
                     output[offset + channel] = samples[offset + channel]! / 255;

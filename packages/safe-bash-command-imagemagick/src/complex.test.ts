@@ -4,6 +4,32 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
+for (const mode of ["buffered", "sync", "retained", "command"])
+it.each([
+    ["MagnitudePhase", "K", [0x92, 0xa3]],
+    ["RealImaginary", "K", [0x57, 0x00]],
+    ["MagnitudePhase", "C", [0xff, 0x9c]],
+    ["RealImaginary", "C", [0x66, 0xb1]],
+    ["Add", "K", [0xbe, 0xde]],
+] as const)(`${mode}: complex %s preserves CMYK %s arithmetic`, async (operation, channel, expected) => {
+    // Native ImageMagick 7.1.2-35 Q16-HDRI, real then imaginary channel bytes.
+    const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
+    const seed = new TextEncoder().encode("KEEP");
+    files.set("/out", seed);
+    await fs.writeFile("/out", seed);
+    const argv = ["xc:#2070a031", "xc:#30906082", "-colorspace", "CMYK", "-complex", operation,
+        "-channel", channel, "-separate", "+channel", "+append", "-depth", "8", "gray:/out"];
+    const args = createCommandArguments(argv);
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write() {} }, stderr: { async write() {} },
+    }) : mode === "sync" ? runConvertCliSync(argv, files)
+        : await runConvertCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result.exitCode).toBe(0);
+    expect([...mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!]).toEqual(expected);
+});
+
 // Native ImageMagick 7.1.2-35 Q16-HDRI, decoded as RGBA16.
 for (const mode of ["buffered", "sync", "retained", "command"])
 it.each([

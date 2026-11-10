@@ -7171,20 +7171,29 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
         const sceneCount = target.sceneCount ?? (pageIdx === undefined ? undefined : 1);
         const analysis = { warnings: "", errors: "" };
+        let inlineImage: RgbaImage | undefined;
         try {
             const lower = baseInPath.toLowerCase();
-            const inlineImage = lower.startsWith("xc:") || lower.startsWith("canvas:")
+            inlineImage = lower.startsWith("xc:") || lower.startsWith("canvas:")
                 ? yield* parseInputOperandSteps(baseInPath, files, createDefaultState(), stdinBytes, analysis)
                 : undefined;
-            let inspected:IdentifyInspection|undefined;
-            if(reader && !inlineImage)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,originalInput:target.originalInput,byteLen:size,sceneIdx:pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis,optionProperties:{format:customFormat!}},pixels,signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision);}};
-            const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
-            if (!bytes&&!inspected&&!inlineImage) {
-                errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
-                exitCode = 1;
-                yield* flush();
-                continue;
-            }
+        }
+        catch (err) {
+            errParts.push(`identify: improper image header '${inPath}': ${(err as Error).message}\n`);
+            exitCode = 1;
+            yield* flush();
+            continue;
+        }
+        let inspected:IdentifyInspection|undefined;
+        if(reader && !inlineImage)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,originalInput:target.originalInput,byteLen:size,sceneIdx:pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis,optionProperties:{format:customFormat!}},pixels,signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision);}};
+        const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
+        if (!bytes&&!inspected&&!inlineImage) {
+            errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
+            exitCode = 1;
+            yield* flush();
+            continue;
+        }
+        try {
             const inputOptions = pageIdx !== undefined ? { page: pageIdx } : undefined;
             if(inspected&&"error" in inspected)throw inspected.error;
             const meta = inlineImage??inspected?.metadata??readImageMetadata(bytes!, inputOptions),size=inlineImage ? 0 : inspected?.size??bytes!.byteLength;

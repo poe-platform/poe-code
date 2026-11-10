@@ -10480,9 +10480,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-raise" || t === "+raise") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const g = parseMagickRaiseGeometry(tokens[++i] ?? "", t);
+            const geometry = tokens[++i] ?? "";
             const raised = t === "-raise";
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                const expanded = yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const g = parseMagickRaiseGeometry(expanded, t);
                 const bw = Math.max(0, Math.round(g.isPercent ? image.width * (g.percentX ?? 100) / 100 : g.width ?? 4));
                 const bh = Math.max(0, Math.round(g.isPercent ? image.height * (g.percentY ?? 100) / 100 : g.height ?? bw));
                 return yield* applyMagickRasterSteps(image, raisePixelSteps(image, bw, bh, raised, [state.channels.r, state.channels.g, state.channels.b, image.hasAlpha && (state.channels.a || !state.channelExplicit)]), signal);
@@ -12785,9 +12787,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const g = parseMagickRaiseGeometry(tokens[++i] ?? "", token), raised = token === "-raise", channels = { ...state.channels, a: state.channels.a || !state.channelExplicit };
+            const geometry = tokens[++i] ?? "", raised = token === "-raise", channels = { ...state.channels, a: state.channels.a || !state.channelExplicit }, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
+                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const g = parseMagickRaiseGeometry(expanded, token);
                 const bw = Math.max(0, Math.round(g.isPercent ? image.width * (g.percentX ?? 100) / 100 : g.width ?? 4));
                 const bh = Math.max(0, Math.round(g.isPercent ? image.height * (g.percentY ?? 100) / 100 : g.height ?? bw));
                 return transformStoredMagickRaster(image, backend, raisePixelSteps(image, bw, bh, raised, [channels.r, channels.g, channels.b, image.hasAlpha && channels.a]), signal);

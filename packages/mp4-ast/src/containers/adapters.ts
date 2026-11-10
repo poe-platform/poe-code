@@ -269,7 +269,8 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
       native: { ...native, rgba },
       ptsSeconds: frameIdx / fps,
       durationSeconds: 1 / fps,
-      keyframe: true
+      keyframe: true,
+      pictureType: 1
     });
     samples.push({
       data: rgba,

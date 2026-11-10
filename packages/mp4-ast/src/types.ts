@@ -200,6 +200,8 @@ export interface MediaVideoFrame {
   readonly ptsSeconds: number;
   readonly durationSeconds: number;
   readonly keyframe: boolean;
+  /** Decoder picture type (AVPictureType); absent when unknown. */
+  readonly pictureType?: number;
 }
 
 export interface MediaAudioData {

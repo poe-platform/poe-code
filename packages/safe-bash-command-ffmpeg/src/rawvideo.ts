@@ -56,7 +56,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
       ...(rgb16 || yuv || pixelFormat === "gray16be" ? { native: { rgba, pixels: data, width, height,
         format: pixelFormat === "rgb48be" ? 34 : pixelFormat === "rgba64be" ? 104 : pixelFormat === "gray16be" ? 29 : pixelFormat === "yuv444p" ? 5 : pixelFormat === "yuv422p" ? 4 : 0, colorspace: 5, fullRange: rgb16 || pixelFormat === "gray16be" ? 1 : 0 } } : {}),
       ptsSeconds: index / timescale,
-      durationSeconds: 1 / timescale, keyframe: true });
+      durationSeconds: 1 / timescale, keyframe: true, pictureType: 1 });
   }
   return {
     containerFormat: "rawvideo", timescale, duration: count, durationSeconds: count / timescale,

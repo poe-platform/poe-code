@@ -2202,6 +2202,10 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
     }
     const virtualCanvas = magickResizeCanvas(img, outW, outH);
     if (img.readMask) img = { ...img, readMask: yield* applyMagickChopSteps({ ...img.readMask, ...(img.virtualCanvas ? { virtualCanvas: img.virtualCanvas } : {}) } as RgbaImage, geomStr, gravity, signal) };
+    if (img.writeMask) {
+        const { virtualCanvas: ignoredCanvas, ...mask } = img.writeMask;
+        img = { ...img, writeMask: yield* applyMagickChopSteps({ ...mask, ...(img.virtualCanvas ? { virtualCanvas: img.virtualCanvas } : {}) }, geomStr, gravity, signal) };
+    }
     return { ...img, ...(img.region ? { region: chopRegion(img.region, cx0, cy0, cx1, cy1) } : {}), width: outW, height: outH, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
@@ -10966,6 +10970,10 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         image = { ...image, space: "srgb", channels: 4 };
     const virtualCanvas = token !== "-roll" ? magickResizeCanvas(image, width, height) : undefined;
     if (token === "-chop" && image.readMask) image = { ...image, readMask: await transformStoredMagickCoordinates({ ...image.readMask, ...(image.virtualCanvas ? { virtualCanvas: image.virtualCanvas } : {}) } as StoredRgbaImage, backend, token, geometry, state, signal, { warnings: "" }) };
+    if (token === "-chop" && image.storedWriteMask) {
+        const { virtualCanvas: ignoredCanvas, ...mask } = image.storedWriteMask;
+        image = { ...image, storedWriteMask: await transformStoredMagickCoordinates({ ...mask, ...(image.virtualCanvas ? { virtualCanvas: image.virtualCanvas } : {}) }, backend, token, geometry, state, signal, analysis) };
+    }
     return { ...image, region, position, width, height, ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}), ...(token === "-splice" ? { hasAlpha: image.hasAlpha || background.a < 255 } : {}),
         ...(virtualCanvas ? { virtualCanvas } : {}) };
 }

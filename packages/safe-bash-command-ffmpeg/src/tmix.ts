@@ -28,7 +28,7 @@ function parsePlanes(text: string, planes: number): number {
 
 export async function tmix(
   frames: MediaVideoFrame[], argument: string, budget: MediaBudgetTracker, signal?: AbortSignal,
-  commands: readonly { time: number; expression: string }[] = []
+  commands: readonly { time: number; action: string; expression: string }[] = []
 ): Promise<MediaVideoFrame[]> {
   const options: Record<string, string> = { frames: "3", weights: "1", scale: "0" };
   let planes = 15;
@@ -68,13 +68,17 @@ export async function tmix(
   if (!Number.isFinite(scale) || scale < 0 || scale > 32767) {
     throw new Error("tmix: scale must be a finite number from 0 to 32767");
   }
-  const supplied = (options.weights || "1").replaceAll("|", " ").split(" ").filter(Boolean).slice(0, count).map(value => Math.fround(parseFilterFloat(value)));
-  if (supplied.some(weight => !Number.isFinite(weight))) {
-    throw new Error("tmix: weights must be finite numbers");
-  }
-  const weights = Array.from({ length: count }, (_, index) => supplied[Math.min(index, supplied.length - 1)]!);
-  const sum = weights.reduce((total, weight) => Math.fround(total + weight), 0);
-  if (!Number.isFinite(sum)) throw new Error("tmix: weights must have a finite sum");
+  const parseWeights = (expression: string) => {
+    const supplied = (expression || "1").replaceAll("|", " ").split(" ").filter(Boolean).slice(0, count).map(value => Math.fround(parseFilterFloat(value)));
+    if (supplied.some(weight => !Number.isFinite(weight))) {
+      throw new Error("tmix: weights must be finite numbers");
+    }
+    const weights = Array.from({ length: count }, (_, index) => supplied[Math.min(index, supplied.length - 1)]!);
+    const sum = weights.reduce((total, weight) => Math.fround(total + weight), 0);
+    if (!Number.isFinite(sum)) throw new Error("tmix: weights must have a finite sum");
+    return { weights, sum };
+  };
+  let { weights, sum } = parseWeights(options.weights!);
   const output: MediaVideoFrame[] = [];
   const registers = new Float64Array(10);
   const randomStates: BigUint64Array[] = [];
@@ -87,9 +91,13 @@ export async function tmix(
       if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
       const command = commands[nextCommand++]!;
       try {
+        if (command.action === "weights") {
+          ({ weights, sum } = parseWeights(command.expression));
+          continue;
+        }
         const value = Math.fround(parseFilterExpression(command.expression, "tmix", scaleConstants));
         if (Number.isFinite(value) && value >= 0 && value <= 32767) scale = value;
-      } catch { /* Rejected runtime commands preserve the current scale. */ }
+      } catch { /* Rejected runtime commands preserve the current weights and scale. */ }
     }
     const factor = scale || Math.fround(1 / sum);
     const average = weights.every(weight => weight === weights[0]) && (scale === 0 || scale === Math.fround(1 / sum));

@@ -13966,7 +13966,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const command = commands[nextCommand++]!;
                             try {
                               if (command.action === "enable") {
-                                parseFilterExpression(command.expression, "stereowiden enable", { n: 0, t: 0 });
+                                parseFilterExpression(command.expression, "stereowiden enable", {
+                                  n: 0, t: 0, pos: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+                                });
                                 enable = command.expression;
                               } else if (command.action === "feedback" || command.action === "crossfeed" || command.action === "drymix") {
                                 const max = command.action === "feedback" ? 0.9 : command.action === "crossfeed" ? 0.8 : 1;
@@ -13983,7 +13985,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           const end = Math.min(length, start + count);
                           const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "stereowiden enable", {
-                            n, t: pts / origRate
+                            n, t: pts / origRate, pos: (audioTimestamps ? timestamp?.pos : packet?.offset) ?? NaN, w: 0, h: 0,
+                            PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
                           })) >= 0.5;
                           for (let i = start; i < end; i++) {
                             if (i % 4096 === 0) {

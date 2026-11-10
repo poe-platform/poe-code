@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { setup } from "./helpers.js";
 import { basicCommands } from "../../src/commands/basic.js";
@@ -36,13 +37,53 @@ test("empty indirect target reports its error without replay", async () => {
   assert.match(result.stderr, /invalid variable name/);
 });
 
-for (const selector of ["1", "@", "*", "0"]) {
-  test(`subscripted nameref rejects additional [${selector}]`, async () => {
-    const { shell, commands } = setup();
+for (const bounded of [false, true]) for (const loop of [false, true]) {
+  for (const [expansion, count] of [
+    ['"${ref[0]}"', 1], ['"${ref[1]}"', 1], ['"${ref[*]}"', 1], ['"${ref[@]}"', 0],
+    ['${ref[0]}', 0], ['${ref[1]}', 0], ['${ref[*]}', 0], ['${ref[@]}', 0],
+  ] as const) test(`subscripted element nameref: ${expansion}, bounded=${bounded}, loop=${loop}`, async context => {
+    const body = `set -- ${expansion}; printf '%s:<%s>' "$#" "$*";`;
+    const source = `arr=(zero one); declare -n ref="arr[1]"; ${loop ? `for i in 1 2; do ${body} done;` : body} printf '<%s>end' "$ref"`;
+    const native = spawnSync(process.env.SAFE_BASH_TEST_BASH ?? "/bin/bash", ["--noprofile", "--norc", "-c", source], { env: { LC_ALL: "C", PATH: process.env.PATH } });
+    assert.equal(native.error, undefined);
+    assert.equal(native.status, 0);
+    assert.equal(native.stderr.length, 0);
+    assert.equal(native.stdout.toString(), `${`${count}:<>`.repeat(loop ? 2 : 1)}<one>end`);
+
+    const { shell, commands } = setup(bounded ? { limits: { maxExpansionBytes: 1024 * 1024 } } : {});
+    context.after(() => shell.dispose());
     for (const command of basicCommands()) commands.register(command);
-    const result = await shell.exec('arr=(zero one); declare -n ref="arr[0]"; echo "${ref[' + selector + ']}"');
-    assert.equal(result.stdout, "");
-    assert.equal(result.exitCode, 1);
-    assert.match(result.stderr, /bad substitution/);
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, native.status, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdoutBytes, new Uint8Array(native.stdout));
   });
 }
+
+test("element nameref and subscripted expansion can share a command", async context => {
+  const { shell, commands } = setup();
+  context.after(() => shell.dispose());
+  for (const command of basicCommands()) commands.register(command);
+  const result = await shell.exec('a=(one two); declare -n r="a[1]"; printf "<%s>" "$r" "${r[0]}"; printf end');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, "<two><>end");
+});
+
+test("subscripted element nameref evaluates its index and unset operators", async context => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  const result = await shell.exec('a=(one two); i=0; declare -n r="a[1]"; args "${r[i++]}" "$i" "${r[0]:-fallback}" "${#r[0]}" "$r"');
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.deepEqual(JSON.parse(result.stdout), ["", "1", "fallback", "0", "two"]);
+});
+
+for (const selector of ["0", "@", "*"]) test(`subscripted element nameref cannot assign an invalid array name: ${selector}`, async context => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`a=(one two); declare -n r="a[1]"; args "\${r[${selector}]:=new}"; args end`);
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.match(result.stderr, /invalid variable name/);
+});

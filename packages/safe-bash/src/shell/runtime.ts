@@ -9768,15 +9768,17 @@ export class Runtime {
       }
     }
     if (part.kind === "variable" && !part.indirect && !part.prefixNames && !part.specialParameter && state.variableAttributes?.get(part.name)?.includes("n")) {
-      const target = variableTarget(this.referenceName(state, part.name))!;
-      if (target.subscript !== undefined && getArraySelector(part) !== undefined) {
-        throw new ExpansionFailure(`${part.name}: bad substitution`, io.diagnosticLine ?? part.line);
-      }
-      const resolved = { ...part, name: target.name };
+      const reference = this.referenceName(state, part.name);
+      const target = variableTarget(reference)!;
+      const selector = getArraySelector(part);
+      // A further subscript looks up the element reference as an unset array name.
+      const resolved = target.subscript !== undefined && selector
+        ? { ...part, name: reference, [indirectArrayTarget]: reference }
+        : { ...part, name: target.name };
       copyArraySelector(part, resolved);
-      if (target.subscript === "@" || target.subscript === "*") {
+      if (!selector && (target.subscript === "@" || target.subscript === "*")) {
         setArraySelector(resolved, { kind: "members", separator: target.subscript });
-      } else if (target.subscript !== undefined) {
+      } else if (!selector && target.subscript !== undefined) {
         setArraySelector(resolved, { kind: "element", index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob)) });
       }
       part = resolved;

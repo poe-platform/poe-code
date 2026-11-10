@@ -4,17 +4,24 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function shiftAudioPhase(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  format: string, budget: MediaBudgetTracker, signal?: AbortSignal,
+  format: string, frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
+  budget: MediaBudgetTracker, signal?: AbortSignal,
   commands: readonly { sample: number; expression: string }[] = []
 ): Promise<Float64Array[]> {
   const frequencyShift = filter.split("=", 1)[0] === "afreqshift";
   const name = frequencyShift ? "afreqshift" : "aphaseshift";
+  let enable: string | undefined;
   const options = { shift: 0, level: 1, order: 8 };
   const names = Object.keys(options) as (keyof typeof options)[];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options;
+    const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options | "enable";
+    if (key === "enable") {
+      enable = option.slice(separator + 1).trim();
+      parseFilterExpression(enable, `${name} enable`, { n: 0, t: 0, pos: NaN, w: 0, h: 0 });
+      continue;
+    }
     if (!key || !Object.hasOwn(options, key)) throw new Error(`${name}: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     const number = frequencyShift
@@ -69,40 +76,57 @@ export async function shiftAudioPhase(
     const samples = new Float64Array(length);
     const previousInput = new Float64Array(stages), olderInput = new Float64Array(stages);
     const previousOutput = new Float64Array(stages), olderOutput = new Float64Array(stages);
-    for (let frame = 0; frame < length; frame++) {
-      while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame) {
-        const command = commands[nextCommand++]!;
-        try {
-          const value = parseFilterExpression(command.expression, name, {});
-          if (Number.isFinite(value) && value >= 0 && value <= 1) level = round(value);
-        } catch { /* Native ignores rejected runtime commands and keeps the previous level. */ }
-      }
-      let inPhase = 0;
-      let value = round(channel[frame]!);
-      for (let stage = 0; stage < stages; stage++) {
+    let position = 0;
+    for (const [n, timestamp] of frames.entries()) {
+      const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, `${name} enable`, {
+        n, t: timestamp.pts / sampleRate, pos: timestamp.pos ?? NaN, w: 0, h: 0
+      })) >= 0.5;
+      for (let frame = timestamp.start; frame < timestamp.end; frame++) {
         if (++work % 1024 === 0) {
           await yieldTurn(signal);
           signal?.throwIfAborted();
           budget.checkCpu();
         }
-        if (stage === options.order) {
-          inPhase = value;
-          value = round(channel[frame]!);
+        // Generic timeline bypass freezes the all-pass history and oscillator.
+        if (!enabled) {
+          samples[frame] = round(channel[frame]!);
+          continue;
         }
-        const next = round(round(coefficients[stage]! * round(value + olderOutput[stage]!)) - olderInput[stage]!);
-        olderInput[stage] = previousInput[stage]!;
-        previousInput[stage] = value;
-        olderOutput[stage] = previousOutput[stage]!;
-        previousOutput[stage] = next;
-        value = next;
+        while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame) {
+          const command = commands[nextCommand++]!;
+          try {
+            const value = parseFilterExpression(command.expression, name, {});
+            if (Number.isFinite(value) && value >= 0 && value <= 1) level = round(value);
+          } catch { /* Native ignores rejected runtime commands and keeps the previous level. */ }
+        }
+        let inPhase = 0;
+        let value = round(channel[frame]!);
+        for (let stage = 0; stage < stages; stage++) {
+          if (++work % 1024 === 0) {
+            await yieldTurn(signal);
+            signal?.throwIfAborted();
+            budget.checkCpu();
+          }
+          if (stage === options.order) {
+            inPhase = value;
+            value = round(channel[frame]!);
+          }
+          const next = round(round(coefficients[stage]! * round(value + olderOutput[stage]!)) - olderInput[stage]!);
+          olderInput[stage] = previousInput[stage]!;
+          previousInput[stage] = value;
+          olderOutput[stage] = previousOutput[stage]!;
+          previousOutput[stage] = next;
+          value = next;
+        }
+        if (frequencyShift) {
+          const phase = round(2 * Math.PI * (round(round(shift * position) * step) % 1));
+          cosine = round(Math.cos(phase));
+          sine = round(Math.sin(phase));
+        }
+        // The quadrature path has an extra one-sample delay.
+        samples[frame] = round(round(round(inPhase * cosine) - round(olderOutput[stages - 1]! * sine)) * level);
+        position++;
       }
-      if (frequencyShift) {
-        const phase = round(2 * Math.PI * (round(round(shift * frame) * step) % 1));
-        cosine = round(Math.cos(phase));
-        sine = round(Math.sin(phase));
-      }
-      // The quadrature path has an extra one-sample delay.
-      samples[frame] = round(round(round(inPhase * cosine) - round(olderOutput[stages - 1]! * sine)) * level);
     }
     output.push(samples);
   }

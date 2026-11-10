@@ -53,8 +53,8 @@ for (const filter of ["afreqshift=250", "aphaseshift=0.5"]) {
   it(`${filter} retains DSP state and independent channel levels across runtime commands`, async () => {
     const channels = [Float32Array.from({ length: 128 }, (_, i) => Math.sin(i)),
       Float32Array.from({ length: 128 }, (_, i) => Math.cos(i))];
-    const baseline = await shiftAudioPhase(channels, 8000, filter, "fltp", new MediaBudgetTracker());
-    const actual = await shiftAudioPhase(channels, 8000, filter, "fltp", new MediaBudgetTracker(), undefined, [
+    const baseline = await shiftAudioPhase(channels, 8000, filter, "fltp", [{ start: 0, end: 128, pts: 0 }], new MediaBudgetTracker());
+    const actual = await shiftAudioPhase(channels, 8000, filter, "fltp", [{ start: 0, end: 128, pts: 0 }], new MediaBudgetTracker(), undefined, [
       { sample: 16, expression: "0" }, { sample: 32, expression: "0.5" },
       { sample: 48, expression: "2" }, { sample: 56, expression: "invalid" },
       { sample: 64, expression: "1" }

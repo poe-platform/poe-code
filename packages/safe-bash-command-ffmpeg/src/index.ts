@@ -10145,13 +10145,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "aphaser" || trimmed.startsWith("aphaser=")) {
                         if (filteredSampleFormat === "u8") filteredSampleFormat = "s16";
                         stretched = await phaseAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal);
-                      } else if (filterName === "aphaseshift" || filterName === "afreqshift") {
-                        filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
-                        const commands = audioCommands.filter(command => command.target === filterName || command.target === filterTarget)
-                          .sort((a, b) => a.sample - b.sample);
-                        audioCommands = audioCommands.filter(command => command.target !== filterName && command.target !== filterTarget);
-                        stretched = await shiftAudioPhase(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal, commands);
-                        statsScale = 1;
                       } else if (trimmed === "apulsator" || trimmed.startsWith("apulsator=")) {
                         stretched = await pulsateAudio(stretched, origRate, trimmed, budget, context.signal);
                         filteredChannelMask = 3;
@@ -10167,7 +10160,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
-                      } else if (filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip" || filterName === "asubboost") {
+                      } else if (filterName === "aphaseshift" || filterName === "afreqshift" || filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip" || filterName === "asubboost") {
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
@@ -10184,7 +10177,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
-                        if (filterName === "silenceremove") {
+                        if (filterName === "aphaseshift" || filterName === "afreqshift") {
+                          filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
+                          const commands = audioCommands.filter(command => command.target === filterName || command.target === filterTarget)
+                            .sort((a, b) => a.sample - b.sample);
+                          audioCommands = audioCommands.filter(command => command.target !== filterName && command.target !== filterTarget);
+                          stretched = await shiftAudioPhase(stretched, origRate, trimmed, filteredSampleFormat, audioTimestamps, budget, context.signal, commands);
+                          statsScale = 1;
+                        } else if (filterName === "silenceremove") {
                           const removed = await removeSilence(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
                           stretched = removed.channels;
                           audioTimestamps = removed.frames;

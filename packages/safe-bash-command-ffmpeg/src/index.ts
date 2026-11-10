@@ -11204,7 +11204,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || target === "stereowiden" || target?.startsWith("stereowiden@")
                             // aphaser declines runtime commands without aborting the render.
                             || target === "aphaser" || target?.startsWith("aphaser@")
-                            || ["delays", "enable"].includes(action!) && (target === "adelay" || target?.startsWith("adelay@"))
+                            || target === "adelay" || target?.startsWith("adelay@")
                             || action === "level" && ["afreqshift", "aphaseshift"].some(name => target === name || target?.startsWith(`${name}@`))
                             || action === "wet" && (target === "asubboost" || target?.startsWith("asubboost@"))
                             || ["mm", "cm", "m", "dry", "wet", "temp", "enable"].includes(action!) && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
@@ -12992,7 +12992,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const offsets = stretched.map((_, channel) => parseDelay(values[channel] ?? (all ? values.at(-1) ?? "0" : "0")));
                         const updates = commands.map(command => {
                           if (command.action === "enable") return { ...command, offsets: [] };
-                          const values = command.expression.split("|").filter(value => value !== "");
+                          // Declined actions must not be interpreted as delay updates.
+                          const values = command.action === "delays" ? command.expression.split("|").filter(value => value !== "") : [];
                           const offsets: number[] = [];
                           // A malformed runtime delay stops this update, retaining earlier
                           // channel changes and leaving remaining channels unchanged.

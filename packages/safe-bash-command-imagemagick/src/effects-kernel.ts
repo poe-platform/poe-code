@@ -199,14 +199,19 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
     }
 }
 
-export function* raisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "hasAlpha"> & { storedData16?: unknown }, borderWidth: number, borderHeight: number, raised: boolean, channels: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* raisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "hasAlpha" | "space"> & { storedData16?: unknown }, borderWidth: number, borderHeight: number, raised: boolean, channels: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (2 * borderWidth >= image.width || 2 * borderHeight >= image.height) throw new Error("size must exceed bevel width");
-    const highDepth = !!(image.data16 || image.storedData16), maximum = highDepth ? 65535 : 255;
+    // Gray's three projected RGB samples share the logical red/gray channel.
+    if (image.space === "b-w" || image.space === "grey16") channels = [channels[0]!, channels[0]!, channels[0]!, channels[3]!];
+    const highDepth = !!(image.data16 || image.storedData16);
     const size = image.width * image.height * 4;
-    for (let position = 0; position < size; position += 16384) {
+    for (let position = 0; position < size; position += 2048) {
         yield;
-        const bytes = (yield { kind: "read", highDepth, position, length: Math.min(16384, size - position) })!;
-        const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
+        const length = Math.min(2048, size - position);
+        const working = yield { kind: "read", evaluate: true, position, length };
+        const data = working?.length ? new Float64Array(working.slice().buffer)
+            : Float64Array.from(highDepth ? new Uint16Array((yield { kind: "read", highDepth, position, length })!.slice().buffer)
+                : (yield { kind: "read", position, length })!, value => highDepth ? value / 257 : value);
         for (let offset = 0; offset < data.length; offset += 4) {
             const pixel = (position + offset) / 4, x = pixel % image.width, y = Math.floor(pixel / image.width);
             // ImageMagick uses stronger top/bottom blends and diagonal corner boundaries.
@@ -221,9 +226,14 @@ export function* raisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "da
                 if (x >= borderWidth && x < image.width - borderWidth) continue;
                 foreground = x < borderWidth;
             }
-            const target = foreground === raised ? maximum : 0;
-            for (let channel = 0; channel < (image.hasAlpha ? 4 : 3); channel++) if (channels[channel]) data[offset + channel] = Math.round((data[offset + channel]! * factor + target * (255 - factor)) / 255);
+            const target = foreground === raised ? 255 : 0;
+            for (let channel = 0; channel < (image.hasAlpha ? 4 : 3); channel++) if (channels[channel])
+                data[offset + channel] = Math.fround((data[offset + channel]! * factor + target * (255 - factor)) / 255 * 257) / 257;
         }
-        yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
+        // Keep working values for later arithmetic; only the encoded backing is bounded.
+        yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
+        const bounded = highDepth ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(65535, value * 257))))
+            : Uint8Array.from(data, value => Math.round(Math.max(0, Math.min(255, value))));
+        yield { kind: "write", highDepth, position, data: new Uint8Array(bounded.buffer) };
     }
 }

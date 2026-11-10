@@ -1,4 +1,5 @@
 import { bytesToHex, compareUtf8 } from "../byte-encoding.js";
+import { protectedReadArrays } from "./variable-target.js";
 import type { ConditionalExpression } from "./conditional.js";
 import { publicDiagnosticMessage } from "../diagnostics.js";
 import { escapeText, writeDiagnostic } from "../escaping.js";
@@ -10831,6 +10832,7 @@ const syncExtraRuntimeMethods = {
               let existingArrayBinding: ReturnType<NonNullable<typeof store>["get"]> | undefined;
               if (arrayTarget !== undefined) {
                 if (hasUnpreparedLocal(rawState, arrayTarget)) return undefined;
+                if (protectedReadArrays.has(arrayTarget)) return undefined;
                 if ( varCount !== 0 || !isShellIdentifier(arrayTarget) || rawState.readonlyVariables?.has(arrayTarget) || rawState.exported.has(arrayTarget) || rawState.variableAttributes?.get(arrayTarget) || controlNames.has(arrayTarget)) {
                   simpleRead = false;
                 } else {
@@ -16352,7 +16354,8 @@ const syncExtraRuntimeMethods = {
       : rs.ifsWord !== undefined
         ? (this.fastValueWord(rs.ifsWord, rawState, io, false, false, false, false, 0, step.line) as string)
         : (rawState.variables.IFS ?? " \t\n");
-    this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched, rs.arrayTarget, monitor, rs.isMapfile);
+    if (!rs.isMapfile && rs.arrayTarget !== undefined && protectedReadArrays.has(rs.arrayTarget)) status = 1;
+    else this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched, rs.arrayTarget, monitor, rs.isMapfile);
     rawState.status = status;
     return step.cmd.words[step.cmd.words.length - 1]!.plain!;
   },

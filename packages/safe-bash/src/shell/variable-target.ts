@@ -1,3 +1,5 @@
+export const protectedReadArrays = new Set(["FUNCNAME", "BASH_ARGV", "BASH_ARGC", "BASH_SOURCE", "BASH_LINENO", "GROUPS"]);
+
 export function isShellIdentifier(name: string): boolean {
   if (!name) return false;
   for (let index = 0; index < name.length; index++) {

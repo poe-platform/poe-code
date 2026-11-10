@@ -7,6 +7,46 @@ import { agentCommands, createMemoryFileSystem, Shell } from "../../src/core.js"
 import { bashExecutable, modernBashSkip } from "../helpers/bash-oracle.js";
 import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 
+for (const name of ["FUNCNAME", "BASH_ARGV", "BASH_ARGC", "BASH_SOURCE", "BASH_LINENO", "GROUPS", "arr", "PIPESTATUS"]) {
+  for (const option of ["-ra", "-r -a", "-u0 -ra"]) {
+    test(`read ${option} ${name} preserves protected arrays and consumes one record`, async () => {
+      const protectedArray = name !== "arr" && name !== "PIPESTATUS";
+      const source = `f(){ before="\${${name}[*]}"; read ${option} ${name}; s=$?; after="\${${name}[*]}"; read -r next; printf '%s:%s\\n' "$s" "$next"; ${protectedArray ? '[[ "$before" = "$after" ]]' : "true"}; }; f <<< $'one two\\nnext'`;
+      const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 2000 });
+      assert.ifError(native.error);
+      assert.equal(native.status, 0);
+      assert.equal(native.stdout, `${protectedArray ? 1 : 0}:next\n`);
+      assert.equal(native.stderr, "");
+      const { shell } = setup();
+      for (const command of basicCommands()) shell.register(command);
+      try {
+        const result = await shell.exec(source);
+        assert.equal(result.stdout, native.stdout);
+        assert.equal(result.stderr, native.stderr);
+        assert.equal(result.exitCode, native.status);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+for (const loop of [false, true]) test(`read -a FUNCNAME keeps the active function name (loop=${loop})`, async () => {
+  const { shell } = setup();
+  for (const command of basicCommands()) shell.register(command);
+  try {
+    const body = 'read -r -a FUNCNAME <<< "X Y"; echo "$?:${FUNCNAME[*]}";';
+    const source = `f(){ ${loop ? `for ((i=0; i<3; i++)); do ${body} done;` : body} }; f`;
+    const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 2000 });
+    assert.ifError(native.error);
+    assert.equal(native.status, 0);
+    assert.equal(native.stdout, "1:f\n".repeat(loop ? 3 : 1));
+    assert.equal(native.stderr, "");
+    const result = await shell.exec(source);
+    assert.equal(result.stdout, native.stdout);
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  } finally { await shell.dispose(); }
+});
+
 for (const option of ["-u0", "-t1"]) {
   for (const [before, destinations, output] of [
     ["", "'a[1]'", "0|one two|three|"],

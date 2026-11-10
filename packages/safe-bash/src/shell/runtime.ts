@@ -1,4 +1,4 @@
-import { isShellIdentifier, variableTarget } from "./variable-target.js";
+import { isShellIdentifier, protectedReadArrays, variableTarget } from "./variable-target.js";
 export { isShellIdentifier } from "./variable-target.js";
 import { defaultPredicateExecutors } from "../commands/predicates.js";
 import { syncCommandEvaluators } from "../commands/internal.js";
@@ -9669,6 +9669,7 @@ export class Runtime {
           return 1;
         }
         array = this.referenceName(state, array);
+        if (protectedReadArrays.has(array)) return 1;
         if (state.readonlyVariables?.has(array)) { await this.diagnostic(context, `${array}: readonly variable`); return 1; }
         if (arrayStore(state)?.get(array)?.associative) {
           await this.diagnostic(context, `read: ${array}: not an indexed array`);

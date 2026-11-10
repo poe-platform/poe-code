@@ -2,7 +2,7 @@ import { FsError } from "../contracts/errors.js";
 import { concatShellValues, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue } from "../contracts/value.js";
 import type { ReadLine } from "./input.js";
-import { isShellIdentifier as identifier, variableTarget } from "./variable-target.js";
+import { isShellIdentifier as identifier, protectedReadArrays, variableTarget } from "./variable-target.js";
 import type { ShellExtensionContext, ShellIndexedWriter, ShellInputBorrow, ShellInputObserver } from "./extensions.js";
 
 interface ReadOptions {
@@ -236,6 +236,7 @@ export async function executeRead(nonTerminalInput: boolean, context: ShellExten
     if (options.array !== undefined) {
       const name = shellValueText(options.array);
       if (!identifier(name)) return invalidName(options.array);
+      if (protectedReadArrays.has(name)) return 1;
       if (context.bindings.describe(name).readonly) { await context.diagnostic(`${name}: readonly variable`); return 1; }
       if (context.bindings.describe(name).kind === "associative") {
         await context.diagnostic(`read: ${name}: not an indexed array`);

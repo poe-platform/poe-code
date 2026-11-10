@@ -5929,6 +5929,14 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         : Math.max(...stack.map((im) => im.height));
     const background = state.backgroundExplicit ? state.background : stack[0]!.backgroundColor ?? state.background;
     const canvas = (yield* createSolidRgbaImageSteps(totalW, totalH, background, stack.some(im => !!im.data16)));
+    if (stack.some(im => !!im.evaluateSamples)) {
+        canvas.evaluateSamples = new Float64Array(canvas.data.length);
+        const color = [background.r, background.g, background.b, background.a];
+        for (let offset = 0; offset < canvas.data.length; offset += 4) {
+            if (offset % 16384 === 0) yield;
+            canvas.evaluateSamples.set(color, offset);
+        }
+    }
     let hasAlpha = background.a < 255;
     let cursor = 0;
     const mixedCmyk = stack.some(image => image.space === "cmyk") && stack.some(image => image.space !== "cmyk");
@@ -5944,6 +5952,12 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
                 const start = (y * im.width + x) * 4;
                 canvas.data.set(im.data.subarray(start, start + Math.min(4096, im.width - x) * 4), ((top + y) * totalW + left + x) * 4);
                 if (canvas.data16) canvas.data16.set(im.data16?.subarray(start, start + Math.min(4096, im.width - x) * 4) ?? Uint16Array.from(im.data.subarray(start, start + Math.min(4096, im.width - x) * 4), value => value * 257), ((top + y) * totalW + left + x) * 4);
+                if (canvas.evaluateSamples) {
+                    const end = start + Math.min(4096, im.width - x) * 4;
+                    const samples = im.evaluateSamples?.subarray(start, end)
+                        ?? Float64Array.from((im.data16 ?? im.data).subarray(start, end), value => im.data16 ? value / 257 : value);
+                    canvas.evaluateSamples.set(samples, ((top + y) * totalW + left + x) * 4);
+                }
             }
         }
         hasAlpha ||= im.hasAlpha;
@@ -12048,7 +12062,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 const append = token.endsWith("append"), vertical = token === "-append";
                 if (append && stack.length === 1) return stack;
-                let width = 0, height = 0, highDepth = false, cmyk = false, nonCmyk = false, gray = true;
+                let width = 0, height = 0, highDepth = false, cmyk = false, nonCmyk = false, gray = true, evaluate = false;
                 if (mosaic) {
                     const first = (await stack.get(0))!;
                     width = first.virtualCanvas?.width || first.width;
@@ -12060,6 +12074,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const frame = (await stack.get(n))!;
                     gray &&= frame.space === "b-w" || frame.space === "grey16";
                     cmyk ||= frame.space === "cmyk"; nonCmyk ||= frame.space !== "cmyk"; highDepth ||= !!frame.storedData16;
+                    evaluate ||= frame.storedEvaluateSamples !== undefined;
                     if (merge) {
                         const x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
                         const left = n ? Math.min(originX, x) : x, top = n ? Math.min(originY, y) : y;
@@ -12085,6 +12100,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (append) {
                     const first = (await stack.get(0))! as StoredMagickImage & HueMetadata, scene = first[magickInput]?.sceneIdx ?? 0;
                     result = { ...result, ...(first.orientation !== undefined ? { orientation: first.orientation } : {}), ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }), delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), hasAlpha: background.a < 255, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
+                    if (evaluate) {
+                        result.storedEvaluateSamples = backend.storage.allocate(width * height * 32);
+                        const color = [background.r, background.g, background.b, background.a];
+                        for (let offset = 0; offset < width * height * 4; offset += 2048) {
+                            await yieldTurn(signal);
+                            const samples = new Float64Array(Math.min(2048, width * height * 4 - offset));
+                            for (let i = 0; i < samples.length; i += 4) samples.set(color, i);
+                            await backend.storage.write(result.storedEvaluateSamples + offset * 8, new Uint8Array(samples.buffer));
+                        }
+                    }
                 }
                 let cursor = 0;
                 for (let n = 0; n < stack.length; n++) {
@@ -12093,16 +12118,23 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const offset = resolveGravityOffset(vertical ? width - frame.width : 0, vertical ? 0 : height - frame.height, frame.gravity ?? settings.gravity);
                     if (append) {
                         const left = vertical ? offset.left : cursor, top = vertical ? cursor : offset.top;
+                        const chunkPixels = result.storedEvaluateSamples === undefined ? 4096 : 512;
                         for (let y = 0; y < frame.height; y++) {
-                            for (let x = 0; x < frame.width; x += 4096) {
+                            for (let x = 0; x < frame.width; x += chunkPixels) {
                                 await yieldTurn(signal);
-                                const pixels = await backend.storage.read(frame.position + (y * frame.width + x) * 4, Math.min(4096, frame.width - x) * 4);
+                                const pixels = await backend.storage.read(frame.position + (y * frame.width + x) * 4, Math.min(chunkPixels, frame.width - x) * 4);
                                 await backend.storage.write(result.position + ((top + y) * width + left + x) * 4, pixels);
+                                const original = frame.storedData16
+                                    ? await backend.storage.read(frame.storedData16.position + (y * frame.width + x) * 8, pixels.length * 2) : undefined;
                                 if (result.storedData16) {
-                                    const bytes = frame.storedData16
-                                        ? await backend.storage.read(frame.storedData16.position + (y * frame.width + x) * 8, pixels.length * 2)
-                                        : new Uint8Array(Uint16Array.from(pixels, value => value * 257).buffer);
+                                    const bytes = original ?? new Uint8Array(Uint16Array.from(pixels, value => value * 257).buffer);
                                     await backend.storage.write(result.storedData16.position + ((top + y) * width + left + x) * 8, bytes);
+                                }
+                                if (result.storedEvaluateSamples !== undefined) {
+                                    const bytes = frame.storedEvaluateSamples !== undefined
+                                        ? await backend.storage.read(frame.storedEvaluateSamples + (y * frame.width + x) * 32, pixels.length * 8)
+                                        : new Uint8Array(Float64Array.from(original ? new Uint16Array(original.slice().buffer) : pixels, value => original ? value / 257 : value).buffer);
+                                    await backend.storage.write(result.storedEvaluateSamples + ((top + y) * width + left + x) * 32, bytes);
                                 }
                             }
                         }

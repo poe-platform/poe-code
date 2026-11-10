@@ -15,9 +15,14 @@ export async function pulsateAudio(
   const names = ["level_in", "level_out", "mode", "amount", "offset_l", "offset_r", "width", "timing", "bpm", "ms", "hz"] as const;
   const argumentsList = argument ? argument.split(":") : [];
   if (argument.endsWith(":")) argumentsList.pop();
-  for (const [index, option] of argumentsList.entries()) {
+  let optionPosition = 0;
+  for (const option of argumentsList) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options | "mode" | "timing";
+    const key = separator < 0 ? names[optionPosition] : option.slice(0, separator).trim() as keyof typeof options | "mode" | "timing";
+    // FFmpeg 7 restarts shorthand after named options, skipping the first slot
+    // when it was just visited. The named key does not select the next slot.
+    if (separator < 0) optionPosition++;
+    else optionPosition = optionPosition === 0 ? 1 : 0;
     if (!key || (key !== "mode" && key !== "timing" && !Object.hasOwn(options, key))) throw new Error(`apulsator: unsupported option ${option}`);
     const value = option.slice(separator + 1).trim();
     if (key === "mode" || key === "timing") {

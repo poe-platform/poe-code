@@ -11864,6 +11864,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (im.writeMask) edges = yield* applyMagickRasterSteps(edges, writeMaskPixelSteps(edges, im.writeMask), signal, edges, [edges, im, im.writeMask]);
                 const { magickColorspace: ignoredSpace, hueSamples: ignoredHue, ...metadata } = edges;
                 const result = yield* applyMagickRasterSteps({ ...metadata, space: "b-w", channels: 1, gamma: 1 / 2.2, isPalette: false, hasAlpha: false, inactiveAlpha: false, alphaBlend: false, alphaSeparate: false }, charcoalPixelSteps(edges, geometry, im.writeMask, channels, virtualPixel, background, intensity), signal, edges, im.writeMask ? [edges, im.writeMask] : [edges]);
+                if (im.metaChannels) {
+                    result.metaChannels = [];
+                    for (const plane of im.metaChannels) result.metaChannels.push(yield* createSolidRgbaImageSteps(result.width, result.height, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16));
+                }
                 return { ...result, ...(im.region ? { region: { ...im.region } } : {}), ...(im.writeMask ? { writeMask: { ...im.writeMask } } : {}) };
             });
         }
@@ -15198,6 +15202,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (image.storedWriteMask) edges = await transformStoredMagickRaster(edges, backend, writeMaskPixelSteps(edges, image.storedWriteMask), signal, edges, [edges, image, image.storedWriteMask]);
                 const { magickColorspace: ignoredSpace, storedHueSamples: ignoredHue, ...metadata } = edges;
                 const result = await transformStoredMagickRaster({ ...metadata, space: "b-w", channels: 1, gamma: 1 / 2.2, isPalette: false, hasAlpha: false, inactiveAlpha: false, alphaBlend: false, alphaSeparate: false }, backend, charcoalPixelSteps(edges, geometry, image.storedWriteMask, channels, virtualPixel, background, intensity), signal, edges, image.storedWriteMask ? [edges, image.storedWriteMask] : [edges]);
+                if (image.storedMetaChannels) {
+                    result.storedMetaChannels = [];
+                    for (const plane of image.storedMetaChannels) result.storedMetaChannels.push(await createStoredCanvas(result.width, result.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal, !!plane.storedData16));
+                }
                 return { ...result, ...(image.region ? { region: { ...image.region } } : {}), ...(image.storedWriteMask ? { storedWriteMask: { ...image.storedWriteMask } } : {}) };
             });
         } else if (!operandsOnly && token === "-sketch") {

@@ -1,3 +1,4 @@
+import { discardDisassociatedAlpha } from "./alpha-state.js";
 import { cropReadMaskSteps, cropStoredReadMask } from "./crop-read-mask.js";
 import { decodeMagickImage as decodeImage } from "./image-raster.js";
 import { renderFontCaption } from "./font/caption.js";
@@ -5133,12 +5134,6 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
     return virtualCanvas ? { ...resized, virtualCanvas } : resized;
 }
 
-function discardDisassociatedAlpha<T extends ImageMetadata>(image: T): T {
-    if (image.hasAlpha || image.inactiveAlpha !== true || image.alphaBlend !== false) return image;
-    return { ...image, inactiveAlpha: false, alphaSeparate: false,
-        channels: image.space === "cmyk" ? 4 : image.channels <= 2 ? 1 : 3 };
-}
-
 function magickRotateCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, angle: number) {
     const rotation = ((angle % 360) + 360) % 360;
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
@@ -5361,7 +5356,7 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
         const metaChannels: BaseRgbaImage[] | undefined = area && img.metaChannels ? [] : undefined;
         if (metaChannels && area) for (const plane of img.metaChannels!) metaChannels.push(yield* extractImageSteps(plane, area));
         tiles.push(area ? {
-            ...(yield* extractImageSteps(img, area)),
+            ...(yield* extractImageSteps(discardDisassociatedAlpha(img), area)),
             ...(metaChannels ? { metaChannels } : {}),
             ...(img.region ? { region: { ...img.region, x: img.region.x - area.left, y: img.region.y - area.top } } : {}),
             ...(img.readMask ? { readMask: yield* cropReadMaskSteps(img.readMask as RgbaImage, area) } : {}),
@@ -14480,8 +14475,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = tokens[++i] ?? (token === "-roll" ? "+0+0" : "0x0"), settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
+                const source = image;
                 const captured = { ...settings, virtualPixel: image.virtualPixel ?? "edge" };
-                const expanded = await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ }, async () => ({ image, storage: backend.storage }), signal, images);
+                const expanded = await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx, sceneIdx: sceneIdx++ }, async () => ({ image: source, storage: backend.storage }), signal, images);
                 if (token === "-splice") validateMagickSpliceGeometry(expanded);
                 else validateMagickTransformGeometry(expanded, token);
                 image = discardDisassociatedAlpha(image);
@@ -14877,7 +14873,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         const storedMetaChannels: BaseStoredRgbaImage[] | undefined = area && image.storedMetaChannels ? [] : undefined;
                         if (storedMetaChannels && area) for (const plane of image.storedMetaChannels!) storedMetaChannels.push(await transformStoredImage(plane, backend.storage, { kind: "extract", ...area }, signal));
                         await frames.push(magickCropViewport(image, area ? {
-                            ...await transformStoredImage(image, backend.storage, { kind: "extract", ...area }, signal),
+                            ...await transformStoredImage(discardDisassociatedAlpha(image), backend.storage, { kind: "extract", ...area }, signal),
                             ...(storedMetaChannels ? { storedMetaChannels } : {}),
                             ...(image.region ? { region: { ...image.region, x: image.region.x - area.left, y: image.region.y - area.top } } : {}),
                             ...(image.readMask ? { readMask: await cropStoredReadMask(image.readMask as StoredRgbaImage, area, backend.storage, signal) } : {}),

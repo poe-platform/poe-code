@@ -1,3 +1,4 @@
+import { discardDisassociatedAlpha } from "./alpha-state.js";
 import { cropReadMaskSteps, cropStoredReadMask } from "./crop-read-mask.js";
 import { extractImageSteps, transformStoredImage, type ImageByteStorage, type RgbaColor, type RgbaImage as BaseRgbaImage, type StoredRgbaImage as BaseStoredRgbaImage } from "@poe-code/image-ast/portable";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -194,6 +195,7 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
     }
     if (next.value && next.value.left < image.width && next.value.top < image.height) {
         const area = cropTrimBounds(next.value, image.width, image.height, minSize);
+        image = discardDisassociatedAlpha(image);
         let cropped: RgbaImage = yield* extractImageSteps(image, area);
         if (image.hueSamples) {
             const hueSamples = new Float64Array(cropped.width * cropped.height * 4);
@@ -254,6 +256,7 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     }
     if (next.value && next.value.left < image.width && next.value.top < image.height) {
         const area = cropTrimBounds(next.value, image.width, image.height, minSize);
+        image = discardDisassociatedAlpha(image);
         return {
             ...await transformStoredImage(image, storage, { kind: "extract", ...area }, signal),
             ...("readMask" in image && image.readMask ? { readMask: await cropStoredReadMask(image.readMask as StoredRgbaImage, area, storage, signal) } : {}),

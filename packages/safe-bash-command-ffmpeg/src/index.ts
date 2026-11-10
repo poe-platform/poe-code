@@ -80,7 +80,7 @@ import { isStdin, rethrowRuntimeError, createInputReader, loadManifestResources,
   type MediaCommandsOptions as FfmpegCommandsOptions } from "safe-bash-command-ffprobe/media";
 export type { MediaCommandsOptions as FfmpegCommandsOptions } from "safe-bash-command-ffprobe/media";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { resampleAudio } from "./audio-resample.js";
+import { convertAudioSampleFormat, resampleAudio } from "./audio-resample.js";
 import { resampleStreamselectInput } from "./audio-astreamselect-resample.js";
 import { resampleSoxr } from "./audio-soxr.js";
 import { filterTempo } from "./audio-tempo.js";
@@ -11203,14 +11203,94 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }, context.signal);
                         }
                       } else if (trimmed === "aresample" || trimmed.startsWith("aresample=")) {
-                        const [key, raw, extra] = trimmed.slice("aresample=".length).split("=");
-                        if (trimmed === "aresample" || raw === undefined ||
-                          key === "osr" || key === "out_sample_rate" || key === "sample_rate") {
-                          const argument = raw ?? key;
-                          const rate = trimmed === "aresample" ? 0 : Math.round(parseFilterExpression(argument!, "aresample", {}));
-                          if (extra !== undefined || rate < 0 || rate > 2147483647) {
-                            throw new Error("aresample: invalid sample rate");
+                        let rate: number | undefined = trimmed === "aresample" ? 0 : undefined;
+                        let format: string | undefined;
+                        const options = trimmed === "aresample" ? [] : trimmed.slice("aresample=".length).split(":");
+                        if (options.at(-1) === "") options.pop();
+                        for (const [position, option] of options.entries()) {
+                          const [key, raw, extra] = option.split("=");
+                          if (position === 0 && raw === undefined ||
+                            key === "osr" || key === "out_sample_rate" || key === "sample_rate") {
+                            rate = Math.round(parseFilterExpression((raw ?? key)!, "aresample", {}));
+                            if (extra !== undefined || rate < 0 || rate > 2147483647) {
+                              throw new Error("aresample: invalid sample rate");
+                            }
+                            continue;
                           }
+                          if (key === "osf" || key === "out_sample_fmt") {
+                            if (extra !== undefined || !["u8", "u8p", "s16", "s16p", "s32", "s32p", "s64", "s64p", "flt", "fltp", "dbl", "dblp"].includes(raw ?? "")) {
+                              throw new Error(`aresample: unsupported sample format ${raw ?? ""}`);
+                            }
+                            format = raw;
+                            continue;
+                          }
+                          if (key === "lfe_mix_level") {
+                            lfeLevel = Number(raw);
+                            if (!raw?.trim() || extra !== undefined || !Number.isFinite(lfeLevel) || Math.abs(lfeLevel) > 32) {
+                              throw new Error("aresample: LFE mix level must be a number between -32 and 32");
+                            }
+                            continue;
+                          }
+                          if (key === "rematrix_volume") {
+                            remixVolume = Number(raw);
+                            if (!raw?.trim() || extra !== undefined || !Number.isFinite(remixVolume) || Math.abs(remixVolume) > 1000) {
+                              throw new Error("aresample: rematrix_volume must be a number between -1000 and 1000");
+                            }
+                            continue;
+                          }
+                          if (key === "slev" || key === "surround_mix_level") {
+                            surroundLevel = Number(raw);
+                            if (!raw?.trim() || extra !== undefined || !Number.isFinite(surroundLevel) || Math.abs(surroundLevel) > 32) {
+                              throw new Error("aresample: surround mix level must be a number between -32 and 32");
+                            }
+                            continue;
+                          }
+                          if (key === "rematrix_maxval") {
+                            matrixMaxval = Number(raw);
+                            if (!raw?.trim() || extra !== undefined || !Number.isFinite(matrixMaxval) || matrixMaxval < 0 || matrixMaxval > 1000) {
+                              throw new Error("aresample: rematrix_maxval must be a number between 0 and 1000");
+                            }
+                            continue;
+                          }
+                          if (key === "clev" || key === "center_mix_level") {
+                            mixLevel = Number(raw);
+                            if (!raw?.trim() || extra !== undefined || !Number.isFinite(mixLevel) || Math.abs(mixLevel) > 32) {
+                              throw new Error("aresample: center mix level must be a number between -32 and 32");
+                            }
+                            continue;
+                          }
+                          const firstPts = Number(raw);
+                          if (key !== "first_pts" || !raw?.trim() || extra !== undefined || !Number.isSafeInteger(firstPts)) {
+                            throw new Error("aresample: expected first_pts with an integer sample timestamp");
+                          }
+                          const start = audioTimestamps?.[0]?.pts ?? audioStartSample;
+                          const offset = start - firstPts;
+                          // libswresample's default minimum compensation is 1 ms.
+                          if (Math.abs(offset) / origRate > 0.001) {
+                            const inputLength = stretched[0]?.length ?? 0;
+                            const length = Math.max(0, inputLength + offset);
+                            if (!Number.isSafeInteger(length)) throw new Error("aresample: output sample count is too large");
+                            budget.checkDuration(length / origRate);
+                            if (offset > 0) {
+                              budget.allocateMemory(length * stretched.length * Float64Array.BYTES_PER_ELEMENT);
+                              stretched = await mapWork(stretched, async channel => {
+                                const output = new Float64Array(length);
+                                for (let i = 0; i < channel.length; i += 16384) {
+                                  await yieldTurn(context.signal);
+                                  context.signal?.throwIfAborted();
+                                  budget.checkCpu();
+                                  output.set(channel.subarray(i, i + 16384), offset + i);
+                                }
+                                return output;
+                              }, context.signal);
+                            } else {
+                              stretched = stretched.map(channel => channel.subarray(Math.min(inputLength, -offset)));
+                            }
+                          }
+                          audioStartSample = firstPts;
+                          audioTimestamps = undefined;
+                        }
+                        if (rate !== undefined || format !== undefined) {
                           const targetRate = rate || (index === undefined ? undefined : audioRate) || origRate;
                           if (targetRate !== origRate) {
                             const length = Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate);
@@ -11232,73 +11312,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             });
                             origRate = targetRate;
                           }
-                          continue;
                         }
-                        if (key === "lfe_mix_level") {
-                          lfeLevel = Number(raw);
-                          if (!raw?.trim() || extra !== undefined || !Number.isFinite(lfeLevel) || Math.abs(lfeLevel) > 32) {
-                            throw new Error("aresample: LFE mix level must be a number between -32 and 32");
-                          }
-                          continue;
+                        if (format !== undefined) {
+                          stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
+                          filteredSampleFormat = panSampleFormat = format;
                         }
-                        if (key === "rematrix_volume") {
-                          remixVolume = Number(raw);
-                          if (!raw?.trim() || extra !== undefined || !Number.isFinite(remixVolume) || Math.abs(remixVolume) > 1000) {
-                            throw new Error("aresample: rematrix_volume must be a number between -1000 and 1000");
-                          }
-                          continue;
-                        }
-                        if (key === "slev" || key === "surround_mix_level") {
-                          surroundLevel = Number(raw);
-                          if (!raw?.trim() || extra !== undefined || !Number.isFinite(surroundLevel) || Math.abs(surroundLevel) > 32) {
-                            throw new Error("aresample: surround mix level must be a number between -32 and 32");
-                          }
-                          continue;
-                        }
-                        if (key === "rematrix_maxval") {
-                          matrixMaxval = Number(raw);
-                          if (!raw?.trim() || extra !== undefined || !Number.isFinite(matrixMaxval) || matrixMaxval < 0 || matrixMaxval > 1000) {
-                            throw new Error("aresample: rematrix_maxval must be a number between 0 and 1000");
-                          }
-                          continue;
-                        }
-                        if (key === "clev" || key === "center_mix_level") {
-                          mixLevel = Number(raw);
-                          if (!raw?.trim() || extra !== undefined || !Number.isFinite(mixLevel) || Math.abs(mixLevel) > 32) {
-                            throw new Error("aresample: center mix level must be a number between -32 and 32");
-                          }
-                          continue;
-                        }
-                        const firstPts = Number(raw);
-                        if (key !== "first_pts" || !raw?.trim() || extra !== undefined || !Number.isSafeInteger(firstPts)) {
-                          throw new Error("aresample: expected first_pts with an integer sample timestamp");
-                        }
-                        const start = audioTimestamps?.[0]?.pts ?? audioStartSample;
-                        const offset = start - firstPts;
-                        // libswresample's default minimum compensation is 1 ms.
-                        if (Math.abs(offset) / origRate > 0.001) {
-                          const inputLength = stretched[0]?.length ?? 0;
-                          const length = Math.max(0, inputLength + offset);
-                          if (!Number.isSafeInteger(length)) throw new Error("aresample: output sample count is too large");
-                          budget.checkDuration(length / origRate);
-                          if (offset > 0) {
-                            budget.allocateMemory(length * stretched.length * Float64Array.BYTES_PER_ELEMENT);
-                            stretched = await mapWork(stretched, async channel => {
-                              const output = new Float64Array(length);
-                              for (let i = 0; i < channel.length; i += 16384) {
-                                await yieldTurn(context.signal);
-                                context.signal?.throwIfAborted();
-                                budget.checkCpu();
-                                output.set(channel.subarray(i, i + 16384), offset + i);
-                              }
-                              return output;
-                            }, context.signal);
-                          } else {
-                            stretched = stretched.map(channel => channel.subarray(Math.min(inputLength, -offset)));
-                          }
-                        }
-                        audioStartSample = firstPts;
-                        audioTimestamps = undefined;
                       } else if (trimmed === "apad" || trimmed.startsWith("apad=")) {
                         const options: Record<string, number | undefined> = {};
                         let packetSize = 4096;
@@ -11394,10 +11412,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           let resampleRate = origRate;
                           if (!reframe && next?.split("=", 1)[0]!.split("@", 1)[0] === "aresample") {
                             const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "0";
-                            const [key, raw, extra] = argument.split("=");
-                            if (extra === undefined && (raw === undefined || ["osr", "out_sample_rate", "sample_rate"].includes(key!))) {
-                              resampleRate = Math.round(parseFilterExpression(raw ?? key!, "aresample", {}))
-                                || (index === undefined ? undefined : audioRate) || origRate;
+                            resampleRate = (index === undefined ? undefined : audioRate) || origRate;
+                            for (const [position, option] of argument.split(":").entries()) {
+                              const [key, raw, extra] = option.split("=");
+                              if (extra === undefined && (position === 0 && raw === undefined || ["osr", "out_sample_rate", "sample_rate"].includes(key!))) {
+                                resampleRate = Math.round(parseFilterExpression(raw ?? key!, "aresample", {}))
+                                  || (index === undefined ? undefined : audioRate) || origRate;
+                              }
                             }
                           }
                           const resampleSupport = resampleRate > 0 && resampleRate !== origRate
@@ -12222,34 +12243,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const format = formats.includes(filteredSampleFormat) ? filteredSampleFormat
                               : formats.reduce((best, candidate) => score(best) < score(candidate) ? best : candidate);
                             if (!autoConversionFilters && format !== filteredSampleFormat) throw new Error(audioConversionDisabled);
-                            panSampleFormat = format;
-                            const truncate = (format === "u8" || format === "u8p") && ["u8", "u8p", "s16", "s16p", "s32", "s32p", "s64", "s64p"].includes(filteredSampleFormat);
-                            filteredSampleFormat = format;
-                            if (format === "dbl" || format === "dblp") continue;
-                            const floating = format === "flt" || format === "fltp";
-                            const scale = format === "u8" || format === "u8p" ? 128 : format === "s32" || format === "s32p" ? 2147483648
-                              : format === "s64" || format === "s64p" ? 2 ** 63 : 32768;
-                            const output = stretched.map(channel => new Float64Array(channel.length));
-                            for (let i = 0; i < stretched[0]!.length; i++) {
-                              if (i % 4096 === 0) {
-                                await yieldTurn(context.signal);
-                                context.signal?.throwIfAborted();
-                                budget.checkCpu();
-                              }
-                              for (let c = 0; c < stretched.length; c++) {
-                                if (floating) {
-                                  output[c]![i] = Math.fround(stretched[c]![i]!);
-                                  continue;
-                                }
-                                const sample = stretched[c]![i]! * scale;
-                                // Integer PCM narrows by discarding low bits; floating PCM rounds to nearest even.
-                                const lower = Math.floor(sample);
-                                const quantized = truncate ? lower : sample - lower === 0.5
-                                  ? lower + Math.abs(lower % 2) : Math.round(sample);
-                                output[c]![i] = Math.max(-scale, Math.min(scale - 1, quantized)) / scale;
-                              }
-                            }
-                            stretched = output;
+                            stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
+                            filteredSampleFormat = panSampleFormat = format;
                             continue;
                           }
                           if (key !== "channel_layouts" && key !== "cl") throw new Error(`aformat: unsupported option ${key}`);

@@ -134,3 +134,37 @@ export async function resampleAudio(
   }
   return output;
 }
+
+export async function convertAudioSampleFormat(
+  channels: readonly (Float32Array | Float64Array)[], source: string, format: string,
+  budget: MediaBudgetTracker, signal?: AbortSignal
+): Promise<readonly (Float32Array | Float64Array)[]> {
+  const truncate = (format === "u8" || format === "u8p") && ["u8", "u8p", "s16", "s16p", "s32", "s32p", "s64", "s64p"].includes(source);
+  if (format === "dbl" || format === "dblp") return channels;
+  const floating = format === "flt" || format === "fltp";
+  const scale = format === "u8" || format === "u8p" ? 128 : format === "s32" || format === "s32p" ? 2147483648
+    : format === "s64" || format === "s64p" ? 2 ** 63 : 32768;
+  const ChannelArray = floating ? Float32Array : Float64Array;
+  budget.allocateMemory((channels[0]?.length ?? 0) * channels.length * ChannelArray.BYTES_PER_ELEMENT);
+  const output = channels.map(channel => new ChannelArray(channel.length));
+  for (let i = 0; i < channels[0]!.length; i++) {
+    if (i % 4096 === 0) {
+      await yieldTurn(signal);
+      signal?.throwIfAborted();
+      budget.checkCpu();
+    }
+    for (let c = 0; c < channels.length; c++) {
+      if (floating) {
+        output[c]![i] = channels[c]![i]!;
+        continue;
+      }
+      const sample = channels[c]![i]! * scale;
+      // Integer PCM narrows by discarding low bits; floating PCM rounds to nearest even.
+      const lower = Math.floor(sample);
+      const quantized = truncate ? lower : sample - lower === 0.5
+        ? lower + Math.abs(lower % 2) : Math.round(sample);
+      output[c]![i] = Math.max(-scale, Math.min(scale - 1, quantized)) / scale;
+    }
+  }
+  return output;
+}

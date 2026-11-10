@@ -2637,11 +2637,10 @@ async function applyVideoFilterChain(
         throw new Error("negate: unknown option");
       }
       const components = named.components ?? (positional[0]?.includes("=") ? undefined : positional[0] || undefined);
-      const alpha = (named.negate_alpha ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "0").toLowerCase();
-      if (!["", "0", "1", "true", "false", "yes", "no", "on", "off"].includes(alpha)) {
-        throw new Error("negate: invalid negate_alpha boolean");
-      }
-      const negateAlpha = ["1", "true", "yes", "on"].includes(alpha);
+      const negateAlpha = parseFilterBoolean(
+        named.negate_alpha ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "0",
+        "negate: invalid negate_alpha boolean"
+      );
       const flags = components ?? "0";
       const relative = flags.startsWith("+") || flags.startsWith("-");
       let mask = relative ? 0b0111111 : 0;
@@ -2669,8 +2668,9 @@ async function applyVideoFilterChain(
         const available = planar ? 0b0111000 : gray ? (pixelFormat === "ya8" ? 0b1001000 : 0b0001000) :
           pixelFormat === "rgb24" || pixelFormat === "bgr24" ? 0b0000111 : 0b1000111;
         // An unchanged all-color default selects only the negotiated format's components.
+        // RGBA alpha is selected by components; grayscale alpha also honors negate_alpha.
         const selected = (components === undefined || relative && mask === 0b0111111 ? available & 0b0111111 : mask) |
-          (negateAlpha ? available & 0b1000000 : 0);
+          (pixelFormat === "ya8" && negateAlpha ? 0b1000000 : 0);
         if (selected & ~available) throw new Error("negate: Requested components not available");
         if (named.enable !== undefined && !(Math.abs(parseFilterExpression(named.enable, "negate enable", {
           n, t: f.ptsSeconds, w: f.width, h: f.height, pos: f.offset ?? NaN, NAN: NaN, INF: Infinity

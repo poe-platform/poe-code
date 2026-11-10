@@ -490,11 +490,39 @@ describe("negate timeline", () => {
   }
 });
 
+describe("negate alpha boolean aliases", () => {
+  for (const alias of ["y", "n", "enabled", "disabled", "Y", "N", "ENABLED", "DISABLED", "enable", "disable", "1", "0"]) {
+    for (const components of [undefined, "r", "r+g+b+a"]) {
+      it(`accepts ${alias} with components=${components ?? "default"} and matches native RGBA`, async () => {
+        const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
+        const input = encodeImage({ width: 2, height: 1,
+          data: new Uint8Array([17, 58, 99, 140, 41, 187, 111, 127]),
+          format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true
+        }, { format: "png" }).data;
+        const vfs = createTestVfs({ "/in.png": input });
+        const filter = components === undefined ? `negate=negate_alpha=${alias}` : `negate=${components}:${alias}`;
+        const result = await runCmd(createFfmpegCommand(), [
+          "-i", "/in.png", "-vf", filter, "-frames:v", "1", "/out.png"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.deepEqual([...decodeImage(vfs.store.get("/out.png")!).data],
+          components === "r" ? [238, 58, 99, 140, 214, 187, 111, 127] :
+          components === "r+g+b+a" ? [238, 197, 156, 115, 214, 68, 144, 128] :
+          [238, 197, 156, 140, 214, 68, 144, 127]);
+        assert.deepEqual(vfs.store.get("/in.png"), input);
+      });
+    }
+  }
+});
+
 describe("negate RGBA components", () => {
   for (const [filter, expected] of [
     ["negate", [245, 215, 165, 64, 235, 205, 155, 192]],
-    ["negate=negate_alpha=true", [245, 215, 165, 191, 235, 205, 155, 63]],
-    ["negate=r:yes", [245, 40, 90, 191, 235, 50, 100, 63]],
+    ["negate=negate_alpha=true", [245, 215, 165, 64, 235, 205, 155, 192]],
+    ["negate=r:yes", [245, 40, 90, 64, 235, 50, 100, 192]],
+    ["negate=components=r:negate_alpha=1", [245, 40, 90, 64, 235, 50, 100, 192]],
+    ["negate=components=r:negate_alpha=0", [245, 40, 90, 64, 235, 50, 100, 192]],
+    ["negate=components=r+a:negate_alpha=1", [245, 40, 90, 191, 235, 50, 100, 63]],
     ["negate=negate_alpha=off", [245, 215, 165, 64, 235, 205, 155, 192]],
     ["negate=components=r+a", [245, 40, 90, 191, 235, 50, 100, 63]],
     ["negate=components=a", [10, 40, 90, 191, 20, 50, 100, 63]],

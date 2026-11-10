@@ -12,7 +12,6 @@ export type LookupInterpolation = "background" | "blend" | "bilinear" | "nearest
 
 function* sampleLookup(lut: { width: number; height: number }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation, background: RgbaColor = { r: 255, g: 255, b: 255, a: 255 }, virtualPixel: VirtualPixelMethod = "edge"): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
     if (interpolation === "background") return [background.r, background.g, background.b, background.a].map(value => value * (highDepth ? 257 : 1));
-    if (interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported lookup interpolation: ${interpolation}`);
     const nearest = interpolation === "nearest", single = nearest || interpolation === "integer";
     const averageSize = interpolation === "average" ? 2 : interpolation === "average9" ? 3 : interpolation === "average16" ? 4 : 0;
     // Odd neighborhoods center on the nearest pixel; even ones straddle floor(x/y).
@@ -39,11 +38,19 @@ function* sampleLookup(lut: { width: number; height: number }, x: number, y: num
             ? dx <= dy ? [1 - dy, 0, dy - dx, dx] : [1 - dx, dx - dy, 0, dy]
             : dx <= 1 - dy ? [1 - dx - dy, dx, dy, 0] : [0, 1 - dy, 1 - dx, dx + dy - 1];
     }
-    const size = single ? 1 : averageSize || 2;
+    const cubic = interpolation === "catrom" || interpolation === "spline";
+    const weights = cubic ? [dx, dy].map(delta => {
+        const alpha = 1 - delta;
+        const first = interpolation === "catrom" ? -0.5 * delta * alpha * alpha : alpha ** 3 / 6;
+        const last = interpolation === "catrom" ? -0.5 * delta * delta * alpha : delta ** 3 / 6;
+        const beta = last - first;
+        return [first, alpha - first + beta, delta - last - beta, last];
+    }) : undefined;
+    const size = cubic ? 4 : single ? 1 : averageSize || 2;
     for (let row = 0; row < size; row++) for (let column = 0; column < size; column++) {
-        const weight = meshWeights?.[row * 2 + column] ?? (single ? 1 : averageSize ? 1 / (size * size) : (column ? dx : 1 - dx) * (row ? dy : 1 - dy));
+        const weight = meshWeights?.[row * 2 + column] ?? (weights ? weights[0]![column]! * weights[1]![row]! : single ? 1 : averageSize ? 1 / (size * size) : (column ? dx : 1 - dx) * (row ? dy : 1 - dy));
         if (!weight) continue;
-        const position = virtualPixelIndex(left + column, top + row, lut.width, lut.height, virtualPixel) * 4;
+        const position = virtualPixelIndex(left + column - (cubic ? 1 : 0), top + row - (cubic ? 1 : 0), lut.width, lut.height, virtualPixel) * 4;
         let pixel: ArrayLike<number> | undefined = meshPixels[row * 2 + column];
         if (!pixel && position < 0) {
             const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
@@ -55,7 +62,8 @@ function* sampleLookup(lut: { width: number; height: number }, x: number, y: num
             const bytes = (yield { kind: "read", highDepth, image: 1, position, length: 4 })!;
             pixel = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
         }
-        for (let channel = 0; channel < 3; channel++) values[channel]! += pixel[channel]! * weight * (single ? 1 : averageSize ? Number(pixel[3]! > 0) : pixel[3]!);
+        // Native cubic interpolation retains premultiplied colors without dividing by alpha.
+        for (let channel = 0; channel < 3; channel++) values[channel]! += pixel[channel]! * weight * (single ? 1 : averageSize ? Number(pixel[3]! > 0) : cubic ? pixel[3]! / (highDepth ? 65535 : 255) : pixel[3]!);
         values[3]! += pixel[3]! * weight;
     }
     if (interpolation === "bilinear" || interpolation === "blend" || interpolation === "mesh") for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
@@ -85,7 +93,8 @@ export function* clutPixelSteps(size: number, lut: { width: number; height: numb
         // Interpolation produces fractional Q16-HDRI samples even from byte inputs.
         const working = data.map(value => Math.fround(value * (highDepth ? 1 : 257)) / 257);
         yield { kind: "write", evaluate: true, position, data: new Uint8Array(working.buffer) };
-        const pixels = highDepth ? Uint16Array.from(data, Math.round) : Uint8Array.from(data, Math.round);
+        const rounded = data.map(value => Math.max(0, Math.min(highDepth ? 65535 : 255, Math.round(value))));
+        const pixels = highDepth ? Uint16Array.from(rounded) : Uint8Array.from(rounded);
         yield { kind: "write", highDepth, position, data: new Uint8Array(pixels.buffer) };
     }
 }

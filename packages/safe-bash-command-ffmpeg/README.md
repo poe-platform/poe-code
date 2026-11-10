@@ -182,7 +182,7 @@ Invalid expressions, unsupported flags, and unsupported options fail before repl
 
 `untile=3x1` splits contact sheets into frames in row order, including blank cells. It accepts `layout=3x1`, defaults to `6x5`, and requires sheet dimensions divisible by the grid.
 
-`tile=3x1:init_padding=1` leaves the first cell blank before placing input frames. Initial blank cells use the background color and participate in overlap; values at or above the frame capacity are ignored.
+`tile=3x1:init_padding=1` leaves the first cell blank before placing input frames. Initial blank cells use the background color and participate in overlap; values at or above the frame capacity are ignored. Rejected tile margins/padding return Linux FFmpeg status 222 when out of range or 234 when invalid; unknown options return 8 and unsupported `enable` returns 176, preserving existing output files.
 
 `tile=3x1:overlap=1` carries the last frame of each contact sheet into the next sheet. Overlap is capped at one less than `nb_frames` (or the grid capacity); a partial final sheet is padded with the tile background color. Tiling preserves decoded planar YUV samples, including chroma subsampling and 10/16-bit YUV444, without an RGB round trip. Numeric tile options (`nb_frames`, `margin`, `padding`, `overlap`, and `init_padding`) accept expressions and round to the nearest integer, with ties to even: `padding=1+1` uses two pixels and `margin=0.5` uses zero. Option bounds are checked before rounding; the rounded frame count must fit the grid.
 

@@ -208,7 +208,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
     const fractional = ["multiply", "rms", "rootmeansquare"].includes(operation);
-    const retainRange = ["add", "sum", "subtract"].includes(operation);
+    const retainRange = ["add", "sum", "subtract", "min", "max"].includes(operation);
     function* read(image: number, position: number, length: number): Generator<ConvolveRequest, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
         const working = retainRange || fractional ? yield { kind: "read", evaluate: true, image, position, length } : undefined;
         const input = working?.length ? working : (yield { kind: "read", highDepth, image, position, length })!;

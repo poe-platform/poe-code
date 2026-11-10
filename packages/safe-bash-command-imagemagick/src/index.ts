@@ -7860,7 +7860,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 const { hueSamples: ignoredCmyk, storedHueSamples: ignoredStoredCmyk, ...rgb } = image;
                 image = { ...rgb, space: "srgb", gamma: 1 / 2.2, channels: image.hasAlpha ? 4 : 3 };
             }
-            if (token !== "-grayscale" && space !== "lineargray" && (space === "rgb" || image.magickColorspace === "RGB" || linearGray)) {
+            if (token !== "-grayscale" && space !== "lineargray" && (space === "rgb" || !paletteType && image.magickColorspace === "RGB" || linearGray)) {
                 const linearize = space === "rgb";
                 const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
                 const input = image.evaluateSamples ?? image.data16 ?? image.data, range = image.evaluateSamples ? 255 : image.data16 ? 65535 : 255;

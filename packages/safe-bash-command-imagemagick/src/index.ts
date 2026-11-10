@@ -8333,7 +8333,7 @@ function* prepareGifFrames(stack: readonly MagickImage[], dither: MagickState["d
         const outputFrame = yield* prepareMagickOutput(stack[idx]!, "gif", dither, diffusionAmount);
         disposals.push(typeof outputFrame.disposal === "number" ? outputFrame.disposal : 0);
         const delay = outputFrame.delay?.[(stack[idx] as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0;
-        delays.push(format === "webp" && delay < 10 ? 100 : delay);
+        delays.push(format === "webp" && delay >= 0 && delay < 10 ? 100 : delay);
         for (let y = 0; y < outputFrame.height; y++) {
             if (++cooperativeWork % 64 === 0) yield;
             combined.set(outputFrame.data.subarray(y * outputFrame.width * 4, (y + 1) * outputFrame.width * 4), (idx * fw * fh + y * fw) * 4);
@@ -8385,7 +8385,7 @@ async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareF
             const frame = (await stack.get(index))!;
             const scene = frame[magickInput]?.sceneIdx ?? 0;
             const delay = await frame.storedDelay?.at(scene, { signal }) ?? frame.delay?.[scene] ?? 0;
-            return format === "webp" && delay < 10 ? 100 : delay;
+            return format === "webp" && delay >= 0 && delay < 10 ? 100 : delay;
         } }
     };
 }

@@ -39,7 +39,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
             expect(result.exitCode).toBe(0);
             expect(diagnostic).toBe("");
             expect(readImageMetadata(output)).toMatchObject({
-              pages: 2, delay: delay === undefined ? [160, 360] : [Number(delay) * 10, Number(delay) * 10],
+              pages: 2, delay: delay === undefined ? [160, 360] : delay === "0" ? [100, 100] : [Number(delay) * 10, Number(delay) * 10],
             });
             for (const page of [0, 1]) {
               const pixels = decodeImage(output, { page }).data;

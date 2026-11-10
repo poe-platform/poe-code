@@ -3056,6 +3056,7 @@ async function applyVideoFilterChain(
       for (const [index, part] of (argStr ? positional : []).entries()) {
         const separator = part.indexOf("=");
         const key = separator < 0 ? keys[index] : part.slice(0, separator).trim();
+        if (key === "enable") throw new Error("fps: timeline is unsupported");
         if (!key || !keys.includes(key)) throw new Error(`fps: unsupported option ${key ?? part}`);
         options[key] = (separator < 0 ? part : part.slice(separator + 1)).trim();
       }
@@ -3066,9 +3067,11 @@ async function applyVideoFilterChain(
       if (targetFps <= 0) throw new Error("fps: frame rate must be positive");
       const startTime = options.start_time === undefined ? undefined : parseFilterExpression(options.start_time, "fps", {});
       if (options.round !== undefined && !["zero", "inf", "down", "up", "near", "0", "1", "2", "3", "5"].includes(options.round)) {
+        if (Number(options.round) < 0 || Number(options.round) > 5) throw new RangeError("fps: invalid round value");
         throw new Error("fps: invalid round value");
       }
       if (options.eof_action !== undefined && !["round", "pass", "0", "1"].includes(options.eof_action)) {
+        if (Number(options.eof_action) < 0 || Number(options.eof_action) > 1) throw new RangeError("fps: invalid eof_action value");
         throw new Error("fps: invalid eof_action value");
       }
       const rounding = options.round ?? "near";
@@ -14365,6 +14368,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "atempo: timeline is unsupported") return { exitCode: 176 };
             if (msg === "atempo: unknown option") return { exitCode: 8 };
             if (msg.startsWith("atempo:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg === "fps: timeline is unsupported") return { exitCode: 176 };
+            if (msg.startsWith("fps: unsupported option ")) return { exitCode: 8 };
+            if (msg === "fps: invalid round value" || msg === "fps: invalid eof_action value" ||
+                msg === "fps: invalid expression" || msg === "fps: invalid or unsupported expression") {
+              return { exitCode: err instanceof RangeError ? 222 : 234 };
+            }
             if (msg === "acontrast: timeline is unsupported") return { exitCode: 176 };
             if (msg === "acontrast: unknown option") return { exitCode: 8 };
             if (msg === "acontrast: invalid expression" || msg === "acontrast: invalid or unsupported expression") return { exitCode: 234 };

@@ -4054,7 +4054,7 @@ function parseMagickRotation(spec: string) {
         applies: (image: Pick<RgbaImage, "width" | "height">) => condition === ">" ? image.width > image.height : condition === "<" ? image.width < image.height : true
     };
 }
-function applyMagickDistortViewport(plan: WarpPlan, image: Pick<RgbaImage, "width" | "height">, viewport: string | undefined, samplingOrigin: RgbaImage["virtualCanvas"], analysis: { warnings: string }): WarpPlan {
+function applyMagickDistortViewport(plan: WarpPlan, image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, viewport: string | undefined, samplingOrigin: RgbaImage["virtualCanvas"], analysis: { warnings: string }): WarpPlan {
     if (viewport === undefined) return plan;
     const geometry = parseMagickGeometry(viewport);
     if ((!geometry.hasOffset && geometry.width === undefined && geometry.height === undefined) ||
@@ -4070,7 +4070,7 @@ function applyMagickDistortViewport(plan: WarpPlan, image: Pick<RgbaImage, "widt
         const dx = x - (samplingOrigin?.x ?? 0), dy = y - (samplingOrigin?.y ?? 0);
         // Best-fit maps already include their page origin. Replace that
         // origin for both sampling and filter derivatives.
-        plan = { ...plan, width, height, virtualCanvas: { width, height, x, y },
+        plan = { ...plan, width, height, virtualCanvas: { ...(magickResizeCanvas(image, width, height) ?? { width, height }), x, y },
             map: (px, py) => original.map(px + dx, py + dy),
             ...(original.derivatives ? { derivatives: (px: number, py: number) => original.derivatives!(px + dx, py + dy) } : {}) };
     }

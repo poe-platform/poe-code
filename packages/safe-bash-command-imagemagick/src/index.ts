@@ -1191,7 +1191,7 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
             let value = cols >= 6 ? m[row * cols + 5]! * 255 : 0;
             for (let col = 0; col < 3; col++)
                 value += (col < cols ? m[row * cols + col]! : row === col ? 1 : 0) * (samples[i + col]! / scale);
-            if (cols >= 5) value += m[row * cols + 4]! * (samples[i + 3]! / scale);
+            if (cols >= 5 && img.hasAlpha) value += m[row * cols + 4]! * (samples[i + 3]! / scale);
             else if (channel === 3) value += samples[i + 3]! / scale;
             evaluateSamples[i + channel] = value;
             if (data16) data16[i + channel] = Math.round(Math.max(0, Math.min(65535, value * 257)));

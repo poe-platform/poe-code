@@ -1097,7 +1097,7 @@ function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | 
     }));
     const virtualCanvas = magickResizeCanvas(base, w, h);
     // Native sequence output retains the mask channel, with zero protection.
-    const writeMask = (typeof opRaw === "string" ? base.writeMask : stack.some(image => image.writeMask)) ? yield* createSolidRgbaImageSteps(w, h, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
+    const writeMask = (typeof opRaw === "string" ? base.writeMask : normalized.some(image => image.writeMask)) ? yield* createSolidRgbaImageSteps(w, h, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
     return { ...yield* applyMagickRasterSteps(base, (typeof opRaw === "string" ? evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16), state.seed ?? 0n, w) : polyPixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16))), signal, { ...base, width: w, height: h, hasAlpha: normalized.some(image => image.hasAlpha) }, normalized), writeMask, ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 

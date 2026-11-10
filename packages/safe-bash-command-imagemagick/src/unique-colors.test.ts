@@ -29,7 +29,7 @@ for (const arithmetic of [false, true]) for (const mode of ["sync", "map", "reta
     });
 }
 
-for (const arithmetic of [false, true]) for (const retained of [false, true]) it(`preserves exact leaf insertion order across chunks and table eviction (retained=${retained}, arithmetic=${arithmetic})`, async () => {
+for (const scale of [undefined, "1", "0.001"]) for (const retained of [false, true]) it(`preserves exact leaf insertion order across chunks and table eviction (retained=${retained}, scale=${scale})`, async () => {
     const palette = Array.from({ length: 2048 }, (_, i) => [0x4000 + (2047 - i) % 256, 0x4000 + Math.floor((2047 - i) / 256), 0x4000, 65535]).flat();
     const samples = Uint16Array.from([...palette, ...palette]);
     const bytes = encodeImage({ width: 2048, height: 2, format: "png", space: "srgb", channels: 3, density: 72, hasAlpha: false,
@@ -41,8 +41,9 @@ for (const arithmetic of [false, true]) for (const retained of [false, true]) it
         const value = Reflect.get(target, key, target);
         return typeof value === "function" ? value.bind(target) : value;
     } });
-    const evaluate = arithmetic ? ["-evaluate", "Add", "0"] : [];
-    const result = await runConvertCli(["/in.png", ...evaluate, "-unique-colors", ...evaluate, "/out.png"], retained ? { filesystem, cwd: "/" } : files);
+    const evaluate = scale ? ["-evaluate", "multiply", scale] : [];
+    const restore = scale ? ["-evaluate", "divide", scale] : [];
+    const result = await runConvertCli(["/in.png", ...evaluate, "-unique-colors", ...restore, "/out.png"], retained ? { filesystem, cwd: "/" } : files);
     expect(result.exitCode, result.stderr).toBe(0);
     const output = decodeImage(retained ? await fs.readFile("/out.png") : files.get("/out.png")!);
     expect([output.width, output.height]).toEqual([2048, 1]);

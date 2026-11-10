@@ -99,6 +99,15 @@ export function parseFilterExpression(expression: string, filter: string, variab
         else if (name === "ifnot" && (args.length === 2 || args.length === 3)) value = args[0] === 0 ? args[1]! : (args[2] ?? 0);
         else if (name === "gt" && args.length === 2) value = Number(args[0]! > args[1]!);
         else if (name === "pow" && args.length === 2) value = Math.pow(args[0]!, args[1]!);
+        else if ((name === "bitand" || name === "bitor") && args.length === 2) {
+          value = NaN;
+          if (args.every(Number.isFinite)) {
+            // Number bitwise operators truncate to 32 bits; FFmpeg uses int64 operands.
+            const left = BigInt(Math.trunc(args[0]!));
+            const right = BigInt(Math.trunc(args[1]!));
+            value = Number(name === "bitand" ? left & right : left | right);
+          }
+        }
         else if (name === "mod" && args.length === 2) value = args[0]! - Math.floor(args[0]! / args[1]!) * args[1]!;
         else if (name === "gcd" && args.length === 2) {
           value = Math.abs(Math.trunc(args[0]!));

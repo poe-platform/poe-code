@@ -10668,7 +10668,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         const lastFrame = audioTimestamps.at(-1);
-                        const paddingPts = lastFrame ? lastFrame.pts + lastFrame.end - lastFrame.start : audioStartSample;
+                        const paddingPts = lastFrame ? lastFrame.pts + lastFrame.end - lastFrame.start : 0;
                         if (padding === undefined && minimum === undefined) {
                           let nextIndex = filterIndex + 1;
                           let reframed = false;

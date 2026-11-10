@@ -7308,7 +7308,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const unsigned = threshold.startsWith("-") || threshold.startsWith("+") ? threshold.slice(1) : threshold;
             const hexadecimal = unsigned.startsWith("0x");
             const raw = hexadecimal ? Number(unsigned) * (threshold.startsWith("-") ? -1 : 1) : Number(threshold);
-            if (!Number.isFinite(raw) || (!hexadecimal && Number.parseFloat(threshold) !== raw)) {
+            if (hexadecimal ? !Number.isFinite(raw) : Number.parseFloat(threshold) !== raw) {
                 throw new Error(`invalid argument '-solarize' '${value}'`);
             }
             // A percent sign scales only when it immediately follows the number.

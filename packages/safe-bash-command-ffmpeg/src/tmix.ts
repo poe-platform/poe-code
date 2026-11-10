@@ -16,7 +16,7 @@ export async function tmix(
   if (!Number.isInteger(count) || count < 1 || count > 1024) {
     throw new Error("tmix: frames must be an integer from 1 to 1024");
   }
-  const supplied = (options.weights || "1").split(" ").filter(Boolean).map(Number);
+  const supplied = (options.weights || "1").split(" ").filter(Boolean).slice(0, count).map(Number);
   if (supplied.some(weight => !Number.isFinite(weight))) {
     throw new Error("tmix: weights must be finite numbers");
   }

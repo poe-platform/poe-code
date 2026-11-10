@@ -72,16 +72,66 @@ function signedOffset(text: string): number {
   return (match[1] === "-" ? -1 : 1) * (hours * 3600 + minutes * 60 + seconds);
 }
 
+function posixSeconds(text: string, maximumHours: number, input: string): number {
+  const match = /^([+-]?)(\d{1,3})(?::(\d{1,2}))?(?::(\d{1,2}))?$/.exec(text);
+  if (!match || Number(match[2]) > maximumHours || Number(match[3] ?? 0) > 59 || Number(match[4] ?? 0) > 59) {
+    throw new CommandFailure(`unsupported virtual TZ: ${input}`);
+  }
+  return (match[1] === "-" ? -1 : 1) * (Number(match[2]) * 3600 + Number(match[3] ?? 0) * 60 + Number(match[4] ?? 0));
+}
+
+interface TransitionRule {
+  readonly month: number;
+  readonly week: number;
+  readonly day: number;
+  readonly julian: boolean;
+  readonly seconds: number;
+}
+
+function transitionRule(text: string, input: string): TransitionRule {
+  const match = /^(?:M(\d{1,2})\.(\d)\.(\d)|(J?)(\d{1,3}))(?:\/(.+))?$/.exec(text);
+  if (!match) throw new CommandFailure(`unsupported virtual TZ: ${input}`);
+  const month = Number(match[1] ?? 0), week = Number(match[2] ?? 0);
+  const day = Number(match[3] ?? match[5]), julian = match[4] === "J";
+  if (match[1] !== undefined ? month < 1 || month > 12 || week < 1 || week > 5 || day > 6
+    : day < (julian ? 1 : 0) || day > 365) throw new CommandFailure(`unsupported virtual TZ: ${input}`);
+  return { month, week, day, julian, seconds: posixSeconds(match[6] ?? "2", 167, input) };
+}
+
+function transitionMilliseconds(rule: TransitionRule, year: number, offset: number): number {
+  let day = rule.day;
+  if (rule.month) {
+    const first = utcMilliseconds({ year, month: rule.month, day: 1, hour: 0, minute: 0, second: 0 });
+    day = 1 + (rule.day - new Date(first).getUTCDay() + 7) % 7 + (rule.week - 1) * 7;
+    const last = utcFields(utcMilliseconds({ year, month: rule.month + 1, day: 0, hour: 0, minute: 0, second: 0 })).day;
+    if (day > last) day -= 7;
+  } else if (rule.julian) {
+    if (day >= 60 && year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)) day++;
+  } else day++;
+  return utcMilliseconds({ year, month: rule.month || 1, day, hour: 0, minute: 0, second: 0 })
+    + (rule.seconds - offset) * 1000;
+}
+
 export class TimeZone {
   private readonly fixedOffset: number | undefined;
   private readonly formatter: Intl.DateTimeFormat | undefined;
   private readonly label: string;
+  private readonly daylight: { standardOffset: number; offset: number; label: string; start: TransitionRule; end: TransitionRule } | undefined;
 
   constructor(input: string, numericOffset = false) {
     const name = input.startsWith(":") ? input.slice(1) : input;
     this.label = name.startsWith("GMT") || name === "Etc/GMT" ? "GMT" : "UTC";
     if (numericOffset) this.fixedOffset = signedOffset(name);
     else if (["", "UTC", "UTC0", "GMT", "GMT0", "Etc/UTC", "Etc/GMT", "Z"].includes(name)) this.fixedOffset = 0;
+    else if (name.includes(",")) {
+      const seasonal = /^([A-Za-z]{3,}|<[A-Za-z0-9+-]{3,}>)([+-]?\d{1,2}(?::\d{1,2}){0,2})([A-Za-z]{3,}|<[A-Za-z0-9+-]{3,}>)([+-]?\d{1,2}(?::\d{1,2}){0,2})?,([^,]+),([^,]+)$/.exec(name);
+      if (!seasonal) throw new CommandFailure(`unsupported virtual TZ: ${input}`);
+      this.label = seasonal[1]!.startsWith("<") ? seasonal[1]!.slice(1, -1) : seasonal[1]!;
+      const standardOffset = -posixSeconds(seasonal[2]!, 24, input);
+      this.daylight = { standardOffset, offset: seasonal[4] === undefined ? standardOffset + 3600 : -posixSeconds(seasonal[4], 24, input),
+        label: seasonal[3]!.startsWith("<") ? seasonal[3]!.slice(1, -1) : seasonal[3]!,
+        start: transitionRule(seasonal[5]!, input), end: transitionRule(seasonal[6]!, input) };
+    }
     else {
       const fixed = /^([A-Za-z]{3,}|<[A-Za-z0-9+-]{3,}>)([+-]?)(\d{1,2})(?::(\d{2}))?(?::(\d{2}))?$/.exec(name);
       if (fixed) {
@@ -116,6 +166,27 @@ export class TimeZone {
       fields = utcFields(milliseconds + this.fixedOffset * 1000);
       offset = this.fixedOffset;
       zone = this.label;
+    } else if (this.daylight) {
+      offset = this.daylight.standardOffset;
+      zone = this.label;
+      let latest = -Infinity;
+      const year = utcFields(milliseconds).year;
+      // Adjacent years cover southern seasons and transition times outside their nominal day.
+      for (const transitionYear of [year - 1, year, year + 1]) {
+        const start = transitionMilliseconds(this.daylight.start, transitionYear, this.daylight.standardOffset);
+        const end = transitionMilliseconds(this.daylight.end, transitionYear, this.daylight.offset);
+        if (start <= milliseconds && start > latest) {
+          latest = start;
+          offset = this.daylight.offset;
+          zone = this.daylight.label;
+        }
+        if (end <= milliseconds && end > latest) {
+          latest = end;
+          offset = this.daylight.standardOffset;
+          zone = this.label;
+        }
+      }
+      fields = utcFields(milliseconds + offset * 1000);
     } else {
       const parts = Object.fromEntries(this.formatter!.formatToParts(new Date(milliseconds)).map(part => [part.type, part.value]));
       const year = Number(parts.year);

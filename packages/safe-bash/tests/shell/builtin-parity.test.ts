@@ -67,6 +67,27 @@ caller; printf 'global=%s\n' "$v"
   });
 }
 
+for (const [zone, epoch, stdout] of [
+  ["EST5EDT,M3.2.0/2,M11.1.0/2", 1710053999, "2024-03-10 01:59:59 -0500 EST"],
+  ["EST5EDT,M3.2.0/2,M11.1.0/2", 1710054000, "2024-03-10 03:00:00 -0400 EDT"],
+  ["EST5EDT,M3.2.0/2,M11.1.0/2", 1730613599, "2024-11-03 01:59:59 -0400 EDT"],
+  ["EST5EDT,M3.2.0/2,M11.1.0/2", 1730613600, "2024-11-03 01:00:00 -0500 EST"],
+  ["ACST-9:30ACDT,M10.1.0,M4.1.0/3", 1720000000, "2024-07-03 19:16:40 +0930 ACST"],
+  ["America/New_York", 1710054000, "2024-03-10 03:00:00 -0400 EDT"],
+  ["America/New_York", 1730613600, "2024-11-03 01:00:00 -0500 EST"],
+  ["CET-1", 1720000000, "2024-07-03 10:46:40 +0100 CET"],
+] as const) {
+  test(`printf virtual TZ ${zone} at ${epoch}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+    try {
+      const result = await shell.exec(`TZ='${zone}' LC_ALL=C printf '%(%F %T %z %Z)T' ${epoch}`);
+      assert.equal(result.stdout, stdout);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("read and mapfile extensions are public factories", () => {
   assert.equal(typeof publicApi.readExtension, "function");
   assert.equal(typeof publicApi.mapfileExtension, "function");

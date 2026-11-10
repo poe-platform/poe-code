@@ -11088,6 +11088,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
                 }
                 return { ...yield* rotateImageSteps(im, deg, state.background),
+                    ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* rotateImageSteps(plane, deg, state.background); }) } : {}),
                     ...(im.readMask ? { readMask: yield* rotateImageSteps(im.readMask as BaseRgbaImage, deg) } : {}),
                     ...(im.writeMask ? { writeMask: yield* rotateImageSteps(im.writeMask, deg, state.background) } : {}),
                     ...(im.region ? { region: rotateRegion(im.region, im, deg) } : {}), ...(im.virtualCanvas ? { virtualCanvas: magickRotateCanvas(im, deg) } : {}) };
@@ -11117,6 +11118,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* flipImageSteps(im),
+                    ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* flipImageSteps(plane); }) } : {}),
                     ...(im.readMask ? { readMask: yield* flipImageSteps(im.readMask as RgbaImage) } : {}),
                     ...(im.region ? { region: { ...im.region, y: im.height - im.region.y - im.region.height } } : {}),
                     ...(im.writeMask ? { writeMask: yield* flipImageSteps(im.writeMask) } : {}),
@@ -11127,6 +11129,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* flopImageSteps(im),
+                    ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* flopImageSteps(plane); }) } : {}),
                     ...(im.readMask ? { readMask: yield* flopImageSteps(im.readMask as RgbaImage) } : {}),
                     ...(im.region ? { region: { ...im.region, x: im.width - im.region.x - im.region.width } } : {}),
                     ...(im.writeMask ? { writeMask: yield* flopImageSteps(im.writeMask) } : {}),
@@ -11137,6 +11140,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* rotateImageSteps((yield* flipImageSteps(im)), 90, state.background),
+                    ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* rotateImageSteps((yield* flipImageSteps(plane)), 90, state.background); }) } : {}),
                     ...(im.readMask ? { readMask: yield* rotateImageSteps((yield* flipImageSteps(im.readMask as RgbaImage)), 90, state.background) } : {}),
                     ...(im.writeMask ? { writeMask: yield* rotateImageSteps((yield* flipImageSteps(im.writeMask)), 90, state.background) } : {}),
                     ...(im.region ? { region: orientRegion(im.region, { ...im, orientation: 5 }) } : {}),
@@ -11147,6 +11151,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* rotateImageSteps((yield* flopImageSteps(im)), 90, state.background),
+                    ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* rotateImageSteps((yield* flopImageSteps(plane)), 90, state.background); }) } : {}),
                     ...(im.readMask ? { readMask: yield* rotateImageSteps((yield* flopImageSteps(im.readMask as RgbaImage)), 90, state.background) } : {}),
                     ...(im.writeMask ? { writeMask: yield* rotateImageSteps((yield* flopImageSteps(im.writeMask)), 90, state.background) } : {}),
                     ...(im.region ? { region: orientRegion(im.region, { ...im, orientation: 7 }) } : {}),
@@ -11157,6 +11162,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 let output: RgbaImage = yield* applyExifOrientationSteps(im);
+                if (im.metaChannels) output.metaChannels = yield* mapSteps(im.metaChannels, function* (plane) { return yield* applyExifOrientationSteps({ ...plane, orientation: im.orientation ?? 1 }); });
                 if (im.readMask) output.readMask = yield* applyExifOrientationSteps({ ...im.readMask, orientation: im.orientation } as RgbaImage);
                 if (im.writeMask) output = { ...output, writeMask: yield* applyExifOrientationSteps({ ...im.writeMask, orientation: im.orientation ?? 1 }) };
                 if (im.region) output = { ...output, region: orientRegion(im.region, im) };
@@ -13685,13 +13691,19 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const background = state.background, kind = token === "-transpose" ? "flip" : "flop";
-            steps.push(async (image, backend) => image ? {
-                ...await transformStoredImage(await transformStoredImage(image, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal),
-                ...(image.readMask ? { readMask: await transformStoredImage(await transformStoredImage(image.readMask as StoredRgbaImage, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal) } : {}),
-                ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(await transformStoredImage(image.storedWriteMask, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal) } : {}),
-                ...(image.region ? { region: orientRegion(image.region, { ...image, orientation: kind === "flip" ? 5 : 7 }) } : {}),
-                virtualCanvas: magickTransposeCanvas(image, kind === "flop")
-            } : undefined);
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const storedMetaChannels = [];
+                for (const plane of image.storedMetaChannels ?? []) storedMetaChannels.push(await transformStoredImage(await transformStoredImage(plane, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal));
+                return {
+                    ...await transformStoredImage(await transformStoredImage(image, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal),
+                    ...(image.storedMetaChannels ? { storedMetaChannels } : {}),
+                    ...(image.readMask ? { readMask: await transformStoredImage(await transformStoredImage(image.readMask as StoredRgbaImage, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal) } : {}),
+                    ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(await transformStoredImage(image.storedWriteMask, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal) } : {}),
+                    ...(image.region ? { region: orientRegion(image.region, { ...image, orientation: kind === "flip" ? 5 : 7 }) } : {}),
+                    virtualCanvas: magickTransposeCanvas(image, kind === "flop")
+                };
+            });
         } else if (!operandsOnly && token === "-vignette") {
             let images: StoredImageStack;
             stackStep(async stack => {
@@ -14050,6 +14062,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 let output: StoredRgbaImage = await transformStoredImage(image, backend.storage, { kind }, signal);
+                if (image.storedMetaChannels) {
+                    output.storedMetaChannels = [];
+                    for (const plane of image.storedMetaChannels) output.storedMetaChannels.push(await transformStoredImage({ ...plane, orientation: image.orientation ?? 1 }, backend.storage, { kind }, signal));
+                }
                 if (image.readMask) output.readMask = await transformStoredImage({ ...image.readMask, orientation: image.orientation } as StoredRgbaImage, backend.storage, { kind }, signal);
                 if (image.storedWriteMask) output.storedWriteMask = await transformStoredImage({ ...image.storedWriteMask, orientation: image.orientation ?? 1 }, backend.storage, { kind }, signal);
                 if (image.region) output.region = kind === "autoOrient" ? orientRegion(image.region, image)
@@ -14104,8 +14120,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     ...(image.readMask ? { readMask: await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) } : {}),
                     ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
                 }
+                const storedMetaChannels = [];
+                for (const plane of image.storedMetaChannels ?? []) storedMetaChannels.push(await transformStoredImage(plane, backend.storage, { kind: "rotate", angle, background: settings.background }, signal));
                 return {
                     ...await transformStoredImage(image, backend.storage, { kind: "rotate", angle, background: settings.background }, signal),
+                    ...(image.storedMetaChannels ? { storedMetaChannels } : {}),
                     ...(image.readMask ? { readMask: await transformStoredImage(image.readMask as BaseStoredRgbaImage, backend.storage, { kind: "rotate", angle, background: settings.background }, signal) } : {}),
                     ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, backend.storage, { kind: "rotate", angle, background: settings.background }, signal) } : {}),
                     ...(image.region ? { region: rotateRegion(image.region, image, angle) } : {}),

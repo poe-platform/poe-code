@@ -2432,7 +2432,11 @@ function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, c
             const w = Math.max(1, Math.round(a.width * (1 - t) + b.width * t));
             const h = Math.max(1, Math.round(a.height * (1 - t) + b.height * t));
             const virtualCanvas = magickResizeCanvas(a, w, h);
-            out.push({ ...yield* applyMagickRasterSteps(a, morphPixelSteps(a, b, w, h, t, channels, !!(a.data16 || b.data16), kernel, settings), signal, { ...a, width: w, height: h }, [a, b]), ...(virtualCanvas ? { virtualCanvas } : {}) });
+            const source = a.region || a.writeMask ? yield* applyMagickResizeSteps(a, `${w}x${h}!`, kernel, false, false, false, settings) : a;
+            let frame = yield* applyMagickRasterSteps(source, morphPixelSteps(source, b, w, h, t, channels, !!(source.data16 || b.data16), kernel, settings), signal, { ...source, width: w, height: h }, [source, b]);
+            if (source.writeMask) frame = yield* applyMagickRasterSteps(frame, writeMaskPixelSteps(frame, source.writeMask, !!frame.data16, false, undefined, source.hasAlpha && source.alphaBlend !== false), signal, frame, [frame, source, source.writeMask]);
+            if (source.region) frame = yield* applyMagickRasterSteps(frame, regionPixelSteps(frame, source.region, !!frame.data16), signal, frame, [frame, source]);
+            out.push({ ...frame, ...(virtualCanvas ? { virtualCanvas } : {}) });
         }
     }
     out.push(stack[stack.length - 1]!);
@@ -11823,7 +11827,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             await yieldTurn(signal);
                             const fraction = step / (count + 1), width = Math.max(1, Math.round(a.width * (1 - fraction) + b.width * fraction)), height = Math.max(1, Math.round(a.height * (1 - fraction) + b.height * fraction));
                             const virtualCanvas = magickResizeCanvas(a, width, height);
-                            await result.push({ ...await transformStoredMagickRaster(a, backend, morphPixelSteps(a, b, width, height, fraction, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, !!(a.storedData16 || b.storedData16), settings.kernel, settings.resizeFilter), signal, { ...a, width, height }, [a, b]), ...(virtualCanvas ? { virtualCanvas } : {}) });
+                            const source = a.region || a.storedWriteMask ? await resizeStoredMagickImage(a, backend, magickResizeOptions(a, `${width}x${height}!`, settings.kernel), signal, false, false, false, settings.resizeFilter) : a;
+                            let frame = await transformStoredMagickRaster(source, backend, morphPixelSteps(source, b, width, height, fraction, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, !!(source.storedData16 || b.storedData16), settings.kernel, settings.resizeFilter), signal, { ...source, width, height }, [source, b]);
+                            if (source.storedWriteMask) frame = await transformStoredMagickRaster(frame, backend, writeMaskPixelSteps(frame, source.storedWriteMask, !!frame.storedData16, false, undefined, source.hasAlpha && source.alphaBlend !== false), signal, frame, [frame, source, source.storedWriteMask]);
+                            if (source.region) frame = await transformStoredMagickRaster(frame, backend, regionPixelSteps(frame, source.region, !!frame.storedData16), signal, frame, [frame, source]);
+                            await result.push({ ...frame, ...(virtualCanvas ? { virtualCanvas } : {}) });
                         }
                     }
                     await result.push((await stack.get(stack.length - 1))!); return result;

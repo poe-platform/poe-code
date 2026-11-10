@@ -247,7 +247,7 @@ export function* channelFxPixelSteps(inputs: readonly Pick<RgbaImage, "width" | 
     }
 }
 
-export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "height"> & { space?: RgbaImage["space"] | undefined; magickColorspace?: string | undefined })[], highDepth = false, intensity = "rec709luma"): Steps {
+export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "height"> & { space?: RgbaImage["space"] | undefined; magickColorspace?: string | undefined })[], highDepth = false, intensity = "rec709luma", gray = false): Steps {
     const { width, height } = inputs[0]!, chunkPixels = 512;
     // The storage planes are RGBA plus CMYK inks; reduce C, M, Y, alpha and K together.
     const cmyk = inputs[0]!.space === "cmyk", range = highDepth ? 65535 : 255;
@@ -279,8 +279,13 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
                     continue;
                 }
                 const value = magickIntensity(source[offset]!, source[offset + 1]!, source[offset + 2]!, intensity, highDepth ? 65535 : 255, sourceImage.magickColorspace === "RGB");
-                samples[offset + image] = highDepth ? value / 257 : value;
-                data[offset + image] = Math.round(value);
+                const channel = gray && image === 1 ? 3 : image;
+                samples[offset + channel] = highDepth ? value / 257 : value;
+                data[offset + channel] = Math.round(value);
+                if (gray && image === 0) {
+                    samples[offset + 1] = samples[offset + 2] = samples[offset]!;
+                    data[offset + 1] = data[offset + 2] = data[offset]!;
+                }
             }
         }
         if (inks) {

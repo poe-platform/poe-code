@@ -10362,7 +10362,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             all = parseFilterBoolean(value || "invalid", "adelay: invalid all option");
                           } else if (key === "enable") {
                             enable = value;
-                            parseFilterExpression(enable, "adelay enable", { n: 0, t: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity });
+                            parseFilterExpression(enable, "adelay enable", { n: 0, t: 0, pos: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity });
                           } else throw new Error(`adelay: unsupported option ${key}`);
                         }
                         const values = delays.split("|").filter(value => value !== "");
@@ -10440,7 +10440,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                               const inputPts = frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start - padding);
                               enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "adelay enable", {
-                                n, t: inputPts / origRate, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity
+                                n, t: inputPts / origRate, pos: packet?.offset ?? NaN, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity
                               })) >= 0.5;
                               n++;
                               end = Math.min(padding + inputLength, start + count);

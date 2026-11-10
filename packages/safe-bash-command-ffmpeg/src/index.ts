@@ -4252,7 +4252,7 @@ async function applyVideoFilterChain(
         if (key === undefined) throw new Error("loop: surplus positional option");
         if (key !== "loop" && key !== "size" && key !== "start" && key !== "time") throw new Error(`loop: unsupported option ${key}`);
         const text = (separator < 0 ? option : option.slice(separator + 1)).trim();
-        const value = key === "time" ? parseHlsDuration(text) : Number(text);
+        const value = key === "time" ? parseHlsDuration(text) : parseFilterExpression(text, "loop", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
         const max = key === "time" ? (2 ** 63 - 1) / 1_000_000
           : key === "loop" ? 2147483647 : key === "size" ? 32767 : 2 ** 63;
         if (!text || !Number.isFinite(value) || (key !== "time" && !Number.isInteger(value))) {
@@ -15390,6 +15390,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("apad: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("apad:")) return { exitCode: 222 };
             if (msg.startsWith("apad: invalid ") || msg === "apad: pad_len and whole_len are mutually exclusive") return { exitCode: 234 };
+            if (msg === "loop: invalid expression" || msg === "loop: invalid or unsupported expression") return { exitCode: 234 };
             if (msg.startsWith("apad packet_size:") || msg === "aloop: invalid expression" || msg === "aloop: invalid or unsupported expression" ||
                 msg === "dcshift: invalid expression" || msg === "dcshift: invalid or unsupported expression" ||
                 msg === "aeval: invalid expression" || msg === "aeval: invalid or unsupported expression") {

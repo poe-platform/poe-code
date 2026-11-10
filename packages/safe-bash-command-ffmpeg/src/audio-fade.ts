@@ -6,7 +6,7 @@ import { audioFadeCurves as curves } from "./audio-fade-curves.js";
 
 export async function fadeAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  frames: readonly { start: number; end: number; pts: number }[] | undefined, startSample: number,
+  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[] | undefined, startSample: number,
   commands: readonly { sample: number; action: string; expression: string }[],
   budget: MediaBudgetTracker, signal?: AbortSignal, sampleFormat = "dbl"
 ): Promise<Float64Array[]> {
@@ -51,7 +51,7 @@ export async function fadeAudio(
       curve = entries[index + 1]![1];
     } else if (key === "enable") {
       enable = value;
-      parseFilterExpression(enable, "afade enable", { n: 0, t: 0 });
+      parseFilterExpression(enable, "afade enable", { n: 0, t: 0, pos: NaN, w: 0 });
     } else {
       const time = key === "st" || key === "start_time" || key === "d" || key === "duration";
       const number = time
@@ -113,7 +113,8 @@ export async function fadeAudio(
     const frame = frames?.[frameIndex];
     if (enable !== undefined && (i === 0 || i === frame?.start)) {
       enabled = Math.abs(parseFilterExpression(enable, "afade enable", {
-        n: frameIndex, t: (frame?.pts ?? startSample) / sampleRate
+        n: frameIndex, t: (frame?.pts ?? startSample) / sampleRate,
+        pos: frame?.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0
       })) >= 0.5;
     }
     let pts = frame ? frame.pts + i - frame.start : startSample + i;

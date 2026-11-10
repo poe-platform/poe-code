@@ -11596,12 +11596,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             packetEnd += packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                           }
                           const frame = previous?.[frameIndex];
+                          if (frame) {
+                            // Advance the remaining input frame in whole time-base ticks,
+                            // retaining rounding from each earlier partial consumption.
+                            const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
+                            frame.pts += Math.round((start - frame.start) / samplesPerTick) * samplesPerTick;
+                            frame.start = start;
+                          }
                           // Consumption uses the preceding enable result. The first frame is
                           // always grouped; bypass then consumes the remaining input packet.
                           const end = Math.min(length, enabled ? start + reframe.size : frame?.end ?? packetEnd);
                           const output = { start: padded, end: padded + end - start,
                             pos: previous ? frame?.pos : t.samples[frameIndex]?.offset,
-                            pts: frame ? frame.pts + start - frame.start : audioStartSample + start };
+                            pts: frame ? frame.pts : audioStartSample + start };
                           enabled = reframe.enabled(output, audioTimestamps.length, origRate);
                           if (enabled && reframe.pad) output.end = Math.max(output.end, padded + reframe.size);
                           budget.checkSamples(output.end);

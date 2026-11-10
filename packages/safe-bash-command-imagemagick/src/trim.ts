@@ -110,7 +110,7 @@ export function* formatTrimBoundsSteps<Step = never>(
     load: (position: number, length: number) => Generator<Step, { data: Uint8Array; data16?: Uint16Array; evaluateSamples?: Float64Array }, void>,
     format: "trim-geometry" | "bounding-box",
     fuzz: number,
-    analysis?: { warnings: string },
+    analysis?: { warnings: string; boundsWarning?: boolean },
     edges?: string,
     percentBackground?: number,
     background?: RgbaColor
@@ -125,7 +125,10 @@ export function* formatTrimBoundsSteps<Step = never>(
             next = steps.next(chunk.evaluateSamples ?? chunk.data16 ?? chunk.data);
         }
     }
-    if (!next.value && analysis) analysis.warnings += "magick: geometry does not contain image\n";
+    if (!next.value && analysis) {
+        analysis.warnings += "magick: geometry does not contain image\n";
+        analysis.boundsWarning = true;
+    }
     const area = next.value ?? { left: image.width, top: image.height, width: 0, height: 0 };
     return format === "bounding-box"
         ? `${area.left},${area.top} ${area.left + area.width},${area.top + area.height}`

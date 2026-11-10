@@ -1523,7 +1523,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   fmt: string,
   meta: ImageMetadata & Pick<RgbaImage, "readMask" | "writeMask" | "region" | "gravity"> & Pick<StoredRgbaImage, "storedWriteMask">,
   getImage: () => RgbaImage,
-  context: MagickFormatContext & { analysis?: { warnings: string; errors?: string }; optionProperties?: Record<string, string> | undefined; fxStack?: readonly RgbaImage[] } = {},
+  context: MagickFormatContext & { analysis?: { warnings: string; errors?: string; boundsWarning?: boolean }; optionProperties?: Record<string, string> | undefined; fxStack?: readonly RgbaImage[] } = {},
   resolvePixels?: (property:string)=>Generator<Step,string,void>
 ): Generator<void|Step, string, void> {
   const filePath = context.filePath ?? "";
@@ -1818,7 +1818,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  return channels[3]!==undefined&&channels[3]!==255?`srgba(${channels.slice(0,3).join(",")},${formatMetricNum(channels[3]/255)})`:`srgb(${channels.slice(0,3).join(",")})`;
 }
 
-async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string; errors?: string }; optionProperties?: Record<string, string> | undefined },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal,stack?:StoredImageStack):Promise<string>{
+async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string; errors?: string; boundsWarning?: boolean }; optionProperties?: Record<string, string> | undefined },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal,stack?:StoredImageStack):Promise<string>{
  let raster:IdentifyRaster|undefined,properties:Record<string,string>|undefined,hull:Record<string,string>|undefined;
  const statistics:Record<string,number>={};
  function* resolve(property:string):Generator<IdentifyStep,string,void>{
@@ -9726,8 +9726,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (image && frameListOperand.includes("%")) frameListOperand = yield* formatMagickPropertyStringSteps(frameListOperand, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: source, sceneCount: source.length, optionProperties: state.optionProperties });
         }
         if (t === "-quiet" || t === "+quiet") { analysis.quiet = t === "-quiet"; i++; continue; }
-        // Conversion warnings remain nonfatal, including with -regard-warnings.
-        if (t === "-regard-warnings" || t === "+regard-warnings") { i++; continue; }
+        if (t === "-regard-warnings" || t === "+regard-warnings") { analysis.regardWarnings = t === "-regard-warnings"; i++; continue; }
         if (t === "(") {
             let depth = 1;
             let j = i + 1;
@@ -11334,15 +11333,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
 function createConvertAnalysis() {
     let warnings = "";
     return {
-        text: "", errors: "", bytes: [] as Uint8Array[], quiet: false,
+        text: "", errors: "", bytes: [] as Uint8Array[], quiet: false, regardWarnings: false, boundsWarning: false,
         get warnings() { return warnings; },
         set warnings(value: string) { if (!this.quiet) warnings = value; }
     };
 }
 
-function combineConvertOutput(result: ImageMagickCliResult, analysis: { text: string; warnings: string; errors: string; bytes: Uint8Array[] }): ImageMagickCliResult {
+function combineConvertOutput(result: ImageMagickCliResult, analysis: ReturnType<typeof createConvertAnalysis>): ImageMagickCliResult {
     const stdout = analysis.text + result.stdout, stderr = analysis.warnings + analysis.errors + result.stderr;
-    if (analysis.errors) result = { ...result, exitCode: 1 };
+    if (analysis.errors || analysis.regardWarnings && analysis.boundsWarning) result = { ...result, exitCode: 1 };
     if (!analysis.bytes.length) return { ...result, stdout, stderr };
     const chunks = [...analysis.bytes, ...(result.stdoutBytes ? [result.stdoutBytes] : stdout ? [new TextEncoder().encode(stdout)] : [])];
     const stdoutBytes = new Uint8Array(chunks.reduce((size, chunk) => size + chunk.length, 0));
@@ -11864,7 +11863,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async stack => { analysis.quiet = token === "-quiet"; return stack; });
             continue;
         }
-        if (!operandsOnly && (token === "-regard-warnings" || token === "+regard-warnings")) continue;
+        if (!operandsOnly && (token === "-regard-warnings" || token === "+regard-warnings")) {
+            stackStep(async stack => { analysis.regardWarnings = token === "-regard-warnings"; return stack; });
+            continue;
+        }
         if (!operandsOnly && token === "-sampling-factor") { state.samplingFactor = tokens[++i] ?? ""; continue; }
         if (!operandsOnly && token === "+sampling-factor") { delete state.samplingFactor; continue; }
         if (!operandsOnly && token === "--") { operandsOnly = true; continue; }

@@ -3046,7 +3046,12 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
     }
     if (tok.type === "id") {
       next();
-      const name = tok.val.toLowerCase();
+      let name = tok.val.toLowerCase();
+      const statisticNames = ["mean", "standard_deviation", "minima", "maxima", "median", "skewness", "kurtosis"];
+      if (name === "u" && peek()?.val === "." && statisticNames.includes(tokens[pos + 1]?.val.toLowerCase() ?? "")) {
+        next();
+        name = next()!.val.toLowerCase();
+      }
       if (peek()?.val === "(") {
         next();
         const args: Array<(ctx: FxEvalContext) => number> = [];
@@ -3217,7 +3222,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         }
       }
 
-      const isStatistic = ["mean", "standard_deviation", "minima", "maxima", "median", "skewness", "kurtosis"].includes(name);
+      const isStatistic = statisticNames.includes(name);
       if (isStatistic) requireStatistics();
       return (ctx) => {
         if (ctx.vars.has(name) && !propName && !coordX) {

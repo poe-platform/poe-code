@@ -17874,6 +17874,9 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             const gravity = argv[++i] ?? "center";
             state.gravity = gravity.toLowerCase() === "forget" ? undefined : parseGravity(gravity);
         }
+        else if (t === "+gravity") {
+            state.gravity = undefined;
+        }
         else if (t === "-depth") {
             const value = argv[++i];
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -depth\n" };

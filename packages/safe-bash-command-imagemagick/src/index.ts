@@ -7572,11 +7572,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 }
                 // Native Q16-HDRI caches the quantum as a float before output rounding.
                 intensity = Math.fround(intensity);
-                const gray = imageType === "bilevel" ? (intensity > 32767.5 ? 65535 : 0) : Math.max(0, Math.min(65535, intensity));
+                const gray = Math.max(0, Math.min(65535, intensity));
                 out[idx] = out[idx + 1] = out[idx + 2] = clampByteVal(gray / 257);
                 data16[idx] = data16[idx + 1] = data16[idx + 2] = Math.round(gray);
                 data16[idx + 3] = Math.round(Math.max(0, Math.min(65535, evaluateSamples[idx + 3]! * 257)));
-                evaluateSamples[idx] = evaluateSamples[idx + 1] = evaluateSamples[idx + 2] = (imageType === "bilevel" ? gray : intensity) / 257;
+                evaluateSamples[idx] = evaluateSamples[idx + 1] = evaluateSamples[idx + 2] = intensity / 257;
                 if (imageType !== undefined && (imageType !== "grayscalealpha" || !image.hasAlpha)) {
                     out[idx + 3] = evaluateSamples[idx + 3] = 255;
                     data16[idx + 3] = 65535;
@@ -9951,6 +9951,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const input = pixelOperation.evaluate ? image : bounded;
                 const { data16: ignored, ...pixels } = input;
                 const converted = yield* pixelOperation.apply(pixelOperation.highDepth ? input : pixels);
+                if (t === "-type" && tokens[i]?.toLowerCase() === "bilevel") {
+                    const source = converted.data16 ? { ...converted, data: new Uint8Array(converted.data16.buffer, converted.data16.byteOffset, converted.data16.byteLength) } : converted;
+                    return yield* applyMagickRasterSteps(converted, bilevelPixelSteps(converted.width * converted.height, !!converted.data16), signal, converted, [source]);
+                }
                 return palette ? yield* applyMagickRasterSteps(converted, quantizePixelSteps(converted.data.length, 256), signal) : converted;
             }, pixelOperation.maskAlpha);
         }
@@ -12385,9 +12389,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             i = pixelOperation.end;
             const palette = token === "-type" && ["palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(tokens[i]?.toLowerCase() ?? "");
+            const bilevel = token === "-type" && tokens[i]?.toLowerCase() === "bilevel";
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
                 const converted = await transformStoredMagickPixels(image, backend, pixelOperation, signal);
+                if (bilevel) {
+                    const source = converted.storedData16 ? { ...converted, position: converted.storedData16.position } : converted;
+                    return transformStoredMagickRaster(converted, backend, bilevelPixelSteps(converted.width * converted.height, !!converted.storedData16), signal, converted, [source]);
+                }
                 return palette ? transformStoredMagickRaster(converted, backend, quantizePixelSteps(image.width * image.height * 4, 256), signal) : converted;
             }, { maskAlpha: pixelOperation.maskAlpha }));
             continue;

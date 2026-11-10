@@ -14243,7 +14243,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
     const flagsWithTwoArgs = new Set(["-copy", "-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill", "+floodfill"]);
     const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-page", "-comment", "-label"]);
     const flagsWithoutArgs = new Set([
-        "-despeckle",
+        "-despeckle", "+fill",
         "-enhance", "-antialias", "+antialias", "+stroke",
         "-identify", "+identify", "-verbose", "+verbose", "-regard-warnings", "+regard-warnings",
         "-negate", "+negate", "-contrast", "+contrast", "-trim", "-flip", "-flop", "-transpose", "-transverse", "-auto-orient",

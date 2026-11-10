@@ -1,16 +1,23 @@
+/*!
+ * Fish2x rules adapted from ImageMagick 7.1.2-35 MagickCore/resize.c.
+ * Copyright 1999 ImageMagick Studio LLC. Licensed under the ImageMagick
+ * License (https://imagemagick.org/license/); see ../LICENSE for its text.
+ * Modified for bounded TypeScript RGBA raster processing.
+ */
 import { hq2xPixels } from "./hq2x-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { RgbaColor } from "@poe-code/image-ast/portable";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
+import { magickIntensity } from "./intensity.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 
-export type MagnifyMethod = "hq2x" | "epbx2x" | "scale2x" | "eagle2x" | "scale3x" | "eagle3x" | "xbr2x";
+export type MagnifyMethod = "fish2x" | "hq2x" | "epbx2x" | "scale2x" | "eagle2x" | "scale3x" | "eagle3x" | "xbr2x";
 
 export function parseMagnifyMethod(value: string): MagnifyMethod {
     const method = value.toLowerCase();
-    if (method === "hq2x" || method === "epbx2x" || method === "scale2x" || method === "eagle2x" || method === "scale3x" || method === "eagle3x" || method === "xbr2x") return method;
+    if (method === "fish2x" || method === "hq2x" || method === "epbx2x" || method === "scale2x" || method === "eagle2x" || method === "scale3x" || method === "eagle3x" || method === "xbr2x") return method;
     // Native defaults unknown names to Scale2x, but these names select distinct algorithms.
-    if (["eagle3xb", "fish2x"].includes(method)) {
+    if (["eagle3xb"].includes(method)) {
         throw new Error(`Unsupported magnify method: ${value}`);
     }
     return "scale2x";
@@ -18,7 +25,7 @@ export function parseMagnifyMethod(value: string): MagnifyMethod {
 
 // Bounded row neighborhoods serve both in-memory and retained rasters.
 // Copy complete Q16 pixels so equality and output preserve alpha and precision.
-export function* magnifyPixelSteps(image: { width: number; height: number; hasAlpha: boolean }, method: MagnifyMethod = "scale2x", background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* magnifyPixelSteps(image: { width: number; height: number; hasAlpha: boolean }, method: MagnifyMethod = "scale2x", background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", intensityMethod = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const factor = method === "scale3x" || method === "eagle3x" ? 3 : 2;
     const radius = method === "xbr2x" ? 2 : 1;
     const gray = virtualPixel === "white" ? 65535 : virtualPixel === "gray" ? 32768 : 0;
@@ -62,7 +69,34 @@ export function* magnifyPixelSteps(image: { width: number; height: number; hasAl
                 continue;
             }
             const selected = new Array<number>(factor * factor).fill(method === "xbr2x" ? 12 : 4);
-            if (method === "xbr2x") {
+            if (method === "fish2x") {
+                // Native Fish2x uses the upper-left 2x2 of the 3x3 neighborhood.
+                const intensity = (index: number) => magickIntensity(pixels[index]![0]!, pixels[index]![1]!, pixels[index]![2]!, intensityMethod, 65535, false);
+                const a = intensity(0), b = intensity(1), d = intensity(3), e = intensity(4);
+                const ab = eq(0, 1), ad = eq(0, 3), ae = eq(0, 4), bd = eq(1, 3), be = eq(1, 4), de = eq(3, 4);
+                selected[0] = 0;
+                selected[1] = a > b ? 0 : 1;
+                selected[2] = a > d ? 0 : 3;
+                let mix: number[];
+                if (ae && bd && ab) mix = [0];
+                else if (ad && de && !ab) mix = a > b ? [0, 4, 3] : [1, 0, 4];
+                else if (be && de && !ab) mix = b > a ? [1, 3, 4] : [0, 1, 3];
+                else if (ad && ab && !be) mix = d > e ? [3, 1, 0] : [4, 3, 1];
+                else if (ab && be && !ad) mix = a > d ? [0, 4, 1] : [3, 0, 4];
+                else if (ae && (!bd || b > a)) mix = [0, 4];
+                else if (bd && (!ae || a > b)) mix = [1, 3];
+                else if (ab) mix = d > a ? [3, 4] : [0, 1];
+                else if (de) mix = a > d ? [0, 1] : [3, 4];
+                else if (ad) mix = b > a ? [1, 4] : [0, 3];
+                else if (be) mix = a > b ? [0, 3] : [1, 4];
+                else mix = [0, 1, 3, 4];
+                // MixPixels truncates the Q16 average, including alpha.
+                const blended = new Uint16Array(4);
+                for (let channel = 0; channel < 4; channel++) {
+                    blended[channel] = Math.trunc(mix.reduce((sum, index) => sum + pixels[index]![channel]!, 0) / mix.length);
+                }
+                selected[3] = pixels.push(blended) - 1;
+            } else if (method === "xbr2x") {
                 // ImageMagick Xbr2X: equality weights over a row-major 5x5 neighborhood.
                 const w = (a: number, b: number) => eq(a, b) ? 0 : 1;
                 if (w(12, 16) + w(12, 8) + w(6, 10) + w(6, 2) + 4 * w(11, 7) <

@@ -20,7 +20,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-HQ2x rules in src/hq2x-kernel.ts are adapted from ImageMagick:
+Fish2x rules in src/magnify-kernel.ts and HQ2x rules in src/hq2x-kernel.ts
+are adapted from ImageMagick:
 
                          ImageMagick License
              https://imagemagick.org/license/

@@ -10744,7 +10744,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const factor = state.magnifyMethod === "scale3x" || state.magnifyMethod === "eagle3x" ? 3 : 2;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const width = image.width * factor, height = image.height * factor;
-                const output = yield* applyMagickRasterSteps({ ...image, isPalette: false }, magnifyPixelSteps(image, state.magnifyMethod, state.background, state.virtualPixel), signal, { ...image, width, height });
+                const output = yield* applyMagickRasterSteps({ ...image, isPalette: false }, magnifyPixelSteps(image, state.magnifyMethod, state.background, state.virtualPixel, state.intensity), signal, { ...image, width, height });
                 if (image.readMask) output.readMask = yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 });
                 // Native magnification retains the mask channel with cleared coverage.
                 output.region = undefined;
@@ -13642,11 +13642,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const method = state.magnifyMethod, factor = method === "scale3x" || method === "eagle3x" ? 3 : 2, background = state.background, virtualPixel = state.virtualPixel;
+            const method = state.magnifyMethod, factor = method === "scale3x" || method === "eagle3x" ? 3 : 2, background = state.background, virtualPixel = state.virtualPixel, intensity = state.intensity;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const width = image.width * factor, height = image.height * factor;
-                const output = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, magnifyPixelSteps(image, method, background, virtualPixel), signal, { ...image, width, height });
+                const output = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, magnifyPixelSteps(image, method, background, virtualPixel, intensity), signal, { ...image, width, height });
                 if (image.readMask) output.readMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 output.region = undefined;
                 if (image.region || image.storedWriteMask) output.storedWriteMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);

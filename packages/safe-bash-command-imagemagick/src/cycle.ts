@@ -38,8 +38,8 @@ export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "in
         for (let i = 0; i < size; i += 4) {
             const pixel = data[i + 3]! * 16777216 + data[i]! * 65536 + data[i + 1]! * 256 + data[i + 2]!;
             const previous = rotated ? original![i / 4] : undefined;
-            // Other raster operations may have changed the pixels since decoding.
-            const index = previous !== undefined && palette[previous] === pixel ? previous : indices.get(pixel);
+            // Reordered pixels resolve by color; mask blending can leave only the retained index.
+            const index = previous !== undefined && palette[previous] === pixel ? previous : indices.get(pixel) ?? previous;
             if (index === undefined) throw new Error("cycle requires an indexed image");
             const target = (index + shift) % palette.length;
             if (rotated) rotated[i / 4] = target;

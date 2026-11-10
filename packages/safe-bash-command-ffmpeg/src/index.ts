@@ -10225,7 +10225,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const offsetTicks = Math.round(presentationOffset * t.timescale);
                   const decoded = await ensureDecodedFrames(t, workingDoc.timescale, budget, context.signal);
                   // Filters use the displayed timeline; retain media coordinates for the existing edit list.
-                  const displayed = decoded.map(frame => ({ ...frame, interlaced: ["tt", "bb", "tb", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), topFieldFirst: ["tt", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), ptsSeconds: frame.ptsSeconds - offsetTicks / t.timescale }));
+                  const displayed = decoded.map(frame => ({ ...frame, interlaced: ["tt", "bb", "tb", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), topFieldFirst: ["tt", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) - offsetTicks) / t.timescale }));
                   const diagnostics = {
                     timescale: workingDoc.containerFormat === "image2" && decoded[0]?.durationSeconds
                       ? 1 / decoded[0].durationSeconds : t.timescale,

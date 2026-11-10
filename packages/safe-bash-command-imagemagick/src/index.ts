@@ -8336,7 +8336,18 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             throw new Error(`unrecognized function '-function' '${operation}'`);
         }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-        const parameters = value.split(",").flatMap(part => part.trim().split(/\s+/));
+        const parameters = value.split(",").flatMap(part => part.trim().split(/\s+/)).flatMap(part => {
+            const numbers: string[] = [];
+            let start = 0;
+            for (let index = 1; index < part.length; index++) {
+                if ((part[index] === "-" || part[index] === "+") && part[index - 1]?.toLowerCase() !== "e") {
+                    numbers.push(part.slice(start, index));
+                    start = index;
+                }
+            }
+            numbers.push(part.slice(start));
+            return numbers;
+        });
         const coefficients = parameters.map(parameter => {
             const unsigned = (parameter.startsWith("+") || parameter.startsWith("-") ? parameter.slice(1) : parameter).toLowerCase();
             const hexadecimal = unsigned.startsWith("0x");

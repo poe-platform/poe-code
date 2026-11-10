@@ -4,6 +4,25 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
+it.each([
+    ["1-0.25", [0, 0, 32, 64]],
+    ["1,-0.25", [0, 0, 32, 64]],
+    ["1e-1,0", [3, 6, 10, 13]],
+] as const)("matches native signed Polynomial coefficients %s", async (parameters, expected) => {
+    const args = createCommandArguments(["xc:#20406080", "-function", "Polynomial", parameters, "-depth", "8", "rgba:-"]);
+    const stdout: number[] = [];
+    let stderr = "";
+    const result = await createMagickCommand().execute({
+        command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs: new MemoryFileSystem(),
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write(bytes) { stdout.push(...bytes); } },
+        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+    });
+    expect(stderr).toBe("");
+    expect(result.exitCode).toBe(0);
+    expect(stdout).toEqual(expected);
+});
+
 for (const mode of ["buffered", "sync", "command"] as const) {
     for (const separator of [",", " ", " , ", "\t"]) {
         it.each([

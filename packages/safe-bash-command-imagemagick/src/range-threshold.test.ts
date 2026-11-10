@@ -54,7 +54,7 @@ for (const mode of ["buffered", "sync", "magick"] as const) {
     });
 }
 
-it.each(["", "10,20,30", "10,20,no,40", "10,20,30,Infinity"])("rejects invalid range %s without replacing output", (threshold) => {
+it.each(["", "10,20,no,40", "10,20,30,Infinity"])("rejects invalid range %s without replacing output", (threshold) => {
     const sentinel = new Uint8Array([1, 2, 3]);
     const files = new Map([["out.png", sentinel]]);
     expect(runConvertCliSync(["xc:red", "-range-threshold", threshold, "out.png"], files).exitCode).not.toBe(0);

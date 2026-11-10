@@ -7422,14 +7422,44 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         evaluate = true;
         const raw = tokens[++i] ?? "";
-        const parts = raw.split(",").map(part => part.endsWith("%") ? part.slice(0, -1) : part);
-        if (parts.length !== 4 || parts.some(part => !part.trim() || !Number.isFinite(Number(part)))) {
+        if (!Number.isFinite(Number.parseFloat(raw)) || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@^".includes(c))) {
             throw new Error(`invalid argument '-range-threshold' '${raw}'`);
         }
+        const geometry = [...raw].filter(c => c.trim() !== "" && !"%!<>#^@()".includes(c)).join("");
+        const points = [0, 0, 0, 0];
+        let position = 0;
+        for (let field = 0; field < points.length; field++) {
+            if (field > 0) {
+                const separator = geometry[position] ?? "";
+                // Only rho and sigma can be separated by x; later fields are offsets.
+                if (!separator || !(field === 1 ? "xX,/:+-" : ",/:+-").includes(separator)) break;
+                if (!"+-".includes(separator)) position++;
+            }
+            let sign = 1;
+            while (geometry[position] === "+" || geometry[position] === "-") {
+                if (geometry[position++] === "-") sign = -sign;
+            }
+            const start = position;
+            while (position < geometry.length && "0123456789.".includes(geometry[position]!)) position++;
+            if (geometry[position] === "e" || geometry[position] === "E") {
+                position++;
+                if (geometry[position] === "+" || geometry[position] === "-") position++;
+                while (position < geometry.length && "0123456789".includes(geometry[position]!)) position++;
+            }
+            if (start === position) break;
+            const value = Number(geometry.slice(start, position)) * sign;
+            if (!Number.isFinite(value)) throw new Error(`invalid argument '-range-threshold' '${raw}'`);
+            points[field] = value;
+        }
+        if (geometry.includes(":")) {
+            points[0] = points[0]! / (Math.abs(points[1]!) < 1e-12 ? 1e-12 : points[1]!);
+            points[1] = 1;
+        }
         const scale = raw.includes("%") ? 65535 / 100 : 1;
-        const points = parts.map(part => Number(part) * scale);
-        for (let point = 1; point < points.length; point++) {
-            points[point] = Math.max(points[point - 1]!, points[point]!);
+        // Missing bounds inherit the preceding bound; preserve native interval ordering.
+        points[0] = points[0]! * scale;
+        for (let field = 1; field < points.length; field++) {
+            points[field] = Math.max(points[field - 1]!, points[field]! * scale);
         }
         const [lowBlack, lowWhite, highWhite, highBlack] = points as [number, number, number, number];
         const channels = state.channels;

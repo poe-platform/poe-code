@@ -3,6 +3,13 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 
 export interface Region { x: number; y: number; width: number; height: number }
 
+/** Right-angle rotations move the selection with the entire raster. */
+export function rotateRegion(region: Region, image: { width: number; height: number }, angle: number): Region {
+    const turn = ((angle % 360) + 360) % 360;
+    // A fresh region also prevents the pipeline from masking the rotated raster.
+    return orientRegion({ ...region }, { ...image, orientation: turn === 90 ? 6 : turn === 180 ? 3 : turn === 270 ? 8 : 1 });
+}
+
 /** Removing rows and columns keeps a rectangular region rectangular. */
 export function chopRegion(region: Region, x0: number, y0: number, x1: number, y1: number): Region {
     const x = region.x - Math.max(0, Math.min(region.x, x1) - x0);

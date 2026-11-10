@@ -30,7 +30,7 @@ import { ftxtPixels, storedFtxt } from "./ftxt.js";
 import { decodeApngSteps, readApng } from "./apng-input.js";
 import { signatureSteps } from "./signature.js";
 import { encipherPixelSteps } from "./encipher-kernel.js";
-import { chopRegion, orientRegion, regionPixelSteps, type Region } from "./region.js";
+import { chopRegion, orientRegion, rotateRegion, regionPixelSteps, type Region } from "./region.js";
 import { writeMaskExtentSteps, writeMaskPixelSteps } from "./write-mask.js";
 import { pngAlphaPixelSteps } from "./png-alpha.js";
 import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
@@ -9582,7 +9582,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (!applies(im)) return im;
                 const plan = operation?.plan(im);
                 if (plan) return { ...yield* applyMagickRasterSteps({ ...im, isPalette: false }, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
-                return { ...yield* rotateImageSteps(im, deg, state.background), ...(im.virtualCanvas ? { virtualCanvas: magickRotateCanvas(im, deg) } : {}) };
+                return { ...yield* rotateImageSteps(im, deg, state.background), ...(im.region ? { region: rotateRegion(im.region, im, deg) } : {}), ...(im.virtualCanvas ? { virtualCanvas: magickRotateCanvas(im, deg) } : {}) };
             }));
         }
         else if (t === "-sort-pixels") {
@@ -11947,6 +11947,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (plan) return { ...await transformStoredMagickRaster({ ...image, isPalette: false }, backend, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
                 return {
                     ...await transformStoredImage(image, backend.storage, { kind: "rotate", angle, background: settings.background }, signal),
+                    ...(image.region ? { region: rotateRegion(image.region, image, angle) } : {}),
                     ...(image.virtualCanvas ? { virtualCanvas: magickRotateCanvas(image, angle) } : {})
                 };
             });

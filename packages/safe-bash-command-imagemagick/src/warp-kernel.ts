@@ -83,7 +83,6 @@ function* averageSamples(x: number, y: number, size: number): Generator<readonly
 
 export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "space" | "storedData16" | "storedEvaluateSamples" | "storedHueSamples">> & { alphaBlend?: boolean | undefined }, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = source;
-    const averageSize = plan.interpolation === "average" ? 2 : plan.interpolation === "average9" ? 3 : plan.interpolation === "average16" ? 4 : 0;
     const filter = kernel === "nearest" ? undefined : resizeFilter(kernel ?? "robidoux", settings, true);
     const blur = Math.max(1e-12, (settings?.blur ?? 1) * (kernel === "lanczos2sharp" ? 0.9549963639785485 : kernel === "lanczossharp" ? 0.9812505644269356 : 1));
     const support = filter ? filter.radius * blur : 2;
@@ -179,9 +178,10 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
             // Native resampling uses an integer lookup when the entire filter
             // footprint lies beyond the raster's pixel centers.
             const outside = filter && virtualPixel === "background" && (sx + support < 0 || sy + support < 0 || sx - support > width - 1 || sy - support > height - 1);
-            // Channel interpolation treats background as bilinear.
-            const interpolation = plan.interpolation === "background" ? "bilinear" : plan.interpolation;
             for (let filtered = !!derivatives && kernel !== "nearest" && !plan.nearest; ; filtered = false) {
+                // Interpolation is the point-filter/fallback path, not the EWA filter.
+                const interpolation = filtered ? undefined : plan.interpolation === "background" ? "bilinear" : plan.interpolation ?? "bilinear";
+                const averageSize = interpolation === "average" ? 2 : interpolation === "average9" ? 3 : interpolation === "average16" ? 4 : 0;
                 let meshPixels: ArrayLike<number>[] | undefined;
                 let meshWeights: number[] | undefined;
                 if (interpolation === "mesh") {
@@ -192,7 +192,7 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                         ? fx <= fy ? [1 - fy, 0, fy - fx, fx] : [1 - fx, fx - fy, 0, fy]
                         : fx <= 1 - fy ? [1 - fx - fy, fx, fy, 0] : [0, 1 - fy, 1 - fx, fx + fy - 1];
                 }
-                const samples: Iterable<readonly [number, number, number] | undefined> = outside ? [[Math.floor(sx), Math.floor(sy), 1]] : plan.nearest || interpolation === "nearest" ? [[Math.floor(sx + 0.5), Math.floor(sy + 0.5), 1]] : interpolation === "integer" ? [[x0, y0, 1]] : averageSize ? averageSamples(sx, sy, averageSize) : filtered ? ellipseSamples(sx, sy, derivatives!, weights, support) : interpolation === "catrom" ? catromSamples(sx, sy) : interpolation === "spline" ? splineSamples(sx, sy) : [
+                const samples: Iterable<readonly [number, number, number] | undefined> = outside ? [[Math.floor(sx), Math.floor(sy), 1]] : filtered ? ellipseSamples(sx, sy, derivatives!, weights, support) : plan.nearest || interpolation === "nearest" ? [[Math.floor(sx + 0.5), Math.floor(sy + 0.5), 1]] : interpolation === "integer" ? [[x0, y0, 1]] : averageSize ? averageSamples(sx, sy, averageSize) : interpolation === "catrom" ? catromSamples(sx, sy) : interpolation === "spline" ? splineSamples(sx, sy) : [
                     [x0, y0, meshWeights?.[0] ?? (1 - fx) * (1 - fy)], [x1, y0, meshWeights?.[1] ?? fx * (1 - fy)],
                     [x0, y1, meshWeights?.[2] ?? (1 - fx) * fy], [x1, y1, meshWeights?.[3] ?? fx * fy]
                 ];
@@ -210,7 +210,7 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                     if (interpolation === "mesh") colorTotal += weight * opacity / maximum;
                     else if (averageSize || interpolation === "catrom" || interpolation === "spline") colorTotal += weight;
                     // Native Catrom and spline keep the interpolated premultiplied colors.
-                    if (derivatives || interpolation === "blend" || interpolation === "bilinear" || interpolation === "catrom" || interpolation === "spline") weight *= opacity / maximum;
+                    if (filtered || interpolation === "blend" || interpolation === "bilinear" || interpolation === "catrom" || interpolation === "spline") weight *= opacity / maximum;
                     else if (averageSize) weight *= Number(opacity > 0);
                     red += pixel[0]! * (plan.channels?.[0] === false ? unassociatedWeight : weight);
                     green += pixel[1]! * (plan.channels?.[1] === false ? unassociatedWeight : weight);

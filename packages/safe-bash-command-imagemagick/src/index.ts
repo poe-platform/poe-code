@@ -3919,7 +3919,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
                 x: page.x + plan.virtualCanvas.x,
                 y: page.y + plan.virtualCanvas.y
             } };
-            plan = { ...applyMagickDistortViewport(plan, image, viewport, plan.virtualCanvas, analysis), ...(kernel === "nearest" ? { interpolation } : {}) };
+            plan = { ...applyMagickDistortViewport(plan, image, viewport, plan.virtualCanvas, analysis), interpolation };
             if (page && viewport !== undefined && plan.virtualCanvas) plan = { ...plan, virtualCanvas: {
                 ...plan.virtualCanvas,
                 width: Math.floor(page.width * plan.width / image.width + 0.5),
@@ -4549,8 +4549,7 @@ function* compositeMaskPixelSteps(image: Pick<RgbaImage, "width" | "height">, ma
 function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal, fuzz = 0, clipToOverlay = false): Generator<void, RgbaImage, void> {
     const { name, delegated, preservesAlpha } = magickCompositeMode(modeRaw);
     if (name === "dst" || name === "dest") return dst;
-    dst = { ...dst, evaluateSamples: undefined };
-    if (dst.data16 || src.data16) {
+    if (dst.data16 || src.data16 || dst.evaluateSamples || src.evaluateSamples) {
         const hasAlpha = dst.hasAlpha || (!delegated && !preservesAlpha);
         return yield* applyMagickRasterSteps(dst, composite16PixelSteps(dst, src, left, top, modeRaw, composeArgs, false, fuzz, clipToOverlay), signal,
             { ...dst, hasAlpha }, [dst, src]);
@@ -11950,7 +11949,7 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
     const compositeMode = magickCompositeMode(mode);
     if (!generic && (compositeMode.name === "dst" || compositeMode.name === "dest")) return base;
     let hasAlpha = base.hasAlpha || (!generic && !compositeMode.delegated && !compositeMode.preservesAlpha);
-    if (!generic && (base.storedData16 || overlay.storedData16)) {
+    if (!generic && (base.storedData16 || overlay.storedData16 || base.storedEvaluateSamples !== undefined || overlay.storedEvaluateSamples !== undefined)) {
         return transformStoredMagickRaster({ ...base, storedEvaluateSamples: undefined }, backend,
             composite16PixelSteps(base, overlay, left, top, mode, args, tile, fuzz, clipToOverlay), signal,
             { ...base, hasAlpha }, [base, overlay]);

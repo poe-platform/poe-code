@@ -4860,8 +4860,10 @@ function parseMagickRepageGeometry(raw: string): MagickGeometry {
 
 function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: MagickGeometry, operation: "repage" | "set") {
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
-    let width = Math.round(geometry.width ?? page.width);
-    let height = Math.round(operation === "repage" && geometry.width === undefined ? page.height : geometry.height ?? (geometry.width === undefined ? page.height : geometry.width));
+    // Setting page keeps an omitted height, but a height-only value clears width.
+    let width = Math.round(geometry.width ?? (operation === "set" && geometry.height !== undefined ? 0 : page.width));
+    let height = Math.round(operation === "set" ? geometry.height ?? page.height
+        : geometry.width === undefined ? page.height : geometry.height ?? geometry.width);
     const x = Math.trunc(geometry.x), y = Math.trunc(geometry.y);
     if (operation === "repage" && geometry.hasOffset && !geometry.forceExact) {
         if (width === 0 && x > 0) width = image.width + x;

@@ -9798,7 +9798,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     ...t,
                     width: first?.width ?? t.width,
                     height: first?.height ?? t.height,
-                    codecDescriptions: t.codecDescriptions.map(codec => ({ ...codec, fieldOrder: first?.interlaced === undefined ? codec.fieldOrder : first.interlaced ? first.topFieldFirst ? "tt" : "bb" : "progressive", pixFmt: diagnostics.pixelFormat, sarWidth: diagnostics.sarWidth, sarHeight: diagnostics.sarHeight })),
+                    codecDescriptions: t.codecDescriptions.map(codec => ({
+                      ...codec,
+                      fieldOrder: first?.interlaced === undefined ? codec.fieldOrder
+                        : first.interlaced ? first.topFieldFirst ? "tt" : "bb" : "progressive",
+                      pixFmt: diagnostics.pixelFormat,
+                      sarWidth: diagnostics.sarWidth,
+                      sarHeight: diagnostics.sarHeight
+                    })),
                     samples: [],
                     decodedVideoFrames: filtered.map(frame => ({ ...frame, ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) + offsetTicks) / t.timescale }))
                   };

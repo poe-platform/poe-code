@@ -10287,9 +10287,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           } else option += char;
                         }
                         if (argument) optionTokens.push(option);
-                        for (const [index, option] of optionTokens.entries()) {
+                        let optionPosition = 0;
+                        for (const option of optionTokens) {
                           const separator = option.indexOf("=");
-                          const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
+                          const key = separator < 0 ? names[optionPosition] : option.slice(0, separator).trim();
+                          // Named options restart shorthand, skipping the first slot only
+                          // when it was the slot just visited, regardless of the named key.
+                          if (separator < 0) optionPosition++;
+                          else optionPosition = optionPosition === 0 ? 1 : 0;
                           const value = separator < 0 ? option : option.slice(separator + 1);
                           if (key === "packet_size") {
                             packetSize = Number(value);

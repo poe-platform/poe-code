@@ -25,7 +25,11 @@ for (const retained of [false, true]) {
         const native = spawnSync("magick", ["png:-", ...args.slice(1)], { input: data, encoding: "utf8" });
         if (!native.error) {
             expect(native.status, native.stderr).toBe(0);
-            expect(result.stdout.trim()).toBe(native.stdout.trim());
+            const nativeFields = native.stdout.trim().split(" ");
+            expect(fields.slice(0, 4)).toEqual(nativeFields.slice(0, 4));
+            // Native builds differ by an HDRI epsilon at zero blackness.
+            expect(fields[4]!.slice(5, -1).split(",").map(Number)).toEqual(
+                nativeFields[4]!.slice(5, -1).split(",").map(value => expect.closeTo(Number(value), 12)));
         }
         for (const format of ["png", "tiff"]) {
             const output = await runConvertCli(["in.png", "-colorspace", "HWB", `out.${format}`], input);

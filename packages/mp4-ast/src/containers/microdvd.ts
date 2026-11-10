@@ -57,6 +57,11 @@ function parseMicrodvd(bytes: Uint8Array, options?: ParseMediaOptions): MediaDoc
     duration = Math.max(duration, sample.pts + sampleDuration);
   }
   samples.sort((a, b) => a.pts - b.pts);
+  samples = samples.filter((sample, index) => {
+    const previous = samples[index - 1];
+    return !previous || sample.pts !== previous.pts || sample.duration !== previous.duration
+      || !bytesEqual(sample.data, previous.data);
+  });
   return { containerFormat: "microdvd", timescale, duration, durationSeconds: duration / timescale,
     tracks: [{ id: 1, type: "subtitle", handlerType: "sbtl", timescale, duration,
       language: "und", enabled: true, codecDescriptions: [{ formatFourCC: "text", codecName: "microdvd" }], samples }],

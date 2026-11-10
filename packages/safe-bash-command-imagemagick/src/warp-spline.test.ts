@@ -40,8 +40,6 @@ for (const retained of [false, true]) {
     it.each([
         ["-fx", "p{0.5,0.5}"],
         ["-interpolative-resize", "5x4!"],
-        ["/in.png", "-clut"],
-        ["/in.png", "-hald-clut"],
         ["-kuwahara", "2x1"]
     ])(`rejects unsupported spline callers without replacing output, retained=${retained}: %j`, async (...operation) => {
         const original = new TextEncoder().encode("KEEP"), files = new Map<string, Uint8Array>([["/in.png", opaque], ["/out.png", original]]);

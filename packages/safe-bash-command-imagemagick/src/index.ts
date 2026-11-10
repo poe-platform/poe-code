@@ -17978,6 +17978,11 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "-quality") {
             state.quality = Math.max(1, Math.min(100, Number(argv[++i] ?? 92)));
         }
+        else if (t === "-comment" || t === "+comment") {
+            if (t === "-comment" && argv[++i] === undefined)
+                return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -comment\n" };
+            // Input comments are not copied to the assembled montage sheet.
+        }
         else if (t === "-label") {
             label = argv[++i] ?? "";
         }

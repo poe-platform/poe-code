@@ -17856,6 +17856,12 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
                 return { exitCode: 1, stdout: "", stderr: `montage: invalid argument '${value}' for -scenes\n` };
             // A single scene number does not filter frames in an existing input file.
         }
+        else if (t === "-density" || t === "+density") {
+            if (t === "-density" && argv[i + 1] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -density\n" };
+            try { i = applyMagickReadSetting(argv, state, i)!; }
+            catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
+            if (t === "+density") state.densityGeometry = "72";
+        }
         else if (t === "-tile") {
             const g = parseMagickGeometry(argv[++i] ?? "2x2");
             tileCols = g.width;
@@ -18262,6 +18268,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const stdoutChunks: Uint8Array[] = [];
     let stdout = "";
     function* writePage(canvas: RgbaImage, page: number, sceneCount: number): Generator<void, void, void> {
+        if (state.densityGeometry !== undefined) canvas = applyMagickDensity(canvas, state.densityGeometry);
         if (title !== undefined) {
             const { svg, height } = montageTitleSvg(title, canvas.width, state, padY);
             const caption = decodeImage(new TextEncoder().encode(svg));
@@ -18818,6 +18825,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 canvas = await compositeStoredMagick(canvas, caption, backend, signal, 0, 0, "over", undefined, false, true);
             }
             if (!anyTransparent) canvas = { ...canvas, hasAlpha: false, channels: 3 };
+            if (state.densityGeometry !== undefined) canvas = applyMagickDensity(canvas, state.densityGeometry);
             if (outSpec.toLowerCase().startsWith("info:")) {
                 const target = outSpec.slice(5), page = pageStart / (cols * rows);
                 const text = state.formatStr !== undefined

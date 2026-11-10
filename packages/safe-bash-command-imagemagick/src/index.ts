@@ -7016,7 +7016,7 @@ function parseMagickSwapPositions(spec: string): number[] {
     return positions;
 }
 
-function parseMagickIndices(spec: string, operation: "clone" | "delete" = "clone"): number[][] {
+function parseMagickIndices(spec: string, operation: "clone" | "duplicate" | "delete" = "clone"): number[][] {
   if (!spec.trim() || spec.trimStart().startsWith(",")) throw new Error(`invalid argument ${spec}`);
   const parts: number[][] = [];
   let incompleteRange = false;
@@ -7024,7 +7024,7 @@ function parseMagickIndices(spec: string, operation: "clone" | "delete" = "clone
   const readIndex = (): number => {
     while (position < spec.length && !spec[position]!.trim()) position++;
     const start = position;
-    if (spec[position] === "-") position++;
+    if (spec[position] === "-" || (operation === "duplicate" && spec[position] === "+")) position++;
     const digits = position;
     while (position < spec.length && spec[position]! >= "0" && spec[position]! <= "9") position++;
     const value = Number(spec.slice(start, position));
@@ -7075,14 +7075,14 @@ function parseMagickDuplicateScenes(spec: string): string {
   let start = 0;
   while (start < spec.length && (spec[start] === "," || !spec[start]!.trim())) start++;
   spec = spec.slice(start) || "0";
-  parseMagickIndices(spec);
+  parseMagickIndices(spec, "duplicate");
   return spec;
 }
 
-function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" | "delete"): Generator<number> {
+function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" | "duplicate" | "delete"): Generator<number> {
   const parts = parseMagickIndices(spec, operation);
-  // Clone lists interpret a trailing comma as an additional frame-zero selection.
-  if (operation === "clone" && spec.trimEnd().endsWith(",")) parts.push([0]);
+  // Clone and duplicate lists interpret a trailing comma as an additional frame-zero selection.
+  if (operation !== "delete" && spec.trimEnd().endsWith(",")) parts.push([0]);
   if (length <= 0) return;
   const resolve = (n: number): number =>
     n < 0 ? Math.max(0, length + n) : Math.min(Math.max(0, n), length - 1);
@@ -7100,7 +7100,7 @@ function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" 
     } else {
       const idx = num! < 0 ? length + num! : num!;
       if (idx >= 0 && idx < length) yield idx;
-      else if (operation === "clone") throw new Error(`invalid image index ${num}`);
+      else if (operation !== "delete") throw new Error(`invalid image index ${num}`);
     }
   }
 }
@@ -11120,7 +11120,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             for (let k = 0; k < count; k++) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
-                for (const idx of parseMagickIndexSpec(idxSpec, sourceLength, "clone")) {
+                for (const idx of parseMagickIndexSpec(idxSpec, sourceLength, "duplicate")) {
                     if (++cooperativeWork % 65536 === 0)
                         yield;
                     const chosen = sourcePool[idx];
@@ -11928,7 +11928,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const source = token.endsWith("clone") ? parents.at(-1) ?? stack : stack;
                     const length = source.length;
                     if (token.endsWith("clone") && length === 0) throw new Error(`UnableToCloneImage ${token}`);
-                    for (let repeat = 0; repeat < count; repeat++) for (const index of parseMagickIndexSpec(spec, length, "clone")) { await yieldTurn(signal); await stack.push((await source.get(index))!); }
+                    for (let repeat = 0; repeat < count; repeat++) for (const index of parseMagickIndexSpec(spec, length, token.endsWith("duplicate") ? "duplicate" : "clone")) { await yieldTurn(signal); await stack.push((await source.get(index))!); }
                 } else if (token.endsWith("delete")) {
                     if (stack.length === 0) throw new Error(`no images found for operation '${token}'`);
                     await stack.remove(parseMagickIndexSpec(spec, stack.length, "delete"));
@@ -15584,7 +15584,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
                 spec = parseMagickDuplicateScenes(spec);
                 if (spec === "") count = 0;
                 for (let repeat = 0; repeat < count; repeat++) {
-                    for (const index of parseMagickIndexSpec(spec, length, "clone")) {
+                    for (const index of parseMagickIndexSpec(spec, length, "duplicate")) {
                         if (++cooperativeWork % 64 === 0) yield;
                         operands.push(operands[index]!);
                         labels.push(labels[index]!);

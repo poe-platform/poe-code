@@ -7755,29 +7755,45 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const channels = state.channels;
         const explicit = !state.channelDefault;
         apply = function* (image) {
+            const cmyk = image.space === "cmyk";
+            if (cmyk) image = yield* convertCmykPixels(image);
+            const hueSamples = cmyk ? image.hueSamples!.slice() : undefined;
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
             const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(data16 ?? out, value => data16 ? value / 257 : value);
-            const samples = evaluateSamples, quantumScale = 257;
+            const samples = hueSamples ?? evaluateSamples, quantumScale = hueSamples ? 65535 : 257;
             const mask = explicit ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha] : [true, true, true, image.hasAlpha];
+            // CMYK working samples store black at offset 3; alpha stays in RGBA.
+            if (cmyk) mask.splice(3, 0, !explicit || channels.k === true);
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 const intensity = (state.intensity === "rec709luma" || state.intensity === "rec601luma") && image.magickColorspace !== "RGB" && samples[idx] === samples[idx + 1] && samples[idx] === samples[idx + 2]
                     ? samples[idx]! * quantumScale
-                    : magickIntensity(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!, state.intensity, 255, image.magickColorspace === "RGB") * quantumScale;
-                for (let channel = 0; channel < 4; channel++) {
+                    : magickIntensity(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!, state.intensity, hueSamples ? 1 : 255, image.magickColorspace === "RGB") * quantumScale;
+                for (let channel = 0; channel < mask.length; channel++) {
                     if (!mask[channel]) continue;
-                    const value = explicit ? samples[idx + channel]! * quantumScale : intensity;
+                    const value = explicit ? cmyk && channel === 4 ? evaluateSamples[idx + 3]! * 257 : samples[idx + channel]! * quantumScale : intensity;
                     const level = value <= lowBlack || value >= highBlack ? 0
                         : value < lowWhite ? (value - lowBlack) / (lowWhite - lowBlack)
                         : value > highWhite ? (highBlack - value) / (highBlack - highWhite) : 1;
                     // Preserve native HDRI precision until region/write-mask compositing.
-                    samples[idx + channel] = Math.fround(level * 65535) / 257;
-                    if (data16) data16[idx + channel] = Math.round(samples[idx + channel]! * 257);
-                    out[idx + channel] = Math.round(samples[idx + channel]!);
+                    const next = Math.fround(level * 65535);
+                    if (hueSamples && channel < 4) hueSamples[idx + channel] = next / 65535;
+                    else {
+                        const offset = idx + (cmyk ? 3 : channel);
+                        evaluateSamples[offset] = next / 257;
+                        if (data16) data16[offset] = Math.round(next);
+                        out[offset] = Math.round(next / 257);
+                    }
+                }
+                if (hueSamples) for (let channel = 0; channel < 3; channel++) {
+                    const offset = idx + channel, value = (1 - hueSamples[offset]!) * (1 - hueSamples[idx + 3]!) * 65535;
+                    evaluateSamples[offset] = value / 257;
+                    if (data16) data16[offset] = Math.round(value);
+                    out[offset] = Math.round(value / 257);
                 }
             }
-            return { ...image, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
+            return { ...image, data: out, evaluateSamples, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
         };
     } else if (token === "-threshold") {
         highDepth = true;

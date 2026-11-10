@@ -447,7 +447,8 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
   let y = 0;
   let hasOffset = false;
   let hasYOffset = false;
-  const offsetMatch = /^([^+-]*)([+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)(?:([+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?))?$/.exec(s);
+  // Rectangle geometry preserves the first two offsets and ignores a third.
+  const offsetMatch = /^([^+-]*)([+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)(?:([+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)(?:[+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)?)?$/.exec(s);
   if (offsetMatch) {
     s = offsetMatch[1]!;
     x = Number(offsetMatch[2]!);

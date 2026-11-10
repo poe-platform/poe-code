@@ -11820,6 +11820,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-edge") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const argument = tokens[++i] ?? "", radius = Number(argument);
             if (!argument.trim() || !Number.isFinite(radius)) throw new Error(`invalid argument for option '-edge': ${argument}`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -15226,6 +15227,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return transformStoredMagickRaster(image, backend, sketchPixelSteps(image, geometry, seed), signal);
             });
         } else if (!operandsOnly && token === "-edge") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const argument = tokens[++i] ?? "", radius = Number(argument);
             if (!argument.trim() || !Number.isFinite(radius)) throw new Error(`invalid argument for option '-edge': ${argument}`);
             const channels = state.channelExplicit ? state.channels : undefined, virtualPixel = state.virtualPixel, background = state.background;

@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runMagickCliSync } from "./index.js";
-import { rawNetpbmInput } from "./raw-rgb.js";
+import { rawRasterInput } from "./raw-rgb.js";
 
 // Native ImageMagick 7.1.2-35 Q16-HDRI, with each input row padded to a byte.
 const cases: { coder: string; depth: number; input: string; output: string; size?: string; selector?: string; exitCode?: number }[] = [
@@ -57,7 +57,7 @@ for (const mode of ["file", "stream", "sync"] as const) {
 it("supports partial reads across packed RGB row boundaries", () => {
     const input = Buffer.from("093e73a8", "hex");
     const expected = Buffer.concat([Buffer.from("P6\n2 2\n255\n"), Buffer.from("0000aa5500ff55ff00ffaaaa", "hex")]);
-    const raw = rawNetpbmInput(2, 2, 2, "msb", input.length, 3);
+    const raw = rawRasterInput(2, 2, 2, "msb", input.length, 3);
     for (let position = 0; position < raw.size; position++) {
         const length = Math.min(7, raw.size - position), steps = raw.read(position, length);
         let next = steps.next();
@@ -68,7 +68,7 @@ it("supports partial reads across packed RGB row boundaries", () => {
 
 it("bounds packed input reads for wide rows", () => {
     const input = new Uint8Array(8193).fill(0x55);
-    const raw = rawNetpbmInput(21847, 1, 1, "lsb", input.length, 3);
+    const raw = rawRasterInput(21847, 1, 1, "lsb", input.length, 3);
     const steps = raw.read(0, raw.size);
     let next = steps.next();
     while (!next.done) {

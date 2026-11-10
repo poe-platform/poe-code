@@ -23,8 +23,9 @@ export async function tmix(
   // Native validates bounds before rounding integer options to nearest, ties to even.
   const lower = Math.floor(value);
   const count = value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
-  if (!Number.isInteger(count) || count < 1 || count > 1024) {
-    throw new Error("tmix: frames must be an integer from 1 to 1024");
+  const planes = Number(options.planes);
+  if (!Number.isInteger(planes) || planes < 0 || planes > 15) {
+    throw new Error("tmix: planes must be an integer from 0 to 15");
   }
   const supplied = (options.weights || "1").replaceAll("|", " ").split(" ").filter(Boolean).slice(0, count).map(value => Math.fround(parseFilterFloat(value)));
   if (supplied.some(weight => !Number.isFinite(weight))) {

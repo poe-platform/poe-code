@@ -57,32 +57,27 @@ export function* clutPixelSteps(size: number, lut: { width: number; height: numb
     // Integer lookup partitions the full dimensions; other methods sample the diagonal endpoints.
     function* sample(value: number): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
         const adjust = interpolation === "integer" ? 0 : 1;
-        return (yield* sampleLookup(lut, value * (lut.width - adjust), value * (lut.height - adjust), highDepth, interpolation)).map(Math.round);
+        return yield* sampleLookup(lut, value * (lut.width - adjust), value * (lut.height - adjust), highDepth, interpolation);
     }
-    if (highDepth) {
-        for (let position = 0; position < size; position += 4096) {
-            yield;
-            const bytes = (yield { kind: "read", highDepth, position, length: Math.min(4096, size - position) })!;
-            const data = new Uint16Array(bytes.slice().buffer);
-            for (let offset = 0; offset < data.length; offset++) {
-                if (offset % 256 === 0) yield;
-                const channel = offset % 4;
-                if (mask[channel]) data[offset] = (yield* sample(data[offset]! / 65535))[channel]!;
-            }
-            yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
-        }
-        return;
-    }
-    const table = new Uint8Array(1024);
-    for (let value = 0; value < 256; value++) {
+    const table = highDepth ? undefined : new Float64Array(1024);
+    if (table) for (let value = 0; value < 256; value++) {
         if (value % 64 === 0) yield;
         table.set(yield* sample(value / 255), value * 4);
     }
-    for (let position = 0; position < size; position += 16384) {
+    for (let position = 0; position < size; position += 2048) {
         yield;
-        const data = new Uint8Array((yield { kind: "read", position, length: Math.min(16384, size - position) })!);
-        for (let offset = 0; offset < data.length; offset++) if (mask[offset % 4]) data[offset] = table[data[offset]! * 4 + offset % 4]!;
-        yield { kind: "write", position, data };
+        const bytes = (yield { kind: "read", highDepth, position, length: Math.min(2048, size - position) })!;
+        const data = Float64Array.from(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
+        for (let offset = 0; offset < data.length; offset++) {
+            if (offset % 256 === 0) yield;
+            const channel = offset % 4;
+            if (mask[channel]) data[offset] = table ? table[data[offset]! * 4 + channel]! : (yield* sample(data[offset]! / 65535))[channel]!;
+        }
+        // Interpolation produces fractional Q16-HDRI samples even from byte inputs.
+        const working = data.map(value => Math.fround(value * (highDepth ? 1 : 257)) / 257);
+        yield { kind: "write", evaluate: true, position, data: new Uint8Array(working.buffer) };
+        const pixels = highDepth ? Uint16Array.from(data, Math.round) : Uint8Array.from(data, Math.round);
+        yield { kind: "write", highDepth, position, data: new Uint8Array(pixels.buffer) };
     }
 }
 

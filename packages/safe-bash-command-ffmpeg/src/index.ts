@@ -3845,7 +3845,36 @@ async function applyVideoFilterChain(
             ? fieldOrder === 0 : Boolean(topFieldFirstSlots[outputIndex] || frame.topFieldFirst);
           outputIndex++;
           const combined = { ...frame, data, ptsSeconds: start + output.length * durationSeconds, durationSeconds, interlaced, topFieldFirst };
-          if (pending !== frame) delete combined.native;
+          if (pending !== frame) {
+            delete combined.native;
+            const source = frame.native;
+            if (source && [0, 4, 5, 12, 13, 14, 49, 68].includes(source.format) && [pending, frame].every(input =>
+              input.native?.rgba === input.data && input.native.width === input.width && input.native.height === input.height &&
+              input.native.format === source.format && input.native.colorspace === source.colorspace &&
+              input.native.fullRange === source.fullRange && input.native.pixels.length === source.pixels.length)) {
+              budget.allocateMemory(source.pixels.byteLength + data.byteLength);
+              const pixels = new Uint8Array(source.pixels.byteLength);
+              const sampleBytes = [49, 68].includes(source.format) ? 2 : 1;
+              const hsub = [0, 4, 12, 13].includes(source.format) ? 2 : 1;
+              const vsub = [0, 12].includes(source.format) ? 2 : 1;
+              let offset = 0;
+              for (let plane = 0; plane < 3; plane++) {
+                const stride = Math.ceil(frame.width / (plane === 0 ? 1 : hsub)) * sampleBytes;
+                const height = Math.ceil(frame.height / (plane === 0 ? 1 : vsub));
+                // Field parity applies separately to each plane, including subsampled chroma.
+                for (let row = 0; row < height; row++) {
+                  if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+                  const input = row % 2 === fieldOrder ? pending : frame;
+                  const start = offset + row * stride;
+                  pixels.set(input.native!.pixels.subarray(start, start + stride), start);
+                }
+                offset += stride * height;
+              }
+              const native = { ...source, pixels, rgba: data };
+              combined.data = scaleVideoPicture({ ...combined, native }, frame.width, frame.height)!;
+              combined.native = { ...native, rgba: combined.data };
+            }
+          }
           output.push(combined);
           pending = undefined;
         }

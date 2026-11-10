@@ -9467,8 +9467,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let stretched: typeof audio.channelData = audio.channelData;
                   let replayGainAvailable = true;
                   let audioStartSample = 0;
+                  let audioInitialFrameDropped = false;
                   let audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
-                  let audioTimestamps: { start: number; end: number; pts: number; pos?: number | undefined }[] | undefined;
+                  let audioTimestamps: { start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined }[] | undefined;
                   if (!sink && ((index !== undefined && (audioSegment || frameChecksumOutput)) || (filter && parseFilterChain(filter.expression)
                     .some(item => item.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse")))) {
                     if (index !== undefined && audioSegment) segmentAudioPackets = [];
@@ -9921,7 +9922,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             planeChecksums.push(((pb * 65536 + pa) >>> 0).toString(16).padStart(8, "0").toUpperCase());
                           }
                           const checksum = ((b * 65536 + a) >>> 0).toString(16).padStart(8, "0").toUpperCase();
-                          await writeBytes(context.stderr, encodeUtf8(`[ashowinfo] n:${n} pts:${Number.isNaN(pts) ? "NOPTS" : pts} pts_time:${Number.isNaN(pts) ? "NOPTS" : Number((pts * timeBase).toPrecision(6))} pos:-1 fmt:${format} channels:${channels} chlayout:${layout} rate:${origRate} nb_samples:${end - start} checksum:${checksum} plane_checksums: [ ${planeChecksums.join(" ")} ]\n`), context.signal);
+                          await writeBytes(context.stderr, encodeUtf8(`[ashowinfo] n:${n} pts:${Number.isNaN(pts) ? "NOPTS" : timestamp?.exactPts !== undefined && timeBase * origRate === 1 ? timestamp.exactPts : pts} pts_time:${Number.isNaN(pts) ? "NOPTS" : Number((pts * timeBase).toPrecision(6))} pos:-1 fmt:${format} channels:${channels} chlayout:${layout} rate:${origRate} nb_samples:${end - start} checksum:${checksum} plane_checksums: [ ${planeChecksums.join(" ")} ]\n`), context.signal);
                           start = end;
                         }
                       } else if (trimmed === "asubcut" || trimmed.startsWith("asubcut=")) {
@@ -11215,7 +11216,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const previousMetadata = audioMetadata;
                         audioMetadata = [];
                         audioTimestamps = [];
-                        let nextPts = previous?.[0]?.pts ?? (t.samples[0] ? t.samples[0].pts * origRate / t.timescale : audioStartSample);
+                        // A trim that drops the first frame leaves no timestamp available
+                        // when native adelay first schedules its unconditional silence.
+                        let nextPts = audioInitialFrameDropped ? NaN
+                          : previous?.[0]?.pts ?? (t.samples[0] ? t.samples[0].pts * origRate / t.timescale : audioStartSample);
+                        let nextExactPts: bigint | undefined;
                         let enabled = true;
                         let position = 0;
                         // Common silence is unconditional. Bypassed input freezes the delay
@@ -11227,10 +11232,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           let end: number;
                           let pts = nextPts;
                           let pos: number | undefined;
+                          let exactPts = nextExactPts;
                           let metadata: typeof audioMetadata[number] | undefined;
                           if (start < padding) {
                             end = Math.min(padding, start + 2048);
-                            nextPts += end - start;
+                            if (Number.isNaN(nextPts)) nextExactPts = -(2n ** 63n);
+                            if (nextExactPts !== undefined) nextExactPts += BigInt(end - start);
+                            nextPts = nextExactPts === undefined ? nextPts + end - start : Number(nextExactPts);
                           } else {
                             if (start < padding + inputLength) {
                               const frame = previous?.[n];
@@ -11245,12 +11253,27 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               metadata = previousMetadata[n];
                               n++;
                               end = Math.min(padding + inputLength, start + count);
-                              pts = inputPts + (enabled ? padding : 0);
-                              if (enabled) nextPts = inputPts + end - start;
+                              // Native rescaling clamps missing input PTS to INT64_MIN + 1.
+                              // Keep the integer as well as the expression engine's double.
+                              const sourceExactPts = Number.isNaN(inputPts) ? -9223372036854775807n : frame?.exactPts;
+                              exactPts = enabled && sourceExactPts !== undefined ? sourceExactPts + BigInt(padding) : frame?.exactPts;
+                              pts = exactPts === undefined ? inputPts + (enabled ? padding : 0) : Number(exactPts);
+                              if (enabled) {
+                                nextExactPts = sourceExactPts === undefined ? undefined : sourceExactPts + BigInt(end - start);
+                                nextPts = nextExactPts === undefined ? inputPts + end - start : Number(nextExactPts);
+                              }
                             } else {
                               end = Math.min(length, start + 2048);
+                              if (Number.isNaN(pts)) {
+                                exactPts = nextExactPts = -9223372036854775807n;
+                                pts = nextPts = Number(exactPts);
+                              }
                               nextPts += end - start;
-                              if (enabled) pts += padding;
+                              if (nextExactPts !== undefined) nextExactPts += BigInt(end - start);
+                              if (enabled) {
+                                pts += padding;
+                                if (exactPts !== undefined) exactPts += BigInt(padding);
+                              }
                             }
                             for (let i = start; i < end; i++) {
                               if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -11267,8 +11290,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               if (enabled) position++;
                             }
                           }
-                          budget.allocateMemory(32);
-                          audioTimestamps.push({ start, end, pts, pos });
+                          budget.allocateMemory(exactPts === undefined ? 32 : 48);
+                          audioTimestamps.push({ start, end, pts, pos, exactPts });
                           if (previousMetadata.length) {
                             budget.allocateMemory(64);
                             audioMetadata.push({ pts, tags: metadata?.tags ?? new Map<string, string>() });
@@ -11276,6 +11299,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           start = end;
                         }
                         stretched = output;
+                        audioInitialFrameDropped = false;
                       } else if (trimmed === "atempo" || trimmed.startsWith("atempo=")) {
                         const argument = trimmed === "atempo" ? "1" : trimmed.slice("atempo=".length).trim();
                         const tempo = parseFilterExpression(argument.startsWith("tempo=") ? argument.slice("tempo=".length) : argument, "atempo", {});
@@ -11564,6 +11588,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                                 frame.start = Math.round(frame.start * targetRate / origRate);
                                 frame.end = Math.round(frame.end * targetRate / origRate);
+                                delete frame.exactPts;
                                 frame.pts = Math.round(frame.pts * targetRate / origRate);
                               }
                               origRate = targetRate;
@@ -11801,6 +11826,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             frame.start = Math.round(frame.start * 44100 / origRate);
                             frame.end = Math.round(frame.end * 44100 / origRate);
+                            delete frame.exactPts;
                             frame.pts = Math.round(frame.pts * 44100 / origRate);
                           }
                           origRate = 44100;
@@ -12331,6 +12357,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const samplesPerTick = audioTimeBase! * origRate;
                           for (const frame of audioTimestamps) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            delete frame.exactPts;
                             frame.pts = Math.sign(frame.pts) * Math.round(Math.abs(frame.pts) / samplesPerTick) * samplesPerTick;
                           }
                           continue;
@@ -12349,7 +12376,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (!select(frame)) continue;
                             ranges.push(frame);
                             const end = length + frame.end - frame.start;
-                            selected.push({ start: length, end, pts: frame.pts, pos: frame.pos });
+                            selected.push({ ...frame, start: length, end });
                             const metadata = audioMetadata[n];
                             if (metadata) selectedMetadata.push({ ...metadata, pts: frame.pts });
                             length = end;
@@ -12379,6 +12406,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (audioTimestamps.length === 0) transform({ start: 0, end: 0, pts: 0 });
                         for (const frame of audioTimestamps) {
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          delete frame.exactPts;
                           frame.pts = transform(frame);
                         }
                       } else if (trimmed === "atrim" || trimmed.startsWith("atrim=")) {
@@ -12405,10 +12433,39 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         for (const [n, frame] of audioTimestamps.entries()) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+<<<<<<< Updated upstream
                           const range = trim(frame);
                           if (range === null) break;
                           if (range === undefined) continue;
                           const { start, end } = range;
+=======
+                          const count = frame.end - frame.start;
+                          const pts = Number.isNaN(frame.pts) ? nextPts : Math.sign(frame.pts) * Math.round(Math.abs(frame.pts));
+                          nextPts = pts + count;
+                          // Timestamp bounds apply to every frame; sample bounds count all input samples.
+                          let start = Math.min(startPts - pts, startSample - frame.start);
+                          if (start === Infinity) start = 0;
+                          if (start >= count) {
+                            if (n === 0) audioInitialFrameDropped = true;
+                            continue;
+                          }
+                          firstPts ??= pts + start;
+                          // FFmpeg subtracts PTS bounds as signed int64 values, including
+                          // the near-INT64_MIN timestamps generated by an empty delay tail.
+                          const endDistance = frame.exactPts !== undefined && Number.isFinite(endPts)
+                            ? Number(BigInt.asIntN(64, BigInt(endPts) - frame.exactPts)) : endPts - pts;
+                          let end = Math.max(endDistance, endSample - frame.start,
+                            duration > 0 ? firstPts + duration - pts : -Infinity);
+                          if (end === -Infinity) end = count;
+                          // Only a frame wholly past every end bound ends the stream.
+                          if (end <= 0) {
+                            if (n === 0) audioInitialFrameDropped = true;
+                            break;
+                          }
+                          start = Math.max(0, start);
+                          end = Math.min(count, end);
+                          if (end <= start) continue;
+>>>>>>> Stashed changes
                           budget.allocateMemory(48);
                           ranges.push({ start: frame.start + start, end: frame.start + end });
                           const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
@@ -12458,6 +12515,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             frame.end = start + count;
                             // Native areverse advances AV_NOPTS_VALUE (INT64_MIN) after the first frame.
                             // PTS advances by sample count in time-base ticks; stored timestamps use samples.
+                            delete frame.exactPts;
                             frame.pts = start === 0 ? firstPts
                               : (Number.isNaN(firstPts) ? -(2 ** 63) * samplesPerTick : firstPts) + start * samplesPerTick;
                             const metadata = audioMetadata[n];

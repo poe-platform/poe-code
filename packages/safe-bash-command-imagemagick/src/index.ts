@@ -17777,7 +17777,7 @@ export function runCompareCliSync(argv: readonly string[], files: Map<string, Ui
 interface MontageArguments {
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset">[];
     trim: boolean; shadow: boolean;
-    orientations: ("flip" | "flop" | "transpose")[]; rotation: number; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
+    orientations: ("flip" | "flop" | "transpose")[]; rotations: number[]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments(argv: readonly string[]): Generator<void, MontageArguments | ImageMagickCliResult, void> {
@@ -17791,7 +17791,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
     let geometry = "120x120>";
     let trim = false;
     let concatenate = false;
-    let rotation = 0;
+    const rotations: number[] = [];
     const orientations: ("flip" | "flop" | "transpose")[] = [];
     let thumbnail: string | undefined;
     let title: string | undefined;
@@ -17834,7 +17834,8 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             orientations.push(t === "-flip" ? "flip" : t === "-flop" ? "flop" : "transpose");
         }
         else if (t === "-rotate") {
-            rotation = parseMagickRotation(argv[++i] ?? "0").angle;
+            const angle = parseMagickRotation(argv[++i] ?? "0").angle;
+            if (angle !== 0) rotations.push(angle);
         }
         else if (t === "-trim") {
             trim = true;
@@ -18042,7 +18043,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         }
     }
     if (groups.length) return { exitCode: 1, stdout: "", stderr: "montage: unbalanced parenthesis\n" };
-    return { trim, shadow, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture };
+    return { trim, shadow, orientations, rotations, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture };
 }
 function montageTitleSvg(title: string, width: number, state: MagickState, padY: number): { svg: string; height: number } {
     // Montage doubles the title point size and reserves twice the normal line metrics.
@@ -18057,7 +18058,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let cooperativeWork = 63;
     const parsed = yield* parseMontageArguments(argv);
     if ("exitCode" in parsed) return parsed;
-    const { trim, shadow, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture } = parsed;
+    const { trim, shadow, orientations, rotations, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture } = parsed;
     const variableCells = !frame && cellW === undefined && cellH === undefined;
     if (operands.length < 2) {
         return {
@@ -18078,7 +18079,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const inPaths = operands.slice(0, -1);
     let inputErrors = "";
     const fastMetaDims: { width: number; height: number }[] = [];
-    let canStreamTiles = !shadow && !trim && orientations.length === 0 && rotation === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean);
+    let canStreamTiles = !shadow && !trim && orientations.length === 0 && rotations.length === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean);
     if (canStreamTiles) {
         for (const p of inPaths) {
             const rawBytes = files.get(p);
@@ -18257,7 +18258,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                         if (thumb !== flipped) detachRgbaBuffer(flipped.data);
                     }
                 }
-                if (rotation !== 0) {
+                for (const rotation of rotations) {
                     const previous = thumb;
                     thumb = yield* rotateImageSteps(thumb, rotation, state.background);
                     if (thumb !== previous) detachRgbaBuffer(previous.data);
@@ -18390,7 +18391,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
     const parsed = await drainSteps(parseMontageArguments(argv), signal);
     if ("exitCode" in parsed) return parsed;
-    const { trim, shadow, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture } = parsed;
+    const { trim, shadow, orientations, rotations, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture } = parsed;
     const variableCells = !frame && cellW === undefined && cellH === undefined;
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
@@ -18406,7 +18407,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         }
         let inputErrors = "";
         const sources = new IntegerTable(backend.storage, 128), images = new StoredImageStack(backend.storage, signal);
-        let fast = !shadow && !trim && orientations.length === 0 && rotation === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
+        let fast = !shadow && !trim && orientations.length === 0 && rotations.length === 0 && !frame && borderW === 0 && thumbnail === undefined && cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
         const sourceAt = async (index: number): Promise<ImageByteSource | null> => {
             const size = Number(await sources.get(BigInt(index * 5 + 1)) ?? -1n);
             if (size < 0) return null;
@@ -18468,7 +18469,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                             image = await transformStoredImage(image, backend.storage, { kind: orientation === "transpose" ? "flip" : orientation }, signal);
                             if (orientation === "transpose") image = await transformStoredImage(image, backend.storage, { kind: "rotate", angle: 90, background: state.background }, signal);
                         }
-                        if (rotation !== 0) image = await transformStoredImage(image, backend.storage, { kind: "rotate", angle: rotation, background: state.background }, signal);
+                        for (const rotation of rotations) image = await transformStoredImage(image, backend.storage, { kind: "rotate", angle: rotation, background: state.background }, signal);
                         if (thumbnail !== undefined) {
                             const resize = magickResizeOptions(image, thumbnail, state.kernel ?? "lanczossharp");
                             if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true, false, false, state.resizeFilter);

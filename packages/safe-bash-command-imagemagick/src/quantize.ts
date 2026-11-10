@@ -1,4 +1,5 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { hilbertPixels } from "./riemersma.js";
 import { regionContains, type Region } from "./region.js";
 import { blendMaskedPixel, type MaskChannels } from "./write-mask.js";
 
@@ -38,7 +39,7 @@ interface ColorNode {
 }
 
 /** A bounded histogram and error-pruned color tree shared by both raster backends. */
-export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; alphaActive: boolean; channels?: MaskChannels | undefined }): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
+export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; alphaActive: boolean; channels?: MaskChannels | undefined }, dither?: { width: number; height: number; method: "riemersma" | "floydsteinberg"; diffusionAmount: number }): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
     // Keep fractional palette means alongside byte output for later arithmetic and deeper output.
     const round = (value: number) => highDepth ? Math.round(value * 257) / 257 : Math.fround(value * 257) / 257;
@@ -252,7 +253,71 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
     const assigned = new Float64Array(4), clipped = new Float64Array(4);
     const indices = cycle ? new Map(palette.map((color, index) => [color, index])) : undefined;
     const shift = cycle ? ((cycle.amount % palette.length) + palette.length) % palette.length : 0;
-    for (let position = 0; position < length; position += 4096) {
+    // An unreduced opaque palette still goes through native dither assignment.
+    // Its six-bit cache can reuse a nearby color; later pixels diffuse that error.
+    let cacheCollision = false;
+    if (dither && bins.size <= requested && channels === 3 && cycle === undefined) {
+        const keys = new Set<number>();
+        for (const color of palette) {
+            if (++work % 1024 === 0) yield;
+            const id = (Math.round(color[0]!) >>> 2) | (Math.round(color[1]!) >>> 2) << 6 | (Math.round(color[2]!) >>> 2) << 12;
+            if (keys.has(id)) { cacheCollision = true; break; }
+            keys.add(id);
+        }
+    }
+    // Without a collision every input maps exactly, so diffusion stays zero.
+    if (dither && cacheCollision) {
+        const cache = new Map<number, number[]>(), errors = new Float64Array(64);
+        const weights = Float64Array.from({ length: 16 }, (_, i) => dither.diffusionAmount * 16 ** (-1 - i / 15));
+        let row = new Float64Array(dither.method === "floydsteinberg" ? dither.width * 3 : 0), nextRow = new Float64Array(row.length);
+        function* scan() {
+            for (let y = 0; y < dither!.height; y++) {
+                for (let x = 0; x < dither!.width; x++) yield (y * dither!.width + (y % 2 ? dither!.width - x - 1 : x)) * 4;
+                [row, nextRow] = [nextRow, row];
+                nextRow.fill(0);
+            }
+        }
+        for (const position of dither.method === "riemersma" ? hilbertPixels(dither) : scan()) {
+            if (++work % 1024 === 0) yield;
+            const source = yield { kind: "read", highDepth, position, length: 4 };
+            if (!source || source.length !== (highDepth ? 8 : 4)) throw new Error("Truncated quantization pixels");
+            const target = prepare(source), x = position / 4 % dither.width;
+            let id = 0;
+            for (let c = 0; c < 3; c++) {
+                if (dither.method === "riemersma") for (let i = 0; i < 16; i++) target[c]! += weights[i]! * errors[i * 4 + c]!;
+                else target[c]! += row[x * 3 + c]!;
+                target[c] = Math.max(0, Math.min(255, target[c]!));
+                id |= (Math.round(target[c]!) >>> 2) << (c * 6);
+            }
+            let color = cache.get(id);
+            if (!color) {
+                let distance = Infinity;
+                for (const candidate of palette) {
+                    if (++work % 1024 === 0) yield;
+                    let next = 0;
+                    for (let c = 0; c < 3; c++) next += (target[c]! - candidate[c]!) ** 2;
+                    if (next <= distance) { color = candidate; distance = next; }
+                }
+                cache.set(id, color!);
+            }
+            if (dither.method === "riemersma") {
+                errors.copyWithin(0, 4);
+                for (let c = 0; c < 3; c++) errors[60 + c] = target[c]! - color![c]!;
+            } else {
+                const direction = Math.floor(position / 4 / dither.width) % 2 ? -1 : 1;
+                for (let c = 0; c < 3; c++) {
+                    const error = (target[c]! - color![c]!) * dither.diffusionAmount / 16;
+                    if (x + direction >= 0 && x + direction < dither.width) {
+                        row[(x + direction) * 3 + c]! += error * 7;
+                        nextRow[(x + direction) * 3 + c]! += error;
+                    }
+                    if (x - direction >= 0 && x - direction < dither.width) nextRow[(x - direction) * 3 + c]! += error * 3;
+                    nextRow[x * 3 + c]! += error * 5;
+                }
+            }
+            yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(color!, value => Math.round(value * 257)).buffer) : Uint8Array.from(color!) };
+        }
+    } else for (let position = 0; position < length; position += 4096) {
         yield;
         const size = Math.min(4096, length - position), source = yield { kind: "read", highDepth, position, length: size };
         if (!source || source.length !== size * (highDepth ? 2 : 1)) throw new Error("Truncated quantization pixels");

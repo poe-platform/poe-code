@@ -4310,6 +4310,93 @@ async function applyVideoFilterChain(
         group.length = 0;
       }
       current = shuffled;
+    } else if (name === "tpad") {
+      const keys = ["start", "stop", "start_mode", "stop_mode", "start_duration", "stop_duration", "color"];
+      const options: Record<string, string> = {};
+      const parts = argStr ? positional.slice() : [];
+      if (parts.at(-1) === "") parts.pop();
+      for (const [index, part] of parts.entries()) {
+        const separator = part.indexOf("=");
+        const key = separator < 0 ? keys[index] : part.slice(0, separator).trim();
+        if (!key || !keys.includes(key)) throw new Error(`tpad: unsupported option ${key ?? part}`);
+        options[key] = (separator < 0 ? part : part.slice(separator + 1)).trim();
+      }
+      const counts = ["start", "stop"].map(key => {
+        const value = parseFilterExpression(options[key] ?? "0", `tpad ${key}`, {
+          default: 0, min: key === "stop" ? -1 : 0, max: 2147483647,
+          PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+        });
+        if (!Number.isFinite(value) || value < (key === "stop" ? -1 : 0) || value > 2147483647) {
+          throw new Error(`tpad: invalid ${key}`);
+        }
+        return roundToEven(value);
+      });
+      const modes = ["start_mode", "stop_mode"].map(key => {
+        const mode = options[key] ?? "add";
+        if (!["add", "clone", "0", "1"].includes(mode)) throw new Error(`tpad: invalid ${key}`);
+        return mode === "clone" || mode === "1";
+      });
+      const color = parseColorRgba(options.color ?? "black");
+      const first = current[0];
+      const last = current.at(-1);
+      const duration = first?.durationSeconds ?? 0;
+      for (const [index, key] of ["start_duration", "stop_duration"].entries()) {
+        const value = options[key] === undefined ? 0 : parseHlsDuration(options[key]!);
+        if (!Number.isFinite(value) || value < 0) throw new Error(`tpad: invalid ${key}`);
+        if (value > 0) counts[index] = Math.round(value / duration);
+      }
+      if (!first || !last) continue;
+      if (!frameRateKnown || !(duration > 0)) throw new Error("tpad: a known frame rate is required");
+      const start = counts[0]!;
+      const stop = counts[1]!;
+      const count = start + current.length + Math.max(0, stop);
+      if (!Number.isSafeInteger(count) || count > 4294967295) throw new Error("tpad: output frame count is too large");
+      budget.checkSamples(count);
+      budget.checkDuration(last.ptsSeconds + last.durationSeconds + (start + Math.max(0, stop)) * duration);
+      budget.allocateMemory(count * 128);
+      const padded: typeof current = [];
+      for (const [side, length] of [start, stop].entries()) {
+        if (side === 1) {
+          for (const frame of current) padded.push({ ...frame, ptsSeconds: frame.ptsSeconds + start * duration });
+        }
+        if (length === 0) continue;
+        let picture = side === 0 ? first : last;
+        if (!modes[side]) {
+          budget.allocateMemory(picture.width * picture.height * 4);
+          const data = new Uint8Array(picture.width * picture.height * 4);
+          for (let offset = 0; offset < data.length; offset += 4) {
+            if (offset % 16384 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            data.set(color, offset);
+          }
+          const solid = { ...picture, data };
+          delete solid.native;
+          picture = solid;
+        }
+        if (length === -1) {
+          pendingBounded = false;
+          pending = (async function* () {
+            yield* padded;
+            for (let index = 0; ; index++) {
+              if (index % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+              const ptsSeconds = last.ptsSeconds + last.durationSeconds + (start + index) * duration;
+              budget.checkSamples(count + index + 1);
+              budget.checkDuration(ptsSeconds + duration);
+              budget.recordFrame(picture.width, picture.height);
+              budget.allocateMemory(128);
+              yield { ...picture, ptsSeconds, durationSeconds: duration };
+            }
+          })();
+          continue;
+        }
+        for (let index = 0; index < length; index++) {
+          if (index % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          budget.recordFrame(picture.width, picture.height);
+          padded.push({ ...picture, durationSeconds: duration,
+            ptsSeconds: side === 0 ? index * duration : last.ptsSeconds + last.durationSeconds + (start + index) * duration });
+        }
+      }
+      current = padded;
+      endTimeSeconds = current.at(-1)!.ptsSeconds + duration;
     } else if (name === "loop") {
       const values = { loop: 0, size: 0, start: 0, time: Infinity };
       const options = argStr ? argStr.split(":") : [];

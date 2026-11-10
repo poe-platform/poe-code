@@ -5181,7 +5181,7 @@ async function createStoredCanvas(width: number, height: number, color: RgbaColo
 type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor });
 type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
 
-function* copyMagickPixelSteps(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* copyMagickPixelSteps(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string, highDepth: boolean, channels?: boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     validateMagickTransformGeometry(geometry, "-copy");
     validateMagickTransformGeometry(offset, "-copy");
     const source = parseMagickGeometry(geometry), destination = parseMagickGeometry(offset);
@@ -5219,6 +5219,14 @@ function* copyMagickPixelSteps(image: Pick<RgbaImage, "width" | "height">, geome
             }
             if (i === runStart) runSource = position;
             previous = position;
+        }
+        if (channels) {
+            const original = yield { kind: "read", position: (y * image.width + start) * 4, length: count * 4, highDepth };
+            if (!original || original.length !== data.length) throw new Error("Truncated copy pixels");
+            const channelBytes = highDepth ? 2 : 1;
+            for (let i = 0; i < data.length; i++) {
+                if (!channels[Math.floor(i / channelBytes) % 4]) data[i] = original[i]!;
+            }
         }
         yield { kind: "write", position: (y * image.width + start) * 4, data, highDepth };
     }
@@ -9587,8 +9595,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-copy") {
             const geometry = tokens[++i] ?? "", offset = tokens[++i] ?? "";
+            const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                return yield* applyMagickRasterSteps(image, copyMagickPixelSteps(image, geometry, offset, !!image.data16), signal);
+                return yield* applyMagickRasterSteps(image, copyMagickPixelSteps(image, geometry, offset, !!image.data16, channels), signal);
             });
         }
         else if (t === "-roll") {
@@ -12325,7 +12334,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => image && kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
         } else if (!operandsOnly && token === "-copy") {
             const geometry = tokens[++i] ?? "", offset = tokens[++i] ?? "";
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, copyMagickPixelSteps(image, geometry, offset, !!image.storedData16), signal) : undefined);
+            const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, copyMagickPixelSteps(image, geometry, offset, !!image.storedData16, channels), signal) : undefined);
         } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
             if (token === "-chop" || token === "-roll") stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);

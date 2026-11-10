@@ -2283,6 +2283,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     const data16 = img.data16 || virtualPixel === "gray" ? new Uint16Array(out.length) : undefined;
     const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
     const hueSamples = img.hueSamples ? new Float64Array(out.length) : undefined;
+    const virtualBackground = bg;
     if (img.space === "cmyk") {
         // Native CMYK canvas fills convert linear RGB background values to inks.
         const rgb = [bg.r, bg.g, bg.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
@@ -2317,11 +2318,15 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                 if (srcIdx < 0) {
                     const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 0x8000 / 257 : 0;
                     const color = virtualPixel === "background" || virtualPixel.endsWith("-tile")
-                        ? [bg.r, bg.g, bg.b, bg.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
+                        ? [virtualBackground.r, virtualBackground.g, virtualBackground.b, virtualBackground.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
+                    if (hueSamples) hueSamples.set(img.space === "cmyk"
+                        ? [color[0]! / 255, color[1]! / 255, color[2]! / 255, 0]
+                        : color.map(value => value / 255), dstIdx);
+                    // CMYK virtual colors are ink samples with zero black; backing pixels stay RGBA.
+                    if (img.space === "cmyk") for (let channel = 0; channel < 3; channel++) color[channel] = 255 - color[channel]!;
                     out.set(color.map(Math.round), dstIdx);
                     if (evaluateSamples) evaluateSamples.set(color, dstIdx);
                     if (data16) data16.set(color.map(value => Math.round(value * 257)), dstIdx);
-                    if (hueSamples) hueSamples.set(color.map(value => value / 255), dstIdx);
                     continue;
                 }
                 out[dstIdx] = img.data[srcIdx]!;
@@ -12168,6 +12173,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         ys = [{ source: 0, target: 0, length: y0 }, { source: y1, target: y0, length: h - y1 }];
     }
     let background = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
+    const virtualBackground = background;
     const virtualCanvas = token !== "-roll" ? magickResizeCanvas(image, width, height) : undefined;
     if (token === "-splice") {
         if (!image.hasAlpha && background.a < 255) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: prepareInactiveAlphaOutput }, signal);
@@ -12250,7 +12256,11 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
                             const method = state.virtualPixel;
                             const gray = method === "white" ? 255 : method === "gray" ? 0x8000 / 257 : 0;
                             const color = method === "background" || method?.endsWith("-tile")
-                                ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255];
+                                ? [virtualBackground.r, virtualBackground.g, virtualBackground.b, virtualBackground.a] : [gray, gray, gray, method === "transparent" ? 0 : 255];
+                            if (image.space === "cmyk") {
+                                if (plane.target === storedHueSamples) color[3] = 0;
+                                else for (let channel = 0; channel < 3; channel++) color[channel] = 255 - color[channel]!;
+                            }
                             const samples = plane.stride === 32 ? Float64Array.from(color, value => plane.target === storedHueSamples ? value / 255 : value) : plane.stride === 8
                                 ? Uint16Array.from(color, value => Math.round(value * 257)) : Uint8Array.from(color, Math.round);
                             extended.set(new Uint8Array(samples.buffer), i);

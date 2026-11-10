@@ -7,6 +7,9 @@ import { createMagickCommand, runMontageCli, runMontageCliSync } from "./index.j
 for (const mode of ["sync", "buffered", "retained", "command"] as const) {
   it.each([
     { inputs: ["a.png", "-duplicate", "1"], order: [0, 0] },
+    { inputs: ["a.png", "b.png", "-duplicate", "1,"], order: [0, 1] },
+    { inputs: ["a.png", "b.png", "-duplicate", "1,,"], order: [0, 1, 0] },
+    { inputs: ["a.png", "b.png", "-duplicate", "1,,1"], order: [0, 1, 1] },
     { inputs: ["a.png", "-duplicate", "0"], order: [0] },
     { inputs: ["a.png", "b.png", "-duplicate", "-1"], order: [0, 1] },
     { inputs: ["a.png", "b.png", "-duplicate", "-2,0"], order: [0, 1] },

@@ -25,11 +25,14 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
             { args: ["r.png", "g.png", "b.png", "-duplicate", `1,${spec}`], pixels: [red, green, blue, green, blue] },
             { args: ["r.png", "g.png", "b.png", "-delete", spec], pixels: [red] }
         ]),
-        ...["1 x", "1 2x", "1 -", "1 1.5", "1 2-", ",1 2", " "].flatMap(spec => [
+        ...["1 x", "1 2x", "1 -", "1 1.5", "1 2-", " "].flatMap(spec => [
             { args: ["r.png", "g.png", "b.png", "-clone", spec], pixels: null },
             { args: ["r.png", "g.png", "b.png", "-duplicate", `1,${spec}`], pixels: null },
             { args: ["r.png", "g.png", "b.png", "-delete", spec], pixels: null }
         ]),
+        { args: ["r.png", "g.png", "b.png", "-clone", ",1 2"], pixels: null },
+        { args: ["r.png", "g.png", "b.png", "-delete", ",1 2"], pixels: null },
+        { args: ["r.png", "g.png", "b.png", "-duplicate", "1,,1 2"], pixels: [red, green, blue, green, blue] },
         { args: ["r.png", "g.png", "(", "b.png", "-clone", "0", ")"], pixels: [red, green, blue, red] },
         { args: ["r.png", "g.png", "(", "b.png", "+clone", ")"], pixels: [red, green, blue, green] },
         ...["0,8", "9", "-3", "0,-3"].flatMap(spec => [

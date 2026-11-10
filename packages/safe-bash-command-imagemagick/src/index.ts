@@ -6473,6 +6473,15 @@ function parseMagickIndices(spec: string, ranges = true): number[][] {
   return parts;
 }
 
+function parseMagickDuplicateScenes(spec: string): string {
+  if (spec === "") return spec;
+  // Native skips leading separators; a nonempty list with only commas selects frame zero.
+  while (spec.startsWith(",")) spec = spec.slice(1);
+  spec ||= "0";
+  parseMagickIndices(spec);
+  return spec;
+}
+
 function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" | "delete"): Generator<number> {
   const parts = parseMagickIndices(spec);
   // Clone lists interpret a trailing comma as an additional frame-zero selection.
@@ -9791,8 +9800,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const countSpec = comma < 0 ? value : value.slice(0, comma);
                 count = Number(countSpec);
                 if ((!countSpec.trim() && comma !== 0) || !Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
-                idxSpec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";
-                parseMagickIndices(idxSpec);
+                idxSpec = parseMagickDuplicateScenes(comma < 0 ? "-1" : value.slice(comma + 1));
+                if (idxSpec === "") count = 0;
             }
             const sourcePool = stack;
             const sourceLength = sourcePool.length;
@@ -10555,8 +10564,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const countSpec = comma < 0 ? value : value.slice(0, comma);
                 count = Number(countSpec);
                 if ((!countSpec.trim() && comma !== 0) || !Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
-                spec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";
-                parseMagickIndices(spec);
+                spec = parseMagickDuplicateScenes(comma < 0 ? "-1" : value.slice(comma + 1));
+                if (spec === "") count = 0;
             }
             stackStep(async (stack, _backend, parents) => {
                 if (token.endsWith("duplicate") && stack.length === 0) throw new Error(`no images found for operation ${token}`);
@@ -13772,11 +13781,12 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
                 const value = argv[++i] ?? "", comma = value.startsWith("x") ? 0 : value.indexOf(",");
                 count = Number(comma < 0 ? value : value.slice(0, comma));
                 if (!value || !Number.isSafeInteger(count)) return { exitCode: 1, stdout: "", stderr: `montage: invalid argument '${value}'\n` };
-                spec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";
+                spec = comma < 0 ? "-1" : value.slice(comma + 1);
             }
             const length = operands.length;
             try {
-                parseMagickIndices(spec);
+                spec = parseMagickDuplicateScenes(spec);
+                if (spec === "") count = 0;
                 for (let repeat = 0; repeat < count; repeat++) {
                     for (const index of parseMagickIndexSpec(spec, length, "clone")) {
                         if (++cooperativeWork % 64 === 0) yield;

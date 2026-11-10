@@ -9569,7 +9569,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-charcoal") {
-            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
+            const geometry = parseMagickGeometry((tokens[++i] ?? "0x1").replace(",", "x").replace("/", "x"));
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const edges = yield* applyMagickRasterSteps(im, edgePixelSteps(im, geometry.width ?? 0), signal, { ...im, hasAlpha: false });
                 return yield* applyMagickRasterSteps(edges, charcoalPixelSteps(edges, geometry), signal);
@@ -11978,7 +11978,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return transformStoredMagickRaster({ ...metadata, isPalette: false }, backend, whiteBalancePixelSteps(lab, vibrance), signal, lab, [lab]);
             });
         } else if (!operandsOnly && token === "-charcoal") {
-            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
+            const geometry = parseMagickGeometry((tokens[++i] ?? "0x1").replace(",", "x").replace("/", "x"));
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const edges = await transformStoredMagickRaster(image, backend, edgePixelSteps(image, geometry.width ?? 0), signal, { ...image, hasAlpha: false });

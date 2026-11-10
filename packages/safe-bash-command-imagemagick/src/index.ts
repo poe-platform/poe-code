@@ -8542,10 +8542,10 @@ if (t === "-seed") {
         else if (t === "-interlace") {
             const interlace = (tokens[++i] ?? "").toLowerCase();
             if (interlace !== "plane" && interlace !== "line" && interlace !== "none" && interlace !== "png" && interlace !== "gif") throw new Error(`unsupported interlace type '${interlace}'`);
-            state.jpegProgressive = interlace === "plane" || interlace === "line";
+            state.jpegProgressive = interlace !== "none";
             state.tiffPlanar = interlace === "plane";
-            state.pngInterlace = interlace === "png";
-            state.gifInterlace = interlace === "gif";
+            state.pngInterlace = interlace !== "none";
+            state.gifInterlace = interlace !== "none";
         }
         else if (t === "+interlace") { delete state.jpegProgressive; delete state.tiffPlanar; delete state.pngInterlace; delete state.gifInterlace; }
         else if (t === "-compress") {

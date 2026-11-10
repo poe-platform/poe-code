@@ -5447,6 +5447,7 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
     const background = state.backgroundExplicit ? state.background : img.backgroundColor ?? state.background;
     const canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(layout.width, layout.height, background, true),
         hasAlpha: img.hasAlpha || background.a < 255,
+        inactiveAlpha: false,
         ...(img.orientation !== undefined ? { orientation: img.orientation } : {}),
         ...(readMask ? { readMask } : {}),
         ...(img.magickColorspace ? { magickColorspace: img.magickColorspace } : {}),
@@ -14568,6 +14569,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const background = captured.backgroundExplicit ? captured.background : image.backgroundColor ?? captured.background;
                 const canvas: StoredRgbaImage = { ...await createStoredCanvas(layout.width, layout.height, background, backend, signal, true),
                     hasAlpha: image.hasAlpha || background.a < 255,
+                    inactiveAlpha: false,
                     ...(image.orientation !== undefined ? { orientation: image.orientation } : {}),
                     ...(readMask ? { readMask } : {}),
                     ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}),

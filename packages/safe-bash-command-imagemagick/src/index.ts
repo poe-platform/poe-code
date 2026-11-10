@@ -7904,9 +7904,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-brightness-contrast") {
         highDepth = true;
         evaluate = true;
-        const raw = [...(tokens[++i] ?? "")].filter(c => c.trim() !== "").join("").replaceAll("X", "x").replaceAll(",", "x").replaceAll("/", "x");
-        validateMagickTransformGeometry(raw, token);
-        const parts = raw.replaceAll(":", "x").split("x");
+        const raw = [...(tokens[++i] ?? "")].filter(c => c.trim() !== "").join("").replaceAll("X", "x");
+        validateMagickTransformGeometry(raw.replaceAll(",", "x").replaceAll("/", "x"), token);
+        const parts = raw.replaceAll(",", "x").replaceAll("/", "x").replaceAll(":", "x").split("x");
         for (const [index, part] of parts.entries()) {
             const field = [...part].filter(c => !"!#%()<>@\\^".includes(c)).join("");
             // Only a complete brightness/contrast pair may have trailing offsets.
@@ -7919,6 +7919,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         let [brightness = 0, contrast = 0] = parts.map(value => parseFloat(value) || 0);
         const denominator = parts[1]?.trimStart() ?? "";
+        // A plus after x starts an offset; comma/slash retain signed contrast.
+        if ([...raw].find(c => "x,:/".includes(c)) === "x" && denominator.startsWith("+")) contrast = 0;
         // Native colon geometry divides rho by sigma, then sets sigma to one.
         // Signed or missing denominators are offsets, not ratio components.
         if (raw.includes(":") && Number.isFinite(parseFloat(denominator)) && !"+-".includes(denominator[0]!)) {

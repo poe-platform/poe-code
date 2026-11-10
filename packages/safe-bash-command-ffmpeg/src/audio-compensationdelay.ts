@@ -5,7 +5,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function compensateAudioDelay(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
-  commands: readonly { sample: number; expression: string }[],
+  commands: readonly { sample: number; action: string; expression: string }[],
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
   const names = ["mm", "cm", "m", "dry", "wet", "temp"];
@@ -21,12 +21,15 @@ export async function compensateAudioDelay(
     if (separator < 0) optionPosition++;
     else optionPosition = optionPosition === 0 ? 1 : 0;
     const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    setOption(name!, raw);
+  }
+  function setOption(name: string, raw: string): void {
     if (name === "enable") {
+      parseFilterExpression(raw, "compensationdelay enable", { n: 0, t: 0, pos: NaN, w: 0 });
       enable = raw;
-      parseFilterExpression(enable, "compensationdelay enable", { n: 0, t: 0, pos: NaN, w: 0 });
-      continue;
+      return;
     }
-    const key = names.indexOf(name!);
+    const key = names.indexOf(name);
     const value = parseFilterExpression(raw, "compensationdelay", {});
     if (key < 0 || value < (key === 5 ? -50 : 0) || value > [10, 100, 100, 1, 1, 50][key]!) {
       throw new Error("compensationdelay: invalid option");
@@ -38,9 +41,6 @@ export async function compensateAudioDelay(
       values[key] = value - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(value);
     }
   }
-  // Native converts distance to whole samples using temperature-dependent sound speed.
-  const speed = 1.85325 * (643.95 * Math.sqrt((values[5]! + 273.15) / 273.15)) * 100000 / 3600;
-  const delay = Math.trunc((values[2]! * 100 + values[1]! + values[0]! * 0.1) * (1 / speed) * sampleRate);
   const length = channels[0]?.length ?? 0;
   budget.allocateMemory(length * channels.length * Float64Array.BYTES_PER_ELEMENT);
   const output = channels.map(() => new Float64Array(length));
@@ -48,12 +48,13 @@ export async function compensateAudioDelay(
   for (const [n, frame] of frames.entries()) {
     while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
       const command = commands[nextCommand++]!;
-      // Failed runtime commands leave the current option unchanged.
       try {
-        const gain = parseFilterExpression(command.expression, "compensationdelay", {});
-        if (Number.isFinite(gain) && gain >= 0 && gain <= 1) values[3] = gain;
-      } catch { /* Native asendcmd continues after a rejected command. */ }
+        setOption(command.action, command.expression);
+      } catch { /* Failed runtime commands leave the current option unchanged. */ }
     }
+    // Recompute whole-sample delay after distance or temperature updates.
+    const speed = 1.85325 * (643.95 * Math.sqrt((values[5]! + 273.15) / 273.15)) * 100000 / 3600;
+    const delay = Math.trunc((values[2]! * 100 + values[1]! + values[0]! * 0.1) * (1 / speed) * sampleRate);
     const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "compensationdelay enable", {
       n, t: frame.pts / sampleRate, pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0
     })) >= 0.5;

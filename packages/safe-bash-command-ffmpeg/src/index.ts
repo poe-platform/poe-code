@@ -1413,7 +1413,7 @@ async function panAudio(
     }
     if (normalize) {
       const total = gains[output]!.reduce((sum, gain) => sum + Math.abs(gain), 0);
-      if (total > 1e-5) {
+      if (total >= 1e-5) {
         for (let input = 0; input < channels.length; input++) gains[output]![input] = gains[output]![input]! / total;
       }
     }

@@ -5929,7 +5929,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         ? stack.reduce((acc, im) => acc + im.height, 0)
         : Math.max(...stack.map((im) => im.height));
     const background = state.backgroundExplicit ? state.background : stack[0]!.backgroundColor ?? state.background;
-    const canvas = (yield* createSolidRgbaImageSteps(totalW, totalH, background, stack.some(im => !!im.data16)));
+    let canvas = (yield* createSolidRgbaImageSteps(totalW, totalH, background, stack.some(im => !!im.data16)));
     if (stack.some(im => !!im.evaluateSamples)) {
         canvas.evaluateSamples = new Float64Array(canvas.data.length);
         const color = [background.r, background.g, background.b, background.a];
@@ -5938,11 +5938,17 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
             canvas.evaluateSamples.set(color, offset);
         }
     }
+    const cmyk = stack.every(image => image.space === "cmyk");
+    if (cmyk) {
+        const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+        canvas = yield* fillCmykPixels(canvas, rgbToCmyk(rgb[0]!, rgb[1]!, rgb[2]!));
+    }
     let hasAlpha = background.a < 255;
     let cursor = 0;
     const mixedCmyk = stack.some(image => image.space === "cmyk") && stack.some(image => image.space !== "cmyk");
     for (let im of stack) {
         if (mixedCmyk && im.space === "cmyk") im = yield* copyCmykChannelsToRgb(im);
+        if (cmyk) im = yield* convertCmykPixels(im);
         if (++work % 16384 === 0)
             yield;
         const off = resolveGravityOffset(vertical ? totalW - im.width : 0, vertical ? 0 : totalH - im.height, im.gravity ?? state.gravity);
@@ -5959,6 +5965,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
                         ?? Float64Array.from((im.data16 ?? im.data).subarray(start, end), value => im.data16 ? value / 257 : value);
                     canvas.evaluateSamples.set(samples, ((top + y) * totalW + left + x) * 4);
                 }
+                if (canvas.hueSamples) canvas.hueSamples.set(im.hueSamples!.subarray(start, start + Math.min(4096, im.width - x) * 4), ((top + y) * totalW + left + x) * 4);
             }
         }
         hasAlpha ||= im.hasAlpha;
@@ -5966,7 +5973,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
     }
     const first = stack[0]! as MagickImage;
     const gray = stack.every(image => image.space === "b-w" || image.space === "grey16") && background.r === background.g && background.g === background.b;
-    return { ...canvas, ...(first.orientation !== undefined ? { orientation: first.orientation } : {}), ...(gray ? { space: first.space, gamma: first.gamma } : {}), ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }), channels: gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), hasAlpha, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
+    return { ...canvas, ...(first.orientation !== undefined ? { orientation: first.orientation } : {}), ...(gray ? { space: first.space, gamma: first.gamma } : {}), ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }), channels: cmyk ? 4 : gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), hasAlpha, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
 }
 
 function expandFilenameProperties(spec: string, properties: ImageMetadata["properties"]): string {
@@ -12130,9 +12137,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }
                     }
                 }
+                if (append && cmyk && !nonCmyk) {
+                    const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+                    const inks = rgbToCmyk(rgb[0]!, rgb[1]!, rgb[2]!);
+                    result = await transformStoredMagickPixels(result, backend, { end: 0, apply: image => fillCmykPixels(image, inks) }, signal);
+                }
                 let cursor = 0;
                 for (let n = 0; n < stack.length; n++) {
                     let frame: StoredRgbaImage = (await stack.get(n))!;
+                    if (append && cmyk && !nonCmyk && frame.storedHueSamples === undefined) frame = await transformStoredMagickPixels(frame, backend, { end: 0, highDepth: true, apply: convertCmykPixels }, signal);
                     if (append && cmyk && nonCmyk && frame.space === "cmyk") frame = await transformStoredMagickPixels(frame, backend, { end: 0, highDepth: true, apply: copyCmykChannelsToRgb }, signal);
                     const offset = resolveGravityOffset(vertical ? width - frame.width : 0, vertical ? 0 : height - frame.height, frame.gravity ?? settings.gravity);
                     if (append) {
@@ -12155,6 +12168,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                                         : new Uint8Array(Float64Array.from(original ? new Uint16Array(original.slice().buffer) : pixels, value => original ? value / 257 : value).buffer);
                                     await backend.storage.write(result.storedEvaluateSamples + ((top + y) * width + left + x) * 32, bytes);
                                 }
+                                if (result.storedHueSamples !== undefined) {
+                                    const bytes = await backend.storage.read(frame.storedHueSamples! + (y * frame.width + x) * 32, pixels.length * 8);
+                                    await backend.storage.write(result.storedHueSamples + ((top + y) * width + left + x) * 32, bytes);
+                                }
                             }
                         }
                         result = { ...result, hasAlpha: result.hasAlpha || frame.hasAlpha };
@@ -12167,7 +12184,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (append) {
                     const first = (await stack.get(0))!;
                     gray &&= background.r === background.g && background.g === background.b;
-                    result = { ...result, ...(gray ? { space: first.space, gamma: first.gamma } : {}), channels: gray ? result.hasAlpha ? 2 : 1 : result.hasAlpha ? 4 : 3 };
+                    result = { ...result, ...(gray ? { space: first.space, gamma: first.gamma } : {}), channels: cmyk && !nonCmyk ? 4 : gray ? result.hasAlpha ? 2 : 1 : result.hasAlpha ? 4 : 3 };
                 }
                 if (!append) {
                     const first = (await stack.get(0))!, scene = first[magickInput]?.sceneIdx ?? 0;

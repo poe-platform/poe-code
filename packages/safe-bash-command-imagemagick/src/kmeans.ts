@@ -23,6 +23,7 @@ export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
     while (!next.done) {
         const request = next.value;
         if (request?.kind === "write") {
+            if (request.evaluate) { next = seeds.next(); continue; }
             for (let i = 0; i < request.data.length; i += 4) {
                 const data = request.data, key = data[i]! * 0x1000000 + data[i + 1]! * 0x10000 + data[i + 2]! * 256 + data[i + 3]!;
                 if (!colors.has(key)) colors.set(key, Array.from(data.subarray(i, i + 4), value => value / 255));

@@ -79,7 +79,7 @@ it("bounds the histogram for high-color images", async () => {
             expect(request.length).toBeLessThanOrEqual(4096);
             next = steps.next(source.subarray(request.position, request.position + request.length));
         } else {
-            if (request?.kind === "write") output.set(request.data, request.position);
+            if (request?.kind === "write" && !request.evaluate) output.set(request.data, request.position);
             next = steps.next();
         }
     }

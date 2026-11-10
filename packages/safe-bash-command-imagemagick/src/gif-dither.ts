@@ -12,6 +12,7 @@ export function* gifDitherSteps(image: { width: number; height: number }, method
         const step = quantize.next(response);
         if (step.done) break;
         if (step.value?.kind === "write") {
+            if (step.value.evaluate) { response = undefined; continue; }
             const bytes = step.value.data;
             for (let i = 0; i < bytes.length; i += 4) {
                 const key = bytes[i]! << 24 | bytes[i + 1]! << 16 | bytes[i + 2]! << 8 | bytes[i + 3]!;

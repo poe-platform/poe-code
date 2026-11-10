@@ -496,8 +496,10 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 for (let image = 0; image < frames; image++) {
                     if (++work % 64 === 0) yield;
                     const bytes = yield* read(image, position, length);
+                    // Gray occupies one native color channel despite our RGB storage.
+                    const gray = !cmyk && (inputs[image]!.space === "b-w" || inputs[image]!.space === "grey16");
                     for (let pixel = 0; pixel < pixels; pixel++) {
-                        const offset = pixel * stride, sum = Math.trunc(bytes[offset]! + bytes[offset + 1]! + bytes[offset + 2]! + bytes[offset + 3]! + (cmyk ? bytes[offset + 4]! : 0));
+                        const offset = pixel * stride, sum = Math.trunc(bytes[offset]! + (gray ? 0 : bytes[offset + 1]! + bytes[offset + 2]!) + bytes[offset + 3]! + (cmyk ? bytes[offset + 4]! : 0));
                         if ((sum >> (shift + 5)) === (sums[pixel]! >> (shift + 5))) histogram[pixel * 32 + ((sum >> shift) & 31)]!++;
                     }
                 }
@@ -512,8 +514,9 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 const bytes = yield* read(image, position, length);
                 // Preserve the selected tuple's working samples after bounded ranking.
                 const samples = yield* read(image, position, length, true);
+                const gray = !cmyk && (inputs[image]!.space === "b-w" || inputs[image]!.space === "grey16");
                 for (let pixel = 0; pixel < pixels; pixel++) {
-                    const offset = pixel * stride, sum = Math.trunc(bytes[offset]! + bytes[offset + 1]! + bytes[offset + 2]! + bytes[offset + 3]! + (cmyk ? bytes[offset + 4]! : 0));
+                    const offset = pixel * stride, sum = Math.trunc(bytes[offset]! + (gray ? 0 : bytes[offset + 1]! + bytes[offset + 2]!) + bytes[offset + 3]! + (cmyk ? bytes[offset + 4]! : 0));
                     if (sum === sums[pixel]) { if (ranks[pixel] === 0) data.set(samples.subarray(offset, offset + stride), offset); ranks[pixel]! -= 1; }
                 }
             }

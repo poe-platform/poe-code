@@ -11,8 +11,8 @@ function colorKey(samples: Uint8Array | Uint16Array, offset: number, hasAlpha: b
 }
 
 // ImageMagick compares HDRI channels with MagickEpsilon in Q16 units.
-function equalWorkingColors(left: Float64Array, leftOffset: number, right: Float64Array, rightOffset: number, cmyk: boolean, hasAlpha: boolean): boolean {
-    const epsilon = 1e-12 / (cmyk ? 65535 : 257);
+function equalWorkingColors(left: Float64Array, leftOffset: number, right: Float64Array, rightOffset: number, cmyk: boolean, hasAlpha: boolean, normalized: boolean): boolean {
+    const epsilon = 1e-12 / (normalized ? 65535 : 257);
     for (let channel = 0; channel < (cmyk || hasAlpha ? 4 : 3); channel++) {
         if (Math.abs(left[leftOffset + channel]! - right[rightOffset + channel]!) >= epsilon) return false;
     }
@@ -24,10 +24,10 @@ export class UniqueColors {
     private readonly leaves = new Map<number, { samples: Float64Array; alpha: number | undefined }[]>();
     size = 0;
 
-    add(samples: Uint8Array | Uint16Array | Float64Array, offset: number, order: number, alpha?: number, hasAlpha = true): boolean {
+    add(samples: Uint8Array | Uint16Array | Float64Array, offset: number, order: number, alpha?: number, hasAlpha = true, normalized = alpha !== undefined): boolean {
         if (samples instanceof Float64Array) {
             const leaf = this.leaves.get(order) ?? [];
-            if (leaf.some(color => (!hasAlpha || color.alpha === alpha) && equalWorkingColors(color.samples, 0, samples, offset, alpha !== undefined, hasAlpha))) return false;
+            if (leaf.some(color => (!hasAlpha || color.alpha === alpha) && equalWorkingColors(color.samples, 0, samples, offset, alpha !== undefined, hasAlpha, normalized))) return false;
             leaf.push({ samples: samples.slice(offset, offset + 4), alpha });
             this.leaves.set(order, leaf);
         } else {
@@ -66,7 +66,7 @@ export function* uniqueColorsSteps(image: RgbaImage & HueMetadata & { inactiveAl
     for (let offset = 0; offset < samples.length; offset += 4) {
         if (offset % 4096 === 0) yield;
         const order = colorOrder(samples, offset, hasAlpha, inks);
-        if (!seen.add(inks ?? image.evaluateSamples ?? samples, offset, order, inks ? samples[offset + 3]! : undefined, !dropAlpha)) continue;
+        if (!seen.add(image.hueSamples ?? image.evaluateSamples ?? samples, offset, order, inks ? samples[offset + 3]! : undefined, !dropAlpha, image.hueSamples !== undefined)) continue;
         pixels.push({ offset, order });
     }
     // Stable radix sorting stays cooperative even for an all-unique raster.
@@ -108,7 +108,7 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & 
     const dropAlpha = !image.hasAlpha && image.inactiveAlpha === true && image.alphaBlend === false;
     const hasAlpha = !dropAlpha && (image.hasAlpha || image.inactiveAlpha === true);
     const seen = new IntegerTable(storage, 512), order = new IntegerTable(storage, 512), size = image.width * image.height * 4;
-    const workingPosition = image.space === "cmyk" ? image.storedHueSamples : image.storedEvaluateSamples;
+    const workingPosition = image.storedHueSamples ?? image.storedEvaluateSamples;
     let count = 0;
     // Each leaf stores linked blocks of representatives: next/count, then
     // alpha and four working channels per record (all float64).
@@ -143,7 +143,7 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & 
                     const used = block[1]!;
                     for (let index = 0; index < used; index++) {
                         const record = 2 + index * 5;
-                        if ((!inks || dropAlpha || block[record] === samples[offset + 3]) && equalWorkingColors(block, record + 1, working, offset, !!inks, !dropAlpha)) {
+                        if ((!inks || dropAlpha || block[record] === samples[offset + 3]) && equalWorkingColors(block, record + 1, working, offset, !!inks, !dropAlpha, image.storedHueSamples !== undefined)) {
                             duplicate = true;
                             break;
                         }

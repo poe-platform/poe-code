@@ -1438,13 +1438,13 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     // Distinct CMYK inks can render as the same RGB color.
     const inks = img.space === "cmyk" ? chunk.hueSamples : undefined;
     if (uniqueColors) {
-      // Arithmetic retains unclamped fractional samples separately from output pixels.
-      const working = chunk.evaluateSamples ?? samples;
+      // Conversion and arithmetic retain fractional samples separately from output pixels.
+      const working = chunk.hueSamples ?? chunk.evaluateSamples ?? samples;
       const hasAlpha = img.hasAlpha || img.inactiveAlpha === true;
-      const alpha = hasAlpha ? working[i + 3]! : chunk.evaluateSamples ? 255 : range;
+      const alpha = hasAlpha ? working[i + 3]! : chunk.hueSamples ? 1 : chunk.evaluateSamples ? 255 : range;
       const color = inks ?? working.slice(i, i + 4);
       if (!inks) color[3] = alpha;
-      uniqueColors.add(color, inks ? i : 0, colorOrder(samples, i, hasAlpha, inks), inks ? (hasAlpha ? samples[i + 3]! : range) : undefined);
+      uniqueColors.add(color, inks ? i : 0, colorOrder(samples, i, hasAlpha, inks), inks ? (hasAlpha ? samples[i + 3]! : range) : undefined, true, chunk.hueSamples !== undefined);
     }
     // Copy retains alpha samples without enabling transparency.
     opaque &&= img.alphaBlend === false || a === range;
@@ -14639,7 +14639,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     result = { ...result, ...(gray ? { space: first.space, gamma: first.gamma } : {}), channels: cmyk && !nonCmyk ? 4 : gray ? result.hasAlpha ? 2 : 1 : result.hasAlpha ? 4 : 3 };
                 }
                 if (!append) {
-                    const first = (await stack.get(0))!, scene = first[magickInput]?.sceneIdx ?? 0;
+                    const first: StoredRgbaImage = (await stack.get(0))!, scene = first[magickInput]?.sceneIdx ?? 0;
                     if (first.readMask) result.readMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                     result = { ...result, ...(first.properties ? { properties: first.properties } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0] };
                     if (settings.units !== undefined) result = applyMagickUnits(result, settings.units);

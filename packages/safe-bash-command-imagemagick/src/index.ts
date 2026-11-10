@@ -17840,6 +17840,13 @@ function* parseMontageArguments<Step>(argv: readonly string[], fileTargets: (pat
         else if (t === "-adjoin" || t === "+adjoin") {
             state.adjoin = t === "-adjoin";
         }
+        else if (t === "-scenes") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -scenes\n" };
+            if (!value || [...value].some(char => char < "0" || char > "9"))
+                return { exitCode: 1, stdout: "", stderr: `montage: invalid argument '${value}' for -scenes\n` };
+            // A single scene number does not filter frames in an existing input file.
+        }
         else if (t === "-tile") {
             const g = parseMagickGeometry(argv[++i] ?? "2x2");
             tileCols = g.width;

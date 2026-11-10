@@ -73,7 +73,9 @@ function parse(context: CommandContext, budget: Budget): Options {
       options.replacement = bytes;
     }
     else if (flag === "t") {
-      const bytes = value === "\\0" ? Uint8Array.of(0) : rawValue ?? encode(value);
+      let bytes = value === "\\0" ? Uint8Array.of(0) : rawValue ?? encode(value);
+      // GNU uses LF and the empty delimiter for whole-record matching, even with -z.
+      if (bytes.length === 1 && bytes[0] === 10) bytes = empty;
       if (delimiterChoice !== undefined && compare(delimiterChoice, bytes) !== 0) fail("incompatible field delimiters");
       delimiterChoice = bytes;
       if (bytes.length > 1) {

@@ -34,6 +34,24 @@ async function run(args: ShellValue[], files: Record<string, string | Uint8Array
 }
 
 for (const args of [
+ ["-z", "-t", "\n"],
+ ["-t\n", "-z"],
+ ["-zt\n"],
+ ["-z", "-t", ""],
+ ["-z", "-t", "\n", "-t", ""],
+ ["-t", "", "-t", "\n", "-z"],
+]) {
+ for (const right of ["a\nred\0", "a\nblue\0"]) {
+  test(`join whole-record delimiters: ${JSON.stringify(args)}, right=${JSON.stringify(right)}`, async () => {
+   const result = await run([...args, "/left", "/right"], { "/left": "a\nred\0", "/right": right });
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.equal(result.stderr, "");
+   assert.deepEqual(result.stdoutBytes, Array.from(new TextEncoder().encode(right === "a\nred\0" ? right : "")));
+  });
+ }
+}
+
+for (const args of [
  ["-o", "0", "1.2", "2.2", "left", "right"],
  ["-o0", "1.2,2.2", "left", "right"],
  ["-o", "0", "1.2", "-o", "2.2", "left", "right"],

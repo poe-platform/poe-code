@@ -34,7 +34,7 @@ export async function fadeAudio(
       option = "";
     } else option += char;
   }
-  if (argument) options.push(option);
+  if (argument && (option || !argument.endsWith(":"))) options.push(option);
   function applyOption(key: string | undefined, value: string) {
     if (key === "t" || key === "type") {
       const number = parseFilterExpression(value, "afade", { in: 0, out: 1 });

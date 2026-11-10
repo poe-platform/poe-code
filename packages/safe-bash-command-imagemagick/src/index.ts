@@ -8008,12 +8008,18 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 const cmyk = im.space === "cmyk";
                 if (cmyk) im = yield* convertCmykPixels(im);
                 const hueSamples = im.hueSamples?.slice();
+                const initializeAlpha = mode === "disassociate" && !im.hasAlpha && !im.inactiveAlpha;
                 const out = new Uint8Array(im.data), data16 = new Uint16Array(im.data.length);
                 const evaluateSamples = im.evaluateSamples?.slice() ?? Float64Array.from(im.data16 ?? im.data, value => im.data16 ? value / 257 : value);
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (idx % 65536 === 0) yield;
+                    // Disassociate adds a zero alpha channel before scaling RGB.
+                    if (initializeAlpha) {
+                        out[idx + 3] = evaluateSamples[idx + 3] = 0;
+                        if (hueSamples && !cmyk) hueSamples[idx + 3] = 0;
+                    }
                     // Association disables blending but retains alpha for subsequent operations.
-                    const alpha = im.hasAlpha || im.inactiveAlpha ? evaluateSamples[idx + 3]! / 255 : 1;
+                    const alpha = im.hasAlpha || im.inactiveAlpha || initializeAlpha ? evaluateSamples[idx + 3]! / 255 : 1;
                     const scale = mode === "associate" ? alpha : 1 / Math.max(alpha, 1e-12);
                     // The fourth CMYK working sample is black ink; alpha stays in RGBA.
                     if (hueSamples) for (let channel = 0; channel < (cmyk ? 4 : 3); channel++) {
@@ -8028,9 +8034,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         data16[idx + channel] = Math.round(scaled);
                         out[idx + channel] = clampByteVal(scaled / 257);
                     }
-                    data16[idx + 3] = im.data16 ? im.data16[idx + 3]! : im.data[idx + 3]! * 257;
+                    data16[idx + 3] = initializeAlpha ? 0 : im.data16 ? im.data16[idx + 3]! : im.data[idx + 3]! * 257;
                 }
-                return { ...im, data: out, data16, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), hasAlpha: false, inactiveAlpha: im.hasAlpha || im.inactiveAlpha, alphaBlend: mode === "associate" && (im.alphaBlend ?? im.hasAlpha), alphaSeparate: mode === "disassociate" };
+                return { ...im, data: out, data16, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), hasAlpha: false, inactiveAlpha: initializeAlpha || im.hasAlpha || im.inactiveAlpha, alphaBlend: mode === "associate" && (im.alphaBlend ?? im.hasAlpha), alphaSeparate: mode === "disassociate", channels: initializeAlpha ? im.channels <= 2 ? 2 : 4 : im.channels };
             };
         }
         else if (mode === "deactivate" || mode === "discrete") {

@@ -27,7 +27,7 @@ for (const execution of ["buffered", "retained", "sync"] as const) {
         const output = execution === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
         const image = decodeImage(output);
         expect([...image.data]).toEqual(expected);
-        expect(result.stdout.trim()).toBe(color === "red" ? "srgb  3.0" : mode === "associate" ? "srgba 4.0" : "srgb  4.0");
+        expect(result.stdout.trim()).toBe(color === "red" && mode === "associate" ? "srgb  3.0" : mode === "associate" ? "srgba 4.0" : "srgb  4.0");
     });
 }
 

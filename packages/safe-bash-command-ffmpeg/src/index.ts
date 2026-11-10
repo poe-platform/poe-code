@@ -2562,21 +2562,25 @@ async function applyVideoFilterChain(
         const top = Math.floor(cy / vsub) * vsub;
         const source = f.native;
         if (source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
-            [0, 4, 5, 12, 13, 14].includes(source.format)) {
+            [0, 4, 5, 12, 13, 14, 29, 34, 104].includes(source.format)) {
+          const pixelBytes = source.format === 29 ? 2 : source.format === 34 ? 6 : source.format === 104 ? 8 : 1;
+          const packed = pixelBytes > 1;
           const chromaWidth = Math.ceil(cw / inputHsub);
           const chromaHeight = Math.ceil(ch / inputVsub);
-          const pixels = new Uint8Array(cw * ch + 2 * chromaWidth * chromaHeight);
+          const byteLength = packed ? cw * ch * pixelBytes : cw * ch + 2 * chromaWidth * chromaHeight;
+          budget.allocateMemory(byteLength + cw * ch * 4);
+          const pixels = new Uint8Array(byteLength);
           let offset = 0;
           let outputOffset = 0;
-          for (let plane = 0; plane < 3; plane++) {
+          for (let plane = 0; plane < (packed ? 1 : 3); plane++) {
             const sx = plane === 0 ? 1 : inputHsub;
             const sy = plane === 0 ? 1 : inputVsub;
-            const width = Math.ceil(f.width / sx);
+            const width = Math.ceil(f.width / sx) * pixelBytes;
             const height = Math.ceil(f.height / sy);
-            const outputWidth = plane === 0 ? cw : chromaWidth;
+            const outputWidth = (plane === 0 ? cw : chromaWidth) * pixelBytes;
             const outputHeight = plane === 0 ? ch : chromaHeight;
             // Even exact crops address chroma at the containing subsampled pixel.
-            const x = Math.floor(left / sx);
+            const x = Math.floor(left / sx) * pixelBytes;
             const y = Math.floor(top / sy);
             for (let row = 0; row < outputHeight; row++) {
               await yieldTurn(signal);

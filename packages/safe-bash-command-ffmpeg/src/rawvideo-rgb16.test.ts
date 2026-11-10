@@ -54,3 +54,24 @@ for (const format of ["rgb48be", "rgba64be"]) {
     });
   }
 }
+
+for (const [format, channels] of [["gray16be", 1], ["rgb48be", 3], ["rgba64be", 4]] as const) {
+  for (const filter of ["null", "crop=iw:ih", "crop=2:2:1:1", "crop=3:3:1:1,crop=2:2:0:0"]) {
+    it(`preserves every ${format} component through ${filter}`, async () => {
+      const input = Buffer.alloc(48 * channels * 2);
+      for (let pixel = 0; pixel < 48; pixel++) {
+        for (let channel = 0; channel < channels; channel++) {
+          input.writeUInt16BE([0x1234, 0x4567, 0x89ab, 0xbdef][channel]! + pixel,
+            (pixel * channels + channel) * 2);
+        }
+      }
+      const expected = filter === "null" || filter === "crop=iw:ih" ? input : Buffer.concat(
+        [0, 16, 32].flatMap(frame => [5, 6, 9, 10].map(pixel =>
+          input.subarray((frame + pixel) * channels * 2, (frame + pixel + 1) * channels * 2))));
+      const result = await run(input.toString("hex"), format,
+        ["-vf", filter, "-fps_mode", "passthrough", "-pix_fmt", format], {}, "4x4");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.output, expected);
+    });
+  }
+}

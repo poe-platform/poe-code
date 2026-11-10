@@ -7623,19 +7623,21 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 throw new Error(`invalid argument for option '${token}': ${argument}`);
             }
         }
+        // Discrete alpha participates in automatic corrections without enabling transparency.
+        const hasAlpha = image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false;
         if (token === "-auto-gamma") {
             const count = Math.max(1, channelSums!.count);
             const cmyk = image.space === "cmyk";
-            const channelCount = (cmyk ? 4 : 3) + (image.hasAlpha ? 1 : 0);
+            const channelCount = (cmyk ? 4 : 3) + (hasAlpha ? 1 : 0);
             const sums = channelSums!.values;
             // Grayscale stores one color sample; its RGB projections must not outweigh alpha.
             const gray = image.space === "b-w" || image.space === "grey16";
             const sharedMean = gray
-                ? (sums[0]! + (image.hasAlpha ? sums[3]! : 0)) / (count * (image.hasAlpha ? 2 : 1))
-                : sums.reduce((sum, value, channel) => sum + (channel === 3 && !image.hasAlpha ? 0 : value), 0) / (count * channelCount);
+                ? (sums[0]! + (hasAlpha ? sums[3]! : 0)) / (count * (hasAlpha ? 2 : 1))
+                : sums.reduce((sum, value, channel) => sum + (channel === 3 && !hasAlpha ? 0 : value), 0) / (count * channelCount);
             // Native auto-gamma uses levels, including both masked cache syncs.
             const operations: MagickPixelOperation[] = [];
-            const active = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a && image.hasAlpha, settings.channels.k];
+            const active = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a && hasAlpha, settings.channels.k];
             for (let channel = 0; channel < (independent ? cmyk ? 5 : gray ? 1 : 3 : 1); channel++) {
                 if (independent && !active[channel]) continue;
                 const mean = independent ? sums[channel]! / count : sharedMean;
@@ -7660,10 +7662,10 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             const mins = histogram.map(range => range[0]!), maxs = histogram.map(range => range[1]!);
             const gray = image.space === "b-w" || image.space === "grey16", cmyk = image.space === "cmyk";
             // CMYK independent levels include alpha; RGB independent levels only adjust color.
-            const active = [channels.r, !gray && channels.g, !gray && channels.b, cmyk && channels.a && image.hasAlpha, cmyk && settings.channels.k];
+            const active = [channels.r, !gray && channels.g, !gray && channels.b, cmyk && channels.a && hasAlpha, cmyk && settings.channels.k];
             if (!independent) {
                 // Default channels share the range of every ink and alpha when present.
-                const included = histogram.filter((_, channel) => channel !== 3 || image.hasAlpha);
+                const included = histogram.filter((_, channel) => channel !== 3 || hasAlpha);
                 mins.fill(Math.min(...included.map(range => range[0]!)));
                 maxs.fill(Math.max(...included.map(range => range[1]!)));
             }

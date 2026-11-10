@@ -2,7 +2,7 @@ import "../shell/sync-extra-evaluators.js";
 import { compareByteArrays, decodeBytes, encodeBytes, indexOfBytes } from "../byte-encoding.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { createBufferedOutput, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
-import { RETURN_EXIT_ONE, RETURN_EXIT_ZERO, assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, options, output, outputRange, pathOf, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
+import { RETURN_EXIT_ONE, RETURN_EXIT_ZERO, assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, options, output, outputRange, pathOf, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { inputRequirements, textOutputRequirements } from "./portable-requirements.js";
 import { hasYieldCheckpoint, runYieldCheckpoint } from "../contracts/yield.js";
@@ -585,6 +585,20 @@ function uniqFieldBlankWidth(bytes: Uint8Array, offset: number, byteLocale: bool
   return 0;
 }
 
+function uniqCount(text: string): number {
+  let start = 0;
+  while (start < text.length && " \t\n\v\f\r".includes(text[start]!)) start++;
+  const negative = text[start] === "-";
+  if (negative || text[start] === "+") start++;
+  if (start === text.length) throw new UsageError(`invalid number '${text}'`);
+  for (let index = start; index < text.length; index++) {
+    if (text[index]! < "0" || text[index]! > "9" || negative && text[index] !== "0") throw new UsageError(`invalid number '${text}'`);
+  }
+  const count = Number(text);
+  if (!Number.isSafeInteger(count)) throw new UsageError(`invalid number '${text}'`);
+  return count;
+}
+
 async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteSource): Promise<{ exitCode: number }> {
   const longOptions = { count: "c", repeated: "d", unique: "u", "all-repeated": "all-repeated:", group: "group:", "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z" };
   let ended = false;
@@ -625,7 +639,7 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
   const parsed = options(args, "cduiDf:s:w:z", longOptions, context.env.POSIXLY_CORRECT !== undefined, index => { operandIndices.push(index); }, undefined, (option, method) => {
     if (option === "f" || option === "s" || option === "w") {
       let count: number;
-      try { count = integer(method!); }
+      try { count = uniqCount(method!); }
       catch (error) {
         if (error instanceof UsageError) throw new PublicDiagnostic(error.message);
         throw error;

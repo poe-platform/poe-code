@@ -179,9 +179,10 @@ export function* haldClutPixelSteps(size: number, lut: { width: number; height: 
 
 export function* interpolatePixelSteps(size: number, fraction: number, blendAlpha = true, channels?: readonly boolean[], highDepth = false, gray = false): Steps {
     const range = highDepth ? 65535 : 255;
-    for (let position = 0; position < size; position += 16384) {
+    // Float64 working planes must fit the 16 KiB storage read limit.
+    for (let position = 0; position < size; position += 2048) {
         yield;
-        const length = Math.min(16384, size - position);
+        const length = Math.min(2048, size - position);
         const hue = yield { kind: "read", hue: true, position, length };
         const otherHue = yield { kind: "read", hue: true, image: 1, position, length };
         const bytes = hue?.length ? hue : (yield { kind: "read", highDepth, position, length })!;

@@ -4,6 +4,8 @@ import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
 const validOptions = ["", "threads=1", "thread_type=slice", "extra_hw_frames=1",
+  "threads=default", "threads=min", "extra_hw_frames=default", "extra_hw_frames=min",
+  "threads=0", "extra_hw_frames=-1",
   "threads=1:thread_type=slice:extra_hw_frames=1",
   "threads=0:thread_type=0:extra_hw_frames=-1",
   "threads=2147483647:extra_hw_frames=2147483647", "threads=1+1"];

@@ -2131,6 +2131,8 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     const spliceWidth = Math.max(0, sw + Math.min(0, xOffset));
     const sx = Math.max(0, Math.min(outW, xOffset));
     if (box.y + anchor.top > outH) throw new Error("pixels are not authentic");
+    // Identity geometry retains the selection without compositing it again.
+    if (sw === 0 && sh === 0 && img.region) img = { ...img, region: { ...img.region } };
     const sy = Math.max(0, box.y + anchor.top);
     const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
     const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
@@ -9536,7 +9538,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
-        if ((t === "-ordered-dither" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-auto-threshold" || t === "-random-threshold" || t === "-range-threshold" || t === "-solarize" || t === "-channel-fx" || t === "-level" || t === "+level" || t === "-negate" || t === "+negate") && !stack.length) throw new Error(`no images found for operation '${t}'`);
+        if ((t === "-ordered-dither" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-auto-threshold" || t === "-random-threshold" || t === "-range-threshold" || t === "-solarize" || t === "-channel-fx" || t === "-level" || t === "+level" || t === "-negate" || t === "+negate" || t === "-gamma" || t === "+gamma") && !stack.length) throw new Error(`no images found for operation '${t}'`);
         if (t === "-page") {
             const raw = tokens[++i] ?? "";
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
@@ -11199,6 +11201,8 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         const spliceWidth = Math.max(0, sw + Math.min(0, xOffset));
         const x = Math.max(0, Math.min(width, xOffset));
         if (box.y + anchor.top > height) throw new Error("pixels are not authentic");
+        // A fresh selection prevents the pipeline from compositing the region again.
+        if (sw === 0 && sh === 0 && region) region = { ...region };
         const y = Math.max(0, box.y + anchor.top);
         xs = [{ source: 0, target: 0, length: x }, { source: x, target: x + spliceWidth, length: Math.max(0, width - x - spliceWidth) }];
         ys = [{ source: 0, target: 0, length: y }, { source: y, target: y + sh, length: Math.max(0, h - y) }];
@@ -11889,7 +11893,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && (token === "-level" || token === "+level" || token === "-negate" || token === "+negate" || token === "-threshold" || token === "-black-threshold" || token === "-white-threshold" || token === "-auto-threshold" || token === "-random-threshold" || token === "-range-threshold")) stackStep(async stack => {
+        if (!operandsOnly && (token === "-gamma" || token === "+gamma" || token === "-level" || token === "+level" || token === "-negate" || token === "+negate" || token === "-threshold" || token === "-black-threshold" || token === "-white-threshold" || token === "-auto-threshold" || token === "-random-threshold" || token === "-range-threshold")) stackStep(async stack => {
             if (!stack.length) throw new Error(`no images found for operation '${token}'`);
             return stack;
         });

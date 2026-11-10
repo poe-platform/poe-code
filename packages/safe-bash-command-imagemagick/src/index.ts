@@ -6667,7 +6667,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 }
                 im = { ...image, evaluateSamples };
             }
-            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im as MagickImage)[magickInput], virtualPixel: state.virtualPixel } });
+            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im as MagickImage)[magickInput], virtualPixel: state.optionProperties?.["virtual-pixel"] } });
             if (state.qualityExplicit) im = { ...im, quality: state.quality };
             if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
             if (state.composeExplicit) im = { ...im, properties: { ...im.properties, compose: state.composeRaw } };
@@ -10329,6 +10329,12 @@ if (t === "-intent" || t === "+intent") {
             if (k === "option:compose:args")
                 state.composeArgs = v;
         } else return undefined;
+    const property = t?.slice(1);
+    if (property && ["compose", "gravity", "filter", "background", "interpolate", "interlace", "virtual-pixel"].includes(property)) {
+        state.optionProperties = { ...state.optionProperties };
+        if (t![0] === "-") state.optionProperties[property] = tokens[i]!;
+        else delete state.optionProperties[property];
+    }
     return i;
 }
 
@@ -10585,7 +10591,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "-compose" || t === "+compose") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, properties: { ...image.properties, compose: state.composeRaw } }; });
             if (t === "-quality") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, quality: state.quality }; });
             if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity }; });
-            if (t === "-virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, hasAlpha: image.hasAlpha || state.virtualPixel === "transparent" || state.virtualPixel === "background" && state.background.a < 255, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { ...(image as MagickImage)[magickInput], virtualPixel: state.virtualPixel } }; });
+            if (t === "-virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, hasAlpha: image.hasAlpha || state.virtualPixel === "transparent" || state.virtualPixel === "background" && state.background.a < 255, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { ...(image as MagickImage)[magickInput], virtualPixel: state.optionProperties?.["virtual-pixel"] } }; });
         }
         else if (t === "-connected-components" || t === "+connected-components") {
             const connectivity = parseConnectedComponents(tokens, i++);
@@ -13321,8 +13327,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 steps.push(async image => image ? { ...image, gravity } : undefined);
             }
             if (token === "-virtual-pixel") {
-                const virtualPixel = state.virtualPixel, activateAlpha = virtualPixel === "transparent" || virtualPixel === "background" && state.background.a < 255;
-                steps.push(async image => image ? { ...image, hasAlpha: image.hasAlpha || activateAlpha, virtualPixel: virtualPixel ?? "edge", [magickInput]: { ...(image as StoredMagickImage)[magickInput], virtualPixel } } : undefined);
+                const virtualPixel = state.virtualPixel, virtualPixelProperty = state.optionProperties?.["virtual-pixel"], activateAlpha = virtualPixel === "transparent" || virtualPixel === "background" && state.background.a < 255;
+                steps.push(async image => image ? { ...image, hasAlpha: image.hasAlpha || activateAlpha, virtualPixel: virtualPixel ?? "edge", [magickInput]: { ...(image as StoredMagickImage)[magickInput], virtualPixel: virtualPixelProperty } } : undefined);
             }
             continue;
         }
@@ -15975,7 +15981,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    }
    image = { ...metadata, storedEvaluateSamples };
   }
-  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image as StoredMagickImage)[magickInput], virtualPixel: state.virtualPixel } });
+  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image as StoredMagickImage)[magickInput], virtualPixel: state.optionProperties?.["virtual-pixel"] } });
   if(state.qualityExplicit)image={...image,quality:state.quality};
   if(state.page!==undefined)image={...image,virtualCanvas:state.page};
   if(state.composeExplicit)image={...image,properties:{...image.properties,compose:state.composeRaw}};

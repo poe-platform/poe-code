@@ -11289,7 +11289,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     height: first.virtualCanvas?.height || maxH + Math.max(0, originY),
                     x: originX, y: originY,
                 } };
-                if (flatten && first.orientation !== undefined) stack[0] = { ...stack[0]!, orientation: first.orientation };
+                if (first.orientation !== undefined) stack[0] = { ...stack[0]!, orientation: first.orientation };
             }
         }
         else if (t === "-layers" && tokens[i + 1]?.toLowerCase() === "composite") {
@@ -12766,7 +12766,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         height: first.virtualCanvas?.height || height + Math.max(0, originY),
                         x: originX, y: originY,
                     } };
-                    if (flatten && first.orientation !== undefined) result = { ...result, orientation: first.orientation };
+                    if (first.orientation !== undefined) result = { ...result, orientation: first.orientation };
                 }
                 stack.length = 0; await stack.push(result); return stack;
             }); continue;

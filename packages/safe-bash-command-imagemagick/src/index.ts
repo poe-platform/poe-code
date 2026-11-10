@@ -3452,7 +3452,7 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         return { ...plan, width, height, map: (px, py) => plan.map(px + x, py + y), virtualCanvas: { width, height, x, y } };
     };
     if (token === "-swirl") {
-        const centerX = w / 2, centerY = h / 2, radius = Math.max(w, h) / 2, radians = (Number.parseFloat(spec) * Math.PI) / 180;
+        const centerX = w / 2, centerY = h / 2, radius = Math.max(w, h) / 2, radians = ((parseMagickGeometry(spec).aspectRatio ?? Number.parseFloat(spec)) * Math.PI) / 180;
         const scaleX = radius / centerX, scaleY = radius / centerY;
         return result((x, y) => {
             const dx = (x - centerX) * scaleX, dy = (y - centerY) * scaleY, r = Math.hypot(dx, dy);
@@ -3463,7 +3463,7 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
         }, w, h, img.hasAlpha);
     }
     if (token === "-implode") {
-        const centerX = w / 2, centerY = h / 2, radius = Math.max(w, h) / 2, amount = Number.parseFloat(spec);
+        const centerX = w / 2, centerY = h / 2, radius = Math.max(w, h) / 2, amount = parseMagickGeometry(spec).aspectRatio ?? Number.parseFloat(spec);
         const scaleX = radius / centerX, scaleY = radius / centerY;
         return result((x, y) => {
             const dx = x - centerX, dy = y - centerY, r = Math.hypot(dx * scaleX, dy * scaleY);
@@ -3475,7 +3475,7 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
     }
     if (token === "-wave") {
         spec = spec.replaceAll("/", "x").replaceAll(",", "x");
-        const amplitude = Number.parseFloat(spec) || 0, padding = Math.abs(amplitude);
+        const amplitude = parseMagickGeometry(spec).aspectRatio ?? (Number.parseFloat(spec) || 0), padding = Math.abs(amplitude);
         const wavelength = Number.parseFloat(spec.toLowerCase().split("x")[1] ?? "");
         const length = Number.isNaN(wavelength) ? 1 : wavelength;
         // Native uses a safe reciprocal and stores the sine displacement as a float.

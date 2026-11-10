@@ -97,7 +97,7 @@ it("uses current RGB samples after a filter invalidates native YUV planes", asyn
 });
 
 it("rejects unsupported multiply options before replacing the destination", async () => {
-  const result = await run(input, "tblend=all_mode=multiply:all_opacity=0.5");
+  const result = await run(input, "tblend=all_mode=multiply:all_opacity=1.5");
   assert.notEqual(result.exitCode, 0);
   assert.ok(result.stderr.includes("tblend:"), result.stderr);
   assert.equal(result.output.toString(), "KEEP");

@@ -4092,6 +4092,7 @@ async function applyVideoFilterChain(
         }
       }
       if (positional.length > 1 && positional.at(-1) === "") positional.pop();
+      const opacityKeys = ["all_opacity", "c0_opacity", "c1_opacity", "c2_opacity", "c3_opacity"];
       const modeKeys = ["c0_mode", "c1_mode", "c2_mode", "c3_mode", "all_mode"];
       const options: Record<string, string> = {};
       let positionalIndex = 0;
@@ -4099,7 +4100,7 @@ async function applyVideoFilterChain(
         const separator = part.indexOf("=");
         const key = separator < 0 ? modeKeys[positionalIndex++] : part.slice(0, separator).trim().toLowerCase();
         if (key === "enable") continue;
-        if (!key || !modeKeys.includes(key)) throw new Error("tblend: only component modes and all_mode are supported");
+        if (!key || (!modeKeys.includes(key) && !opacityKeys.includes(key))) throw new Error("tblend: only component modes and all_mode are supported");
         options[key] = separator < 0 ? part : part.slice(separator + 1).trim();
       }
       const modes = modeKeys.map(key => {
@@ -4110,6 +4111,17 @@ async function applyVideoFilterChain(
         return mode;
       });
       if (options.all_mode !== undefined) modes.fill(modes[4]!);
+      const opacities = opacityKeys.map(key => {
+        const value = parseFilterExpression(options[key] ?? "1", `tblend: ${key}`, {
+          PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, min: 0, max: 1, default: 1
+        });
+        if (!Number.isFinite(value) || value < 0 || value > 1) {
+          throw new RangeError(`tblend: ${key} must be a finite number from 0 to 1`);
+        }
+        return value;
+      });
+      const opacity = opacities.slice(1).map(value => opacities[0]! < 1 ? opacities[0]! : value);
+      const fractionalOpacity = opacity.some(value => value !== 1);
       const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
       const commands = videoCommands.filter(command => command.target === name || command.target === instance);
       videoCommands = videoCommands.filter(command => command.target !== name && command.target !== instance);
@@ -4143,7 +4155,7 @@ async function applyVideoFilterChain(
         if (frame.width !== previous.width || frame.height !== previous.height) {
           throw new Error("tblend: adjacent frames must have matching dimensions");
         }
-        if (!enabled || modes.slice(0, 4).every(mode => mode === 0)) {
+        if (!enabled || (modes.slice(0, 4).every(mode => mode === 0) && !fractionalOpacity)) {
           blended.push(frame);
           continue;
         }
@@ -4169,14 +4181,17 @@ async function applyVideoFilterChain(
           // Native RGB blending uses GBR(A) planes; our fallback pixels are RGBA.
           const component = useNative ? (offset < lumaSize ? 0 : offset < lumaSize + chromaSize ? 1 : 2) : [2, 0, 1, 3][offset % 4]!;
           const mode = modes[component]!;
-          if ([6, 13].includes(mode) && !useNative && offset % 4 === 3 && packedAlpha) {
+          const amount = opacity[component]!;
+          if (([6, 13].includes(mode) || fractionalOpacity) && !useNative && offset % 4 === 3 && packedAlpha) {
             // swscale rounds packed alpha when converting to planar GBR for tblend.
             first = Math.min(255, Math.round(first * 257 / 256));
             second = Math.min(255, Math.round(second * 257 / 256));
           }
           const maximum = sampleBytes === 1 ? 255 : native!.format === 68 ? 1023 : 65535;
-          const value = mode === 13 ? Math.floor(first * second / maximum) : mode === 0 ? first : mode === 1 ? Math.min(maximum, first + second) : mode === 3 ? Math.floor((first + second) / 2) :
+          const calculated = mode === 13 ? Math.floor(first * second / maximum) : mode === 0 ? first : mode === 1 ? Math.min(maximum, first + second) : mode === 3 ? Math.floor((first + second) / 2) :
             !useNative && offset % 4 === 3 && !hasAlpha ? 255 : Math.abs(first - second);
+          const value = mode === 0 ? first * amount + second * (1 - amount)
+            : first + (calculated - first) * amount;
           data[offset] = value & 255;
           if (sampleBytes === 2) data[offset + 1] = value >> 8;
         }
@@ -4191,7 +4206,7 @@ async function applyVideoFilterChain(
         }
       }
       current = blended;
-      if ([6, 13].includes(modes[3]!) && packedAlpha) pixelFormat = "gbrap";
+      if (([6, 13].includes(modes[3]!) || fractionalOpacity) && packedAlpha) pixelFormat = "gbrap";
     } else if (name === "shuffleframes") {
       for (const key of Object.keys(named)) {
         if (key !== "mapping" && key !== "enable") throw new Error(`shuffleframes: unsupported option ${key}`);

@@ -6,7 +6,7 @@ import { createFfmpegCommand } from "./index.js";
 const samples = [[50, 30, 212], [120, 180, 60], [120, 180, 60], [80, 140, 190]];
 
 for (const y4m of [false, true]) {
-  for (const suffix of ["", ":", "::", ":unknown=1", ":all_opacity=0.5", ":invalid"]) {
+  for (const suffix of ["", ":", "::", ":unknown=1", ":all_opacity=1.5", ":invalid"]) {
     it(`handles tblend=all_mode=difference${suffix} with ${y4m ? "YUV" : "RGB"} input`, async () => {
       const input = y4m
         ? Buffer.concat([Buffer.from("YUV4MPEG2 W2 H2 F4:1 Ip A1:1 C444\n"),

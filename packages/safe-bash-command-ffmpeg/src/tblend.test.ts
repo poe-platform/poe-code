@@ -22,7 +22,7 @@ for (const [filter, expected] of [
   ["tblend=all_mode=addition,select='eq(t,0.1)+eq(t,0.7)'", [52, 255]],
   ["trim=end_frame=1,tblend=all_mode=addition", []],
   ["tblend=all_mode=addition,tblend=all_mode=addition", [132, 232, 255, 255, 255, 255]],
-  ...["all_mode=invalid", "all_mode=addition:all_opacity=0.5", "all_mode=normal:all_opacity=0.5", "all_mode=difference:all_opacity=0.5", "unknown=difference"].map(value => [`tblend=${value}`, null] as const)
+  ...["all_mode=invalid", "all_mode=addition:all_opacity=1.5", "all_mode=normal:all_opacity=1.5", "all_mode=difference:all_opacity=1.5", "unknown=difference"].map(value => [`tblend=${value}`, null] as const)
 ] as const) {
   it(`tblend selects frames or safely rejects ${filter}`, async () => {
     const volume = Volume.fromJSON(expected === null ? { "/o01.png": "existing output" } : {});

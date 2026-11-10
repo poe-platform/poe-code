@@ -10622,11 +10622,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
                           let length = endSeconds === undefined ? Infinity
                             : Math.max(0, Math.round(endSeconds * origRate) - Math.min(firstPts, Math.round((outputSs ?? 0) * origRate)));
-                          if (maxAudioFrames !== undefined) {
-                            const framesPerLoop = Math.ceil(regionLength / 1024);
-                            length = Math.min(length, Math.floor(maxAudioFrames / framesPerLoop) * regionLength
-                              + (maxAudioFrames % framesPerLoop) * 1024);
-                          }
                           let nextIndex = filterIndex + 1;
                           for (; nextIndex < audioFilters.length; nextIndex++) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -10643,6 +10638,88 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const end = Math.max(endSample, endPts - firstPts,
                               duration > 0 ? (start === Infinity ? 0 : start) + duration : -Infinity);
                             if (Number.isFinite(end)) length = Math.min(length, Math.max(0, end));
+                          }
+                          if (maxAudioFrames !== undefined) {
+                            const downstream = audioFilters.slice(filterIndex + 1).map(filter => {
+                              const separator = filter.indexOf("=");
+                              return { name: (separator < 0 ? filter : filter.slice(0, separator)).split("@", 1)[0],
+                                argument: separator < 0 ? "" : filter.slice(separator + 1) };
+                            });
+                            if (downstream.every(filter => ["asetnsamples", "aselect", "atrim", "anull", "acopy", "volume", "ashowinfo"].includes(filter.name!))) {
+                              // Pull frame metadata through the downstream filters until the output
+                              // cap is satisfied. Dropped frames and partial regrouping still consume
+                              // loop samples, but do not count as output frames.
+                              let required = 0;
+                              let frames: AsyncIterable<AudioFilterFrame> = (async function* () {
+                                while (required < length) {
+                                  if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                                  const start = required;
+                                  required = Math.min(length, start + Math.min(1024, regionLength - start % regionLength));
+                                  budget.checkDuration(required / origRate);
+                                  budget.checkSamples(required);
+                                  yield { start, end: required, pts: firstPts + start };
+                                }
+                              })();
+                              for (const filter of downstream) {
+                                const select = filter.name === "aselect" ? createAudioSelection(filter.argument || "1", origRate, audioTimeBase) : undefined;
+                                const trim = filter.name === "atrim" ? createAudioTrim(filter.argument, origRate) : undefined;
+                                const reframe = filter.name === "asetnsamples" ? parseAsetnsamples(filter.argument) : undefined;
+                                if (!select && !trim && !reframe) continue;
+                                const input = frames;
+                                frames = (async function* () {
+                                  let consumed = 0;
+                                  let emitted = 0;
+                                  let pending = 0;
+                                  let pendingPts = 0;
+                                  for await (const frame of input) {
+                                    const count = frame.end - frame.start;
+                                    const current = { ...frame, start: consumed, end: consumed + count };
+                                    consumed += count;
+                                    if (select && !select(current)) continue;
+                                    if (trim) {
+                                      const range = trim(current);
+                                      if (range === null) return;
+                                      if (range === undefined) continue;
+                                      const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
+                                      yield { start: emitted, end: emitted + range.end - range.start,
+                                        pts: frame.pts + Math.round(range.start / samplesPerTick) * samplesPerTick };
+                                      emitted += range.end - range.start;
+                                    } else if (reframe) {
+                                      let offset = 0;
+                                      while (offset < count) {
+                                        if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                                        if (pending === 0) pendingPts = frame.pts + offset;
+                                        const taken = Math.min(count - offset, reframe.size - pending);
+                                        pending += taken;
+                                        offset += taken;
+                                        if (pending < reframe.size) continue;
+                                        yield { start: emitted, end: emitted + pending, pts: pendingPts };
+                                        emitted += pending;
+                                        pending = 0;
+                                      }
+                                    } else {
+                                      yield { ...frame, start: emitted, end: emitted + count };
+                                      emitted += count;
+                                    }
+                                  }
+                                  if (pending > 0) yield { start: emitted,
+                                    end: emitted + (reframe!.pad ? reframe!.size : pending), pts: pendingPts };
+                                })();
+                              }
+                              if (maxAudioFrames > 0) {
+                                let outputFrames = 0;
+                                const seek = Math.round((outputSs ?? 0) * origRate);
+                                for await (const frame of frames) {
+                                  if (outputSs !== undefined && frame.pts + frame.end - frame.start <= seek) continue;
+                                  if (++outputFrames === maxAudioFrames) break;
+                                }
+                              }
+                              length = required;
+                            } else {
+                              const framesPerLoop = Math.ceil(regionLength / 1024);
+                              length = Math.min(length, Math.floor(maxAudioFrames / framesPerLoop) * regionLength
+                                + (maxAudioFrames % framesPerLoop) * 1024);
+                            }
                           }
                           if (!Number.isSafeInteger(length)) throw new Error("aloop: a finite consumer limit is required");
                           budget.checkDuration(length / origRate);

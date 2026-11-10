@@ -213,6 +213,23 @@ for (const [script, expected] of [
   });
 }
 
+for (const [variable, command] of [["HOME", "cd"], ["OLDPWD", "cd -"]]) {
+  for (const [cdpath, destination, printed] of [
+    ["missing:/search", "/search", "/search\n"],
+    ["missing", "/work", variable === "OLDPWD" ? "\n" : ""],
+    ["", "/work", variable === "OLDPWD" ? "\n" : ""],
+  ]) {
+    test(`${command} with empty ${variable} searches CDPATH=${cdpath} in Bash 5.3`, async context => {
+      const { shell } = await fixture();
+      context.after(() => shell.dispose());
+      const result = await shell.exec(`${variable}=; CDPATH=${cdpath}; ${command}; printf '%s|%s|%s' "$?" "$PWD" "$OLDPWD"`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, `${printed}0|${destination}|/work`);
+    });
+  }
+}
+
 for (const [script, status, diagnostic] of [
   ["cd -P link dir", 1, "cd: too many arguments\n"],
   ["cd link -P", 1, "cd: too many arguments\n"],
@@ -237,23 +254,6 @@ for (const [prefix, oldpwd] of [["PWD=x OLDPWD=y", "x"], ["OLDPWD=x", "/work"], 
     context.after(() => shell.dispose());
     const result = await shell.exec(`OLDPWD=sentinel; ${prefix} cd dir; printf '%s|%s|%s|' "$?" "$PWD" "$OLDPWD"; pwd -P`);
     assert.equal(result.exitCode, 0);
-for (const [variable, command] of [["HOME", "cd"], ["OLDPWD", "cd -"]]) {
-  for (const [cdpath, destination, printed] of [
-    ["missing:/search", "/search", "/search\n"],
-    ["missing", "/work", variable === "OLDPWD" ? "\n" : ""],
-    ["", "/work", variable === "OLDPWD" ? "\n" : ""],
-  ]) {
-    test(`${command} with empty ${variable} searches CDPATH=${cdpath} in Bash 5.3`, async context => {
-      const { shell } = await fixture();
-      context.after(() => shell.dispose());
-      const result = await shell.exec(`${variable}=; CDPATH=${cdpath}; ${command}; printf '%s|%s|%s' "$?" "$PWD" "$OLDPWD"`);
-      assert.equal(result.exitCode, 0);
-      assert.equal(result.stderr, "");
-      assert.equal(result.stdout, `${printed}0|${destination}|/work`);
-    });
-  }
-}
-
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, `0|/work/dir|${oldpwd}|/work/dir\n`);
   });

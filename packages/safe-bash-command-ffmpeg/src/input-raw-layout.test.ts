@@ -30,7 +30,7 @@ async function run(options: string[], filter = "anull", extraInputs: string[] = 
 }
 
 for (const option of ["-channel_layout", "-ch_layout"]) {
-  for (const [layout, channels] of [["quad", 4], ["5.1", 6], ["2.1", 3], ["3.0", 3], ["stereo", 2], ["mono", 1]] as const) {
+  for (const [layout, channels] of [["7.1", 8], ["5.1(side)", 6], ["quad", 4], ["5.1", 6], ["2.1", 3], ["3.0", 3], ["stereo", 2], ["mono", 1]] as const) {
     it(`preserves raw PCM bytes with ${option} ${layout}`, async () => {
       for (const count of [[], ["-ac", String(channels)]]) {
         const result = await run([...count, option, layout]);
@@ -44,7 +44,7 @@ for (const option of ["-channel_layout", "-ch_layout"]) {
   }
 }
 
-for (const channels of [4, 6]) {
+for (const channels of [4, 6, 8]) {
   it(`retains raw ${channels}-channel input without an explicit layout`, async () => {
     const result = await run(["-ac", String(channels)]);
     assert.equal(result.exitCode, 0, result.stderr);
@@ -56,7 +56,9 @@ for (const [layout, channels, speaker, channel] of [
   ["2.1", 3, "LFE", 2], ["2.1", 3, "FC", -1],
   ["3.0", 3, "FC", 2], ["3.0", 3, "LFE", -1],
   ["quad", 4, "BL", 2], ["quad", 4, "BR", 3],
-  ["5.1", 6, "FC", 2], ["5.1", 6, "LFE", 3]
+  ["5.1", 6, "FC", 2], ["5.1", 6, "LFE", 3],
+  ["5.1(side)", 6, "SL", 4], ["5.1(side)", 6, "SR", 5], ["5.1(side)", 6, "BL", -1],
+  ["7.1", 8, "BL", 4], ["7.1", 8, "BR", 5], ["7.1", 8, "SL", 6], ["7.1", 8, "SR", 7]
 ] as const) {
   it(`routes ${speaker} from raw ${layout} input by speaker assignment`, async () => {
     const result = await run(["-channel_layout", layout], `pan=mono|c0=${speaker}`);
@@ -78,7 +80,7 @@ it("resets the explicit speaker layout for the next raw input", async () => {
   assert.deepEqual(result.output, Buffer.alloc(input.length / 3));
 });
 
-for (const layout of ["quad", "5.1", "2.1", "3.0"]) {
+for (const layout of ["quad", "5.1", "2.1", "3.0", "5.1(side)", "7.1"]) {
   it(`falls back to asynchronous execution for raw ${layout} without writing output`, () => {
     let writes = 0;
     const result = evalSyncFfmpeg(["-y", "-f", "s16le", "-channel_layout", layout,

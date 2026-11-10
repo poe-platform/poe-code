@@ -8423,7 +8423,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const beforeInput = args.slice(i + 1).includes("-i");
             const channels = parseAudioChannelLayout(layout ?? "");
             const names = channels.join("+");
-            if (beforeInput ? !["FC", "FL+FR", "FC+LFE", "FL+FR+LFE", "FL+FR+FC", "FL+FR+BL+BR", "FL+FR+FC+LFE+BL+BR"].includes(names) : layout !== "mono") {
+            if (beforeInput ? !["FC", "FL+FR", "FC+LFE", "FL+FR+LFE", "FL+FR+FC", "FL+FR+BL+BR", "FL+FR+FC+LFE+BL+BR", "FL+FR+FC+LFE+SL+SR", "FL+FR+FC+LFE+BL+BR+SL+SR"].includes(names) : layout !== "mono") {
               await writeBytes(context.stderr, encodeUtf8(beforeInput
                 ? `ffmpeg: unsupported input channel layout '${layout ?? ""}'\n`
                 : "ffmpeg: only mono output channel layout is supported\n"), context.signal);

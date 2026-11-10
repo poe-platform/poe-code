@@ -26,6 +26,7 @@ export function parseAudioChannelLayout(layout: string): string[] {
   if (layout === "quad") return ["FL", "FR", "BL", "BR"];
   if (layout === "5.1" || layout === "6c") return ["FL", "FR", "FC", "LFE", "BL", "BR"];
   if (layout === "5.1(side)") return ["FL", "FR", "FC", "LFE", "SL", "SR"];
+  if (layout === "7.1") return ["FL", "FR", "FC", "LFE", "BL", "BR", "SL", "SR"];
   const hexadecimal = layout.toLowerCase().startsWith("0x") || layout.startsWith("0X");
   const digits = hexadecimal ? layout.slice(2) : layout;
   const alphabet = hexadecimal ? "0123456789abcdefABCDEF" : "0123456789";

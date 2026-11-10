@@ -39,3 +39,35 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         });
     }
 }
+
+for (const mode of ["command", "retained", "buffered", "sync"] as const) {
+    it.each([
+        ["Oklab", "Oklab", "0031ff60"],
+        ["Oklch", "Oklch", "e4003e60"],
+        ["LinearGray", "LinearGray", "bcbcbc60"],
+        ["Lab", "CIELab", "00eaff60"],
+        ["sRGB", "sRGB", "80562360"],
+    ])(`${mode}: declares %s without converting samples`, async (space, label, rgba) => {
+        for (const output of ["info", "rgba"] as const) {
+            const fs = new MemoryFileSystem();
+            const sentinel = new TextEncoder().encode("KEEP");
+            await fs.writeFile("/out", sentinel);
+            const files = new Map<string, Uint8Array>([["out", sentinel]]);
+            const args = ["xc:#80562360", "-set", "colorspace", space,
+                ...(output === "info" ? ["-format", "%[colorspace]", "info:out"]
+                    : ["-colorspace", "sRGB", "-depth", "8", "rgba:out"])];
+            let stderr = "";
+            const result = mode === "command" ? await createMagickCommand().execute({
+                command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+                stdin: (async function* () {})(), signal: new AbortController().signal,
+                stdout: { write: async () => {} },
+                stderr: { write: async chunk => { stderr += typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk); } },
+            }) : mode === "sync" ? runMagickCliSync(args, files)
+                : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+            if ("stderr" in result && typeof result.stderr === "string") stderr = result.stderr;
+            expect({ exitCode: result.exitCode, stderr }).toEqual({ exitCode: 0, stderr: "" });
+            const bytes = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("out")!;
+            expect(Buffer.from(bytes).toString(output === "info" ? "utf8" : "hex")).toBe(output === "info" ? label : rgba);
+        }
+    });
+}

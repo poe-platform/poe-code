@@ -7585,13 +7585,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         if (token === "-grayscale" && !["average", "mean", "brightness", "lightness", "ms", "rms", "rec601luma", "rec601luminance", "rec709luma", "rec709luminance"].includes(space)) {
             throw new Error(`unsupported grayscale method '${tokens[i] ?? ""}'`);
         }
-        evaluate = token !== "-type" && (token === "-grayscale" || ["rgb", "srgb", "gray", "grey", "rec709luma", "rec601luma", "lab", "cielab", "luv", "ohta", "yuv", "ycbcr"].includes(space));
-        const luminance = space === "rec601luminance" || space === "rec709luminance";
+        evaluate = token !== "-type" && (token === "-grayscale" || ["rgb", "srgb", "gray", "grey", "lineargray", "rec709luma", "rec601luma", "lab", "cielab", "luv", "ohta", "yuv", "ycbcr"].includes(space));
+        const luminance = space === "lineargray" || space === "rec601luminance" || space === "rec709luminance";
         apply = function* (image) {
             image = { ...image, [magickInput]: { ...image[magickInput],
                 imageType: imageType === "bilevel" ? "Bilevel" : imageType === "grayscale" ? "Grayscale" : imageType === "grayscalealpha" ? "GrayscaleAlpha" : undefined
             } };
             const linearGray = (image.space === "b-w" || image.space === "grey16") && image.gamma === 1;
+            if (linearGray && space === "lineargray") return image;
             if (linearGray && space === "rgb") return { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3, magickColorspace: "RGB" };
             if (image.magickColorspace === "RGB" && space === "rgb") return image;
             if ((image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HWB" || image.magickColorspace === "XYZ" || image.magickColorspace === "YCbCr" || image.magickColorspace === "OHTA" || image.magickColorspace === "YUV" || image.magickColorspace === "Luv" || image.magickColorspace === "CIELab") && (space === image.magickColorspace.toLowerCase() || (space === "lab" && image.magickColorspace === "CIELab"))) return image;
@@ -7600,7 +7601,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 const { hueSamples: ignoredCmyk, storedHueSamples: ignoredStoredCmyk, ...rgb } = image;
                 image = { ...rgb, space: "srgb", gamma: 1 / 2.2, channels: image.hasAlpha ? 4 : 3 };
             }
-            if (token !== "-grayscale" && (space === "rgb" || image.magickColorspace === "RGB" || linearGray)) {
+            if (token !== "-grayscale" && space !== "lineargray" && (space === "rgb" || image.magickColorspace === "RGB" || linearGray)) {
                 const linearize = space === "rgb";
                 const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
                 const input = image.evaluateSamples ?? image.data16 ?? image.data, range = image.evaluateSamples ? 255 : image.data16 ? 65535 : 255;
@@ -7653,7 +7654,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (space === "hcl" || space === "hclp") return yield* convertHuePixels(image, space === "hcl" ? "HCL" : "HCLp");
             if (space === "ohta") return yield* convertHuePixels(image, "OHTA");
             if (space === "hsl" || space === "hsb" || space === "hsv" || space === "hwb" || space === "xyz" || space === "ycbcr" || space === "yuv") return yield* convertHuePixels(image, space === "yuv" ? "YUV" : space === "ycbcr" ? "YCbCr" : space === "xyz" ? "XYZ" : space === "hwb" ? "HWB" : space === "hsv" ? "HSV" : space === "hsb" ? "HSB" : "HSL");
-            if (token !== "-grayscale" && !["gray", "grey", "rec709luma", "rec601luma"].includes(space)) {
+            if (token !== "-grayscale" && !["gray", "grey", "lineargray", "rec709luma", "rec601luma"].includes(space)) {
                 if (space === "srgb") return { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
                 throw new Error(`unsupported colorspace '${value}'`);
             }
@@ -7664,8 +7665,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 let r = samples[idx]! * scale, g = samples[idx + 1]! * scale, b = samples[idx + 2]! * scale;
-                // Grayscale reads the active channels; only sRGB luminance and RGB luma apply gamma.
-                if (luminance && !image.magickColorspace && (image.space === "srgb" || image.space === "rgb16")) {
+                // Grayscale reads active channels; LinearGray also linearizes nonlinear gray.
+                if (luminance && !image.magickColorspace && (image.space === "srgb" || image.space === "rgb16" || space === "lineargray" && (image.space === "b-w" || image.space === "grey16"))) {
                     r = 65535 * (r / 65535 <= 0.04045 ? r / 65535 / 12.92 : ((r / 65535 + 0.055) / 1.055) ** 2.4);
                     g = 65535 * (g / 65535 <= 0.04045 ? g / 65535 / 12.92 : ((g / 65535 + 0.055) / 1.055) ** 2.4);
                     b = 65535 * (b / 65535 <= 0.04045 ? b / 65535 / 12.92 : ((b / 65535 + 0.055) / 1.055) ** 2.4);

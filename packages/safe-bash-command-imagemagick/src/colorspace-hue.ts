@@ -2,7 +2,7 @@ import type { RgbaImage } from "@poe-code/image-ast/portable";
 import { formatMetricNum } from "./compare-kernel.js";
 
 export interface HueMetadata {
-    magickColorspace?: "HCL" | "HCLp" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "OHTA" | "YUV" | "Luv" | "RGB";
+    magickColorspace?: "HCL" | "HCLp" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "OHTA" | "YUV" | "Luv" | "Oklab" | "Oklch" | "RGB";
     // Preserve native HDRI precision for expressions; codecs use the integer planes.
     hueSamples?: Float64Array;
     storedHueSamples?: number;
@@ -21,7 +21,19 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
     for (let offset = 0; offset < data.length; offset += 4) {
         if (offset % 65536 === 0) yield;
         let r = input[offset]! / range, g = input[offset + 1]! / range, b = input[offset + 2]! / range;
-        if (target === "OHTA" || image.magickColorspace === "OHTA") {
+        if (image.magickColorspace === "Oklab" || image.magickColorspace === "Oklch") {
+            // Native Oklab offsets a/b by 0.5; Oklch stores hue in radians.
+            const a = image.magickColorspace === "Oklch" ? g * Math.cos(b) : g - 0.5;
+            const chromaB = image.magickColorspace === "Oklch" ? g * Math.sin(b) : b - 0.5;
+            const l = (r + 0.3963377774 * a + 0.2158037573 * chromaB) ** 3;
+            const m = (r - 0.1055613458 * a - 0.0638541728 * chromaB) ** 3;
+            const s = (r - 0.0894841775 * a - 1.2914855480 * chromaB) ** 3;
+            [r, g, b] = [
+                4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+                -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+                -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s,
+            ].map(value => value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055) as [number, number, number];
+        } else if (target === "OHTA" || image.magickColorspace === "OHTA") {
             // Native OHTA uses Q16 lookup tables in both directions. Its forward
             // chroma offset is 32768, while the inverse subtracts 32767.5.
             [r, g, b] = [r, g, b].map(value => Math.round(Math.max(0, Math.min(1, value)) * 65535) / 65535) as [number, number, number];

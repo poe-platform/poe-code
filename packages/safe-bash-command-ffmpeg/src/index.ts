@@ -10113,11 +10113,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let sumSquares = 0;
                         let peak = 0;
                         const histogram = new Float64Array(92);
-                        // FFmpeg measures signed 16-bit samples, including every channel.
+                        // FFmpeg converts to signed 16-bit PCM before measuring and forwarding it.
                         for (const channel of stretched) {
-                          for (const value of channel) {
+                          for (let i = 0; i < channel.length; i++) {
                             if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            const sample = Math.max(-32768, Math.min(32767, Math.round(value * 32768)));
+                            const sample = Math.max(-32768, Math.min(32767, roundToEven(channel[i]! * 32768)));
+                            channel[i] = sample / 32768;
                             count++;
                             sumSquares += sample * sample;
                             peak = Math.max(peak, Math.abs(sample));
@@ -10125,6 +10126,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             histogram[db]!++;
                           }
                         }
+                        filteredSampleFormat = "s16";
+                        panSampleFormat = "s16";
                         let report = `n_samples: ${count}\n`;
                         if (count > 0) {
                           const meanSquare = Math.round(sumSquares / count);

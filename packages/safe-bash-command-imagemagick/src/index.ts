@@ -2191,7 +2191,8 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                 out[dstIdx + 2] = unset ? 0 : Math.round(bg.b);
                 out[dstIdx + 3] = unset ? img.hasAlpha || bg.a < 255 ? 0 : 255 : Math.round(bg.a);
                 if (data16) data16.set(unset ? [0, 0, 0, out[dstIdx + 3]! * 257] : background, dstIdx);
-                if (hueSamples) hueSamples.set(unset ? [0, 0, 0, out[dstIdx + 3]! / 255] : workingBackground, dstIdx);
+                // The fourth CMYK working sample is black ink, not alpha.
+                if (hueSamples) hueSamples.set(unset ? [0, 0, 0, img.space === "cmyk" ? 0 : out[dstIdx + 3]! / 255] : workingBackground, dstIdx);
             }
             else {
                 const origX = x < sx ? x : x - spliceWidth;
@@ -11640,7 +11641,8 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
                     const length = Math.min(4096, end - x) * 4;
                     const samples = plane.stride === 32 ? new Float64Array(length)
                         : plane.stride === 8 ? new Uint16Array(length) : new Uint8Array(length);
-                    for (let i = 3; i < length; i += 4) samples[i] = plane.target === storedHueSamples ? alpha / 255 : plane.stride === 8 ? alpha * 257 : alpha;
+                    // The fourth CMYK working sample is black ink, not alpha.
+                    for (let i = 3; i < length; i += 4) samples[i] = plane.target === storedHueSamples ? image.space === "cmyk" ? 0 : alpha / 255 : plane.stride === 8 ? alpha * 257 : alpha;
                     await backend.storage.write(plane.target + ((y.target + row) * width + x) * plane.stride, new Uint8Array(samples.buffer));
                 }
             }

@@ -9492,6 +9492,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let metadataValue: string | undefined;
                         let comparison = "same_str";
                         let file: string | undefined;
+                        let enable: string | undefined;
                         let sawNamed = false;
                         for (const [index, option] of trimmed.slice("ametadata=".length).split(":").entries()) {
                           if (!option) continue;
@@ -9505,6 +9506,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else if (name === "value") metadataValue = value;
                           else if (name === "file") file = value;
                           else if (name === "function") comparison = value;
+                          else if (name === "enable") {
+                            enable = value;
+                            parseFilterExpression(enable, "ametadata enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 });
+                          }
                           // The in-memory report is written once, so buffering does not affect its contents.
                           else if (name === "direct") parseFilterBoolean(value, "ametadata: invalid direct");
                           else throw new Error(`ametadata: unsupported option ${name}`);
@@ -9521,7 +9526,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const count = timestamp ? timestamp.end - timestamp.start
                               : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                             const frame = audioMetadata[n] ?? { pts: timestamp?.pts ?? audioStartSample + start, tags: new Map<string, string>() };
-                            if (mode === "modify" ? frame.tags.has(key) : !Array.from(frame.tags.keys()).some(name => name.toLowerCase() === lookupKey)) {
+                            const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "ametadata enable", {
+                              n, t: (timestamp?.pts ?? frame.pts) / origRate, pos: NaN, w: 0, h: 0
+                            })) >= 0.5;
+                            if (enabled && (mode === "modify" ? frame.tags.has(key) : !Array.from(frame.tags.keys()).some(name => name.toLowerCase() === lookupKey))) {
                               budget.allocateMemory(64 + 2 * (key.length + metadataValue.length));
                               frame.tags.set(key, metadataValue);
                             }
@@ -9548,12 +9556,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const tag = frame && Array.from(frame.tags).find(([name]) => name.toLowerCase() === lookupKey);
                             const matches = tag && (metadataValue === undefined || (comparison === "starts_with" ? tag[1].startsWith(metadataValue)
                               : comparison === "ends_with" ? tag[1].endsWith(metadataValue) : tag[1] === metadataValue));
-                            if (frame && matches) {
+                            const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "ametadata enable", {
+                              n, t: (timestamp?.pts ?? frame?.pts ?? audioStartSample + start) / origRate, pos: NaN, w: 0, h: 0
+                            })) >= 0.5;
+                            if (!enabled || (frame && matches)) {
                               budget.allocateMemory(64);
-                              audioMetadata[selected.length] = frame;
+                              audioMetadata[selected.length] = frame ?? { pts: timestamp?.pts ?? audioStartSample + start, tags: new Map<string, string>() };
                               ranges.push({ start, end });
                               selected.push({ start: length, end: length + end - start,
-                                pts: timestamp?.pts ?? frame.pts, pos: timestamp?.pos ?? packet?.offset });
+                                pts: timestamp?.pts ?? frame?.pts ?? audioStartSample + start, pos: timestamp?.pos ?? packet?.offset });
                               length += end - start;
                             }
                             start = end;
@@ -9583,6 +9594,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let report = "";
                         for (const [n, frame] of audioMetadata.entries()) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          if (enable !== undefined && !(Math.abs(parseFilterExpression(enable, "ametadata enable", {
+                            n, t: (audioTimestamps?.[n]?.pts ?? frame.pts) / origRate, pos: NaN, w: 0, h: 0
+                          })) >= 0.5)) continue;
                           if (mode === "delete" && key === undefined) {
                             frame.tags.clear();
                             continue;

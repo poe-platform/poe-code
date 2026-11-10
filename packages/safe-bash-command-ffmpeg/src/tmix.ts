@@ -95,9 +95,13 @@ export async function tmix(
           ({ weights, sum } = parseWeights(command.expression));
           continue;
         }
-        const value = Math.fround(parseFilterExpression(command.expression, "tmix", scaleConstants));
-        if (Number.isFinite(value) && value >= 0 && value <= 32767) scale = value;
-      } catch { /* Rejected runtime commands preserve the current weights and scale. */ }
+        if (command.action === "planes") {
+          planes = parsePlanes(command.expression, planes);
+        } else {
+          const value = Math.fround(parseFilterExpression(command.expression, "tmix", scaleConstants));
+          if (Number.isFinite(value) && value >= 0 && value <= 32767) scale = value;
+        }
+      } catch { /* Rejected runtime commands preserve the current options. */ }
     }
     const factor = scale || Math.fround(1 / sum);
     const average = weights.every(weight => weight === weights[0]) && (scale === 0 || scale === Math.fround(1 / sum));

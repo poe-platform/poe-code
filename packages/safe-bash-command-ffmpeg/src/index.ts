@@ -4499,7 +4499,7 @@ async function applyVideoFilterChain(
     } else if (name === "tmix") {
       const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
       // Rejected runtime options leave the mix unchanged, without stopping rendering.
-      const commands = videoCommands.filter(command => (command.action === "scale" || command.action === "weights") &&
+      const commands = videoCommands.filter(command => (command.action === "scale" || command.action === "weights" || command.action === "planes") &&
         (command.target === name || command.target === instance));
       videoCommands = videoCommands.filter(command => command.target !== name && command.target !== instance);
       commands.sort((a, b) => a.time - b.time);

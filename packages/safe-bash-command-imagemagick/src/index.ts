@@ -7652,7 +7652,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 }
                 // Palette quantization uses alpha for color ordering, then leaves it inactive.
                 if (imageType === "palette" && source.hasAlpha) image = { ...image, inactiveAlpha: true, alphaBlend: false };
-                return { ...image, isPalette: paletteType, hasAlpha, channels: hasAlpha ? 4 : 3, space: "srgb" };
+                const gray = !paletteType && (image.space === "b-w" || image.space === "grey16");
+                return { ...image, isPalette: paletteType, hasAlpha, channels: gray ? (hasAlpha ? 2 : 1) : (hasAlpha ? 4 : 3), space: gray ? image.space : "srgb" };
             }
             if (space === "cmyk") return yield* convertCmykPixels(image);
             if (space === "oklab") return yield* convertHuePixels(image, "Oklab");

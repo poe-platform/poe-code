@@ -36,9 +36,9 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
             for (let i = 0; i < src.data.length; i++) src.data[i] = sourceSamples[outsideX ? i % 4 : i]!;
             const result = new Float64Array(count * 4);
             yield* compositePixelsSteps(dst, src, result, mode, 0, 0, args, fuzz, clipToOverlay);
-            for (let i = 0; i < samples.length; i++) samples[i] = baseEvaluate || overlayEvaluate ? Math.fround(result[i]! * 257) / 257 : result[i]!;
+            for (let i = 0; i < samples.length; i++) samples[i] = Math.fround(result[i]! * 257) / 257;
         }
-        if (baseEvaluate || overlayEvaluate) yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
+        yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
         const data = highDepth
             ? Uint16Array.from(samples, value => Math.round(Math.max(0, Math.min(65535, value * 257))))
             : Uint8Array.from(samples, value => Math.round(Math.max(0, Math.min(255, value))));

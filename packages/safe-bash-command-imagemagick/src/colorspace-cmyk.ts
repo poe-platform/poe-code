@@ -58,3 +58,28 @@ export function* copyCmykChannelsToRgb(image: RgbaImage & HueMetadata): Generato
 export function formatCmykPixel(channels: readonly number[], hasAlpha: boolean): string {
     return `cmyk${hasAlpha ? "a" : ""}(${channels.slice(0, 4).map(value => formatMetricNum(value * 255)).join(",")}${hasAlpha ? `,${formatMetricNum(channels[4] ?? 1)}` : ""})`;
 }
+
+/** Apply Q16 stretch maps to inks while keeping alpha in the RGBA backing. */
+export function* applyCmykLookup(image: RgbaImage & HueMetadata, lookup: readonly (Uint8Array | Uint16Array | Float32Array)[], active: readonly boolean[]): Generator<void, RgbaImage & HueMetadata, void> {
+    const hueSamples = image.hueSamples!.slice();
+    const data = new Uint8Array(image.data);
+    const data16 = new Uint16Array(data.length);
+    const evaluateSamples = new Float64Array(data.length);
+    for (let offset = 0; offset < data.length; offset += 4) {
+        if (offset % 65536 === 0) yield;
+        for (let channel = 0; channel < 4; channel++) {
+            if (!active[channel === 3 ? 4 : channel]) continue;
+            const value = Math.round(Math.max(0, Math.min(65535, Math.fround(hueSamples[offset + channel]! * 65535))));
+            hueSamples[offset + channel] = lookup[channel === 3 ? 4 : channel]![value]! / 65535;
+        }
+        const alpha = image.evaluateSamples ? image.evaluateSamples[offset + 3]! * 257 : image.data16?.[offset + 3] ?? image.data[offset + 3]! * 257;
+        for (let channel = 0; channel < 4; channel++) {
+            const value = channel === 3 ? active[3] ? lookup[3]![Math.round(Math.max(0, Math.min(65535, alpha)))]! : alpha
+                : Math.fround((1 - hueSamples[offset + channel]!) * (1 - hueSamples[offset + 3]!) * 65535);
+            evaluateSamples[offset + channel] = value / 257;
+            data16[offset + channel] = Math.max(0, Math.min(65535, Math.round(value)));
+            data[offset + channel] = Math.max(0, Math.min(255, Math.round(value / 257)));
+        }
+    }
+    return { ...image, hueSamples, data, data16, evaluateSamples };
+}

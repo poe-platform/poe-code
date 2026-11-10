@@ -8368,7 +8368,17 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         const levels = parsePosterizeLevels(tokens[++i] ?? "");
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-        apply = image => applyMagickRasterSteps({ ...image, isPalette: true }, posterizePixelSteps(image, levels, state.dither, state.diffusionAmount ?? 1, channels, signal), signal);
+        apply = function* (image) {
+            const working = (!state.dither || levels < 2 || Math.trunc(levels) > 16) && (image.hueSamples !== undefined || image.magickColorspace === "RGB");
+            let output = yield* applyMagickRasterSteps({ ...image, isPalette: true }, posterizePixelSteps(image, levels, state.dither, state.diffusionAmount ?? 1, channels, signal, !working), signal);
+            if (!working) return output;
+            if (image.magickColorspace !== "RGB") output = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(output);
+            output = yield* applyMagickRasterSteps(output, quantizePixelSteps(output.data.length, Math.min(65536, Math.max(2, Math.trunc(levels)) ** 3), false, 0, output.hasAlpha, false, undefined, undefined, true), signal);
+            if (image.magickColorspace !== "RGB" || !output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
+            const { indexedColors: ignoredColors, ...pixels } = output;
+            output = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(pixels);
+            return { ...output, isPalette: true, magickColorspace: "Gray", space: "b-w", channels: output.hasAlpha ? 2 : 1 };
+        };
     } else if (token === "-monochrome") {
         apply = function* (image) { return yield* thresholdImageSteps(yield* grayscaleImageSteps(image), 128, true); };
     } else if (token === "-modulate") {
@@ -13635,7 +13645,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expandedLevels = levels ?? parsePosterizeLevels(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal));
-                return transformStoredMagickRaster({ ...image, isPalette: true }, backend, posterizePixelSteps(image, expandedLevels, dither, diffusionAmount, channels, signal), signal);
+                const working = (!dither || expandedLevels < 2 || Math.trunc(expandedLevels) > 16) && (image.storedHueSamples !== undefined || image.magickColorspace === "RGB");
+                let output = await transformStoredMagickRaster({ ...image, isPalette: true }, backend, posterizePixelSteps(image, expandedLevels, dither, diffusionAmount, channels, signal, !working), signal);
+                if (!working) return output;
+                if (image.magickColorspace !== "RGB") output = await transformStoredMagickPixels(output, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal);
+                output = await transformStoredMagickRaster(output, backend, quantizePixelSteps(output.width * output.height * 4, Math.min(65536, Math.max(2, Math.trunc(expandedLevels)) ** 3), false, 0, output.hasAlpha, false, undefined, undefined, true), signal);
+                if (image.magickColorspace !== "RGB" || !output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
+                const { indexedColors: ignoredColors, ...pixels } = output;
+                output = await transformStoredMagickPixels(pixels, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal);
+                return { ...output, isPalette: true, magickColorspace: "Gray", space: "b-w", channels: output.hasAlpha ? 2 : 1 };
             });
             continue;
         }

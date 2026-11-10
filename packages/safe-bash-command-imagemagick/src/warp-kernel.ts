@@ -203,7 +203,7 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                     const [x, y] = sample;
                     let weight = sample[2];
                     const pixel = meshPixels?.[sampleIndex++] ?? (yield* readPixel(x, y));
-                    const opacity = pixel[3]!, unassociatedWeight = weight;
+                    const opacity = source.alphaBlend === false ? maximum : pixel[3]!, unassociatedWeight = weight;
                     alpha += opacity * weight; total += weight;
                     // Native mesh divides unassociated colors by interpolated alpha;
                     // average excludes transparent RGB.

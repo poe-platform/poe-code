@@ -287,6 +287,9 @@ following `..` and records the physical directory. `cd -Pe` requires physical pa
 resolution to succeed; `cd -e` leaves logical mode unchanged. Use `cd -- <path>`
 for paths beginning with a dash. Relative file access stays in the resolved directory even
 if the symlink used to enter it is removed or retargeted.
+`shopt -s cdable_vars` lets `cd name` use variable `name` as a directory when normal
+lookup fails. It prints the variable's value and does not search `CDPATH` for that
+value. This option defaults off.
 Each invocation starts with `umask 0022`; numeric and symbolic masks affect new
 files and default directory modes through the supplied filesystem. Host umask
 is unchanged and may further restrict real file modes; remote modes can be advisory.
@@ -934,7 +937,7 @@ and credential protections remain in effect.
 
 - This is a Bash-like interpreter, not full Bash or POSIX certification. No
   background jobs/job control, `exec`,
-  associative arrays, or C-style `for ((…))` loops. `shopt` supports `checkhash`, `dotglob`,
+  associative arrays, or C-style `for ((…))` loops. `shopt` supports `cdable_vars`, `checkhash`, `dotglob`,
   `globskipdots`, `globstar`, `nullglob`, `nocaseglob`, `nocasematch`, `lastpipe`, `failglob`,
   `inherit_errexit`, `expand_aliases`, `patsub_replacement`, `sourcepath`, `varredir_close`, and `xpg_echo`, plus `-o` for supported
   `set` options. Readonly `SHELLOPTS` and `BASHOPTS` list enabled supported options,

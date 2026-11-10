@@ -129,6 +129,59 @@ for (const option of ["", "-L", "-P"]) {
   }
 }
 
+for (const [setup, command, stdout, stderr] of [
+  ["dest=dir", "cd dest", "1|/work|/search/link", "shell: line 1: cd: dest: No such file or directory\n"],
+  ["shopt -s cdable_vars; dest=dir", "cd dest", "dir\n0|/work/dir|/work", ""],
+  ["shopt -s cdable_vars; dir=link", "cd dir", "0|/work/dir|/work", ""],
+  ["shopt -s cdable_vars; link=dir; CDPATH=/search", "cd link", "/search/link\n0|/search/link|/work", ""],
+  ["shopt -s cdable_vars; dest=only; CDPATH=/search", "cd dest", "1|/work|/search/link", "shell: line 1: cd: dest: No such file or directory\n"],
+  ["shopt -s cdable_vars; dest=link", "cd -L dest", "link\n0|/work/link|/work", ""],
+  ["shopt -s cdable_vars; dest=link", "cd -P dest", "link\n0|/work/dir/child|/work", ""],
+  ["shopt -s cdable_vars; cd link; dest=..", "cd -L dest", "..\n0|/work|/work/link", ""],
+  ["shopt -s cdable_vars; cd link; dest=..", "cd -P dest", "..\n0|/work/dir|/work/link", ""],
+  ["shopt -s cdable_vars; dest=/work/dir", "cd dest", "/work/dir\n0|/work/dir|/work", ""],
+  ["shopt -s cdable_vars; dest=missing", "cd dest", "1|/work|/search/link", "shell: line 1: cd: dest: No such file or directory\n"],
+  ["shopt -s cdable_vars; dest=other; other=dir", "cd dest", "1|/work|/search/link", "shell: line 1: cd: dest: No such file or directory\n"],
+  ["shopt -s cdable_vars; dest=", "cd dest", "\n0|/work|/work", ""],
+  ["shopt -s cdable_vars; declare -a dest=(dir)", "cd dest", "dir\n0|/work/dir|/work", ""],
+  ["shopt -s cdable_vars; dest=dir; declare -n ref=dest", "cd ref", "dir\n0|/work/dir|/work", ""],
+  ["shopt -s cdable_vars; dest=dir; shopt -u cdable_vars", "cd dest", "1|/work|/search/link", "shell: line 1: cd: dest: No such file or directory\n"],
+] as const) {
+  test(`cdable_vars: ${setup}; ${command}`, async context => {
+    const { fs, shell } = await fixture();
+    context.after(() => shell.dispose());
+    await fs.mkdir("/search/only");
+    const result = await shell.exec(`${setup}; ${command}; printf '%s|%s|%s' "$?" "$PWD" "$OLDPWD"`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, stdout);
+    assert.equal(result.stderr, stderr);
+  });
+}
+
+test("cdable_vars survives serialized sessions and remains local to subshells", async context => {
+  const { shell } = await fixture();
+  context.after(() => shell.dispose());
+  const enabled = await shell.exec("shopt -s cdable_vars; dest=dir", { onState() {} });
+  assert.equal(enabled.exitCode, 0, enabled.stderr);
+  assert.equal(enabled.state?.options?.cdable_vars, true);
+  assert.ok(enabled.state?.variables?.BASHOPTS?.split(":").includes("cdable_vars"));
+  const restored = await shell.exec('(shopt -u cdable_vars); shopt -q cdable_vars && cd dest', {
+    state: JSON.parse(JSON.stringify(enabled.state)),
+  });
+  assert.equal(restored.exitCode, 0, restored.stderr);
+  assert.equal(restored.stdout, "dir\n");
+});
+
+test("cdable_vars fallback shares the directory lookup probe budget", async context => {
+  const { shell } = await fixture();
+  context.after(() => shell.dispose());
+  const result = await shell.exec('shopt -s cdable_vars; dest=dir; cd dest; printf "%s|%s" "$?" "$PWD"', {
+    limits: { maxCdProbes: 1 },
+  });
+  assert.equal(result.stdout, "1|/work");
+  assert.equal(result.stderr, "shell: line 1: cd: probe limit exceeded\n");
+});
+
 for (const [before, command, destination, stack] of [
   ["", "cd dir", "/work/dir", "/work/dir\n"],
   ["", "cd -P link", "/work/dir/child", "/work/dir/child\n"],

@@ -953,6 +953,7 @@ export interface State extends DynamicVariableState {
   getopts?: GetoptsBinding | undefined;
   directoryStack?: { readonly entries: readonly string[]; readonly bytes: number } | undefined;
   directoryStackCwdPublication?: symbol;
+  cdable_vars?: boolean;
   checkhash?: boolean;
   shift_verbose?: boolean;
   dotglob?: boolean;
@@ -8175,10 +8176,24 @@ export class Runtime {
       }
       const cwd = physical ? state.cwd : state.logicalCwd ?? state.cwd;
       try {
-        selected = await lookup.find(this.fs, cwd, target, state.variables.CDPATH, physical);
+        try {
+          selected = await lookup.find(this.fs, cwd, target, state.variables.CDPATH, physical);
+        } catch (error) {
+          if (!(error instanceof FsError) || error.code !== "ENOENT" || cwd === state.cwd || target.startsWith("/")) throw error;
+          selected = await lookup.find(this.fs, state.cwd, target, state.variables.CDPATH, physical);
+        }
       } catch (error) {
-        if (!(error instanceof FsError) || error.code !== "ENOENT" || cwd === state.cwd || target.startsWith("/")) throw error;
-        selected = await lookup.find(this.fs, state.cwd, target, state.variables.CDPATH, physical);
+        this.signal.throwIfAborted();
+        if (!state.cdable_vars || !(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EACCES"].includes(error.code) || !isShellIdentifier(target)) throw error;
+        const value = this.variable(state, target);
+        if (value === undefined) throw error;
+        try {
+          selected = await lookup.find(this.fs, cwd, value || ".", undefined, physical);
+        } catch (error) {
+          if (!(error instanceof FsError) || error.code !== "ENOENT" || cwd === state.cwd || value.startsWith("/")) throw error;
+          selected = await lookup.find(this.fs, state.cwd, value || ".", undefined, physical);
+        }
+        selected.print = value;
       }
     } catch (error) {
       this.signal.throwIfAborted();

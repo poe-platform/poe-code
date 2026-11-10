@@ -102,6 +102,7 @@ export interface ShellSessionArraySnapshot {
 }
 
 export interface ShellSessionOptionsSnapshot {
+  readonly cdable_vars?: boolean | undefined;
   readonly checkhash?: boolean | undefined;
   readonly shift_verbose?: boolean | undefined;
   readonly dotglob?: boolean | undefined;
@@ -116,7 +117,6 @@ export interface ShellSessionOptionsSnapshot {
   readonly nocaseglob?: boolean | undefined;
   readonly nocasematch?: boolean | undefined;
   readonly patsub_replacement?: boolean | undefined;
-  readonly sourcepath?: boolean | undefined;
   readonly xpg_echo?: boolean | undefined;
   readonly varredir_close?: boolean | undefined;
   readonly extglob?: boolean | undefined;

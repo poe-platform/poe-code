@@ -63,6 +63,7 @@ export function captureShellSessionState(state: State, exitCode: number): ShellS
   }
 
   const options: ShellSessionOptionsSnapshot = {
+    cdable_vars: Boolean(state.cdable_vars),
     checkhash: Boolean(state.checkhash),
     shift_verbose: Boolean(state.shift_verbose),
     dotglob: Boolean(state.dotglob),
@@ -77,7 +78,6 @@ export function captureShellSessionState(state: State, exitCode: number): ShellS
     nocaseglob: Boolean(state.nocaseglob),
     nocasematch: Boolean(state.nocasematch),
     patsub_replacement: state.patsub_replacement !== false,
-    sourcepath: state.sourcepath !== false,
     xpg_echo: Boolean(state.xpg_echo),
     varredir_close: Boolean(state.varredir_close),
     extglob: Boolean((state as { extglob?: boolean }).extglob),
@@ -231,6 +231,7 @@ export async function restoreShellSessionState(
 
   if (snapshot.options) {
     const opts = snapshot.options;
+    if (opts.cdable_vars !== undefined) state.cdable_vars = opts.cdable_vars;
     if (opts.checkhash !== undefined) state.checkhash = opts.checkhash;
     if (opts.shift_verbose !== undefined) state.shift_verbose = opts.shift_verbose;
     if (opts.dotglob !== undefined) state.dotglob = opts.dotglob;
@@ -245,7 +246,6 @@ export async function restoreShellSessionState(
     if (opts.nocaseglob !== undefined) state.nocaseglob = opts.nocaseglob;
     if (opts.nocasematch !== undefined) state.nocasematch = opts.nocasematch;
     if (opts.patsub_replacement !== undefined) state.patsub_replacement = opts.patsub_replacement;
-    if (opts.sourcepath !== undefined) state.sourcepath = opts.sourcepath;
     if (opts.xpg_echo !== undefined) state.xpg_echo = opts.xpg_echo;
     if (opts.varredir_close !== undefined) state.varredir_close = opts.varredir_close;
     if (opts.extglob !== undefined) (state as { extglob?: boolean }).extglob = opts.extglob;

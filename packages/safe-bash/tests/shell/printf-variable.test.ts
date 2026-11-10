@@ -481,7 +481,7 @@ for (const [initial, target, expected] of [
   for (const prefix of ["", "builtin ", "command "]) {
     test(`${prefix}printf -v handles expanded empty subscripts: ${initial}; ${target}`, async context => {
       const script = `${initial}; key=''; n=old; ${prefix}printf -v '${target}' 'X%n' n; echo "$?:$n:\${#a[@]}:\${a[0]}:\${a[1]}:\${a[keep]}"`;
-      const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script, "shell"], {
+      const oracle = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", script, "shell"], {
         env: { LC_ALL: "C.UTF-8" }, timeout: 2000,
       });
       assert.ifError(oracle.error);

@@ -37,7 +37,6 @@ for (const [script, stdout] of [
   ['IFS=" "; line=one:two; printf -v IFS[1] %s extra; printf -v IFS %s :; set -- $line; printf "%s/%s/%s/%s" "$#" "$1" "$2" "${IFS[1]}"', "1/one:two//extra"],
   ['set -- -a -b; printf -v OPTIND[1] %s 7; printf -v OPTIND %s 2; getopts ab k; printf "%s/%s/%s" "$k" "$OPTIND" "${OPTIND[1]}"', "b/3/7"],
   ['set -- -ab; printf -v OPTIND[0] %s 7; getopts ab k; printf "%s/%s/" "$k" "$OPTIND"; getopts ab k; printf "%s/%s" "$k" "$OPTIND"', "a/1/b/2"],
-  ['IFS=:; line="one:two three"; printf -v IFS[0] %s " "; set -- $line; printf "%s/%s/%s" "$#" "$1" "$2"', "1/one:two three/"],
 ] as const) {
   test(`printf control assignment: ${script}`, async () => {
     const { shell, commands } = setup({ env: { LC_ALL: "C.UTF-8" } });

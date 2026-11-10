@@ -12820,7 +12820,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
                 track = { ...track, decodedVideoFrames: await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, maxVideoFrames) };
               }
-              const bytes = serializeRawVideo(track, videoCodec, rawPixelFormat, budget);
+              const bytes = await serializeRawVideo(track, videoCodec, rawPixelFormat, budget, context.signal);
               if (firstOutput) progressSize = bytes.byteLength;
               context.signal?.throwIfAborted();
               await writeMediaOutput(context, outputTarget, bytes, budget);

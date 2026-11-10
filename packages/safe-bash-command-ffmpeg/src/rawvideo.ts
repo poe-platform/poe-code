@@ -1,4 +1,5 @@
 import { concatBytes, rgbaToYuv420p, yuv420pToRgba, type MediaDocument, type MediaSample, type MediaVideoFrame, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
+import { formatYuv } from "./format-yuv.js";
 
 export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixelFormat: string | undefined, fps: number, budget: MediaBudgetTracker, decode = true): MediaDocument {
   const dimensions = size?.split("x").map(Number) ?? [];
@@ -7,9 +8,10 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     throw new Error("rawvideo input requires a valid -video_size WIDTHxHEIGHT");
   }
   const gray = pixelFormat === "gray" || pixelFormat === "gray8";
-  if (!gray && pixelFormat !== "rgb24" && pixelFormat !== "gray16be" && pixelFormat !== "yuv420p") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
+  const yuv = pixelFormat === "yuv420p" || pixelFormat === "yuv444p";
+  if (!gray && pixelFormat !== "rgb24" && pixelFormat !== "gray16be" && !yuv) throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
   const ySize = width * height;
-  const chromaSize = Math.ceil(width / 2) * Math.ceil(height / 2);
+  const chromaSize = pixelFormat === "yuv444p" ? ySize : Math.ceil(width / 2) * Math.ceil(height / 2);
   const frameBytes = pixelFormat === "yuv420p" ? ySize + chromaSize * 2 : ySize * (gray ? 1 : pixelFormat === "gray16be" ? 2 : 3);
   if (!Number.isSafeInteger(frameBytes)) throw new Error("Invalid rawvideo frame size");
   const count = Math.ceil(bytes.length / frameBytes);
@@ -27,10 +29,11 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     if (!decode || data.length !== frameBytes) continue;
     budget.recordFrame(width, height);
     budget.allocateMemory(width * height * 4);
-    const rgba = pixelFormat === "yuv420p"
-      ? yuv420pToRgba(data.subarray(0, ySize), data.subarray(ySize, ySize + chromaSize), data.subarray(ySize + chromaSize), width, height)
+    const rgba = yuv
+      ? yuv420pToRgba(data.subarray(0, ySize), data.subarray(ySize, ySize + chromaSize), data.subarray(ySize + chromaSize), width, height,
+        pixelFormat === "yuv444p" ? 0 : 1, pixelFormat === "yuv444p" ? 0 : 1)
       : new Uint8Array(width * height * 4);
-    for (let pixel = 0; pixelFormat !== "yuv420p" && pixel < width * height; pixel++) {
+    for (let pixel = 0; !yuv && pixel < width * height; pixel++) {
       if (pixel % 4096 === 0) budget.checkCpu();
       if (pixelFormat === "gray16be") {
         const value = Math.min(255, (data[pixel * 2]! * 256 + data[pixel * 2 + 1]! + 128) >> 8);
@@ -40,8 +43,8 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
       rgba[pixel * 4 + 3] = 255;
     }
     frames.push({ width, height, data: rgba, offset: index * frameBytes,
-      ...(pixelFormat === "yuv420p" || pixelFormat === "gray16be" ? { native: { rgba, pixels: data, width, height,
-        format: pixelFormat === "gray16be" ? 29 : 0, colorspace: 5, fullRange: pixelFormat === "gray16be" ? 1 : 0 } } : {}),
+      ...(yuv || pixelFormat === "gray16be" ? { native: { rgba, pixels: data, width, height,
+        format: pixelFormat === "gray16be" ? 29 : pixelFormat === "yuv444p" ? 5 : 0, colorspace: 5, fullRange: pixelFormat === "gray16be" ? 1 : 0 } } : {}),
       ptsSeconds: index * ticks / timescale,
       durationSeconds: ticks / timescale, keyframe: true });
   }
@@ -56,7 +59,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
   };
 }
 
-export function serializeRawVideo(track: MediaTrack, codec: string | undefined, pixelFormat: string | undefined, budget: MediaBudgetTracker): Uint8Array {
+export async function serializeRawVideo(track: MediaTrack, codec: string | undefined, pixelFormat: string | undefined, budget: MediaBudgetTracker, signal?: AbortSignal): Promise<Uint8Array> {
   if (codec !== undefined && codec !== "copy" && codec !== "rawvideo") throw new Error(`Unsupported rawvideo encoder '${codec}'`);
   const chunks: Uint8Array[] = [];
   let size = 0;
@@ -76,7 +79,11 @@ export function serializeRawVideo(track: MediaTrack, codec: string | undefined, 
     const format = pixelFormat ?? track.codecDescriptions[0]?.pixFmt ?? "yuv420p";
     for (const frame of track.decodedVideoFrames ?? []) {
       budget.checkCpu();
-      if (format === "yuv420p") {
+      if (format === "yuv444p") {
+        budget.checkOutputBytes(size + frame.width * frame.height * 3);
+        const converted = await formatYuv(frame, format, signal);
+        append(converted.native!.pixels);
+      } else if (format === "yuv420p") {
         const native = frame.native;
         if (native?.format === 0 && native.rgba === frame.data && native.width === frame.width && native.height === frame.height) {
           append(native.pixels);

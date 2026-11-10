@@ -121,6 +121,7 @@ import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodePngToCanvas, FONT_5X7, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
 import { combineMetaPixelSteps, type MetaChannels } from "./combine-meta.js";
+import { negateMetaPixelSteps } from "./negate-meta.js";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16" | "evaluateSamples">> & { position?: number; storedEvaluateSamples?: number | undefined };
 type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
@@ -8696,6 +8697,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         const onlyGray = token === "+negate";
         const ch = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
+        const meta = !state.channelExplicit || state.channelDefault ? undefined : state.channels.meta ?? [];
         apply = function* (im) {
             const cmyk = im.space === "cmyk";
             if (cmyk) im = yield* convertCmykPixels(im);
@@ -8753,7 +8755,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 // Native negation changes palette RGB while cycling retains the original entry alpha.
                 pngPalette = { ...pngPalette, bytes };
             }
-            return { ...im, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(hueSamples ? { hueSamples } : {}), ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) };
+            const metaChannels = im.metaChannels ? [...im.metaChannels] : undefined;
+            if (metaChannels) for (const [index, plane] of metaChannels.entries()) {
+                if (meta && !meta.includes(index)) continue;
+                metaChannels[index] = yield* applyMagickRasterSteps(plane,
+                    negateMetaPixelSteps(im.data.length, onlyGray), signal, plane, [plane, im]);
+            }
+            return { ...im, data: out, ...(metaChannels ? { metaChannels } : {}), ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(hueSamples ? { hueSamples } : {}), ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) };
         };
     }
     else if (token === "-contrast" || token === "+contrast") {
@@ -13356,9 +13364,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const settings = { ...state };
             const palette = token === "-type" && ["palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(tokens[i]?.toLowerCase() ?? "");
             const bilevel = token === "-type" && tokens[i]?.toLowerCase() === "bilevel";
+            const meta = !state.channelExplicit || state.channelDefault ? undefined : state.channels.meta ?? [];
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession): Promise<StoredRgbaImage | undefined> => {
                 if (!image) return;
                 const converted = await transformStoredMagickPixels(image, backend, pixelOperation, signal);
+                if ((token === "-negate" || token === "+negate") && image.storedMetaChannels?.length) {
+                    converted.storedMetaChannels = [...image.storedMetaChannels];
+                    for (const [index, plane] of image.storedMetaChannels.entries()) {
+                        if (meta && !meta.includes(index)) continue;
+                        converted.storedMetaChannels[index] = await transformStoredMagickRaster(plane, backend,
+                            negateMetaPixelSteps(image.width * image.height * 4, token === "+negate"), signal, plane, [plane, image]);
+                    }
+                }
                 if (metaOperation && image.storedMetaChannels?.length) {
                     converted.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries()) {

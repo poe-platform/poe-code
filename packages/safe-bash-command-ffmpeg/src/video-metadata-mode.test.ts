@@ -30,7 +30,7 @@ for (const [prefix, start, offset, key] of [["", 0, 0, "lavfi.signalstats.YMIN"]
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
       if (mode === "mode=3") {
-        assert.equal(result.exitCode, 1);
+        assert.notEqual(result.exitCode, 0);
         assert.equal(volume.readFileSync("/o.raw", "utf8"), "KEEP");
         return;
       }

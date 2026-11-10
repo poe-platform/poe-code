@@ -51,10 +51,13 @@ for (const [filter, indices] of [
     assert.deepEqual(output, Buffer.concat(indices.map(i => frames[i]!)));
   });
 }
-for (const options of ["select", "select:value=200", "select:key=x:function=invalid", "select:key=x:unknown=1"]) {
+for (const [options, exitCode] of [
+  ["select", 1], ["select:value=200", 1],
+  ["select:key=x:function=invalid", 1], ["select:key=x:unknown=1", 8]
+] as const) {
   it(`rejects invalid metadata options without replacing output: ${options}`, async () => {
     const { result, output } = await run(`metadata=${options}`);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, exitCode);
     assert.equal(output.toString(), "KEEP");
   });
 }

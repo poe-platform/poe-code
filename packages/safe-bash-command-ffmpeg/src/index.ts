@@ -2267,9 +2267,14 @@ async function applyVideoFilterChain(
     } else if (name === "metadata") {
       const mode = named.mode ?? positional[0];
       if (positional[1] !== undefined && !positional[1].includes("=")) named.key ??= positional[1];
-      if ((mode !== "modify" && mode !== "add" && mode !== "select" && mode !== "print" && mode !== "delete" && mode !== "4") || Object.keys(named).some(key => key !== "mode" && key !== "key" && key !== "enable" && !((mode === "add" || mode === "modify" || mode === "select") && key === "value") && !(mode === "select" && key === "function") && !((mode === "print" || mode === "4") && (key === "file" || key === "direct"))) ||
-          positional.some((part, index) => !part.includes("=") &&
-            (index > 1 || index === 1 && positional[0]!.includes("=")))) {
+      if (mode !== "modify" && mode !== "add" && mode !== "select" && mode !== "print" && mode !== "delete" && mode !== "4") {
+        throw new Error("metadata: unsupported mode");
+      }
+      if (Object.keys(named).some(key => key !== "mode" && key !== "key" && key !== "enable" && !((mode === "add" || mode === "modify" || mode === "select") && key === "value") && !(mode === "select" && key === "function") && !((mode === "print" || mode === "4") && (key === "file" || key === "direct")))) {
+        throw new Error("metadata: unsupported option");
+      }
+      if (positional.some((part, index) => !part.includes("=") &&
+          (index > 1 || index === 1 && positional[0]!.includes("=")))) {
         throw new Error("metadata: unsupported mode or option");
       }
       if (named.enable !== undefined && current.length === 0) {
@@ -15891,6 +15896,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const msg = err instanceof Error ? err.message : String(err);
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
             if (msg === audioConversionDisabled) return { exitCode: 234 };
+            if (msg === "metadata: unsupported mode") return { exitCode: 234 };
+            if (msg === "metadata: unsupported option") return { exitCode: 8 };
             if (msg.startsWith("tinterlace: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("tinterlace:")) return { exitCode: 222 };
             if (msg === "tinterlace: invalid expression" || msg === "tinterlace: invalid or unsupported expression") return { exitCode: 234 };

@@ -5646,7 +5646,13 @@ function magickExtentLayout(img: Pick<RgbaImage, "width" | "height" | "virtualCa
             area: { left: 0, top: 0, width: img.width, height: img.height } };
     }
     // Extent converts geometry offsets to integer pixels before applying gravity.
-    const offset = gravityAdjustBox(img.width, img.height, targetW, targetH, Math.trunc(g.x), Math.trunc(g.y), state.gravity);
+    // Empty axes use the page/image bitwise union for gravity, independently of output size.
+    const emptyWidth = g.aspectRatio === undefined && g.areaLimit === undefined && (g.isPercent ? g.width === 0 : !g.width && width === img.width);
+    const emptyHeight = g.aspectRatio === undefined && (g.isPercent ? g.percentY === 0 : !g.height && height === img.height);
+    const offset = gravityAdjustBox(img.width, img.height,
+        emptyWidth ? ((img.virtualCanvas?.width ?? 0) | img.width) : targetW,
+        emptyHeight ? ((img.virtualCanvas?.height ?? 0) | img.height) : targetH,
+        Math.trunc(g.x), Math.trunc(g.y), state.gravity);
     const left = -offset.x;
     const top = -offset.y;
     const dstX0 = Math.max(0, left);

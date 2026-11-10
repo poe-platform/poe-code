@@ -11143,7 +11143,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 canvas = yield* applyMagickRasterSteps(canvas, overCompositePixelSteps(canvas, stack[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || stack[n]!.data16)), signal, canvas, [canvas, stack[n]!]);
             }
             for (const image of stack) detachRgbaBuffer(image.data);
-            stack = [{ ...canvas, gravity: image.gravity, virtualCanvas, density: image.density, ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) }];
+            stack = [{ ...canvas, ...(image.orientation === undefined ? {} : { orientation: image.orientation }), gravity: image.gravity, virtualCanvas, density: image.density, ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) }];
         }
         else if (t === "-append" || t === "+append") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
@@ -12457,7 +12457,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let canvas: StoredRgbaImage = { gravity: images[0]!.gravity, ...await createStoredCanvas(width, height, background, backend, signal), ...(images[0]!.magickColorspace ? { magickColorspace: images[0]!.magickColorspace } : {}), ...(image.space === "cmyk" ? { space: "cmyk" as const } : {}) };
                 for (let n = 0; n < images.length; n++) canvas = await transformStoredMagickRaster(canvas, backend, overCompositePixelSteps(canvas, images[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.storedData16 || images[n]!.storedData16)), signal, canvas, [canvas, images[n]!]);
                 stack.length = 0;
-                await stack.push({ ...canvas, virtualCanvas, density: image.density, ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) });
+                await stack.push({ ...canvas, ...(image.orientation === undefined ? {} : { orientation: image.orientation }), virtualCanvas, density: image.density, ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) });
                 return stack;
             });
             continue;

@@ -724,6 +724,7 @@ interface MagickState {
   pointFilter?: boolean;
   compose: BlendMode;
   composeRaw: string;
+  composeExplicit?: boolean;
   composeArgs: string | undefined;
   composeTile?: boolean;
   geometry: string | undefined;
@@ -6265,6 +6266,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             }
             im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { ...(im as MagickImage)[magickInput], virtualPixel: state.virtualPixel } });
             if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
+            if (state.composeExplicit) im = { ...im, properties: { ...im.properties, compose: state.composeRaw } };
             if (state.interlace !== undefined) im = Object.assign({}, im, { [magickInput]: { ...(im as MagickImage)[magickInput], interlace: state.interlace } });
             if (state.orientation !== undefined) im = { ...im, orientation: state.orientation };
             if (state.units !== undefined) im = applyMagickUnits(im, state.units);
@@ -9061,10 +9063,12 @@ if (t === "-intent" || t === "+intent") {
         else if (t === "-compose") {
             const cRaw = tokens[++i] ?? "over";
             state.composeRaw = cRaw;
+            state.composeExplicit = true;
             state.compose = parseCompose(cRaw);
         }
         else if (t === "+compose") {
             state.composeRaw = "Over";
+            state.composeExplicit = true;
             state.compose = "over";
         }
         else if (t === "+define") {
@@ -9554,6 +9558,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 });
             }
             if (t === "-interlace" || t === "+interlace") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
+            if (t === "-compose" || t === "+compose") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, properties: { ...image.properties, compose: state.composeRaw } }; });
             if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity }; });
             if (t === "-virtual-pixel" || t === "+virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { ...(image as MagickImage)[magickInput], virtualPixel: state.virtualPixel } }; });
         }
@@ -11776,6 +11781,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const interlace = state.interlace!;
                 steps.push(async image => image ? { ...image, [magickInput]: { ...(image as StoredMagickImage)[magickInput], interlace } } : undefined);
             }
+            if (token === "-compose" || token === "+compose") {
+                const compose = state.composeRaw;
+                steps.push(async image => image ? { ...image, properties: { ...image.properties, compose } } : undefined);
+            }
             if (token === "-gravity" || token === "+gravity") {
                 const gravity = state.gravity;
                 steps.push(async image => image ? { ...image, gravity } : undefined);
@@ -13895,6 +13904,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   }
   image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { ...(image as StoredMagickImage)[magickInput], virtualPixel: state.virtualPixel } });
   if(state.page!==undefined)image={...image,virtualCanvas:state.page};
+  if(state.composeExplicit)image={...image,properties:{...image.properties,compose:state.composeRaw}};
   if(state.interlace!==undefined)image=Object.assign({},image,{[magickInput]:{...(image as StoredMagickImage)[magickInput],interlace:state.interlace}});
   if(state.orientation!==undefined)image={...image,orientation:state.orientation};
   if(state.units!==undefined)image=applyMagickUnits(image,state.units);

@@ -11765,6 +11765,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         if (selecting) {
                           const variables = {
+                            samples_n: NaN, sample_rate: origRate, consumed_samples_n: NaN,
                             PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
                             // Decoded audio is key; video classification and concat metadata are unavailable.
                             key: 1, pict_type: NaN, interlace_type: NaN, concatdec_select: NaN,
@@ -11782,6 +11783,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             await yieldTurn(context.signal);
                             context.signal?.throwIfAborted();
                             variables.n = n;
+                            variables.samples_n = frame.end - frame.start;
                             variables.pts = frame.pts;
                             variables.pos = frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN;
                             variables.t = frame.pts / origRate;

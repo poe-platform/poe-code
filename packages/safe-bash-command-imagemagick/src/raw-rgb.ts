@@ -1,9 +1,9 @@
 // Present headerless samples as Netpbm or MIFF for both decoding paths.
-export function rawRasterInput(width: number, height: number, depth: number, endian: string, byteLength: number, layout: 1 | 2 | 3 | 4 | 5 | "rgba" | "rgbo", offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none") {
+export function rawRasterInput(width: number, height: number, depth: number, endian: string, byteLength: number, layout: 1 | 2 | 3 | 4 | 5 | "rgba" | "rgbo", offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none", floatingPoint = false) {
     const channels = typeof layout === "string" ? 4 : layout;
     const coder = typeof layout === "string" ? layout.toUpperCase() : channels === 1 ? "GRAY" : channels === 2 ? "GRAYA" : channels === 3 ? "RGB" : channels === 4 ? "CMYK" : "CMYKA";
     const packed = (depth === 10 || depth === 12) && (channels === 1 || channels === 3);
-    if (!packed && depth !== 8 && depth !== 16 && (depth !== 32 || channels === 2 || typeof layout === "string") && !((depth === 1 || depth === 2 || depth === 4) && (channels === 1 || channels === 3) && interlace === "none")) throw new Error(`unsupported ${coder} input depth '${depth}'`);
+    if (floatingPoint ? depth !== 16 && depth !== 32 && depth !== 64 : !packed && depth !== 8 && depth !== 16 && (depth !== 32 || channels === 2 || typeof layout === "string") && !((depth === 1 || depth === 2 || depth === 4) && (channels === 1 || channels === 3) && interlace === "none")) throw new Error(`unsupported ${coder} input depth '${depth}'`);
     const rowChannels = packed && interlace !== "none" ? 1 : channels;
     const rowSamples = width * channels, rowLength = Math.ceil(width * rowChannels * depth / 8);
     const frameLength = rowLength * height * (channels / rowChannels), decodedLength = rowSamples * height * Math.ceil(Math.min(depth, 16) / 8);
@@ -15,7 +15,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
         : channels === 2 || channels === 4
         ? `P7\nWIDTH ${width}\nHEIGHT ${height}\nDEPTH ${channels}\nMAXVAL ${depth <= 8 ? 255 : 65535}\nTUPLTYPE ${channels === 2 ? "GRAYSCALE_ALPHA" : "RGB_ALPHA"}\nENDHDR\n`
         : `P${channels === 1 ? 5 : 6}\n${width} ${height}\n${depth <= 8 ? 255 : 65535}\n`);
-    const swap = depth === 16 && endian !== "msb";
+    const swap = !floatingPoint && depth === 16 && endian !== "msb";
     return {
         size: header.length + decodedLength,
         pages: Math.floor((byteLength - offset) / frameLength),
@@ -36,8 +36,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                         if (input.length !== length) throw new Error(`unexpected end-of-file in ${coder} input`);
                         for (; cursor < limit; cursor++) {
                             const index = cursor % rowSamples;
-                            const inputSampleBytes = depth / 8;
-    const packed = input[Math.floor(index / samplesPerByte) - firstByte]!;
+                            const packed = input[Math.floor(index / samplesPerByte) - firstByte]!;
                             bytes[headerLength + cursor - start] = ((packed >> (8 - depth - index % samplesPerByte * depth)) & mask) * (255 / mask);
                         }
                     }
@@ -81,7 +80,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                             const source = interlace === "partition" ? pixel : interlace === "plane" ? channel * width * height + pixel : (row * channels + channel) * width + pixel % width;
                             let input = yield { channel: interlace === "partition" ? channel : 0, position: offset + page * frameLength / (interlace === "partition" ? channels : 1) + source * inputSampleBytes, length: length * inputSampleBytes / sampleBytes };
                             if (input.length !== length * inputSampleBytes / sampleBytes) throw new Error(`unexpected end-of-file in ${coder} input`);
-                            if (depth === 32) input = unsigned32To16(input, endian);
+                            if (floatingPoint || depth === 32) input = rawSamplesTo16(input, depth, endian, floatingPoint);
                             for (let i = 0; i < length; i++) {
                                 const output = (pixel + Math.floor(i / sampleBytes)) * pixelBytes + channel * sampleBytes + i % sampleBytes;
                                 if (output >= start && output < end) bytes[headerLength + output - start] = input[swap ? i ^ 1 : i]!;
@@ -91,14 +90,14 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                     }
                     return bytes;
                 }
-                const alignedStart = swap || depth === 32 ? start - start % 2 : start;
-                const alignedEnd = swap || depth === 32 ? end + end % 2 : end;
-                for (let cursor = alignedStart; cursor < alignedEnd; cursor += depth === 32 ? 4096 : 8192) {
-                    const length = Math.min(depth === 32 ? 4096 : 8192, alignedEnd - cursor);
-                    const ratio = depth === 32 ? 2 : 1;
+                const alignedStart = swap || floatingPoint || depth === 32 ? start - start % 2 : start;
+                const alignedEnd = swap || floatingPoint || depth === 32 ? end + end % 2 : end;
+                const ratio = Math.max(1, depth / 16);
+                for (let cursor = alignedStart; cursor < alignedEnd; cursor += 8192 / ratio) {
+                    const length = Math.min(8192 / ratio, alignedEnd - cursor);
                     let input = yield { channel: 0, position: offset + page * frameLength + cursor * ratio, length: length * ratio };
                     if (input.length !== length * ratio) throw new Error(`unexpected end-of-file in ${coder} input`);
-                    if (depth === 32) input = unsigned32To16(input, endian);
+                    if (floatingPoint || depth === 32) input = rawSamplesTo16(input, depth, endian, floatingPoint);
                     for (let i = Math.max(start, cursor); i < Math.min(end, cursor + length); i++) {
                         const value = input[(swap ? i ^ 1 : i) - cursor]!;
                         bytes[headerLength + i - start] = layout === "rgbo" && Math.floor(i / (depth / 8)) % channels === 3 ? 255 - value : value;
@@ -116,11 +115,18 @@ export function rgbPartitionPaths(path: string, format = "rgb"): string[] {
     return [...(format.endsWith("o") ? format.slice(0, -1) : format).toUpperCase()].map(channel => `${stem}.${channel}`);
 }
 
-function unsigned32To16(input: Uint8Array, endian: string): Uint8Array {
-    const source = new DataView(input.buffer, input.byteOffset, input.byteLength);
-    const bytes = new Uint8Array(input.length / 2), output = new DataView(bytes.buffer);
-    for (let offset = 0; offset < input.length; offset += 4) {
-        output.setUint16(offset / 2, Math.round(source.getUint32(offset, endian !== "msb") / 65537));
+function rawSamplesTo16(input: Uint8Array, depth: number, endian: string, floatingPoint: boolean): Uint8Array {
+    const source = new DataView(input.buffer, input.byteOffset, input.byteLength), sampleBytes = depth / 8;
+    const bytes = new Uint8Array(input.length / sampleBytes * 2), output = new DataView(bytes.buffer);
+    for (let index = 0; index < input.length / sampleBytes; index++) {
+        let value: number;
+        if (!floatingPoint) value = source.getUint32(index * 4, endian !== "msb") / 4294967295;
+        else if (depth === 16) {
+            const half = source.getUint16(index * 2, endian !== "msb"), exponent = (half >>> 10) & 31, fraction = half & 1023;
+            value = exponent === 0 ? fraction * 2 ** -24 : exponent === 31 ? fraction ? NaN : Infinity : (1 + fraction / 1024) * 2 ** (exponent - 15);
+            if (half & 0x8000) value = -value;
+        } else value = depth === 32 ? source.getFloat32(index * 4, endian !== "msb") : source.getFloat64(index * 8, endian !== "msb");
+        output.setUint16(index * 2, Number.isNaN(value) ? 0 : Math.round(Math.max(0, Math.min(1, value)) * 65535));
     }
     return bytes;
 }

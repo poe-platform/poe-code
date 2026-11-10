@@ -2173,32 +2173,39 @@ async function applyVideoFilterChain(
         await diagnostics.write(`frame:${index} pts:${Math.round(frame.ptsSeconds * diagnostics.timescale)} pts_time:${frame.ptsSeconds}\n` +
           entries.map(([key, value]) => `${key}=${value}\n`).join(""));
       }
-    } else if (name === "setdar") {
+    } else if (name === "setdar" || name === "setsar") {
       let expression = "0";
       let maximum = "100";
-      let position = 0;
-      for (const part of argStr ? positional : []) {
+      let namedOption = false;
+      const parts = argStr ? [...positional] : [];
+      if (parts.at(-1) === "") parts.pop();
+      for (const [index, part] of parts.entries()) {
         const separator = part.indexOf("=");
-        const key = separator < 0 ? ["dar", "max"][position++] : part.slice(0, separator).trim();
+        const key = separator < 0 ? [name.slice(3), "max"][index] : part.slice(0, separator).trim();
+        if (separator < 0 && namedOption) throw new Error(`${name}: misplaced option ${part}`);
+        namedOption ||= separator >= 0;
         const value = separator < 0 ? part : part.slice(separator + 1);
-        if (key === "dar" || key === "ratio" || key === "r") expression = value;
+        if (key === name.slice(3) || key === "ratio" || key === "r") expression = value;
         else if (key === "max") maximum = value;
-        else throw new Error("setdar: unsupported option");
+        else throw new Error(`${name}: unsupported option`);
       }
       const frame = current[0]!;
       const format = frame.native?.format;
-      const dar = parseFilterExpression(expression, "setdar", {
+      const ratio = parseFilterExpression(expression, name, {
+        PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
         w: frame.width, h: frame.height, a: frame.width / frame.height,
         sar: diagnostics.sar, dar: frame.width / frame.height * diagnostics.sar,
         hsub: [0, 4, 12, 13].includes(format!) ? 2 : 1,
         vsub: [0, 12].includes(format!) ? 2 : 1
       });
-      const max = roundToEven(parseFilterExpression(maximum, "setdar", {}));
-      if (!Number.isFinite(dar) || dar <= 0 || !Number.isFinite(max) || max < 1 || max > 2147483647) {
-        throw new Error("setdar: expected a positive finite display aspect and max in 1..2147483647");
+      const limit = parseFilterExpression(maximum, name, { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+      if (!Number.isFinite(ratio) || ratio < 0 || (name === "setdar" && ratio === 0) ||
+          !Number.isFinite(limit) || limit < 1 || limit > 2147483647) {
+        throw new Error(`${name}: invalid aspect ratio or max outside 1..2147483647`);
       }
-      // Bound the requested display ratio before converting it to a sample ratio.
-      let remainder = dar;
+      const max = roundToEven(limit);
+      // Bound the requested ratio before converting display aspect to sample aspect.
+      let remainder = ratio;
       let numerator = 1, denominator = 0, previousNumerator = 0, previousDenominator = 1;
       for (let step = 0; step < 64; step++) {
         const whole = Math.floor(remainder);
@@ -2209,7 +2216,7 @@ async function applyVideoFilterChain(
             denominator ? Math.floor((max - previousDenominator) / denominator) : Infinity);
           const boundedNumerator = bound * numerator + previousNumerator;
           const boundedDenominator = bound * denominator + previousDenominator;
-          if (!denominator || Math.abs(boundedNumerator / boundedDenominator - dar) < Math.abs(numerator / denominator - dar)) {
+          if (!denominator || Math.abs(boundedNumerator / boundedDenominator - ratio) < Math.abs(numerator / denominator - ratio)) {
             numerator = boundedNumerator;
             denominator = boundedDenominator;
           }
@@ -2217,11 +2224,13 @@ async function applyVideoFilterChain(
         }
         [previousNumerator, numerator] = [numerator, nextNumerator];
         [previousDenominator, denominator] = [denominator, nextDenominator];
-        if (Math.abs(numerator / denominator - dar) < 1e-12) break;
+        if (Math.abs(numerator / denominator - ratio) < 1e-12) break;
         remainder = 1 / (remainder - whole);
       }
-      numerator *= frame.height;
-      denominator *= frame.width;
+      if (name === "setdar") {
+        numerator *= frame.height;
+        denominator *= frame.width;
+      }
       let divisor = numerator, rest = denominator;
       while (rest) [divisor, rest] = [rest, divisor % rest];
       diagnostics.sarWidth = numerator / divisor;

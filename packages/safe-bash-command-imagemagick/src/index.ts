@@ -10766,6 +10766,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-liquid-rescale") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const rawGeometry = tokens[++i] ?? "";
             validateMagickTransformGeometry(rawGeometry, t);
             let geometry = rawGeometry.replaceAll("(", "").replaceAll(")", "");
@@ -13665,6 +13666,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return virtualCanvas ? { ...resized, virtualCanvas } : resized;
             });
         } else if (!operandsOnly && token === "-liquid-rescale") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const rawGeometry = tokens[++i] ?? "", kernel = state.kernel, settings = state.resizeFilter;
             validateMagickTransformGeometry(rawGeometry, token);
             let geometry = rawGeometry.replaceAll("(", "").replaceAll(")", "");

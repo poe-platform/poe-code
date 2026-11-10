@@ -8241,15 +8241,18 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 let pixelWork = 0;
                 const out = new Uint8Array(im.data);
                 const evaluateSamples = im.evaluateSamples?.slice();
+                // CMYK stores black ink, not alpha, in the fourth working sample.
+                const hueSamples = im.space === "cmyk" ? undefined : im.hueSamples?.slice();
                 const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
                 for (let idx = 3; idx < out.length; idx += 4) {
                     if (++pixelWork % 16384 === 0)
                         yield;
                     out[idx] = mode === "opaque" ? 255 : 0;
                     if (evaluateSamples) evaluateSamples[idx] = out[idx]!;
+                    if (hueSamples) hueSamples[idx] = mode === "opaque" ? 1 : 0;
                     if (data16) data16[idx] = mode === "opaque" ? 65535 : 0;
                 }
-                return { ...im, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), hasAlpha: mode !== "off", inactiveAlpha: false, alphaBlend: mode !== "off", alphaSeparate: false };
+                return { ...im, data: out, ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), hasAlpha: mode !== "off", inactiveAlpha: false, alphaBlend: mode !== "off", alphaSeparate: false };
             };
         }
         else if (mode === "copy" || mode === "shape") {

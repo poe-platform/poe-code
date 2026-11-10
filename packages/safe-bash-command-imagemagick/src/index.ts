@@ -8283,7 +8283,10 @@ function applyMagickReadSetting(tokens: readonly string[], state: MagickState, s
     let i = start;
     const t = tokens[i];
 if (t === "-seed") {
-            state.seed = Number(tokens[++i] ?? 0);
+            const value = tokens[++i] ?? "";
+            validateMagickTransformGeometry(value, t);
+            // Native validates geometry, then reads only the leading decimal integer.
+            state.seed = Number.parseInt(value, 10);
             if (!Number.isSafeInteger(state.seed) || state.seed < 0) throw new Error("Invalid random seed");
         }
         else if (t === "-precision") {

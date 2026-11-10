@@ -71,7 +71,7 @@ it("repeats a seed and changes strokes when the seed changes", async () => {
 });
 
 for (const retained of [false, true]) it.each([
-    ["-seed", "NaN"], ["-seed", "1.5"], ["-sketch", "5001x1"], ["-sketch", "0x1000000"]
+    ["-seed", "NaN"], ["-seed", "1.5bad"], ["-sketch", "5001x1"], ["-sketch", "0x1000000"]
 ])(`rejects invalid seeds and excessive kernels (retained=${retained}): %s %s`, async (option, value) => {
     const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
     const result = await runConvertCli(["-size", "1x1", "xc:white", option, value, "out.png"], retained ? { filesystem: fs, cwd: "/" } : files);

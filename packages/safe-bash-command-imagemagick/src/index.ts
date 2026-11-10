@@ -5465,6 +5465,8 @@ function parseMagickPageSetting(raw: string, operation: "page" | "set"): MagickG
     const geometry = parseMagickGeometry(value.replaceAll("#", "").replaceAll(":", "x"));
     // Native page properties require an x separator between a width and offsets.
     if (operation === "set" && geometry.width !== undefined && geometry.hasOffset && !value.toLowerCase().includes("x")) return parseMagickGeometry("");
+    // An explicit empty height clears the page height; a bare width preserves it.
+    if (operation === "set" && value.toLowerCase().includes("x") && geometry.height === undefined) return { ...geometry, height: 0 };
     return geometry;
 }
 

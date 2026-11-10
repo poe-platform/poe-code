@@ -12518,6 +12518,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let rate: number | undefined = trimmed === "aresample" ? 0 : undefined;
                         let firstPts: number | undefined;
                         let format: string | undefined;
+                        let cutoff: number | undefined;
                         let window: "cubic" | "kaiser" | "blackman_nuttall" = "kaiser";
                         const options = trimmed === "aresample" ? [] : trimmed.slice("aresample=".length).split(":");
                         if (options.at(-1) === "") options.pop();
@@ -12537,6 +12538,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                             window = raw === "0" ? "cubic" : raw;
                             rate ??= 0;
+                            continue;
+                          }
+                          if (key === "cutoff" || key === "resample_cutoff") {
+                            cutoff = Number(raw);
+                            if (!raw?.trim() || extra !== undefined || !Number.isFinite(cutoff) || cutoff < 0 || cutoff > 1) {
+                              throw new Error("aresample: cutoff must be a number between 0 and 1");
+                            }
                             continue;
                           }
                           if (key === "osf" || key === "out_sample_fmt") {
@@ -12614,7 +12622,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           audioStartSample = firstPts;
                           audioTimestamps = undefined;
                         }
-                        if (rate !== undefined || format !== undefined) {
+                        if (cutoff !== undefined || rate !== undefined || format !== undefined) {
                           const targetRate = rate || (index === undefined ? undefined : audioRate) || origRate;
                           if (targetRate !== origRate) {
                             const length = Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate);
@@ -12626,7 +12634,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const firstPts = Math.round((audioTimestamps?.[0]?.pts ?? audioStartSample) * targetRate / origRate);
                             const outputEnds: number[] = [];
                             stretched = await resampleAudio(stretched, length, origRate, targetRate, budget, context.signal,
-                              window, undefined, undefined, undefined, undefined, undefined, undefined, { ends, outputEnds });
+                              window, undefined, undefined, cutoff, undefined, undefined, undefined, { ends, outputEnds });
                             // Resampling produces floats; later filters and encoders must round
                             // these samples rather than narrow the original integer PCM.
                             if (!autoConversionFilters) format ??= filteredSampleFormat;

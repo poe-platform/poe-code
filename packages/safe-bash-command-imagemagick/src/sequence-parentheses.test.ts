@@ -18,7 +18,7 @@ it.each([
     { name: "reset respect", flags: ["-respect-parentheses", "+respect-parentheses"], grouped: true, transparent: true },
     { name: "nested", flags: [], grouped: true, nested: true, transparent: true },
     { name: "nested respect", flags: ["-respect-parentheses"], grouped: true, nested: true, transparent: reverse },
-    { name: "reset method after group", flags: [], grouped: true, after: ["+virtual-pixel"], transparent: false },
+    { name: "reset setting preserves loaded method", flags: [], grouped: true, after: ["+virtual-pixel"], transparent: true },
     { name: "override after group", flags: ["-respect-parentheses"], grouped: true, after: ["-virtual-pixel", "transparent"], transparent: true },
     { name: "ungrouped", flags: [], grouped: false, transparent: true },
     { name: "edge control", flags: [], grouped: true, transparent: false, edge: true },

@@ -88,10 +88,11 @@ export function* haldClutPixelSteps(size: number, lut: { width: number; height: 
     const gray = lut.space === "b-w" || lut.space === "grey16";
     // Native rounds incomplete tables up to the next level, with a minimum of 2.
     const level = Math.max(2, Math.ceil(Math.cbrt(Math.min(lut.width, lut.height)))), edge = level * level;
-    for (let position = 0; position < size; position += 16384) {
+    for (let position = 0; position < size; position += 2048) {
         yield;
-        const bytes = (yield { kind: "read", highDepth, position, length: Math.min(16384, size - position) })!;
+        const bytes = (yield { kind: "read", highDepth, position, length: Math.min(2048, size - position) })!;
         const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
+        const working = Float64Array.from(data, value => highDepth ? value / 257 : value);
         for (let offset = 0; offset < data.length; offset += 4) {
             if (offset % 256 === 0) yield;
             // Native adopts the lookup colorspace without a luminance conversion:
@@ -110,8 +111,13 @@ export function* haldClutPixelSteps(size: number, lut: { width: number; height: 
                 values[3]! += sample[3]! * weight;
             }
             for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
-            for (let channel = 0; channel < 4; channel++) if (mask[channel]) data[offset + channel] = Math.max(0, Math.min(range, Math.round(values[channel]! + Number.EPSILON * range)));
+            for (let channel = 0; channel < 4; channel++) if (mask[channel]) {
+                working[offset + channel] = Math.fround(values[channel]! * (highDepth ? 1 : 257)) / 257;
+                data[offset + channel] = Math.max(0, Math.min(range, Math.round(values[channel]! + Number.EPSILON * range)));
+            }
         }
+        // Byte inputs still produce fractional Q16-HDRI lookup results.
+        yield { kind: "write", evaluate: true, position, data: new Uint8Array(working.buffer) };
         yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
     }
 }

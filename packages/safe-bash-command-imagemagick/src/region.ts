@@ -74,8 +74,8 @@ export function* regionPixelSteps(image: { width: number; height: number; hasAlp
         const relativeY = region.wrap ? (y - region.y + image.height) % image.height : y - region.y;
         const spans = relativeY < 0 || relativeY >= region.height ? [[0, image.width, 1]] : selectedSpans;
         for (const [start, end, source] of spans) {
-            for (let x = start!; x < end!; x += 4096) {
-                const position = (y * image.width + x) * 4, length = Math.min(4096, end! - x) * 4;
+            for (let x = start!; x < end!; x += 512) {
+                const position = (y * image.width + x) * 4, length = Math.min(512, end! - x) * 4;
                 // Gamma and other HDRI operations must not round before mask compositing.
                 const working = yield { kind: "read", evaluate: true, image: source!, position, length };
                 const original = working?.length ? new Float64Array(working.slice().buffer)

@@ -7,9 +7,9 @@ export interface MaskChannels { r: boolean; g: boolean; b: boolean }
 /** Blend edited pixels with their originals; white protects and black permits writes. */
 export function* writeMaskPixelSteps(image: { width: number; height: number }, mask: { width: number; height: number }, highDepth = false, alphaOpaque = false, channels?: MaskChannels, alphaActive = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     for (let y = 0; y < image.height; y++) {
-        for (let x = 0; x < image.width; x += 4096) {
+        for (let x = 0; x < image.width; x += 512) {
             yield;
-            const count = Math.min(4096, image.width - x), position = (y * image.width + x) * 4;
+            const count = Math.min(512, image.width - x), position = (y * image.width + x) * 4;
             // Keep HDRI samples until after clipping, as in the native pixel cache.
             const samples: Float64Array[] = [];
             for (const image of [0, 1]) {

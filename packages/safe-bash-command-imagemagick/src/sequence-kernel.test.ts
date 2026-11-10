@@ -12,7 +12,7 @@ function run(steps: Generator<ConvolveRequest | undefined, void, Uint8Array | un
             expect(request.length).toBeLessThanOrEqual(16384);
             next = steps.next(request.evaluate ? new Uint8Array() : sources[request.image ?? 0]!.subarray(request.position, request.position + request.length));
         } else {
-            expect(request.data.length).toBeLessThanOrEqual(16384);
+            expect(request.data.length / (request.evaluate ? 8 : request.highDepth ? 2 : 1)).toBeLessThanOrEqual(16384);
             owned.push({ bytes: request.data, copy: new Uint8Array(request.data) });
             if (!request.evaluate) result.set(request.data, request.position);
             next = steps.next();

@@ -310,6 +310,11 @@ Input-side `-ss`, `-t`, and `-to` cut audio before filtering; output-side cuts a
 
 `mcompand` applies FFmpeg’s default five-band companding curve at 48 kHz. Custom quoted band specifications support attack/decay pairs, soft knees, transfer points, crossover frequencies, and initial volume. Crossovers must be below half the sample rate; nonzero delay and gain are rejected.
 `anull` and `acopy` pass audio through unchanged, alone or in a filter chain.
+`-noauto_conversion_filters` rejects implicit PCM output-format, sample-rate,
+channel-count and `aformat` conversions; `-auto_conversion_filters` restores the
+default. For example, PCM16 WAV with `-af anull -f s16le -` succeeds with either
+flag, while `-af anull -f f32le -` requires automatic conversion. These are global
+flags: the last spelling applies to every output. Stream copy is unaffected.
 `afreqshift=shift=250:level=0.5` shifts each channel’s frequencies by a signed Hz offset without changing the sample count. It accepts `shift` (default 0), `level` (0–1, default 1), and `order` (1–16, default 8), including positional `shift:level:order` options. Zero shift retains the filter’s phase response.
 
 `-filter_complex "showwavespic=s=600x240:split_channels=1:colors=white|white" -frames:v 1 waveform.png` renders audio as a single waveform image. Split channels occupy separate rows; the default overlay keeps each channel’s magnitude independent. Labeled audio inputs and mapped image outputs are supported, as are following video filters. Rendering supports linear scaling, scaled drawing, and average (default) or peak sample aggregation; other scaling/drawing modes and preceding audio filters are rejected.

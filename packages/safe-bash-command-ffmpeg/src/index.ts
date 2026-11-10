@@ -4005,6 +4005,20 @@ function limitCopyPackets(
   };
 }
 
+const audioConversionDisabled = "The filters do not have a common format and automatic conversion is disabled.";
+
+function pcmSampleFormat(codec: string | undefined): string | undefined {
+  if (!codec?.startsWith("pcm_")) return undefined;
+  const format = codec.slice(4);
+  if (format === "u8") return "u8";
+  if (format.startsWith("s16") || format === "alaw" || format === "mulaw") return "s16";
+  if (format.startsWith("s24") || format.startsWith("s32")) return "s32";
+  if (format.startsWith("s64")) return "s64";
+  if (format.startsWith("f32")) return "flt";
+  if (format.startsWith("f64")) return "dbl";
+  return undefined;
+}
+
 function validateRawAudioCodec(doc: MediaDocument, plugin: MediaAstPlugin | undefined, codec: string | undefined): void {
   if (!plugin) return;
   const required = `pcm_${plugin.id}`;
@@ -5929,6 +5943,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingChannelLayout: string | undefined;
       let overwrite: boolean | undefined;
       let exitOnError = false;
+      let autoConversionFilters = true;
       let maxErrorRate = Math.fround(2 / 3);
       let abortOnEmptyOutput = false;
       let abortOnEmptyOutputStream = false;
@@ -6833,6 +6848,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             audioChannelOptions.push(["", channels.length]);
             if (beforeInput) pendingChannelLayout = names;
+          } else if (arg === "-auto_conversion_filters" || arg === "-noauto_conversion_filters") {
+            autoConversionFilters = arg === "-auto_conversion_filters";
           } else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats" || arg === "-nostats") {
             // no-op
           } else if (arg === "-f") {
@@ -9333,7 +9350,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const filter = expression === undefined
                     ? afFilters.filter(filter => filter.ordinal === undefined || filter.ordinal === ordinal).at(-1)
                     : { expression };
-                  if (audioRate === undefined && audioChannels === undefined && rematrixVolume === 1 && !filter && maxAudioFrames === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") return t;
+                  if (autoConversionFilters && audioRate === undefined && audioChannels === undefined && rematrixVolume === 1 && !filter && maxAudioFrames === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") return t;
                   const doc = index === undefined ? loadedDocs.find(doc => doc.tracks.includes(t)) ?? loadedDocs[0]! : workingDoc;
                   const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"
                     ? decodeAacTrack(doc, t) : t.codecDescriptions[0]?.codecName === "mp3"
@@ -9353,6 +9370,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const inputCodec = t.codecDescriptions[0]?.codecName;
                   let filteredSampleFormat = inputCodec === "pcm_u8" ? "u8" : inputCodec === "pcm_s16le" ? "s16" : ["pcm_s24le", "pcm_s32le"].includes(inputCodec ?? "") ? "s32"
                     : inputCodec === "pcm_f32le" ? "flt" : "dbl";
+                  if (!autoConversionFilters) filteredSampleFormat = pcmSampleFormat(inputCodec) ?? filteredSampleFormat;
                   let panSampleFormat = inputCodec === "pcm_s16be" ? "s16" : filteredSampleFormat;
                   const volFactor = t.volume ?? 1.0;
                   let stretched: typeof audio.channelData = audio.channelData;
@@ -11232,6 +11250,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               }
                             }
                             if (targetRate !== origRate) {
+                              if (!autoConversionFilters) throw new Error(audioConversionDisabled);
                               const length = Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate);
                               if (!Number.isSafeInteger(length)) throw new Error("aformat: output sample count is too large");
                               budget.checkDuration(length / targetRate);
@@ -11264,6 +11283,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             };
                             const format = formats.includes(filteredSampleFormat) ? filteredSampleFormat
                               : formats.reduce((best, candidate) => score(best) < score(candidate) ? best : candidate);
+                            if (!autoConversionFilters && format !== filteredSampleFormat) throw new Error(audioConversionDisabled);
                             panSampleFormat = format;
                             const truncate = format === "u8" && ["u8", "u8p", "s16", "s16p", "s32", "s32p"].includes(filteredSampleFormat);
                             filteredSampleFormat = format;
@@ -11307,6 +11327,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             : stretched.length === 2 && (!filteredChannelMask || filteredChannelMask === 3) ? "stereo" : undefined;
                           if (!inputLayout) throw new Error("aformat: layout conversion requires mono or stereo input");
                           if (layouts.includes(inputLayout)) continue;
+                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
                           const expression = layouts[0] === "mono" ? "mono|c0=0.5*c0+0.5*c1"
                             : `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`;
                           const mixed = await panAudio(expression, stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
@@ -12227,6 +12248,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         channelMask: filteredChannelMask, channelData: stretched } };
                   }
 
+                  if (!autoConversionFilters) {
+                    const plugin = outputFormat === "segment" ? segmentPlugin : outPlugin;
+                    const codec = audioCodec ?? (plugin?.supportedAudioCodecs.includes(`pcm_${plugin.id}`)
+                      ? `pcm_${plugin.id}` : ["wav", "w64", "null"].includes(outputFormat ?? plugin?.id ?? "") ? "pcm_s16le" : undefined);
+                    const targetFormat = sampleFormat ?? pcmSampleFormat(codec);
+                    if (targetFormat !== undefined && targetFormat !== filteredSampleFormat ||
+                        audioRate !== undefined && audioRate !== origRate ||
+                        audioChannels !== undefined && audioChannels > 0 && audioChannels !== stretched.length) {
+                      throw new Error(audioConversionDisabled);
+                    }
+                  }
+
                   if (filter && (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined)) {
                     const start = outputSs === undefined ? 0 : Math.max(0, Math.round(outputSs * origRate) - audioStartSample);
                     const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
@@ -12562,7 +12595,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   };
             }
 
-            if ((audioRate !== undefined || audioChannelOptions.length > 0 || rematrixVolume !== 1 || afFilters.length > 0 || maxAudioFrames !== undefined || (audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms")) && audioCodec !== "copy") {
+            if ((!autoConversionFilters || audioRate !== undefined || audioChannelOptions.length > 0 || rematrixVolume !== 1 || afFilters.length > 0 || maxAudioFrames !== undefined || (audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms")) && audioCodec !== "copy") {
               workingDoc = { ...workingDoc, tracks: await mapWork(workingDoc.tracks,
                 (track, index) => filterAudio(track, undefined, index), context.signal) };
             }
@@ -13607,6 +13640,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             rethrowRuntimeError(context, err);
             const msg = err instanceof Error ? err.message : String(err);
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
+            if (msg === audioConversionDisabled) return { exitCode: 234 };
             const unnamedChannel = msg.startsWith("channelmap: unavailable input channel") && msg.endsWith(" (unnamed layout)");
             const unsupportedPanOrder = msg.startsWith("pan: unsupported output channel order ");
             if (err instanceof AlimiterError || err instanceof CompandError || unnamedChannel || unsupportedPanOrder) {

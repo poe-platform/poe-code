@@ -29,6 +29,7 @@ export function* complexPixelSteps(size: number, operation: "add" | "subtract", 
         const samples = Float64Array.from(inputs[0]!, (value, offset) => {
             const channel = offset % 4;
             if (channel === 3 && !images[0]!.hasAlpha) return 255;
+            if (channel === 3 && !images[1]!.hasAlpha) return value;
             // Native complex arithmetic requires the channel in every component.
             // Gray outputs store only red; mirror that result in our RGBA raster.
             if (channel === 1 || channel === 2) {

@@ -73,7 +73,7 @@ import { uniqueColorsSteps, uniqueColorsStored } from "./unique-colors.js";
 import { magickResizeCanvas } from "./resize-canvas.js";
 import { connectedComponentsSteps, connectedComponentsStored } from "./connected-components.js";
 import { parseMagickPoly, polyPixelSteps } from "./poly-kernel.js";
-import { type LookupInterpolation, type ChannelAssignment, clutPixelSteps, haldClutPixelSteps, channelFxPixelSteps, combinePixelSteps, evaluateSequencePixelSteps } from "./sequence-kernel.js";
+import { type LookupInterpolation, type ChannelAssignment, clutPixelSteps, haldClutPixelSteps, channelFxPixelSteps, combinePixelSteps, sequenceCanvas, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { withImageInputs } from "./image-input.js";
 import { srgbDepthEnumerationLine, gray16EnumerationLine, pixelEnumerationLine, histogramLine, floatingHistogramKey, floatingHistogramLine, storedPixelEnumeration, storedHistogram, sparseColorPoints, storedSparseColor, encodeText } from "./text-output.js";
@@ -1094,7 +1094,7 @@ function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | 
     if (stack.length === 0) {
         throw new Error("evaluate-sequence requires at least one image");
     }
-    const first = stack[0]!;
+    const first = typeof opRaw === "string" ? sequenceCanvas(stack) : stack[0]!;
     const base = (typeof opRaw !== "string" || first.space !== "cmyk") && stack.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
     const w = stack.reduce((width, image) => Math.max(width, image.width), 0);
     const h = stack.reduce((height, image) => Math.max(height, image.height), 0);
@@ -12359,7 +12359,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             await stack.set(index, { ...await transformStoredMagickRaster(image, backend, extendEdgePixelSteps(image, width, height, !!image.storedData16, image.virtualPixel, settings.background), signal, { ...image, width, height }), ...(virtualCanvas ? { virtualCanvas } : {}) });
                         }
                     }
-                    const first = (await stack.get(0))!;
+                    const first = (await stack.get(terms ? 0 : frames.indexOf(sequenceCanvas(frames))))!;
                     const base: StoredRgbaImage = (terms || first.space !== "cmyk") && frames.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
                     // Keep the native mask channel while resetting its protection.
                     const storedWriteMask = (terms ? frames.some(image => image.storedWriteMask) : base.storedWriteMask) ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;

@@ -313,12 +313,24 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
     }
 }
 
+/** Native sequence reduction clones the first frame with the widest channel layout. */
+export function sequenceCanvas<T extends Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette">>(inputs: readonly T[]): T {
+    let canvas = inputs[0]!, maximum = 0;
+    for (const image of inputs) {
+        const gray = image.space === "b-w" || image.space === "grey16";
+        const indexed = image.isPalette || gray && !image.hasAlpha && image.format === "png" && image.depth === "uchar";
+        const count = (gray ? 1 : image.space === "cmyk" ? 4 : 3) + Number(image.hasAlpha) + Number(!!indexed);
+        if (count > maximum) { canvas = image; maximum = count; }
+    }
+    return canvas;
+}
+
 /** Median ranks selected channel sums, retaining stable input order for equal sums. */
 export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette"> & { magickColorspace?: string })[], raw: string, channels?: readonly boolean[], highDepth = false, seed = 0n, width = size / 4): Steps {
-    const cmyk = inputs[0]!.space === "cmyk", stride = cmyk ? 5 : 4;
+    const canvas = sequenceCanvas(inputs), cmyk = canvas.space === "cmyk", stride = cmyk ? 5 : 4;
     size = size / 4 * stride;
     const frames = inputs.length, hasAlpha = inputs.some(image => image.hasAlpha);
-    const hue = !!inputs[0]?.magickColorspace && inputs[0].magickColorspace !== "RGB" && inputs[0].space !== "cmyk";
+    const hue = !!canvas.magickColorspace && canvas.magickColorspace !== "RGB" && !cmyk;
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
     const fractional = cmyk || ["cos", "cosine", "divide", "log", "mean", "multiply", "rms", "rootmeansquare", "sin", "sine"].includes(operation);
@@ -330,16 +342,18 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
         let bytes: Uint8Array | Uint16Array | Float64Array = working?.length ? Float64Array.from(new Float64Array(input.slice().buffer), value => highDepth ? value * 257 : value)
             : highDepth ? new Uint16Array(input.slice().buffer) : input;
         const inputImage = inputs[image]!;
-        if (cmyk) {
+        if (cmyk || inputImage.space === "cmyk") {
             const hue = inputs[image]!.space === "cmyk" ? yield { kind: "read", hue: true, image, position: storagePosition, length: storageLength } : undefined;
             const inks = hue?.length ? new Float64Array(hue.slice().buffer) : undefined;
             const samples = new Float64Array(length);
             for (let offset = 0; offset < length; offset += stride) {
                 const source = offset / stride * 4;
-                const ink = inks?.subarray(source, source + 4) ?? rgbToCmyk(bytes[source]! / range, bytes[source + 1]! / range, bytes[source + 2]! / range);
-                for (let channel = 0; channel < 3; channel++) samples[offset + channel] = ink[channel]! * range;
-                samples[offset + 3] = bytes[source + 3]!;
-                samples[offset + 4] = ink[3]! * range;
+                const ink = inputImage.space === "cmyk" ? inks?.subarray(source, source + 4) ?? rgbToCmyk(bytes[source]! / range, bytes[source + 1]! / range, bytes[source + 2]! / range) : undefined;
+                // Native reduces existing channels without converting RGB to CMYK.
+                for (let channel = 0; channel < 3; channel++) samples[offset + channel] = ink ? ink[channel]! * range : bytes[source + channel]!;
+                // RGBA has only four slots: the CMYKA output's alpha slot is not visited.
+                samples[offset + 3] = cmyk && !ink && operation !== "median" ? 0 : bytes[source + 3]!;
+                if (cmyk) samples[offset + 4] = ink ? ink[3]! * range : 0;
             }
             bytes = samples;
         }
@@ -585,6 +599,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
                 for (let offset = 0; offset < length; offset++) {
+                    if (image > 0 && cmyk && inputs[image]!.space !== "cmyk" && offset % stride >= 3) continue;
                     if (operation === "addmodulus") {
                         // Wrap at QuantumRange + 1 in native Q16 units, not at 256 bytes.
                         values[offset] = (values[offset]! + bytes[offset]! * scale) % 65536;

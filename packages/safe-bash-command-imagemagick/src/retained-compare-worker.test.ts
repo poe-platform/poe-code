@@ -135,7 +135,7 @@ for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool ===
                 expect(middle.length).toBeGreaterThan(1048576);
                 deepStrictEqual(decodeImage(middle), decodeImage(expectedFiles.get("/middle.bmp")!));
             }
-            const actual = new Uint8Array(await (await backing.fetch("https://backing/result")).arrayBuffer()), expectedBytes = expectedFiles.get(tool === "mogrify" ? "input.png" : "/out.bmp")!;
+            const actual = new Uint8Array(await (await backing.fetch("https://backing/result")).arrayBuffer()), expectedBytes = expectedFiles.get(tool === "mogrify" ? "/input.png" : "/out.bmp")!;
             if (tool === "convert-text") { expect(actual.length).toBeGreaterThan(65536); deepStrictEqual(actual, expectedBytes); }
             else deepStrictEqual(decodeImage(actual), decodeImage(expectedBytes));
             if (tool === "convert-animation") deepStrictEqual(decodeImage(actual, { page: 1 }), decodeImage(expectedBytes, { page: 1 }));

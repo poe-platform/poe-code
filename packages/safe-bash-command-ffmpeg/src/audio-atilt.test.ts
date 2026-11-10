@@ -170,3 +170,27 @@ for (const [option, exitCode] of [["freq=19", 222], ["freq=oops", 234], ["bogus=
     }
   });
 }
+
+for (const complex of [false, true]) {
+  for (const options of ["freq=500:level=0.5", "500:0:1000:5:0.5"]) {
+    it(`atilt accepts one trailing separator in ${complex ? "complex" : "simple"} options ${options}`, async () => {
+      const input = [Float64Array.from({ length: 128 }, (_, i) => (i % 8 === 0 ? 3000 : -800) / 32768)];
+      const control = await run(`atilt=${options}`, input, complex, 8000);
+      const result = await run(`atilt=${options}:`, input, complex, 8000);
+      assert.equal(control.exitCode, 0, control.stderr);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.bytes, control.bytes);
+      // Native FFmpeg 7.0.2 samples for the 8 kHz impulse fixture.
+      assert.deepEqual([0, 1, 2, 31, 32, 33].map(i => result.bytes.readInt16LE(i * 2)),
+        [1500, -400, -400, -400, 1500, -400]);
+    });
+  }
+  for (const options of ["freq=500:level=0.5::", "500:0:1000:5:0.5::", "500::1000:5:0.5:", "freq=500:level=:"]) {
+    it(`atilt rejects empty values in ${complex ? "complex" : "simple"} options ${options}`, async () => {
+      const result = await run(`atilt=${options}`, [new Float64Array(4)], complex, 8000);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(result.stderr.includes("atilt:"), result.stderr);
+      assert.equal(result.bytes.toString(), "KEEP");
+    });
+  }
+}

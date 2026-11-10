@@ -818,7 +818,9 @@ WebVTT input `-kind subtitles|captions|descriptions|metadata` applies to the nex
 Numeric detector aliases are `0`, `1`, `2`, `3`, `4`, and `5`, respectively.
 Negative stop periods remove repeated silent sections.
 Shortened frames stay separate for downstream filters, frame limits, and checksums;
-`timestamp=write` (the default) writes a continuous output timeline.
+`timestamp=write` (or `0`, the default) writes a continuous output timeline.
+`timestamp=copy` (or `1`) preserves each surviving input frame’s timestamp, including
+gaps and frames shortened by leading removal.
 Timeline `enable` expressions select whole input frames by timestamp `t` or frame
 number `n` (for example, `enable=gte(t\\,0.012)`). Disabled frames keep all their
 samples while silence detection continues, in both `-af` and mapped audio graphs.

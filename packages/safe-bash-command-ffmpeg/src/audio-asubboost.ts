@@ -53,7 +53,9 @@ export async function boostSubAudio(
       const delayed = buffer[position]! * options.decay + low * options.feedback;
       buffer[position] = delayed;
       // Native asubboost smooths available headroom, with a slow rise and fast fall.
-      const boost = Math.min(options.boost, Math.max(0, (1 - Math.abs(input * options.dry)) / Math.abs(delayed)));
+      const headroom = (1 - Math.abs(input * options.dry)) / Math.abs(delayed);
+      // Zero headroom and a zero delayed signal must not poison subsequent gain values.
+      const boost = Math.min(options.boost, Math.max(0, Number.isNaN(headroom) ? 0 : headroom));
       gain = boost > gain ? gain * 0.99999 + 0.00001 * boost : gain * 0.00001 + 0.99999 * boost;
       gain = Math.min(options.boost, Math.max(0, gain));
       samples[i] = (input * options.dry + gain * delayed) * options.wet;

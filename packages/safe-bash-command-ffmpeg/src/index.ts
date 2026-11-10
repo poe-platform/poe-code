@@ -12016,7 +12016,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let firstPts: number | undefined;
                         let outputLength = 0;
                         let nextPts = 0;
-                        for (const frame of audioTimestamps ?? [{ start: 0, end: length, pts: audioStartSample, pos: undefined }]) {
+                        if (!audioTimestamps) {
+                          audioTimestamps = [];
+                          for (let start = 0, n = 0; start < length; n++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const packet = t.samples[n];
+                            const count = packet ? Math.max(0, Math.round(packet.duration * origRate / t.timescale)
+                              - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+                            if (count === 0) continue;
+                            const end = Math.min(length, start + count);
+                            const pts = packet ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start;
+                            budget.allocateMemory(32);
+                            audioTimestamps.push({ start, end, pts, pos: packet?.offset });
+                            start = end;
+                          }
+                        }
+                        for (const frame of audioTimestamps) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           const count = frame.end - frame.start;
                           const pts = Number.isNaN(frame.pts) ? nextPts : frame.pts;
@@ -12061,7 +12076,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           stretched = output;
                         }
-                        if (audioTimestamps) audioTimestamps = retained;
+                        audioTimestamps = retained;
                         audioStartSample = retained[0]?.pts ?? audioStartSample + start;
                       } else if (trimmed === "areverse") {
                         stretched = await mapWork(stretched, async channel => channel.slice().reverse(), context.signal);

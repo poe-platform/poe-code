@@ -120,7 +120,7 @@ Use `-ar 48000` to resample its 192 kHz output. Supports `I`, `TP`, `LRA`
 (and lowercase aliases), plus `print_format=none|json|summary`; two-pass measured
 options and multichannel layouts are unsupported. Short clips use peak-constrained
 linear gain; longer clips use smoothed loudness gain and a linked lookahead limiter.
-`atrim=start_sample=2025:end_sample=3123` keeps sample frames 2025 through 3122 unchanged.
+`atrim=start_sample=2025:end_sample=3123` keeps sample frames 2025 through 3122 unchanged. Retained samples keep their source timestamps for downstream filters such as `afade`; add `asetpts=PTS-STARTPTS` after trimming to start the timeline at zero.
 `atrim=start_sample=2:duration=0.0005` retains four samples at 8 kHz, starting at sample 2.
 `duration` (alias `durationi`) is relative to the first retained timestamp; zero leaves duration unset.
 When combined with `end` or `end_sample`, the latest end wins.

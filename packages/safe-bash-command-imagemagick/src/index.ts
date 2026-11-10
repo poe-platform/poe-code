@@ -11164,8 +11164,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-kmeans") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const geometry = { ...parseKmeansGeometry(tokens[++i] ?? ""), seed: state.seed, seedColors: state.kmeansSeedColors?.split(";").map(color => parseColor(color, true)) };
-            if (geometry.iterations > 0) stack = yield* mapMagickImagesSteps(stack, image => applyMagickRasterSteps({ ...image, isPalette: true }, kmeansPixelSteps(image, geometry), signal));
+            const raw = tokens[++i] ?? "", seed = state.seed, seedColors = state.kmeansSeedColors?.split(";").map(color => parseColor(color, true));
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                const expanded = yield* formatMagickPropertyStringSteps(raw, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const geometry = { ...parseKmeansGeometry(expanded), seed, seedColors };
+                return geometry.iterations > 0 ? yield* applyMagickRasterSteps({ ...image, isPalette: true }, kmeansPixelSteps(image, geometry), signal) : image;
+            });
         }
         else if (t === "-mean-shift") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
@@ -14033,8 +14037,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const geometry = { ...parseKmeansGeometry(tokens[++i] ?? ""), seed: state.seed, seedColors: state.kmeansSeedColors?.split(";").map(color => parseColor(color, true)) };
-            if (geometry.iterations > 0) steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, kmeansPixelSteps(image, geometry), signal) : undefined);
+            const raw = tokens[++i] ?? "", optionProperties = state.optionProperties, seed = state.seed, seedColors = state.kmeansSeedColors?.split(";").map(color => parseColor(color, true));
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const geometry = { ...parseKmeansGeometry(expanded), seed, seedColors };
+                return geometry.iterations > 0 ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, kmeansPixelSteps(image, geometry), signal) : image;
+            });
         } else if (!operandsOnly && token === "-mean-shift") {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);

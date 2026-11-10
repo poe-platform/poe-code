@@ -11738,6 +11738,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           stretched = await shiftAudioPhase(stretched, origRate, trimmed, filteredSampleFormat, audioTimestamps, budget, context.signal, commands);
                           statsScale = 1;
                         } else if (filterName === "silenceremove") {
+                          const format = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dbl" : "flt";
+                          stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
+                          filteredSampleFormat = format;
+                          statsScale = 1;
                           const removed = await removeSilence(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
                           stretched = removed.channels;
                           audioTimestamps = removed.frames;

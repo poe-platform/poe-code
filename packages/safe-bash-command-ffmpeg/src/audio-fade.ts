@@ -78,9 +78,14 @@ export async function fadeAudio(
       } else throw new Error(`afade: unsupported option ${key}`);
     }
   }
-  for (const [index, option] of options.entries()) {
+  let position = 0;
+  for (const option of options) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? ["type", "start_sample", "nb_samples", "start_time", "duration", "curve", "silence", "unity"][index] : option.slice(0, separator).trim();
+    const key = separator < 0 ? ["type", "start_sample", "nb_samples", "start_time", "duration", "curve", "silence", "unity"][position] : option.slice(0, separator).trim();
+    // FFmpeg 7 restarts shorthand after named options, skipping the first slot
+    // when it was just visited. The named key does not select the next slot.
+    if (separator < 0) position++;
+    else position = position === 0 ? 1 : 0;
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     applyOption(key, value);
   }
@@ -107,6 +112,10 @@ export async function fadeAudio(
       try {
         applyOption(command.action, command.expression);
         if (command.action === "ns" || command.action === "nb_samples") samples = Number(samplesOption);
+        if (command.action === "ss" || command.action === "start_sample") start = Number(startOption);
+        if ((command.action === "st" || command.action === "start_time") && startTime > 0) {
+          start = Math.round(startTime * sampleRate);
+        }
       } catch { /* Native asendcmd continues after a rejected command. */ }
     }
     while (frames && frameIndex + 1 < frames.length && frames[frameIndex]!.end <= i) frameIndex++;

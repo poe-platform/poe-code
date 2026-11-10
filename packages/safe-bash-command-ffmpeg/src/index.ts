@@ -2918,6 +2918,7 @@ async function applyVideoFilterChain(
       pass = roundToEven(pass);
       if (dir >= 4) { dir -= 4; pass = 1; }
       const angle = dir === 0 || dir === 2 ? 270 : 90;
+      const first = current[0];
       current = await mapWork(current, async (f) => {
         if ((pass === 1 && f.width >= f.height) || (pass === 2 && f.width <= f.height)) return f;
         const source = f.native;
@@ -2957,6 +2958,10 @@ async function applyVideoFilterChain(
           data: out.data
         };
       }, signal);
+      if (current[0] !== first && diagnostics.sarWidth !== 0) {
+        [diagnostics.sarWidth, diagnostics.sarHeight] = [diagnostics.sarHeight, diagnostics.sarWidth];
+        diagnostics.sar = diagnostics.sarWidth / diagnostics.sarHeight;
+      }
     } else if (name === "rotate") {
       const rotatePositional = positional.filter(option => !option.includes("="));
       if (rotatePositional.length > 3 || Object.keys(named).some(key => !["angle", "a", "ow", "out_w", "oh", "out_h", "c", "fillcolor", "bilinear", "enable"].includes(key))) {

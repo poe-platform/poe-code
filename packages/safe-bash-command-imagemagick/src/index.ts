@@ -7487,7 +7487,7 @@ function parseMagickInsertPosition(spec: string): number {
     const [first, second] = geometry.split(",");
     const component = (first || second || "").split("/")[0]!;
     // Geometry modifiers set native parse flags even without a dimension.
-    const hasGeometryFlag = geometry.startsWith("-") || (geometry.startsWith("+") && parseMagickGeometry(geometry).hasOffset) || [...geometry].some(c => "xX.!#%:<>@^".includes(c));
+    const hasGeometryFlag = geometry.startsWith("-") || (geometry.startsWith("+") && geometry.length > 1 && parseMagickGeometry(geometry).hasOffset) || [...geometry].some(c => "xX.!#%:<>@^".includes(c));
     if (!hasGeometryFlag && !(component && Number.isFinite(Number(component)))) {
         throw new Error(`invalid argument for option '-insert': ${spec}`);
     }
@@ -17921,6 +17921,24 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
                 [operands[a], operands[b]] = [operands[b]!, operands[a]!];
                 [labels[a], labels[b]] = [labels[b]!, labels[a]!];
                 [sizes[a], sizes[b]] = [sizes[b]!, sizes[a]!];
+            } catch (error) {
+                return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
+            }
+        }
+        else if (t === "-insert" || t === "+insert") {
+            const spec = t === "+insert" ? "0" : argv[++i];
+            if (spec === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -insert\n" };
+            const length = operands.length - groupStart;
+            if (!length) return { exitCode: 1, stdout: "", stderr: `montage: no images found for operation ${t}\n` };
+            try {
+                const position = parseMagickInsertPosition(spec);
+                const target = position < 0 ? length - 1 + position : position;
+                if (!Number.isInteger(target) || target < 0 || target >= length || (position < 0 && target === 0)) {
+                    throw new Error(`invalid image index ${t}`);
+                }
+                operands.splice(groupStart + target, 0, operands.pop()!);
+                labels.splice(groupStart + target, 0, labels.pop()!);
+                sizes.splice(groupStart + target, 0, sizes.pop()!);
             } catch (error) {
                 return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
             }

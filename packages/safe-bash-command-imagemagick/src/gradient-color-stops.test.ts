@@ -26,3 +26,29 @@ for (const mode of ["command", "buffered", "sync"] as const) {
         expect(Buffer.from(output).toString("hex")).toBe(expected);
     });
 }
+
+for (const mode of ["command", "buffered", "sync"] as const) {
+    it.each([
+        ["gradient:red-blue-green", 1, ""],
+        ["gradient:red-blue", 0, "ff0000ff0000ffff"],
+        ["radial-gradient:red-blue-green", 1, ""]
+    ])(`${mode}: validates all color tokens in %s`, async (input, exitCode, hex) => {
+        const args = ["-size", "2x1", "-background", "white", input, "-depth", "8", "rgba:-"];
+        const stdout: Uint8Array[] = [];
+        let stderr = "";
+        const files = new Map<string, Uint8Array>();
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args, cwd: "/", env: {}, fs: new MemoryFileSystem(),
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write(bytes) { stdout.push(bytes.slice()); } },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+        }) : mode === "sync" ? runMagickCliSync(args, files) : await runMagickCli(args, files);
+        expect(result.exitCode).toBe(exitCode);
+        const output = mode === "command" ? Buffer.concat(stdout)
+            : "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : new Uint8Array();
+        expect(Buffer.from(output).toString("hex")).toBe(hex);
+        const error = "stderr" in result ? result.stderr : stderr;
+        if (exitCode) expect(error).toContain("blue-green");
+        else expect(error).toBe("");
+    });
+}

@@ -12940,7 +12940,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const values = delays.split("|").filter(value => value !== "");
                         // adelay negotiates sample-rate ticks even for empty or zero delays.
                         audioTimeBase = 1 / origRate;
-                        if (values.length === 0) {
+                        if (values.length === 0 && commands.length === 0) {
                           for (const frame of audioTimestamps ?? []) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             frame.pts = Math.sign(frame.pts) * Math.round(Math.abs(frame.pts));
@@ -12989,7 +12989,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           return offset;
                         };
-                        const offsets = stretched.map((_, channel) => parseDelay(values[channel] ?? (all ? values.at(-1)! : "0")));
+                        const offsets = stretched.map((_, channel) => parseDelay(values[channel] ?? (all ? values.at(-1) ?? "0" : "0")));
                         const updates = commands.map(command => {
                           const values = command.expression.split("|").filter(value => value !== "");
                           const offsets: number[] = [];
@@ -13112,7 +13112,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 const sample = stretched[c]![i - padding] ?? 0;
                                 const state = history[c]!;
                                 const buffer = state.samples;
-                                if (!enabled || buffer.length === 0) output[c]![i] = sample;
+                                // An absent initial list keeps native adelay in passthrough
+                                // mode, even when commands grow its EOF tail.
+                                if (values.length === 0 || !enabled || buffer.length === 0) output[c]![i] = sample;
                                 else if (state.filled < buffer.length) buffer[state.filled++] = sample;
                                 else {
                                   output[c]![i] = buffer[state.index]!;

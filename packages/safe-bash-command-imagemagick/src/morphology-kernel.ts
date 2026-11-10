@@ -1,4 +1,4 @@
-import type { RgbaColor } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
@@ -46,13 +46,26 @@ export function* hitAndMissPixelSteps(image: { width: number; height: number }, 
 }
 
 /** Four-channel sliding histograms; rows gives (width - 1) / 2 at each vertical offset; half-integers allow even windows. Arrays specify sparse horizontal offsets. */
-export function* morphologyPixelSteps(image: { width: number; height: number; hasAlpha?: boolean }, rows: readonly MorphologyRow[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak", channels?: readonly boolean[], virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const highDepth = mode === "mean" || mode === "rms" || mode === "standarddeviation" || mode === "contrast";
-    const { width, height } = image, histogram = new Float64Array(4 * 256);
-    const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
-    const fill = new Uint8Array((virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
+export function* morphologyPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<RgbaImage, "hasAlpha"> & Pick<StoredRgbaImage, "storedData16">>, rows: readonly MorphologyRow[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak", channels?: readonly boolean[], virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const { width, height } = image, highDepth = virtualPixel === "gray" || !!(image.data16 || image.storedData16);
+    const outputHighDepth = highDepth || mode === "mean" || mode === "rms" || mode === "standarddeviation" || mode === "contrast";
+    const scale = highDepth ? 257 : 1, bins = highDepth ? 65536 : 256, maximumSample = bins - 1;
+    const histogram = new Float64Array(4 * bins), groups = highDepth ? new Float64Array(4 * 256) : undefined;
+    // Skip empty high-byte groups instead of scanning all 65,536 bins for each pixel.
+    function nextValue(channel: number, value: number, direction: 1 | -1): number {
+        while (value >= 0 && value < bins) {
+            if (groups && groups[channel * 256 + (value >>> 8)] === 0)
+                value = direction === 1 ? (value | 255) + 1 : (value & ~255) - 1;
+            else if (histogram[channel * bins + value] !== 0) break;
+            else value += direction;
+        }
+        return value;
+    }
+    // ImageMagick's gray virtual pixel is the Q16 midpoint, quantum 32768.
+    const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 32768 / 257 : 0;
+    const fill = ((virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
         ? [background.r, background.g, background.b, background.a]
-        : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255]);
+        : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255]).map(value => Math.round(value * scale));
     const ry = Math.floor(rows.length / 2);
     const samples = rows.reduce<number>((total, radius) => total + (typeof radius === "number" ? radius * 2 + 1 : radius.length), 0);
     const rank = Math.floor(samples / 2), sums = new Float64Array(4), squaredSums = new Float64Array(4);
@@ -60,15 +73,17 @@ export function* morphologyPixelSteps(image: { width: number; height: number; ha
     for (let y = 0; y < height; y++) {
         yield;
         histogram.fill(0);
+        groups?.fill(0);
         sums.fill(0);
         squaredSums.fill(0);
         for (let left = 0; left < width; left += 1024) {
             const count = Math.min(1024, width - left);
-            const data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
+            const data = outputHighDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
             if (channels) {
-                const original = yield { kind: "read", position: (y * width + left) * 4, length: data.length };
-                if (!original || original.length !== data.length) throw new Error("Truncated morphology pixels");
-                data.set(highDepth ? Uint16Array.from(original, value => value * 257) : original);
+                const original = yield { kind: "read", highDepth, position: (y * width + left) * 4, length: data.length };
+                if (!original || original.length !== data.length * (highDepth ? 2 : 1)) throw new Error("Truncated morphology pixels");
+                data.set(highDepth ? new Uint16Array(original.buffer, original.byteOffset, data.length)
+                    : outputHighDepth ? Uint16Array.from(original, value => value * 257) : original);
             }
             for (let local = 0; local < count; local++) {
                 const x = left + local;
@@ -84,23 +99,27 @@ export function* morphologyPixelSteps(image: { width: number; height: number; ha
                             const column = typeof offsets === "number" ? first + sample : x + offsets[sample]! - (phase === 0 && x > 0 ? 1 : 0);
                             if (++work % 4096 === 0) yield;
                             const pixel = virtualPixelIndex(column, y + row - ry, width, height, virtualPixel);
-                            const bytes = pixel < 0 ? fill : yield { kind: "read", position: pixel * 4, length: 4 };
-                            if (!bytes || bytes.length !== 4) throw new Error("Truncated morphology pixels");
+                            const bytes = pixel < 0 ? undefined : yield { kind: "read", highDepth, position: pixel * 4, length: 4 };
+                            if (pixel >= 0 && (!bytes || bytes.length !== (highDepth ? 8 : 4))) throw new Error("Truncated morphology pixels");
+                            const values = bytes ? highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes : fill;
                             for (let c = 0; c < 4; c++) {
                                 if (channels && !channels[c]) continue;
                                 if (mode === "standarddeviation") {
-                                    sums[c]! += delta * bytes[c]!;
-                                    squaredSums[c]! += delta * bytes[c]! * bytes[c]!;
-                                } else if (mode === "rms") sums[c]! += delta * bytes[c]! * bytes[c]!;
-                                else if (mode === "mean") sums[c]! += delta * bytes[c]!;
-                                else histogram[c * 256 + bytes[c]!]! += delta;
+                                    sums[c]! += delta * values[c]!;
+                                    squaredSums[c]! += delta * values[c]! * values[c]!;
+                                } else if (mode === "rms") sums[c]! += delta * values[c]! * values[c]!;
+                                else if (mode === "mean") sums[c]! += delta * values[c]!;
+                                else {
+                                    histogram[c * bins + values[c]!]! += delta;
+                                    if (groups) groups[c * 256 + (values[c]! >>> 8)]! += delta;
+                                }
                             }
                         }
                     }
                 }
                 for (let c = 0; c < 4; c++) {
                     if (channels && !channels[c]) continue;
-                    let value = mode === "max" ? 255 : 0, seen = 0;
+                    let value = 0, seen = 0;
                     if (mode === "standarddeviation") {
                         const mean = sums[c]! / samples;
                         value = Math.sqrt(Math.max(0, squaredSums[c]! / samples - mean * mean));
@@ -110,37 +129,38 @@ export function* morphologyPixelSteps(image: { width: number; height: number; ha
                         value = sums[c]! / samples;
                     } else if (mode === "mode") {
                         // Ascending traversal preserves the lowest value when frequencies tie.
-                        for (let candidate = 0; candidate < 256; candidate++) {
-                            const frequency = histogram[c * 256 + candidate]!;
+                        for (let candidate = nextValue(c, 0, 1); candidate < bins; candidate = nextValue(c, candidate + 1, 1)) {
+                            if (++work % 4096 === 0) yield;
+                            const frequency = histogram[c * bins + candidate]!;
                             if (frequency > seen) { seen = frequency; value = candidate; }
                         }
                     } else if (mode === "contrast") {
-                        let minimum = 0, maximum = 255;
-                        while (minimum < 255 && histogram[c * 256 + minimum] === 0) minimum++;
-                        while (maximum > 0 && histogram[c * 256 + maximum] === 0) maximum--;
+                        const minimum = nextValue(c, 0, 1), maximum = nextValue(c, maximumSample, -1);
                         // Native Contrast scales the min/max ratio to the quantum range.
-                        value = c === 3 && image.hasAlpha === false ? 255
-                            : maximum + minimum === 0 ? 0 : 255 * (maximum - minimum) / (maximum + minimum);
+                        value = c === 3 && image.hasAlpha === false ? maximumSample
+                            : maximum + minimum === 0 ? 0 : maximumSample * (maximum - minimum) / (maximum + minimum);
                     } else if (mode === "median" || mode === "nonpeak") {
-                        for (; value < 255; value++) { seen += histogram[c * 256 + value]!; if (seen > rank) break; }
+                        for (value = nextValue(c, 0, 1); value < maximumSample; value = nextValue(c, value + 1, 1)) {
+                            if (++work % 4096 === 0) yield;
+                            seen += histogram[c * bins + value]!;
+                            if (seen > rank) break;
+                        }
                         if (mode === "nonpeak") {
-                            let previous = value - 1, next = value + 1;
-                            while (previous >= 0 && histogram[c * 256 + previous] === 0) previous--;
-                            while (next < 256 && histogram[c * 256 + next] === 0) next++;
+                            const previous = nextValue(c, value - 1, -1), next = nextValue(c, value + 1, 1);
                             // Move an extreme median to the adjacent distinct value, if any.
-                            if (previous < 0 && next < 256) value = next;
-                            else if (previous >= 0 && next === 256) value = previous;
+                            if (previous < 0 && next < bins) value = next;
+                            else if (previous >= 0 && next === bins) value = previous;
                         }
                     } else if (mode === "max") {
-                        while (value > 0 && histogram[c * 256 + value] === 0) value--;
+                        value = nextValue(c, maximumSample, -1);
                     } else {
-                        while (value < 255 && histogram[c * 256 + value] === 0) value++;
+                        value = nextValue(c, 0, 1);
                     }
                     // Q16-HDRI stores float quantum samples before rounding to 16-bit output.
-                    data[local * 4 + c] = highDepth ? Math.round(Math.fround(value * 257)) : value;
+                    data[local * 4 + c] = outputHighDepth ? Math.round(Math.fround(value * 257 / scale)) : value;
                 }
             }
-            yield { kind: "write", highDepth, position: (y * width + left) * 4, data: new Uint8Array(data.buffer) };
+            yield { kind: "write", highDepth: outputHighDepth, position: (y * width + left) * 4, data: new Uint8Array(data.buffer) };
         }
     }
 }

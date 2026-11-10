@@ -12540,7 +12540,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const min = balance ? -1 : delay || phase || key === "middle_source" ? 0 : 0.015625;
                           const max = balance || phase ? 1 : delay ? 40 : key === "middle_source" ? 3 : 64;
                           if (!Number.isFinite(value) || value < min || value > max) {
-                            throw new Error(`haas: ${key} must be in the range [${min}, ${max}]`);
+                            throw new RangeError(`haas: ${key} must be in the range [${min}, ${max}]`);
                           }
                           options[name] = key === "middle_source" ? roundToEven(value) : value;
                         }
@@ -14633,6 +14633,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("areverse: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("areverse:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg === "atempo: timeline is unsupported") return { exitCode: 176 };
+            if (msg === "haas: unsupported option enable") return { exitCode: 176 };
+            if (msg.startsWith("haas: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("haas:")) return { exitCode: 222 };
+            if (msg === "haas: invalid expression" || msg === "haas: invalid or unsupported expression") return { exitCode: 234 };
             if (msg === "flanger: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("flanger: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("flanger:")) return { exitCode: err instanceof RangeError ? 222 : 234 };

@@ -4733,7 +4733,7 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
 }
 
 function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geomStr: string, gravity: GravityPosition): Generator<Parameters<typeof extractImageSteps>[1] | undefined | null> {
-    const g = parseMagickGeometry(geomStr);
+    const g = parseMagickGeometry(geomStr.replaceAll("#", ""));
     if (g.isSubdivide) {
         const cols = Math.max(1, Math.round(g.width ?? 1));
         const rows = Math.max(1, Math.round(g.height ?? 1));
@@ -4758,7 +4758,7 @@ function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanv
 }
 
 function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geomStr:string,gravity:GravityPosition):Parameters<typeof extractImageSteps>[1]|undefined|null {
- const g=parseMagickGeometry(geomStr);
+ const g=parseMagickGeometry(geomStr.replaceAll("#", ""));
     const rawW = g.isPercent
         ? Math.max(1, Math.round((img.width * (g.percentX ?? 100)) / 100))
         : Math.max(1, Math.round(g.width ?? img.width));

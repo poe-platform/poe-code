@@ -23,6 +23,7 @@ import { tmix } from "./tmix.js";
 import { doubleweave } from "./doubleweave.js";
 import { padTinterlace } from "./tinterlace-pad.js";
 import { weave } from "./weave.js";
+import { separateFields } from "./separatefields.js";
 import { decimate } from "./decimate.js";
 import { meanFrameDifference } from "./select.js";
 import { parseDecimateGraph } from "./decimate-graph.js";
@@ -3883,6 +3884,11 @@ async function applyVideoFilterChain(
         }
         return output;
       }, signal);
+    } else if (name === "separatefields") {
+      if (argStr) throw new Error("separatefields: this filter takes no options");
+      current = await separateFields(current, budget, signal);
+      timescale *= 2;
+      diagnostics.timescale = timescale;
     } else if (name === "tinterlace") {
       if (positional.length > 1 && positional.at(-1) === "") positional.pop();
       for (const key of Object.keys(named)) {
@@ -10012,8 +10018,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     ? await ensureDecodedFrames(decimateSource.track, decimateSource.doc.timescale, budget, context.signal) : undefined;
                   const filtered = await applyVideoFilterChain(inputFrames, combinedChain, budget, diagnostics, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal, cleanFrames);
                   const first = filtered[0];
+                  const filteredTimescale = Math.max(t.timescale, diagnostics.timescale);
                   return {
                     ...t,
+                    timescale: filteredTimescale,
+                    duration: t.duration * filteredTimescale / t.timescale,
+                    ...(t.editList ? { editList: t.editList.map(edit => ({ ...edit,
+                      mediaTime: edit.mediaTime < 0 ? edit.mediaTime : edit.mediaTime * filteredTimescale / t.timescale
+                    })) } : {}),
                     width: first?.width ?? t.width,
                     height: first?.height ?? t.height,
                     codecDescriptions: t.codecDescriptions.map(codec => ({
@@ -10025,7 +10037,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       sarHeight: diagnostics.sarHeight
                     })),
                     samples: [],
-                    decodedVideoFrames: filtered.map(frame => ({ ...frame, ptsSeconds: (Math.round(frame.ptsSeconds * t.timescale) + offsetTicks) / t.timescale }))
+                    decodedVideoFrames: filtered.map(frame => ({ ...frame, ptsSeconds: Math.round(frame.ptsSeconds * filteredTimescale) / filteredTimescale + offsetTicks / t.timescale }))
                   };
                 }, context.signal)
               };

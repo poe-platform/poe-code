@@ -3592,7 +3592,7 @@ async function applyVideoFilterChain(
       if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       const expr = named.e ?? named.expr ?? positional[0] ?? "1";
       const variables = {
-        n: 0, t: NaN, key: 0, selected_n: 0,
+        n: 0, t: NaN, pts: NaN, TB: 1 / timescale, start_pts: NaN, key: 0, selected_n: 0,
         prev_selected_n: NaN, prev_selected_t: NaN, prev_t: NaN,
         start_t: current[0]?.ptsSeconds ?? NaN
       };
@@ -3600,6 +3600,8 @@ async function applyVideoFilterChain(
       current = current.filter((f, n) => {
         variables.n = n;
         variables.t = f.ptsSeconds;
+        variables.pts = Math.round(f.ptsSeconds * timescale);
+        if (Number.isNaN(variables.start_pts)) variables.start_pts = variables.pts;
         variables.key = Number(f.keyframe);
         const selected = parseFilterExpression(expr, "select", variables) !== 0;
         variables.prev_t = f.ptsSeconds;

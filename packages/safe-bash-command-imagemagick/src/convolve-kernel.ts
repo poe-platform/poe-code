@@ -1,3 +1,5 @@
+import type { Region } from "./region.js";
+
 export interface ConvolveKernel {
     weights: number[];
     width: number;
@@ -10,7 +12,7 @@ export interface ConvolveKernel {
 export type ConvolveRequest = { readonly kind: "read"; readonly pngIndices?: boolean; readonly evaluate?: boolean; readonly hue?: boolean; readonly highDepth?: boolean; readonly image?: number; readonly position: number; readonly length: number }
     | { readonly kind: "write"; readonly pngIndices?: boolean; readonly hue?: boolean; readonly highDepth?: boolean; readonly evaluate?: boolean; readonly position: number; readonly data: Uint8Array };
 /** Alpha-aware convolution, bounded row spans, and owned output chunks. */
-export function* convolvePixelSteps(image: { width: number; height: number; hasAlpha: boolean }, kernel: ConvolveKernel, bias: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* convolvePixelSteps(image: { width: number; height: number; hasAlpha: boolean }, kernel: ConvolveKernel, bias: number, region?: Region): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image;
     for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 1024) {
         yield;
@@ -38,7 +40,15 @@ export function* convolvePixelSteps(image: { width: number; height: number; hasA
         }
         for (let x = 0; x < count; x++) for (let channel = 0; channel < (image.hasAlpha ? 4 : 3); channel++) {
             const alpha = sums[x * 4 + 3]!;
-            const value = channel === 3 ? alpha * 255 : sums[x * 4 + channel]! / (image.hasAlpha ? (Math.abs(alpha) < 1e-12 ? 1e-12 : alpha) : 1);
+            let value = channel === 3 ? alpha * 255 : sums[x * 4 + channel]! / (image.hasAlpha ? (Math.abs(alpha) < 1e-12 ? 1e-12 : alpha) : 1);
+            if (region && (left + x < region.x || left + x >= region.x + region.width || y < region.y || y >= region.y + region.height)) {
+                // Native Q16-HDRI composites the region mask before clipping the
+                // convolution, including negative colors and alpha above one.
+                const sourceAlpha = image.hasAlpha ? center[x * 4 + 3]! / 255 : 1;
+                const editedAlpha = image.hasAlpha ? Math.fround(alpha * 65535) / 65535 : 1;
+                value = channel === 3 ? center[x * 4 + 3]!
+                    : center[x * 4 + channel]! * sourceAlpha + Math.fround(value * 257) / 257 * editedAlpha * (1 - sourceAlpha);
+            }
             data[x * 4 + channel] = Number.isFinite(value) ? Math.max(0, Math.min(255, Math.round(value + 1e-12))) : 0;
         }
         yield { kind: "write", position, data };

@@ -9511,7 +9511,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return yield* applyMagickRasterSteps(im, sharpenPixelSteps(im, geometry), signal);
-            });
+            }, undefined, true);
         }
         else if (t === "-unsharp") {
             const geometry = parseUnsharpGeometry(tokens[++i] ?? "0x1");
@@ -11781,7 +11781,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-sharpen") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, sharpenPixelSteps(image, geometry), signal) : undefined);
+            steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => image ? transformStoredMagickRaster(image, backend, sharpenPixelSteps(image, geometry), signal) : undefined, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-unsharp") {
             const geometry = parseUnsharpGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, false, channels, geometry), signal) : undefined);

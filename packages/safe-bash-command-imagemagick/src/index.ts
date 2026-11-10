@@ -10570,7 +10570,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geometry = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geometry, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                const motion = parseMagickGeometry(expanded);
+                const motion = parseMagickGeometry(expanded.replaceAll("/", "x"));
                 return yield* applyMagickRasterSteps(im, motionBlurPixelSteps(im, motion, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
             });
         }
@@ -13112,7 +13112,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                const motion = parseMagickGeometry(expanded);
+                const motion = parseMagickGeometry(expanded.replaceAll("/", "x"));
                 return transformStoredMagickRaster(image, backend, motionBlurPixelSteps(image, motion, background, virtualPixel, channels), signal);
             });
         } else if (!operandsOnly && token === "-rotational-blur") {

@@ -10323,6 +10323,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 let output = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
+                if (image.metaChannels?.length && (t === "-swirl" || t === "-implode")) {
+                    output.metaChannels = [];
+                    for (const plane of image.metaChannels) {
+                        const metaPlan = warpOperation.plan(plane, expanded)!;
+                        output.metaChannels.push(yield* applyMagickRasterSteps(plane, metaPlan.steps, signal, metaPlan));
+                    }
+                }
                 // Shear's border canvas initializes any write-mask channel to zero.
                 if (t === "-shear" && image.writeMask) {
                     output.writeMask = yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 });
@@ -12815,6 +12822,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 let output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);
+                if (image.storedMetaChannels?.length && (token === "-swirl" || token === "-implode")) {
+                    output.storedMetaChannels = [];
+                    for (const plane of image.storedMetaChannels) {
+                        const metaPlan = warpOperation.plan(plane, expanded)!;
+                        output.storedMetaChannels.push(await transformStoredMagickRaster(plane, backend, metaPlan.steps, signal, metaPlan));
+                    }
+                }
                 if (token === "-shear" && image.storedWriteMask) {
                     output.storedWriteMask = await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 }

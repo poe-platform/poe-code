@@ -36,7 +36,7 @@ export async function boostSubAudio(
     }
     if (!key || !Object.hasOwn(options, key)) throw new Error(`asubboost: unsupported option ${key}`);
     const numericKey = key as keyof typeof options;
-    const number = Number(value);
+    const number = parseFilterExpression(value, "asubboost", {});
     const [min, max] = ranges[numericKey];
     if (!value || !Number.isFinite(number) || number < min! || number > max!) throw new Error(`asubboost: invalid ${key}`);
     options[numericKey] = number;

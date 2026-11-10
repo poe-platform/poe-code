@@ -38,9 +38,9 @@ for (const [option, exitCode] of [
   });
 }
 
-async function run(filter: string, graph = false, channels = [mono], raw = false) {
+async function run(filter: string, graph = false, channels = [mono], sampleRate = 16000, raw = false) {
   const volume = Volume.fromJSON({ "/out.wav": "KEEP" });
-  volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 16000, channels }));
+  volume.writeFileSync("/in.wav", encodeWav({ sampleRate, channels }));
   let stderr = "";
   const result = await createFfmpegCommand({ limits: { maxDurationSeconds: 3 } }).execute({
     args: ["-y", "-v", "error", "-i", "/in.wav", ...(graph
@@ -68,7 +68,7 @@ for (const [selection, expected] of [
     [-32768, -8000, 4000, 12000, 16000, 12000, 8000, 4000],
     [16000, 12000, 8000, 4000, -4000, -8000, -12000, -16000]
   ].map(samples => Float64Array.from(samples, sample => sample / 32768));
-  const { volume, result, stderr } = await run(`asubboost=wet=0:channels=${selection}`, graph, channels, true);
+  const { volume, result, stderr } = await run(`asubboost=wet=0:channels=${selection}`, graph, channels, 16000, true);
   assert.equal(result.exitCode, 0, stderr);
   assert.equal((volume.readFileSync("/out.wav") as Buffer).toString("hex"), expected);
 });
@@ -145,3 +145,47 @@ for (const [option, exitCode] of [
     if (exitCode !== 0) assert.equal(writes, 0);
   });
 }
+
+for (const graph of [false, true]) {
+  for (const [option, literal, hex] of [
+    ["wet=1/2", "wet=0.5", "00c0401f60f07017d007a00f7017d007401f30f8701760f0a00f90e8d007c0e0"],
+    ["cutoff=100*2", "cutoff=200", "0080803ec0e0e02ea00f401fe02ea00f803e60f0e02ec0e0401f20d1a00f80c1"]
+  ]) it(`asubboost ${option} matches native PCM and its literal (graph=${graph})`, async () => {
+    const channels = [
+      Float64Array.from([-32768, -8000, 4000, 12000, 16000, 12000, 8000, 4000], value => value / 32768),
+      Float64Array.from([16000, 12000, 8000, 4000, -4000, -8000, -12000, -16000], value => value / 32768)
+    ];
+    for (const value of [option, literal]) {
+      const { volume, result, stderr } = await run(`asubboost=${value}`, graph, channels, 8000);
+      assert.equal(result.exitCode, 0, stderr);
+      const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+      assert.equal(audio.channelData.length, 2);
+      assert.equal(audio.channelData[0]!.length, 8);
+      const pcm = Buffer.alloc(32);
+      for (let i = 0; i < 8; i++) {
+        for (let c = 0; c < 2; c++) pcm.writeInt16LE(Math.round(audio.channelData[c]![i]! * 32768), i * 4 + c * 2);
+      }
+      assert.equal(pcm.toString("hex"), hex);
+    }
+  });
+
+  for (const [expression, literal] of [
+    ["dry=1/2:wet=3/4:boost=2+2:decay=1/4:feedback=9/10:cutoff=100*2:slope=1/2:delay=5*4", "dry=0.5:wet=0.75:boost=4:decay=0.25:feedback=0.9:cutoff=200:slope=0.5:delay=20"],
+    ["1/2:3/4:2+2:1/4:9/10:100*2:1/2:5*4", "0.5:0.75:4:0.25:0.9:200:0.5:20"]
+  ]) it(`evaluates every asubboost option in ${expression} (graph=${graph})`, async () => {
+    const actual = await run(`asubboost=${expression}`, graph);
+    const expected = await run(`asubboost=${literal}`, graph);
+    assert.equal(actual.result.exitCode, 0, actual.stderr);
+    assert.equal(expected.result.exitCode, 0, expected.stderr);
+    assert.deepEqual(actual.volume.readFileSync("/out.wav"), expected.volume.readFileSync("/out.wav"));
+  });
+}
+
+for (const option of [
+  "dry=2/1", "wet=-1/2", "boost=6+7", "decay=2-3", "feedback=2/1",
+  "cutoff=450*3", "slope=1/100000", "delay=50+51", "wet=1/0", "wet=0/0", "cutoff=100*"
+]) it(`rejects expression ${option} without replacing output`, async () => {
+  const { volume, result } = await run(`asubboost=${option}`);
+  assert.notEqual(result.exitCode, 0);
+  assert.equal(volume.readFileSync("/out.wav", "utf8"), "KEEP");
+});

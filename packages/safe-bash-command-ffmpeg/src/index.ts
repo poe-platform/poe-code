@@ -10435,7 +10435,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     end: outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration
                   });
                   if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
-                    const start = outputSs ?? 0;
+                    const start = Math.round((outputSs ?? 0) * diagnostics.timescale) / diagnostics.timescale;
                     const end = outputDuration === undefined ? outputTo ?? Infinity : start + outputDuration;
                     filtered = filtered.filter(frame => frame.ptsSeconds >= start && frame.ptsSeconds < end)
                       .map(frame => ({ ...frame, ptsSeconds: frame.ptsSeconds - start }));

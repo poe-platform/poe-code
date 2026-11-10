@@ -2265,12 +2265,14 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
     if (++work % 256 === 0) yield;
 
     if (track.type === "video" && track.decodedVideoFrames) {
+      // Video trim boundaries use the nearest stream timebase tick, including half ticks.
+      const start = Math.round(startSec * track.timescale) / track.timescale;
       const frames = track.decodedVideoFrames
-        .filter((frame) => frame.ptsSeconds + frame.durationSeconds > startSec && frame.ptsSeconds < endSec)
-        .map((frame) => ({ ...frame, ptsSeconds: Math.max(0, frame.ptsSeconds - startSec) }));
+        .filter((frame) => frame.ptsSeconds >= start && frame.ptsSeconds < endSec)
+        .map((frame) => ({ ...frame, ptsSeconds: frame.ptsSeconds - start }));
       slicedTracks.push({
         ...track,
-        duration: Math.round(Math.max(0, Math.min(endSec, track.duration / track.timescale) - startSec) * track.timescale),
+        duration: Math.round(Math.max(0, Math.min(endSec, track.duration / track.timescale) - start) * track.timescale),
         editList: undefined,
         declaredSampleCount: undefined,
         samples: [],

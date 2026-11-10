@@ -10,7 +10,7 @@ type Read = { position: number; length: number };
 
 // Percentage trimming peels the least occupied edge first (west wins ties).
 // Census values for the opposite edge stay unchanged until its length changes.
-function* percentTrimBounds(width: number, height: number, fuzz: number, scale: number, percent: number, background?: RgbaColor): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | Float64Array | undefined> {
+function* percentTrimBounds(width: number, height: number, hasAlpha: boolean, fuzz: number, scale: number, percent: number, background?: RgbaColor): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | Float64Array | undefined> {
     const corners: RgbaColor[] = [];
     for (const pixel of [0, width - 1, (height - 1) * width, width * height - 1]) {
         if (background) { corners.push(background); continue; }
@@ -31,7 +31,7 @@ function* percentTrimBounds(width: number, height: number, fuzz: number, scale: 
             const bytes = yield { position: (y * width + x) * 4, length: length * 4 };
             if (!bytes || bytes.length !== length * 4) throw new Error("Truncated trim pixels");
             for (let i = 0; i < bytes.length; i += 4) {
-                if (!matchesAlphaFloodfill(bytes[i]! / scale, bytes[i + 1]! / scale, bytes[i + 2]! / scale, bytes[i + 3]! / scale, ref.r, ref.g, ref.b, ref.a, fuzz)) foreground++;
+                if (!matchesAlphaFloodfill(bytes[i]! / scale, bytes[i + 1]! / scale, bytes[i + 2]! / scale, hasAlpha ? bytes[i + 3]! / scale : 255, ref.r, ref.g, ref.b, hasAlpha ? ref.a : 255, fuzz)) foreground++;
             }
             start += length;
         }
@@ -56,8 +56,8 @@ function* percentTrimBounds(width: number, height: number, fuzz: number, scale: 
 
 // ImageMagick uses the original corner colors independently for each bound,
 // unlike Sharp's median-filtered, single-background trim.
-function* trimBounds(width: number, height: number, fuzz: number, scale: number, edges?: string, percentBackground?: number, background?: RgbaColor): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | Float64Array | undefined> {
-    if (percentBackground !== undefined) return yield* percentTrimBounds(width, height, fuzz, scale, percentBackground, background);
+function* trimBounds(width: number, height: number, hasAlpha: boolean, fuzz: number, scale: number, edges?: string, percentBackground?: number, background?: RgbaColor): Generator<Read | undefined, Area | undefined, Uint8Array | Uint16Array | Float64Array | undefined> {
+    if (percentBackground !== undefined) return yield* percentTrimBounds(width, height, hasAlpha, fuzz, scale, percentBackground, background);
     const corners: (Uint8Array | Uint16Array | Float64Array)[] = [];
     for (const pixel of [0, width - 1, (height - 1) * width, width * height - 1]) {
         const bytes = yield { position: pixel * 4, length: 4 };
@@ -76,7 +76,7 @@ function* trimBounds(width: number, height: number, fuzz: number, scale: number,
                 const x = start + i / 4;
                 const matches = (corner: number) => {
                     const ref = corners[corner]!;
-                    return matchesAlphaFloodfill(bytes[i]! / scale, bytes[i + 1]! / scale, bytes[i + 2]! / scale, bytes[i + 3]! / scale, ref[0]! / scale, ref[1]! / scale, ref[2]! / scale, ref[3]! / scale, fuzz);
+                    return matchesAlphaFloodfill(bytes[i]! / scale, bytes[i + 1]! / scale, bytes[i + 2]! / scale, hasAlpha ? bytes[i + 3]! / scale : 255, ref[0]! / scale, ref[1]! / scale, ref[2]! / scale, hasAlpha ? ref[3]! / scale : 255, fuzz);
                 };
                 if ((x < left || y < top) && !matches(0)) { left = Math.min(left, x); top = Math.min(top, y); }
                 if (x > rowRight && !matches(1)) rowRight = x;
@@ -106,7 +106,7 @@ function cropTrimBounds(area: Area, width: number, height: number, minSize?: { w
 }
 
 export function* formatTrimBoundsSteps<Step = never>(
-    image: Pick<RgbaImage, "width" | "height">,
+    image: Pick<RgbaImage, "width" | "height" | "hasAlpha">,
     load: (position: number, length: number) => Generator<Step, { data: Uint8Array; data16?: Uint16Array; evaluateSamples?: Float64Array }, void>,
     format: "trim-geometry" | "bounding-box",
     fuzz: number,
@@ -116,7 +116,7 @@ export function* formatTrimBoundsSteps<Step = never>(
     background?: RgbaColor
 ): Generator<Step | void, string, void> {
     const first = yield* load(0, 4);
-    const steps = trimBounds(image.width, image.height, fuzz, first.evaluateSamples ? 1 : first.data16 ? 257 : 1, edges, percentBackground, background);
+    const steps = trimBounds(image.width, image.height, image.hasAlpha, fuzz, first.evaluateSamples ? 1 : first.data16 ? 257 : 1, edges, percentBackground, background);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }
@@ -144,7 +144,7 @@ function emptyTrimPixel(image: RgbaImage | StoredRgbaImage, background?: RgbaCol
 export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor, emptyBackground?: RgbaColor): Generator<void, RgbaImage, void> {
     if (image.width === 1 && image.height === 1) return image;
     const pixels = image.evaluateSamples ?? image.data16 ?? image.data;
-    const steps = trimBounds(image.width, image.height, fuzz, image.evaluateSamples ? 1 : image.data16 ? 257 : 1, edges, percentBackground, background);
+    const steps = trimBounds(image.width, image.height, image.hasAlpha, fuzz, image.evaluateSamples ? 1 : image.data16 ? 257 : 1, edges, percentBackground, background);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }
@@ -183,7 +183,7 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     if (image.width === 1 && image.height === 1) return image;
     const sampleBytes = image.storedEvaluateSamples !== undefined ? 8 : image.storedData16 ? 2 : 1;
     const position = image.storedEvaluateSamples ?? image.storedData16?.position ?? image.position;
-    const steps = trimBounds(image.width, image.height, fuzz, sampleBytes === 2 ? 257 : 1, edges, percentBackground, background);
+    const steps = trimBounds(image.width, image.height, image.hasAlpha, fuzz, sampleBytes === 2 ? 257 : 1, edges, percentBackground, background);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { await yieldTurn(signal); next = steps.next(); }

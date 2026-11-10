@@ -15,16 +15,17 @@ export function parseMeanShiftGeometry(raw: string): { width: number; height: nu
 }
 
 /** Native mean shift: circular neighborhood, moving centroid, at most 100 iterations. */
-export function* meanShiftPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">>, geometry: ReturnType<typeof parseMeanShiftGeometry>, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
-    const { width, height } = image, highDepth = !!(image.data16 || image.storedData16), scale = !evaluate && highDepth ? 257 : 1;
+export function* meanShiftPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples" | "storedHueSamples">>, geometry: ReturnType<typeof parseMeanShiftGeometry>, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
+    const evaluate = !hue && (!!image.evaluateSamples || image.storedEvaluateSamples !== undefined);
+    const { width, height } = image, highDepth = !!(image.data16 || image.storedData16), scale = hue ? 1 / 255 : !evaluate && highDepth ? 257 : 1;
     const rx = Math.floor(geometry.width / 2), ry = Math.floor(geometry.height / 2), limit = (geometry.distance * 255 * scale) ** 2;
     for (let start = 0; start < width * height; start += 1024) {
         yield;
         const count = Math.min(1024, width * height - start);
-        const original = yield { kind: "read", evaluate, highDepth, position: start * 4, length: count * 4 };
-        if (!original || original.length !== count * 4 * (evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated mean-shift pixels");
-        const data = evaluate ? new Float64Array(original.slice().buffer) : highDepth ? new Uint16Array(original.slice().buffer) : original.slice();
+        const original = yield { kind: "read", hue, evaluate, highDepth, position: start * 4, length: count * 4 };
+        if (!original || original.length !== count * 4 * (hue || evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated mean-shift pixels");
+        const data = hue || evaluate ? new Float64Array(original.slice().buffer) : highDepth ? new Uint16Array(original.slice().buffer) : original.slice();
         const samples = new Float64Array(count * 4);
         for (let i = 0; i < count; i++) {
             let mx = (start + i) % width, my = Math.floor((start + i) / width);
@@ -51,9 +52,9 @@ export function* meanShiftPixelSteps(image: Pick<RgbaImage, "width" | "height" |
                         }
                     }
                     if (!pixel) {
-                        const bytes = yield { kind: "read", evaluate, highDepth, position: (y * width + x) * 4, length: 4 };
-                        if (!bytes || bytes.length !== (evaluate ? 32 : highDepth ? 8 : 4)) throw new Error("Truncated mean-shift pixels");
-                        pixel = evaluate ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
+                        const bytes = yield { kind: "read", hue, evaluate, highDepth, position: (y * width + x) * 4, length: 4 };
+                        if (!bytes || bytes.length !== (hue || evaluate ? 32 : highDepth ? 8 : 4)) throw new Error("Truncated mean-shift pixels");
+                        pixel = hue || evaluate ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
                     }
                     if ((mean[0]! - pixel[0]!) ** 2 + (mean[1]! - pixel[1]!) ** 2 + (mean[2]! - pixel[2]!) ** 2 > limit) continue;
                     sx += mx + u; sy += my + v; total++;
@@ -66,13 +67,14 @@ export function* meanShiftPixelSteps(image: Pick<RgbaImage, "width" | "height" |
             }
             for (let c = 0; c < 4; c++) {
                 samples[i * 4 + c] = Math.fround(mean[c]! * 257 / scale) / 257;
-                data[i * 4 + c] = evaluate ? mean[c]! : Math.min(255 * scale, Math.max(0, Math.round(mean[c]!)));
             }
         }
-        const bounded = !evaluate ? data : highDepth
-            ? Uint16Array.from(data, value => Math.min(65535, Math.max(0, Math.round(value * 257))))
-            : Uint8Array.from(data, value => Math.min(255, Math.max(0, Math.round(value))));
+        const bounded = highDepth
+            ? Uint16Array.from(samples, value => Math.min(65535, Math.max(0, Math.round(value * 257))))
+            : Uint8Array.from(samples, value => Math.min(255, Math.max(0, Math.round(value))));
         yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(bounded.buffer, bounded.byteOffset, bounded.byteLength) };
         yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(samples.buffer) };
+        // Conversion back to sRGB reads the working samples, including alpha.
+        if (hue) yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(samples.map(value => value / 255).buffer) };
     }
 }

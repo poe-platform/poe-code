@@ -1005,8 +1005,9 @@ function parseAsetnsamples(argument: string) {
     const key = separator < 0 ? ["n", "p"][index] : option.slice(0, separator);
     const value = separator < 0 ? option : option.slice(separator + 1);
     if (key === "n" || key === "nb_out_samples") {
-      size = Number(value);
-      if (!value || !Number.isInteger(size) || size < 1 || size > 2147483647) throw new Error("asetnsamples: invalid frame size");
+      const number = parseFilterExpression(value, "asetnsamples", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+      if (number < 1 || number > 2147483647) throw new Error("asetnsamples: invalid frame size");
+      size = roundToEven(number);
     } else if (key === "p" || key === "pad") {
       if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(value)) throw new Error("asetnsamples: invalid pad");
       pad = ["1", "true", "yes", "on"].includes(value);

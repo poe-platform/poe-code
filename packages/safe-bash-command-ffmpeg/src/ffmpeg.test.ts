@@ -1365,7 +1365,7 @@ describe("asetnsamples", () => {
     assert.equal(result.exitCode, 0, result.stderr);
     assert.deepEqual(Array.from(parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0]!, value => value * 32768), [0, 0, 1, 1, 2, 2]);
   });
-  for (const option of ["n=0", "n=-1", "n=1.5", "n=2147483648", "p=maybe", "unknown=1"]) {
+  for (const option of ["n=0", "n=-1", "n=0.9", "n=2147483647.1", "n=2147483648", "n=1/0", "n=0/0", "n=2*", "n=", "p=maybe", "unknown=1"]) {
     it(`rejects ${option} without replacing output`, async () => {
       const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(4)] }), "/out.wav": "keep" });
       const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af", `asetnsamples=${option}`, "/out.wav"], vfs);

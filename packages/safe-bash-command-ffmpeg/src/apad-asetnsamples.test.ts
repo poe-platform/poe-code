@@ -11,6 +11,8 @@ for (const graph of [false, true]) {
   for (const [filter, frames, samples] of [
     ["apad=packet_size=2,asetnsamples=n=12:p=0", 1, 12],
     ["apad=packet_size=2,asetnsamples=n=8:p=0", 5, 40],
+    ["apad=packet_size=2,asetnsamples=n=2^3:p=0", 5, 40],
+    ["apad=packet_size=2,asetnsamples=n=8.5:p=0", 5, 40],
     ["apad=packet_size=2:pad_len=128,asetnsamples=n=12:p=0", 1, 12],
     ["apad=packet_size=2", 1, 8],
     ["apad=packet_size=2,asetnsamples=n=12:p=0", 0, 0],

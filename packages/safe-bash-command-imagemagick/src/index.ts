@@ -2701,6 +2701,8 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
     const vFrequency = isPct ? (rawNum / 100) * 65536 : rawNum;
     const out = new Uint8Array(img.data);
     const mask = [channels.r, channels.g, channels.b, channels.a && img.hasAlpha, cmyk && (channels.k ?? true)];
+    // Gray has one intensity channel, replicated across the RGB storage slots.
+    if (img.space === "b-w" || img.space === "grey16") mask[1] = mask[2] = channels.r;
     // Keep HDRI samples separate from the bounded encoding views.
     const evaluateSamples = img.evaluateSamples?.slice() ?? Float64Array.from(img.data16 ?? img.data, value => img.data16 ? value / 257 : value);
     const data16 = img.data16 ? new Uint16Array(img.data16) : undefined;

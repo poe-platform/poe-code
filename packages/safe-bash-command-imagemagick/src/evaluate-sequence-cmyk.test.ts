@@ -13,10 +13,20 @@ for (const mode of ["map", "retained", "command"] as const) {
     { operation: "Max", size: "2x1", space: "CMYK", output: ["-colorspace", "sRGB", "-depth", "8", "rgba:/out"], expected: "203b1ded203b1ded" },
     { operation: "Mean", size: "1x1", space: "sRGB", output: ["-colorspace", "sRGB", "-depth", "8", "rgba:/out"], expected: "705068b7" },
     { operation: "Mean", size: "2x1", space: "CMYK", first: "xc:cmyka(20%,40%,60%,30%,0.5)", second: "xc:cmyka(60%,20%,10%,50%,0.8)", output: ["-colorspace", "sRGB", "-depth", "8", "rgba:/out"], expected: "5c6b63a65c6b63a6" },
-  ].map(test => ({ first: "xc:#2060b080", second: "xc:#c04020ed", ...test })))(`${mode}: $space $operation $size`, async ({ operation, size, space, first, second, output, expected }) => {
+    ...[
+      { operation: "Mean", channel: ["-channel", "K"], expected: "66" },
+      { operation: "Median", channel: ["-channel", "K"], expected: "82" },
+      { operation: "Mean", channel: [], expected: "66" },
+      { operation: "Median", channel: [], expected: "82" },
+      { operation: "Max", channel: ["-channel", "K"], expected: "82" },
+    ].map(test => ({
+      ...test, first: "xc:#b5267382", second: "xc:#297d3846", size: "1x1", space: "CMYK",
+      output: ["+channel", "-channel", "K", "-separate", "+channel", "-depth", "8", "gray:/out"],
+    })),
+  ].map(test => ({ channel: [] as string[], first: "xc:#2060b080", second: "xc:#c04020ed", ...test })))(`${mode}: $space $operation $size $channel`, async ({ operation, size, space, first, second, channel, output, expected }) => {
     const fs = createMemoryFileSystem(), files = new Map([["/out", new TextEncoder().encode("KEEP")]]);
     await fs.writeFile("/out", files.get("/out")!);
-    const args = [first, "-size", size, second, "-colorspace", space, "-evaluate-sequence", operation, ...output];
+    const args = [first, "-size", size, second, "-colorspace", space, ...channel, "-evaluate-sequence", operation, ...output];
     const result = mode === "command" ? await createMagickCommand().execute({
       command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
       stdin: (async function* () {})(), signal: new AbortController().signal,

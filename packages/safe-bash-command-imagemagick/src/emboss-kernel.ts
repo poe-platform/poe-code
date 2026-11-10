@@ -4,16 +4,18 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import { regionContains, type Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import type { HueMetadata } from "./colorspace-hue.js";
 
 /** Native emboss diagonal Gaussian convolution followed by channel-aware equalization. */
-export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { region?: Region | undefined }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
+    const hue = !cmyk && !!image.magickColorspace && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
     const highDepth = !!(image.data16 || image.storedData16);
     const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
     function* read(position: number, length: number): Generator<ConvolveRequest | undefined, Float64Array, Uint8Array | undefined> {
-        const bytes = yield { kind: "read", evaluate, highDepth, position, length };
-        if (!bytes || bytes.length !== length * (evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated emboss pixels");
-        const rgba = evaluate ? new Float64Array(bytes.slice().buffer)
+        const bytes = yield { kind: "read", hue, evaluate, highDepth, position, length };
+        if (!bytes || bytes.length !== length * (hue || evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated emboss pixels");
+        const rgba = hue ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => value * 255) : evaluate ? new Float64Array(bytes.slice().buffer)
             : Float64Array.from(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes, value => highDepth ? value / 257 : value);
         if (!cmyk) return rgba;
         const inkBytes = yield { kind: "read", hue: true, position, length };
@@ -146,6 +148,7 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
                 const data = highDepth ? Uint16Array.from(rgba, value => Math.max(0, Math.min(65535, Math.round(value * 257))))
                     : Uint8Array.from(rgba, value => Math.max(0, Math.min(255, Math.round(value))));
                 yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
+                if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(rgba.map(value => value / 255).buffer) };
                 yield { kind: "write", evaluate: true, position, data: new Uint8Array(rgba.buffer) };
             }
         }

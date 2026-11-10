@@ -40,3 +40,14 @@ test("positional slices preserve invalid UTF-8 bytes", async () => {
   const actual = await virtualSubstring({ name: "raw-byte-slice", source: 'set -- a "$(printf "\\377")" c; printf "%s" "${@:2:1}" "${*:2:1}"' }, "C");
   assert.deepEqual(actual, { stdout: Buffer.from([255, 255]).toString("base64"), stderr: "", status: 0, files: {} });
 });
+
+for (const [expansion, stdout] of [
+  ["${*:2}", "argc=2<><c>"],
+  ["${*:2:2}", "argc=2<><c>"],
+  ["${@:2}", "argc=1<c>"],
+  ['"${*:2:2}"', "argc=1< :c>"],
+] as const) test(`positional slice with mixed IFS: ${expansion}`, async () => {
+  const source = `IFS=' :'; set -- 'x' '' ':c'; set -- ${expansion}; printf 'argc=%s' "$#"; for i do printf '<%s>' "$i"; done`;
+  const actual = await virtualSubstring({ name: expansion, source }, "C");
+  assert.deepEqual(actual, { stdout: Buffer.from(stdout).toString("base64"), stderr: "", status: 0, files: {} });
+});

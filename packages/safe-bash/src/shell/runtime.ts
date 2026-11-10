@@ -10977,7 +10977,7 @@ export class Runtime {
       } else {
         const value = part.kind === "text" ? part.byteValue ?? part.value : await this.valuePart(part, state, partIO, hereString, split, hereDocument);
         if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);
-        else await appendSplit(value, part.kind === "variable" && (part.name === "@" || part.name === "*" && !splitText) && !part.length && !part.transform);
+        else await appendSplit(value, part.kind === "variable" && (part.name === "@" || part.name === "*" && !part.substring && !splitText) && !part.length && !part.transform);
       }
       if (fields.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");
       if (owner) await owner.ledger.checkpoint(this.signal);

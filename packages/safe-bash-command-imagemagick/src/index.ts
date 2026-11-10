@@ -8897,7 +8897,7 @@ if (t === "-seed") {
             if (filterKey === "complex:snr") state.complexSnr = Number.parseFloat(filterValue ?? "") || 0;
             if (filterKey === "white-balance:vibrance") state.whiteBalanceVibrance = filterValue ?? "";
             if (filterKey === "sample:offset") {
-                const geometry = parseMagickGeometry(filterValue ?? "");
+                const geometry = parseMagickGeometry((filterValue ?? "").replaceAll(",", "x").replaceAll("/", "x"));
                 const x = geometry.width ?? 0;
                 state.sampleOffset = { x: x / 100, y: (geometry.height ?? x) / 100 };
             }

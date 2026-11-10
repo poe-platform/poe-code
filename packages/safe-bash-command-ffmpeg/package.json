@@ -26,16 +26,15 @@
     "test": "node --import tsx --test --test-concurrency=1 src/*.test.ts",
     "test:unit": "node --import tsx --test --test-concurrency=1 src/*.test.ts"
   },
-  "dependencies": {
-    "@noble/hashes": "2.4.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@poe-code/mp4-ast": "*",
     "@poe-code/image-ast": "*",
     "@poe-code/audio-ast": "*",
     "safe-bash-contracts": "*",
     "safe-bash-command-ffprobe": "*",
-    "safe-bash-calendar-engine": "*"
+    "safe-bash-calendar-engine": "*",
+    "@noble/hashes": "2.4.0"
   },
   "sideEffects": false
 }

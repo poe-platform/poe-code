@@ -26,6 +26,18 @@ for (const mode of ["file", "stream", "sync"] as const) {
         expect(Buffer.from(image.data.filter((_, index) => index % 4 !== 3)).toString("hex")).toBe(expected);
     });
 
+    // Native ImageMagick 7.1.2-35 Q16-HDRI, identical bytes for each layout.
+    it.each([
+        [4, "None", "1f364d647b92", "11ff33ff6644ddff664477ffbb9922ff"],
+        [4, "Line", "1f364d647b92", "113344ffff66ddff667799ff44bb22ff"],
+        [4, "Plane", "1f364d647b92", "114477ffffddbbff336699ff664422ff"],
+        [8, "Line", "1f364d647b92a9c0d7ee051c", "1f4d7bff366492ffa9d705ffc0ee1cff"],
+        [8, "Plane", "1f364d647b92a9c0d7ee051c", "1f7bd7ff3692eeff4da905ff64c01cff"]
+    ] as const)(`reads RGB%d %s samples (${mode})`, async (depth, interlace, hex, expected) => {
+        const output = await convert(mode, Buffer.from(hex, "hex"), ["-size", "2x2", "-depth", String(depth), "-interlace", interlace]);
+        expect(Buffer.from(decodeImage(output).data).toString("hex")).toBe(expected);
+    });
+
     it.each(["Plane", "Line"])(`reads RGB16 across rows and bounded reads (${mode}, %s)`, async interlace => {
         const width = 3001, height = 2, input = new Uint8Array(width * height * 6);
         const view = new DataView(input.buffer), expected: number[] = [];

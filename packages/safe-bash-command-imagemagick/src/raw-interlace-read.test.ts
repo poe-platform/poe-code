@@ -18,3 +18,24 @@ for (const depth of [16, 32]) it.each([
         expect(Buffer.from(next.value)).toEqual(expected.subarray(position, position + length));
     }
 });
+
+it.each(["line", "plane"] as const)("reads padded RGB4 %s rows with offsets, scenes and partial reads", interlace => {
+    // Each three-pixel channel row has one unused low nibble.
+    const rows = ["123f", "456e", "789d", "abcc", "defb", "012a"].map(hex => Buffer.from(hex, "hex"));
+    const frame = Buffer.concat(interlace === "line" ? rows : [rows[0]!, rows[3]!, rows[1]!, rows[4]!, rows[2]!, rows[5]!]);
+    const input = Buffer.concat([Buffer.from("skip"), frame, frame]);
+    const expected = Buffer.concat([Buffer.from("P6\n3 2\n255\n"), Buffer.from("114477225588336699aadd00bbee11ccff22", "hex")]);
+    const raw = rawRasterInput(3, 2, 4, "lsb", input.length, 3, 4, interlace);
+    expect(raw.pages).toBe(2);
+    expect(raw.size).toBe(expected.length);
+    for (let position = 0; position < raw.size; position++) {
+        const length = Math.min(7, raw.size - position), steps = raw.read(position, length, 1);
+        let next = steps.next();
+        while (!next.done) {
+            expect(Number.isInteger(next.value.position)).toBe(true);
+            expect(Number.isInteger(next.value.length)).toBe(true);
+            next = steps.next(input.subarray(next.value.position, next.value.position + next.value.length));
+        }
+        expect(Buffer.from(next.value)).toEqual(expected.subarray(position, position + length));
+    }
+});

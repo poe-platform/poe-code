@@ -84,6 +84,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
         else if (name === "tanh" && args.length === 1) value = Math.tanh(args[0]!);
         else if (name === "squish" && args.length === 1) value = 1 / (1 + Math.exp(4 * args[0]!));
         else if (name === "isnan" && args.length === 1) value = Number(Number.isNaN(args[0]));
+        else if (name === "isinf" && args.length === 1) value = Number(args[0] === Infinity || args[0] === -Infinity);
         else if (name === "not" && args.length === 1) value = Number(args[0] === 0);
         else if (name === "floor" && args.length === 1) value = Math.floor(args[0]!);
         else if (name === "ceil" && args.length === 1) value = Math.ceil(args[0]!);

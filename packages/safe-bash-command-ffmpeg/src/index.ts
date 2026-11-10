@@ -31,6 +31,7 @@ import { renderTestsrc } from "./testsrc.js";
 import { formatDate } from "safe-bash-calendar-engine/time-env/format";
 import { millisecondsInstant, TimeZone } from "safe-bash-calendar-engine/time-env/calendar";
 import { decodeMatroskaAss } from "./matroska-ass.js";
+import { decodeMicrodvd } from "./microdvd.js";
 import { ciescopeFrame } from "./ciescope.js";
 import { pixscopeFrame } from "./pixscope.js";
 import { oscilloscope } from "./oscilloscope.js";
@@ -4411,7 +4412,8 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           return { ...sample, data, size: data.byteLength };
         }
         if (codec === "microdvd" || codec === "mpl2") {
-          const data = encodeUtf8(decodeUtf8(sample.data).replaceAll("|", "\n"));
+          const text = decodeUtf8(sample.data);
+          const data = encodeUtf8(codec === "microdvd" ? decodeMicrodvd(text) : text.replaceAll("|", "\n"));
           return { ...sample, data, size: data.byteLength };
         }
         return { ...sample, webvtt: undefined };

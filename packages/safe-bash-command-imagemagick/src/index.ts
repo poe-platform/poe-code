@@ -1617,6 +1617,9 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const space = meta.magickColorspace ?? (meta.space === "b-w" || meta.space === "grey16" ? meta.gamma === 1 ? "LinearGray" : "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB");
   const compression = ({ ppm: "Undefined", png: "Zip", jpeg: "JPEG", gif: "LZW", heic: "HEVC", heif: "HEVC", avif: "AV1" } as Partial<Record<ImageFormat, string>>)[meta.format] ?? "None";
   const page = meta.virtualCanvas ?? { width: meta.width, height: meta.height, x: 0, y: 0 };
+  // Native formats page dimensions as unsigned 64-bit size_t values.
+  const pageWidth = page.width < 0 ? Number(BigInt.asUintN(64, BigInt(page.width))).toExponential(16) : String(page.width);
+  const pageHeight = page.height < 0 ? Number(BigInt.asUintN(64, BigInt(page.height))).toExponential(16) : String(page.height);
   const pageX = `${page.x < 0 ? "" : "+"}${page.x}`, pageY = `${page.y < 0 ? "" : "+"}${page.y}`;
   const resolution = meta.resolution;
   const resolutionScale = resolution?.unit === "meter" ? 100 : 1;
@@ -1626,9 +1629,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const short: Record<string, string> = {
     w: String(meta.width), h: String(meta.height), m: meta.format.toUpperCase(),
     A: meta.hasAlpha ? "Blend" : "Undefined",
-    // Native formats page dimensions as unsigned 64-bit size_t values.
-    W: page.width < 0 ? Number(BigInt.asUintN(64, BigInt(page.width))).toExponential(16) : String(page.width),
-    H: page.height < 0 ? Number(BigInt.asUintN(64, BigInt(page.height))).toExponential(16) : String(page.height),
+    W: pageWidth, H: pageHeight,
     G: `${context.originalWidth ?? meta.width}x${context.originalHeight ?? meta.height}`,
     z: bitDepth, q: "16", r: `${meta.isPalette ? "PseudoClass" : "DirectClass"} ${space} ${meta.hasAlpha || meta.inactiveAlpha && meta.alphaBlend !== false ? "Alpha" : ""}`,
     f: baseName, t: dot < 0 ? baseName : baseName.slice(0, dot), e: dot < 0 ? "" : baseName.slice(dot + 1), i: context.outputFilePath ?? filePath, M: context.originalInput ?? filePath,
@@ -1642,7 +1643,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     N: (context.listIndex ?? context.sceneIdx ?? 0) === (context.sceneCount ?? meta.pages ?? 1) - 1 ? `${context.sceneCount ?? meta.pages ?? 1}\n` : "",
     // Native uses this sentinel when ImageInfo.number_scenes is unset.
     S: "2147483647",
-    g: `${page.width}x${page.height}${pageX}${pageY}`, O: `${pageX}${pageY}`, P: `${page.width}x${page.height}`, X: pageX, Y: pageY,
+    g: `${pageWidth}x${pageHeight}${pageX}${pageY}`, O: `${pageX}${pageY}`, P: `${pageWidth}x${pageHeight}`, X: pageX, Y: pageY,
     c: meta.properties?.comment ?? "", l: meta.properties?.label ?? "", C: compression, Q: String(context.quality ?? meta.quality ?? 92)
   };
   const metaChannelCount = meta.metaChannels?.length ?? meta.storedMetaChannels?.length ?? 0;

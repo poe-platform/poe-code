@@ -11652,7 +11652,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (tempo < 0.5 || tempo > 100) {
                           throw new Error("atempo must be in the range [0.5, 100]");
                         }
+                        const inputFrame = audioTimestamps?.[0];
+                        const packet = t.samples[0];
+                        const inputLength = stretched[0]?.length ?? 0;
+                        const inputFrameSize = inputFrame ? inputFrame.end - inputFrame.start
+                          : Math.min(inputLength, packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024);
+                        const frameSize = Math.max(1, Math.round(inputFrameSize / tempo));
+                        const tempoStartPts = inputFrame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample);
                         stretched = await filterTempo(stretched, origRate, tempo, panSampleFormat === "s16", budget, context.signal);
+                        // atempo emits frames sized for the new tempo on a continuous output timeline.
+                        const length = stretched[0]?.length ?? 0;
+                        budget.allocateMemory(Math.ceil(length / frameSize) * 24);
+                        audioTimestamps = [];
+                        const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
+                        for (let start = 0; start < length; start += frameSize) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          audioTimestamps.push({ start, end: Math.min(length, start + frameSize), pts: tempoStartPts + Math.round(start / samplesPerTick) * samplesPerTick });
+                        }
                       } else if (trimmed === "dialoguenhance" || trimmed.startsWith("dialoguenhance=")) {
                         const values = [1, 1, 2];
                         let enable: string | undefined;

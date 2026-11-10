@@ -101,6 +101,29 @@ for (const [filter, frames, left, right] of [
   }
 }
 
+// Numeric gain options expose their own AVOption bounds and default.
+for (const [filter, expected] of [
+  ["aecho=in_gain=default", "aecho"],
+  ["aecho=out_gain=default", "aecho"],
+  ["aecho=default:default", "aecho"],
+  ["aecho=in_gain=max:out_gain=min", "aecho=1:0"],
+  ["aecho=in_gain=min:out_gain=max", "aecho=0:1"],
+  ["aecho=in_gain=1:in_gain=default:out_gain=1:out_gain=default", "aecho"],
+  ["aecho=in_gain=default/2:out_gain=default*2", "aecho=0.3:0.6"],
+  ["aecho=(min+max)/2:max/2", "aecho=0.5:0.5"],
+  ["aecho=in_gain=1/2", "aecho=0.5"]
+]) {
+  for (const graph of [false, true]) {
+    it(`${filter} evaluates gain constants (${graph ? "graph" : "simple"})`, async () => {
+      const literal = await run(expected, graph);
+      const expression = await run(filter, graph);
+      assert.equal(literal.result.exitCode, 0, literal.stderr);
+      assert.equal(expression.result.exitCode, 0, expression.stderr);
+      assert.deepEqual(expression.volume.readFileSync("/out.wav"), literal.volume.readFileSync("/out.wav"));
+    });
+  }
+}
+
 // Native PCM hashes also cover fractional gains, saturation, multiple input frames,
 // and a default one-second tail, longer than both the input and a drain frame.
 for (const [filter, frames, hash] of [
@@ -265,6 +288,8 @@ for (const [filter, exitCode, output] of [
   ["aecho=foo=1", 8, "4b454550"],
   ["aecho=2:1:1:0.5", 222, "4b454550"],
   ["aecho=in_gain=-1", 222, "4b454550"],
+  ["aecho=in_gain=min-0.1", 222, "4b454550"],
+  ["aecho=out_gain=max+0.1", 222, "4b454550"],
   ["aecho=out_gain=1.1", 222, "4b454550"],
   ["aecho=0.5:0.4:1|2:0.25", 234, "4b454550"],
   ["aecho=0.5:0.5:1:0.5", 0, "a00f00000000000030f8000000000000a00f00000000000030f8000000000000"]

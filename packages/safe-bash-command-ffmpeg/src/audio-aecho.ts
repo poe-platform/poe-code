@@ -22,8 +22,8 @@ export async function echoAudio(
     if (!key || !Object.hasOwn(options, key)) throw new Error(`aecho: unsupported option ${key}`);
     options[key] = separator < 0 ? option : option.slice(separator + 1);
   }
-  const gains = [options.in_gain, options.out_gain].map(value => {
-    const gain = parseFilterExpression(value, "aecho", {});
+  const gains = [options.in_gain, options.out_gain].map((value, index) => {
+    const gain = parseFilterExpression(value, "aecho", { min: 0, max: 1, default: index === 0 ? 0.6 : 0.3 });
     if (!Number.isFinite(gain) || gain < 0 || gain > 1) throw new Error("aecho: invalid gain");
     return Math.fround(gain);
   });

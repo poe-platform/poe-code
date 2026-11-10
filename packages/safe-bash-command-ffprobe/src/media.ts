@@ -793,7 +793,13 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
     return fmt === "flat" ? '"' + escaped + '"' : escaped;
   }
 
-  if (fmt === "xml") yield '<?xml version="1.0" encoding="UTF-8"?>\n<ffprobe>\n';
+  const qualifiedXml = fmt === "xml" && parseWriterBoolean(paramMap.fully_qualified ?? "0");
+  if (fmt === "xml") {
+    yield '<?xml version="1.0" encoding="UTF-8"?>\n';
+    yield qualifiedXml
+      ? '<ffprobe:ffprobe xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ffprobe="http://www.ffmpeg.org/schema/ffprobe" xsi:schemaLocation="http://www.ffmpeg.org/schema/ffprobe ffprobe.xsd">\n'
+      : "<ffprobe>\n";
+  }
   if (fmt === "ini") yield "# ffprobe output\n";
   let streamIndex = 0;
   function* render(section: Record<string, unknown>, name: string, index = 0, parentPath = ""): Generator<ProbeOutputPart> {
@@ -895,7 +901,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
   if (fmt === "xml" && includeChapters) yield "    </chapters>\n";
   if (finalFormat) yield* render(finalFormat, "format");
   if (probe.error) yield* render(probe.error, "error");
-  if (fmt === "xml") yield "</ffprobe>\n";
+  if (fmt === "xml") yield qualifiedXml ? "</ffprobe:ffprobe>\n" : "</ffprobe>\n";
 }
 
 let defaultAstPluginsCache: readonly MediaAstPlugin[] | undefined;
@@ -1059,7 +1065,7 @@ function parseProbeArguments(args: readonly string[]) {
     compact: ["nokey", "nk", "print_section", "p", "item_sep", "s", "escape", "e"],
     csv: ["nokey", "nk", "print_section", "p", "item_sep", "s", "escape", "e"],
     flat: ["s", "sep_char", "h", "hierarchical"],
-    xml: [],
+    xml: ["q", "fully_qualified"],
     ini: ["h", "hierarchical"]
   };
   if (!Object.hasOwn(writerOptions, writer)) throw new Error(`Unknown output format ${writer}`);

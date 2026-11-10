@@ -16,5 +16,6 @@ export const writerOptionAliases = new Map([
   ["s", "item_sep"],
   ["h", "hierarchical"],
   ["c", "compact"],
-  ["e", "escape"]
+  ["e", "escape"],
+  ["q", "fully_qualified"]
 ]);

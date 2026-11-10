@@ -31,7 +31,7 @@ for (const mode of ["magick", "montage", "retained", "buffered", "sync"] as cons
         : await runMontageCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
       expect("stderr" in result ? result.stderr : stderr).toBe("");
       expect(result.exitCode).toBe(0);
-      const stdout = "stdoutBytes" in result ? result.stdoutBytes : Buffer.concat(chunks);
+      const stdout = "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : Buffer.concat(chunks);
       const bytes = fileOutput ? mode === "buffered" || mode === "sync" ? files.get("/sheet.png")! : await fs.readFile("/sheet.png") : stdout!;
       if (fileOutput) expect(stdout?.length ?? 0).toBe(0);
       const resolutions: number[][] = [];

@@ -32,7 +32,7 @@ for (const mode of ["magick", "montage", "retained", "buffered", "sync"] as cons
       : await runMontageCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
     expect("stderr" in result ? result.stderr : stderr).toBe("");
     expect(result.exitCode).toBe(0);
-    const bytes = "stdoutBytes" in result ? result.stdoutBytes! : Buffer.concat(chunks);
+    const bytes = "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes! : Buffer.concat(chunks);
     expect(decodeImage(bytes)).toMatchObject({ width: 1, height: 1, data: Uint8Array.of(255, 0, 0, 255) });
     const types: string[] = [];
     for (let offset = 8; offset < bytes.length;) {

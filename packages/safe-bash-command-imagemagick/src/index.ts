@@ -1544,7 +1544,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     W: page.width < 0 ? Number(BigInt.asUintN(64, BigInt(page.width))).toExponential(16) : String(page.width),
     H: page.height < 0 ? Number(BigInt.asUintN(64, BigInt(page.height))).toExponential(16) : String(page.height),
     G: `${context.originalWidth ?? meta.width}x${context.originalHeight ?? meta.height}`,
-    z: bitDepth, q: "16", r: `${meta.isPalette ? "PseudoClass" : "DirectClass"} ${space} ${hasAlphaChannel ? "Alpha" : ""}`,
+    z: bitDepth, q: "16", r: `${meta.isPalette ? "PseudoClass" : "DirectClass"} ${space} ${meta.hasAlpha || meta.inactiveAlpha && meta.alphaBlend !== false ? "Alpha" : ""}`,
     f: baseName, t: dot < 0 ? baseName : baseName.slice(0, dot), e: dot < 0 ? "" : baseName.slice(dot + 1), i: context.outputFilePath ?? filePath, M: context.originalInput ?? filePath,
     d: filePath.slice(0, Math.max(0, filePath.lastIndexOf("/"))),
     o: "", u: "",

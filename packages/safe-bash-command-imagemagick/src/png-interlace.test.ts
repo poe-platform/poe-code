@@ -13,7 +13,7 @@ for (const retained of [false, true]) {
       const files = new Map([["/in.png", source]]);
       const fs = new MemoryFileSystem();
       await fs.writeFile("/in.png", source);
-      const result = await runConvertCli(["/in.png", "-interlace", "PNG", "-write", "/interlaced.png", "+interlace", "-write", "/plain.png", "-interlace", "png", "/final.png"], retained ? { filesystem: fs, cwd: "/" } : files);
+      const result = await runConvertCli(["/in.png", "-interlace", "PNG", "-write", "/interlaced.png", "-interlace", "None", "-write", "/plain.png", "-interlace", "png", "/final.png"], retained ? { filesystem: fs, cwd: "/" } : files);
       expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "" });
       for (const name of ["interlaced", "plain", "final"]) {
         const bytes = retained ? await fs.readFile(`/${name}.png`) : files.get(`/${name}.png`)!;

@@ -18,15 +18,13 @@ for (const retained of [false, true]) for (const quality of [80, 92]) {
     const result = await runConvertCli(["grid.png", "-quality", String(quality), "-interlace", "Plane", "-write", "plane.jpg", "-interlace", "Line", "-write", "line.jpg", "-interlace", "None", "-write", "none.jpg", "-interlace", "Plane", "+interlace", "out.jpg"], retained ? { filesystem: fs, cwd: "/" } : files);
     expect(result.exitCode, result.stderr).toBe(0);
     const outputs = await Promise.all(["plane.jpg", "line.jpg", "none.jpg", "out.jpg"].map(path => retained ? fs.readFile(`/${path}`) : files.get(path)!));
-    for (const bytes of outputs.slice(0, 2)) {
+    for (const bytes of [outputs[0]!, outputs[1]!, outputs[3]!]) {
       expect(markers(bytes, 0xc2)).toBe(1);
       expect(markers(bytes, 0xda)).toBeGreaterThan(1);
       expect(decodeImage(bytes).data).toEqual(decodeImage(outputs[2]!).data);
     }
-    for (const bytes of outputs.slice(2)) {
-      expect(markers(bytes, 0xc0)).toBe(1);
-      expect(markers(bytes, 0xda)).toBe(1);
-    }
+    expect(markers(outputs[2]!, 0xc0)).toBe(1);
+    expect(markers(outputs[2]!, 0xda)).toBe(1);
     const numbered = await runConvertCli(["grid.png", "-interlace", "Plane", "numbered-%d.jpg"], retained ? { filesystem: fs, cwd: "/" } : files);
     expect(numbered.exitCode, numbered.stderr).toBe(0);
     const bytes = retained ? await fs.readFile("/numbered-0.jpg") : files.get("numbered-0.jpg")!;

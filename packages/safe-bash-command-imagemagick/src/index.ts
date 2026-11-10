@@ -8547,7 +8547,7 @@ if (t === "-seed") {
             state.pngInterlace = interlace !== "none";
             state.gifInterlace = interlace !== "none";
         }
-        else if (t === "+interlace") { delete state.jpegProgressive; delete state.tiffPlanar; delete state.pngInterlace; delete state.gifInterlace; }
+        else if (t === "+interlace") { state.jpegProgressive = true; delete state.tiffPlanar; state.pngInterlace = true; state.gifInterlace = true; }
         else if (t === "-compress") {
             const compression = (tokens[++i] ?? "").toLowerCase();
             const method = ({ none: "none", lzw: "lzw", zip: "deflate", rle: "packbits", jpeg: "jpeg", bzip: "none" } as const)[compression as "none" | "lzw" | "zip" | "rle" | "jpeg" | "bzip"];
@@ -13640,7 +13640,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             state.pngInterlace = interlace !== "none";
             state.gifInterlace = interlace !== "none";
         }
-        else if (t === "+interlace") { delete state.jpegProgressive; delete state.tiffPlanar; delete state.pngInterlace; delete state.gifInterlace; }
+        else if (t === "+interlace") { state.jpegProgressive = true; delete state.tiffPlanar; state.pngInterlace = true; state.gifInterlace = true; }
         else if (t === "-quality") {
             state.quality = Math.max(1, Math.min(100, Number(argv[++i] ?? 92)));
         }

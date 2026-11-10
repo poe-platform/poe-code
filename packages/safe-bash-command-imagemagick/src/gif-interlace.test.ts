@@ -30,7 +30,7 @@ for (const retained of [false, true]) {
     const files = new Map<string, Uint8Array>([["/in.gif", source]]);
     const fs = new MemoryFileSystem();
     await fs.writeFile("/in.gif", source);
-    const result = await runConvertCli(["/in.gif", "-write", "/default.gif", "-interlace", "GIF", "-write", "/interlaced.gif", "+interlace", "-write", "/reset.gif", "-interlace", "gif", "/final.gif"], retained ? { filesystem: fs, cwd: "/" } : files);
+    const result = await runConvertCli(["/in.gif", "-write", "/default.gif", "-interlace", "GIF", "-write", "/interlaced.gif", "-interlace", "None", "-write", "/reset.gif", "-interlace", "gif", "/final.gif"], retained ? { filesystem: fs, cwd: "/" } : files);
     expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "" });
     const pixels = await sharp(source, { animated: true }).ensureAlpha().raw().toBuffer();
     for (const name of ["default", "interlaced", "reset", "final"]) {

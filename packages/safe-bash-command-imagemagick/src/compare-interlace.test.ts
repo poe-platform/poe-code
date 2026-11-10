@@ -81,7 +81,7 @@ for (const mode of ["sync", "buffered", "retained", "compare", "magick"] as cons
         [["-interlace", "Plane"], 0xc2],
         [["-interlace", "pLaNe"], 0xc2],
         [["-interlace", "Line"], 0xc2],
-        [["-interlace", "Plane", "+interlace"], 0xc0],
+        [["-interlace", "Plane", "+interlace"], 0xc2],
         [["-interlace", "Plane", "-interlace", "None"], 0xc0]
       ] as const) {
         const { result, output } = await run([...options, ...setting]);

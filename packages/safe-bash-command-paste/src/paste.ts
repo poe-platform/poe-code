@@ -1,5 +1,6 @@
 import { FsError, getCommandArguments, shellValueBytes, type ShellValue, type CommandDefinition } from "safe-bash-contracts";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
+import { quoteShellOperand } from "safe-bash-contracts/escaping";
 import { diagnostic } from "safe-bash-io-engine/internal";
 import { command, empty, encode, fail, Inputs, settings, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
@@ -72,6 +73,21 @@ function operandName(value: ShellValue): string {
   }
 }
 
+function fileError(error: unknown, file: ShellValue): unknown {
+  if (!(error instanceof FsError)) return error;
+  const reasons: Partial<Record<FsError["code"], string>> = {
+    ENOENT: "No such file or directory", ENOTDIR: "Not a directory", EISDIR: "Is a directory",
+    EACCES: "Permission denied", EPERM: "Operation not permitted", ELOOP: "Too many levels of symbolic links",
+    EIO: "Input/output error", ENAMETOOLONG: "File name too long",
+  };
+  const reason = reasons[error.code];
+  if (!reason) return error;
+  const name = operandName(file);
+  const quoted = !name || "#~".includes(name[0]!) || name === "{" || name === "}"
+    || [...name].some(character => character <= " " || character >= "\x7f" || "\"'`$&*():;<=>?[\\^|!".includes(character));
+  return new PublicDiagnostic(`${quoted ? quoteShellOperand(name) : name}: ${reason}`);
+}
+
 export function createPasteCommand(options: TableTextCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
   return command("paste", limits, async (context, budget) => {
@@ -132,7 +148,7 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
           catch (error) {
             context.signal.throwIfAborted();
             if (budget.hasPendingOutput()) await budget.flushOutput();
-            await diagnostic(context, error); status = 1;
+            await diagnostic(context, fileError(error, file)); status = 1;
             if (error instanceof FsError && error.code === "EISDIR") await budget.output([terminator]);
             continue;
           }
@@ -147,13 +163,13 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
         return { exitCode: status };
       }
       const readers = [];
-      const directoryErrors: FsError[] = [];
+      const directoryErrors: unknown[] = [];
       for (const file of files) {
         try { readers.push(await inputs.open(operandName(file))); }
         catch (error) {
           context.signal.throwIfAborted();
-          if (!(error instanceof FsError) || error.code !== "EISDIR") throw error;
-          directoryErrors.push(error);
+          if (!(error instanceof FsError) || error.code !== "EISDIR") throw fileError(error, file);
+          directoryErrors.push(fileError(error, file));
           readers.push(undefined);
         }
       }

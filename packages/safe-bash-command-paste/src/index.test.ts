@@ -67,8 +67,8 @@ for (const separator of ["\n", "\0"]) {
    const result = await run([...options, "-s", ...operands], {});
    assert.equal(result.exitCode, 1);
    assert.equal(result.stdout, separator.repeat(operands.length - 1));
-   assert.equal(result.stderr.split("EISDIR").length - 1, operands.length - 1);
-   assert.equal(result.stderr.split("ENOENT").length - 1, 1);
+   assert.equal(result.stderr.split("Is a directory").length - 1, operands.length - 1);
+   assert.equal(result.stderr.split("No such file or directory").length - 1, 1);
   });
  }
  for (const directoryFirst of [true, false]) {
@@ -78,26 +78,26 @@ for (const separator of ["\n", "\0"]) {
    const result = await run([...options, ...operands], { "/rows": rows });
    assert.equal(result.stdout, expected);
    assert.equal(result.exitCode, 1);
-   assert.ok(result.stderr.includes("EISDIR"), result.stderr);
+   assert.ok(result.stderr.includes("Is a directory"), result.stderr);
   });
   test(`serial paste preserves a directory record ${directoryFirst ? "first" : "last"} with ${JSON.stringify(separator)} records`, async () => {
    const operands = directoryFirst ? ["/", "-"] : ["-", "/"];
    const result = await run([...options, "-s", ...operands], {}, {}, rows);
    assert.equal(result.stdout, directoryFirst ? `${separator}x\ty${separator}` : `x\ty${separator}${separator}`);
    assert.equal(result.exitCode, 1);
-   assert.ok(result.stderr.includes("EISDIR"), result.stderr);
+   assert.ok(result.stderr.includes("Is a directory"), result.stderr);
   });
   test(`serial paste skips a missing operand ${directoryFirst ? "first" : "last"} with ${JSON.stringify(separator)} records`, async () => {
    const result = await run([...options, "-s", ...operands.map(file => file === "/" ? "/missing" : file)], { "/rows": rows });
    assert.equal(result.stdout, `x\ty${separator}`);
    assert.equal(result.exitCode, 1);
-   assert.ok(result.stderr.includes("ENOENT"), result.stderr);
+   assert.ok(result.stderr.includes("No such file or directory"), result.stderr);
   });
   test(`parallel paste still aborts for a missing operand ${directoryFirst ? "first" : "last"} with ${JSON.stringify(separator)} records`, async () => {
    const result = await run([...options, ...operands.map(file => file === "/" ? "/missing" : file)], { "/rows": rows });
    assert.equal(result.stdout, "");
    assert.equal(result.exitCode, 1);
-   assert.ok(result.stderr.includes("ENOENT"), result.stderr);
+   assert.ok(result.stderr.includes("No such file or directory"), result.stderr);
   });
   test(`parallel paste pads an empty file ${directoryFirst ? "first" : "last"} with ${JSON.stringify(separator)} records`, async () => {
    const result = await run([...options, ...operands.map(file => file === "/" ? "/empty" : file)], { "/rows": rows, "/empty": "" });
@@ -110,13 +110,13 @@ for (const separator of ["\n", "\0"]) {
   const result = await run([...options, "/", "/"], {});
   assert.equal(result.stdout, "");
   assert.equal(result.exitCode, 1);
-  assert.equal(result.stderr.split("EISDIR").length - 1, 2);
+  assert.equal(result.stderr.split("Is a directory").length - 1, 2);
  });
  test(`serial paste emits a record per directory with ${JSON.stringify(separator)} records`, async () => {
   const result = await run([...options, "-s", "/", "/"], {});
   assert.equal(result.stdout, separator.repeat(2));
   assert.equal(result.exitCode, 1);
-  assert.equal(result.stderr.split("EISDIR").length - 1, 2);
+  assert.equal(result.stderr.split("Is a directory").length - 1, 2);
  });
  test(`serial paste emits a record for empty files with ${JSON.stringify(separator)} records`, async () => {
   const result = await run([...options, "-s", "/empty", "/rows", "/empty"], { "/empty": "", "/rows": rows });

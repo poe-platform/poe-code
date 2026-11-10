@@ -648,7 +648,7 @@ input layout. Unmasked PCM WAV uses FFmpeg’s default speaker order: mono, ster
 `-af 'pan=stereo|FL=FR|FR=FL'` swaps stereo channels. PCM16 mixing uses native Q15
 gains and rounds half steps toward positive infinity, including native 32-bit overflow
 for large gains. PCM32 mixing saturates at the integer limits before downstream filters
-reduce the gain; floating-point filter paths retain floating-point mixing. Weighted sums use `=`,
+reduce the gain; floating-point filter paths retain floating-point mixing. Float64 input retains double precision through weighted sums and gain normalization. Weighted sums use `=`,
 and `<` divides gains by the sum of their magnitudes, preserving polarity, for example `pan=mono|c0<2*c0+-1*c1`.
 Terms accept hexadecimal gains (`0x1`, `0x1p-1`), subtraction (`c0-c1`), compact gains (`.5c1`), and signed exponents
 (`1e+0*c1` or `5e-1c1`). Nonfinite gains such as `nan`, `inf`, and `1e999` are accepted;

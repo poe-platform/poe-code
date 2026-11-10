@@ -1296,6 +1296,7 @@ async function panAudio(
     };
   }
   const pcm16 = sampleFormat === "s16";
+  const double = sampleFormat === "dbl" || sampleFormat === "dblp";
   let clipPcm16 = false;
   if (pcm16) {
     for (const row of gains) {
@@ -1312,7 +1313,9 @@ async function panAudio(
       clipPcm16 ||= sum > 32768;
     }
   }
-  const output = gains.map(() => new Float32Array(channels[0]?.length ?? 0));
+  const SampleArray = double ? Float64Array : Float32Array;
+  budget.allocateMemory(gains.length * (channels[0]?.length ?? 0) * SampleArray.BYTES_PER_ELEMENT);
+  const output = gains.map(() => new SampleArray(channels[0]?.length ?? 0));
   for (let sample = 0; sample < (channels[0]?.length ?? 0); sample++) {
     if (sample % 4096 === 0) {
       await yieldTurn(signal);
@@ -1712,7 +1715,6 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           if (!(inputLayout === 4 && targetLayout === 3 || inputLayout === 3 && targetLayout === 4)) {
             throw new Error("astreamselect requires matching layouts or mono/stereo inputs");
           }
-          budget.allocateMemory(length * target.channels * Float32Array.BYTES_PER_ELEMENT);
           const expression = target.channels === 1 ? "mono|c0=0.5*c0+0.5*c1"
             : `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`;
           const pcm16 = ["pcm_s16le", "pcm_s16be"].includes(track.codecDescriptions[0]?.codecName ?? "");
@@ -10909,7 +10911,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           values[key] = value;
                         }
                         if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) {
-                          budget.allocateMemory(stretched[0]!.length * 2 * Float32Array.BYTES_PER_ELEMENT);
                           const stereo = await panAudio(`stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`,
                             stretched, filteredChannelMask, "flt", budget, context.signal);
                           stretched = stereo.channels;
@@ -11249,7 +11250,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "crossfeed" || trimmed.startsWith("crossfeed=")) {
                         filteredSampleFormat = "dbl";
                         if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) {
-                          budget.allocateMemory(stretched[0]!.length * 2 * Float32Array.BYTES_PER_ELEMENT);
                           const stereo = await panAudio(`stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`,
                             stretched, filteredChannelMask, "flt", budget, context.signal);
                           stretched = stereo.channels;

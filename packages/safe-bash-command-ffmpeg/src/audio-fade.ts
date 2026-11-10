@@ -50,8 +50,8 @@ export async function fadeAudio(
       const index = number - floor === 0.5 ? floor + Math.abs(floor % 2) : Math.round(number);
       curve = entries[index + 1]![1];
     } else if (key === "enable") {
+      parseFilterExpression(value, "afade enable", { n: 0, t: 0, pos: NaN, w: 0 });
       enable = value;
-      parseFilterExpression(enable, "afade enable", { n: 0, t: 0, pos: NaN, w: 0 });
     } else {
       const time = key === "st" || key === "start_time" || key === "d" || key === "duration";
       const number = time

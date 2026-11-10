@@ -111,7 +111,9 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
             let size = 0;
             for (let index = 0; index < (image.rawFrames?.length ?? 1); index++) {
                 const frame = image.rawFrames ? await image.rawFrames.at(index) : image;
-                size += frame.width * frame.height * (encoding.tiffFloatDepth ? encoding.tiffFloatDepth / 8 : (encoding.netpbmDepth ?? frame.bitsPerSample ?? (frame.depth === "ushort" ? 16 : 8)) > 8 ? 2 : 1);
+                const requestedDepth = encoding.netpbmDepth ?? frame.bitsPerSample ?? (frame.depth === "ushort" ? 16 : 8);
+                const depth = encoding.tiffFloatDepth ?? ([1, 2, 4, 10, 12, 32, 64].includes(requestedDepth) ? requestedDepth : requestedDepth > 8 ? 16 : 8);
+                size += Math.ceil(frame.width * depth / 8) * frame.height;
             }
             const encoder = encodeStoredImage(image, storage, signal, encoding);
             try {

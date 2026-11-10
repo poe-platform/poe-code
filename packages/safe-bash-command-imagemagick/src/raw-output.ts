@@ -74,7 +74,7 @@ export function encodeImage(image: RawImage, options: OutputEncodeOptions): Retu
 function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channels: readonly number[]): Uint8Array {
     const format = options.format;
     const requestedDepth = options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
-    const depth = options.tiffFloatDepth ?? (requestedDepth === 1 || requestedDepth === 2 || requestedDepth === 4 || requestedDepth === 10 || requestedDepth === 12 ? requestedDepth : requestedDepth > 8 ? 16 : 8);
+    const depth = options.tiffFloatDepth ?? (requestedDepth === 32 || requestedDepth === 64 || requestedDepth === 1 || requestedDepth === 2 || requestedDepth === 4 || requestedDepth === 10 || requestedDepth === 12 ? requestedDepth : requestedDepth > 8 ? 16 : 8);
     const pixels = image.width * image.height;
     const rowSamples = image.width * (options.rawInterlace ? 1 : channels.length);
     const rowBytes = Math.ceil(rowSamples * depth / 8);
@@ -95,7 +95,10 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
                 : format.startsWith("gray") && channel === 0
                 ? 0.212656 * samples[pixel * 4]! + 0.715158 * samples[pixel * 4 + 1]! + 0.072186 * samples[pixel * 4 + 2]!
                 : format === "rgbo" && channel === 3 ? 0 : index === 3 && !image.hasAlpha ? scale : samples[pixel * 4 + index]!;
-            const quantum = Math.round(value * maximum / scale);
+            // Q16-HDRI converts grayscale luma to a float quantum before widening it.
+            const quantum = format.startsWith("gray") && channel === 0 && depth > 16
+                ? Math.round(Math.fround(value * 65535 / scale) * maximum / 65535)
+                : Math.round(value * maximum / scale);
             const sample = (options.rawInterlace === "plane" || options.rawInterlace === "partition") ? c * pixels + pixel
                 : options.rawInterlace === "line" ? Math.floor(pixel / image.width) * image.width * channels.length + c * image.width + pixel % image.width
                 : pixel * channels.length + c;
@@ -121,6 +124,9 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
                 data[offset + 1] = data[offset + 1]! | ((packed >>> 8) & 255);
             }
             else if (depth === 16) view.setUint16(offset, quantum, little);
+            else if (depth === 32) view.setUint32(offset, quantum, little);
+            // Native unsigned 64-bit samples use MSB-first packing, including for LSB endian.
+            else if (depth === 64) view.setBigUint64(offset, quantum >= 2 ** 64 ? 0xffffffffffffffffn : BigInt(quantum));
             else data[offset] = quantum;
         }
     }

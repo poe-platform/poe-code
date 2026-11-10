@@ -3825,6 +3825,19 @@ async function applyVideoFilterChain(
       }, signal);
     } else if (name === "weave") {
       current = await weave(current, argStr, budget, signal);
+    } else if (name === "setfield") {
+      if (positional.at(-1) === "") positional.pop();
+      if (positional.slice(1).some(part => !part.includes("=")) || Object.keys(named).some(key => key !== "mode")) {
+        throw new Error("setfield: expected mode=auto, bff, tff, or prog");
+      }
+      const value = parseFilterExpression(named.mode ?? (positional[0]?.includes("=") ? "auto" : positional[0] || "auto"),
+        "setfield", { auto: -1, bff: 0, tff: 1, prog: 2, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+      if (!Number.isFinite(value) || value < -1 || value > 2) throw new RangeError("setfield: expected mode=auto, bff, tff, or prog");
+      const mode = roundToEven(value);
+      if (mode !== -1) {
+        current = await mapWork(current, frame => ({ ...frame, interlaced: mode !== 2,
+          ...(mode === 2 ? {} : { topFieldFirst: mode === 1 }) }), signal);
+      }
     } else if (name === "tinterlace") {
       if (positional.length > 1 && positional.at(-1) === "") positional.pop();
       for (const key of Object.keys(named)) {

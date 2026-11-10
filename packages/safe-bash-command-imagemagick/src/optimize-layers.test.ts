@@ -33,7 +33,7 @@ it(`preserves GIF playback (retained=${retained}, optimize=${optimize}, disposal
     while (output[at]) at += output[at]! + 1;
     at++;
   }
-  expect(rectangles).toEqual(optimize && disposal === 1
+  expect(rectangles).toEqual(optimize
     ? [[0, 0, 3, 3], [1, 1, 1, 1], [1, 1, 1, 1], [0, 0, 1, 1]]
     : Array.from({ length: 4 }, () => [0, 0, 3, 3]));
   expect(decodeImage(output, { animated: true }).delay).toEqual([100, 200, 300, 400]);

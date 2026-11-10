@@ -10995,7 +10995,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const optimize = t === "-layers" && layerMethod === "optimize";
             if (optimize) state.optimizeLayers = true;
             if (t === "-layers") i++;
-            if (stack.length && (!optimize || stack.some(frame => frame.width !== (stack[0]!.virtualCanvas?.width || stack[0]!.width) || frame.height !== (stack[0]!.virtualCanvas?.height || stack[0]!.height) || frame.virtualCanvas?.x || frame.virtualCanvas?.y))) {
+            if (stack.length) {
                 const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
                 const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: dispose || first.hasAlpha ? 0 : 255 };
                 const { data16: ignoredData16, evaluateSamples: ignoredEvaluateSamples, ...metadata } = first;
@@ -14064,21 +14064,6 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async (stack, backend) => {
                 if (!stack.length) return stack;
                 const first = (await stack.get(0))!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
-                if (optimize) {
-                    let coalesced = true;
-                    for (let n = 0; n < stack.length; n++) {
-                        const frame = (await stack.get(n))!;
-                        if (frame.width !== width || frame.height !== height || frame.virtualCanvas?.x || frame.virtualCanvas?.y) { coalesced = false; break; }
-                    }
-                    if (coalesced) {
-                        for (let n = 0; n < stack.length; n++) {
-                            const frame = (await stack.get(n))!;
-                            await stack.set(n, { ...frame, disposal: frame.disposal || 1 });
-                        }
-                        await optimizeStoredFrameRectangles(stack, backend, signal, fuzz);
-                        return stack;
-                    }
-                }
                 const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: dispose || first.hasAlpha ? 0 : 255 };
                 let canvas = await createStoredCanvas(width, height, background, backend, signal);
                 const frames = new StoredImageStack(backend.storage, signal);

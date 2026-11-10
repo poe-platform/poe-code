@@ -9617,6 +9617,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     const offsets = parseMagickRollGeometry(expanded);
                     result.region = rollRegion(im.region, im, offsets.x, offsets.y);
                 }
+                if (im.readMask) result.readMask = yield* applyMagickRollSteps(im.readMask as RgbaImage, expanded, signal);
                 if (im.writeMask) {
                     // Roll honors the destination mask before moving it with the pixels.
                     result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, im.writeMask, !!(result.data16 || im.data16), false, state.channels), signal, result, [result, im, im.writeMask]);
@@ -12091,9 +12092,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-read-mask" && !spec) throw new Error(`missing argument '${token}'`);
             stackStep(async (stack, backend) => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
-                const mask = spec ? await parseStoredCompareInput(spec, settings, backend, signal, { analysis }) : undefined;
-                if (spec && !mask) throw new Error(`unable to read mask '${spec}'`);
-                const readMask = mask ? { width: mask.width, height: mask.height, position: mask.position } : undefined;
+                const readMask = spec ? await parseStoredCompareInput(spec, settings, backend, signal, { analysis }) : undefined;
+                if (spec && !readMask) throw new Error(`unable to read mask '${spec}'`);
                 for (let n = 0; n < stack.length; n++) await stack.set(n, { ...(await stack.get(n))!, readMask } as StoredRgbaImage);
                 return stack;
             });
@@ -12360,6 +12360,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const offsets = parseMagickRollGeometry(expanded);
                     result.region = rollRegion(image.region, image, offsets.x, offsets.y);
                 }
+                if (token === "-roll" && image.readMask) result.readMask = await transformStoredMagickCoordinates(image.readMask as StoredRgbaImage, backend, token, expanded, captured, signal, analysis);
                 if (token === "-roll" && image.storedWriteMask) {
                     // Roll honors the destination mask before moving it with the pixels.
                     result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!(result.storedData16 || image.storedData16), false, captured.channels), signal, result, [result, image, image.storedWriteMask]);

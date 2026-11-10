@@ -187,6 +187,7 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
   let tokenLen = 0;
   try {
   let position = 0;
+  let expectsOperand = true;
   while (position < source.length) {
     const ws = source.charCodeAt(position);
     if (ws <= 32 && (ws === 32 || ws === 9 || ws === 10 || ws === 13 || ws === 11 || ws === 12)) { position++; continue; }
@@ -206,6 +207,7 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
       if (depth) throw new ShellSyntaxError("Unclosed arithmetic subscript", offset + start);
       budget.admit(position - start);
       tokenValues[tokenLen] = source.slice(start, position); tokenOffsets[tokenLen++] = offset + start;
+      expectsOperand = false;
       continue;
     }
     let value: string | undefined;
@@ -228,6 +230,13 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
       value = source.slice(position, end);
     } else {
       value = matchArithOperator(source, position);
+      if (expectsOperand && (value === "++" || value === "--")) {
+        let next = position + 2;
+        while (next < source.length && " \t\n\r\v\f".includes(source[next]!)) next++;
+        const code = source.charCodeAt(next);
+        // Prefix increment/decrement requires a bare name; otherwise read one sign.
+        if (!((code >= 65 && code <= 90) || (code >= 97 && code <= 122) || code === 95)) value = value[0]!;
+      }
     }
     if (!value) {
       const previous = tokenLen > 0 ? tokenValues[tokenLen - 1] : undefined;
@@ -239,6 +248,8 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
     tokenValues[tokenLen] = value;
     tokenOffsets[tokenLen++] = offset + position;
     position += value.length;
+    expectsOperand = value === "(" || value === ":" || value === "!" || value === "~"
+      || Object.hasOwn(precedence, value) || (expectsOperand && (value === "++" || value === "--"));
   }
   if (tokenLen === 0) { budget.admit(); return { kind: "literal", value: 0n }; }
   let cursor = 0;

@@ -14331,7 +14331,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const spec = tokens[++i] ?? "0", settings = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx, sceneIdx: sceneIdx++, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
+                const source = image;
+                const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx, sceneIdx: sceneIdx++, optionProperties: settings.optionProperties }, async () => ({ image: source, storage: backend.storage }), signal, images);
                 const operation = parseMagickWarpOperation(["-rotate", expanded], settings, 0, analysis);
                 const { angle, applies } = parseMagickRotation(expanded);
                 if (!applies(image)) return image;

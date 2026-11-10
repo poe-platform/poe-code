@@ -8903,7 +8903,7 @@ function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<
     return { ...image, data, ...(data16 ? { data16 } : {}), space: "srgb", channels: image.hasAlpha ? 4 : 3 };
 }
 
-function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 4 | null, pixelOffset = 0, imageWidth = image.width): Generator<void, RgbaImage> {
+function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 4 | null, clipRed: boolean, pixelOffset = 0, imageWidth = image.width): Generator<void, RgbaImage> {
     const missingChannel = channel === null || (channel === 4 ? image.space !== "cmyk" : channel === 3 ? !image.hasAlpha : channel !== 0 && (image.space === "b-w" || image.space === "grey16"));
     // The source selection clips extraction, but does not belong to the generated planes.
     const { writeMask: ignoredMask, region: ignoredRegion, magickColorspace: ignoredSpace, hueSamples, storedHueSamples: ignoredStoredHue, metaChannels: ignoredMeta, storedMetaChannels: ignoredStoredMeta, ...components } = image;
@@ -8923,8 +8923,8 @@ function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 
         const mask = image.writeMask;
         const maskOffset = mask ? (Math.min(Math.floor(offset / 4 / image.width), mask.height - 1) * mask.width + Math.min(offset / 4 % image.width, mask.width - 1)) * 4 : 0;
         const protection = outsideRegion ? 1 : mask ? (0.212656 * mask.data[maskOffset]! + 0.715158 * mask.data[maskOffset + 1]! + 0.072186 * mask.data[maskOffset + 2]!) / 255 : 0;
-        if (protection > 0) {
-            // Native clips after disabling alpha and mapping the cloned red sample to gray.
+        if (clipRed && protection > 0) {
+            // Native clips the gray plane only when the red output channel is selected.
             const original = hueSamples ? Math.fround(hueSamples[offset]! * 65535) / 257
                 : image.evaluateSamples?.[offset] ?? (image.data16 ? image.data16[offset]! / 257 : image.data[offset]!);
             value = Math.fround((original * protection + value * (1 - protection)) * 257) / 257;
@@ -11248,7 +11248,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const metaPlanes = (im.metaChannels ?? []).filter((_, index) => !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index));
                 if (channels.length === 0 && metaPlanes.length === 0) channels.push(null);
                 for (const channel of channels)
-                    nextStack.push((yield* separateMagickChannelSteps(im, channel)));
+                    nextStack.push((yield* separateMagickChannelSteps(im, channel, !state.channelExplicit || state.channels.r)));
                 nextStack.push(...metaPlanes);
             }
             stack = nextStack;
@@ -12269,7 +12269,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         const metaPlanes = ((image as StoredRgbaImage).storedMetaChannels ?? []).filter((_, index) => !settings.channelExplicit || settings.channelDefault || settings.channels.meta?.includes(index));
                         if (channels.length === 0 && metaPlanes.length === 0) channels.push(null);
                         for (const channel of channels) {
-                            await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, handlesWriteMask: true, apply: (image, offset, width) => separateMagickChannelSteps(image, channel, offset, width) }, signal));
+                            await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, handlesWriteMask: true, apply: (image, offset, width) => separateMagickChannelSteps(image, channel, !settings.channelExplicit || settings.channels.r, offset, width) }, signal));
                         }
                         for (const plane of metaPlanes) await result.push(plane);
                     }
@@ -15477,10 +15477,10 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             if (selected.length === 0) selected.push(null);
             for (const channel of selected) {
                 let separated = image;
-                if ("data" in image) separated = yield* separateMagickChannelSteps(image, channel);
+                if ("data" in image) separated = yield* separateMagickChannelSteps(image, channel, !operation.separate || operation.separate.includes(0));
                 else yield { async run() {
                     separated = await transformStoredMagickPixels(image, backend!, { end: 0, highDepth: true, evaluate: true, handlesWriteMask: true,
-                        apply: (image, offset, width) => separateMagickChannelSteps(image, channel, offset, width) }, signal!);
+                        apply: (image, offset, width) => separateMagickChannelSteps(image, channel, !operation.separate || operation.separate.includes(0), offset, width) }, signal!);
                 } };
                 yield* acceptImage(separated, operations, index + 1);
             }

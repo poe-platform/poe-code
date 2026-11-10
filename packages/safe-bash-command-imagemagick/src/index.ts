@@ -841,6 +841,7 @@ function explicitMorphologyRows(spec: string, match?: 0 | 1): number[][] | undef
 }
 
 function magickMorphologyPlan(methodRaw: string, kernelSpec: string, statistic = false): { rows: MorphologyRow[]; backgroundRows?: MorphologyRow[]; dilateRows?: MorphologyRow[]; steps: MorphologyStep[]; iterations: number } {
+  if (statistic) kernelSpec = kernelSpec.replace(",", "x").replace(":", "x").replace("/", "x");
   const { method, iterations } = parseMagickMorphologyMethod(methodRaw);
   if (method === "distance") {
     const scale = manhattanDistanceScale(kernelSpec);

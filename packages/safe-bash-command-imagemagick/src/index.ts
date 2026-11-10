@@ -6346,15 +6346,19 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     if (rgb) {
         if (!state.hasSize) throw new Error("must specify image size for RGB input");
         const raw = rawNetpbmInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", partitions ? Math.min(...partitions.map(bytes => bytes!.length)) * 3 : rawBytes.length, 3, 0, state.rawInterlace);
-        const bytes = new Uint8Array(raw.size);
-        for (let position = 0; position < raw.size; position += 8192) {
-            yield;
-            const steps = raw.read(position, Math.min(8192, raw.size - position));
-            let next = steps.next();
-            while (!next.done) next = steps.next((partitions?.[next.value.channel] ?? rawBytes).subarray(next.value.position, next.value.position + next.value.length));
-            bytes.set(next.value, position);
+        const frames: RgbaImage[] = [];
+        for (const page of selectedInputPages(pageSpec, raw.pages)) {
+            const bytes = new Uint8Array(raw.size);
+            for (let position = 0; position < raw.size; position += 8192) {
+                yield;
+                const steps = raw.read(position, Math.min(8192, raw.size - position), page);
+                let next = steps.next();
+                while (!next.done) next = steps.next((partitions?.[next.value.channel] ?? rawBytes).subarray(next.value.position, next.value.position + next.value.length));
+                bytes.set(next.value, position);
+            }
+            frames.push(Object.assign(decodeImage(bytes), { [magickInput]: { filePath: cleanToken, byteLen: rawBytes.length, originalWidth: state.sizeWidth, originalHeight: state.sizeHeight, sceneCount: raw.pages, sceneIdx: page } }));
         }
-        rawBytes = bytes;
+        return yield* applyMod(frames);
     }
     let totalPages = 1;
     let inputMeta: ImageMetadata | undefined;
@@ -13572,11 +13576,15 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const path=baseToken.slice(4);
   const consume=async(sources:ImageByteSource[])=>{
    const raw=rawNetpbmInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,3,0,state.rawInterlace);
-   return parseStoredCompareInput(`ppm:${token.slice(4)}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
-    const steps=raw.read(position,length);let next=steps.next();
-    while(!next.done)next=steps.next(await sources[next.value.channel]!.read(next.value.position,next.value.length,{signal}));
-    return next.value;
-   }}});
+   for(const page of selectedInputPages(pageSpec,raw.pages)){
+    image=await parseStoredCompareInput(`ppm:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
+     const steps=raw.read(position,length,page);let next=steps.next();
+     while(!next.done)next=steps.next(await sources[next.value.channel]!.read(next.value.position,next.value.length,{signal}));
+     return next.value;
+    }}});
+    if(!readOptions.visit&&!readOptions.lastPage)break;
+   }
+   return image;
   };
   if(state.rawInterlace==="partition"&&path!=="-"){
    const paths=rgbPartitionPaths(path);

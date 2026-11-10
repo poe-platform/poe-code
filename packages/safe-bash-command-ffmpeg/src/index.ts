@@ -1038,6 +1038,7 @@ function parseAtrim(argument: string, origRate: number) {
   const bounds = new Map<string, number>();
   const options: string[] = [];
   let option = "";
+  let optionStart = 0;
   let quoted = false;
   // Decode the option layer after parseFilterChain decoded the graph layer.
   for (let i = 0; i < argument.length; i++) {
@@ -1047,9 +1048,10 @@ function parseAtrim(argument: string, origRate: number) {
     else if (!quoted && char === ":") {
       options.push(option);
       option = "";
+      optionStart = i + 1;
     } else option += char;
   }
-  if (argument) options.push(option);
+  if (optionStart < argument.length) options.push(option);
   for (const [index, option] of options.entries()) {
     const separator = option.indexOf("=");
     let key = separator < 0 ? ["start", "end", "start_pts", "end_pts", "duration", "start_sample", "end_sample"][index] : option.slice(0, separator).trim();

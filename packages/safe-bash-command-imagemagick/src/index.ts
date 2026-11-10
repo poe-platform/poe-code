@@ -1610,7 +1610,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
       parts.push(short[key]!);
     } else if (token === "%T") {
       const delay = resolvePixels ? yield* resolvePixels("delay") : String((meta.delay ?? (img ??= getImage()).delay)?.[(meta as MagickImage)[magickInput]?.sceneIdx ?? context.sceneIdx ?? 0] ?? 0);
-      const count = Number(delay) * (meta.ticksPerSecond ?? 100) / 1000;
+      const count = context.delayTicks ?? Number(delay) * (meta.ticksPerSecond ?? 100) / 1000;
       // Preserve signed counts internally: converting to Number(size_t) here is
       // safe for display, but would lose the low bits needed by the GIF coder.
       parts.push(count < 0 ? Number(BigInt.asUintN(64, BigInt(Math.floor(count)))).toExponential(16) : String(count));
@@ -6110,7 +6110,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 const delay = state.delay.value;
                 const source = (im as MagickImage)[magickInput];
                 const timing = parseDelayOption(delay, im.delay?.[source?.sceneIdx ?? 0] ?? 0);
-                im = { ...im, ticksPerSecond: timing.ticksPerSecond, delayTicks: timing.delayTicks, [magickInput]: { ...source, ticksPerSecond: timing.ticksPerSecond },
+                im = { ...im, ticksPerSecond: timing.ticksPerSecond, delayTicks: timing.delayTicks, [magickInput]: { ...source, ticksPerSecond: timing.ticksPerSecond, delayTicks: timing.delayTicks },
                     delay: (im.delay ?? [0]).map(current => parseDelayOption(delay, current).milliseconds) } as MagickImage;
             }
             return inlineGeom ? yield* applyInlineReadModifierSteps(im, inlineGeom, baseToken, state.kernel, state.resizeFilter, extract !== undefined, analysis) : im;
@@ -9125,7 +9125,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const source = (image as MagickImage)[magickInput];
                 const delay = parseDelay(expanded, source?.ticksPerSecond ?? image.ticksPerSecond, image.delay?.[source?.sceneIdx ?? 0] ?? 0);
                 delay.milliseconds ||= 0;
-                return { ...image, ticksPerSecond: delay.ticksPerSecond, delayTicks: delay.delayTicks, [magickInput]: { ...source, ticksPerSecond: delay.ticksPerSecond },
+                return { ...image, ticksPerSecond: delay.ticksPerSecond, delayTicks: delay.delayTicks, [magickInput]: { ...source, ticksPerSecond: delay.ticksPerSecond, delayTicks: delay.delayTicks },
                     delay: Array(image.delay?.length ?? 1).fill(delay.milliseconds) };
             });
             i += 3;
@@ -9464,9 +9464,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     if (clear.value) {
                         // Keep the previous display, then clear only the pixels the next frame erases.
                         const prior = frames[frames.length - 1]!;
-                        frames[frames.length - 1] = { ...prior, disposal: 1, delay: Array(prior.delay?.length ?? 1).fill(0) };
+                        frames[frames.length - 1] = { ...prior, [magickInput]: { ...(prior as MagickImage)[magickInput], delayTicks: 0 }, disposal: 1, delay: Array(prior.delay?.length ?? 1).fill(0) };
                         frames.push({ ...yield* extractImageSteps(previous, clear.value),
                             virtualCanvas: magickCropCanvas(previous, clear.value.left, clear.value.top),
+                            [magickInput]: { ...(previous as MagickImage)[magickInput], ticksPerSecond: (prior as MagickImage)[magickInput]?.ticksPerSecond ?? 100, delayTicks: (prior as MagickImage)[magickInput]?.delayTicks ?? (prior.delay?.[(prior as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0) / 10 },
                             disposal: 2, delay: Array(previous.delay?.length ?? 1).fill(prior.delay?.[(prior as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0) });
                         frames.push(current);
                         continue;
@@ -9489,7 +9490,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         const delay = (prior.delay?.[(prior as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0) +
                             (current.delay?.[(current as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0);
                         const survivor = optimizePlus ? prior : current;
-                        frames[frames.length - 1] = { ...survivor, delay: Array(survivor.delay?.length ?? 1).fill(delay) };
+                        frames[frames.length - 1] = { ...survivor, [magickInput]: { ...(survivor as MagickImage)[magickInput], delayTicks: Math.round(delay * ((survivor as MagickImage)[magickInput]?.ticksPerSecond ?? 100) / 1000) }, delay: Array(survivor.delay?.length ?? 1).fill(delay) };
                     }
                 } else if (next.value) frames.push({ ...yield* extractImageSteps(current, next.value), virtualCanvas: magickCropCanvas(current, next.value.left, next.value.top) });
             }
@@ -11221,7 +11222,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const delay = parseDelay(expanded, source?.ticksPerSecond ?? image.ticksPerSecond, current);
                     delay.milliseconds ||= 0;
                     await stack.set(sceneIdx, {
-                        ...image, ticksPerSecond: delay.ticksPerSecond, delayTicks: delay.delayTicks, [magickInput]: { ...image[magickInput], ticksPerSecond: delay.ticksPerSecond },
+                        ...image, ticksPerSecond: delay.ticksPerSecond, delayTicks: delay.delayTicks, [magickInput]: { ...image[magickInput], ticksPerSecond: delay.ticksPerSecond, delayTicks: delay.delayTicks },
                         storedDelay: { length: image.storedDelay?.length ?? image.delay?.length ?? 1, async at() { return delay.milliseconds; } },
                     });
                 }
@@ -11772,10 +11773,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }
                         if (clear.value) {
                             const prior = (await frames.get(frames.length - 1))!;
-                            await frames.set(frames.length - 1, { ...prior, disposal: 1,
+                            await frames.set(frames.length - 1, { ...prior, [magickInput]: { ...prior[magickInput], delayTicks: 0 }, disposal: 1,
                                 storedDelay: { length: prior.storedDelay?.length ?? prior.delay?.length ?? 1, async at() { return 0; } } });
                             await frames.push({ ...await transformStoredImage(previous!, backend.storage, { kind: "extract", ...clear.value }, signal),
                                 virtualCanvas: magickCropCanvas(previous!, clear.value.left, clear.value.top),
+                                [magickInput]: { ...previous![magickInput], ticksPerSecond: prior[magickInput]?.ticksPerSecond ?? 100, delayTicks: prior[magickInput]?.delayTicks ?? (await prior.storedDelay?.at(prior[magickInput]?.sceneIdx ?? 0, { signal }) ?? prior.delay?.[prior[magickInput]?.sceneIdx ?? 0] ?? 0) / 10 },
                                 disposal: 2, storedDelay: {
                                     length: previous!.storedDelay?.length ?? previous!.delay?.length ?? 1,
                                     async at() {
@@ -11806,7 +11808,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             const delay = (await prior.storedDelay?.at(priorScene, { signal }) ?? prior.delay?.[priorScene] ?? 0) +
                                 (await current.storedDelay?.at(scene, { signal }) ?? current.delay?.[scene] ?? 0);
                             const survivor = optimizePlus ? prior : current;
-                            await frames.set(frames.length - 1, { ...survivor, storedDelay: {
+                            await frames.set(frames.length - 1, { ...survivor, [magickInput]: { ...survivor[magickInput], delayTicks: Math.round(delay * (survivor[magickInput]?.ticksPerSecond ?? 100) / 1000) }, storedDelay: {
                                 length: survivor.storedDelay?.length ?? survivor.delay?.length ?? 1,
                                 async at() { return delay; },
                             } });
@@ -13336,7 +13338,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const source = (image as StoredMagickImage)[magickInput], scene = source?.sceneIdx ?? 0;
   const current = await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] ?? 0;
   const timing = parseDelayOption(delay, current);
-  image = { ...image, ticksPerSecond: timing.ticksPerSecond, delayTicks: timing.delayTicks, [magickInput]: { ...source, ticksPerSecond: timing.ticksPerSecond }, storedDelay: {
+  image = { ...image, ticksPerSecond: timing.ticksPerSecond, delayTicks: timing.delayTicks, [magickInput]: { ...source, ticksPerSecond: timing.ticksPerSecond, delayTicks: timing.delayTicks }, storedDelay: {
    length: original.storedDelay?.length ?? original.delay?.length ?? 1,
    async at(scene, options) {
     const current = await original.storedDelay?.at(scene, options) ?? original.delay?.[scene] ?? 0;

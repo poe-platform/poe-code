@@ -10,6 +10,19 @@ const pixels = Buffer.from(Array.from({ length: 36 }, (_, i) => (7 * i + 1) % 25
 // Formatting-only observations from ImageMagick 7.1.2-35 Q16-HDRI.
 describe.each(["command", "sync"] as const)("current interlace formatting (%s)", mode => {
   it.each([
+    { options: [], expected: "None/" },
+    { options: ["+interlace"], expected: "Undefined/undefined" },
+    { options: ["-interlace", "Plane", "+interlace"], expected: "Undefined/undefined" },
+    { options: ["+interlace", "-interlace", "None"], expected: "None/None" }
+  ])("reports the option interlace value for $options", async ({ options, expected }) => {
+    const argv = ["xc:#204080", "xc:#305090", "+append", ...options, "-format", "%[interlace]/%[option:interlace]", "info:-"];
+    expect(await run(mode, argv, false)).toEqual({
+      exitCode: 0, stdout: expected,
+      stderr: options.length ? "" : "magick: unknown image property '%[option:interlace]'\n"
+    });
+  });
+
+  it.each([
     { progressive: false, options: [], expected: "None" },
     { progressive: true, options: [], expected: "PNG" },
     ...[false, true].flatMap(progressive => [

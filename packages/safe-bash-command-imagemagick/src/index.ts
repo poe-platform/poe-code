@@ -10477,6 +10477,7 @@ if (t === "-intent" || t === "+intent") {
     if (property && ["compose", "gravity", "filter", "background", "interpolate", "interlace", "virtual-pixel"].includes(property)) {
         state.optionProperties = { ...state.optionProperties };
         if (t![0] === "-") state.optionProperties[property] = tokens[i]!;
+        else if (property === "interlace") state.optionProperties[property] = "undefined";
         else delete state.optionProperties[property];
     }
     return i;

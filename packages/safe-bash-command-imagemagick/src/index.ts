@@ -10319,8 +10319,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (["-shear", "-swirl", "-implode", "-wave", "-spread"].includes(t) && !stack.length) throw new Error(`no images found for operation '${t}'`);
             i = warpOperation.end;
             const geometry = ["-shear", "-wave", "-swirl", "-implode", "-spread"].includes(t) ? tokens[i] : undefined;
+            // Evaluate sequence references before mapping releases the source buffers.
+            const geometries: string[] = [];
+            if (geometry?.includes("%[")) for (let sceneIdx = 0; sceneIdx < stack.length; sceneIdx++) {
+                const image = stack[sceneIdx]!;
+                geometries.push(yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, sceneIdx, optionProperties: state.optionProperties }));
+            }
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const expanded = geometry?.includes("%[") ? yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }) : geometry;
+                const expanded = geometries[sceneIdx++] ?? geometry;
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 let output = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
@@ -12814,15 +12821,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         const warpOperation = operandsOnly || token === "-rotate" ? undefined : parseMagickWarpOperation(tokens, state, i, analysis);
         if (warpOperation) {
+            let images: StoredImageStack, sceneIdx = 0;
             if (["-shear", "-swirl", "-implode", "-wave", "-spread"].includes(token)) stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
                 return stack;
             });
             i = warpOperation.end;
             const geometry = ["-shear", "-wave", "-swirl", "-implode", "-spread"].includes(token) ? tokens[i] : undefined, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = geometry?.includes("%[") ? await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal) : geometry;
+                const expanded = geometry?.includes("%[") ? await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx, sceneIdx: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images) : geometry;
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 let output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);

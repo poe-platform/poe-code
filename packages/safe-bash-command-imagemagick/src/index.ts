@@ -3805,7 +3805,10 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             // Wave always uses background virtual pixels. Explicit background mode
             // promotes grayscale to RGB; otherwise native's gray cache uses blue.
             if (gray && virtualPixel !== "background") color = { r: color.b, g: color.b, b: color.b, a: color.a };
-            return { ...plan, space: gray && virtualPixel === "background" ? "srgb" as const : image.space, steps: warpPixelSteps(image, { ...plan, interpolation, channels }, color, "background") };
+            // Native only adds alpha when the background needs transparency.
+            // Keep RGB output inactive so PNG32/64 enables alpha through its write mask.
+            plan = { ...plan, hasAlpha: image.hasAlpha || color.a < 255, interpolation };
+            return { ...plan, space: gray && virtualPixel === "background" ? "srgb" as const : image.space, steps: warpPixelSteps(image, { ...plan, channels }, color, "background") };
         }
         if (plan && scale !== undefined) plan = scaleMagickWarpPlan(plan, image, scale);
         return plan ? { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel, kernel, filter) } : undefined;
@@ -8988,6 +8991,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 let output = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
+                if (t === "-wave" && image.writeMask && "map" in plan) {
+                    output.writeMask = yield* applyMagickRasterSteps(image.writeMask, warpPixelSteps(image.writeMask, plan, { r: 0, g: 0, b: 0, a: 255 }, "background"), signal, { width: plan.width, height: plan.height, hasAlpha: false });
+                }
                 if (image.writeMask && (t === "-swirl" || t === "-implode")) {
                     // Clip against the original mask, then retain its warped channel.
                     output = yield* applyMagickRasterSteps(output, writeMaskPixelSteps(output, image.writeMask, !!(output.data16 || image.data16), false, state.channels), signal, output, [output, image, image.writeMask]);
@@ -10999,6 +11005,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 let output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);
+                if (token === "-wave" && image.storedWriteMask && "map" in plan) {
+                    const mask = image.storedWriteMask;
+                    output.storedWriteMask = await transformStoredMagickRaster(mask, backend, warpPixelSteps(mask, plan, { r: 0, g: 0, b: 0, a: 255 }, "background"), signal, { width: plan.width, height: plan.height, hasAlpha: false });
+                }
                 if (image.storedWriteMask && (token === "-swirl" || token === "-implode")) {
                     const mask = image.storedWriteMask;
                     output = await transformStoredMagickRaster(output, backend, writeMaskPixelSteps(output, mask, !!(output.storedData16 || image.storedData16), false, maskChannels), signal, output, [output, image, mask]);

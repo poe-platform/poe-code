@@ -25,7 +25,8 @@ export function shearPlan(image: Pick<RgbaImage, "width" | "height" | "hasAlpha"
         columnOffset: Math.floor((fullWidth - width) / 2) };
 }
 
-export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, plan: ReturnType<typeof shearPlan>, background: RgbaColor, compose: string, composeArgs?: string, fuzz = 0): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "space" | "storedData16" | "storedHueSamples">>, plan: ReturnType<typeof shearPlan>, background: RgbaColor, compose: string, composeArgs?: string, fuzz = 0): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const hue = source.space !== "cmyk" && (!!source.hueSamples || source.storedHueSamples !== undefined);
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
     const bg = [background.r, background.g, background.b, background.a].map(value => value * scale);
     const canvas = { width: 1, height: 1, hasAlpha: plan.hasAlpha, data: Float64Array.from(bg, value => value / scale) };
@@ -54,10 +55,10 @@ export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "d
                     if (weight === 0) continue;
                     let pixel: ArrayLike<number> = bg;
                     if (px >= 0 && px < source.width && y >= 0 && y < source.height) {
-                        const bytes = yield { kind: "read", highDepth, position: (y * source.width + px) * 4, length: 4 };
-                        if (!bytes || bytes.length !== (highDepth ? 8 : 4)) throw new Error("Truncated shear pixels");
+                        const bytes = yield { kind: "read", highDepth, hue, position: (y * source.width + px) * 4, length: 4 };
+                        if (!bytes || bytes.length !== (hue ? 32 : highDepth ? 8 : 4)) throw new Error("Truncated shear pixels");
                         // Native BorderImage applies the selected compose operator before resampling.
-                        const samples = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
+                        const samples = hue ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => value * maximum) : highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
                         if (over) {
                             const remaining = bg[3]! * (1 - samples[3]! / maximum), alpha = samples[3]! + remaining;
                             for (let c = 0; c < 3; c++) composite[c] = alpha > 0 ? (samples[c]! * samples[3]! + bg[c]! * remaining) / alpha : 0;
@@ -82,6 +83,7 @@ export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "d
             }
         }
         yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
+        if (hue) yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(values.map(value => value / 255).buffer) };
         yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(values.buffer) };
     }
 }

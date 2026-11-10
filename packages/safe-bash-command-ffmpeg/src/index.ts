@@ -3769,17 +3769,21 @@ async function applyVideoFilterChain(
       })
         .map(frame => ({ ...frame, durationSeconds: frame.durationSeconds * step }));
     } else if (name === "tinterlace") {
-      const mode = named.mode ?? argStr;
+      const mode = parseFilterExpression(named.mode ?? argStr, "tinterlace", {
+        PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+        merge: 0, drop_even: 1, drop_odd: 2, pad: 3, interleave_top: 4,
+        interleave_bottom: 5, interlacex2: 6, mergex2: 7
+      });
       if (positional.length !== 1 || Object.keys(named).some(key => key !== "mode") ||
-          !["drop_even", "1", "drop_odd", "2", "interleave_top", "4"].includes(mode)) {
+          ![1, 2, 4].includes(roundToEven(mode))) {
         throw new Error("tinterlace: only modes drop_even, drop_odd and interleave_top are supported");
       }
       const output: typeof current = [];
       for (let index = 0; index + 1 < current.length; index += 2) {
         const first = current[index]!;
         const second = current[index + 1]!;
-        if (["drop_even", "1", "drop_odd", "2"].includes(mode)) {
-          const selected = mode === "drop_even" || mode === "1" ? first : second;
+        if ([1, 2].includes(roundToEven(mode))) {
+          const selected = roundToEven(mode) === 1 ? first : second;
           output.push({ ...selected, durationSeconds: selected.durationSeconds * 2 });
           continue;
         }

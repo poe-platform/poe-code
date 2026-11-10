@@ -105,7 +105,7 @@ export async function storedDeskewAngle(image: StoredRgbaImage, storage: ImageBy
     return next.value;
 }
 
-export function deskewPlan(image: Pick<RgbaImage, "width" | "height" | "properties" | "virtualCanvas">, radians: number, pointFilter = false, interpolation: WarpPlan["interpolation"] = "bilinear") {
+export function deskewPlan(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "properties" | "virtualCanvas">, radians: number, background: RgbaColor, pointFilter = false, interpolation: WarpPlan["interpolation"] = "bilinear") {
     const cos = Math.cos(radians), sin = Math.sin(radians);
     const page = image.virtualCanvas;
     const left = page?.x ?? 0, top = page?.y ?? 0;
@@ -116,7 +116,7 @@ export function deskewPlan(image: Pick<RgbaImage, "width" | "height" | "properti
     // Native affine distortion scales the original page when cloning the raster.
     const canvasWidth = page?.width ? Math.round(width / image.width * page.width) : width;
     const canvasHeight = page?.height ? Math.round(height / image.height * page.height) : height;
-    return { width, height, hasAlpha: true, virtualCanvas: { width: canvasWidth, height: canvasHeight, x, y },
+    return { width, height, hasAlpha: image.hasAlpha || background.a < 255, virtualCanvas: { width: canvasWidth, height: canvasHeight, x, y },
         properties: { ...image.properties, "deskew:angle": Object.is(degrees, -0) ? "-0" : degrees.toPrecision(17) },
         // Point disables elliptical filtering and uses the selected interpolation method.
         ...(pointFilter ? { interpolation } : { derivatives: () => [cos, sin, -sin, cos] as const }),

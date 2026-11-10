@@ -6,7 +6,7 @@ import { deskewPlan } from "./deskew.js";
 import { runConvertCli, runConvertCliSync } from "./index.js";
 
 it("uses positioned raster bounds and scales the input virtual canvas", () => {
-    const plan = deskewPlan({ width: 96, height: 48, virtualCanvas: { width: 120, height: 100, x: 14, y: 11 } }, -Math.atan(1 / 16));
+    const plan = deskewPlan({ width: 96, height: 48, hasAlpha: false, virtualCanvas: { width: 120, height: 100, x: 14, y: 11 } }, -Math.atan(1 / 16), { r: 255, g: 255, b: 255, a: 255 });
     expect([plan.width, plan.height, plan.virtualCanvas]).toEqual([100, 56, { width: 125, height: 117, x: 14, y: 3 }]);
 });
 

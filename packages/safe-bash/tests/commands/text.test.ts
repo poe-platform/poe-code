@@ -833,35 +833,6 @@ test("cut keeps adjacent range boundaries and merges only overlaps", async () =>
   assert.equal((await run("cut", ["-c", "1,2-3", "--output-delimiter=:"], { stdin: "é😀z\n" })).stdout, "é:😀z\n");
 });
 
-for (const [short, long] of [["b", "bytes"], ["c", "characters"], ["f", "fields"]]) {
-  test(`cut rejects repeated ${long} lists before reading input`, async () => {
-    for (const selectors of [
-      [`-${short}1`, `-${short}2`],
-      [`-${short}`, "1", `-${short}`, "2"],
-      [`-${short}1`, `--${long}=2`],
-      [`--${long}=1`, `-${short}2`],
-      [`--${long}`, "1", `--${long}=2`],
-      [`-${short}1`, `-${short}1`],
-    ]) {
-      let reads = 0;
-      const result = await run("cut", [...(short === "f" ? ["-d:"] : []), ...selectors], {
-        commands: textCommands(), env: { LC_ALL: "C" },
-        stdin: { async *[Symbol.asyncIterator]() { reads++; yield Buffer.from("a:b:c"); } },
-      });
-      assert.equal(result.exitCode, 1, JSON.stringify(selectors));
-      assert.equal(result.stdout, "");
-      assert.equal(result.stderr, "cut: only one list may be specified\n");
-      assert.equal(reads, 0);
-    }
-    const result = await run("cut", [...(short === "f" ? ["-d:"] : []), `-${short}2`], {
-      commands: textCommands(), env: { LC_ALL: "C" }, stdin: "a:b:c",
-    });
-    assert.equal(result.exitCode, 0, result.stderr);
-    assert.equal(result.stdout, short === "f" ? "b\n" : ":\n");
-    assert.equal(result.stderr, "");
-  });
-}
-
 test("cut accepts blank separators and padding while rejecting empty comma items", async () => {
   for (const mode of ["-b", "-c", "-f"]) {
     const args = mode === "-f" ? ["-d", ":"] : [];

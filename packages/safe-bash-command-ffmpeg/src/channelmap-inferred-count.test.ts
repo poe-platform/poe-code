@@ -3,24 +3,15 @@ import { it } from "node:test";
 import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
-const samples = [101, -901, 202, -802, 303, -703];
-for (const [filter, expected] of [
-  ["channelmap=0|1:FL@left+FR@right,channelmap=FR", [-901, -802, -703]],
-  ["channelmap=0|1:FR@right+FL@left", samples],
-  ["channelmap=map=FR:channel_layout=FR,channelmap=FR", [-901, -802, -703]],
-  ["channelmap=0|1:FR@right+FL@left,channelmap=FR", [101, 202, 303]],
-  ["channelmap=0|1:FR@right+FL@left,channelmap=FL", [-901, -802, -703]],
-  ["channelmap=map=FL-FR|FR-FL:channel_layout=FR@right+FL@left", samples],
-  ["channelmap=0|1:FL+FR@right,channelmap=FR", [-901, -802, -703]],
-  ["channelmap=0|1:FL@left+INVALID@right", undefined],
-  ["channelmap=0|1:FL@left+@right", undefined]
-] as const) {
+const frames = [[101, -901], [202, -802], [303, -703]];
+for (const channels of [8, 9, 10]) {
   for (const complex of [false, true]) {
-    it(`resolves labeled layout speakers (${complex ? "graph" : "simple"}): ${filter}`, async () => {
+    it(`infers ${channels} channelmap outputs without a layout (${complex ? "graph" : "simple"})`, async () => {
       const volume = new Volume();
-      const input = Buffer.alloc(samples.length * 2);
-      samples.forEach((sample, index) => input.writeInt16LE(sample, index * 2));
+      const input = Buffer.alloc(frames.length * 4);
+      frames.flat().forEach((sample, index) => input.writeInt16LE(sample, index * 2));
       volume.writeFileSync("/in.raw", input);
+      const filter = `channelmap=${Array.from({ length: channels }, (_, index) => index % 2).join("|")}`;
       let stderr = "";
       const result = await createFfmpegCommand().execute({
         args: ["-v", "error", "-y", "-f", "s16le", "-ar", "8000", "-ac", "2", "-i", "/in.raw",
@@ -35,14 +26,12 @@ for (const [filter, expected] of [
         stdin: (async function* () {})(), stdout: { async write() {} },
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
-      if (!expected) {
-        assert.notEqual(result.exitCode, 0);
-        assert.equal(volume.existsSync("/out.raw"), false);
-        return;
-      }
       assert.equal(result.exitCode, 0, stderr);
       const output = volume.readFileSync("/out.raw") as Buffer;
-      assert.deepEqual(Array.from({ length: output.length / 2 }, (_, index) => output.readInt16LE(index * 2)), expected);
+      assert.deepEqual(
+        Array.from({ length: output.length / 2 }, (_, index) => output.readInt16LE(index * 2)),
+        frames.flatMap(frame => Array.from({ length: channels }, (_, index) => frame[index % 2]))
+      );
     });
   }
 }

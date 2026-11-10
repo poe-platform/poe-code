@@ -11382,13 +11382,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // FFmpeg's default layouts by channel count: mono, stereo, 2.1,
                         // 4.0, 5.0, 5.1, 6.1, and 7.1 (four channels are not quad).
                         const defaultMask = [0, 0x4, 0x3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][entries.length] ?? 0;
-                        outputNames ??= speakers.filter(name => Math.floor(defaultMask / audioSpeakerMasks[name]!) % 2 === 1);
+                        outputNames ??= defaultMask
+                          ? speakers.filter(name => Math.floor(defaultMask / audioSpeakerMasks[name]!) % 2 === 1)
+                          : Array<string>(entries.length).fill("");
                         if (!outputNames.length || entries.length !== outputNames.length) {
                           throw new Error("channelmap: unsupported or mismatched channel layout");
                         }
                         const selected = new Array<(typeof stretched)[number]>(outputNames.length);
                         for (const [index, entry] of entries.entries()) {
-                          const input = numericInput ? Number(entry[0]) : inputNames.indexOf(channelName(entry[0]!));
+                          const input = numericInput ? Number(entry[0])
+                            : entry[0] ? inputNames.indexOf(channelName(entry[0])) : -1;
                           const output = !paired ? index : numericOutput ? Number(entry[1]) : outputNames.indexOf(channelName(entry[1]!));
                           if (!Number.isSafeInteger(input) || input < 0 || input >= stretched.length) {
                             throw new Error(`channelmap: unavailable input channel ${entry[0]}`);

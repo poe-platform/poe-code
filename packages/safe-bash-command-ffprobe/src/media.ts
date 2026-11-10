@@ -989,8 +989,9 @@ function parseProbeArguments(args: readonly string[]) {
     else if (arg === "-select_streams") selectStreams = value();
     else if (arg === "-show_entries") {
       const entries = value();
-      for (const entry of entries.split(":")) {
-        if (!entry) continue;
+      const sections = entries.split(":");
+      if (sections.at(-1) === "") sections.pop();
+      for (const entry of sections) {
         const section = entry.split("=", 1)[0]!;
         if (!probeSections.has(section))
           throw new Error(`No match for section '${section}'\nFailed to set value '${entries}' for option 'show_entries': Invalid argument`);

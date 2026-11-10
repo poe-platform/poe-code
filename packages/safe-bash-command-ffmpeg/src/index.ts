@@ -12848,20 +12848,35 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             else if (!["anull", "acopy", "volume"].includes(name!)) break;
                           }
                           const next = audioFilters[nextIndex];
+                          let resampleInputRate = origRate;
+                          let resampler = next;
+                          if (!reframe) {
+                            for (let i = nextIndex; i < audioFilters.length; i++) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              const filter = audioFilters[i]!;
+                              const separator = filter.indexOf("=");
+                              const name = (separator < 0 ? filter : filter.slice(0, separator)).split("@", 1)[0];
+                              resampler = filter;
+                              if (name === "asetrate") {
+                                resampleInputRate = parseAsetrate(separator < 0 ? "" : filter.slice(separator + 1));
+                              } else if (!["anull", "acopy", "volume"].includes(name!)) break;
+                            }
+                          }
+                          if (resampler?.split("=", 1)[0]!.split("@", 1)[0] !== "aresample") resampleInputRate = origRate;
                           let resampleRate = origRate;
-                          if (!reframe && next?.split("=", 1)[0]!.split("@", 1)[0] === "aresample") {
-                            const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "0";
-                            resampleRate = (index === undefined ? undefined : audioRate) || origRate;
+                          if (!reframe && resampler?.split("=", 1)[0]!.split("@", 1)[0] === "aresample") {
+                            const argument = resampler.includes("=") ? resampler.slice(resampler.indexOf("=") + 1) : "0";
+                            resampleRate = (index === undefined ? undefined : audioRate) || resampleInputRate;
                             for (const [position, option] of argument.split(":").entries()) {
                               const [key, raw, extra] = option.split("=");
                               if (extra === undefined && (position === 0 && raw === undefined || ["osr", "out_sample_rate", "sample_rate"].includes(key!))) {
                                 resampleRate = Math.round(parseFilterExpression(raw ?? key!, "aresample", {}))
-                                  || (index === undefined ? undefined : audioRate) || origRate;
+                                  || (index === undefined ? undefined : audioRate) || resampleInputRate;
                               }
                             }
                           }
-                          const resampleSupport = resampleRate > 0 && resampleRate !== origRate
-                            ? 2 * Math.ceil(16 / Math.min(0.97 * resampleRate / origRate, 1)) : 0;
+                          const resampleSupport = resampleRate > 0 && resampleRate !== resampleInputRate
+                            ? 2 * Math.ceil(16 / Math.min(0.97 * resampleRate / resampleInputRate, 1)) : 0;
                           if (outputDuration === undefined && outputTo === undefined && maxAudioFrames === undefined && next?.split("=", 1)[0]!.split("@", 1)[0] === "atrim") {
                             const { duration, startPts, endPts, startSample, endSample } = parseAtrim(
                               next.includes("=") ? next.slice(next.indexOf("=") + 1) : "", origRate);
@@ -12897,12 +12912,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               throw new Error("apad: a finite padding or minimum length is required");
                             }
                             // Output duration starts at the first retained frame, or the output seek if later.
-                            const seek = Math.round((outputSs ?? 0) * origRate);
+                            const seek = Math.round((outputSs ?? 0) * resampleInputRate);
                             const firstPts = Math.max(audioTimestamps[0]?.pts ?? audioStartSample,
                               outputSs === undefined ? -Infinity : seek);
                             // Padding starts at the final frame's end, which can differ from the sample count.
                             minimum = duration === undefined ? Infinity
-                              : inputLength + Math.max(0, firstPts + Math.round(duration * origRate) - paddingPts);
+                              : inputLength + Math.max(0, firstPts + Math.round(duration * resampleInputRate) - paddingPts);
                             if (resampleSupport && duration !== undefined) {
                               minimum = Math.max(resampleSupport + 1, minimum + resampleSupport / 2);
                             }

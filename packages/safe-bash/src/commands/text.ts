@@ -594,9 +594,8 @@ function uniqCount(text: string): number {
   for (let index = start; index < text.length; index++) {
     if (text[index]! < "0" || text[index]! > "9" || negative && text[index] !== "0") throw new UsageError(`invalid number '${text}'`);
   }
-  const count = Number(text);
-  if (!Number.isSafeInteger(count)) throw new UsageError(`invalid number '${text}'`);
-  return count;
+  // Counts beyond numeric precision (including Infinity) exceed any record.
+  return Number(text);
 }
 
 async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteSource): Promise<{ exitCode: number }> {

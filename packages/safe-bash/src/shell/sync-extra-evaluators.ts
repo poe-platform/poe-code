@@ -11013,17 +11013,7 @@ const syncExtraRuntimeMethods = {
                   if (rawState.variables._ !== undefined) delete rawState.variables._;
                   rawState.lastArgument = readLastArgument!;
                   if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
-                  if (!existing) {
-                    monitor.lazyPipeStatus = singleStatusZero;
-                    monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-                  } else {
-                    this.setSyncPipeStatusCell(existing!, "0");
-                    store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
-                  }
-                  rawState.status = 0;
-                  monitor.epoch = restEpoch;
-                  if (store) store.epoch = restEpoch;
-                  return 0;
+                  return this.finishSyncPipeStatus(rawState, monitor, monitor.store, monitor.store?.get("PIPESTATUS"), elem0, scope, 0, restEpoch);
                 }
               }
             }

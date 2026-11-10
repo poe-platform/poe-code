@@ -47,6 +47,35 @@ for (const loop of [false, true]) test(`read -a FUNCNAME keeps the active functi
   } finally { await shell.dispose(); }
 });
 
+for (const command of [
+  "read -ra PIPESTATUS <<< 'X Y'",
+  "read -ra PIPESTATUS <<< 'zz'",
+  "read -ra a <<< 'X Y'",
+  "mapfile -t PIPESTATUS <<< 'X Y'",
+  ": \"${PIPESTATUS[*]}\"; read -ra PIPESTATUS <<< 'X Y'",
+  "read -ra PIPESTATUS <<< ''",
+  "read -ra PIPESTATUS",
+]) {
+  test(`read array completion refreshes PIPESTATUS: ${command}`, async t => {
+    const { shell, commands } = setup({ env: { LC_ALL: "C" } });
+    t.after(() => shell.dispose());
+    for (const builtin of basicCommands()) commands.register(builtin);
+    const source = `${command}; echo "$?:\${PIPESTATUS[*]}"; true; echo "\${PIPESTATUS[*]}"`;
+    const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], {
+      input: "X Y\n", encoding: "utf8", env: { LC_ALL: "C" }, timeout: 2000,
+    });
+    assert.ifError(native.error);
+    assert.equal(native.signal, null);
+    assert.equal(native.status, 0);
+    assert.equal(native.stdout, "0:0\n0\n");
+    assert.equal(native.stderr, "");
+    const result = await shell.exec(source, { stdin: "X Y\n" });
+    assert.equal(result.exitCode, native.status);
+    assert.equal(result.stdout, native.stdout);
+    assert.equal(result.stderr, native.stderr);
+  });
+}
+
 for (const option of ["-u0", "-t1"]) {
   for (const [before, destinations, output] of [
     ["", "'a[1]'", "0|one two|three|"],

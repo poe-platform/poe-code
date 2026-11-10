@@ -93,7 +93,9 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
             const value = inks
                 ? channel < 4 ? Math.max(0, Math.min(1, inks[channel]!)) * scale : image.hasAlpha ? samples[pixel * 4 + 3]! : scale
                 : format.startsWith("gray") && channel === 0
-                ? 0.212656 * samples[pixel * 4]! + 0.715158 * samples[pixel * 4 + 1]! + 0.072186 * samples[pixel * 4 + 2]!
+                // Gray images already carry their sample in red, including masked alpha extraction.
+                ? image.channels <= 2 ? samples[pixel * 4]!
+                    : 0.212656 * samples[pixel * 4]! + 0.715158 * samples[pixel * 4 + 1]! + 0.072186 * samples[pixel * 4 + 2]!
                 : format === "rgbo" && channel === 3 ? 0 : index === 3 && !image.hasAlpha ? scale : samples[pixel * 4 + index]!;
             // Q16-HDRI converts grayscale luma to a float quantum before widening it.
             const quantum = format.startsWith("gray") && channel === 0 && depth > 16

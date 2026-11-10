@@ -7,10 +7,10 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     throw new Error("rawvideo input requires a valid -video_size WIDTHxHEIGHT");
   }
   const gray = pixelFormat === "gray" || pixelFormat === "gray8";
-  if (!gray && pixelFormat !== "rgb24" && pixelFormat !== "yuv420p") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
+  if (!gray && pixelFormat !== "rgb24" && pixelFormat !== "gray16be" && pixelFormat !== "yuv420p") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
   const ySize = width * height;
   const chromaSize = Math.ceil(width / 2) * Math.ceil(height / 2);
-  const frameBytes = pixelFormat === "yuv420p" ? ySize + chromaSize * 2 : ySize * (gray ? 1 : 3);
+  const frameBytes = pixelFormat === "yuv420p" ? ySize + chromaSize * 2 : ySize * (gray ? 1 : pixelFormat === "gray16be" ? 2 : 3);
   if (!Number.isSafeInteger(frameBytes)) throw new Error("Invalid rawvideo frame size");
   const count = Math.ceil(bytes.length / frameBytes);
   budget.checkSamples(count);
@@ -32,12 +32,16 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
       : new Uint8Array(width * height * 4);
     for (let pixel = 0; pixelFormat !== "yuv420p" && pixel < width * height; pixel++) {
       if (pixel % 4096 === 0) budget.checkCpu();
-      if (gray) rgba.fill(data[pixel]!, pixel * 4, pixel * 4 + 3);
+      if (pixelFormat === "gray16be") {
+        const value = Math.min(255, (data[pixel * 2]! * 256 + data[pixel * 2 + 1]! + 128) >> 8);
+        rgba.fill(value, pixel * 4, pixel * 4 + 3);
+      } else if (gray) rgba.fill(data[pixel]!, pixel * 4, pixel * 4 + 3);
       else rgba.set(data.subarray(pixel * 3, pixel * 3 + 3), pixel * 4);
       rgba[pixel * 4 + 3] = 255;
     }
     frames.push({ width, height, data: rgba, offset: index * frameBytes,
-      ...(pixelFormat === "yuv420p" ? { native: { rgba, pixels: data, width, height, format: 0, colorspace: 5, fullRange: 0 } } : {}),
+      ...(pixelFormat === "yuv420p" || pixelFormat === "gray16be" ? { native: { rgba, pixels: data, width, height,
+        format: pixelFormat === "gray16be" ? 29 : 0, colorspace: 5, fullRange: pixelFormat === "gray16be" ? 1 : 0 } } : {}),
       ptsSeconds: index * ticks / timescale,
       durationSeconds: ticks / timescale, keyframe: true });
   }
@@ -91,6 +95,32 @@ export function serializeRawVideo(track: MediaTrack, codec: string | undefined, 
           if (pixel % 4096 === 0) budget.checkCpu();
           bytes[pixel * channels] = frame.data[pixel * 4]!;
           if (channels === 2) bytes[pixel * channels + 1] = frame.data[pixel * 4 + 3]!;
+        }
+        append(bytes);
+      } else if (format === "gray16be") {
+        const native = frame.native?.rgba === frame.data && frame.native.width === frame.width && frame.native.height === frame.height
+          ? frame.native : undefined;
+        if (native?.format === 29) {
+          append(native.pixels);
+          continue;
+        }
+        const planar = native && [0, 4, 5, 12, 13, 14].includes(native.format) ? native : undefined;
+        const length = frame.width * frame.height * 2;
+        budget.checkOutputBytes(size + length);
+        const bytes = new Uint8Array(length);
+        const view = new DataView(bytes.buffer);
+        for (let pixel = 0; pixel < frame.width * frame.height; pixel++) {
+          if (pixel % 4096 === 0) budget.checkCpu();
+          // swscale's BT.601 RGB input uses 14-bit limited-range luma, then
+          // expands at 19-bit precision before rounding to full-range 16-bit.
+          const luma = planar
+            ? planar.pixels[pixel]! * 64
+            : (8414 * frame.data[pixel * 4]! + 16519 * frame.data[pixel * 4 + 1]! +
+              3208 * frame.data[pixel * 4 + 2]! + 524544) >> 9;
+          const gray = planar && (planar.fullRange || [12, 13, 14].includes(planar.format))
+            ? luma * 4
+            : (Math.floor((Math.min(luma * 32, 30189 * 16) * 4769 - 156229444) / 4096) + 4) >> 3;
+          view.setUint16(pixel * 2, Math.max(0, Math.min(65535, gray)));
         }
         append(bytes);
       } else if (format === "rgb24" || format === "bgr24" || format === "rgba") {

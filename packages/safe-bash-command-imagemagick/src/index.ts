@@ -10885,6 +10885,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else if (t === "-reverse") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack.reverse();
         }
         else if (t === "-smush" || t === "+smush") {
@@ -11634,7 +11635,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (stack.length === 0) throw new Error(`no images found for operation '${token}'`);
                     await stack.remove(parseMagickIndexSpec(spec, stack.length, "delete"));
                 }
-                else if (token === "-reverse") { for (let n = 0; n < Math.floor(stack.length / 2); n++) { await yieldTurn(signal); await stack.swap(n, stack.length - 1 - n); } }
+                else if (token === "-reverse") {
+                    if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                    for (let n = 0; n < Math.floor(stack.length / 2); n++) { await yieldTurn(signal); await stack.swap(n, stack.length - 1 - n); }
+                }
                 else if (token.endsWith("insert")) {
                     const raw = token === "+insert" ? 0 : parseMagickInsertPosition(spec), target = raw < 0 ? stack.length - 1 + raw : raw;
                     if (!Number.isInteger(target) || target < 0 || target >= stack.length || (raw < 0 && target === 0)) throw new Error(`invalid image index ${token}`);

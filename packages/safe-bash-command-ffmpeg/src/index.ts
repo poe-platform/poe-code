@@ -3769,10 +3769,11 @@ async function applyVideoFilterChain(
       })
         .map(frame => ({ ...frame, durationSeconds: frame.durationSeconds * step }));
     } else if (name === "tinterlace") {
+      if (positional.length > 1 && positional.at(-1) === "") positional.pop();
       for (const key of Object.keys(named)) {
         if (key !== "mode") throw new Error(`tinterlace: unsupported option ${key}`);
       }
-      const mode = parseFilterExpression(named.mode ?? argStr, "tinterlace", {
+      const mode = parseFilterExpression(named.mode ?? positional[0] ?? "", "tinterlace", {
         PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
         merge: 0, drop_even: 1, drop_odd: 2, pad: 3, interleave_top: 4,
         interleave_bottom: 5, interlacex2: 6, mergex2: 7

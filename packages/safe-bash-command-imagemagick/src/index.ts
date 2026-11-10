@@ -10094,6 +10094,9 @@ if (t === "-intent" || t === "+intent") {
         }
         else if (t === "-define") {
             const defStr = tokens[++i] ?? "";
+            const separator = defStr.indexOf("=");
+            const key = (separator < 0 ? defStr : defStr.slice(0, separator)).toLowerCase();
+            state.optionProperties = { ...state.optionProperties, [key]: separator < 0 ? "" : defStr.slice(separator + 1) };
             if (defStr.toLowerCase().startsWith("distort:viewport=")) state.distortViewport = defStr.slice("distort:viewport=".length);
             if (defStr.toLowerCase().startsWith("magnify:method=")) state.magnifyMethod = parseMagnifyMethod(defStr.slice("magnify:method=".length));
             const [filterKey, filterValue] = defStr.toLowerCase().split("=");

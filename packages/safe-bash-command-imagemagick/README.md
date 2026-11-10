@@ -137,7 +137,7 @@ Async `runIdentifyCli(args, { filesystem, cwd, stdin, stdout, stderr })` uses th
 
 `identify +format` restores the default description for subsequent images; earlier images keep their format. Nested image properties expand before formatted FX arithmetic, so `identify -format '%[fx:%[width]*2]' image.png` prints twice the image width.
 
-Unknown properties such as `%a`, `%?`, and `%[missing_demo_property]` expand to an empty string and report an `unknown image property` warning; identify still exits successfully.
+Custom defines such as `-define demo:key=amber` are available as `%[demo:key]`, `%[option:demo:key]`, and `%[artifact:demo:key]`. Image properties set with `-set demo:key amber` are available only through `%[demo:key]` and take precedence over a define of the same name. Unknown properties such as `%a`, `%?`, and `%[missing_demo_property]` expand to an empty string and report an `unknown image property` warning; identify still exits successfully.
 Empty or unclosed bracket properties fail without emitting the formatted text. Escaped properties such as `%%[width]` remain literal text.
 
 `identify -format` and `magick ... -format FORMAT info:` interpret `\n` and `\r` as line endings, remove backslash-newline continuations, and otherwise emit the character after a backslash literally (so `\t` emits `t`). INFO output adds no newline when `-format` is supplied; include `\n` in the format when needed. `%[format]` inserts the active template literally, without expanding its tokens again. In INFO output, `%[fuzz]` preserves the supplied `-fuzz` value, including `0%`; `+fuzz` reports `0`, while an unset value remains unknown. They support literal `%%`,

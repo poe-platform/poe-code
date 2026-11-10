@@ -7903,7 +7903,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     } else if (token === "-brightness-contrast") {
         highDepth = true;
-        const raw = [...(tokens[++i] ?? "")].filter(c => c.trim() !== "").join("").replaceAll(",", "x").replaceAll("/", "x");
+        const raw = [...(tokens[++i] ?? "")].filter(c => c.trim() !== "").join("").replaceAll("X", "x").replaceAll(",", "x").replaceAll("/", "x");
         validateMagickTransformGeometry(raw, token);
         const parts = raw.replaceAll(":", "x").split("x");
         let [brightness = 0, contrast = 0] = parts.map(value => parseFloat(value) || 0);

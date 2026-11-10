@@ -65,11 +65,15 @@ for (const graph of [false, true]) {
     });
   }
 
-  for (const options of ["threshold=1dB", "release=10k", "ratio=1/2", "level_in=max+1", "makeup=min-1", "range=all",
-    "attack=1/", "knee=1/0", "threshold=0/0", "level_sc=unknown", "level_in=0b1", "ratio=0o7", "attack="]) {
+  for (const [options, status] of [
+    ["threshold=1dB", 222], ["release=10k", 222], ["ratio=1/2", 222],
+    ["level_in=max+1", 222], ["makeup=min-1", 222], ["range=all", 222],
+    ["attack=1/", 234], ["knee=1/0", 234], ["threshold=0/0", 234],
+    ["level_sc=unknown", 234], ["level_in=0b1", 234], ["ratio=0o7", 234], ["attack=", 234]
+  ] as const) {
     it(`agate rejects ${options} without replacing output (${graph ? "graph" : "simple"})`, async () => {
       const { result, stderr, output } = await run(options, graph);
-      assert.equal(result.exitCode, 1, stderr);
+      assert.equal(result.exitCode, status, stderr);
       assert.ok(stderr.includes("agate:"), stderr);
       assert.equal(output.toString(), "KEEP");
     });

@@ -74,13 +74,14 @@ export function encodeImage(image: RawImage, options: OutputEncodeOptions): Retu
 function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channels: readonly number[]): Uint8Array {
     const format = options.format;
     const requestedDepth = options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
-    const depth = options.tiffFloatDepth ?? (requestedDepth === 1 || requestedDepth === 2 || requestedDepth === 4 ? requestedDepth : requestedDepth > 8 ? 16 : 8);
+    const depth = options.tiffFloatDepth ?? (requestedDepth === 1 || requestedDepth === 2 || requestedDepth === 4 || requestedDepth === 10 || requestedDepth === 12 ? requestedDepth : requestedDepth > 8 ? 16 : 8);
     const pixels = image.width * image.height;
     const rowSamples = image.width * (options.rawInterlace ? 1 : channels.length);
     const rowBytes = Math.ceil(rowSamples * depth / 8);
     const data = new Uint8Array(rowBytes * image.height * (options.rawInterlace ? channels.length : 1));
-    const view = new DataView(data.buffer), samples = image.data16 ?? image.data;
-    const scale = image.data16 ? 65535 : 255, maximum = 2 ** depth - 1;
+    const working = format === "gray" && (depth === 10 || depth === 12) ? image.evaluateSamples : undefined;
+    const view = new DataView(data.buffer), samples = working ?? image.data16 ?? image.data;
+    const scale = !working && image.data16 ? 65535 : 255, maximum = 2 ** depth - 1;
     for (let pixel = 0; pixel < pixels; pixel++) {
         const inks = format.startsWith("cmyk") ? image.space === "cmyk" && image.hueSamples
             ? image.hueSamples.subarray(pixel * 4, pixel * 4 + 4)
@@ -113,6 +114,12 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
                     view.setUint16(offset, half, little);
                 }
             } else if (depth < 8) data[offset] = data[offset]! | (quantum << (8 - depth - rowBit % 8));
+            else if (depth === 10 || depth === 12) {
+                // Packed raw samples are MSB-first; zero padding ends each row.
+                const packed = quantum << (24 - depth - rowBit % 8);
+                data[offset] = data[offset]! | (packed >>> 16);
+                data[offset + 1] = data[offset + 1]! | ((packed >>> 8) & 255);
+            }
             else if (depth === 16) view.setUint16(offset, quantum, little);
             else data[offset] = quantum;
         }
@@ -166,10 +173,11 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
         for (let frame = 0; frame < (rawFrames?.length ?? 1); frame++) {
             if (rawFrames) image = await rawFrames.at(frame);
             const cmyk = options.format.startsWith("cmyk") && image.space === "cmyk";
-            const chunkPixels = cmyk ? 512 : image.storedData16 ? 2048 : 4096;
             const pixels = image.width * image.height;
             const depth = options.tiffFloatDepth ?? options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
-            const packed = depth === 1 || depth === 2 || depth === 4;
+            const packed = depth === 1 || depth === 2 || depth === 4 || depth === 10 || depth === 12;
+            const workingPosition = options.format === "gray" && (depth === 10 || depth === 12) ? image.storedEvaluateSamples : undefined;
+            const chunkPixels = cmyk || workingPosition !== undefined ? 512 : image.storedData16 ? 2048 : 4096;
             const spanPixels = options.rawInterlace === "line" ? image.width : pixels;
             // Finish each row/channel run before advancing, even when it spans several reads.
             for (let start = 0; start < pixels; start += spanPixels) {
@@ -192,7 +200,13 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
                             if (bytes.length !== count * 32) throw new Error("Truncated raw ink storage");
                             hueSamples = new Float64Array(new Uint8Array(bytes).buffer);
                         }
-                        const encoded = encodeRawPixels({ ...image, width: count, height: 1, data, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) }, options, options.rawInterlace ? [channel] : packedChannels);
+                        let evaluateSamples: Float64Array | undefined;
+                        if (workingPosition !== undefined) {
+                            const bytes = await storage.read(workingPosition + pixel * 32, count * 32, { signal });
+                            if (bytes.length !== count * 32) throw new Error("Truncated raw working sample storage");
+                            evaluateSamples = new Float64Array(new Uint8Array(bytes).buffer);
+                        }
+                        const encoded = encodeRawPixels({ ...image, width: count, height: 1, data, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) }, options, options.rawInterlace ? [channel] : packedChannels);
                         size += encoded.length;
                         pixel += count;
                         yield encoded;

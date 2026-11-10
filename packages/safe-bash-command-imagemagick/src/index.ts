@@ -4039,7 +4039,7 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
         }
         // Quantize Q16 samples directly; an eight-bit palette loses both input
         // precision and output levels. Transfers stay bounded in caller storage.
-        const chunkSamples = !reducePalette && img.space === "cmyk" ? 2048 : 4096;
+        const chunkSamples = !reducePalette ? 2048 : 4096;
         for (let position = 0; position < img.width * img.height * 4; position += chunkSamples) {
             signal?.throwIfAborted();
             const length = Math.min(chunkSamples, img.width * img.height * 4 - position);

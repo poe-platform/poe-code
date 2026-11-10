@@ -10833,9 +10833,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const padding = Math.min(...offsets);
                         const length = inputLength + Math.max(0, ...offsets);
                         budget.checkDuration(length / origRate);
-                        budget.allocateMemory((length * stretched.length + offsets.reduce((sum, offset) => sum + offset - padding, 0)) * Float32Array.BYTES_PER_ELEMENT);
-                        const output = stretched.map(() => new Float32Array(length));
-                        const history = offsets.map(offset => new Float32Array(offset - padding));
+                        budget.allocateMemory((length * stretched.length + offsets.reduce((sum, offset) => sum + offset - padding, 0)) * Float64Array.BYTES_PER_ELEMENT);
+                        const output = stretched.map(() => new Float64Array(length));
+                        const history = offsets.map(offset => new Float64Array(offset - padding));
                         const previous = audioTimestamps;
                         audioTimestamps = [];
                         let nextPts = previous?.[0]?.pts ?? (t.samples[0] ? t.samples[0].pts * origRate / t.timescale : audioStartSample);

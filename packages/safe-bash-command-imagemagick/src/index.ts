@@ -576,7 +576,7 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
 function parseDelay(value: string): number {
   value = value.replaceAll("%", "");
   const [delay, ticks = "100"] = value.split("x");
-  return Math.floor(Math.round(Number(delay)) * 1000 / (Number(ticks) || 1));
+  return Math.floor(Math.round(Number(delay)) * 1000 / (Number(ticks || "100") || 1));
 }
 
 function parseDelayOption(value: string, current: number): number {
@@ -586,7 +586,7 @@ function parseDelayOption(value: string, current: number): number {
     throw new Error(`invalid argument for option '-delay' '${value}'`);
   }
   const [delay, ticks = "100"] = geometry.split("x");
-  const milliseconds = Math.floor(Math.round(Number(delay)) * 1000 / (Number(ticks) || 1));
+  const milliseconds = Math.floor(Math.round(Number(delay)) * 1000 / (Number(ticks || "100") || 1));
   if (value.includes(">")) return Math.min(current, milliseconds);
   if (value.includes("<")) return Math.max(current, milliseconds);
   return milliseconds;

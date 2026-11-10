@@ -83,7 +83,8 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
             : rgbToCmyk(samples[pixel * 4]! / scale, samples[pixel * 4 + 1]! / scale, samples[pixel * 4 + 2]! / scale) : undefined;
         for (let c = 0; c < channels.length; c++) {
             const channel = channels[c]!;
-            const index = format.startsWith("bgr") && channel < 3 ? 2 - channel : channel;
+            // Native BGR/BGRA Plane output uses RGB order, unlike packed and Line output.
+            const index = format.startsWith("bgr") && options.rawInterlace !== "plane" && channel < 3 ? 2 - channel : channel;
             const value = inks
                 ? channel < 4 ? Math.max(0, Math.min(1, inks[channel]!)) * scale : image.hasAlpha ? samples[pixel * 4 + 3]! : scale
                 : format === "gray"

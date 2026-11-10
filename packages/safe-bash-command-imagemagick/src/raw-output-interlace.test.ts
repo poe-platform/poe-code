@@ -12,6 +12,51 @@ const layouts = {
     None: "01080f161d242b323940474e555c636a71787f868d949ba2a9b0b7bec5ccd3dae1e8eff6"
 };
 
+// Native ImageMagick 7.1.2-35 Q16-HDRI: BGR Plane uses RGB plane order.
+for (const mode of ["sync", "buffered", "command"] as const) {
+    for (const frames of [1, 2]) {
+        it.each([
+            { coder: "bgr", interlace: "Plane", hex: "ff0000fd086200ff00fb087f0000fff90891", second: "123456" },
+            { coder: "bgra", interlace: "Plane", hex: "ff0000fd086200ff00fb087f0000fff90891ff8040bfff13", second: "12345678" },
+            { coder: "bgr", interlace: "Line", hex: "0000ff00ff00ff0000f90891fb087ffd0862", second: "563412" },
+            { coder: "bgra", interlace: "None", hex: "0000ffff00ff0080ff000040f9fbfdbf080808ff917f6213", second: "56341278" },
+            { coder: "rgb", interlace: "Plane", hex: "ff0000fd086200ff00fb087f0000fff90891", second: "123456" }
+        ])(`writes native $coder $interlace bytes and frame order (${mode}, ${frames} frames)`, async ({ coder, interlace, hex, second }) => {
+            const pam = Buffer.concat([
+                Buffer.from("P7\nWIDTH 3\nHEIGHT 2\nDEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n"),
+                Buffer.from("ff0000ff00ff00800000ff40fdfbf9bf080808ff627f9113", "hex")
+            ]);
+            const next = Buffer.concat([
+                Buffer.from("P7\nWIDTH 1\nHEIGHT 1\nDEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n"),
+                Buffer.from("12345678", "hex")
+            ]);
+            const keep = new TextEncoder().encode("KEEP");
+            const outputs: [string, string][] = frames === 1 ? [["/out", hex], ["/copy", hex]] : [["/out-0", hex], ["/copy-0", hex], ["/out-1", second], ["/copy-1", second]];
+            const files = new Map<string, Uint8Array>([["/in.pam", pam]]);
+            for (const [path] of outputs) files.set(path, keep);
+            if (frames === 2) files.set("/next.pam", next);
+            const filenames = [...files.keys()].map(path => path.slice(1)).sort();
+            const fs = new MemoryFileSystem();
+            for (const [path, bytes] of files) await fs.writeFile(path, bytes);
+            const suffix = frames === 2 ? "-%d" : "";
+            const args = ["/in.pam", ...(frames === 2 ? ["/next.pam"] : []), "-interlace", interlace, "-depth", "8", "-write", `${coder}:/copy${suffix}`, `${coder}:/out${suffix}`];
+            let stderr = "";
+            const result = mode === "sync" ? runConvertCliSync(args, files) : mode === "buffered" ? await runConvertCli(args, files) : await createMagickCommand().execute({
+                command: "magick", args, fs, cwd: "/", env: {},
+                stdin: (async function* () {})(), signal: new AbortController().signal,
+                stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+            });
+            expect(result.exitCode, stderr).toBe(0);
+            expect("stderr" in result ? result.stderr : stderr).toBe("");
+            expect((mode === "command" ? (await fs.readdir("/")).map(entry => entry.name) : [...files.keys()].map(path => path.slice(1))).sort()).toEqual(filenames);
+            for (const [path, expected] of outputs) {
+                const bytes = mode === "command" ? await fs.readFile(path) : files.get(path)!;
+                expect(Buffer.from(bytes).toString("hex")).toBe(expected);
+            }
+        });
+    }
+}
+
 for (const mode of ["sync", "buffered", "command"] as const) {
     it.each(["Plane", "Line", "None", "default", "reset"] as const)(`writes native RGB layouts (${mode}, %s)`, async interlace => {
         const keep = new TextEncoder().encode("KEEP");

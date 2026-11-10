@@ -11728,7 +11728,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 validateMagickStatisticGeometry(geometry);
                 const plan = magickMorphologyPlan(method, geometry, true);
                 if (state.virtualPixel === "transparent" && (!state.channelExplicit || state.channels.a)) im = { ...im, hasAlpha: true };
-                const result = yield* applyMagickMorphology4ChSteps(im, plan, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.virtualPixel, state.background);
+                const result = yield* applyMagickMorphology4ChSteps({ ...im, isPalette: false }, plan, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.virtualPixel, state.background);
                 return im.writeMask ? yield* applyMagickRasterSteps(result, statisticWriteMaskPixelSteps(im, magickMedianRows(geometry), state.virtualPixel), signal, result, [result, im, im.writeMask]) : result;
             });
         }
@@ -14286,7 +14286,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const geometry = await formatRetainedIdentify(geom, image, context, async () => ({ image: image!, storage: backend.storage }), signal);
                 validateMagickStatisticGeometry(geometry);
                 if (virtualPixel === "transparent" && (!channels || channels[3])) image = { ...image, hasAlpha: true };
-                const result = await morphStoredMagickImage(image, backend, magickMorphologyPlan(method, geometry, true), signal, channels, virtualPixel, background);
+                const result = await morphStoredMagickImage({ ...image, isPalette: false }, backend, magickMorphologyPlan(method, geometry, true), signal, channels, virtualPixel, background);
                 return image.storedWriteMask ? transformStoredMagickRaster(result, backend, statisticWriteMaskPixelSteps(image, magickMedianRows(geometry), virtualPixel), signal, result, [result, image, image.storedWriteMask]) : result;
             });
         } else if (!operandsOnly && token === "-morphology") {

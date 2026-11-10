@@ -10765,8 +10765,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-liquid-rescale") {
-            const geometry = tokens[++i] ?? "";
-            validateMagickTransformGeometry(geometry, t);
+            const rawGeometry = tokens[++i] ?? "";
+            validateMagickTransformGeometry(rawGeometry, t);
+            const geometry = rawGeometry.replaceAll("(", "").replaceAll(")", "");
             const seam = parseMagickGeometry(geometry);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const options = magickResizeOptions(image, geometry, state.kernel);
@@ -13661,8 +13662,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return virtualCanvas ? { ...resized, virtualCanvas } : resized;
             });
         } else if (!operandsOnly && token === "-liquid-rescale") {
-            const geometry = tokens[++i] ?? "", kernel = state.kernel, settings = state.resizeFilter;
-            validateMagickTransformGeometry(geometry, token);
+            const rawGeometry = tokens[++i] ?? "", kernel = state.kernel, settings = state.resizeFilter;
+            validateMagickTransformGeometry(rawGeometry, token);
+            const geometry = rawGeometry.replaceAll("(", "").replaceAll(")", "");
             const seam = parseMagickGeometry(geometry);
             steps.push(async (image, backend) => {
                 if (!image) return;

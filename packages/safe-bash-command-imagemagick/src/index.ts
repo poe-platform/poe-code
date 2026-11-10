@@ -9988,7 +9988,7 @@ async function prepareStoredIcoPages(stack: StoredImageStack, image: StoredRgbaI
 
 // Work backwards so every comparison sees the original full-canvas predecessor.
 // Clearing/restoring frames keep their disposal-dependent encoder optimization.
-function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number): Generator<void, void, void> {
+function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimize: boolean): Generator<void, void, void> {
     for (let n = stack.length - 1; n > 0; n--) {
         const current = stack[n]!, previous = stack[n - 1]!;
         if ((typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
@@ -10003,14 +10003,22 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number): Genera
                 next = bounds.next((source.data16 ?? source.data).subarray(position, position + length));
             }
         }
-        const area = next.value ?? { left: 0, top: 0, width: 1, height: 1 };
-        if (area.width !== current.width || area.height !== current.height) {
+        const area = next.value;
+        if (!area) {
+            // An empty difference is a transparent pause, not a crop of an opaque pixel.
+            const background = optimize ? { r: 0, g: 0, b: 0 } : current.backgroundColor ?? { r: 255, g: 255, b: 255 };
+            const pause = yield* createSolidRgbaImageSteps(1, 1, { ...background, a: 0 }, !!current.data16);
+            const { data16: ignoredData16, evaluateSamples: ignoredEvaluateSamples, ...metadata } = current;
+            stack[n] = { ...metadata, width: 1, height: 1, data: pause.data,
+                ...(pause.data16 ? { data16: pause.data16 } : {}), hasAlpha: true,
+                virtualCanvas: { ...magickCropCanvas(current, 0, 0), x: -1, y: -1 } };
+        } else if (area.width !== current.width || area.height !== current.height) {
             stack[n] = { ...yield* extractImageSteps(current, area), virtualCanvas: magickCropCanvas(current, area.left, area.top) };
         }
     }
 }
 
-async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: CompareFileSession, signal: AbortSignal, fuzz: number): Promise<void> {
+async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: CompareFileSession, signal: AbortSignal, fuzz: number, optimize: boolean): Promise<void> {
     for (let n = stack.length - 1; n > 0; n--) {
         const current = (await stack.get(n))!, previous = (await stack.get(n - 1))!;
         if ((typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
@@ -10028,8 +10036,15 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
                 next = bounds.next(data);
             }
         }
-        const area = next.value ?? { left: 0, top: 0, width: 1, height: 1 };
-        if (area.width !== current.width || area.height !== current.height) {
+        const area = next.value;
+        if (!area) {
+            const background = optimize ? { r: 0, g: 0, b: 0 } : current.backgroundColor ?? { r: 255, g: 255, b: 255 };
+            const pause = await createStoredCanvas(1, 1, { ...background, a: 0 }, backend, signal, !!current.storedData16);
+            const { storedData16: ignoredData16, storedEvaluateSamples: ignoredEvaluateSamples, ...metadata } = current;
+            await stack.set(n, { ...metadata, width: 1, height: 1, position: pause.position,
+                ...(pause.storedData16 ? { storedData16: pause.storedData16 } : {}), hasAlpha: true,
+                virtualCanvas: { ...magickCropCanvas(current, 0, 0), x: -1, y: -1 } });
+        } else if (area.width !== current.width || area.height !== current.height) {
             await stack.set(n, { ...await transformStoredImage(current, backend.storage, { kind: "extract", ...area }, signal), virtualCanvas: magickCropCanvas(current, area.left, area.top) });
         }
     }
@@ -11740,7 +11755,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             } else if (optimize) {
                 stack = stack.map(frame => ({ ...frame, disposal: frame.disposal || 1 }));
             }
-            if (optimize) yield* optimizeFrameRectanglesSteps(stack, state.alphaFuzz);
+            if (optimize) yield* optimizeFrameRectanglesSteps(stack, state.alphaFuzz, true);
         }
         else if (t === "-splice") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
@@ -12904,7 +12919,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     frame.virtualCanvas?.x || frame.virtualCanvas?.y) throw new Error("image pages are not coalesced");
             }
             stack = stack.map(frame => ({ ...frame, disposal: frame.disposal || 1 }));
-            yield* optimizeFrameRectanglesSteps(stack, state.alphaFuzz);
+            yield* optimizeFrameRectanglesSteps(stack, state.alphaFuzz, false);
             state.optimizeLayers = true; i++;
         }
         else if (t === "-flatten" || t === "-mosaic" || (t === "-layers" && ["flatten", "merge", "mosaic"].includes(layerMethod))) {
@@ -14630,7 +14645,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         frame.virtualCanvas?.x || frame.virtualCanvas?.y) throw new Error("image pages are not coalesced");
                     await stack.set(n, { ...frame, disposal: frame.disposal || 1 });
                 }
-                await optimizeStoredFrameRectangles(stack, backend, signal, fuzz);
+                await optimizeStoredFrameRectangles(stack, backend, signal, fuzz, false);
                 return stack;
             });
             state.optimizeLayers = true; i++; continue;
@@ -15090,7 +15105,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     if (dispose) await frames.push({ ...first, width, height, position: canvas.position, ...(canvas.storedData16 ? { storedData16: canvas.storedData16 } : {}), ...(canvas.storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples: canvas.storedEvaluateSamples }), hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 } });
                 }
-                if (optimize) await optimizeStoredFrameRectangles(frames, backend, signal, fuzz);
+                if (optimize) await optimizeStoredFrameRectangles(frames, backend, signal, fuzz, true);
                 return frames;
             });
             continue;

@@ -7628,13 +7628,15 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         if (token === "-auto-gamma") {
             const count = Math.max(1, channelSums!.count);
             const cmyk = image.space === "cmyk";
-            const channelCount = (cmyk ? 4 : 3) + (hasAlpha ? 1 : 0);
+            // Disassociated alpha still contributes to shared statistics.
+            const statisticsAlpha = image.hasAlpha || image.alphaSeparate === true;
+            const channelCount = (cmyk ? 4 : 3) + (statisticsAlpha ? 1 : 0);
             const sums = channelSums!.values;
             // Grayscale stores one color sample; its RGB projections must not outweigh alpha.
             const gray = image.space === "b-w" || image.space === "grey16";
             const sharedMean = gray
-                ? (sums[0]! + (hasAlpha ? sums[3]! : 0)) / (count * (hasAlpha ? 2 : 1))
-                : sums.reduce((sum, value, channel) => sum + (channel === 3 && !hasAlpha ? 0 : value), 0) / (count * channelCount);
+                ? (sums[0]! + (statisticsAlpha ? sums[3]! : 0)) / (count * (statisticsAlpha ? 2 : 1))
+                : sums.reduce((sum, value, channel) => sum + (channel === 3 && !statisticsAlpha ? 0 : value), 0) / (count * channelCount);
             // Native auto-gamma uses levels, including both masked cache syncs.
             const operations: MagickPixelOperation[] = [];
             const active = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a && hasAlpha, settings.channels.k];
@@ -7665,7 +7667,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             const active = [channels.r, !gray && channels.g, !gray && channels.b, cmyk && channels.a && hasAlpha, cmyk && settings.channels.k];
             if (!independent) {
                 // Default channels share the range of every ink and alpha when present.
-                const included = histogram.filter((_, channel) => channel !== 3 || hasAlpha);
+                const included = histogram.filter((_, channel) => channel !== 3 || hasAlpha || image.alphaSeparate === true);
                 mins.fill(Math.min(...included.map(range => range[0]!)));
                 maxs.fill(Math.max(...included.map(range => range[1]!)));
             }

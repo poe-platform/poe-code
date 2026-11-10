@@ -3453,7 +3453,7 @@ async function applyVideoFilterChain(
           if (component === "none") continue;
           if (!component.trim()) throw new Error("negate: invalid empty component");
           const index = ["r", "g", "b", "a", "y", "u", "v"].indexOf(component);
-          const value = index < 0 ? parseFilterExpression(component, "negate", {}) : 1 << index;
+          const value = index < 0 ? parseFilterExpression(component, "negate", { default: 0x77, all: 0x7f }) : 1 << index;
           if (!Number.isInteger(value) || value < 0 || value > 127) {
             throw new Error(`negate: invalid component ${component}`);
           }

@@ -12789,7 +12789,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
                 const pos = gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, gx, gy, state.gravity);
                 let composed: RgbaImage;
-                if (state.composeRaw.toLowerCase() === "over") {
+                if (state.composeRaw.toLowerCase() === "over" && !base.data16 && !overlay.data16 && !base.evaluateSamples && !overlay.evaluateSamples) {
                     yield* blitOverRgbaInPlaceSteps(base, overlay, pos.x, pos.y);
                     detachRgbaBuffer(overlay.data);
                     composed = base;

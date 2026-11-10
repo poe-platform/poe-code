@@ -71,7 +71,7 @@ for (const [expression, literal] of [
   }
 }
 
-for (const filter of ["tremolo=d=0b1", "tremolo=d=0o1", "tremolo=d=1/0", "tremolo=d=1+1", "tremolo=d=1-2", "tremolo=d=1/", "tremolo=f=1/20", "tremolo=f=20000+1"]) {
+for (const filter of ["tremolo=d=0b1", "tremolo=d=0o1", "tremolo=d=1/0", "tremolo=d=0/0", "tremolo=f=1/0", "tremolo=f=0/0", "tremolo=d=1+1", "tremolo=d=1-2", "tremolo=d=1/", "tremolo=f=1/20", "tremolo=f=20000+1"]) {
   for (const graph of [false, true]) {
     it(`${filter} rejects invalid expressions without replacing output (${graph ? "graph" : "simple"})`, async () => {
       const { volume, result } = await run(filter, graph);
@@ -119,6 +119,29 @@ for (const enable of ["PI", "E", "PHI", "1", "0"]) {
         : "803e5935401f270900002709401f5935803e5935401f270900002709401f5935");
     });
   }
+}
+
+// Native FFmpeg 7.0.2 PCM for sixteen mono samples of 16000 at 8 kHz.
+for (const [enable, hex] of [
+  ["1/0", "803e5935401f270900002709401f5935803e5935401f270900002709401f5935"],
+  ["0/0", "803e803e803e803e803e803e803e803e803e803e803e803e803e803e803e803e"],
+  ["1", "803e5935401f270900002709401f5935803e5935401f270900002709401f5935"],
+  ["0", "803e803e803e803e803e803e803e803e803e803e803e803e803e803e803e803e"],
+  ["-1/2", "803e5935401f270900002709401f5935803e5935401f270900002709401f5935"],
+  ["isinf(1/0)", "803e5935401f270900002709401f5935803e5935401f270900002709401f5935"],
+  ["abs(0/0)", "803e803e803e803e803e803e803e803e803e803e803e803e803e803e803e803e"]
+] as const) {
+  for (const graph of [false, true]) it(`tremolo enable=${enable} renders native PCM (${graph ? "graph" : "simple"})`, async () => {
+    const { volume, result, stderr } = await run(
+      `asetnsamples=n=4:p=0,tremolo=f=1000:d=1:enable=${enable}`,
+      graph, [new Float64Array(16).fill(16000 / 32768)]
+    );
+    assert.equal(result.exitCode, 0, stderr);
+    const samples = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
+    const pcm = Buffer.alloc(samples.length * 2);
+    for (let i = 0; i < samples.length; i++) pcm.writeInt16LE(Math.round(samples[i]! * 32768), i * 2);
+    assert.equal(pcm.toString("hex"), hex);
+  });
 }
 
 for (const enable of ["", "unknown", "gte(t,)"]) {

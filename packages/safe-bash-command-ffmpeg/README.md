@@ -724,6 +724,7 @@ input layout. Numbered input and output channels accept signed and spaced decima
 (`c+1`, `c-0`, `c 1`); negative indices remain invalid. Unmasked PCM WAV uses FFmpeg’s default speaker order: mono, stereo,
 2.1, 4.0, 5.0, 5.1, 6.1 or 7.1 for one through eight channels. Four channels use
 `FL+FR+FC+BC`; six use `FL+FR+FC+LFE+BL+BR`. Explicit channel masks take precedence.
+`pan` accepts `threads`, `thread_type=slice`, and `extra_hw_frames` after the channel equations (for example, `pan=mono|c0=c1:threads=1`); these settings leave PCM samples unchanged.
 `-af 'pan=mono|c0=c1'` extracts the right channel and
 `-af 'pan=stereo|FL=FR|FR=FL'` swaps stereo channels. PCM16 mixing uses native Q15
 gains and rounds half steps toward positive infinity, including native 32-bit overflow

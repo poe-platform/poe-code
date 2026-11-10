@@ -1319,16 +1319,25 @@ async function panAudio(
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<{ channels: (Float32Array | Float64Array)[]; channelMask: number; channelNames: string[] }> {
   if (spec.endsWith(":")) spec = spec.slice(0, -1);
-  for (const option of spec.split(":").slice(1)) {
+  const [expression = "", ...options] = spec.split(":");
+  for (const option of options) {
     const equals = option.indexOf("=");
     const key = option.slice(0, equals).trim();
-    if (equals > 0 && [...key].every(char =>
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      const number = parseFilterExpression(option.slice(equals + 1), "pan", key === "thread_type" ? { slice: 1 } : {});
+      if (key === "thread_type"
+        ? !Number.isInteger(number) || number < -2147483648 || number > 4294967295
+        : number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
+        throw new RangeError(`pan: invalid ${key}`);
+      }
+      // Scheduling and hardware frame reservations do not change PCM samples.
+    } else if (equals > 0 && [...key].every(char =>
       (char >= "a" && char <= "z") || (char >= "A" && char <= "Z") ||
       (char >= "0" && char <= "9") || char === "_")) {
       throw new Error(`pan: unsupported option ${key}`);
-    }
+    } else throw new Error("pan: unexpected positional option");
   }
-  const [layout, ...assignments] = spec.split("|").map(value => value.trim());
+  const [layout, ...assignments] = expression.split("|").map(value => value.trim());
   const count = parseAudioChannelCount(layout ?? "");
   const names = count === undefined ? parseAudioChannelLayout(layout ?? "") : Array<string>(count).fill("");
   if (count === undefined &&
@@ -16200,6 +16209,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (msg === "pan: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("pan: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("pan:")) return { exitCode: 222 };
             if (msg.startsWith("pan:") && !msg.startsWith("pan: unsupported output layout ")) return { exitCode: 234 };
             if (msg === "transpose: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("transpose: unsupported option ")) return { exitCode: 8 };

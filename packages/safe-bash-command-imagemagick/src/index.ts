@@ -2016,7 +2016,7 @@ function* createPatternImageSteps(width: number, height: number, pattern: Return
 
 function resolveMagickSpliceGeometry(raw: string, width: number, height: number) {
     // Rectangle geometry ends at the first comma-separated field.
-    raw = raw.split(",", 1)[0]!;
+    raw = raw.split(",", 1)[0]!.replaceAll("(", "").replaceAll(")", "");
     // Splice treats @ dimensions literally and ignores # without dropping dimensions or offsets.
     let g = parseMagickGeometry(raw.replaceAll("@", "").replaceAll("#", ""));
     const dimensionSeparator = raw.toLowerCase().indexOf("x");
@@ -2067,7 +2067,7 @@ function parseMagickShaveGeometry(raw: string, image: Pick<RgbaImage, "width" | 
 
 function resolveMagickChopGeometry(raw: string, width: number, height: number) {
     // Rectangle geometry ends at the first comma-separated field.
-    raw = raw.split(",", 1)[0]!;
+    raw = raw.split(",", 1)[0]!.replaceAll("(", "").replaceAll(")", "");
     // Chop ignores the # geometry modifier without dropping dimensions or offsets.
     const g = parseMagickGeometry(raw.replaceAll("#", ""));
     if (g.aspectRatio !== undefined) {
@@ -2339,7 +2339,7 @@ function parseMagickBorderGeometry(raw: string): MagickGeometry {
 }
 
 function parseMagickRollGeometry(raw: string): MagickGeometry {
-    raw = raw.replaceAll(" ", "");
+    raw = raw.replaceAll(" ", "").replaceAll("(", "").replaceAll(")", "");
     let normalized = normalizeMagickOffsets(raw.replaceAll("#", ""));
     // Native roll consumes at most two offsets; comma, colon or a trailing dimension ends the list.
     let offsets = 0;

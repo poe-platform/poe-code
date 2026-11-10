@@ -14012,6 +14012,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredChannelNames = undefined;
                         }
                       } else if (trimmed === "pan" || trimmed.startsWith("pan=")) {
+                        // SWR accepts native and count-only layouts, but not custom speaker orders.
+                        if (!filteredChannelMask && filteredChannelNames?.some(name => name !== "")) {
+                          throw new Error("pan: unsupported input channel layout");
+                        }
                         const panned = await panAudio(trimmed.slice(4), stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
                         stretched = panned.channels;
                         filteredChannelMask = panned.channelMask;
@@ -16544,7 +16548,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "channelmap: invalid or duplicate output channel") return { exitCode: 234 };
             const unavailableChannel = msg.startsWith("channelmap: unavailable input channel") &&
               (err instanceof RangeError || msg.endsWith(" (unnamed layout)"));
-            const unsupportedPanOrder = msg.startsWith("pan: unsupported output channel order ");
+            const unsupportedPanOrder = msg.startsWith("pan: unsupported output channel order ") ||
+              msg === "pan: unsupported input channel layout";
             if (err instanceof AlimiterError || err instanceof CompandError || unavailableChannel || unsupportedPanOrder) {
               if ((unavailableChannel || unsupportedPanOrder || ((err instanceof AlimiterError || err instanceof CompandError) && err.stage === "configuration")) && outputFormat !== "null" &&
                   !isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {

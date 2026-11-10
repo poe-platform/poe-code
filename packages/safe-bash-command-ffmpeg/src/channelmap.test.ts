@@ -85,7 +85,7 @@ for (const [expression, expected, inputMask, raw, mask] of [
   ["0|1:FL+FL,channelmap=1", [right], undefined, true],
   ["0|1:FR+FR,channelmap=FR", [left], undefined, true],
   ["0|0|1:FL+FL+FR,anull,channelmap=FR", [right], undefined, true],
-  ["0|1:FR+FR,pan=stereo|c0=c0|c1=c1,channelmap=FR", [right], undefined, true],
+  ["0|1:FR+FR,channelmap=0|1:stereo,pan=stereo|c0=c0|c1=c1,channelmap=FR", [right], undefined, true],
   ["0|1:FL+FR,channelmap=FL", [left], undefined, true],
   ["0-0|1-0:FL+FL", undefined],
   ["0|1:0x80000003", undefined],

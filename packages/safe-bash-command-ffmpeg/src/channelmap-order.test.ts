@@ -4,7 +4,7 @@ import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
 const samples = [101, -901, 202, -802, 303, -703];
-for (const [filter, expected] of [
+for (const [filter, expected, exitCode = 0] of [
   ["channelmap=0|1:FR+FL,channelmap=FL", [-901, -802, -703]],
   ["channelmap=0|1:FR+FL,channelmap=FR", [101, 202, 303]],
   ["channelmap=map=FL-FR|FR-FL:channel_layout=FR+FL", samples],
@@ -12,7 +12,11 @@ for (const [filter, expected] of [
   ["channelmap=0|1:FR+FL,areverse,channelmap=FL", [-703, -802, -901]],
   ["channelmap=0|1:FR+FL,channelmap=0", [101, 202, 303]],
   ["channelmap=0|1:FR+FL,channelmap=0|1:stereo,channelmap=FL", [101, 202, 303]],
-  ["channelmap=0|1:FR+FL,pan=stereo|c0=c0|c1=c1,channelmap=FL", [101, 202, 303]]
+  ["channelmap=0|1:FR+FL,pan=stereo|c0=c0|c1=c1,channelmap=FL", [], 234],
+  ["channelmap=1|0:FR+FL,pan=stereo|c0=FL|c1=FR", [], 234],
+  ["channelmap=1|0:FL+FR,pan=stereo|c0=FL|c1=FR", [-901, 101, -802, 202, -703, 303]],
+  ["channelmap=0|1:FR+FR,pan=stereo|c0=c0|c1=c1,channelmap=FR", [], 234],
+  ["channelmap=0|1:FR+FL,channelmap=0|1:stereo,pan=stereo|c0=FL|c1=FR", samples]
 ] as const) {
   for (const complex of [false, true]) {
     it(`preserves speaker order (${complex ? "graph" : "simple"}): ${filter}`, async () => {
@@ -34,7 +38,7 @@ for (const [filter, expected] of [
         stdin: (async function* () {})(), stdout: { async write() {} },
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
-      assert.equal(result.exitCode, 0, stderr);
+      assert.equal(result.exitCode, exitCode, stderr);
       const output = volume.readFileSync("/out.raw") as Buffer;
       assert.deepEqual(Array.from({ length: output.length / 2 }, (_, index) => output.readInt16LE(index * 2)), expected);
     });

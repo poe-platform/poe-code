@@ -170,8 +170,9 @@ export async function removeSilence(
           level = Math.sqrt(Math.max(0, squares[c]! - sums[c]! * sums[c]! / size) / size);
         } else {
           const previous = i >= window ? Math.abs(channel[i - window]!) : 0;
-          sums[c] = Math.max(0, sums[c]! + (options.detection === "rms"
-            ? value * value - previous * previous : value - previous));
+          // Preserve native RMS addition/subtraction order: rounding affects zero thresholds.
+          sums[c] = Math.max(0, options.detection === "rms"
+            ? sums[c]! + value * value - previous * previous : sums[c]! + (value - previous));
           level = sums[c]! / Math.min(i + 1, window);
           if (options.detection === "rms") level = Math.sqrt(level);
         }

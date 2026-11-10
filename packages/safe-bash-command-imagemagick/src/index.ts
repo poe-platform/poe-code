@@ -4775,11 +4775,11 @@ function magickRotateCanvas(image: Pick<RgbaImage, "width" | "height" | "virtual
     const rotation = ((angle % 360) + 360) % 360;
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
     if (Math.abs(rotation - 90) < 1e-6)
-        return { width: page.height, height: page.width, x: page.height - image.height - page.y, y: page.x };
+        return { width: page.height, height: page.width, x: page.height ? page.height - image.height - page.y : page.y, y: page.x };
     if (Math.abs(rotation - 180) < 1e-6)
-        return { ...page, x: page.width - image.width - page.x, y: page.height - image.height - page.y };
+        return { ...page, x: page.width ? page.width - image.width - page.x : page.x, y: page.height ? page.height - image.height - page.y : page.y };
     if (Math.abs(rotation - 270) < 1e-6)
-        return { width: page.height, height: page.width, x: page.y, y: page.width - image.width - page.x };
+        return { width: page.height, height: page.width, x: page.y, y: page.width ? page.width - image.width - page.x : page.x };
     return page;
 }
 

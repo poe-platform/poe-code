@@ -1,4 +1,6 @@
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
+import type { HueMetadata } from "./colorspace-hue.js";
+import { maximumWorkingPixelSteps } from "./maximum-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
@@ -46,8 +48,11 @@ export function* hitAndMissPixelSteps(image: { width: number; height: number }, 
 }
 
 /** Four-channel sliding histograms; rows gives (width - 1) / 2 at each vertical offset; half-integers allow even windows. Arrays specify sparse horizontal offsets. */
-export function* morphologyPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<RgbaImage, "hasAlpha"> & Pick<StoredRgbaImage, "storedData16">>, rows: readonly MorphologyRow[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak", channels?: readonly boolean[], virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* morphologyPixelSteps(image: HueMetadata & Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<RgbaImage, "hasAlpha"> & Pick<StoredRgbaImage, "storedData16">>, rows: readonly MorphologyRow[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak", channels?: readonly boolean[], virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, highDepth = virtualPixel === "gray" || !!(image.data16 || image.storedData16);
+    const retainHue = image.magickColorspace !== undefined && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
+    if (retainHue && mode === "max") return yield* maximumWorkingPixelSteps(image, rows, channels, virtualPixel, background);
+    const working = retainHue && (mode === "mean" || mode === "rms" || mode === "standarddeviation");
     const outputHighDepth = highDepth || mode === "mean" || mode === "rms" || mode === "standarddeviation" || mode === "contrast";
     const scale = highDepth ? 257 : 1, bins = highDepth ? 65536 : 256, maximumSample = bins - 1;
     const histogram = new Float64Array(4 * bins), groups = highDepth ? new Float64Array(4 * 256) : undefined;
@@ -76,14 +81,20 @@ export function* morphologyPixelSteps(image: Pick<RgbaImage, "width" | "height" 
         groups?.fill(0);
         sums.fill(0);
         squaredSums.fill(0);
-        for (let left = 0; left < width; left += 1024) {
-            const count = Math.min(1024, width - left);
+        // Four Float64 samples per pixel keep working-plane reads within 16 KiB.
+        for (let left = 0; left < width; left += 512) {
+            const count = Math.min(512, width - left);
             const data = outputHighDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
+            const hue = retainHue ? new Float64Array(count * 4) : undefined;
             if (channels) {
                 const original = yield { kind: "read", highDepth, position: (y * width + left) * 4, length: data.length };
                 if (!original || original.length !== data.length * (highDepth ? 2 : 1)) throw new Error("Truncated morphology pixels");
                 data.set(highDepth ? new Uint16Array(original.buffer, original.byteOffset, data.length)
                     : outputHighDepth ? Uint16Array.from(original, value => value * 257) : original);
+                if (hue) {
+                    const samples = (yield { kind: "read", hue: true, position: (y * width + left) * 4, length: data.length })!;
+                    hue.set(new Float64Array(samples.slice().buffer));
+                }
             }
             for (let local = 0; local < count; local++) {
                 const x = left + local;
@@ -99,9 +110,9 @@ export function* morphologyPixelSteps(image: Pick<RgbaImage, "width" | "height" 
                             const column = typeof offsets === "number" ? first + sample : x + offsets[sample]! - (phase === 0 && x > 0 ? 1 : 0);
                             if (++work % 4096 === 0) yield;
                             const pixel = virtualPixelIndex(column, y + row - ry, width, height, virtualPixel);
-                            const bytes = pixel < 0 ? undefined : yield { kind: "read", highDepth, position: pixel * 4, length: 4 };
-                            if (pixel >= 0 && (!bytes || bytes.length !== (highDepth ? 8 : 4))) throw new Error("Truncated morphology pixels");
-                            const values = bytes ? highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes : fill;
+                            const bytes = pixel < 0 ? undefined : yield { kind: "read", hue: working, highDepth, position: pixel * 4, length: 4 };
+                            if (pixel >= 0 && (!bytes || bytes.length !== (working ? 32 : highDepth ? 8 : 4))) throw new Error("Truncated morphology pixels");
+                            const values = bytes ? working ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => value * maximumSample) : highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes : fill;
                             for (let c = 0; c < 4; c++) {
                                 if (channels && !channels[c]) continue;
                                 if (mode === "standarddeviation") {
@@ -157,9 +168,12 @@ export function* morphologyPixelSteps(image: Pick<RgbaImage, "width" | "height" 
                         value = nextValue(c, 0, 1);
                     }
                     // Q16-HDRI stores float quantum samples before rounding to 16-bit output.
+                    if (hue) hue[local * 4 + c] = Math.fround(value * 257 / scale) / 65535;
                     data[local * 4 + c] = outputHighDepth ? Math.round(Math.fround(value * 257 / scale)) : value;
                 }
             }
+            // Subsequent colorspace conversion reads this plane before the integer raster.
+            if (hue) yield { kind: "write", hue: true, position: (y * width + left) * 4, data: new Uint8Array(hue.buffer) };
             yield { kind: "write", highDepth: outputHighDepth, position: (y * width + left) * 4, data: new Uint8Array(data.buffer) };
         }
     }

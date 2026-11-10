@@ -43,7 +43,8 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         const files = new Map<string, Uint8Array>();
         const fs = new MemoryFileSystem();
         const run = (args: string[]) => mode === "sync" ? runConvertCliSync(args, files) : runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
-        const input = ["-size", "3x2", "xc:red", "-fill", "blue", "-draw", "point 0,0", "-colorspace", "CMYK"];
+        // Drawing activates alpha; explicitly disable it for these four-channel CMYK checks.
+        const input = ["-size", "3x2", "xc:red", "-fill", "blue", "-draw", "point 0,0", "-alpha", "off", "-colorspace", "CMYK"];
         const pixels = await run([...input, "-format", "%[colorspace] %[pixel:p{0,0}] %[pixel:p{1,0}]", "info:"]);
         expect(pixels.exitCode, pixels.stderr).toBe(0);
         expect(pixels.stdout.trim()).toBe("CMYK cmyk(255,255,0,0) cmyk(0,255,255,0)");
@@ -51,7 +52,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect(components.exitCode, components.stderr).toBe(0);
         expect(components.stdout).toContain("cmyk(255,255,0,0)");
         expect(components.stdout).toContain("cmyk(0,255,255,0)");
-        const neutral = await run(["-size", "2x1", "xc:black", "-fill", "white", "-draw", "point 1,0", "-colorspace", "CMYK", "-define", "connected-components:verbose=true", "-connected-components", "4", "null:"]);
+        const neutral = await run(["-size", "2x1", "xc:black", "-fill", "white", "-draw", "point 1,0", "-alpha", "off", "-colorspace", "CMYK", "-define", "connected-components:verbose=true", "-connected-components", "4", "null:"]);
         expect(neutral.exitCode, neutral.stderr).toBe(0);
         expect(neutral.stdout).toContain("cmyk(0,0,0,255)");
         expect(neutral.stdout).toContain("cmyk(0,0,0,0)");

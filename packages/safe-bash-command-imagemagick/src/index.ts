@@ -10169,7 +10169,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     const source = converted.data16 ? { ...converted, data: new Uint8Array(converted.data16.buffer, converted.data16.byteOffset, converted.data16.byteLength) } : converted;
                     return yield* applyMagickRasterSteps(converted, bilevelPixelSteps(converted.width * converted.height, !!converted.data16), signal, converted, [source]);
                 }
-                return palette ? yield* applyMagickRasterSteps(converted, quantizePixelSteps(converted.data.length, 256), signal) : converted;
+                if (!palette) return converted;
+                const output = yield* applyMagickRasterSteps(converted, quantizePixelSteps(converted.data.length, 256), signal);
+                if (!output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
+                const { magickColorspace: ignoredSpace, ...gray } = output;
+                return { ...gray, space: "b-w", channels: output.hasAlpha ? 2 : 1 };
             }, pixelOperation.maskAlpha);
         }
         else if (warpOperation) {
@@ -12789,14 +12793,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             i = pixelOperation.end;
             const palette = token === "-type" && ["palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(tokens[i]?.toLowerCase() ?? "");
             const bilevel = token === "-type" && tokens[i]?.toLowerCase() === "bilevel";
-            steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
+            steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession): Promise<StoredRgbaImage | undefined> => {
                 if (!image) return;
                 const converted = await transformStoredMagickPixels(image, backend, pixelOperation, signal);
                 if (bilevel) {
                     const source = converted.storedData16 ? { ...converted, position: converted.storedData16.position } : converted;
                     return transformStoredMagickRaster(converted, backend, bilevelPixelSteps(converted.width * converted.height, !!converted.storedData16), signal, converted, [source]);
                 }
-                return palette ? transformStoredMagickRaster(converted, backend, quantizePixelSteps(image.width * image.height * 4, 256), signal) : converted;
+                if (!palette) return converted;
+                const output = await transformStoredMagickRaster(converted, backend, quantizePixelSteps(image.width * image.height * 4, 256), signal);
+                if (!output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
+                const { magickColorspace: ignoredSpace, ...gray } = output;
+                return { ...gray, space: "b-w", channels: output.hasAlpha ? 2 : 1 };
             }, { maskAlpha: pixelOperation.maskAlpha }));
             continue;
         }

@@ -9600,6 +9600,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (rate < 1 || rate > 2147483647) throw new Error("asetrate: invalid sample rate");
                         }
                         budget.checkDuration((stretched[0]?.length ?? 0) / rate);
+                        // Capture incoming frames before changing the rate used to interpret packets.
+                        if (!audioTimestamps) {
+                          audioTimestamps = [];
+                          const length = stretched[0]?.length ?? 0;
+                          for (let start = 0, n = 0; start < length; n++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const packet = t.samples[n];
+                            const count = packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                            const end = Math.min(length, start + count);
+                            budget.allocateMemory(32);
+                            audioTimestamps.push({ start, end, pos: packet?.offset,
+                              pts: packet ? packet.pts * origRate / t.timescale : audioStartSample + start });
+                            start = end;
+                          }
+                        }
                         // Reinterpret the same PCM at the new rate, including subsequent filters.
                         origRate = rate;
                       } else if (trimmed === "asetnsamples" || trimmed.startsWith("asetnsamples=")) {

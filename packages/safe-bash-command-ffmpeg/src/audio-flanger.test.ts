@@ -111,7 +111,60 @@ for (const stereo of [false, true]) {
   }
 }
 
-for (const option of ["2::3", "2:3::", "delay=2:depth=", "delay=-1", "depth=11", "regen=96", "width=101", "speed=0", "phase=101", "shape=bad", "interp=2", "unknown=1", "delay=NaN", "delay=PI*10"]) {
+for (const [key, min, max, fallback] of [
+  ["delay", 0, 30, 0], ["depth", 0, 10, 2], ["regen", -95, 95, 0],
+  ["width", 0, 100, 71], ["speed", 0.1, 10, 0.5], ["shape", 0, 1, 0],
+  ["phase", 0, 100, 25], ["interp", 0, 1, 0]
+] as const) {
+  for (const [expression, decimal] of [["min", min], ["max", max], ["default", fallback]] as const) {
+    for (const graph of [false, true]) {
+      it(`flanger ${key}=${expression} matches its numeric control (graph=${graph})`, async () => {
+        const control = await run(`flanger=${key}=${decimal}`, 4096, true, graph);
+        assert.equal(control.result.exitCode, 0, control.stderr);
+        const actual = await run(`flanger=${key}=${expression}`, 4096, true, graph);
+        assert.equal(actual.result.exitCode, 0, actual.stderr);
+        assert.deepEqual(actual.volume.readFileSync("/out.s16"), control.volume.readFileSync("/out.s16"));
+      });
+    }
+  }
+  it(`flanger ${key}=default restores its declared default after another value`, async () => {
+    const control = await run("flanger", 4096, true);
+    assert.equal(control.result.exitCode, 0, control.stderr);
+    const actual = await run(`flanger=${key}=${max}:${key}=default`, 4096, true);
+    assert.equal(actual.result.exitCode, 0, actual.stderr);
+    assert.deepEqual(actual.volume.readFileSync("/out.s16"), control.volume.readFileSync("/out.s16"));
+  });
+}
+
+for (const [filter, controlFilter] of [
+  ["flanger=min:default:min:max:default:max:max:max", "flanger=0:2:-95:100:0.5:1:100:1"],
+  ["flanger=delay=max/2:depth=default+1:regen=(min+max)/2", "flanger=delay=15:depth=3:regen=0"]
+] as const) {
+  it(`${filter} matches its numeric control`, async () => {
+    const control = await run(controlFilter, 4096, true);
+    assert.equal(control.result.exitCode, 0, control.stderr);
+    const actual = await run(filter, 4096, true);
+    assert.equal(actual.result.exitCode, 0, actual.stderr);
+    assert.deepEqual(actual.volume.readFileSync("/out.s16"), control.volume.readFileSync("/out.s16"));
+  });
+}
+
+for (const [filter, hash] of [
+  ["flanger=width=max", "94455be957e7051f5b99ff16555bba7f2d90c5d389920f1fac289a65134d05c0"],
+  ["flanger=depth=default", "fdb04b2db81321da155640d737e69597384ccda4b5606211becbbdd6152f5b10"]
+] as const) {
+  it(`${filter} matches the native stereo PCM regression fixture`, async () => {
+    const channels = [0, 1].map(c => Float64Array.from({ length: 8000 },
+      (_, i) => ((i * 997 + c * 149) % 60001 - 30000) / 32768));
+    const { volume, result, stderr } = await run(filter, 8000, true, false, "s16le", channels);
+    assert.equal(result.exitCode, 0, stderr);
+    const pcm = volume.readFileSync("/out.s16") as Buffer;
+    assert.equal(pcm.length, 32000);
+    assert.equal(createHash("sha256").update(pcm).digest("hex"), hash);
+  });
+}
+
+for (const option of ["2::3", "2:3::", "delay=2:depth=", "delay=-1", "depth=11", "regen=96", "width=101", "speed=0", "phase=101", "shape=bad", "interp=2", "unknown=1", "delay=NaN", "delay=PI*10", "width=max+1", "speed=min/2", "depth=default+10"]) {
   it(`rejects ${option} without replacing output`, async () => {
     const { volume, result } = await run(`flanger=${option}`);
     assert.notEqual(result.exitCode, 0);

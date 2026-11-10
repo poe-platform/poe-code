@@ -6,8 +6,9 @@ export async function flangeAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
-  const options = { delay: 0, depth: 2, regen: 0, width: 71, speed: 0.5, shape: 0, phase: 25, interp: 0 };
-  const ranges = { delay: [0, 30], depth: [0, 10], regen: [-95, 95], width: [0, 100], speed: [0.1, 10], shape: [0, 1], phase: [0, 100], interp: [0, 1] };
+  const defaults = { delay: 0, depth: 2, regen: 0, width: 71, speed: 0.5, shape: 0, phase: 25, interp: 0 };
+  const options = { ...defaults };
+  const ranges = { delay: [0, 30], depth: [0, 10], regen: [-95, 95], width: [0, 100], speed: [0.1, 10], shape: [0, 1], phase: [0, 100], interp: [0, 1] } as const;
   const names = Object.keys(options) as (keyof typeof options)[];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const argumentsList = argument ? argument.split(":") : [];
@@ -20,13 +21,13 @@ export async function flangeAudio(
     else position = position === 0 ? 1 : 0;
     if (!key || !Object.hasOwn(options, key)) throw new Error(`flanger: unsupported option ${key}`);
     const value = separator < 0 ? option : option.slice(separator + 1);
+    const [min, max] = ranges[key];
     const number = parseFilterExpression(value, "flanger", {
-      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, min, max, default: defaults[key],
       ...(key === "shape" ? { sinusoidal: 0, s: 0, triangular: 1, t: 1 } : {}),
       ...(key === "interp" ? { linear: 0, quadratic: 1 } : {})
     });
-    const [min, max] = ranges[key];
-    if (!Number.isFinite(number) || number < min! || number > max!) throw new RangeError(`flanger: invalid ${key}`);
+    if (!Number.isFinite(number) || number < min || number > max) throw new RangeError(`flanger: invalid ${key}`);
     options[key] = key === "shape" || key === "interp" ? Number(number > 0.5) : number;
   }
   const size = Math.trunc((options.delay / 1000 + options.depth / 1000) * sampleRate + 2.5);

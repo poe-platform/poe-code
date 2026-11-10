@@ -10740,7 +10740,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-magnify") {
             const factor = state.magnifyMethod === "scale3x" ? 3 : 2;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                return yield* applyMagickRasterSteps({ ...image, isPalette: false }, magnifyPixelSteps(image, state.magnifyMethod), signal, { ...image, width: image.width * factor, height: image.height * factor });
+                const width = image.width * factor, height = image.height * factor;
+                const output = yield* applyMagickRasterSteps({ ...image, isPalette: false }, magnifyPixelSteps(image, state.magnifyMethod), signal, { ...image, width, height });
+                if (image.readMask) output.readMask = yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 });
+                return output;
             });
         }
         else if (t === "-adaptive-resize") {
@@ -13625,7 +13628,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && token === "-magnify") {
             const method = state.magnifyMethod, factor = method === "scale3x" ? 3 : 2;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: false }, backend, magnifyPixelSteps(image, method), signal, { ...image, width: image.width * factor, height: image.height * factor }) : undefined);
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const width = image.width * factor, height = image.height * factor;
+                const output = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, magnifyPixelSteps(image, method), signal, { ...image, width, height });
+                if (image.readMask) output.readMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
+                return output;
+            });
         } else if (!operandsOnly && token === "-adaptive-resize") {
             const geometry = tokens[++i] ?? "100%";
             validateMagickTransformGeometry(geometry, token);

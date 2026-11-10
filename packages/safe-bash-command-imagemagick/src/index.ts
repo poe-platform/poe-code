@@ -1610,7 +1610,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const resolution = meta.resolution;
   const resolutionScale = resolution?.unit === "meter" ? 100 : 1;
   const resolutionUnit = resolution?.unit ?? meta.magickUnits ?? (meta.format === "tiff" ? "inch" : undefined);
-  const defaultResolution = (meta.density ?? 72) / (resolutionUnit === "cm" ? 2.54 : 1);
+  const defaultResolution = (resolution ? 72 : meta.density ?? 72) / (resolutionUnit === "cm" || resolutionUnit === "meter" ? 2.54 : 1);
   const hasAlphaChannel = meta.hasAlpha || meta.inactiveAlpha;
   const short: Record<string, string> = {
     w: String(meta.width), h: String(meta.height), m: meta.format.toUpperCase(),
@@ -1624,8 +1624,8 @@ function* formatMagickPropertyStringSteps<Step=never>(
     d: filePath.slice(0, Math.max(0, filePath.lastIndexOf("/"))),
     o: "", u: "",
     b: `${context.byteLen ?? 0}B`, B: String(context.byteLen ?? 0),
-    x: formatSignificantMetric(resolution ? resolution.x / resolutionScale : defaultResolution, 17),
-    y: formatSignificantMetric(resolution ? resolution.y / resolutionScale : defaultResolution, 17),
+    x: formatSignificantMetric((resolution && resolution.x / resolutionScale) || defaultResolution, 17),
+    y: formatSignificantMetric((resolution && resolution.y / resolutionScale) || defaultResolution, 17),
     U: resolutionUnit === "inch" ? "PixelsPerInch" : resolutionUnit === "cm" || resolutionUnit === "meter" ? "PixelsPerCentimeter" : "Undefined",
     s: String(context.outputScene ?? context.sceneIdx ?? 0), p: String(context.listIndex ?? context.sceneIdx ?? 0), n: String(context.sceneCount ?? meta.pages ?? 1),
     N: (context.listIndex ?? context.sceneIdx ?? 0) === (context.sceneCount ?? meta.pages ?? 1) - 1 ? `${context.sceneCount ?? meta.pages ?? 1}\n` : "",
@@ -9915,7 +9915,7 @@ function setMagickType<T extends { [magickInput]?: MagickFormatContext }>(image:
 function parseMagickDensity(value: string): { width: number; height: number } {
     const geometry = parseMagickGeometry(value.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
     if (geometry.aspectRatio !== undefined) return { width: geometry.aspectRatio, height: 1 };
-    const width = geometry.width ?? 72;
+    const width = geometry.width ?? 0;
     return { width, height: geometry.height ?? width };
 }
 

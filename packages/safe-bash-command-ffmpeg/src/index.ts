@@ -10180,7 +10180,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           if (key === "enable") throw new Error("acontrast: timeline is unsupported");
                           if (key && key !== "contrast") throw new Error("acontrast: unknown option");
-                          const value = Number(raw);
+                          const value = parseFilterExpression(raw, "acontrast", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
                           if (key !== "contrast" || !raw) {
                             throw new Error("acontrast: expected contrast between 0 and 100");
                           }
@@ -13432,7 +13432,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 msg.startsWith("aformat: unsupported channel layout ")) return { exitCode: 234 };
             if (msg === "acontrast: timeline is unsupported") return { exitCode: 176 };
             if (msg === "acontrast: unknown option") return { exitCode: 8 };
-            if (msg === "acontrast: invalid expression") return { exitCode: 234 };
+            if (msg === "acontrast: invalid expression" || msg === "acontrast: invalid or unsupported expression") return { exitCode: 234 };
             if (err instanceof RangeError && msg.startsWith("acontrast:")) return { exitCode: 222 };
             if (msg.startsWith("apad packet_size:") || msg === "aloop: invalid expression" || msg === "aloop: invalid or unsupported expression" ||
                 msg === "dcshift: invalid expression" || msg === "dcshift: invalid or unsupported expression" ||

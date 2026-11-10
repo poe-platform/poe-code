@@ -3892,15 +3892,16 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
             oy = ny = cy + (img.virtualCanvas?.y ?? 0);
         }
         if (nums.length === 1) angle = nums[0]!;
-        else if (nums.length === 2) { scaleX = scaleY = nums[0] || 1; angle = nums[1]!; }
+        else if (nums.length === 2) { scaleX = scaleY = nums[0]!; angle = nums[1]!; }
         else if (nums.length >= 3) {
             ox = nx = nums[0]! - 0.5; oy = ny = nums[1]! - 0.5;
             if (nums.length === 3) angle = nums[2]!;
-            else if (nums.length === 4 || nums.length === 6) { scaleX = scaleY = nums[2] || 1; angle = nums[3]!; }
-            else { scaleX = nums[2] || 1; scaleY = nums[3] || 1; angle = nums[4]!; }
+            else if (nums.length === 4 || nums.length === 6) { scaleX = scaleY = nums[2]!; angle = nums[3]!; }
+            else { scaleX = nums[2]!; scaleY = nums[3]!; angle = nums[4]!; }
             if (nums.length === 6) { nx = nums[4]! - 0.5; ny = nums[5]! - 0.5; }
             else if (nums.length >= 7) { nx = nums[5]! - 0.5; ny = nums[6]! - 0.5; }
         }
+        if (scaleX === 0 || scaleY === 0) throw new Error("invalid argument for option ScaleRotateTranslate : 'Zero Scale Given'");
         const radians = (angle * Math.PI) / 180, cos = Math.cos(radians), sin = Math.sin(radians);
         const map: WarpPlan["map"] = (x, y) => { const dx = x - nx, dy = y - ny; return [ox + (dx * cos + dy * sin) / scaleX, oy + (-dx * sin + dy * cos) / scaleY]; };
         const derivatives = () => [cos / scaleX, sin / scaleX, -sin / scaleY, cos / scaleY] as const;

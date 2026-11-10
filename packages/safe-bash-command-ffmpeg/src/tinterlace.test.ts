@@ -9,13 +9,16 @@ for (const [filter, expected] of [
   ["null", values.map(value => [value, value])],
   ["tinterlace=mode=interleave_top", [[12,40],[40,112],[144,176],[176,232]]],
   ["tinterlace=interleave_top", [[12,40],[40,112],[144,176],[176,232]]],
+  ["tinterlace=interleave_bottom", [[40,12],[112,40],[176,144],[232,176]]],
+  ["tinterlace=5", [[40,12],[112,40],[176,144],[232,176]]],
+  ["tinterlace=mode=4.6", [[40,12],[112,40],[176,144],[232,176]]],
   ["tinterlace=4", [[12,40],[40,112],[144,176],[176,232]]],
   ...["mode=2+2", "mode=4.4", "2+2", "mode=3.5", "mode=4.5", "mode=interleave_top+0", "mode=interleave_bottom-1", "mode=PI+1"].map(value =>
     [`tinterlace=${value}`, [[12,40],[40,112],[144,176],[176,232]]] as const),
   ["trim=end_frame=7,tinterlace=mode=interleave_top", [[12,40],[40,112],[144,176]]],
   ["trim=end_frame=1,tinterlace=mode=interleave_top", []],
   ["tinterlace=mode=interleave_top,select='eq(t,0.2)'", [[40,112]]],
-  ...["mode=merge", "mode=invalid", "mode=3.4", "mode=4.6", "mode=8", "mode=0/0", "mode=1/0", "mode=2+", "mode=interleave_top:flags=1", "unknown=4"].map(value => [`tinterlace=${value}`, null] as const)
+  ...["mode=merge", "mode=invalid", "mode=3.4", "mode=8", "mode=0/0", "mode=1/0", "mode=2+", "mode=interleave_top:flags=1", "unknown=4"].map(value => [`tinterlace=${value}`, null] as const)
 ] as const) {
   it(`tinterlace weaves rows or safely rejects ${filter}`, async () => {
     const volume = Volume.fromJSON(expected === null ? { "/o01.png": "existing output" } : {});

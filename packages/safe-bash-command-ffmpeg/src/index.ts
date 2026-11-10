@@ -3781,8 +3781,8 @@ async function applyVideoFilterChain(
       if (Number.isNaN(mode)) throw new Error("tinterlace: invalid expression");
       if (mode < 0 || mode > 7) throw new RangeError("tinterlace: mode out of range [0 - 7]");
       if (positional.length !== 1 || Object.keys(named).some(key => key !== "mode") ||
-          ![1, 2, 4, 6].includes(roundToEven(mode))) {
-        throw new Error("tinterlace: only modes drop_even, drop_odd, interleave_top and interlacex2 are supported");
+          ![1, 2, 4, 5, 6].includes(roundToEven(mode))) {
+        throw new Error("tinterlace: only modes drop_even, drop_odd, interleave_top, interleave_bottom and interlacex2 are supported");
       }
       const doubleRate = roundToEven(mode) === 6;
       const output: typeof current = [];
@@ -3797,7 +3797,7 @@ async function applyVideoFilterChain(
         if (first.width !== second.width || first.height !== second.height) {
           throw new Error("tinterlace: adjacent frames must have matching dimensions");
         }
-        const topFieldFirst = doubleRate ? Boolean(first.topFieldFirst) : true;
+        const topFieldFirst = doubleRate ? Boolean(first.topFieldFirst) : roundToEven(mode) !== 5;
         const durationSeconds = doubleRate ? first.durationSeconds / 2 : first.durationSeconds + second.durationSeconds;
         if (doubleRate) {
           budget.allocateMemory(128);
@@ -3820,7 +3820,7 @@ async function applyVideoFilterChain(
             const height = Math.ceil(first.height / (plane === 0 ? 1 : vsub));
             for (let row = 0; row < height; row++) {
               if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-              const source = row % 2 === (doubleRate && topFieldFirst ? 1 : 0) ? native : second.native!;
+              const source = row % 2 === (doubleRate === topFieldFirst ? 1 : 0) ? native : second.native!;
               const start = offset + row * stride;
               pixels.set(source.pixels.subarray(start, start + stride), start);
             }
@@ -3836,7 +3836,7 @@ async function applyVideoFilterChain(
           const stride = first.width * 4;
           for (let row = 0; row < first.height; row++) {
             if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-            const source = row % 2 === (doubleRate && topFieldFirst ? 1 : 0) ? first : second;
+            const source = row % 2 === (doubleRate === topFieldFirst ? 1 : 0) ? first : second;
             combined.data.set(source.data.subarray(row * stride, (row + 1) * stride), row * stride);
           }
           delete combined.native;

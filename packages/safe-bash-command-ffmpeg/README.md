@@ -591,6 +591,8 @@ roots remain NaN during evaluation and encode as zero in PCM16 output.
 `enable=0` bypasses the filter; `enable=1` applies it. Timeline expressions use
 frame index `n` and timestamp `t`. Empty fields between `|` separators
 are skipped, including leading and trailing fields; at least one expression is required.
+Malformed `aeval` expressions exit with status 234, matching FFmpeg 7, without creating
+or replacing output files.
 Conditionals `if(condition,then[,else])` and `ifnot(condition,then[,else])` evaluate
 only the selected branch and default an omitted else to zero. For example,
 `aeval=if(n\,1/n\,0)` avoids division by zero at the first sample. Both branches

@@ -45,7 +45,7 @@ for (const [expression, expected] of [
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
       if (!expected) {
-        assert.equal(result.exitCode, 1);
+        assert.equal(result.exitCode, 234, stderr);
         assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
         return;
       }

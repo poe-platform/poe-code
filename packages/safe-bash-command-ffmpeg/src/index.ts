@@ -12945,6 +12945,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               return { exitCode: err instanceof CompandError ? err.exitCode : 234 };
             }
+            if (msg === "aeval: invalid expression" || msg === "aeval: invalid or unsupported expression") {
+              return { exitCode: 234 };
+            }
             return { exitCode: 1 };
           } finally {
             const gc = (globalThis as { gc?: () => void }).gc;

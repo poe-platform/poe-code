@@ -37,7 +37,7 @@ for (const [expression, expected] of [
 for (const expression of ["if(n)", "if(n,0,1,2)", "if(n,)", "if(n,0,)", "if(0,missing(1),0)", "if(0,unknown,0)", "if(0,1+,0)"]) {
   it(`validates skipped aeval branch syntax without overwriting output: ${expression}`, async () => {
     const { result, fs } = await run(expression);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, 234);
     assert.equal(fs.readFileSync("/out.raw", "utf8"), "keep");
   });
 }

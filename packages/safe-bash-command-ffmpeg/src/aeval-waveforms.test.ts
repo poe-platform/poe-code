@@ -123,6 +123,8 @@ for (const [expression, expected] of [
   ["isinf(0/0)", [0, 0, 0, 0]],
   ["isinf()", undefined],
   ["isinf(0,1)", undefined],
+  ["1+", undefined],
+  ["0.25junk", undefined],
   ["pi/32768", undefined],
   ["PIbanana/32768", undefined],
   ["sin()", undefined],
@@ -130,9 +132,9 @@ for (const [expression, expected] of [
   ["cosh()", undefined],
   ["cosh(0,1)", undefined]
 ] as const) {
-  for (const complex of [false, true]) {
-    it(`evaluates aeval waveforms (${complex ? "graph" : "simple"}): ${expression}`, async () => {
-      const fs = Volume.fromJSON({ "/out.raw": "keep" });
+  for (const [complex, existingOutput] of [[false, false], [true, false], [false, true], [true, true]]) {
+    it(`evaluates aeval waveforms (${complex ? "graph" : "simple"}, ${existingOutput ? "existing" : "fresh"} output): ${expression}`, async () => {
+      const fs = Volume.fromJSON(existingOutput ? { "/out.raw": "keep" } : {});
       const input = Buffer.alloc(16);
       [110, -550, 220, -660, 330, -770, 440, -880].forEach((sample, i) => input.writeInt16LE(sample, i * 2));
       fs.writeFileSync("/grid.raw", input);
@@ -147,8 +149,9 @@ for (const [expression, expected] of [
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
       if (!expected) {
-        assert.equal(result.exitCode, 1);
-        assert.equal(fs.readFileSync("/out.raw", "utf8"), "keep");
+        assert.equal(result.exitCode, 234, stderr);
+        if (existingOutput) assert.equal(fs.readFileSync("/out.raw", "utf8"), "keep");
+        else assert.equal(fs.existsSync("/out.raw"), false);
         return;
       }
       assert.equal(result.exitCode, 0, stderr);

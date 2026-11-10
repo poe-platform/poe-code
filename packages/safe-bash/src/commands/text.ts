@@ -11,6 +11,7 @@ import { createSortCommand } from "./sort/index.js";
 import { SortWork, sortRecords } from "safe-bash-command-sort/work";
 import { compareObservedEntries } from "./copy-identity.js";
 import { openFileOutput, writeFileOutput } from "../contracts/filesystem-output.js";
+import { gnuInformationSync } from "./gnu-information.js";
 
 interface CutRange { start: number; end: number }
 
@@ -238,7 +239,37 @@ async function emitRecords(context: CommandContext, records: ByteSource, destina
 }
 
 async function executeCutGeneral(context: CommandContext): Promise<{ exitCode: number }> {
-      const parsed = options(context.args, "b:c:f:d:nsz", { bytes: "b", characters: "c", fields: "f", delimiter: "d", "only-delimited": "s", "zero-terminated": "z", "output-delimiter": "output-delimiter:", complement: false });
+      const long: Readonly<Record<string, string | false>> = { bytes: "b", characters: "c", fields: "f", delimiter: "d", "only-delimited": "s", "zero-terminated": "z", "output-delimiter": "output-delimiter:", complement: false, help: false, version: false };
+      const args = [...context.args];
+      for (let index = 0; index < args.length; index++) {
+        const argument = args[index]!;
+        if (argument === "--") break;
+        if (argument.startsWith("--")) {
+          const equals = argument.indexOf("=");
+          const name = argument.slice(2, equals < 0 ? undefined : equals);
+          const matches = Object.hasOwn(long, name) ? [name] : Object.keys(long).filter(option => option.startsWith(name));
+          if (matches.length > 1) throw new PublicDiagnostic(`option '--${name}' is ambiguous; possibilities: ${matches.map(option => `'--${option}'`).join(" ")}`);
+          if (matches.length === 0) throw new UsageError(`unrecognized option '${argument}'`);
+          const option = matches[0]!;
+          args[index] = `--${option}${equals < 0 ? "" : argument.slice(equals)}`;
+          if ((option === "help" || option === "version") && equals < 0) {
+            const information = gnuInformationSync("cut", args.slice(0, index + 1));
+            if (information !== undefined) {
+              await output(context, information);
+              return { exitCode: 0 };
+            }
+          }
+          const alias = long[option];
+          if (equals < 0 && typeof alias === "string" && (alias.endsWith(":") || "bcfd".includes(alias))) index++;
+        } else if (argument.startsWith("-")) {
+          for (let offset = 1; offset < argument.length; offset++) {
+            if (!"bcfd".includes(argument[offset]!)) continue;
+            if (offset === argument.length - 1) index++;
+            break;
+          }
+        }
+      }
+      const parsed = options(args, "b:c:f:d:nsz", long);
       await assertInputRequirements(context, parsed.operands);
       const modes = ["b", "c", "f"].filter(mode => parsed.flags.has(mode));
       if (modes.length !== 1) throw new UsageError("exactly one byte, character, or field list is required");

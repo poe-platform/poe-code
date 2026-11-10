@@ -10172,11 +10172,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-statistic") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const statType = tokens[++i] ?? "median";
-            validateMagickStatistic(statType);
             const geom = tokens[++i] ?? "3x3";
-            validateMagickStatisticGeometry(geom);
-            const plan = magickMorphologyPlan(statType, geom, true);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                const context = { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties };
+                const method = yield* formatMagickPropertyStringSteps(statType, im, () => im, context);
+                validateMagickStatistic(method);
+                const geometry = yield* formatMagickPropertyStringSteps(geom, im, () => im, context);
+                validateMagickStatisticGeometry(geometry);
+                const plan = magickMorphologyPlan(method, geometry, true);
                 return (yield* applyMagickMorphology4ChSteps(im, plan, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.virtualPixel, state.background));
             });
         }
@@ -12224,20 +12227,28 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     image = { ...image, space: "srgb", channels: 4 };
                 return { ...await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, backgroundExplicit ? background : image.backgroundColor ?? background), signal, layout), virtualCanvas: layout.virtualCanvas };
             });
-        } else if (!operandsOnly && (token === "-morphology" || token === "-statistic")) {
-            const method = (tokens[++i] ?? (token === "-morphology" ? "dilate" : "median")).toLowerCase();
+        } else if (!operandsOnly && token === "-statistic") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
+            const statType = tokens[++i] ?? "median", geom = tokens[++i] ?? "3x3";
+            const optionProperties = state.optionProperties, virtualPixel = state.virtualPixel, background = state.background;
+            const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const context = { ...(image as StoredMagickImage)[magickInput], optionProperties };
+                const method = await formatRetainedIdentify(statType, image, context, async () => ({ image, storage: backend.storage }), signal);
+                validateMagickStatistic(method);
+                const geometry = await formatRetainedIdentify(geom, image, context, async () => ({ image, storage: backend.storage }), signal);
+                validateMagickStatisticGeometry(geometry);
+                return morphStoredMagickImage(image, backend, magickMorphologyPlan(method, geometry, true), signal, channels, virtualPixel, background);
+            });
+        } else if (!operandsOnly && token === "-morphology") {
+            const method = (tokens[++i] ?? "dilate").toLowerCase();
             let spec = "";
-            if (token === "-statistic") {
-                stackStep(async stack => {
-                    if (!stack.length) throw new Error(`no images found for operation '${token}'`);
-                    return stack;
-                });
-                validateMagickStatistic(tokens[i] ?? "median");
-                spec = tokens[++i] ?? "3x3";
-                validateMagickStatisticGeometry(spec);
-            }
-            else if (tokens[i + 1] && !tokens[i + 1]!.startsWith("-") && !tokens[i + 1]!.startsWith("+")) spec = tokens[++i]!;
-            if (token === "-morphology" && (method.split(":")[0] === "convolve" || method.split(":")[0] === "correlate")) {
+            if (tokens[i + 1] && !tokens[i + 1]!.startsWith("-") && !tokens[i + 1]!.startsWith("+")) spec = tokens[++i]!;
+            if (method.split(":")[0] === "convolve" || method.split(":")[0] === "correlate") {
                 const { iterations } = parseMagickMorphologyMethod(method);
                 const kernel = parseMagickConvolveKernel(spec, false, method.split(":")[0] === "convolve");
                 steps.push(async (image, backend) => {
@@ -12246,10 +12257,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     return image;
                 });
             } else {
-                const plan = magickMorphologyPlan(method, spec, token === "-statistic");
+                const plan = magickMorphologyPlan(method, spec);
                 const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
-                const virtualPixel = token === "-statistic" ? state.virtualPixel : undefined, background = state.background;
-                steps.push(async (image, backend) => image ? morphStoredMagickImage(image, backend, plan, signal, channels, virtualPixel, background) : undefined);
+                const background = state.background;
+                steps.push(async (image, backend) => image ? morphStoredMagickImage(image, backend, plan, signal, channels, undefined, background) : undefined);
             }
         } else if (!operandsOnly && token === "-shade") {
             const spec = tokens[++i] ?? "", background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? { ...state.channels } : undefined, intensity = state.intensity;

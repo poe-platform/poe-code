@@ -33,7 +33,7 @@ for (const mode of ["magick", "montage", "retained", "buffered", "sync"] as cons
       : await runMontageCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
     expect("stderr" in result ? result.stderr : stderr).toBe("");
     expect(result.exitCode).toBe(0);
-    const output = "stdoutBytes" in result ? result.stdoutBytes : Buffer.concat(chunks);
+    const output = "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : Buffer.concat(chunks);
     expect(Buffer.from(output!).toString("hex")).toBe("50360a3220320a3235350a" + expected);
   });
 }

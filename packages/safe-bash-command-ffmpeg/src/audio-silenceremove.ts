@@ -38,8 +38,8 @@ export async function removeSilence(
       if (!["any", "all", "0", "1"].includes(value)) throw new Error(`silenceremove: invalid ${key}`);
       options[key] = value === "0" || value === "any" ? "any" : "all";
     } else if (key === "detection") {
-      if (!["avg", "rms", "peak", "ptp", "dev", "0", "1", "2", "4", "5"].includes(value)) throw new Error("silenceremove: supported detection modes are avg, rms, peak, ptp and dev");
-      options.detection = value === "4" ? "ptp" : value === "5" ? "dev" : ["avg", "rms", "peak"][Number(value)] ?? value;
+      if (!["avg", "rms", "peak", "median", "ptp", "dev", "0", "1", "2", "3", "4", "5"].includes(value)) throw new Error("silenceremove: supported detection modes are avg, rms, peak, median, ptp and dev");
+      options.detection = ["avg", "rms", "peak", "median", "ptp", "dev"][Number(value)] ?? value;
     } else if (key === "timestamp" && (value === "write" || value === "0")) {
       // The audio pipeline emits a contiguous timeline.
     } else if (key === "start_periods" || key === "stop_periods" || key === "start_threshold" ||
@@ -79,6 +79,8 @@ export async function removeSilence(
     const squares = options.detection === "dev" ? new Float64Array(output.length) : undefined;
     // Monotonic queues keep peak detection linear even for long windows.
     const peaks = trackPeaks ? output.map(() => new Uint32Array(length)) : [];
+    if (options.detection === "median") budget.allocateMemory(output.length * window * 8);
+    const medians = options.detection === "median" ? output.map(() => new Float64Array(window)) : [];
     const fronts = output.map(() => 0);
     const backs = output.map(() => 0);
     let count = 0;
@@ -103,7 +105,31 @@ export async function removeSilence(
         const channel = output[c]!;
         const value = peakToPeak ? channel[i]! : Math.abs(channel[i]!);
         let level: number;
-        if (trackPeaks) {
+        if (options.detection === "median") {
+          // FFmpeg selects the middle of a descending queue, retaining equal
+          // values. Expiration compares values, not sample positions.
+          const queue = medians[c]!;
+          let front = fronts[c]!;
+          let back = backs[c]!;
+          let empty = front === back && queue[front] === -1;
+          const previous = i >= window ? Math.abs(channel[i - window]!) : 0;
+          if (!empty && previous === queue[front]) {
+            queue[front] = -1;
+            if (back !== front) front = (front + window - 1) % window;
+            empty = front === back;
+          }
+          while (!empty && value > queue[back]!) {
+            queue[back] = -1;
+            if (back === front) { empty = true; break; }
+            back = (back + 1) % window;
+          }
+          if (!empty) back = (back + window - 1) % window;
+          queue[back] = value;
+          const size = (front - back + window) % window + 1;
+          level = queue[(back + Math.floor(size / 2)) % window]!;
+          fronts[c] = front;
+          backs[c] = back;
+        } else if (trackPeaks) {
           const queue = peaks[c]!;
           let front = fronts[c]!;
           let back = backs[c]!;

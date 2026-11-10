@@ -11132,7 +11132,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         const delay = (prior.delay?.[(prior as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0) +
                             (current.delay?.[(current as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0);
                         const survivor = optimizePlus ? prior : current;
-                        frames[frames.length - 1] = { ...survivor, [magickInput]: { ...(survivor as MagickImage)[magickInput], delayTicks: Math.round(delay * ((survivor as MagickImage)[magickInput]?.ticksPerSecond ?? 100) / 1000) }, delay: Array(survivor.delay?.length ?? 1).fill(delay) };
+                        // RemoveDuplicateLayers uses the preceding rate for the count, then resets the rate to 100.
+                        const ticksPerSecond = optimizePlus ? (survivor as MagickImage)[magickInput]?.ticksPerSecond ?? 100 : 100;
+                        const delayTicks = optimizePlus ? Math.round(delay * ticksPerSecond / 1000)
+                            : Math.floor(delay * ((prior as MagickImage)[magickInput]?.ticksPerSecond ?? prior.ticksPerSecond ?? 100) / 1000);
+                        frames[frames.length - 1] = { ...survivor, ticksPerSecond, delayTicks,
+                            [magickInput]: { ...(survivor as MagickImage)[magickInput], ticksPerSecond, delayTicks },
+                            delay: Array(survivor.delay?.length ?? 1).fill(optimizePlus ? delay : delayTicks * 10) };
                     }
                 } else if (next.value) frames.push({ ...yield* extractImageSteps(current, next.value), virtualCanvas: magickCropCanvas(current, next.value.left, next.value.top) });
             }
@@ -14241,10 +14247,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             const delay = (await prior.storedDelay?.at(priorScene, { signal }) ?? prior.delay?.[priorScene] ?? 0) +
                                 (await current.storedDelay?.at(scene, { signal }) ?? current.delay?.[scene] ?? 0);
                             const survivor = optimizePlus ? prior : current;
-                            await frames.set(frames.length - 1, { ...survivor, [magickInput]: { ...survivor[magickInput], delayTicks: Math.round(delay * (survivor[magickInput]?.ticksPerSecond ?? 100) / 1000) }, storedDelay: {
-                                length: survivor.storedDelay?.length ?? survivor.delay?.length ?? 1,
-                                async at() { return delay; },
-                            } });
+                            // RemoveDuplicateLayers uses the preceding rate for the count, then resets the rate to 100.
+                            const ticksPerSecond = optimizePlus ? survivor[magickInput]?.ticksPerSecond ?? 100 : 100;
+                            const delayTicks = optimizePlus ? Math.round(delay * ticksPerSecond / 1000)
+                                : Math.floor(delay * (prior[magickInput]?.ticksPerSecond ?? prior.ticksPerSecond ?? 100) / 1000);
+                            await frames.set(frames.length - 1, { ...survivor, ticksPerSecond, delayTicks,
+                                [magickInput]: { ...survivor[magickInput], ticksPerSecond, delayTicks }, storedDelay: {
+                                    length: survivor.storedDelay?.length ?? survivor.delay?.length ?? 1,
+                                    async at() { return optimizePlus ? delay : delayTicks * 10; },
+                                } });
                         }
                     } else if (next.value) await frames.push({ ...await transformStoredImage(current, backend.storage, { kind: "extract", ...next.value }, signal), virtualCanvas: magickCropCanvas(current, next.value.left, next.value.top) });
                     previous = current;

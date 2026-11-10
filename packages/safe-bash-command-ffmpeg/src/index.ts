@@ -10527,6 +10527,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
+                        const lastFrame = audioTimestamps.at(-1);
+                        const paddingPts = lastFrame ? lastFrame.pts + lastFrame.end - lastFrame.start : audioStartSample;
                         if (padding === undefined && minimum === undefined) {
                           let nextIndex = filterIndex + 1;
                           let reframed = false;
@@ -10541,8 +10543,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const { duration, startPts, endPts, startSample, endSample } = parseAtrim(
                               next.includes("=") ? next.slice(next.indexOf("=") + 1) : "", origRate);
                             const frames = audioTimestamps ?? [{ start: 0, end: inputLength, pts: audioStartSample }];
-                            const last = frames.at(-1);
-                            const paddingPts = last ? last.pts + last.end - last.start : audioStartSample;
                             let firstPts: number | undefined;
                             for (const frame of frames) {
                               if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -10566,15 +10566,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                           }
                           if (minimum === undefined) {
-                            const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
-                            if (endSeconds === undefined && maxAudioFrames === undefined) {
+                            const duration = outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0));
+                            if (duration === undefined && maxAudioFrames === undefined) {
                               throw new Error("apad: a finite padding or minimum length is required");
                             }
                             // Output duration starts at the first retained frame, or the output seek if later.
-                            const firstPts = audioTimestamps?.[0]?.pts ?? audioStartSample;
                             const seek = Math.round((outputSs ?? 0) * origRate);
-                            minimum = endSeconds === undefined ? Infinity
-                              : Math.max(0, Math.round(endSeconds * origRate) - Math.min(firstPts, seek));
+                            const firstPts = Math.max(audioTimestamps[0]?.pts ?? audioStartSample,
+                              outputSs === undefined ? -Infinity : seek);
+                            // Padding starts at the final frame's end, which can differ from the sample count.
+                            minimum = duration === undefined ? Infinity
+                              : inputLength + Math.max(0, firstPts + Math.round(duration * origRate) - paddingPts);
                             if (maxAudioFrames !== undefined) {
                               minimum = Math.min(minimum, inputLength + Math.max(0, maxAudioFrames - audioTimestamps.length) * packetSize);
                             }
@@ -10596,8 +10598,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         if (!enabled) continue;
-                        const lastFrame = audioTimestamps.at(-1);
-                        const paddingPts = lastFrame ? lastFrame.pts + lastFrame.end - lastFrame.start : audioStartSample;
                         if (length > inputLength) {
                           budget.allocateMemory(Math.ceil((length - inputLength) / packetSize) * 24);
                         }

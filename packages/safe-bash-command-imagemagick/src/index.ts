@@ -6966,7 +6966,9 @@ function parseMagickIndices(spec: string): number[][] {
     // A dash after optional whitespace continues this range, not a negative list entry.
     if (spec[position] === "-") {
       position++;
-      values.push(readIndex());
+      while (position < spec.length && !spec[position]!.trim()) position++;
+      // Native treats an omitted range endpoint as frame zero.
+      values.push(position === spec.length || spec[position] === "," ? 0 : readIndex());
     } else if (position > end) {
       parts.push(values);
       continue;

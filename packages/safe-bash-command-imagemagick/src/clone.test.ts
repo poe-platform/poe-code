@@ -25,7 +25,15 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
             { args: ["r.png", "g.png", "b.png", "-duplicate", `1,${spec}`], pixels: [red, green, blue, green, blue] },
             { args: ["r.png", "g.png", "b.png", "-delete", spec], pixels: [red] }
         ]),
-        ...["1 x", "1 2x", "1 -", "1 1.5", "1 2-", " "].flatMap(spec => [
+        ...[
+            { spec: "1 -", tail: [green, red], remaining: [red, green, blue] },
+            { spec: "1 2-", tail: [green, blue, green, red], remaining: [red, blue] }
+        ].flatMap(({ spec, tail, remaining }) => [
+            { args: ["r.png", "g.png", "b.png", "-clone", spec], pixels: [red, green, blue, ...tail] },
+            { args: ["r.png", "g.png", "b.png", "-duplicate", `1,${spec}`], pixels: [red, green, blue, ...tail] },
+            { args: ["r.png", "g.png", "b.png", "-delete", spec], pixels: remaining }
+        ]),
+        ...["1 x", "1 2x", "1 1.5", " "].flatMap(spec => [
             { args: ["r.png", "g.png", "b.png", "-clone", spec], pixels: null },
             { args: ["r.png", "g.png", "b.png", "-duplicate", `1,${spec}`], pixels: null },
             { args: ["r.png", "g.png", "b.png", "-delete", spec], pixels: null }

@@ -107,7 +107,7 @@ For RGB files, `-interlace Partition` reads and writes separate `.R`, `.G`, and 
 
 `-colorspace Lab` converts to working CIELab values for pixel inspection and connected-component analysis; converting back to `sRGB` restores RGB pixels.
 
-`-colorspace XYZ`, `-colorspace YCbCr`, and `-colorspace YUV` convert sRGB pixels to CIE XYZ, YCbCr, or YUV, preserve alpha, and expose converted values in pixel and channel expressions. Converting back to `sRGB` restores RGB pixels.
+`-colorspace XYZ`, `-colorspace YCbCr`, `-colorspace YUV`, and `-colorspace OHTA` convert sRGB pixels to CIE XYZ, YCbCr, YUV, or OHTA, preserve alpha, and expose converted values in pixel and channel expressions. Converting back to `sRGB` restores RGB pixels.
 
 Use `TIFF64:out.tif` to write BigTIFF at `out.tif`, including intermediate `-write` outputs; ordinary `TIFF:` output stays classic TIFF. TIFF input reads all pages for sequence operations and `identify`; use `file.tiff[1]` to select the second page with its own dimensions and metadata. Use `-define tiff:rows-per-strip=N` to set TIFF strip height for final output and `-write`; `+define tiff:rows-per-strip` restores the default. Use `-define tiff:endian=msb|lsb` to select TIFF byte order, including intermediate `-write` outputs; `+define tiff:endian` restores little-endian output. Use `-define tiff:tile-geometry=32x16` for tiled TIFF output, including partial edge tiles; dimensions must be positive multiples of 16. `+define tiff:tile-geometry` restores strips. Use `-define tiff:alpha=associated|unassociated|unspecified` to select alpha metadata and sample encoding; associated output multiplies every sample, including alpha, by alpha. `+define tiff:alpha` restores unassociated output.
 

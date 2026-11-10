@@ -997,6 +997,24 @@ function parseFilterChain(filterChainStr: string): string[] {
   return filters;
 }
 
+function parseAsetnsamples(argument: string) {
+  let size = 1024;
+  let pad = true;
+  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+    const separator = option.indexOf("=");
+    const key = separator < 0 ? ["n", "p"][index] : option.slice(0, separator);
+    const value = separator < 0 ? option : option.slice(separator + 1);
+    if (key === "n" || key === "nb_out_samples") {
+      size = Number(value);
+      if (!value || !Number.isInteger(size) || size < 1 || size > 2147483647) throw new Error("asetnsamples: invalid frame size");
+    } else if (key === "p" || key === "pad") {
+      if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(value)) throw new Error("asetnsamples: invalid pad");
+      pad = ["1", "true", "yes", "on"].includes(value);
+    } else throw new Error(`asetnsamples: unsupported option ${key}`);
+  }
+  return { size, pad };
+}
+
 function parseAtrim(argument: string, origRate: number) {
   let duration = 0;
   const bounds = new Map<string, number>();
@@ -9585,21 +9603,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // Reinterpret the same PCM at the new rate, including subsequent filters.
                         origRate = rate;
                       } else if (trimmed === "asetnsamples" || trimmed.startsWith("asetnsamples=")) {
-                        let size = 1024;
-                        let pad = true;
-                        const argument = trimmed === "asetnsamples" ? "" : trimmed.slice("asetnsamples=".length);
-                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
-                          const separator = option.indexOf("=");
-                          const key = separator < 0 ? ["n", "p"][index] : option.slice(0, separator);
-                          const value = separator < 0 ? option : option.slice(separator + 1);
-                          if (key === "n" || key === "nb_out_samples") {
-                            size = Number(value);
-                            if (!value || !Number.isInteger(size) || size < 1 || size > 2147483647) throw new Error("asetnsamples: invalid frame size");
-                          } else if (key === "p" || key === "pad") {
-                            if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(value)) throw new Error("asetnsamples: invalid pad");
-                            pad = ["1", "true", "yes", "on"].includes(value);
-                          } else throw new Error(`asetnsamples: unsupported option ${key}`);
-                        }
+                        const { size, pad } = parseAsetnsamples(trimmed === "asetnsamples" ? "" : trimmed.slice("asetnsamples=".length));
                         const length = stretched[0]?.length ?? 0;
                         const padded = pad ? Math.ceil(length / size) * size : length;
                         budget.checkSamples(padded);
@@ -10602,7 +10606,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             minimum = duration === undefined ? Infinity
                               : inputLength + Math.max(0, firstPts + Math.round(duration * origRate) - paddingPts);
                             if (maxAudioFrames !== undefined) {
-                              minimum = Math.min(minimum, inputLength + Math.max(0, maxAudioFrames - audioTimestamps.length) * packetSize);
+                              // The output cap counts regrouped frames, not apad's packets.
+                              const reframe = audioFilters[filterIndex + 1];
+                              const frameSamples = reframe?.split("=", 1)[0]!.split("@", 1)[0] === "asetnsamples"
+                                ? parseAsetnsamples(reframe.includes("=") ? reframe.slice(reframe.indexOf("=") + 1) : "").size
+                                : undefined;
+                              minimum = Math.min(minimum, frameSamples === undefined
+                                ? inputLength + Math.max(0, maxAudioFrames - audioTimestamps.length) * packetSize
+                                : maxAudioFrames * frameSamples);
                             }
                           }
                         }

@@ -10712,10 +10712,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                             const end = Math.min(inputLength, offset + count);
                             const pts = frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + offset);
+                            const pos = previous ? frame?.pos : packet?.offset;
                             if (offset < regionEnd) {
                               const prefixEnd = Math.min(end, regionEnd);
                               budget.allocateMemory(24);
-                              audioTimestamps.push({ start: offset, end: prefixEnd, pts });
+                              audioTimestamps.push({ start: offset, end: prefixEnd, pts, pos });
                               if (prefixEnd === regionEnd) {
                                 for (let repeat = 0; repeat < loop!; repeat++) {
                                   for (let sample = 0; sample < regionLength; sample += 1024) {
@@ -10732,7 +10733,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               const tailStart = Math.max(offset, regionEnd);
                               budget.allocateMemory(24);
                               audioTimestamps.push({ start: tailStart + repeatedLength, end: end + repeatedLength,
-                                pts: pts + tailStart - offset + repeatedLength });
+                                pts: pts + tailStart - offset + repeatedLength, pos });
                             }
                             offset = end;
                           }

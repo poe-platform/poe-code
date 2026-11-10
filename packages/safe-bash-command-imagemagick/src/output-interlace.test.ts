@@ -18,7 +18,7 @@ for (const mode of ["command", "sync"] as const) for (const format of ["png", "g
         { options: ["-interlace", "GIF"], interlaced: true },
         { options: ["-interlace", "pNg"], interlaced: true },
         { options: ["-interlace", "None"], interlaced: false },
-        { options: ["-interlace", "Plane", "+interlace"], interlaced: false },
+        { options: ["-interlace", "Plane", "+interlace"], interlaced: true },
         { options: [], interlaced: false }
     ])(`selects ${format} interlacing without changing pixels (${mode}, $options)`, async ({ options, interlaced }) => {
         const paths = [`/write.${format}`, `/plain.${format}`, `/final.${format}`];

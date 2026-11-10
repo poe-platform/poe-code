@@ -10679,7 +10679,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, matteColor: image.matteColor ?? state.matteColor }; });
         }
         const previousBorderColor = state.borderColor;
-        const setting = applyMagickReadSetting(tokens, state, i);
+        let setting: number | undefined;
+        if (t === "-interlace" && tokens[i + 1]?.includes("%")) {
+            const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
+            const expanded = yield* formatMagickPropertyStringSteps(tokens[i + 1]!, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+            applyMagickReadSetting([t, expanded], state, 0);
+            setting = i + 1;
+        } else setting = applyMagickReadSetting(tokens, state, i);
         if (setting === undefined && (t === "-solarize" || t === "-threshold" || ((t === "-colorize" || t === "-black-threshold" || t === "-white-threshold" || t === "-random-threshold" || t === "-range-threshold") && tokens[i + 1]?.includes("%[")) || ((t === "-modulate" || t === "-posterize" || t === "-ordered-dither") && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%")) || ((t === "-level-colors" || t === "+level-colors") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
             const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-threshold" ? "" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" || t === "-tint" ? "" : "1");
             let sceneIdx = 0;
@@ -13494,6 +13500,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async image => image ? { ...image, matteColor: image.matteColor ?? matteColor } : undefined);
         }
         const previousBorderColor = state.borderColor;
+        // Resolve property-dependent settings sequentially before capturing later settings.
+        if (!operandsOnly && token === "-interlace" && tokens[i + 1]?.includes("%")) return;
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
         if (setting !== undefined) {
             i = setting;

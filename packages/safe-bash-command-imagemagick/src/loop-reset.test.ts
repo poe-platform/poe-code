@@ -27,7 +27,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     expect(result.exitCode).toBe(0);
     expect("stderr" in result ? result.stderr : stderr).toBe("");
     const output = mode === "command" ? Buffer.concat(chunks)
-      : Buffer.from("stdoutBytes" in result ? result.stdoutBytes! : []);
+      : Buffer.from("stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : []);
     const extension = output.indexOf("NETSCAPE2.0");
     expect(extension).toBeGreaterThan(-1);
     expect([...output.subarray(extension + 11, extension + 16)]).toEqual([3, 1, repeat, 0, 0]);

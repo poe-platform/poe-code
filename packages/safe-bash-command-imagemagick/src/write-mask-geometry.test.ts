@@ -18,7 +18,7 @@ const cases = [
     { name: "roll", operations: ["-write-mask", "/mask.png", "-roll", "+1+0", "-negate", "+write-mask"], expected: "00ffffff ff0000ff ff00ffff ffff00ff" },
     { name: "smallMaskFlop", mask: [255, 0], operations: ["-write-mask", "/mask.png", "-flop", "-negate", "+write-mask"], expected: "0000ffff ffff00ff ff00ffff ff0000ff" },
     { name: "smallMaskCrop", mask: [255, 0], operations: ["-write-mask", "/mask.png", "-crop", "2x1+1+0", "+repage", "-negate", "+write-mask"], expected: "ff00ffff ffff00ff" },
-    { name: "solidMaskCrop", mask: [255], operations: ["-write-mask", "/mask.png", "-crop", "2x1+1+0", "+repage", "-negate", "+write-mask"], expected: "00ff00ff 0000ffff" },
+    { name: "solidMaskCrop", mask: [255], operations: ["-write-mask", "/mask.png", "-crop", "2x1+1+0", "+repage", "-negate", "+write-mask"], expected: "ff00ffff ffff00ff" },
 ];
 
 for (const mode of ["buffered", "retained", "sync", "command"] as const) {

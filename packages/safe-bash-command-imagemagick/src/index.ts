@@ -7369,12 +7369,24 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         evaluate = true;
         const raw = tokens[++i] ?? "";
-        const parts = raw.toLowerCase().split("x").map(part => (part.trim().endsWith("%") ? part.trim().slice(0, -1) : part).trim());
-        if (parts.length > 2 || parts.some(part => !part || !Number.isFinite(Number(part)) || Number.parseFloat(part) !== Number(part))) {
+        const geometry = [...raw.toLowerCase()].filter(character => character.trim() !== "" && character !== "%").join("").replaceAll("/", "x").replaceAll(",", "x");
+        const offset = [...geometry].findIndex((character, index) => index > 0 && "+-".includes(character) && !"ex:".includes(geometry[index - 1]!));
+        const dimensions = offset < 0 ? geometry : geometry.slice(0, offset);
+        const parts = dimensions.replaceAll(":", "x").split("x");
+        if (parts.length > 2 || parts.every(part => !part) || parts.some(part => part && (!Number.isFinite(Number(part)) || Number.parseFloat(part) !== Number(part)))
+            || offset >= 0 && !parseMagickGeometry(geometry).hasOffset) {
             throw new Error(`invalid argument '-random-threshold' '${raw}'`);
         }
+        // Native percent geometry copies an omitted first x dimension from the second.
+        let minimum = Number(parts[0] || (raw.includes("%") && raw.toLowerCase().includes("x") ? parts[1] : 0));
+        let maximum = parts[1] ? Number(parts[1]) : minimum;
+        if (dimensions.includes(":") && parts[1]) {
+            minimum /= Math.abs(maximum) < 1e-12 ? (maximum < 0 ? -1e-12 : 1e-12) : maximum;
+            maximum = 1;
+        }
         const scale = raw.includes("%") ? 65535 / 100 : 1;
-        const minimum = Number(parts[0]) * scale, maximum = Number(parts[1] ?? parts[0]) * scale;
+        minimum *= scale;
+        maximum *= scale;
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         let random = createMagickRandom(state.seed);
         apply = function* (image, pixelOffset = 0) {

@@ -12262,6 +12262,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 let background = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
                 if (state.deskewAutoCrop === "1") background = deskewBackground(image, background, [0, image.height - 1].map(y => image.data.subarray(y * image.width * 4, (y * image.width + Math.min(2, image.width)) * 4)));
                 const plan = deskewPlan(image, yield* deskewAngleSteps(image, expanded), background, state.pointFilter, state.interpolation);
+                image = discardDisassociatedAlpha(image);
                 const rotated = { ...yield* applyMagickRasterSteps(image, warpPixelSteps(image, plan, background, "background", state.kernel, state.resizeFilter), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
                 // Deskew initializes the retained read-mask channel to zero on its new canvas.
                 if (image.readMask) rotated.readMask = yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 });
@@ -15544,6 +15545,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let color = backgroundExplicit ? background : image.backgroundColor ?? background;
                 if (autoCrop === "1") color = deskewBackground(image, color, await Promise.all([0, image.height - 1].map(y => backend.storage.read(image.position + y * image.width * 4, Math.min(2, image.width) * 4))));
                 const plan = deskewPlan(image, await storedDeskewAngle(image, backend.storage, expanded, signal), color, pointFilter, interpolation);
+                image = discardDisassociatedAlpha(image);
                 const rotated = { ...await transformStoredMagickRaster(image, backend, warpPixelSteps(image, plan, color, "background", kernel, filter), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
                 // Deskew initializes the retained read-mask channel to zero on its new canvas.
                 if (image.readMask) rotated.readMask = await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);

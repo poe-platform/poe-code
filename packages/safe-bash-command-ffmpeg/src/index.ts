@@ -3862,21 +3862,38 @@ async function applyVideoFilterChain(
       }
       current = blended;
     } else if (name === "shuffleframes") {
+      for (const key of Object.keys(named)) {
+        if (key !== "mapping" && key !== "enable") throw new Error(`shuffleframes: unsupported option ${key}`);
+      }
       if (positional.length > 1 && positional.at(-1) === "") positional.pop();
-      const mapping = (named.mapping ?? (positional[0] || "0")).split("|").join(" ").split(" ").filter(Boolean).map(value => Number.parseInt(value, 10));
-      if (positional.length > 1 || Object.keys(named).some(key => key !== "mapping") ||
+      const mapping = (named.mapping ?? (positional[0]?.includes("=") ? "0" : positional[0] || "0")).split("|").join(" ").split(" ").filter(Boolean).map(value => Number.parseInt(value, 10));
+      if (positional.filter(part => !part.includes("=")).length > 1 ||
           mapping.length === 0 || mapping.some(index => !Number.isInteger(index) || index < -1 || index >= mapping.length)) {
         throw new Error("shuffleframes: mapping must contain frame indices from -1 to the group size minus one");
       }
+      if (named.enable !== undefined && current.length === 0) {
+        parseFilterExpression(named.enable, "shuffleframes enable", { n: 0, t: 0, w: 0, h: 0, pos: 0, NAN: NaN, INF: Infinity });
+      }
       const shuffled: typeof current = [];
-      for (let base = 0; base + mapping.length <= current.length; base += mapping.length) {
+      const group: typeof current = [];
+      for (const [n, frame] of current.entries()) {
+        if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+        if (named.enable !== undefined && !(Math.abs(parseFilterExpression(named.enable, "shuffleframes enable", {
+          n, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN, NAN: NaN, INF: Infinity
+        })) >= 0.5)) {
+          shuffled.push(frame);
+          continue;
+        }
+        group.push(frame);
+        if (group.length < mapping.length) continue;
         for (let slot = 0; slot < mapping.length; slot++) {
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
           const index = mapping[slot]!;
           if (index >= 0) {
-            shuffled.push({ ...current[base + index]!, ptsSeconds: current[base + slot]!.ptsSeconds });
+            shuffled.push({ ...group[index]!, ptsSeconds: group[slot]!.ptsSeconds });
           }
         }
+        group.length = 0;
       }
       current = shuffled;
     } else if (name === "loop") {
@@ -14889,6 +14906,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const msg = err instanceof Error ? err.message : String(err);
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
             if (msg === audioConversionDisabled) return { exitCode: 234 };
+            if (msg.startsWith("shuffleframes: unsupported option ")) return { exitCode: 8 };
+            if (msg === "shuffleframes: mapping must contain frame indices from -1 to the group size minus one") return { exitCode: 234 };
             if (msg === "negate: invalid expression" || msg === "negate: invalid or unsupported expression") return { exitCode: 234 };
             if ((overwrite && msg === "aecho: delay is too small") ||
                 msg === "negate: Requested components not available" || msg.startsWith("fps: frame rate:") ||

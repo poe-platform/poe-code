@@ -16,6 +16,14 @@ for (const [filter, expected] of [
   ["shuffleframes", values],
   ["shuffleframes=0", values],
   ["shuffleframes=1 0", [40, 12, 112, 72, 176, 144, 232, 204]],
+  ["shuffleframes=1 0:enable=0", values],
+  ["shuffleframes=enable=0", values],
+  ["shuffleframes=1 0:enable='bogus(n)'", null],
+  ["shuffleframes=1 0:enable=1,select='eq(t,0.1)'", [12]],
+  ["shuffleframes=1 0:enable='gte(n,3)'", [12, 40, 72, 144, 112, 204, 176]],
+  ["shuffleframes=mapping=1 0:enable=1", [40, 12, 112, 72, 176, 144, 232, 204]],
+  ["shuffleframes=1 0:enable='gte(t,0.3)'", [12, 40, 72, 144, 112, 204, 176]],
+  ["shuffleframes=1 0:enable='not(mod(n,2))'", [40, 72, 12, 112, 176, 204, 144, 232]],
   ["shuffleframes=1 0:", [40, 12, 112, 72, 176, 144, 232, 204]],
   ["shuffleframes=mapping=1 0:", [40, 12, 112, 72, 176, 144, 232, 204]],
   ["shuffleframes=1|0", [40, 12, 112, 72, 176, 144, 232, 204]],
@@ -56,7 +64,7 @@ for (const [filter, expected] of [
     const stderr = Buffer.concat(errors).toString();
     if (expected === null) {
       assert.notEqual(result.exitCode, 0, stderr);
-      assert.ok(stderr.includes("shuffleframes:"), stderr);
+      assert.ok(stderr.includes("shuffleframes"), stderr);
       assert.deepEqual(volume.toJSON(), before);
     } else {
       assert.equal(result.exitCode, 0, stderr);

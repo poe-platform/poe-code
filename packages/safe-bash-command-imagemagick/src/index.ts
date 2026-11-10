@@ -11051,9 +11051,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "+dispose") {
             delete state.disposal;
+            state.optionProperties = { ...state.optionProperties, dispose: "undefined" };
         }
         else if (t === "-dispose") {
-            state.disposal = parseMagickDisposal(tokens[++i] ?? "");
+            const value = tokens[++i] ?? "";
+            state.disposal = parseMagickDisposal(value);
+            state.optionProperties = { ...state.optionProperties, dispose: value };
         }
         else if (t === "-layers" && layerMethod === "trimbounds") {
             i++;
@@ -14173,8 +14176,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && token === "+dispose") { delete state.disposal; continue; }
-        if (!operandsOnly && token === "-dispose") { state.disposal = parseMagickDisposal(tokens[++i] ?? ""); continue; }
+        if (!operandsOnly && token === "+dispose") {
+            delete state.disposal;
+            state.optionProperties = { ...state.optionProperties, dispose: "undefined" };
+            continue;
+        }
+        if (!operandsOnly && token === "-dispose") {
+            const value = tokens[++i] ?? "";
+            state.disposal = parseMagickDisposal(value);
+            state.optionProperties = { ...state.optionProperties, dispose: value };
+            continue;
+        }
         if (!operandsOnly && token === "-tile") { state.tile = tokens[++i]; continue; }
         if (!operandsOnly && token === "-layers" && layerMethod === "trimbounds") {
             i++;

@@ -157,6 +157,43 @@ for (const graph of [false, true]) {
   }
 }
 
+for (const graph of [false, true]) {
+  for (const [filter, skipped] of [
+    ["atrim=start_sample=2,apad", 2],
+    ["atrim=start_sample=1,apad", 1],
+    ["atrim=start_sample=1,asetpts=PTS-STARTPTS,apad", 1],
+    ["atrim=start_sample=2,apad=whole_len=8", 2]
+  ] as const) {
+    for (const limit of ["-t", "-to"]) {
+      it(`${filter} pads trimmed stereo to the full ${limit} duration (${graph ? "graph" : "simple"})`, async () => {
+        const input = [101, -901, 202, -802, 303, -703];
+        const bytes = Buffer.alloc(input.length * 2);
+        input.forEach((sample, index) => bytes.writeInt16LE(sample, index * 2));
+        const volume = Volume.fromJSON({ "/out.raw": "KEEP" });
+        volume.writeFileSync("/in.raw", bytes);
+        const errors: Uint8Array[] = [];
+        const result = await createFfmpegCommand().execute({
+          args: ["-y", "-f", "s16le", "-ar", "8000", "-ac", "2", "-i", "/in.raw", ...(graph
+            ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+            limit, "0.001", "-f", "s16le", "/out.raw"],
+          cwd: "/", env: {}, signal: new AbortController().signal,
+          fs: {
+            async readFile(path: string) { return volume.readFileSync(path); },
+            async writeFile(path: string, data: Uint8Array) { volume.writeFileSync(path, data); },
+            async stat(path: string) { return volume.statSync(path); }
+          },
+          stdin: (async function* () {})(), stdout: { async write() {} },
+          stderr: { async write(data: Uint8Array) { errors.push(data); } }
+        } as never);
+        assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+        const actual = volume.readFileSync("/out.raw") as Buffer;
+        assert.deepEqual(Array.from({ length: actual.length / 2 }, (_, index) => actual.readInt16LE(index * 2)),
+          [...input.slice(skipped * 2), ...Array((8 - (3 - skipped)) * 2).fill(0)]);
+      });
+    }
+  }
+}
+
 for (const filter of ["apad", "apad=pad_len=-2", "apad=pad_len=1.5x", "apad=pad_dur=bad",
   "apad=whole_len=", "apad=pad_len=2:whole_len=10", "apad=unknown=1",
   "apad=pad_len=-1", "apad=whole_len=-1", "apad=pad_len=-1:whole_len=-1",

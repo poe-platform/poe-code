@@ -10306,7 +10306,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (endSeconds === undefined) {
                             throw new Error("apad: a finite padding or minimum length is required");
                           }
-                          minimum = Math.max(0, Math.round(endSeconds * origRate) - audioStartSample);
+                          // Output duration starts at the first retained frame, or the output seek if later.
+                          const firstPts = audioTimestamps?.[0]?.pts ?? audioStartSample;
+                          const seek = Math.round((outputSs ?? 0) * origRate);
+                          minimum = Math.max(0, Math.round(endSeconds * origRate) - Math.min(firstPts, seek));
                         }
                         const inputLength = stretched[0]?.length ?? 0;
                         const length = padding !== undefined ? inputLength + padding : Math.max(inputLength, minimum!);

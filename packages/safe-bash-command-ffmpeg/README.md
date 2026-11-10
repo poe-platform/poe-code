@@ -674,8 +674,10 @@ averaging left and right samples, or preserves mono input. `stereo` preserves
 stereo input or converts mono with equal-power gains. Lists such as `mono|stereo`
 and `stereo|mono` preserve either input layout regardless of list order.
 Every entry must be `mono` or `stereo`; invalid lists fail without replacing output.
-`aformat=sample_fmts=u8` or `s16` (alias `f`) quantizes samples through that
-intermediate PCM format, even when the output codec has higher precision.
+`aformat=sample_fmts` (alias `f`) accepts `u8`, `s16`, `s32`, `flt`,
+`fltp`, `dbl`, and `dblp`. Samples pass through the selected intermediate
+precision, even when the output codec has higher precision. Planar float and
+double formats preserve the same samples as their packed equivalents.
 `aformat=sample_rates=16000` (alias `r`) resamples at that point in the chain,
 so later filters use the selected rate. Pipe-separated lists preserve an allowed
 input rate or select the nearest allowed rate; `r=16000|8000` preserves 8 kHz,

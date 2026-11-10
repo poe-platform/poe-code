@@ -11063,10 +11063,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             continue;
                           }
                           if (key === "sample_fmts" || key === "f") {
-                            if (value !== "u8" && value !== "s16") throw new Error(`aformat: unsupported sample format ${value}`);
+                            if (!["u8", "s16", "s32", "flt", "fltp", "dbl", "dblp"].includes(value)) throw new Error(`aformat: unsupported sample format ${value}`);
                             panPcm16 = value === "s16";
                             filteredSampleFormat = value;
-                            const scale = value === "u8" ? 128 : 32768;
+                            if (value === "dbl" || value === "dblp") continue;
+                            const floating = value === "flt" || value === "fltp";
+                            const scale = value === "u8" ? 128 : value === "s32" ? 2147483648 : 32768;
                             const codec = t.codecDescriptions[0]?.codecName;
                             const truncate = value === "u8" && (codec === "pcm_s16le" || codec === "pcm_s32le" || codec === "pcm_u8");
                             const output = stretched.map(channel => new Float64Array(channel.length));
@@ -11077,6 +11079,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 budget.checkCpu();
                               }
                               for (let c = 0; c < stretched.length; c++) {
+                                if (floating) {
+                                  output[c]![i] = Math.fround(stretched[c]![i]!);
+                                  continue;
+                                }
                                 const sample = stretched[c]![i]! * scale;
                                 // Integer PCM narrows by discarding low bits; floating PCM rounds to nearest even.
                                 const lower = Math.floor(sample);

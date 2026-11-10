@@ -6,8 +6,13 @@ import { regionContains, type Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { HueMetadata } from "./colorspace-hue.js";
 
+export interface EmbossEqualization {
+    histogram?: Float64Array;
+    lookup?: Float64Array;
+}
+
 /** Native emboss diagonal Gaussian convolution followed by channel-aware equalization. */
-export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, equalization?: EmbossEqualization): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
     const hue = !cmyk && !!image.magickColorspace && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
     const highDepth = !!(image.data16 || image.storedData16);
@@ -53,12 +58,12 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
         : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
     if (cmyk) fill.push(0);
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha, channels.k] : [true, true, true, image.hasAlpha, true];
-    const histograms = Array.from({ length: channels ? stride : 1 }, () => new Float64Array(65536));
-    const lookups = histograms.map(() => new Float64Array(65536));
+    const histograms = equalization?.histogram ? [equalization.histogram] : Array.from({ length: channels ? stride : 1 }, () => new Float64Array(65536));
+    const lookups = equalization?.lookup ? [equalization.lookup] : histograms.map(() => new Float64Array(65536));
     const bin = (value: number): number => Math.max(0, Math.min(65535, Math.round(value * 257)));
     // Recompute bounded spans for the second pass, retaining floating point values
     // until equalization instead of rounding the convolution to eight bits.
-    for (let pass = 0; pass < 2; pass++) {
+    for (let pass = equalization?.lookup ? 1 : 0; pass < 2; pass++) {
         for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 512) {
             yield;
             const count = Math.min(512, width - left), sums = new Float64Array(count * stride);
@@ -162,6 +167,11 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
                 sum += histogram[i]!;
                 lookup[i] = range === 0 ? 0 : Math.fround(65535 * (sum - black) / range) / 257;
             }
+        }
+        // Default selection shares the visible intensity map with every meta plane.
+        if (pass === 0 && equalization) {
+            equalization.histogram = histograms[0]!;
+            equalization.lookup = lookups[0]!;
         }
     }
 }

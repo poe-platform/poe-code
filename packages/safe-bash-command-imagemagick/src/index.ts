@@ -100,7 +100,7 @@ import { hitAndMissPixelSteps, morphologyPixelSteps, type MorphologyRow } from "
 import { edgePixelSteps } from "./edge-kernel.js";
 import { charcoalEdgePixelSteps, charcoalPixelSteps } from "./charcoal-kernel.js";
 import { shadePixelSteps } from "./shade-kernel.js";
-import { embossPixelSteps } from "./emboss-kernel.js";
+import { embossPixelSteps, type EmbossEqualization } from "./emboss-kernel.js";
 import { convolvePixelSteps, type ConvolveKernel, type ConvolveRequest } from "./convolve-kernel.js";
 import {withCompareFiles,CompareInputFailure,type CompareFileInput,type CompareFileSession} from "./compare-file.js";
 export type {CompareFileInput} from "./compare-file.js";
@@ -11851,7 +11851,18 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const normalized = expanded.replaceAll(",", "x").replaceAll("/", "x").replaceAll("(", "").replaceAll(")", "");
                 validateMagickTransformGeometry(normalized, t);
                 const geometry = parseMagickGeometry(normalized);
-                return (yield* applyMagickRasterSteps(im, embossPixelSteps(im, geometry, state.channelExplicit ? state.channels : undefined, state.virtualPixel, state.background), signal));
+                const channels = state.channelExplicit ? state.channels : undefined;
+                const equalization: EmbossEqualization | undefined = !channels && im.metaChannels?.length ? {} : undefined;
+                const result = yield* applyMagickRasterSteps(im, embossPixelSteps(im, geometry, channels, state.virtualPixel, state.background, equalization), signal);
+                if (im.metaChannels?.length) {
+                    result.metaChannels = [];
+                    for (const [index, plane] of im.metaChannels.entries()) {
+                        const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
+                        result.metaChannels.push(selected ? yield* applyMagickRasterSteps(plane,
+                            embossPixelSteps(plane, geometry, channels ? { r: true, g: true, b: true, a: false } : undefined, state.virtualPixel, state.background, equalization), signal) : plane);
+                    }
+                }
+                return result;
             }, undefined, true);
         }
         else if (t === "-white-balance") {
@@ -15183,13 +15194,22 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             const raw = tokens[++i] ?? "", optionProperties = state.optionProperties;
             const channels = state.channelExplicit ? { ...state.channels } : undefined, virtualPixel = state.virtualPixel, background = state.background;
+            const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 const normalized = expanded.replaceAll(",", "x").replaceAll("/", "x").replaceAll("(", "").replaceAll(")", "");
                 validateMagickTransformGeometry(normalized, token);
                 const geometry = parseMagickGeometry(normalized);
-                return transformStoredMagickRaster(image, backend, embossPixelSteps(image, geometry, channels, virtualPixel, background), signal);
+                const equalization: EmbossEqualization | undefined = !channels && image.storedMetaChannels?.length ? {} : undefined;
+                const result = await transformStoredMagickRaster(image, backend, embossPixelSteps(image, geometry, channels, virtualPixel, background, equalization), signal);
+                if (image.storedMetaChannels?.length) {
+                    result.storedMetaChannels = [];
+                    for (const [index, plane] of image.storedMetaChannels.entries())
+                        result.storedMetaChannels.push(!meta || meta.includes(index) ? await transformStoredMagickRaster(plane, backend,
+                            embossPixelSteps(plane, geometry, channels ? { r: true, g: true, b: true, a: false } : undefined, virtualPixel, background, equalization), signal) : plane);
+                }
+                return result;
             }, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-canny") {
             const spec = tokens[++i] ?? "0x1+10%+30%", channels = state.channelExplicit ? { ...state.channels } : undefined, virtualPixel = state.virtualPixel, background = state.background;

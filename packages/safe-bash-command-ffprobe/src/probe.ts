@@ -337,7 +337,7 @@ export function formatAudioProbe(audio: Omit<AudioAst, "data" | "pictures">, siz
       const prefix = section === "stream" ? `${!parseWriterBoolean(settings.get("hierarchical") ?? "1") ? "" : "streams" + sep}stream${sep}${streamIndex++}` : "format";
       for (const [key, value] of fields)
         lines.push(
-          `${prefix}${sep}${key.startsWith("tag:") ? "tags" + sep + key.slice(4) : key}=${typeof value === "number" ? value : JSON.stringify(value)}`
+          `${prefix}${sep}${key.startsWith("tag:") ? "tags" + sep + key.slice(4) : key}=${typeof value === "number" ? value : '"' + value.replaceAll("\\", "\\\\").replaceAll('"', '\\"').replaceAll("\n", "\\n").replaceAll("\r", "\\r") + '"'}`
         );
     } else {
       if (!enabled("noprint_wrappers", false)) lines.push("[" + section.toUpperCase() + "]");

@@ -168,7 +168,12 @@ export async function* formatTaggedRows(rows: AsyncIterable<TaggedAudioRow>, arg
       const prefix = section === "stream" ? `${!parseWriterBoolean(settings.get("hierarchical") ?? "1") ? "" : "streams" + sep}stream${sep}${streamIndex++}` : "format";
       for await (const field of fields()) {
         yield prefix + sep + (field.tag ? "tags" + sep : ""); yield* parts(field.key); yield "=";
-        if (typeof field.value === "number") yield String(field.value); else yield* jsonString(parts(field.value));
+        if (typeof field.value === "number") yield String(field.value);
+        else {
+          yield '"';
+          yield* replace(replace(replace(replace(parts(field.value), "\\", "\\\\"), '"', '\\"'), "\n", "\\n"), "\r", "\\r");
+          yield '"';
+        }
         yield "\n";
       }
     } else {

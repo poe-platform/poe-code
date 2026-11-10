@@ -5,10 +5,11 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function removeSilence(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
+  frames: { start: number; end: number; pts: number }[],
   budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<(Float32Array | Float64Array)[]> {
+): Promise<{ channels: (Float32Array | Float64Array)[]; frames: typeof frames }> {
   const options = {
-    start_periods: 0, start_duration: 0, start_threshold: 0, start_mode: "any",
+    start_periods: 0, start_duration: 0, start_threshold: 0, start_silence: 0, start_mode: "any",
     stop_periods: 0, stop_duration: 0, stop_threshold: 0, stop_silence: 0, stop_mode: "all",
     detection: "rms", window: 0.02
   };
@@ -41,11 +42,9 @@ export async function removeSilence(
       options.detection = value === "4" ? "ptp" : value === "5" ? "dev" : ["avg", "rms", "peak"][Number(value)] ?? value;
     } else if (key === "timestamp" && (value === "write" || value === "0")) {
       // The audio pipeline emits a contiguous timeline.
-    } else if (key === "start_silence" && value === "0") {
-      // Retaining leading silence is not supported.
     } else if (key === "start_periods" || key === "stop_periods" || key === "start_threshold" ||
       key === "stop_threshold" || key === "start_duration" || key === "stop_duration" ||
-      key === "stop_silence" || key === "window") {
+      key === "start_silence" || key === "stop_silence" || key === "window") {
       const threshold = key.endsWith("threshold");
       const periods = key.endsWith("periods");
       const number = threshold ? parseFilterExpression(value, "silenceremove", {})
@@ -64,6 +63,7 @@ export async function removeSilence(
   }
 
   let output = [...channels];
+  const firstPts = frames[0]?.pts ?? 0;
   const window = Math.max(1, Math.round(options.window * sampleRate));
   const peakToPeak = options.detection === "ptp";
   const trackPeaks = options.detection === "peak" || peakToPeak;
@@ -89,6 +89,9 @@ export async function removeSilence(
     let start = length;
     if (phase === "stop") budget.allocateMemory(length * output.length * 8);
     const trimmed = phase === "stop" ? output.map(() => new Float64Array(length)) : [];
+    budget.allocateMemory(frames.length * 4);
+    const counts = new Uint32Array(frames.length);
+    let frameIndex = 0;
     for (let i = 0; i < length; i++) {
       if (i % 4096 === 0) {
         await yieldTurn(signal);
@@ -156,11 +159,40 @@ export async function removeSilence(
         }
         if (found >= 0 || retain) {
           for (let c = 0; c < output.length; c++) trimmed[c]![written] = output[c]![i]!;
+          while (frameIndex + 1 < frames.length && i >= frames[frameIndex]!.end) frameIndex++;
+          counts[frameIndex]!++;
           written++;
         }
       }
     }
-    output = phase === "start" ? output.map(c => c.subarray(start)) : trimmed.map(c => c.subarray(0, written));
+    const retention = Math.round(options.start_silence * sampleRate);
+    const retained = Math.min(retention, start + 1);
+    if (phase === "start" && retained > 0 && start < length) {
+      budget.allocateMemory((length - start + retained) * output.length * 8);
+      output = output.map(channel => {
+        const result = new Float64Array(length - start + retained);
+        // Native flush walks backward from the NEXT queue slot, then emits the
+        // triggering sample again. Preserve that order, including an unwritten zero.
+        result.set(channel.subarray(start - retained + 2, start + 1));
+        result[retained - 1] = start >= retention ? channel[start - retention]! : 0;
+        result.set(channel.subarray(start), retained);
+        return result;
+      });
+    } else {
+      output = phase === "start" ? output.map(c => c.subarray(start)) : trimmed.map(c => c.subarray(0, written));
+    }
+    const outputFrames: typeof frames = [];
+    let offset = 0;
+    for (const [n, frame] of frames.entries()) {
+      if (n % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+      const count = phase === "start" ? Math.max(0, frame.end - Math.max(frame.start, start))
+        + (frame.start <= start && start < frame.end ? retained : 0) : counts[n]!;
+      if (!count) continue;
+      budget.allocateMemory(24);
+      outputFrames.push({ start: offset, end: offset + count, pts: firstPts + offset });
+      offset += count;
+    }
+    frames = outputFrames;
   }
-  return output;
+  return { channels: output, frames };
 }

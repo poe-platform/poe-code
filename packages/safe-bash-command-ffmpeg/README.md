@@ -817,6 +817,7 @@ WebVTT input `-kind subtitles|captions|descriptions|metadata` applies to the nex
 or `dev` (standard deviation) detection with a configurable window. Numeric detector
 aliases are `0`, `1`, `2`, `4`, and `5`, respectively. Negative stop periods remove
 repeated silent sections.
+`start_silence` retains leading samples for the requested duration (seconds, `ms`, or `us`).
 `stop_silence` retains additional samples after each stop threshold is reached,
 including repeated cuts (for example, `stop_silence=2ms`). Invalid or unsupported
 options fail without replacing output.

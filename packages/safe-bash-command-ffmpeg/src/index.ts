@@ -9821,7 +9821,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
-                      } else if (filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo") {
+                      } else if (filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo") {
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
@@ -9838,7 +9838,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
-                        if (filterName === "tremolo") {
+                        if (filterName === "silenceremove") {
+                          const removed = await removeSilence(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                          stretched = removed.channels;
+                          audioTimestamps = removed.frames;
+                        } else if (filterName === "tremolo") {
                           stretched = await tremoloAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
                         } else if (filterName === "vibrato") {
                           filteredSampleFormat = "dblp";
@@ -9899,8 +9903,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             pts: frame ? frame.pts + start - frame.start : audioStartSample + start });
                         }
                         statsScale = 1;
-                      } else if (trimmed === "silenceremove" || trimmed.startsWith("silenceremove=")) {
-                        stretched = await removeSilence(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "silencedetect" || trimmed.startsWith("silencedetect=")) {
                         let noise = 0.001;
                         let duration = 2;

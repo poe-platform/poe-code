@@ -17791,7 +17791,7 @@ interface MontageArguments {
     warnings: string;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
     trim: boolean; shadow: boolean;
-    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number } | { kind: "resize" | "scale"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnails: string[]; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -17963,10 +17963,10 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "-shadow" || t === "+shadow") {
             shadow = t === "-shadow";
         }
-        else if (t === "-resize") {
+        else if (t === "-resize" || t === "-scale") {
             const geometry = argv[++i];
-            if (geometry === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -resize\n" };
-            queuedTransforms.push({ kind: "resize", geometry });
+            if (geometry === undefined) return { exitCode: 1, stdout: "", stderr: `montage: missing argument for ${t}\n` };
+            queuedTransforms.push({ kind: t === "-scale" ? "scale" : "resize", geometry });
         }
         else if (t === "-thumbnail") {
             const thumbnail = argv[++i];
@@ -18499,7 +18499,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 const tiles = transform.kind === "crop"
                     ? yield* applyMagickCropToStackSteps(image, transform.geometry, transform.gravity)
                     : [yield* ("operation" in transform ? transform.operation.apply(image)
-                        : transform.kind === "resize" ? applyMagickResizeSteps(image, transform.geometry, state.kernel, false, false, false, state.resizeFilter)
+                        : (transform.kind === "resize" || transform.kind === "scale") ? applyMagickResizeSteps(image, transform.geometry, state.kernel, false, false, transform.kind === "scale", state.resizeFilter)
                         : transform.kind === "extent" ? applyMagickExtentSteps(image, transform.geometry, transform.state, signal)
                         : transform.kind === "rotate" ? rotateImageSteps(image, transform.angle, state.background)
                         : transform.kind === "flop" ? flopImageSteps(image) : flipImageSteps(image))];
@@ -18790,9 +18790,9 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                         async function* transformTiles(tile: StoredRgbaImage, offset = 0): AsyncGenerator<StoredRgbaImage> {
                             const transform = transforms[index]![offset];
                             if (!transform) { yield tile; return; }
-                            if (transform.kind === "resize") {
+                            if (transform.kind === "resize" || transform.kind === "scale") {
                                 const resize = magickResizeOptions(tile, transform.geometry, state.kernel);
-                                if (resize) tile = await resizeStoredMagickImage(tile, backend, resize, signal, false, false, false, state.resizeFilter);
+                                if (resize) tile = await resizeStoredMagickImage(tile, backend, resize, signal, false, false, transform.kind === "scale", state.resizeFilter);
                                 yield* transformTiles(tile, offset + 1);
                                 return;
                             }

@@ -20,6 +20,7 @@ for (const mode of ["sync", "buffered", "retained"] as const) for (const little 
         const output = await read("/out.pfm"), lines: string[] = []; let offset = 0;
         while (lines.length < 3) { const end = output.indexOf(10, offset); expect(end).toBeGreaterThanOrEqual(offset); lines.push(new TextDecoder().decode(output.subarray(offset, end))); offset = end + 1; }
         expect(lines[0]).toBe(color ? "PF" : "Pf");
+        expect(lines[2]).toBe(little ? "-1.0" : "1.0");
         const outputView = new DataView(output.buffer, output.byteOffset, output.byteLength);
         expect(Array.from({ length: 6 }, (_, i) => outputView.getFloat32(offset + i * 4, Number(lines[2]) < 0))).toEqual(values);
     });

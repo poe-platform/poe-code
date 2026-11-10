@@ -25,7 +25,7 @@ export function* pfmHeader(size: number): Generator<number, { metadata: ImageMet
     if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0 || !Number.isSafeInteger(width * height * 16)) throw new Error("Invalid PFM dimensions");
     if (!Number.isFinite(scale) || scale === 0) throw new Error("Invalid PFM scale");
     if (size - offset < width * height * channels * 4) throw new Error("Truncated PFM raster");
-    return { metadata: { format: "pfm", width, height, channels, depth: "float", space: channels === 1 ? "b-w" : "srgb", hasAlpha: false, density: 72, bitsPerSample: 32, size }, offset, little: scale < 0, scale: Math.abs(scale) };
+    return { metadata: { format: "pfm", endian: scale < 0 ? "lsb" : "msb", width, height, channels, depth: "float", space: channels === 1 ? "b-w" : "srgb", hasAlpha: false, density: 72, bitsPerSample: 32, size }, offset, little: scale < 0, scale: Math.abs(scale) };
 }
 
 export function readPfmHeader(bytes: Uint8Array) {

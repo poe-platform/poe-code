@@ -53,6 +53,7 @@ export type ColorInput =
     };
 
 export interface RgbaImage {
+  readonly endian?: "lsb" | "msb";
   readonly quality?: number;
   readonly decodeWarnings?: readonly string[];
   /** Original indexed colormap as unsigned 0xAARRGGBB values, in file order. */
@@ -113,6 +114,7 @@ export interface RgbaImage {
 }
 
 export interface ImageMetadata {
+  readonly endian?: "lsb" | "msb";
   readonly decodeWarnings?: readonly string[];
   readonly jpegSamplingFactor?: string;
   readonly quality?: number;
@@ -504,6 +506,7 @@ export type ImageAstNode =
     };
 
 export interface OutputEncodeOptions {
+  readonly endian?: string | undefined;
   readonly bmpFormat?: "bmp2" | "bmp3" | "bmp4";
   /** Preserve existing EXIF only when false; PNG stores standalone orientation in orNT. */
   readonly synthesizeExif?: boolean;

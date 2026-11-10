@@ -7,7 +7,7 @@ export type StoredRawImage = StoredRgbaImage & { rawFrames?: { length: number; a
 
 export type RawCoder = "rgb" | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro" | "gray" | "graya" | "cmyk" | "cmyka";
 export type ImageFormat = RasterFormat | RawCoder;
-export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | "partition" | undefined; endian?: string | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
+export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | "partition" | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
 
 /** Search complete output sizes, including alpha and container overhead. */
 function* webpTargetQualities(options: OutputEncodeOptions): Generator<number, number, number> {

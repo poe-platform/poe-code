@@ -586,7 +586,7 @@ export function encodeImage(
       return { data, format: "gif", channels: 4 };
     }
     case "phm":
-    case "pfm": return encodePfmImage(img, fmt);
+    case "pfm": return encodePfmImage(img, fmt, options.endian);
     case "pam": {
       const data = encodePpm(img, options.netpbmDepth, false, true);
       return { data, format: "pam", channels: (img.space === "b-w" || img.space === "grey16" ? 1 : img.space === "cmyk" ? 4 : 3) + (img.hasAlpha ? 1 : 0) };

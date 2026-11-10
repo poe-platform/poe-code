@@ -79,7 +79,7 @@ it.each([
   ["compareoverlay", 0, 128, 0, true],
   ["compareoverlay", 255, 255, 255, false],
 ] as const)("%s compares alpha %i to %i with fuzz %i", (method, before, after, fuzz, changed) => {
-  const frame = { width: 1, height: 1 };
+  const frame = { width: 1, height: 1, hasAlpha: true };
   const bounds = compareLayerBounds(frame, frame, fuzz, method);
   let next = bounds.next();
   while (!next.done) {

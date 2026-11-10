@@ -11634,7 +11634,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
                 const fuzz = method === "removedups"
                     ? Math.max(previous[magickInput]?.fuzz ?? 0, current[magickInput]?.fuzz ?? 0) : state.alphaFuzz;
-                const bounds = compareLayerBounds(previous, current, fuzz, method);
+                const bounds = compareLayerBounds(previous, current, fuzz, method, removeDups ? undefined : stack[0]);
                 let next = bounds.next();
                 while (!next.done) {
                     if (!next.value) { yield; next = bounds.next(); }
@@ -14910,7 +14910,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                 }
                 const frames = new StoredImageStack(backend.storage, signal);
-                let previous = await stack.get(0);
+                const first = await stack.get(0);
+                let previous = first;
                 if (previous) await frames.push(previous);
                 for (let n = 1; n < stack.length; n++) {
                     let current = (await stack.get(n))!;
@@ -14957,7 +14958,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     const frameFuzz = method === "removedups"
                         ? Math.max(previous![magickInput]?.fuzz ?? 0, current[magickInput]?.fuzz ?? 0) : fuzz;
-                    const bounds = compareLayerBounds(previous!, current, frameFuzz, method);
+                    const bounds = compareLayerBounds(previous!, current, frameFuzz, method, removeDups ? undefined : first);
                     let next = bounds.next();
                     while (!next.done) {
                         if (!next.value) { await yieldTurn(signal); next = bounds.next(); }

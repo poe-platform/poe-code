@@ -14,8 +14,6 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
     left = Math.round(left);
     top = Math.round(top);
     const { name } = magickCompositeMode(mode);
-    const clippedCopy = clipToOverlay && !tile && name === "copy"
-        && (left < 0 || top < 0 || left + overlay.width > base.width || top + overlay.height > base.height);
     const maskDestination = ["dstin", "destin", "srcin", "in", "srcout", "out", "dstatop", "destatop"].includes(name);
     const extendSource = !clipToOverlay && (maskDestination || ["src", "source", "copy"].includes(name));
     for (let y = 0; y < base.height; y++) for (let x = 0; x < base.width;) {
@@ -48,9 +46,6 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
                 const alpha = evaluate ? new Float64Array(bytes.slice().buffer) : new Uint16Array(bytes.slice().buffer);
                 for (let i = 3; i < sourceSamples.length; i += 4) sourceSamples[i] = alpha[i]! / (evaluate ? 1 : 257);
             }
-            // Native Copy premultiplies RGB when the source crosses the canvas boundary.
-            if (clippedCopy) for (let i = 0; i < sourceSamples.length; i += 4)
-                for (let c = 0; c < 3; c++) sourceSamples[i + c]! *= sourceSamples[i + 3]! / 255;
             const dst = { ...base, hasAlpha: alphaSources?.[0].hasAlpha ?? base.hasAlpha, width: count, height: 1, data: samples };
             const src = { ...overlay, hasAlpha: alphaSources?.[1].hasAlpha ?? overlay.hasAlpha, width: count, height: 1, data: new Float64Array(count * 4) };
             for (let i = 0; i < src.data.length; i++) src.data[i] = sourceSamples[outsideX ? i % 4 : i]!;

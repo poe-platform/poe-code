@@ -70,16 +70,29 @@ export async function mixAudio(
   const frames: MediaSample[] = [];
   const totalWeight = weights.reduce((sum, weight) => sum + Math.abs(weight), 0);
   const scales = weights.map(weight => totalWeight / Math.abs(weight));
-  // Native WAV PCM frames use the largest power of two within 100 ms.
-  // amix updates normalization once per frame, including a partial frame at EOF.
-  const frameSize = 2 ** Math.floor(Math.log2(Math.max(1, Math.floor(a.sampleRate / 10))));
+  const packetIndices = tracks.map(() => 0);
+  const frameEnds = tracks.map(() => 0);
+  const fallbackFrameSize = 2 ** Math.floor(Math.log2(Math.max(1, Math.floor(a.sampleRate / 10))));
   const startPts = Math.round((tracks[0]!.samples[0]?.pts ?? 0) * a.sampleRate / tracks[0]!.timescale);
   for (let start = 0; start < length;) {
     await yieldTurn(signal);
     signal?.throwIfAborted();
     budget.checkCpu();
-    const end = Math.min(length, start + frameSize - start % frameSize,
-      ...lengths.filter(inputLength => inputLength > start));
+    for (const [index, track] of tracks.entries()) {
+      if (start >= lengths[index]!) continue;
+      while (frameEnds[index]! <= start) {
+        const packet = track.samples[packetIndices[index]!++];
+        frameEnds[index]! += packet
+          ? Math.max(0, Math.round(packet.duration * a.sampleRate / track.timescale)
+            - Math.round(((packet.skipSamples ?? 0) + (packet.discardPadding ?? 0)) * a.sampleRate / track.decodedAudio!.sampleRate))
+          : fallbackFrameSize;
+      }
+    }
+    // The first input sets the mixer frames until EOF; then drain the remaining inputs.
+    // Split at input EOF so normalization recovers over the actual partial frame.
+    const frameEnd = start < lengths[0]! ? frameEnds[0]!
+      : Math.min(...frameEnds.filter((_, index) => start < lengths[index]!));
+    const end = Math.min(length, frameEnd, ...lengths.filter(inputLength => inputLength > start));
     const activeWeight = weights.reduce((sum, weight, i) => sum + (start < lengths[i]! ? Math.abs(weight) : 0), 0);
     const gains = weights.map((weight, i) => {
       // Zero total weight must retain the native 0/0 normalization and NaN samples.

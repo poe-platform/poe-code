@@ -29,7 +29,7 @@ for (const mode of ["command", "buffered", "sync"] as const) {
                 stdout: { async write(bytes) { stdout.push(bytes.slice()); } },
                 stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
             }) : mode === "sync" ? runMagickCliSync(args, files) : await runMagickCli(args, files);
-            expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(0);
+            expect(result.exitCode).toBe(0);
             expect("stderr" in result ? result.stderr : stderr).toBe("");
             const paths = destination === "frames" ? ["/out-0", "/out-1"] : ["/out"];
             for (const [index, path] of paths.entries()) {

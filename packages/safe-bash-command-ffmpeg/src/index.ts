@@ -3771,13 +3771,18 @@ async function applyVideoFilterChain(
     } else if (name === "tinterlace") {
       const mode = named.mode ?? argStr;
       if (positional.length !== 1 || Object.keys(named).some(key => key !== "mode") ||
-          !["interleave_top", "4"].includes(mode)) {
-        throw new Error("tinterlace: only mode=interleave_top is supported");
+          !["drop_even", "1", "drop_odd", "2", "interleave_top", "4"].includes(mode)) {
+        throw new Error("tinterlace: only modes drop_even, drop_odd and interleave_top are supported");
       }
       const output: typeof current = [];
       for (let index = 0; index + 1 < current.length; index += 2) {
         const first = current[index]!;
         const second = current[index + 1]!;
+        if (["drop_even", "1", "drop_odd", "2"].includes(mode)) {
+          const selected = mode === "drop_even" || mode === "1" ? first : second;
+          output.push({ ...selected, durationSeconds: selected.durationSeconds * 2 });
+          continue;
+        }
         if (first.width !== second.width || first.height !== second.height) {
           throw new Error("tinterlace: adjacent frames must have matching dimensions");
         }

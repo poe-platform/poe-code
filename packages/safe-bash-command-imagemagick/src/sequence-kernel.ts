@@ -430,6 +430,10 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
         throw new Error(`unrecognized evaluate operator '-evaluate-sequence' '${raw}'`);
     }
     function* write(position: number, values: Uint8Array | Uint16Array | Float64Array, evaluate = false): Steps {
+        // Unselected native channels are zero in both working and encoded output.
+        if (channels) for (let offset = 0; offset < values.length; offset++) {
+            if (!channels[offset % stride] && (offset % stride !== 3 || hasAlpha)) values[offset] = 0;
+        }
         if (!cmyk) {
             // Gray stores one intensity channel in all three RGB backing slots.
             if (!colorOutput) for (let offset = 0; offset < values.length; offset += stride) {
@@ -662,10 +666,6 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 }
             }
             if (operation === "addmodulus") for (let offset = 0; offset < length; offset++) values[offset]! /= scale;
-            // Clear unselected extrema in both working samples and encoded output.
-            if ((operation === "min" || operation === "max") && channels) for (let offset = 0; offset < length; offset++) {
-                if (!channels[offset % stride] && (offset % stride !== 3 || hasAlpha)) values[offset] = 0;
-            }
             if (retainRange) {
                 // Keep HDRI arithmetic separate from the bounded encoding views.
                 const samples = Float64Array.from(values, (value, offset) => offset % stride === 3 && !hasAlpha ? 255 : highDepth ? value / 257 : value);
@@ -673,8 +673,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
             }
             const average = operation === "mean";
             for (let offset = 0; offset < length; offset++) {
-                if (average && channels && !channels[offset % stride] && (offset % stride !== 3 || hasAlpha)) data[offset] = 0;
-                else if (multiplication && (offset % stride !== 3 || hasAlpha)) data[offset] = values[offset]! * range;
+                if (multiplication && (offset % stride !== 3 || hasAlpha)) data[offset] = values[offset]! * range;
                 else if (average && (offset % stride !== 3 || hasAlpha)) data[offset] = values[offset]! / frames;
                 else if (operation === "divide" && (offset % stride !== 3 || hasAlpha)) data[offset] = values[offset]! / scale;
                 else if (offset % stride !== 3 || hasAlpha) data[offset] = cmyk ? (quantum ? values[offset]! / scale : values[offset]!) : clamp(quantum ? values[offset]! / scale : values[offset]!);

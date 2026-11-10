@@ -142,6 +142,24 @@ export function sexagesimalRow<T extends Record<string, unknown>>(row: T, sectio
   return result;
 }
 
+/** Scale measured stream/container values, leaving counts, ticks and metadata intact. */
+export function prefixRow(row: Record<string, unknown>, section: string): Record<string, unknown> {
+  if (section !== "stream" && section !== "format") return row;
+  const result = { ...row };
+  for (const key of ["sample_rate", "bit_rate", "max_bit_rate", "size", "start_time", "duration"]) {
+    const value = row[key];
+    if (typeof value !== "string") continue;
+    const [number, unit = ""] = value.split(" ");
+    let scaled = Number(number), exponent = 0;
+    if (!Number.isFinite(scaled)) continue;
+    while (Math.abs(scaled) >= 1000 && exponent < 5) { scaled /= 1000; exponent++; }
+    if (exponent === 0) continue;
+    const text = Number.isInteger(scaled) && !number!.includes(".") ? String(scaled) : scaled.toFixed(6);
+    result[key] = `${text} ${" KMGTP"[exponent]}${unit}`;
+  }
+  return result;
+}
+
 export function escapeXml(text: string): string {
   return text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&apos;");
 }

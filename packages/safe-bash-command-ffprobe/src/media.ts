@@ -9,7 +9,7 @@ import { packetHashAlgorithm, packetHash, packetSourceHash } from "./packet-hash
 import { packetHexRows, packetSourceData } from "./packet-data.js";
 import { interleaveProbeRecords } from "./interleave-records.js";
 import { parseReadIntervals, readPacketIntervals } from "./read-intervals.js";
-import { formatProbeText, xmlSection, iniSection, sexagesimalRow, isProbeText, probeJsonSteps, type ProbeOutputPart } from './probe-text.js';
+import { formatProbeText, xmlSection, iniSection, sexagesimalRow, prefixRow, isProbeText, probeJsonSteps, type ProbeOutputPart } from './probe-text.js';
 import { PagedStorage, IntegerTable } from "@poe-code/safe-fs/storage";
 import { probeStoredOgg } from "./ogg-probe.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -317,6 +317,7 @@ type AudioProbeInput = { bytes: Uint8Array; args: readonly string[] } | { audio:
 export type FfprobeFormatOptions = {
     printFormat: string;
     sexagesimal?: boolean;
+    prefix?: boolean;
     showOptionalFields?: "auto" | "always" | "never";
     showFormat: boolean;
     showStreams: boolean;
@@ -552,6 +553,7 @@ function* formatProbeSteps(probe: ProbeSourceRows, opts: FfprobeFormatOptions): 
           obj[key] = `${value} ${suffix}`;
       }
     }
+    if (opts.prefix) obj = prefixRow(obj, sectionName);
     if (entryFilter.size === 0) return obj;
     const allowed = entryFilter.get(sectionName);
     if (allowed === undefined && !entryFilter.has(`${sectionName}_side_data`) && !nestedSections.some(section => entryFilter.has(section))) return obj;
@@ -956,7 +958,7 @@ const probeSections = new Set([
 function parseProbeArguments(args: readonly string[]) {
   let printFormat = "default", showError = false, showFormat = false, showStreams = false,
     showPackets = false, showFrames = false, showChapters = false, showPrograms = false,
-    countFrames = false, countPackets = false, showData = false, unit = false, sexagesimal = false;
+    countFrames = false, countPackets = false, showData = false, unit = false, sexagesimal = false, prefix = false;
   let showPrivateData = true;
   let webvttKind: string | undefined;
   let ignoreLength = false, exportPathMetadata = false, segmentTimeMetadata = false, safe = true;
@@ -1004,6 +1006,7 @@ function parseProbeArguments(args: readonly string[]) {
     else if (arg === "-hide_banner") continue;
     else if (arg === "-of" || arg === "-print_format") printFormat = value();
     else if (arg === "-show_optional_fields") showOptionalFields = parseOptionalFields(value());
+    else if (arg === "-prefix") prefix = true;
     else if (arg === "-sexagesimal") sexagesimal = true;
     else if (arg === "-show_error") showError = true;
     else if (arg === "-show_format") showFormat = true;
@@ -1105,7 +1108,7 @@ function parseProbeArguments(args: readonly string[]) {
   const entryFilter = parseEntryFilter(showEntries);
   showPackets ||= entryFilter.has("packet") && entryFilter.get("packet")?.size !== 0;
   showFrames ||= entryFilter.has("frame") && entryFilter.get("frame")?.size !== 0;
-  return { printFormat, showError, showPrivateData, showOptionalFields, sexagesimal, unit, showFormat, showStreams, showData, showDataHash, showPackets, showFrames, showChapters, showPrograms,
+  return { printFormat, showError, showPrivateData, showOptionalFields, sexagesimal, prefix, unit, showFormat, showStreams, showData, showDataHash, showPackets, showFrames, showChapters, showPrograms,
     selectStreams, showEntries, countFrames, countPackets, webvttKind, ignoreLength, maxSize, explicitFormat, inputTarget, readIntervals, allowedExtensions, videoSize, pixelFormat, frameRate, tsFromFile, exportPathMetadata, segmentTimeMetadata, safe };
 }
 
@@ -1310,7 +1313,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
       let publishing = false;
       try {
         parsed = parseProbeArguments(args);
-        const { printFormat, showPrivateData, showOptionalFields, sexagesimal, unit, showFormat, showStreams, showPackets: requestedPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
+        const { printFormat, showPrivateData, showOptionalFields, sexagesimal, prefix, unit, showFormat, showStreams, showPackets: requestedPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
           selectStreams, showEntries, countFrames, countPackets, webvttKind, ignoreLength, maxSize, explicitFormat, inputTarget, readIntervals, allowedExtensions, videoSize, pixelFormat, frameRate, tsFromFile, exportPathMetadata, segmentTimeMetadata, safe } = parsed;
         if (readIntervals && (showFrames || countFrames)) throw new Error("read_intervals currently supports packet scans, not decoded frames");
         const showPackets = requestedPackets || !!readIntervals && countPackets;
@@ -1451,6 +1454,7 @@ export function createFfprobeCommand(options: MediaCommandsOptions = {}): Comman
           showOptionalFields,
           showPrivateData,
           sexagesimal,
+          prefix,
           unit,
           showFormat,
           showStreams,
@@ -1526,7 +1530,7 @@ export function evalSyncFfprobe(
   }
 
   try {
-    const { printFormat, showPrivateData, showOptionalFields, sexagesimal, unit, showFormat, showStreams, showPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
+    const { printFormat, showPrivateData, showOptionalFields, sexagesimal, prefix, unit, showFormat, showStreams, showPackets, showData, showDataHash, showFrames, showChapters, showPrograms,
       selectStreams, showEntries, countFrames, countPackets, webvttKind, ignoreLength, maxSize, explicitFormat, inputTarget, videoSize, pixelFormat, frameRate, tsFromFile, exportPathMetadata } = parseProbeArguments(args);
     const imagePlugin = explicitFormat ? registry.findByFormatName(explicitFormat) : registry.findByFilename(inputTarget);
     if (inputTarget.startsWith("concat:") || tsFromFile !== 0 || imagePlugin?.id === "image2" && imageSequenceFilename(inputTarget, 0) !== undefined) return undefined;
@@ -1569,6 +1573,7 @@ export function evalSyncFfprobe(
       showOptionalFields,
       showPrivateData,
       sexagesimal,
+      prefix,
       unit,
       showFormat,
       showStreams,

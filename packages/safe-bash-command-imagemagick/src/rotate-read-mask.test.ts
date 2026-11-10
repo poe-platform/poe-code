@@ -36,3 +36,34 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         expect(new TextDecoder().decode(output)).toBe(expected);
     });
 }
+
+// Native ImageMagick 7.1.2-35 Q16-HDRI RGB means for this PPM and nonuniform PGM mask.
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+    it.each([
+        { angle: "37", masked: true, clear: false, expected: "0|0|0" },
+        { angle: "23", masked: true, clear: false, expected: "0|0|0" },
+        { angle: "37", masked: true, clear: true, expected: "0.162092|0.284183|0.483922" },
+        { angle: "37", masked: false, clear: false, expected: "0.162092|0.284183|0.483922" },
+        { angle: "90", masked: true, clear: false, expected: "0.380392|0.752941|0.172549" },
+    ])(`matches native RGB means after rotation $angle (masked=$masked, clear=$clear, ${mode})`, async ({ angle, masked, clear, expected }) => {
+        const input = Buffer.concat([Buffer.from("P6\n3 2\n255\n"), Buffer.from("ff000000ff000000ffffee00991177245384", "hex")]);
+        const mask = Buffer.concat([Buffer.from("P5\n3 2\n255\n"), Buffer.from([0, 255, 0, 255, 0, 255])]);
+        const files = new Map([["/in.ppm", input], ["/mask.pgm", mask]]);
+        const filesystem = new MemoryFileSystem();
+        for (const [name, bytes] of files) await filesystem.writeFile(name, bytes);
+        const args = ["/in.ppm", "-background", "#204080", "-filter", "point", "-interpolate", "nearest",
+            ...(masked ? ["-read-mask", "/mask.pgm"] : []), "-rotate", angle, ...(clear ? ["+read-mask"] : []),
+            "-format", "%[fx:mean.r]|%[fx:mean.g]|%[fx:mean.b]", "info:/out"];
+        const argumentValues = createCommandArguments(args);
+        let stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs: filesystem,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect({ exitCode: result.exitCode, stderr: "stderr" in result ? result.stderr : stderr }).toEqual({ exitCode: 0, stderr: "" });
+        const output = mode === "retained" || mode === "command" ? await filesystem.readFile("/out") : files.get("/out")!;
+        expect(new TextDecoder().decode(output)).toBe(expected);
+    });
+}

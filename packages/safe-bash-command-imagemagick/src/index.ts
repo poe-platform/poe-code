@@ -10847,7 +10847,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const { angle: deg, applies } = parseMagickRotation(expanded);
                 if (!applies(im)) return im;
                 const plan = operation?.plan(im);
-                if (plan) return { ...yield* applyMagickRasterSteps({ ...im, isPalette: false }, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
+                if (plan) return { ...yield* applyMagickRasterSteps({ ...im, isPalette: false }, plan.steps, signal, plan),
+                    // Arbitrary rotation initializes the new read-mask channel to zero.
+                    ...(im.readMask ? { readMask: yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }) } : {}),
+                    ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
                 return { ...yield* rotateImageSteps(im, deg, state.background),
                     ...(im.readMask ? { readMask: yield* rotateImageSteps(im.readMask as BaseRgbaImage, deg) } : {}),
                     ...(im.writeMask ? { writeMask: yield* rotateImageSteps(im.writeMask, deg, state.background) } : {}),
@@ -13719,7 +13722,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const { angle, applies } = parseMagickRotation(expanded);
                 if (!applies(image)) return image;
                 const plan = operation?.plan(image);
-                if (plan) return { ...await transformStoredMagickRaster({ ...image, isPalette: false }, backend, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
+                if (plan) return { ...await transformStoredMagickRaster({ ...image, isPalette: false }, backend, plan.steps, signal, plan),
+                    ...(image.readMask ? { readMask: await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) } : {}),
+                    ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
                 return {
                     ...await transformStoredImage(image, backend.storage, { kind: "rotate", angle, background: settings.background }, signal),
                     ...(image.readMask ? { readMask: await transformStoredImage(image.readMask as BaseStoredRgbaImage, backend.storage, { kind: "rotate", angle, background: settings.background }, signal) } : {}),

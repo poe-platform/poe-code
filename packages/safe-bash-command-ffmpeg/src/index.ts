@@ -9534,7 +9534,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             tags += line;
                           }
                           if (!tags) continue;
-                          const header = `frame:${String(n).padEnd(5)}pts:${String(frame.pts).padEnd(7)} pts_time:${Number((frame.pts / origRate).toPrecision(6))}\n`;
+                          const pts = audioTimestamps?.[n]?.pts ?? frame.pts;
+                          const header = `frame:${String(n).padEnd(5)}pts:${String(pts).padEnd(7)} pts_time:${Number((pts / origRate).toPrecision(6))}\n`;
                           budget.allocateMemory(header.length * 2);
                           report += header + tags;
                         }

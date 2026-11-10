@@ -17,6 +17,15 @@ const cases: { space: string; operation: string[]; hex: string; size?: string }[
     { space: "sRGB", operation: ["-filter", "point", "-resize", "1x1"], hex: "a0403060" },
 ];
 
+// Sampling must copy every working pixel, including alpha, before conversion.
+for (const space of ["HSL", "Lab", "XYZ", "sRGB"]) cases.push({
+    space, operation: ["-sample", "200%"],
+    hex: "204080c0204080c0a0403060a0403060204080c0204080c0a0403060a0403060",
+}, {
+    space, size: "513x1", operation: ["-sample", "200%"],
+    hex: ("204080c0".repeat(1026) + "a0403060".repeat(1026)).repeat(2),
+});
+
 // Cross both output chunks and source read chunks while retaining each color block.
 for (const space of ["HSL", "Lab", "HWB", "XYZ"]) cases.push({
     space, size: "513x2", operation: ["-filter", "point", "-resize", "1026x1!"],

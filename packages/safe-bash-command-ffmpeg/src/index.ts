@@ -10275,11 +10275,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const argument = trimmed.slice("apad=".length);
                         for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
                           const separator = option.indexOf("=");
-                          const key = separator < 0 ? names[index] : option.slice(0, separator);
+                          const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
                           const value = separator < 0 ? option : option.slice(separator + 1);
                           if (key === "packet_size") {
                             packetSize = Number(value);
-                            if (!value.trim() || !Number.isInteger(packetSize) || packetSize < 1 || packetSize > 2147483647) {
+                            if (!value.trim() || !Number.isInteger(packetSize) || packetSize < 0 || packetSize > 2147483647) {
                               throw new Error("apad: invalid packet_size");
                             }
                             continue;
@@ -10313,6 +10313,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         const inputLength = stretched[0]?.length ?? 0;
                         const length = padding !== undefined ? inputLength + padding : Math.max(inputLength, minimum!);
+                        if (packetSize === 0 && length > inputLength) {
+                          throw new Error("apad: packet_size must be positive when padding is required");
+                        }
                         budget.checkDuration(length / origRate);
                         if (!audioTimestamps) {
                           audioTimestamps = [];
@@ -10330,7 +10333,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         const lastFrame = audioTimestamps.at(-1);
                         const paddingPts = lastFrame ? lastFrame.pts + lastFrame.end - lastFrame.start : audioStartSample;
-                        budget.allocateMemory(Math.ceil((length - inputLength) / packetSize) * 24);
+                        if (length > inputLength) {
+                          budget.allocateMemory(Math.ceil((length - inputLength) / packetSize) * 24);
+                        }
                         for (let start = inputLength; start < length; start += packetSize) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           audioTimestamps.push({ start, end: Math.min(length, start + packetSize),

@@ -5,6 +5,39 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
+for (const [filter, duration] of [
+  ["apad= whole_len=5", "0.003"],
+  ["apad=whole_len =5", "0.003"],
+  ["apad= whole_dur = 625us", "0.001"],
+  ["apad=whole_len=5", "0.003"],
+  ["apad= packet_size = 2: pad_len = 2", "0.003"],
+  ["apad= pad_dur = 250us", "0.003"]
+] as const) {
+  for (const graph of [false, true]) {
+    it(`${filter} accepts option whitespace with exact PCM output (${graph ? "graph" : "simple"})`, async () => {
+      const input = Buffer.alloc(12);
+      [101, -901, 202, -802, 303, -703].forEach((sample, index) => input.writeInt16LE(sample, index * 2));
+      const volume = Volume.fromJSON({ "/in.raw": input, "/out.raw": "KEEP" });
+      const errors: Uint8Array[] = [];
+      const result = await createFfmpegCommand().execute({
+        args: ["-y", "-f", "s16le", "-ar", "8000", "-ac", "2", "-i", "/in.raw", ...(graph
+          ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+          "-t", duration, "-f", "s16le", "/out.raw"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+      assert.deepEqual(volume.readFileSync("/out.raw"), Buffer.concat([input, Buffer.alloc(8)]));
+    });
+  }
+}
+
 for (const [filter, frames, padding] of [
   ["anull", 16000, 0],
   ["apad=pad_len=19", 16000, 19],
@@ -86,6 +119,50 @@ for (const [filter, frames, padding] of [
         assert.equal(channel.length, frames + padding);
         assert.deepEqual(Array.from(channel.subarray(0, frames)), Array.from(channels[index]!));
         assert.deepEqual(Array.from(channel.subarray(frames)), Array(padding).fill(0));
+      }
+    });
+  }
+}
+
+for (const [filter, succeeds] of [
+  ["apad=packet_size=0:pad_len=0", true],
+  ["apad=packet_size=0:whole_len=2", true],
+  ["apad=packet_size=0:whole_dur=0", true],
+  ["apad=packet_size=0:pad_dur=0", true],
+  ["apad=packet_size=0:whole_len=3", true],
+  ["apad=packet_size=1:whole_len=2", true],
+  ["apad=packet_size=0:pad_len=1", false],
+  ["apad=packet_size=0:whole_len=4", false],
+  ["apad=packet_size=0:whole_dur=0.001", false],
+  ["apad=packet_size=-1:pad_len=0", false],
+] as const) {
+  for (const graph of [false, true]) {
+    it(`${filter} handles zero padding packets safely (${graph ? "graph" : "simple"})`, async () => {
+      const input = [101, -901, 202, -802, 303, -703];
+      const bytes = Buffer.alloc(input.length * 2);
+      input.forEach((sample, index) => bytes.writeInt16LE(sample, index * 2));
+      const volume = Volume.fromJSON({ "/out.raw": "KEEP" });
+      volume.writeFileSync("/in.raw", bytes);
+      const errors: Uint8Array[] = [];
+      const result = await createFfmpegCommand().execute({
+        args: ["-y", "-f", "s16le", "-ar", "8000", "-ac", "2", "-i", "/in.raw", ...(graph
+          ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+          "-t", "0.001", "-f", "s16le", "/out.raw"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, data: Uint8Array) { volume.writeFileSync(path, data); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(data: Uint8Array) { errors.push(data); } }
+      } as never);
+      if (!succeeds) {
+        assert.notEqual(result.exitCode, 0);
+        assert.equal(volume.readFileSync("/out.raw", "utf8"), "KEEP");
+      } else {
+        assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+        assert.deepEqual(volume.readFileSync("/out.raw"), bytes);
       }
     });
   }

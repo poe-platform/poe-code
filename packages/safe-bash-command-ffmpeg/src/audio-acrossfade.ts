@@ -92,7 +92,7 @@ export async function acrossfadeAudio(
   const channelData = a.channelData.map(() => new Float64Array(length));
   // FFmpeg negotiates the first input's precision and converts the second before fading.
   const pcm16 = ["pcm_s16le", "pcm_s16be"].includes(first.codecDescriptions[0]?.codecName ?? "");
-  const pcm32 = ["pcm_s32le", "pcm_s32be"].includes(first.codecDescriptions[0]?.codecName ?? "");
+  const pcm32 = ["pcm_s24le", "pcm_s24be", "pcm_s32le", "pcm_s32be"].includes(first.codecDescriptions[0]?.codecName ?? "");
   const secondPcm32 = ["pcm_s32le", "pcm_s32be", "pcm_s24le", "pcm_s24be"]
     .includes(second.codecDescriptions[0]?.codecName ?? "");
   for (let i = 0; i < length; i++) {

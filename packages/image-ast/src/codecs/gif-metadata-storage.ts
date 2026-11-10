@@ -15,8 +15,8 @@ export async function readGifMetadataFromSource(source:ImageByteSource,storage:I
  signal.throwIfAborted();const captured={...options},reader=new SourceBytes(source,signal,"GIF"),header=new Uint8Array(Math.min(13,source.size));
  for(let i=0;i<header.length;i++)header[i]=(await reader.at(i))??0;
  if(!isGifBytes(header)||header.length<13)throw new Error("Invalid GIF header");
- const start=13+(header[10]!&128?3*(1<<((header[10]!&7)+1)):0),{frames,loop,icc,gifApplications,properties,gifCommentBytes}=await scanGifAnimation(reader,source.size,start,undefined,options?.page);
- const metadata={...(icc?{icc}:{}),...(gifApplications?{gifApplications}:{}),...(properties?{properties,gifCommentBytes}:{}),...gifMetadataFields(header[6]!|(header[7]!<<8),header[8]!|(header[9]!<<8),source.size,frames,loop,captured)};
+ const start=13+(header[10]!&128?3*(1<<((header[10]!&7)+1)):0),{frames,loop,isProgressive,icc,gifApplications,properties,gifCommentBytes}=await scanGifAnimation(reader,source.size,start,undefined,options?.page);
+ const metadata={isProgressive,...(icc?{icc}:{}),...(gifApplications?{gifApplications}:{}),...(properties?{properties,gifCommentBytes}:{}),...gifMetadataFields(header[6]!|(header[7]!<<8),header[8]!|(header[9]!<<8),source.size,frames,loop,captured)};
  if(!frames)return metadata;
  const position=storage.allocate(frames*4);
  if(!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(position+frames*4))throw new RangeError("Invalid GIF delay storage");

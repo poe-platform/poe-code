@@ -5,14 +5,14 @@ export function isGifBytes(bytes:Uint8Array):boolean {
 }
 
 /** Read requests and frame events keep the shared animation scanner independent of storage. */
-export function* gifAnimationSteps(size:number,start:number,page=0):Generator<number|{frame:number;delay:number},{frames:number;loop:number|undefined;icc?:Uint8Array;gifApplications?:Record<string,Uint8Array>;properties?:Record<string,string>;gifCommentBytes?:Uint8Array},number|undefined> {
+export function* gifAnimationSteps(size:number,start:number,page=0):Generator<number|{frame:number;delay:number},{frames:number;loop:number|undefined;isProgressive:boolean;icc?:Uint8Array;gifApplications?:Record<string,Uint8Array>;properties?:Record<string,string>;gifCommentBytes?:Uint8Array},number|undefined> {
  const skip=function*(at:number):Generator<number,number,number|undefined>{while(at<size){const length=(yield at++)??0;if(!length)break;at+=length;}return at;};
  const word=function*(at:number):Generator<number,number,number|undefined>{return ((yield at)??0)|(((yield at+1)??0)<<8);};
  const gifApplications: Record<string,Uint8Array> = {};
  let applicationBytes=0;
  let icc:Uint8Array|undefined;
  let comments: number[] = [];
- let at=start,pending=0,frames=0,loop:number|undefined;
+ let at=start,pending=0,frames=0,loop:number|undefined,isProgressive=false;
  while(at<size){
   const intro=yield at++;if(intro===59)break;
   if(intro===33){
@@ -53,14 +53,16 @@ export function* gifAnimationSteps(size:number,start:number,page=0):Generator<nu
    if(at+9>size)break;
    const width=yield* word(at+4),height=yield* word(at+6);
    if(width===0||height===0)throw new Error("negative or zero image size");
+   const flags=(yield at+8)??0;
+   if(frames===page)isProgressive=Boolean(flags&64);
    yield {frame:frames++,delay:pending};
-   const flags=(yield at+8)??0;at+=9;if(flags&128)at+=3*(1<<((flags&7)+1));at=yield* skip(at+1);
+   at+=9;if(flags&128)at+=3*(1<<((flags&7)+1));at=yield* skip(at+1);
   }
   // Ignore stray bytes only between blocks; payloads retain their declared lengths.
  }
  const gifCommentBytes = new Uint8Array(comments);
  // Without a looping extension, an animation plays exactly once.
- return {...(icc?{icc}:{}),...(Object.keys(gifApplications).length?{gifApplications}:{}),frames,loop:loop ?? (frames>1?1:undefined),...(comments.length?{properties:{comment:new TextDecoder().decode(gifCommentBytes)},gifCommentBytes}:{})};
+ return {...(icc?{icc}:{}),...(Object.keys(gifApplications).length?{gifApplications}:{}),frames,isProgressive,loop:loop ?? (frames>1?1:undefined),...(comments.length?{properties:{comment:new TextDecoder().decode(gifCommentBytes)},gifCommentBytes}:{})};
 }
 
 export function gifMetadataFields(width:number,height:number,size:number,frames:number,loop:number|undefined,options?:Pick<SharpInputOptions,"animated"|"page"|"pages">):ImageMetadata {

@@ -3773,9 +3773,9 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     // use ImageMagick's best-fit SRT canvas and background virtual pixels.
     if (token === "-rotate") {
         const { angle, applies } = parseMagickRotation(tokens[start + 1] ?? "0"), background = state.background, backgroundExplicit = state.backgroundExplicit, kernel = state.kernel, filter = state.resizeFilter;
+        if (!Number.isFinite(angle) || angle % 90 === 0) return;
         if (state.kernel === "nearest" && (state.interpolation === "blend" || state.interpolation === "mesh" || state.interpolation === "catrom" || state.interpolation === "spline")) throw new Error(`Unsupported rotation interpolation: ${state.interpolation}`);
         const nearest = state.kernel === "nearest" && state.interpolation === "nearest", viewport = state.distortViewport;
-        if (!Number.isFinite(angle) || angle % 90 === 0) return;
         const scale = state.distortScale === undefined ? undefined : Math.abs(Number.parseFloat(state.distortScale));
         return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "backgroundColor" | "virtualCanvas">): (WarpPlan & { space?: RgbaImage["space"]; steps: ReturnType<typeof warpPixelSteps> }) | undefined => {
             if (!applies(image)) return;

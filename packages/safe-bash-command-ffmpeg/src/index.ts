@@ -2606,6 +2606,8 @@ async function applyVideoFilterChain(
         };
       }, signal);
     } else if (name === "pad") {
+      // A trailing separator ends the option list; interior empty values remain invalid.
+      if (positional.at(-1) === "") positional.pop();
       for (const key of Object.keys(named)) {
         if (!["w", "width", "h", "height", "x", "y", "color", "eval", "aspect"].includes(key)) {
           throw new Error(`pad: unsupported option ${key}`);

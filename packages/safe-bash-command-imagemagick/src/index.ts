@@ -3470,7 +3470,11 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha">, t
             if (r >= radius) return [x, y, true];
             if (r === 0) return [x, y];
             const scale = Math.pow(Math.sin(Math.PI * r / radius / 2), -amount);
-            return [centerX + dx * scale, centerY + dy * scale];
+            const sx = centerX + dx * scale, sy = centerY + dy * scale;
+            // Native keeps the original pixel when IsValidPixelOffset rejects
+            // a mapped coordinate against its signed 64-bit cache extent limit.
+            if (!(Math.abs(sx) < 2 ** 63 / w && Math.abs(sy) < 2 ** 63 / h)) return [x, y, true];
+            return [sx, sy];
         }, w, h, img.hasAlpha);
     }
     if (token === "-wave") {

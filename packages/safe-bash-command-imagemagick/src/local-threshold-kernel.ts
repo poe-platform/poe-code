@@ -20,8 +20,10 @@ export function* localThresholdPixelSteps(image: { width: number; height: number
     const { width, height } = image, rx = Math.floor(geometry.width / 2), ry = Math.floor(geometry.height / 2);
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a] : [true, true, true, image.hasAlpha];
     const blocks = new Map<number, Uint16Array>();
-    const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
-    const fill = ((method === "background" || method?.endsWith("-tile")) ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255]).map(value => value * 257);
+    const gray = method === "white" ? 65535 : method === "gray" ? 65535 / 2 : 0;
+    const fill = (method === "background" || method?.endsWith("-tile"))
+        ? [background.r, background.g, background.b, background.a].map(value => value * 257)
+        : [gray, gray, gray, method === "transparent" ? 0 : 65535];
     function* sample(x: number, y: number): Generator<ConvolveRequest | undefined, ArrayLike<number>, Uint8Array | undefined> {
         if (x < 0 || y < 0 || x >= width || y >= height) {
             const index = virtualPixelIndex(x, y, width, height, method);

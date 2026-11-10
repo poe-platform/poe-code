@@ -33,7 +33,7 @@ for (const [filter, expected] of [
   ["format=gray8,negate=components=y", inverted],
   ["format=gray16be,negate=y", inverted],
   ["format=ya8,negate=y", inverted],
-  ["format=gray,negate=components=1", inverted],
+  ["format=gray,negate=components=8", inverted],
   ["format=gray,negate", inverted],
   ["format=gray,negate=components=0", gray],
   ["format=gray,negate=y,negate=y", gray],
@@ -49,7 +49,7 @@ for (const [filter, expected] of [
 }
 
 for (const filter of [
-  "format=gray,negate=r", "format=gray,negate=u", "format=gray,negate=a",
+  "format=gray,negate=r", "format=gray,negate=u", "format=gray,negate=a", "format=gray,negate=1",
   "format=gray,format=rgb24,negate=y", "negate=y"
 ]) {
   it(`rejects components absent from the negotiated input for ${filter}`, async () => {

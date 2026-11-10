@@ -2645,7 +2645,7 @@ async function applyVideoFilterChain(
       let mask = 0;
       for (const component of (components ?? "0").split("+")) {
         if (!component.trim()) throw new Error("negate: invalid empty component");
-        const index = ["y", "u", "v", "r", "g", "b", "a"].indexOf(component);
+        const index = ["r", "g", "b", "y", "u", "v", "a"].indexOf(component);
         const value = index < 0 ? Number(component) : 1 << index;
         if (!Number.isInteger(value) || value < 0 || value > 127) {
           throw new Error(`negate: invalid component ${component}`);
@@ -2657,8 +2657,8 @@ async function applyVideoFilterChain(
         const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
           [0, 4, 5, 12, 13, 14].includes(source.format) ? source : undefined;
         const gray = pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "gray16be" || pixelFormat === "ya8";
-        const available = planar ? 0b0000111 : gray ? (pixelFormat === "ya8" ? 0b1000001 : 0b0000001) :
-          pixelFormat === "rgb24" || pixelFormat === "bgr24" ? 0b0111000 : 0b1111000;
+        const available = planar ? 0b0111000 : gray ? (pixelFormat === "ya8" ? 0b1001000 : 0b0001000) :
+          pixelFormat === "rgb24" || pixelFormat === "bgr24" ? 0b0000111 : 0b1000111;
         const selected = (components === undefined ? available & 0b0111111 : mask) | (negateAlpha ? available & 0b1000000 : 0);
         if (selected & ~available) throw new Error("negate: Requested components not available");
         if (named.enable !== undefined && Math.abs(parseFilterExpression(named.enable, "negate enable", {
@@ -2671,7 +2671,7 @@ async function applyVideoFilterChain(
             Math.ceil(f.height / ([0, 12].includes(planar.format) ? 2 : 1));
           const pixels = new Uint8Array(planar.pixels);
           for (let plane = 0; plane < 3; plane++) {
-            if (!(selected & (1 << plane))) continue;
+            if (!(selected & (1 << (3 + plane)))) continue;
             const start = plane === 0 ? 0 : lumaSize + (plane - 1) * chromaSize;
             const end = start + (plane === 0 ? lumaSize : chromaSize);
             for (let i = start; i < end; i++) {
@@ -2694,7 +2694,7 @@ async function applyVideoFilterChain(
             signal?.throwIfAborted();
             budget.checkCpu();
           }
-          const component = gray && i % 4 !== 3 ? 0 : 3 + i % 4;
+          const component = i % 4 === 3 ? 6 : gray ? 3 : i % 4;
           if (selected & (1 << component)) data[i] = 255 - data[i]!;
         }
         return { ...f, data };

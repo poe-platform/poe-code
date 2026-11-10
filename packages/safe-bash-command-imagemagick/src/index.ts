@@ -8315,13 +8315,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 // A canvas without an alpha channel gains zero samples when activated.
                 if (!im.hasAlpha && im.inactiveAlpha === false && im.alphaBlend !== true) {
                     const data = new Uint8Array(im.data), data16 = im.data16?.slice(), evaluateSamples = im.evaluateSamples?.slice();
+                    // CMYK's fourth working sample is black ink, not alpha.
+                    const hueSamples = im.space === "cmyk" ? undefined : im.hueSamples?.slice();
                     for (let index = 3; index < data.length; index += 4) {
                         if (index % 65536 === 3) yield;
                         data[index] = 0;
                         if (evaluateSamples) evaluateSamples[index] = 0;
                         if (data16) data16[index] = 0;
+                        if (hueSamples) hueSamples[index] = 0;
                     }
-                    im = { ...im, data, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
+                    im = { ...im, data, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(hueSamples ? { hueSamples } : {}) };
                 }
                 yield;
                 return { ...im, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, channels: im.channels <= 2 ? 2 : 4 };

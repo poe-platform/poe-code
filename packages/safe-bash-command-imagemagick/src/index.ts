@@ -11251,6 +11251,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, image.writeMask, !!(result.data16 || image.data16), false, state.channels, image.hasAlpha && image.alphaBlend !== false), signal, result, [result, image, image.writeMask]);
                     result.writeMask = yield* applyMagickRasterSteps(image.writeMask, sortPixelSteps(image, state.intensity, true), signal, image.writeMask, [image, image.writeMask]);
                 }
+                // Sorting drops the alpha channel whose trait Disassociate disabled.
+                if (!image.hasAlpha && image.inactiveAlpha === true && image.alphaBlend === false) {
+                    result = { ...result, inactiveAlpha: false, alphaSeparate: false,
+                        channels: image.space === "cmyk" ? 4 : image.channels <= 2 ? 1 : 3 };
+                }
                 return result;
             });
         }
@@ -14249,6 +14254,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (image.storedWriteMask) {
                     result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!(result.storedData16 || image.storedData16), false, channels, image.hasAlpha && image.alphaBlend !== false), signal, result, [result, image, image.storedWriteMask]);
                     result.storedWriteMask = await transformStoredMagickRaster(image.storedWriteMask, backend, sortPixelSteps(image, intensity, true), signal, image.storedWriteMask, [image, image.storedWriteMask]);
+                }
+                // Sorting drops the alpha channel whose trait Disassociate disabled.
+                if (!image.hasAlpha && image.inactiveAlpha === true && image.alphaBlend === false) {
+                    result = { ...result, inactiveAlpha: false, alphaSeparate: false,
+                        channels: image.space === "cmyk" ? 4 : image.channels <= 2 ? 1 : 3 };
                 }
                 return result;
             });

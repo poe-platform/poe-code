@@ -3036,24 +3036,30 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: read
     g: boolean;
     b: boolean;
     a: boolean;
+    k?: boolean;
 }, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    const cmyk = img.space === "cmyk";
+    if (cmyk) img = yield* convertCmykPixels(img);
+    const hueSamples = cmyk ? img.hueSamples!.slice() : undefined;
     let cooperativeWork = 0;
     const fn = funcRaw.toLowerCase();
     const out = new Uint8Array(img.data);
     const data16 = img.data16?.slice();
     const evaluateSamples = img.evaluateSamples?.slice() ?? Float64Array.from(img.data16 ?? img.data, value => img.data16 ? value / 257 : value);
-    const mask = [channels.r, channels.g, channels.b, channels.a && (img.hasAlpha || img.alphaSeparate === true && img.alphaBlend !== false)];
+    const mask = [channels.r, channels.g, channels.b, channels.a && (img.hasAlpha || img.alphaSeparate === true && img.alphaBlend !== false), cmyk && (channels.k ?? true)];
     // Gray has one intensity channel, replicated across the RGB storage slots.
     if (img.space === "b-w" || img.space === "grey16") mask[1] = mask[2] = channels.r;
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        for (let c = 0; c < 4; c++) {
+        for (let c = 0; c < mask.length; c++) {
             if (++cooperativeWork % 65536 === 0)
                 yield;
             if (!mask[c])
                 continue;
-            const x = evaluateSamples[i + c]! / 255;
+            const ink = cmyk && c !== 3;
+            const offset = i + (c === 4 ? 3 : c);
+            const x = ink ? hueSamples![offset]! : evaluateSamples[offset]! / 255;
             let y = x;
             if (fn === "polynomial") {
                 y = params.reduce((acc, coeff) => acc * x + coeff, 0);
@@ -3082,12 +3088,22 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: read
                 const bias = params[3] ?? 0.5;
                 y = (range / Math.PI) * Math.atan(slope * Math.PI * (x - center)) + bias;
             }
+            if (ink) {
+                hueSamples![offset] = y;
+                continue;
+            }
             evaluateSamples[i + c] = y * 255;
             out[i + c] = clampByteVal(y * 255);
             if (data16) data16[i + c] = Math.round(Math.max(0, Math.min(1, y)) * 65535);
         }
+        if (hueSamples) for (let c = 0; c < 3; c++) {
+            const value = Math.fround((1 - hueSamples[i + c]!) * (1 - hueSamples[i + 3]!) * 65535) / 257;
+            evaluateSamples[i + c] = value;
+            out[i + c] = clampByteVal(value);
+            if (data16) data16[i + c] = Math.round(Math.max(0, Math.min(65535, value * 257)));
+        }
     }
-    return { ...img, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
+    return { ...img, data: out, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), ...(data16 ? { data16 } : {}) };
 }
 
 type FxImage = Omit<MagickImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"data16">>;

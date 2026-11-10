@@ -1399,7 +1399,7 @@ async function panAudio(
       channelMask: names.reduce((mask, name) => mask + (audioSpeakerMasks[name] ?? 0), 0)
     };
   }
-  const pcm16 = sampleFormat === "s16";
+  const pcm16 = sampleFormat === "s16" || sampleFormat === "s16p";
   const double = sampleFormat === "dbl" || sampleFormat === "dblp";
   let clipPcm16 = false;
   if (pcm16) {
@@ -12268,7 +12268,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           // Integer rematrixing normalizes the contributing speakers; LFE is omitted.
                           const assignment = ["u8", "u8p", "s16", "s16p", "s32", "s32p", "s64", "s64p"].includes(panSampleFormat) ? "<" : "=";
                           // Native's 4.0 PCM16 mixer rounds each Q15 coefficient independently.
-                          const fourChannelGains = inputMask === 0x107 && panSampleFormat === "s16"
+                          const fourChannelGains = inputMask === 0x107 && (panSampleFormat === "s16" || panSampleFormat === "s16p")
                             ? [1, Math.SQRT1_2, 0.5].map(gain => Math.round(gain / (1.5 + Math.SQRT1_2) * 32768) / 32768)
                             : undefined;
                           const expression = multichannelStereo && fourChannelGains

@@ -30,6 +30,8 @@ for (const [format, filter, expected] of [
   ["f32le", "pan=mono|c0=128*c0", [128, 384, 640, 896, -128, -384, 32767, -32768]],
   ["s16le", "volume=1,pan=mono|c0=65537*c0", [32767, 32767, 32767, 32767, -32768, -32768, 32767, -32768]],
   ["f32le", "pan=mono|c0=0.6666666666666666*c0+0.3333333333333333*c1", [27, 55, 83, 111, -134, -162, 20186, -20877]],
+  ["s16le", "aformat=sample_fmts=s16p,pan=mono|c0=0.5*c0", integerHalf],
+  ["s16le", "aformat=sample_fmts=s16p,pan=mono|c0=2*c0", [2, 6, 10, 14, -2, -6, 32767, -32768]],
   ["f32le", "aformat=sample_fmts=s16,pan=mono|c0=0.5*c0", integerHalf]
 ] as const) {
   for (const complex of [false, true]) {

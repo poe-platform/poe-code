@@ -28,7 +28,10 @@ export async function tmix(
   if (!Number.isInteger(planes) || planes < 0 || planes > 15) {
     throw new Error("tmix: planes must be an integer from 0 to 15");
   }
-  let scale = Math.fround(Number(options.scale));
+  const scaleConstants = {
+    PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, default: 0, min: 0, max: 32767
+  };
+  let scale = Math.fround(parseFilterExpression(options.scale!, "tmix", scaleConstants));
   if (!Number.isFinite(scale) || scale < 0 || scale > 32767) {
     throw new Error("tmix: scale must be a finite number from 0 to 32767");
   }
@@ -51,7 +54,7 @@ export async function tmix(
       if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
       const command = commands[nextCommand++]!;
       try {
-        const value = Math.fround(parseFilterExpression(command.expression, "tmix", {}));
+        const value = Math.fround(parseFilterExpression(command.expression, "tmix", scaleConstants));
         if (Number.isFinite(value) && value >= 0 && value <= 32767) scale = value;
       } catch { /* Rejected runtime commands preserve the current scale. */ }
     }

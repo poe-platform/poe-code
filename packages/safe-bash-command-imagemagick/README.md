@@ -179,7 +179,7 @@ Use `-page 12x12+2+3 input.png output.png` to set the virtual canvas without cha
 
 `-polaroid angle` adds an uncaptioned, curved photo frame and shadow, rotates it by the signed angle, and trims the transparent margin. It honors `-bordercolor` and `-background`; angles can expand image properties and FX expressions.
 
-`-shadow` expands image properties, options and FX geometry such as `%[fx:100-10*h]x0+2+1` for each image before resolving opacity, blur and offsets. It preserves unsigned 32-bit PNG page dimensions when negative offsets exceed the page size, matching ImageMagick 7.1.2. For example, a 5×4 image with `-shadow 60x0-9-8` saves a `4294967292x4294967292-9-8` page while retaining its 5×4 raster. These page dimensions are metadata only; shadow rendering does not allocate that virtual canvas. Use `+repage` to reset it to the raster dimensions.
+`-shadow` expands image properties, options and FX geometry such as `%[fx:100-10*h]x0+2+1` for each image before resolving opacity, blur and offsets. In shadow offsets, `%n` and `%[fx:n]` use the full current image count. It preserves unsigned 32-bit PNG page dimensions when negative offsets exceed the page size, matching ImageMagick 7.1.2. For example, a 5×4 image with `-shadow 60x0-9-8` saves a `4294967292x4294967292-9-8` page while retaining its 5×4 raster. These page dimensions are metadata only; shadow rendering does not allocate that virtual canvas. Use `+repage` to reset it to the raster dimensions.
 
 Read default RGB FTXT records with `magick -size 2x1 ftxt:rgb.dat out.png`. Each line contains `x,y:red,green,blue` in raster order, with Q16 channel values (0–65535). The size is required; `ftxt:-` reads stdin.
 

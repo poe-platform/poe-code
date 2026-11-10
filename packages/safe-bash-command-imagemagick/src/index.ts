@@ -10436,7 +10436,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geom = tokens[++i] ?? "80x3+5+5";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties });
                 return (yield* applyMagickShadowSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, !state.channelExplicit || state.channels.a, signal));
             });
         }
@@ -13149,15 +13149,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return trimStoredMagick(result, backend.storage, settings.alphaFuzz, signal);
             });
         } else if (!operandsOnly && token === "-shadow") {
+            let images: StoredImageStack;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
                 return stack;
             });
             const geometry = tokens[++i] ?? "80x3+5+5", background = state.background, backgroundExplicit = state.backgroundExplicit, optionProperties = state.optionProperties;
             const alpha = !state.channelExplicit || state.channels.a;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image: image!, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, optionProperties }, async () => ({ image: image!, storage: backend.storage }), signal, images);
                 const layout = magickShadowLayout(image, expanded);
                 if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
                     image = { ...image, space: "srgb", channels: 4 };

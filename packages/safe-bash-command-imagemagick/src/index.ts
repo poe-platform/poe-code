@@ -1322,7 +1322,7 @@ function* readMaskSelectionSteps<Step, Resume>(image: { width: number; readMask?
 
 function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   img: Omit<RgbaImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"data16">>,
-  load?: (position:number,length:number)=>Generator<Step,{data:Uint8Array;data16?:Uint16Array},Resume>,
+  load?: (position:number,length:number)=>Generator<Step,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array},Resume>,
   statistics?: Record<string, number>,
   countColors = false,
   loadMask?: (position: number, length: number) => Generator<Step, Uint8Array, Resume>,
@@ -1347,7 +1347,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   let count = 0;
   for(let offset=0;offset<img.width*img.height*4;offset+=8192){
   const length=Math.min(8192,img.width*img.height*4-offset);
-  const chunk=load?yield*load(offset,length):{data:img.data!.subarray(offset,offset+length),data16:img.data16?.subarray(offset,offset+length)};
+  const chunk=load?yield*load(offset,length):{data:img.data!.subarray(offset,offset+length),data16:img.data16?.subarray(offset,offset+length),hueSamples:img.hueSamples?.subarray(offset,offset+length)};
   const selection = yield* readMaskSelectionSteps(img, offset, length, loadMask);
   const samples = chunk.data16 ?? chunk.data;
   const range = chunk.data16 ? 65535 : 255;
@@ -1359,7 +1359,9 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     const g = samples[i + 1]!;
     const b = samples[i + 2]!;
     const a = img.hasAlpha ? samples[i + 3]! : range;
-    uniqueColors?.add(`${r},${g},${b},${a}`);
+    // Distinct CMYK inks can render as the same RGB color.
+    const inks = img.space === "cmyk" ? chunk.hueSamples : undefined;
+    uniqueColors?.add(inks ? `${inks[i]},${inks[i + 1]},${inks[i + 2]},${inks[i + 3]},${a}` : `${r},${g},${b},${a}`);
     opaque &&= a === range;
     gray &&= r === g && g === b;
     bilevel &&= (r === 0 || r === range) && (g === 0 || g === range) && (b === 0 || b === range);
@@ -1799,12 +1801,14 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    return String(delay);
   }
   if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,function*(){yield*resolve("mean");return statistics;},signal,context,stack);
-  function* load(position:number,length:number):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array},void>{
-   let chunk!: {data:Uint8Array;data16?:Uint16Array};
+  function* load(position:number,length:number):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array},void>{
+   let chunk!: {data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array};
    yield {async run(){const {image,storage}=raster!,data=await storage.read(image.position+position,length,signal?{signal}:undefined);
     const original=image.storedData16;
     const bytes=original?await storage.read(original.position+position*2,Math.max(0,Math.min(length,original.length-position))*2,signal?{signal}:undefined):undefined;
-    chunk={data,...(bytes?{data16:new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2)}:{})};
+    const inks=property === "colors" && image.space === "cmyk" && image.storedHueSamples !== undefined
+      ? await storage.read(image.storedHueSamples+position*8,length*8,signal?{signal}:undefined) : undefined;
+    chunk={data,...(bytes?{data16:new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2)}:{}),...(inks?{hueSamples:new Float64Array(inks.slice().buffer)}:{})};
    }};
    return chunk;
   }

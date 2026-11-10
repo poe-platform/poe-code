@@ -10464,8 +10464,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     const mask = image.readMask as RgbaImage;
                     output.readMask = yield* applyMagickRasterSteps(mask, warpPixelSteps(mask, plan, { r: 0, g: 0, b: 0, a: 255 }, "background"), signal, { width: plan.width, height: plan.height, hasAlpha: false });
                 }
-                if (t === "-wave" && image.writeMask && "map" in plan) {
-                    output.writeMask = yield* applyMagickRasterSteps(image.writeMask, warpPixelSteps(image.writeMask, plan, { r: 0, g: 0, b: 0, a: 255 }, "background"), signal, { width: plan.width, height: plan.height, hasAlpha: false });
+                if (t === "-wave" && (image.region || image.writeMask) && "map" in plan) {
+                    // Wave bends the region with the pixels; new padding permits writes.
+                    const mask = image.region ? yield* applyMagickRasterSteps({ width: image.width, height: image.height, data: image.data,
+                        format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, regionMaskPixelSteps(image, image.region), signal) : image.writeMask!;
+                    output.writeMask = yield* applyMagickRasterSteps(mask, warpPixelSteps(mask, plan, { r: 0, g: 0, b: 0, a: 255 }, "background"), signal, { width: plan.width, height: plan.height, hasAlpha: false });
+                    output.region = undefined;
                 }
                 if (image.writeMask && (t === "-swirl" || t === "-implode")) {
                     // Clip against the original mask, then retain its warped channel.
@@ -13012,9 +13016,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const mask = image.readMask as StoredRgbaImage;
                     output.readMask = await transformStoredMagickRaster(mask, backend, warpPixelSteps(mask, plan, { r: 0, g: 0, b: 0, a: 255 }, "background"), signal, { width: plan.width, height: plan.height, hasAlpha: false });
                 }
-                if (token === "-wave" && image.storedWriteMask && "map" in plan) {
-                    const mask = image.storedWriteMask;
+                if (token === "-wave" && (image.region || image.storedWriteMask) && "map" in plan) {
+                    const mask = image.region ? await transformStoredMagickRaster({ width: image.width, height: image.height, position: image.position,
+                        format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, backend, regionMaskPixelSteps(image, image.region), signal) : image.storedWriteMask!;
                     output.storedWriteMask = await transformStoredMagickRaster(mask, backend, warpPixelSteps(mask, plan, { r: 0, g: 0, b: 0, a: 255 }, "background"), signal, { width: plan.width, height: plan.height, hasAlpha: false });
+                    output.region = undefined;
                 }
                 if (image.storedWriteMask && (token === "-swirl" || token === "-implode")) {
                     const mask = image.storedWriteMask;

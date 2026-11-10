@@ -129,8 +129,9 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
             r += m; g += m; b += m;
         }
         for (const [channel, sample] of [r, g, b, input[offset + 3]! / range].entries()) {
-            // Q16-HDRI stores Lab conversion results as float quantum samples.
-            const value = target === "CIELab" || image.magickColorspace === "CIELab" ? Math.fround(sample * 65535) / 65535 : sample;
+            // Q16-HDRI stores Lab conversions and HSL-to-sRGB results as float quantum samples.
+            const value = target === "CIELab" || image.magickColorspace === "CIELab" || image.magickColorspace === "HSL"
+                ? Math.fround(sample * 65535) / 65535 : sample;
             if (hueSamples) hueSamples[offset + channel] = value;
             if (evaluateSamples) evaluateSamples[offset + channel] = value * 255;
             data16[offset + channel] = Math.round(Math.max(0, Math.min(1, value)) * 65535);

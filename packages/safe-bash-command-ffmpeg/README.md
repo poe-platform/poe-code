@@ -353,7 +353,8 @@ routes the second input's first channel to left and the first input's first chan
 to right, resampling inputs to the first input’s sample rate before routing channels
 and stopping at the shortest resampled input. Join accepts the declared `inputs`
 count (default 2) of decoded PCM inputs. Output layouts include
-mono, stereo, `3.0`, quad, `5.1`, explicit speaker lists, and stereo mask `0x3`.
+mono, stereo, `3.0`, quad, `5.1`, `downmix` (`DL+DR`), explicit speaker lists
+such as `WL+WR`, and numeric speaker masks such as `0x3`.
 Input maps accept numeric indices or speaker names, such as
 `map=0.FR-FL|1.FL-FR`. Names resolve against each input’s layout; missing speakers
 are rejected. Maps are optional and may assign only one output channel. Unmapped

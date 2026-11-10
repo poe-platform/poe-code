@@ -1,4 +1,4 @@
-import { parseAudioChannelLayout } from "./audio-channel-layout.js";
+import { audioSpeakerMasks, parseAudioChannelLayout } from "./audio-channel-layout.js";
 import type { MediaBudgetTracker, MediaSample, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { resampleAudio } from "./audio-resample.js";
@@ -35,14 +35,13 @@ export async function joinAudio(
   if (inputs !== tracks.length) {
     throw new Error("join: inputs must match the number of connected inputs");
   }
-  const speakers = ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR",
-    "TC", "TFL", "TFC", "TFR", "TBL", "TBC", "TBR"];
+  const speakers = Object.keys(audioSpeakerMasks);
   const outputNames = parseAudioChannelLayout(layout);
   if (outputNames.some(name => !speakers.includes(name)) || new Set(outputNames).size !== outputNames.length) {
     throw new Error(`join: unsupported channel layout ${layout}`);
   }
   // The mask identifies speakers; channelData retains the requested interleaving order.
-  const outputMask = outputNames.reduce((mask, name) => mask | (1 << speakers.indexOf(name)), 0);
+  const outputMask = outputNames.reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0);
   const audio = tracks.map(track => {
     if (!track.decodedAudio) throw new Error("join requires decoded PCM audio");
     return track.decodedAudio;
@@ -76,7 +75,7 @@ export async function joinAudio(
       channelIndex = Number(name);
     } else {
       const mask = input.channelMask || ([0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][input.channels] ?? 0);
-      channelIndex = speakers.filter((_, bit) => (mask & (1 << bit)) !== 0).indexOf(name);
+      channelIndex = speakers.filter(name => Math.floor(mask / audioSpeakerMasks[name]!) % 2 === 1).indexOf(name);
     }
     const channel = input.channelData[channelIndex];
     if (!channel) throw new Error("join: invalid input channel");
@@ -89,7 +88,7 @@ export async function joinAudio(
       if (selected.has(name)) continue;
       for (const [inputIndex, input] of audio.entries()) {
         const mask = input.channelMask || ([0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][input.channels] ?? 0);
-        const inputNames = speakers.filter((_, index) => (mask & (1 << index)) !== 0);
+        const inputNames = speakers.filter(name => Math.floor(mask / audioSpeakerMasks[name]!) % 2 === 1);
         const channelIndex = matchSpeaker
           ? inputNames.indexOf(name)
           : input.channelData.findIndex((_, index) => !used[inputIndex]!.has(index));
@@ -163,6 +162,7 @@ export async function joinAudio(
 }
 
 function validChannelLayout(layout: string): boolean {
+  if (Object.hasOwn(audioSpeakerMasks, layout)) return true;
   if (["mono", "stereo", "2.1", "3.0", "3.0(back)", "4.0", "quad", "quad(side)", "3.1",
     "5.0", "5.0(side)", "4.1", "5.1", "5.1(side)", "6.0", "6.0(front)", "3.1.2", "hexagonal",
     "6.1", "6.1(back)", "6.1(front)", "7.0", "7.0(front)", "7.1", "7.1(wide)", "7.1(wide-side)",

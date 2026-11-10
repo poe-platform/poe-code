@@ -10273,6 +10273,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* flipImageSteps(im),
+                    ...(im.readMask ? { readMask: yield* flipImageSteps(im.readMask as RgbaImage) } : {}),
                     ...(im.region ? { region: { ...im.region, y: im.height - im.region.y - im.region.height } } : {}),
                     ...(im.writeMask ? { writeMask: yield* flipImageSteps(im.writeMask) } : {}),
                     virtualCanvas: magickMirrorCanvas(im, "flip") };
@@ -10282,6 +10283,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* flopImageSteps(im),
+                    ...(im.readMask ? { readMask: yield* flopImageSteps(im.readMask as RgbaImage) } : {}),
                     ...(im.region ? { region: { ...im.region, x: im.width - im.region.x - im.region.width } } : {}),
                     ...(im.writeMask ? { writeMask: yield* flopImageSteps(im.writeMask) } : {}),
                     virtualCanvas: magickMirrorCanvas(im, "flop") };
@@ -12753,6 +12755,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 let output: StoredRgbaImage = await transformStoredImage(image, backend.storage, { kind }, signal);
+                if (kind !== "autoOrient" && image.readMask) output.readMask = await transformStoredImage(image.readMask as StoredRgbaImage, backend.storage, { kind }, signal);
                 if ((kind === "flip" || kind === "flop") && image.storedWriteMask) output.storedWriteMask = await transformStoredImage(image.storedWriteMask, backend.storage, { kind }, signal);
                 if (image.region) output.region = kind === "autoOrient" ? orientRegion(image.region, image)
                     : kind === "flip" ? { ...image.region, y: image.height - image.region.y - image.region.height }

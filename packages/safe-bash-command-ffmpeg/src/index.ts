@@ -9045,6 +9045,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-vf" || arg === "-filter:v") {
             const f = args[++i];
             if (f) vfFilters.push(f);
+          } else if (arg === "-/filter:v") {
+            const filename = args[++i];
+            try {
+              if (!filename) throw new Error("-/filter:v requires a filename");
+              vfFilters.push(decodeUtf8(await readSource(resolvePath(context.cwd, filename))));
+            } catch (error) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: -/filter:v ${filename ?? ""}: ${error instanceof Error ? error.message : String(error)}\n`), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-af" || arg === "-filter:a" || arg.startsWith("-af:") || arg.startsWith("-filter:a:")) {
             const f = args[++i];
             const selector = arg.startsWith("-af:") ? arg.slice(4)

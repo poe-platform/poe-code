@@ -17868,7 +17868,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             state.borderColor = parseColor(argv[++i] ?? "#dfdfdf");
         }
         else if (t === "-border") {
-            borderW = Math.max(0, Math.round(parseMagickGeometry(argv[++i] ?? "0").width ?? 0));
+            borderW = Math.max(0, Math.trunc(parseMagickGeometry(argv[++i] ?? "0").width ?? 0));
         }
         else if (t === "-gravity") {
             const gravity = argv[++i] ?? "center";

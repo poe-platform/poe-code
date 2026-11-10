@@ -11,7 +11,7 @@ const font = existsSync("/System/Library/Fonts/Supplemental/Arial.ttf")
   ? "/System/Library/Fonts/Supplemental/Arial.ttf" : "DejaVu-Sans";
 
 for (const execution of ["buffered", "retained", "sync", "command"] as const)
-it.each(["2", "2x2", "2x1"])(`${execution}: accepts montage border %s`, async (border) => {
+it.each(["0.75", "1.5", "1.8x1", "1", "2", "2x2", "2x1"])(`${execution}: accepts montage border %s`, async (border) => {
   const bytes = await sharp({ create: { width: 2, height: 1, channels: 3, background: "red" } }).png().toBuffer();
   const files = new Map([["a.png", bytes]]);
   const fs = new MemoryFileSystem();
@@ -39,11 +39,13 @@ it.each(["2", "2x2", "2x1"])(`${execution}: accepts montage border %s`, async (b
     output = result.stdoutBytes!;
   }
   const actual = decodeImage(output);
-  // Montage uses the geometry width for all four sides, including for 2x1.
-  expect([actual.width, actual.height]).toEqual([6, 5]);
-  for (let y = 0; y < 5; y++) for (let x = 0; x < 6; x++) {
-    const interior = y === 2 && (x === 2 || x === 3);
-    expect(Array.from(actual.data.subarray((y * 6 + x) * 4, (y * 6 + x + 1) * 4)))
+  // Native truncates the geometry width and uses it for all four sides.
+  const pixels = border === "0.75" ? 0 : ["1.5", "1.8x1", "1"].includes(border) ? 1 : 2;
+  const width = 2 + pixels * 2, height = 1 + pixels * 2;
+  expect([actual.width, actual.height]).toEqual([width, height]);
+  for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+    const interior = y === pixels && (x === pixels || x === pixels + 1);
+    expect(Array.from(actual.data.subarray((y * width + x) * 4, (y * width + x + 1) * 4)))
       .toEqual(interior ? [255, 0, 0, 255] : [0, 0, 255, 255]);
   }
   if (nativeAvailable) {

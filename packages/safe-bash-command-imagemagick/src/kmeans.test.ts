@@ -69,6 +69,33 @@ it("supports kmeans through the public magick command", async () => {
     expect(Array.from(decodeImage(await fs.readFile("/out.png")).data)).toEqual(clustered);
 });
 
+for (const retained of [false, true])
+it.each([
+    [2, ["-kmeans", "1"]],
+    [2, []],
+    [1, ["-kmeans", "1"]],
+    [0.3, ["-kmeans", "1"]],
+])(`preserves working colors through kmeans (scale=%s, options=%j, retained=${retained})`, async (scale, options) => {
+    const argv = ["-seed", "7", "xc:#a0b0c0", "-evaluate", "multiply", String(scale), ...options,
+        "-evaluate", "divide", String(scale), "-depth", "8", "rgba:out"];
+    const files = new Map([["out", new TextEncoder().encode("KEEP")]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/out", files.get("out")!);
+    if (retained) {
+        const args = createCommandArguments(argv);
+        const result = await createMagickCommand().execute({
+            command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} }, stderr: { async write() {} },
+        });
+        expect(result.exitCode).toBe(0);
+    } else {
+        const result = await runMagickCli(argv, files);
+        expect(result.exitCode, result.stderr).toBe(0);
+    }
+    // ImageMagick 7.1.2-35 Q16-HDRI preserves above-white samples until division.
+    expect(Array.from(retained ? await fs.readFile("/out") : files.get("out")!)).toEqual([160, 176, 192, 255]);
+});
+
 for (const mode of ["public", "map"])
 it.each([
     { options: [], output: ["-depth", "8", "rgba:out"], expected: Buffer.from("202040ff405080ff808060ffb0a040ff", "hex") },
@@ -99,7 +126,8 @@ it.each(["", "bogus", "0", "-1", "2x-1", "2x50+Infinity", "2x50+-1", "65537", "2
 });
 
 for (const retained of [false, true])
-it(`preserves 16-bit cluster means across raster chunks (retained=${retained})`, async () => {
+for (const evaluate of [false, true])
+it(`preserves 16-bit cluster means across raster chunks (retained=${retained}, evaluate=${evaluate})`, async () => {
     const samples = [[30001, 0, 0, 65535], [30003, 0, 0, 65535], [0, 0, 20001, 65535], [0, 0, 20003, 65535]];
     const data16 = Uint16Array.from(Array.from({ length: 1028 }, (_, i) => samples[i % 4]!).flat());
     const input = encodeImage({ width: 1028, height: 1, density: 72, data16,
@@ -108,7 +136,8 @@ it(`preserves 16-bit cluster means across raster chunks (retained=${retained})`,
     }, { format: "png" }).data;
     const files = new Map([["in.png", input]]), fs = new MemoryFileSystem();
     await fs.writeFile("/in.png", input);
-    const result = await runMagickCli(["in.png", "-kmeans", "2x50+0.001", "out.png"], retained ? { filesystem: fs, cwd: "/" } : files);
+    const result = await runMagickCli(["in.png", ...(evaluate ? ["-evaluate", "multiply", "4"] : []),
+        "-kmeans", "2x50+0.001", ...(evaluate ? ["-evaluate", "divide", "4"] : []), "out.png"], retained ? { filesystem: fs, cwd: "/" } : files);
     expect(result.exitCode, result.stderr).toBe(0);
     const output = decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!);
     expect(output.data16).toEqual(Uint16Array.from(Array.from({ length: 1028 }, (_, i) => i % 4 < 2 ? [30002, 0, 0, 65535] : [0, 0, 20002, 65535]).flat()));

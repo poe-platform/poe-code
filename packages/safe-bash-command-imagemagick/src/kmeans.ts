@@ -24,8 +24,9 @@ export function parseKmeansGeometry(raw: string): { colors: number; iterations: 
 }
 
 /** Quantization seeds followed by Lloyd refinement, with bounded raster reads. */
-export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, options: ReturnType<typeof parseKmeansGeometry> & { seedColors?: RgbaColor[] | undefined; seed?: bigint | undefined }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const length = image.width * image.height * 4, highDepth = !!(image.data16 || image.storedData16), quantum = highDepth ? 65535 : 255;
+export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">>, options: ReturnType<typeof parseKmeansGeometry> & { seedColors?: RgbaColor[] | undefined; seed?: bigint | undefined }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
+    const length = image.width * image.height * 4, highDepth = !!(image.data16 || image.storedData16), quantum = !evaluate && highDepth ? 65535 : 255;
     let palette: number[][];
     if (options.seedColors) {
         palette = options.seedColors.slice(0, options.colors).map(color => [color.r / 255, color.g / 255, color.b / 255, color.a / 255]);
@@ -71,11 +72,11 @@ export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
         const sums = palette.map(() => [0, 0, 0, 0]), counts = new Float64Array(palette.length);
         let distortion = 0;
         assignments = palette;
-        for (let position = 0; position < length; position += 4096) {
+        for (let position = 0; position < length; position += 2048) {
             yield;
-            const size = Math.min(4096, length - position), bytes = yield { kind: "read", highDepth, position, length: size };
-            if (!bytes || bytes.length !== size * (highDepth ? 2 : 1)) throw new Error("Truncated kmeans pixels");
-            const data = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+            const size = Math.min(2048, length - position), bytes = yield { kind: "read", evaluate, highDepth, position, length: size };
+            if (!bytes || bytes.length !== size * (evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated kmeans pixels");
+            const data = evaluate ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
             for (let i = 0; i < size; i += 4) {
                 const { index, distance } = yield* nearest(data, i, palette);
                 counts[index]!++;
@@ -88,17 +89,22 @@ export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
         previousDistortion = distortion;
     }
     // Use the final iteration's assignments with its newly calculated means.
-    for (let position = 0; position < length; position += 4096) {
+    for (let position = 0; position < length; position += 2048) {
         yield;
-        const size = Math.min(4096, length - position), bytes = yield { kind: "read", highDepth, position, length: size };
-        if (!bytes || bytes.length !== size * (highDepth ? 2 : 1)) throw new Error("Truncated kmeans pixels");
-        const data = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+        const size = Math.min(2048, length - position), bytes = yield { kind: "read", evaluate, highDepth, position, length: size };
+        if (!bytes || bytes.length !== size * (evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated kmeans pixels");
+        const data = evaluate ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
         // Keep fractional 8-bit means at Q16 precision until export.
-        const output = new Uint16Array(size);
+        const output = new Uint16Array(size), samples = evaluate ? new Float64Array(size) : undefined;
         for (let i = 0; i < size; i += 4) {
             const { index } = yield* nearest(data, i, assignments);
-            for (let c = 0; c < 4; c++) output[i + c] = Math.round((c === 3 && !alphaTraits[index] ? 1 : palette[index]![c]!) * 65535);
+            for (let c = 0; c < 4; c++) {
+                const value = c === 3 && !alphaTraits[index] ? 1 : palette[index]![c]!;
+                output[i + c] = Math.max(0, Math.min(65535, Math.round(value * 65535)));
+                if (samples) samples[i + c] = value * 255;
+            }
         }
         yield { kind: "write", highDepth: true, position, data: new Uint8Array(output.buffer) };
+        if (samples) yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
     }
 }

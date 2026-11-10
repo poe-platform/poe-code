@@ -10206,7 +10206,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? (index === 0 ? "shift" : "") : option.slice(0, separator).trim();
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-                          shift = Number(value);
+                          shift = parseFilterExpression(value, "dcshift", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
                           if (key !== "shift" || !value || !Number.isFinite(shift) || shift < -1 || shift > 1) {
                             throw new Error("dcshift: expected shift between -1 and 1; limiter options are unsupported");
                           }

@@ -34,19 +34,27 @@ for (const [filter, hash] of [
   }
 }
 
-for (const filter of [
-  "vibrato=d=1/2",
-  "vibrato=d=(1+1)/4",
-  "vibrato=d=2^-1",
-  "vibrato=d=sqrt(0.25)",
-  "vibrato=d=PI/(2*PI)",
-  "vibrato=d=500m",
-  "vibrato=f=10/2:d=1/2",
-  "vibrato=10/2:1/2"
-]) {
+for (const [filter, expected] of [
+  ["vibrato=d=1/2", "vibrato"],
+  ["vibrato=d=(1+1)/4", "vibrato"],
+  ["vibrato=d=2^-1", "vibrato"],
+  ["vibrato=d=sqrt(0.25)", "vibrato"],
+  ["vibrato=d=PI/(2*PI)", "vibrato"],
+  ["vibrato=d=500m", "vibrato"],
+  ["vibrato=f=10/2:d=1/2", "vibrato"],
+  ["vibrato=10/2:1/2", "vibrato"],
+  ["vibrato=d=min", "vibrato=d=0"],
+  ["vibrato=d=max", "vibrato=d=1"],
+  ["vibrato=f=min", "vibrato=f=0.1"],
+  ["vibrato=f=max", "vibrato=f=20000"],
+  ["vibrato=f=default:d=default", "vibrato"],
+  ["vibrato=default:max", "vibrato=f=5:d=1"],
+  ["vibrato=f=2:f=default:d=1:d=default", "vibrato"],
+  ["vibrato=f=default*2:d=(min+max)/2", "vibrato=f=10:d=0.5"]
+] as const) {
   for (const graph of [false, true]) {
     it(`${filter} produces the same PCM as literal options (${graph ? "graph" : "simple"})`, async () => {
-      const literal = await run("vibrato=f=5:d=0.5", graph);
+      const literal = await run(expected, graph);
       const expression = await run(filter, graph);
       assert.equal(literal.result.exitCode, 0, literal.stderr);
       assert.equal(expression.result.exitCode, 0, expression.stderr);
@@ -57,7 +65,8 @@ for (const filter of [
 
 for (const filter of ["vibrato=f=0", "vibrato=f=20001", "vibrato=d=-1", "vibrato=d=1.1", "vibrato=f=NaN", "vibrato=d=", "vibrato=unknown=1",
   "vibrato=d=0b1", "vibrato=d=0o1", "vibrato=d=1/", "vibrato=d=1/0", "vibrato=d=0/0",
-  "vibrato=d=3/2", "vibrato=d=-1/2", "vibrato=f=40001/2"]) {
+  "vibrato=d=3/2", "vibrato=d=-1/2", "vibrato=f=40001/2",
+  "vibrato=d=max+0.1", "vibrato=d=min-0.1", "vibrato=f=max+1", "vibrato=f=min/2"]) {
   it(`${filter} rejects invalid options without replacing output`, async () => {
     const { volume, result } = await run(filter);
     assert.notEqual(result.exitCode, 0);

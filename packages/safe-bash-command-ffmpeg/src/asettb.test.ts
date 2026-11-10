@@ -13,7 +13,7 @@ for (const complex of [false, true]) {
     ["asettb", 0, 1],
     ["asettb=1/1000,asetpts=PTS+100,atrim=start=0.15", 400, 1 / 8],
     ["asetpts=PTS+800,atrim=start=0.15", 400, 1],
-    ["asettb=1/1000,asetpts=PTS+0.1/TB,atrim=start_pts=150", 400, 1 / 8],
+    ["asettb=1/1000,asetpts=PTS+0.1/TB,atrim=start_pts=1200", 400, 1 / 8],
     ["asettb=1/1000,asettb=1/sr", 0, 1],
     ["asettb=tb=intb*8", 0, 1 / 8],
     ["asettb=1/1000,aselect='eq(pts,n*64)*eq(TB,0.001)'", 0, 1 / 8],

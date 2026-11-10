@@ -799,7 +799,7 @@ SAMI input (`-f sami`, `.smi`, or `.sami`) preserves millisecond SYNC timing and
 LRC lyrics support explicit `-f lrc` and automatic detection, infer cue ends from the next timestamp, and write each subtitle line with its own centisecond timestamp.
 
 TTML output (`-f ttml` or `.ttml`) preserves subtitle cue timing, line breaks, and XML-escaped text.
-PJS input (`-f pjs` or automatic detection) reads quoted cues with decisecond timing.
+PJS input (`-f pjs` or automatic detection) reads quoted cues with decisecond timing, converts `|` to line breaks, and preserves commas within dialogue.
 JACOsub input (`-f jacosub` or automatic detection) reads tick rates and timing shifts, and exports alignment and inline line breaks to SRT.
 
 MPL2 input (`-f mpl2`) reads decisecond cue timing and converts `|` to line breaks.

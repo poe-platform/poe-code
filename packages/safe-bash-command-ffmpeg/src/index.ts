@@ -4411,7 +4411,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           const data = encodeUtf8(text.replaceAll("\\n", "\n"));
           return { ...sample, data, size: data.byteLength };
         }
-        if (codec === "microdvd" || codec === "mpl2") {
+        if (codec === "microdvd" || codec === "mpl2" || codec === "pjs") {
           const text = decodeUtf8(sample.data);
           const data = encodeUtf8(codec === "microdvd" ? decodeMicrodvd(text) : text.replaceAll("|", "\n"));
           return { ...sample, data, size: data.byteLength };

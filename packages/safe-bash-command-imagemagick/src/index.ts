@@ -9988,7 +9988,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 op = parseMagickPoly(expanded);
             }
             if (t === "-poly" && !stack.length) throw new Error("no images found for operation '-poly'");
-            if (t === "-evaluate-sequence" && !stack.length) throw new Error("no images found for operation '-evaluate-sequence'");
+            if ((t === "-evaluate-sequence" || t === "-average") && !stack.length) throw new Error(`no images found for operation '${t}'`);
             if (t === "-average") analysis.warnings += 'magick: option has been replaced \'-average\', use "-evaluate-sequence Mean"\n';
             if (stack.length > 0) {
                 stack = [(yield* applyMagickSequenceSteps(stack, op, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state, signal))];
@@ -10766,7 +10766,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     if (im.data.buffer !== flattened.data.buffer) detachRgbaBuffer(im.data);
                 }
                 const first = oldStack[0]! as MagickImage;
-                stack = [{ ...flattened, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0] }];
+                stack = [{ ...flattened, ...(first.properties ? { properties: first.properties } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0] }];
+                if (state.units !== undefined) stack[0] = applyMagickUnits(stack[0]!, state.units);
+                if (state.densityGeometry !== undefined) stack[0] = applyMagickDensity(stack[0]!, state.densityGeometry);
                 if (merge) stack[0] = { ...stack[0]!, virtualCanvas: {
                     width: first.virtualCanvas?.width || maxW + Math.max(0, originX),
                     height: first.virtualCanvas?.height || maxH + Math.max(0, originY),
@@ -11506,7 +11508,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && ["-clut", "-hald-clut", "-separate", "-combine", "-morph", "-evaluate-sequence", "-average", "-poly"].includes(token)) {
             const argument = token === "-morph" || token === "-evaluate-sequence" || token === "-poly" ? tokens[++i] ?? (token === "-morph" ? "1" : "Mean") : token === "-average" ? "Mean" : "", settings = { ...state, channels: { ...state.channels } };
             stackStep(async (stack, backend) => {
-                if ((token === "-evaluate-sequence" || token === "-separate" || token === "-combine") && !stack.length) throw new Error(`no images found for operation '${token}'`);
+                if ((token === "-evaluate-sequence" || token === "-average" || token === "-separate" || token === "-combine") && !stack.length) throw new Error(`no images found for operation '${token}'`);
                 let terms: number[] | undefined;
                 if (token === "-poly") {
                     const image = await stack.get(0);
@@ -12099,7 +12101,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (append) result = { ...result, channels: result.hasAlpha ? 4 : 3 };
                 if (!append) {
                     const first = (await stack.get(0))!, scene = first[magickInput]?.sceneIdx ?? 0;
-                    result = { ...result, delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0] };
+                    result = { ...result, ...(first.properties ? { properties: first.properties } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0] };
+                    if (settings.units !== undefined) result = applyMagickUnits(result, settings.units);
+                    if (settings.densityGeometry !== undefined) result = applyMagickDensity(result, settings.densityGeometry);
                     if (merge) result = { ...result, virtualCanvas: {
                         width: first.virtualCanvas?.width || width + Math.max(0, originX),
                         height: first.virtualCanvas?.height || height + Math.max(0, originY),

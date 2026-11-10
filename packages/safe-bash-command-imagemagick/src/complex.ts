@@ -21,7 +21,8 @@ export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, 
         yield;
         // Only the first pair bounds arithmetic; preserve original samples outside it.
         const active = x < extent.width && y < extent.height;
-        const count = Math.min(1024, (active ? extent.width : base.width) - x);
+        // Four Float64 samples per pixel must fit a 16 KiB storage read.
+        const count = Math.min(512, (active ? extent.width : base.width) - x);
         const position = (y * base.width + x) * 4, length = count * 4;
         const inputs: Float64Array[] = [], inks: (Float64Array | undefined)[] = [];
         x += count;

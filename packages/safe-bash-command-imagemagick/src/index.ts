@@ -8226,7 +8226,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const magnitude = prefix.startsWith("-") || prefix.startsWith("+") ? prefix.slice(1) : prefix;
         // Only a percent sign immediately after the original number scales it.
         const isPercent = percent > 0 && prefix.trimEnd() === prefix && Number(magnitude) * (prefix.startsWith("-") ? -1 : 1) === raw;
-        const threshold = isPercent ? (raw / 100) * 65535 : raw;
+        // Native solarize scales percentages by QuantumRange + 1.
+        const threshold = isPercent ? (raw / 100) * 65536 : raw;
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = image => applyMagickSolarizeSteps(image, threshold, channels, signal);
     } else if (token === "-ordered-dither") {

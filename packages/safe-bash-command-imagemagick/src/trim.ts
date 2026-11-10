@@ -157,6 +157,7 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
             cropped = { ...cropped, data16 };
         }
         return { ...cropped,
+            ...("readMask" in image && image.readMask ? { readMask: yield* extractImageSteps(image.readMask as RgbaImage, area) } : {}),
             ...(image.writeMask ? { writeMask: yield* extractImageSteps(image.writeMask, area) } : {}),
             virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + area.left, y: (image.virtualCanvas?.y ?? 0) + area.top },
         };
@@ -185,6 +186,7 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     }
     if (next.value) return {
         ...await transformStoredImage(image, storage, { kind: "extract", ...next.value }, signal),
+        ...("readMask" in image && image.readMask ? { readMask: await transformStoredImage(image.readMask as StoredRgbaImage, storage, { kind: "extract", ...next.value }, signal) } : {}),
         ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, storage, { kind: "extract", ...next.value }, signal) } : {}),
         virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + next.value.left, y: (image.virtualCanvas?.y ?? 0) + next.value.top },
     };

@@ -17,11 +17,13 @@ export function* combineMetaPixelSteps(extent: Pick<RgbaImage, "width" | "height
         const data = highDepth ? new Uint16Array(length) : new Uint8Array(length);
         const working = new Float64Array(length);
         const count = y < source.height ? Math.max(0, Math.min(length, (source.width - x) * 4)) : 0;
-        const bytes = count ? (yield { kind: "read", highDepth, position: (y * source.width + x) * 4, length: count })! : new Uint8Array();
-        const samples = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+        const sourceWorking = count ? yield { kind: "read", evaluate: true, position: (y * source.width + x) * 4, length: count } : undefined;
+        const bytes = sourceWorking?.length ? sourceWorking : count ? (yield { kind: "read", highDepth, position: (y * source.width + x) * 4, length: count })! : new Uint8Array();
+        const samples = sourceWorking?.length ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => highDepth ? value * 257 : value)
+            : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
         for (let offset = 0; offset < length; offset += 4) {
             const value = offset < count ? magickIntensity(samples[offset]!, samples[offset + 1]!, samples[offset + 2]!, intensity, maximum, source.magickColorspace === "RGB") : 0;
-            data[offset] = data[offset + 1] = data[offset + 2] = Math.round(value);
+            data[offset] = data[offset + 1] = data[offset + 2] = Math.round(Math.max(0, Math.min(maximum, value)));
             working[offset] = working[offset + 1] = working[offset + 2] = value * 255 / maximum;
             working[offset + 3] = 255;
             data[offset + 3] = maximum;

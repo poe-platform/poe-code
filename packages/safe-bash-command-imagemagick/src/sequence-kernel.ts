@@ -256,7 +256,9 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
         const position = (y * width + x) * 4, length = Math.min(chunkPixels, width - x) * 4;
         const base = (yield { kind: "read", highDepth, image: 0, position, length })!;
         const data = highDepth ? new Uint16Array(base.slice().buffer) : new Uint8Array(base);
-        const samples = Float64Array.from(data, value => highDepth ? value / 257 : value);
+        const baseWorking = yield { kind: "read", evaluate: true, image: 0, position, length };
+        const samples = baseWorking?.length ? new Float64Array(baseWorking.slice().buffer)
+            : Float64Array.from(data, value => highDepth ? value / 257 : value);
         const baseHue = cmyk ? yield { kind: "read", hue: true, position, length } : undefined;
         const inks = baseHue?.length ? new Float64Array(baseHue.slice().buffer) : cmyk ? new Float64Array(length) : undefined;
         if (inks && !baseHue?.length) for (let offset = 0; offset < length; offset += 4)
@@ -265,8 +267,10 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
             const sourceImage = inputs[image]!;
             if (y >= sourceImage.height || x >= sourceImage.width) continue;
             const count = Math.min(length, (sourceImage.width - x) * 4);
-            const bytes = image === 0 ? base : (yield { kind: "read", highDepth, image, position: (y * sourceImage.width + x) * 4, length: count })!;
-            const source = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+            const working = image === 0 ? baseWorking : yield { kind: "read", evaluate: true, image, position: (y * sourceImage.width + x) * 4, length: count };
+            const bytes = working?.length ? working : image === 0 ? base : (yield { kind: "read", highDepth, image, position: (y * sourceImage.width + x) * 4, length: count })!;
+            const source = working?.length ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => highDepth ? value * 257 : value)
+                : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
             const hue = cmyk && sourceImage.space === "cmyk" ? image === 0 ? baseHue
                 : yield { kind: "read", hue: true, image, position: (y * sourceImage.width + x) * 4, length: count } : undefined;
             const inkSamples = hue?.length ? new Float64Array(hue.slice().buffer) : undefined;
@@ -281,7 +285,7 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
                 const value = magickIntensity(source[offset]!, source[offset + 1]!, source[offset + 2]!, intensity, highDepth ? 65535 : 255, sourceImage.magickColorspace === "RGB");
                 const channel = gray && image === 1 ? 3 : image;
                 samples[offset + channel] = highDepth ? value / 257 : value;
-                data[offset + channel] = Math.round(value);
+                data[offset + channel] = Math.round(Math.max(0, Math.min(range, value)));
                 if (gray && image === 0) {
                     samples[offset + 1] = samples[offset + 2] = samples[offset]!;
                     data[offset + 1] = data[offset + 2] = data[offset]!;
@@ -293,11 +297,11 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
             for (let offset = 0; offset < length; offset += 4) for (let channel = 0; channel < 3; channel++) {
                 const value = (1 - inks[offset + channel]!) * (1 - inks[offset + 3]!);
                 samples[offset + channel] = value * 255;
-                data[offset + channel] = Math.round(value * range);
+                data[offset + channel] = Math.round(Math.max(0, Math.min(range, value * range)));
             }
             yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
         }
-        // Retain fractional intensities for later high-depth output.
+        // Retain fractional and out-of-range intensities for later operations.
         yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
         yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };
     }

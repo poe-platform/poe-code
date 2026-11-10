@@ -7951,14 +7951,17 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             };
         }
         else if (mode === "associate" || mode === "disassociate") {
+            evaluate = true;
             apply = function* (im) {
                 const cmyk = im.space === "cmyk";
                 if (cmyk) im = yield* convertCmykPixels(im);
                 const hueSamples = im.hueSamples?.slice();
                 const out = new Uint8Array(im.data), data16 = new Uint16Array(im.data.length);
+                const evaluateSamples = im.evaluateSamples?.slice() ?? Float64Array.from(im.data16 ?? im.data, value => im.data16 ? value / 257 : value);
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (idx % 65536 === 0) yield;
-                    const alpha = im.hasAlpha ? (im.data16 ? im.data16[idx + 3]! / 65535 : im.data[idx + 3]! / 255) : 1;
+                    // Association disables blending but retains alpha for subsequent operations.
+                    const alpha = im.hasAlpha || im.inactiveAlpha ? evaluateSamples[idx + 3]! / 255 : 1;
                     const scale = mode === "associate" ? alpha : 1 / Math.max(alpha, 1e-12);
                     // The fourth CMYK working sample is black ink; alpha stays in RGBA.
                     if (hueSamples) for (let channel = 0; channel < (cmyk ? 4 : 3); channel++) {
@@ -7967,14 +7970,15 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     for (let channel = 0; channel < 3; channel++) {
                         // Q16-HDRI stores the scaled quantum as a float before export rounding.
                         const source = hueSamples ? (cmyk ? (1 - hueSamples[idx + channel]!) * (1 - hueSamples[idx + 3]!) : hueSamples[idx + channel]!) * 65535
-                            : Math.fround((im.data16 ? im.data16[idx + channel]! : im.data[idx + channel]! * 257) * scale);
+                            : Math.fround((evaluateSamples[idx + channel]! * 257) * scale);
+                        evaluateSamples[idx + channel] = source / 257;
                         const scaled = Math.max(0, Math.min(65535, source));
                         data16[idx + channel] = Math.round(scaled);
                         out[idx + channel] = clampByteVal(scaled / 257);
                     }
                     data16[idx + 3] = im.data16 ? im.data16[idx + 3]! : im.data[idx + 3]! * 257;
                 }
-                return { ...im, data: out, data16, ...(hueSamples ? { hueSamples } : {}), hasAlpha: false, inactiveAlpha: im.hasAlpha || im.inactiveAlpha, alphaBlend: mode === "associate" && (im.alphaBlend ?? im.hasAlpha), alphaSeparate: mode === "disassociate" };
+                return { ...im, data: out, data16, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), hasAlpha: false, inactiveAlpha: im.hasAlpha || im.inactiveAlpha, alphaBlend: mode === "associate" && (im.alphaBlend ?? im.hasAlpha), alphaSeparate: mode === "disassociate" };
             };
         }
         else if (mode === "deactivate" || mode === "discrete") {

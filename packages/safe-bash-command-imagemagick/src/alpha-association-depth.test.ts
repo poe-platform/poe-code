@@ -33,6 +33,31 @@ for (const execution of ["command", "retained", "buffered", "sync"] as const) {
         expect(Buffer.from(output).toString("hex")).toBe(hex);
     });
 
+    it.each([
+        ["#80402020", ["associate", "disassociate"], "808040402020ffff"],
+        ["#80402080", ["associate", "disassociate"], "808040402020ffff"],
+        ["#80402080", ["associate", "activate", "disassociate"], "808040402020ffff"],
+        ["#80402020", ["associate"], "102008100408ffff"],
+        ["#80402020", ["disassociate"], "ffffffffffffffff"],
+        ["#804020ff", ["associate", "disassociate"], "808040402020ffff"],
+    ])(`${execution}: preserves HDRI RGB through %s %j`, async (color, modes, hex) => {
+        const argv = [`xc:${color}`, ...modes.flatMap(mode => ["-alpha", mode]), "-depth", "16", "-endian", "MSB", "rgba:out"];
+        const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
+        const args = createCommandArguments(argv);
+        let stderr = "";
+        const result = execution === "command" ? await createMagickCommand().execute({
+            command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+        }) : execution === "sync" ? runConvertCliSync(argv, files)
+            : await runConvertCli(argv, execution === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        expect(result.exitCode, stderr).toBe(0);
+        expect(stderr).toBe("");
+        const output = execution === "command" || execution === "retained" ? await fs.readFile("/out") : files.get("out")!;
+        expect(Buffer.from(output).toString("hex")).toBe(hex);
+    });
+
     async function convert(mode: string, format: string, samples?: number[], operators: string[] = []) {
         const data = Uint8Array.from(samples ?? pixels, value => samples ? Math.round(value / 257) : value);
         const input = encodeImage({ width: data.length / 4, height: 1, data,

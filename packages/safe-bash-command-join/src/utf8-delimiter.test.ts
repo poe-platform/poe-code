@@ -89,3 +89,42 @@ test("join counts all delimiter bytes against the output limit", async () => {
   if (maxOutputBytes === 7) assert.ok(result.stderr.includes("output limit exceeded"));
  }
 });
+
+for (const blank of ["\t", " ", "\u1680", "\u2000", "\u2001", "\u2002", "\u2003", "\u2004", "\u2005", "\u2006", "\u2008", "\u2009", "\u200a", "\u205f", "\u3000"]) {
+ test(`join splits locale blanks ${JSON.stringify(blank)} without empty edge fields`, async () => {
+  const result = await run(["/a", "/b"], { "/a": `${blank}a${blank}${blank}red${blank}\n`, "/b": `a${blank}blue\n` });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.deepEqual(result.stdout, Buffer.from("a red blue\n"));
+ });
+}
+
+test("join keeps nonblank Unicode spaces and C locale bytes in fields", async () => {
+ for (const blank of ["\u00a0", "\u2007", "\u202f", "\u2028", "\u2029", "\ufeff", "\v", "\f", "\r"]) {
+  const result = await run(["/a", "/b"], { "/a": `a${blank}red\n`, "/b": `a${blank}blue\n` });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdout, Buffer.alloc(0));
+ }
+ for (const env of [{}, { LC_ALL: "C", LANG: "C.UTF-8" }, { LC_CTYPE: "POSIX", LANG: "C.UTF-8" }]) {
+  const result = await run(["/a", "/b"], { "/a": "a\u2003red\n", "/b": "a\u2003blue\n" }, env);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdout, Buffer.alloc(0));
+ }
+});
+
+test("join applies locale precedence to blanks and preserves explicit separators", async () => {
+ for (const env of [{ LANG: "en_US.UTF-8" }, { LC_CTYPE: "C.utf8", LANG: "C" }, { LC_ALL: "C.UTF-8", LC_CTYPE: "C" }]) {
+  const files = { "/a": "a\u2003red\n", "/b": "a\u2003blue\n" };
+  assert.deepEqual((await run(["/a", "/b"], files, env)).stdout, Buffer.from("a red blue\n"));
+  for (const delimiter of ["", " "]) assert.deepEqual((await run(["-t", delimiter, "/a", "/b"], files, env)).stdout, Buffer.alloc(0));
+ }
+});
+
+test("join preserves invalid UTF-8 bytes around locale blanks and NUL records", async () => {
+ const result = await run(["-z", "/a", "/b"], {
+  "/a": Buffer.concat([Buffer.from([0xff]), Buffer.from("\u2003red\u3000\n\0")]),
+  "/b": Buffer.concat([Buffer.from([0xff]), Buffer.from("\u3000blue\0")]),
+ });
+ assert.equal(result.exitCode, 0, result.stderr);
+ assert.deepEqual(result.stdout, Buffer.concat([Buffer.from([0xff]), Buffer.from(" red blue\0")]));
+});

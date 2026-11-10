@@ -1392,7 +1392,12 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     const a = img.hasAlpha ? samples[i + 3]! : range;
     // Distinct CMYK inks can render as the same RGB color.
     const inks = img.space === "cmyk" ? chunk.hueSamples : undefined;
-    uniqueColors?.add(inks ? `${inks[i]},${inks[i + 1]},${inks[i + 2]},${inks[i + 3]},${a}` : `${r},${g},${b},${a}`);
+    if (uniqueColors) {
+      // Arithmetic retains unclamped fractional samples separately from output pixels.
+      const working = chunk.evaluateSamples ?? samples;
+      const alpha = img.hasAlpha ? working[i + 3]! : chunk.evaluateSamples ? 255 : range;
+      uniqueColors.add(inks ? `${inks[i]},${inks[i + 1]},${inks[i + 2]},${inks[i + 3]},${a}` : `${working[i]},${working[i + 1]},${working[i + 2]},${alpha}`);
+    }
     opaque &&= a === range;
     gray &&= r === g && g === b;
     bilevel &&= (r === 0 || r === range) && (g === 0 || g === range) && (b === 0 || b === range);

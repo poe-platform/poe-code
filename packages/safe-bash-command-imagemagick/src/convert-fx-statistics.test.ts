@@ -5,6 +5,9 @@ import { runConvertCli } from "./index.js";
 
 // RGBA8 controls from ImageMagick 7.1.2-32, including its zero red statistic.
 const cases = [
+    { expression: "kurtosis", pixels: [64, 128, 192, 80], expected: [0, 0, 0, 0] },
+    { expression: "skewness.g", pixels: [64, 128, 192, 80], expected: [0, 0, 0, 0] },
+    { expression: "(kurtosis.g+3)/3", channel: "G", pixels: [64, 0, 192, 80, 64, 255, 192, 80], expected: [64, 21, 192, 80, 64, 21, 192, 80] },
     { expression: "mean", pixels: [64, 128, 192, 80], expected: [0, 116, 116, 116] },
     { expression: "mean.g", pixels: [64, 128, 192, 80], expected: [0, 128, 128, 128] },
     { expression: "mean.b", pixels: [64, 128, 192, 80], expected: [0, 192, 192, 192] },

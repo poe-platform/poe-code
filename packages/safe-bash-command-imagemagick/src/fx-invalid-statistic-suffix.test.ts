@@ -6,7 +6,7 @@ import { createMagickCommand, runMagickCli } from "./index.js";
 
 for (const retained of [false, true]) {
   for (const identify of [false, true]) {
-    it(`rejects suffixed FX distribution statistics (retained=${retained}, identify=${identify})`, async () => {
+    it(`rejects suffixed FX entropy (retained=${retained}, identify=${identify})`, async () => {
       for (const pixels of [
         [255, 0, 0, 255, 0, 0, 255, 0, 0, 0, 0, 255, 0, 255, 0],
         [0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0]
@@ -14,7 +14,7 @@ for (const retained of [false, true]) {
         const bytes = await sharp(Uint8Array.from(pixels), { raw: { width: 5, height: 1, channels: 3 } }).png().toBuffer();
         const fs = new MemoryFileSystem();
         await fs.writeFile("/input.png", bytes);
-        for (const format of ["%[fx:entropy.r]", "%[fx:skewness.r]", "%[fx:kurtosis.r]", "%[fx:entropy.r]|%[fx:skewness.r]|%[fx:kurtosis.r]", "%[fx:mean.r]|%[entropy]"]) {
+        for (const format of ["%[fx:entropy.r]", "%[fx:entropy.r]|%[fx:skewness.r]|%[fx:kurtosis.r]", "%[fx:mean.r]|%[entropy]"]) {
           const argv = identify
             ? ["identify", "-format", format, "/input.png"]
             : ["/input.png", "-format", format, "info:"];

@@ -16,8 +16,8 @@ for (const retained of [false, true]) for (const depth of [8, 16]) {
       const fs = new MemoryFileSystem();
       await fs.writeFile("/input.png", bytes);
       const input = retained ? { filesystem: fs, cwd: "/" } : new Map([["/input.png", bytes]]);
-      expect(await runMagickCli(["identify", "-format", "%[skewness]|%[kurtosis]", "/input.png"], input))
-        .toEqual({ exitCode: 0, stdout: test.expected, stderr: "" });
+      expect(await runMagickCli(["identify", "-format", "%[skewness]|%[kurtosis]|%[fx:skewness]|%[fx:kurtosis]|%[fx:skewness.r]|%[fx:kurtosis.r]", "/input.png"], input))
+        .toEqual({ exitCode: 0, stdout: `${test.expected}|${test.expected}|${test.red}`, stderr: "" });
       for (const selection of [[], ["-channel", "R"], ["-channel", "R", "+channel"]]) {
         expect(await runMagickCli(["/input.png", ...selection, "-format", "%[skewness]|%[kurtosis]", "info:"], input))
           .toEqual({ exitCode: 0, stdout: `${selection.length === 2 ? test.red : test.expected}\n`, stderr: "" });
@@ -31,6 +31,8 @@ it("averages alpha moments with RGB and honors alpha selection", async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/input.png", bytes);
   for (const input of [new Map([["/input.png", bytes]]), { filesystem: fs, cwd: "/" }]) {
+    expect(await runMagickCli(["identify", "-format", "%[fx:kurtosis]|%[fx:kurtosis.a]|%[fx:kurtosis.g]|%[fx:skewness.a]", "/input.png"], input))
+      .toEqual({ exitCode: 0, stdout: "-0.6875|-2.75|0|0", stderr: "" });
     for (const selection of [[], ["-channel", "A"]]) {
       expect(await runMagickCli(["/input.png", ...selection, "-format", "%[skewness]|%[kurtosis]", "info:"], input))
         .toEqual({ exitCode: 0, stdout: selection.length ? "0|-2.75\n" : "0|-0.6875\n", stderr: "" });

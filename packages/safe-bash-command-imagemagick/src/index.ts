@@ -1375,6 +1375,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     statistics.minima = 1;
     statistics.maxima = 0;
     statistics.median = 0;
+    statistics.skewness = 0;
+    statistics.kurtosis = 0;
     for (let c = 0; c < channels; c++) {
       const deviation = Math.sqrt(Math.max(0, moments[c]! / Math.max(1, count - 1)));
       const histogram = histograms![c]!;
@@ -1393,7 +1395,9 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       let minimum = 0, maximum = 65535, median = 0, cumulative = 0;
       while (minimum < 65535 && histogram[minimum] === 0) minimum++;
       while (maximum > 0 && histogram[maximum] === 0) maximum--;
-      if (selectedChannels[c] && deviation > 0) {
+      statistics[`skewness.${c}`] = 0;
+      statistics[`kurtosis.${c}`] = 0;
+      if (deviation > 0) {
         let third = 0, fourth = 0;
         const mean = sums[c]! / count;
         for (let value = minimum; value <= maximum; value++) {
@@ -1406,8 +1410,14 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
         }
         // Native uses sample deviation, population moments and excess kurtosis.
         // Constant channels contribute zero to both channel averages.
-        skewness += third / selectedCount;
-        kurtosis += (fourth - 3) / selectedCount;
+        statistics[`skewness.${c}`] = third;
+        statistics[`kurtosis.${c}`] = fourth - 3;
+        statistics.skewness += third / channels;
+        statistics.kurtosis += (fourth - 3) / channels;
+        if (selectedChannels[c]) {
+          skewness += third / selectedCount;
+          kurtosis += (fourth - 3) / selectedCount;
+        }
       }
       for (; median < 65535; median++) {
         if (median % 8192 === 0) yield;
@@ -1432,6 +1442,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       statistics["median.3"] = 0;
       statistics["mean.3"] = 0;
       statistics["standard_deviation.3"] = 0;
+      statistics["skewness.3"] = 0;
+      statistics["kurtosis.3"] = 0;
     }
   }
   const suffix = img.hasAlpha ? "Alpha" : "";
@@ -3171,7 +3183,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         expectToken(relative ? "]" : "}");
       }
       while (peek()?.val === ".") {
-        if (["entropy", "skewness", "kurtosis"].includes(name)) {
+        if (name === "entropy") {
           throw new Error(`Expected operator at '.${tokens[pos + 1]?.val ?? ""}'`);
         }
         next();
@@ -3189,7 +3201,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         }
       }
 
-      const isStatistic = ["mean", "standard_deviation", "minima", "maxima", "median"].includes(name);
+      const isStatistic = ["mean", "standard_deviation", "minima", "maxima", "median", "skewness", "kurtosis"].includes(name);
       if (isStatistic) requireStatistics();
       return (ctx) => {
         if (ctx.vars.has(name) && !propName && !coordX) {
@@ -3280,7 +3292,7 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
             return (yield { kind: "read", image: stack.length, position, length })!;
         });
         const selected = mask.filter((enabled, channel) => enabled && (channel !== 3 || base.hasAlpha)).length;
-        for (const name of ["mean", "standard_deviation", "minima", "maxima", "median"]) {
+        for (const name of ["mean", "standard_deviation", "minima", "maxima", "median", "skewness", "kurtosis"]) {
             statistics[name] = name === "minima" && selected > 0 ? 1 : 0;
             for (let channel = 0; channel < 4; channel++) {
                 if (!mask[channel]) {

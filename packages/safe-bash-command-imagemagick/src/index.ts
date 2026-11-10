@@ -9767,10 +9767,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let count = 1;
             let idxSpec = "-1";
             if (t === "-duplicate") {
-                const value = tokens[++i] ?? "", comma = value.indexOf(",");
+                const value = tokens[++i] ?? "", comma = value.startsWith("x") ? 0 : value.indexOf(",");
                 const countSpec = comma < 0 ? value : value.slice(0, comma);
                 count = Number(countSpec);
-                if (!countSpec.trim() || !Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
+                if ((!countSpec.trim() && comma !== 0) || !Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
                 idxSpec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";
                 parseMagickIndices(idxSpec);
             }
@@ -10531,10 +10531,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             let spec = "-1", count = 1;
             if (["-clone", "-delete", "-swap", "-insert"].includes(token)) spec = tokens[++i] ?? (token === "-swap" ? "-2,-1" : token === "-insert" ? "0" : "-1");
             if (token === "-duplicate") {
-                const value = tokens[++i] ?? "", comma = value.indexOf(",");
+                const value = tokens[++i] ?? "", comma = value.startsWith("x") ? 0 : value.indexOf(",");
                 const countSpec = comma < 0 ? value : value.slice(0, comma);
                 count = Number(countSpec);
-                if (!countSpec.trim() || !Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
+                if ((!countSpec.trim() && comma !== 0) || !Number.isSafeInteger(count)) throw new Error(`invalid argument ${value}`);
                 spec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";
                 parseMagickIndices(spec);
             }
@@ -13749,7 +13749,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             if (!operands.length) return { exitCode: 1, stdout: "", stderr: `montage: no images found for operation ${t}\n` };
             let count = 1, spec = "-1";
             if (t === "-duplicate") {
-                const value = argv[++i] ?? "", comma = value.indexOf(",");
+                const value = argv[++i] ?? "", comma = value.startsWith("x") ? 0 : value.indexOf(",");
                 count = Number(comma < 0 ? value : value.slice(0, comma));
                 if (!value || !Number.isSafeInteger(count)) return { exitCode: 1, stdout: "", stderr: `montage: invalid argument '${value}'\n` };
                 spec = comma < 0 ? "-1" : value.slice(comma + 1) || "-1";

@@ -15,7 +15,6 @@ for (const [filter, expected, limits] of [
   ["loop=loop=2:size=2:start=3", [12, 40, 72, 112, 72, 112, 72, 112, 144, 176, 204, 232]],
   ["loop=2:2:3", [12, 40, 72, 112, 72, 112, 72, 112, 144, 176, 204, 232]],
   ["loop=1:2:0", [12, 40, 12, 40, 72, 112, 144, 176, 204, 232]],
-  ["loop=1.5:2:0", [12, 40, 12, 40, 12, 40, 72, 112, 144, 176, 204, 232]],
   ["loop=1:2:1", [12, 40, 12, 40, 72, 112, 144, 176, 204, 232]],
   ["loop=1:20:3", [...values, 72, 112, 144, 176, 204, 232]],
   ["loop=1:2:8", [...values, 232]],
@@ -24,7 +23,7 @@ for (const [filter, expected, limits] of [
   ["loop=0:2:3", values],
   ["loop=2:0:3", values],
   ["loop=2:2:3,select='gt(t,0.75)'", [144, 176, 204, 232]],
-  ...["-1:2:3", "1:-1:0", "1:2:-2", "nope", "loop=", "unknown=3", "1:2:3:4:5", "2147483648:2:0", "2:32768:0"].map(value => [`loop=${value}`, null] as const)
+  ...["-1:2:3", "1:-1:0", "1:2:-2", "1.5:2:0", "nope", "loop=", "unknown=3", "1:2:3:4:5", "2147483648:2:0", "2:32768:0"].map(value => [`loop=${value}`, null] as const)
 ] as readonly (readonly [string, readonly number[] | null, MediaResourceLimits?])[]) {
   it(`loop repeats frames or safely rejects ${filter}`, async () => {
     const volume = Volume.fromJSON({ "/o01.png": "existing output" });

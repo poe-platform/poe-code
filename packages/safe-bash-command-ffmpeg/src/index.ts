@@ -4127,14 +4127,24 @@ async function applyVideoFilterChain(
       if (positional.length > 1 && positional.at(-1) === "") positional.pop();
       const opacityKeys = ["all_opacity", "c0_opacity", "c1_opacity", "c2_opacity", "c3_opacity"];
       const modeKeys = ["c0_mode", "c1_mode", "c2_mode", "c3_mode", "all_mode"];
+      const optionKeys = [...modeKeys, "c0_expr", "c1_expr", "c2_expr", "c3_expr", "all_expr"];
       const options: Record<string, string> = {};
       let positionalIndex = 0;
       for (const part of argStr === "" ? [] : positional) {
         const separator = part.indexOf("=");
-        const key = separator < 0 ? modeKeys[positionalIndex++] : part.slice(0, separator).trim().toLowerCase();
+        const key = separator < 0 ? optionKeys[positionalIndex++] : part.slice(0, separator).trim().toLowerCase();
         if (key === "enable") continue;
-        if (!key || (!modeKeys.includes(key) && !opacityKeys.includes(key))) throw new Error("tblend: only component modes and all_mode are supported");
+        if (!key || (!optionKeys.includes(key) && !opacityKeys.includes(key))) throw new Error("tblend: only component modes and expressions are supported");
         options[key] = separator < 0 ? part : part.slice(separator + 1).trim();
+      }
+      const expressions = [0, 1, 2, 3].map(plane => options[`c${plane}_expr`] ?? options.all_expr);
+      const hasExpressions = expressions.some(expression => expression !== undefined);
+      const variables = { A: 0, B: 0, TOP: 0, BOTTOM: 0, X: 0, Y: 0, W: 0, H: 0, SW: 1, SH: 1, N: 0, T: 0 };
+      budget.allocateMemory(4 * 10 * Float64Array.BYTES_PER_ELEMENT);
+      const registers = expressions.map(() => new Float64Array(10));
+      for (const [plane, expression] of expressions.entries()) {
+        if (expression !== undefined) parseFilterExpression(expression, "tblend", variables, undefined, registers[plane]);
+        registers[plane]!.fill(0);
       }
       const modes = modeKeys.map(key => {
         const value = parseFilterExpression(options[key] ?? "normal", "tblend", { normal: 0, addition: 1, average: 3, difference: 6, multiply: 13 });
@@ -4188,7 +4198,7 @@ async function applyVideoFilterChain(
         if (frame.width !== previous.width || frame.height !== previous.height) {
           throw new Error("tblend: adjacent frames must have matching dimensions");
         }
-        if (!enabled || (modes.slice(0, 4).every(mode => mode === 0) && !fractionalOpacity)) {
+        if (!enabled || ((!hasExpressions && modes.slice(0, 4).every(mode => mode === 0)) && !fractionalOpacity)) {
           blended.push(frame);
           continue;
         }
@@ -4203,10 +4213,11 @@ async function applyVideoFilterChain(
         const data = new Uint8Array(a.length);
         const sampleBytes = useNative && [49, 68].includes(native.format) ? 2 : 1;
         const lumaSize = frame.width * frame.height * sampleBytes;
-        const chromaSize = useNative
-          ? Math.ceil(frame.width / ([0, 4, 12, 13].includes(native.format) ? 2 : 1)) *
-            Math.ceil(frame.height / ([0, 12].includes(native.format) ? 2 : 1)) * sampleBytes
-          : 0;
+        const chromaWidth = useNative ? Math.ceil(frame.width / ([0, 4, 12, 13].includes(native.format) ? 2 : 1)) : frame.width;
+        const chromaHeight = useNative ? Math.ceil(frame.height / ([0, 12].includes(native.format) ? 2 : 1)) : frame.height;
+        const chromaSize = chromaWidth * chromaHeight * sampleBytes;
+        variables.N = index;
+        variables.T = frame.ptsSeconds;
         for (let offset = 0; offset < data.length; offset += sampleBytes) {
           if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
           let first = a[offset]! + (sampleBytes === 2 ? a[offset + 1]! * 256 : 0);
@@ -4214,8 +4225,9 @@ async function applyVideoFilterChain(
           // Native RGB blending uses GBR(A) planes; our fallback pixels are RGBA.
           const component = useNative ? (offset < lumaSize ? 0 : offset < lumaSize + chromaSize ? 1 : 2) : [2, 0, 1, 3][offset % 4]!;
           const mode = modes[component]!;
+          const expression = expressions[component];
           const amount = opacity[component]!;
-          if (([6, 13].includes(mode) || fractionalOpacity) && !useNative && offset % 4 === 3 && packedAlpha) {
+          if (([6, 13].includes(mode) || fractionalOpacity || hasExpressions) && !useNative && offset % 4 === 3 && packedAlpha) {
             // swscale rounds packed alpha when converting to planar GBR for tblend.
             first = Math.min(255, Math.round(first * 257 / 256));
             second = Math.min(255, Math.round(second * 257 / 256));
@@ -4223,8 +4235,20 @@ async function applyVideoFilterChain(
           const maximum = sampleBytes === 1 ? 255 : native!.format === 68 ? 1023 : 65535;
           const calculated = mode === 13 ? Math.floor(first * second / maximum) : mode === 0 ? first : mode === 1 ? Math.min(maximum, first + second) : mode === 3 ? Math.floor((first + second) / 2) :
             !useNative && offset % 4 === 3 && !hasAlpha ? 255 : Math.abs(first - second);
-          const value = mode === 0 ? first * amount + second * (1 - amount)
+          let value = mode === 0 ? first * amount + second * (1 - amount)
             : first + (calculated - first) * amount;
+          if (expression !== undefined) {
+            const pixel = useNative ? (offset - (component === 0 ? 0 : lumaSize + (component - 1) * chromaSize)) / sampleBytes : Math.floor(offset / 4);
+            variables.W = useNative && component > 0 ? chromaWidth : frame.width;
+            variables.H = useNative && component > 0 ? chromaHeight : frame.height;
+            variables.SW = variables.W / frame.width;
+            variables.SH = variables.H / frame.height;
+            variables.X = pixel % variables.W;
+            variables.Y = Math.floor(pixel / variables.W);
+            variables.A = variables.TOP = first;
+            variables.B = variables.BOTTOM = second;
+            value = parseFilterExpression(expression, "tblend", variables, undefined, registers[component]);
+          }
           data[offset] = value & 255;
           if (sampleBytes === 2) data[offset + 1] = value >> 8;
         }
@@ -4239,7 +4263,7 @@ async function applyVideoFilterChain(
         }
       }
       current = blended;
-      if (([6, 13].includes(modes[3]!) || fractionalOpacity) && packedAlpha) pixelFormat = "gbrap";
+      if (([6, 13].includes(modes[3]!) || fractionalOpacity || hasExpressions) && packedAlpha) pixelFormat = "gbrap";
     } else if (name === "shuffleframes") {
       for (const key of Object.keys(named)) {
         if (key !== "mapping" && key !== "enable") throw new Error(`shuffleframes: unsupported option ${key}`);
@@ -4285,17 +4309,16 @@ async function applyVideoFilterChain(
         if (key === undefined) throw new Error("loop: surplus positional option");
         if (key !== "loop" && key !== "size" && key !== "start" && key !== "time") throw new Error(`loop: unsupported option ${key}`);
         const text = (separator < 0 ? option : option.slice(separator + 1)).trim();
-        const value = key === "time" ? parseHlsDuration(text)
-          : parseFilterExpression(text, "loop", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+        const value = key === "time" ? parseHlsDuration(text) : parseFilterExpression(text, "loop", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
         const max = key === "time" ? (2 ** 63 - 1) / 1_000_000
           : key === "loop" ? 2147483647 : key === "size" ? 32767 : 2 ** 63;
-        if (!text || !Number.isFinite(value)) {
+        if (!text || !Number.isFinite(value) || (key !== "time" && !Number.isInteger(value))) {
           throw new Error(`loop: invalid ${key}`);
         }
         if (value < (key === "start" || key === "loop" ? -1 : 0) || value > max) {
           throw new RangeError(`loop: invalid ${key}`);
         }
-        values[key] = key === "time" ? value : roundToEven(value);
+        values[key] = value;
       }
       // Frame starts use FFmpeg's one-based input count; time starts use incoming PTS.
       const start = values.start === -1

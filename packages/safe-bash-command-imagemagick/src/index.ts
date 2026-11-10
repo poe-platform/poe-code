@@ -574,19 +574,29 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
 }
 
 function parseDelay(value: string): number {
-  value = value.replaceAll("%", "");
-  const [delay, ticks = "100"] = value.split("x");
+  const geometry = [...value].filter(character => !"%!^<>@".includes(character)).join("")
+    .replaceAll("X", "x").replaceAll("/", "x").replaceAll(",", "x");
+  const fields: string[] = [];
+  let start = 0;
+  for (let index = 1; index < geometry.length; index++) {
+    if ("+-".includes(geometry[index]!) && !"eEx".includes(geometry[index - 1]!)) {
+      fields.push(geometry.slice(start, index));
+      start = index;
+    }
+  }
+  fields.push(geometry.slice(start));
+  const parts = fields[0]!.split("x");
+  if (!geometry.trim() || fields.length > 3 || parts.length > 2 ||
+      [...parts, ...fields.slice(1)].some(part => !Number.isFinite(Number(part)))) return NaN;
+  const [delay, ticks = "100"] = parts;
   return Math.floor(Math.round(Number(delay)) * 1000 / (Number(ticks || "100") || 1));
 }
 
 function parseDelayOption(value: string, current: number): number {
-  value = value.replaceAll("%", "");
-  const geometry = [...value].filter(character => character !== ">" && character !== "<").join("");
-  if (!geometry.trim() || geometry.split("x").some(part => !Number.isFinite(Number(part)))) {
+  const milliseconds = parseDelay(value);
+  if (!Number.isFinite(milliseconds)) {
     throw new Error(`invalid argument for option '-delay' '${value}'`);
   }
-  const [delay, ticks = "100"] = geometry.split("x");
-  const milliseconds = Math.floor(Math.round(Number(delay)) * 1000 / (Number(ticks || "100") || 1));
   if (value.includes(">")) return Math.min(current, milliseconds);
   if (value.includes("<")) return Math.max(current, milliseconds);
   return milliseconds;

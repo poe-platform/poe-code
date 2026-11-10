@@ -9196,7 +9196,9 @@ function applyMagickUnits<T extends ImageMetadata & { magickUnits?: MagickState[
 }
 
 function magickResampleGeometry(image: ImageMetadata, value: string): string {
+    validateMagickTransformGeometry(value, "-resample");
     const geometry = parseMagickGeometry(value);
+    if (geometry.aspectRatio !== undefined) throw new Error("negative or zero image size");
     const x = geometry.width ?? 72, y = geometry.height ?? x;
     if (!(x > 0) || !(y > 0)) throw new Error(`invalid argument '-resample' '${value}'`);
     const scale = image.resolution?.unit === "meter" ? 100 : 1;

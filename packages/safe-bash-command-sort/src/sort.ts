@@ -329,7 +329,8 @@ async function versionPrefix(bytes: Uint8Array, work: SortWork): Promise<Uint8Ar
     if (readAlpha) {
       readAlpha = false;
       if (!alpha) match = bytes.length;
-    } else if (byte === 46) {
+    }
+    if (byte === 46) {
       readAlpha = true;
       if (match === bytes.length) match = index;
     } else if (!(alpha || byte >= 48 && byte <= 57)) {

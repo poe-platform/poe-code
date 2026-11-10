@@ -117,6 +117,25 @@ test("sort modes match the native utility after the storage refactor", async () 
   }
 });
 
+for (const length of [0, 20_000]) for (const dots of [".", "..", "..."]) {
+  test(`version archive suffixes restart after dots (${dots.length} dots, ${length} padding)`, async () => {
+    const prefix = `${"a".repeat(length)}pkg-2${dots}`;
+    const sorted = `${prefix}tar.gz\n${prefix}1\n`;
+    const reversed = `${prefix}1\n${prefix}tar.gz\n`;
+    for (const [args, stdin, exitCode, stdout] of [
+      [["-V"], reversed, 0, sorted],
+      [["-VC"], reversed, 1, ""],
+      [["-VC"], sorted, 0, ""],
+    ] as const) {
+      const ctx = await context(args);
+      const result = await createSortCommand().execute({ ...ctx, stdin: toByteSource(stdin) });
+      assert.equal(result.exitCode, exitCode, args.join(" "));
+      assert.equal(Buffer.concat(ctx.output).toString(), stdout);
+      assert.equal(Buffer.concat(ctx.errors).toString(), "");
+    }
+  });
+}
+
 test("check input caps are independent of its memory budget", async () => {
   const ctx = await context(["-c", "--buffer-size=1M", "--max-input-bytes=5"]);
   const result = await createSortCommand().execute({ ...ctx, stdin: toByteSource("a\nb\nc\n") });

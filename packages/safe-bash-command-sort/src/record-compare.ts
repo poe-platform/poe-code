@@ -270,7 +270,7 @@ async function versionPrefix(view: View): Promise<View> {
   for (let index = await view.at(0) === 46 ? 1 : 0; index < view.length; index++) {
     const byte = await view.at(index), letter = byte === 126 || alpha(byte);
     if (readAlpha) { readAlpha = false; if (!letter) match = view.length; }
-    else if (byte === 46) { readAlpha = true; if (match === view.length) match = index; }
+    if (byte === 46) { readAlpha = true; if (match === view.length) match = index; }
     else if (!(letter || digit(byte))) match = view.length;
   }
   return view.slice(0, readAlpha ? view.length : match);

@@ -10574,7 +10574,8 @@ if (t === "-intent" || t === "+intent") {
         }
         else if (t === "-compose") {
             const cRaw = tokens[++i] ?? "over";
-            state.composeRaw = cRaw;
+            const mode = magickCompositeMode(cRaw).name;
+            state.composeRaw = magickComposeNames.find(name => name.toLowerCase() === mode) ?? cRaw;
             state.composeExplicit = true;
             state.compose = parseCompose(cRaw);
         }

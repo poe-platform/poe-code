@@ -7431,9 +7431,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     else if (token === "-gamma" || token === "+gamma") {
         highDepth = true;
         const value = tokens[++i] ?? "1";
+        const suffix = [...value].findIndex(character => "xX!#%(),/:<>@\\^".includes(character));
         const parts = value.split(",");
-        if (parts.some(part => !part.trim() || !Number.isFinite(Number(part)))) throw new Error(`Invalid gamma: ${value}`);
-        const gamma = Number(parts[0]);
+        const scalar = Number(parts[0]);
+        const gamma = Number.isFinite(scalar) ? scalar : Number(suffix < 0 ? value : value.slice(0, suffix));
+        if (!value.trim() || !Number.isFinite(gamma) || !parts.every(part => part.trim() && Number.isFinite(Number(part))) && [...value].some(character => character.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(character))) {
+            throw new Error(`Invalid gamma: ${value}`);
+        }
+        // Geometry modifiers do not scale gamma; an omitted first value is zero.
         const exponent = token === "+gamma" ? gamma : gamma === 0 ? Number.MAX_VALUE : 1 / gamma;
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = function* (image) {

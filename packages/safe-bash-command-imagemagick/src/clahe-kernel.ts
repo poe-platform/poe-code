@@ -49,9 +49,9 @@ export function* clahePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
     const offsetX = Math.floor((columns * tw - width) / 2), offsetY = Math.floor((rows * th - height) / 2);
     const lightness = new Uint16Array(size), tiles = new Uint32Array(columns * rows * bins);
     const delta = Math.floor(65535 / bins + 1), limit = Math.max(1, Math.floor(clip * tw * th / bins));
-    for (let start = 0; start < size; start += 1024) {
+    for (let start = 0; start < size; start += 512) {
         yield;
-        const count = Math.min(1024, size - start);
+        const count = Math.min(512, size - start);
         const bytes = yield { kind: "read", highDepth: true, position: start * 4, length: count * 4 };
         if (!bytes || bytes.length !== count * 8) throw new Error("Truncated CLAHE pixels");
         const chunk = { ...image, width: count, height: 1, data: new Uint8Array(count * 4), data16: new Uint16Array(bytes.slice().buffer) };
@@ -94,12 +94,18 @@ export function* clahePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
             histogram[i] = Math.min(65535, Math.floor(65535 / (tw * th) * sum));
         }
     }
-    for (let start = 0; start < size; start += 1024) {
+    for (let start = 0; start < size; start += 512) {
         yield;
-        const count = Math.min(1024, size - start);
+        const count = Math.min(512, size - start);
         const bytes = yield { kind: "read", highDepth: true, position: start * 4, length: count * 4 };
         if (!bytes || bytes.length !== count * 8) throw new Error("Truncated CLAHE pixels");
-        const conversion = convertHuePixels({ ...image, width: count, height: 1, data: new Uint8Array(count * 4), data16: new Uint16Array(bytes.slice().buffer) }, "CIELab");
+        const hueBytes = image.magickColorspace === "CIELab"
+            ? yield { kind: "read", hue: true, position: start * 4, length: count * 4 } : undefined;
+        const data16 = new Uint16Array(bytes.slice().buffer);
+        const hueSamples = image.magickColorspace === "CIELab"
+            ? hueBytes?.length ? new Float64Array(hueBytes.slice().buffer) : Float64Array.from(data16, value => value / 65535)
+            : undefined;
+        const conversion = convertHuePixels({ ...image, width: count, height: 1, data: new Uint8Array(count * 4), data16, ...(hueSamples ? { hueSamples } : {}) }, "CIELab");
         let next = conversion.next();
         while (!next.done) { yield; next = conversion.next(); }
         const lab = next.value;
@@ -116,6 +122,12 @@ export function* clahePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
                     + dy * ((tw - dx) * tiles[(bottom * columns + left) * bins + bin]! + dx * tiles[(bottom * columns + right) * bins + bin]!)) / (tw * th));
             }
             lab.hueSamples![i * 4] = value / 65535;
+        }
+        if (image.magickColorspace === "CIELab") {
+            yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(lab.hueSamples!.buffer) };
+            const output = Uint16Array.from(lab.hueSamples!, value => Math.max(0, Math.min(65535, Math.round(value * 65535))));
+            yield { kind: "write", highDepth: true, position: start * 4, data: new Uint8Array(output.buffer) };
+            continue;
         }
         // Match native float Quantum storage before rounding the final Q16 samples.
         const output = new Uint16Array(count * 4);

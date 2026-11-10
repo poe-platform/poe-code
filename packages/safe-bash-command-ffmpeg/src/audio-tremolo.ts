@@ -23,7 +23,7 @@ export async function tremoloAudio(
     else optionPosition = optionPosition === 0 ? 1 : 0;
     if (key === "enable") {
       enable = option.slice(separator + 1).trim();
-      parseFilterExpression(enable, "tremolo enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 });
+      parseFilterExpression(enable, "tremolo enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10), []);
       continue;
     }
     if (key !== "f" && key !== "d") throw new Error(`tremolo: unsupported option ${key}`);
@@ -46,11 +46,21 @@ export async function tremoloAudio(
   let work = 0;
   // Native generic timeline bypass freezes the oscillator while disabled.
   let position = 0;
+  // Validation must not consume the first draw of the per-filter random sequence.
+  const registers = new Float64Array(10);
+  const randomStates: BigUint64Array[] = [];
   for (const [n, timestamp] of frames.entries()) {
-    const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "tremolo enable", {
-      n, t: timestamp.pts / sampleRate,
-      pos: timestamp.pos !== undefined && timestamp.pos >= 0 ? timestamp.pos : NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2
-    })) >= 0.5;
+    let enabled = true;
+    if (enable !== undefined) {
+      const variables = {
+        n, t: timestamp.pts / sampleRate,
+        pos: timestamp.pos !== undefined && timestamp.pos >= 0 ? timestamp.pos : NaN,
+        w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2
+      };
+      // FFmpeg evaluates on frame consumption and again before filter_frame.
+      parseFilterExpression(enable, "tremolo enable", variables, undefined, registers, randomStates);
+      enabled = Math.abs(parseFilterExpression(enable, "tremolo enable", variables, undefined, registers, randomStates)) >= 0.5;
+    }
     for (let frame = timestamp.start; frame < timestamp.end; frame++) {
       const phase = (frequency * (position % period) / sampleRate + 0.25) % 1;
       const gain = enabled ? Math.sin(2 * Math.PI * phase) * (1 - Math.abs(offset)) + offset : 1;

@@ -42,9 +42,10 @@ export class UniqueColors {
 
 export function colorOrder(samples: Uint8Array | Uint16Array, offset: number, hasAlpha: boolean, inks?: Float64Array): number {
     const scale = samples instanceof Uint16Array ? 257 : 1;
-    const r = Math.round(inks ? inks[offset]! * 255 : samples[offset]! / scale);
-    const g = Math.round(inks ? inks[offset + 1]! * 255 : samples[offset + 1]! / scale);
-    const b = Math.round(inks ? inks[offset + 2]! * 255 : samples[offset + 2]! / scale);
+    // HDRI inks can exceed the output range; native tree keys use clamped bytes.
+    const r = Math.round(inks ? Math.max(0, Math.min(255, inks[offset]! * 255)) : samples[offset]! / scale);
+    const g = Math.round(inks ? Math.max(0, Math.min(255, inks[offset + 1]! * 255)) : samples[offset + 1]! / scale);
+    const b = Math.round(inks ? Math.max(0, Math.min(255, inks[offset + 2]! * 255)) : samples[offset + 2]! / scale);
     const a = hasAlpha ? Math.round(samples[offset + 3]! / scale) : 0;
     let order = 0;
     // Native classification visits bits 7 through 1; exact colors sharing a

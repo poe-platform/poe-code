@@ -18592,7 +18592,6 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         const output = inferOutputFormat(outSpec, "png");
         const adjoin = n > cols * rows && output.path !== "-" && (output.format === "ppm" || output.format === "rgb") && !hasSceneOutputPattern(output.path);
         const pages = new StoredImageStack(backend.storage, signal);
-        const output = inferOutputFormat(outSpec, "png");
         const gifPages = output.format === "gif" && n > cols * rows && !hasSceneOutputPattern(output.path)
             ? new StoredImageStack(backend.storage, signal) : undefined;
         const stdoutChunks: Uint8Array[] = [];

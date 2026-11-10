@@ -9601,6 +9601,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else if (t === "-splice") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geom = tokens[++i] ?? "0x0";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
@@ -12388,7 +12389,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return result;
             });
         } else if (!operandsOnly && ["-roll", "-splice", "-chop"].includes(token)) {
-            if (token === "-chop" || token === "-roll") stackStep(async stack => {
+            stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });

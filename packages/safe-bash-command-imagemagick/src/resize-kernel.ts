@@ -1,5 +1,7 @@
 import { rgbToCmyk } from "./colorspace-cmyk.js";
-import type { ResizeKernel } from "@poe-code/image-ast/portable";
+import { virtualPixelIndex } from "./virtual-pixel.js";
+import type { VirtualPixelMethod } from "./warp-kernel.js";
+import type { ResizeKernel, RgbaColor } from "@poe-code/image-ast/portable";
 import { interpolatePixelSteps } from "./sequence-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
@@ -7,10 +9,14 @@ export type MagickResizeKernel = ResizeKernel | "gaussian" | "jinc" | "lagrange"
 
 export type ResizeFilterSettings = { blur?: number; support?: number; lobes?: number; b?: number; c?: number; sigma?: number; window?: MagickResizeKernel };
 
-export function* adaptiveResizePixelSteps(image: { width: number; height: number; hasAlpha: boolean; space?: string; hueSamples?: Float64Array; storedHueSamples?: number }, width: number, height: number, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* adaptiveResizePixelSteps(image: { width: number; height: number; hasAlpha: boolean; space?: string; hueSamples?: Float64Array; storedHueSamples?: number }, width: number, height: number, highDepth: boolean, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const maximum = highDepth ? 65535 : 255;
     const cmyk = image.space === "cmyk";
     const hue = !cmyk && (!!image.hueSamples || image.storedHueSamples !== undefined);
+    const gray = virtualPixel === "white" ? maximum : virtualPixel === "gray" ? highDepth ? 32768 : 128 : 0;
+    const fill = virtualPixel === "background" || virtualPixel.endsWith("-tile")
+        ? [background.r, background.g, background.b, background.a].map(value => value * (highDepth ? 257 : 1))
+        : [gray, gray, gray, virtualPixel === "transparent" ? 0 : maximum];
     for (let start = 0; start < width * height; start += 256) {
         yield;
         const count = Math.min(256, width * height - start);
@@ -24,9 +30,14 @@ export function* adaptiveResizePixelSteps(image: { width: number; height: number
             const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
             const pixels: ArrayLike<number>[] = [];
             for (let row = 0; row < 2; row++) for (let column = 0; column < 2; column++) {
-                const sx = Math.max(0, Math.min(image.width - 1, left + column));
-                const sy = Math.max(0, Math.min(image.height - 1, top + row));
-                const position = (sy * image.width + sx) * 4;
+                const position = virtualPixelIndex(left + column, top + row, image.width, image.height, virtualPixel) * 4;
+                if (position < 0) {
+                    if (cmyk) {
+                        const ink = rgbToCmyk(fill[0]! / maximum, fill[1]! / maximum, fill[2]! / maximum);
+                        pixels.push([ink[0]! * maximum, ink[1]! * maximum, ink[2]! * maximum, fill[3]!, ink[3]! * maximum]);
+                    } else pixels.push(fill);
+                    continue;
+                }
                 const retained = yield { kind: "read", evaluate: true, position, length: 4 };
                 let pixel: Uint8Array | Uint16Array | Float64Array;
                 if (retained?.length) {
@@ -37,11 +48,11 @@ export function* adaptiveResizePixelSteps(image: { width: number; height: number
                     pixel = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
                 }
                 if (cmyk) {
-                    const hue = yield { kind: "read", hue: true, position: (sy * image.width + sx) * 4, length: 4 };
+                    const hue = yield { kind: "read", hue: true, position, length: 4 };
                     const ink = hue?.length ? new Float64Array(hue.slice().buffer) : rgbToCmyk(pixel[0]! / maximum, pixel[1]! / maximum, pixel[2]! / maximum);
                     pixels.push([ink[0]! * maximum, ink[1]! * maximum, ink[2]! * maximum, pixel[3]!, ink[3]! * maximum]);
                 } else if (hue) {
-                    const bytes = (yield { kind: "read", hue: true, position: (sy * image.width + sx) * 4, length: 4 })!;
+                    const bytes = (yield { kind: "read", hue: true, position, length: 4 })!;
                     pixels.push(new Float64Array(bytes.slice().buffer).map(value => value * maximum));
                 } else pixels.push(pixel);
             }
@@ -305,7 +316,7 @@ export function* resizeMaskPixelSteps(image: ResizeImage, width: number, height:
         for (let x = left; x < left + data.length / 4; x++) {
             const sx = horizontal !== false ? resizeCopyIndex(x, image.width, width) : x;
             const sy = horizontal === true ? y : resizeCopyIndex(y, image.height, height);
-            const bytes = (yield { kind: "read", highDepth: true, position: (sy * image.width + sx) * 4, length: 4 })!;
+            const bytes = (yield { kind: "read", highDepth: true, position, length: 4 })!;
             data.set(new Uint16Array(bytes.slice().buffer), (x - left) * 4);
         }
         yield { kind: "write", highDepth: true, position: (y * width + left) * 4, data: new Uint8Array(data.buffer) };

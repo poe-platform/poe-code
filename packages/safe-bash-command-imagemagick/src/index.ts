@@ -10755,14 +10755,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-adaptive-resize") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const geometry = tokens[++i] ?? "100%";
+            const geometry = tokens[++i] ?? "100%", background = state.background;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
                 const options = magickResizeOptions(image, expanded === "x" ? "0x0" : expanded.replaceAll("(", "").replaceAll(")", ""), undefined);
                 if (!options || (options.width === image.width && options.height === image.height)) return image;
                 const width = options.width!, height = options.height!;
-                const resized = yield* applyMagickRasterSteps({ ...image, isPalette: false }, adaptiveResizePixelSteps(image, width, height, !!image.data16), signal, { ...image, width, height });
+                const resized = yield* applyMagickRasterSteps({ ...image, isPalette: false }, adaptiveResizePixelSteps(image, width, height, !!image.data16, background, image.virtualPixel), signal, { ...image, width, height });
                 const virtualCanvas = magickResizeCanvas(image, width, height);
                 return virtualCanvas ? { ...resized, virtualCanvas } : resized;
             });
@@ -13666,7 +13666,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const optionProperties = state.optionProperties;
-            const geometry = tokens[++i] ?? "100%";
+            const geometry = tokens[++i] ?? "100%", background = state.background;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
@@ -13674,7 +13674,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const options = magickResizeOptions(image, expanded === "x" ? "0x0" : expanded.replaceAll("(", "").replaceAll(")", ""), undefined);
                 if (!options || (options.width === image.width && options.height === image.height)) return image;
                 const width = options.width!, height = options.height!;
-                const resized = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, adaptiveResizePixelSteps(image, width, height, !!image.storedData16), signal, { ...image, width, height });
+                const resized = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, adaptiveResizePixelSteps(image, width, height, !!image.storedData16, background, image.virtualPixel), signal, { ...image, width, height });
                 const virtualCanvas = magickResizeCanvas(image, width, height);
                 return virtualCanvas ? { ...resized, virtualCanvas } : resized;
             });

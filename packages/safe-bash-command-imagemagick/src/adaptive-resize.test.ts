@@ -62,3 +62,35 @@ for (const fixture of [
         expect(createHash("sha256").update(output).digest("hex")).toBe(fixture.hash);
     });
 }
+
+// Native ImageMagick 7.1.2-35 Q16-HDRI outputs for the 5x4 PPM boundary reproduction.
+for (const mode of ["buffered", "retained", "sync", "public"] as const) {
+    it.each([
+        { name: "tile", settings: ["-virtual-pixel", "tile"], hash: "3c48eb8eba848f882616da098cb4ba6d0dac3f54649532f18ee7a843690f9e52" },
+        { name: "red background", settings: ["-background", "red", "-virtual-pixel", "background"], hash: "a62c1984e8a18ad2b11284b0ad48396ac4775bd6994ac188e4928cd2aa024f1a" },
+        { name: "edge", settings: ["-virtual-pixel", "edge"], hash: "37895eb1e5ec68629077d7c2682e1f6a1be18fa2b2cb08d8d51401aa0de8c403" },
+        { name: "default", settings: [], hash: "37895eb1e5ec68629077d7c2682e1f6a1be18fa2b2cb08d8d51401aa0de8c403" }
+    ])(`honors $name virtual pixels during adaptive enlargement (${mode})`, async ({ settings, hash }) => {
+        const input = new Uint8Array([...new TextEncoder().encode("P6\n5 4\n255\n"), ...Array.from({ length: 60 }, (_, i) => (i * 53 + 11) % 256)]);
+        const original = new TextEncoder().encode("KEEP");
+        const files = new Map([["/im.ppm", input], ["/out", original]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/im.ppm", input);
+        await filesystem.writeFile("/out", original);
+        const args = ["/im.ppm", ...settings, "-adaptive-resize", "7x6!", "-depth", "8", "rgb:/out"];
+        const argumentValues = createCommandArguments(args);
+        let stdout = "", stderr = "";
+        const result = mode === "public" ? { ...await createMagickCommand().execute({
+            command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs: filesystem,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write(chunk) { stdout += new TextDecoder().decode(chunk); } },
+            stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } }
+        }), stdout, stderr } : mode === "sync" ? runMagickCliSync(args, files)
+            : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode, result.stderr).toBe(0);
+        expect(result.stdout).toBe("");
+        expect(result.stderr).toBe("");
+        const output = mode === "retained" || mode === "public" ? await filesystem.readFile("/out") : files.get("/out")!;
+        expect(output).toHaveLength(126);
+        expect(createHash("sha256").update(output).digest("hex")).toBe(hash);
+    });
+}

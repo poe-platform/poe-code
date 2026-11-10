@@ -6,7 +6,7 @@ import { assertCommandRequirements } from "../contracts/command-requirements.js"
 import { pwdRequirements } from "./portable-requirements.js";
 import { printfInteger } from "./printf-integer.js";
 import { printfHex } from "./printf-hex.js";
-import { parsePrintfFloat } from "./printf-float.js";
+import { parsePrintfFloat, type PrintfBinary } from "./printf-float.js";
 import { printfDecimal } from "./printf-decimal.js";
 import { parsePrintfDirective } from "./printf-format.js";
 import { quotePrintf } from "./printf-quote.js";
@@ -309,6 +309,7 @@ export async function formatPrintf(context: CommandContext, shellStartedAt = (co
         continue;
       }
       else {
+        let exactFloat: PrintfBinary | undefined;
         let number = supplied === "" ? 0 : /^["']/u.test(supplied) ? quotedNumber(suppliedIndex) : Number(supplied);
         if (/^[+-]0[xX][0-9a-fA-F]+$/u.test(supplied.trim())) {
           number = Number(supplied.trim().slice(1)) * (supplied.trim().startsWith("-") ? -1 : 1);
@@ -321,6 +322,7 @@ export async function formatPrintf(context: CommandContext, shellStartedAt = (co
           const parsed = parsePrintfFloat(supplied);
           number = parsed?.value ?? NaN;
           specialFloat = parsed?.special;
+          exactFloat = parsed?.binary;
           if (parsed?.error) {
             await writeDiagnostic(context.stderr, `printf: '${supplied}': ${parsed.error}\n`, context.signal);
             exitCode = 1;
@@ -331,8 +333,8 @@ export async function formatPrintf(context: CommandContext, shellStartedAt = (co
           exitCode = 1; number = 0;
         }
         if (specialFloat !== undefined) text = specialFloat;
-        else if (/[aA]/u.test(specifier)) text = (number < 0 ? "-" : "") + printfHex(number, precision, flags.includes("#"));
-        else if ("fFeEgG".includes(specifier)) text = printfDecimal(number, specifier, precision, flags.includes("#"));
+        else if (/[aA]/u.test(specifier)) text = (number < 0 ? "-" : "") + printfHex(number, precision, flags.includes("#"), exactFloat);
+        else if ("fFeEgG".includes(specifier)) text = printfDecimal(number, specifier, precision, flags.includes("#"), exactFloat);
         else {
           const radix = /[xX]/u.test(specifier) ? 16 : specifier === "o" ? 8 : 10;
           const unsigned = /[uoxX]/u.test(specifier);

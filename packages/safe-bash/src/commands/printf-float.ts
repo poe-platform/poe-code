@@ -1,5 +1,21 @@
+export interface PrintfBinary { significand: bigint; power: number }
+
+// Round an exact rational to the Linux x86-64 long-double significand.
+function binary(numerator: bigint, denominator: bigint, power = 0): PrintfBinary {
+  if (numerator === 0n) return { significand: 0n, power: 0 };
+  let top = numerator.toString(2).length - denominator.toString(2).length;
+  if (top >= 0 ? numerator < denominator << BigInt(top) : numerator << BigInt(-top) < denominator) top--;
+  const shift = 63 - top;
+  if (shift >= 0) numerator <<= BigInt(shift);
+  else denominator <<= BigInt(-shift);
+  let significand = numerator / denominator;
+  const remainder = numerator % denominator;
+  if (remainder * 2n > denominator || remainder * 2n === denominator && significand % 2n !== 0n) significand++;
+  return { significand, power: power - shift };
+}
+
 // Parse the C numeric prefix while retaining trailing-input diagnostics.
-export function parsePrintfFloat(operand: string): { value: number; special?: string; error?: string } | undefined {
+export function parsePrintfFloat(operand: string): { value: number; binary?: PrintfBinary; special?: string; error?: string } | undefined {
   let start = 0;
   while (start < operand.length && " \t\n\r\v\f".includes(operand[start]!)) start++;
   let end = operand.length;
@@ -8,8 +24,8 @@ export function parsePrintfFloat(operand: string): { value: number; special?: st
   if (token.length > 4096) return undefined;
   const negative = token.startsWith("-");
   const magnitude = token.startsWith("+") || negative ? token.slice(1) : token;
-  const converted = (value: number, end: number, special?: string) => ({
-    value, ...(special === undefined ? {} : { special }), ...(end < magnitude.length || operand.length > start + token.length ? { error: "invalid number" } : {}),
+  const converted = (value: number, end: number, special?: string, exact?: PrintfBinary) => ({
+    value, ...(exact === undefined ? {} : { binary: exact }), ...(special === undefined ? {} : { special }), ...(end < magnitude.length || operand.length > start + token.length ? { error: "invalid number" } : {}),
   });
   if (magnitude.startsWith("inf")) {
     return converted(negative ? -Infinity : Infinity, magnitude.startsWith("infinity") ? 8 : 3, (negative ? "-" : "") + "inf");
@@ -42,7 +58,17 @@ export function parsePrintfFloat(operand: string): { value: number; special?: st
       if (offset === firstDigit) offset = exponentStart;
     }
     const value = Number((negative ? "-" : "") + magnitude.slice(0, offset));
-    return Number.isFinite(value) ? converted(value, offset) : undefined;
+    if (!Number.isFinite(value)) return undefined;
+    // Keep the existing exponent-range policy, including signed underflow.
+    if (value === 0) return converted(value, offset);
+    const prefix = magnitude.slice(0, offset);
+    const [mantissa, exponent = "0"] = prefix.split("e");
+    const [whole, fraction = ""] = mantissa!.split(".");
+    const coefficient = BigInt(whole! + fraction);
+    const power = Number(exponent) - fraction.length;
+    const exact = power >= 0 ? binary(coefficient * 10n ** BigInt(power), 1n)
+      : binary(coefficient, 10n ** BigInt(-power));
+    return converted(value, offset, undefined, exact);
   }
   let offset = 2, digits = "", fractionDigits = 0, point = false;
   while (offset < magnitude.length) {
@@ -80,5 +106,5 @@ export function parsePrintfFloat(operand: string): { value: number; special?: st
     if (remainder > half || remainder === half && (rounded & 1n) !== 0n) rounded++;
   }
   const value = Number(rounded) * 2 ** (scale + Math.max(0, shift)) * (negative ? -1 : 1);
-  return Number.isFinite(value) ? converted(value, offset) : undefined;
+  return Number.isFinite(value) ? converted(value, offset, undefined, binary(significand, 1n, scale)) : undefined;
 }

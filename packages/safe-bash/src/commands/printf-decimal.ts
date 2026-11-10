@@ -1,13 +1,16 @@
-// Expand the exact IEEE-754 value before decimal rounding. Using a shortest
+import type { PrintfBinary } from "./printf-float.js";
+
+// Expand the exact binary value before decimal rounding. Using a shortest
 // decimal representation first would lose halfway and adjacent-value information.
-export function printfDecimal(number: number, specifier: string, precision: number | undefined, alternate: boolean): string {
+export function printfDecimal(number: number, specifier: string, precision: number | undefined, alternate: boolean, exact?: PrintfBinary): string {
   const bits = new DataView(new ArrayBuffer(8));
   bits.setFloat64(0, Math.abs(number));
   const word = bits.getBigUint64(0);
   const binaryExponent = Number(word >> 52n);
   let coefficient = word & ((1n << 52n) - 1n);
   if (binaryExponent !== 0) coefficient += 1n << 52n;
-  const power = (binaryExponent === 0 ? 1 : binaryExponent) - 1023 - 52;
+  if (exact) coefficient = exact.significand;
+  const power = exact?.power ?? (binaryExponent === 0 ? 1 : binaryExponent) - 1023 - 52;
   const scale = Math.max(0, -power);
   coefficient = power < 0 ? coefficient * 5n ** BigInt(scale) : coefficient << BigInt(power);
   const round = (places: number): string => {

@@ -203,7 +203,7 @@ for (const [format, operand, expected] of [
   ["%.2f", "-0.001", "-0.00"], ["%+08.0f", "4.5", "+0000004"],
   ["%.2f", "1.25", "1.25"], ["%.2e", "125", "1.25e+02"],
   ["%.0f", "1e21", "1000000000000000000000"],
-  ["%.6g", "5e-324", "4.94066e-324"],
+  ["%.6g", "5e-324", "5e-324"],
   ["%.2f", "2.675", "2.67"],
 ] as const) test(`printf decimal formatting ${format} ${operand}`, async () => {
   const result = await run("printf", [format, operand]);
@@ -923,7 +923,7 @@ for (const [format, operands, expected] of [
   ["%*.*f", [], "0"],
   ["%.0a|%.1a|%#a|%a", ["3.875", "3.875", "0", "-0"], "0x1p+2|0xf.8p-2|0x0.p+0|-0x0p+0"],
   ["%+012a|%.0a|%.0a|%.3A", ["3.25", "2.125", "2.375", "0"], "+0x00000dp-2|0x8p-2|0xap-2|0X0.000P+0"],
-  ["%a", ["5e-324"], "0x8p-1077"],
+  ["%a", ["5e-324"], "0x8.18995ce7aa0e1b2p-1077"],
 ] as const) test(`printf accepts ${format} with ${JSON.stringify(operands)}`, async () => {
   const result = await run("printf", [format, ...operands]);
   assert.equal(result.exitCode, 0, result.stderr);

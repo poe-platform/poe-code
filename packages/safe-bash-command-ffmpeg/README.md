@@ -719,6 +719,8 @@ Volume expressions support `^` and `pow(base,exponent)`, including negative expo
 Filter expressions support `floor`, `ceil`, `trunc`, and `round` (halfway values round away from zero), including stepped volume ramps such as `volume='floor(t*10)/10':eval=frame` and per-sample `aeval='floor(val(ch)*10)/10':c=same`.
 Volume expressions accept SI prefixes (`volume=1k`, `volume=500m`), binary prefixes (`volume=1Ki`), and the byte multiplier `B` (`volume=1KiB`).
 `atempo` accepts arithmetic such as `atempo=1/2`; the result must be between 0.5 and 100. An empty `atempo=` defaults to 1. Repeated `tempo` assignments use the last value, such as `atempo=1:tempo=2`; spaces around names and values are accepted. Each assignment must be valid, so `atempo=tempo=` fails. Invalid values return native FFmpeg exit statuses: 222 for out-of-range tempo, 234 for invalid expressions, and 176 for unsupported timeline `enable`. These failures preserve existing output files.
+`areverse` accepts generic `threads`, `thread_type`, and `extra_hw_frames` options (for example, `areverse=threads=2:thread_type=slice`) without changing reversed PCM, in simple and named complex filter graphs.
+
 Audio filters accept instance labels, such as `areverse@flip`, `volume@quiet=0.5`,
 and `atempo@fast=2`, with the same behavior as their unlabeled forms.
 `volume=if(lt(t\,0.5)\,0\,1):eval=frame` changes gain at audio frame timestamps;

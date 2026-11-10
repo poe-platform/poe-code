@@ -13059,7 +13059,25 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioTimestamps = retained;
                         audioMetadata = retainedMetadata;
                         audioStartSample = retained[0]?.pts ?? audioStartSample + start;
-                      } else if (trimmed === "areverse" || trimmed === "areverse=") {
+                      } else if (filterName === "areverse") {
+                        const argument = trimmed.slice("areverse".length + 1);
+                        const options = argument ? argument.split(":") : [];
+                        if (options.at(-1) === "") options.pop();
+                        for (const option of options) {
+                          const separator = option.indexOf("=");
+                          const key = option.slice(0, separator).trim();
+                          if (separator < 0) throw new Error("areverse: unexpected positional argument");
+                          if (key === "enable") throw new Error("areverse: timeline is unsupported");
+                          if (!["threads", "thread_type", "extra_hw_frames"].includes(key)) {
+                            throw new Error(`areverse: unsupported option ${key}`);
+                          }
+                          const value = parseFilterExpression(option.slice(separator + 1), "areverse",
+                            key === "thread_type" ? { slice: 1 } : {});
+                          if (value < (key === "extra_hw_frames" ? -1 : 0) || value > 2147483647) {
+                            throw new RangeError(`areverse: invalid ${key}`);
+                          }
+                        }
+                        // These scheduling and hardware options do not change reversed PCM.
                         stretched = await mapWork(stretched, async channel => channel.slice().reverse(), context.signal);
                         audioMetadata.reverse();
                         if (audioTimestamps) {

@@ -41,7 +41,23 @@ for (const count of ["2", "1+1", "02", "2.5", "1.5", "1.9", "2.49"]) {
   });
 }
 
-for (const count of ["", "0", "-1", "0.9", "32767.1", "NaN", "Infinity", "1/0", "0/0", "1+", "3.5", "2.51", "1", "3"]) {
+for (const options of ["inputs=default", "default:stereo", "inputs=default+0.5", "inputs=1:inputs=default"]) {
+  it(`resolves join's default input count: ${options}`, async () => {
+    const inputs = [[1000, 2000], [3000, 4000]].map(channels =>
+      channels.map(sample => Array<number>(512).fill(sample)));
+    const { result, stderr, bytes } = await run([
+      "-filter_complex", `[0:a][1:a]join=${options}:map=0.0-FL|1.1-FR[o]`, "-map", "[o]"
+    ], inputs);
+    assert.equal(result.exitCode, 0, stderr);
+    const audio = parseWav(bytes).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, 8000);
+    assert.equal(audio.channels, 2);
+    assert.deepEqual(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)),
+      [Array<number>(512).fill(1000), Array<number>(512).fill(4000)]);
+  });
+}
+
+for (const count of ["", "0", "-1", "0.9", "32767.1", "NaN", "Infinity", "1/0", "0/0", "1+", "3.5", "2.51", "1", "3", "default-2", "default+1", "DEFAULT", "defaultfoo"]) {
   it(`rejects invalid or mismatched join inputs=${count} without replacing output`, async () => {
     const { result, bytes } = await run([
       "-filter_complex", `[0:a][1:a]join=inputs=${count}:map=0.0-FL|1.0-FR[o]`, "-map", "[o]"

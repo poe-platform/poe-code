@@ -22,7 +22,7 @@ for (const mode of ["sync", "buffered", "retained", "magick", "montage"] as cons
     { scenes: "2,8,0,2", later: ["xc:white"], hex: "0000ffff00000000ffffffff", invalid: true },
     { scenes: "8,1,9", later: [], hex: "00ff00", invalid: true },
   ])(`${mode}: montage retains valid input scenes [$scenes] and later inputs $later`, async ({ scenes, later, hex, invalid }) => {
-    const args = ["-geometry", "1x1+0+0", "-tile", "x1", `trio.gif[${scenes}]`, ...later, "rgb:-"];
+    const args = ["-geometry", "1x1+0+0", "-tile", "x1", `trio.gif[${scenes}]`, ...later, "-depth", "8", "rgb:-"];
     const filesystem = new MemoryFileSystem();
     await filesystem.writeFile("/trio.gif", trio);
     const files = new Map([["trio.gif", new Uint8Array(trio)]]);

@@ -608,6 +608,7 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
   const posixVersion = versionDigits.length > 0 && [...versionDigits].every(character => character >= "0" && character <= "9") ? Number(versionText) : 200809;
   const obsoleteSkip = posixVersion < 200112 || posixVersion >= 200809;
   let skipFields = 0;
+  let legacyFields = 0;
   let skipCharacters = 0;
   let width = Infinity;
   let repeatedMethod = "none";
@@ -636,15 +637,21 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
     return argument;
   });
   const operandIndices: number[] = [];
-  const parsed = options(args, "cduiDf:s:w:z", longOptions, context.env.POSIXLY_CORRECT !== undefined, index => { operandIndices.push(index); }, undefined, (option, method) => {
-    if (option === "f" || option === "s" || option === "w") {
+  const parsed = options(args, "0123456789cduiDf:s:w:z", longOptions, context.env.POSIXLY_CORRECT !== undefined, index => { operandIndices.push(index); }, undefined, (option, method) => {
+    if (option >= "0" && option <= "9") {
+      legacyFields = Math.min(Number.MAX_SAFE_INTEGER, legacyFields * 10 + Number(option));
+      skipFields = legacyFields;
+    } else if (option === "f" || option === "s" || option === "w") {
       let count: number;
       try { count = uniqCount(method!); }
       catch (error) {
         if (error instanceof UsageError) throw new PublicDiagnostic(error.message);
         throw error;
       }
-      if (option === "f") skipFields = count;
+      if (option === "f") {
+        skipFields = count;
+        legacyFields = 0;
+      }
       else if (option === "s") skipCharacters = count;
       else width = count;
     } else if (option === "D") repeatedMethod = "none";

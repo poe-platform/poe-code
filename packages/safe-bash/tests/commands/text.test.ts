@@ -329,6 +329,56 @@ test("sort checks order, writes output safely after reading input, and handles z
   assert.equal((await run("sort", ["-k", "0"])).exitCode, 2);
 });
 
+test("uniq accepts numeric field skips and bundled count flags", async () => {
+  const stdin = "aX id\nbY id\ncZ other";
+  for (const args of [["-1"], ["-01"], ["-f1"]]) {
+    const result = await run("uniq", args, { stdin, commands: textCommands(), env: { LC_ALL: "C" } });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "aX id\ncZ other\n");
+  }
+  for (const args of [["-0"], ["-s1"]]) {
+    const result = await run("uniq", args, { stdin, commands: textCommands(), env: { LC_ALL: "C" } });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, `${stdin}\n`);
+  }
+  for (const args of [["-1c"], ["-c1"]]) {
+    const result = await run("uniq", args, { stdin: chunks("A x\nB x\nC y"), commands: textCommands(), env: { LC_ALL: "C" } });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "      2 A x\n      1 C y\n");
+  }
+});
+
+test("uniq accumulates legacy field digits until an explicit field option resets them", async () => {
+  const stdin = "A a a a a a a a a a a X\nB a a a a a a a a a a Y\n";
+  for (const args of [["-12"], ["-1", "-2"], ["-1c2"], ["-9007199254740991"], ["-999999999999999999999999999"]]) {
+    const result = await run("uniq", args, { stdin, commands: textCommands(), env: { LC_ALL: "C" } });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, `${args.includes("-1c2") ? "      2 " : ""}A a a a a a a a a a a X\n`);
+  }
+  for (const args of [["-12f0"], ["-12", "--skip-fields=1"], ["-1", "-f0", "-2"], ["-f1", "-2"]]) {
+    const result = await run("uniq", args, { stdin, commands: textCommands(), env: { LC_ALL: "C" } });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, stdin);
+  }
+});
+
+test("uniq preserves numeric option operands and validates before opening output", async () => {
+  const fs = await fixture({ "-1": "named\nnamed\n", "+1": "plus\nplus\n", input: "A x\nB x\n", output: "KEEP" });
+  for (const [args, expected] of [[["--", "-1"], "named\n"], [["--", "+1"], "plus\n"]] as const) {
+    const result = await run("uniq", args, { fs, commands: textCommands() });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, expected);
+  }
+  for (const args of [["-f", "-1", "input", "output"], ["-1q", "input", "output"]]) {
+    const result = await run("uniq", args, { fs, commands: textCommands() });
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(result.stdout, "");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/output")), "KEEP");
+  }
+});
+
 test("uniq groups adjacent records and supports counts, repeated/unique selection and comparisons", async () => {
   const stdin = "a\na\nb\na\n";
   assert.equal((await run("uniq", [], { stdin: chunks(stdin) })).stdout, "a\nb\na\n");

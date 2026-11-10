@@ -10109,6 +10109,42 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const report = await measureReplayGain(stretched, origRate, budget, context.signal);
                         if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "volumedetect" || trimmed === "volumedetect=") {
+                        // Demand includes the complete frame where a downstream trim discovers EOF.
+                        const next = audioFilters[filterIndex + 1]?.trim();
+                        const trim = next?.split("=", 1)[0]!.split("@", 1)[0] === "atrim"
+                          ? parseAtrim(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "", origRate, audioTimeBase)
+                          : undefined;
+                        const length = stretched[0]?.length ?? 0;
+                        let measuredEnd = 0;
+                        let outputFrames = 0;
+                        let firstPts: number | undefined;
+                        let nextPts = 0;
+                        for (let start = 0, n = 0; start < length && (maxAudioFrames === undefined || outputFrames < maxAudioFrames); n++) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          const frame = audioTimestamps?.[n];
+                          const packet = t.samples[n];
+                          const size = frame ? frame.end - frame.start : packet
+                            ? Math.max(0, Math.round(packet.duration * origRate / t.timescale)
+                              - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+                          if (size === 0) continue;
+                          measuredEnd = Math.min(length, start + size);
+                          if (trim) {
+                            const timestamp = frame?.pts ?? (packet ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start);
+                            const pts = Number.isNaN(timestamp) ? nextPts : Math.sign(timestamp) * Math.round(Math.abs(timestamp));
+                            nextPts = pts + size;
+                            let from = Math.min(trim.startPts - pts, trim.startSample - start);
+                            if (from === Infinity) from = 0;
+                            if (from < size) {
+                              firstPts ??= pts + from;
+                              let end = Math.max(trim.endPts - pts, trim.endSample - start,
+                                trim.duration > 0 ? firstPts + trim.duration - pts : -Infinity);
+                              if (end === -Infinity) end = size;
+                              if (end <= 0) break;
+                              if (Math.min(size, end) > Math.max(0, from)) outputFrames++;
+                            }
+                          } else outputFrames++;
+                          start = measuredEnd;
+                        }
                         let count = 0;
                         let sumSquares = 0;
                         let peak = 0;
@@ -10119,6 +10155,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             const sample = Math.max(-32768, Math.min(32767, roundToEven(channel[i]! * 32768)));
                             channel[i] = sample / 32768;
+                            if (i >= measuredEnd) continue;
                             count++;
                             sumSquares += sample * sample;
                             peak = Math.max(peak, Math.abs(sample));

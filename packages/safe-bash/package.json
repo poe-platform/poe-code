@@ -1100,12 +1100,14 @@
         "safe-bash-command-imagemagick": {
           "version": "0.0.1",
           "dependencies": {
-            "@noble/hashes": "2.4.0"
+            "@noble/hashes": "2.4.0",
+            "@noble/ciphers": "2.4.0"
           },
           "devDependencies": {
             "@poe-code/image-ast": "*",
             "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
+            "@poe-code/safe-fs": "*",
+            "acorn": "8.17.0"
           },
           "portable": true
         },
@@ -1454,7 +1456,9 @@
         },
         "safe-bash-command-ffmpeg": {
           "version": "0.0.1",
-          "dependencies": {},
+          "dependencies": {
+            "@noble/hashes": "2.4.0"
+          },
           "devDependencies": {
             "@poe-code/mp4-ast": "*",
             "@poe-code/image-ast": "*",
@@ -2089,7 +2093,9 @@
         },
         "safe-bash-command-ffprobe": {
           "version": "0.0.1",
-          "dependencies": {},
+          "dependencies": {
+            "@noble/hashes": "2.4.0"
+          },
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/audio-ast": "*",

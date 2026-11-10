@@ -9963,7 +9963,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME tremolo[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback|enable EXPR or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays DELAYS or TIME alimiter[@NAME] limit LIMIT or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN");
+                            throw new Error("asendcmd: expected TIME tremolo[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback|crossfeed|drymix|enable EXPR or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays DELAYS or TIME alimiter[@NAME] limit LIMIT or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN");
                           }
                           return { time, target, action: action!, expression };
                         });
@@ -12605,8 +12605,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // Native sends each command to the first matching filter instance.
                         audioCommands = audioCommands.filter(command => command.target !== "stereowiden" && command.target !== filterTarget);
                         let nextCommand = 0;
-                        const crossfeed = Math.fround(options.crossfeed);
-                        const drymix = Math.fround(options.drymix);
+                        let crossfeed = Math.fround(options.crossfeed);
+                        let drymix = Math.fround(options.drymix);
                         const output = stretched.map(channel => new Float32Array(channel.length));
                         const length = stretched[0]!.length;
                         for (let start = 0, n = 0; start < length; n++) {
@@ -12621,11 +12621,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               if (command.action === "enable") {
                                 parseFilterExpression(command.expression, "stereowiden enable", { n: 0, t: 0 });
                                 enable = command.expression;
-                              } else if (command.action === "feedback") {
+                              } else if (command.action === "feedback" || command.action === "crossfeed" || command.action === "drymix") {
+                                const max = command.action === "feedback" ? 0.9 : command.action === "crossfeed" ? 0.8 : 1;
                                 const value = parseFilterExpression(command.expression, "stereowiden", {
-                                  min: 0, max: 0.9, default: defaults.feedback, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+                                  min: 0, max, default: defaults[command.action], PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
                                 });
-                                if (Number.isFinite(value) && value >= 0 && value <= 0.9) feedback = Math.fround(value);
+                                if (Number.isFinite(value) && value >= 0 && value <= max) {
+                                  if (command.action === "feedback") feedback = Math.fround(value);
+                                  else if (command.action === "crossfeed") crossfeed = Math.fround(value);
+                                  else drymix = Math.fround(value);
+                                }
                               }
                             } catch { /* Rejected runtime commands retain the current setting. */ }
                           }

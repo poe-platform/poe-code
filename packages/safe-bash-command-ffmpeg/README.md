@@ -541,9 +541,10 @@ plus `PI`, `E`, and `PHI`, including in runtime gain commands. Numeric `min(...)
 and `max(...)` calls are invalid; setup returns status 234 without replacing output.
 Setting `feedback=0:crossfeed=0:drymix=1` preserves the input samples.
 `asendcmd=c='0.064 stereowiden@x feedback 0',stereowiden@x=feedback=0.5`
-changes feedback at the next audio frame without resetting delay history. Commands
+changes feedback at the next audio frame without resetting delay history.
+Runtime `crossfeed` and `drymix` commands update their gains in the same way. Commands
 select the named instance or the first subsequent `stereowiden` instance; invalid
-feedback values retain the current setting. Unsupported runtime commands, including
+gain values retain the current setting. Unsupported runtime commands, including
 `delay` changes, are ignored and rendering continues with the current settings.
 Schedule bypass changes with
 `asendcmd=c='0.003 stereowiden@w enable 0',stereowiden@w=delay=1`;

@@ -38,7 +38,7 @@ for (const mode of ["buffered", "sync", "retained", "command"] as const) {
             if (format === "info") {
                 expect("stdout" in result ? result.stdout : new TextDecoder().decode(stdout)).toBe(dimensions);
             } else {
-                expect(Buffer.from("stdoutBytes" in result ? result.stdoutBytes! : stdout).toString("hex")).toBe(hex);
+                expect(Buffer.from("stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : stdout).toString("hex")).toBe(hex);
             }
         });
     }

@@ -26,56 +26,75 @@ async function run(input: string, format: string, args: string[], options: Param
   return { ...result, stderr, output: volume.readFileSync("/out.raw") as Buffer };
 }
 
-for (const [input, args, expected] of [
-  [gray, [], gray],
-  [gray, ["-frames:v", "1"], gray.slice(0, 16)],
-  [gray + "abcd12", [], gray + "abcd12"]
-] as const) {
-  it(`copies gray16be packets exactly (${args.join(" ")}, ${input.length / 2} bytes)`, async () => {
-    const result = await run(input, "gray16be", ["-c:v", "copy", ...args], { limits: { maxFrames: 0 } });
+for (const format of ["gray16be", "gray16le"]) {
+  for (const [input, args, expected] of [
+    [gray, [], gray],
+    [gray, ["-frames:v", "1"], gray.slice(0, 16)],
+    [gray + "abcd12", [], gray + "abcd12"]
+  ] as const) {
+    it(`copies ${format} packets exactly (${args.join(" ")}, ${input.length / 2} bytes)`, async () => {
+      const result = await run(input, format, ["-c:v", "copy", ...args], { limits: { maxFrames: 0 } });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.output.toString("hex"), expected);
+    });
+  }
+
+  for (const args of [[], ["-vf", "null"], ["-c:v", "rawvideo"]]) {
+    it(`serializes RGB24 as ${format} grayscale (${args.join(" ")})`, async () => {
+      const result = await run(rgb, "rgb24", [...args, "-pix_fmt", format]);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.output.toString("hex"), format === "gray16le" ? Buffer.from(converted, "hex").swap16().toString("hex") : converted);
+    });
+  }
+
+  it(`preserves ${format} precision when encoding unchanged frames`, async () => {
+    const result = await run(gray, format, ["-vf", "null", "-c:v", "rawvideo"]);
     assert.equal(result.exitCode, 0, result.stderr);
-    assert.equal(result.output.toString("hex"), expected);
+    assert.equal(result.output.toString("hex"), gray);
   });
-}
 
-for (const args of [[], ["-vf", "null"], ["-c:v", "rawvideo"]]) {
-  it(`serializes RGB24 as full-precision big-endian grayscale (${args.join(" ")})`, async () => {
-    const result = await run(rgb, "rgb24", [...args, "-pix_fmt", "gray16be"]);
+  it(`converts ${format} to the opposite byte order without losing precision`, async () => {
+    const outputFormat = format === "gray16le" ? "gray16be" : "gray16le";
+    const result = await run(gray, format, ["-vf", "null", "-pix_fmt", outputFormat]);
     assert.equal(result.exitCode, 0, result.stderr);
-    assert.equal(result.output.toString("hex"), converted);
+    assert.equal(result.output.toString("hex"), Buffer.from(gray, "hex").swap16().toString("hex"));
   });
-}
 
-it("preserves gray16be precision when encoding unchanged frames", async () => {
-  const result = await run(gray, "gray16be", ["-vf", "null", "-c:v", "rawvideo"]);
-  assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.output.toString("hex"), gray);
-});
-
-for (const [input, format, args] of [[gray, "gray16be", ["-c:v", "copy"]], [rgb, "rgb24", ["-pix_fmt", "gray16be"]]] as const) {
-  it(`enforces gray16be output limits before replacing output (${format})`, async () => {
-    const result = await run(input, format, [...args], { limits: { maxOutputBytes: 15 } });
-    assert.notEqual(result.exitCode, 0);
-    assert.match(result.stderr, /maxOutputBytes/);
-    assert.equal(result.output.toString(), "keep");
-  });
-}
-
-const spatialInput = "112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794";
-// Native FFmpeg 7.0.2, two 4x2 gray16be frames at 2 fps.
-for (const [filter, expected] of [
-  ["hflip", "bfdc85a24b68112ea7c46d8a3350f9168fac55721b38e1fe77943d5a0320c9e6"],
-  ["vflip", "f91633506d8aa7c4112e4b6885a2bfdcc9e603203d5a7794e1fe1b3855728fac"],
-  ["hflip,hflip", spatialInput],
-  ["vflip,vflip", spatialInput],
-  ["transpose=clock", "f916112e33504b686d8a85a2a7c4bfdcc9e6e1fe03201b383d5a557277948fac"],
-  ["transpose=clock,transpose=cclock", spatialInput],
-  ["transpose=clock:landscape", spatialInput],
-  ["null", spatialInput]
-] as const) {
-  it(`preserves full gray16be samples through ${filter}`, async () => {
-    const result = await run(spatialInput, "gray16be", ["-vf", filter, "-pix_fmt", "gray16be"], {}, "4x2", "2");
+  it(`decodes ${format} samples in the correct byte order`, async () => {
+    const result = await run("01000001ff0000ff", format, ["-vf", "null", "-pix_fmt", "rgba"]);
     assert.equal(result.exitCode, 0, result.stderr);
-    assert.equal(result.output.toString("hex"), expected);
+    assert.equal(result.output.toString("hex"), format === "gray16le"
+      ? "000000ff010101ff010101ffffffffff"
+      : "010101ff000000ffffffffff010101ff");
   });
+
+  for (const [input, inputFormat, args] of [[gray, format, ["-c:v", "copy"]], [rgb, "rgb24", ["-pix_fmt", format]]] as const) {
+    it(`enforces ${format} output limits before replacing output (${inputFormat})`, async () => {
+      const result = await run(input, inputFormat, [...args], { limits: { maxOutputBytes: 15 } });
+      assert.notEqual(result.exitCode, 0);
+      assert.match(result.stderr, /maxOutputBytes/);
+      assert.equal(result.output.toString(), "keep");
+    });
+  }
+
+  const spatialInput = "112e4b6885a2bfdcf91633506d8aa7c4e1fe1b3855728facc9e603203d5a7794";
+  // Native FFmpeg 7.0.2, two 4x2 gray16be frames at 2 fps.
+  for (const [filter, expected] of [
+    ["crop=2:2:1:0", "4b6885a233506d8a1b38557203203d5a"],
+    ["field=top", "112e4b6885a2bfdce1fe1b3855728fac"],
+    ["hflip", "bfdc85a24b68112ea7c46d8a3350f9168fac55721b38e1fe77943d5a0320c9e6"],
+    ["vflip", "f91633506d8aa7c4112e4b6885a2bfdcc9e603203d5a7794e1fe1b3855728fac"],
+    ["hflip,hflip", spatialInput],
+    ["vflip,vflip", spatialInput],
+    ["transpose=clock", "f916112e33504b686d8a85a2a7c4bfdcc9e6e1fe03201b383d5a557277948fac"],
+    ["transpose=clock,transpose=cclock", spatialInput],
+    ["transpose=clock:landscape", spatialInput],
+    ["null", spatialInput]
+  ] as const) {
+    it(`preserves full ${format} samples through ${filter}`, async () => {
+      const result = await run(spatialInput, format, ["-vf", filter, "-pix_fmt", format], {}, "4x2", "2");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.output.toString("hex"), expected);
+    });
+  }
 }

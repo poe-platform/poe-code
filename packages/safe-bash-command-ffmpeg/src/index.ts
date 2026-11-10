@@ -2918,8 +2918,8 @@ async function applyVideoFilterChain(
         }
         const source = f.native;
         if (source?.rgba === f.data && source.width === f.width && source.height === f.height &&
-            (source.format === 29 || source.format === 34 || source.format === 104)) {
-          const stride = source.format === 29 ? 2 : source.format === 34 ? 6 : 8;
+            [29, 30, 34, 104].includes(source.format)) {
+          const stride = (source.format === 29 || source.format === 30) ? 2 : source.format === 34 ? 6 : 8;
           budget.recordFrame(cw, ch);
           budget.allocateMemory(cw * ch * (stride + 4) + 128);
           const pixels = new Uint8Array(cw * ch * stride);
@@ -2933,8 +2933,8 @@ async function applyVideoFilterChain(
           return { ...f, width: cw, height: ch, data, native: { ...native, rgba: data } };
         }
         if (source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
-            [0, 4, 5, 12, 13, 14, 29, 34, 104].includes(source.format)) {
-          const pixelBytes = source.format === 29 ? 2 : source.format === 34 ? 6 : source.format === 104 ? 8 : 1;
+            [0, 4, 5, 12, 13, 14, 29, 30, 34, 104].includes(source.format)) {
+          const pixelBytes = (source.format === 29 || source.format === 30) ? 2 : source.format === 34 ? 6 : source.format === 104 ? 8 : 1;
           const packed = pixelBytes > 1;
           const chromaWidth = Math.ceil(cw / inputHsub);
           const chromaHeight = Math.ceil(ch / inputVsub);
@@ -3063,7 +3063,7 @@ async function applyVideoFilterChain(
       } catch (err) {
         throw new Error(`pad: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
       }
-      if (pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "gray16be" || pixelFormat === "ya8") {
+      if (pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "gray16be" || pixelFormat === "gray16le" || pixelFormat === "ya8") {
         // Pad uses full-range BT.601 luma for grayscale frames.
         const gray = Math.round(0.299 * col[0] + 0.587 * col[1] + 0.114 * col[2]);
         col[0] = col[1] = col[2] = gray;
@@ -3175,13 +3175,13 @@ async function applyVideoFilterChain(
         const out = name === "hflip" ? flopImage(image) : flipImage(image);
         const native = f.native;
         if (native?.rgba === f.data && native.width === f.width && native.height === f.height &&
-            [0, 4, 5, 12, 13, 14, 29, 34, 49, 68, 104].includes(native.format)) {
+            [0, 4, 5, 12, 13, 14, 29, 30, 34, 49, 68, 104].includes(native.format)) {
           const pixels = new Uint8Array(native.pixels);
-          const sampleBytes = native.format === 104 ? 8 : native.format === 34 ? 6 : [29, 49, 68].includes(native.format) ? 2 : 1;
+          const sampleBytes = native.format === 104 ? 8 : native.format === 34 ? 6 : [29, 30, 49, 68].includes(native.format) ? 2 : 1;
           const chromaWidth = Math.ceil(f.width / ([5, 14, 49, 68].includes(native.format) ? 1 : 2));
           const chromaHeight = Math.ceil(f.height / ([0, 12].includes(native.format) ? 2 : 1));
           let offset = 0;
-          const planes = [29, 34, 104].includes(native.format) ? [[f.width, f.height]] as const
+          const planes = [29, 30, 34, 104].includes(native.format) ? [[f.width, f.height]] as const
             : [[f.width, f.height], [chromaWidth, chromaHeight], [chromaWidth, chromaHeight]] as const;
           for (const [width, height] of planes) {
             for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
@@ -3237,13 +3237,13 @@ async function applyVideoFilterChain(
         const source = f.native;
         // Preserve native samples for packed RGB, grayscale and equally subsampled planar formats.
         if (source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
-            [0, 5, 12, 14, 29, 34, 49, 68, 104].includes(source.format)) {
+            [0, 5, 12, 14, 29, 30, 34, 49, 68, 104].includes(source.format)) {
           budget.allocateMemory(source.pixels.length + f.data.byteLength);
           const pixels = new Uint8Array(source.pixels.length);
-          const sampleBytes = source.format === 104 ? 8 : source.format === 34 ? 6 : [29, 49, 68].includes(source.format) ? 2 : 1;
+          const sampleBytes = source.format === 104 ? 8 : source.format === 34 ? 6 : [29, 30, 49, 68].includes(source.format) ? 2 : 1;
           const subsampling = source.format === 0 || source.format === 12 ? 2 : 1;
           let offset = 0;
-          for (let plane = 0; plane < ([29, 34, 104].includes(source.format) ? 1 : 3); plane++) {
+          for (let plane = 0; plane < ([29, 30, 34, 104].includes(source.format) ? 1 : 3); plane++) {
             const width = Math.ceil(f.width / (plane === 0 ? 1 : subsampling));
             const height = Math.ceil(f.height / (plane === 0 ? 1 : subsampling));
             for (let y = 0; y < height; y++) {
@@ -3511,9 +3511,9 @@ async function applyVideoFilterChain(
       current = await mapWork(current, async (f, n) => {
         const source = f.native;
         const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
-          [0, 4, 5, 12, 13, 14, 29].includes(source.format) ? source : undefined;
-        const gray = pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "gray16be" || pixelFormat === "ya8";
-        const available = planar ? (planar.format === 29 ? 0x10 : 0x70) : gray ? (pixelFormat === "ya8" ? 0x18 : 0x10) :
+          [0, 4, 5, 12, 13, 14, 29, 30].includes(source.format) ? source : undefined;
+        const gray = pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "gray16be" || pixelFormat === "gray16le" || pixelFormat === "ya8";
+        const available = planar ? ((planar.format === 29 || planar.format === 30) ? 0x10 : 0x70) : gray ? (pixelFormat === "ya8" ? 0x18 : 0x10) :
           pixelFormat === "rgb24" || pixelFormat === "bgr24" || pixelFormat === "gbrp" ? 0x07 : 0x0f;
         while (nextCommand < commands.length && commands[nextCommand]!.time <= f.ptsSeconds) {
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
@@ -3544,11 +3544,11 @@ async function applyVideoFilterChain(
         // Invert retained grayscale or YUV bytes before RGB conversion. Complementing
         // both bytes of a gray16 sample is exactly 65535 minus the original value.
         if (planar) {
-          const lumaSize = f.width * f.height * (planar.format === 29 ? 2 : 1);
+          const lumaSize = f.width * f.height * ((planar.format === 29 || planar.format === 30) ? 2 : 1);
           const chromaSize = Math.ceil(f.width / ([5, 14].includes(planar.format) ? 1 : 2)) *
             Math.ceil(f.height / ([0, 12].includes(planar.format) ? 2 : 1));
           const pixels = new Uint8Array(planar.pixels);
-          for (let plane = 0; plane < (planar.format === 29 ? 1 : 3); plane++) {
+          for (let plane = 0; plane < ((planar.format === 29 || planar.format === 30) ? 1 : 3); plane++) {
             if (!(selected & (1 << (4 + plane)))) continue;
             const start = plane === 0 ? 0 : lumaSize + (plane - 1) * chromaSize;
             const end = start + (plane === 0 ? lumaSize : chromaSize);
@@ -4326,11 +4326,11 @@ async function applyVideoFilterChain(
         const output = { ...f, height, interlaced: false, topFieldFirst: false };
         const native = f.native;
         if (native?.rgba === f.data && native.width === f.width && native.height === f.height &&
-            [0, 4, 5, 12, 13, 14, 29, 49, 68].includes(native.format)) {
+            [0, 4, 5, 12, 13, 14, 29, 30, 49, 68].includes(native.format)) {
           const hsub = [0, 4, 12, 13].includes(native.format) ? 2 : 1;
           const vsub = [0, 12].includes(native.format) ? 2 : 1;
-          const sampleBytes = [29, 49, 68].includes(native.format) ? 2 : 1;
-          const planeCount = native.format === 29 ? 1 : 3;
+          const sampleBytes = [29, 30, 49, 68].includes(native.format) ? 2 : 1;
+          const planeCount = (native.format === 29 || native.format === 30) ? 1 : 3;
           const pixelBytes = (f.width * height + (planeCount - 1) * Math.ceil(f.width / hsub) * Math.ceil(height / vsub)) * sampleBytes;
           budget.allocateMemory(pixelBytes + f.width * height * 4 + 128);
           const pixels = new Uint8Array(pixelBytes);

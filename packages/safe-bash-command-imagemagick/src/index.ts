@@ -10598,9 +10598,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         if (t === "-units") {
-            const value = tokens[++i] ?? "";
-            const units = parseMagickUnits(value);
-            if (units === undefined) throw new Error(`unrecognized units type '-units' '${value}'`);
+            const value = tokens[++i] ?? "", image = stack[0];
+            const expanded = image ? yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }) : value;
+            const units = parseMagickUnits(expanded);
+            if (units === undefined) throw new Error(`unrecognized units type '-units' '${expanded}'`);
             state.units = units;
             stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return applyMagickUnits(image, units); });
             i++;
@@ -13415,6 +13416,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-units") {
+            // Resolve expanded settings sequentially before capturing later input settings.
+            if (tokens[i + 1]?.includes("%")) return;
             const value = tokens[++i] ?? "";
             const units = parseMagickUnits(value);
             if (units === undefined) throw new Error(`unrecognized units type '-units' '${value}'`);

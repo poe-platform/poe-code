@@ -32,9 +32,10 @@ export function* writeMaskPixelSteps(image: { width: number; height: number }, m
                 } else blendMaskedPixel(output, original, edited, i * 4, intensity, 255, channels);
             }
             yield { kind: "write", evaluate: true, position, data: new Uint8Array(output.buffer) };
-            const bounded = highDepth ? Uint16Array.from(output, value => Math.round(Math.max(0, Math.min(65535, value * 257))))
-                : Uint8Array.from(output, value => Math.round(Math.max(0, Math.min(255, value))));
-            yield { kind: "write", highDepth, position, data: new Uint8Array(bounded.buffer) };
+            // Mask blending creates fractional samples even from 8-bit inputs.
+            const bounded = Uint16Array.from(output, value => Math.round(Math.max(0, Math.min(65535, value * 257))));
+            yield { kind: "write", highDepth: true, position, data: new Uint8Array(bounded.buffer) };
+            if (!highDepth) yield { kind: "write", position, data: Uint8Array.from(output, value => Math.round(Math.max(0, Math.min(255, value)))) };
         }
     }
 }

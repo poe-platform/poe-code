@@ -6034,6 +6034,8 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         cursor += vertical ? im.height : im.width;
     }
     const first = stack[0]! as MagickImage;
+    canvas.readMask = first.readMask;
+    canvas.writeMask = first.writeMask;
     canvas[magickInput] = { imageType: first[magickInput]?.imageType };
     const gray = stack.every(image => image.space === "b-w" || image.space === "grey16") && background.r === background.g && background.g === background.b;
     return { ...canvas, ...(first.orientation !== undefined ? { orientation: first.orientation } : {}), ...(gray ? { space: first.space, gamma: first.gamma } : {}), ...(first.magickColorspace !== undefined && stack.every(image => image.magickColorspace === first.magickColorspace) ? { magickColorspace: first.magickColorspace } : {}), channels: cmyk ? 4 : gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), hasAlpha, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
@@ -12549,7 +12551,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     result = { ...result, space: first.space, ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }) };
                 }
                 if (append) {
-                    const first = (await stack.get(0))! as StoredMagickImage & HueMetadata, scene = first[magickInput]?.sceneIdx ?? 0;
+                    const first = (await stack.get(0))! as StoredMagickImage & StoredRgbaImage, scene = first[magickInput]?.sceneIdx ?? 0;
+                    result = { ...result, readMask: first.readMask, storedWriteMask: first.storedWriteMask } as StoredRgbaImage;
                     result[magickInput] = { imageType: first[magickInput]?.imageType };
                     result = { ...result, ...(first.orientation !== undefined ? { orientation: first.orientation } : {}), ...(sameColorspace && first.magickColorspace !== undefined ? { magickColorspace: first.magickColorspace } : {}), delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), hasAlpha: background.a < 255, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
                     if (evaluate) {

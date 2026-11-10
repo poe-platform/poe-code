@@ -6730,8 +6730,8 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const radial = lower.startsWith("radial-gradient:");
         const spec = baseToken.slice(baseToken.indexOf(":") + 1);
         const [c1Str, c2Str] = spec ? spec.split("-") : [];
-        const c1 = parseColor(c1Str || "#ffffff");
-        const c2 = parseColor(c2Str || "#000000");
+        const c1 = parseColor(c1Str || "#ffffff", true);
+        const c2 = parseColor(c2Str || "#000000", true);
         return yield* applyMod([(yield* createGradientImageSteps(state.sizeWidth, state.sizeHeight, c1, c2, radial, state.gradientDirection, state.gradientAngle, state.gradientVector, state.gradientBoundingBox, state.gradientCenter, state.gradientRadii, state.gradientExtent))]);
     }
     if (lower.startsWith("plasma:")) {
@@ -15959,7 +15959,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const width=Math.max(1,Math.round(pattern&&!state.hasSize&&lower.startsWith("pattern:")?pattern.width:state.sizeWidth)),height=Math.max(1,Math.round(pattern&&!state.hasSize&&lower.startsWith("pattern:")?pattern.height:state.sizeHeight)),position=backend.storage.allocate(width*height*4);
   const checker=!!pattern,radial=lower.startsWith("radial-gradient:");
   const storedData16=checker?undefined:{position:backend.storage.allocate(width*height*8),length:width*height*4};
-  const [first,last]=baseToken.slice(baseToken.indexOf(":")+1).split("-"),a=parseColor(checker?"white":first||"#ffffff"),b=parseColor(checker?"black":last||"#000000");
+  const [first,last]=baseToken.slice(baseToken.indexOf(":")+1).split("-"),a=parseColor(checker?"white":first||"#ffffff",true),b=parseColor(checker?"black":last||"#000000",true);
   const cx=state.gradientCenter?.x??(width-1)/2,cy=state.gradientCenter?.y??(height-1)/2,axes=gradientRadii(width,height,state.gradientExtent,state.gradientRadii),box=state.gradientBoundingBox;
   const projection=gradientProjection(width,height,state.gradientDirection,state.gradientAngle);
   const vectorFactor=gradientVector(width,height,(radial&&state.gradientCenter)?undefined:radial||state.gradientAngle===undefined?state.gradientVector:undefined,radial,axes);

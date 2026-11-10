@@ -44,11 +44,15 @@ export async function applyAudioGate(
     return value;
   };
   const choice = (key: string, values: readonly string[]): number => {
-    const value = options[key]!;
-    const index = values.indexOf(value);
-    if (index >= 0) return index;
-    if (value === "0" || value === "1") return Number(value);
-    throw new AgateError(`${name}: invalid ${key}`, value && Number.isFinite(Number(value)) ? 222 : 234);
+    let value: number;
+    try {
+      value = parseFilterExpression(options[key]!, name, Object.fromEntries(values.map((value, index) => [value, index])));
+    } catch {
+      throw new AgateError(`${name}: invalid ${key}`, 234);
+    }
+    if (value < 0 || value > values.length - 1) throw new AgateError(`${name}: invalid ${key}`, 222);
+    // Native integer options validate the unrounded value, then round ties to even.
+    return value % 1 === 0.5 ? 2 * Math.round(value / 2) : Math.round(value);
   };
   const level = number("level_in", 0.015625, 64);
   const upward = choice("mode", ["downward", "upward"]) === 1;

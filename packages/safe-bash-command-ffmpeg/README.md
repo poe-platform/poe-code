@@ -364,6 +364,9 @@ disabled frames pass through unchanged and pause the gate envelope.
 audio frame at or after the requested time, preserving the gate envelope.
 Target `agate` selects the first subsequent gate; a named target selects that
 instance. Invalid runtime gains retain the previous setting.
+The `mode`, `link`, and `detection` options accept numeric and named expressions,
+such as `mode=1.0` and `link=average+1`. Values must be between 0 and 1 before
+rounding to the nearest integer; the `0.5` tie selects 0.
 
 `acompressor=threshold=0.1:ratio=4:attack=1:release=20` compresses changing PCM levels
 with attack and release in milliseconds. It supports soft knees, peak/RMS detection,

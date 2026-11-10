@@ -8842,8 +8842,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-colorize") {
         highDepth = true;
         const value = tokens[++i] ?? "";
-        const strength = [...value].filter(character => character.trim() !== "").join("");
-        const percentages = strength.replaceAll("x", ",").replaceAll(":", ",").split(",").map(part => {
+        const strength = [...value].filter(character => character.trim() !== "" && !"()!<>^@#".includes(character)).join("");
+        const fields = [...strength].map((character, index) => {
+            const previous = strength[index - 1];
+            // Geometry offsets separate strengths; exponent and field-leading signs do not.
+            return (character === "+" || character === "-") && previous !== undefined && "0123456789.%".includes(previous)
+                ? `,${character}` : character;
+        }).join("");
+        const percentages = fields.replaceAll("x", ",").replaceAll("X", ",").replaceAll(":", ",").split(",").map(part => {
             const percent = part.endsWith("%") ? part.slice(0, -1) : part;
             if (!Number.isFinite(Number(percent)) || Number.parseFloat(percent) !== Number(percent)) {
                 throw new Error(`invalid argument '-colorize' '${value}'`);

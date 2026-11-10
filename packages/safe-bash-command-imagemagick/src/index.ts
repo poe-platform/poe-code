@@ -17857,6 +17857,15 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         else if (t === "-gravity") {
             state.gravity = parseGravity(argv[++i] ?? "center");
         }
+        else if (t === "-depth") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -depth\n" };
+            state.inputDepth = Number(value);
+            if (!Number.isInteger(state.inputDepth) || state.inputDepth < 1) return { exitCode: 1, stdout: "", stderr: "montage: invalid input depth\n" };
+        }
+        else if (t === "+depth") {
+            delete state.inputDepth;
+        }
         else if (t === "-quality") {
             state.quality = Math.max(1, Math.min(100, Number(argv[++i] ?? 92)));
         }
@@ -18029,7 +18038,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png");
         const outPath = path === "-" ? path : multiple || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, page) : path.replaceAll("%%", "%");
         if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
-        const { data: encoded } = encodeImage(canvas, { format, pngCoder, gifVersion, tiffBig, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth, ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}), consumeInput: true } as any);
+        const { data: encoded } = encodeImage(canvas, { format, netpbmDepth: state.inputDepth ?? 16, pngCoder, gifVersion, tiffBig, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth, ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}), consumeInput: true } as any);
         detachRgbaBuffer(canvas.data);
         if (outPath === "-" || outSpec.endsWith(":-")) {
             stdoutChunks.push(encoded);
@@ -18476,7 +18485,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             if (!anyTransparent) canvas = { ...canvas, hasAlpha: false, channels: 3 };
             const { format, path } = inferOutputFormat(outSpec, "png");
             const outputPath = path === "-" ? path : n > cols * rows || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, pageStart / (cols * rows)) : path.replaceAll("%%", "%");
-            const stdoutBytes = await (n > cols * rows ? backend.stage : backend.publish)(canvas, outputPath, { format, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });
+            const stdoutBytes = await (n > cols * rows ? backend.stage : backend.publish)(canvas, outputPath, { format, netpbmDepth: state.inputDepth ?? 16, chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });
             if (stdoutBytes) stdoutChunks.push(stdoutBytes);
         }
         if (n > cols * rows) await backend.publishPending();

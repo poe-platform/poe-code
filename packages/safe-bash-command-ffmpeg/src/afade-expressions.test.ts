@@ -97,3 +97,30 @@ for (const [options, hash] of [
     assert.equal(createHash("sha256").update(result.output).digest("hex"), hash);
   });
 }
+
+// FFmpeg 7.0.2: 3173 constant PCM16 samples of 16003 at 8 kHz.
+for (const graph of [false, true]) {
+  for (const [options, hash] of [
+    ["ns=32:c=tri:out", "8f86642f273e2c6bc3bee9e5b459dfb8edc57eecf1497c968abc01ae752e7d9b"],
+    ["t=in:ss=16:32", null],
+    ["type=out:ns=32", "8f86642f273e2c6bc3bee9e5b459dfb8edc57eecf1497c968abc01ae752e7d9b"],
+    ["in:16:32", "b697e294ac07817ad981ed0aa146565450bd9056e63f95b03faf41b6437c66c5"],
+    ["ns=32:16", "b697e294ac07817ad981ed0aa146565450bd9056e63f95b03faf41b6437c66c5"],
+    ["in:ns=32:out", "8f86642f273e2c6bc3bee9e5b459dfb8edc57eecf1497c968abc01ae752e7d9b"],
+    ["in:16:ns=32:out:0", "8f86642f273e2c6bc3bee9e5b459dfb8edc57eecf1497c968abc01ae752e7d9b"],
+    ["ns=32:c=tri:t=in:16", "b697e294ac07817ad981ed0aa146565450bd9056e63f95b03faf41b6437c66c5"],
+    ["in:16:32:0:0:tri:0:1:out", null]
+  ] as const) {
+    it(`afade assigns mixed positional options ${options} (${graph ? "graph" : "simple"})`, async () => {
+      const result = await run(options, graph, new Float64Array(3173).fill(16003 / 32768));
+      if (hash === null) {
+        assert.equal(result.exitCode, 1, result.stderr);
+        assert.equal(result.output.toString(), "KEEP");
+      } else {
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.output.length, 6346);
+        assert.equal(createHash("sha256").update(result.output).digest("hex"), hash);
+      }
+    });
+  }
+}

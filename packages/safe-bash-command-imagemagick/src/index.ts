@@ -5,6 +5,7 @@ import { localContrastPixelSteps, parseLocalContrastGeometry } from "./local-con
 import { liquidRescalePixelSteps } from "./liquid-rescale.js";
 import { whiteBalancePixelSteps } from "./white-balance-kernel.js";
 import { compareColorspaceSteps } from "./compare-colorspace.js";
+import { setColorspacePixels } from "./set-colorspace.js";
 import { magickIntensity } from "./intensity.js";
 import { sortPixelSteps } from "./sort-pixels.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
@@ -9438,6 +9439,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     return image;
                 }
                 if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
+                if (expandedKey.toLowerCase() === "colorspace") return yield* setColorspacePixels(image, expanded);
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: Number(expanded) };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickPageSetting(expanded, "set"), forceExact: false }, "set") };
@@ -11635,6 +11637,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     return image;
                 }
                 if (expandedKey.toLowerCase() === "units") return applyMagickUnits(image, parseMagickUnits(expanded));
+                if (expandedKey.toLowerCase() === "colorspace") return transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: image => setColorspacePixels(image, expanded) }, signal);
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: Number(expanded) };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickPageSetting(expanded, "set"), forceExact: false }, "set") };

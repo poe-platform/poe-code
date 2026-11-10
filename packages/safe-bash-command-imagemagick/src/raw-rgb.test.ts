@@ -60,7 +60,7 @@ for (const mode of ["file", "stream", "sync"] as const) {
 it.each([
     { options: [], input: "123456789abc", error: "must specify image size" },
     { options: ["-size", "2x1"], input: "123456", error: "unexpected end-of-file" },
-    { options: ["-size", "2x1", "-depth", "32"], input: "123456", error: "unsupported RGB input depth" }
+    { options: ["-size", "2x1", "-depth", "64"], input: "123456", error: "unsupported RGB input depth" }
 ])("rejects invalid raw input without overwriting output: $options", ({ options, input, error }) => {
     const original = Uint8Array.of(42), files = new Map([["in.dat", Buffer.from(input, "hex") as Uint8Array], ["out.png", original]]);
     const result = runMagickCliSync([...options, "rgb:in.dat", "out.png"], files);
@@ -70,11 +70,11 @@ it.each([
 });
 
 
-it("preserves RGB16 samples across bounded file reads", async () => {
+it.each([16, 32])("preserves RGB%d samples across bounded file reads", async (depth) => {
     const width = 3001, input = Uint8Array.from({ length: width * 6 }, (_, i) => i * 43 & 255);
     const fs = new MemoryFileSystem();
-    await fs.writeFile("/in.dat", input);
-    const args = createCommandArguments(["-size", `${width}x1`, "rgb:in.dat", "out.png"]);
+    await fs.writeFile("/in.dat", depth === 32 ? Uint8Array.from(Array.from({ length: input.length / 2 }, (_, i) => [input[2 * i]!, input[2 * i + 1]!, input[2 * i]!, input[2 * i + 1]!]).flat()) : input);
+    const args = createCommandArguments(["-size", `${width}x1`, "-depth", String(depth), "rgb:in.dat", "out.png"]);
     let stderr = "";
     const result = await createMagickCommand().execute({
         command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,

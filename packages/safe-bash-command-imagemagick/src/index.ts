@@ -9008,7 +9008,11 @@ if (t === "-seed") {
             if (defStr.toLowerCase().startsWith("trim:percent-background=")) state.trimPercentBackground = Number.parseFloat(defStr.slice("trim:percent-background=".length)) || 0;
             if (filterKey === "trim:background-color") state.trimBackgroundColor = parseColor(filterValue ?? "", true);
             if (defStr.toLowerCase().startsWith("trim:edges=")) state.trimEdges = defStr.slice("trim:edges=".length);
-            if (defStr.toLowerCase().startsWith("trim:minsize=")) state.trimMinSize = parseMagickGeometry(defStr.slice("trim:minsize=".length));
+            if (defStr.toLowerCase().startsWith("trim:minsize=")) {
+                const geometry = parseMagickGeometry(defStr.slice("trim:minsize=".length));
+                // Native trim uses percentage geometry values as pixel minima on both axes.
+                state.trimMinSize = geometry.isPercent ? { width: geometry.percentX!, height: geometry.percentY! } : geometry;
+            }
             if (defStr.toLowerCase().startsWith("quantum:format=")) state.tiffFloatingPoint = defStr.slice("quantum:format=".length).toLowerCase() === "floating-point";
             if (defStr.toLowerCase().startsWith("quantum:format=")) state.tiffSigned = defStr.slice("quantum:format=".length).toLowerCase() === "signed";
             if (defStr.toLowerCase().startsWith("tiff:alpha=")) {

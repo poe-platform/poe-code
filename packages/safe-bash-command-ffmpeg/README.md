@@ -565,6 +565,8 @@ layout and repeats the last expression when needed. `aeval=abs(val(1))` rectifie
 right-channel samples; `abs(x)` also accepts constants and arithmetic expressions. `sin(x)` takes radians, and
 `PI` is available for waveforms such as `aeval=sin(PI*n/2)/2`.
 `squish(x)` returns `1/(1+exp(4*x))`; `aeval=squish(n/4)` generates a decreasing sigmoid from 0.5.
+`gauss(x)` evaluates the standard Gaussian curve, `exp(-x*x/2)/sqrt(2*PI)`;
+`aeval=gauss(n/4)` generates it from the sample index.
 `aeval=val(0)*random(0)` applies a deterministic random gain to each sample, matching
 FFmpeg 7. Random state persists across samples, stays independent for each output
 channel and register index (0–9), and starts fresh for each filter execution.

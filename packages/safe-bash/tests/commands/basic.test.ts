@@ -117,6 +117,11 @@ for (const [specifier, operand, expected, diagnostic] of [
   ["d", "071tail", "57", "value not completely converted"],
   ["d", "-0x2tail", "-2", "value not completely converted"],
   ["d", "09", "0", "value not completely converted"],
+  ["d", "0b", "0", "value not completely converted"],
+  ["d", "0B2", "0", "value not completely converted"],
+  ["d", "-0b112", "-3", "value not completely converted"],
+  ["u", `0b1${"0".repeat(64)}`, "18446744073709551615", "Numerical result out of range"],
+  ["d", `0b1${"0".repeat(63)}`, "9223372036854775807", "Numerical result out of range"],
   ["d", "17 ", "17", "value not completely converted"],
   ["d", "OwnedWord", "0", "invalid number"],
   ["u", "-18446744073709551616", "18446744073709551615", "Numerical result out of range"],
@@ -126,6 +131,27 @@ for (const [specifier, operand, expected, diagnostic] of [
   assert.equal(result.stdout, `${expected}|2|`);
   assert.equal(result.exitCode, 1);
   assert.equal(result.stderr, `printf: '${operand}': ${diagnostic}\n`);
+});
+
+test("printf reads binary integers through Shell.exec while retaining other numeric parsers", async () => {
+  const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry(createStandardCommands()) });
+  try {
+    for (const [script, stdout, exitCode] of [
+      ["printf '(%d)' '0b10'", "(2)", 0],
+      ["printf '%d' '0B101'", "5", 0],
+      ["printf '%d' '-0b11'", "-3", 0],
+      ["printf '%u|%i|%o|%x|%X' +0b11 -0B11 0b1010 0b1111 0B1111", "3|-3|12|f|F", 0],
+      ["printf '%.*s' '0b10' abcde", "ab", 0],
+      ["printf '%*.*s' '-0B101' '+0b10' abcde", "ab   ", 0],
+      ["printf '%d|%d|%.*s' '0x10' '010' 2 abcde", "16|8|ab", 0],
+      ["printf '%g' '0b10'", "0", 1],
+    ] as const) {
+      const result = await shell.exec(script, { env: { LC_ALL: "C", TZ: "UTC" } });
+      assert.equal(result.stdout, stdout, script);
+      assert.equal(result.exitCode, exitCode, script);
+      assert.equal(result.stderr, exitCode ? "printf: '0b10': invalid number\n" : "", script);
+    }
+  } finally { await shell.dispose(); }
 });
 
 test("printf preserves exact integer boundaries and C-style bases", async () => {
@@ -138,6 +164,9 @@ test("printf preserves exact integer boundaries and C-style bases", async () => 
     ["u", "-18446744073709551615", "1"],
     ["d", "  +071", "57"],
     ["d", "-0x2", "-2"],
+    ["d", `0b${"1".repeat(63)}`, "9223372036854775807"],
+    ["i", `-0B1${"0".repeat(63)}`, "-9223372036854775808"],
+    ["u", `0b${"1".repeat(64)}`, "18446744073709551615"],
   ]) {
     const result = await run("printf", [`%${specifier}`, operand!]);
     assert.equal(result.stdout, expected);

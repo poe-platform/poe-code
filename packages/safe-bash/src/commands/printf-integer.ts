@@ -12,6 +12,9 @@ export function printfInteger(token: string, unsigned: boolean): { value: bigint
     if ((token[offset + 1] === "x" || token[offset + 1] === "X") && digit(token[offset + 2]) >= 0) {
       radix = 16;
       offset += 2;
+    } else if ((token[offset + 1] === "b" || token[offset + 1] === "B") && (token[offset + 2] === "0" || token[offset + 2] === "1")) {
+      radix = 2;
+      offset += 2;
     }
   }
   const start = offset;

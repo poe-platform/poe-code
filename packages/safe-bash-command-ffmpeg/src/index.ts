@@ -9774,7 +9774,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (outputFps && videoCodec !== "copy" && !numberedImageOutput) {
               vfFilters.push(`fps=${outputFps}`);
             }
-            if (videoCodec !== "copy" && (rawPixelFormat === "gray" || rawPixelFormat === "gray8" || rawPixelFormat === "ya8")) {
+            if (videoCodec !== "copy" && (rawPixelFormat === "gray" || rawPixelFormat === "gray8" || rawPixelFormat === "ya8" ||
+                (outPlugin?.id === "y4m" && (rawPixelFormat === "yuv420p" || rawPixelFormat === "yuv422p" || rawPixelFormat === "yuv444p")))) {
               vfFilters.push(`format=${rawPixelFormat}`);
             }
 

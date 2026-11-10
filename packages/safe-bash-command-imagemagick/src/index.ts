@@ -8285,25 +8285,46 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const channels = state.channelDefault ? undefined : state.channels;
         apply = function* (im) {
             let pixelWork = 0;
+            const cmyk = im.space === "cmyk";
+            if (cmyk) im = yield* convertCmykPixels(im);
             const out = new Uint8Array(im.data);
             const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
-            const samples = data16 ?? out, quantumScale = data16 ? 1 : 257, maximum = data16 ? 65535 : 255;
+            const hueSamples = cmyk ? im.hueSamples!.slice() : undefined;
+            const evaluateSamples = cmyk ? Float64Array.from(data16 ?? out, value => data16 ? value / 257 : value) : undefined;
+            const samples = hueSamples ?? data16 ?? out, quantumScale = cmyk ? 65535 : data16 ? 1 : 257, maximum = cmyk ? 1 : data16 ? 65535 : 255;
             const mask = channels
-                ? [channels.r, channels.g, channels.b, channels.a && im.hasAlpha]
-                : [true, true, true, im.hasAlpha];
+                ? [channels.r, channels.g, channels.b, cmyk ? channels.k : channels.a && im.hasAlpha]
+                : [true, true, true, cmyk || im.hasAlpha];
+            const cutoffs = cmyk ? [thresholds[0]!, thresholds[1]!, thresholds[2]!, values[3] ?? thresh] : thresholds;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
                     yield;
                 const intensity = magickIntensity(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!, state.intensity, maximum, im.magickColorspace === "RGB") * quantumScale;
                 for (let channel = 0; channel < 4; channel++) {
                     const value = channels ? samples[idx + channel]! * quantumScale : intensity;
-                    if (mask[channel] && (isBlack ? value < thresholds[channel]! : value > thresholds[channel]!)) {
+                    if (mask[channel] && (isBlack ? value < cutoffs[channel]! : value > cutoffs[channel]!)) {
                         samples[idx + channel] = isBlack ? 0 : maximum;
-                        out[idx + channel] = isBlack ? 0 : 255;
+                        if (!cmyk) out[idx + channel] = isBlack ? 0 : 255;
+                    }
+                }
+                if (hueSamples && evaluateSamples) {
+                    // Black is the fourth ink; alpha remains in the RGBA backing.
+                    const alpha = channels ? evaluateSamples[idx + 3]! * 257 : intensity;
+                    const alphaThreshold = thresholds[3]!;
+                    if (im.hasAlpha && (!channels || channels.a) && (isBlack ? alpha < alphaThreshold : alpha > alphaThreshold)) {
+                        out[idx + 3] = isBlack ? 0 : 255;
+                        if (data16) data16[idx + 3] = isBlack ? 0 : 65535;
+                        evaluateSamples[idx + 3] = isBlack ? 0 : 255;
+                    }
+                    for (let channel = 0; channel < 3; channel++) {
+                        const value = (1 - hueSamples[idx + channel]!) * (1 - hueSamples[idx + 3]!) * 65535;
+                        out[idx + channel] = clampByteVal(value / 257);
+                        if (data16) data16[idx + channel] = Math.round(Math.max(0, Math.min(65535, value)));
+                        evaluateSamples[idx + channel] = value / 257;
                     }
                 }
             }
-            return { ...im, isPalette: false, data: out, ...(data16 ? { data16 } : {}) };
+            return { ...im, isPalette: false, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
         };
     }
     else return;

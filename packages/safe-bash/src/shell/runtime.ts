@@ -3224,7 +3224,7 @@ export class Runtime {
   async assignVariable(state: State, name: string, value: ShellValue, io: IO, origin: "assignment" | "getopts" = "assignment"): Promise<void> {
     name = this.referenceName(state, name);
     if (!arrayStore(state)?.get(name)) { await this.writeVariable(state, name, value, io, origin); return; }
-    await this.arrayZero(state, name, io, async () => value);
+    await this.arrayZero(state, name, io, async () => value, false, false, origin);
     if (state.allexport) state.exported.add(name);
   }
   async prepareVariable(state: State, name: string, saved: SavedVariable, scalarLegacy = false): Promise<void> {
@@ -3358,7 +3358,7 @@ export class Runtime {
     if (state.extensions?.syntax.indexedDeclarations?.includes("readonly")) throw new DiscardCommandFailure(name, 1, origin);
     throw new ArrayFailure("readonly binding");
   }
-  async arrayZero(state: State, name: string, io: IO, expand: () => Promise<ShellValue>, append = false, freeze = false): Promise<void> {
+  async arrayZero(state: State, name: string, io: IO, expand: () => Promise<ShellValue>, append = false, freeze = false, origin: "assignment" | "getopts" = "assignment"): Promise<void> {
     const store = requireArrays(state);
     const operation = ArrayOwner.create(store.owner.ledger, store.owner);
     const holding = store.owner.hold();
@@ -3395,6 +3395,8 @@ export class Runtime {
       stateMonitor(state)!.publish(tickets, name, () => {
         supersede();
         released = store.publish(name, staged!, tickets);
+        if (name === "OPTIND") publishVariable(state, name, value);
+        if (name === "OPTIND" && origin !== "getopts") this.syncGetopts(state);
         if (state.allexport) state.exported.add(name);
         if (freeze) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }});
       staged = undefined;
@@ -3466,7 +3468,7 @@ export class Runtime {
     this.signal.throwIfAborted();
     if (state.readonlyVariables?.has(name) && arrayStore(state)?.get(name)?.associative) { await this.diagnostic(io, `${name}: readonly variable`); throw completedExit(1); }
     this.assertArrayWritable(state, name, origin);
-    if (controlNames.has(name)) throw new ArrayFailure("control binding cannot be indexed");
+    if (controlNames.has(name) && !(printf && (name === "IFS" || name === "OPTIND"))) throw new ArrayFailure("control binding cannot be indexed");
     const store = requireArrays(state);
     const operation = ArrayOwner.create(store.owner.ledger, store.owner);
     const holding = store.owner.hold();
@@ -3708,7 +3710,9 @@ export class Runtime {
             let released: Promise<void> | undefined;
             stateMonitor(state)!.publish(tickets, name, () => {
               supersede();
-              delete state.variables[name];
+              // Preserve the cached IFS join character and getopts index;
+              // indexed printf writes only change the visible array elements.
+              if (name !== "IFS" && name !== "OPTIND") delete state.variables[name];
               released = store.publish(name, staged!, tickets, prepared);
               if (declaration) { state.readonlyVariables ??= frozenAttributes!; state.readonlyVariables.add(name); }});
             staged = undefined;
@@ -8028,7 +8032,7 @@ export class Runtime {
       } else await writeDiagnostic(context.stderr, `${prefix}${result.diagnostic.option}\n`);
     }
     this.signal.throwIfAborted();
-    try { await this.writeVariable(state, "OPTIND", String(result.optind), context, "getopts"); }
+    try { await this.assignVariable(state, "OPTIND", String(result.optind), context, "getopts"); }
     catch (error) {
       if (!(error instanceof PublicDiagnostic)) throw error;
       await this.diagnostic(context, error.message);
@@ -10802,6 +10806,7 @@ export class Runtime {
     const appendSplit = async (value: ShellValue, list = false): Promise<void> => {
       this.budget.cpuCheckpoint();
       if (shellValueByteLength(value) === 0) return;
+      if (arrayStore(state)?.get("IFS")) { append(value, true, true); return; }
       const separators = state.variables.IFS ?? " \t\n";
       const retainedSeparators = stateMonitor(state)?.values.get("IFS", separators) ?? separators;
       let byteSeparators = false;

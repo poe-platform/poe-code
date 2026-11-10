@@ -1412,6 +1412,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/inline-input-retirement.test.ts"));
   assert.ok(files.includes("tests/shell/printf-variable.test.ts"));
   assert.ok(files.includes("tests/shell/printf-help.test.ts"));
+  assert.ok(files.includes("tests/shell/printf-control-indices.test.ts"));
   assert.ok(files.includes("tests/shell/cd-options.test.ts"));
   assert.ok(files.includes("tests/shell/cd-retarget.test.ts"));
   assert.ok(files.includes("tests/shell/unset-options.test.ts"));

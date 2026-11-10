@@ -4655,6 +4655,7 @@ const syncExtraRuntimeMethods = {
     return fields;
   },
   fastValueWord(this: any, word: Word, state: State, io: IO, split: boolean, pattern: boolean, hereDocument: boolean, braces: boolean, assignmentStart?: number, overrideDiagnosticLine?: number): ShellValue | undefined {
+    if (split && arrayStore(state)?.get("IFS")) return undefined;
     const monitor = stateMonitor(state);
     const rawState = monitor ? monitor.raw : state;
     if (pattern || word.parts.length === 0 || (rawState.depth + (io.parameterDepth ?? 0)) >= 32 || hasNonNamerefAttributes(rawState)) return undefined;

@@ -13629,11 +13629,13 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             const value = argv[++i];
             if (value === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-interlace'\n" };
             const interlace = value.toLowerCase();
-            if (!["none", "plane", "line"].includes(interlace))
+            if (!["none", "plane", "line", "png", "gif", "jpeg"].includes(interlace))
                 return { exitCode: 2, stdout: "", stderr: `compare: unrecognized interlace type '${value}'\n` };
             state.jpegProgressive = interlace !== "none";
+            state.pngInterlace = interlace !== "none";
+            state.gifInterlace = interlace !== "none";
         }
-        else if (t === "+interlace") delete state.jpegProgressive;
+        else if (t === "+interlace") { delete state.jpegProgressive; delete state.pngInterlace; delete state.gifInterlace; }
         else if (t === "-quality") {
             state.quality = Math.max(1, Math.min(100, Number(argv[++i] ?? 92)));
         }
@@ -14045,7 +14047,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const opaque = colorType === 0 || colorType === 2;
         const outputMetadata = density === undefined ? imgA : applyMagickDensity(imgA, density);
         const metadata = { width, height, ...(imgA.icc ? { icc: imgA.icc } : {}), format: "png" as const, channels: opaque ? 3 as const : 4 as const, depth: "uchar" as const, density: outputMetadata.density, ...(outputMetadata.resolution ? { resolution: outputMetadata.resolution } : {}), space: "srgb" as const, hasAlpha: !opaque };
-        const encoding = { ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth), pngBitDepth: state.inputDepth <= 8 ? 8 as const : 16 as const, miffDepth: state.inputDepth <= 8 ? 8 as const : 16 as const, tiffIntegerDepth: state.inputDepth <= 8 ? 8 as const : state.inputDepth <= 16 ? 16 as const : 32 as const }), format, pngCoder, gifVersion, tiffBig, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4" as const, ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngColorType: colorType, ...(opaque ? { forceOpaque: true } : {}), ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" as const : "4:4:4" as const, webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) };
+        const encoding = { pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), ...(state.inputDepth === undefined ? {} : { netpbmDepth: Math.min(16, state.inputDepth), pngBitDepth: state.inputDepth <= 8 ? 8 as const : 16 as const, miffDepth: state.inputDepth <= 8 ? 8 as const : 16 as const, tiffIntegerDepth: state.inputDepth <= 8 ? 8 as const : state.inputDepth <= 16 ? 16 as const : 32 as const }), format, pngCoder, gifVersion, tiffBig, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4" as const, ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngColorType: colorType, ...(opaque ? { forceOpaque: true } : {}), ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" as const : "4:4:4" as const, webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) };
         const split = hasSceneOutputPattern(path) || (subimageSearch && !["gif", "miff", "tiff"].includes(format));
         let stdoutBytes: Uint8Array | undefined;
         const stdoutChunks = snapshotChunks;

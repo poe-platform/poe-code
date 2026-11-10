@@ -1,8 +1,11 @@
+import { createRequire } from "node:module";
 import { expect, it } from "vitest";
 import { decodeImage } from "@poe-code/image-ast/portable";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createCompareCommand, createMagickCommand, runCompareCli, runCompareCliSync } from "./index.js";
+
+const sharp = createRequire(import.meta.url)("sharp") as typeof import("sharp");
 
 // Native ImageMagick 7.1.2-35: 24x16 PPM inputs, RMSE 16011.7 (0.244323).
 function ppm(changed: boolean): Uint8Array {
@@ -28,12 +31,12 @@ function frameMarker(bytes: Uint8Array): number {
 }
 
 for (const mode of ["sync", "buffered", "retained", "compare", "magick"] as const) {
-  async function run(options: string[], equal = false) {
+  async function run(options: string[], equal = false, format = "jpg") {
     const keep = new TextEncoder().encode("KEEP");
-    const files = new Map([["a.ppm", ppm(false)], ["b.ppm", ppm(true)], ["diff.jpg", keep]]);
+    const files = new Map([["a.ppm", ppm(false)], ["b.ppm", ppm(true)], [`diff.${format}`, keep]]);
     const filesystem = new MemoryFileSystem();
     for (const [path, bytes] of files) await filesystem.writeFile(`/${path}`, bytes);
-    const args = ["-metric", "RMSE", "a.ppm", equal ? "a.ppm" : "b.ppm", ...options, "diff.jpg"];
+    const args = ["-metric", "RMSE", "a.ppm", equal ? "a.ppm" : "b.ppm", ...options, `diff.${format}`];
     let result;
     if (mode === "compare" || mode === "magick") {
       const command = mode === "magick" ? createMagickCommand() : createCompareCommand();
@@ -47,8 +50,22 @@ for (const mode of ["sync", "buffered", "retained", "compare", "magick"] as cons
       }), stdout, stderr };
     } else result = mode === "sync" ? runCompareCliSync(args, files)
       : await runCompareCli(args, mode === "buffered" ? files : { filesystem, cwd: "/" });
-    const output = mode === "sync" || mode === "buffered" ? files.get("diff.jpg")! : await filesystem.readFile("/diff.jpg");
+    const output = mode === "sync" || mode === "buffered" ? files.get(`diff.${format}`)! : await filesystem.readFile(`/diff.${format}`);
     return { result: { ...result, stderr: result.stderr.trim() }, output };
+  }
+
+  for (const [format, coder] of [["png", "PNG"], ["gif", "GIF"], ["jpg", "JPEG"]] as const) {
+    it(`${mode} compare encodes ${coder} interlace modes and explicit None`, async () => {
+      for (const options of [[], ["-interlace", coder], ["-interlace", coder.toLowerCase()],
+        ["-interlace", "Plane"], ["-interlace", "Line"], ["-interlace", "None"],
+        ["-interlace", coder, "-interlace", "None"]]) {
+        const { result, output } = await run(options, true, format);
+        expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "0 (0)" });
+        const metadata = await sharp(output).metadata();
+        expect(metadata).toMatchObject({ width: 24, height: 16,
+          isProgressive: options.length > 0 && options.at(-1) !== "None" });
+      }
+    });
   }
 
   for (const quality of [undefined, 30, 95]) {

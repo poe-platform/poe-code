@@ -145,7 +145,10 @@ function emptyTrimPixel(image: RgbaImage | StoredRgbaImage, background?: RgbaCol
 }
 
 export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor, emptyBackground?: RgbaColor): Generator<void, RgbaImage, void> {
-    if (image.width === 1 && image.height === 1) return image;
+    if (image.width === 1 && image.height === 1) {
+        if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
+        return image;
+    }
     const pixels = image.evaluateSamples ?? image.data16 ?? image.data;
     const steps = trimBounds(image.width, image.height, image.hasAlpha, fuzz, image.evaluateSamples ? 1 : image.data16 ? 257 : 1, edges, percentBackground, background);
     let next = steps.next();
@@ -177,13 +180,16 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
     }
     if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
     // ImageMagick represents an empty trim with one transparent background pixel.
-    const { data16: ignored, evaluateSamples: ignoredSamples, ...metadata } = image;
+    const { data16: ignored, evaluateSamples: ignoredSamples, hueSamples: ignoredHue, ...metadata } = image;
     return { ...metadata, width: 1, height: 1, data: emptyTrimPixel(image, emptyBackground), channels: 4, hasAlpha: true,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }
 
 export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor, emptyBackground?: RgbaColor): Promise<StoredRgbaImage> {
-    if (image.width === 1 && image.height === 1) return image;
+    if (image.width === 1 && image.height === 1) {
+        if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
+        return image;
+    }
     const sampleBytes = image.storedEvaluateSamples !== undefined ? 8 : image.storedData16 ? 2 : 1;
     const position = image.storedEvaluateSamples ?? image.storedData16?.position ?? image.position;
     const steps = trimBounds(image.width, image.height, image.hasAlpha, fuzz, sampleBytes === 2 ? 257 : 1, edges, percentBackground, background);
@@ -210,7 +216,7 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
     const emptyPosition = storage.allocate(4);
     await storage.write(emptyPosition, emptyTrimPixel(image, emptyBackground), { signal });
-    const { storedData16: ignored, storedEvaluateSamples: ignoredSamples, ...metadata } = image;
+    const { storedData16: ignored, storedEvaluateSamples: ignoredSamples, storedHueSamples: ignoredHue, ...metadata } = image;
     return { ...metadata, width: 1, height: 1, position: emptyPosition, channels: 4, hasAlpha: true,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }

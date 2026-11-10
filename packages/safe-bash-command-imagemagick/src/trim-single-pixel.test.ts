@@ -7,7 +7,7 @@ import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js"
 for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     for (const format of ["PNG32", "info"] as const) {
         it.each([
-            { size: "1x1", trim: true, pixel: [0x12, 0x34, 0x56, 255], geometry: "1x1 8x9+2+1", warning: false },
+            { size: "1x1", trim: true, pixel: [0x12, 0x34, 0x56, 255], geometry: "1x1 8x9+2+1", warning: true },
             { size: "1x1", trim: false, pixel: [0x12, 0x34, 0x56, 255], geometry: "1x1 8x9+2+1", warning: false },
             { size: "2x2", trim: true, pixel: [255, 255, 255, 0], geometry: "1x1 2x2-1-1", warning: true },
         ])(`${mode} ${format}: preserves native trim behavior for $size (trim=$trim)`, async test => {

@@ -209,8 +209,8 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
     const fractional = ["mean", "multiply", "rms", "rootmeansquare"].includes(operation);
     const retainRange = ["add", "sum", "subtract", "min", "max"].includes(operation);
-    function* read(image: number, position: number, length: number): Generator<ConvolveRequest, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
-        const working = retainRange || fractional ? yield { kind: "read", evaluate: true, image, position, length } : undefined;
+    function* read(image: number, position: number, length: number, retainWorking = retainRange || fractional): Generator<ConvolveRequest, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
+        const working = retainWorking ? yield { kind: "read", evaluate: true, image, position, length } : undefined;
         const input = working?.length ? working : (yield { kind: "read", highDepth, image, position, length })!;
         const bytes = working?.length ? Float64Array.from(new Float64Array(input.slice().buffer), value => highDepth ? value * 257 : value)
             : highDepth ? new Uint16Array(input.slice().buffer) : input;
@@ -294,7 +294,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
     for (let position = 0; position < size; position += window) {
         if (position % 16384 === 0) yield;
         const length = Math.min(window, size - position), first = yield* read(0, position, length);
-        const data = fractional ? Float64Array.from(first) : highDepth ? Uint16Array.from(first, clamp) : Uint8Array.from(first, clamp);
+        const data = fractional || median ? Float64Array.from(first) : highDepth ? Uint16Array.from(first, clamp) : Uint8Array.from(first, clamp);
         if (operation === "undefined" && frames > 1) {
             // Native Undefined clears active samples after the first input.
             for (let offset = 0; offset < length; offset++) {
@@ -362,9 +362,11 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
             for (let image = 0; image < frames; image++) {
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
+                // Preserve the selected tuple's working samples after bounded ranking.
+                const samples = yield* read(image, position, length, true);
                 for (let pixel = 0; pixel < pixels; pixel++) {
                     const offset = pixel * 4, sum = bytes[offset]! + bytes[offset + 1]! + bytes[offset + 2]! + bytes[offset + 3]!;
-                    if (sum === sums[pixel]) { if (ranks[pixel] === 0) data.set(bytes.subarray(offset, offset + 4), offset); ranks[pixel]! -= 1; }
+                    if (sum === sums[pixel]) { if (ranks[pixel] === 0) data.set(samples.subarray(offset, offset + 4), offset); ranks[pixel]! -= 1; }
                 }
             }
         } else if (["sin", "sine", "cos", "cosine"].includes(operation)) {
@@ -456,9 +458,9 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly Pick<
                 else if (offset % 4 !== 3 || hasAlpha) data[offset] = clamp(quantum ? values[offset]! / scale : values[offset]!);
             }
         }
-        if (fractional) {
-            // Mean keeps accumulator precision for subsequent arithmetic; integer views are only for encoding.
-            const samples = Float64Array.from(data, value => operation === "mean" ? highDepth ? value / 257 : value : Math.fround(value * scale) / 257);
+        if (fractional || median) {
+            // Keep working precision for subsequent arithmetic; integer views are only for encoding.
+            const samples = Float64Array.from(data, value => operation === "mean" || median ? highDepth ? value / 257 : value : Math.fround(value * scale) / 257);
             const encoded = highDepth ? Uint16Array.from(samples, value => clamp(value * 257)) : Uint8Array.from(samples, clamp);
             yield { kind: "write", highDepth, position, data: new Uint8Array(encoded.buffer) };
             yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };

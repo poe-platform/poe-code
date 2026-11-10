@@ -12532,8 +12532,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           const phase = key.endsWith("_phase");
                           const value = phase
-                            ? ["1", "true", "yes", "on"].includes(raw) ? 1
-                              : ["0", "false", "no", "off"].includes(raw) ? 0 : NaN
+                            ? Number(parseFilterBoolean(raw, `haas: ${key} must be in the range [0, 1]`))
                             : parseFilterExpression(raw, "haas", key === "middle_source"
                               ? { left: 0, right: 1, mid: 2, side: 3 } : {});
                           const delay = key.endsWith("_delay");

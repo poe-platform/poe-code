@@ -565,7 +565,9 @@ For example, `haas=left_delay=1:right_delay=2` sets the tap delays in millisecon
 (range 0–40, truncated to whole samples). `middle_source=left|right|mid|side`
 selects the source for both the direct signal and taps; `middle_phase=1` inverts
 only the direct signal. Gains range from 0.015625 to 64; tap balances range from
--1 to 1, and each tap has its own phase switch.
+-1 to 1, and each tap has its own phase switch. All three phase switches accept
+`1`/`0` and case-insensitive `true`/`false`, `yes`/`no`, `on`/`off`, `y`/`n`,
+`enable`/`disable`, and `enabled`/`disabled`, in named or positional form.
 `[0:a][1:a][2:a]headphone=map=FL|FR:type=time[h]` renders a stereo source
 through separate stereo impulse responses for its left and right channels.
 Both `type=time` and `type=freq` use bounded direct convolution, preserve the source

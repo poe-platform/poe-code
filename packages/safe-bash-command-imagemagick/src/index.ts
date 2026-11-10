@@ -8114,24 +8114,32 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             };
         }
         else if (mode === "extract") {
+            evaluate = true;
             apply = function* (im) {
+                im = yield* prepare16BitOutput(im);
                 if (im.alphaBlend !== true) im = yield* prepareInactiveAlphaOutput(im);
                 const extracted = yield* extractChannelImageSteps({ ...im, hasAlpha: true }, 3);
+                if (im.evaluateSamples) extracted.evaluateSamples = im.evaluateSamples.slice();
                 // Clip-cache blending still uses source opacity before Extract disables alpha.
                 for (let offset = 3; offset < extracted.data.length; offset += 4) {
                     if (offset % 65536 === 3) yield;
+                    if (extracted.evaluateSamples) {
+                        const alpha = im.evaluateSamples![offset]!;
+                        extracted.evaluateSamples[offset - 3] = extracted.evaluateSamples[offset - 2] = extracted.evaluateSamples[offset - 1] = alpha;
+                    }
                     extracted.data[offset] = im.data[offset]!;
                     if (extracted.data16) extracted.data16[offset] = im.data16![offset]!;
                 }
                 const hueSamples = im.hueSamples ? new Float64Array(im.hueSamples.length) : undefined;
                 if (hueSamples) for (let offset = 0; offset < extracted.data.length; offset += 4) {
                     if (offset % 65536 === 0) yield;
-                    const alpha = extracted.data16 ? extracted.data16[offset]! / 65535 : extracted.data[offset]! / 255;
+                    const alpha = im.evaluateSamples ? im.evaluateSamples[offset + 3]! / 255 : extracted.data16 ? extracted.data16[offset]! / 65535 : extracted.data[offset]! / 255;
                     // Extract into every working color channel, including CMYK black.
                     hueSamples[offset] = hueSamples[offset + 1] = hueSamples[offset + 2] = alpha;
                     hueSamples[offset + 3] = im.space === "cmyk" ? alpha : 1;
                     if (im.space === "cmyk") {
                         const gray = (1 - alpha) * (1 - alpha) * 65535;
+                        if (extracted.evaluateSamples) extracted.evaluateSamples[offset] = extracted.evaluateSamples[offset + 1] = extracted.evaluateSamples[offset + 2] = gray / 257;
                         extracted.data[offset] = extracted.data[offset + 1] = extracted.data[offset + 2] = clampByteVal(gray / 257);
                         if (extracted.data16) extracted.data16[offset] = extracted.data16[offset + 1] = extracted.data16[offset + 2] = Math.round(gray);
                     }

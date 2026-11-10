@@ -12724,8 +12724,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             const { width, height, virtualCanvas, offsets } = next.value;
             let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, background), hasAlpha: stack.some(frame => frame.hasAlpha) || background.a < 255, ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}), space: image.space };
-            for (let n = 0; n < stack.length; n++) {
-                canvas = yield* applyMagickRasterSteps(canvas, overCompositePixelSteps(canvas, stack[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || stack[n]!.data16)), signal, canvas, [canvas, stack[n]!]);
+            // Smush composites retained alpha samples even when the channel is inactive.
+            for (const [n, frame] of stack.entries()) {
+                canvas = yield* applyMagickRasterSteps(canvas, overCompositePixelSteps(canvas, { ...frame, hasAlpha: frame.hasAlpha || frame.alphaBlend === true || frame.alphaSeparate === true }, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || frame.data16)), signal, canvas, [canvas, frame]);
             }
             if (image.metaChannels?.length) {
                 canvas.metaChannels = [];
@@ -12733,7 +12734,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     let plane = yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: background.a });
                     for (const [n, frame] of stack.entries()) {
                         const source = frame.metaChannels?.[channel];
-                        if (source) plane = yield* applyMagickRasterSteps(plane, overCompositePixelSteps(plane, { ...source, hasAlpha: frame.hasAlpha }, offsets[n]!.left, offsets[n]!.top, !!(plane.data16 || source.data16), true), signal, plane, [plane, source, frame]);
+                        if (source) plane = yield* applyMagickRasterSteps(plane, overCompositePixelSteps(plane, { ...source, hasAlpha: frame.hasAlpha || frame.alphaBlend === true || frame.alphaSeparate === true }, offsets[n]!.left, offsets[n]!.top, !!(plane.data16 || source.data16), true), signal, plane, [plane, source, frame]);
                     }
                     canvas.metaChannels.push(plane);
                 }
@@ -14413,14 +14414,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 const { width, height, virtualCanvas, offsets } = next.value;
                 let canvas: StoredRgbaImage = { gravity: images[0]!.gravity, ...await createStoredCanvas(width, height, background, backend, signal), hasAlpha: images.some(frame => frame.hasAlpha) || background.a < 255, ...(images[0]!.magickColorspace ? { magickColorspace: images[0]!.magickColorspace } : {}), space: image.space };
-                for (let n = 0; n < images.length; n++) canvas = await transformStoredMagickRaster(canvas, backend, overCompositePixelSteps(canvas, images[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.storedData16 || images[n]!.storedData16)), signal, canvas, [canvas, images[n]!]);
+                for (const [n, frame] of images.entries()) {
+                    canvas = await transformStoredMagickRaster(canvas, backend, overCompositePixelSteps(canvas, { ...frame, hasAlpha: frame.hasAlpha || frame.alphaBlend === true || frame.alphaSeparate === true }, offsets[n]!.left, offsets[n]!.top, !!(canvas.storedData16 || frame.storedData16)), signal, canvas, [canvas, frame]);
+                }
                 if (image.storedMetaChannels?.length) {
                     canvas.storedMetaChannels = [];
                     for (let channel = 0; channel < image.storedMetaChannels.length; channel++) {
                         let plane = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: background.a }, backend, signal);
                         for (const [n, frame] of images.entries()) {
                             const source = frame.storedMetaChannels?.[channel];
-                            if (source) plane = await transformStoredMagickRaster(plane, backend, overCompositePixelSteps(plane, { ...source, hasAlpha: frame.hasAlpha }, offsets[n]!.left, offsets[n]!.top, !!(plane.storedData16 || source.storedData16), true), signal, plane, [plane, source, frame]);
+                            if (source) plane = await transformStoredMagickRaster(plane, backend, overCompositePixelSteps(plane, { ...source, hasAlpha: frame.hasAlpha || frame.alphaBlend === true || frame.alphaSeparate === true }, offsets[n]!.left, offsets[n]!.top, !!(plane.storedData16 || source.storedData16), true), signal, plane, [plane, source, frame]);
                         }
                         canvas.storedMetaChannels.push(plane);
                     }

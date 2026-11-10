@@ -92,6 +92,25 @@ for (const graph of [false, true]) {
     });
   }
 
+  for (const threshold of [4, 5]) {
+    it(`preserves vibrato timeline registers across frames at threshold ${threshold} (graph ${graph})`, async () => {
+      const expected = await run("vibrato=enable='gte(n,2)'", graph);
+      const actual = await run(`vibrato=enable='gt(st(0,ld(0)+1),${threshold})'`, graph);
+      assert.equal(expected.result.exitCode, 0, expected.stderr);
+      assert.equal(createHash("sha256").update(expected.output).digest("hex"), "0ab4506e7cbb767e8e780582191241a6da6f8da1773fa565ec1e9456a0936dc2");
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      assert.deepEqual(actual.output, expected.output);
+    });
+  }
+
+  it(`isolates vibrato timeline registers between filter instances (graph ${graph})`, async () => {
+    const expected = await run("vibrato=enable='gte(n,2)',vibrato=enable='gte(n,2)'", graph);
+    const actual = await run("vibrato=enable='gt(st(0,ld(0)+1),4)',vibrato=enable='gt(st(0,ld(0)+1),4)'", graph);
+    assert.equal(expected.result.exitCode, 0, expected.stderr);
+    assert.equal(actual.result.exitCode, 0, actual.stderr);
+    assert.deepEqual(actual.output, expected.output);
+  });
+
   for (const enable of ["0", "0.25", "1", "-1"]) {
     it(`vibrato enable=${enable} matches constant gating (graph ${graph})`, async () => {
       const expected = await run(Math.abs(Number(enable)) >= 0.5 ? "vibrato" : "anull", graph);

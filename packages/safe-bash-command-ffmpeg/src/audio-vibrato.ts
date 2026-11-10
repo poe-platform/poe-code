@@ -23,7 +23,7 @@ export async function vibratoAudio(
     else optionPosition = optionPosition === 0 ? 1 : 0;
     if (key === "enable") {
       enable = option.slice(separator + 1).trim();
-      parseFilterExpression(enable, "vibrato enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 });
+      parseFilterExpression(enable, "vibrato enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
       continue;
     }
     if (key !== "f" && key !== "d") throw new Error(`vibrato: unsupported option ${key}`);
@@ -51,11 +51,19 @@ export async function vibratoAudio(
   let work = 0;
   // Generic timeline bypass freezes both oscillator phase and delay history.
   let position = 0;
+  // Validation uses separate registers so it does not advance the timeline state.
+  const registers = new Float64Array(10);
   for (const [n, timestamp] of frames.entries()) {
-    const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "vibrato enable", {
-      n, t: timestamp.pts / sampleRate, pos: timestamp.pos ?? NaN, w: 0, h: 0,
-      E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2
-    })) >= 0.5;
+    let enabled = true;
+    if (enable !== undefined) {
+      const variables = {
+        n, t: timestamp.pts / sampleRate, pos: timestamp.pos ?? NaN, w: 0, h: 0,
+        E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2
+      };
+      // FFmpeg evaluates on frame consumption and again before filter_frame.
+      parseFilterExpression(enable, "vibrato enable", variables, undefined, registers);
+      enabled = Math.abs(parseFilterExpression(enable, "vibrato enable", variables, undefined, registers)) >= 0.5;
+    }
     for (let frame = timestamp.start; frame < timestamp.end; frame++) {
       const point = (position % period + phaseOffset) % period;
       const delay = depth * ((Math.sin(point / period * 2 * Math.PI) + 1) / 2 * (delaySize - 1));

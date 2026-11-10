@@ -13,8 +13,8 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
     const toHue = target !== "sRGB", hsb = toHue ? target === "HSB" || target === "HSV" : image.magickColorspace === "HSB" || image.magickColorspace === "HSV";
     const hwb = toHue ? target === "HWB" : image.magickColorspace === "HWB";
     const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
-    // Lab and YUV must see HDRI working samples before the integer backing rounds or clamps them.
-    const inputEvaluateSamples = target === "CIELab" || target === "YUV" ? image.evaluateSamples : undefined;
+    // Lab, YUV and YCbCr need HDRI samples before integer rounding or clamping.
+    const inputEvaluateSamples = target === "CIELab" || target === "YUV" || target === "YCbCr" ? image.evaluateSamples : undefined;
     const input = image.hueSamples ?? inputEvaluateSamples ?? image.data16 ?? image.data, range = image.hueSamples ? 1 : inputEvaluateSamples ? 255 : image.data16 ? 65535 : 255;
     const hueSamples = toHue ? new Float64Array(data.length) : undefined;
     const evaluateSamples = toHue ? undefined : new Float64Array(data.length);
@@ -35,9 +35,10 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
                 0.5 - 0.1687367 * r - 0.331264 * g + 0.5 * b,
                 0.5 + 0.5 * r - 0.418688 * g - 0.081312 * b];
         } else if (image.magickColorspace === "YCbCr") {
-            [r, g, b] = [r + 1.402 * (b - 0.5),
-                r - 0.344136 * (g - 0.5) - 0.714136 * (b - 0.5),
-                r + 1.772 * (g - 0.5)];
+            // ImageMagick's inverse YPbPr matrix preserves Q16 rounding boundaries.
+            [r, g, b] = [0.9999999999991468 * r - 1.2188941887145875e-6 * (g - 0.5) + 1.401999588656144 * (b - 0.5),
+                0.9999997591050251 * r - 0.34413567816504304 * (g - 0.5) - 0.7141364933164679 * (b - 0.5),
+                1.0000012404000462 * r + 1.772000066072304 * (g - 0.5) + 2.1453384174593273e-6 * (b - 0.5)];
         } else if (target === "XYZ" || target === "CIELab") {
             const linear = [r, g, b].map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
             [r, g, b] = [

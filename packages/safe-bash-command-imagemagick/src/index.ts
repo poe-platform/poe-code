@@ -1200,6 +1200,7 @@ function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows
 }
 
 function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    img = discardDisassociatedAlpha(img);
     let cooperativeWork = 0;
     const kernels = spec.split(";");
     const { m, cols, rows } = parseMagickColorMatrix(kernels[0]!);

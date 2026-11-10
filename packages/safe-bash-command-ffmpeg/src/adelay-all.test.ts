@@ -18,7 +18,7 @@ for (const [value, all] of [
   ["disable", false], ["DiSaBlEd", false], ["N", false], ["n", false],
   ["+1", true], ["01", true], ["0001", true], ["+0001", true],
   ["+0", false], ["-0", false], ["00", false], ["+0000", false], ["-0000", false],
-  ["maybe", null], ["MaYbE", null], ["", null],
+  ["maybe", null], ["MaYbE", null], ["", false],
   ["2", null], ["-1", null], ["+2", null], ["0002", null],
   ["1.0", null], ["0.0", null], ["1e0", null], ["0x1", null],
   ["1junk", null], ["+", null], ["-", null], ["++1", null], ["+ 1", null]

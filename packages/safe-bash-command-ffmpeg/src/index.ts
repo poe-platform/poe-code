@@ -12918,7 +12918,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let all = false;
                         let enable: string | undefined;
                         let optionPosition = 0;
-                        for (const option of trimmed.slice("adelay=".length).split(":")) {
+                        const options = trimmed.slice("adelay=".length).split(":");
+                        // A final separator terminates the list without adding an option.
+                        if (options.at(-1) === "") options.pop();
+                        for (const option of options) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["delays", "all"][optionPosition] : option.slice(0, separator).trim();
                           // Named options restart shorthand, skipping the first slot only
@@ -12928,7 +12931,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           if (key === "delays") delays = value;
                           else if (key === "all") {
-                            all = parseFilterBoolean(value || "invalid", "adelay: invalid all option");
+                            all = parseFilterBoolean(value, "adelay: invalid all option");
                           } else if (key === "enable") {
                             enable = value;
                             parseFilterExpression(enable, "adelay enable", { n: 0, t: 0, pos: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity });

@@ -252,6 +252,7 @@ export function serializeFrameChecksum(
       dts: frame.ptsSeconds * track.timescale, pts: frame.ptsSeconds * track.timescale,
       duration: frame.durationSeconds * track.timescale, frame
     })) : decodedAudioPackets ?? (audioPackets.length ? audioPackets : payload.length ? [{ dts: 0, pts: 0, duration: track.duration, data: payload }] : []);
+    let previousDts = -Infinity;
     for (const packet of packets) {
       budget.checkCpu();
       // MOV's final empty text sample terminates the track; FFmpeg emits no packet for it.
@@ -274,9 +275,16 @@ export function serializeFrameChecksum(
             (codec?.codecName === "aac" && packet === track.samples[0] && packet.pts < mediaStart);
         if (skip || ("discardPadding" in packet && packet.discardPadding)) annotations += ", S=1,       10";
       }
-      const dts = Math.round((packet.dts + timestampOffset) * rate / track.timescale);
+      let dts = Math.round((packet.dts + timestampOffset) * rate / track.timescale);
+      let pts = Math.round((packet.pts + timestampOffset) * rate / track.timescale);
+      // FFmpeg corrects backward audio DTS before interleaving; negative starts remain valid.
+      if (track.type === "audio" && dts < previousDts) {
+        dts = previousDts;
+        pts = Math.max(pts, dts);
+      }
+      previousDts = dts;
       rows.push({ dts, rate,
-        line: `${index}, ${String(dts).padStart(10)}, ${String(Math.round((packet.pts + timestampOffset) * rate / track.timescale)).padStart(10)}, ${String(duration).padStart(8)}, ${String(size).padStart(8)}, ${digest}${annotations}` });
+        line: `${index}, ${String(dts).padStart(10)}, ${String(pts).padStart(10)}, ${String(duration).padStart(8)}, ${String(size).padStart(8)}, ${digest}${annotations}` });
     }
   }
   // Stable sorting preserves output stream order at equal packet timestamps.

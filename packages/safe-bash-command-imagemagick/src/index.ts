@@ -9277,7 +9277,7 @@ function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<
     for (let offset = 0; offset < data.length; offset += 4) {
         if (offset % 65536 === 0) yield;
         for (let target = 0; target < 3; target++) {
-            const source = channels[target] ?? channels[0]!;
+            const source = channels[target] ?? (channels.length === 1 ? channels[0]! : target);
             data[offset + target] = source === 3 && !image.hasAlpha ? 255 : image.data[offset + source]!;
             if (data16) data16[offset + target] = source === 3 && !image.hasAlpha ? 65535 : image.data16![offset + source]!;
         }

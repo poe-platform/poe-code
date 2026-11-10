@@ -1420,7 +1420,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       const alpha = img.hasAlpha ? working[i + 3]! : chunk.evaluateSamples ? 255 : range;
       uniqueColors.add(inks ? `${inks[i]},${inks[i + 1]},${inks[i + 2]},${inks[i + 3]},${a}` : `${working[i]},${working[i + 1]},${working[i + 2]},${alpha}`);
     }
-    opaque &&= a === range;
+    // Copy retains alpha samples without enabling transparency.
+    opaque &&= img.alphaBlend === false || a === range;
     gray &&= r === g && g === b;
     bilevel &&= (r === 0 || r === range) && (g === 0 || g === range) && (b === 0 || b === range);
     // Only palette classification needs distinct colors; stop growing at 257.

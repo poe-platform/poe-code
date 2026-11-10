@@ -17788,7 +17788,7 @@ interface MontageArguments {
     warnings: string;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset">[];
     trim: boolean; shadow: boolean;
-    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number } | { kind: "transparent" | "colorspace"; operation: MagickPixelOperation })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number } | { kind: "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; thumbnail: string | undefined; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -17913,6 +17913,16 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             } catch (error) {
                 return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
             }
+        }
+        else if (t === "-type") {
+            const value = argv[i + 1];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -type\n" };
+            const type = value.toLowerCase();
+            if (type !== "grayscale" && type !== "bilevel")
+                return { exitCode: 1, stdout: "", stderr: `montage: unsupported image type '${value}'\n` };
+            const operation = parseMagickPixelOperation(argv, state, i)!;
+            queuedTransforms.push({ kind: type, operation });
+            i = operation.end;
         }
         else if (t === "-trim") {
             trim = true;
@@ -18435,6 +18445,10 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     thumb = yield* ("operation" in transform ? transform.operation.apply(thumb)
                         : transform.kind === "rotate" ? rotateImageSteps(thumb, transform.angle, state.background)
                         : transform.kind === "flop" ? flopImageSteps(thumb) : flipImageSteps(thumb));
+                    if (transform.kind === "bilevel") {
+                        const source = thumb.data16 ? { ...thumb, data: new Uint8Array(thumb.data16.buffer, thumb.data16.byteOffset, thumb.data16.byteLength) } : thumb;
+                        thumb = yield* applyMagickRasterSteps(thumb, bilevelPixelSteps(thumb.width * thumb.height, !!thumb.data16), signal, thumb, [source]);
+                    }
                     if (thumb.data.buffer !== previous.data.buffer) detachRgbaBuffer(previous.data);
                 }
                 if (thumbnail !== undefined) {
@@ -18706,6 +18720,10 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                                 ? await transformStoredMagickPixels(image, backend, transform.operation, signal)
                                 : await transformStoredImage(image, backend.storage, transform.kind === "rotate"
                                     ? { ...transform, background: state.background } : transform, signal);
+                            if (transform.kind === "bilevel") {
+                                const source = image.storedData16 ? { ...image, position: image.storedData16.position } : image;
+                                image = await transformStoredMagickRaster(image, backend, bilevelPixelSteps(image.width * image.height, !!image.storedData16), signal, image, [source]);
+                            }
                         }
                         if (thumbnail !== undefined) {
                             const resize = magickResizeOptions(image, thumbnail, state.kernel ?? "lanczossharp");

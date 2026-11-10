@@ -10755,9 +10755,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-adaptive-resize") {
             const geometry = tokens[++i] ?? "100%";
-            validateMagickTransformGeometry(geometry, t);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const options = magickResizeOptions(image, geometry === "x" ? "0x0" : geometry.replaceAll("(", "").replaceAll(")", ""), undefined);
+                const expanded = yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                validateMagickTransformGeometry(expanded, t);
+                const options = magickResizeOptions(image, expanded === "x" ? "0x0" : expanded.replaceAll("(", "").replaceAll(")", ""), undefined);
                 if (!options || (options.width === image.width && options.height === image.height)) return image;
                 const width = options.width!, height = options.height!;
                 const resized = yield* applyMagickRasterSteps({ ...image, isPalette: false }, adaptiveResizePixelSteps(image, width, height, !!image.data16), signal, { ...image, width, height });
@@ -13659,11 +13660,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return virtualCanvas ? { ...output, virtualCanvas } : output;
             });
         } else if (!operandsOnly && token === "-adaptive-resize") {
+            const optionProperties = state.optionProperties;
             const geometry = tokens[++i] ?? "100%";
-            validateMagickTransformGeometry(geometry, token);
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const options = magickResizeOptions(image, geometry === "x" ? "0x0" : geometry.replaceAll("(", "").replaceAll(")", ""), undefined);
+                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                validateMagickTransformGeometry(expanded, token);
+                const options = magickResizeOptions(image, expanded === "x" ? "0x0" : expanded.replaceAll("(", "").replaceAll(")", ""), undefined);
                 if (!options || (options.width === image.width && options.height === image.height)) return image;
                 const width = options.width!, height = options.height!;
                 const resized = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, adaptiveResizePixelSteps(image, width, height, !!image.storedData16), signal, { ...image, width, height });

@@ -4152,7 +4152,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     const kernel = distort ? state.kernel : undefined, filter = distort ? state.resizeFilter : undefined;
     const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined;
     const compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz, seed = state.seed ?? 0n;
-    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas">, geometry = spec) => {
+    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas">, geometry = distort ? args : spec) => {
         if (token === "-shear") {
             const plan = shearPlan(image, geometry);
             // Identity shear must retain fractional and over-range working samples.
@@ -4175,7 +4175,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
                 map: (x, y) => [x + width * (random() - 0.5), y + width * (random() - 0.5)] };
             return { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel) };
         }
-        let plan = magickWarpPlan(image, token, geometry, args);
+        let plan = magickWarpPlan(image, token, distort ? spec : geometry, distort ? geometry : args);
         if (plan && (token === "-swirl" || token === "-implode")) {
             plan = { ...plan, interpolation, channels,
                 hasAlpha: plan.hasAlpha || virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255 };
@@ -10810,7 +10810,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (warpOperation) {
             if (["-shear", "-swirl", "-implode", "-wave", "-spread"].includes(t) && !stack.length) throw new Error(`no images found for operation '${t}'`);
             i = warpOperation.end;
-            const geometry = ["-shear", "-wave", "-swirl", "-implode", "-spread"].includes(t) ? tokens[i] : undefined;
+            const geometry = ["-shear", "-wave", "-swirl", "-implode", "-spread", "-distort", "+distort"].includes(t) ? tokens[i] : undefined;
             // Evaluate sequence references before mapping releases the source buffers.
             const geometries: string[] = [];
             if (geometry?.includes("%[")) for (let sceneIdx = 0; sceneIdx < stack.length; sceneIdx++) {
@@ -13439,13 +13439,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         const warpOperation = operandsOnly || token === "-rotate" ? undefined : parseMagickWarpOperation(tokens, state, i, analysis);
         if (warpOperation) {
             let images: StoredImageStack, sceneIdx = 0;
-            if (["-shear", "-swirl", "-implode", "-wave", "-spread"].includes(token)) stackStep(async stack => {
+            if (["-shear", "-swirl", "-implode", "-wave", "-spread", "-distort", "+distort"].includes(token)) stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 images = stack;
                 return stack;
             });
             i = warpOperation.end;
-            const geometry = ["-shear", "-wave", "-swirl", "-implode", "-spread"].includes(token) ? tokens[i] : undefined, optionProperties = state.optionProperties;
+            const geometry = ["-shear", "-wave", "-swirl", "-implode", "-spread", "-distort", "+distort"].includes(token) ? tokens[i] : undefined, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = geometry?.includes("%[") ? await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx, sceneIdx: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images) : geometry;

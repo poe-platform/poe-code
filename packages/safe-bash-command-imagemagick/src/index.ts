@@ -7655,7 +7655,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             }
             return function* (pixels, pixelOffset = 0, imageWidth = image.width) {
                 for (const operation of operations) pixels = yield* operation.apply(pixels, pixelOffset, imageWidth);
-                return pixels;
+                return discardDisassociatedAlpha(pixels);
             };
         }
         const levels = histogram[0]!.length;
@@ -7684,7 +7684,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             }
             return function* (pixels, pixelOffset = 0, imageWidth = image.width) {
                 for (const operation of operations) pixels = yield* operation.apply(pixels, pixelOffset, imageWidth);
-                return pixels;
+                return discardDisassociatedAlpha(pixels);
             };
         }
         if (token === "-linear-stretch") {

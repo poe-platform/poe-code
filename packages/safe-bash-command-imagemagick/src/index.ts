@@ -10868,6 +10868,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack[i2] = tmp;
         }
         else if (t === "+delete" || t === "-delete") {
+            if (stack.length === 0) throw new Error(`no images found for operation '${t}'`);
             if (t === "+delete") {
                 const popped = stack.pop();
                 if (popped) detachRgbaBuffer(popped.data);
@@ -11629,7 +11630,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const length = source.length;
                     if (token.endsWith("clone") && length === 0) throw new Error(`UnableToCloneImage ${token}`);
                     for (let repeat = 0; repeat < count; repeat++) for (const index of parseMagickIndexSpec(spec, length, "clone")) { await yieldTurn(signal); await stack.push((await source.get(index))!); }
-                } else if (token.endsWith("delete")) await stack.remove(parseMagickIndexSpec(spec, stack.length, "delete"));
+                } else if (token.endsWith("delete")) {
+                    if (stack.length === 0) throw new Error(`no images found for operation '${token}'`);
+                    await stack.remove(parseMagickIndexSpec(spec, stack.length, "delete"));
+                }
                 else if (token === "-reverse") { for (let n = 0; n < Math.floor(stack.length / 2); n++) { await yieldTurn(signal); await stack.swap(n, stack.length - 1 - n); } }
                 else if (token.endsWith("insert")) {
                     const raw = token === "+insert" ? 0 : parseMagickInsertPosition(spec), target = raw < 0 ? stack.length - 1 + raw : raw;

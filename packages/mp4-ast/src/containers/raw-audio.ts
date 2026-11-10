@@ -59,7 +59,7 @@ function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOpt
     budget.checkCpu();
     const duration = Math.min(packetFrames, frames - start);
     const data = bytes.subarray(start * width * channels, (start + packetFrames) * width * channels);
-    samples.push({ data, size: data.length, dts: start, pts: start, cts: 0,
+    samples.push({ data, size: data.length, offset: start * width * channels, dts: start, pts: start, cts: 0,
       duration, isKeyframe: true, sampleDescriptionIndex: 1 });
   }
   let channelData: Float64Array[] | undefined;

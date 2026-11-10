@@ -99,3 +99,37 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
         });
     }
 }
+
+for (const format of ["info", "gray"] as const) {
+    it.each([
+        { options: ["-define", "trim:minSize=-3x4"], minimum: false },
+        { options: ["-define", "trim:minSize=+3x4"], minimum: false },
+        { options: ["-set", "option:trim:minSize", "-3x4"], minimum: false },
+        { options: ["-set", "option:trim:minSize", "+3x4"], minimum: false },
+        { options: ["-define", "trim:minSize=0x4", "-define", "trim:minSize=-3x4"], minimum: false },
+        { options: ["-define", "trim:minSize=0x4"], minimum: true },
+        { options: [], minimum: false },
+    ])(`matches native trim minimum geometry and pixels with $options (${format})`, async ({ options, minimum }) => {
+        // ImageMagick 7.1.2-35 treats a leading sign as an offset, not a minimum dimension.
+        const pixels = new Uint8Array(7 * 5 * 3);
+        pixels.fill(255, (2 * 7 + 2) * 3, (2 * 7 + 5) * 3);
+        const input = new Uint8Array([...new TextEncoder().encode("P6\n7 5\n255\n"), ...pixels]);
+        const fs = new MemoryFileSystem();
+        await fs.writeFile("/in.ppm", input);
+        const args = createCommandArguments([
+            "/in.ppm", ...options, "-trim", "-format", "%wx%h%X%Y", "-depth", "8", `${format}:/out`,
+        ]);
+        let stderr = "";
+        const result = await createMagickCommand().execute({
+            command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        });
+        expect(result.exitCode, stderr).toBe(0);
+        expect(stderr).toBe("");
+        const output = await fs.readFile("/out");
+        if (format === "info") expect(new TextDecoder().decode(output)).toBe(minimum ? "3x4+2+1" : "3x1+2+2");
+        else expect(output).toEqual(new Uint8Array(minimum ? [0, 0, 0, 255, 255, 255, 0, 0, 0, 0, 0, 0] : [255, 255, 255]));
+    });
+}

@@ -9676,9 +9676,14 @@ if (t === "-intent" || t === "+intent") {
             if (filterKey === "trim:background-color") state.trimBackgroundColor = parseColor(filterValue ?? "", true);
             if (defStr.toLowerCase().startsWith("trim:edges=")) state.trimEdges = defStr.slice("trim:edges=".length);
             if (defStr.toLowerCase().startsWith("trim:minsize=")) {
-                const geometry = parseMagickGeometry(defStr.slice("trim:minsize=".length).replaceAll("(", "").replaceAll(")", ""));
-                // Native trim uses percentage geometry values as pixel minima on both axes.
-                state.trimMinSize = geometry.isPercent ? { width: geometry.percentX!, height: geometry.percentY! } : geometry;
+                const value = defStr.slice("trim:minsize=".length).replaceAll("(", "").replaceAll(")", "").replace(":", "x").trimStart();
+                // A leading sign starts an offset, leaving both minimum dimensions unset.
+                if (value.startsWith("+") || value.startsWith("-")) delete state.trimMinSize;
+                else {
+                    const geometry = parseMagickGeometry(value);
+                    // Native trim uses percentage geometry values as pixel minima on both axes.
+                    state.trimMinSize = geometry.isPercent ? { width: geometry.percentX!, height: geometry.percentY! } : geometry;
+                }
             }
             if (defStr.toLowerCase().startsWith("quantum:format=")) state.tiffFloatingPoint = defStr.slice("quantum:format=".length).toLowerCase() === "floating-point";
             if (defStr.toLowerCase().startsWith("quantum:format=")) state.tiffSigned = defStr.slice("quantum:format=".length).toLowerCase() === "signed";

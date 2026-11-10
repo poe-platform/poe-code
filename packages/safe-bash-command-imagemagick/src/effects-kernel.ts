@@ -243,6 +243,14 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                     const color = backgroundInks ? backgroundInks[channel]! * 255 : channel === 0 ? background.r : channel === 1 ? background.g : background.b;
                     const selected = !channels || (channel === 0 ? channels.r : channel === 1 ? channels.g : channel === 2 ? channels.b : channels.k);
                     const sourceColor = protectedPixel ? Math.fround(samples[x * 4 + channel]! / pixelScale * intensity * 257) / 257 * pixelScale : samples[x * 4 + channel]!;
+                    if (selected && (name === "lighten" || name === "darken")) {
+                        const source = sourceColor / pixelScale, destinationAlpha = background.a / 255;
+                        // Native Darken compares premultiplied samples; Lighten compares straight colors.
+                        const mixed = name === "darken" ? Math.min(source * foreground, color * destinationAlpha)
+                            : Math.max(source, color) * foreground * destinationAlpha;
+                        samples[x * 4 + channel] = round((mixed + source * foreground * (1 - destinationAlpha) + color * back) * pixelScale);
+                        continue;
+                    }
                     if (selected && blend) {
                         const source = sourceColor / pixelScale, destinationAlpha = background.a / 255;
                         const mixed = name === "multiply" ? source * color / 255

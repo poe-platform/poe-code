@@ -2001,17 +2001,29 @@ function* formatHistogramOutputSteps(img: RgbaImage): Generator<void, string, vo
     return lines.join("\n") + "\n";
 }
 
-function writeGradientPixel(data: Uint8Array, samples: Uint16Array, offset: number, first: ReturnType<typeof parseColor>, last: RgbaColor, t: number): void {
+function writeGradientPixel(data: Uint8Array, samples: Uint16Array, offset: number, first: ReturnType<typeof parseColor>, last: ReturnType<typeof parseColor>, t: number, hueSamples?: Float64Array): void {
     const firstAlpha = first.a * (1 - t);
     const lastAlpha = last.a * t;
     const alpha = firstAlpha + lastAlpha;
     const divisor = alpha || 1;
-    samples[offset] = Math.round((first.r * firstAlpha + last.r * lastAlpha) / divisor * 257);
-    data[offset] = clampByteVal(samples[offset]! / 257);
-    samples[offset + 1] = Math.round((first.g * firstAlpha + last.g * lastAlpha) / divisor * 257);
-    data[offset + 1] = clampByteVal(samples[offset + 1]! / 257);
-    samples[offset + 2] = Math.round((first.b * firstAlpha + last.b * lastAlpha) / divisor * 257);
-    data[offset + 2] = clampByteVal(samples[offset + 2]! / 257);
+    if (hueSamples && first.cmyk) {
+        for (let channel = 0; channel < 4; channel++) {
+            const end = last.cmyk?.[channel] ?? (channel === 0 ? last.r : channel === 1 ? last.g : channel === 2 ? last.b : 0) / 255;
+            hueSamples[offset + channel] = (first.cmyk[channel]! * firstAlpha + end * lastAlpha) / divisor;
+        }
+        for (let channel = 0; channel < 3; channel++) {
+            const value = (1 - hueSamples[offset + channel]!) * (1 - hueSamples[offset + 3]!);
+            samples[offset + channel] = Math.round(value * 65535);
+            data[offset + channel] = clampByteVal(value * 255);
+        }
+    } else {
+        samples[offset] = Math.round((first.r * firstAlpha + last.r * lastAlpha) / divisor * 257);
+        data[offset] = clampByteVal(samples[offset]! / 257);
+        samples[offset + 1] = Math.round((first.g * firstAlpha + last.g * lastAlpha) / divisor * 257);
+        data[offset + 1] = clampByteVal(samples[offset + 1]! / 257);
+        samples[offset + 2] = Math.round((first.b * firstAlpha + last.b * lastAlpha) / divisor * 257);
+        data[offset + 2] = clampByteVal(samples[offset + 2]! / 257);
+    }
     if (first.space) {
         // Native Gray channels share one sample; the final blue write wins.
         samples[offset] = samples[offset + 1] = samples[offset + 2]!;
@@ -2020,16 +2032,17 @@ function writeGradientPixel(data: Uint8Array, samples: Uint16Array, offset: numb
     samples[offset + 3] = Math.round(alpha * 257);
     data[offset + 3] = clampByteVal(samples[offset + 3]! / 257);
 }
-function* createGradientImageSteps(width: number, height: number, c1: ReturnType<typeof parseColor>, c2: RgbaColor, radial: boolean, direction?: string, angle?: number, vector?: string, box?: MagickGeometry, center?: { x: number; y: number }, radii?: string, extent?: string): Generator<void, RgbaImage, void> {
+function* createGradientImageSteps(width: number, height: number, c1: ReturnType<typeof parseColor>, c2: ReturnType<typeof parseColor>, radial: boolean, direction?: string, angle?: number, vector?: string, box?: MagickGeometry, center?: { x: number; y: number }, radii?: string, extent?: string): Generator<void, RgbaImage, void> {
     let work = 0;
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
     const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
     const data16 = new Uint16Array(w * h * 4);
+    const hueSamples = c1.cmyk ? new Float64Array(w * h * 4) : undefined;
     if (!radial && extent !== undefined) direction ??= "southeast";
     const axes = gradientRadii(w, h, extent, radii);
     const vectorFactor = gradientVector(w, h, (radial && center) ? undefined : radial || angle === undefined ? vector : undefined, radial, axes);
-    if (!radial && direction === undefined && angle === undefined && !vectorFactor && box === undefined) {
+    if (!hueSamples && !radial && direction === undefined && angle === undefined && !vectorFactor && box === undefined) {
         const u64 = new BigUint64Array(data16.buffer);
         const u32 = new Uint32Array(data.buffer, 0, w * h);
         const tmp = new Uint8Array(4);
@@ -2057,7 +2070,7 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
                 const outside = box && (x < box.x || y < box.y || x >= box.x + (box.width ?? w) || y >= box.y + (box.height ?? h));
                 const t = outside ? 0 : vectorFactor ? vectorFactor(x, y) : radial ? Math.min(1, Math.hypot((x - cx) / axes[0], (y - cy) / axes[1])) : projection(x, y);
                 const idx = (y * w + x) * 4;
-                writeGradientPixel(data, data16, idx, c1, c2, t);
+                writeGradientPixel(data, data16, idx, c1, c2, t, hueSamples);
             }
         }
     }
@@ -2068,7 +2081,8 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
         channels: c1.space ? (c1.a < 255 || c2.a < 255 ? 2 : 1) : 4,
         depth: "ushort",
         density: 72,
-        space: c1.space ?? "srgb",
+        space: c1.cmyk ? "cmyk" : c1.space ?? "srgb",
+        ...(hueSamples ? { hueSamples } : {}),
         hasAlpha: c1.a < 255 || c2.a < 255,
         data,
         data16
@@ -15989,21 +16003,23 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const checker=!!pattern,radial=lower.startsWith("radial-gradient:");
   const storedData16=checker?undefined:{position:backend.storage.allocate(width*height*8),length:width*height*4};
   const spec=baseToken.slice(baseToken.indexOf(":")+1),separator=spec.indexOf("-"),first=separator<0?spec:spec.slice(0,separator),last=separator<0?"":spec.slice(separator+1),a=parseColor(checker?"white":first||"#ffffff",true),b=parseColor(checker||separator<0?"#000000":last||"#ffffff",true);
+  const storedHueSamples=a.cmyk?backend.storage.allocate(width*height*32):undefined;
   const cx=state.gradientCenter?.x??(width-1)/2,cy=state.gradientCenter?.y??(height-1)/2,axes=gradientRadii(width,height,state.gradientExtent,state.gradientRadii),box=state.gradientBoundingBox;
   const projection=gradientProjection(width,height,state.gradientDirection??(state.gradientExtent===undefined?undefined:"southeast"),state.gradientAngle);
   const vectorFactor=gradientVector(width,height,(radial&&state.gradientCenter)?undefined:radial||state.gradientAngle===undefined?state.gradientVector:undefined,radial,axes);
   for(let start=0;start<width*height;start+=4096){
    if(start%262144===0)await yieldTurn(signal);
-   const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4),samples=checker?undefined:new Uint16Array(count*4);
+   const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4),samples=checker?undefined:new Uint16Array(count*4),hueSamples=a.cmyk?new Float64Array(count*4):undefined;
    for(let i=0;i<count;i++){
     const x=(start+i)%width,y=Math.floor((start+i)/width),offset=i*4;
     if(pattern){const cell=pattern.gray(x,y);bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}
-    else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:vectorFactor?vectorFactor(x,y):radial?Math.min(1,Math.hypot((x-cx)/axes[0],(y-cy)/axes[1])):projection(x,y);writeGradientPixel(bytes,samples!,offset,a,b,t);}
+    else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:vectorFactor?vectorFactor(x,y):radial?Math.min(1,Math.hypot((x-cx)/axes[0],(y-cy)/axes[1])):projection(x,y);writeGradientPixel(bytes,samples!,offset,a,b,t,hueSamples);}
    }
    await backend.storage.write(position+start*4,bytes);
    if(storedData16&&samples)await backend.storage.write(storedData16.position+start*8,new Uint8Array(samples.buffer));
+   if(storedHueSamples!==undefined&&hueSamples)await backend.storage.write(storedHueSamples+start*32,new Uint8Array(hueSamples.buffer));
   }
-  image={position,width,height,...(storedData16?{storedData16}:{}),format:"png",channels:a.space?(a.a<255||b.a<255?2:1):4,depth:checker?"uchar":"ushort",space:a.space??"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
+  image={position,width,height,...(storedData16?{storedData16}:{}),...(storedHueSamples===undefined?{}:{storedHueSamples}),format:"png",channels:a.space?(a.a<255||b.a<255?2:1):4,depth:checker?"uchar":"ushort",space:a.cmyk?"cmyk":a.space??"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
   image=await decodeStoredMagickSvg(createLabelSvg(baseToken.slice(baseToken.indexOf(":")+1),state),state.density,backend,signal);
  }else{

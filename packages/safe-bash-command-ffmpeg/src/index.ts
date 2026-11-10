@@ -3527,6 +3527,8 @@ async function applyVideoFilterChain(
       if (!frameRateKnown) {
         throw new Error("decimate: The input needs a constant frame rate; current rate of 1/0 is invalid");
       }
+      // Decimate retimes frames but forwards the input EOF to downstream filters.
+      if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       current = await decimate(current, cycle, budget, signal);
     } else if (name === "mpdecimate") {
       if (argStr) throw new Error("mpdecimate: custom options are unsupported");
@@ -3894,7 +3896,7 @@ async function applyVideoFilterChain(
     }
     // Filters that change the final frame's timing establish a new endpoint.
     const lastOutputFrame = current.at(-1);
-    if (name !== "setpts" && name !== "fps" && name !== "select" && name !== "trim" &&
+    if (name !== "setpts" && name !== "fps" && name !== "select" && name !== "trim" && name !== "decimate" &&
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;

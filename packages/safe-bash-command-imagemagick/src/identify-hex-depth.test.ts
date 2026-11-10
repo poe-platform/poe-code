@@ -26,6 +26,6 @@ it.each([
     expect(await runIdentifyCli(["-format", format, "/input.png"], input))
       .toEqual({ exitCode: 0, stdout: expected, stderr: "" });
     expect(await runMagickCli(["/input.png", "-format", format, "info:"], input))
-      .toEqual({ exitCode: 0, stdout: `${expected}`, stderr: "" });
+      .toEqual({ exitCode: 0, stdout: expected, stderr: "" });
   }
 });

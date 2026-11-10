@@ -10,7 +10,7 @@ for (const retained of [false, true]) {
         await filesystem.writeFile("/anim.gif", animation);
         const input = retained ? { filesystem, cwd: "/" } : files;
         for (const [format, stdout] of [["%T/%D;", "7/None;19/Background;"], ["%c;", "source note;;"], ["%w,%h;", "9,11;9,11;"]]) {
-            expect(await runConvertCli(["anim.gif", "-format", format!, "info:"], input)).toEqual({ exitCode: 0, stderr: "", stdout: stdout });
+            expect(await runConvertCli(["anim.gif", "-format", format!, "info:"], input)).toEqual({ exitCode: 0, stderr: "", stdout });
         }
         expect(await runConvertCli(["anim.gif[1]", "-format", "%T/%D/%c;", "info:-"], input)).toEqual({ exitCode: 0, stderr: "", stdout: "19/Background/;" });
     });

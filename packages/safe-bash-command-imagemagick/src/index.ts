@@ -17806,11 +17806,22 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
     const labels: string[] = [];
     const sizes: MontageArguments["sizes"] = [];
     let label = "";
+    const groups: number[] = [];
+    let groupStart = 0;
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
         const t = argv[i]!;
-        if (t === "-tile") {
+        if (t === "(") {
+            groups.push(groupStart);
+            groupStart = operands.length;
+        }
+        else if (t === ")") {
+            const parent = groups.pop();
+            if (parent === undefined) return { exitCode: 1, stdout: "", stderr: "montage: unbalanced parenthesis\n" };
+            groupStart = parent;
+        }
+        else if (t === "-tile") {
             const g = parseMagickGeometry(argv[++i] ?? "2x2");
             tileCols = g.width;
             tileRows = g.height;
@@ -17890,15 +17901,19 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             label = "";
         }
         else if (t === "-reverse") {
-            operands.reverse();
-            labels.reverse();
-            sizes.reverse();
+            for (let left = groupStart, right = operands.length - 1; left < right; left++, right--) {
+                if (++cooperativeWork % 64 === 0) yield;
+                [operands[left], operands[right]] = [operands[right]!, operands[left]!];
+                [labels[left], labels[right]] = [labels[right]!, labels[left]!];
+                [sizes[left], sizes[right]] = [sizes[right]!, sizes[left]!];
+            }
         }
         else if (t === "-duplicate" || t === "+duplicate" || t === "-clone" || t === "+clone") {
-            if (!operands.length) return { exitCode: 1, stdout: "", stderr: `montage: no images found for operation ${t}\n` };
             const operation = t.endsWith("clone") ? "clone" : "duplicate";
             let count = 1, spec = "-1";
-            const length = operands.length;
+            const sourceStart = operation === "clone" ? groups.at(-1) ?? groupStart : groupStart;
+            const length = operation === "clone" && groups.length ? groupStart - sourceStart : operands.length - sourceStart;
+            if (!length) return { exitCode: 1, stdout: "", stderr: `montage: no images found for operation ${t}\n` };
             try {
                 if (t === "-duplicate") {
                     const value = argv[++i] ?? "", comma = value.startsWith("x") ? 0 : value.indexOf(",");
@@ -17919,9 +17934,9 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
                 for (let repeat = 0; repeat < count; repeat++) {
                     for (const index of parseMagickIndexSpec(spec, length, operation)) {
                         if (++cooperativeWork % 64 === 0) yield;
-                        operands.push(operands[index]!);
-                        labels.push(labels[index]!);
-                        sizes.push(sizes[index]!);
+                        operands.push(operands[sourceStart + index]!);
+                        labels.push(labels[sourceStart + index]!);
+                        sizes.push(sizes[sourceStart + index]!);
                     }
                 }
             } catch (error) {
@@ -17931,7 +17946,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
         else if (t === "-set") {
             const property = argv[++i];
             const value = argv[++i] ?? "";
-            if (property === "label") labels.fill(value);
+            if (property === "label") labels.fill(value, groupStart);
         }
         else if (t === "-pointsize") {
             state.pointsize = Math.max(1, Number(argv[++i] ?? 12));
@@ -17988,6 +18003,7 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             sizes.push({ hasSize: state.hasSize, sizeWidth: state.sizeWidth, sizeHeight: state.sizeHeight, inputOffset: state.inputOffset ?? 0 });
         }
     }
+    if (groups.length) return { exitCode: 1, stdout: "", stderr: "montage: unbalanced parenthesis\n" };
     return { trim, shadow, orientations, rotation, concatenate, state, tileCols, tileRows, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnail, frame, matte, title, texture };
 }
 function montageTitleSvg(title: string, width: number, state: MagickState, padY: number): { svg: string; height: number } {

@@ -121,7 +121,7 @@ import { combineMetaPixelSteps, type MetaChannels } from "./combine-meta.js";
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16" | "evaluateSamples">> & { position?: number; storedEvaluateSamples?: number | undefined };
 type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
 type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
-type ImageMetadata = BaseImageMetadata & HueMetadata & MetaChannels & Pick<RgbaImage, "inactiveAlpha">;
+type ImageMetadata = BaseImageMetadata & HueMetadata & MetaChannels & Pick<RgbaImage, "inactiveAlpha" | "alphaBlend">;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -1579,7 +1579,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     orientation: ["Undefined", "TopLeft", "TopRight", "BottomRight", "BottomLeft", "LeftTop", "RightTop", "RightBottom", "LeftBottom"][meta.orientation ?? 0] ?? "Undefined",
     ...(meta.jpegSamplingFactor === undefined ? {} : { "jpeg:sampling-factor": meta.jpegSamplingFactor }),
     "exif:orientation": meta.orientation === undefined ? "" : String(meta.orientation),
-    colorspace: space, channels: `${space === "LinearGray" ? "gray" : space.toLowerCase()}${hasAlphaChannel ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (hasAlphaChannel ? 1 : 0) + (meta.isPalette ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.region || meta.writeMask || meta.storedWriteMask ? 1 : 0) + metaChannelCount}.${metaChannelCount}`,
+    colorspace: space, channels: `${space === "LinearGray" ? "gray" : space.toLowerCase()}${meta.hasAlpha || meta.inactiveAlpha && meta.alphaBlend !== false ? "a" : " "} ${(meta.space === "b-w" || meta.space === "grey16" ? 1 : meta.space === "cmyk" ? 4 : 3) + (hasAlphaChannel ? 1 : 0) + (meta.isPalette ? 1 : 0) + (meta.readMask ? 1 : 0) + (meta.region || meta.writeMask || meta.storedWriteMask ? 1 : 0) + metaChannelCount}.${metaChannelCount}`,
     width: String(context.originalWidth ?? meta.width), height: String(context.originalHeight ?? meta.height),
     depth: bitDepth, size: context.outputFilePath === undefined ? short.b! : "0B", compression, quality: String(meta.quality ?? 0), page: short.P!,
     "resolution.x": formatSignificantMetric(resolution ? resolution.x / resolutionScale : 0),
@@ -7510,7 +7510,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 const hasAlpha = imageType === "truecoloralpha" || (paletteType && imageType !== "palette");
                 const source = image;
                 // Enabling absent alpha makes it opaque; TrueColor preserves hidden RGB.
-                if (!hasAlpha || !image.hasAlpha) image = yield* prepareInactiveAlphaOutput({ ...image, hasAlpha: false });
+                if (imageType === "truecolor" || !image.hasAlpha) image = yield* prepareInactiveAlphaOutput({ ...image, hasAlpha: false });
                 if (bilevelAlpha) {
                     const data = new Uint8Array(image.data), data16 = image.data16?.slice();
                     const samples = image.data16 ?? image.data, midpoint = image.data16 ? 32767.5 : 127.5;
@@ -7526,15 +7526,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     }
                     image = { ...image, data, ...(data16 ? { data16 } : {}) };
                 }
-                if (imageType === "palette" && source.hasAlpha) {
-                    const samples = source.data16 ?? source.data;
-                    for (let offset = 0; offset < samples.length; offset += 4) {
-                        if (offset % 65536 === 0) yield;
-                        if (samples[offset + 3] !== 0) continue;
-                        image.data.fill(0, offset, offset + 3);
-                        image.data16?.fill(0, offset, offset + 3);
-                    }
-                }
+                // Palette quantization uses alpha for color ordering, then leaves it inactive.
+                if (imageType === "palette" && source.hasAlpha) image = { ...image, inactiveAlpha: true, alphaBlend: false };
                 return { ...image, isPalette: paletteType, hasAlpha, channels: hasAlpha ? 4 : 3, space: "srgb" };
             }
             if (space === "cmyk") return yield* convertCmykPixels(image);

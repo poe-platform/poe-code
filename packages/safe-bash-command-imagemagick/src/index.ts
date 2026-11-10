@@ -17862,6 +17862,16 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
             if (t === "+density") state.densityGeometry = "72";
         }
+        else if (t === "-units") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -units\n" };
+            const units = parseMagickUnits(value);
+            if (units === undefined) return { exitCode: 1, stdout: "", stderr: `montage: unrecognized units type '${value}'\n` };
+            state.units = units;
+        }
+        else if (t === "+units") {
+            delete state.units;
+        }
         else if (t === "-tile") {
             const g = parseMagickGeometry(argv[++i] ?? "2x2");
             tileCols = g.width;
@@ -18268,6 +18278,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const stdoutChunks: Uint8Array[] = [];
     let stdout = "";
     function* writePage(canvas: RgbaImage, page: number, sceneCount: number): Generator<void, void, void> {
+        if (state.units !== undefined) canvas = applyMagickUnits(canvas, state.units);
         if (state.densityGeometry !== undefined) canvas = applyMagickDensity(canvas, state.densityGeometry);
         if (title !== undefined) {
             const { svg, height } = montageTitleSvg(title, canvas.width, state, padY);
@@ -18825,6 +18836,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 canvas = await compositeStoredMagick(canvas, caption, backend, signal, 0, 0, "over", undefined, false, true);
             }
             if (!anyTransparent) canvas = { ...canvas, hasAlpha: false, channels: 3 };
+            if (state.units !== undefined) canvas = applyMagickUnits(canvas, state.units);
             if (state.densityGeometry !== undefined) canvas = applyMagickDensity(canvas, state.densityGeometry);
             if (outSpec.toLowerCase().startsWith("info:")) {
                 const target = outSpec.slice(5), page = pageStart / (cols * rows);

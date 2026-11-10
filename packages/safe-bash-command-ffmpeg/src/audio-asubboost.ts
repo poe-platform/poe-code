@@ -7,7 +7,8 @@ export async function boostSubAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number }[],
   budget: MediaBudgetTracker, signal?: AbortSignal,
-  channelNames?: readonly string[]
+  channelNames?: readonly string[],
+  commands: readonly { sample: number; expression: string }[] = []
 ): Promise<Float64Array[]> {
   let enable: string | undefined;
   const options = { dry: 1, wet: 1, boost: 2, decay: 0, feedback: 0.9, cutoff: 100, slope: 0.5, delay: 20 };
@@ -65,6 +66,8 @@ export async function boostSubAudio(
     let state0 = 0;
     let state1 = 0;
     let gain = 0;
+    let wet = options.wet;
+    let nextCommand = 0;
     for (const [n, frame] of frames.entries()) {
       const enabled = channelEnabled && (enable === undefined || Math.abs(parseFilterExpression(enable, "asubboost enable", {
         n, t: frame.pts / sampleRate
@@ -74,6 +77,13 @@ export async function boostSubAudio(
           await yieldTurn(signal);
           signal?.throwIfAborted();
           budget.checkCpu();
+        }
+        while (nextCommand < commands.length && commands[nextCommand]!.sample <= i) {
+          const command = commands[nextCommand++]!;
+          try {
+            const value = parseFilterExpression(command.expression, "asubboost", {});
+            if (Number.isFinite(value) && value >= 0 && value <= 1) wet = value;
+          } catch { /* Native asendcmd continues after a rejected command. */ }
         }
         const input = channel[i]!;
         // Generic timeline bypass leaves the filter and delay history untouched.
@@ -92,7 +102,7 @@ export async function boostSubAudio(
         const boost = Math.min(options.boost, Math.max(0, Number.isNaN(headroom) ? 0 : headroom));
         gain = boost > gain ? gain * 0.99999 + 0.00001 * boost : gain * 0.00001 + 0.99999 * boost;
         gain = Math.min(options.boost, Math.max(0, gain));
-        samples[i] = (input * options.dry + gain * delayed) * options.wet;
+        samples[i] = (input * options.dry + gain * delayed) * wet;
         if (++position >= delaySamples) position = 0;
       }
     }

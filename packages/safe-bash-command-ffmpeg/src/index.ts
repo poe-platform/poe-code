@@ -10215,8 +10215,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             parseFilterExpression(enable, "dcshift enable", { n: 0, t: 0 });
                           } else if (key === "shift") {
                             shift = parseFilterExpression(value, "dcshift", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
-                            if (!value || !Number.isFinite(shift) || shift < -1 || shift > 1) {
-                              throw new Error("dcshift: expected shift between -1 and 1");
+                            if (shift < -1 || shift > 1) {
+                              throw new RangeError("dcshift: expected shift between -1 and 1");
                             }
                           } else if (key === "limitergain") {
                             limitergain = Number(value);
@@ -13424,7 +13424,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               return { exitCode: err instanceof CompandError ? err.exitCode : 234 };
             }
-            if (msg.startsWith("atrim:") && !msg.startsWith("atrim: unsupported option")) {
+            if ((msg.startsWith("atrim:") && !msg.startsWith("atrim: unsupported option")) ||
+                (err instanceof RangeError && msg.startsWith("dcshift:"))) {
               return { exitCode: err instanceof RangeError ? 222 : 234 };
             }
             if (msg.startsWith("aformat: unsupported option ")) return { exitCode: 8 };

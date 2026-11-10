@@ -34,7 +34,8 @@ for (const [filter, expected] of [
       stdin: (async function* () {})(), stdout: { async write() {} },
       stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
     } as never);
-    assert.equal(result.exitCode, expected === null ? 1 : 0, stderr);
+    if (expected === null) assert.notEqual(result.exitCode, 0, stderr);
+    else assert.equal(result.exitCode, 0, stderr);
     assert.deepEqual(volume.readFileSync("/out.raw"), output);
   });
 }

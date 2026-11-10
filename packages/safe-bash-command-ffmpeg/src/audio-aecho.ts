@@ -11,8 +11,10 @@ export async function echoAudio(
   const options = { in_gain: "0.6", out_gain: "0.3", delays: "1000", decays: "0.5" };
   const names = Object.keys(options) as (keyof typeof options)[];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  const parts = argument ? argument.split(":") : [];
+  if (argument.endsWith(":")) parts.pop();
   let position = 0;
-  for (const option of argument ? argument.split(":") : []) {
+  for (const option of parts) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[position] : option.slice(0, separator).trim() as keyof typeof options;
     if (separator < 0) position++;

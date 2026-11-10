@@ -3,7 +3,8 @@ import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
-export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { inactiveAlpha?: boolean | undefined }, geometry: { width?: number; height?: number; x?: number }, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { inactiveAlpha?: boolean | undefined }, geometry: { width?: number; height?: number; x?: number }, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const cmyk = image.space === "cmyk";
     const highDepth = !!(image.data16 || image.storedData16);
     const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
     const scale = !evaluate && highDepth ? 257 : 1;
@@ -33,7 +34,7 @@ export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" 
     }
     for (let j = 0; j < samples; j++) weights[j]! /= total;
     const gray = image.space === "b-w" || image.space === "grey16";
-    const mask = channels ? [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a] : undefined;
+    const mask = channels ? [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a, channels.k] : undefined;
     // Native samples a one-sided Gaussian along rounded directional offsets.
     for (let start = 0; start < width * height; start += 1024) {
         yield;
@@ -42,10 +43,13 @@ export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" 
         if (!original || original.length !== count * 4 * (evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated motion blur pixels");
         const data = evaluate ? new Float64Array(original.slice().buffer)
             : Float64Array.from(highDepth ? new Uint16Array(original.slice().buffer) : original, value => value / scale);
+        const inkBytes = cmyk ? yield { kind: "read", hue: true, position: start * 4, length: count * 4 } : undefined;
+        if (cmyk && inkBytes?.length !== count * 32) throw new Error("Truncated motion blur inks");
+        const inks = inkBytes ? new Float64Array(inkBytes.slice().buffer) : undefined;
         if (sigma > 1e-12) for (let i = 0; i < count; i++) {
             yield;
             const sx = (start + i) % width, sy = Math.floor((start + i) / width);
-            const sums = [0, 0, 0, 0];
+            const sums = [0, 0, 0, 0, 0];
             for (let j = 0; j < samples; j++) {
                 yield;
                 let x = sx + dx[j]!, y = sy + dy[j]!;
@@ -58,7 +62,7 @@ export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" 
                         // Native gray is half the quantum range; round only the final blurred pixel.
                         const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 127.5 : 0;
                         const samples = (virtualPixel === "background" || virtualPixel?.endsWith("-tile")) ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
-                        pixel = samples.map(value => value * scale);
+                        pixel = [...samples.map(value => value * scale), 0];
                     }
                 }
                 if (!pixel) {
@@ -66,12 +70,27 @@ export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" 
                     if (!bytes || bytes.length !== 4 * (evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated motion blur pixels");
                     pixel = evaluate ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
                 }
+                if (cmyk && x >= 0 && y >= 0 && x < width && y < height) {
+                    const bytes = yield { kind: "read", hue: true, position: (y * width + x) * 4, length: 4 };
+                    if (!bytes || bytes.length !== 32) throw new Error("Truncated motion blur inks");
+                    const sample = new Float64Array(bytes.slice().buffer);
+                    pixel = [sample[0]! * 255 * scale, sample[1]! * 255 * scale, sample[2]! * 255 * scale, pixel[3]!, sample[3]! * 255 * scale];
+                }
+                if (cmyk) sums[4]! += pixel[4]! * pixel[3]! * weights[j]!;
                 for (let c = 0; c < 3; c++) sums[c]! += pixel[c]! * pixel[3]! * weights[j]!;
                 sums[3]! += pixel[3]! * weights[j]!;
             }
             // Q16-HDRI retains float32 quantum samples until output encoding.
             // Inactive alpha still weights colors, but its original samples are retained.
-            for (let c = 0; c < (image.inactiveAlpha ? 3 : 4); c++) if (!mask || mask[c]) data[i * 4 + c] = Math.fround((c === 3 ? sums[3]! : sums[3] ? sums[c]! / sums[3] : 0) * 257 / scale) / 257;
+            for (let c = 0; c < (cmyk ? 5 : 4); c++) if ((!mask || mask[c]) && !(c === 3 && image.inactiveAlpha)) {
+                const value = Math.fround((c === 3 ? sums[3]! : sums[3] ? sums[c]! / sums[3] : 0) * 257 / scale) / 257;
+                if (inks && c !== 3) inks[i * 4 + (c === 4 ? 3 : c)] = value / 255;
+                else data[i * 4 + c] = value;
+            }
+        }
+        if (inks) {
+            for (let i = 0; i < count; i++) for (let c = 0; c < 3; c++) data[i * 4 + c] = (1 - inks[i * 4 + c]!) * (1 - inks[i * 4 + 3]!) * 255;
+            yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(inks.buffer) };
         }
         const encoded = highDepth
             ? Uint16Array.from(data, value => Math.max(0, Math.min(65535, Math.round(value * 257))))

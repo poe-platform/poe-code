@@ -2995,7 +2995,7 @@ export class Runtime {
   }
   private rethrowArithmeticControl(error: unknown): void {
     this.signal.throwIfAborted();
-    if (error instanceof NounsetFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
+    if (error instanceof ExpansionFailure || error instanceof Flow || error instanceof ShellLimitError || error instanceof ShellSyntaxError) throw error;
   }
   private arithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
     if (!program.source.includes("$")) return this.shellArithmetic(program, state, io);
@@ -3061,6 +3061,9 @@ export class Runtime {
                 operand = prepareArithmetic(shellValueText(concatShellValues(fields, io[valueScope])), this.budget.parsing);
               }
               number = await evaluateArithmeticReferences(operand, references, this.budget.parsing);
+            } catch (error) {
+              this.rethrowArithmeticControl(error);
+              throw new ExpansionFailure(message(error, this.budget.onInternalError), io.diagnosticLine);
             } finally { depth--; resolving.delete(identity); }
             if (number < 0n) number += BigInt((binding?.maximum ?? (state.variables[name] === undefined ? -1 : 0)) + 1);
             if (number < 0n || number > 2147483647n) throw new ArrayFailure("index outside 0..2147483647");

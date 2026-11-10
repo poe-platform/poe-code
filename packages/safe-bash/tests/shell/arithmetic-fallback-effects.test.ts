@@ -8,6 +8,39 @@ import { evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmet
 import { bashExecutable } from "../helpers/bash-oracle.js";
 import { setup } from "./helpers.js";
 
+for (const [expression, exitCode, stdout, diagnostic] of [
+  ["a[1/0]", 1, "", '1/0: division by 0 (error token is "0")'],
+  ["a[09]=7", 1, "", '09: value too great for base (error token is "09")'],
+  ["1/0", 0, "after\n", '((: 1/0 : division by 0 (error token is "0 ")'],
+  ["0 && a[1/0]", 0, "after\n", ""],
+  ["a[0]", 0, "after\n", ""],
+] as const) test(`arithmetic subscript failure: ${expression}`, async context => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  for (const command of basicCommands()) shell.commands.register(command);
+  const result = await shell.exec(`a=(4 5)\n(( ${expression} ))\necho after`);
+  assert.equal(result.exitCode, exitCode);
+  assert.equal(result.stdout, stdout);
+  assert.equal(result.stderr, diagnostic ? `shell: line 2: ${diagnostic}\n` : "");
+});
+
+for (const [expression, exitCode, stdout] of [
+  ["i++, a[0]=8, a[1/0]=7, i++", 1, "1:8 5\n"],
+  ["i++, a[09]=7, i++", 1, "1:4 5\n"],
+  ["a[i++ / 0]=7", 1, "1:4 5\n"],
+  ["i++, 1/0", 0, "after\n1:4 5\n"],
+  ["0 && a[i++ / 0]", 0, "after\n0:4 5\n"],
+  ["a[i++]=7", 0, "after\n1:7 5\n"],
+] as const) test(`arithmetic subscript mutations: ${expression}`, async context => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  for (const command of basicCommands()) shell.commands.register(command);
+  const source = `a=(4 5); i=0; trap 'echo "$i:\${a[*]}"' EXIT\n(( ${expression} ))\necho after`;
+  const result = await shell.exec(source);
+  assert.equal(result.exitCode, exitCode);
+  assert.equal(result.stdout, stdout);
+});
+
 for (const [name, initialization, expression, expected] of [
   ["intermediate overflow", "z=1000; x=0", "x += 1, (z * 100000) + 1", "1:0:10 20 30 40"],
   ["array assignment overflow", "big=100000000", "i++, arr[i] += big", "0:1:10 100000020 30 40"],

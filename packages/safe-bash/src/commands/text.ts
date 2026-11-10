@@ -598,11 +598,12 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
   if (allRepeated && parsed.flags.has("c")) throw new UsageError("printing all duplicated lines and repeat counts is meaningless");
   if (groupMethod !== undefined && (allRepeated || ["c", "d", "u"].some(flag => parsed.flags.has(flag)))) throw new UsageError("--group is mutually exclusive with -c/-d/-D/-u");
   if (parsed.operands.length > 2) throw new PublicDiagnostic(`extra operand '${parsed.operands[2]}'`);
+  const outputFile = parsed.operands[1] === "-" ? undefined : parsed.operands[1];
   await assertInputRequirements(context, parsed.operands.slice(0, 1));
-  await admitTextOutput(context, parsed.operands[1]);
-  if (parsed.operands[1] !== undefined && parsed.operands[0] !== "-") {
+  await admitTextOutput(context, outputFile);
+  if (outputFile !== undefined && parsed.operands[0] !== "-") {
     const source = pathOf(context, parsed.operands[0]!);
-    const destination = pathOf(context, parsed.operands[1]);
+    const destination = pathOf(context, outputFile);
     const sourceStat = await context.fs.stat(source, { signal: context.signal });
     let destinationStat;
     try { destinationStat = await context.fs.stat(destination, { signal: context.signal }); }
@@ -759,10 +760,10 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
     if (outUsed > 0) yield outBuf.subarray(0, outUsed);
   })();
   try {
-    await emitRecords(context, records, parsed.operands[1]);
+    await emitRecords(context, records, outputFile);
   } catch (error) {
     context.signal.throwIfAborted();
-    const consumer = parsed.operands[1] === undefined ? context.stdout.ownedOutput?.consumerClosed : undefined;
+    const consumer = outputFile === undefined ? context.stdout.ownedOutput?.consumerClosed : undefined;
     if (consumer?.aborted && consumer.reason === error && error instanceof FsError && error.code === "EPIPE") return { exitCode: 141 };
     throw error;
   }

@@ -39,13 +39,13 @@ function sortProbe(args: readonly string[], stdin: string, signal: AbortSignal, 
 
 test("uniq reports only its own closed stdout as a silent broken pipe", async () => {
   const command = textCommands().find(command => command.name === "uniq")!;
-  for (const mode of ["closed", "provider", "distinct", "cancelled", "other-closure"] as const) {
+  for (const args of [["--"], ["-", "-"]]) for (const mode of ["closed", "provider", "distinct", "cancelled", "other-closure"] as const) {
     const caller = new AbortController();
     const consumer = new AbortController();
     const closure = new FsError(mode === "other-closure" ? "EIO" : "EPIPE");
     const providerFailure = new FsError("EPIPE", { message: "provider failure" });
     const cancellation = new Error("caller cancellation");
-    const probe = sortProbe(["--"], "a\nb\nc\n", caller.signal, await fixture());
+    const probe = sortProbe(args, "a\nb\nc\n", caller.signal, await fixture());
     const stdout = {
       ownedOutput: { consumerClosed: consumer.signal, async write() { assert.fail("ordinary writes must retain their shell ownership"); } },
       async write(bytes: Uint8Array) {
@@ -371,6 +371,23 @@ test("uniq stops options at the first operand when POSIXLY_CORRECT is present", 
     assert.equal(result.stdout, args.some(argument => argument === "-f") ? "      2 A x\n      1 C y\n" : counts);
   }
 });
+
+for (const args of [["in", "-"], ["-", "-"], ["in"], ["in", "./-"], ["-", "./-"], ["./-", "-"]]) {
+  test(`uniq distinguishes stdout from a literal dash output file: ${args.join(" ")}`, async () => {
+    const stdin = "A x\nB x\nC y";
+    const fs = await fixture({ in: stdin, out: "KEEP", "-": "DASH", "+1": "named\n" });
+    const result = await run("uniq", args, { fs, stdin, commands: textCommands(), env: { LC_ALL: "C" } });
+    const output = args[0] === "./-" ? "DASH\n" : "A x\nB x\nC y\n";
+    const writesFile = args[1] === "./-";
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, writesFile ? "" : output);
+    assert.equal(Buffer.from(await fs.readFile("/work/-")).toString(), writesFile ? output : "DASH");
+    assert.equal(Buffer.from(await fs.readFile("/work/in")).toString(), stdin);
+    assert.equal(Buffer.from(await fs.readFile("/work/out")).toString(), "KEEP");
+    assert.equal(Buffer.from(await fs.readFile("/work/+1")).toString(), "named\n");
+  });
+}
 
 test("uniq emits every repeated record and separates selected groups", async () => {
   const fs = await fixture({ input: "a\na\nb\nc\nc\n" });

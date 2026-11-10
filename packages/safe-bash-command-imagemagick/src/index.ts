@@ -17851,10 +17851,8 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             cellW = g.width;
             cellH = g.height;
             if (cellW !== undefined || cellH !== undefined) concatenate = false;
-            if (g.hasOffset) {
-                padX = Math.max(0, Math.round(g.x));
-                padY = Math.max(0, Math.round(g.y));
-            }
+            padX = Math.max(0, Math.round(g.x));
+            padY = Math.max(0, Math.round(g.y));
         }
         else if (t === "-background") {
             state.background = parseColor(argv[++i] ?? "#ffffff");
@@ -17873,7 +17871,8 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             borderW = Math.max(0, Math.round(parseMagickGeometry(argv[++i] ?? "0").width ?? 0));
         }
         else if (t === "-gravity") {
-            state.gravity = parseGravity(argv[++i] ?? "center");
+            const gravity = argv[++i] ?? "center";
+            state.gravity = gravity.toLowerCase() === "forget" ? undefined : parseGravity(gravity);
         }
         else if (t === "-depth") {
             const value = argv[++i];

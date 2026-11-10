@@ -3,17 +3,19 @@ import { existsSync } from "node:fs";
 import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runMontageCli } from "./index.js";
+import { runMontageCli, runMontageCliSync } from "./index.js";
 
 const nativeAvailable = spawnSync("magick", ["-version"]).status === 0;
 const font = existsSync("/System/Library/Fonts/Supplemental/Arial.ttf")
   ? "/System/Library/Fonts/Supplemental/Arial.ttf" : "DejaVu-Sans";
 
-for (const mode of ["buffered", "retained"] as const)
+for (const mode of ["sync", "buffered", "retained"] as const)
 it.each([
   { gravity: [], top: 2 },
   { gravity: ["-gravity", "Center"], top: 2 },
   { gravity: ["-gravity", "NorthWest"], top: 1 },
+  { gravity: ["-gravity", "None"], top: 1 },
+  { gravity: ["-gravity", "Forget"], top: 1 },
   { gravity: ["-gravity", "SouthEast"], top: 4 },
 ])(`positions unequal montage tiles via ${mode}: $gravity`, async ({ gravity, top }) => {
   const files = new Map<string, Uint8Array>();
@@ -24,7 +26,9 @@ it.each([
     await fs.writeFile("/" + name, bytes);
   }
   const options = ["-tile", "2x1", "-geometry", "4x4+1+1", ...gravity];
-  const result = await runMontageCli([...options, ...files.keys(), "png:-"], mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+  const args = [...options, ...files.keys(), "png:-"];
+  const result = mode === "sync" ? runMontageCliSync(args, files)
+    : await runMontageCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
   expect(result).toMatchObject({ exitCode: 0, stderr: "" });
   const actual = decodeImage(result.stdoutBytes!);
   expect([actual.width, actual.height]).toEqual([12, 6]);

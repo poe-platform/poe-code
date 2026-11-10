@@ -26,7 +26,7 @@ for (const [filter, hash] of [
   assert.equal(createHash("sha256").update(pcm).digest("hex"), hash);
 });
 
-for (const option of ["boost=0", "cutoff=901", "feedback=-1", "dry=2", "wet=NaN", "decay=2", "slope=0", "delay=101", "boost=", "unknown=1"]) {
+for (const option of ["boost=0", "cutoff=901", "feedback=-1", "dry=2", "wet=NaN", "decay=2", "slope=0", "delay=101", "boost=", "unknown=1", "channels=", "channels=invalid"]) {
   it(`rejects ${option} without replacing output`, async () => {
     const { volume, result } = await run(`asubboost=${option}`);
     assert.equal(result.exitCode, 1);
@@ -34,13 +34,13 @@ for (const option of ["boost=0", "cutoff=901", "feedback=-1", "dry=2", "wet=NaN"
   });
 }
 
-async function run(filter: string, graph = false, channels = [mono]) {
+async function run(filter: string, graph = false, channels = [mono], raw = false) {
   const volume = Volume.fromJSON({ "/out.wav": "KEEP" });
   volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 16000, channels }));
   let stderr = "";
   const result = await createFfmpegCommand({ limits: { maxDurationSeconds: 3 } }).execute({
     args: ["-y", "-v", "error", "-i", "/in.wav", ...(graph
-      ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-c:a", "pcm_s16le", "/out.wav"],
+      ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-c:a", "pcm_s16le", ...(raw ? ["-f", "s16le"] : []), "/out.wav"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
       async readFile(path: string) { return volume.readFileSync(path); },
@@ -52,6 +52,22 @@ async function run(filter: string, graph = false, channels = [mono]) {
   } as never);
   return { volume, result, stderr };
 }
+
+// Entire raw PCM outputs from native FFmpeg 7.0.2, including untouched channels.
+for (const [selection, expected] of [
+  ["FL", "0000803e0000e02e0000401f0000a00f000060f00000c0e0000020d1000080c1"],
+  ["FR", "00800000c0e00000a00f0000e02e0000803e0000e02e0000401f0000a00f0000"],
+  ["all", "00".repeat(32)],
+  ["LFE", "0080803ec0e0e02ea00f401fe02ea00f803e60f0e02ec0e0401f20d1a00f80c1"]
+] as const) for (const graph of [false, true]) it(`selects ${selection} without changing other channels (graph=${graph})`, async () => {
+  const channels = [
+    [-32768, -8000, 4000, 12000, 16000, 12000, 8000, 4000],
+    [16000, 12000, 8000, 4000, -4000, -8000, -12000, -16000]
+  ].map(samples => Float64Array.from(samples, sample => sample / 32768));
+  const { volume, result, stderr } = await run(`asubboost=wet=0:channels=${selection}`, graph, channels, true);
+  assert.equal(result.exitCode, 0, stderr);
+  assert.equal((volume.readFileSync("/out.wav") as Buffer).toString("hex"), expected);
+});
 
 // Native FFmpeg references also exercise independent channel state and delay wraparound.
 for (const [filter, hash] of [
@@ -76,4 +92,20 @@ for (const [filter, hash] of [
 it("bounds memory and honors cancellation", async () => {
   await assert.rejects(boostSubAudio([mono], 16000, "asubboost", new MediaBudgetTracker({ maxMemoryBytes: 64 })), /maxMemoryBytes/);
   await assert.rejects(boostSubAudio([mono], 16000, "asubboost", new MediaBudgetTracker(), AbortSignal.abort()));
+});
+
+it("selects speakers from the current channel layout", async () => {
+  const right = Float64Array.from(mono, sample => -sample);
+  const { volume, result, stderr } = await run("channelmap=map=0|1:channel_layout=FC+LFE,asubboost=wet=0:channels=LFE", false, [mono, right]);
+  assert.equal(result.exitCode, 0, stderr);
+  const channels = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData;
+  assert.ok(channels[1]!.every(sample => sample === 0));
+  assert.ok(channels[0]!.every((sample, i) => sample === mono[i]));
+});
+
+it("supports positional selection and explicit speaker names", async () => {
+  const output = await boostSubAudio([mono, mono], 16000,
+    "asubboost=1:0:2:0:0.9:100:0.5:20:LFE", new MediaBudgetTracker(), undefined, ["FC", "LFE"]);
+  assert.deepEqual(output[0], mono);
+  assert.ok(output[1]!.every(sample => sample === 0));
 });

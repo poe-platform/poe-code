@@ -1004,7 +1004,7 @@ APNG output (`out.apng` or `-f apng`) writes all video frames into one animation
 
 `asubcut=cutoff=100:order=8` removes low-frequency rumble and DC from decoded PCM without changing the sample count. It supports `cutoff` (2–200 Hz, default 20), `order` (3–20, default 10), and `level` (0–1, default 1), as named or positional options, independently per channel.
 
-`asubboost=boost=4:cutoff=100:feedback=0.4` boosts low frequencies in decoded PCM, independently per channel. It supports numeric `dry`, `wet`, `boost`, `decay`, `feedback`, `cutoff`, `slope`, and `delay` options, in that positional order, with native defaults and ranges. Channel selection is not supported.
+`asubboost=boost=4:cutoff=100:feedback=0.4` boosts low frequencies in decoded PCM, independently per channel. It supports numeric `dry`, `wet`, `boost`, `decay`, `feedback`, `cutoff`, `slope`, and `delay` options, in that positional order, with native defaults and ranges. `channels` (the ninth positional option) selects speaker names such as `FL`, `FR`, or `FL+FR`, and defaults to `all`. Unselected channels pass through unchanged, including when the selected speaker is absent.
 
 `asupercut=cutoff=20000:order=8` attenuates ultrasonic PCM frequencies while preserving sample rate, channels, and sample count. Cutoff accepts 20000–192000 Hz (default 20000), order accepts 3–20 (default 10), and input `level` accepts 0–1 (default 1). Positional `cutoff:order:level` options and audio filter graphs are supported. Cutoffs at or above half the sample rate bypass filtering and input gain.
 

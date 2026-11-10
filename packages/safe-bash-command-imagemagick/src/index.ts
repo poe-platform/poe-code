@@ -5037,6 +5037,7 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
         }
         tiles.push(area ? {
             ...(yield* extractImageSteps(img, area)),
+            ...(img.readMask ? { readMask: yield* extractImageSteps(img.readMask as RgbaImage, area) } : {}),
             ...(img.writeMask ? { writeMask: yield* extractImageSteps(img.writeMask, area) } : {}),
             virtualCanvas: magickCropCanvas(img, area.left, area.top)
         } : img);
@@ -12917,6 +12918,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }
                         await frames.push(magickCropViewport(image, area ? {
                             ...await transformStoredImage(image, backend.storage, { kind: "extract", ...area }, signal),
+                            ...(image.readMask ? { readMask: await transformStoredImage(image.readMask as StoredRgbaImage, backend.storage, { kind: "extract", ...area }, signal) } : {}),
                             ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, backend.storage, { kind: "extract", ...area }, signal) } : {}),
                             virtualCanvas: magickCropCanvas(image, area.left, area.top)
                         } : image, expanded, gravity));

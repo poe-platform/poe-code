@@ -11736,8 +11736,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "asetpts" || trimmed.startsWith("asetpts=") || trimmed === "aselect" || trimmed.startsWith("aselect=")) {
                         const selecting = trimmed === "aselect" || trimmed.startsWith("aselect=");
                         const argument = trimmed.includes("=") ? trimmed.slice(trimmed.indexOf("=") + 1) : selecting ? "1" : "PTS";
-                        const expression = argument.startsWith("expr=") ? argument.slice(5)
-                          : selecting && argument.startsWith("e=") ? argument.slice(2) : argument;
+                        let expression = argument.startsWith("expr=") ? argument.slice(5) : argument;
+                        if (selecting) {
+                          expression = "1";
+                          for (const [index, option] of argument.split(":").entries()) {
+                            const separator = option.indexOf("=");
+                            const key = separator < 0 ? ["expr", "outputs"][index] : option.slice(0, separator);
+                            const value = separator < 0 ? option : option.slice(separator + 1);
+                            if (key === "expr" || key === "e") expression = value;
+                            else if (key === "outputs" || key === "n") {
+                              if (parseFilterExpression(value, "aselect", {}) !== 1) {
+                                throw new Error("aselect: only one output is supported");
+                              }
+                            } else throw new Error("aselect: unsupported option");
+                          }
+                        }
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;

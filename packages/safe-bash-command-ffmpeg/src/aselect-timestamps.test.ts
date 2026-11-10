@@ -7,6 +7,16 @@ import { createFfmpegCommand } from "./index.js";
 const all = [101, 114, 127, 140, 153, 166, 179, 192, 205, 218];
 for (const complex of [false, true]) {
   for (const [filter, expected] of [
+    ["aselect=outputs=1:expr=eq(n\\,1)", [140, 153, 166]],
+    ["aselect=expr=eq(n\\,1):n=1", [140, 153, 166]],
+    ["aselect=n=1:e=eq(n\\,1)", [140, 153, 166]],
+    ["aselect=1:1", all],
+    ["aselect=expr=eq(n\\,1)", [140, 153, 166]],
+    ["aselect=e=eq(n\\,1)", [140, 153, 166]],
+    ["aselect=outputs=1", all],
+    ["aselect=1:2", null],
+    ["aselect=n=0:e=1", null],
+    ["aselect=unknown=1:e=1", null],
     ["asetpts=PTS+7,aselect='eq(pts,10)'", [140, 153, 166]],
     ["asetpts=PTS+7,aselect='eq(t,10/8000)'", [140, 153, 166]],
     ["asetpts=PTS+7,aselect='eq(start_pts,7)'", all],

@@ -11,11 +11,12 @@ export interface ShadowLayout {
     readonly opacity: number;
     readonly sigma: number;
 }
-export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hasAlpha" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { region?: Region | undefined }, layout: ShadowLayout, color: RgbaColor, alpha = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hasAlpha" | "space" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples" | "storedEvaluateSamples">> & { region?: Region | undefined }, layout: ShadowLayout, color: RgbaColor, alpha = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(source.data16 || source.storedData16);
     const hue = source.space !== "cmyk" && (!!source.hueSamples || source.storedHueSamples !== undefined);
+    const evaluate = !hue && (!!source.evaluateSamples || source.storedEvaluateSamples !== undefined);
     const scale = hue ? 1 / 255 : highDepth ? 257 : 1, maximum = hue ? 1 : 255 * scale;
-    const quantum = (value: number) => hue ? Math.fround(value * 65535) / 65535 : Math.round(value);
+    const quantum = (value: number) => Math.fround(value * (65535 / maximum)) / (65535 / maximum);
     // Native assigns the background components directly to C, M and Y, with K zero.
     const inks = source.space === "cmyk" ? [color.r / 255, color.g / 255, color.b / 255, 0] : undefined;
     if (inks) color = { ...color, r: 255 - color.r, g: 255 - color.g, b: 255 - color.b };
@@ -40,8 +41,7 @@ export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "
         weights[k + half] = weight; total += weight;
     }
     for (let k = 0; k < weights.length; k++) weights[k]! /= total;
-    // Keep fractional alpha through both passes; opacity is linear, so it can be
-    // applied at the end without an intermediate rounded or clamped raster.
+    // Keep native Q16-HDRI precision through opacity and each separable blur pass.
     for (let left = 0; left < layout.width; left += 1024) {
         const count = Math.min(1024, layout.width - left), rows = new Map<number, Float64Array>();
         for (let y = 0; y < layout.height; y++) {
@@ -59,15 +59,16 @@ export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "
                     const first = Math.max(0, left - half - layout.offsetX), last = Math.min(source.width - 1, left + count - 1 + half - layout.offsetX);
                     if (last >= first) {
                         const length = (last - first + 1) * 4;
-                        const bytes = yield { kind: "read", hue, highDepth, position: (sy * source.width + first) * 4, length };
-                        if (!bytes || bytes.length !== length * (hue ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated shadow pixels");
-                        const samples = hue ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+                        const bytes = yield { kind: "read", hue, evaluate, highDepth, position: (sy * source.width + first) * 4, length };
+                        if (!bytes || bytes.length !== length * (hue || evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated shadow pixels");
+                        const samples = evaluate ? new Float64Array(bytes.slice().buffer).map(value => value * scale) : hue ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
                         for (let x = 0; x < count; x++) {
                             if (x % 32 === 0) yield;
                             for (let k = -half; k <= half; k++) {
                                 const sx = Math.max(0, Math.min(layout.width - 1, left + x + k)) - layout.offsetX;
-                                if (sx >= first && sx <= last) row[x]! += (source.hasAlpha ? samples[(sx - first) * 4 + 3]! : maximum) * weights[k + half]!;
+                                if (sx >= first && sx <= last) row[x]! += quantum((source.hasAlpha ? samples[(sx - first) * 4 + 3]! : maximum) * layout.opacity) * weights[k + half]!;
                             }
+                            row[x] = quantum(row[x]!);
                         }
                     }
                     if (rows.size >= 32) rows.delete(rows.keys().next().value!);
@@ -75,16 +76,17 @@ export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "
                 }
                 for (let x = 0; x < count; x++) sums[x]! += row[x]! * weights[ky + half]!;
             }
-            const data = hue ? new Float64Array(count * 4) : highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
+            const data = new Float64Array(count * 4);
             for (let x = 0; x < count; x++) {
-                const offset = x * 4, value = sums[x]! * layout.opacity;
+                const offset = x * 4, value = sums[x]!;
                 data[offset] = quantum(color.r * scale); data[offset + 1] = quantum(color.g * scale); data[offset + 2] = quantum(color.b * scale);
                 data[offset + 3] = Number.isFinite(value) ? Math.max(0, Math.min(maximum, quantum(value))) : 0;
             }
             const position = (y * layout.width + left) * 4;
             // Replace working colors as well as the encoding view before a later colorspace conversion.
             if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(data.buffer) };
-            const bounded = hue ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(1, value)) * 65535)) : data;
+            else yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.map(value => value / scale).buffer) };
+            const bounded = hue || highDepth ? Uint16Array.from(data, value => Math.round(value * (hue ? 65535 : 1))) : Uint8Array.from(data, value => Math.round(value));
             yield { kind: "write", highDepth: hue || highDepth, position, data: new Uint8Array(bounded.buffer) };
             if (inks) {
                 const samples = new Float64Array(count * 4);

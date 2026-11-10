@@ -6349,6 +6349,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         for (const index of selectedInputPages(pageSpec, saved.length)) {
             yield;
             let image: MagickImage = { ...saved[index]!, data: new Uint8Array(saved[index]!.data) };
+            if (state.page !== undefined) image.virtualCanvas = state.page;
             if (state.densityGeometry !== undefined) image = applyMagickDensity(image, state.densityGeometry);
             if (state.delay !== undefined) {
                 const delay = state.delay.value;
@@ -14387,6 +14388,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
      for (const index of selectedInputPages(pageSpec, saved.length)) {
          await yieldTurn(signal);
          let savedImage = (await saved.get(index))!;
+         if (state.page !== undefined) savedImage = { ...savedImage, virtualCanvas: state.page };
          if (state.densityGeometry !== undefined) savedImage = applyMagickDensity(savedImage, state.densityGeometry);
          if (state.label !== undefined) {
              const label = await formatRetainedIdentify(state.label, savedImage, { filePath: baseToken }, async () => ({ image: savedImage, storage: backend.storage }), signal);

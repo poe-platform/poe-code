@@ -1,6 +1,7 @@
 import { scaleVideoPicture, type MediaVideoFrame, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterFloat } from "./filter-float.js";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function tmix(
   frames: MediaVideoFrame[], argument: string, budget: MediaBudgetTracker, signal?: AbortSignal
@@ -13,11 +14,15 @@ export async function tmix(
     if (key !== "frames" && key !== "weights" && key !== "planes") throw new Error(`tmix: unsupported option ${key}`);
     options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
   }
-  const count = Number(options.frames);
-  const planes = Number(options.planes);
-  if (!Number.isInteger(planes) || planes < 0 || planes > 15) {
-    throw new Error("tmix: planes must be an integer from 0 to 15");
+  const value = parseFilterExpression(options.frames!, "tmix", {
+    PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, default: 3, min: 1, max: 1024
+  });
+  if (value < 1 || value > 1024) {
+    throw new RangeError("tmix: frames must be from 1 to 1024");
   }
+  // Native validates bounds before rounding integer options to nearest, ties to even.
+  const lower = Math.floor(value);
+  const count = value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
   if (!Number.isInteger(count) || count < 1 || count > 1024) {
     throw new Error("tmix: frames must be an integer from 1 to 1024");
   }

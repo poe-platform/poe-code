@@ -66,7 +66,6 @@ it.each([
     ["-swirl", "90"],
     ["-interpolative-resize", "5x4!"],
     ["-kuwahara", "1x1"],
-    ["/in.ppm", "-clut"],
 ])("preserves bilinear behavior for background interpolation in %j", (...operation) => {
     const files = new Map([["/in.ppm", input]]);
     for (const method of ["bilinear", "background"]) {

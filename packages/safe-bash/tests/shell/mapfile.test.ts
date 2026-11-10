@@ -8,6 +8,28 @@ import { arraysExtension } from "../../src/shell/extensions/arrays/index.js";
 
 for (const extension of [false, true]) {
   for (const command of ["mapfile", "readarray"]) {
+    for (const flags of ["-u9 -u0", "-u 9 -u 0", "-u0 -u9 -u0", "-u9 -x", "-u 9 -x"]) {
+      test(`${command} validates each descriptor before later options: ${flags}, extension=${extension}`, async () => {
+        const { shell, fs } = setup({ extensions: extension ? [mapfileExtension()] : [] });
+        try {
+          await fs.writeFile("/data", new TextEncoder().encode("one\ntwo\nthree\n"));
+          const result = await shell.exec(`A=(old); { ${command} -t ${flags} A; code=$?; read rest; args "$code" "\${A[@]}" "$rest"; } </data`);
+          assert.equal(result.exitCode, 0);
+          assert.equal(result.stdout, '["1","old","one"]');
+          assert.equal(result.stderr, `shell: line 1: ${command}: 9: invalid file descriptor: Bad file descriptor\n`);
+        } finally { await shell.dispose(); }
+      });
+    }
+    test(`${command} uses the last valid descriptor, extension=${extension}`, async () => {
+      const { shell, fs } = setup({ extensions: extension ? [mapfileExtension()] : [] });
+      try {
+        await fs.writeFile("/data", new TextEncoder().encode("other\n"));
+        const result = await shell.exec(`exec 3</data; ${command} -t -u3 -u0 A; read -u3 rest; args "\${A[@]}" "$rest"`, { stdin: "one\ntwo\n" });
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stdout, '["one","two","other"]');
+        assert.equal(result.stderr, "");
+      } finally { await shell.dispose(); }
+    });
     for (const declaration of ["export A=old", "declare -ax A=(old tail stale)"]) {
       for (const preserve of [false, true]) test(`${command} populates ${declaration}, preserve=${preserve}, extension=${extension}`, async () => {
         const { shell, fs } = setup({ extensions: extension ? [mapfileExtension()] : [] });

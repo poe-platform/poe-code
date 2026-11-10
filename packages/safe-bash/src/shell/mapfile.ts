@@ -21,7 +21,7 @@ export interface MapfileOptions {
   quantum: number;
 }
 
-export async function mapfileOptions(context: CommandContext, work: StringWork, allocation: ValueAllocation): Promise<MapfileOptions> {
+export async function mapfileOptions(context: CommandContext, work: StringWork, allocation: ValueAllocation, selectDescriptor: (descriptor: number) => void): Promise<MapfileOptions> {
   const options: MapfileOptions = { descriptor: 0, name: "MAPFILE", strip: false, delimiter: 10, count: 0, skip: 0, origin: 0, preserve: false, callback: undefined, quantum: 5000 };
   const args = getCommandArguments(context);
   let cursor = 0;
@@ -76,6 +76,7 @@ export async function mapfileOptions(context: CommandContext, work: StringWork, 
       else {
         const value = await numeric(operand, flag === "u" ? Number.MAX_SAFE_INTEGER : 4294967295);
         if (flag === "u") {
+          selectDescriptor(value);
           options.descriptor = value;
         } else if (flag === "c") { if (!value) throw new MapfileUsageError("0: invalid callback quantum", 1); options.quantum = value; }
         else if (flag === "n") options.count = value;

@@ -8535,10 +8535,14 @@ export class Runtime {
     let pinned: IndexedBinding | undefined;
     let releaseHolding: (() => void) | undefined;
     try {
-      const options = await mapfileOptions(context, work, allocation);
-      const descriptor = context.descriptors?.get(options.descriptor);
-      const source = descriptor?.closed ? undefined : descriptor?.input ?? (options.descriptor === 0 && !context.descriptors ? context.stdin : undefined);
-      if (!source || source === closedSource) throw new MapfileUsageError(`${options.descriptor}: invalid file descriptor: Bad file descriptor`, 1);
+      const selectDescriptor = (number: number) => {
+        const descriptor = context.descriptors?.get(number);
+        const source = descriptor?.closed ? undefined : descriptor?.input ?? (number === 0 && !context.descriptors ? context.stdin : undefined);
+        if (!source || source === closedSource) throw new MapfileUsageError(`${number}: invalid file descriptor: Bad file descriptor`, 1);
+        return source;
+      };
+      const options = await mapfileOptions(context, work, allocation, selectDescriptor);
+      const source = selectDescriptor(options.descriptor);
       options.name = this.referenceName(state, options.name);
       if (arrayStore(state)?.get(options.name)?.associative) throw new MapfileUsageError(`${options.name}: not an indexed array`, 1);
       if (state.readonlyVariables?.has(options.name)) throw new MapfileUsageError(`${options.name}: readonly variable`, 1);

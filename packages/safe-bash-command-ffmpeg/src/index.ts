@@ -10609,7 +10609,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           // PCM8 and PCM16 retain half-up rounding.
                           const fixedGain = Math.max(0, Math.floor(factor * 256 + 0.5));
                           const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "volume enable", {
-                            n, t: pts / origRate, pos: (audioTimestamps ? timestamp?.pos : packet?.offset) ?? NaN
+                            n, t: pts / origRate, pos: (audioTimestamps ? timestamp?.pos : packet?.offset) ?? NaN, w: 0, h: 0
                           })) >= 0.5;
                           for (let c = 0; c < stretched.length; c++) {
                             const channel = stretched[c]!;

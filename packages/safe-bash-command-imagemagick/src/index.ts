@@ -11589,7 +11589,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 let result = yield* applyMagickRollSteps(im, expanded, signal);
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
-                    for (const plane of im.metaChannels) result.metaChannels.push(yield* applyMagickRollSteps(plane, expanded, signal));
+                    for (const [channel, plane] of im.metaChannels.entries()) {
+                        let rolled = yield* applyMagickRollSteps(plane, expanded, signal);
+                        const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(channel);
+                        if (selected && im.region) rolled = yield* applyMagickRasterSteps(rolled, regionPixelSteps(rolled, im.region, !!(rolled.data16 || plane.data16)), signal, rolled, [rolled, plane]);
+                        if (selected && im.writeMask) rolled = yield* applyMagickRasterSteps(rolled, writeMaskPixelSteps(rolled, im.writeMask, !!(rolled.data16 || plane.data16)), signal, rolled, [rolled, plane, im.writeMask]);
+                        result.metaChannels.push(rolled);
+                    }
                 }
                 if (im.region) {
                     result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, im.region, !!(result.data16 || im.data16), state.channels), signal, result, [result, im]);
@@ -15315,8 +15321,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let result = await transformStoredMagickCoordinates(image, backend, token, expanded, captured, signal, analysis);
                 if (token === "-roll" && image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];
-                    for (const plane of image.storedMetaChannels)
-                        result.storedMetaChannels.push(await transformStoredMagickCoordinates(plane, backend, token, expanded, captured, signal, analysis));
+                    for (const [channel, plane] of image.storedMetaChannels.entries()) {
+                        let rolled = await transformStoredMagickCoordinates(plane, backend, token, expanded, captured, signal, analysis);
+                        const selected = !captured.channelExplicit || captured.channelDefault || captured.channels.meta?.includes(channel);
+                        if (selected && image.region) rolled = await transformStoredMagickRaster(rolled, backend, regionPixelSteps(rolled, image.region, !!(rolled.storedData16 || plane.storedData16)), signal, rolled, [rolled, plane]);
+                        if (selected && image.storedWriteMask) rolled = await transformStoredMagickRaster(rolled, backend, writeMaskPixelSteps(rolled, image.storedWriteMask, !!(rolled.storedData16 || plane.storedData16)), signal, rolled, [rolled, plane, image.storedWriteMask]);
+                        result.storedMetaChannels.push(rolled);
+                    }
                 }
                 if (token === "-roll" && image.region) {
                     result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, image.region, !!(result.storedData16 || image.storedData16), captured.channels), signal, result, [result, image]);

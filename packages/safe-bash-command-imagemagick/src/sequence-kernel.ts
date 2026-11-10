@@ -120,7 +120,8 @@ export function* clutPixelSteps(size: number, lut: { width: number; height: numb
 }
 
 /** Hald pixels store red fastest, then green, then blue in a flattened RGB cube. */
-export function* haldClutPixelSteps(size: number, lut: { width: number; height: number; space?: string }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor, virtualPixel?: VirtualPixelMethod): Steps {
+export function* haldClutPixelSteps(size: number, lut: { width: number; height: number; space?: string }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor, virtualPixel?: VirtualPixelMethod, sourceCmyk = false): Steps {
+    const cmyk = lut.space === "cmyk";
     const range = highDepth ? 65535 : 255;
     const gray = lut.space === "b-w" || lut.space === "grey16";
     // Native rounds incomplete tables up to the next level, with a minimum of 2.
@@ -130,12 +131,22 @@ export function* haldClutPixelSteps(size: number, lut: { width: number; height: 
         const bytes = (yield { kind: "read", highDepth, position, length: Math.min(2048, size - position) })!;
         const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
         const working = Float64Array.from(data, value => highDepth ? value / 257 : value);
+        const hue = sourceCmyk ? yield { kind: "read", hue: true, position, length: data.length } : undefined;
+        const inks = hue?.length ? new Float64Array(hue.slice().buffer) : cmyk || sourceCmyk ? new Float64Array(data.length) : undefined;
+        const samples = Float64Array.from(data);
+        if (inks) for (let offset = 0; offset < data.length; offset += 4) {
+            if (sourceCmyk && !hue?.length) inks.set(rgbToCmyk(data[offset]! / range, data[offset + 1]! / range, data[offset + 2]! / range), offset);
+            for (let channel = 0; channel < 3; channel++) {
+                if (sourceCmyk) samples[offset + channel] = inks[offset + channel]! * range;
+                else inks[offset + channel] = samples[offset + channel]! / range;
+            }
+        }
         for (let offset = 0; offset < data.length; offset += 4) {
             if (offset % 256 === 0) yield;
             // Native adopts the lookup colorspace without a luminance conversion:
             // grayscale aliases all three input channels to the red sample.
-            const red = data[offset]! / range * (edge - 1), green = gray ? red : data[offset + 1]! / range * (edge - 1), blue = gray ? red : data[offset + 2]! / range * (edge - 1);
-            const g = Math.floor(green), b = Math.floor(blue), values = [0, 0, 0, 0];
+            const red = samples[offset]! / range * (edge - 1), green = gray ? red : samples[offset + 1]! / range * (edge - 1), blue = gray ? red : samples[offset + 2]! / range * (edge - 1);
+            const g = Math.floor(green), b = Math.floor(blue), values = cmyk ? [0, 0, 0, 0, 0] : [0, 0, 0, 0];
             const dy = interpolation === "nearest" ? Math.round(green - g) : green - g;
             const dz = interpolation === "nearest" ? Math.round(blue - b) : blue - b;
             // Native Hald interpolates flattened 2D samples, then blends green and blue planes.
@@ -143,16 +154,23 @@ export function* haldClutPixelSteps(size: number, lut: { width: number; height: 
                 const weight = (y ? dy : 1 - dy) * (z ? dz : 1 - dz);
                 if (!weight) continue;
                 const index = red + edge * (g + y + edge * (b + z));
-                const sample = yield* sampleLookup(lut, index % lut.width, Math.floor(index / lut.width), highDepth, interpolation, background, virtualPixel);
-                for (let channel = 0; channel < 3; channel++) values[channel]! += sample[channel]! * sample[3]! * weight;
+                const sample = yield* sampleLookup(lut, index % lut.width, Math.floor(index / lut.width), highDepth, interpolation, background, virtualPixel, cmyk);
+                for (let channel = 0; channel < values.length; channel++) if (channel !== 3) values[channel]! += sample[channel]! * sample[3]! * weight;
                 values[3]! += sample[3]! * weight;
             }
-            for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
-            for (let channel = 0; channel < 4; channel++) if (mask[channel]) {
-                working[offset + channel] = Math.fround(values[channel]! * (highDepth ? 1 : 257)) / 257;
-                data[offset + channel] = Math.max(0, Math.min(range, Math.round(values[channel]! + Number.EPSILON * range)));
+            for (let channel = 0; channel < values.length; channel++) if (channel !== 3) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
+            for (let channel = 0; channel < 4; channel++) if (mask[channel]) samples[offset + channel] = values[channel]!;
+            if (cmyk) {
+                for (let channel = 0; channel < 3; channel++) inks![offset + channel] = samples[offset + channel]! / range;
+                if (mask[4]) inks![offset + 3] = values[4]! / range;
+                for (let channel = 0; channel < 3; channel++) samples[offset + channel] = (1 - inks![offset + channel]!) * (1 - inks![offset + 3]!) * range;
+            }
+            for (let channel = 0; channel < 4; channel++) {
+                working[offset + channel] = Math.fround(samples[offset + channel]! * (highDepth ? 1 : 257)) / 257;
+                data[offset + channel] = Math.max(0, Math.min(range, Math.round(samples[offset + channel]! + Number.EPSILON * range)));
             }
         }
+        if (cmyk) yield { kind: "write", hue: true, position, data: new Uint8Array(inks!.buffer) };
         // Byte inputs still produce fractional Q16-HDRI lookup results.
         yield { kind: "write", evaluate: true, position, data: new Uint8Array(working.buffer) };
         yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer) };

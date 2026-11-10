@@ -370,6 +370,10 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
     }
     function* write(position: number, values: Uint8Array | Uint16Array | Float64Array, evaluate = false): Steps {
         if (!cmyk) {
+            // Gray stores one intensity channel in all three RGB backing slots.
+            if (!colorOutput) for (let offset = 0; offset < values.length; offset += stride) {
+                values[offset + 1] = values[offset + 2] = values[offset]!;
+            }
             yield { kind: "write", highDepth: !evaluate && highDepth, evaluate, position, data: new Uint8Array(values.buffer) };
             if (hue && (evaluate || !retainRange)) yield { kind: "write", hue: true, position, data: new Uint8Array(Float64Array.from(values, value => value / (evaluate ? 255 : range)).buffer) };
             return;

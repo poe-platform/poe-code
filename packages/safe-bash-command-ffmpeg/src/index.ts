@@ -4081,8 +4081,9 @@ async function applyVideoFilterChain(
       commands.sort((a, b) => a.time - b.time);
       current = await tmix(current, argStr, budget, signal, commands);
     } else if (name === "tblend") {
-      if (positional.length !== 1 || named.all_mode !== "difference" || Object.keys(named).length !== 1) {
-        throw new Error("tblend: only all_mode=difference is supported");
+      const mode = named.all_mode ?? "normal";
+      if (argStr !== "" && (positional.length !== 1 || !["normal", "difference"].includes(mode) || Object.keys(named).length !== 1 || named.all_mode === undefined)) {
+        throw new Error("tblend: only all_mode=normal or difference is supported");
       }
       const blended: typeof current = [];
       for (let index = 1; index < current.length; index++) {
@@ -4090,6 +4091,10 @@ async function applyVideoFilterChain(
         const previous = current[index - 1]!;
         if (frame.width !== previous.width || frame.height !== previous.height) {
           throw new Error("tblend: adjacent frames must have matching dimensions");
+        }
+        if (mode === "normal") {
+          blended.push(frame);
+          continue;
         }
         const data = new Uint8Array(frame.data.length);
         for (let offset = 0; offset < data.length; offset += 4) {

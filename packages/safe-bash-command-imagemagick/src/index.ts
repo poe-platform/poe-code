@@ -7512,7 +7512,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             }
             const { data16: ignored, magickColorspace: ignoredSpace, hueSamples: ignoredHue, storedHueSamples: ignoredStoredHue, ...metadata } = image;
             const hasAlpha = imageType === undefined ? image.hasAlpha : imageType === "grayscalealpha";
-            return { ...metadata, data: out, data16, evaluateSamples, space: "b-w", ...(luminance ? { gamma: 1 } : {}), hasAlpha, channels: hasAlpha ? 2 : 1 };
+            return { ...metadata, isPalette: false, data: out, data16, evaluateSamples, space: "b-w", ...(luminance ? { gamma: 1 } : {}), hasAlpha, channels: hasAlpha ? 2 : 1 };
         };
     }
     else if (token === "-gamma" || token === "+gamma") {

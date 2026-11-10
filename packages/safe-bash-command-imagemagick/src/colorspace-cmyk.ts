@@ -37,7 +37,7 @@ export function* convertCmykPixels(image: RgbaImage & HueMetadata): Generator<vo
         if (offset % 65536 === 0) yield;
         hueSamples.set(rgbToCmyk(input[offset]! / range, input[offset + 1]! / range, input[offset + 2]! / range), offset);
     }
-    return { ...image, data16, space: "cmyk", channels: 4, hueSamples };
+    return { ...image, isPalette: false, data16, space: "cmyk", channels: 4, hueSamples };
 }
 
 /** Mixed append copies ink channels into the sRGB canvas without converting them. */

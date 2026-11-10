@@ -297,6 +297,7 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   // Current dependencies and scheduled stereowiden feedback measure about 12.839 MB.
   // Current dependencies and per-frame atrim bounds measure about 12.873 MB.
   // Current portable graph with two-input decimation measures 13,212,355 bytes.
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 13_225_000,
+  // Double-rate field weaving and the current graph measure about 13.226 MB.
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 13_235_000,
     `complete Worker bundle: ${result.outputFiles[0]!.contents.byteLength} bytes`);
 });

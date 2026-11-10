@@ -1227,9 +1227,8 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
             const row = !cmyk && channel === 3 ? 4 : channel;
             if (row >= rows) continue;
             let value = cols >= 6 ? m[row * cols + 5]! * 255 : 0;
-            for (let col = 0; col < 3; col++)
+            for (let col = 0; col < (cmyk ? 4 : 3); col++)
                 value += (col < cols ? m[row * cols + col]! : row === col ? 1 : 0) * (cmyk ? img.hueSamples![i + col]! * 255 : samples[i + col]! / scale);
-            if (cmyk && cols >= 4) value += m[row * cols + 3]! * img.hueSamples![i + 3]! * 255;
             if (cols >= 5 && hasAlpha) value += m[row * cols + 4]! * (samples[i + 3]! / scale);
             else if (row === 4) value += samples[i + 3]! / scale;
             if (cmyk && hueSamples && row < 4) {

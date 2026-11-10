@@ -1312,6 +1312,11 @@ async function panAudio(
       }
       clipPcm16 ||= sum > 32768;
     }
+  } else if (!double) {
+    // libswresample stores single-precision mix coefficients as floats.
+    for (const row of gains) {
+      for (let input = 0; input < row.length; input++) row[input] = Math.fround(row[input]!);
+    }
   }
   const SampleArray = double ? Float64Array : Float32Array;
   budget.allocateMemory(gains.length * (channels[0]?.length ?? 0) * SampleArray.BYTES_PER_ELEMENT);
@@ -1327,9 +1332,10 @@ async function panAudio(
       for (let input = 0; input < channels.length; input++) {
         // Zero-gain inputs must not contaminate selected channels with NaN.
         if (gains[out]![input] === 0) continue;
-        value += pcm16
-          ? Math.imul(channels[input]![sample]! * 32768, gains[out]![input]!)
-          : channels[input]![sample]! * gains[out]![input]!;
+        value = pcm16
+          ? value + Math.imul(channels[input]![sample]! * 32768, gains[out]![input]!)
+          : double ? value + channels[input]![sample]! * gains[out]![input]!
+          : Math.fround(value + Math.fround(channels[input]![sample]! * gains[out]![input]!));
       }
       if (pcm16) {
         // Native PCM16 products and the rounding bias wrap before shifting.

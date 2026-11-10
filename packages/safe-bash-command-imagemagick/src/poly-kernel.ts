@@ -12,7 +12,16 @@ export function parseMagickPoly(value: string): number[] {
             if (character.trim() === "") {
                 if (field) fields.push(field);
                 field = "";
-            } else field += character;
+            } else {
+                // Signs start the next term unless they belong to an exponent.
+                const sign = (character === "+" || character === "-") && !field.endsWith("e") && !field.endsWith("E");
+                const decimal = character === "." && (field.includes(".") || field.includes("e") || field.includes("E"));
+                if (field && (sign || decimal)) {
+                    fields.push(field);
+                    field = "";
+                }
+                field += character;
+            }
         }
         if (field) fields.push(field);
     }

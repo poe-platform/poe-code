@@ -26,7 +26,9 @@ export async function mixAudio(
   let normalize = true;
   let weights = [1];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  const options = argument ? argument.split(":") : [];
+  if (options.at(-1) === "") options.pop();
+  for (const [index, option] of options.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["inputs", "duration", "dropout_transition", "weights", "normalize"][index] : option.slice(0, separator);
     const value = separator < 0 ? option : option.slice(separator + 1);
@@ -36,7 +38,7 @@ export async function mixAudio(
       // Native integer options round to nearest, with halfway values going to even.
       count = numeric % 1 === 0.5 ? 2 * Math.round(numeric / 2) : Math.round(numeric);
     } else if (key === "duration") {
-      const numeric = parseFilterExpression(value, "amix", { longest: 0, shortest: 1, first: 2 });
+      const numeric = parseFilterExpression(value, "amix", { longest: 0, shortest: 1, first: 2, max: 2, default: 0 });
       if (numeric < 0 || numeric > 2) throw new Error("amix: invalid duration");
       const rounded = numeric % 1 === 0.5 ? 2 * Math.round(numeric / 2) : Math.round(numeric);
       duration = ["longest", "shortest", "first"][rounded]!;

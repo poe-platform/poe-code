@@ -34,6 +34,26 @@ async function mix(filter: string, a: number[], b: number[] | undefined, stereo 
 
 const a = Array.from({ length: 8192 }, (_, i) => i % 8 < 4 ? 8192 : -8192);
 const b = Array.from({ length: 4096 }, (_, i) => i < 2048 ? -16384 : 1024);
+for (const options of ["2", "weights=1 1", "2:longest:2:1 1", "2:shortest:0:1 1:0"]) {
+  it(`accepts a trailing amix separator after ${options}`, async () => {
+    const first = Array(2048).fill(12000);
+    const second = Array(733).fill(-4000);
+    const baseline = await mix(`amix=${options}`, first, second);
+    const trailing = await mix(`amix=${options}:`, first, second);
+    assert.equal(baseline.result.exitCode, 0, baseline.error);
+    assert.equal(trailing.result.exitCode, 0, trailing.error);
+    assert.deepEqual(trailing.volume.readFileSync("/out.wav"), baseline.volume.readFileSync("/out.wav"));
+  });
+}
+
+for (const options of ["2::", "2::0", "inputs=", "duration=", "unknown=1:"]) {
+  it(`rejects malformed amix ${options} without replacing output`, async () => {
+    const { result, volume } = await mix(`amix=${options}`, [12000], [-4000]);
+    assert.equal(result.exitCode, 1);
+    assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
+  });
+}
+
 for (const stereo of [false, true]) {
   for (const [filter, expected] of [
     ["amix=inputs=2:duration=shortest:normalize=0", b.map((v, i) => v + a[i]!)],
@@ -115,7 +135,7 @@ for (const filter of ["amix=inputs=3", "amix=duration=invalid", "amix=normalize=
 
 for (const prefix of ["normalize=", "2:longest:2:1 1:"]) {
   for (const [normalized, values] of [
-    [false, ["0", "false", "no", "off", "FaLsE", "NO", "OFF", "n", "disable", "disabled", "", "-0", "00"]],
+    [false, ["0", "false", "no", "off", "FaLsE", "NO", "OFF", "n", "disable", "disabled", ...(prefix === "normalize=" ? [""] : []), "-0", "00"]],
     [true, ["1", "true", "yes", "on", "TrUe", "YES", "ON", "y", "enable", "enabled", "+1", "01"]]
   ] as const) {
     it(`amix ${prefix} matches native ${normalized ? "normalized" : "summed"} PCM for boolean spellings`, async () => {

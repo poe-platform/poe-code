@@ -47,6 +47,7 @@ export function* hitAndMissPixelSteps(image: { width: number; height: number }, 
 
 /** Four-channel sliding histograms; rows gives (width - 1) / 2 at each vertical offset; half-integers allow even windows. Arrays specify sparse horizontal offsets. */
 export function* morphologyPixelSteps(image: { width: number; height: number; hasAlpha?: boolean }, rows: readonly MorphologyRow[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak", channels?: readonly boolean[], virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const highDepth = mode === "mean" || mode === "rms" || mode === "standarddeviation";
     const { width, height } = image, histogram = new Float64Array(4 * 256);
     const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
     const fill = new Uint8Array((virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
@@ -62,11 +63,12 @@ export function* morphologyPixelSteps(image: { width: number; height: number; ha
         sums.fill(0);
         squaredSums.fill(0);
         for (let left = 0; left < width; left += 1024) {
-            const count = Math.min(1024, width - left), data = mode === "mean" ? new Float64Array(count * 4) : new Uint8Array(count * 4);
+            const count = Math.min(1024, width - left);
+            const data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
             if (channels) {
                 const original = yield { kind: "read", position: (y * width + left) * 4, length: data.length };
                 if (!original || original.length !== data.length) throw new Error("Truncated morphology pixels");
-                data.set(original);
+                data.set(highDepth ? Uint16Array.from(original, value => value * 257) : original);
             }
             for (let local = 0; local < count; local++) {
                 const x = left + local;
@@ -101,9 +103,9 @@ export function* morphologyPixelSteps(image: { width: number; height: number; ha
                     let value = mode === "max" ? 255 : 0, seen = 0;
                     if (mode === "standarddeviation") {
                         const mean = sums[c]! / samples;
-                        value = Math.round(Math.sqrt(Math.max(0, squaredSums[c]! / samples - mean * mean)));
+                        value = Math.sqrt(Math.max(0, squaredSums[c]! / samples - mean * mean));
                     } else if (mode === "rms") {
-                        value = Math.round(Math.sqrt(sums[c]! / samples));
+                        value = Math.sqrt(sums[c]! / samples);
                     } else if (mode === "mean") {
                         value = sums[c]! / samples;
                     } else if (mode === "mode") {
@@ -134,12 +136,11 @@ export function* morphologyPixelSteps(image: { width: number; height: number; ha
                     } else {
                         while (value < 255 && histogram[c * 256 + value] === 0) value++;
                     }
-                    data[local * 4 + c] = value;
+                    // Q16-HDRI stores float quantum samples before rounding to 16-bit output.
+                    data[local * 4 + c] = highDepth ? Math.round(Math.fround(value * 257)) : value;
                 }
             }
-            if (data instanceof Float64Array) {
-                yield { kind: "write", highDepth: true, position: (y * width + left) * 4, data: new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) };
-            } else yield { kind: "write", position: (y * width + left) * 4, data };
+            yield { kind: "write", highDepth, position: (y * width + left) * 4, data: new Uint8Array(data.buffer) };
         }
     }
 }

@@ -19,7 +19,7 @@ it(`computes ${statistic}: ${fixture.name} (${mode})`, async () => {
     const input = await sharp(pixels, { raw: { width: fixture.width, height: fixture.values.length / fixture.width, channels: 4 } }).png().toBuffer();
     const files = new Map([["/in.png", input]]), fs = new MemoryFileSystem();
     await fs.writeFile("/in.png", input);
-    const args = ["/in.png", "-statistic", statistic, fixture.geometry, "/out.png"];
+    const args = ["/in.png", "-statistic", statistic, fixture.geometry, "PNG32:/out.png"];
     const stderr: string[] = [];
     const result = mode === "command" ? await createConvertCommand().execute({
         command: "convert", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,

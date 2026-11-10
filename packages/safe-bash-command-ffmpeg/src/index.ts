@@ -1321,6 +1321,8 @@ async function panAudio(
     for (let out = 0; out < output.length; out++) {
       let value = 0;
       for (let input = 0; input < channels.length; input++) {
+        // Zero-gain inputs must not contaminate selected channels with NaN.
+        if (gains[out]![input] === 0) continue;
         value += pcm16
           ? Math.imul(channels[input]![sample]! * 32768, gains[out]![input]!)
           : channels[input]![sample]! * gains[out]![input]!;

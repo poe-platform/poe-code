@@ -68,7 +68,10 @@ export async function flangeAudio(
       } else {
         const third = buffer[(write + integer + 2) % size]! - first;
         const delta = second - first;
-        last = first + ((third * 0.5 - delta) * fractional + delta * 2 - third * 0.5) * fractional;
+        // Preserve native coefficient grouping for double-precision rounding.
+        const a = third * 0.5 - delta;
+        const b = delta * 2 - third * 0.5;
+        last = first + (a * fractional + b) * fractional;
       }
       output[channel]![frame] = input * dry + last * wet;
     }

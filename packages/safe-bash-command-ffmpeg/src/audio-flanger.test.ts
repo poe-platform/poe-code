@@ -111,17 +111,39 @@ it("accepts the maximum phase of 100", async () => {
   assert.equal((volume.readFileSync("/out.s16") as Buffer).length, 48);
 });
 
-async function run(filter: string, frames = 256, stereo = false, graph = false) {
-  const channels = Array.from({ length: stereo ? 2 : 1 }, (_, c) =>
+// Native FFmpeg 7.0.2 hashes for the complete interleaved output.
+for (const [interp, format, hash] of [
+  ["quadratic", "f64le", "2403c6530f2448643263ecb12b191f2f0d1f71ca48c1a2f5509d9e96c19e5c70"],
+  ["linear", "f64le", "1ee6a7d6f3cae7c9af6b3733627cda9e060c07961f54c882c682848f5009673c"],
+  ["quadratic", "s16le", "2980a8d83baec22ce44a6429354b8662ce049f29ec98102c39b8232f416bc018"]
+] as const) {
+  it(`matches native ${interp} interpolation rounding in ${format}`, async () => {
+    const channels = [
+      Float64Array.from({ length: 40 }, (_, i) => ((i * 19991 + 123) % 44001 - 22000) / 32768),
+      Float64Array.from({ length: 40 }, (_, i) => ((i * 839 + 501) % 42001 - 21000) / 32768)
+    ];
+    const { volume, result, stderr } = await run(
+      `flanger=delay=1:depth=3:regen=95:width=100:speed=9.3:interp=${interp}`,
+      40, true, false, format, channels, 11025
+    );
+    assert.equal(result.exitCode, 0, stderr);
+    const pcm = volume.readFileSync("/out.s16") as Buffer;
+    assert.equal(pcm.length, 80 * (format === "f64le" ? 8 : 2));
+    assert.equal(createHash("sha256").update(pcm).digest("hex"), hash);
+  });
+}
+
+async function run(filter: string, frames = 256, stereo = false, graph = false, format = "s16le",
+  channels = Array.from({ length: stereo ? 2 : 1 }, (_, c) =>
     Float64Array.from({ length: frames }, (_, i) =>
-      (stereo ? (i * 997 + c * 831) % 32000 - 16000 : i === 0 ? 16000 : 0) / 32768));
+      (stereo ? (i * 997 + c * 831) % 32000 - 16000 : i === 0 ? 16000 : 0) / 32768)), sampleRate = 8000) {
   const volume = Volume.fromJSON({ "/out.s16": "keep" });
-  volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels }));
+  volume.writeFileSync("/in.wav", encodeWav({ sampleRate, channels }));
   let stderr = "";
   const result = await createFfmpegCommand().execute({
     args: ["-y", "-v", "error", "-i", "/in.wav", ...(graph
       ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
-      "-c:a", "pcm_s16le", "-f", "s16le", "/out.s16"],
+      "-c:a", `pcm_${format}`, "-f", format, "/out.s16"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
       async readFile(path: string) { return volume.readFileSync(path); },

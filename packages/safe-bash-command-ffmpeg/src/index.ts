@@ -12557,7 +12557,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const min = key === "delay" ? 1 : 0;
                           const max = key === "delay" ? 100 : key === "feedback" ? 0.9 : key === "crossfeed" ? 0.8 : 1;
                           if (!Number.isFinite(value) || value < min || value > max) {
-                            throw new Error(`stereowiden: ${key} must be in the range [${min}, ${max}]`);
+                            throw new RangeError(`stereowiden: ${key} must be in the range [${min}, ${max}]`);
                           }
                           options[key] = value;
                         }
@@ -14569,6 +14569,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "flanger: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("flanger: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("flanger:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg.startsWith("stereowiden: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("stereowiden:")) return { exitCode: 222 };
+            if (msg === "stereowiden: invalid expression" || msg === "stereowiden: invalid or unsupported expression") return { exitCode: 234 };
             if (msg === "atempo: unknown option") return { exitCode: 8 };
             if (msg.startsWith("atempo:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg === "fps: timeline is unsupported") return { exitCode: 176 };

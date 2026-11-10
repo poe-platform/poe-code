@@ -8,7 +8,7 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAgAAAABEAIAAAA88qRXAAAAJklEQVQI1yXJMQ4AAAgCMe7j+nLQga1JEUIoigIAc3NzdXe9XtcPGiYL/D1JW+kAAAAASUVORK5CYII=", "base64");
 
 for (const mode of ["buffered", "retained", "sync", "command"] as const) {
-    it.each(["bogus", "50%junk", "50%xjunk", "50x1%junk", "", "NaN", "Infinity", "0x1p15", "0x32%junk", "0x", "0b10", "0o10", "50%"])(`${mode}: validates solarize threshold %j before replacing output`, async threshold => {
+    it.each(["1xq", "50+2+3+4", "bogus", "50%junk", "50%xjunk", "50x1%junk", "", "NaN", "Infinity", "0x1p15", "0x32%junk", "0x", "0b10", "0o10", "50%"])(`${mode}: validates solarize threshold %j before replacing output`, async threshold => {
         const original = await sharp(Uint8Array.from([255, 0, 0]), { raw: { width: 1, height: 1, channels: 3 } }).png().toBuffer();
         const files = new Map([["/in.png", input], ["/out.png", original]]);
         const fs = new MemoryFileSystem();

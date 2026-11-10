@@ -7260,10 +7260,22 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         const value = tokens[++i] ?? "50%";
         const geometry = value.trim().toLowerCase();
-        const firstDigit = geometry.startsWith("-") || geometry.startsWith("+") ? 1 : 0;
-        const separator = geometry.indexOf("x", geometry.startsWith("0x", firstDigit) ? firstDigit + 2 : 0);
-        const fields = (separator < 0 ? [geometry] : [geometry.slice(0, separator), geometry.slice(separator + 1)]).map(field => field.trim());
-        const thresholds = fields.map(field => {
+        if (!geometry) throw new Error(`invalid argument '-solarize' '${value}'`);
+        const fields = [""];
+        let offsets = 0;
+        for (const character of geometry) {
+            if ("!<>^@#".includes(character)) continue;
+            const field = fields[fields.length - 1]!;
+            const unsigned = field.startsWith("-") || field.startsWith("+") ? field.slice(1) : field;
+            const offset = (character === "+" || character === "-") && field !== "" && !(field.endsWith("e") && !unsigned.startsWith("0x"));
+            if (offset && ++offsets > 2) throw new Error(`invalid argument '-solarize' '${value}'`);
+            if (character === "," || character === "/" || (character === "x" && unsigned !== "0") || offset) {
+                fields.push(offset ? character : "");
+            } else fields[fields.length - 1] += character;
+        }
+        const thresholds = fields.map(part => {
+            const field = part.trim();
+            if (!field) return 0;
             const threshold = field.endsWith("%") ? field.slice(0, -1) : field;
             const unsigned = threshold.startsWith("-") || threshold.startsWith("+") ? threshold.slice(1) : threshold;
             const hexadecimal = unsigned.startsWith("0x");

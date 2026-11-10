@@ -84,6 +84,7 @@ import { resampleAudio } from "./audio-resample.js";
 import { resampleStreamselectInput } from "./audio-astreamselect-resample.js";
 import { resampleSoxr } from "./audio-soxr.js";
 import { filterTempo } from "./audio-tempo.js";
+import { filterScheduledTempo } from "./audio-tempo-commands.js";
 import { datascopeFrame } from "./datascope.js";
 import { scaleFrame } from "./scale.js";
 import { xbrFrame } from "./xbr.js";
@@ -9798,7 +9799,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const time = Number(words.shift());
                           if (words[0] === "[enter]") words.shift();
                           const [target, action, expression] = words;
-                          const supported = action === "volume" && (target === "volume" || target?.startsWith("volume@"))
+                          const supported = action === "tempo" && (target === "atempo" || target?.startsWith("atempo@"))
+                            || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
                             || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
                             || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
                             || action === "feedback" && (target === "stereowiden" || target?.startsWith("stereowiden@"))
@@ -9808,7 +9810,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME stereowiden[@NAME] feedback GAIN or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME adelay[@NAME] delays DELAYS or TIME alimiter[@NAME] limit LIMIT or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN");
+                            throw new Error("asendcmd: expected TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback GAIN or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME adelay[@NAME] delays DELAYS or TIME alimiter[@NAME] limit LIMIT or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN");
                           }
                           return { time, target, action: action!, expression };
                         });
@@ -11666,15 +11668,60 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           : Math.min(inputLength, packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024);
                         const frameSize = Math.max(1, Math.round(inputFrameSize / tempo));
                         const tempoStartPts = inputFrame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample);
-                        stretched = await filterTempo(stretched, origRate, tempo, panSampleFormat === "s16", frameSize, budget, context.signal);
-                        // atempo emits frames sized for the new tempo on a continuous output timeline.
-                        const length = stretched[0]?.length ?? 0;
-                        budget.allocateMemory(Math.ceil(length / frameSize) * 24);
-                        audioTimestamps = [];
+                        const commands = audioCommands.filter(command => command.target === "atempo" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        audioCommands = audioCommands.filter(command => command.target !== "atempo" && command.target !== filterTarget);
+                        const downstreamCommands = audioCommands.some(command => audioFilters.slice(filterIndex + 1).some(item => {
+                          const target = item.trim().split("=", 1)[0]!;
+                          return command.target === target || command.target === target.split("@", 1)[0];
+                        }));
+                        if (commands.length || downstreamCommands) {
+                          if (!audioTimestamps) {
+                            audioTimestamps = [];
+                            for (let start = 0, n = 0; start < inputLength; n++) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              const packet = t.samples[n];
+                              const count = packet ? Math.max(0, Math.round(packet.duration * origRate / t.timescale)
+                                - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+                              if (count === 0) continue;
+                              const end = Math.min(inputLength, start + count);
+                              const pts = packet ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start;
+                              budget.allocateMemory(24);
+                              audioTimestamps.push({ start, end, pts });
+                              start = end;
+                            }
+                          }
+                          const result = await filterScheduledTempo(stretched, origRate, panSampleFormat === "s16", tempo,
+                            commands, audioTimestamps, budget, context.signal);
+                          stretched = result.channels;
+                          audioTimestamps = result.frames;
+                          // Commands reach downstream filters before this input frame is
+                          // processed, including audio still buffered by this tempo stage.
+                          audioCommands.sort((a, b) => a.sample - b.sample);
+                          let frameIndex = 0;
+                          let emitted = 0;
+                          for (const command of audioCommands) {
+                            while (frameIndex < result.frames.length && result.frames[frameIndex]!.inputEnd <= command.sample) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              emitted = result.frames[frameIndex++]!.end;
+                            }
+                            command.sample = emitted;
+                          }
+                        } else {
+                          stretched = await filterTempo(stretched, origRate, tempo, panSampleFormat === "s16", frameSize, budget, context.signal);
+                          // atempo emits frames sized for the new tempo on a continuous output timeline.
+                          const length = stretched[0]?.length ?? 0;
+                          budget.allocateMemory(Math.ceil(length / frameSize) * 24);
+                          audioTimestamps = [];
+                          for (let start = 0; start < length; start += frameSize) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            audioTimestamps.push({ start, end: Math.min(length, start + frameSize), pts: tempoStartPts + start });
+                          }
+                        }
                         const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
-                        for (let start = 0; start < length; start += frameSize) {
+                        for (const frame of audioTimestamps) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          audioTimestamps.push({ start, end: Math.min(length, start + frameSize), pts: tempoStartPts + Math.round(start / samplesPerTick) * samplesPerTick });
+                          frame.pts = tempoStartPts + Math.round(frame.start / samplesPerTick) * samplesPerTick;
                         }
                       } else if (trimmed === "dialoguenhance" || trimmed.startsWith("dialoguenhance=")) {
                         const values = [1, 1, 2];

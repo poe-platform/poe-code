@@ -1036,9 +1036,7 @@ function parseAsetnsamples(argument: string) {
       if (number < 1 || number > 2147483647) throw new RangeError("asetnsamples: invalid frame size");
       size = roundToEven(number);
     } else if (key === "p" || key === "pad") {
-      const boolean = value.toLowerCase();
-      if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(boolean)) throw new Error("asetnsamples: invalid pad");
-      pad = ["1", "true", "yes", "on"].includes(boolean);
+      pad = parseFilterBoolean(value, "asetnsamples: invalid pad");
     } else throw new Error(`asetnsamples: unsupported option ${key}`);
   }
   return { size, pad };

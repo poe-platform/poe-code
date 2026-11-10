@@ -3768,6 +3768,60 @@ async function applyVideoFilterChain(
         return n % step === 0;
       })
         .map(frame => ({ ...frame, durationSeconds: frame.durationSeconds * step }));
+    } else if (name === "field") {
+      if (positional.at(-1) === "") positional.pop();
+      if (positional.slice(1).some(part => !part.includes("=")) || Object.keys(named).some(key => key !== "type")) {
+        throw new Error("field: expected type=top or bottom");
+      }
+      const value = parseFilterExpression(named.type ?? (positional[0]?.includes("=") ? "top" : positional[0] || "top"),
+        "field", { top: 0, bottom: 1, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+      if (!Number.isFinite(value) || value < 0 || value > 1) throw new RangeError("field: expected type=top or bottom");
+      const parity = roundToEven(value);
+      current = await mapWork(current, async (f) => {
+        const height = Math.floor(f.height / 2);
+        if (height === 0) throw new Error("field: input height must be at least two");
+        budget.recordFrame(f.width, height);
+        const output = { ...f, height, interlaced: false, topFieldFirst: false };
+        const native = f.native;
+        if (native?.rgba === f.data && native.width === f.width && native.height === f.height &&
+            [0, 4, 5, 12, 13, 14, 29, 49, 68].includes(native.format)) {
+          const hsub = [0, 4, 12, 13].includes(native.format) ? 2 : 1;
+          const vsub = [0, 12].includes(native.format) ? 2 : 1;
+          const sampleBytes = [29, 49, 68].includes(native.format) ? 2 : 1;
+          const planeCount = native.format === 29 ? 1 : 3;
+          const pixelBytes = (f.width * height + (planeCount - 1) * Math.ceil(f.width / hsub) * Math.ceil(height / vsub)) * sampleBytes;
+          budget.allocateMemory(pixelBytes + f.width * height * 4 + 128);
+          const pixels = new Uint8Array(pixelBytes);
+          let inputOffset = 0;
+          let outputOffset = 0;
+          for (let plane = 0; plane < planeCount; plane++) {
+            const stride = Math.ceil(f.width / (plane === 0 ? 1 : hsub)) * sampleBytes;
+            const inputHeight = Math.ceil(f.height / (plane === 0 ? 1 : vsub));
+            const planeHeight = Math.ceil(height / (plane === 0 ? 1 : vsub));
+            for (let row = 0; row < planeHeight; row++) {
+              if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+              const start = inputOffset + (row * 2 + parity) * stride;
+              pixels.set(native.pixels.subarray(start, Math.min(start + stride, inputOffset + inputHeight * stride)), outputOffset + row * stride);
+            }
+            inputOffset += stride * inputHeight;
+            outputOffset += stride * planeHeight;
+          }
+          output.native = { ...native, height, pixels };
+          output.data = scaleVideoPicture(output, f.width, height)!;
+          output.native = { ...output.native, rgba: output.data };
+        } else {
+          const stride = f.width * 4;
+          budget.allocateMemory(stride * height);
+          output.data = new Uint8Array(stride * height);
+          for (let row = 0; row < height; row++) {
+            if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            const start = (row * 2 + parity) * stride;
+            output.data.set(f.data.subarray(start, start + stride), row * stride);
+          }
+          delete output.native;
+        }
+        return output;
+      }, signal);
     } else if (name === "tinterlace") {
       if (positional.length > 1 && positional.at(-1) === "") positional.pop();
       for (const key of Object.keys(named)) {

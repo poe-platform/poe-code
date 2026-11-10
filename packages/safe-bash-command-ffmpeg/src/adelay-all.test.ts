@@ -14,7 +14,14 @@ for (const [value, all] of [
   ["FaLsE", false], ["nO", false], ["oFf", false],
   ["FALSE", false], ["NO", false], ["OFF", false],
   ["false", false], ["no", false], ["off", false], ["0", false],
-  ["maybe", null], ["MaYbE", null], ["", null]
+  ["enable", true], ["EnAbLeD", true], ["Y", true], ["y", true],
+  ["disable", false], ["DiSaBlEd", false], ["N", false], ["n", false],
+  ["+1", true], ["01", true], ["0001", true], ["+0001", true],
+  ["+0", false], ["-0", false], ["00", false], ["+0000", false], ["-0000", false],
+  ["maybe", null], ["MaYbE", null], ["", null],
+  ["2", null], ["-1", null], ["+2", null], ["0002", null],
+  ["1.0", null], ["0.0", null], ["1e0", null], ["0x1", null],
+  ["1junk", null], ["+", null], ["-", null], ["++1", null], ["+ 1", null]
 ] as const) {
   for (const graph of [false, true]) {
     for (const named of [false, true]) {
@@ -23,6 +30,7 @@ for (const [value, all] of [
         const volume = new Volume();
         volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000,
           channels: channels.map(channel => Float64Array.from(channel, sample => sample / 32768)) }));
+        volume.writeFileSync("/out.wav", "existing output");
         let stderr = "";
         const result = await createFfmpegCommand().execute({
           args: ["-v", "error", "-y", "-i", "/in.wav", ...(graph
@@ -40,6 +48,7 @@ for (const [value, all] of [
         if (all === null) {
           assert.equal(result.exitCode, 1);
           assert.ok(stderr.includes("adelay: invalid all option"), stderr);
+          assert.equal(volume.readFileSync("/out.wav", "utf8"), "existing output");
           return;
         }
         assert.equal(result.exitCode, 0, stderr);

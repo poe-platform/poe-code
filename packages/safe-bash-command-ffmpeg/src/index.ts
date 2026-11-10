@@ -10354,11 +10354,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           if (key === "delays") delays = value;
                           else if (key === "all") {
-                            const flag = value.toLowerCase();
-                            if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(flag)) {
-                              throw new Error("adelay: invalid all option");
-                            }
-                            all = ["1", "true", "yes", "on"].includes(flag);
+                            all = parseFilterBoolean(value || "invalid", "adelay: invalid all option");
                           } else if (key === "enable") {
                             enable = value;
                             parseFilterExpression(enable, "adelay enable", { n: 0, t: 0 });

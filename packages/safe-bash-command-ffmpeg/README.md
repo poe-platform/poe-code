@@ -147,8 +147,10 @@ Hexadecimal milliseconds accept fractions and binary exponents: `0x1p-2` delays 
 Leading `+` and trailing text are accepted, as in `+2S`, `0.5ms`, or `2Sabc`. `adelay=1S:all=1` repeats the last delay for remaining channels.
 Negative delays are accepted only when they truncate to zero samples: at 8 kHz,
 `-0.1249` milliseconds is accepted, while `-0.125` is rejected.
-`all` accepts `1`/`0` or case-insensitive `true`/`false`, `yes`/`no`, and `on`/`off`;
-when false or omitted, unspecified channels are unchanged. Empty entries are skipped,
+`all` accepts signed or zero-padded decimal `1`/`0` (such as `+1`, `0001`, or `-0`)
+and case-insensitive `true`/`false`, `yes`/`no`, `y`/`n`, `on`/`off`,
+`enable`/`disable`, and `enabled`/`disabled`, in named or positional form.
+When false or omitted, unspecified channels are unchanged. Empty entries are skipped,
 so `adelay=|1S` delays the first channel. Omitted delays pass audio through unchanged,
 including `adelay`, `adelay=`, and `adelay=all=1`.
 `enable` expressions are evaluated at input frame timestamps, as in

@@ -9590,12 +9590,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-flip") {
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                return { ...yield* flipImageSteps(im), virtualCanvas: magickMirrorCanvas(im, "flip") };
+                return { ...yield* flipImageSteps(im),
+                    ...(im.region ? { region: { ...im.region, y: im.height - im.region.y - im.region.height } } : {}),
+                    virtualCanvas: magickMirrorCanvas(im, "flip") };
             }));
         }
         else if (t === "-flop") {
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 return { ...yield* flopImageSteps(im),
+                    ...(im.region ? { region: { ...im.region, x: im.width - im.region.x - im.region.width } } : {}),
                     ...(im.writeMask ? { writeMask: yield* flopImageSteps(im.writeMask) } : {}),
                     virtualCanvas: magickMirrorCanvas(im, "flop") };
             }));
@@ -11909,7 +11912,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 let output: StoredRgbaImage = await transformStoredImage(image, backend.storage, { kind }, signal);
                 if (kind === "flop" && image.storedWriteMask) output.storedWriteMask = await transformStoredImage(image.storedWriteMask, backend.storage, { kind }, signal);
-                if (kind === "autoOrient" && image.region) output.region = orientRegion(image.region, image);
+                if (image.region) output.region = kind === "autoOrient" ? orientRegion(image.region, image)
+                    : kind === "flip" ? { ...image.region, y: image.height - image.region.y - image.region.height }
+                    : { ...image.region, x: image.width - image.region.x - image.region.width };
                 if (kind === "autoOrient" && orientation !== undefined) output = { ...output, orientation };
                 const virtualCanvas = kind === "autoOrient" ? magickAutoOrientCanvas(image) : magickMirrorCanvas(image, kind);
                 return virtualCanvas ? { ...output, virtualCanvas } : output;

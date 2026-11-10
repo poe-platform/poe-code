@@ -5495,7 +5495,7 @@ describe("decoded audio editing", () => {
     });
   }
 
-  for (const filter of ["volume=1", "areverse", "anull", "anull@identity"]) {
+  for (const filter of ["volume=1", "volume=", "areverse", "anull", "anull@identity"]) {
     it(`preserves every PCM sample at unchanged rate with ${filter}`, async () => {
       const input = encodeWav({ sampleRate: 8000, channels: [Float64Array.from({ length: 800 }, (_, i) => 0.125 * Math.sin(2 * Math.PI * 1000 * i / 8000))] });
       const expected = parseWav(input).tracks[0]!.decodedAudio!;
@@ -5526,7 +5526,7 @@ describe("decoded audio editing", () => {
     }
   });
 
-  for (const expression of ["banana", "1junk", "", "dB", "bananadB", "6junkdB", "NaN", "Infinity", "(1+2", "unknown(0)"]) {
+  for (const expression of ["banana", "1junk", "dB", "bananadB", "6junkdB", "NaN", "Infinity", "(1+2", "unknown(0)"]) {
     for (const existing of [false, true]) {
       it(`rejects volume=${expression} with existing output=${existing}`, async () => {
         const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(80).fill(0.125)] });

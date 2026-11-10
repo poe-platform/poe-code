@@ -536,6 +536,9 @@ FFmpeg's default 2.1, 4.0, or 5.1 layout before downmixing.
 Delay is in milliseconds (1–100, default 20),
 rounded to the nearest sample with exact halves rounding to even;
 feedback (0–0.9), crossfeed (0–0.8), and drymix (0–1) default to 0.3, 0.3, and 0.8.
+Numeric options accept `min`, `max`, and `default` for their own limits and defaults,
+plus `PI`, `E`, and `PHI`, including in runtime gain commands. Numeric `min(...)`
+and `max(...)` calls are invalid; setup returns status 234 without replacing output.
 Setting `feedback=0:crossfeed=0:drymix=1` preserves the input samples.
 `asendcmd=c='0.064 stereowiden@x feedback 0',stereowiden@x=feedback=0.5`
 changes feedback at the next audio frame without resetting delay history. Commands

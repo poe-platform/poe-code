@@ -12546,7 +12546,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredSampleFormat = "flt";
                         if (stretched.length !== 2) throw new Error("stereowiden: stereo input required");
                         let enable: string | undefined;
-                        const options = { delay: 20, feedback: 0.3, crossfeed: 0.3, drymix: 0.8 };
+                        const defaults = { delay: 20, feedback: 0.3, crossfeed: 0.3, drymix: 0.8 };
+                        const options = { ...defaults };
                         const argument = trimmed.slice("stereowiden=".length);
                         const entries = argument ? argument.split(":") : [];
                         if (argument.endsWith(":")) entries.pop();
@@ -12569,9 +12570,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                             throw new Error(`stereowiden: unsupported option ${key}`);
                           }
-                          const value = parseFilterExpression((separator < 0 ? option : option.slice(separator + 1)).trim(), "stereowiden", {});
                           const min = key === "delay" ? 1 : 0;
                           const max = key === "delay" ? 100 : key === "feedback" ? 0.9 : key === "crossfeed" ? 0.8 : 1;
+                          const value = parseFilterExpression((separator < 0 ? option : option.slice(separator + 1)).trim(), "stereowiden", {
+                            min, max, default: defaults[key], PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+                          });
                           if (!Number.isFinite(value) || value < min || value > max) {
                             throw new RangeError(`stereowiden: ${key} must be in the range [${min}, ${max}]`);
                           }
@@ -12608,7 +12611,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             while (nextCommand < commands.length && commands[nextCommand]!.sample <= i) {
                               const command = commands[nextCommand++]!;
                               try {
-                                const value = parseFilterExpression(command.expression, "stereowiden", {});
+                                const value = parseFilterExpression(command.expression, "stereowiden", {
+                                  min: 0, max: 0.9, default: defaults.feedback, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+                                });
                                 if (Number.isFinite(value) && value >= 0 && value <= 0.9) feedback = Math.fround(value);
                               } catch { /* Rejected runtime commands leave the current feedback unchanged. */ }
                             }

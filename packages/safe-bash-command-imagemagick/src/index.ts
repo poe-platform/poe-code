@@ -10157,6 +10157,9 @@ if (t === "-intent" || t === "+intent") {
             delete state.densityGeometry;
             state.density = 72;
         }
+        else if (t === "+units") {
+            delete state.units;
+        }
         else if (t === "+fuzz") {
             state.optionProperties = { ...state.optionProperties, fuzz: "0" };
             state.alphaFuzz = 0;
@@ -12598,7 +12601,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             yield;
             let image = stack[index]!;
             if (state.orientation !== undefined) image = { ...image, orientation: state.orientation };
-            if (state.units !== undefined) image = applyMagickUnits(image, state.units);
+            if (state.units !== undefined && state.units !== "unknown") image = applyMagickUnits(image, state.units);
             if (state.densityGeometry !== undefined) image = applyMagickDensity(image, state.densityGeometry);
             stack[index] = image;
         }
@@ -15586,7 +15589,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 await yieldTurn(signal);
                 let image = (await stack.get(index))!;
                 if (state.orientation !== undefined) image = { ...image, orientation: state.orientation };
-                if (state.units !== undefined) image = applyMagickUnits(image, state.units);
+                if (state.units !== undefined && state.units !== "unknown") image = applyMagickUnits(image, state.units);
                 if (state.densityGeometry !== undefined) image = applyMagickDensity(image, state.densityGeometry);
                 await stack.set(index, image);
             }

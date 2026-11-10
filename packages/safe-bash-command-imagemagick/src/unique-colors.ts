@@ -70,7 +70,7 @@ export function* uniqueColorsSteps(image: RgbaImage & HueMetadata): Generator<vo
         if (evaluateSamples) evaluateSamples.set(image.evaluateSamples!.subarray(offset, offset + 4), index * 4);
     }
     const virtualCanvas = magickResizeCanvas(image, pixels.length, 1);
-    return { ...image, width: pixels.length, height: 1, ...(virtualCanvas ? { virtualCanvas } : {}), data, ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}) };
+    return { ...image, isPalette: false, width: pixels.length, height: 1, ...(virtualCanvas ? { virtualCanvas } : {}), data, ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}) };
 }
 
 export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal): Promise<StoredRgbaImage & HueMetadata> {
@@ -149,5 +149,5 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata, s
         }
     }
     const virtualCanvas = magickResizeCanvas(image, count, 1);
-    return { ...image, position, width: count, height: 1, ...(virtualCanvas ? { virtualCanvas } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}) };
+    return { ...image, isPalette: false, position, width: count, height: 1, ...(virtualCanvas ? { virtualCanvas } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}) };
 }

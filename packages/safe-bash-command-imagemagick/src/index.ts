@@ -1473,8 +1473,9 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   if (statistics) {
     statistics.mean = 0;
     statistics.standard_deviation = 0;
-    statistics.minima = 1;
-    statistics.maxima = 0;
+    // Native empty-channel extrema retain the Q16-normalized double limits.
+    statistics.minima = Number.MAX_VALUE / 65535;
+    statistics.maxima = -Number.MAX_VALUE / 65535;
     statistics.median = 0;
     statistics.skewness = 0;
     statistics.kurtosis = 0;
@@ -1529,13 +1530,15 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       statistics[`maxima.${c}`] = maximum / 65535;
       statistics[`median.${c}`] = median / 65535;
       if (selectedChannels[c]) selectedMedian += median / selectedCount;
-      statistics.minima = Math.min(statistics.minima, minimum / 65535);
-      statistics.maxima = Math.max(statistics.maxima, maximum / 65535);
+      if (selectedChannels[c]) {
+        statistics.minima = Math.min(statistics.minima, minimum / 65535);
+        statistics.maxima = Math.max(statistics.maxima, maximum / 65535);
+        statistics.standard_deviation += deviation / selectedCount;
+      }
       statistics.median += median / 65535 / channels;
       statistics[`mean.${c}`] = selectedChannels[c] ? means[c]! : 0;
       statistics[`standard_deviation.${c}`] = deviation;
       if (selectedChannels[c]) statistics.mean += means[c]! / selectedCount;
-      statistics.standard_deviation += deviation / channels;
     }
     if (!img.hasAlpha) {
       statistics["minima.3"] = 0;

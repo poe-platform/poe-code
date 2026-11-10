@@ -40,3 +40,33 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
         expect(Buffer.from(output.data).toString("hex")).toBe(rgba.repeat(copies));
     });
 }
+
+// Native ImageMagick 7.1.2-35 Q16-HDRI, PNG64 decoded as little-endian RGBA16.
+for (const mode of ["sync", "buffered", "retained", "command"] as const) {
+    it.each([
+        { name: "over-range samples", operations: ["-evaluate", "Multiply", "1.5"], rgba: "ffff10b1f95cffffb9d5bcdfabbcffff7815ae4a7a7effff6f076831b54bffff" },
+        { name: "explicitly clamped samples", operations: ["-evaluate", "Multiply", "1.5", "-clamp"], rgba: "42f4b2ad7d59ffffeddcd9dd59baffff531d104ac47dffff480c17314d4bffff" },
+        { name: "recovered samples", operations: ["-evaluate", "Multiply", "1.5", "-evaluate", "Divide", "1.5"], rgba: "61b93474bb39ffff8f94b493c279ffff3b173431f152ffff210b9e209b31ffff" },
+        { name: "original samples", operations: [], rgba: "61b93474bb39ffff8f94b493c279ffff3b173431f152ffff210b9e209b31ffff" }
+    ])(`white-balances $name at native precision via ${mode}`, async ({ operations, rgba }) => {
+        const bytes = await sharp(Buffer.from("c07030a09070203050102030", "hex"), {
+            raw: { width: 4, height: 1, channels: 3 }
+        }).png().toBuffer();
+        const files = new Map([["input.png", bytes]]);
+        const fs = new MemoryFileSystem();
+        await fs.writeFile("/input.png", bytes);
+        const args = ["input.png", ...operations, "-white-balance", "PNG64:output.png"];
+        let stdout = "", stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+        }) : mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        expect({ stdout, stderr, ...result }).toEqual({ exitCode: 0, stdout: "", stderr: "" });
+        const output = decodeImage((mode === "retained" || mode === "command") ? await fs.readFile("/output.png") : files.get("output.png")!);
+        const expected = Buffer.from(rgba, "hex");
+        expect(Array.from(output.data16!)).toEqual(Array.from({ length: expected.length / 2 }, (_, index) => expected.readUInt16LE(index * 2)));
+    });
+}

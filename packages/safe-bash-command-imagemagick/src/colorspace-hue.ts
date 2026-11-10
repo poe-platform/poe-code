@@ -13,7 +13,9 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
     const toHue = target !== "sRGB", hsb = toHue ? target === "HSB" || target === "HSV" : image.magickColorspace === "HSB" || image.magickColorspace === "HSV";
     const hwb = toHue ? target === "HWB" : image.magickColorspace === "HWB";
     const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
-    const input = image.hueSamples ?? image.data16 ?? image.data, range = image.hueSamples ? 1 : image.data16 ? 65535 : 255;
+    // Lab must see HDRI working samples before the integer backing clamps them.
+    const evaluateSamples = target === "CIELab" ? image.evaluateSamples : undefined;
+    const input = image.hueSamples ?? evaluateSamples ?? image.data16 ?? image.data, range = image.hueSamples ? 1 : evaluateSamples ? 255 : image.data16 ? 65535 : 255;
     const hueSamples = toHue ? new Float64Array(data.length) : undefined;
     for (let offset = 0; offset < data.length; offset += 4) {
         if (offset % 65536 === 0) yield;
@@ -90,7 +92,7 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
             data[offset + channel] = Math.round(Math.max(0, Math.min(1, value)) * 255);
         }
     }
-    const { magickColorspace: ignored, hueSamples: ignoredSamples, storedHueSamples: ignoredStored, ...metadata } = image;
+    const { magickColorspace: ignored, hueSamples: ignoredSamples, storedHueSamples: ignoredStored, evaluateSamples: ignoredEvaluate, ...metadata } = image;
     return { ...metadata, data, data16, space: "srgb", channels: image.hasAlpha ? 4 : 3, ...(hueSamples ? { magickColorspace: target as "HCL" | "HCLp" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CIELab" | "YCbCr" | "YUV", hueSamples } : {}) };
 }
 

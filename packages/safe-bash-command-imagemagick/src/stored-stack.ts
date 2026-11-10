@@ -5,6 +5,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 export const magickInput = Symbol("magickInput");
 export interface MagickFormatContext {
     filePath?: string;
+    outputFilePath?: string;
     originalInput?: string;
     byteLen?: number;
     mtimeMs?: number;

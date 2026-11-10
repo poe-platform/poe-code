@@ -83,7 +83,7 @@ describe("ImageMagick property formatting", () => {
     const path = "/test%b-%n-%[mean].png";
     const bytes = await sharp({ create: { width: 8, height: 4, channels: 3, background: "red" } }).png().toBuffer();
     const result = await runMagickCli([path, "-resize", "4x2!", "-format", "%f|%i|%[width]x%[height]|%wx%h|%[size]|%[hex:p{0,0}]", "info:"], new Map([[path, bytes]]));
-    expect(result).toMatchObject({ exitCode: 0, stdout: `test%b-%n-%[mean].png|${path}|8x4|4x2|${bytes.byteLength}B|FF0000\n`, stderr: "" });
+    expect(result).toMatchObject({ exitCode: 0, stdout: `test%b-%n-%[mean].png||8x4|4x2|${bytes.byteLength}B|FF0000\n`, stderr: "" });
   });
 
   it("preserves original dimensions when JPEG decoding is downscaled for a resize", async () => {

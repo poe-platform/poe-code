@@ -40,5 +40,5 @@ it.each([
       expect({ ...result, stdout, stderr }).toEqual(expected);
     }
   }
-  expect(await runMagickCli([path, "-format", format, "info:"], files)).toEqual({ ...expected, stdout: `${expected.stdout}\n` });
+  expect(await runMagickCli([path, "-format", format, "info:"], files)).toEqual({ ...expected, stdout: `${directory}|${directory}|${basename}|${extension}|${filename}|${basename}|${extension}||${directory}|%d|%[basename]\n` });
 });

@@ -24,6 +24,6 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         expect("stdout" in result ? result.stdout : stdout).toBe("");
         expect("stderr" in result ? result.stderr : stderr).toBe("");
         const output = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
-        expect(new TextDecoder().decode(output)).toBe(String(depth ?? 8));
+        expect(new TextDecoder().decode(output)).toBe(String(depth ?? 16));
     });
 }

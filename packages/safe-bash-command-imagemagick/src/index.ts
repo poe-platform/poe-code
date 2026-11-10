@@ -8410,6 +8410,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         // Only the first x/X separates endpoints; a trailing x field is not gamma.
         const parts = raw.toLowerCase().replaceAll("!", "").replace("x", ",").replaceAll("/", ",").replaceAll(":", ",").split(",");
+        if (!colorEndpoints) {
+            const whiteField = parts[1]?.trim() ?? "";
+            // A sign after the white point starts gamma, except in an exponent.
+            for (let index = 1; index < whiteField.length; index++) {
+                if ((whiteField[index] === "+" || whiteField[index] === "-") && whiteField[index - 1]?.toLowerCase() !== "e") {
+                    parts.splice(1, 1, whiteField.slice(0, index), whiteField.slice(index));
+                    break;
+                }
+            }
+        }
         // Colon geometry expresses a ratio with a unit white point.
         if (!colorEndpoints && raw.includes(":")) {
             parts[0] = String(parseFloat(parts[0]!) / parseFloat(parts[1]!));

@@ -82,14 +82,16 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
     const working = format === "gray" && (depth === 10 || depth === 12) ? image.evaluateSamples : undefined;
     const view = new DataView(data.buffer), samples = working ?? image.data16 ?? image.data;
     const scale = !working && image.data16 ? 65535 : 255, maximum = 2 ** depth - 1;
+    // Native packed BGR/BGRO below 8 bits and BGR-family Plane output use RGB order.
+    const reverseChannels = format.startsWith("bgr") && options.rawInterlace !== "plane"
+        && !(depth < 8 && !options.rawInterlace && (format === "bgr" || format === "bgro"));
     for (let pixel = 0; pixel < pixels; pixel++) {
         const inks = format.startsWith("cmyk") ? image.space === "cmyk" && image.hueSamples
             ? image.hueSamples.subarray(pixel * 4, pixel * 4 + 4)
             : rgbToCmyk(samples[pixel * 4]! / scale, samples[pixel * 4 + 1]! / scale, samples[pixel * 4 + 2]! / scale) : undefined;
         for (let c = 0; c < channels.length; c++) {
             const channel = channels[c]!;
-            // Native BGR/BGRA Plane output uses RGB order, unlike packed and Line output.
-            const index = format === "graya" && channel === 1 ? 3 : format.startsWith("bgr") && options.rawInterlace !== "plane" && channel < 3 ? 2 - channel : channel;
+            const index = format === "graya" && channel === 1 ? 3 : reverseChannels && channel < 3 ? 2 - channel : channel;
             const value = inks
                 ? channel < 4 ? Math.max(0, Math.min(1, inks[channel]!)) * scale : image.hasAlpha ? samples[pixel * 4 + 3]! : scale
                 : format.startsWith("gray") && channel === 0

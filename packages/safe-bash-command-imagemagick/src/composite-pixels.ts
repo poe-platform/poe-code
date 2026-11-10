@@ -79,6 +79,11 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                 }
                 continue;
             }
+            if (norm === "stereo") {
+                out[dIdx] = sr;
+                out[dIdx + 3] = clampByteVal((saByte + daByte) / 2);
+                continue;
+            }
             if (norm === "mathematics") {
                 const alpha = sa + da - sa * da;
                 for (let c = 0; c < 3; c++) {

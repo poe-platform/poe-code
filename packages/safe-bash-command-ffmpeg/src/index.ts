@@ -14698,7 +14698,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         if (!outputNames && paired && !numericOutput) {
-                          const destinations = entries.map(entry => channelName(entry[1]!));
+                          const destinations = entries.map(entry => entry[1]!);
                           if (destinations.some(name => !speakers.includes(name))) throw new Error("channelmap: invalid output channel");
                           outputNames = speakers.filter(name => destinations.includes(name));
                         }

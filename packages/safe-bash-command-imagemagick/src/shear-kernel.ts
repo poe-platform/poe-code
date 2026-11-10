@@ -25,7 +25,7 @@ export function shearPlan(image: Pick<RgbaImage, "width" | "height" | "hasAlpha"
         columnOffset: Math.floor((fullWidth - width) / 2) };
 }
 
-export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "space" | "storedData16" | "storedHueSamples">>, plan: ReturnType<typeof shearPlan>, background: RgbaColor, compose: string, composeArgs?: string, fuzz = 0): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "space" | "storedData16" | "storedHueSamples">>, plan: ReturnType<typeof shearPlan>, background: RgbaColor, compose: string, composeArgs?: string, fuzz = 0, selected?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const hue = source.space !== "cmyk" && (!!source.hueSamples || source.storedHueSamples !== undefined);
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
     const bg = [background.r, background.g, background.b, background.a].map(value => value * scale);
@@ -71,6 +71,8 @@ export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "d
                             yield* compositePixelsSteps(canvas, overlay, composite, compose, 0, 0, composeArgs, fuzz, true);
                             for (let c = 0; c < 4; c++) composite[c]! *= scale;
                         }
+                        // BorderImage leaves unselected channels on its background canvas.
+                        for (let c = 0; c < 4; c++) if (selected && !selected[c]) composite[c] = bg[c]!;
                         pixel = composite;
                     }
                     const alpha = weight * pixel[3]!;

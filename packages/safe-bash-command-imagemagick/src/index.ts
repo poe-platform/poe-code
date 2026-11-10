@@ -3850,7 +3850,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     const interpolation = state.interpolation ?? "bilinear";
     const background = state.background, backgroundExplicit = state.backgroundExplicit, virtualPixel = state.virtualPixel ?? (distort || token === "-implode" || token === "-swirl" || token === "-spread" ? "edge" : undefined);
     const kernel = distort ? state.kernel : undefined, filter = distort ? state.resizeFilter : undefined;
-    const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b] : undefined;
+    const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
     const compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz, seed = state.seed ?? 0n;
     return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas">, geometry = spec) => {
         if (token === "-shear") {
@@ -3860,7 +3860,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             const virtualCanvas = {
                 width: plan.width, height: plan.height, x: image.virtualCanvas?.x ?? 0, y: image.virtualCanvas?.y ?? 0
             };
-            return { ...plan, virtualCanvas, steps: shearPixelSteps(image, plan, backgroundExplicit ? background : image.backgroundColor ?? background, compose, composeArgs, fuzz) };
+            return { ...plan, virtualCanvas, steps: shearPixelSteps(image, plan, backgroundExplicit ? background : image.backgroundColor ?? background, compose, composeArgs, fuzz, channels) };
         }
         if (["-wave", "-swirl", "-implode", "-spread"].includes(token)) validateMagickTransformGeometry(geometry, token);
         if (token === "-spread") {

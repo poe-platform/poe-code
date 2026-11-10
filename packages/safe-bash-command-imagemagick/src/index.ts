@@ -9651,6 +9651,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 let output = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
+                // Shear's border canvas initializes any write-mask channel to zero.
+                if (t === "-shear" && image.writeMask) {
+                    output.writeMask = yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 });
+                }
                 // Nonzero shear borders the image, clearing its retained read-mask selection.
                 if (t === "-shear" && image.readMask) {
                     output.readMask = yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 });
@@ -11842,6 +11846,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 let output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);
+                if (token === "-shear" && image.storedWriteMask) {
+                    output.storedWriteMask = await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
+                }
                 if (token === "-shear" && image.readMask) {
                     output.readMask = await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 }

@@ -11642,8 +11642,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     const current = stack[n]!, previous = canvas;
                     const x = current.virtualCanvas?.x ?? 0, y = current.virtualCanvas?.y ?? 0;
                     if (n > 0) stack[n] = yield* applyMagickRasterSteps(current, optimizeTransparencyPixels(canvas, current, state.fuzz), signal, { ...current, hasAlpha: true }, [current, canvas]);
-                    // Keep the original pixels for subsequent comparisons and apply disposal.
-                    canvas = yield* compositeImageSteps(canvas, [rgbaToCompositeLayer(current, x, y, "over")]);
+                    // Compare later frames against the canvas left by the optimized frame.
+                    canvas = yield* compositeImageSteps(canvas, [rgbaToCompositeLayer(stack[n]!, x, y, "over")]);
                     if (current.disposal === 3) canvas = previous;
                     else if (current.disposal === 2) {
                         const data = new Uint8Array(canvas.data);
@@ -14955,8 +14955,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 for (let n = 0; n < stack.length; n++) {
                     const current = (await stack.get(n))!, previous = canvas;
                     const x = current.virtualCanvas?.x ?? 0, y = current.virtualCanvas?.y ?? 0;
-                    if (n > 0) await stack.set(n, await transformStoredMagickRaster(current, backend, optimizeTransparencyPixels(canvas, current, fuzz), signal, { ...current, hasAlpha: true }, [current, canvas]));
-                    canvas = await compositeStoredMagick(canvas, current, backend, signal, x, y, "over", undefined, true);
+                    const optimized = n > 0 ? await transformStoredMagickRaster(current, backend, optimizeTransparencyPixels(canvas, current, fuzz), signal, { ...current, hasAlpha: true }, [current, canvas]) : current;
+                    if (n > 0) await stack.set(n, optimized);
+                    canvas = await compositeStoredMagick(canvas, optimized, backend, signal, x, y, "over", undefined, true);
                     if (current.disposal === 3) canvas = previous;
                     else if (current.disposal === 2) {
                         const clear = await createStoredCanvas(current.width, current.height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);

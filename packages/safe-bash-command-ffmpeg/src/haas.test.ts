@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
+import { createHash } from "node:crypto";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
 import { parseWav } from "@poe-code/mp4-ast";
@@ -24,6 +25,11 @@ for (const complex of [false, true]) {
     ["haas=left_delay=0:right_delay=0", [[0, 0, 12000], [2048, 0, -8000]]],
     ["haas=left_delay=40:right_delay=40", [[0, 6000, 6000], [1764, -6000, 6000], [2048, -4000, -4000], [3812, 4000, -4000]]],
     ["haas=unknown=1", undefined],
+    ["haas=level_in=1::", undefined],
+    ["haas=1::1", undefined],
+    ["haas=:1", undefined],
+    ["haas=level_in=:", undefined],
+    ["haas=right_delay=41:", undefined],
     ["haas", [[0, 8485, 8485], [90, 0, 8485], [93, -8485, 0]], true],
     ["aformat=channel_layouts=stereo,haas", [[0, 8485, 8485], [90, 0, 8485], [93, -8485, 0]], true],
     ["haas=left_delay=-1", undefined],
@@ -70,6 +76,43 @@ for (const complex of [false, true]) {
         expected[1]![frame!] = right!;
       }
       assert.deepEqual(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)), expected);
+    });
+  }
+}
+
+for (const complex of [false, true]) {
+  for (const [option, hash] of [
+    ["level_in=1", "ec2a6dc16866fc95105c82681d94ccd18a9f775f91dc25b3ad74b4e88305c294"],
+    ["right_delay=10", "8080bd76e051bafb4bc30cd6e0d65050aa34a82e3849b10d9b6de3afc7b15797"],
+    ["1", "ec2a6dc16866fc95105c82681d94ccd18a9f775f91dc25b3ad74b4e88305c294"]
+  ]) {
+    it(`haas ${complex ? "graph" : "simple"} accepts a trailing colon after ${option}`, async () => {
+      const channels = Array.from({ length: 2 }, (_, channel) =>
+        Float64Array.from({ length: 1536 }, (_, frame) => ((frame * 421 + channel * 1709) % 12000 - 6000) / 32768));
+      const volume = Volume.fromJSON({});
+      volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels }));
+      for (const suffix of ["", ":"]) {
+        volume.writeFileSync("/out.raw", "KEEP");
+        const filter = `haas=${option}${suffix}`;
+        let stderr = "";
+        const result = await createFfmpegCommand().execute({
+          args: ["-hide_banner", "-loglevel", "error", "-y", "-i", "/in.wav", ...(complex
+            ? ["-filter_complex", `[0:a]${filter}[s]`, "-map", "[s]"] : ["-af", filter]), "-f", "s16le", "/out.raw"],
+          cwd: "/", env: {}, signal: new AbortController().signal,
+          fs: {
+            async readFile(path: string) { return volume.readFileSync(path); },
+            async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+            async stat(path: string) { return volume.statSync(path); }
+          },
+          stdin: (async function* () {})(), stdout: { async write() {} },
+          stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+        } as never);
+        assert.equal(result.exitCode, 0, stderr);
+        const output = volume.readFileSync("/out.raw") as Buffer;
+        assert.equal(output.length, 6144);
+        // Reference PCM from FFmpeg 7.0.2, with and without a trailing delimiter.
+        assert.equal(createHash("sha256").update(output).digest("hex"), hash);
+      }
     });
   }
 }

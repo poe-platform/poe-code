@@ -12522,7 +12522,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           right_delay: 2.12, right_balance: 1, right_gain: 1, right_phase: 1
                         };
                         const argument = trimmed.slice("haas=".length);
-                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                        const entries = argument ? argument.split(":") : [];
+                        if (argument.endsWith(":")) entries.pop();
+                        for (const [index, option] of entries.entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? Object.keys(options)[index] : option.slice(0, separator).trim();
                           if (!key || !Object.hasOwn(options, key)) throw new Error(`haas: unsupported option ${key}`);

@@ -10303,7 +10303,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const operation = parseMagickPixelOperation([t, expanded], state, 0, signal)!;
                 if (operation.warning) analysis.warnings += operation.warning;
                 const result = yield* operation.apply(image);
-                if (t === "-solarize" && image.metaChannels?.length) {
+                if ((t === "-solarize" || t === "-gamma" || t === "+gamma") && image.metaChannels?.length) {
                     const metaOperation = parseMagickPixelOperation([t, expanded], { ...state, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, 0, signal)!;
                     result.metaChannels = [];
                     for (const [index, plane] of image.metaChannels.entries()) {
@@ -13194,7 +13194,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const operation = parseMagickPixelOperation([token, expanded], settings, 0, signal)!;
                 if (operation.warning) analysis.warnings += operation.warning;
                 const result = await transformStoredMagickPixels(image, backend, operation, signal);
-                if (token === "-solarize" && image.storedMetaChannels?.length) {
+                if ((token === "-solarize" || token === "-gamma" || token === "+gamma") && image.storedMetaChannels?.length) {
                     const metaOperation = parseMagickPixelOperation([token, expanded], { ...settings, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, 0, signal)!;
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries()) {

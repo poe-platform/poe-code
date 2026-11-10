@@ -207,13 +207,42 @@ for (const [script, status, diagnostic] of [
   });
 }
 
-test("cd -P keeps prefix bindings and subshell cwd isolated", async context => {
+for (const [prefix, oldpwd] of [["PWD=x OLDPWD=y", "x"], ["OLDPWD=x", "/work"], ["PWD=x", "x"]]) {
+  test(`cd publishes directory bindings after ${prefix}`, async context => {
+    const { shell } = await fixture();
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`OLDPWD=sentinel; ${prefix} cd dir; printf '%s|%s|%s|' "$?" "$PWD" "$OLDPWD"; pwd -P`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `0|/work/dir|${oldpwd}|/work/dir\n`);
+  });
+
+  test(`failed cd restores directory bindings after ${prefix}`, async context => {
+    const { shell } = await fixture();
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`OLDPWD=sentinel; ${prefix} cd missing; printf '%s|%s|%s|' "$?" "$PWD" "$OLDPWD"; pwd -P`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "shell: line 1: cd: missing: No such file or directory\n");
+    assert.equal(result.stdout, "1|/work|sentinel|/work\n");
+  });
+}
+
+test("prefixed cd preserves unexported directory attributes and restores unrelated assignments", async context => {
+  const { shell } = await fixture();
+  context.after(() => shell.dispose());
+  const result = await shell.exec('export -n PWD OLDPWD; OTHER=outer; PWD=x OLDPWD=y OTHER=inner cd dir; declare -p PWD OLDPWD; printf "%s" "$OTHER"');
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, 'declare -- PWD="/work/dir"\ndeclare -- OLDPWD="x"\nouter');
+});
+
+test("cd -P publishes prefix bindings and keeps subshell cwd isolated", async context => {
   const { shell } = await fixture();
   context.after(() => shell.dispose());
   const result = await shell.exec('PWD=temporary OLDPWD=temporary cd -P link; printf "%s|%s|" "$PWD" "$OLDPWD"; pwd; (cd -L /search/link; pwd); pwd');
   assert.equal(result.exitCode, 0);
   assert.equal(result.stderr, "");
-  assert.equal(result.stdout, "/work|/search/link|/work/dir/child\n/search/link\n/work/dir/child\n");
+  assert.equal(result.stdout, "/work/dir/child|temporary|/work/dir/child\n/search/link\n/work/dir/child\n");
 });
 
 test("cd -P realpath failure leaves cwd, PWD and OLDPWD unchanged", async context => {

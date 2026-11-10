@@ -8088,7 +8088,7 @@ export class Runtime {
     }
     return result.status;
   }
-  private async changeDirectory(context: CommandContext & IO, state: State, args: readonly string[], diagnose?: (error: unknown, diagnostic: string) => void, stackHooks?: { name: string; onCwdPublished(): void; emit(text: string): Promise<void> }): Promise<number> {
+  private async changeDirectory(context: CommandContext & IO, state: State, args: readonly string[], diagnose?: (error: unknown, diagnostic: string) => void, stackHooks?: { name: string; onCwdPublished(): void; emit(text: string): Promise<void> }, assignments?: Map<string, SavedVariable>): Promise<number> {
     const name = stackHooks?.name ?? "cd";
     this.signal.throwIfAborted();
     const lookup = new CdLookup(this.signal, this.budget.limits);
@@ -8144,6 +8144,12 @@ export class Runtime {
           delete state.variables[variable];
         }
         else await this.writeVariable(state, variable, stateMonitor(state)?.values.get("PWD", previousPwd) ?? previousPwd, context);
+        const saved = assignments?.get(variable);
+        if (saved) {
+          if (!saved.exported) state.exported.delete(variable);
+          await this.discardVariable(saved);
+          assignments!.delete(variable);
+        }
       } catch (error) {
         this.signal.throwIfAborted();
         if (!(error instanceof PublicDiagnostic)) throw error;
@@ -8817,7 +8823,7 @@ export class Runtime {
       await writeText(stdout, `${path}\n`);
       return 0;
     }
-    if (command === "cd") return this.changeDirectory(context, state, args, diagnose);
+    if (command === "cd") return this.changeDirectory(context, state, args, diagnose, undefined, assignments);
     if (command === "set") {
       if (state.profile === "bash" && args.length) return this.setOptions(context, state);
       let index = 0;

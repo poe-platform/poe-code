@@ -2491,7 +2491,10 @@ function parseMagickBorderGeometry(raw: string): MagickGeometry {
 
 function parseMagickRollGeometry(raw: string): MagickGeometry {
     raw = raw.replaceAll(" ", "").replaceAll("(", "").replaceAll(")", "");
-    let normalized = normalizeMagickOffsets(raw.replaceAll("#", ""));
+    // Roll ignores geometry modifiers wherever they occur between offsets.
+    let normalized = raw;
+    for (const modifier of ["#", "!", ">", "^", "<", "@"]) normalized = normalized.replaceAll(modifier, "");
+    normalized = normalizeMagickOffsets(normalized);
     // Native roll consumes at most two offsets; comma, colon or a trailing dimension ends the list.
     let offsets = 0;
     let end = normalized.length;

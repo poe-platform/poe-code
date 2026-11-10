@@ -10191,6 +10191,33 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 stack = [yield* applyMagickRasterSteps(base, magickFxPixelSteps(stack, expr, channels, state.virtualPixel, state.background, state.interpolation), signal, { ...base, hasAlpha: base.hasAlpha || channels.a && (state.virtualPixel === "transparent" || (state.virtualPixel === "background" || state.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255) }, stack)];
             }
         }
+        else if (t === "-polaroid") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
+            const argument = tokens[++i] ?? "";
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                const expanded = yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const angle = Number(expanded);
+                if (!expanded.trim() || !Number.isFinite(angle)) throw new Error(`invalid argument for option '-polaroid': ${expanded}`);
+                const border = Math.trunc(Math.max(image.width / 25, image.height / 25, 10));
+                const transparent = { r: 0, g: 0, b: 0, a: 0 };
+                let picture = yield* applyMagickRasterSteps(image, borderPixels(image, border, border, state.borderColor, true), signal,
+                    { width: image.width + 2 * border, height: image.height + 2 * border, hasAlpha: true });
+                // Rotate 90, wave, rotate -90: sample the same bend directly.
+                const amplitude = picture.width * 0.01, height = picture.height;
+                const bend: WarpPlan = { width: picture.width + Math.trunc(2 * amplitude), height, hasAlpha: true, interpolation: state.interpolation ?? "bilinear",
+                    map: (x, y) => [x - Math.fround(amplitude * (1 + Math.sin(Math.PI * (height - 1 - y) / height))), y] };
+                picture = yield* applyMagickRasterSteps(picture, warpPixelSteps(picture, bend, transparent, "background"), signal, bend);
+                const layout = magickShadowLayout(picture, `80x2+${Math.trunc(border / 3)}+${Math.trunc(border / 3)}`);
+                let result = yield* applyMagickRasterSteps(picture, shadowPixelSteps(picture, layout, state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background), signal, layout);
+                result = { ...yield* flopImageSteps(result), virtualCanvas: magickMirrorCanvas({ ...result, virtualCanvas: layout.virtualCanvas }, "flop") };
+                result = yield* applyMagickCompositeLayerSteps(result, picture, "Over", Math.trunc(-0.01 * picture.width / 2), 0, undefined, signal);
+                const operation = parseMagickWarpOperation(["-rotate", String(angle)], { ...state, background: transparent, backgroundExplicit: true }, 0, analysis);
+                const plan = operation?.plan(result);
+                result = plan ? { ...yield* applyMagickRasterSteps(result, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) }
+                    : { ...yield* rotateImageSteps(result, angle, transparent), virtualCanvas: magickRotateCanvas(result, angle) };
+                return yield* trimMagickSteps(result, state.alphaFuzz);
+            });
+        }
         else if (t === "-shadow") {
             const geom = tokens[++i] ?? "80x3+5+5";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -12838,6 +12865,35 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const geometry = parseMagickVignetteGeometry(expanded);
                 const layout = vignetteLayout(image);
                 return { ...await transformStoredMagickRaster(image, backend, vignettePixelSteps(image, backgroundExplicit ? background : image.backgroundColor ?? background, geometry, channels, compose), signal, layout), virtualCanvas: layout.virtualCanvas };
+            });
+        } else if (!operandsOnly && token === "-polaroid") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
+            const argument = tokens[++i] ?? "", settings = { ...state };
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expanded = await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const angle = Number(expanded);
+                if (!expanded.trim() || !Number.isFinite(angle)) throw new Error(`invalid argument for option '-polaroid': ${expanded}`);
+                const border = Math.trunc(Math.max(image.width / 25, image.height / 25, 10));
+                const transparent = { r: 0, g: 0, b: 0, a: 0 };
+                let picture = await transformStoredMagickRaster(image, backend, borderPixels(image, border, border, settings.borderColor, true), signal,
+                    { width: image.width + 2 * border, height: image.height + 2 * border, hasAlpha: true });
+                const amplitude = picture.width * 0.01, height = picture.height;
+                const bend: WarpPlan = { width: picture.width + Math.trunc(2 * amplitude), height, hasAlpha: true, interpolation: settings.interpolation ?? "bilinear",
+                    map: (x, y) => [x - Math.fround(amplitude * (1 + Math.sin(Math.PI * (height - 1 - y) / height))), y] };
+                picture = await transformStoredMagickRaster(picture, backend, warpPixelSteps(picture, bend, transparent, "background"), signal, bend);
+                const layout = magickShadowLayout(picture, `80x2+${Math.trunc(border / 3)}+${Math.trunc(border / 3)}`);
+                let result = await transformStoredMagickRaster(picture, backend, shadowPixelSteps(picture, layout, settings.backgroundExplicit ? settings.background : image.backgroundColor ?? settings.background), signal, layout);
+                result = { ...await transformStoredImage(result, backend.storage, { kind: "flop" }, signal), virtualCanvas: magickMirrorCanvas({ ...result, virtualCanvas: layout.virtualCanvas }, "flop") };
+                result = await compositeStoredMagick(result, picture, backend, signal, Math.trunc(-0.01 * picture.width / 2), 0, "Over");
+                const operation = parseMagickWarpOperation(["-rotate", String(angle)], { ...settings, background: transparent, backgroundExplicit: true }, 0, analysis);
+                const plan = operation?.plan(result);
+                result = plan ? { ...await transformStoredMagickRaster(result, backend, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) }
+                    : { ...await transformStoredImage(result, backend.storage, { kind: "rotate", angle, background: transparent }, signal), virtualCanvas: magickRotateCanvas(result, angle) };
+                return trimStoredMagick(result, backend.storage, settings.alphaFuzz, signal);
             });
         } else if (!operandsOnly && token === "-shadow") {
             const geometry = tokens[++i] ?? "80x3+5+5", background = state.background, backgroundExplicit = state.backgroundExplicit, optionProperties = state.optionProperties;

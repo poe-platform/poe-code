@@ -1511,6 +1511,12 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
 
 const MAGICK_VERSION = "ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)";
 
+function warnUnknownMagickProperty(token: string, analysis: { warnings: string }): void {
+  const warning = `magick: unknown image property '${token}'\n`;
+  // Native keeps the first diagnostic as its duplicate-warning key.
+  if (!analysis.warnings.startsWith(warning)) analysis.warnings += warning;
+}
+
 function* formatMagickPropertyStringSteps<Step=never>(
   fmt: string,
   meta: ImageMetadata & Pick<RgbaImage, "readMask" | "writeMask"> & Pick<StoredRgbaImage, "storedWriteMask">,
@@ -1644,7 +1650,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     } else if (token[1] !== "[") {
       const value = short[token[1]!];
       if (value !== undefined) parts.push(value);
-      else if (context.analysis) context.analysis.warnings += `magick: unknown image property '${token}'\n`;
+      else if (context.analysis) warnUnknownMagickProperty(token, context.analysis);
     } else {
       const property = token.slice(2, -1);
       const key = property.toLowerCase();
@@ -1673,7 +1679,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
           value = hull[key];
         }
         if (value) parts.push(value);
-        else if (context.analysis) context.analysis.warnings += `magick: unknown image property '${token}'\n`;
+        else if (context.analysis) warnUnknownMagickProperty(token, context.analysis);
       } else if (["mean", "min", "max", "minima", "maxima", "median", "standard-deviation", "skewness", "kurtosis", "entropy", "opaque", "type", "bit-depth"].includes(key)) {
         if(resolvePixels){parts.push(yield*resolvePixels(property));continue;}
         img ??= getImage();
@@ -1745,7 +1751,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
           }
         }
       } else if (context.analysis) {
-        context.analysis.warnings += `magick: unknown image property '${token}'\n`;
+        warnUnknownMagickProperty(token, context.analysis);
       }
     }
   }

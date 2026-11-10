@@ -9301,7 +9301,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
-        if ((t === "-ordered-dither" || t === "-random-threshold" || t === "-range-threshold" || t === "-solarize" || t === "-channel-fx" || t === "-level" || t === "+level" || t === "-negate" || t === "+negate") && !stack.length) throw new Error(`no images found for operation '${t}'`);
+        if ((t === "-ordered-dither" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-auto-threshold" || t === "-random-threshold" || t === "-range-threshold" || t === "-solarize" || t === "-channel-fx" || t === "-level" || t === "+level" || t === "-negate" || t === "+negate") && !stack.length) throw new Error(`no images found for operation '${t}'`);
         if (t === "-page") {
             const raw = tokens[++i] ?? "";
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
@@ -11590,7 +11590,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && (token === "-level" || token === "+level" || token === "-negate" || token === "+negate" || token === "-random-threshold" || token === "-range-threshold")) stackStep(async stack => {
+        if (!operandsOnly && (token === "-level" || token === "+level" || token === "-negate" || token === "+negate" || token === "-threshold" || token === "-black-threshold" || token === "-white-threshold" || token === "-auto-threshold" || token === "-random-threshold" || token === "-range-threshold")) stackStep(async stack => {
             if (!stack.length) throw new Error(`no images found for operation '${token}'`);
             return stack;
         });

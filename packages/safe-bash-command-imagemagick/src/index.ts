@@ -9722,6 +9722,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }, undefined, t === "-sepia-tone");
         }
         else if (t === "-cycle") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const value = tokens[++i] ?? "";
             const amount = value.includes("%[") ? undefined : parseMagickCycleAmount(value);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
@@ -12055,6 +12056,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-cycle") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const value = tokens[++i] ?? "", optionProperties = state.optionProperties;
             const amount = value.includes("%[") ? undefined : parseMagickCycleAmount(value);
             steps.push(async (image, backend) => {

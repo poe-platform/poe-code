@@ -7940,8 +7940,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         hueSamples[idx + channel] = Math.fround(hueSamples[idx + channel]! * 65535 * scale) / 65535;
                     }
                     for (let channel = 0; channel < 3; channel++) {
+                        // Q16-HDRI stores the scaled quantum as a float before export rounding.
                         const source = hueSamples ? (cmyk ? (1 - hueSamples[idx + channel]!) * (1 - hueSamples[idx + 3]!) : hueSamples[idx + channel]!) * 65535
-                            : (im.data16 ? im.data16[idx + channel]! : im.data[idx + channel]! * 257) * scale;
+                            : Math.fround((im.data16 ? im.data16[idx + channel]! : im.data[idx + channel]! * 257) * scale);
                         const scaled = Math.max(0, Math.min(65535, source));
                         data16[idx + channel] = Math.round(scaled);
                         out[idx + channel] = clampByteVal(scaled / 257);

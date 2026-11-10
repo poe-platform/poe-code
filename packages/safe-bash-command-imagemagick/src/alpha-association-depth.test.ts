@@ -7,6 +7,32 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 const pixels = [0, 40, 90, 0, 80, 100, 150, 128, 200, 50, 70, 255];
 
 for (const execution of ["command", "retained", "buffered", "sync"] as const) {
+    // Native ImageMagick 7.1.2-35 Q16-HDRI raw bytes, including controls.
+    it.each([
+        ["#9aba66b4", "Disassociate", "8", "daff91ff"],
+        ["#9aba66b4", "Disassociate", "16", "db05ffff9111ffff"],
+        ["#9aba66b4", "On", "16", "9a9ababa6666b4b4"],
+        ["#80402060", "Disassociate", "16", "ffffaaaa5555ffff"],
+    ])(`${execution}: exports %s alpha %s at depth %s`, async (color, mode, depth, hex) => {
+        const argv = [`xc:${color}`, "-alpha", mode, "-depth", depth, "-endian", "MSB", "rgba:out"];
+        const keep = new TextEncoder().encode("KEEP"), fs = new MemoryFileSystem();
+        const files = new Map([["out", keep]]);
+        await fs.writeFile("/out", keep);
+        const args = createCommandArguments(argv);
+        let stderr = "";
+        const result = execution === "command" ? await createMagickCommand().execute({
+            command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+        }) : execution === "sync" ? runConvertCliSync(argv, files)
+            : await runConvertCli(argv, execution === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        expect(result.exitCode, stderr).toBe(0);
+        expect(stderr).toBe("");
+        const output = execution === "command" || execution === "retained" ? await fs.readFile("/out") : files.get("out")!;
+        expect(Buffer.from(output).toString("hex")).toBe(hex);
+    });
+
     async function convert(mode: string, format: string, samples?: number[], operators: string[] = []) {
         const data = Uint8Array.from(samples ?? pixels, value => samples ? Math.round(value / 257) : value);
         const input = encodeImage({ width: data.length / 4, height: 1, data,

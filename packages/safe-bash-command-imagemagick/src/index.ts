@@ -10490,6 +10490,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (pixelOperation) {
+            const metaOperation = t === "-evaluate" ? parseMagickPixelOperation(tokens,
+                { ...state, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, i, signal) : undefined;
             if (pixelOperation.warning) analysis.warnings += pixelOperation.warning;
             if (t === "-contrast" || t === "+contrast") analysis.warnings += `magick: option has been replaced '${t}', use "${t[0]}level"\n`;
             i = pixelOperation.end;
@@ -10499,6 +10501,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const input = pixelOperation.evaluate ? image : bounded;
                 const { data16: ignored, ...pixels } = input;
                 const converted = yield* pixelOperation.apply(pixelOperation.highDepth ? input : pixels);
+                if (metaOperation && image.metaChannels?.length) {
+                    converted.metaChannels = [];
+                    for (const [index, plane] of image.metaChannels.entries()) {
+                        const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
+                        converted.metaChannels.push(selected ? yield* metaOperation.apply(plane) : plane);
+                    }
+                }
                 if (t === "-type" && tokens[i]?.toLowerCase() === "bilevel") {
                     const source = converted.data16 ? { ...converted, data: new Uint8Array(converted.data16.buffer, converted.data16.byteOffset, converted.data16.byteLength) } : converted;
                     return yield* applyMagickRasterSteps(converted, bilevelPixelSteps(converted.width * converted.height, !!converted.data16), signal, converted, [source]);
@@ -13301,6 +13310,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         const pixelOperation = operandsOnly ? undefined : parseMagickPixelOperation(tokens, state, i, signal);
         if (pixelOperation) {
+            const selectedMeta = !state.channelExplicit || state.channelDefault ? undefined : state.channels.meta ?? [];
+            const metaOperation = token === "-evaluate" ? parseMagickPixelOperation(tokens,
+                { ...state, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, i, signal) : undefined;
             const functionMetaOperation = token === "-function" ? parseMagickPixelOperation(tokens,
                 { ...state, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, i, signal) : undefined;
             const functionMetaSelection = !state.channelExplicit || state.channelDefault ? undefined : state.channels.meta ?? [];
@@ -13319,6 +13331,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession): Promise<StoredRgbaImage | undefined> => {
                 if (!image) return;
                 const converted = await transformStoredMagickPixels(image, backend, pixelOperation, signal);
+                if (metaOperation && image.storedMetaChannels?.length) {
+                    converted.storedMetaChannels = [];
+                    for (const [index, plane] of image.storedMetaChannels.entries()) {
+                        converted.storedMetaChannels.push(!selectedMeta || selectedMeta.includes(index)
+                            ? await transformStoredMagickPixels(plane, backend, metaOperation, signal) : plane);
+                    }
+                }
                 if (functionMetaOperation && image.storedMetaChannels?.length) {
                     converted.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries()) {

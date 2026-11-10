@@ -1006,7 +1006,7 @@ function parseAsetnsamples(argument: string) {
     const value = separator < 0 ? option : option.slice(separator + 1);
     if (key === "n" || key === "nb_out_samples") {
       const number = parseFilterExpression(value, "asetnsamples", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
-      if (number < 1 || number > 2147483647) throw new Error("asetnsamples: invalid frame size");
+      if (number < 1 || number > 2147483647) throw new RangeError("asetnsamples: invalid frame size");
       size = roundToEven(number);
     } else if (key === "p" || key === "pad") {
       const boolean = value.toLowerCase();
@@ -13475,6 +13475,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: err instanceof CompandError ? err.exitCode : 234 };
             }
             if ((msg.startsWith("atrim:") && !msg.startsWith("atrim: unsupported option")) ||
+                (msg.startsWith("asetnsamples:") && !msg.startsWith("asetnsamples: unsupported option")) ||
                 (err instanceof RangeError && msg.startsWith("dcshift:"))) {
               return { exitCode: err instanceof RangeError ? 222 : 234 };
             }

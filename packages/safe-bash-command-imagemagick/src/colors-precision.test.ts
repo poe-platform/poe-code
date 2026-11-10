@@ -5,6 +5,12 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 
 // ImageMagick 7.1.2-35 Q16-HDRI, MSB RGBA16 output.
 const cases = [
+    { name: "Q16 single-color mean", colors: ["#202030304040", "#202130304040", "#803040304040"], operations: ["+dither", "-colors", "1"], expected: "402635854040ffff402635854040ffff402635854040ffff" },
+    { name: "Q16 two-color palette", colors: ["#202030304040", "#202130304040", "#803040304040"], operations: ["+dither", "-colors", "2"], expected: "202130304040ffff202130304040ffff803040304040ffff" },
+    { name: "Q16 unreduced palette", colors: ["#202030304040", "#202130304040", "#803040304040"], operations: ["+dither", "-colors", "8"], expected: "202130304040ffff202130304040ffff803040304040ffff" },
+    { name: "linear RGB palette", colors: ["#b03010", "#302010", "#505080", "#a07070", "#d0d020"], operations: ["-colorspace", "RGB", "+dither", "-colors", "2", "-colorspace", "sRGB"], expected: "82ae4bed581dffff82ae4bed581dffff82ae4bed581dffff82ae4bed581dffffd0d0d0d02020ffff" },
+    { name: "Q16 input control", colors: ["#202030304040", "#202130304040", "#803040304040"], operations: [], expected: "202030304040ffff202130304040ffff803040304040ffff" },
+    { name: "linear RGB control", colors: ["#b03010", "#302010", "#505080", "#a07070", "#d0d020"], operations: ["-colorspace", "RGB", "-colorspace", "sRGB"], expected: "b0b030301010ffff303020201010ffff505050508080ffffa0a070707070ffffd0d0d0d02020ffff" },
     { name: "reduced alpha", colors: ["#00000080", "#000000ff"], operations: ["-colors", "1"], expected: "000000000000c040000000000000c040" },
     { name: "reduced RGB", colors: ["#101010", "#111111"], operations: ["-colors", "1"], expected: "109110911091ffff109110911091ffff" },
     { name: "negated reduced alpha", colors: ["#00000080", "#000000ff"], operations: ["-colors", "1", "-negate"], expected: "ffffffffffff3fc0ffffffffffff3fc0" },

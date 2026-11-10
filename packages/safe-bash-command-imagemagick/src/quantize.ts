@@ -39,12 +39,19 @@ interface ColorNode {
 }
 
 /** A bounded histogram and error-pruned color tree shared by both raster backends. */
-export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; alphaActive: boolean; channels?: MaskChannels | undefined }, dither?: { width: number; height: number; method: "riemersma" | "floydsteinberg"; diffusionAmount: number }): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
+export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; alphaActive: boolean; channels?: MaskChannels | undefined }, dither?: { width: number; height: number; method: "riemersma" | "floydsteinberg"; diffusionAmount: number }, evaluate = false): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
     // Keep fractional palette means alongside byte output for later arithmetic and deeper output.
     const round = (value: number) => highDepth ? Math.round(value * 257) / 257 : Math.fround(value * 257) / 257;
-    const prepare = (source: Uint8Array): Float64Array => {
-        const data = highDepth ? Float64Array.from(new Uint16Array(source.slice().buffer), value => value / 257) : Float64Array.from(source);
+    function* readPixels(position: number, length: number): Generator<ConvolveRequest, Float64Array, Uint8Array | undefined> {
+        const working = evaluate ? yield { kind: "read", evaluate: true, position, length } : undefined;
+        let data: Float64Array;
+        if (working?.length) data = new Float64Array(working.slice().buffer);
+        else {
+            const source = yield { kind: "read", highDepth: highDepth || evaluate, position, length };
+            if (!source || source.length !== length * (highDepth || evaluate ? 2 : 1)) throw new Error("Truncated quantization pixels");
+            data = highDepth || evaluate ? Float64Array.from(new Uint16Array(source.slice().buffer), value => value / 257) : Float64Array.from(source);
+        }
         for (let i = 0; i < data.length; i += 4) {
             if (!hasAlpha) data[i + 3] = 255;
             if (grayscale) {
@@ -57,22 +64,21 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             if (data[i + 3] === 0) data[i] = data[i + 1] = data[i + 2] = 0;
         }
         return data;
-    };
+    }
     let bins = new Map<number | string, ColorBin>(), mask = 0xffffffff, precision = 8;
     const key = (data: Float64Array, i: number) => {
         // Native palette conversion classifies Q16 samples in byte-sized cubes,
         // but keeps full-precision sums for each cube's mean color.
-        if (cycle !== undefined) {
+        if (cycle !== undefined || evaluate) {
             const alpha = data[i + 3]! / 255;
             return (Math.round(data[i]! * alpha) << 24 | Math.round(data[i + 1]! * alpha) << 16 | Math.round(data[i + 2]! * alpha) << 8 | Math.round(data[i + 3]!)) & mask;
         }
         return highDepth && precision === 8 ? data.subarray(i, i + 4).join(",") : (data[i]! << 24 | data[i + 1]! << 16 | data[i + 2]! << 8 | data[i + 3]!) & mask;
     };
-    for (let position = 0; position < length; position += 4096) {
+    const chunkSize = evaluate ? 2048 : 4096;
+    for (let position = 0; position < length; position += chunkSize) {
         yield;
-        const size = Math.min(4096, length - position), source = yield { kind: "read", highDepth, position, length: size };
-        if (!source || source.length !== size * (highDepth ? 2 : 1)) throw new Error("Truncated quantization pixels");
-        const data = prepare(source);
+        const size = Math.min(chunkSize, length - position), data = yield* readPixels(position, size);
         if (grayscale && requested === 2) {
             yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) : Uint8Array.from(data) };
             continue;
@@ -281,9 +287,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         }
         for (const position of dither.method === "riemersma" ? hilbertPixels(dither) : scan()) {
             if (++work % 1024 === 0) yield;
-            const source = yield { kind: "read", highDepth, position, length: 4 };
-            if (!source || source.length !== (highDepth ? 8 : 4)) throw new Error("Truncated quantization pixels");
-            const target = prepare(source), x = position / 4 % dither.width;
+            const target = yield* readPixels(position, 4), x = position / 4 % dither.width;
             let id = 0;
             for (let c = 0; c < 3; c++) {
                 if (dither.method === "riemersma") for (let i = 0; i < 16; i++) target[c]! += weights[i]! * errors[i * 4 + c]!;
@@ -317,13 +321,13 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
                     nextRow[x * 3 + c]! += error * 5;
                 }
             }
-            yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(color!, value => Math.round(value * 257)).buffer) : Uint8Array.from(color!) };
+            if (evaluate) yield { kind: "write", evaluate: true, position, data: new Uint8Array(Float64Array.from(color!).buffer) };
+            yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(color!, value => Math.round(value * 257)).buffer) : Uint8Array.from(color!, Math.round) };
         }
-    } else for (let position = 0; position < length; position += 4096) {
+    } else for (let position = 0; position < length; position += chunkSize) {
         yield;
-        const size = Math.min(4096, length - position), source = yield { kind: "read", highDepth, position, length: size };
-        if (!source || source.length !== size * (highDepth ? 2 : 1)) throw new Error("Truncated quantization pixels");
-        const data = new Float64Array(size), pixels = prepare(source);
+        const size = Math.min(chunkSize, length - position), pixels = yield* readPixels(position, size);
+        const data = new Float64Array(size);
         for (let i = 0; i < size; i += 4) {
             const color = bins.get(key(pixels, i))!.color;
             const pixel = (position + i) / 4;

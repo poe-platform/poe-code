@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
@@ -82,7 +83,44 @@ for (const [expression, literal] of [
   });
 }
 
-for (const filter of ["asoftclip=threshold=0", "asoftclip=threshold=1.1", "asoftclip=threshold=NaN", "asoftclip=threshold=", "asoftclip=output=17", "asoftclip=param=0", "asoftclip=param=4", "asoftclip=type=unknown", "asoftclip=type=8", "asoftclip=type=-2", "asoftclip=type=", "asoftclip=oversample=2", "asoftclip=unknown=1",
+// Complete raw PCM16 output from FFmpeg 7.0.2 for the eight-sample regression.
+for (const [oversample, hex] of [
+  [1, "0000591fa7e0273bd9c44d51b3ae0000"],
+  [2, "00000603a70d98f09820c4dddb3152c1"],
+  [3, "00004301da10faecf9240dd9103824c1"],
+  [4, "0000a900dc11feeb3726d5d7da39abc1"],
+  [64, "00000000c0123feb1f270fd7463be8c2"]
+] as const) for (const graph of [false, true]) {
+  it(`asoftclip oversample=${oversample} matches native raw PCM (${graph ? "graph" : "simple"})`, async () => {
+    const channels = [Float64Array.from([0, 8192, -8192, 16384, -16384, 24576, -24576, 0], n => n / 32768)];
+    const { fs, result, stderr } = await run(`asoftclip=oversample=${oversample}`, graph, channels, true);
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal((fs.readFileSync("/out.wav") as Buffer).toString("hex"), hex);
+  });
+}
+
+for (const [filter, hash] of [
+  ["asoftclip=oversample=2", "db013287e6e97c36655466df0159e264936ae9a74061c92fc31e69c33cf0278c"],
+  ["asoftclip=oversample=4", "191008e0881afcfe6f15d2ce5213edffb416bc2acffd1880e080ded1645d028d"],
+  ["aformat=sample_fmts=dblp,asoftclip=oversample=64", "1160b4cd0e5fd645fe35a4ea425ce79611f887d1417999513a5a7ee1c948c000"],
+  ["asoftclip=0:0.5:0.5:2:3", "ef21994ffddf2058755218fc1fedb67add944b0d7343a7d4ab092b70025e3d27"]
+] as const) {
+  it(`${filter} preserves stereo state across frames`, async () => {
+    const { fs, result, stderr } = await run(filter);
+    assert.equal(result.exitCode, 0, stderr);
+    const audio = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, 8000);
+    assert.equal(audio.channelData.length, 2);
+    const pcm = Buffer.alloc(8000 * 2 * 2);
+    for (const [c, channel] of audio.channelData.entries()) {
+      assert.equal(channel.length, 8000);
+      for (let i = 0; i < channel.length; i++) pcm.writeInt16LE(Math.round(channel[i]! * 32768), (i * 2 + c) * 2);
+    }
+    assert.equal(createHash("sha256").update(pcm).digest("hex"), hash);
+  });
+}
+
+for (const filter of ["asoftclip=threshold=0", "asoftclip=threshold=1.1", "asoftclip=threshold=NaN", "asoftclip=threshold=", "asoftclip=output=17", "asoftclip=param=0", "asoftclip=param=4", "asoftclip=type=unknown", "asoftclip=type=8", "asoftclip=type=-2", "asoftclip=type=", "asoftclip=oversample=0", "asoftclip=oversample=65", "asoftclip=oversample=1.5", "asoftclip=oversample=NaN", "asoftclip=oversample=", "asoftclip=unknown=1",
   "asoftclip=threshold=1/2000000", "asoftclip=threshold=1+1", "asoftclip=output=1/2000000", "asoftclip=output=16+1",
   "asoftclip=param=1/200", "asoftclip=param=3+1", "asoftclip=threshold=1/0", "asoftclip=output=0/0", "asoftclip=param=1+"]) {
   it(`${filter} fails without replacing output`, async () => {
@@ -92,14 +130,16 @@ for (const filter of ["asoftclip=threshold=0", "asoftclip=threshold=1.1", "asoft
   });
 }
 
-async function run(filter: string, graph = false) {
+async function run(filter: string, graph = false,
+  channels = [0, 8].map(offset => Float64Array.from({ length: 8000 }, (_, i) => input[(i + offset) % input.length]! / 32768)),
+  raw = false
+) {
   const fs = Volume.fromJSON({ "/out.wav": "keep" });
-  fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [0, 8].map(offset =>
-    Float64Array.from({ length: 8000 }, (_, i) => input[(i + offset) % input.length]! / 32768)) }));
+  fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels }));
   let stderr = "";
   const result = await createFfmpegCommand().execute({
     args: ["-y", "-v", "error", "-i", "/in.wav", ...(graph
-      ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-c:a", "pcm_s16le", "/out.wav"],
+      ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-c:a", "pcm_s16le", ...(raw ? ["-f", "s16le"] : []), "/out.wav"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
       async readFile(path: string) { return fs.readFileSync(path); },
@@ -112,10 +152,10 @@ async function run(filter: string, graph = false) {
   return { fs, result, stderr };
 }
 
-it("bounds clipping memory and honors cancellation", async () => {
+for (const oversample of [1, 64]) it(`bounds clipping memory and honors cancellation at oversample=${oversample}`, async () => {
   const channels = [new Float32Array(32)];
-  await assert.rejects(softClipAudio(channels, 8000, "asoftclip", [{ start: 0, end: 32, pts: 0 }],
+  await assert.rejects(softClipAudio(channels, 8000, `asoftclip=oversample=${oversample}`, [{ start: 0, end: 32, pts: 0 }], "fltp",
     new MediaBudgetTracker({ maxMemoryBytes: 128 })), /maxMemoryBytes/);
-  await assert.rejects(softClipAudio(channels, 8000, "asoftclip", [{ start: 0, end: 32, pts: 0 }],
+  await assert.rejects(softClipAudio(channels, 8000, `asoftclip=oversample=${oversample}`, [{ start: 0, end: 32, pts: 0 }], "fltp",
     new MediaBudgetTracker(), AbortSignal.abort()));
 });

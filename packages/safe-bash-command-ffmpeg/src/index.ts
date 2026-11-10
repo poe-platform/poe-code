@@ -10186,7 +10186,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           stretched = removed.channels;
                           audioTimestamps = removed.frames;
                         } else if (filterName === "asoftclip") {
-                          stretched = await softClipAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                          filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
+                          stretched = await softClipAudio(stretched, origRate, trimmed, audioTimestamps, filteredSampleFormat, budget, context.signal);
                         } else if (filterName === "tremolo") {
                           stretched = await tremoloAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
                         } else if (filterName === "vibrato") {

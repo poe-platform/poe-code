@@ -6,6 +6,7 @@ import { createMagickRandom } from "./random.js";
 import { evaluateNoiseSteps } from "./noise.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
+import { magickInput, type MagickFormatContext } from "./stored-stack.js";
 type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined>;
 
 export type LookupInterpolation = "background" | "blend" | "bilinear" | "nearest" | "integer" | "average" | "average9" | "average16" | "mesh" | "catrom" | "spline";
@@ -376,13 +377,19 @@ export function sequenceCanvas<T extends Pick<RgbaImage, "hasAlpha" | "space" | 
 }
 
 /** Median ranks selected channel sums, retaining stable input order for equal sums. */
-export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette"> & { magickColorspace?: string })[], raw: string, channels?: readonly boolean[], highDepth = false, seed = 0n, width = size / 4): Steps {
+export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette"> & { magickColorspace?: string; [magickInput]?: MagickFormatContext })[], raw: string, channels?: readonly boolean[], highDepth = false, seed = 0n, width = size / 4): Steps {
     const canvas = sequenceCanvas(inputs), cmyk = canvas.space === "cmyk", stride = cmyk ? 5 : 4;
     size = size / 4 * stride;
     const frames = inputs.length, hasAlpha = inputs.some(image => image.hasAlpha);
     const hue = !!canvas.magickColorspace && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "Gray" && !cmyk;
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     const operation = raw.toLowerCase().split("-").join("").split("_").join("");
+    const sourceChannels = ["mean", "median", "max"].includes(operation) && inputs.some(image => image[magickInput]?.channelMask)
+        ? inputs.map(image => {
+            const mask = image[magickInput]?.channelMask;
+            return mask ? [mask.r, mask.g, mask.b, mask.a, mask.k === true] : undefined;
+        }) : undefined;
+    if (sourceChannels) channels = sourceChannels[inputs.indexOf(canvas)];
     const fractional = cmyk || ["cos", "cosine", "divide", "log", "mean", "multiply", "rms", "rootmeansquare", "sin", "sine"].includes(operation);
     const retainRange = ["add", "addmodulus", "sum", "subtract", "min", "max"].includes(operation);
     function* read(image: number, position: number, length: number, retainWorking = retainRange || fractional): Generator<ConvolveRequest, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
@@ -411,13 +418,15 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
         // Native reductions visit the input's channel slots using the output channel map.
         // An opaque 8-bit gray PNG has a palette-index slot in addition to gray.
         const colorSlots = gray ? 1 + Number(inputImage.hasAlpha || (inputImage.format === "png" && inputImage.depth === "uchar")) : cmyk ? stride : 3;
+        const sourceMask = sourceChannels?.[image];
         const maskedMedian = operation === "median" && channels?.some(selected => !selected);
         const graySlots = gray && ["mean", "sum", "max"].includes(operation);
-        if ((!hasAlpha || inputImage.hasAlpha) && !graySlots && !maskedMedian) return bytes;
+        if ((!hasAlpha || inputImage.hasAlpha) && !graySlots && !maskedMedian && !sourceMask) return bytes;
         const data = bytes.slice();
         for (let offset = 0; offset < length; offset++) {
             const channel = offset % stride;
             // Mask candidates before ranking so unused samples cannot choose the median.
+            if (sourceMask && !sourceMask[channel] && (channel !== 3 || hasAlpha)) data[offset] = 0;
             if (maskedMedian && !channels![channel] && (channel !== 3 || hasAlpha)) data[offset] = 0;
             if (channel === 3 ? hasAlpha && (!inputImage.hasAlpha || graySlots) : graySlots && channel >= colorSlots) data[offset] = 0;
         }
@@ -654,6 +663,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 const bytes = yield* read(image, position, length);
                 for (let offset = 0; offset < length; offset++) {
                     if (image > 0 && cmyk && inputs[image]!.space !== "cmyk" && offset % stride >= 3) continue;
+                    if (operation === "max" && sourceChannels?.[image] && !sourceChannels[image]![offset % stride]) continue;
                     if (operation === "addmodulus") {
                         // Wrap at QuantumRange + 1 in native Q16 units, not at 256 bytes.
                         values[offset] = (values[offset]! + bytes[offset]! * scale) % 65536;

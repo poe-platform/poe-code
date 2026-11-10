@@ -265,13 +265,13 @@ function resizeCopyIndex(index: number, source: number, target: number) {
     return Math.min(source - 1, Math.floor((index + 0.5) * source / target + 0.5 + 1e-12));
 }
 
-export function* resizeMaskPixelSteps(image: ResizeImage, width: number, height: number, horizontal: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* resizeMaskPixelSteps(image: ResizeImage, width: number, height: number, horizontal?: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 256) {
         yield;
         const data = new Uint16Array(Math.min(256, width - left) * 4);
         for (let x = left; x < left + data.length / 4; x++) {
-            const sx = horizontal ? resizeCopyIndex(x, image.width, width) : x;
-            const sy = horizontal ? y : resizeCopyIndex(y, image.height, height);
+            const sx = horizontal !== false ? resizeCopyIndex(x, image.width, width) : x;
+            const sy = horizontal === true ? y : resizeCopyIndex(y, image.height, height);
             const bytes = (yield { kind: "read", highDepth: true, position: (sy * image.width + sx) * 4, length: 4 })!;
             data.set(new Uint16Array(bytes.slice().buffer), (x - left) * 4);
         }

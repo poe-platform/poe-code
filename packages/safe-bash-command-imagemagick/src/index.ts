@@ -115,7 +115,7 @@ import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodePngToCanvas, FONT_5X7, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, grayscaleImageSteps, resizeImageSteps, rotateImageSteps, thresholdImageSteps } from "@poe-code/image-ast/portable";
 
-type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16">> & { position?: number };
+type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16" | "evaluateSamples">> & { position?: number; storedEvaluateSamples?: number | undefined };
 type RgbaImage = BaseRgbaImage & HueMetadata & { gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
 type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
 type ImageMetadata = BaseImageMetadata & HueMetadata;
@@ -1301,7 +1301,7 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
 type MagickImage = RgbaImage & { [magickInput]?: MagickFormatContext };
 
 function* readMaskSelectionSteps<Step, Resume>(image: { width: number; readMask?: ReadMask | undefined }, position: number, length: number,
-  load?: (position: number, length: number) => Generator<Step, Uint8Array, Resume>
+  load?: (position: number, length: number) => Generator<Step, Uint8Array | Float64Array, Resume>
 ): Generator<Step, Uint8Array | undefined, Resume> {
   const mask = image.readMask;
   if (!mask) return;
@@ -1312,8 +1312,8 @@ function* readMaskSelectionSteps<Step, Resume>(image: { width: number; readMask?
     const available = y < mask.height ? Math.max(0, Math.min(count, mask.width - x)) : 0;
     if (available) {
       const offset = (y * mask.width + x) * 4;
-      const samples = mask.data16?.subarray(offset, offset + available * 4) ?? mask.data?.subarray(offset, offset + available * 4) ?? (yield* load!(offset, available * 4));
-      const threshold = mask.data16 ? 65535 / 2 : 255 / 2;
+      const samples = mask.evaluateSamples?.subarray(offset, offset + available * 4) ?? mask.data16?.subarray(offset, offset + available * 4) ?? mask.data?.subarray(offset, offset + available * 4) ?? (yield* load!(offset, available * 4));
+      const threshold = samples instanceof Uint16Array ? 65535 / 2 : 255 / 2;
       for (let i = 0; i < available; i++) selected[start + i] = Number(0.212656 * samples[i * 4]! + 0.715158 * samples[i * 4 + 1]! + 0.072186 * samples[i * 4 + 2]! > threshold);
     }
     start += count;
@@ -1323,10 +1323,10 @@ function* readMaskSelectionSteps<Step, Resume>(image: { width: number; readMask?
 
 function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   img: Omit<RgbaImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"data16">>,
-  load?: (position:number,length:number)=>Generator<Step,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array},Resume>,
+  load?: (position:number,length:number)=>Generator<Step,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array;evaluateSamples?:Float64Array},Resume>,
   statistics?: Record<string, number>,
   countColors = false,
-  loadMask?: (position: number, length: number) => Generator<Step, Uint8Array, Resume>,
+  loadMask?: (position: number, length: number) => Generator<Step, Uint8Array | Float64Array, Resume>,
   channelSelection?: MagickFormatContext["channelSelection"],
   precision = 6
 ): Generator<undefined|Step, Record<string, string>, Resume> {
@@ -1349,7 +1349,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   const chunkSize = countColors && img.space === "cmyk" ? 2048 : 8192;
   for(let offset=0;offset<img.width*img.height*4;offset+=chunkSize){
   const length=Math.min(chunkSize,img.width*img.height*4-offset);
-  const chunk=load?yield*load(offset,length):{data:img.data!.subarray(offset,offset+length),data16:img.data16?.subarray(offset,offset+length),hueSamples:img.hueSamples?.subarray(offset,offset+length)};
+  const chunk=load?yield*load(offset,length):{data:img.data!.subarray(offset,offset+length),data16:img.data16?.subarray(offset,offset+length),hueSamples:img.hueSamples?.subarray(offset,offset+length),evaluateSamples:img.evaluateSamples?.subarray(offset,offset+length)};
   const selection = yield* readMaskSelectionSteps(img, offset, length, loadMask);
   const samples = chunk.data16 ?? chunk.data;
   const range = chunk.data16 ? 65535 : 255;
@@ -1372,7 +1372,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       colors.add(`${r},${g},${b},${a}`);
     }
     for (let c = 0; c < channels; c++) {
-      const value = samples[i + c]!;
+      const value = chunk.evaluateSamples ? chunk.evaluateSamples[i + c]! * range / 255 : samples[i + c]!;
       if (statistics && selected) {
         const n = count, delta = value / range - means[c]!;
         means[c]! += delta / n;
@@ -1387,7 +1387,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       const v = chunk.data16 ? value : value * 257;
       if (selected) {
         sums[c]! += v; squares[c]! += v * v;
-        if (histograms) histograms[c]![v]!++;
+        if (histograms) histograms[c]![Math.max(0, Math.min(65535, Math.round(v)))]!++;
       }
       if (selectedChannels[c]) {
         min = Math.min(min, v);
@@ -1803,14 +1803,15 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    return String(delay);
   }
   if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,function*(){yield*resolve("mean");return statistics;},signal,context,stack);
-  function* load(position:number,length:number):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array},void>{
-   let chunk!: {data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array};
+  function* load(position:number,length:number):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array;evaluateSamples?:Float64Array},void>{
+   let chunk!: {data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array;evaluateSamples?:Float64Array};
    yield {async run(){const {image,storage}=raster!,data=await storage.read(image.position+position,length,signal?{signal}:undefined);
     const original=image.storedData16;
     const bytes=original?await storage.read(original.position+position*2,Math.max(0,Math.min(length,original.length-position))*2,signal?{signal}:undefined):undefined;
     const inks=property === "colors" && image.space === "cmyk" && image.storedHueSamples !== undefined
       ? await storage.read(image.storedHueSamples+position*8,length*8,signal?{signal}:undefined) : undefined;
-    chunk={data,...(bytes?{data16:new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2)}:{}),...(inks?{hueSamples:new Float64Array(inks.slice().buffer)}:{})};
+    const evaluated=image.storedEvaluateSamples === undefined ? undefined : await storage.read(image.storedEvaluateSamples+position*8,length*8,signal?{signal}:undefined);
+    chunk={data,...(evaluated?{evaluateSamples:new Float64Array(evaluated.slice().buffer)}:{}),...(bytes?{data16:new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2)}:{}),...(inks?{hueSamples:new Float64Array(inks.slice().buffer)}:{})};
    }};
    return chunk;
   }
@@ -1828,9 +1829,13 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    }
    return hull[property] ?? "";
   }
-  if(!properties || (property === "colors" && properties.colors === undefined))properties=yield*magickPixelPropertiesSteps(raster!.image,load,statistics,property === "colors", function*(position, length): Generator<IdentifyStep, Uint8Array, void> {
-   let data!: Uint8Array;
-   yield { async run() { data = await raster!.storage.read((raster!.image as StoredRgbaImage).readMask!.position! + position, length, signal ? { signal } : undefined); } };
+  if(!properties || (property === "colors" && properties.colors === undefined))properties=yield*magickPixelPropertiesSteps(raster!.image,load,statistics,property === "colors", function*(position, length): Generator<IdentifyStep, Uint8Array | Float64Array, void> {
+   let data!: Uint8Array | Float64Array;
+   yield { async run() {
+    const mask = (raster!.image as StoredRgbaImage).readMask!;
+    data = mask.storedEvaluateSamples === undefined ? await raster!.storage.read(mask.position! + position, length, signal ? { signal } : undefined)
+     : new Float64Array((await raster!.storage.read(mask.storedEvaluateSamples + position * 8, length * 8, signal ? { signal } : undefined)).slice().buffer);
+   } };
    return data;
   }, context.channelSelection, context.precision);
   return properties[property.toLowerCase()]!;
@@ -3395,7 +3400,7 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
             if (!data || data.length !== length * (highDepth ? 2 : 1)) throw new Error("Truncated expression statistics");
             const data16 = highDepth ? new Uint16Array(data.slice().buffer) : undefined;
             return data16 ? { data: Uint8Array.from(data16, value => Math.round(value / 257)), data16 } : { data };
-        }, statistics, false, function*(position, length) {
+        }, statistics, false, function*(position, length): Generator<ConvolveRequest, Uint8Array, Uint8Array | undefined> {
             return (yield { kind: "read", image: stack.length, position, length })!;
         });
         const selected = mask.filter((enabled, channel) => enabled && (channel !== 3 || base.hasAlpha)).length;
@@ -4662,9 +4667,17 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     }
     const options = magickResizeOptions(img, geomStr, kernel ?? (thumbnail ? "lanczossharp" : undefined));
     if (!options || (options.width === img.width && options.height === img.height)) return img;
+    preserveSamples ||= !!img.readMask;
     kernel = options.kernel;
     const width = options.width!, height = options.height!;
     const point = !scale && kernel === "nearest" && (!thumbnail || Math.min(img.width / width, img.height / height) < 3);
+    if (img.readMask) {
+        const mask = img.readMask as RgbaImage;
+        // Filtered resize copies mask channels; scale averages them without rounding.
+        img = { ...img, readMask: yield* applyMagickRasterSteps(mask, scale
+            ? resizePixelSteps(mask, width, height, false, true, kernel, !!mask.data16, settings, true)
+            : point ? pointResizePixelSteps(mask, width, height, sample, 4, sampleOffset) : resizeMaskPixelSteps(mask, width, height), undefined, { ...mask, width, height }) };
+    }
     if (img.writeMask && !sample && !scale && !point) {
         const horizontalFirst = width / img.width > height / img.height;
         let resized = img;
@@ -4678,7 +4691,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
         const virtualCanvas = magickResizeCanvas(img, width, height);
         return virtualCanvas ? { ...resized, virtualCanvas } : resized;
     }
-    let resized: RgbaImage = !settings && !img.data16 && !scale && (kernel === "linear")
+    let resized: RgbaImage = !preserveSamples && !settings && !img.data16 && !scale && (kernel === "linear")
         ? yield* resizeImageSteps(img, { ...options, kernel })
         : yield* applyMagickRasterSteps(img, point ? pointResizePixelSteps(img, width, height, sample, 4, sampleOffset, !!img.writeMask) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings, preserveSamples, !!img.writeMask), undefined, { ...img, width, height });
     for (const samples of point ? [img.data16, img.evaluateSamples] : []) {
@@ -4696,6 +4709,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
         }
         resized = { ...resized, ...(output instanceof Uint16Array ? { data16: output } : { evaluateSamples: output }) };
     }
+
     if ((sample || scale) && img.writeMask) resized = { ...resized, writeMask: { ...resized, hasAlpha: false } };
     const virtualCanvas = magickResizeCanvas(img, width, height);
     return virtualCanvas ? { ...resized, virtualCanvas } : resized;
@@ -4709,7 +4723,14 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
     if (!options) return image;
     const width = options.width!, height = options.height!;
     if (width === image.width && height === image.height) return image;
+    preserveSamples ||= !!image.readMask;
     const point = !scale && options.kernel === "nearest" && (!thumbnail || Math.min(image.width / width, image.height / height) < 3);
+    if (image.readMask) {
+        const mask = image.readMask as StoredRgbaImage;
+        image = { ...image, readMask: await transformStoredMagickRaster(mask, backend, scale
+            ? resizePixelSteps(mask, width, height, false, true, options.kernel, !!mask.storedData16, settings, true)
+            : point ? pointResizePixelSteps(mask, width, height, sample, 4, sampleOffset) : resizeMaskPixelSteps(mask, width, height), signal, { ...mask, width, height }) };
+    }
     if (image.storedWriteMask && !sample && !scale && !point) {
         const horizontalFirst = width / image.width > height / image.height;
         let resized = image;
@@ -4723,7 +4744,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
         const virtualCanvas = magickResizeCanvas(image, width, height);
         return virtualCanvas ? { ...resized, virtualCanvas } : resized;
     }
-    let resized: StoredRgbaImage = !settings && !image.storedData16 && !scale && (options.kernel === "linear")
+    let resized: StoredRgbaImage = !preserveSamples && !settings && !image.storedData16 && !scale && (options.kernel === "linear")
         ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options, kernel: options.kernel }, signal)
         : await transformStoredMagickRaster(image, backend, point ? pointResizePixelSteps(image, width, height, sample, 4, sampleOffset, !!image.storedWriteMask) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings, preserveSamples, !!image.storedWriteMask), signal, { ...image, width, height });
     for (const [source, pixelBytes] of point ? [[image.storedData16?.position, 8], [image.storedEvaluateSamples, 32]] as const : []) {
@@ -4740,6 +4761,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
         }
         resized = { ...resized, ...(pixelBytes === 8 ? { storedData16: { position, length: width * height * 4 } } : { storedEvaluateSamples: position }) };
     }
+
     if ((sample || scale) && image.storedWriteMask) {
         const { storedData16: ignoredData16, ...mask } = image.storedWriteMask;
         resized = { ...resized, storedWriteMask: { ...mask, width, height, hasAlpha: false, position: resized.position } };

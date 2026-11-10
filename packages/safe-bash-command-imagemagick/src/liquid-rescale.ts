@@ -124,11 +124,12 @@ export function* liquidRescalePixelSteps(image: { width: number; height: number;
         const evaluated = new Float64Array(length);
         for (let i = 0; i < length; i++) {
             const quantum = Math.fround(data[Math.floor((offset + i) / 4) * stride + i % 4]! * 65535);
+            evaluated[i] = quantum / 257;
             samples[i] = !hue && (image.depth === "uchar" || image.depth === "bit") ? Math.round(quantum / 257) * 257 : Math.round(quantum);
             if (hueSamples) hueSamples[i] = quantum / 65535;
         }
         // Keep fractional samples for high-depth output, as the resize kernel does.
-        yield { kind: "write", evaluate: true, position: offset, data: new Uint8Array(evaluated.buffer) };
+        if (!hue) yield { kind: "write", evaluate: true, position: offset, data: new Uint8Array(evaluated.buffer) };
         yield { kind: "write", highDepth: true, position: offset, data: new Uint8Array(samples.buffer) };
         if (hueSamples) yield { kind: "write", hue: true, position: offset, data: new Uint8Array(hueSamples.buffer) };
     }

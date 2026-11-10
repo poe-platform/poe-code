@@ -2014,7 +2014,7 @@ async function applyVideoFilterChain(
   let pixelFormat = diagnostics.pixelFormat;
   let timescale = diagnostics.timescale;
   let endTimeSeconds: number | undefined;
-  let current: (MediaVideoFrame & { filterMetadata?: Record<string, string> })[] = frames;
+  let current: (MediaVideoFrame & { filterMetadata?: Record<string, string>; interlaced?: boolean })[] = frames;
   if (current.length === 0) return current;
   let frameRateKnown = true;
 
@@ -3501,7 +3501,7 @@ async function applyVideoFilterChain(
           const source = row % 2 === 0 ? first : second;
           data.set(source.data.subarray(row * stride, (row + 1) * stride), row * stride);
         }
-        const combined = { ...first, data, durationSeconds: first.durationSeconds + second.durationSeconds };
+        const combined = { ...first, data, durationSeconds: first.durationSeconds + second.durationSeconds, interlaced: true };
         delete combined.native;
         output.push(combined);
       }
@@ -3525,7 +3525,9 @@ async function applyVideoFilterChain(
       const start = current[0]?.ptsSeconds ?? 0;
       const output: typeof current = [];
       let pending: typeof current[number] | undefined;
+      const interlacedSlots: boolean[] = [];
       for (const [index, frame] of current.entries()) {
+        let outputIndex = 0;
         for (let field = 0; field < pattern[index % pattern.length]!; field++) {
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
           if (!pending) {
@@ -3548,7 +3550,10 @@ async function applyVideoFilterChain(
               data.set(source.data.subarray(row * stride, (row + 1) * stride), row * stride);
             }
           }
-          const combined = { ...frame, data, ptsSeconds: start + output.length * durationSeconds, durationSeconds };
+          // Native telecine retains interlace flags on its reused output slots.
+          const interlaced = interlacedSlots[outputIndex] = Boolean(interlacedSlots[outputIndex] || pending !== frame || frame.interlaced);
+          outputIndex++;
+          const combined = { ...frame, data, ptsSeconds: start + output.length * durationSeconds, durationSeconds, interlaced };
           if (pending !== frame) delete combined.native;
           output.push(combined);
           pending = undefined;
@@ -3645,6 +3650,7 @@ async function applyVideoFilterChain(
         ...f, ptsSeconds: current[index]!.ptsSeconds
       }), signal);
     } else if (name === "setpts") {
+      const inputFrameRate = frameRateKnown ? 1 / (current[0]?.durationSeconds ?? 1 / timescale) : NaN;
       // FFmpeg 7 advertises 1/0 after setpts, independently of frame durations.
       frameRateKnown = false;
       const expr = named.expr ?? positional[0] ?? "PTS";
@@ -3655,6 +3661,7 @@ async function applyVideoFilterChain(
         const input = Math.round(f.ptsSeconds * timescale);
         const output = parseFilterExpression(expr, "setpts", {
           PTS: input, STARTPTS: startPts, TB: 1 / timescale,
+          FR: inputFrameRate, FRAME_RATE: inputFrameRate, INTERLACED: f.interlaced ? 1 : 0,
           N: index, T: input * (1 / timescale), STARTT: startPts * (1 / timescale),
           PREV_INPTS: previousInput, PREV_INT: previousInput / timescale,
           PREV_OUTPTS: previousOutput, PREV_OUTT: previousOutput / timescale
@@ -3668,6 +3675,7 @@ async function applyVideoFilterChain(
       const endPts = Math.round(endTime * timescale);
       endTimeSeconds = Math.trunc(parseFilterExpression(expr, "setpts", {
         PTS: endPts, STARTPTS: startPts, N: current.length,
+        FR: inputFrameRate, FRAME_RATE: inputFrameRate, INTERLACED: lastInputFrame?.interlaced ? 1 : 0,
         T: endPts * (1 / timescale), TB: 1 / timescale, STARTT: startPts * (1 / timescale),
         PREV_INPTS: previousInput, PREV_INT: previousInput / timescale,
         PREV_OUTPTS: previousOutput, PREV_OUTT: previousOutput / timescale
@@ -9406,7 +9414,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const offsetTicks = Math.round(presentationOffset * t.timescale);
                   const decoded = await ensureDecodedFrames(t, workingDoc.timescale, budget, context.signal);
                   // Filters use the displayed timeline; retain media coordinates for the existing edit list.
-                  const displayed = decoded.map(frame => ({ ...frame, ptsSeconds: frame.ptsSeconds - offsetTicks / t.timescale }));
+                  const displayed = decoded.map(frame => ({ ...frame, interlaced: ["tt", "bb", "tb", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), ptsSeconds: frame.ptsSeconds - offsetTicks / t.timescale }));
                   const diagnostics = {
                     timescale: workingDoc.containerFormat === "image2" && decoded[0]?.durationSeconds
                       ? 1 / decoded[0].durationSeconds : t.timescale,

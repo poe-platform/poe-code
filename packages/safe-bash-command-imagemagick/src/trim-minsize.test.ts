@@ -4,6 +4,30 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runMagickCli, runMagickCliSync } from "./index.js";
 
+it.each([
+    ["-define", "trim:minSize=(4x3)"],
+    ["-set", "option:trim:minSize", "(4x3)"],
+    ["-define", "trim:minSize=4x3"],
+    ["-set", "option:trim:minSize", "4x3"],
+])("retains native trim dimensions and page with %j", async (...options) => {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/out", new TextEncoder().encode("KEEP"));
+    const args = createCommandArguments([
+        "-size", "6x5", "xc:white", "-fill", "red", "-draw", "rectangle 2,1 3,2",
+        ...options, "-trim", "-format", "%wx%h %g;", "info:out",
+    ]);
+    let stderr = "";
+    const result = await createMagickCommand().execute({
+        command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write() {} },
+        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+    });
+    expect(result.exitCode, stderr).toBe(0);
+    expect(stderr).toBe("");
+    expect(new TextDecoder().decode(await fs.readFile("/out"))).toBe("4x3 6x5+2+1;");
+});
+
 for (const retained of [false, true]) {
     it.each([
         [[], 4, 4, 2, 1],

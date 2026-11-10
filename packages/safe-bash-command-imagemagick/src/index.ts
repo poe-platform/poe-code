@@ -9576,7 +9576,7 @@ if (t === "-intent" || t === "+intent") {
             if (filterKey === "trim:background-color") state.trimBackgroundColor = parseColor(filterValue ?? "", true);
             if (defStr.toLowerCase().startsWith("trim:edges=")) state.trimEdges = defStr.slice("trim:edges=".length);
             if (defStr.toLowerCase().startsWith("trim:minsize=")) {
-                const geometry = parseMagickGeometry(defStr.slice("trim:minsize=".length));
+                const geometry = parseMagickGeometry(defStr.slice("trim:minsize=".length).replaceAll("(", "").replaceAll(")", ""));
                 // Native trim uses percentage geometry values as pixel minima on both axes.
                 state.trimMinSize = geometry.isPercent ? { width: geometry.percentX!, height: geometry.percentY! } : geometry;
             }

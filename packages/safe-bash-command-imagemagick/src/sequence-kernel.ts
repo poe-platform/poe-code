@@ -10,7 +10,7 @@ type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined
 
 export type LookupInterpolation = "background" | "blend" | "bilinear" | "nearest" | "integer" | "average" | "average9" | "average16" | "mesh" | "catrom" | "spline";
 
-function* sampleLookup(lut: { width: number; height: number }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation, background: RgbaColor = { r: 255, g: 255, b: 255, a: 255 }, virtualPixel: VirtualPixelMethod = "edge"): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
+function* sampleLookup(lut: { width: number; height: number }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation, background: RgbaColor = { r: 255, g: 255, b: 255, a: 255 }, virtualPixel: VirtualPixelMethod = "edge", cmyk = false): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
     if (interpolation === "background") return [background.r, background.g, background.b, background.a].map(value => value * (highDepth ? 257 : 1));
     const nearest = interpolation === "nearest", single = nearest || interpolation === "integer";
     const averageSize = interpolation === "average" ? 2 : interpolation === "average9" ? 3 : interpolation === "average16" ? 4 : 0;
@@ -18,7 +18,8 @@ function* sampleLookup(lut: { width: number; height: number }, x: number, y: num
     const shift = averageSize > 2 ? 1 : 0, round = nearest || averageSize === 3 ? 0.5 : 0;
     const left = Math.floor(x + round) - shift, top = Math.floor(y + round) - shift;
     let dx = x - left, dy = y - top;
-    const values = [0, 0, 0, 0];
+    const range = highDepth ? 65535 : 255;
+    const values = cmyk ? [0, 0, 0, 0, 0] : [0, 0, 0, 0];
     // Blend selects the nearest edge neighbor and averages the middle half.
     if (interpolation === "blend") {
         dx = dx >= 0.75 ? 1 : dx > 0.25 ? 0.5 : 0;
@@ -63,20 +64,26 @@ function* sampleLookup(lut: { width: number; height: number }, x: number, y: num
             pixel = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
         }
         // Native cubic interpolation retains premultiplied colors without dividing by alpha.
-        for (let channel = 0; channel < 3; channel++) values[channel]! += pixel[channel]! * weight * (single ? 1 : averageSize ? Number(pixel[3]! > 0) : cubic ? pixel[3]! / (highDepth ? 65535 : 255) : pixel[3]!);
+        if (cmyk) {
+            const hue = position < 0 ? undefined : yield { kind: "read", hue: true, image: 1, position, length: 4 };
+            const inks = hue?.length ? new Float64Array(hue.slice().buffer) : rgbToCmyk(pixel[0]! / range, pixel[1]! / range, pixel[2]! / range);
+            pixel = [inks[0]! * range, inks[1]! * range, inks[2]! * range, pixel[3]!, inks[3]! * range];
+        }
+        for (let channel = 0; channel < values.length; channel++) if (channel !== 3) values[channel]! += pixel[channel]! * weight * (single ? 1 : averageSize ? Number(pixel[3]! > 0) : cubic ? pixel[3]! / (highDepth ? 65535 : 255) : pixel[3]!);
         values[3]! += pixel[3]! * weight;
     }
-    if (interpolation === "bilinear" || interpolation === "blend" || interpolation === "mesh") for (let channel = 0; channel < 3; channel++) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
+    if (interpolation === "bilinear" || interpolation === "blend" || interpolation === "mesh") for (let channel = 0; channel < values.length; channel++) if (channel !== 3) values[channel] = values[3] === 0 ? 0 : values[channel]! / values[3]!;
     return values;
 }
 
-export function* clutPixelSteps(size: number, lut: { width: number; height: number }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor, virtualPixel?: VirtualPixelMethod): Steps {
+export function* clutPixelSteps(size: number, lut: { width: number; height: number; space?: string }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor, virtualPixel?: VirtualPixelMethod, sourceCmyk = false): Steps {
     // Integer lookup partitions the full dimensions; other methods sample the diagonal endpoints.
     function* sample(value: number): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
         const adjust = interpolation === "integer" ? 0 : 1;
-        return yield* sampleLookup(lut, value * (lut.width - adjust), value * (lut.height - adjust), highDepth, interpolation, background, virtualPixel);
+        return yield* sampleLookup(lut, value * (lut.width - adjust), value * (lut.height - adjust), highDepth, interpolation, background, virtualPixel, lut.space === "cmyk");
     }
-    const table = highDepth ? undefined : new Float64Array(1024);
+    const cmyk = sourceCmyk || lut.space === "cmyk", range = highDepth ? 65535 : 255;
+    const table = highDepth || cmyk ? undefined : new Float64Array(1024);
     if (table) for (let value = 0; value < 256; value++) {
         if (value % 64 === 0) yield;
         table.set(yield* sample(value / 255), value * 4);
@@ -85,11 +92,24 @@ export function* clutPixelSteps(size: number, lut: { width: number; height: numb
         yield;
         const bytes = (yield { kind: "read", highDepth, position, length: Math.min(2048, size - position) })!;
         const data = Float64Array.from(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
-        for (let offset = 0; offset < data.length; offset++) {
+        const hue = sourceCmyk ? yield { kind: "read", hue: true, position, length: data.length } : undefined;
+        const inks = hue?.length ? new Float64Array(hue.slice().buffer) : sourceCmyk ? new Float64Array(data.length) : undefined;
+        for (let offset = 0; offset < data.length; offset += 4) {
             if (offset % 256 === 0) yield;
-            const channel = offset % 4;
-            if (mask[channel]) data[offset] = table ? table[data[offset]! * 4 + channel]! : (yield* sample(data[offset]! / 65535))[channel]!;
+            if (inks && !hue?.length) inks.set(rgbToCmyk(data[offset]! / range, data[offset + 1]! / range, data[offset + 2]! / range), offset);
+            for (let channel = 0; channel < (sourceCmyk ? 5 : 4); channel++) {
+                if (!mask[channel]) continue;
+                // The working ink plane stores C/M/Y/K; alpha stays in the RGBA backing.
+                const ink = inks && channel !== 3 ? offset + (channel === 4 ? 3 : channel) : undefined;
+                const value = ink === undefined ? data[offset + channel]! / range : inks![ink]!;
+                const index = cmyk ? Math.round(Math.max(0, Math.min(1, value)) * 65535) / 65535 : value;
+                const mapped = table ? table[data[offset + channel]! * 4 + channel]! : (yield* sample(index))[channel] ?? 0;
+                if (ink === undefined) data[offset + channel] = mapped;
+                else inks![ink] = mapped / range;
+            }
+            if (inks) for (let channel = 0; channel < 3; channel++) data[offset + channel] = (1 - inks[offset + channel]!) * (1 - inks[offset + 3]!) * range;
         }
+        if (inks) yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
         // Interpolation produces fractional Q16-HDRI samples even from byte inputs.
         const working = data.map(value => Math.fround(value * (highDepth ? 1 : 257)) / 257);
         yield { kind: "write", evaluate: true, position, data: new Uint8Array(working.buffer) };

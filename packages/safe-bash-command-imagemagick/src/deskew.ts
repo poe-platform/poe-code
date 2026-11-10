@@ -72,11 +72,11 @@ function* deskewAngle(width: number, height: number, spec: string, range: number
     return -Math.atan(skew / columns / 8);
 }
 
-export function* deskewAngleSteps(image: Pick<RgbaImage, "width" | "height" | "data" | "data16" | "hueSamples"> & Partial<Pick<RgbaImage, "space">>, spec: string): Generator<void, number, void> {
+export function* deskewAngleSteps(image: Pick<RgbaImage, "width" | "height" | "data" | "data16" | "hueSamples" | "evaluateSamples"> & Partial<Pick<RgbaImage, "space">>, spec: string): Generator<void, number, void> {
     // Native deskew tests C, M and Y in CMYK; K and alpha do not enter the projection.
     const inks = image.space === "cmyk" ? image.hueSamples : undefined;
-    const data = inks ?? image.data16 ?? image.data;
-    const steps = deskewAngle(image.width, image.height, spec, inks ? 1 : image.data16 ? 65535 : 255);
+    const data = inks ?? image.evaluateSamples ?? image.data16 ?? image.data;
+    const steps = deskewAngle(image.width, image.height, spec, inks ? 1 : !image.evaluateSamples && image.data16 ? 65535 : 255);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }
@@ -87,9 +87,10 @@ export function* deskewAngleSteps(image: Pick<RgbaImage, "width" | "height" | "d
 
 export async function storedDeskewAngle(image: StoredRgbaImage, storage: ImageByteStorage, spec: string, signal: AbortSignal): Promise<number> {
     const inks = image.space === "cmyk" ? image.storedHueSamples : undefined;
-    const sampleBytes = inks !== undefined ? 8 : image.storedData16 ? 2 : 1;
-    const position = inks ?? image.storedData16?.position ?? image.position;
-    const steps = deskewAngle(image.width, image.height, spec, inks !== undefined ? 1 : image.storedData16 ? 65535 : 255);
+    const evaluate = image.storedEvaluateSamples !== undefined;
+    const sampleBytes = inks !== undefined || evaluate ? 8 : image.storedData16 ? 2 : 1;
+    const position = inks ?? image.storedEvaluateSamples ?? image.storedData16?.position ?? image.position;
+    const steps = deskewAngle(image.width, image.height, spec, inks !== undefined ? 1 : !evaluate && image.storedData16 ? 65535 : 255);
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { await yieldTurn(signal); next = steps.next(); }
@@ -97,14 +98,14 @@ export async function storedDeskewAngle(image: StoredRgbaImage, storage: ImageBy
             const { position: offset, length } = next.value;
             const bytes = await storage.read(position + offset * sampleBytes, length * sampleBytes, { signal });
             if (bytes.length !== length * sampleBytes) throw new Error("Truncated deskew pixels");
-            next = steps.next(inks !== undefined ? new Float64Array(new Uint8Array(bytes).buffer)
+            next = steps.next(inks !== undefined || evaluate ? new Float64Array(new Uint8Array(bytes).buffer)
                 : image.storedData16 ? new Uint16Array(new Uint8Array(bytes).buffer) : bytes);
         }
     }
     return next.value;
 }
 
-export function deskewPlan(image: Pick<RgbaImage, "width" | "height" | "properties" | "virtualCanvas">, radians: number, pointFilter = false) {
+export function deskewPlan(image: Pick<RgbaImage, "width" | "height" | "properties" | "virtualCanvas">, radians: number, pointFilter = false, interpolation: WarpPlan["interpolation"] = "bilinear") {
     const cos = Math.cos(radians), sin = Math.sin(radians);
     const page = image.virtualCanvas;
     const left = page?.x ?? 0, top = page?.y ?? 0;
@@ -117,8 +118,8 @@ export function deskewPlan(image: Pick<RgbaImage, "width" | "height" | "properti
     const canvasHeight = page?.height ? Math.round(height / image.height * page.height) : height;
     return { width, height, hasAlpha: true, virtualCanvas: { width: canvasWidth, height: canvasHeight, x, y },
         properties: { ...image.properties, "deskew:angle": Object.is(degrees, -0) ? "-0" : degrees.toPrecision(17) },
-        // Point disables elliptical filtering; native deskew uses bilinear interpolation.
-        ...(pointFilter ? {} : { derivatives: () => [cos, sin, -sin, cos] as const }),
+        // Point disables elliptical filtering and uses the selected interpolation method.
+        ...(pointFilter ? { interpolation } : { derivatives: () => [cos, sin, -sin, cos] as const }),
         map: (px, py) => [(px + x + 0.5) * cos + (py + y + 0.5) * sin - left - 0.5, -(px + x + 0.5) * sin + (py + y + 0.5) * cos - top - 0.5] } satisfies WarpPlan & Pick<RgbaImage, "properties">;
 }
 

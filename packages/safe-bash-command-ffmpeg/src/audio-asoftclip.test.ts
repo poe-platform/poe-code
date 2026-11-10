@@ -65,7 +65,26 @@ for (const [filter, expected] of [
   });
 }
 
-for (const filter of ["asoftclip=threshold=0", "asoftclip=threshold=1.1", "asoftclip=threshold=NaN", "asoftclip=threshold=", "asoftclip=output=17", "asoftclip=param=0", "asoftclip=param=4", "asoftclip=type=unknown", "asoftclip=type=8", "asoftclip=type=-2", "asoftclip=type=", "asoftclip=oversample=2", "asoftclip=unknown=1"]) {
+for (const [expression, literal] of [
+  ["threshold=1/2", "threshold=0.5"],
+  ["output=1/2", "output=0.5"],
+  ["param=1+1", "type=tanh:param=2"],
+  ["0:1/2:1/2:1+1:1", "0:0.5:0.5:2:1"],
+  ["threshold=1/1000000:output=1/1000000:param=1/100", "threshold=0.000001:output=0.000001:param=0.01"],
+  ["threshold=2/2:output=8*2:param=1+2", "threshold=1:output=16:param=3"]
+] as const) for (const graph of [false, true]) {
+  it(`asoftclip=${expression} matches its literal control (${graph ? "graph" : "simple"})`, async () => {
+    const actual = await run(`asoftclip=${expression}`, graph);
+    const control = await run(`asoftclip=${literal}`, graph);
+    assert.equal(control.result.exitCode, 0, control.stderr);
+    assert.equal(actual.result.exitCode, 0, actual.stderr);
+    assert.deepEqual(actual.fs.readFileSync("/out.wav"), control.fs.readFileSync("/out.wav"));
+  });
+}
+
+for (const filter of ["asoftclip=threshold=0", "asoftclip=threshold=1.1", "asoftclip=threshold=NaN", "asoftclip=threshold=", "asoftclip=output=17", "asoftclip=param=0", "asoftclip=param=4", "asoftclip=type=unknown", "asoftclip=type=8", "asoftclip=type=-2", "asoftclip=type=", "asoftclip=oversample=2", "asoftclip=unknown=1",
+  "asoftclip=threshold=1/2000000", "asoftclip=threshold=1+1", "asoftclip=output=1/2000000", "asoftclip=output=16+1",
+  "asoftclip=param=1/200", "asoftclip=param=3+1", "asoftclip=threshold=1/0", "asoftclip=output=0/0", "asoftclip=param=1+"]) {
   it(`${filter} fails without replacing output`, async () => {
     const { fs, result } = await run(filter);
     assert.equal(result.exitCode, 1);

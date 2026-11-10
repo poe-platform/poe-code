@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function softClipAudio(
   channels: readonly (Float32Array | Float64Array)[], filter: string,
@@ -20,7 +21,7 @@ export async function softClipAudio(
     } else if (key === "oversample") {
       if (!value || Number(value) !== 1) throw new Error("asoftclip: only oversample=1 is supported");
     } else if (key === "threshold" || key === "output" || key === "param") {
-      const number = Number(value);
+      const number = parseFilterExpression(value, "asoftclip", {});
       const min = key === "param" ? 0.01 : 0.000001;
       const max = key === "param" ? 3 : key === "output" ? 16 : 1;
       if (!value || !Number.isFinite(number) || number < min || number > max) {

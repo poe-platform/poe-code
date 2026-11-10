@@ -24,10 +24,11 @@ export function parseMagnifyMethod(value: string): MagnifyMethod {
 }
 
 // Bounded row neighborhoods serve both in-memory and retained rasters.
-// Keep working samples outside the quantum range available to later arithmetic.
-export function* magnifyPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples">>, method: MagnifyMethod = "scale2x", background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", intensityMethod = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
-    const Samples = evaluate ? Float64Array : Uint16Array;
+// Copy complete pixels, including active floating-point colorspace channels.
+export function* magnifyPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples" | "storedEvaluateSamples">>, method: MagnifyMethod = "scale2x", background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", intensityMethod = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
+    const evaluate = !hue && (!!image.evaluateSamples || image.storedEvaluateSamples !== undefined);
+    const Samples = hue || evaluate ? Float64Array : Uint16Array;
     const factor = method === "scale3x" || method === "eagle3x" ? 3 : 2;
     const radius = method === "xbr2x" ? 2 : 1;
     const gray = virtualPixel === "white" ? 65535 : virtualPixel === "gray" ? 32768 : 0;
@@ -49,9 +50,10 @@ export function* magnifyPixelSteps(image: Pick<RgbaImage, "width" | "height" | "
                 // Keep contiguous reads bounded, splitting where virtual pixels wrap.
                 let length = 1;
                 while (column + length < count + 2 * radius && virtualPixelIndex(left + column + length - radius, y + dy, image.width, image.height, virtualPixel) === pixel + length) length++;
-                const bytes = yield { kind: "read", highDepth: !evaluate, evaluate, position: pixel * 4, length: length * 4 };
-                if (!bytes || bytes.length !== length * 4 * (evaluate ? 8 : 2)) throw new Error("Truncated magnify pixels");
-                row.set(evaluate ? new Float64Array(bytes.slice().buffer).map(value => value * 257) : new Uint16Array(bytes.slice().buffer), column * 4);
+                const bytes = yield { kind: "read", hue, evaluate, highDepth: !hue && !evaluate, position: pixel * 4, length: length * 4 };
+                if (!bytes || bytes.length !== length * 4 * Samples.BYTES_PER_ELEMENT) throw new Error("Truncated magnify pixels");
+                const samples = new Samples(bytes.slice().buffer);
+                row.set(hue || evaluate ? samples.map(value => value * (hue ? 65535 : 257)) : samples, column * 4);
                 column += length;
             }
             rows.push(row);
@@ -160,9 +162,12 @@ export function* magnifyPixelSteps(image: Pick<RgbaImage, "width" | "height" | "
         for (let dy = 0; dy < factor; dy++) {
             const position = ((y * factor + dy) * image.width * factor + left * factor) * 4;
             const samples = output[dy]!;
-            const encoded = evaluate ? Uint16Array.from(samples, value => Math.max(0, Math.min(65535, Math.round(value)))) : samples;
-            yield { kind: "write", highDepth: true, position, data: new Uint8Array(encoded.buffer) };
-            if (evaluate) yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.map(value => value / 257).buffer) };
+            if (hue) {
+                yield { kind: "write", hue: true, position, data: new Uint8Array(Float64Array.from(samples, value => value / 65535).buffer) };
+            }
+            if (hue || evaluate) yield { kind: "write", evaluate: true, position, data: new Uint8Array(Float64Array.from(samples, value => value / 257).buffer) };
+            const data = hue || evaluate ? Uint16Array.from(samples, value => Math.max(0, Math.min(65535, Math.round(value)))) : samples;
+            yield { kind: "write", highDepth: true, position, data: new Uint8Array(data.buffer) };
         }
     }
 }

@@ -1,7 +1,7 @@
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-export function* borderPixels(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples">>, left: number, top: number, color: RgbaColor, highDepth: boolean, bottom = top): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* borderPixels(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples">> & { inactiveAlpha?: boolean | undefined }, left: number, top: number, color: RgbaColor, highDepth: boolean, bottom = top): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const width = image.width + left * 2, height = image.height + top + bottom;
     const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
     const maximum = highDepth ? 65535 : 255;
@@ -22,7 +22,7 @@ export function* borderPixels(image: Pick<RgbaImage, "width" | "height" | "hasAl
             const source = evaluate ? new Float64Array(bytes.slice().buffer).map(value => value * maximum / 255) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
             for (let pixel = first; pixel < end; pixel++) {
                 const src = (pixel - first) * 4, dst = (pixel - x) * 4;
-                const alpha = image.hasAlpha ? source[src + 3]! / maximum : 1, behind = background[3]! / maximum * (1 - alpha), combined = alpha + behind;
+                const alpha = image.hasAlpha || image.inactiveAlpha ? source[src + 3]! / maximum : 1, behind = background[3]! / maximum * (1 - alpha), combined = alpha + behind;
                 for (let channel = 0; channel < 4; channel++) {
                     const value = channel === 3 ? combined * maximum : combined
                         ? (source[src + channel]! * alpha + background[channel]! * behind) / combined : background[channel]!;

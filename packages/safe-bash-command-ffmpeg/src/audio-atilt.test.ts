@@ -9,20 +9,21 @@ const frequencies = [40, 1000, 30000];
 const tones = Float64Array.from({ length: 38400 }, (_, i) =>
   Math.round(500 + frequencies.reduce((sum, f) => sum + 2000 * Math.sin(2 * Math.PI * f * i / rate), 0)) / 32768);
 
-async function run(filter: string, channels = [tones], complex = false, sampleRate = rate) {
+async function run(filter: string, channels = [tones], complex = false, sampleRate = rate, pipe = false) {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/in.wav", encodeWav({ sampleRate, channels }));
   await fs.writeFile("/out.raw", new TextEncoder().encode("KEEP"));
   let stderr = "";
+  const stdout: Buffer[] = [];
   const result = await createFfmpegCommand().execute({
     args: ["-y", "-v", "error", "-i", "/in.wav",
       ...(complex ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
-      "-f", "s16le", "/out.raw"],
+      "-f", "s16le", pipe ? "pipe:1" : "/out.raw"],
     command: "ffmpeg", cwd: "/", env: {}, fs, signal: new AbortController().signal,
-    stdin: (async function* () {})(), stdout: { async write() {} },
+    stdin: (async function* () {})(), stdout: { async write(chunk) { stdout.push(Buffer.from(chunk)); } },
     stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } }
   });
-  return { ...result, stderr, bytes: Buffer.from(await fs.readFile("/out.raw")) };
+  return { ...result, stderr, bytes: pipe ? Buffer.concat(stdout) : Buffer.from(await fs.readFile("/out.raw")) };
 }
 
 // Native FFmpeg 7.0.2 reference: projections over the final 19200 samples.
@@ -112,7 +113,7 @@ for (const option of ["freq=19", "freq=192001", "slope=1.1", "slope=-1.1", "widt
   "order=1", "order=31", "order=1.9", "order=30.1", "level=-1", "level=4.1", "slope=NaN", "freq=", "unknown=1"]) {
   it(`atilt rejects ${option} without replacing output`, async () => {
     const result = await run(`atilt=${option}`, [new Float64Array(4)]);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, option === "unknown=1" ? 8 : option === "slope=NaN" || option === "freq=" ? 234 : 222);
     assert.ok(result.stderr.includes("atilt:"), result.stderr);
     assert.equal(result.bytes.toString(), "KEEP");
   });
@@ -148,5 +149,24 @@ for (const option of [
     assert.notEqual(result.exitCode, 0);
     assert.ok(result.stderr.includes("atilt:"), result.stderr);
     assert.equal(result.bytes.toString(), "KEEP");
+  });
+}
+
+// Native FFmpeg 7.0.2 process statuses for the same 8 kHz WAV fixture.
+for (const [option, exitCode] of [["freq=19", 222], ["freq=oops", 234], ["bogus=5", 8], ["freq=20", 0]] as const) {
+  it(`atilt preserves native status ${exitCode} for ${option} and emits PCM only on success`, async () => {
+    const input = [Float64Array.from({ length: 128 }, (_, i) => (i % 8 === 0 ? 3000 : -800) / 32768)];
+    for (const complex of [false, true]) {
+      const result = await run(`atilt=${option}`, input, complex, 8000, true);
+      assert.equal(result.exitCode, exitCode, result.stderr);
+      if (exitCode === 0) {
+        assert.deepEqual(result.bytes, (await run("anull", input, complex, 8000, true)).bytes);
+        assert.deepEqual([0, 1, 2, 31, 32, 33].map(i => result.bytes.readInt16LE(i * 2)),
+          [3000, -800, -800, -800, 3000, -800]);
+      } else {
+        assert.equal(result.bytes.length, 0);
+        assert.ok(result.stderr.includes("atilt:"), result.stderr);
+      }
+    }
   });
 }

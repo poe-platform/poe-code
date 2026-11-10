@@ -19,7 +19,7 @@ export async function tiltAudio(
     const number = parseFilterExpression(value, "atilt", {});
     const [min, max] = ranges[key];
     if (!value || !Number.isFinite(number) || number < min! || number > max!) {
-      throw new Error(`atilt: invalid ${key}`);
+      throw new RangeError(`atilt: invalid ${key}`);
     }
     options[key] = number;
     if (key === "order") {

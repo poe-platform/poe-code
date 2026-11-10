@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { dirname } from "node:path";
 import { test } from "node:test";
 import { MemoryFileSystem as BrowserMemoryFileSystem, Shell as BrowserShell } from "../../src/index.js";
 import { basicCommands } from "../../src/commands/basic.js";
@@ -18,11 +19,11 @@ for (const script of [
   "command printf -v bad-name %s hello",
   "printf -v '' %s hello",
   'value=old\nprintf -v "value[0" %s hello\nstatus=$?\nprintf "%s" "$value"\nexit "$status"',
-  "bash -c '\n\nprintf -v bad-name %s hello' named-script",
+  "bash --noprofile --norc -c '\n\nprintf -v bad-name %s hello' named-script",
 ]) {
   test(`printf -v invalid destination keeps Bash diagnostic context: ${script}`, async () => {
-    const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script, "shell"], {
-      env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000,
+    const oracle = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", script, "shell"], {
+      env: { PATH: `${dirname(bashExecutable)}:/usr/bin:/bin`, LC_ALL: "C" }, timeout: 2000,
     });
     assert.ifError(oracle.error);
     assert.equal(oracle.signal, null);
@@ -114,7 +115,7 @@ for (const prefix of ["", "builtin ", "command "]) {
   for (const args of ["-x", "-xyz", "--bad", "-v", "-v value -v"]) {
     test(`${prefix}printf ${args} prints the option diagnostic and usage`, async context => {
       const source = `\n${prefix}printf ${args}`;
-      const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source, "shell"], { env: { LC_ALL: "C" }, timeout: 2000 });
+      const oracle = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source, "shell"], { env: { LC_ALL: "C" }, timeout: 2000 });
       assert.ifError(oracle.error);
       assert.equal(oracle.status, 2);
       assert.equal(oracle.stdout.length, 0);
@@ -131,7 +132,7 @@ for (const prefix of ["", "builtin ", "command "]) {
       test(`${prefix}printf accepts a lone hyphen with ${separator || "no separator"}, loop=${loop}`, async context => {
         const body = `${prefix}printf ${separator}-; value=old; ${prefix}printf -v value ${separator}-; echo "$?:$value"`;
         const script = loop ? `for i in 1 2; do ${body}; done` : body;
-        const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 2000 });
+        const oracle = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", script], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 2000 });
         assert.ifError(oracle.error);
         assert.equal(oracle.status, 0);
         assert.equal(oracle.stderr, "");
@@ -162,7 +163,7 @@ for (const initial of ["a=(old)", "declare -A a=([0]=old)"]) {
   for (const options of ["-v 'a[]'", "'-va[]'", "-v 'a[]' -v other"]) {
     test(`printf rejects an empty subscript before formatting: ${initial}; ${options}`, async context => {
       const script = `${initial}; printf ${options} 'ok%n' n; printf '%s|%s|%s|%s' "$?" "\${n-unset}" "$a" "\${other-unset}"`;
-      const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script], { env: { LC_ALL: "C" }, timeout: 2000 });
+      const oracle = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", script], { env: { LC_ALL: "C" }, timeout: 2000 });
       assert.ifError(oracle.error);
       assert.equal(oracle.status, 0);
       assert.equal(oracle.stdout.toString(), "2|unset|old|unset");
@@ -210,7 +211,7 @@ for (const [name, script, expected] of [
   ["multiple local names", 'left=(left); right=(right); f(){ local -a left right; left[0]=one; right[0]=two; }; f; printf "<%s:%s>" "${left[0]}" "${right[0]}"', "<left:right>"],
 ] as const) {
   test(`local -a restores scope: ${name}`, async () => {
-    const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script], { env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000 });
+    const oracle = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", script], { env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000 });
     assert.ifError(oracle.error);
     assert.equal(oracle.signal, null);
     assert.equal(oracle.status, 0);
@@ -452,7 +453,7 @@ for (const [initial, target, expected] of [
   for (const prefix of ["", "builtin ", "command "]) {
     test(`${prefix}printf -v names an out-of-range destination after formatting: ${target}`, async context => {
       const script = `${initial}; i=0;\n${prefix}printf -v '${target}' 'ok%n' n; printf '%s|%s|%s|%s' "$?" "$n" "$a" "$i"`;
-      const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script, "shell"], {
+      const oracle = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", script, "shell"], {
         env: { LC_ALL: "C" }, timeout: 2000,
       });
       assert.ifError(oracle.error);

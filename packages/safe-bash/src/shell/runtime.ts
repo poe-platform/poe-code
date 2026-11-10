@@ -8563,7 +8563,7 @@ export class Runtime {
           await writeDiagnostic(context.stderr, `printf: ${target}: readonly variable\n`);
           return;
         }
-        if (target === "FUNCNAME") return;
+        if (protectedReadArrays.has(target)) return;
         await this.assignVariable(state, target, String(count), context);
         const previous = assignments.get(target);
         if (previous) {
@@ -8598,8 +8598,8 @@ export class Runtime {
         await writeDiagnostic(context.stderr, `printf: ${name}: readonly variable\n`);
         return 1;
       }
-      // Bash ignores assignments to its function-stack variable.
-      if (name === "FUNCNAME") return status;
+      // Shell-maintained arrays reject -v writes silently, unlike %n writes.
+      if (protectedReadArrays.has(name)) return 1;
       if (index) {
         try { await this.arrayAssignment({ kind: "element", name, index, append: false, value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, context); }
         catch (error) {

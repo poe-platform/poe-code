@@ -3,6 +3,60 @@ import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
+import { bashExecutable, modernBashSkip } from "../helpers/bash-oracle.js";
+
+for (const name of ["FUNCNAME", "BASH_ARGV", "BASH_ARGC", "BASH_SOURCE", "BASH_LINENO", "GROUPS", "dest"]) {
+  for (const target of [name, `${name}[0]`]) {
+    for (const prefix of ["", "builtin ", "command "]) {
+      test(`printf -v preserves shell-maintained arrays: ${prefix}${target}`, async context => {
+        const { shell, commands } = setup({ env: { LC_ALL: "C.UTF-8" } });
+        for (const command of basicCommands()) commands.register(command);
+        try {
+          const script = `f(){ before=\${${name}[0]-}; ${prefix}printf -v '${target}' '%s' changed; rc=$?; [[ \${${name}[0]-} == "$before" ]]; echo "$rc:$?"; }; f`;
+          const result = await shell.exec(script);
+          assert.equal(result.exitCode, 0);
+          assert.deepEqual(result.stdoutBytes, new TextEncoder().encode(name === "dest" ? "0:1\n" : "1:0\n"));
+          assert.equal(result.stderr, "");
+          await context.test("GNU Bash comparison", { skip: modernBashSkip }, () => {
+            const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", script], { env: { LC_ALL: "C.UTF-8" }, timeout: 2000 });
+            assert.ifError(native.error);
+            assert.equal(native.status, result.exitCode);
+            assert.deepEqual(new Uint8Array(native.stdout), result.stdoutBytes);
+            assert.deepEqual(new Uint8Array(native.stderr), result.stderrBytes);
+          });
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+  test(`printf -v loop preserves shell-maintained arrays: ${name}`, async () => {
+    const { shell, commands } = setup();
+    for (const command of basicCommands()) commands.register(command);
+    try {
+      const result = await shell.exec(`f(){ before=\${${name}[0]-}; for ((i=0;i<3;i++)); do printf -v ${name} '%s' changed; rc=$?; [[ \${${name}[0]-} == "$before" ]]; echo "$rc:$?"; done; }; f`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, (name === "dest" ? "0:1\n" : "1:0\n").repeat(3));
+      assert.equal(result.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+  test(`printf %n preserves shell-maintained arrays: ${name}`, async context => {
+    const { shell, commands } = setup({ env: { LC_ALL: "C.UTF-8" } });
+    for (const command of basicCommands()) commands.register(command);
+    try {
+      const script = `f(){ before=\${${name}[0]-}; printf 'ab%n' ${name}; rc=$?; [[ \${${name}[0]-} == "$before" ]]; echo "$rc:$?"; }; f`;
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, 0);
+      assert.deepEqual(result.stdoutBytes, new TextEncoder().encode(name === "dest" ? "ab0:1\n" : "ab0:0\n"));
+      assert.equal(result.stderr, "");
+      await context.test("GNU Bash comparison", { skip: modernBashSkip }, () => {
+        const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", script], { env: { LC_ALL: "C.UTF-8" }, timeout: 2000 });
+        assert.ifError(native.error);
+        assert.equal(native.status, result.exitCode);
+        assert.deepEqual(new Uint8Array(native.stdout), result.stdoutBytes);
+        assert.deepEqual(new Uint8Array(native.stderr), result.stderrBytes);
+      });
+    } finally { await shell.dispose(); }
+  });
+}
 
 for (const [initial, subscript, stdout, diagnostic] of [
   ["a=(OLD TWO)", "@", "1:1:2:OLD:TWO:OLD\n", "a[@]: bad array subscript"],
@@ -54,7 +108,7 @@ for (const [name, script] of [
   ["builtin and command dispatch", `builtin printf 'ab%n' n; command printf 'abc%n' m; printf '|%s|%s' "$n" "$m"`],
 ] as const) {
   test(`printf %n: ${name}`, async () => {
-    const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script], { env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000 });
+    const oracle = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", script], { env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000 });
     assert.ifError(oracle.error);
     assert.equal(oracle.signal, null);
     const { shell, commands } = setup({ env: { LC_ALL: "C" } });

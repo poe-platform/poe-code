@@ -34,7 +34,7 @@ export async function tmix(
   }
   const planes = Number(options.planes);
   if (!Number.isInteger(planes) || planes < 0 || planes > 0xffffffff) {
-    throw new Error("tmix: planes must be an integer from 0 to 4294967295");
+    throw new RangeError("tmix: planes must be an integer from 0 to 4294967295");
   }
   const scaleConstants = {
     PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, default: 0, min: 0, max: 32767

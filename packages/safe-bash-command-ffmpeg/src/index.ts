@@ -10744,18 +10744,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             })) >= 0.5;
                           }
                         }
-                        if (!enabled) continue;
-                        if (length > inputLength) {
-                          budget.allocateMemory(Math.ceil((length - inputLength) / packetSize) * 24);
-                        }
+                        if (!enabled || length === inputLength) continue;
+                        budget.allocateMemory(Math.ceil((length - inputLength) / packetSize) * 24);
                         for (let start = inputLength; start < length; start += packetSize) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           audioTimestamps.push({ start, end: Math.min(length, start + packetSize),
                             pts: paddingPts + start - inputLength });
                         }
-                        budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
                         stretched = await mapWork(stretched, async channel => {
-                          const output = new Float32Array(length);
+                          budget.allocateMemory(length * channel.BYTES_PER_ELEMENT);
+                          const output = channel instanceof Float64Array ? new Float64Array(length) : new Float32Array(length);
                           for (let start = 0; start < channel.length; start += 16384) {
                             await yieldTurn(context.signal);
                             context.signal?.throwIfAborted();

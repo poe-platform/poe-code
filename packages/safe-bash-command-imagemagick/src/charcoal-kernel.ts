@@ -4,8 +4,9 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Blur with virtual pixels, normalize, negate and grayscale without rounding intermediate pixels. */
-export function* charcoalPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* charcoalPixelSteps(image: { width: number; height: number }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
+    const mask = channels ? [channels.r, channels.g, channels.b] : [true, true, true];
     let half = 0;
     if (sigma > 0) {
         if (radius > 0) half = radius >= 1 ? Math.floor(radius) : Math.ceil(radius);
@@ -31,8 +32,8 @@ export function* charcoalPixelSteps(image: { width: number; height: number }, ge
     const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 127.5 : 0;
     const fill = (virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
         ? [background.r, background.g, background.b] : [gray, gray, gray];
-    const histogram = new Float64Array(65536);
-    let low = 0, high = 65535;
+    const histograms = Array.from({ length: channels ? 3 : 1 }, () => new Float64Array(65536));
+    const lows = histograms.map(() => 0), highs = histograms.map(() => 65535);
     for (let pass = 0; pass < 2; pass++) {
         for (let left = 0; left < width; left += 1024) {
             const count = Math.min(1024, width - left), rows = new Map<number, Float64Array>();
@@ -77,7 +78,7 @@ export function* charcoalPixelSteps(image: { width: number; height: number }, ge
                                 if (x % 32 === 0) yield;
                                 for (let k = -half; k <= half; k++) {
                                     const offset = (x + k + half) * 3;
-                                    for (let c = 0; c < 3; c++) row[x * 3 + c]! += samples[offset + c]! * weights[k + half]!;
+                                    for (let c = 0; c < 3; c++) if (mask[c]) row[x * 3 + c]! += samples[offset + c]! * weights[k + half]!;
                                 }
                             }
                         }
@@ -86,15 +87,29 @@ export function* charcoalPixelSteps(image: { width: number; height: number }, ge
                     }
                     for (let i = 0; i < sums.length; i++) sums[i]! += row[i]! * weights[ky + half]!;
                 }
+                if (channels && mask.some(selected => !selected)) {
+                    const bytes = yield { kind: "read", position: (y * width + left) * 4, length: count * 4 };
+                    if (!bytes || bytes.length !== count * 4) throw new Error("Truncated charcoal pixels");
+                    for (let x = 0; x < count; x++) for (let c = 0; c < 3; c++) if (!mask[c]) sums[x * 3 + c] = bytes[x * 4 + c]!;
+                }
                 if (pass === 0) {
-                    for (let x = 0; x < count; x++) histogram[Math.max(0, Math.min(65535, Math.round(257 * (sums[x * 3]! * 0.212656 + sums[x * 3 + 1]! * 0.715158 + sums[x * 3 + 2]! * 0.072186))))]!++;
+                    for (let x = 0; x < count; x++) {
+                        if (channels) {
+                            for (let c = 0; c < 3; c++) if (mask[c]) histograms[c]![Math.max(0, Math.min(65535, Math.round(257 * sums[x * 3 + c]!)))]!++;
+                        } else histograms[0]![Math.max(0, Math.min(65535, Math.round(257 * (sums[x * 3]! * 0.212656 + sums[x * 3 + 1]! * 0.715158 + sums[x * 3 + 2]! * 0.072186))))]!++;
+                    }
                 } else {
                     const data = new Uint8Array(count * 4);
                     for (let x = 0; x < count; x++) {
                         let gray = 0;
                         for (let c = 0; c < 3; c++) {
-                            const value = high > low ? Math.max(0, Math.min(255, (sums[x * 3 + c]! * 257 - low) / (high - low) * 255)) : sums[x * 3 + c]!;
-                            gray += (255 - value) * [0.212656, 0.715158, 0.072186][c]!;
+                            const low = lows[channels ? c : 0]!, high = highs[channels ? c : 0]!;
+                            let value = sums[x * 3 + c]!;
+                            if (mask[c]) {
+                                if (high > low) value = Math.max(0, Math.min(255, (value * 257 - low) / (high - low) * 255));
+                                value = 255 - value;
+                            }
+                            gray += value * [0.212656, 0.715158, 0.072186][c]!;
                         }
                         data.fill(Math.round(gray), x * 4, x * 4 + 3); data[x * 4 + 3] = 255;
                     }
@@ -102,11 +117,15 @@ export function* charcoalPixelSteps(image: { width: number; height: number }, ge
                 }
             }
         }
-        if (pass === 0) {
+        if (pass === 0) for (let c = 0; c < histograms.length; c++) {
+            if (channels && !mask[c]) continue;
+            const histogram = histograms[c]!;
+            let low = 0, high = 65535;
             let sum = 0;
             for (; low < 65535; low++) { sum += histogram[low]!; if (sum > width * height * 0.02) break; }
             sum = 0;
             for (; high > 0; high--) { sum += histogram[high]!; if (sum > width * height * 0.01) break; }
+            lows[c] = low; highs[c] = high;
         }
     }
 }

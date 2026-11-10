@@ -4,7 +4,7 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 // FFmpeg aligns overlapping windows and feathers them
 // with a Hann window. Alignment can change the number of emitted samples.
 export async function filterTempo(
-  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, tempo: number, pcm16: boolean,
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, tempo: number, pcm16: boolean, frameSize: number,
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<readonly Float32Array[]> {
   const length = channels[0]?.length ?? 0;
@@ -48,10 +48,13 @@ export async function filterTempo(
         if (metric > best) { best = metric; correction = lag - hop; }
       }
       current -= correction;
-      if (flushing || current + window <= length) break;
+      if (tempo !== 1 || flushing || current + window <= length) break;
     }
     const count = Math.max(0, Math.min(window, length - current));
-    const final = flushing && current + count >= length;
+    // A full destination frame stops processing after loading the next fragment.
+    // At EOF native flushes that fragment's remainder without another overlap.
+    const emitted = output[0]?.length ?? 0;
+    const final = (tempo !== 1 || flushing || emitted > 0 && emitted % frameSize === 0) && current + count >= length;
     const overlap = Math.min(hop, count, length - previous - hop);
     for (let c = 0; c < channels.length; c++) {
       const channel = channels[c]!;

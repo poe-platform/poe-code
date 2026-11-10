@@ -11666,7 +11666,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           : Math.min(inputLength, packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024);
                         const frameSize = Math.max(1, Math.round(inputFrameSize / tempo));
                         const tempoStartPts = inputFrame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample);
-                        stretched = await filterTempo(stretched, origRate, tempo, panSampleFormat === "s16", budget, context.signal);
+                        stretched = await filterTempo(stretched, origRate, tempo, panSampleFormat === "s16", frameSize, budget, context.signal);
                         // atempo emits frames sized for the new tempo on a continuous output timeline.
                         const length = stretched[0]?.length ?? 0;
                         budget.allocateMemory(Math.ceil(length / frameSize) * 24);

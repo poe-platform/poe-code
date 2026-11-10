@@ -1521,7 +1521,7 @@ function warnUnknownMagickProperty(token: string, analysis: { warnings: string }
 
 function* formatMagickPropertyStringSteps<Step=never>(
   fmt: string,
-  meta: ImageMetadata & Pick<RgbaImage, "readMask" | "writeMask" | "region"> & Pick<StoredRgbaImage, "storedWriteMask">,
+  meta: ImageMetadata & Pick<RgbaImage, "readMask" | "writeMask" | "region" | "gravity"> & Pick<StoredRgbaImage, "storedWriteMask">,
   getImage: () => RgbaImage,
   context: MagickFormatContext & { analysis?: { warnings: string; errors?: string }; optionProperties?: Record<string, string> | undefined; fxStack?: readonly RgbaImage[] } = {},
   resolvePixels?: (property:string)=>Generator<Step,string,void>
@@ -1567,6 +1567,11 @@ function* formatMagickPropertyStringSteps<Step=never>(
     version: MAGICK_VERSION,
     directory: short.d!, basename: short.t!, extension: short.e!,
     interlace: context.interlace ?? (meta.isProgressive ? meta.format.toUpperCase() : "None"),
+    ...(meta.gravity === undefined ? {} : { gravity: ({
+      northwest: "NorthWest", north: "North", northeast: "NorthEast",
+      west: "West", center: "Center", east: "East",
+      southwest: "SouthWest", south: "South", southeast: "SouthEast"
+    } as Partial<Record<GravityPosition, string>>)[meta.gravity] ?? "" }),
     ...(context.virtualPixel === undefined ? {} : { "virtual-pixel": context.virtualPixel }),
     scene: short.s!, scenes: short.n!,
     profiles: [...(meta.icc ? ["icc"] : []), ...(meta.xmp ? ["xmp"] : []), ...Object.keys(meta.gifApplications ?? {}).map(name => `gif:${name.toLowerCase()}`)].join(","),
@@ -6046,6 +6051,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
     canvas.readMask = first.readMask;
     canvas.writeMask = first.writeMask;
     canvas[magickInput] = { imageType: first[magickInput]?.imageType };
+    canvas.gravity = first.gravity;
     const gray = stack.every(image => image.space === "b-w" || image.space === "grey16") && background.r === background.g && background.g === background.b;
     return { ...canvas, ...(first.orientation !== undefined ? { orientation: first.orientation } : {}), ...(gray ? { space: first.space, gamma: first.gamma } : {}), ...(first.magickColorspace !== undefined && stack.every(image => image.magickColorspace === first.magickColorspace) ? { magickColorspace: first.magickColorspace } : {}), channels: cmyk ? 4 : gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), hasAlpha, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
 }
@@ -12560,9 +12566,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     result = { ...result, space: first.space, ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }) };
                 }
                 if (append) {
-                    const first = (await stack.get(0))! as StoredMagickImage & StoredRgbaImage, scene = first[magickInput]?.sceneIdx ?? 0;
+                    const first = (await stack.get(0))! as StoredRgbaImage, scene = first[magickInput]?.sceneIdx ?? 0;
                     result = { ...result, readMask: first.readMask, storedWriteMask: first.storedWriteMask } as StoredRgbaImage;
                     result[magickInput] = { imageType: first[magickInput]?.imageType };
+                    result.gravity = first.gravity;
                     result = { ...result, ...(first.orientation !== undefined ? { orientation: first.orientation } : {}), ...(sameColorspace && first.magickColorspace !== undefined ? { magickColorspace: first.magickColorspace } : {}), delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), hasAlpha: background.a < 255, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
                     if (evaluate) {
                         result.storedEvaluateSamples = backend.storage.allocate(width * height * 32);

@@ -548,7 +548,7 @@ With only `channel_layout=stereo`, `channelmap` preserves the input channels;
 with only `channel_layout=mono`, it selects the first input channel without downmixing.
 Output layouts accept `mono`, `stereo`, `quad`, `5.1`, the count aliases `1c`,
 `2c`, `6c`, speaker lists such as `FL+FR`, and decimal or hexadecimal speaker masks
-such as `0x3`. Explicit layouts must match the map length and preserve the output
+such as `0x3` or `0X3`; binary prefixes are rejected. Explicit layouts must match the map length and preserve the output
 speaker metadata, including `1:FR` and `0|1|1|0:quad`. Speaker lists preserve
 their explicit order when resolving named destinations and subsequent channel maps;
 `channelmap=0|1:FR+FL,channelmap=FL` selects the second input channel.

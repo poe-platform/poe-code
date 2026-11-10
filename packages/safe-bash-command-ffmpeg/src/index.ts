@@ -11349,8 +11349,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           : stretched.length === 1 ? ["FC"] : stretched.length === 2 ? ["FL", "FR"] : []);
                         let outputNames: string[] | undefined;
                         if (layout) {
-                          const digits = layout.startsWith("0x") ? layout.slice(2) : layout;
-                          const alphabet = layout.startsWith("0x") ? "0123456789abcdefABCDEF" : "0123456789";
+                          const hexadecimal = layout.startsWith("0x") || layout.startsWith("0X");
+                          const digits = hexadecimal ? layout.slice(2) : layout;
+                          const alphabet = hexadecimal ? "0123456789abcdefABCDEF" : "0123456789";
                           if (digits.length && [...digits].every(digit => alphabet.includes(digit))) {
                             const mask = Number(layout);
                             if (!Number.isSafeInteger(mask) || mask <= 0 || mask >= 1 << speakers.length) {

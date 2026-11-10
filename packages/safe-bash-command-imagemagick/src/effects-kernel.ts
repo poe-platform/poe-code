@@ -1,5 +1,6 @@
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { rgbToCmyk } from "./colorspace-cmyk.js";
 import { magickCompositeMode } from "./composite-pixels.js";
 export interface ShadowLayout {
     readonly width: number;
@@ -214,6 +215,10 @@ export function* raisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "da
         const data = working?.length ? new Float64Array(working.slice().buffer)
             : Float64Array.from(highDepth ? new Uint16Array((yield { kind: "read", highDepth, position, length })!.slice().buffer)
                 : (yield { kind: "read", position, length })!, value => highDepth ? value / 257 : value);
+        const inkBytes = image.space === "cmyk" ? yield { kind: "read", hue: true, position, length: data.length } : undefined;
+        const inks = inkBytes?.length ? new Float64Array(inkBytes.slice().buffer) : image.space === "cmyk" ? new Float64Array(data.length) : undefined;
+        if (inks && !inkBytes?.length) for (let offset = 0; offset < data.length; offset += 4)
+            inks.set(rgbToCmyk(data[offset]! / 255, data[offset + 1]! / 255, data[offset + 2]! / 255), offset);
         for (let offset = 0; offset < data.length; offset += 4) {
             const pixel = (position + offset) / 4, x = pixel % image.width, y = Math.floor(pixel / image.width);
             // ImageMagick uses stronger top/bottom blends and diagonal corner boundaries.
@@ -228,10 +233,23 @@ export function* raisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "da
                 if (x >= borderWidth && x < image.width - borderWidth) continue;
                 foreground = x < borderWidth;
             }
+<<<<<<< Updated upstream
             const target = foreground === raised ? maximum : 0;
             for (let channel = 0; channel < (image.hasAlpha ? 4 : 3); channel++) if (channels[channel])
                 data[offset + channel] = Math.fround((data[offset + channel]! * factor + target * (255 - factor)) / 255 * quantum) / quantum;
+=======
+            const target = foreground === raised ? 255 : 0;
+            if (inks) {
+                for (let channel = 0; channel < 4; channel++) if (channels[channel === 3 ? 4 : channel])
+                    inks[offset + channel] = (inks[offset + channel]! * factor + (foreground === raised ? 255 - factor : 0)) / 255;
+                for (let channel = 0; channel < 3; channel++)
+                    data[offset + channel] = (1 - inks[offset + channel]!) * (1 - inks[offset + 3]!) * 255;
+            }
+            for (let channel = inks ? 3 : 0; channel < (image.hasAlpha ? 4 : 3); channel++) if (channels[channel])
+                data[offset + channel] = Math.fround((data[offset + channel]! * factor + target * (255 - factor)) / 255 * 257) / 257;
+>>>>>>> Stashed changes
         }
+        if (inks) yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
         // Keep working values for later arithmetic; only the encoded backing is bounded.
         yield { kind: "write", hue, evaluate: !hue, position, data: new Uint8Array(data.buffer) };
         const bounded = highDepth ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(65535, value * quantum))))

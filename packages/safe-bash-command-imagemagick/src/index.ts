@@ -10507,7 +10507,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const g = parseMagickRaiseGeometry(expanded, t);
                 const bw = Math.max(0, Math.round(g.isPercent ? image.width * (g.percentX ?? 100) / 100 : g.width ?? 4));
                 const bh = Math.max(0, Math.round(g.isPercent ? image.height * (g.percentY ?? 100) / 100 : g.height ?? bw));
-                return yield* applyMagickRasterSteps(image, raisePixelSteps(image, bw, bh, raised, [state.channels.r, state.channels.g, state.channels.b, image.hasAlpha && (state.channels.a || !state.channelExplicit)]), signal);
+                return yield* applyMagickRasterSteps(image, raisePixelSteps(image, bw, bh, raised, [state.channels.r, state.channels.g, state.channels.b, image.hasAlpha && (state.channels.a || !state.channelExplicit), state.channels.k === true]), signal);
             });
         }
         else if (t === "-frame") {
@@ -12814,7 +12814,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const g = parseMagickRaiseGeometry(expanded, token);
                 const bw = Math.max(0, Math.round(g.isPercent ? image.width * (g.percentX ?? 100) / 100 : g.width ?? 4));
                 const bh = Math.max(0, Math.round(g.isPercent ? image.height * (g.percentY ?? 100) / 100 : g.height ?? bw));
-                return transformStoredMagickRaster(image, backend, raisePixelSteps(image, bw, bh, raised, [channels.r, channels.g, channels.b, image.hasAlpha && channels.a]), signal);
+                return transformStoredMagickRaster(image, backend, raisePixelSteps(image, bw, bh, raised, [channels.r, channels.g, channels.b, image.hasAlpha && channels.a, channels.k === true]), signal);
             });
         } else if (!operandsOnly && (token === "-transpose" || token === "-transverse")) {
             stackStep(async stack => {

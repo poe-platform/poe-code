@@ -71,11 +71,13 @@ export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
         yield;
         const size = Math.min(4096, length - position), bytes = yield { kind: "read", highDepth, position, length: size };
         if (!bytes || bytes.length !== size * (highDepth ? 2 : 1)) throw new Error("Truncated kmeans pixels");
-        const data = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes.slice();
+        const data = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+        // Keep fractional 8-bit means at Q16 precision until export.
+        const output = new Uint16Array(size);
         for (let i = 0; i < size; i += 4) {
             const { index } = yield* nearest(data, i, assignments);
-            for (let c = 0; c < 4; c++) data[i + c] = Math.round(palette[index]![c]! * quantum);
+            for (let c = 0; c < 4; c++) output[i + c] = Math.round(palette[index]![c]! * 65535);
         }
-        yield { kind: "write", highDepth, position, data: new Uint8Array(data.buffer, data.byteOffset, data.byteLength) };
+        yield { kind: "write", highDepth: true, position, data: new Uint8Array(output.buffer) };
     }
 }

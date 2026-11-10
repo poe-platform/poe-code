@@ -8,6 +8,26 @@ const pixels = [240, 0, 0, 255, 200, 0, 0, 255, 0, 0, 200, 255, 0, 0, 240, 255];
 // ImageMagick 7.1.2-35: decoded samples, independent of PNG encoding.
 const clustered = [220, 0, 0, 255, 220, 0, 0, 255, 0, 0, 220, 255, 0, 0, 220, 255];
 
+for (const publicCommand of [false, true])
+it.each([
+    ["#ff0000", "1", "16", "rgb", "800000000000800000000000"],
+    ["#010203", "1", "16", "rgb", "008101010182008101010182"],
+    ["#ff0000", "1", "8", "rgba", "800000ff800000ff"],
+    ["#ff0000", "2", "16", "rgb", "000000000000ffff00000000"],
+])(`exports native kmeans centroids for %s with %s colors at depth %s (public=${publicCommand})`, async (color, colors, depth, format, expected) => {
+    const fs = new MemoryFileSystem(), files = new Map([["out", new TextEncoder().encode("KEEP")]]);
+    await fs.writeFile("/out", files.get("out")!);
+    const argv = ["-seed", "7", "xc:black", `xc:${color}`, "+append", "-kmeans", colors, "-depth", depth, "-endian", "MSB", `${format}:out`];
+    const args = createCommandArguments(argv);
+    const result = publicCommand ? await createMagickCommand().execute({
+        command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write() {} }, stderr: { async write() {} },
+    }) : await runMagickCli(argv, files);
+    expect(result.exitCode).toBe(0);
+    expect(Buffer.from(publicCommand ? await fs.readFile("/out") : files.get("out")!).toString("hex")).toBe(expected);
+});
+
 for (const retained of [false, true])
 for (const mogrify of [false, true])
 it.each([

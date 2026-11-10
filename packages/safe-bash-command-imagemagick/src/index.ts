@@ -17836,6 +17836,9 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             if (parent === undefined) return { exitCode: 1, stdout: "", stderr: "montage: unbalanced parenthesis\n" };
             groupStart = parent;
         }
+        else if (t === "-adjoin" || t === "+adjoin") {
+            state.adjoin = t === "-adjoin";
+        }
         else if (t === "-tile") {
             const g = parseMagickGeometry(argv[++i] ?? "2x2");
             tileCols = g.width;
@@ -18174,7 +18177,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     }
 
     const output = inferOutputFormat(outSpec, "png");
-    const adjoin = (output.format === "ppm" || output.format === "rgb") && !hasSceneOutputPattern(output.path);
+    const adjoin = state.adjoin && (output.format === "ppm" || output.format === "rgb") && !hasSceneOutputPattern(output.path);
     const gifPages: MagickImage[] = [];
     const stdoutChunks: Uint8Array[] = [];
     let stdout = "";
@@ -18200,7 +18203,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             return;
         }
         const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png");
-        if (format === "gif" && multiple && !hasSceneOutputPattern(path)) {
+        if (state.adjoin && format === "gif" && multiple && !hasSceneOutputPattern(path)) {
             gifPages.push(canvas);
             return;
         }
@@ -18590,9 +18593,9 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n))))), rows = tileRows ?? Math.ceil(n / cols);
         const slotW = maxThumbW + padX * 2 + (frame ? frame.size * 2 : 0), slotH = maxThumbH + padY * 2 + (frame ? frame.size * 2 : 0) + (shadow ? 4 : 0);
         const output = inferOutputFormat(outSpec, "png");
-        const adjoin = n > cols * rows && output.path !== "-" && (output.format === "ppm" || output.format === "rgb") && !hasSceneOutputPattern(output.path);
+        const adjoin = state.adjoin && n > cols * rows && output.path !== "-" && (output.format === "ppm" || output.format === "rgb") && !hasSceneOutputPattern(output.path);
         const pages = new StoredImageStack(backend.storage, signal);
-        const gifPages = output.format === "gif" && n > cols * rows && !hasSceneOutputPattern(output.path)
+        const gifPages = state.adjoin && output.format === "gif" && n > cols * rows && !hasSceneOutputPattern(output.path)
             ? new StoredImageStack(backend.storage, signal) : undefined;
         const stdoutChunks: Uint8Array[] = [];
         let stdout = "";

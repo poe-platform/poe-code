@@ -3,7 +3,9 @@ import { it } from "node:test";
 import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
-for (const options of ["n:y", "N:Y", "no:yes", "", "keep_aspect=n:exact=Y", "keep_aspect=Y:exact=N", "keep_aspect=invalid", "exact=invalid"]) {
+for (const options of ["n:y", "N:Y", "no:yes", "", "keep_aspect=n:exact=Y", "keep_aspect=Y:exact=N", "keep_aspect=invalid", "exact=invalid",
+  ...["exact", "keep_aspect"].flatMap(key => ["+1", "01", "+01", "-0", "00", "enable", "disable", "ENABLED", "DISABLED", "1"].map(value => `${key}=${value}`)),
+  "-0:+1", "disable:enable"]) {
   it(`handles crop boolean options ${options || "(defaults)"}`, async () => {
     const volume = Volume.fromJSON({ "/out.raw": "KEEP" });
     volume.writeFileSync("/in.raw", Buffer.from(Array.from({ length: 48 }, (_, i) => [16 + i, 32 + i, 64 + i, 128 + i]).flat()));

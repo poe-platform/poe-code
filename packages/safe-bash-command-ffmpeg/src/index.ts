@@ -2785,6 +2785,8 @@ async function applyVideoFilterChain(
       }, signal);
     } else if (name === "crop") {
       const crop: Record<string, string> = {};
+      let exact = false;
+      let keepAspect = false;
       const keys = ["w", "h", "x", "y", "keep_aspect", "exact"];
       for (const [index, part] of (argStr ? positional : []).entries()) {
         if (index === positional.length - 1 && part === "") break;
@@ -2797,19 +2799,19 @@ async function applyVideoFilterChain(
           throw new Error(`crop: unknown or misplaced option ${part}`);
         }
         const value = (separator < 0 ? part : part.slice(separator + 1)).trim();
-        if (key === "keep_aspect" || key === "exact") {
-          if (!["0", "1", "true", "false", "yes", "no", "y", "n", "on", "off"].includes(value.toLowerCase())) {
-            throw new Error(`crop: ${key} must be a boolean`);
-          }
+        if (key === "keep_aspect") {
+          keepAspect = parseFilterBoolean(value, "crop: keep_aspect must be a boolean");
+        } else if (key === "exact") {
+          exact = parseFilterBoolean(value, "crop: exact must be a boolean");
+        } else {
+          crop[key] = value;
         }
-        crop[key] = value;
       }
       const iw = current[0]!.width;
       const ih = current[0]!.height;
       // Preserve the decoded chroma grid even after earlier RGBA filter operations.
       // AVPixelFormat: YUV420P/YUVJ420P and YUV422P/YUVJ422P.
       const format = current[0]!.native?.format;
-      const exact = ["1", "true", "yes", "y", "on"].includes((crop.exact ?? "0").toLowerCase());
       const inputHsub = format === 0 || format === 12 || format === 4 || format === 13 ? 2 : 1;
       const inputVsub = format === 0 || format === 12 ? 2 : 1;
       const hsub = exact ? 1 : inputHsub;
@@ -2855,7 +2857,7 @@ async function applyVideoFilterChain(
         // Pixel positions survive NaN results; variables retain evaluated values.
         left = Math.floor((iw - cw) / 2 / hsub) * hsub;
         top = Math.floor((ih - ch) / 2 / vsub) * vsub;
-        if (["1", "true", "yes", "y", "on"].includes((crop.keep_aspect ?? "0").toLowerCase())) {
+        if (keepAspect) {
           let numerator = inputSar.width * iw * ch;
           let denominator = inputSar.height * ih * cw;
           while (denominator !== 0) {

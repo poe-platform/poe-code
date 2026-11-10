@@ -10324,6 +10324,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 let output = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
+                // Swirl/implode clear disassociated alpha's separate-channel trait.
+                if (image.alphaBlend === false && (t === "-swirl" || t === "-implode")) output.alphaSeparate = false;
                 if (t === "-swirl" || t === "-implode") output = { ...output, isPalette: false };
                 if (image.metaChannels?.length && (t === "-swirl" || t === "-implode")) {
                     output.metaChannels = [];
@@ -12824,6 +12826,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 let output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);
+                // Swirl/implode clear disassociated alpha's separate-channel trait.
+                if (image.alphaBlend === false && (token === "-swirl" || token === "-implode")) output.alphaSeparate = false;
                 if (token === "-swirl" || token === "-implode") output = { ...output, isPalette: false };
                 if (image.storedMetaChannels?.length && (token === "-swirl" || token === "-implode")) {
                     output.storedMetaChannels = [];

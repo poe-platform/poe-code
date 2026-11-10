@@ -7688,8 +7688,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && image.hasAlpha, cmyk && (!independent || settings.channels.k === true)];
         const lookup = Array.from({ length: cmyk ? 5 : 4 }, () => stretch
             ? Float32Array.from({ length: levels }, (_, value) => value * 65535 / (levels - 1))
-            : levels === 65536 ? Uint16Array.from({ length: levels }, (_, value) => value)
-            : Uint8Array.from({ length: levels }, (_, value) => value));
+            : Uint16Array.from({ length: levels }, (_, value) => value * 65535 / (levels - 1)));
         if (token === "-normalize" || token === "-contrast-stretch") {
             const maximum = 65535;
             const whiteValue = Number.isFinite(whitePoint) ? whitePoint : blackPoint;
@@ -7717,7 +7716,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 let cumulative = 0, bin = 0;
                 for (let value = 0; value < levels; value++) {
                     for (; bin <= value * scale; bin++) cumulative += bins[bin]!;
-                    lookup[channel]![value] = Math.round((cumulative - black) / (count - black) * (levels - 1));
+                    lookup[channel]![value] = Math.round((cumulative - black) / (count - black) * 65535);
                 }
             }
         }

@@ -17869,7 +17869,11 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
             state.borderColor = parseColor(argv[++i] ?? "#dfdfdf");
         }
         else if (t === "-border") {
-            borderW = Math.max(0, Math.trunc(parseMagickGeometry(argv[++i] ?? "0").width ?? 0));
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -border\n" };
+            try { validateMagickTransformGeometry(value, t); }
+            catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
+            borderW = Math.max(0, Math.trunc(parseMagickGeometry(value).width ?? 0));
         }
         else if (t === "+border") {
             borderW = 0;

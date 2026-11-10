@@ -10538,6 +10538,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let result = yield* applyMagickRasterSteps(rIm, combinePixelSteps(sources, sources.some(image => !!image.data16), state.intensity), signal, rIm, sources);
             if (rIm.writeMask) result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, rIm.writeMask, !!result.data16, false, undefined, rIm.hasAlpha && rIm.alphaBlend !== false), signal, result, [result, rIm, rIm.writeMask]);
             if (rIm.region) result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, rIm.region, !!result.data16), signal, result, [result, rIm]);
+            // Non-CMYK results are sRGB; discard the input working colorspace.
+            if (result.space !== "cmyk") {
+                delete result.hueSamples;
+                delete result.magickColorspace;
+            }
             stack = [{ ...result, space: "srgb", channels: 4, hasAlpha: sources.length === 4 || sources[0]!.hasAlpha }];
         }
         else if (t === "-draw") {
@@ -11504,6 +11509,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     let result = await transformStoredMagickRaster(base, backend, combinePixelSteps(sources, sources.some(image => !!image.storedData16), settings.intensity), signal, base, sources);
                     if (base.storedWriteMask) result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, base.storedWriteMask, !!result.storedData16, false, undefined, base.hasAlpha && base.alphaBlend !== false), signal, result, [result, base, base.storedWriteMask]);
                     if (base.region) result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, base.region, !!result.storedData16), signal, result, [result, base]);
+                    // Non-CMYK results are sRGB; discard the input working colorspace.
+                    if (result.space !== "cmyk") {
+                        delete result.storedHueSamples;
+                        delete result.magickColorspace;
+                    }
                     stack.length = 0; await stack.push({ ...result, space: "srgb", channels: 4, hasAlpha: sources.length === 4 || sources[0]!.hasAlpha });
                 } else if (token === "-morph") {
                     const image = await stack.get(0);

@@ -4718,6 +4718,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     const options = magickResizeOptions(img, geomStr, kernel ?? (thumbnail ? "lanczossharp" : undefined));
     if (!options || (options.width === img.width && options.height === img.height)) return img;
     preserveSamples ||= !!img.readMask;
+    const writeMask = !!(img.writeMask || ((sample || scale) && img.region));
     kernel = options.kernel;
     const width = options.width!, height = options.height!;
     const point = !scale && kernel === "nearest" && (!thumbnail || Math.min(img.width / width, img.height / height) < 3);
@@ -4743,13 +4744,13 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     }
     let resized: RgbaImage = !preserveSamples && !settings && !img.data16 && !scale && (kernel === "linear")
         ? yield* resizeImageSteps(img, { ...options, kernel })
-        : yield* applyMagickRasterSteps(img, point ? pointResizePixelSteps(img, width, height, sample, 4, sampleOffset, !!img.writeMask) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings, preserveSamples, !!img.writeMask), undefined, { ...img, width, height });
+        : yield* applyMagickRasterSteps(img, point ? pointResizePixelSteps(img, width, height, sample, 4, sampleOffset, writeMask) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings, preserveSamples, writeMask), undefined, { ...img, width, height });
     for (const samples of point ? [img.data16, img.evaluateSamples] : []) {
         if (!samples) continue;
         const source = new Uint8Array(samples.buffer, samples.byteOffset, samples.byteLength);
         const output = samples instanceof Uint16Array ? new Uint16Array(width * height * 4) : new Float64Array(width * height * 4);
         const bytes = new Uint8Array(output.buffer);
-        const steps = pointResizePixelSteps(img, width, height, sample, 4 * samples.BYTES_PER_ELEMENT, sampleOffset, !!img.writeMask);
+        const steps = pointResizePixelSteps(img, width, height, sample, 4 * samples.BYTES_PER_ELEMENT, sampleOffset, writeMask);
         let next = steps.next();
         while (!next.done) {
             const request = next.value;
@@ -4774,6 +4775,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
     const width = options.width!, height = options.height!;
     if (width === image.width && height === image.height) return image;
     preserveSamples ||= !!image.readMask;
+    const writeMask = !!(image.storedWriteMask || ((sample || scale) && image.region));
     const point = !scale && options.kernel === "nearest" && (!thumbnail || Math.min(image.width / width, image.height / height) < 3);
     if (image.readMask) {
         const mask = image.readMask as StoredRgbaImage;
@@ -4796,11 +4798,11 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
     }
     let resized: StoredRgbaImage = !preserveSamples && !settings && !image.storedData16 && !scale && (options.kernel === "linear")
         ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options, kernel: options.kernel }, signal)
-        : await transformStoredMagickRaster(image, backend, point ? pointResizePixelSteps(image, width, height, sample, 4, sampleOffset, !!image.storedWriteMask) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings, preserveSamples, !!image.storedWriteMask), signal, { ...image, width, height });
+        : await transformStoredMagickRaster(image, backend, point ? pointResizePixelSteps(image, width, height, sample, 4, sampleOffset, writeMask) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings, preserveSamples, writeMask), signal, { ...image, width, height });
     for (const [source, pixelBytes] of point ? [[image.storedData16?.position, 8], [image.storedEvaluateSamples, 32]] as const : []) {
         if (source === undefined) continue;
         const position = backend.storage.allocate(width * height * pixelBytes);
-        const steps = pointResizePixelSteps(image, width, height, sample, pixelBytes, sampleOffset, !!image.storedWriteMask);
+        const steps = pointResizePixelSteps(image, width, height, sample, pixelBytes, sampleOffset, writeMask);
         let next = steps.next();
         while (!next.done) {
             signal.throwIfAborted();

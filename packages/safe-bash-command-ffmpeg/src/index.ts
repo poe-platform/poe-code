@@ -2101,6 +2101,54 @@ async function applyVideoFilterChain(
       }
     } else if (name === "blackdetect") {
       current = await blackdetect(current, argStr, budget, { ...diagnostics, timescale, pixelFormat }, signal);
+    } else if (name === "blackframe") {
+      let amount = 98, threshold = 32;
+      let sawNamed = false;
+      for (const [index, option] of (argStr ? positional : []).entries()) {
+        const separator = option.indexOf("=");
+        const key = separator < 0 ? ["amount", "threshold"][index] : option.slice(0, separator);
+        const value = separator < 0 ? option : option.slice(separator + 1);
+        if (separator < 0 && sawNamed || key !== "amount" && key !== "threshold" && key !== "thresh") {
+          throw new Error("blackframe: expected amount and threshold options");
+        }
+        sawNamed ||= separator >= 0;
+        const maximum = key === "amount" ? 100 : 255;
+        const number = parseFilterExpression(value, "blackframe", {
+          min: 0, max: maximum, default: key === "amount" ? 98 : 32,
+          PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+        });
+        if (!Number.isFinite(number) || number < 0 || number > maximum) {
+          throw new Error(`blackframe: ${key} must be between 0 and ${maximum}`);
+        }
+        if (key === "amount") amount = roundToEven(number);
+        else threshold = roundToEven(number);
+      }
+      let lastKeyframe = 0;
+      for (const [index, frame] of current.entries()) {
+        if (frame.keyframe) lastKeyframe = index;
+        const source = frame.native;
+        const planar = source && source.rgba === frame.data && source.width === frame.width && source.height === frame.height &&
+          [0, 4, 5, 12, 13, 14].includes(source.format) ? source : undefined;
+        const size = frame.width * frame.height;
+        let black = 0;
+        for (let pixel = 0; pixel < size; pixel++) {
+          if (pixel % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          // Preserve retained luma; RGB uses swscale's limited-range BT.601 conversion.
+          const y = planar ? planar.pixels[pixel]! :
+            diagnostics.pixelFormat === "gray" || diagnostics.pixelFormat === "gray8" ? frame.data[pixel * 4]! :
+            (8414 * frame.data[pixel * 4]! + 16519 * frame.data[pixel * 4 + 1]! +
+              3208 * frame.data[pixel * 4 + 2]! + (16 << 15) + 16640) >> 15;
+          if (y < threshold) black++;
+        }
+        const percentage = Math.floor(black * 100 / size);
+        if (percentage < amount) continue;
+        budget.allocateMemory(96);
+        current[index] = { ...frame, filterMetadata: { ...frame.filterMetadata, "lavfi.blackframe.pblack": String(percentage) } };
+        if (diagnostics.logLevel >= 32) {
+          const type = ["?", "I", "P", "B", "S", "i", "p", "b"][frame.pictureType ?? 0] ?? "?";
+          await diagnostics.write(`[blackframe] frame:${index} pblack:${percentage} pts:${Math.round(frame.ptsSeconds * diagnostics.timescale)} t:${frame.ptsSeconds.toFixed(6)} type:${type} last_keyframe:${lastKeyframe}\n`);
+        }
+      }
     } else if (name === "signalstats") {
       const stat = named.stat ?? (positional[0]?.includes("=") ? "" : positional[0]) ?? "";
       const out = named.out ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "-1";

@@ -4716,6 +4716,7 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
     for (const area of magickCropAreas(img, geomStr, gravity)) {
         yield;
         if (!area && analysis) analysis.warnings += `magick: geometry does not contain image '${warningSource}'\n`;
+        if (area === false) break;
         if (area === null) {
             tiles.push({ ...(yield* createSolidRgbaImageSteps(1, 1, { ...background, a: 0 })),
                 ...(img.delay ? { delay: img.delay } : {}),
@@ -4732,7 +4733,7 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
     return tiles;
 }
 
-function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geomStr: string, gravity: GravityPosition): Generator<Parameters<typeof extractImageSteps>[1] | undefined | null> {
+function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geomStr: string, gravity: GravityPosition): Generator<Parameters<typeof extractImageSteps>[1] | undefined | null | false> {
     const g = parseMagickGeometry(geomStr.replaceAll("#", ""));
     if (g.enlargeOnly) {
         const width = g.isPercent ? Math.round(img.width * (g.percentX ?? 100) / 100) : Math.round(g.width ?? (img.virtualCanvas?.width || img.width));
@@ -4761,11 +4762,31 @@ function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanv
             }
         }
     } else if (!g.hasOffset) {
-        const width = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.width, img.height * g.aspectRatio) : g.isPercent ? img.width * (g.percentX ?? 100) / 100 : g.width || img.width));
-        const height = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.height, img.width / g.aspectRatio) : g.isPercent ? img.height * (g.percentY ?? 100) / 100 : g.height || img.height));
-        for (let top = 0; top < img.height; top += height)
-            for (let left = 0; left < img.width; left += width)
-                yield { left, top, width: Math.min(width, img.width - left), height: Math.min(height, img.height - top) };
+        const pageWidth = img.virtualCanvas?.width || img.width;
+        const pageHeight = img.virtualCanvas?.height || img.height;
+        const width = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.width, img.height * g.aspectRatio) : g.isPercent ? img.width * (g.percentX ?? 100) / 100 : g.width || pageWidth));
+        const height = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.height, img.width / g.aspectRatio) : g.isPercent ? img.height * (g.percentY ?? 100) / 100 : g.height || pageHeight));
+        if (width >= img.width && height >= img.height) {
+            yield { left: 0, top: 0, width: img.width, height: img.height };
+            return;
+        }
+        for (let y = 0; y < pageHeight; y += height) {
+            for (let x = 0; x < pageWidth; x += width) {
+                const left = x - (img.virtualCanvas?.x ?? 0);
+                const top = y - (img.virtualCanvas?.y ?? 0);
+                if (left > img.width || top > img.height || left + width <= 0 || top + height <= 0) {
+                    yield null;
+                } else if (left === img.width || top === img.height) {
+                    // Native tiling stops at an empty edge crop, retaining earlier tiles.
+                    yield false;
+                    return;
+                } else {
+                    yield { left: Math.max(0, left), top: Math.max(0, top),
+                        width: Math.min(img.width, left + width) - Math.max(0, left),
+                        height: Math.min(img.height, top + height) - Math.max(0, top) };
+                }
+            }
+        }
     } else {
         yield magickCropArea(img, geomStr, gravity);
     }
@@ -12001,6 +12022,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     for (const area of magickCropAreas(image, expanded, gravity)) {
                         await yieldTurn(signal);
                         if (!area) analysis.warnings += `magick: geometry does not contain image '${expanded}'\n`;
+                        if (area === false) break;
                         if (area === null) {
                             await frames.push({ ...await createStoredCanvas(1, 1, { ...background, a: 0 }, backend, signal),
                                 ...(image.delay ? { delay: image.delay } : {}), ...(image.storedDelay ? { storedDelay: image.storedDelay } : {}),
@@ -13431,6 +13453,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 yield* acceptImage(tile, operations, index + 1);
         } else {
             for (const area of magickCropAreas(image, operation.geometry, operation.gravity)) {
+                if (area === false) break;
                 let tile = image;
                 if (area !== undefined) yield { async run() {
                     tile = area === null ? {

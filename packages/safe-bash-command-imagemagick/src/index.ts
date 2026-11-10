@@ -86,6 +86,7 @@ import { composite16PixelSteps } from "./composite16.js";
 import { warpPixelSteps, type WarpPlan, type VirtualPixelMethod } from "./warp-kernel.js";
 import { distancePixelSteps, manhattanDistanceScale } from "./distance-kernel.js";
 import { morphologyIntensityPixelSteps } from "./morphology-intensity.js";
+import { morphologyDifferencePixelSteps } from "./morphology-difference.js";
 import { hitAndMissPixelSteps, morphologyPixelSteps, type MorphologyRow } from "./morphology-kernel.js";
 import { edgePixelSteps } from "./edge-kernel.js";
 import { charcoalEdgePixelSteps, charcoalPixelSteps } from "./charcoal-kernel.js";
@@ -950,14 +951,6 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string, statistic =
     throw new Error(`invalid morphology kernel '${kernelSpec}'`);
   return { rows, steps, iterations };
 }
-function* subtractMagickPixelSteps(a: Uint8Array, b: Uint8Array, hasAlpha: boolean, channels?: readonly boolean[]): Generator<void, Uint8Array, void> {
-    const result = new Uint8Array(a.length);
-    for (let i = 0; i < a.length; i++) {
-        if (i % 16384 === 0) yield;
-        result[i] = channels && !channels[i % 4] ? a[i]! : i % 4 === 3 && !hasAlpha ? 255 : clampByteVal(a[i]! - b[i]!);
-    }
-    return result;
-}
 function* applyMagickMorphology4ChSteps(img: RgbaImage, plan: ReturnType<typeof magickMorphologyPlan>, signal?: AbortSignal, channels?: readonly boolean[], virtualPixel?: VirtualPixelMethod, background?: RgbaColor): Generator<void, RgbaImage, void> {
     const images = [img];
     if (plan.iterations === 0) return img;
@@ -970,7 +963,7 @@ function* applyMagickMorphology4ChSteps(img: RgbaImage, plan: ReturnType<typeof 
             images.push(source);
         } else if (step.mode === "diff") {
             const a = images[step.a]!, b = images[step.b]!;
-            images.push({ ...a, data: yield* subtractMagickPixelSteps(a.data, b.data, img.hasAlpha, channels) });
+            images.push(yield* applyMagickRasterSteps(a, morphologyDifferencePixelSteps(a.width * a.height * 4, img.hasAlpha, !!(a.data16 || b.data16), channels), signal, a, [a, b]));
         } else {
             let source = images[step.source]!;
             for (let pass = 0; pass < plan.iterations; pass++)
@@ -10780,7 +10773,7 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Comp
 }
 
 async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, plan: ReturnType<typeof magickMorphologyPlan>, signal: AbortSignal, channels?: readonly boolean[], virtualPixel?: VirtualPixelMethod, background?: RgbaColor): Promise<StoredRgbaImage> {
-    const images = [image], size = image.width * image.height * 4;
+    const images = [image];
     if (plan.iterations === 0) return image;
     for (const step of plan.steps) {
         if ("kernels" in step) {
@@ -10790,17 +10783,8 @@ async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFi
                     source = await transformStoredMagickRaster(source, backend, hitAndMissPixelSteps(source, kernel.foreground, kernel.background, channels, step.mode), signal);
             images.push(source);
         } else if (step.mode === "diff") {
-            const position = backend.storage.allocate(size);
             const a = images[step.a]!, b = images[step.b]!;
-            for (let offset = 0; offset < size; offset += 16384) {
-                await yieldTurn(signal);
-                const length = Math.min(16384, size - offset);
-                const left = new Uint8Array(await backend.storage.read(a.position + offset, length));
-                const bytes = await drainSteps(subtractMagickPixelSteps(left, await backend.storage.read(b.position + offset, length), image.hasAlpha, channels), signal);
-                await backend.storage.write(position + offset, bytes);
-            }
-            const { storedData16: ignoredData16, storedEvaluateSamples: ignoredEvaluateSamples, ...metadata } = image;
-            images.push({ ...metadata, position });
+            images.push(await transformStoredMagickRaster(a, backend, morphologyDifferencePixelSteps(a.width * a.height * 4, image.hasAlpha, !!(a.storedData16 || b.storedData16), channels), signal, a, [a, b]));
         } else {
             let source = images[step.source]!;
             for (let pass = 0; pass < plan.iterations; pass++)

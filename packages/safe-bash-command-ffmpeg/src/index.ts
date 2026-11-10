@@ -1066,9 +1066,25 @@ function parseAtrim(argument: string, origRate: number) {
     let key = separator < 0 ? ["start", "end", "start_pts", "end_pts", "duration", "start_sample", "end_sample"][index] : option.slice(0, separator).trim();
     if (key === "starti" || key === "endi") key = key.slice(0, -1);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+    if (key === "thread_type") {
+      // +/- terms set or clear flags. Scheduling flags do not change the PCM,
+      // so validate each operand without applying the resulting bit mask.
+      let position = 0;
+      do {
+        if (value[position] === "+" || value[position] === "-") position++;
+        const start = position;
+        if (value[position] === "+" || value[position] === "-") position++;
+        while (position < value.length && value[position] !== "+" && value[position] !== "-") position++;
+        const number = parseFilterExpression(value.slice(start, position), "atrim", { slice: 1, none: 0, all: -1 });
+        if (!Number.isInteger(number) || number < -2147483648 || number > 4294967295) {
+          throw new RangeError("atrim: invalid thread_type");
+        }
+      } while (position < value.length);
+      continue;
+    }
+    if (key === "threads" || key === "extra_hw_frames") {
       const number = parseFilterExpression(value, "atrim",
-        key === "thread_type" ? { slice: 1 } : { default: key === "threads" ? 0 : -1 });
+        { default: key === "threads" ? 0 : -1 });
       if (!value || Number.isNaN(number)) throw new Error(`atrim: invalid ${key}`);
       if (number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
         throw new RangeError(`atrim: invalid ${key}`);

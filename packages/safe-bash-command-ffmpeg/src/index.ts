@@ -1009,8 +1009,9 @@ function parseAsetnsamples(argument: string) {
       if (number < 1 || number > 2147483647) throw new Error("asetnsamples: invalid frame size");
       size = roundToEven(number);
     } else if (key === "p" || key === "pad") {
-      if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(value)) throw new Error("asetnsamples: invalid pad");
-      pad = ["1", "true", "yes", "on"].includes(value);
+      const boolean = value.toLowerCase();
+      if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(boolean)) throw new Error("asetnsamples: invalid pad");
+      pad = ["1", "true", "yes", "on"].includes(boolean);
     } else throw new Error(`asetnsamples: unsupported option ${key}`);
   }
   return { size, pad };

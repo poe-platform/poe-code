@@ -3816,7 +3816,7 @@ export class Runtime {
         name = this.referenceName(state, name);
         const binding = arrayStore(state)?.get(name);
         const kind = binding ? binding.associative ? "associative" : "indexed" : state.variables[name] === undefined ? "unset" : "scalar";
-        return Object.freeze({ kind, readonly: state.readonlyVariables?.has(name) ?? false, exported: state.exported.has(name) });
+        return Object.freeze({ kind, readonly: state.readonlyVariables?.has(name) ?? false, exported: state.exported.has(name), ...(protectedReadArrays.has(name) ? { assignable: false } : {}) });
       }, get: (name: string, index = 0) => {
         checkName(name);
         checkIndex(index, 4294967295);
@@ -8651,6 +8651,7 @@ export class Runtime {
       options.name = this.referenceName(state, options.name);
       if (arrayStore(state)?.get(options.name)?.associative) throw new MapfileUsageError(`${options.name}: not an indexed array`, 1);
       if (state.readonlyVariables?.has(options.name)) throw new MapfileUsageError(`${options.name}: readonly variable`, 1);
+      if (protectedReadArrays.has(options.name)) return 1;
       if (controlNames.has(options.name)) throw new ArrayFailure("control binding cannot be indexed");
       const store = requireArrays(state);
       const holding = store.owner.hold();

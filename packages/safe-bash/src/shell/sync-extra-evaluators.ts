@@ -10667,6 +10667,7 @@ const syncExtraRuntimeMethods = {
         if (
           !hasUnpreparedLocal(rawState, arrayTarget) &&
           isShellIdentifier(arrayTarget) &&
+          !protectedReadArrays.has(arrayTarget) &&
           !rawState.readonlyVariables?.has(arrayTarget) &&
           !rawState.exported.has(arrayTarget) &&
           !rawState.variableAttributes?.get(arrayTarget) &&
@@ -13202,6 +13203,7 @@ const syncExtraRuntimeMethods = {
         hasUnpreparedLocal(rawState, arrayTarget) ||
         !isShellIdentifier(arrayTarget) ||
         controlNames.has(arrayTarget) ||
+        protectedReadArrays.has(arrayTarget) ||
         arrayTarget === "OPTIND" ||
         rawState.readonlyVariables?.has(arrayTarget) ||
         rawState.exported.has(arrayTarget) ||

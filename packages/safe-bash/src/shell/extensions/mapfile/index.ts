@@ -164,6 +164,7 @@ async function execute(context: ShellExtensionContext): Promise<number> {
         await context.diagnostic(`${options.array}: readonly variable`);
         return 1;
       }
+      if (binding.assignable === false) return 1;
       writer = await context.bindings.openIndexed(options.array, { clear: options.clear });
       check();
       try {

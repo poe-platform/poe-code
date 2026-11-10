@@ -9,6 +9,8 @@ import { defaultPortableTrapExtension, isIdlePortableTrapInstance } from "./trap
 export interface ShellBindingDescription {
   readonly kind: "unset" | "scalar" | "indexed" | "associative";
   readonly readonly: boolean;
+  /** False for shell-managed arrays that reject assignment without a readonly diagnostic. */
+  readonly assignable?: boolean;
   readonly exported: boolean;
 }
 

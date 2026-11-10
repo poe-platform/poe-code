@@ -963,6 +963,7 @@ function assertSource7Discovery(files) {
     "tests/shell/mapfile.test.ts",
     "tests/shell/mapfile-descriptors.test.ts",
     "tests/shell/mapfile-eval-arguments.test.ts",
+    "tests/shell/mapfile-protected-destinations.test.ts",
     "tests/shell/associative-arrays.test.ts",
     "tests/commands/network/wget.test.ts",
     "tests/commands/bytes-stress/portable-compression.test.ts",

@@ -75,6 +75,7 @@ command, including `-c` to clear its environment and `-a` to set its argument ze
 `read -u FD -t SECONDS` reads an open descriptor with a timeout; `mapfile -u FD`
 and `readarray -u FD` collect its remaining records. `readExtension` and
 `mapfileExtension` are also available as public factories.
+`mapfile` and `readarray` reject protected shell arrays before consuming input.
 Use `caller [depth]` to inspect function/source call sites, and
 `printf '%(%Y-%m-%d)T\n' 1700000000` to format timestamps (`-1` means now,
 `-2` means shell start). Time formatting uses the virtual `TZ`, defaulting to UTC.

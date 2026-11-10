@@ -4081,10 +4081,18 @@ async function applyVideoFilterChain(
       commands.sort((a, b) => a.time - b.time);
       current = await tmix(current, argStr, budget, signal, commands);
     } else if (name === "tblend") {
+      for (const key of Object.keys(named)) {
+        if (!["c0_mode", "c1_mode", "c2_mode", "c3_mode", "all_mode",
+          "c0_expr", "c1_expr", "c2_expr", "c3_expr", "all_expr",
+          "c0_opacity", "c1_opacity", "c2_opacity", "c3_opacity", "all_opacity", "enable"].includes(key)) {
+          throw new Error(`tblend: unknown option ${key}`);
+        }
+      }
       if (positional.length > 1 && positional.at(-1) === "") positional.pop();
       const modeValue = parseFilterExpression(named.all_mode ?? "normal", "tblend", { normal: 0, addition: 1, average: 3, difference: 6 });
+      if (modeValue < -1 || modeValue > 39) throw new RangeError("tblend: all_mode out of range [-1 - 39]");
       const mode = roundToEven(modeValue);
-      if (modeValue < 0 || modeValue > 39 || ![0, 1, 3, 6].includes(mode) || (argStr !== "" && (positional.length !== 1 || Object.keys(named).length !== 1 || named.all_mode === undefined))) {
+      if (modeValue < 0 || ![0, 1, 3, 6].includes(mode) || (argStr !== "" && (positional.length !== 1 || Object.keys(named).length !== 1 || named.all_mode === undefined))) {
         throw new Error("tblend: only all_mode=normal, addition, difference or average is supported");
       }
       const blended: typeof current = [];
@@ -15255,6 +15263,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "stereowiden: invalid expression" || msg === "stereowiden: invalid or unsupported expression") return { exitCode: 234 };
             if (msg === "atempo: unknown option") return { exitCode: 8 };
             if (msg.startsWith("atempo:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg.startsWith("tblend: unknown option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("tblend:")) return { exitCode: 222 };
+            if (msg === "tblend: invalid expression" || msg === "tblend: invalid or unsupported expression") return { exitCode: 234 };
             if (msg.startsWith("tmix: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("tmix:")) return { exitCode: 222 };
             if (msg === "tmix: invalid expression" || msg === "tmix: invalid or unsupported expression" ||

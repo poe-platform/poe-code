@@ -74,6 +74,26 @@ for (const prefix of ["", "builtin ", "command "]) {
   });
 }
 
+for (const initial of ["a=(old)", "declare -A a=([0]=old)"]) {
+  for (const options of ["-v 'a[]'", "'-va[]'", "-v 'a[]' -v other"]) {
+    test(`printf rejects an empty subscript before formatting: ${initial}; ${options}`, async context => {
+      const script = `${initial}; printf ${options} 'ok%n' n; printf '%s|%s|%s|%s' "$?" "\${n-unset}" "$a" "\${other-unset}"`;
+      const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", script], { env: { LC_ALL: "C" }, timeout: 2000 });
+      assert.ifError(oracle.error);
+      assert.equal(oracle.status, 0);
+      assert.equal(oracle.stdout.toString(), "2|unset|old|unset");
+      const diagnostic = "a[]': not a valid identifier\n";
+      assert.ok(oracle.stderr.toString().endsWith(diagnostic));
+      const { shell } = fixture();
+      context.after(() => shell.dispose());
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, oracle.status, result.stderr);
+      assert.deepEqual(result.stdoutBytes, new Uint8Array(oracle.stdout));
+      assert.ok(result.stderr.endsWith(diagnostic), result.stderr);
+    });
+  }
+}
+
 for (const name of ["IFS", "OPTIND", "RANDOM", "SECONDS"]) {
   test(`printf -v ${name} uses the normal variable writer`, async context => {
     const writes = context.mock.method(Runtime.prototype, "writeVariable");

@@ -6333,7 +6333,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     if (lower.startsWith("xc:") || lower.startsWith("canvas:")) {
         const colorStr = (baseToken.slice(baseToken.indexOf(":") + 1) || "white").trim();
         const c = parseColor(colorStr, true);
-        let image = { ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c, [c.r, c.g, c.b, c.a].some(value => !Number.isInteger(value)))), hasAlpha: c.a < 255 || colorStr.startsWith("#") && colorStr.length === 9 };
+        let image: RgbaImage = { ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c, [c.r, c.g, c.b, c.a].some(value => !Number.isInteger(value)))), hasAlpha: c.a < 255 || colorStr.startsWith("#") && colorStr.length === 9 };
         if (c.cmyk) image = yield* fillCmykPixels(image, c.cmyk);
         return yield* applyMod([image]);
     }

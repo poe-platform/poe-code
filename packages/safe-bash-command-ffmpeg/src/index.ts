@@ -10331,6 +10331,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "apad" || trimmed.startsWith("apad=")) {
                         const options: Record<string, number | undefined> = {};
                         let packetSize = 4096;
+                        let enable: string | undefined;
                         const names = ["packet_size", "pad_len", "whole_len", "pad_dur", "whole_dur"];
                         const argument = trimmed.slice("apad=".length);
                         const optionTokens: string[] = [];
@@ -10356,6 +10357,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (separator < 0) optionPosition++;
                           else optionPosition = optionPosition === 0 ? 1 : 0;
                           const value = separator < 0 ? option : option.slice(separator + 1);
+                          if (key === "enable") {
+                            enable = value;
+                            parseFilterExpression(enable, "apad enable", { n: 0, t: 0, pos: 0, w: 0, h: 0 });
+                            continue;
+                          }
                           if (key === "packet_size") {
                             const number = parseFilterExpression(value, "apad packet_size", {});
                             packetSize = roundToEven(number);
@@ -10442,6 +10448,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           throw new Error("apad: packet_size must be positive when padding is required");
                         }
                         budget.checkDuration(length / origRate);
+                        // apad forwards every input frame; the final enable state controls EOF padding.
+                        let enabled = true;
+                        if (enable !== undefined) {
+                          for (const [n, frame] of audioTimestamps.entries()) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            enabled = Math.abs(parseFilterExpression(enable, "apad enable", {
+                              n, t: frame.pts / origRate, pos: t.samples[n]?.offset ?? NaN, w: 0, h: 0
+                            })) >= 0.5;
+                          }
+                        }
+                        if (!enabled) continue;
                         const lastFrame = audioTimestamps.at(-1);
                         const paddingPts = lastFrame ? lastFrame.pts + lastFrame.end - lastFrame.start : audioStartSample;
                         if (length > inputLength) {

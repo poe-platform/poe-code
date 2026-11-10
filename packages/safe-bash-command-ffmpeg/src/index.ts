@@ -2856,6 +2856,61 @@ async function applyVideoFilterChain(
         }
         return { ...f, width, height, data };
       }, signal);
+    } else if (name === "thumbnail") {
+      if (positional.length > 1 || Object.keys(named).some(key => key !== "n")) {
+        throw new Error("thumbnail: expected a batch size n");
+      }
+      const count = Number(named.n ?? (argStr || 100));
+      if (!Number.isInteger(count) || count < 1 || count > 2147483647) {
+        throw new Error("thumbnail: n must be an integer from 1 to 2147483647");
+      }
+      const selected: typeof current = [];
+      for (let start = 0; start < current.length; start += count) {
+        const length = Math.min(count, current.length - start);
+        const bytes = (length + 1) * 768 * Float64Array.BYTES_PER_ELEMENT;
+        budget.allocateMemory(bytes);
+        try {
+          const average = new Float64Array(768);
+          const histograms: Float64Array[] = [];
+          for (let n = 0; n < length; n++) {
+            const frame = current[start + n]!;
+            const bins = new Float64Array(768);
+            const native = frame.native;
+            if (native?.rgba === frame.data && native.width === frame.width && native.height === frame.height &&
+                [0, 4, 5, 12, 13, 14].includes(native.format)) {
+              const size = frame.width * frame.height;
+              const chroma = Math.ceil(frame.width / ([5, 14].includes(native.format) ? 1 : 2)) *
+                Math.ceil(frame.height / ([0, 12].includes(native.format) ? 2 : 1));
+              for (let i = 0; i < size + 2 * chroma; i++) {
+                if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+                const channel = i < size ? 0 : i < size + chroma ? 1 : 2;
+                bins[channel * 256 + native.pixels[i]!]!++;
+              }
+            } else {
+              for (let i = 0; i < frame.data.length; i += 4) {
+                if (i % 16384 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+                for (let channel = 0; channel < 3; channel++) bins[channel * 256 + frame.data[i + channel]!]!++;
+              }
+            }
+            for (let i = 0; i < bins.length; i++) average[i]! += bins[i]!;
+            histograms.push(bins);
+          }
+          for (let i = 0; i < average.length; i++) average[i]! /= length;
+          let best = 0;
+          let minimum = Infinity;
+          for (const [n, bins] of histograms.entries()) {
+            await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
+            let error = 0;
+            for (let i = 0; i < bins.length; i++) error += (bins[i]! - average[i]!) ** 2;
+            // Keep the earliest frame when histogram distances tie.
+            if (error < minimum) { minimum = error; best = n; }
+          }
+          selected.push(current[start + best]!);
+        } finally {
+          budget.releaseMemory(bytes);
+        }
+      }
+      current = selected;
     } else if (name === "histogram") {
       if (argStr) throw new Error("histogram: options are not supported");
       current = await mapWork(current, async (f) => {
@@ -3486,14 +3541,45 @@ async function applyVideoFilterChain(
             canvas.set(srcRow.subarray(0, fw * 4), ((oy + y) * outW + ox) * 4);
           }
         }
-        tiledFrames.push({
+        let tiled: MediaVideoFrame = {
           width: outW,
           height: outH,
           data: canvas,
           ptsSeconds: batch[0]?.ptsSeconds ?? 0,
           durationSeconds: batch.reduce((s, x) => s + x.durationSeconds, 0),
           keyframe: true
-        });
+        };
+        const source = batch[0]?.native;
+        if (source && [0, 4, 5].includes(source.format) && batch.every(frame =>
+          frame.native?.format === source.format && frame.native.rgba === frame.data &&
+          frame.native.width === fw && frame.native.height === fh && frame.width === fw && frame.height === fh)) {
+          const hsub = source.format === 5 ? 1 : 2;
+          const vsub = source.format === 0 ? 2 : 1;
+          tiled = await formatYuv(tiled, source.format === 0 ? "yuv420p" : source.format === 4 ? "yuv422p" : "yuv444p", signal);
+          const pixels = tiled.native!.pixels;
+          for (const [k, frame] of batch.entries()) {
+            const cell = k + Math.max(0, -base);
+            const ox = margin + cell % cols * (fw + padding);
+            const oy = margin + Math.floor(cell / cols) * (fh + padding);
+            let inputOffset = 0, outputOffset = 0;
+            for (let plane = 0; plane < 3; plane++) {
+              const sx = plane === 0 ? 1 : hsub, sy = plane === 0 ? 1 : vsub;
+              const width = Math.ceil(fw / sx), height = Math.ceil(fh / sy);
+              const outputWidth = Math.ceil(outW / sx), outputHeight = Math.ceil(outH / sy);
+              for (let y = 0; y < height; y++) {
+                await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
+                const offset = inputOffset + y * width;
+                pixels.set(frame.native!.pixels.subarray(offset, offset + width),
+                  outputOffset + (Math.floor(oy / sy) + y) * outputWidth + Math.floor(ox / sx));
+              }
+              inputOffset += width * height;
+              outputOffset += outputWidth * outputHeight;
+            }
+          }
+          const data = scaleVideoPicture(tiled, outW, outH)!;
+          tiled = { ...tiled, data, native: { ...tiled.native!, rgba: data } };
+        }
+        tiledFrames.push(tiled);
         if (base + perTile >= current.length) break;
       }
       current = tiledFrames;

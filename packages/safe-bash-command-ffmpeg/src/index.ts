@@ -10646,7 +10646,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           if (!Number.isSafeInteger(length)) throw new Error("aloop: a finite consumer limit is required");
                           budget.checkDuration(length / origRate);
-                          budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
                           audioTimestamps = [];
                           for (let start = 0; start < length;) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -10656,7 +10655,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                           stretched = await mapWork(stretched, async channel => {
-                            const output = new Float32Array(length);
+                            budget.allocateMemory(length * channel.BYTES_PER_ELEMENT);
+                            const output = channel instanceof Float64Array ? new Float64Array(length) : new Float32Array(length);
                             for (let offset = 0; offset < length; offset += 16384) {
                               await yieldTurn(context.signal);
                               context.signal?.throwIfAborted();
@@ -10737,9 +10737,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                             offset = end;
                           }
-                          budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
                           stretched = await mapWork(stretched, async channel => {
-                            const output = new Float32Array(length);
+                            budget.allocateMemory(length * channel.BYTES_PER_ELEMENT);
+                            const output = channel instanceof Float64Array ? new Float64Array(length) : new Float32Array(length);
                             let regionIndex = 0;
                             let source = regions[0]!.start;
                             for (let offset = 0; offset < length; offset += 16384) {

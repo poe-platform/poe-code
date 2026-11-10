@@ -5949,8 +5949,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
   }
 }
 
-function* parseInputOperandSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, analysis?: { warnings: string }): Generator<void, RgbaImage | undefined, void> {
-    const list = (yield* parseInputOperandsSteps(token, files, state, stdinBytes, undefined, undefined, undefined, analysis));
+function* parseInputOperandSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, analysis?: { warnings: string }, registers?: ReadonlyMap<string, RgbaImage[]>): Generator<void, RgbaImage | undefined, void> {
+    const list = (yield* parseInputOperandsSteps(token, files, state, stdinBytes, undefined, undefined, registers, analysis));
     return list?.[0];
 }
 
@@ -9202,7 +9202,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         if (t === "-write-mask" || t === "+write-mask" || t === "-clip-mask" || t === "+clip-mask") {
             const path = t.startsWith("-") ? tokens[++i] : undefined;
             if (t.startsWith("-") && !path) throw new Error(`missing argument '${t}'`);
-            const mask = path ? yield* parseInputOperandSteps(path, files, state, stdinBytes, analysis) : undefined;
+            const mask = path ? yield* parseInputOperandSteps(path, files, state, stdinBytes, analysis, registers) : undefined;
             if (path && !mask) throw new Error(`unable to open image '${path}'`);
             stack = yield* mapSteps(stack, function* (image) {
                 const writeMask = mask && (mask.width !== image.width || mask.height !== image.height)
@@ -9710,7 +9710,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const spec = t === "-read-mask" ? tokens[++i] : undefined;
             if (t === "-read-mask" && !spec) throw new Error(`missing argument '${t}'`);
-            const readMask = spec ? yield* parseInputOperandSteps(spec, files, state, stdinBytes, analysis) : undefined;
+            const readMask = spec ? yield* parseInputOperandSteps(spec, files, state, stdinBytes, analysis, registers) : undefined;
             if (spec && !readMask) throw new Error(`unable to read mask '${spec}'`);
             stack = yield* mapSteps(stack, function* (image) { yield; return { ...image, readMask }; });
         }
@@ -11344,7 +11344,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const path = token.startsWith("-") ? tokens[++i] : undefined, settings = { ...state };
             if (token.startsWith("-") && !path) throw new Error(`missing argument '${token}'`);
             stackStep(async (stack, backend) => {
-                const mask = path ? await parseStoredCompareInput(path, settings, backend, signal, { analysis }) : undefined;
+                const mask = path ? await parseStoredCompareInput(path, settings, backend, signal, { analysis, registers }) : undefined;
                 if (path && !mask) throw new Error(`unable to open image '${path}'`);
                 for (let n = 0; n < stack.length; n++) {
                     const image = (await stack.get(n))!;
@@ -12095,7 +12095,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-read-mask" && !spec) throw new Error(`missing argument '${token}'`);
             stackStep(async (stack, backend) => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
-                const readMask = spec ? await parseStoredCompareInput(spec, settings, backend, signal, { analysis }) : undefined;
+                const readMask = spec ? await parseStoredCompareInput(spec, settings, backend, signal, { analysis, registers }) : undefined;
                 if (spec && !readMask) throw new Error(`unable to read mask '${spec}'`);
                 for (let n = 0; n < stack.length; n++) await stack.set(n, { ...(await stack.get(n))!, readMask } as StoredRgbaImage);
                 return stack;

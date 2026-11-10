@@ -9,7 +9,7 @@ export type MagickResizeKernel = ResizeKernel | "gaussian" | "jinc" | "lagrange"
 
 export type ResizeFilterSettings = { blur?: number; support?: number; lobes?: number; b?: number; c?: number; sigma?: number; window?: MagickResizeKernel };
 
-export function* adaptiveResizePixelSteps(image: { width: number; height: number; hasAlpha: boolean; space?: string; hueSamples?: Float64Array; storedHueSamples?: number }, width: number, height: number, highDepth: boolean, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* adaptiveResizePixelSteps(image: { width: number; height: number; hasAlpha: boolean; space?: string; hueSamples?: Float64Array; storedHueSamples?: number }, width: number, height: number, highDepth: boolean, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", mask = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const maximum = highDepth ? 65535 : 255;
     const cmyk = image.space === "cmyk";
     const hue = !cmyk && (!!image.hueSamples || image.storedHueSamples !== undefined);
@@ -22,13 +22,14 @@ export function* adaptiveResizePixelSteps(image: { width: number; height: number
         const count = Math.min(256, width * height - start);
         const data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
         const samples = new Float64Array(count * 4);
-        const inks = cmyk ? new Float64Array(count * 4) : undefined;
-        const hueSamples = hue ? new Float64Array(count * 4) : undefined;
+        const inks = cmyk && !mask ? new Float64Array(count * 4) : undefined;
+        const hueSamples = hue && !mask ? new Float64Array(count * 4) : undefined;
         for (let offset = 0; offset < count; offset++) {
             const x = ((start + offset) % width + 0.5) * image.width / width - 0.5;
             const y = (Math.floor((start + offset) / width) + 0.5) * image.height / height - 0.5;
             const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
             const pixels: ArrayLike<number>[] = [];
+            const coverage: number[] = [];
             for (let row = 0; row < 2; row++) for (let column = 0; column < 2; column++) {
                 const position = virtualPixelIndex(left + column, top + row, image.width, image.height, virtualPixel) * 4;
                 if (position < 0) {
@@ -36,6 +37,7 @@ export function* adaptiveResizePixelSteps(image: { width: number; height: number
                         const ink = rgbToCmyk(fill[0]! / maximum, fill[1]! / maximum, fill[2]! / maximum);
                         pixels.push([ink[0]! * maximum, ink[1]! * maximum, ink[2]! * maximum, fill[3]!, ink[3]! * maximum]);
                     } else pixels.push(fill);
+                    if (mask) coverage.push(0);
                     continue;
                 }
                 const retained = yield { kind: "read", evaluate: true, position, length: 4 };
@@ -55,6 +57,12 @@ export function* adaptiveResizePixelSteps(image: { width: number; height: number
                     const bytes = (yield { kind: "read", hue: true, position, length: 4 })!;
                     pixels.push(new Float64Array(bytes.slice().buffer).map(value => value * maximum));
                 } else pixels.push(pixel);
+                if (mask) {
+                    const working = yield { kind: "read", evaluate: true, image: 1, position, length: 4 };
+                    const samples = working?.length ? new Float64Array(working.slice().buffer)
+                        : Float64Array.from(new Uint16Array((yield { kind: "read", highDepth: true, image: 1, position, length: 4 })!.slice().buffer), value => value / 257);
+                    coverage.push(0.212656 * samples[0]! + 0.715158 * samples[1]! + 0.072186 * samples[2]!);
+                }
             }
             const luma = pixels.map(p => 0.212656 * p[0]! + 0.715158 * p[1]! + 0.072186 * p[2]!);
             // Choose the diagonal with the smaller luma difference, then its enclosing triangle.
@@ -62,13 +70,15 @@ export function* adaptiveResizePixelSteps(image: { width: number; height: number
                 ? dx <= dy ? [1 - dy, 0, dy - dx, dx] : [1 - dx, dx - dy, 0, dy]
                 : dx <= 1 - dy ? [1 - dx - dy, dx, dy, 0] : [0, 1 - dy, 1 - dx, dx + dy - 1];
             const alpha = pixels.reduce((sum, p, i) => sum + p[3]! * weights[i]!, 0);
-            for (let channel = 0; channel < (cmyk ? 5 : 4); channel++) {
+            for (let channel = 0; channel < (cmyk && !mask ? 5 : 4); channel++) {
                 // Native mesh divides unassociated colors by interpolated alpha.
-                const value = channel === 3 ? alpha : pixels.reduce((sum, p, i) => sum + p[channel]! * weights[i]!, 0)
-                    / (image.hasAlpha ? Math.max(1e-12, alpha / maximum) : 1);
+                // Masks follow the source image's mesh, without alpha weighting.
+                const value = mask ? channel === 3 ? maximum : coverage.reduce((sum, value, i) => sum + value * weights[i]!, 0) * maximum / 255
+                    : channel === 3 ? alpha : pixels.reduce((sum, p, i) => sum + p[channel]! * weights[i]!, 0)
+                        / (image.hasAlpha ? Math.max(1e-12, alpha / maximum) : 1);
                 const scale = highDepth ? 1 : 257;
                 if (hueSamples) hueSamples[offset * 4 + channel] = Math.fround(value * scale) / 65535;
-                if (!cmyk || channel === 3) samples[offset * 4 + channel] = Math.fround(value * scale) / 257;
+                if (!cmyk || mask || channel === 3) samples[offset * 4 + channel] = Math.fround(value * scale) / 257;
                 if (inks && channel !== 3) inks[offset * 4 + (channel === 4 ? 3 : channel)] = Math.fround(value * scale) / (maximum * scale);
                 else data[offset * 4 + channel] = Math.max(0, Math.min(maximum, Math.round(Math.fround(value * scale) / scale)));
             }

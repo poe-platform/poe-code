@@ -10763,6 +10763,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (!options || (options.width === image.width && options.height === image.height)) return image;
                 const width = options.width!, height = options.height!;
                 const resized = yield* applyMagickRasterSteps({ ...image, isPalette: false }, adaptiveResizePixelSteps(image, width, height, !!image.data16, background, image.virtualPixel), signal, { ...image, width, height });
+                const mask = image.region ? yield* applyMagickRasterSteps({ width: image.width, height: image.height, data: image.data,
+                    format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, regionMaskPixelSteps(image, image.region), signal) : image.writeMask;
+                if (mask) {
+                    resized.writeMask = yield* applyMagickRasterSteps(mask, adaptiveResizePixelSteps(image, width, height, true, background, image.virtualPixel, true), signal, { width, height, hasAlpha: false }, [image, mask]);
+                    resized.region = undefined;
+                }
                 const virtualCanvas = magickResizeCanvas(image, width, height);
                 return virtualCanvas ? { ...resized, virtualCanvas } : resized;
             });
@@ -13675,6 +13681,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!options || (options.width === image.width && options.height === image.height)) return image;
                 const width = options.width!, height = options.height!;
                 const resized = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, adaptiveResizePixelSteps(image, width, height, !!image.storedData16, background, image.virtualPixel), signal, { ...image, width, height });
+                const mask = image.region ? await transformStoredMagickRaster({ width: image.width, height: image.height, position: image.position,
+                    format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, backend, regionMaskPixelSteps(image, image.region), signal) : image.storedWriteMask;
+                if (mask) {
+                    resized.storedWriteMask = await transformStoredMagickRaster(mask, backend, adaptiveResizePixelSteps(image, width, height, true, background, image.virtualPixel, true), signal, { width, height, hasAlpha: false }, [image, mask]);
+                    resized.region = undefined;
+                }
                 const virtualCanvas = magickResizeCanvas(image, width, height);
                 return virtualCanvas ? { ...resized, virtualCanvas } : resized;
             });

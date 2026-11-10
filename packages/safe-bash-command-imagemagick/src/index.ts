@@ -11271,7 +11271,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const plane = { width: rIm.width, height: rIm.height, format: rIm.format, depth: rIm.depth, density: rIm.density, space: "b-w" as const, channels: 1 as const, hasAlpha: false, data: source.data };
                 metaChannels.push(yield* applyMagickRasterSteps(plane, combineMetaPixelSteps(rIm, source, !!source.data16, state.intensity), signal, plane, [source]));
             }
-            stack = [{ ...result, metaChannels, space: gray ? rIm.space : rIm.space === "cmyk" ? "cmyk" : "srgb", channels: gray ? (rIm.hasAlpha ? 2 : 1) : 4, hasAlpha: rIm.space !== "cmyk" && sources.length === 4 || rIm.hasAlpha }];
+            stack = [{ ...result, isPalette: false, metaChannels, space: gray ? rIm.space : rIm.space === "cmyk" ? "cmyk" : "srgb", channels: gray ? (rIm.hasAlpha ? 2 : 1) : 4, hasAlpha: rIm.space !== "cmyk" && sources.length === 4 || rIm.hasAlpha }];
         }
         else if (t === "-draw") {
             const drawSpec = tokens[++i] ?? "";
@@ -12294,7 +12294,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         const plane = { width: base.width, height: base.height, format: base.format, depth: base.depth, density: base.density, space: "b-w" as const, channels: 1 as const, hasAlpha: false, position: source.position };
                         storedMetaChannels.push(await transformStoredMagickRaster(plane, backend, combineMetaPixelSteps(base, source, !!source.storedData16, settings.intensity), signal, plane, [source]));
                     }
-                    stack.length = 0; await stack.push({ ...result, storedMetaChannels, space: gray ? base.space : base.space === "cmyk" ? "cmyk" : "srgb", channels: gray ? (base.hasAlpha ? 2 : 1) : 4, hasAlpha: base.space !== "cmyk" && sources.length === 4 || base.hasAlpha });
+                    stack.length = 0; await stack.push({ ...result, isPalette: false, storedMetaChannels, space: gray ? base.space : base.space === "cmyk" ? "cmyk" : "srgb", channels: gray ? (base.hasAlpha ? 2 : 1) : 4, hasAlpha: base.space !== "cmyk" && sources.length === 4 || base.hasAlpha });
                 } else if (token === "-morph") {
                     const image = await stack.get(0);
                     const expanded = image ? await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack) : argument;

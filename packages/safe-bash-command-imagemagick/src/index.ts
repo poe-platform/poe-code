@@ -6860,7 +6860,8 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const c2Str = separator < 0 ? "" : spec.slice(separator + 1);
         const c1 = parseColor(c1Str || "#ffffff", true);
         const c2 = parseColor(separator < 0 ? "#000000" : c2Str || "#ffffff", true);
-        return yield* applyMod([(yield* createGradientImageSteps(state.sizeWidth, state.sizeHeight, c1, c2, radial, state.gradientDirection, state.gradientAngle, state.gradientVector, state.gradientBoundingBox, state.gradientCenter, state.gradientRadii, state.gradientExtent))]);
+        const image = yield* createGradientImageSteps(state.sizeWidth, state.sizeHeight, c1, c2, radial, state.gradientDirection, state.gradientAngle, state.gradientVector, state.gradientBoundingBox, state.gradientCenter, state.gradientRadii, state.gradientExtent);
+        return yield* applyMod([Object.assign(image, { [magickInput]: { filePath: c1Str } })]);
     }
     if (lower.startsWith("plasma:")) {
         const spec = baseToken.slice(7), fractal = spec.toLowerCase() === "fractal";
@@ -16650,6 +16651,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    if(storedHueSamples!==undefined&&hueSamples)await backend.storage.write(storedHueSamples+start*32,new Uint8Array(hueSamples.buffer));
   }
   image={position,width,height,...(storedData16?{storedData16}:{}),...(storedHueSamples===undefined?{}:{storedHueSamples}),format:"png",channels:a.space?(a.a<255||b.a<255?2:1):4,depth:checker?"uchar":"ushort",space:a.cmyk?"cmyk":a.space??"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
+  if (!checker) image = Object.assign(image, { [magickInput]: { filePath: first } });
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
   image=await decodeStoredMagickSvg(createLabelSvg(baseToken.slice(baseToken.indexOf(":")+1),state),state.density,backend,signal);
  }else{

@@ -10384,6 +10384,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
                 const area = { left: sw, top: sh, width: im.width - sw * 2, height: im.height - sh * 2 };
                 return { ...yield* extractImageSteps(im, area),
+                    ...(im.readMask ? { readMask: yield* extractImageSteps(im.readMask as RgbaImage, area) } : {}),
                     ...(im.writeMask ? { writeMask: yield* extractImageSteps(im.writeMask, area) } : {}),
                     ...(im.region ? { region: { ...im.region, x: im.region.x - sw, y: im.region.y - sh } } : {}),
                     virtualCanvas: magickBorderCanvas(im, -sw, -sh) };

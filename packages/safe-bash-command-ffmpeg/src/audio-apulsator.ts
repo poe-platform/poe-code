@@ -12,7 +12,9 @@ export async function pulsateAudio(
   const options = { hz: 2, bpm: 120, ms: 500, amount: 1, offset_l: 0, offset_r: 0.5, width: 1, level_in: 1, level_out: 1 };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const names = ["level_in", "level_out", "mode", "amount", "offset_l", "offset_r", "width", "timing", "bpm", "ms", "hz"] as const;
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  const argumentsList = argument ? argument.split(":") : [];
+  if (argument.endsWith(":")) argumentsList.pop();
+  for (const [index, option] of argumentsList.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options | "mode" | "timing";
     if (!key || (key !== "mode" && key !== "timing" && !Object.hasOwn(options, key))) throw new Error(`apulsator: unsupported option ${option}`);

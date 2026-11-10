@@ -2685,7 +2685,11 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
     g: boolean;
     b: boolean;
     a: boolean;
+    k?: boolean;
 }, random: (() => number) | undefined, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    const cmyk = img.space === "cmyk";
+    if (cmyk) img = yield* convertCmykPixels(img);
+    const hueSamples = cmyk ? img.hueSamples!.slice() : undefined;
     let cooperativeWork = 0;
     const isPct = valStr.trim().endsWith("%");
     const rawNum = parseFloat(valStr);
@@ -2696,7 +2700,7 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
     // Native Sine/Cosine percentages scale by QuantumRange + 1.
     const vFrequency = isPct ? (rawNum / 100) * 65536 : rawNum;
     const out = new Uint8Array(img.data);
-    const mask = [channels.r, channels.g, channels.b, channels.a && img.hasAlpha];
+    const mask = [channels.r, channels.g, channels.b, channels.a && img.hasAlpha, cmyk && (channels.k ?? true)];
     // Keep HDRI samples separate from the bounded encoding views.
     const evaluateSamples = img.evaluateSamples?.slice() ?? Float64Array.from(img.data16 ?? img.data, value => img.data16 ? value / 257 : value);
     const data16 = img.data16 ? new Uint16Array(img.data16) : undefined;
@@ -2706,12 +2710,14 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
             signal?.throwIfAborted();
             yield;
         }
-        for (let c = 0; c < 4; c++) {
+        for (let c = 0; c < mask.length; c++) {
             if (++cooperativeWork % 65536 === 0)
                 yield;
             if (!mask[c])
                 continue;
-            const cur = evaluateSamples[i + c]!;
+            const ink = cmyk && c !== 3;
+            const offset = i + (c === 4 ? 3 : c);
+            const cur = ink ? hueSamples![offset]! * 255 : evaluateSamples[offset]!;
             let next = cur;
             switch (op) {
                 case "clamp":
@@ -2817,13 +2823,23 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                 default:
                     break;
             }
-            evaluateSamples[i + c] = next;
+            if (ink) {
+                hueSamples![offset] = next / 255;
+                continue;
+            }
+            evaluateSamples[offset] = next;
             // Positive overflow saturates on output while HDRI samples retain their range.
             out[i + c] = clampByteVal(Math.min(255, next));
             if (data16) data16[i + c] = Math.round(Math.max(0, Math.min(65535, next * 257)));
         }
+        if (hueSamples) for (let c = 0; c < 3; c++) {
+            const value = (1 - hueSamples[i + c]!) * (1 - hueSamples[i + 3]!) * 255;
+            evaluateSamples[i + c] = value;
+            out[i + c] = clampByteVal(value);
+            if (data16) data16[i + c] = Math.round(Math.max(0, Math.min(65535, value * 257)));
+        }
     }
-    return { ...img, data: out, evaluateSamples, ...(data16 ? { data16 } : {}) };
+    return { ...img, data: out, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), ...(data16 ? { data16 } : {}) };
 }
 
 function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: readonly number[], channels: {

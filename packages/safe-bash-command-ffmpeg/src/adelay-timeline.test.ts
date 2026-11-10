@@ -129,7 +129,21 @@ for (const graph of [false, true]) {
       assert.deepEqual(actual.output, expected.output);
     });
   }
-  for (const enable of ["", "unknown", "gte(t)", "1+"]) {
+  for (const [enable, delayed] of [
+    ["NaN", false], ["0/0", false], ["INF", true], ["1/0", true],
+    ["-INF", true], ["-1/0", true], ["isnan(0/0)", true], ["isinf(1/0)", true],
+    ["isnan(NaN)", true], ["isinf(INF)", true], ["0", false], ["1", true]
+  ] as const) {
+    it(`adelay evaluates nonfinite enable=${enable} including the EOF tail (graph ${graph})`, async () => {
+      const samples = Buffer.alloc(12);
+      [101, -901, 202, -802, 303, -703].forEach((value, index) => samples.writeInt16LE(value, index * 2));
+      const { result, stderr, output } = await run(`adelay=1S:enable='${enable}'`, graph, samples);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.deepEqual(Array.from({ length: output.length / 2 }, (_, index) => output.readInt16LE(index * 2)),
+        delayed ? [0, -901, 101, -802, 202, -703, 303, 0] : [101, -901, 202, -802, 303, -703, 0, 0]);
+    });
+  }
+  for (const enable of ["", "unknown", "bogus", "isnan(bogus)", "gte(t)", "1+"]) {
     it(`rejects invalid adelay enable=${enable} before replacing output (graph ${graph})`, async () => {
       const { result, stderr, output } = await run(`adelay=0S|23S:enable=${enable}`, graph);
       assert.equal(result.exitCode, 1, stderr);

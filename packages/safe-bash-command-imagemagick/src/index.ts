@@ -9361,6 +9361,10 @@ if (t === "-intent" || t === "+intent") {
             state.background = parseColor(tokens[++i] ?? "#ffffff", true);
             state.backgroundExplicit = true;
         }
+        else if (t === "+background") {
+            state.background = { r: 255, g: 255, b: 255, a: 255 };
+            state.backgroundExplicit = false;
+        }
         else if (t === "-fill") {
             const color = (tokens[++i] ?? "#000000").trim().toLowerCase();
             state.fill = parseColor(color, true);
@@ -9973,6 +9977,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 });
             }
             if (t === "-mattecolor") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, matteColor: state.matteColor }; });
+            if (t === "-background") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, backgroundColor: state.background }; });
             if (t === "-interlace" || t === "+interlace") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
             if (t === "-compose" || t === "+compose") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, properties: { ...image.properties, compose: state.composeRaw } }; });
             if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity }; });
@@ -11422,7 +11427,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 yield* blitOverRgbaInPlaceSteps(stack[0]!, loaded[0], 0, 0);
                 detachRgbaBuffer(loaded[0].data);
             } else {
-                stack.push(...loaded);
+                stack.push(...loaded.map(image => state.backgroundExplicit ? { ...image, backgroundColor: state.background } : image));
             }
         }
         i++;
@@ -12363,6 +12368,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-mattecolor") {
                 const matteColor = state.matteColor;
                 steps.push(async image => image ? { ...image, matteColor } : undefined);
+            }
+            if (token === "-background") {
+                const backgroundColor = state.background;
+                steps.push(async image => image ? { ...image, backgroundColor } : undefined);
             }
             if (token === "-interlace" || token === "+interlace") {
                 const interlace = state.interlace!;
@@ -13941,7 +13950,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         const composed = await compositeStoredMagick(base, image, backend, signal, 0, 0, "over");
                         await stack.set(0, { ...composed, hasAlpha: base.hasAlpha, channels: base.channels });
                     }
-                    else await stack.push(image);
+                    else await stack.push(settings.backgroundExplicit ? { ...image, backgroundColor: settings.background } : image);
                 }, ...(maxDecodeDimension === undefined ? {} : { maxDecodeDimension }) });
                 if (!loaded) throw new Error(`unable to open image '${token}'`);
                 return stack;

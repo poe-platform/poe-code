@@ -68,6 +68,7 @@ function* miffFrameHeader(size: number): Generator<number, MiffHeader, number | 
         || [...fields.keys()].some(key => key.startsWith("profile:") || key === "montage")) throw new Error("Unsupported MIFF encoding");
     if (indexed && size - offset < colors * 3 * sampleBytes) throw new Error("Truncated MIFF palette");
     if (size - offset < (indexed ? colors * 3 * sampleBytes : 0) + width * height * pixelBytes) throw new Error("Truncated MIFF raster");
+    const gamma = Number(fields.get("gamma"));
     const orientation = ["topleft", "topright", "bottomright", "bottomleft", "lefttop", "righttop", "rightbottom", "leftbottom"].indexOf(fields.get("orientation")?.toLowerCase() ?? "") + 1;
     let virtualCanvas: ImageMetadata["virtualCanvas"];
     const page = fields.get("page");
@@ -85,7 +86,7 @@ function* miffFrameHeader(size: number): Generator<number, MiffHeader, number | 
     const [x = 0, y = x] = (fields.get("resolution") ?? "").split("x").map(Number);
     const unit = fields.get("units") === "PixelsPerInch" ? "inch" : fields.get("units") === "PixelsPerCentimeter" ? "cm" : "unknown";
     const resolution: ImageMetadata["resolution"] = Number.isFinite(x) && Number.isFinite(y) && x > 0 && y > 0 ? { x, y, unit } : undefined;
-    return { metadata: { disposal, ...(orientation ? { orientation } : {}), ...(virtualCanvas ? { virtualCanvas } : {}), delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, ...(Object.keys(properties).length ? { properties } : {}), format: "miff", width, height, channels, hasAlpha, depth: floating ? "float" : depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: resolution ? x * (unit === "cm" ? 2.54 : 1) : 72, ...(resolution ? { resolution } : {}), size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes };
+    return { metadata: { ...(Number.isFinite(gamma) ? { gamma } : {}), disposal, ...(orientation ? { orientation } : {}), ...(virtualCanvas ? { virtualCanvas } : {}), delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, ...(Object.keys(properties).length ? { properties } : {}), format: "miff", width, height, channels, hasAlpha, depth: floating ? "float" : depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: gray ? "b-w" : "srgb", magickColorspace: colorspace, density: resolution ? x * (unit === "cm" ? 2.54 : 1) : 72, ...(resolution ? { resolution } : {}), size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes };
 }
 
 /** Scan adjacent rasters and collect animation timing without reading their pixels. */

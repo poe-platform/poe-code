@@ -187,11 +187,14 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
             if (!bytes || bytes.length !== count * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated vignette pixels");
             const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
             for (let x = 0; x < count; x++) {
-                const foreground = coverage[x]!, back = (1 - foreground) * background.a / 255, alpha = foreground + back;
+                const foreground = coverage[x]!, back = (name === "plus" ? 1 : 1 - foreground) * background.a / 255;
+                const alpha = Math.min(1, foreground + back);
                 for (let channel = 0; channel < 3; channel++) {
                     const color = channel === 0 ? background.r : channel === 1 ? background.g : background.b;
                     const selected = !channels || (channel === 0 ? channels.r : channel === 1 ? channels.g : channels.b);
                     data[x * 4 + channel] = !selected || copyDestination || copyAlpha ? Math.round(color * scale) : copySource ? data[x * 4 + channel]!
+                        // Plus adds alpha-weighted channels without unpremultiplying.
+                        : name === "plus" ? Math.round(Math.min(255 * scale, data[x * 4 + channel]! * foreground + color * scale * back))
                         : alpha === 0 ? 0 : Math.round((data[x * 4 + channel]! * foreground + color * scale * back) / alpha);
                 }
                 data[x * 4 + 3] = Math.round(((!channels || channels.a) && !copyDestination ? (copySource || copyAlpha ? foreground : alpha) * 255 : background.a) * scale);

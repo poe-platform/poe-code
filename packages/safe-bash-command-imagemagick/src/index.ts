@@ -10429,6 +10429,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-vignette") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const argument = tokens[++i] ?? "0x1";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(argument, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
@@ -13091,6 +13092,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 virtualCanvas: magickTransposeCanvas(image, kind === "flop")
             } : undefined);
         } else if (!operandsOnly && token === "-vignette") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const argument = tokens[++i] ?? "0x1";
             const background = state.background, backgroundExplicit = state.backgroundExplicit, channels = state.channelExplicit ? { ...state.channels } : undefined, compose = state.composeRaw, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {

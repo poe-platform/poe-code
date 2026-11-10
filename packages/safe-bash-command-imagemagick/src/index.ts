@@ -11151,6 +11151,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             for (let n = 0; n < stack.length; n++) {
                 canvas = yield* applyMagickRasterSteps(canvas, overCompositePixelSteps(canvas, stack[n]!, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || stack[n]!.data16)), signal, canvas, [canvas, stack[n]!]);
             }
+            // Native smush keeps the first image's mask channels, initialized to zero on the new canvas.
+            if (image.readMask) canvas.readMask = yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 });
+            if (image.writeMask) canvas.writeMask = yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 });
             for (const image of stack) detachRgbaBuffer(image.data);
             const source = (image as MagickImage)[magickInput], scene = source?.sceneIdx ?? 0;
             Object.assign(canvas, {
@@ -12477,6 +12480,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     delay: [await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] ?? 0], delayTicks: image.delayTicks, ticksPerSecond: image.ticksPerSecond,
                     disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene],
                 });
+                if (images[0]!.readMask) canvas.readMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
+                if (images[0]!.storedWriteMask) canvas.storedWriteMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 stack.length = 0;
                 await stack.push({ ...canvas, ...(image.orientation === undefined ? {} : { orientation: image.orientation }), virtualCanvas, density: image.density, ...(image.gamma !== undefined ? { gamma: image.gamma } : {}), ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) });
                 return stack;

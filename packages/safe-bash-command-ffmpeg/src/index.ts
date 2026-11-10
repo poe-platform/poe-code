@@ -2672,7 +2672,12 @@ async function applyVideoFilterChain(
       // Align placement to the source chroma grid, as with crop.
       const px = Math.floor((x < 0 || x > pw - iw ? Math.trunc((pw - iw) / 2) : x) / hsub) * hsub;
       const py = Math.floor((y < 0 || y > ph - ih ? Math.trunc((ph - ih) / 2) : y) / vsub) * vsub;
-      const col = parseColorRgba(named.color ?? (positional[4]?.includes("=") ? undefined : positional[4]) ?? "black");
+      let col: [number, number, number, number];
+      try {
+        col = parseColorRgba(named.color ?? (positional[4]?.includes("=") ? undefined : positional[4]) ?? "black");
+      } catch (err) {
+        throw new Error(`pad: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
+      }
       if (pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "gray16be" || pixelFormat === "ya8") {
         // Pad uses full-range BT.601 luma for grayscale frames.
         const gray = Math.round(0.299 * col[0] + 0.587 * col[1] + 0.114 * col[2]);
@@ -15501,6 +15506,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (err instanceof RangeError && msg.startsWith("acontrast:")) return { exitCode: 222 };
             if (msg.startsWith("asubboost: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("asubboost: invalid ")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg.startsWith("pad: unsupported option ")) return { exitCode: 8 };
+            if (msg === "pad: eval must be init or frame" || msg.startsWith("pad: Invalid color")) return { exitCode: 234 };
             if (msg.startsWith("apad: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("apad:")) return { exitCode: 222 };
             if (msg.startsWith("apad: invalid ") || msg === "apad: pad_len and whole_len are mutually exclusive") return { exitCode: 234 };

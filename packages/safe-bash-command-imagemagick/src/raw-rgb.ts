@@ -54,7 +54,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                     }
                     return bytes;
                 }
-                if (interlace !== "none" && (channels === 3 || typeof layout === "string")) {
+                if (interlace !== "none" && (channels === 3 || typeof layout === "string") || interlace === "plane" && layout === 2) {
                     const sampleBytes = Math.min(depth, 16) / 8, inputSampleBytes = depth / 8, pixelBytes = channels * sampleBytes;
                     const lastPixel = Math.ceil(end / pixelBytes);
                     for (let pixel = Math.floor(start / pixelBytes); pixel < lastPixel;) {

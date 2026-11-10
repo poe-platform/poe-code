@@ -39,3 +39,27 @@ it.each(["line", "plane"] as const)("reads padded RGB4 %s rows with offsets, sce
         expect(Buffer.from(next.value)).toEqual(expected.subarray(position, position + length));
     }
 });
+
+for (const depth of [8, 16]) it.each(["msb", "lsb"])(`preserves partial GRAYA${depth} plane reads, offsets and frames (%s)`, endian => {
+    const samples = Buffer.from("1f364d647b92a9c0c0a9927b644d361f", "hex");
+    const input = Buffer.concat([Buffer.from("pad"), depth === 8 ? samples : Buffer.from([...samples].flatMap(value => endian === "msb" ? [value, 255 - value] : [255 - value, value]))]);
+    const raw = rawRasterInput(2, 2, depth, endian, input.length, 2, 3, "plane");
+    expect(raw.pages).toBe(2);
+    for (const [page, hex] of ["1f7b36924da964c0", "c064a94d92367b1f"].entries()) {
+        const pixels = Buffer.from(hex, "hex");
+        const expected = Buffer.concat([
+            Buffer.from(`P7\nWIDTH 2\nHEIGHT 2\nDEPTH 2\nMAXVAL ${depth === 8 ? 255 : 65535}\nTUPLTYPE GRAYSCALE_ALPHA\nENDHDR\n`),
+            depth === 8 ? pixels : Buffer.from([...pixels].flatMap(value => [value, 255 - value]))
+        ]);
+        for (let position = 0; position < raw.size; position++) {
+            const length = Math.min(7, raw.size - position), steps = raw.read(position, length, page);
+            let next = steps.next();
+            while (!next.done) {
+                expect(next.value.channel).toBe(0);
+                expect(next.value.length).toBeLessThanOrEqual(8192);
+                next = steps.next(input.subarray(next.value.position, next.value.position + next.value.length));
+            }
+            expect(Buffer.from(next.value)).toEqual(expected.subarray(position, position + length));
+        }
+    }
+});

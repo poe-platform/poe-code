@@ -44,7 +44,8 @@ export function* meanShiftPixelSteps(image: Pick<RgbaImage, "width" | "height" |
                         if (index >= 0) {
                             x = index % width; y = Math.floor(index / width);
                         } else {
-                            const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
+                            // Native gray is quantum 32768, expressed here on the 0–255 scale.
+                            const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 32768 / 257 : 0;
                             pixel = ((virtualPixel === "background" || virtualPixel?.endsWith("-tile")) ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255]).map(value => value * scale);
                         }
                     }

@@ -97,3 +97,30 @@ it.each([
     expect(result.exitCode).toBe(0);
     expect(Buffer.from(execution === "memory" ? files.get("out")! : await fs.readFile("/out")).toString("hex")).toBe(expected);
 });
+
+for (const execution of ["memory", "retained", "command"])
+it.each([
+    ["gray", "800080008000"],
+    ["edge", "800080008000"],
+    ["black", "199a199a199a"],
+])(`matches native Q16 mean-shift virtual pixels %s (${execution})`, async (virtual, expected) => {
+    const files = new Map([["out", Buffer.from("KEEP")]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/out", Buffer.from("KEEP"));
+    const argv = ["xc:#800080008000", "-virtual-pixel", virtual, "-mean-shift", "3x3+150%", "-depth", "16", "-endian", "MSB", "rgb:out"];
+    let exitCode: number;
+    if (execution === "command") {
+        const args = createCommandArguments(argv);
+        const result = await createMagickCommand().execute({
+            command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} }, stderr: { async write() {} },
+        });
+        exitCode = result.exitCode;
+    } else {
+        const result = await runMagickCli(argv, execution === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        exitCode = result.exitCode;
+    }
+    expect(exitCode).toBe(0);
+    const output = execution === "memory" ? files.get("out")! : await fs.readFile("/out");
+    expect(Buffer.from(output).toString("hex")).toBe(expected);
+});

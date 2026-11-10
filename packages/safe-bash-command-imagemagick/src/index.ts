@@ -5186,8 +5186,9 @@ type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | ({ kind: 
 function* copyMagickPixelSteps(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string, highDepth: boolean, channels?: boolean[], evaluateSamples = false, virtualPixel?: VirtualPixelMethod, background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     validateMagickTransformGeometry(geometry, "-copy");
     validateMagickTransformGeometry(offset, "-copy");
-    const source = parseMagickGeometry(geometry), destination = parseMagickGeometry(offset);
-    const width = source.width ?? image.width, height = source.height ?? image.height;
+    const source = parseMagickGeometry(geometry.replace(":", "x")), destination = parseMagickGeometry(offset);
+    const width = source.width ?? (source.height === undefined ? image.width : 0), height = source.height ?? image.height;
+    if (width === 0 && height > 0) throw new Error("no pixels defined in cache");
     const left = Math.trunc(destination.x), top = Math.trunc(destination.y), right = left + width, bottom = top + height;
     if (left < 0 || top < 0 || right > image.width || bottom > image.height) throw new Error("geometry does not contain image");
     const dx = left - Math.trunc(source.x), dy = top - Math.trunc(source.y);

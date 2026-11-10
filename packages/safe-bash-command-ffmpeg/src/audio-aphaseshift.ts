@@ -19,11 +19,11 @@ export async function shiftAudioPhase(
     const number = frequencyShift ? parseFilterExpression(value, name, {}) : Number(value);
     const min = key === "shift" ? (frequencyShift ? -2147483647 : -1) : key === "order" ? 1 : 0;
     const max = key === "shift" && frequencyShift ? 2147483647 : key === "order" ? 16 : 1;
-    if (!value || !Number.isFinite(number) || number < min || number > max || !frequencyShift && key === "order" && !Number.isInteger(number)) {
+    if (!value || !Number.isFinite(number) || number < min || number > max) {
       throw new Error(`${name}: invalid ${key}`);
     }
     options[key] = number;
-    if (frequencyShift && key === "order") options.order = number % 1 === 0.5 ? Math.round(number / 2) * 2 : Math.round(number);
+    if (key === "order") options.order = number % 1 === 0.5 ? Math.round(number / 2) * 2 : Math.round(number);
   }
 
   const length = channels[0]?.length ?? 0;

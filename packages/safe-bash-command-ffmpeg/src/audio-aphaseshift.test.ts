@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
@@ -45,12 +46,42 @@ it("anull preserves the input tone", async () => {
   for (let i = 0; i < 4000; i++) assert.equal(pcm.readInt16LE(i * 2), Math.round(12000 * Math.sin(2 * Math.PI * 500 * i / 8000)) || 0);
 });
 
-for (const option of ["shift=1.1", "shift=-1.1", "shift=NaN", "shift=", "level=-1", "level=1.1", "order=0", "order=17", "order=1.5", "unknown=1"]) {
+for (const option of ["shift=1.1", "shift=-1.1", "shift=NaN", "shift=", "level=-1", "level=1.1", "order=0", "order=17", "order=0.9", "order=16.1", "order=NaN", "order=Infinity", "order=", "unknown=1"]) {
   it(`aphaseshift=${option} fails without replacing output`, async () => {
     const { volume, result, stderr } = await run(`aphaseshift=${option}`);
     assert.notEqual(result.exitCode, 0);
     assert.ok(stderr.includes("aphaseshift:"), stderr);
     assert.equal(volume.readFileSync("/out.raw", "utf8"), "KEEP");
+  });
+}
+
+// Native FFmpeg 7.0.2, 8192 mono PCM16 samples at 8 kHz.
+for (const [order, hash] of [
+  [2, "8f70f25ad89ee294c1b34d445c31ee0ee851f15ee810f77fe5bd7e808c9a53d3"],
+  [2.5, "8f70f25ad89ee294c1b34d445c31ee0ee851f15ee810f77fe5bd7e808c9a53d3"],
+  [3.5, "3da69c2c4dc954be96e615e7e21d7b9ddde709f5ff93018164abf139b9431bc7"],
+  [4, "3da69c2c4dc954be96e615e7e21d7b9ddde709f5ff93018164abf139b9431bc7"]
+] as const) {
+  for (const options of [`order=${order}`, `0:1:${order}`]) {
+    for (const graph of [false, true]) {
+      it(`aphaseshift=${options} matches native order rounding (${graph ? "graph" : "simple"})`, async () => {
+        const { volume, result, stderr } = await run(`aphaseshift=${options}`, graph, 8000, false, 8192);
+        assert.equal(result.exitCode, 0, stderr);
+        const output = volume.readFileSync("/out.raw") as Buffer;
+        assert.equal(output.length, 16384);
+        assert.equal(createHash("sha256").update(output).digest("hex"), hash);
+      });
+    }
+  }
+}
+
+for (const [fractional, integer] of [[1.5, 2], [2.4, 2], [2.6, 3], [15.5, 16]]) {
+  it(`rounds aphaseshift order ${fractional} to ${integer}`, async () => {
+    const actual = await run(`aphaseshift=order=${fractional}`);
+    const expected = await run(`aphaseshift=order=${integer}`);
+    assert.equal(actual.result.exitCode, 0, actual.stderr);
+    assert.equal(expected.result.exitCode, 0, expected.stderr);
+    assert.deepEqual(actual.volume.readFileSync("/out.raw"), expected.volume.readFileSync("/out.raw"));
   });
 }
 
@@ -85,9 +116,9 @@ it("bounds phase-shift memory and honors cancellation", async () => {
     new MediaBudgetTracker(), AbortSignal.abort()));
 });
 
-async function run(filter: string, graph = false, sampleRate = 8000, stereo = false) {
-  const channels = [Float64Array.from({ length: 4000 }, (_, i) => Math.round(12000 * Math.sin(2 * Math.PI * 500 * i / sampleRate)) / 32768)];
-  if (stereo) channels.push(Float64Array.from({ length: 4000 }, (_, i) => Math.round(9000 * Math.cos(2 * Math.PI * 750 * i / sampleRate)) / 32768));
+async function run(filter: string, graph = false, sampleRate = 8000, stereo = false, frames = 4000) {
+  const channels = [Float64Array.from({ length: frames }, (_, i) => Math.round(12000 * Math.sin(2 * Math.PI * 500 * i / sampleRate)) / 32768)];
+  if (stereo) channels.push(Float64Array.from({ length: frames }, (_, i) => Math.round(9000 * Math.cos(2 * Math.PI * 750 * i / sampleRate)) / 32768));
   const volume = Volume.fromJSON({ "/out.raw": "KEEP" });
   volume.writeFileSync("/tone.wav", encodeWav({ sampleRate, channels }));
   let stderr = "";

@@ -17947,6 +17947,32 @@ function* parseMontageArguments(argv: readonly string[]): Generator<void, Montag
                 return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
             }
         }
+        else if (t === "-delete" || t === "+delete") {
+            if (operands.length === groupStart) return { exitCode: 1, stdout: "", stderr: `montage: no images found for operation ${t}\n` };
+            const spec = t === "+delete" ? "-1" : argv[++i];
+            if (spec === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -delete\n" };
+            try {
+                if (spec.includes("\t") || spec.includes("\n")) throw new Error(`invalid argument ${spec}`);
+                const deleted = new Set<number>();
+                for (const index of parseMagickIndexSpec(spec, operands.length - groupStart, "delete")) {
+                    if (++cooperativeWork % 64 === 0) yield;
+                    deleted.add(groupStart + index);
+                }
+                let kept = groupStart;
+                for (let index = groupStart; index < operands.length; index++) {
+                    if (++cooperativeWork % 64 === 0) yield;
+                    if (deleted.has(index)) continue;
+                    operands[kept] = operands[index]!;
+                    labels[kept] = labels[index]!;
+                    sizes[kept] = sizes[index]!;
+                    kept++;
+                }
+                operands.length = labels.length = kept;
+                sizes.length = kept;
+            } catch (error) {
+                return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
+            }
+        }
         else if (t === "-duplicate" || t === "+duplicate" || t === "-clone" || t === "+clone") {
             const operation = t.endsWith("clone") ? "clone" : "duplicate";
             let count = 1, spec = "-1";

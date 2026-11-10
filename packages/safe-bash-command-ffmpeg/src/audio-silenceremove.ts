@@ -4,8 +4,9 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function removeSilence(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
+  frames: { start: number; end: number; pts: number }[],
   budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<(Float32Array | Float64Array)[]> {
+): Promise<{ channels: (Float32Array | Float64Array)[]; frames: typeof frames }> {
   const options = {
     start_periods: 0, start_duration: 0, start_threshold: 0, start_mode: "any",
     stop_periods: 0, stop_duration: 0, stop_threshold: 0, stop_mode: "all",
@@ -50,6 +51,7 @@ export async function removeSilence(
   }
 
   let output = [...channels];
+  const firstPts = frames[0]?.pts ?? 0;
   const window = Math.max(1, Math.round(options.window * sampleRate));
   const peakToPeak = options.detection === "ptp";
   const trackPeaks = options.detection === "peak" || peakToPeak;
@@ -74,6 +76,9 @@ export async function removeSilence(
     let start = length;
     if (phase === "stop") budget.allocateMemory(length * output.length * 8);
     const trimmed = phase === "stop" ? output.map(() => new Float64Array(length)) : [];
+    budget.allocateMemory(frames.length * 4);
+    const counts = new Uint32Array(frames.length);
+    let frameIndex = 0;
     for (let i = 0; i < length; i++) {
       if (i % 4096 === 0) {
         await yieldTurn(signal);
@@ -135,11 +140,26 @@ export async function removeSilence(
         }
         if (found >= 0) {
           for (let c = 0; c < output.length; c++) trimmed[c]![written] = output[c]![i]!;
+          while (frameIndex + 1 < frames.length && i >= frames[frameIndex]!.end) frameIndex++;
+          counts[frameIndex]!++;
           written++;
         }
       }
     }
     output = phase === "start" ? output.map(c => c.subarray(start)) : trimmed.map(c => c.subarray(0, written));
+    const outputFrames: typeof frames = [];
+    let offset = 0;
+    for (let n = 0; n < frames.length; n++) {
+      if (n % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+      const frame = frames[n]!;
+      const count = phase === "start" ? Math.max(0, frame.end - Math.max(frame.start, start)) : counts[n]!;
+      if (!count) continue;
+      // Each input frame emits its own partial output; timestamp=write closes gaps.
+      budget.allocateMemory(24);
+      outputFrames.push({ start: offset, end: offset + count, pts: firstPts + offset });
+      offset += count;
+    }
+    frames = outputFrames;
   }
-  return output;
+  return { channels: output, frames };
 }

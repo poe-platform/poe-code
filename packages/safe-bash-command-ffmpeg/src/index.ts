@@ -11404,6 +11404,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         origRate = rate;
                       } else if (trimmed === "asetnsamples" || trimmed.startsWith("asetnsamples=")) {
                         const { size, pad } = parseAsetnsamples(trimmed === "asetnsamples" ? "" : trimmed.slice("asetnsamples=".length));
+                        // A command arrives before this input frame is consumed. Any
+                        // incomplete output frame is still buffered at that point.
+                        for (const command of audioCommands) command.sample = Math.floor(command.sample / size) * size;
                         const length = stretched[0]?.length ?? 0;
                         const padded = pad ? Math.ceil(length / size) * size : length;
                         budget.checkSamples(padded);
@@ -13486,6 +13489,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           start = end;
                         }
                         stretched = output;
+                        // Common silence is emitted before upstream input is requested.
+                        // Commands for later filters follow the corresponding input frame.
+                        for (const command of audioCommands) command.sample += padding;
                         audioInitialFrameDropped = false;
                       } else if (trimmed === "atempo" || trimmed.startsWith("atempo=")) {
                         const argument = trimmed.slice("atempo=".length).trim();
@@ -14789,6 +14795,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (metadata) retainedMetadata.push({ ...metadata, pts: retained.at(-1)!.pts });
                           outputLength += end - start;
                         }
+                        // Only retained frames can have reached the downstream target
+                        // when the sender processes the command's input frame.
+                        audioCommands.sort((a, b) => a.sample - b.sample);
+                        let rangeIndex = 0;
+                        let emitted = 0;
+                        for (const command of audioCommands) {
+                          while (rangeIndex < ranges.length && ranges[rangeIndex]!.end <= command.sample) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const range = ranges[rangeIndex++]!;
+                            emitted += range.end - range.start;
+                          }
+                          command.sample = emitted;
+                        }
                         const start = ranges[0]?.start ?? length;
                         const end = ranges.at(-1)?.end ?? length;
                         if (end - start === outputLength) {
@@ -14832,6 +14851,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             throw new RangeError(`areverse: invalid ${key}`);
                           }
                         }
+                        // Reverse buffers all input until EOF, so every upstream command
+                        // reaches its target before the first reversed frame is emitted.
+                        audioCommands.sort((a, b) => a.sample - b.sample);
+                        for (const command of audioCommands) command.sample = 0;
                         // These scheduling and hardware options do not change reversed PCM.
                         stretched = await mapWork(stretched, async channel => channel.slice().reverse(), context.signal);
                         audioMetadata.reverse();

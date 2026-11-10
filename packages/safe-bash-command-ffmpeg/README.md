@@ -149,8 +149,10 @@ Both forms apply to every channel and may omit either bound.
 Generic `threads`, `thread_type` (including `slice`), and `extra_hw_frames` settings
 are validated and leave rendered PCM unchanged.
 `asendcmd=c='0.003 adelay@d delays 0S|5S',adelay@d=0S|3S` updates the named delay
-at the first incoming audio frame at or after 0.003 seconds. Delay changes resize the
-channel buffers while retaining their history; the EOF tail keeps the largest delay
+when the sender receives its first audio frame at or after 0.003 seconds. Intervening
+`areverse`, `atrim`, `asetnsamples`, and `adelay` filters preserve when the command
+reaches the target, accounting for buffered, dropped, and inserted samples.
+Delay changes resize the channel buffers while retaining their history; the EOF tail keeps the largest delay
 used. Target `adelay` selects the first subsequent delay instance. Runtime lists update
 only the supplied channels, even with `all=1`; invalid entries stop the update while
 retaining earlier channel changes.

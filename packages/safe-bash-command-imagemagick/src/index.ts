@@ -5221,14 +5221,14 @@ function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickS
     if (!["over", "srcover"].includes(magickCompositeMode(state.composeRaw).name)) return yield* applyMagickRasterSteps(canvas,
         extentCompositeSteps(img, layout, background, state), signal, canvas, [img]);
     if (img.evaluateSamples) return yield* applyMagickRasterSteps(canvas,
-        extentEvaluateSamples(img, layout, background), signal, canvas, [img]);
+        extentEvaluateSamples(img, layout, background, state), signal, canvas, [img]);
     if (canvas.data16) {
         for (let y = 0; y < layout.area.height; y++) for (let x = 0; x < layout.area.width; x += 4096) {
             yield;
             const start = ((layout.area.top + y) * img.width + layout.area.left + x) * 4;
             const end = start + Math.min(4096, layout.area.width - x) * 4;
             const samples = img.data16 ? img.data16.slice(start, end) : Uint16Array.from(img.data.subarray(start, end), value => value * 257);
-            extentSamplesOverBackground(samples, background);
+            extentSamplesOverBackground(samples, background, state);
             const target = ((layout.top + y) * layout.width + layout.left + x) * 4;
             canvas.data16.set(samples, target);
             canvas.data.set(Uint8Array.from(samples, value => Math.round(value / 257)), target);
@@ -5248,8 +5248,9 @@ async function decodeStoredMagickSvg(svg: string, density: number, backend: Comp
     }
     return decodeImageToStorage({ size, async read(position, length) { return backend.storage.read(base + position, length); } }, backend.storage, signal, { density });
 }
-function* extentEvaluateSamples(image: Pick<RgbaImage, "width">, layout: ReturnType<typeof magickExtentLayout>, background: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* extentEvaluateSamples(image: Pick<RgbaImage, "width">, layout: ReturnType<typeof magickExtentLayout>, background: RgbaColor, state: MagickState): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const color = [background.r, background.g, background.b, background.a];
+    const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
     for (let y = 0; y < layout.height; y++) for (let x = 0; x < layout.width; x += 512) {
         yield;
         const count = Math.min(512, layout.width - x), samples = new Float64Array(count * 4);
@@ -5261,8 +5262,8 @@ function* extentEvaluateSamples(image: Pick<RgbaImage, "width">, layout: ReturnT
             const source = new Float64Array(bytes.slice().buffer);
             for (let i = 0; i < source.length; i += 4) {
                 const alpha = source[i + 3]! / 255, behind = background.a / 255 * (1 - alpha), combined = alpha + behind;
-                for (let c = 0; c < 3; c++) source[i + c] = combined ? (source[i + c]! * alpha + color[c]! * behind) / combined : 0;
-                source[i + 3] = combined * 255;
+                for (let c = 0; c < 3; c++) source[i + c] = channels?.[c] === false ? color[c]! : combined ? (source[i + c]! * alpha + color[c]! * behind) / combined : 0;
+                source[i + 3] = channels?.[3] === false ? background.a : combined * 255;
             }
             samples.set(source, (left - x) * 4);
         }
@@ -5279,6 +5280,7 @@ function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: Retur
     const clippedCopy = magickCompositeMode(state.composeRaw).name === "copy"
         && (layout.area?.width !== image.width || layout.area.height !== image.height);
     const color = [background.r, background.g, background.b, background.a];
+    const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
     for (let y = 0; y < layout.height; y++) for (let x = 0; x < layout.width; x += 512) {
         yield;
         const count = Math.min(512, layout.width - x), samples = new Float64Array(count * 4);
@@ -5296,6 +5298,8 @@ function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: Retur
             const destination = { width: count, height: 1, hasAlpha: true, data: samples };
             const overlay = { width: right - left, height: 1, hasAlpha: image.hasAlpha, data: source };
             yield* compositePixelsSteps(destination, overlay, samples, state.composeRaw, left - x, 0, state.composeArgs, state.alphaFuzz, true);
+            if (channels) for (let i = (left - x) * 4; i < (right - x) * 4; i += 4)
+                for (let c = 0; c < 4; c++) if (!channels[c]) samples[i + c] = color[c]!;
         }
         const position = (y * layout.width + x) * 4;
         if (evaluate) yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
@@ -5305,12 +5309,13 @@ function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: Retur
     }
 }
 
-function extentSamplesOverBackground(samples: Uint16Array, background: RgbaColor): void {
+function extentSamplesOverBackground(samples: Uint16Array, background: RgbaColor, state: MagickState): void {
     const color = [background.r * 257, background.g * 257, background.b * 257];
+    const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
     for (let i = 0; i < samples.length; i += 4) {
         const alpha = samples[i + 3]! / 65535, behind = background.a / 255 * (1 - alpha), combined = alpha + behind;
-        for (let c = 0; c < 3; c++) samples[i + c] = combined ? Math.round((samples[i + c]! * alpha + color[c]! * behind) / combined) : 0;
-        samples[i + 3] = Math.round(combined * 65535);
+        for (let c = 0; c < 3; c++) samples[i + c] = channels?.[c] === false ? Math.round(color[c]!) : combined ? Math.round((samples[i + c]! * alpha + color[c]! * behind) / combined) : 0;
+        samples[i + 3] = Math.round(channels?.[3] === false ? background.a * 257 : combined * 65535);
     }
 }
 
@@ -13355,7 +13360,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!["over", "srcover"].includes(magickCompositeMode(captured.composeRaw).name)) return transformStoredMagickRaster(canvas, backend,
                     extentCompositeSteps(image, layout, background, captured), signal, canvas, [image]);
                 if (image.storedEvaluateSamples !== undefined) return transformStoredMagickRaster(canvas, backend,
-                    extentEvaluateSamples(image, layout, background), signal, canvas, [image]);
+                    extentEvaluateSamples(image, layout, background, captured), signal, canvas, [image]);
                 if (canvas.storedData16) {
                     for (let y = 0; y < layout.area.height; y++) for (let x = 0; x < layout.area.width; x += 4096) {
                         await yieldTurn(signal);
@@ -13364,7 +13369,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         const samples = image.storedData16
                             ? new Uint16Array((await backend.storage.read(image.storedData16.position + start * 2, count * 2)).slice().buffer)
                             : Uint16Array.from(await backend.storage.read(image.position + start, count), value => value * 257);
-                        extentSamplesOverBackground(samples, background);
+                        extentSamplesOverBackground(samples, background, captured);
                         const target = ((layout.top + y) * layout.width + layout.left + x) * 4;
                         await backend.storage.write(canvas.storedData16.position + target * 2, new Uint8Array(samples.buffer));
                         await backend.storage.write(canvas.position + target, Uint8Array.from(samples, value => Math.round(value / 257)));

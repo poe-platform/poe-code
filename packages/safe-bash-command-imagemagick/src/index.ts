@@ -9659,7 +9659,11 @@ if (t === "-intent" || t === "+intent") {
                 state.diffusionAmount = Number.isFinite(amount) ? amount / (filterValue?.includes("%") ? 100 : 1) : 0;
             }
             if (filterKey === "modulate:colorspace") state.modulateColorspace = filterValue ?? "hsl";
-            if (filterKey === "complex:snr") state.complexSnr = Number.parseFloat(filterValue ?? "") || 0;
+            if (filterKey === "complex:snr") {
+                const value = (filterValue ?? "").trimStart();
+                const unsigned = value.startsWith("+") || value.startsWith("-") ? value.slice(1) : value;
+                state.complexSnr = (unsigned.toLowerCase().startsWith("0x") ? Number.parseInt(value, 16) : Number.parseFloat(value)) || 0;
+            }
             if (filterKey === "white-balance:vibrance") state.whiteBalanceVibrance = filterValue ?? "";
             if (filterKey === "sample:offset") {
                 const geometry = parseMagickGeometry((filterValue ?? "").replaceAll(",", "x").replaceAll("/", "x"));

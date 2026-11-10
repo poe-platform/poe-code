@@ -5182,7 +5182,7 @@ function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geo
 
 function magickExtentLayout(img: Pick<RgbaImage, "width" | "height">, geomStr: string, state: MagickState) {
     validateMagickTransformGeometry(geomStr, "-extent");
-    const g = parseMagickGeometry(geomStr.replaceAll("(", "").replaceAll(")", ""));
+    const g = parseMagickGeometry(geomStr.split(",", 1)[0]!.replaceAll("#", "").replaceAll("(", "").replaceAll(")", ""));
     // Zero extent axes keep the corresponding input dimension.
     const targetW = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.width, img.height * g.aspectRatio) : g.isPercent ? img.width * (g.percentX || 100) / 100 : g.width || g.areaLimit || img.width));
     const targetH = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.height, img.width / g.aspectRatio) : g.isPercent ? img.height * (g.percentY || 100) / 100 : g.height || img.height));

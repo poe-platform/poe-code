@@ -4694,7 +4694,7 @@ const syncExtraRuntimeMethods = {
         if (split && part.alternate?.parts.some(entry => entry.kind === "variable" && entry.prefixNames === "@")) return undefined;
         const alternateStart = part.alternate?.parts[0];
         if (alternateStart?.kind === "text" && !alternateStart.quoted && alternateStart.value.startsWith("~") && part.operator !== "/#" && part.operator !== "/%") return undefined;
-        if (split && !part.quoted && (rawVars.IFS !== undefined && rawVars.IFS !== " \t\n")) return undefined;
+        if (split && !part.quoted && (this.ifs(rawState) !== undefined && this.ifs(rawState) !== " \t\n")) return undefined;
         if ( !part.indirect && !part.prefixNames && !part.length && !part.substring && !part.transform && part.operator === undefined && getArraySelector(part) === undefined && (part.name === "?" || part.name === "#" || (part.name.length === 1 && part.name >= "1" && part.name <= "9"))) {
           let val: ShellValue | undefined;
           if (part.name === "?") val = String(rawState.status); else if (part.name === "#") val = String((this._fastSubPositional ?? rawState.positional).length); else {
@@ -4835,7 +4835,7 @@ const syncExtraRuntimeMethods = {
           }
           const pNames = this.collectSyncPrefixNames(part.name, rawState);
           if (pNames === undefined) return undefined;
-          const ifs = rawState.variables.IFS ?? " ";
+          const ifs = this.ifs(rawState) ?? " ";
           const sep = io.nameExpansionContext === "document" || (part.prefixNames === "@" && (io.nameExpansionContext === "conditional" || ifs.length === 0))
             ? " "
             : ifs.length ? String.fromCodePoint(ifs.codePointAt(0)!) : "";
@@ -4915,7 +4915,7 @@ const syncExtraRuntimeMethods = {
                   validElemOp = true;
                 }
               }
-              const ifsVal = monitor?.values.get("IFS", rawVars.IFS ?? " ") ?? rawVars.IFS ?? " ";
+              const ifsVal = monitor?.values.get("IFS", this.ifs(rawState) ?? " ") ?? this.ifs(rawState) ?? " ";
               if (validElemOp && typeof ifsVal === "string" && (ifsVal.length === 0 || ifsVal.charCodeAt(0) < 128)) {
                 const sep = (selector.separator as string) === "@" && (ifsVal.length === 0 || !isKeys && part.operator === undefined && !part.substring) ? " " : ifsVal.length > 0 ? ifsVal[0]! : "";
                 const parameterLine = part.line ?? overrideDiagnosticLine;
@@ -5364,7 +5364,7 @@ const syncExtraRuntimeMethods = {
         }
         out += val;
       } else if (part.kind === "arithmetic") {
-        if (split && !part.quoted && rawVars.IFS !== undefined && rawVars.IFS !== " \t\n") return undefined;
+        if (split && !part.quoted && this.ifs(rawState) !== undefined && this.ifs(rawState) !== " \t\n") return undefined;
         let expr = part.expression;
         const line = overrideDiagnosticLine ?? io.diagnosticLine ?? part.line;
         if (expr.error) {
@@ -6673,7 +6673,7 @@ const syncExtraRuntimeMethods = {
               entry.value.parts.length === 1 &&
               !entry.value.parts[0]!.quoted &&
               (entry.value.parts[0]!.kind === "variable" || entry.value.parts[0]!.kind === "substitution") &&
-              (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") &&
+              (this.ifs(rawState) === undefined || this.ifs(rawState) === " \t\n") &&
               !rawState.noglob &&
               this.budget.limits.maxExpansionFields === Infinity &&
               this.budget.limits.maxExpansionBytes === Infinity
@@ -7100,7 +7100,7 @@ const syncExtraRuntimeMethods = {
       bodyStepCount: number;
     } })._cachedForPlan;
     // Only integer registers can skip unquoted field splitting and globbing.
-    if (plan.echoVar !== undefined && (!forPlan.touchedIntNamesList.includes(plan.echoVar) || forPlan.touchedIntNamesList.includes("IFS") || (rawState.variables.IFS !== undefined && rawState.variables.IFS !== " \t\n") || plan.initAssigns.some(assignment => assignment.name === "IFS"))) return undefined;
+    if (plan.echoVar !== undefined && (!forPlan.touchedIntNamesList.includes(plan.echoVar) || forPlan.touchedIntNamesList.includes("IFS") || (this.ifs(rawState) !== undefined && this.ifs(rawState) !== " \t\n") || plan.initAssigns.some(assignment => assignment.name === "IFS"))) return undefined;
     const fastSyncSink = plan.echoVar !== undefined
       ? ((io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) || (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write) ? io.stdout : undefined)
       : undefined;
@@ -10237,7 +10237,7 @@ const syncExtraRuntimeMethods = {
             for (let mi = 0; mi < members.length; mi++) nextPos.push(members[mi]!);
             continue;
           }
-          if (ws.parts.length === 1 && !ws.parts[0]!.quoted && (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && !rawState.noglob) {
+          if (ws.parts.length === 1 && !ws.parts[0]!.quoted && (this.ifs(rawState) === undefined || this.ifs(rawState) === " \t\n") && !rawState.noglob) {
             const sp0 = ws.parts[0]!;
             if (sp0.kind === "substitution" && this.isPureSyncValueWord(ws, rawState)) {
               const subText = this.tryFastPureSubstitution(sp0, rawState, rawState, io);
@@ -10765,7 +10765,7 @@ const syncExtraRuntimeMethods = {
         let ifs: ShellValue | undefined;
         let readWordIdx = 1;
         if (w0Plain === "read") {
-          ifs = monitor.values.get("IFS", rawState.variables.IFS ?? " \t\n") ?? rawState.variables.IFS ?? " \t\n";
+          ifs = monitor.values.get("IFS", this.ifs(rawState) ?? " \t\n") ?? this.ifs(rawState) ?? " \t\n";
         } else {
           if (rawState.readonlyVariables?.has("IFS") || store?.get("IFS") || rawState.variableAttributes?.get("IFS")) return undefined;
           const ifsAssign = !getArrayAssignment(w0) ? this.assignment(w0) : undefined;
@@ -12749,7 +12749,7 @@ const syncExtraRuntimeMethods = {
     const safeArgWord = (w: Word, numeric = false): boolean =>
       (!checkIntVars || this.isPureSyncValueWord(w, rawState)) &&
       (w.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true))) ||
-        (numeric && ((!checkIntVars && w.parts.length === 1 && w.parts[0]!.kind === "variable") || (checkIntVars && (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && isGuaranteedIntWord(w)))));
+        (numeric && ((!checkIntVars && w.parts.length === 1 && w.parts[0]!.kind === "variable") || (checkIntVars && (this.ifs(rawState) === undefined || this.ifs(rawState) === " \t\n") && isGuaranteedIntWord(w)))));
     const parseAtom = (slice: readonly Word[]): ConditionalExpression | undefined => {
       if (slice.length === 2) {
         const op = slice[0]!.plain;
@@ -12996,7 +12996,7 @@ const syncExtraRuntimeMethods = {
       if (io !== undefined && this.tryExpandSyncArrayMembersWord(w0, rawState, io, line) !== undefined) return true;
       if (this.tryExpandSyncMemoryGlobWord(w0, rawState, true) !== undefined) return true;
     }
-    const stdIfs = (rawState.variables.IFS ?? " \t\n") === " \t\n";
+    const stdIfs = (this.ifs(rawState) ?? " \t\n") === " \t\n";
     for (let i = 0; i < words.length; i++) {
       const w = words[i]!;
       if (rawState.braceexpand !== false && tryFastExpandBraceRange(w, this.budget, undefined) !== undefined) continue;
@@ -13027,7 +13027,7 @@ const syncExtraRuntimeMethods = {
       const globWords = this.tryExpandSyncMemoryGlobWord(w0, rawState, false);
       if (globWords !== undefined) return globWords;
       const p0 = w0.parts.length === 1 ? w0.parts[0] : (w0.parts.length === 2 && w0.parts[0]!.kind === "text" && w0.parts[0]!.value === "" ? w0.parts[1] : undefined);
-      if (p0 && !p0.quoted && (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && !rawState.noglob) {
+      if (p0 && !p0.quoted && (this.ifs(rawState) === undefined || this.ifs(rawState) === " \t\n") && !rawState.noglob) {
         if (p0.kind === "variable" && !p0.indirect && !p0.prefixNames && !p0.length && !p0.transform && getArraySelector(p0) === undefined) {
           const rawVal = (p0.operator === undefined && !p0.substring)
             ? (rawState.variables[p0.name] === undefined ? "" : (touched.has(p0.name) ? rawState.variables[p0.name] : (monitor.values.get(p0.name, rawState.variables[p0.name]!) ?? rawState.variables[p0.name])))
@@ -13072,7 +13072,7 @@ const syncExtraRuntimeMethods = {
     if (cmd.words.length < 1 || cmd.words.length > 16 || cmd.words[0]!.plain !== "echo") return false;
     const def = this.commands.get("echo");
     if (hasShellFunction(rawState, "echo") || rawState.extensions?.builtins.has("echo") || !def || (rawState.xpg_echo || !defaultEchoExecutors.has(def.execute))) return false;
-    const stdIfs = (rawState.variables.IFS ?? " \t\n") === " \t\n";
+    const stdIfs = (this.ifs(rawState) ?? " \t\n") === " \t\n";
     let inOptions = true;
     for (let i = 1; i < cmd.words.length; i++) {
       const w = cmd.words[i]!;
@@ -15558,7 +15558,7 @@ const syncExtraRuntimeMethods = {
             this.budget.tick();
             const readIfs = whileReadSpec.ifsAssign !== undefined
               ? (this.fastValueWord(whileReadSpec.ifsAssign.value, rawState, io, false, false, false, false, 0, condLine) as string)
-              : (rawState.variables.IFS ?? " \t\n");
+              : (this.ifs(rawState) ?? " \t\n");
             if (cursor >= textLen) {
               for (let vIdx = 0; vIdx < varCount; vIdx++) {
                 const vn = varNames[vIdx]!;
@@ -15770,7 +15770,7 @@ const syncExtraRuntimeMethods = {
           if (!asciiOk) break;
         }
         if (asciiOk) fastLoopWords = arrMembers;
-      } else if (p0.kind === "variable" && !p0.quoted && !p0.indirect && !p0.prefixNames && !p0.length && !p0.transform && getArraySelector(p0) === undefined && (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && !rawState.noglob && !store?.get(p0.name) && !monitor.hasOverlay(p0.name) && ((p0.operator === undefined && !p0.substring) || this.isPureSyncValueWord(command.words[0]!, rawState))) {
+      } else if (p0.kind === "variable" && !p0.quoted && !p0.indirect && !p0.prefixNames && !p0.length && !p0.transform && getArraySelector(p0) === undefined && (this.ifs(rawState) === undefined || this.ifs(rawState) === " \t\n") && !rawState.noglob && !store?.get(p0.name) && !monitor.hasOverlay(p0.name) && ((p0.operator === undefined && !p0.substring) || this.isPureSyncValueWord(command.words[0]!, rawState))) {
         const rawVal = (p0.operator === undefined && !p0.substring)
           ? (rawState.variables[p0.name] ?? "")
           : this.fastValueWord(command.words[0]!, rawState, io, false, false, false, false, 0, diagnosticLine);
@@ -15784,7 +15784,7 @@ const syncExtraRuntimeMethods = {
             if (splitWords.length <= 1500) fastLoopWords = splitWords;
           }
         }
-      } else if (p0.kind === "substitution" && !p0.quoted && (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && !rawState.noglob && this.isPureSyncValueWord(command.words[0]!, rawState)) {
+      } else if (p0.kind === "substitution" && !p0.quoted && (this.ifs(rawState) === undefined || this.ifs(rawState) === " \t\n") && !rawState.noglob && this.isPureSyncValueWord(command.words[0]!, rawState)) {
         const subText = this.tryFastPureSubstitution(p0, rawState, rawState, io);
         if (typeof subText === "string" && subText.length <= 32768 && !/[*?[\]\\]/.test(subText)) {
           let asciiOk = true;
@@ -16260,7 +16260,7 @@ const syncExtraRuntimeMethods = {
       }
       const valueParts = w.parts.filter(part => part.kind !== "text" || part.value.length > 0);
       const part = valueParts[0];
-      const stdIfsForInt = rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n";
+      const stdIfsForInt = this.ifs(rawState) === undefined || this.ifs(rawState) === " \t\n";
       if ((spec === "d" || spec === "u") && valueParts.length === 1 && part !== undefined && (part.quoted || stdIfsForInt)) {
         if (part.kind === "variable" && part.name === effInductionName && !part.indirect && !part.length && !part.substring && !part.transform && part.operator === undefined && getArraySelector(part) === undefined) {
           args.push("0");
@@ -16349,7 +16349,7 @@ const syncExtraRuntimeMethods = {
       ? ""
       : rs.ifsWord !== undefined
         ? (this.fastValueWord(rs.ifsWord, rawState, io, false, false, false, false, 0, step.line) as string)
-        : (rawState.variables.IFS ?? " \t\n");
+        : (this.ifs(rawState) ?? " \t\n");
     if (!rs.isMapfile && rs.arrayTarget !== undefined && protectedReadArrays.has(rs.arrayTarget)) status = 1;
     else this.splitSyncReadLine(lineStr, ifsStr, rs.varNames, rs.isBareReply, rawState, touched, rs.arrayTarget, monitor, rs.isMapfile);
     rawState.status = status;
@@ -17417,7 +17417,7 @@ const syncExtraRuntimeMethods = {
     const savedPos = rawState.positional;
     this._syncLoopFnCheckDepth++;
     try {
-      const stdIfs = rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n";
+      const stdIfs = this.ifs(rawState) === undefined || this.ifs(rawState) === " \t\n";
       for (let i = 1; i < cmd.words.length; i++) {
         const w = cmd.words[i]!;
         if (!this.isPureSyncValueWord(w, rawState) || !w.parts.every(p => p.quoted || (stdIfs && p.kind === "arithmetic") || (stdIfs && p.kind === "variable" && ((p.name === this._activePrintfInductionName && !p.indirect && !p.prefixNames && !p.substring && p.operator === undefined && getArraySelector(p) === undefined) || p.length)) || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))) {

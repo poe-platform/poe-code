@@ -4,6 +4,37 @@ import { test } from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
 
+const controlDeclarations = [
+  ['IFS=:; declare -a IFS; v="a:b c"; printf "<%s>" $v; IFS=,; v="d,e f"; printf "<%s>" $v; set -- a b; printf "|%s|" "$*"', '<a:b c><d,e f>|ab|'],
+  ['declare -a OPTIND; set -- -ab; getopts ab flag; printf "%s:%s;" "$flag" "$OPTIND"; getopts ab flag; printf "%s:%s;" "$flag" "$OPTIND"', 'a:1;b:2;'],
+  ['OPTIND=3; typeset -a OPTIND; declare -p OPTIND', 'declare -ai OPTIND=([0]="3")\n'],
+  ['unset OPTIND; declare -a OPTIND; declare -p OPTIND', 'declare -a OPTIND\n'],
+  ['f(){ local -a OPTIND; declare -p OPTIND; }; f; printf "%s" "$OPTIND"', 'declare -a OPTIND\n1'],
+  ['IFS=:; f(){ local -a IFS; v="a:b c"; printf "<%s>" $v; }; f; v=a:b; printf "<%s>" $v', '<a:b c><a><b>'],
+  ['declare -a IFS; read first second <<< "a b"; printf "<%s><%s>" "$first" "$second"', '<a b><>'],
+  ['if declare -a OPTIND; then printf accepted; else printf rejected; fi', "accepted"],
+  ['if declare -a IFS; then printf accepted; else printf rejected; fi', "accepted"],
+  ['if declare -a v; then printf accepted; else printf rejected; fi', "accepted"],
+  ['declare -a OPTIND; printf "%s;" "$?"; declare -p OPTIND', '0;declare -ai OPTIND=([0]="1")\n'],
+  ['typeset -a IFS; printf "%s;" "$?"; declare -p IFS', "0;declare -a IFS=([0]=$' \\t\\n')\n"],
+] as const;
+
+for (const [source, stdout] of controlDeclarations) {
+  test(`control variable indexed declaration: ${source}`, async context => {
+    const { shell, commands } = setup();
+    context.after(() => shell.dispose());
+    for (const command of basicCommands()) commands.register(command);
+    const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { env: { PATH: process.env.PATH!, LC_ALL: "C" } });
+    assert.equal(native.status, 0);
+    assert.equal(native.stdout.toString(), stdout);
+    assert.equal(native.stderr.toString(), "");
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, native.status);
+    assert.deepEqual(Buffer.from(result.stdoutBytes), native.stdout);
+    assert.deepEqual(Buffer.from(result.stderrBytes), native.stderr);
+  });
+}
+
 const cases = [
   ['declare -a a=(x y); printf "<%s>" "${a[@]}"', "<x><y>"],
   ['f(){ local -a a=(x y); printf "<%s>" "${a[@]}"; }; f', "<x><y>"],

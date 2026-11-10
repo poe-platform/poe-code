@@ -2968,7 +2968,7 @@ export class Runtime {
   }
   syncGetopts(state: State): void {
     state.getopts ??= cloneGetoptsBinding(state);
-    const value = state.variables.OPTIND;
+    const value = this.variable(state, "OPTIND");
     if (value === undefined) {
       state.getopts.cursor = createGetoptsState();
     } else state.getopts.cursor = withGetoptsIndex(state.getopts.cursor, decimalIndex(value));
@@ -5590,7 +5590,7 @@ export class Runtime {
         // Protected text on either side keeps boundary fields; empty IFS uses space.
         const original = fragments;
         fragments = undefined;
-        const ifs = state.variables.IFS ?? " \t\n";
+        const ifs = this.ifs(state) ?? " \t\n";
         const separators = ifs === "" ? " " : stateMonitor(state)?.values.get("IFS", ifs) ?? ifs;
         let present = false;
         let boundary = false;
@@ -6334,7 +6334,7 @@ export class Runtime {
                 publishVariable(state, "REPLY", line.shellValue);
                 if (state.allexport) state.exported.add("REPLY");
               } else {
-                const separators = stateMonitor(state)?.values.get("IFS", state.variables.IFS ?? " \t\n") ?? state.variables.IFS ?? " \t\n";
+                const separators = stateMonitor(state)?.values.get("IFS", this.ifs(state) ?? " \t\n") ?? this.ifs(state) ?? " \t\n";
                 const fields = await line.fields(separators, varNames.length);
                 for (let i = 0; i < varNames.length; i++) {
                   const v = fields[i]?.value ?? "";
@@ -9319,7 +9319,7 @@ export class Runtime {
           continue;
         }
         if ((localDeclaration || command === "declare") && (indexedLocal || compound)) {
-          if (controlNames.has(name)) throw new ArrayFailure("control binding cannot be indexed");
+          if (controlNames.has(name) && name !== "IFS" && name !== "OPTIND") throw new ArrayFailure("control binding cannot be indexed");
           const existingLocal = locals?.get(name);
           const saved = !locals || existingLocal ? undefined : assignments.get(name) ?? saveVariable(state, name);
           let operation: ArrayOwner | undefined;
@@ -9399,6 +9399,7 @@ export class Runtime {
             await cleanup(() => holding?.release());
           }
           if (primaryPresent) throw primary;
+          if (name === "OPTIND") this.syncGetopts(state);
           if (enabled.has("x")) state.exported.add(name);
           if (disabled.has("x")) state.exported.delete(name);
           if (enabled.has("r")) { state.readonlyVariables ??= new Set(); state.readonlyVariables.add(name); }
@@ -9691,7 +9692,7 @@ export class Runtime {
         }
         const writer = await this.incrementalIndexed(state, context, array, true);
         try {
-          const separators = exact ? "" : stateMonitor(state)?.values.get("IFS", state.variables.IFS ?? " \t\n") ?? state.variables.IFS ?? " \t\n";
+          const separators = exact ? "" : stateMonitor(state)?.values.get("IFS", this.ifs(state) ?? " \t\n") ?? this.ifs(state) ?? " \t\n";
           const fields = await line?.fields(separators) ?? [];
           for (let index = 0; index < fields.length; index++) await writer.set(index, fields[index]!.value);
         } finally { await writer.close(); }
@@ -9699,7 +9700,7 @@ export class Runtime {
         if (state.readonlyVariables?.has("REPLY")) { await this.diagnostic(context, "REPLY: readonly variable"); return 2; }
         await this.writeVariable(state, "REPLY", line?.shellValue ?? "", context);
       } else {
-        const separators = exact ? "" : stateMonitor(state)?.values.get("IFS", state.variables.IFS ?? " \t\n") ?? state.variables.IFS ?? " \t\n";
+        const separators = exact ? "" : stateMonitor(state)?.values.get("IFS", this.ifs(state) ?? " \t\n") ?? this.ifs(state) ?? " \t\n";
         const fields = await line?.fields(separators, names.length) ?? [];
         for (let index = 0; index < names.length; index++) {
           if (!variableTarget(names[index]!)) {
@@ -9987,7 +9988,7 @@ export class Runtime {
       if (selector?.kind === "members" || part.name === "@" || part.name === "*") {
         const members = selector ? await this.arrayMembers(part.name, state, io, part.keys) : this.positionalValues(state);
         // GNU Bash passes assignment flags for replacement/case operators, but not pattern removal or transforms.
-        const space = (selector?.kind === "members" ? selector.separator === "@" : part.name === "@") && (io.nameExpansionContext === "document" || state.variables.IFS === "" || !split && !part.quoted && !part.transform && !["#", "##", "%", "%%"].includes(part.operator ?? ""));
+        const space = (selector?.kind === "members" ? selector.separator === "@" : part.name === "@") && (io.nameExpansionContext === "document" || this.ifs(state) === "" || !split && !part.quoted && !part.transform && !["#", "##", "%", "%%"].includes(part.operator ?? ""));
         const separator = space ? " " : this.ifsSeparator(state, io);
         const fragments: ShellValue[] = [];
         let bytes = 0;
@@ -10029,7 +10030,7 @@ export class Runtime {
       return existing === undefined ? "" : part.transform ? this.transformValue(value, part.transform, state, io) : this.parameterPattern(part, value, state, io, hereString);
     }
     if (part.kind === "variable" && part.prefixNames) {
-      const ifs = state.variables.IFS ?? " ";
+      const ifs = this.ifs(state) ?? " ";
       const separator = io.nameExpansionContext === "document" || part.prefixNames === "@" && (io.nameExpansionContext === "conditional" || ifs.length === 0)
         ? " " : ifs.length ? String.fromCodePoint(ifs.codePointAt(0)!) : "";
       const fragments: string[] = [];
@@ -10386,13 +10387,13 @@ export class Runtime {
       }
       const values = await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring);
       if (io.nameExpansionContext === "document" && io.documentExpansion && part.substring && selector.separator === "@" && values.length === 1 && shellValueByteLength(values[0]!) === 0) io.documentExpansion.emptySlice = true;
-      const space = (selector.kind === "keys" || part.keys === true) ? Boolean(hereDocument || (selector.separator === "@" ? !part.quoted && !split || state.variables.IFS === "" : !part.quoted && split && state.variables.IFS === "")) : (!split && selector.separator === "@" && (io.nameExpansionContext === "document" || !part.substring || !part.quoted || state.variables.IFS === ""));
+      const space = (selector.kind === "keys" || part.keys === true) ? Boolean(hereDocument || (selector.separator === "@" ? !part.quoted && !split || this.ifs(state) === "" : !part.quoted && split && this.ifs(state) === "")) : (!split && selector.separator === "@" && (io.nameExpansionContext === "document" || !part.substring || !part.quoted || this.ifs(state) === ""));
       return this.arrayJoin(store.owner, values, space ? " " : this.ifsSeparator(state, io));
     }
     if (part.substring && (part.name === "@" || part.name === "*")) {
       const values = await this.positionalSlice(part, state, io);
       if (io.nameExpansionContext === "document" && io.documentExpansion && part.name === "@" && values.length === 1 && shellValueByteLength(values[0]!) === 0) io.documentExpansion.emptySlice = true;
-      const separator = io.nameExpansionContext === "document" || part.name === "@" && (state.variables.IFS === "" || !split && !part.quoted) ? " " : this.ifsSeparator(state, io);
+      const separator = io.nameExpansionContext === "document" || part.name === "@" && (this.ifs(state) === "" || !split && !part.quoted) ? " " : this.ifsSeparator(state, io);
       return concatShellValues(values.flatMap((entry, index) => index ? [separator, entry] : [entry]), io[valueScope]);
     }
     const namerefName = part.indirect && state.variableAttributes?.get(part.name)?.includes("n");
@@ -10401,7 +10402,7 @@ export class Runtime {
       : part.name === "?" ? String(state.status)
       : part.name === "-" ? `${state.allexport ? "a" : ""}${state.errexit ? "e" : ""}${state.noglob ? "f" : ""}${state.hashall !== false ? "h" : ""}${state.noexec ? "n" : ""}${state.nounset ? "u" : ""}${state.braceexpand !== false ? "B" : ""}${state.noclobber ? "C" : ""}${state.physical ? "P" : ""}`
       : part.name === "#" ? String(state.positional.length)
-      : part.name === "@" || part.name === "*" ? state.positional.join(io.nameExpansionContext === "document" || part.name === "@" && (!split || hereString) ? " " : Array.from(state.variables.IFS ?? " ")[0] ?? "")
+      : part.name === "@" || part.name === "*" ? state.positional.join(io.nameExpansionContext === "document" || part.name === "@" && (!split || hereString) ? " " : Array.from(this.ifs(state) ?? " ")[0] ?? "")
       : /^0+$/u.test(part.name) ? state.arg0 ?? "virtual-bash"
       : /^\d+$/u.test(part.name) ? state.positional[Number(part.name) - 1]
       : part.name === "LINENO" ? (state.extensions ? String(io.diagnosticLine ?? part.line ?? 1) : state.variables.LINENO ?? String(io.diagnosticLine ?? part.line ?? 1)) : this.variable(state, part.name);
@@ -10476,8 +10477,12 @@ export class Runtime {
     }
     return String(length);
   }
+  ifs(state: State): string | undefined {
+    // Bash retains array elements but uses no separators while IFS is an array.
+    return arrayStore(state)?.get("IFS") ? "" : state.variables.IFS;
+  }
   private ifsSeparator(state: State, io: IO): ShellValue {
-    const text = state.variables.IFS ?? " ";
+    const text = this.ifs(state) ?? " ";
     const value = stateMonitor(state)?.values.get("IFS", text) ?? text;
     const byteCount = byteLocale(state.variables);
     if (typeof value === "string" && (!byteCount || !value || value.charCodeAt(0) < 128)) return value ? String.fromCodePoint(value.codePointAt(0)!) : "";
@@ -10747,7 +10752,7 @@ export class Runtime {
     let positionalOwned = split && word.parts.some(part => part.kind === "variable" && part.name === "@" && part.quoted && !part.length && (!part.operator || defaultParameterOperators.includes(part.operator)) && !part.transform);
     const owner = arrayOwned ? requireArrays(state).owner : undefined;
     const holding = owner?.hold();
-    const scratch = !owner && split && state.variables.IFS !== "" && word.parts.some(part => !part.quoted && part.kind !== "text")
+    const scratch = !owner && split && this.ifs(state) !== "" && word.parts.some(part => !part.quoted && part.kind !== "text")
       ? this.budget.values.scope() : undefined;
     try {
     if (owner) await this.prepareArrayObservers(state, owner);
@@ -10808,7 +10813,7 @@ export class Runtime {
       this.budget.cpuCheckpoint();
       if (shellValueByteLength(value) === 0) return;
       if (arrayStore(state)?.get("IFS")) { append(value, true, true); return; }
-      const separators = state.variables.IFS ?? " \t\n";
+      const separators = this.ifs(state) ?? " \t\n";
       const retainedSeparators = stateMonitor(state)?.values.get("IFS", separators) ?? separators;
       let byteSeparators = false;
       if (byteLocale(state.variables) && typeof retainedSeparators === "string") {
@@ -10906,7 +10911,7 @@ export class Runtime {
           continue;
         }
       }
-      if (part.kind === "variable" && part.prefixNames === "@" && split && (part.quoted || state.variables.IFS === "")) {
+      if (part.kind === "variable" && part.prefixNames === "@" && split && (part.quoted || this.ifs(state) === "")) {
         let position = 0;
         for await (const name of this.prefixNames(part.name, state)) {
           if (position++) addField();
@@ -10935,12 +10940,12 @@ export class Runtime {
           }
         } else {
           const value = await this.variableMetaTransform(part, state, partIO);
-          if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);
+          if (part.quoted || !split || this.ifs(state) === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);
           else await appendSplit(value);
         }
-      } else if (part.kind === "variable" && (split || io.nameExpansionContext === "case" && part.quoted && selector && selector.kind !== "element" && selector.separator === "@") && expandMembers && (part.quoted || state.variables.IFS === "" || !memberPatternOperators.includes(part.operator ?? "")) && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || state.variables.IFS === "")) || (part.transform || memberPatternOperators.includes(part.operator ?? "")) && part.name === "@" || (part.substring || ["#", "##", "%", "%%"].includes(part.operator ?? "") || !part.operator && !part.transform && !part.length) && !part.quoted && state.variables.IFS === "" && (part.name === "@" || part.name === "*"))) {
+      } else if (part.kind === "variable" && (split || io.nameExpansionContext === "case" && part.quoted && selector && selector.kind !== "element" && selector.separator === "@") && expandMembers && (part.quoted || this.ifs(state) === "" || !memberPatternOperators.includes(part.operator ?? "")) && (selector && selector.kind !== "element" && !part.length && (selector.kind === "members" ? !part.quoted || selector.separator === "@" : selector.separator === "@" && (part.quoted || this.ifs(state) === "")) || (part.transform || memberPatternOperators.includes(part.operator ?? "")) && part.name === "@" || (part.substring || ["#", "##", "%", "%%"].includes(part.operator ?? "") || !part.operator && !part.transform && !part.length) && !part.quoted && this.ifs(state) === "" && (part.name === "@" || part.name === "*"))) {
         const members = selector && selector.kind !== "element" ? await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring) : part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);
-        if (selector?.kind === "members" && !part.quoted && state.variables.IFS !== "" && !part.transform && !part.operator) {
+        if (selector?.kind === "members" && !part.quoted && this.ifs(state) !== "" && !part.transform && !part.operator) {
           await appendSplit(await this.arrayJoin(requireArrays(state).owner, members, this.ifsSeparator(state, partIO)), true);
           continue;
         }
@@ -10950,12 +10955,12 @@ export class Runtime {
         for (let position = 0; position < members.length; position++) {
           if (position > 0) {
             // Bash joins unquoted trimmed array members with spaces even when IFS is empty.
-            if (selector?.kind === "members" && !part.quoted && state.variables.IFS === "" && ["#", "##", "%", "%%"].includes(part.operator ?? "")) append(" ", true, true);
+            if (selector?.kind === "members" && !part.quoted && this.ifs(state) === "" && ["#", "##", "%", "%%"].includes(part.operator ?? "")) append(" ", true, true);
             else addField();
           }
           const original = members[position]!;
           const value = part.transform ? await this.transformValue(original, part.transform, state, partIO) : applyPattern ? await applyPattern(original) : original;
-          if (part.quoted || state.variables.IFS === "") append(value, !part.quoted, part.quoted || shellValueByteLength(value) > 0);
+          if (part.quoted || this.ifs(state) === "") append(value, !part.quoted, part.quoted || shellValueByteLength(value) > 0);
           else await appendSplit(value);
         }
         if ((part.transform || memberPatternOperators.includes(part.operator ?? "")) && members.length === 0 && quoteGroup) {
@@ -10967,7 +10972,7 @@ export class Runtime {
       } else if (part.kind === "text" && !splitText) {
         const value: ShellValue = invokedValues.get(part) ?? part.byteValue ?? part.value;
         append(value, !part.quoted, quotedPresence || shellValueByteLength(value) > 0);
-      } else if (part.kind === "variable" && part.name === "@" && (part.quoted || split && splitText && !part.substring && state.variables.IFS && !state.variables.IFS.startsWith(" ")) && !part.length && (!part.operator || defaultMembers && expandMembers) && !part.transform && (split || io.nameExpansionContext === "case")) {
+      } else if (part.kind === "variable" && part.name === "@" && (part.quoted || split && splitText && !part.substring && this.ifs(state) && !this.ifs(state)!.startsWith(" ")) && !part.length && (!part.operator || defaultMembers && expandMembers) && !part.transform && (split || io.nameExpansionContext === "case")) {
         const members = part.substring ? await this.positionalSlice(part, state, partIO) : this.positionalValues(state);
         for (let position = 0; position < members.length; position++) {
           // A fallback protects unquoted $@ members when IFS starts with a non-space;
@@ -10977,7 +10982,7 @@ export class Runtime {
         }
       } else {
         const value = part.kind === "text" ? part.byteValue ?? part.value : await this.valuePart(part, state, partIO, hereString, split, hereDocument);
-        if (part.quoted || !split || state.variables.IFS === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);
+        if (part.quoted || !split || this.ifs(state) === "") append(value, !part.quoted, quotedPresence || !split || shellValueByteLength(value) > 0);
         else await appendSplit(value, part.kind === "variable" && (selector?.kind === "members" || part.name === "@" || part.name === "*" && !part.substring && !splitText) && !part.length && !part.transform);
       }
       if (fields.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");

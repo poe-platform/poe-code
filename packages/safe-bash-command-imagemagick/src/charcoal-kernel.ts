@@ -100,22 +100,23 @@ export function* charcoalPixelSteps(image: { width: number; height: number }, ge
                         } else histograms[0]![Math.max(0, Math.min(65535, Math.round(257 * magickIntensity(sums[x * 3]!, sums[x * 3 + 1]!, sums[x * 3 + 2]!, intensity, 255, false))))]!++;
                     }
                 } else {
-                    const data = new Uint8Array(count * 4);
+                    const data = new Uint16Array(count * 4);
                     for (let x = 0; x < count; x++) {
                         for (let c = 0; c < 3; c++) {
                             const low = lows[channels ? c : 0]!, high = highs[channels ? c : 0]!;
                             let value = sums[x * 3 + c]!;
                             if (mask[c]) {
-                                if (high > low) value = Math.max(0, Math.min(255, (value * 257 - low) / (high - low) * 255));
+                                // Normalize indexes a Q16 lookup table before the final grayscale conversion.
+                                if (high > low) value = Math.max(0, Math.min(255, (Math.round(value * 257) - low) / (high - low) * 255));
                                 value = 255 - value;
                             }
                             sums[x * 3 + c] = value;
                         }
                         const gray = magickIntensity(sums[x * 3]!, sums[x * 3 + 1]!, sums[x * 3 + 2]!, intensity, 255, false);
                         // Native grayscale MS uses squared Q16 samples without quantum normalization.
-                        data.fill(Math.min(255, Math.round(gray * (intensity === "ms" ? 65535 : 1))), x * 4, x * 4 + 3); data[x * 4 + 3] = 255;
+                        data.fill(Math.min(65535, Math.round(gray * 257 * (intensity === "ms" ? 65535 : 1))), x * 4, x * 4 + 3); data[x * 4 + 3] = 65535;
                     }
-                    yield { kind: "write", position: (y * width + left) * 4, data };
+                    yield { kind: "write", highDepth: true, position: (y * width + left) * 4, data: new Uint8Array(data.buffer) };
                 }
             }
         }

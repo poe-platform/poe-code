@@ -116,10 +116,6 @@ export async function fadeAudio(
         if ((command.action === "st" || command.action === "start_time") && startTime > 0) {
           start = Math.round(startTime * sampleRate);
         }
-        if (command.action === "ss" || command.action === "start_sample") start = Number(startOption);
-        if ((command.action === "st" || command.action === "start_time") && startTime > 0) {
-          start = Math.round(startTime * sampleRate);
-        }
       } catch { /* Native asendcmd continues after a rejected command. */ }
     }
     while (frames && frameIndex + 1 < frames.length && frames[frameIndex]!.end <= i) frameIndex++;

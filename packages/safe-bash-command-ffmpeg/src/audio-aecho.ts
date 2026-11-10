@@ -25,9 +25,14 @@ export async function echoAudio(
     if (!Number.isFinite(gain) || gain < 0 || gain > 1) throw new Error("aecho: invalid gain");
     return Math.fround(gain);
   });
-  // Native list options read numeric prefixes and skip nonnumeric/empty entries.
+  // Native list options count NaN prefixes but skip nonnumeric/empty entries.
   const [delays, decays] = [options.delays, options.decays].map(value =>
-    value.split("|").map(part => Math.fround(parseFilterFloat(part))).filter(value => !Number.isNaN(value)));
+    value.split("|").flatMap(part => {
+      const parsed = Math.fround(parseFilterFloat(part));
+      const text = part.trimStart().toLowerCase();
+      const offset = text[0] === "+" || text[0] === "-" ? 1 : 0;
+      return !Number.isNaN(parsed) || text.startsWith("nan", offset) ? [parsed] : [];
+    }));
   if (!delays!.length || delays!.length !== decays!.length) throw new Error("aecho: delays and decays must have matching entries");
   budget.allocateMemory(delays!.length * 16);
   let tail = 0;

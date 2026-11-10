@@ -148,6 +148,56 @@ for (const delay of ["16", "0x10", "0X10", "+0x10", "0x1p4", "0x0.8p5", "0x10ms"
   });
 }
 
+// Native FFmpeg 7.0.2 counts explicit NaN entries but skips unparseable junk.
+for (const [filter, expected] of [
+  ["aecho=0.5:0.4:nan|1:0.25", "KEEP"],
+  ["aecho=0.5:0.5:1:nan|0.5", "KEEP"],
+  ["aecho=0.5:0.4:junk|1:0.25", "800c000000000000c0f90000000000004006000000000000e0fc000000000000"],
+  ["aecho=0.5:0.5:1:junk|0.5", "a00f00000000000030f8000000000000a00f00000000000030f8000000000000"]
+]) {
+  for (const graph of [false, true]) {
+    it(`${filter} counts NaN entries and skips junk (${graph ? "graph" : "simple"})`, async () => {
+      const volume = Volume.fromJSON({ "/out.raw": "KEEP" });
+      volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from([16000, 0, 0, 0, -8000, 0, 0, 0], value => value / 32768)
+      ] }));
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-y", "-v", "error", "-i", "/in.wav", ...(graph
+          ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+          "-f", "s16le", "/out.raw"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      if (expected === "KEEP") {
+        assert.notEqual(result.exitCode, 0);
+        assert.ok(stderr.includes("aecho: delays and decays must have matching entries"), stderr);
+        assert.equal(volume.readFileSync("/out.raw", "utf8"), "KEEP");
+      } else {
+        assert.equal(result.exitCode, 0, stderr);
+        assert.equal((volume.readFileSync("/out.raw") as Buffer).toString("hex"), expected);
+      }
+    });
+  }
+}
+
+for (const token of ["NaN", "+nan", "-NaN", "nan(payload)"]) {
+  for (const filter of [`aecho=delays=${token}|1:decays=0.5`, `aecho=delays=1:decays=${token}|0.5`]) {
+    it(`${filter} counts signed and case-insensitive NaN entries`, async () => {
+      const { volume, result, stderr } = await run(filter);
+      assert.notEqual(result.exitCode, 0);
+      assert.ok(stderr.includes("aecho: delays and decays must have matching entries"), stderr);
+      assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
+    });
+  }
+}
+
 // Native FFmpeg 7.0.2 PCM16 output for a low-gain echo and format negotiation.
 for (const [filter, hash] of [
   ["aecho=0.02:0.1:20:0.02,volume=32", "0404dc78d101b86bd28ebea2e68a374244ddf45674b5aaeb55f092e22d0a4f0e"],

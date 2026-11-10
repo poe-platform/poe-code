@@ -2,7 +2,7 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 import { magickIntensity } from "./intensity.js";
 
 // Stable merge sort uses one scanline of pixels and yields during wide-row work.
-export function* sortPixelSteps(image: { width: number; height: number; space?: string | undefined; magickColorspace?: string | undefined }, method: string, mask = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* sortPixelSteps(image: { width: number; height: number; space?: string | undefined; magickColorspace?: string | undefined }, method: string, mask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image;
     const colorspace = image.magickColorspace ?? (image.space === "cmyk" ? "CMYK" : "sRGB");
     // Native luminance decodes gamma only for sRGB/Gray, not other working spaces.
@@ -16,14 +16,23 @@ export function* sortPixelSteps(image: { width: number; height: number; space?: 
     for (let y = 0; y < height; y++) {
         // Derive order from image 0, then optionally emit the mask from image 1.
         for (let source = 0; source < (mask ? 2 : 1); source++) {
+            const dimensions = source === 0 ? image : mask!;
+            if (source !== 0) {
+                // A read mask only selects its own extent; absent samples stay zero.
+                row.fill(0);
+                delete working.hue;
+                delete working.evaluate;
+            }
             for (let left = 0; left < width; left += 512) {
                 yield;
-                const count = Math.min(512, width - left);
-                const bytes = yield { kind: "read", image: source, highDepth: true, position: (y * width + left) * 4, length: count * 4 };
+                const count = y < dimensions.height ? Math.min(512, width - left, dimensions.width - left) : 0;
+                if (count <= 0) continue;
+                const position = (y * dimensions.width + left) * 4;
+                const bytes = yield { kind: "read", image: source, highDepth: true, position, length: count * 4 };
                 if (!bytes || bytes.length !== count * 8) throw new Error("Truncated sort pixels");
                 row.set(new Uint16Array(bytes.slice().buffer), left * 4);
                 for (const plane of ["hue", "evaluate"] as const) {
-                    const samples = yield { kind: "read", image: source, [plane]: true, position: (y * width + left) * 4, length: count * 4 };
+                    const samples = yield { kind: "read", image: source, [plane]: true, position, length: count * 4 };
                     if (!samples?.length) { delete working[plane]; continue; }
                     if (samples.length !== count * 32) throw new Error("Truncated sort pixels");
                     working[plane] ??= new Float64Array(width * 4);

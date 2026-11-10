@@ -11458,14 +11458,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
                 let result = yield* applyMagickRasterSteps(image, sortPixelSteps(image, state.intensity), signal);
                 if (image.metaChannels) result.metaChannels = yield* mapSteps(image.metaChannels, function* (plane) {
-                    return yield* applyMagickRasterSteps(plane, sortPixelSteps(image, state.intensity, true), signal, plane, [image, plane]);
+                    return yield* applyMagickRasterSteps(plane, sortPixelSteps(image, state.intensity, plane), signal, plane, [image, plane]);
                 });
                 if (image.readMask) result.readMask = yield* applyMagickRasterSteps(image.readMask as RgbaImage,
-                    sortPixelSteps(image, state.intensity, true), signal, image.readMask as RgbaImage, [image, image.readMask as RgbaImage]);
+                    sortPixelSteps(image, state.intensity, image.readMask), signal, { ...image.readMask as RgbaImage, width: image.width, height: image.height }, [image, image.readMask as RgbaImage]);
                 if (image.writeMask) {
                     // Clip sorted pixels at the destination before carrying their mask forward.
                     result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, image.writeMask, !!(result.data16 || image.data16), false, state.channels, image.hasAlpha && image.alphaBlend !== false), signal, result, [result, image, image.writeMask]);
-                    result.writeMask = yield* applyMagickRasterSteps(image.writeMask, sortPixelSteps(image, state.intensity, true), signal, image.writeMask, [image, image.writeMask]);
+                    result.writeMask = yield* applyMagickRasterSteps(image.writeMask, sortPixelSteps(image, state.intensity, image.writeMask), signal, image.writeMask, [image, image.writeMask]);
                 }
                 // Sorting drops the alpha channel whose trait Disassociate disabled.
                 if (!image.hasAlpha && image.inactiveAlpha === true && image.alphaBlend === false) {
@@ -14588,13 +14588,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (image.storedMetaChannels) {
                     result.storedMetaChannels = [];
                     for (const plane of image.storedMetaChannels) result.storedMetaChannels.push(await transformStoredMagickRaster(plane, backend,
-                        sortPixelSteps(image, intensity, true), signal, plane, [image, plane]));
+                        sortPixelSteps(image, intensity, plane), signal, plane, [image, plane]));
                 }
                 if (image.readMask) result.readMask = await transformStoredMagickRaster(image.readMask as StoredRgbaImage, backend,
-                    sortPixelSteps(image, intensity, true), signal, image.readMask as StoredRgbaImage, [image, image.readMask as StoredRgbaImage]);
+                    sortPixelSteps(image, intensity, image.readMask), signal, { ...image.readMask as StoredRgbaImage, width: image.width, height: image.height }, [image, image.readMask as StoredRgbaImage]);
                 if (image.storedWriteMask) {
                     result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!(result.storedData16 || image.storedData16), false, channels, image.hasAlpha && image.alphaBlend !== false), signal, result, [result, image, image.storedWriteMask]);
-                    result.storedWriteMask = await transformStoredMagickRaster(image.storedWriteMask, backend, sortPixelSteps(image, intensity, true), signal, image.storedWriteMask, [image, image.storedWriteMask]);
+                    result.storedWriteMask = await transformStoredMagickRaster(image.storedWriteMask, backend, sortPixelSteps(image, intensity, image.storedWriteMask), signal, image.storedWriteMask, [image, image.storedWriteMask]);
                 }
                 // Sorting drops the alpha channel whose trait Disassociate disabled.
                 if (!image.hasAlpha && image.inactiveAlpha === true && image.alphaBlend === false) {

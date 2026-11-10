@@ -18465,7 +18465,8 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             if (title !== undefined) {
                 const { svg, height } = montageTitleSvg(title, canvas.width, state, padY);
                 const caption = await decodeStoredMagickSvg(svg, 72, backend, signal);
-                canvas = await transformStoredImage(canvas, backend.storage, { kind: "extend", top: height, bottom: 0, left: 0, right: 0, background: state.background, extendWith: "background" }, signal);
+                const titled = await createStoredCanvas(canvas.width, canvas.height + height, state.background, backend, signal);
+                canvas = await compositeStoredMagick(titled, canvas, backend, signal, 0, height, "over", undefined, false, true);
                 canvas = await compositeStoredMagick(canvas, caption, backend, signal, 0, 0, "over", undefined, false, true);
             }
             if (!anyTransparent) canvas = { ...canvas, hasAlpha: false, channels: 3 };

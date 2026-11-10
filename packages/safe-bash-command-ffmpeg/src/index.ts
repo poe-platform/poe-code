@@ -2615,6 +2615,21 @@ async function applyVideoFilterChain(
         const left = Math.floor(cx / hsub) * hsub;
         const top = Math.floor(cy / vsub) * vsub;
         const source = f.native;
+        if (source?.rgba === f.data && source.width === f.width && source.height === f.height &&
+            (source.format === 34 || source.format === 104)) {
+          const stride = source.format === 34 ? 6 : 8;
+          budget.recordFrame(cw, ch);
+          budget.allocateMemory(cw * ch * (stride + 4) + 128);
+          const pixels = new Uint8Array(cw * ch * stride);
+          for (let row = 0; row < ch; row++) {
+            if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            const start = ((top + row) * f.width + left) * stride;
+            pixels.set(source.pixels.subarray(start, start + cw * stride), row * cw * stride);
+          }
+          const native = { ...source, width: cw, height: ch, pixels };
+          const data = scaleVideoPicture({ ...f, width: cw, height: ch, native }, cw, ch)!;
+          return { ...f, width: cw, height: ch, data, native: { ...native, rgba: data } };
+        }
         if (source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
             [0, 4, 5, 12, 13, 14, 29, 34, 104].includes(source.format)) {
           const pixelBytes = source.format === 29 ? 2 : source.format === 34 ? 6 : source.format === 104 ? 8 : 1;
@@ -2743,8 +2758,30 @@ async function applyVideoFilterChain(
         if (pixelFormat !== "ya8") col[3] = 255;
       }
       current = await mapWork(current, async (f) => {
-
-
+        const source = f.native;
+        if (source?.rgba === f.data && source.width === f.width && source.height === f.height &&
+            (source.format === 34 || source.format === 104)) {
+          const channels = source.format === 34 ? 3 : 4;
+          const stride = channels * 2;
+          budget.recordFrame(pw, ph);
+          budget.allocateMemory(pw * ph * (stride + 4) + 128);
+          const pixels = new Uint8Array(pw * ph * stride);
+          const view = new DataView(pixels.buffer);
+          for (let pixel = 0; pixel < pw * ph; pixel++) {
+            if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            for (let channel = 0; channel < channels; channel++) {
+              view.setUint16(pixel * stride + channel * 2, col[channel]! * 257);
+            }
+          }
+          for (let row = 0; row < f.height; row++) {
+            if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            const start = row * f.width * stride;
+            pixels.set(source.pixels.subarray(start, start + f.width * stride), ((py + row) * pw + px) * stride);
+          }
+          const native = { ...source, width: pw, height: ph, pixels };
+          const data = scaleVideoPicture({ ...f, width: pw, height: ph, native }, pw, ph)!;
+          return { ...f, width: pw, height: ph, data, native: { ...native, rgba: data } };
+        }
         const padded = extendImage(makeRgbaImg(f.width, f.height, f.data), {
           left: px,
           top: py,

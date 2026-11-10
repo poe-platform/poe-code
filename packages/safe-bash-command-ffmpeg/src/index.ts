@@ -9242,7 +9242,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let replayGainAvailable = true;
                   let audioStartSample = 0;
                   const audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
-                  let audioTimestamps: { start: number; end: number; pts: number; pos?: number }[] | undefined;
+                  let audioTimestamps: { start: number; end: number; pts: number; pos?: number | undefined }[] | undefined;
                   if (!sink && ((index !== undefined && (audioSegment || frameChecksumOutput)) || (filter && parseFilterChain(filter.expression)
                     .some(item => item.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse")))) {
                     if (index !== undefined && audioSegment) segmentAudioPackets = [];

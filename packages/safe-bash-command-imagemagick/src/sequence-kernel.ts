@@ -9,10 +9,16 @@ type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined
 export type LookupInterpolation = "background" | "blend" | "bilinear" | "nearest" | "integer" | "average" | "average9" | "average16" | "mesh" | "catrom" | "spline";
 
 function* sampleLookup(lut: { width: number; height: number }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
-    if (interpolation === "average9" || interpolation === "average16" || interpolation === "blend" || interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported lookup interpolation: ${interpolation}`);
+    if (interpolation === "average9" || interpolation === "average16" || interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported lookup interpolation: ${interpolation}`);
     const nearest = interpolation === "nearest", single = nearest || interpolation === "integer";
     const left = Math.floor(x + (nearest ? 0.5 : 0)), top = Math.floor(y + (nearest ? 0.5 : 0));
-    const dx = x - left, dy = y - top, values = [0, 0, 0, 0];
+    let dx = x - left, dy = y - top;
+    const values = [0, 0, 0, 0];
+    // Blend selects the nearest edge neighbor and averages the middle half.
+    if (interpolation === "blend") {
+        dx = dx >= 0.75 ? 1 : dx > 0.25 ? 0.5 : 0;
+        dy = dy >= 0.75 ? 1 : dy > 0.25 ? 0.5 : 0;
+    }
     const meshPixels: (Uint8Array | Uint16Array)[] = [];
     let meshWeights: number[] | undefined;
     if (interpolation === "mesh") {

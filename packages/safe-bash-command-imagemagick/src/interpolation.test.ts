@@ -10,6 +10,7 @@ it.each([
   ["nearest", [0, 0, 255, 255], [85, 170, 170, 255]],
   ["nearest-neighbor", [0, 0, 255, 255], [85, 170, 170, 255]],
   ["integer", [0, 0, 255, 255], [0, 128, 192, 255]],
+  ["blend", [128, 0, 128, 255], [85, 128, 192, 255]],
   ["average", [128, 0, 128, 255], [43, 138, 208, 255]],
   ["bilinear", [127, 0, 128, 255], [64, 128, 192, 255]],
 ] as const)(`samples native lookup pixels, retained=${retained}, hald=${hald}, highDepth=${highDepth}, %s`, async (method, clutExpected, haldExpected) => {
@@ -29,7 +30,7 @@ it.each([
   const output = decodeImage(retained ? await fs.readFile("/out.png") : files.get("/out.png")!);
   if (highDepth) {
     // Compare the stored 16-bit samples; the decoder's byte preview truncates them.
-    const expected = method === "average" ? hald ? [10923, 35499, 53439, 65535] : [32768, 0, 32768, 65535] : (hald ? haldExpected : clutExpected).map(value => value * 257);
+    const expected = method === "blend" && !hald ? [32768, 0, 32768, 65535] : method === "average" ? hald ? [10923, 35499, 53439, 65535] : [32768, 0, 32768, 65535] : (hald ? haldExpected : clutExpected).map(value => value * 257);
     expect(output.data16).toEqual(Uint16Array.from(expected));
   } else expect(output.data).toEqual(Uint8Array.from(hald ? haldExpected : clutExpected));
 });

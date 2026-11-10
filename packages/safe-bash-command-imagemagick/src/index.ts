@@ -6295,9 +6295,9 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         return yield* applyMod([yield* applyMagickRasterSteps({ ...metadata, data: new Uint8Array() }, haldInputPixelSteps(metadata.width))]);
     }
     if (lower.startsWith("xc:") || lower.startsWith("canvas:")) {
-        const colorStr = baseToken.slice(baseToken.indexOf(":") + 1) || "white";
+        const colorStr = (baseToken.slice(baseToken.indexOf(":") + 1) || "white").trim();
         const c = parseColor(colorStr, true);
-        let image = { ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c, [c.r, c.g, c.b, c.a].some(value => !Number.isInteger(value)))), hasAlpha: c.a < 255 };
+        let image = { ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c, [c.r, c.g, c.b, c.a].some(value => !Number.isInteger(value)))), hasAlpha: c.a < 255 || colorStr.startsWith("#") && colorStr.length === 9 };
         if (c.cmyk) image = yield* fillCmykPixels(image, c.cmyk);
         return yield* applyMod([image]);
     }
@@ -13732,8 +13732,9 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const metadata=haldInputMetadata(baseToken);
   image=await transformStoredMagickRaster({...metadata,position:0},backend,haldInputPixelSteps(metadata.width),signal);
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
-  const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(baseToken.slice(baseToken.indexOf(":")+1)||"white",true),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
-  image={...await createStoredCanvas(width,height,color,backend,signal,[color.r,color.g,color.b,color.a].some(value=>!Number.isInteger(value))),hasAlpha:color.a<255,...(lower==="null:"?{[magickInput]:{filePath:"null:"}}:{})};
+  const colorStr=(baseToken.slice(baseToken.indexOf(":")+1)||"white").trim();
+  const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(colorStr,true),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
+  image={...await createStoredCanvas(width,height,color,backend,signal,[color.r,color.g,color.b,color.a].some(value=>!Number.isInteger(value))),hasAlpha:color.a<255||colorStr.startsWith("#")&&colorStr.length===9,...(lower==="null:"?{[magickInput]:{filePath:"null:"}}:{})};
   if ("cmyk" in color && color.cmyk) {
    const inks = color.cmyk;
    image = await transformStoredMagickPixels(image, backend, { end: 0, apply: image => fillCmykPixels(image, inks) }, signal);

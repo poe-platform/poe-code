@@ -60,11 +60,11 @@ export function parseArguments(args: readonly string[]) {
         const [section, fields] = entry.split("=");
         if (!["stream", "format", "stream_tags", "format_tags"].includes(section!))
           throw new Error(`Unknown section ${section}`);
-        if (section === "stream") streamEntries = fields === undefined || fields.split(",").some(Boolean);
         sections.set(
           section!,
-          fields === undefined ? undefined : fields.split(",").filter(Boolean)
+          fields === undefined ? undefined : [...new Set([...sections.get(section!) ?? [], ...fields.split(",").filter(Boolean)])]
         );
+        if (section === "stream") streamEntries = sections.get(section)?.length !== 0;
       }
     else {
       const path = arg === "-i" ? value() : arg;

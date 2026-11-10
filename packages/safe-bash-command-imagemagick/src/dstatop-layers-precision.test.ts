@@ -29,7 +29,7 @@ it.each(cases)(`${route}: DstAtop preserves $name`, async testCase => {
         stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
     }) : route === "sync" ? runMagickCliSync(argv, files)
         : await runMagickCli(argv, route === "retained" ? { filesystem, cwd: "/" } : files);
-    expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(0);
+    expect(result.exitCode).toBe(0);
     expect("stderr" in result ? result.stderr : stderr).toBe("");
     const bytes = route === "command" ? Buffer.concat(stdout)
         : "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : new Uint8Array();

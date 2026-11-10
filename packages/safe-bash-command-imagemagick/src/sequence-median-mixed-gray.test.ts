@@ -26,6 +26,6 @@ it.each([
             : await runMagickCli(argv, mode === "map" ? files : { filesystem: fs, cwd: "/" });
     expect(result.exitCode).toBe(0);
     const output = mode === "command" ? Buffer.concat(stdout) : Buffer.from("stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : []);
-    expect(mode === "command" ? Buffer.concat(stderr).toString() : result.stderr).toBe("");
+    expect("stderr" in result ? result.stderr : Buffer.concat(stderr).toString()).toBe("");
     expect(output.toString("hex")).toBe(depth === 8 ? "4a4a4a82" : "4a4a4a4a4a4a8282");
 });

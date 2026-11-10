@@ -47,15 +47,16 @@ export function* hitAndMissPixelSteps(image: { width: number; height: number }, 
     }
 }
 
-/** Four-channel sliding histograms; rows gives (width - 1) / 2 at each vertical offset; half-integers allow even windows. Arrays specify sparse horizontal offsets. */
-export function* morphologyPixelSteps(image: HueMetadata & Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<RgbaImage, "hasAlpha"> & Pick<StoredRgbaImage, "storedData16">>, rows: readonly MorphologyRow[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak", channels?: readonly boolean[], virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const { width, height } = image, highDepth = virtualPixel === "gray" || !!(image.data16 || image.storedData16);
-    const retainHue = image.magickColorspace !== undefined && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
+/** Sliding channel histograms; rows gives (width - 1) / 2 at each vertical offset; half-integers allow even windows. Arrays specify sparse horizontal offsets. */
+export function* morphologyPixelSteps(image: HueMetadata & Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<RgbaImage, "hasAlpha" | "space"> & Pick<StoredRgbaImage, "storedData16">>, rows: readonly MorphologyRow[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak" | "gradient", channels?: readonly boolean[], virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const cmyk = image.space === "cmyk", channelCount = cmyk ? 5 : 4;
+    const { width, height } = image, highDepth = cmyk || virtualPixel === "gray" || !!(image.data16 || image.storedData16);
+    const retainHue = !cmyk && image.magickColorspace !== undefined && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
     if (retainHue && mode === "max") return yield* maximumWorkingPixelSteps(image, rows, channels, virtualPixel, background);
     const working = retainHue && (mode === "mean" || mode === "rms" || mode === "standarddeviation");
     const outputHighDepth = highDepth || mode === "mean" || mode === "rms" || mode === "standarddeviation" || mode === "contrast";
     const scale = highDepth ? 257 : 1, bins = highDepth ? 65536 : 256, maximumSample = bins - 1;
-    const histogram = new Float64Array(4 * bins), groups = highDepth ? new Float64Array(4 * 256) : undefined;
+    const histogram = new Float64Array(channelCount * bins), groups = highDepth ? new Float64Array(channelCount * 256) : undefined;
     // Skip empty high-byte groups instead of scanning all 65,536 bins for each pixel.
     function nextValue(channel: number, value: number, direction: 1 | -1): number {
         while (value >= 0 && value < bins) {
@@ -71,9 +72,11 @@ export function* morphologyPixelSteps(image: HueMetadata & Pick<RgbaImage, "widt
     const fill = ((virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
         ? [background.r, background.g, background.b, background.a]
         : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255]).map(value => Math.round(value * scale));
+    if (cmyk) fill.push(0);
     const ry = Math.floor(rows.length / 2);
     const samples = rows.reduce<number>((total, radius) => total + (typeof radius === "number" ? radius * 2 + 1 : radius.length), 0);
-    const rank = Math.floor(samples / 2), sums = new Float64Array(4), squaredSums = new Float64Array(4);
+    const inkPages = new Map<number, Float64Array>();
+    const rank = Math.floor(samples / 2), sums = new Float64Array(channelCount), squaredSums = new Float64Array(channelCount);
     let work = 0;
     for (let y = 0; y < height; y++) {
         yield;
@@ -86,6 +89,10 @@ export function* morphologyPixelSteps(image: HueMetadata & Pick<RgbaImage, "widt
             const count = Math.min(512, width - left);
             const data = outputHighDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
             const hue = retainHue ? new Float64Array(count * 4) : undefined;
+            const position = (y * width + left) * 4;
+            const inkBytes = cmyk ? yield { kind: "read", hue: true, position, length: data.length } : undefined;
+            if (cmyk && (!inkBytes || inkBytes.length !== data.length * 8)) throw new Error("Truncated morphology inks");
+            const inks = inkBytes ? new Float64Array(inkBytes.slice().buffer) : undefined;
             if (channels) {
                 const original = yield { kind: "read", highDepth, position: (y * width + left) * 4, length: data.length };
                 if (!original || original.length !== data.length * (highDepth ? 2 : 1)) throw new Error("Truncated morphology pixels");
@@ -112,8 +119,23 @@ export function* morphologyPixelSteps(image: HueMetadata & Pick<RgbaImage, "widt
                             const pixel = virtualPixelIndex(column, y + row - ry, width, height, virtualPixel);
                             const bytes = pixel < 0 ? undefined : yield { kind: "read", hue: working, highDepth, position: pixel * 4, length: 4 };
                             if (pixel >= 0 && (!bytes || bytes.length !== (working ? 32 : highDepth ? 8 : 4))) throw new Error("Truncated morphology pixels");
-                            const values = bytes ? working ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => value * maximumSample) : highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes : fill;
-                            for (let c = 0; c < 4; c++) {
+                            let values: ArrayLike<number> = bytes ? working ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => value * maximumSample) : highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes : fill;
+                            if (cmyk && pixel >= 0) {
+                                const position = pixel * 4, page = Math.floor(position / 2048) * 2048;
+                                let inks = inkPages.get(page);
+                                if (!inks) {
+                                    const length = Math.min(2048, width * height * 4 - page);
+                                    const bytes = yield { kind: "read", hue: true, position: page, length };
+                                    if (!bytes || bytes.length !== length * 8) throw new Error("Truncated morphology inks");
+                                    inks = new Float64Array(bytes.slice().buffer);
+                                    if (inkPages.size === 32) inkPages.delete(inkPages.keys().next().value!);
+                                    inkPages.set(page, inks);
+                                }
+                                const samples = Array.from(values);
+                                for (let c = 0; c < 4; c++) samples[c === 3 ? 4 : c] = Math.round(Math.max(0, Math.min(65535, Math.fround(inks[position - page + c]! * 65535))));
+                                values = samples;
+                            }
+                            for (let c = 0; c < channelCount; c++) {
                                 if (channels && !channels[c]) continue;
                                 if (mode === "standarddeviation") {
                                     sums[c]! += delta * values[c]!;
@@ -128,7 +150,7 @@ export function* morphologyPixelSteps(image: HueMetadata & Pick<RgbaImage, "widt
                         }
                     }
                 }
-                for (let c = 0; c < 4; c++) {
+                for (let c = 0; c < channelCount; c++) {
                     if (channels && !channels[c]) continue;
                     let value = 0, seen = 0;
                     if (mode === "standarddeviation") {
@@ -145,10 +167,11 @@ export function* morphologyPixelSteps(image: HueMetadata & Pick<RgbaImage, "widt
                             const frequency = histogram[c * bins + candidate]!;
                             if (frequency > seen) { seen = frequency; value = candidate; }
                         }
-                    } else if (mode === "contrast") {
+                    } else if (mode === "contrast" || mode === "gradient") {
                         const minimum = nextValue(c, 0, 1), maximum = nextValue(c, maximumSample, -1);
                         // Native Contrast scales the min/max ratio to the quantum range.
                         value = c === 3 && image.hasAlpha === false ? maximumSample
+                            : mode === "gradient" ? maximum - minimum
                             : maximum + minimum === 0 ? 0 : maximumSample * (maximum - minimum) / (maximum + minimum);
                     } else if (mode === "median" || mode === "nonpeak") {
                         for (value = nextValue(c, 0, 1); value < maximumSample; value = nextValue(c, value + 1, 1)) {
@@ -169,11 +192,24 @@ export function* morphologyPixelSteps(image: HueMetadata & Pick<RgbaImage, "widt
                     }
                     // Q16-HDRI stores float quantum samples before rounding to 16-bit output.
                     if (hue) hue[local * 4 + c] = Math.fround(value * 257 / scale) / 65535;
-                    data[local * 4 + c] = outputHighDepth ? Math.round(Math.fround(value * 257 / scale)) : value;
+                    if (inks && c !== 3) inks[local * 4 + (c === 4 ? 3 : c)] = Math.fround(value) / 65535;
+                    else data[local * 4 + c] = outputHighDepth ? Math.round(Math.fround(value * 257 / scale)) : value;
                 }
             }
             // Subsequent colorspace conversion reads this plane before the integer raster.
             if (hue) yield { kind: "write", hue: true, position: (y * width + left) * 4, data: new Uint8Array(hue.buffer) };
+            if (inks) {
+                const working = new Float64Array(data.length);
+                for (let offset = 0; offset < data.length; offset += 4) {
+                    for (let c = 0; c < 4; c++) {
+                        const value = c === 3 ? data[offset + c]! : Math.fround((1 - inks[offset + c]!) * (1 - inks[offset + 3]!) * 65535);
+                        working[offset + c] = value / 257;
+                        data[offset + c] = Math.max(0, Math.min(65535, Math.round(value)));
+                    }
+                }
+                yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
+                yield { kind: "write", evaluate: true, position, data: new Uint8Array(working.buffer) };
+            }
             yield { kind: "write", highDepth: outputHighDepth, position: (y * width + left) * 4, data: new Uint8Array(data.buffer) };
         }
     }

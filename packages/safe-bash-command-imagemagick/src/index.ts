@@ -837,7 +837,7 @@ function validateMagickStatistic(name: string): void {
   }
 }
 
-type MorphologyStep = { mode: "distance"; scale: number; reverse: boolean; source: number } | { mode: "thinning" | "thicken"; kernels: { foreground: number[][]; background: number[][] }[] } | { mode: "min" | "max" | "min-intensity" | "max-intensity" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak"; source: number } | { mode: "diff"; a: number; b: number };
+type MorphologyStep = { mode: "distance"; scale: number; reverse: boolean; source: number } | { mode: "thinning" | "thicken"; kernels: { foreground: number[][]; background: number[][] }[] } | { mode: "min" | "max" | "min-intensity" | "max-intensity" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak" | "gradient"; source: number } | { mode: "diff"; a: number; b: number };
 function explicitMorphologyRows(spec: string, match?: 0 | 1): number[][] | undefined {
   const colon = spec.indexOf(":");
   if (colon < 0 || !"0123456789".includes(spec[0] ?? " ")) return undefined;
@@ -893,6 +893,7 @@ function magickMorphologyPlan(methodRaw: string, kernelSpec: string, statistic =
     return { rows, backgroundRows: explicitMorphologyRows(kernelSpec, 0)!, iterations, steps: [{ source: 0, mode: "min" }] };
   }
   if (method === "nonpeak") return { iterations, rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "nonpeak" }] };
+  if (statistic && method === "gradient") return { iterations, rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "gradient" }] };
   if (method === "contrast") return { iterations, rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "contrast" }] };
   if (method === "standarddeviation") return { iterations, rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "standarddeviation" }] };
   if (method === "rootmeansquare" || method === "rms") return { iterations, rows: magickMedianRows(kernelSpec), steps: [{ source: 0, mode: "rms" }] };
@@ -987,7 +988,7 @@ function* applyMagickMorphology4ChSteps(img: RgbaImage, plan: ReturnType<typeof 
         } else {
             let source = images[step.source]!;
             for (let pass = 0; pass < plan.iterations; pass++)
-                source = yield* applyMagickRasterSteps(source, step.mode === "max" && source.evaluateSamples ? maximumWorkingPixelSteps(source, plan.dilateRows ?? plan.rows, channels, virtualPixel, background) : step.mode === "min-intensity" || step.mode === "max-intensity" ? morphologyIntensityPixelSteps(source, step.mode === "max-intensity" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode === "max-intensity" ? "max" : "min", channels) : step.mode === "distance" ? distancePixelSteps(source, step.scale, step.reverse, channels) : plan.backgroundRows ? hitAndMissPixelSteps(source, plan.rows, plan.backgroundRows, channels) : morphologyPixelSteps(source, step.mode === "max" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode, channels, virtualPixel, background), signal);
+                source = yield* applyMagickRasterSteps(source, step.mode === "max" && source.space !== "cmyk" && source.evaluateSamples ? maximumWorkingPixelSteps(source, plan.dilateRows ?? plan.rows, channels, virtualPixel, background) : step.mode === "min-intensity" || step.mode === "max-intensity" ? morphologyIntensityPixelSteps(source, step.mode === "max-intensity" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode === "max-intensity" ? "max" : "min", channels) : step.mode === "distance" ? distancePixelSteps(source, step.scale, step.reverse, channels) : plan.backgroundRows ? hitAndMissPixelSteps(source, plan.rows, plan.backgroundRows, channels) : morphologyPixelSteps(source, step.mode === "max" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode, channels, virtualPixel, background), signal);
             images.push(source);
         }
     }
@@ -11728,7 +11729,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const geometry = parseMagickStatisticGeometry(yield* formatMagickPropertyStringSteps(geom, im, () => im, context));
                 const plan = magickMorphologyPlan(method, geometry, true);
                 if (state.virtualPixel === "transparent" && (!state.channelExplicit || state.channels.a)) im = { ...im, hasAlpha: true };
-                let channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
+                let channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k ?? true] : undefined;
                 // Deactivation keeps alpha samples, but excludes them from statistics.
                 if (!im.hasAlpha && im.inactiveAlpha && !im.alphaSeparate)
                     channels = (channels ?? [true, true, true, true]).map((selected, channel) => selected && channel !== 3);
@@ -12361,7 +12362,7 @@ async function morphStoredMagickImage(image: StoredRgbaImage, backend: CompareFi
         } else {
             let source = images[step.source]!;
             for (let pass = 0; pass < plan.iterations; pass++)
-                source = await transformStoredMagickRaster(source, backend, step.mode === "max" && source.storedEvaluateSamples !== undefined ? maximumWorkingPixelSteps(source, plan.dilateRows ?? plan.rows, channels, virtualPixel, background) : step.mode === "min-intensity" || step.mode === "max-intensity" ? morphologyIntensityPixelSteps(source, step.mode === "max-intensity" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode === "max-intensity" ? "max" : "min", channels) : step.mode === "distance" ? distancePixelSteps(source, step.scale, step.reverse, channels) : plan.backgroundRows ? hitAndMissPixelSteps(source, plan.rows, plan.backgroundRows, channels) : morphologyPixelSteps(source, step.mode === "max" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode, channels, virtualPixel, background), signal);
+                source = await transformStoredMagickRaster(source, backend, step.mode === "max" && source.space !== "cmyk" && source.storedEvaluateSamples !== undefined ? maximumWorkingPixelSteps(source, plan.dilateRows ?? plan.rows, channels, virtualPixel, background) : step.mode === "min-intensity" || step.mode === "max-intensity" ? morphologyIntensityPixelSteps(source, step.mode === "max-intensity" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode === "max-intensity" ? "max" : "min", channels) : step.mode === "distance" ? distancePixelSteps(source, step.scale, step.reverse, channels) : plan.backgroundRows ? hitAndMissPixelSteps(source, plan.rows, plan.backgroundRows, channels) : morphologyPixelSteps(source, step.mode === "max" ? plan.dilateRows ?? plan.rows : plan.rows, step.mode, channels, virtualPixel, background), signal);
             images.push(source);
         }
     }
@@ -14290,7 +14291,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const statType = tokens[++i] ?? "median", geom = tokens[++i] ?? "3x3";
             const optionProperties = state.optionProperties, virtualPixel = state.virtualPixel, background = state.background;
             const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
-            const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
+            const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k ?? true] : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const context = { ...(image as StoredMagickImage)[magickInput], optionProperties };

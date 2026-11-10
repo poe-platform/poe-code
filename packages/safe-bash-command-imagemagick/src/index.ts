@@ -1476,7 +1476,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   fmt: string,
   meta: ImageMetadata & Pick<RgbaImage, "readMask" | "writeMask"> & Pick<StoredRgbaImage, "storedWriteMask">,
   getImage: () => RgbaImage,
-  context: MagickFormatContext & { analysis?: { warnings: string; errors?: string }; optionProperties?: Record<string, string> | undefined } = {},
+  context: MagickFormatContext & { analysis?: { warnings: string; errors?: string }; optionProperties?: Record<string, string> | undefined; fxStack?: readonly RgbaImage[] } = {},
   resolvePixels?: (property:string)=>Generator<Step,string,void>
 ): Generator<void|Step, string, void> {
   const filePath = context.filePath ?? "";
@@ -1654,7 +1654,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
           img ??= getImage();
           const fn = compileFxExpression(expression.slice(expression.indexOf(":") + 1));
           if (fn.needsStatistics) pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection, context.precision);
-          const ctx: FxEvalContext = { statistics, frameIndex: context.sceneIdx, stack: [{ ...img, [magickInput]: { ...img[magickInput], ...context } }], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
+          const ctx: FxEvalContext = { statistics, frameIndex: context.sceneIdx, stack: context.fxStack ?? [{ ...img, [magickInput]: { ...img[magickInput], ...context } }], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
           if (key.startsWith("fx:")) {
             parts.push(formatSignificantMetric(fn(ctx), context.precision));
           } else {
@@ -1707,14 +1707,23 @@ function* formatMagickPropertyStringSteps<Step=never>(
 }
 
 class FxPixelDemand { constructor(readonly position:number, readonly image = 0){} }
-function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,getStatistics:()=>Generator<IdentifyStep,Record<string,number>,void>,signal?:AbortSignal,context:MagickFormatContext = {}):Generator<IdentifyStep,string,void>{
- const fn=compileFxExpression(property.slice(property.indexOf(":")+1)),key=property.toLowerCase(),samples=new Map<number,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array}>();
+function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,getStatistics:()=>Generator<IdentifyStep,Record<string,number>,void>,signal?:AbortSignal,context:MagickFormatContext = {},stack?: StoredImageStack):Generator<IdentifyStep,string,void>{
+ const fn=compileFxExpression(property.slice(property.indexOf(":")+1)),key=property.toLowerCase(),samples=new Map<string,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array}>();
+ const frames = new Map<number, StoredRgbaImage>();
+ let demanded = 0;
+ const source: FxStack = { length: stack?.length ?? 1, get(index) {
+  if (!stack) return index === 0 ? {...image,[magickInput]:{...(image as StoredMagickImage)[magickInput],...context}} : undefined;
+  const frame = frames.get(index);
+  if (!frame) { demanded = index; throw new FxFrameDemand(); }
+  return frame;
+ }, indexOf(target) { for (const [index, frame] of frames) if (frame === target) return index; return 0; } };
  const statistics=fn.needsStatistics?yield*getStatistics():undefined;
- const fxContext:FxEvalContext={statistics,frameIndex:context.sceneIdx,stack:[{...image,[magickInput]:{...(image as StoredMagickImage)[magickInput],...context}}],x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
+ const fxContext:FxEvalContext={statistics,frameIndex:context.sceneIdx,stack:source,x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
   if(!target)return 0;
   const px=Math.max(0,Math.min(target.width-1,Math.round(x))),py=Math.max(0,Math.min(target.height-1,Math.round(y))),position=(py*target.width+px)*4;
   if(!Number.isFinite(position))return NaN;
-  const data=samples.get(position);if(!data)throw new FxPixelDemand(position);
+  const index = source.indexOf(target);
+  const data=samples.get(`${index}:${position}`);if(!data)throw new FxPixelDemand(position,index);
   // ImageMagick discards hidden PNG colors only when alpha is exactly zero.
   if(target.format === "png" && target.hasAlpha && (data.data16 ?? data.data)[3] === 0){
    data.data.fill(0,0,3);data.data16?.fill(0,0,3);
@@ -1731,8 +1740,11 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
   while(true){
    signal?.throwIfAborted();fxContext.vars.clear();
    try{value=fn({...fxContext,ch});break;}
-   catch(error){if(!(error instanceof FxPixelDemand))throw error;
-    yield {async run(){const data=await storage.read(image.position+error.position,4,signal?{signal}:undefined);const hue = (image as StoredRgbaImage).storedHueSamples; const floatBytes = hue === undefined ? undefined : await storage.read(hue+error.position*8,32,signal?{signal}:undefined); const original=image.storedData16 ? await storage.read(image.storedData16.position+error.position*2,8,signal?{signal}:undefined) : undefined; samples.set(error.position,{data:new Uint8Array(data),...(floatBytes?{hueSamples:new Float64Array(floatBytes.buffer.slice(floatBytes.byteOffset,floatBytes.byteOffset+32))}:{}),...(original?{data16:new Uint16Array(original.buffer.slice(original.byteOffset,original.byteOffset+8))}:{})});}};
+   catch(error){
+    if (error instanceof FxFrameDemand) { yield { async run() { frames.set(demanded, (await stack!.get(demanded))!); } }; continue; }
+    if(!(error instanceof FxPixelDemand))throw error;
+    const target = source.get(error.image) as StoredRgbaImage;
+    yield {async run(){const data=await storage.read(target.position+error.position,4,signal?{signal}:undefined);const hue = target.storedHueSamples; const floatBytes = hue === undefined ? undefined : await storage.read(hue+error.position*8,32,signal?{signal}:undefined); const original=target.storedData16 ? await storage.read(target.storedData16.position+error.position*2,8,signal?{signal}:undefined) : undefined; samples.set(`${error.image}:${error.position}`,{data:new Uint8Array(data),...(floatBytes?{hueSamples:new Float64Array(floatBytes.buffer.slice(floatBytes.byteOffset,floatBytes.byteOffset+32))}:{}),...(original?{data16:new Uint16Array(original.buffer.slice(original.byteOffset,original.byteOffset+8))}:{})});}};
    }
   }
   if(key.startsWith("fx:"))return formatSignificantMetric(value, context.precision);
@@ -1746,7 +1758,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  return channels[3]!==undefined&&channels[3]!==255?`srgba(${channels.slice(0,3).join(",")},${formatMetricNum(channels[3]/255)})`:`srgb(${channels.slice(0,3).join(",")})`;
 }
 
-async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string; errors?: string }; optionProperties?: Record<string, string> | undefined },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal):Promise<string>{
+async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string; errors?: string }; optionProperties?: Record<string, string> | undefined },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal,stack?:StoredImageStack):Promise<string>{
  let raster:IdentifyRaster|undefined,properties:Record<string,string>|undefined,hull:Record<string,string>|undefined;
  const statistics:Record<string,number>={};
  function* resolve(property:string):Generator<IdentifyStep,string,void>{
@@ -1756,7 +1768,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    yield { async run() { const scene = (metadata as MagickImage)[magickInput]?.sceneIdx ?? context.sceneIdx ?? 0; delay = await raster!.image.storedDelay?.at(scene, signal ? { signal } : undefined) ?? raster!.image.delay?.[scene] ?? 0; } };
    return String(delay);
   }
-  if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,function*(){yield*resolve("mean");return statistics;},signal,context);
+  if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,function*(){yield*resolve("mean");return statistics;},signal,context,stack);
   function* load(position:number,length:number):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array},void>{
    let chunk!: {data:Uint8Array;data16?:Uint16Array};
    yield {async run(){const {image,storage}=raster!,data=await storage.read(image.position+position,length,signal?{signal}:undefined);
@@ -3252,7 +3264,8 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void): (ctx: 
         if (name === "pi") return Math.PI;
         if (name === "e") return Math.E;
 
-        const rawIdx = imgIndex ? Math.round(imgIndex(ctx)) : name === "v" ? 1 : 0;
+        if (name === "v" && ctx.stack.length < 2) throw new FxExpressionError(`Symbol 'v' but fewer than two images at '${src}'`);
+        const rawIdx = imgIndex ? Math.round(imgIndex(ctx)) : name === "v" ? 1 : name === "u" ? 0 : ctx.frameIndex ?? 0;
         const len = Math.max(1, ctx.stack.length);
         const targetIdx = rawIdx < 0 ? ((rawIdx % len) + len) % len : rawIdx;
         if (imgIndex && (!Number.isFinite(targetIdx) || targetIdx >= ctx.stack.length)) {
@@ -10057,12 +10070,12 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             for (const [idx, im] of stack.entries()) {
                 formatted.push(histogramComment ? yield* formatHistogramOutputSteps(im) : state.formatStr !== undefined
                     ? yield* formatMagickPropertyStringSteps(state.formatStr, im, () => im, {
-                        ...(im as MagickImage)[magickInput], outputFilePath: outSpec.slice(5), analysis, sceneIdx: idx, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined
+                        ...(im as MagickImage)[magickInput], fxStack: stack, outputFilePath: outSpec.slice(5), analysis, sceneIdx: idx, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined
                     })
                     : `${im.width}x${im.height} ${im.magickColorspace ?? "sRGB"} 8-bit`);
             }
             const outText = formatted.join(state.formatStr !== undefined ? "" : "\n");
-            const result = analysis.errors || histogramInfo && state.formatStr !== undefined || outText.endsWith("\n") ? outText : `${outText}\n`;
+            const result = analysis.errors || state.formatStr !== undefined || outText.endsWith("\n") ? outText : `${outText}\n`;
             const target = outSpec.slice(5);
             if (target && target !== "-") {
                 files.set(target, new TextEncoder().encode(result));
@@ -12099,11 +12112,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal, state.inputDepth); continue; }
                     if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal); continue; }
                     if (index && state.formatStr === undefined) yield "\n";
-                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], outputFilePath: outSpec.slice(5), analysis, sceneIdx: index, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined }, async () => ({ image: frame, storage: backend.storage }), signal) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
+                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], outputFilePath: outSpec.slice(5), analysis, sceneIdx: index, sceneCount: stack.length, quality: state.quality, channelSelection: state.channelExplicit ? state.channels : undefined }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
                     if (formatted) last = formatted.at(-1)!;
                     yield formatted;
                 }
-                if (!analysis.errors && !text && !ftxt && !(histogramInfo && state.formatStr !== undefined) && last !== "\n") yield "\n";
+                if (!analysis.errors && !text && !ftxt && state.formatStr === undefined && last !== "\n") yield "\n";
             }
             try {
                 const parts = info || text || ftxt ? information() : storedHistogram(image, backend.storage, signal);

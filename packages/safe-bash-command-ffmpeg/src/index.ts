@@ -2677,6 +2677,7 @@ async function applyVideoFilterChain(
         };
       }, signal);
     } else if (name === "hflip" || name === "vflip") {
+      if (positional.at(-1) === "") positional.pop();
       if (argStr && positional.some(part => part.slice(0, part.indexOf("=")).trim() !== "enable" || !part.includes("="))) {
         throw new Error(`${name}: unsupported option`);
       }
@@ -2713,6 +2714,7 @@ async function applyVideoFilterChain(
         return { ...f, data: out.data };
       }, signal);
     } else if (name === "transpose") {
+      if (positional.at(-1) === "") positional.pop();
       let direction = "0";
       let passthrough = "none";
       for (const [index, part] of (argStr ? positional : []).entries()) {

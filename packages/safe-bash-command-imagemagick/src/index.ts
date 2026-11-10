@@ -2175,6 +2175,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     if (sw === 0 && sh === 0) return img;
     const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
     const data16 = img.data16 ? new Uint16Array(out.length) : undefined;
+    const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
     const hueSamples = img.hueSamples ? new Float64Array(out.length) : undefined;
     if (img.space === "cmyk") {
         // Native CMYK canvas fills convert linear RGB background values to inks.
@@ -2199,6 +2200,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                 out[dstIdx + 2] = unset ? 0 : Math.round(bg.b);
                 out[dstIdx + 3] = unset ? img.hasAlpha || bg.a < 255 ? 0 : 255 : Math.round(bg.a);
                 if (data16) data16.set(unset ? [0, 0, 0, out[dstIdx + 3]! * 257] : background, dstIdx);
+                if (evaluateSamples) evaluateSamples.set(unset ? [0, 0, 0, out[dstIdx + 3]!] : [bg.r, bg.g, bg.b, bg.a], dstIdx);
                 // The fourth CMYK working sample is black ink, not alpha.
                 if (hueSamples) hueSamples.set(unset ? [0, 0, 0, img.space === "cmyk" ? 0 : out[dstIdx + 3]! / 255] : workingBackground, dstIdx);
             }
@@ -2211,6 +2213,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                     const color = virtualPixel === "background" || virtualPixel.endsWith("-tile")
                         ? [bg.r, bg.g, bg.b, bg.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
                     out.set(color.map(Math.round), dstIdx);
+                    if (evaluateSamples) evaluateSamples.set(color, dstIdx);
                     if (data16) data16.set(color.map(value => Math.round(value * 257)), dstIdx);
                     if (hueSamples) hueSamples.set(color.map(value => value / 255), dstIdx);
                     continue;
@@ -2219,13 +2222,14 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                 out[dstIdx + 1] = img.data[srcIdx + 1]!;
                 out[dstIdx + 2] = img.data[srcIdx + 2]!;
                 out[dstIdx + 3] = img.data[srcIdx + 3]!;
+                if (evaluateSamples) evaluateSamples.set(img.evaluateSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
                 if (data16) data16.set(img.data16!.subarray(srcIdx, srcIdx + 4), dstIdx);
                 if (hueSamples) hueSamples.set(img.hueSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
             }
         }
     }
     if (img.writeMask) img = { ...img, writeMask: yield* applyMagickSpliceSteps(img.writeMask, geomStr, { r: 0, g: 0, b: 0, a: 255 }, gravity, signal, virtualPixel) };
-    return { ...img, width: outW, height: outH, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
+    return { ...img, width: outW, height: outH, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
 }
 
 function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition = "northwest", signal?: AbortSignal, analysis?: { warnings: string }): Generator<void, RgbaImage, void> {

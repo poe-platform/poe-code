@@ -10983,6 +10983,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     if (dispose) frames.push({ ...first, width, height, data: canvas.data, hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 } });
                 }
                 stack = frames;
+            } else if (optimize) {
+                stack = stack.map(frame => ({ ...frame, disposal: frame.disposal || 1 }));
             }
         }
         else if (t === "-splice") {
@@ -12059,6 +12061,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     (frame.virtualCanvas?.height || frame.height) !== frame.height ||
                     frame.virtualCanvas?.x || frame.virtualCanvas?.y) throw new Error("image pages are not coalesced");
             }
+            stack = stack.map(frame => ({ ...frame, disposal: frame.disposal || 1 }));
             state.optimizeLayers = true; i++;
         }
         else if (t === "-flatten" || t === "-mosaic" || (t === "-layers" && ["flatten", "merge", "mosaic"].includes(layerMethod))) {
@@ -13638,6 +13641,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         (frame.virtualCanvas?.width || frame.width) !== frame.width ||
                         (frame.virtualCanvas?.height || frame.height) !== frame.height ||
                         frame.virtualCanvas?.x || frame.virtualCanvas?.y) throw new Error("image pages are not coalesced");
+                    await stack.set(n, { ...frame, disposal: frame.disposal || 1 });
                 }
                 return stack;
             });
@@ -14001,7 +14005,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         const frame = (await stack.get(n))!;
                         if (frame.width !== width || frame.height !== height || frame.virtualCanvas?.x || frame.virtualCanvas?.y) { coalesced = false; break; }
                     }
-                    if (coalesced) return stack;
+                    if (coalesced) {
+                        for (let n = 0; n < stack.length; n++) {
+                            const frame = (await stack.get(n))!;
+                            await stack.set(n, { ...frame, disposal: frame.disposal || 1 });
+                        }
+                        return stack;
+                    }
                 }
                 const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: dispose || first.hasAlpha ? 0 : 255 };
                 let canvas = await createStoredCanvas(width, height, background, backend, signal);

@@ -5,7 +5,7 @@ import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 const input = spawnSync("magick", ["-size", "2x1", "-depth", "8", "rgba:-", "PNG32:-"], { input: Buffer.from("12345680abcdef40", "hex") }).stdout;
-const cases = { rgb: "123456abcdef", rgba: "12345680abcdef40", bgr: "563412efcdab", gray: "2fc8" };
+const cases = { rgb: "123456abcdef", rgba: "12345680abcdef40", bgr: "563412efcdab", gray: "2fc8", graya: "2f80c840" };
 for (const [coder, hex] of Object.entries(cases)) {
     it(`${coder}: agrees with native raw bytes`, () => {
         const native = spawnSync("magick", ["png:-", `${coder}:-`], { input });
@@ -47,7 +47,7 @@ it("streams raw bytes through the command stdout", async () => {
 });
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
-    it.each(["rgb", "rgba", "bgr", "gray"])(`${mode}: preserves 16-bit %s samples`, async coder => {
+    it.each(["rgb", "rgba", "bgr", "gray", "graya"])(`${mode}: preserves 16-bit %s samples`, async coder => {
         const png = spawnSync("magick", ["-size", "1x1", "-depth", "16", "-endian", "MSB", "rgba:-", "PNG64:-"], { input: Buffer.from("123456789abcdef0", "hex") }).stdout;
         const expected = spawnSync("magick", ["png:-", `${coder}:-`], { input: png }).stdout;
         const files = new Map([["in.png", new Uint8Array(png)]]), fs = new MemoryFileSystem();

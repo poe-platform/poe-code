@@ -5,7 +5,7 @@ import { rgbToCmyk } from "./colorspace-cmyk.js";
 export type RawImage = RgbaImage & { rawFrames?: readonly RgbaImage[] };
 export type StoredRawImage = StoredRgbaImage & { rawFrames?: { length: number; at(index: number): Promise<StoredRgbaImage> } };
 
-export type RawCoder = "rgb" | "rgba" | "bgr" | "bgra" | "gray" | "cmyk" | "cmyka";
+export type RawCoder = "rgb" | "rgba" | "bgr" | "bgra" | "gray" | "graya" | "cmyk" | "cmyka";
 export type ImageFormat = RasterFormat | RawCoder;
 export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | "partition" | undefined; endian?: string | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
 
@@ -26,7 +26,7 @@ function* webpTargetQualities(options: OutputEncodeOptions): Generator<number, n
     return best;
 }
 export function isRawCoder(format: string | undefined): format is RawCoder {
-    return format === "rgb" || format === "rgba" || format === "bgr" || format === "bgra" || format === "gray" || format === "cmyk" || format === "cmyka";
+    return format === "rgb" || format === "rgba" || format === "bgr" || format === "bgra" || format === "gray" || format === "graya" || format === "cmyk" || format === "cmyka";
 }
 
 export function encodeImage(image: RawImage, options: OutputEncodeOptions): ReturnType<typeof encodeRaster> {
@@ -58,7 +58,7 @@ export function encodeImage(image: RawImage, options: OutputEncodeOptions): Retu
         }
         return encoded;
     }
-    const channels = format === "gray" ? 1 : (format.startsWith("cmyk") ? 4 : 3) + (format.endsWith("a") ? 1 : 0);
+    const channels = (format.startsWith("gray") ? 1 : format.startsWith("cmyk") ? 4 : 3) + (format.endsWith("a") ? 1 : 0);
     const selectedChannels = Array.from({ length: channels }, (_, channel) => channel);
     if (!image.rawFrames) return { data: encodeRawPixels(image, options, selectedChannels), format: "raw", channels };
     const frames = options.rawInterlace === "partition"
@@ -84,12 +84,12 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
         for (let c = 0; c < channels.length; c++) {
             const channel = channels[c]!;
             // Native BGR/BGRA Plane output uses RGB order, unlike packed and Line output.
-            const index = format.startsWith("bgr") && options.rawInterlace !== "plane" && channel < 3 ? 2 - channel : channel;
+            const index = format === "graya" && channel === 1 ? 3 : format.startsWith("bgr") && options.rawInterlace !== "plane" && channel < 3 ? 2 - channel : channel;
             const value = inks
                 ? channel < 4 ? Math.max(0, Math.min(1, inks[channel]!)) * scale : image.hasAlpha ? samples[pixel * 4 + 3]! : scale
-                : format === "gray"
+                : format.startsWith("gray") && channel === 0
                 ? 0.212656 * samples[pixel * 4]! + 0.715158 * samples[pixel * 4 + 1]! + 0.072186 * samples[pixel * 4 + 2]!
-                : channel === 3 && !image.hasAlpha ? scale : samples[pixel * 4 + index]!;
+                : index === 3 && !image.hasAlpha ? scale : samples[pixel * 4 + index]!;
             const quantum = Math.round(value * maximum / scale);
             const sample = (options.rawInterlace === "plane" || options.rawInterlace === "partition") ? c * pixels + pixel
                 : options.rawInterlace === "line" ? Math.floor(pixel / image.width) * image.width * channels.length + c * image.width + pixel % image.width
@@ -141,7 +141,7 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
         return { ...info!, size };
     }
     let size = 0;
-    const channels = options.format === "gray" ? 1 : (options.format.startsWith("cmyk") ? 4 : 3) + (options.format.endsWith("a") ? 1 : 0);
+    const channels = (options.format.startsWith("gray") ? 1 : options.format.startsWith("cmyk") ? 4 : 3) + (options.format.endsWith("a") ? 1 : 0);
     const packedChannels = Array.from({ length: channels }, (_, channel) => channel);
     const rawFrames = image.rawFrames;
     for (let plane = 0; plane < (rawFrames ? channels : 1); plane++) {

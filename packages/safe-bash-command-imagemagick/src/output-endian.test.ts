@@ -5,7 +5,7 @@ import { runConvertCli, runConvertCliSync } from "./index.js";
 
 const input = spawnSync("magick", ["-size", "2x1", "-depth", "16", "-endian", "MSB", "rgb:-", "PNG48:-"], { input: Buffer.from("1234456789abcdef13792468", "hex") }).stdout;
 for (const mode of ["buffered", "retained", "sync"] as const) {
-    for (const coder of ["rgb", "rgba", "bgr", "bgra", "gray", "ppm", "png"]) {
+    for (const coder of ["rgb", "rgba", "bgr", "bgra", "gray", "graya", "ppm", "png"]) {
         for (const endian of ["MSB", "LSB", "Undefined"]) {
             it(`${mode}: ${coder} ${endian} matches native bytes`, async () => {
                 const options = ["-depth", "16", "-endian", endian];

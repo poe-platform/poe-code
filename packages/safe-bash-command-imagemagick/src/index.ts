@@ -9451,6 +9451,50 @@ async function prepareStoredIcoPages(stack: StoredImageStack, image: StoredRgbaI
     } } };
 }
 
+// Work backwards so every comparison sees the original full-canvas predecessor.
+// Clearing/restoring frames keep their disposal-dependent encoder optimization.
+function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number): Generator<void, void, void> {
+    for (let n = stack.length - 1; n > 0; n--) {
+        const current = stack[n]!, previous = stack[n - 1]!;
+        if ((typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
+            (typeof previous.disposal === "number" ? previous.disposal : 0) > 1) continue;
+        const bounds = compareLayerBounds(previous, current, fuzz, "compareany");
+        let next = bounds.next();
+        while (!next.done) {
+            if (!next.value) { yield; next = bounds.next(); }
+            else {
+                const { image, position, length } = next.value;
+                next = bounds.next((image ? current : previous).data.subarray(position, position + length));
+            }
+        }
+        const area = next.value ?? { left: 0, top: 0, width: 1, height: 1 };
+        if (area.width !== current.width || area.height !== current.height) {
+            stack[n] = { ...yield* extractImageSteps(current, area), virtualCanvas: magickCropCanvas(current, area.left, area.top) };
+        }
+    }
+}
+
+async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: CompareFileSession, signal: AbortSignal, fuzz: number): Promise<void> {
+    for (let n = stack.length - 1; n > 0; n--) {
+        const current = (await stack.get(n))!, previous = (await stack.get(n - 1))!;
+        if ((typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
+            (typeof previous.disposal === "number" ? previous.disposal : 0) > 1) continue;
+        const bounds = compareLayerBounds(previous, current, fuzz, "compareany");
+        let next = bounds.next();
+        while (!next.done) {
+            if (!next.value) { await yieldTurn(signal); next = bounds.next(); }
+            else {
+                const { image, position, length } = next.value;
+                next = bounds.next(await backend.storage.read((image ? current : previous).position + position, length));
+            }
+        }
+        const area = next.value ?? { left: 0, top: 0, width: 1, height: 1 };
+        if (area.width !== current.width || area.height !== current.height) {
+            await stack.set(n, { ...await transformStoredImage(current, backend.storage, { kind: "extract", ...area }, signal), virtualCanvas: magickCropCanvas(current, area.left, area.top) });
+        }
+    }
+}
+
 function* prepareGifFrames(stack: readonly MagickImage[], dither: MagickState["dither"] = false, diffusionAmount = 1, format: ImageFormat = "gif"): Generator<void, RgbaImage> {
     let cooperativeWork = 0;
     let fw = 0, fh = 0;
@@ -10983,6 +11027,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             } else if (optimize) {
                 stack = stack.map(frame => ({ ...frame, disposal: frame.disposal || 1 }));
             }
+            if (optimize) yield* optimizeFrameRectanglesSteps(stack, state.alphaFuzz);
         }
         else if (t === "-splice") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
@@ -12059,6 +12104,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     frame.virtualCanvas?.x || frame.virtualCanvas?.y) throw new Error("image pages are not coalesced");
             }
             stack = stack.map(frame => ({ ...frame, disposal: frame.disposal || 1 }));
+            yield* optimizeFrameRectanglesSteps(stack, state.alphaFuzz);
             state.optimizeLayers = true; i++;
         }
         else if (t === "-flatten" || t === "-mosaic" || (t === "-layers" && ["flatten", "merge", "mosaic"].includes(layerMethod))) {
@@ -13630,7 +13676,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-layers" && layerMethod === "optimizeframe") {
-            stackStep(async stack => {
+            const fuzz = state.alphaFuzz;
+            stackStep(async (stack, backend) => {
                 const first = await stack.get(0);
                 for (let n = 0; n < stack.length; n++) {
                     const frame = (await stack.get(n))!;
@@ -13640,6 +13687,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         frame.virtualCanvas?.x || frame.virtualCanvas?.y) throw new Error("image pages are not coalesced");
                     await stack.set(n, { ...frame, disposal: frame.disposal || 1 });
                 }
+                await optimizeStoredFrameRectangles(stack, backend, signal, fuzz);
                 return stack;
             });
             state.optimizeLayers = true; i++; continue;
@@ -13991,6 +14039,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && (token === "-coalesce" || (token === "-layers" && ["coalesce", "dispose", "optimize"].includes(layerMethod)))) {
             const dispose = token === "-layers" && layerMethod === "dispose";
             const optimize = token === "-layers" && layerMethod === "optimize";
+            const fuzz = state.alphaFuzz;
             if (optimize) state.optimizeLayers = true;
             if (token === "-layers") i++;
             stackStep(async (stack, backend) => {
@@ -14007,6 +14056,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             const frame = (await stack.get(n))!;
                             await stack.set(n, { ...frame, disposal: frame.disposal || 1 });
                         }
+                        await optimizeStoredFrameRectangles(stack, backend, signal, fuzz);
                         return stack;
                     }
                 }
@@ -14041,6 +14091,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     if (dispose) await frames.push({ ...first, width, height, position: canvas.position, ...(canvas.storedData16 ? { storedData16: canvas.storedData16 } : {}), ...(canvas.storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples: canvas.storedEvaluateSamples }), hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 } });
                 }
+                if (optimize) await optimizeStoredFrameRectangles(frames, backend, signal, fuzz);
                 return frames;
             });
             continue;

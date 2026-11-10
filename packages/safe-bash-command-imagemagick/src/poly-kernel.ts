@@ -16,7 +16,7 @@ export function parseMagickPoly(value: string): number[] {
             } else {
                 // Signs start the next term unless they belong to an exponent.
                 const sign = (character === "+" || character === "-") && !field.endsWith("e") && !field.endsWith("E");
-                const decimal = character === "." && (field.includes(".") || field.includes("e") || field.includes("E"));
+                const decimal = character === "." && (field.includes(".") || field.includes("e") || field.includes("E") || field.toLowerCase().includes("0x"));
                 if (field && (sign || decimal)) {
                     fields.push(field);
                     field = "";

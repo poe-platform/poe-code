@@ -8870,6 +8870,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             }
         }
         const [red = 1, green = red, blue = red, black = red] = percentages.map(percent => percent / 100);
+        const alpha = (percentages[3] ?? 0) / 100;
         const blend = [red, green, blue, black];
         const fill = [state.fill.r, state.fill.g, state.fill.b, 0];
         const mask = [state.channels.r, state.channels.g, state.channels.b, state.channels.k];
@@ -8902,6 +8903,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     evaluateSamples![idx + channel] = sample * 255;
                     if (data16) data16[idx + channel] = Math.round(Math.max(0, Math.min(65535, sample * 65535)));
                     out[idx + channel] = clampByteVal(sample * 255);
+                }
+                // CMYK stores black in hueSamples[3]; opacity stays in the RGBA backing.
+                if (evaluateSamples && state.channels.a && image.hasAlpha && alpha !== 0) {
+                    const source = evaluateSamples[idx + 3]!;
+                    const sample = Math.fround((source + (state.fill.a - source) * alpha) * 257) / 257;
+                    evaluateSamples[idx + 3] = sample;
+                    if (data16) data16[idx + 3] = Math.round(Math.max(0, Math.min(65535, sample * 257)));
+                    out[idx + 3] = clampByteVal(sample);
                 }
             }
             return { ...image, isPalette: false, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(hueSamples ? { hueSamples } : { evaluateSamples: samples }) };

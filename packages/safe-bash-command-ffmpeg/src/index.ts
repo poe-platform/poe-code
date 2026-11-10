@@ -3481,9 +3481,9 @@ async function applyVideoFilterChain(
       current = await mapWork(current, async (f, n) => {
         const source = f.native;
         const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
-          [0, 4, 5, 12, 13, 14].includes(source.format) ? source : undefined;
+          [0, 4, 5, 12, 13, 14, 29].includes(source.format) ? source : undefined;
         const gray = pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "gray16be" || pixelFormat === "ya8";
-        const available = planar ? 0x70 : gray ? (pixelFormat === "ya8" ? 0x18 : 0x10) :
+        const available = planar ? (planar.format === 29 ? 0x10 : 0x70) : gray ? (pixelFormat === "ya8" ? 0x18 : 0x10) :
           pixelFormat === "rgb24" || pixelFormat === "bgr24" || pixelFormat === "gbrp" ? 0x07 : 0x0f;
         while (nextCommand < commands.length && commands[nextCommand]!.time <= f.ptsSeconds) {
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
@@ -3507,13 +3507,15 @@ async function applyVideoFilterChain(
         if (named.enable !== undefined && !(Math.abs(parseFilterExpression(named.enable, "negate enable", {
           n, t: f.ptsSeconds, w: f.width, h: f.height, pos: f.offset ?? NaN, NAN: NaN, INF: Infinity
         })) >= 0.5)) return f;
-        // Negate planar 8-bit YUV before RGB conversion, including full-range YUV.
+        if (selected === 0) return f;
+        // Invert retained grayscale or YUV bytes before RGB conversion. Complementing
+        // both bytes of a gray16 sample is exactly 65535 minus the original value.
         if (planar) {
-          const lumaSize = f.width * f.height;
+          const lumaSize = f.width * f.height * (planar.format === 29 ? 2 : 1);
           const chromaSize = Math.ceil(f.width / ([5, 14].includes(planar.format) ? 1 : 2)) *
             Math.ceil(f.height / ([0, 12].includes(planar.format) ? 2 : 1));
           const pixels = new Uint8Array(planar.pixels);
-          for (let plane = 0; plane < 3; plane++) {
+          for (let plane = 0; plane < (planar.format === 29 ? 1 : 3); plane++) {
             if (!(selected & (1 << (4 + plane)))) continue;
             const start = plane === 0 ? 0 : lumaSize + (plane - 1) * chromaSize;
             const end = start + (plane === 0 ? lumaSize : chromaSize);

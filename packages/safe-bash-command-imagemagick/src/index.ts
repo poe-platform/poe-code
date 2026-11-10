@@ -11873,10 +11873,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-sketch") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const raw = tokens[++i] ?? "0x1";
-            validateMagickTransformGeometry(raw, "-sketch");
-            const geometry = parseMagickGeometry(raw), seed = state.seed ?? 0n;
+            const raw = tokens[++i] ?? "0x1", seed = state.seed ?? 0n;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                validateMagickTransformGeometry(expanded, "-sketch");
+                const geometry = parseMagickGeometry(expanded);
                 return yield* applyMagickRasterSteps(im, sketchPixelSteps(im, geometry, seed), signal);
             });
         }
@@ -15216,10 +15217,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const raw = tokens[++i] ?? "0x1";
-            validateMagickTransformGeometry(raw, "-sketch");
-            const geometry = parseMagickGeometry(raw), seed = state.seed ?? 0n;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, sketchPixelSteps(image, geometry, seed), signal) : undefined);
+            const raw = tokens[++i] ?? "0x1", seed = state.seed ?? 0n, optionProperties = state.optionProperties;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                validateMagickTransformGeometry(expanded, "-sketch");
+                const geometry = parseMagickGeometry(expanded);
+                return transformStoredMagickRaster(image, backend, sketchPixelSteps(image, geometry, seed), signal);
+            });
         } else if (!operandsOnly && token === "-edge") {
             const argument = tokens[++i] ?? "", radius = Number(argument);
             if (!argument.trim() || !Number.isFinite(radius)) throw new Error(`invalid argument for option '-edge': ${argument}`);

@@ -11357,7 +11357,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else {
-            if ((t.startsWith("-") && t !== "-") || t.startsWith("+")) throw new Error(`unrecognized option '${t}'`);
+            if ((t.startsWith("-") && t !== "-") || t.startsWith("+")) throw new UnrecognizedConvertOptionError(`unrecognized option '${t}'`);
             const isLabelOperand = /^(?:label|caption):/i.test(t);
             const mergeOntoCanvas = isLabelOperand && stack.length === 1 && state.hasSize && stack[0]!.width === state.sizeWidth && stack[0]!.height === state.sizeHeight && state.background.r === 255 && state.background.g === 255 && state.background.b === 255 && state.background.a === 255;
             const prevBg = state.background;
@@ -11382,6 +11382,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
     }
     return stack;
 }
+
+class UnrecognizedConvertOptionError extends Error {}
 
 function createConvertAnalysis() {
     let warnings = "";
@@ -11556,7 +11558,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
     }
     catch (err) {
         return {
-            exitCode: 1,
+            exitCode: err instanceof UnrecognizedConvertOptionError ? 11 : 1,
             stdout: "",
             stderr: `magick: ${(err as Error).message}\n`
         };
@@ -13852,7 +13854,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else {
             if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+"))) {
                 // Execute preceding writes before reporting the option error.
-                stackStep(async () => { throw new Error(`unrecognized option '${token}'`); });
+                stackStep(async () => { throw new UnrecognizedConvertOptionError(`unrecognized option '${token}'`); });
                 break;
             }
             if (!operandsOnly && (token === "(" || token === ")")) continue;
@@ -13905,7 +13907,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             signal.throwIfAborted();
             if (error instanceof CompareInputFailure) throw error.reason;
             await backend.publishPending();
-            return { exitCode: 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` };
+            return { exitCode: error instanceof UnrecognizedConvertOptionError ? 11 : 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` };
         }
         if (!image) { await backend.publishPending(); return { exitCode: 1, stdout: "", stderr: `magick: no images defined '${outSpec}'\n` }; }
         await yieldTurn(signal);

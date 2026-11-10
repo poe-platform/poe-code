@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import sharp from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli } from "./index.js";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 for (const retained of [false, true]) {
     for (const option of ["-unknown-thing", "+unknown-thing"]) {
@@ -14,7 +14,7 @@ for (const retained of [false, true]) {
                 await filesystem.writeFile("/out.png", bytes);
             }
             const result = await runConvertCli(["input.png", option, "value", "out.png"], retained ? { filesystem, cwd: "/" } : files);
-            expect(result.exitCode).not.toBe(0);
+            expect(result.exitCode).toBe(11);
             expect(result.stderr).toContain(`unrecognized option '${option}'`);
             expect(result.stdout).toBe("");
             expect(result.stdoutBytes).toBeUndefined();
@@ -34,4 +34,29 @@ for (const retained of [false, true]) {
         expect(result.exitCode).toBe(0);
         expect(result.stderr).toBe("");
     });
+}
+
+for (const mode of ["buffered", "sync", "retained", "command"] as const) {
+    for (const output of ["rgb:out", "info:out"]) {
+        it.each(["-minify", "-not-a-real-option", "-magnify"])(`matches native conversion status and output for %s (${mode}, ${output})`, async option => {
+            const original = new TextEncoder().encode("KEEP");
+            const files = new Map([["out", original]]), filesystem = new MemoryFileSystem();
+            await filesystem.writeFile("/out", original);
+            const args = ["xc:red", option, "-depth", "8", ...(output === "info:out" ? ["-format", "%w,%h"] : []), output];
+            let stdout = "", stderr = "";
+            const result = mode === "command" ? { ...await createMagickCommand().execute({
+                command: "magick", args, cwd: "/", env: {}, fs: filesystem, signal: new AbortController().signal,
+                stdin: (async function* () {})(),
+                stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+                stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+            }), stdout, stderr } : mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "buffered" ? files : { filesystem, cwd: "/" });
+            const success = option === "-magnify";
+            expect(result.exitCode).toBe(success ? 0 : 11);
+            expect(result.stdout).toBe("");
+            if (success) expect(result.stderr).toBe("");
+            else expect(result.stderr).toContain(`unrecognized option '${option}'`);
+            const expected = success ? output === "rgb:out" ? Uint8Array.of(255, 0, 0, 255, 0, 0, 255, 0, 0, 255, 0, 0) : new TextEncoder().encode("2,2") : original;
+            expect(mode === "buffered" || mode === "sync" ? files.get("out") : await filesystem.readFile("/out")).toEqual(expected);
+        });
+    }
 }

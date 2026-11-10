@@ -15,7 +15,7 @@ it.each(["buffered", "sync", "retained", "command"] as const)("preserves complet
         stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
         stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
     }), stdout, stderr } : mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
-    expect(result.exitCode).toBe(1);
+    expect(result.exitCode).toBe(11);
     expect(result.stdout).toBe("");
     expect(result.stderr).toContain("unrecognized option '-invalid'");
     const buffered = mode === "buffered" || mode === "sync";

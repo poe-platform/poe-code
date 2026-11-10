@@ -3,8 +3,9 @@ import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
-export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { inactiveAlpha?: boolean | undefined }, geometry: { width?: number; height?: number; x?: number }, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined }, geometry: { width?: number; height?: number; x?: number }, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk";
+    const alphaActive = image.hasAlpha || image.alphaBlend !== false;
     const highDepth = !!(image.data16 || image.storedData16);
     const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
     const scale = !evaluate && highDepth ? 257 : 1;
@@ -76,14 +77,15 @@ export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" 
                     const sample = new Float64Array(bytes.slice().buffer);
                     pixel = [sample[0]! * 255 * scale, sample[1]! * 255 * scale, sample[2]! * 255 * scale, pixel[3]!, sample[3]! * 255 * scale];
                 }
-                if (cmyk) sums[4]! += pixel[4]! * pixel[3]! * weights[j]!;
-                for (let c = 0; c < 3; c++) sums[c]! += pixel[c]! * pixel[3]! * weights[j]!;
+                const alpha = alphaActive ? pixel[3]! : 1;
+                if (cmyk) sums[4]! += pixel[4]! * alpha * weights[j]!;
+                for (let c = 0; c < 3; c++) sums[c]! += pixel[c]! * alpha * weights[j]!;
                 sums[3]! += pixel[3]! * weights[j]!;
             }
             // Q16-HDRI retains float32 quantum samples until output encoding.
             // Inactive alpha still weights colors, but its original samples are retained.
             for (let c = 0; c < (cmyk ? 5 : 4); c++) if ((!mask || mask[c]) && !(c === 3 && image.inactiveAlpha)) {
-                const value = Math.fround((c === 3 ? sums[3]! : sums[3] ? sums[c]! / sums[3] : 0) * 257 / scale) / 257;
+                const value = Math.fround((c === 3 ? sums[3]! : !alphaActive ? sums[c]! : sums[3] ? sums[c]! / sums[3] : 0) * 257 / scale) / 257;
                 if (inks && c !== 3) inks[i * 4 + (c === 4 ? 3 : c)] = value / 255;
                 else data[i * 4 + c] = value;
             }

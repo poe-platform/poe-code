@@ -2163,8 +2163,10 @@ async function applyVideoFilterChain(
       }, signal);
     } else if (name === "metadata") {
       const mode = named.mode ?? positional[0];
+      if (positional[1] !== undefined && !positional[1].includes("=")) named.key ??= positional[1];
       if ((mode !== "add" && mode !== "print" && mode !== "delete" && mode !== "4") || Object.keys(named).some(key => key !== "mode" && key !== "key" && !(mode === "add" && key === "value")) ||
-          positional.some((part, index) => index > 0 && !part.includes("="))) {
+          positional.some((part, index) => !part.includes("=") &&
+            (index > 1 || index === 1 && positional[0]!.includes("=")))) {
         throw new Error("metadata: unsupported mode or option");
       }
       if (mode === "delete") {

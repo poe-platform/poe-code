@@ -10114,7 +10114,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (precision === "float" || precision === "1") filteredSampleFormat = "flt";
                             else if (precision === "double" || precision === "2") filteredSampleFormat = "dbl";
                           }
-                          if (filteredSampleFormat === "u8") filteredSampleFormat = "s16";
+                          if (filteredSampleFormat === "u8" || filteredSampleFormat === "u8p") filteredSampleFormat = "s16";
+                          // Echo supports planar formats for both input and drained frames.
+                          if (!filteredSampleFormat.endsWith("p")) filteredSampleFormat += "p";
                           stretched = await echoAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal, async message => {
                             if (logLevel >= 24) await writeBytes(context.stderr, encodeUtf8(message), context.signal);
                           });

@@ -132,7 +132,8 @@ export function* formatTrimBoundsSteps<Step = never>(
         : `${area.width}x${area.height}+${area.left}+${area.top}`;
 }
 
-function emptyTrimPixel(image: RgbaImage | StoredRgbaImage): Uint8Array {
+function emptyTrimPixel(image: RgbaImage | StoredRgbaImage, background?: RgbaColor): Uint8Array {
+    if (background) return new Uint8Array([background.r, background.g, background.b, 0]);
     // Native PNG reading leaves sub-byte grayscale bKGD samples unscaled.
     const value = image.format === "png" && image.space === "b-w" && image.backgroundColor && (image.bitsPerSample ?? 8) < 8
         ? Math.round(image.backgroundColor.b * (2 ** image.bitsPerSample! - 1) / 255)
@@ -140,7 +141,7 @@ function emptyTrimPixel(image: RgbaImage | StoredRgbaImage): Uint8Array {
     return new Uint8Array([value, value, value, 0]);
 }
 
-export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor): Generator<void, RgbaImage, void> {
+export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor, emptyBackground?: RgbaColor): Generator<void, RgbaImage, void> {
     if (image.width === 1 && image.height === 1) return image;
     const pixels = image.evaluateSamples ?? image.data16 ?? image.data;
     const steps = trimBounds(image.width, image.height, fuzz, image.evaluateSamples ? 1 : image.data16 ? 257 : 1, edges, percentBackground, background);
@@ -174,11 +175,11 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
     if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
     // ImageMagick represents an empty trim with one transparent background pixel.
     const { data16: ignored, evaluateSamples: ignoredSamples, ...metadata } = image;
-    return { ...metadata, width: 1, height: 1, data: emptyTrimPixel(image), channels: 4, hasAlpha: true,
+    return { ...metadata, width: 1, height: 1, data: emptyTrimPixel(image, emptyBackground), channels: 4, hasAlpha: true,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }
 
-export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor): Promise<StoredRgbaImage> {
+export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor, emptyBackground?: RgbaColor): Promise<StoredRgbaImage> {
     if (image.width === 1 && image.height === 1) return image;
     const sampleBytes = image.storedEvaluateSamples !== undefined ? 8 : image.storedData16 ? 2 : 1;
     const position = image.storedEvaluateSamples ?? image.storedData16?.position ?? image.position;
@@ -205,7 +206,7 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     }
     if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
     const emptyPosition = storage.allocate(4);
-    await storage.write(emptyPosition, emptyTrimPixel(image), { signal });
+    await storage.write(emptyPosition, emptyTrimPixel(image, emptyBackground), { signal });
     const { storedData16: ignored, storedEvaluateSamples: ignoredSamples, ...metadata } = image;
     return { ...metadata, width: 1, height: 1, position: emptyPosition, channels: 4, hasAlpha: true,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };

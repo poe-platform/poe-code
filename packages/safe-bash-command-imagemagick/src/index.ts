@@ -10703,7 +10703,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-trim") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* trimMagickSteps(im, state.alphaFuzz, state.trimEdges, state.trimMinSize, state.trimPercentBackground, analysis, state.trimBackgroundColor));
+                return (yield* trimMagickSteps(im, state.alphaFuzz, state.trimEdges, state.trimMinSize, state.trimPercentBackground, analysis, state.trimBackgroundColor, state.backgroundExplicit ? state.background : undefined));
             }));
         }
         else if (t === "-rotate") {
@@ -13691,7 +13691,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const fuzz = state.alphaFuzz, edges = state.trimEdges, minSize = state.trimMinSize, percentBackground = state.trimPercentBackground, background = state.trimBackgroundColor;
-            steps.push(async (image, backend) => image ? trimStoredMagick(image, backend.storage, fuzz, signal, edges, minSize, percentBackground, analysis, background) : undefined);
+            const emptyBackground = state.backgroundExplicit ? state.background : undefined;
+            steps.push(async (image, backend) => image ? trimStoredMagick(image, backend.storage, fuzz, signal, edges, minSize, percentBackground, analysis, background, emptyBackground) : undefined);
         } else if (!operandsOnly && token === "-despeckle") {
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, despecklePixelSteps(image, channels), signal) : undefined);

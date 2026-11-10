@@ -10000,7 +10000,8 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number): Genera
             if (!next.value) { yield; next = bounds.next(); }
             else {
                 const { image, position, length } = next.value;
-                next = bounds.next((image ? current : previous).data.subarray(position, position + length));
+                const source = image ? current : previous;
+                next = bounds.next((source.data16 ?? source.data).subarray(position, position + length));
             }
         }
         const area = next.value ?? { left: 0, top: 0, width: 1, height: 1 };
@@ -10021,7 +10022,11 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
             if (!next.value) { await yieldTurn(signal); next = bounds.next(); }
             else {
                 const { image, position, length } = next.value;
-                next = bounds.next(await backend.storage.read((image ? current : previous).position + position, length));
+                const source = image ? current : previous;
+                const data = source.storedData16
+                    ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
+                    : await backend.storage.read(source.position + position, length);
+                next = bounds.next(data);
             }
         }
         const area = next.value ?? { left: 0, top: 0, width: 1, height: 1 };
@@ -11605,7 +11610,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         if (!clear.value) { yield; clear = clearing.next(); }
                         else {
                             const { image, position, length } = clear.value;
-                            clear = clearing.next((image ? current : previous).data.subarray(position, position + length));
+                            const source = image ? current : previous;
+                            clear = clearing.next((source.data16 ?? source.data).subarray(position, position + length));
                         }
                     }
                     if (clear.value) {
@@ -11626,7 +11632,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     if (!next.value) { yield; next = bounds.next(); }
                     else {
                         const { image, position, length } = next.value;
-                        next = bounds.next((image ? current : previous).data.subarray(position, position + length));
+                        const source = image ? current : previous;
+                        next = bounds.next((source.data16 ?? source.data).subarray(position, position + length));
                     }
                 }
                 if (removeDups) {
@@ -14910,7 +14917,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             if (!clear.value) { await yieldTurn(signal); clear = clearing.next(); }
                             else {
                                 const { image, position, length } = clear.value;
-                                clear = clearing.next(await backend.storage.read((image ? current : previous!).position + position, length));
+                                const source = image ? current : previous!;
+                                const data = source.storedData16
+                                    ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
+                                    : await backend.storage.read(source.position + position, length);
+                                clear = clearing.next(data);
                             }
                         }
                         if (clear.value) {
@@ -14938,7 +14949,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         if (!next.value) { await yieldTurn(signal); next = bounds.next(); }
                         else {
                             const { image, position, length } = next.value;
-                            next = bounds.next(await backend.storage.read((image ? current : previous!).position + position, length));
+                            const source = image ? current : previous!;
+                            const data = source.storedData16
+                                ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
+                                : await backend.storage.read(source.position + position, length);
+                            next = bounds.next(data);
                         }
                     }
                     if (removeDups) {

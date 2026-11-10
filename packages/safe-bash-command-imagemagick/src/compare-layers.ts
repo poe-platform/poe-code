@@ -9,7 +9,7 @@ type Frame = Pick<RgbaImage | StoredRgbaImage, "width" | "height" | "virtualCanv
 export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: number, method: string): Generator<
     { image: 0 | 1; position: number; length: number } | undefined,
     { left: number; top: number; width: number; height: number } | undefined,
-    Uint8Array | undefined
+    Uint8Array | Uint16Array | undefined
 > {
     let left = current.width, top = current.height, right = -1, bottom = -1;
     const dx = (current.virtualCanvas?.x ?? 0) - (previous.virtualCanvas?.x ?? 0);
@@ -22,14 +22,16 @@ export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: numbe
             const start = Math.max(0, x + dx), end = Math.min(previous.width, x + dx + count), py = y + dy;
             const prior = py >= 0 && py < previous.height && end > start
                 ? (yield { image: 0, position: (py * previous.width + start) * 4, length: (end - start) * 4 })! : undefined;
+            const scale = data instanceof Uint16Array ? 257 : 1;
+            const priorScale = prior instanceof Uint16Array ? 257 : 1;
             for (let pixel = 0; pixel < count; pixel++) {
                 const i = pixel * 4, px = x + pixel + dx, j = (px - start) * 4;
                 const inside = prior && px >= start && px < end;
                 if (method === "compareclear") {
-                    if (!inside || prior[j + 3]! < 128 || data[i + 3]! >= 128) continue;
+                    if (!inside || prior[j + 3]! / priorScale < 127.5 || data[i + 3]! / scale >= 127.5) continue;
                 } else {
-                    if (method === "compareoverlay" && data[i + 3]! < 128) continue;
-                    if (matchesAlphaFloodfill(data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!, inside ? prior[j]! : 0, inside ? prior[j + 1]! : 0, inside ? prior[j + 2]! : 0, inside ? prior[j + 3]! : 0, fuzz)) continue;
+                    if (method === "compareoverlay" && data[i + 3]! / scale < 127.5) continue;
+                    if (matchesAlphaFloodfill(data[i]! / scale, data[i + 1]! / scale, data[i + 2]! / scale, data[i + 3]! / scale, inside ? prior[j]! / priorScale : 0, inside ? prior[j + 1]! / priorScale : 0, inside ? prior[j + 2]! / priorScale : 0, inside ? prior[j + 3]! / priorScale : 0, fuzz)) continue;
                 }
                 left = Math.min(left, x + pixel); right = Math.max(right, x + pixel);
                 top = Math.min(top, y); bottom = y;

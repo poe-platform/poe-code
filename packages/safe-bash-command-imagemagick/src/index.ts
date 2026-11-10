@@ -2001,7 +2001,7 @@ function* formatHistogramOutputSteps(img: RgbaImage): Generator<void, string, vo
     return lines.join("\n") + "\n";
 }
 
-function writeGradientPixel(data: Uint8Array, samples: Uint16Array, offset: number, first: RgbaColor, last: RgbaColor, t: number): void {
+function writeGradientPixel(data: Uint8Array, samples: Uint16Array, offset: number, first: ReturnType<typeof parseColor>, last: RgbaColor, t: number): void {
     const firstAlpha = first.a * (1 - t);
     const lastAlpha = last.a * t;
     const alpha = firstAlpha + lastAlpha;
@@ -2012,10 +2012,15 @@ function writeGradientPixel(data: Uint8Array, samples: Uint16Array, offset: numb
     data[offset + 1] = clampByteVal(samples[offset + 1]! / 257);
     samples[offset + 2] = Math.round((first.b * firstAlpha + last.b * lastAlpha) / divisor * 257);
     data[offset + 2] = clampByteVal(samples[offset + 2]! / 257);
+    if (first.space) {
+        // Native Gray channels share one sample; the final blue write wins.
+        samples[offset] = samples[offset + 1] = samples[offset + 2]!;
+        data[offset] = data[offset + 1] = data[offset + 2]!;
+    }
     samples[offset + 3] = Math.round(alpha * 257);
     data[offset + 3] = clampByteVal(samples[offset + 3]! / 257);
 }
-function* createGradientImageSteps(width: number, height: number, c1: RgbaColor, c2: RgbaColor, radial: boolean, direction?: string, angle?: number, vector?: string, box?: MagickGeometry, center?: { x: number; y: number }, radii?: string, extent?: string): Generator<void, RgbaImage, void> {
+function* createGradientImageSteps(width: number, height: number, c1: ReturnType<typeof parseColor>, c2: RgbaColor, radial: boolean, direction?: string, angle?: number, vector?: string, box?: MagickGeometry, center?: { x: number; y: number }, radii?: string, extent?: string): Generator<void, RgbaImage, void> {
     let work = 0;
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
@@ -2059,10 +2064,10 @@ function* createGradientImageSteps(width: number, height: number, c1: RgbaColor,
         width: w,
         height: h,
         format: "png",
-        channels: 4,
+        channels: c1.space ? (c1.a < 255 || c2.a < 255 ? 2 : 1) : 4,
         depth: "ushort",
         density: 72,
-        space: "srgb",
+        space: c1.space ?? "srgb",
         hasAlpha: c1.a < 255 || c2.a < 255,
         data,
         data16
@@ -15974,7 +15979,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    await backend.storage.write(position+start*4,bytes);
    if(storedData16&&samples)await backend.storage.write(storedData16.position+start*8,new Uint8Array(samples.buffer));
   }
-  image={position,width,height,...(storedData16?{storedData16}:{}),format:"png",channels:4,depth:checker?"uchar":"ushort",space:"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
+  image={position,width,height,...(storedData16?{storedData16}:{}),format:"png",channels:a.space?(a.a<255||b.a<255?2:1):4,depth:checker?"uchar":"ushort",space:a.space??"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
   image=await decodeStoredMagickSvg(createLabelSvg(baseToken.slice(baseToken.indexOf(":")+1),state),state.density,backend,signal);
  }else{

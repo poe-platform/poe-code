@@ -2100,7 +2100,12 @@ function parseMagickRaiseGeometry(raw: string, option: string): MagickGeometry {
     if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
         throw new Error(`invalid argument for option '${option}': ${raw}`);
     }
-    return parseMagickGeometry(raw.split(",", 1)[0]!.replaceAll("#", "").replaceAll(":", "x"));
+    raw = raw.split(",", 1)[0]!.replaceAll("#", "").replaceAll(":", "x");
+    const geometry = parseMagickGeometry(raw);
+    if (!geometry.isPercent && normalizeMagickOffsets(raw).toLowerCase().includes("x")) {
+        return { ...geometry, width: geometry.width ?? 0, height: geometry.height ?? 0 };
+    }
+    return geometry;
 }
 
 function validateMagickStatisticGeometry(raw: string): void {

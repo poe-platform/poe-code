@@ -1737,14 +1737,15 @@ function* formatMagickPropertyStringSteps<Step=never>(
     } else {
       const property = token.slice(2, -1);
       const key = property.toLowerCase();
+      const optionKey = key.startsWith("option:") ? key.slice(7) : key.startsWith("artifact:") ? key.slice(9) : key;
       if (property.length === 1 && Object.hasOwn(short, property)) {
         parts.push(short[property]!);
       } else if (Object.hasOwn(properties, key)) {
         parts.push(properties[key]!);
       } else if (Object.hasOwn(properties, `artifact:${key}`)) {
         parts.push(properties[`artifact:${key}`]!);
-      } else if (Object.hasOwn(context.optionProperties ?? {}, key.startsWith("option:") ? key.slice(7) : key)) {
-        parts.push(context.optionProperties![key.startsWith("option:") ? key.slice(7) : key]!);
+      } else if (Object.hasOwn(context.optionProperties ?? {}, optionKey)) {
+        parts.push(context.optionProperties![optionKey]!);
       } else if (key === "convex-hull" || key === "minimum-bounding-box") {
         let value: string | undefined;
         if (resolvePixels) value = yield* resolvePixels(key);

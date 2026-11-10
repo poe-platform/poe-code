@@ -1,4 +1,6 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { virtualPixelIndex } from "./virtual-pixel.js";
+import type { VirtualPixelMethod } from "./warp-kernel.js";
 
 export interface MaskChannels { r: boolean; g: boolean; b: boolean }
 
@@ -74,4 +76,31 @@ export function blendMaskedPixel(output: Uint8Array | Uint16Array | Float64Array
         output[offset + channel] = output instanceof Float64Array ? Math.fround(value * 257) / 257 : Math.round(value);
     }
     output[offset + 3] = original[offset + 3]!;
+}
+
+/** StatisticImage checks the mask at the window's upper-left sample before output clipping. */
+export function* statisticWriteMaskPixelSteps(image: { width: number; height: number }, rows: readonly number[], virtualPixel: VirtualPixelMethod = "edge"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const left = Math.ceil(rows[0]!), top = Math.floor(rows.length / 2);
+    for (let y = 0; y < image.height; y++) {
+        for (let x = 0; x < image.width; x += 1024) {
+            yield;
+            const count = Math.min(1024, image.width - x), position = (y * image.width + x) * 4;
+            const samples: Float64Array[] = [];
+            for (const source of [0, 1]) {
+                const working = yield { kind: "read", evaluate: true, image: source, position, length: count * 4 };
+                samples.push(working?.length ? new Float64Array(working.slice().buffer)
+                    : Float64Array.from(new Uint16Array((yield { kind: "read", highDepth: true, image: source, position, length: count * 4 })!.slice().buffer), value => value / 257));
+            }
+            const edited = samples[0]!, original = samples[1]!;
+            for (let i = 0; i < count; i++) {
+                const pixel = virtualPixelIndex(x + i - left, y - top, image.width, image.height, virtualPixel);
+                const mask = pixel < 0 ? undefined : new Uint16Array((yield { kind: "read", highDepth: true, image: 2, position: pixel * 4, length: 4 })!.slice().buffer);
+                const intensity = mask ? 0.212656 * mask[0]! + 0.715158 * mask[1]! + 0.072186 * mask[2]! : 0;
+                if (intensity <= 65535 / 2) edited.set(original.subarray(i * 4, i * 4 + 4), i * 4);
+            }
+            yield { kind: "write", evaluate: true, position, data: new Uint8Array(edited.buffer) };
+            const bounded = Uint16Array.from(edited, value => Math.round(Math.max(0, Math.min(65535, value * 257))));
+            yield { kind: "write", highDepth: true, position, data: new Uint8Array(bounded.buffer) };
+        }
+    }
 }

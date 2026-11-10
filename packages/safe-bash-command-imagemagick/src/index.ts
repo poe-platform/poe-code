@@ -31,7 +31,7 @@ import { decodeApngSteps, readApng } from "./apng-input.js";
 import { signatureSteps } from "./signature.js";
 import { encipherPixelSteps } from "./encipher-kernel.js";
 import { chopRegion, orientRegion, rotateRegion, rollRegion, regionContains, regionPixelSteps, type Region } from "./region.js";
-import { writeMaskExtentSteps, writeMaskPixelSteps } from "./write-mask.js";
+import { statisticWriteMaskPixelSteps, writeMaskExtentSteps, writeMaskPixelSteps } from "./write-mask.js";
 import { pngAlphaPixelSteps } from "./png-alpha.js";
 import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
 import { rawNetpbmInput, rgbPartitionPaths } from "./raw-rgb.js";
@@ -10197,7 +10197,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 validateMagickStatisticGeometry(geometry);
                 const plan = magickMorphologyPlan(method, geometry, true);
                 if (state.virtualPixel === "transparent" && (!state.channelExplicit || state.channels.a)) im = { ...im, hasAlpha: true };
-                return (yield* applyMagickMorphology4ChSteps(im, plan, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.virtualPixel, state.background));
+                const result = yield* applyMagickMorphology4ChSteps(im, plan, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.virtualPixel, state.background);
+                return im.writeMask ? yield* applyMagickRasterSteps(result, statisticWriteMaskPixelSteps(im, magickMedianRows(geometry), state.virtualPixel), signal, result, [result, im, im.writeMask]) : result;
             });
         }
         else if (t === "-channel-fx") {
@@ -12256,12 +12257,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const context = { ...(image as StoredMagickImage)[magickInput], optionProperties };
-                const method = await formatRetainedIdentify(statType, image, context, async () => ({ image, storage: backend.storage }), signal);
+                const method = await formatRetainedIdentify(statType, image, context, async () => ({ image: image!, storage: backend.storage }), signal);
                 validateMagickStatistic(method);
-                const geometry = await formatRetainedIdentify(geom, image, context, async () => ({ image, storage: backend.storage }), signal);
+                const geometry = await formatRetainedIdentify(geom, image, context, async () => ({ image: image!, storage: backend.storage }), signal);
                 validateMagickStatisticGeometry(geometry);
                 if (virtualPixel === "transparent" && (!channels || channels[3])) image = { ...image, hasAlpha: true };
-                return morphStoredMagickImage(image, backend, magickMorphologyPlan(method, geometry, true), signal, channels, virtualPixel, background);
+                const result = await morphStoredMagickImage(image, backend, magickMorphologyPlan(method, geometry, true), signal, channels, virtualPixel, background);
+                return image.storedWriteMask ? transformStoredMagickRaster(result, backend, statisticWriteMaskPixelSteps(image, magickMedianRows(geometry), virtualPixel), signal, result, [result, image, image.storedWriteMask]) : result;
             });
         } else if (!operandsOnly && token === "-morphology") {
             const method = (tokens[++i] ?? "dilate").toLowerCase();

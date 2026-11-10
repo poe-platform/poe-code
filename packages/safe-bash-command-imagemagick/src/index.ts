@@ -11920,8 +11920,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const expression = tokens[++i] ?? "", image = stack[0];
             const result: RgbaImage[] = [];
             if (expression.includes("=")) {
-                const assignments = parseChannelAssignments(expression);
-                if (image) {
+                const groups = expression.split(";").map(parseChannelAssignments);
+                if (image) for (const assignments of groups) {
                     const hasAlpha = image.hasAlpha || assignments.some(({ target }) => target === 3);
                     result.push(yield* applyMagickRasterSteps({ ...image, space: "srgb", channels: hasAlpha ? 4 : 3 }, channelFxPixelSteps(stack, assignments, stack.some(source => !!source.data16) || assignments.some(assignment => "value" in assignment)), signal, { ...image, hasAlpha }, stack));
                 }
@@ -12931,11 +12931,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         });
         if (!operandsOnly && token === "-channel-fx") {
             const expression = tokens[++i] ?? "";
-            const assignments = expression.includes("=") ? parseChannelAssignments(expression) : undefined;
-            const selections = assignments ? [] : parseChannelSelections(expression);
+            const groups = expression.includes("=") ? expression.split(";").map(parseChannelAssignments) : undefined;
+            const selections = groups ? [] : parseChannelSelections(expression);
             stackStep(async (stack, backend) => {
                 const result = new StoredImageStack(backend.storage, signal, stack), image = await stack.get(0);
-                if (image && assignments) {
+                if (image && groups) for (const assignments of groups) {
                     const sources = [image];
                     if (assignments.some(assignment => "image" in assignment && assignment.image === 1) && stack.length > 1) sources.push((await stack.get(1))!);
                     const hasAlpha = image.hasAlpha || assignments.some(({ target }) => target === 3);

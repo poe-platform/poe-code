@@ -10671,7 +10671,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         const lastFrame = audioTimestamps.at(-1);
-                        const paddingPts = lastFrame ? lastFrame.pts + lastFrame.end - lastFrame.start : 0;
+                        const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
+                        // apad rescales each frame's duration to input ticks before advancing PTS.
+                        let paddingPts = lastFrame ? lastFrame.pts
+                          + Math.round((lastFrame.end - lastFrame.start) / samplesPerTick) * samplesPerTick : 0;
                         if (padding === undefined && minimum === undefined) {
                           let nextIndex = filterIndex + 1;
                           let reframed = false;
@@ -10751,8 +10754,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         budget.allocateMemory(Math.ceil((length - inputLength) / packetSize) * 24);
                         for (let start = inputLength; start < length; start += packetSize) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          audioTimestamps.push({ start, end: Math.min(length, start + packetSize),
-                            pts: paddingPts + start - inputLength });
+                          const end = Math.min(length, start + packetSize);
+                          audioTimestamps.push({ start, end, pts: paddingPts });
+                          paddingPts += Math.round((end - start) / samplesPerTick) * samplesPerTick;
                         }
                         stretched = await mapWork(stretched, async channel => {
                           budget.allocateMemory(length * channel.BYTES_PER_ELEMENT);

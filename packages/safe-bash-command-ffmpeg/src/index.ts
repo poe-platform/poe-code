@@ -13910,9 +13910,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const argument = trimmed.slice("stereowiden=".length);
                         const entries = argument ? argument.split(":") : [];
                         if (argument.endsWith(":")) entries.pop();
-                        for (const [index, option] of entries.entries()) {
+                        let optionPosition = 0;
+                        for (const option of entries) {
                           const separator = option.indexOf("=");
-                          const key = separator < 0 ? ["delay", "feedback", "crossfeed", "drymix"][index] : option.slice(0, separator).trim();
+                          const key = separator < 0 ? ["delay", "feedback", "crossfeed", "drymix"][optionPosition] : option.slice(0, separator).trim();
+                          // Named options restart shorthand, skipping the first slot only
+                          // when it was just visited, regardless of the named key.
+                          if (separator < 0) optionPosition++;
+                          else optionPosition = optionPosition === 0 ? 1 : 0;
                           if (key === "enable") {
                             enable = option.slice(separator + 1).trim();
                             continue;

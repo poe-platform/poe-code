@@ -70,7 +70,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                     }
                     return bytes;
                 }
-                if (interlace !== "none" && channels === 3) {
+                if (interlace !== "none" && (channels === 3 || typeof layout === "string")) {
                     const sampleBytes = Math.min(depth, 16) / 8, inputSampleBytes = depth / 8, pixelBytes = channels * sampleBytes;
                     const lastPixel = Math.ceil(end / pixelBytes);
                     for (let pixel = Math.floor(start / pixelBytes); pixel < lastPixel;) {
@@ -83,8 +83,11 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                             if (input.length !== length * inputSampleBytes / sampleBytes) throw new Error(`unexpected end-of-file in ${coder} input`);
                             if (floatingPoint || depth === 32) input = rawSamplesTo16(input, depth, endian, floatingPoint);
                             for (let i = 0; i < length; i++) {
-                                const output = (pixel + Math.floor(i / sampleBytes)) * pixelBytes + channel * sampleBytes + i % sampleBytes;
-                                if (output >= start && output < end) bytes[headerLength + output - start] = input[swap ? i ^ 1 : i]!;
+                                // Native Plane reads RGB order for every coder; only Line swaps BGR.
+                                const outputChannel = interlace === "line" && bgr && channel < 3 ? 2 - channel : channel;
+                                const output = (pixel + Math.floor(i / sampleBytes)) * pixelBytes + outputChannel * sampleBytes + i % sampleBytes;
+                                const value = layout === "rgbo" && interlace === "line" && channel === 3 ? 255 : input[swap ? i ^ 1 : i]!;
+                                if (output >= start && output < end) bytes[headerLength + output - start] = value;
                             }
                         }
                         pixel = limit;

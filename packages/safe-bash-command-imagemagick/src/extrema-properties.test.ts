@@ -23,7 +23,7 @@ it.each([false, true])("formats quantum extrema separately from normalized FX ex
       expect(await runMagickCli(["identify", "-format", format, path], input))
         .toEqual({ exitCode: 0, stdout: expected, stderr: "" });
       expect(await runMagickCli([path, "-format", format, "info:"], input))
-        .toEqual({ exitCode: 0, stdout: expected + "\n", stderr: "" });
+        .toEqual({ exitCode: 0, stdout: expected, stderr: "" });
     }
   }
 });

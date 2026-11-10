@@ -13,7 +13,7 @@ for (const mode of ["buffered", "retained"] as const) {
     await filesystem.writeFile("/two.webp", input);
     const backend = mode === "buffered" ? files : { filesystem, cwd: "/" };
     const info = await runConvertCli(["/two.webp", "-format", "%s:%wx%h:%T;", "info:"], backend);
-    expect(info).toMatchObject({ exitCode: 0, stdout: "0:8x8:7;1:8x8:19;\n" });
+    expect(info).toMatchObject({ exitCode: 0, stdout: "0:8x8:7;1:8x8:19;" });
     expect(await runConvertCli(["/two.webp", "/out.png"], backend)).toMatchObject({ exitCode: 0 });
     for (const [index, color] of [[0, [255, 0, 0, 255]], [1, [0, 0, 255, 255]]] as const) {
       const name = `/out-${index}.png`;

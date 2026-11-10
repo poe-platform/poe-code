@@ -24,10 +24,10 @@ it.each(fixtures)(`${mode} ${output}: expands native pixel signatures for $name`
             stdout: { async write(bytes: Uint8Array) { stdout += decoder.decode(bytes); } },
             stderr: { async write(bytes: Uint8Array) { stderr += decoder.decode(bytes); } }
         } as CommandContext);
-        expect({ ...result, stdout, stderr }).toEqual({ exitCode: 0, stderr: "", stdout: `${signature}|${signature}|${signature}|%#|%[signature]${output === "info" ? "\n" : ""}` });
+        expect({ ...result, stdout, stderr }).toEqual({ exitCode: 0, stderr: "", stdout: `${signature}|${signature}|${signature}|%#|%[signature]` });
         return;
     }
     const result = mode === "sync" ? runMagickCliSync(args, files)
         : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
-    expect(result).toEqual({ exitCode: 0, stderr: "", stdout: `${signature}|${signature}|${signature}|%#|%[signature]${output === "info" ? "\n" : ""}` });
+    expect(result).toEqual({ exitCode: 0, stderr: "", stdout: `${signature}|${signature}|${signature}|%#|%[signature]` });
 });

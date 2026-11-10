@@ -26,7 +26,7 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
       result = mode === "sync" ? runMagickCliSync(args, files)
         : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
     }
-    expect(result).toEqual({ exitCode: 0, stdout: identify ? "tile.ppm|tile.ppm" : "|tile.ppm\n", stderr: "" });
+    expect(result).toEqual({ exitCode: 0, stdout: identify ? "tile.ppm|tile.ppm" : "|tile.ppm", stderr: "" });
     expect(await fs.readFile("/tile.ppm")).toEqual(bytes);
   });
 }

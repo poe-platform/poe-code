@@ -22,7 +22,7 @@ for (const retained of [false, true]) for (const identify of [false, true]) {
         ["%[kurtosis]|%[skewness]|%[fx:kurtosis]|%[fx:skewness]", `${expected}|${expected}`]
       ] as const) {
         const args = identify ? ["identify", "-format", format, `/${name}`] : [`/${name}`, "-format", format, "info:"];
-        expect(await runMagickCli(args, input)).toEqual({ exitCode: 0, stdout: output + (identify ? "" : "\n"), stderr: "" });
+        expect(await runMagickCli(args, input)).toEqual({ exitCode: 0, stdout: output, stderr: "" });
       }
     });
   }

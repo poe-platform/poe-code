@@ -74,10 +74,10 @@ it("preserves native short resolution precision across command and SDK routes", 
   for (const input of [files, { filesystem: fs, cwd: "/" }]) {
     expect(await runIdentifyCli(args, input)).toEqual(expected);
     expect(await runMagickCli(["/input.png", "-format", format, "info:"], input))
-      .toEqual({ ...expected, stdout: expected.stdout + "\n" });
+      .toEqual(expected);
   }
   expect(runMagickCliSync(["/input.png", "-format", format, "info:"], files))
-    .toEqual({ ...expected, stdout: expected.stdout + "\n" });
+    .toEqual(expected);
   for (const command of [createIdentifyCommand(), createMagickCommand()]) {
     const argumentValues = createCommandArguments([...(command.name === "magick" ? ["identify"] : []), ...args]);
     let stdout = "", stderr = "";

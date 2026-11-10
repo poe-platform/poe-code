@@ -9,7 +9,7 @@ for (const retained of [false, true]) {
             expect(await runConvertCli(["xc:#123456", ...(tagged ? ["-set", "comment", "caption A"] : []), "rgb.png"], input)).toMatchObject({ exitCode: 0, stderr: "" });
             for (const quiet of [false, true]) {
                 const result = await runConvertCli([...(quiet ? ["-quiet"] : []), "rgb.png", "-format", "L%[comment]R", "info:-"], input);
-                expect(result).toEqual({ exitCode: 0, stdout: tagged ? "Lcaption AR\n" : "LR\n", stderr: tagged || quiet ? "" : "magick: unknown image property '%[comment]'\n" });
+                expect(result).toEqual({ exitCode: 0, stdout: tagged ? "Lcaption AR" : "LR", stderr: tagged || quiet ? "" : "magick: unknown image property '%[comment]'\n" });
             }
         }
     });

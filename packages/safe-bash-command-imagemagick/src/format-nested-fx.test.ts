@@ -41,7 +41,7 @@ it.each(["sync", "map", "filesystem", "command"])("expands nested properties bef
         result = { ...execution, stdout, stderr };
       }
       expect(result, `${mode}: ${format}`).toMatchObject({
-        exitCode: 0, stdout: `${expected}${mode === "info" ? "\n" : ""}`, stderr: ""
+        exitCode: 0, stdout: expected, stderr: ""
       });
     }
   }

@@ -33,7 +33,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         result = mode === "sync" ? runMagickCliSync(args, files)
           : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
       }
-      expect(result).toEqual({ exitCode: 0, stderr: "", stdout: `${gamma}|${gamma}|${gamma === "1" ? "LinearGray|graya 2.0" : "sRGB|srgba 4.0"}${identify ? "" : "\n"}` });
+      expect(result).toEqual({ exitCode: 0, stderr: "", stdout: `${gamma}|${gamma}|${gamma === "1" ? "LinearGray|graya 2.0" : "sRGB|srgba 4.0"}${identify ? "" : ""}` });
       expect([...await fs.readFile("/in.png")]).toEqual([...bytes]);
     }
   });

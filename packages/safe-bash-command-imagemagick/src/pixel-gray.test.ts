@@ -23,7 +23,7 @@ it.each([
     const args = identify
       ? ["identify", "-format", "%[pixel:p{0,0}]", "input.png"]
       : ["input.png", "-format", "%[pixel:p{0,0}]", "info:"];
-    const result = { exitCode: 0, stdout: expected + (identify ? "" : "\n"), stderr: "" };
+    const result = { exitCode: 0, stdout: expected, stderr: "" };
     expect(await runMagickCli(args, new Map([["input.png", bytes]]))).toEqual(result);
     expect(runMagickCliSync(args, new Map([["input.png", bytes]]))).toEqual(result);
     expect(await runMagickCli(args, { filesystem: fs, cwd: "/" })).toEqual(result);

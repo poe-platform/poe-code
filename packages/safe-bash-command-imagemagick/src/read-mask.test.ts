@@ -12,7 +12,7 @@ for (const retained of [false, true]) {
       const fs = new MemoryFileSystem();
       for (const [path, bytes] of files) await fs.writeFile(path, bytes);
       const result = await runMagickCli(["/levels.png", "-read-mask", "/mask.png", ...(scenario === "removed" ? ["+read-mask"] : scenario === "negated" ? ["-negate"] : []), "-format", "%[fx:mean]|%[min]|%[max]|%[hex:p{0,0}]", "info:"], retained ? { filesystem: fs, cwd: "/" } : files);
-      expect(result).toEqual({ exitCode: 0, stderr: "", stdout: ({ selected: "0.627451|16448|49344|404040", removed: "0.501961|16448|49344|404040", negated: "0.372549|16191|49087|BFBFBF", threshold: "0.752941|16448|49344|404040", empty: "0|16448|49344|404040" })[scenario] + "\n" });
+      expect(result).toEqual({ exitCode: 0, stderr: "", stdout: ({ selected: "0.627451|16448|49344|404040", removed: "0.501961|16448|49344|404040", negated: "0.372549|16191|49087|BFBFBF", threshold: "0.752941|16448|49344|404040", empty: "0|16448|49344|404040" })[scenario] });
     });
   }
 }
@@ -26,7 +26,7 @@ for (const retained of [false, true]) {
     const fs = new MemoryFileSystem(), files = new Map([["/levels.png", levels], ["/mask.png", mask]]);
     for (const [path, bytes] of files) await fs.writeFile(path, bytes);
     const input = retained ? { filesystem: fs, cwd: "/" } : files;
-    expect(await runMagickCli(["/levels.png", "-read-mask", "/mask.png", "-duplicate", "40", "-format", "%[fx:mean]|%[fx:standard_deviation]", "info:"], input)).toEqual({ exitCode: 0, stderr: "", stdout: "0.752941|0".repeat(41) + "\n" });
+    expect(await runMagickCli(["/levels.png", "-read-mask", "/mask.png", "-duplicate", "40", "-format", "%[fx:mean]|%[fx:standard_deviation]", "info:"], input)).toEqual({ exitCode: 0, stderr: "", stdout: "0.752941|0".repeat(41) });
     expect((await runMagickCli(["/levels.png", "-read-mask", "/mask.png", "-channel", "RGB", "-fx", "mean", "/out.png"], input)).exitCode).toBe(0);
     const output = decodeImage(retained ? await fs.readFile("/out.png") : files.get("/out.png")!);
     expect([...output.data.slice(0, 4)]).toEqual([0, 192, 192, 255]);
@@ -43,5 +43,5 @@ it("public command measures only white-selected pixels", async () => {
   const result = await createMagickCommand().execute({ command: "magick", args: argumentValues.args, argumentValues, fs, cwd: "/", env: {}, signal: new AbortController().signal, stdin: (async function* () {})(), stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } } });
   expect(result).toEqual({ exitCode: 0 });
   expect(stderr).toBe("");
-  expect(stdout).toBe("0.627451|41120|0.17747\n");
+  expect(stdout).toBe("0.627451|41120|0.17747");
 });

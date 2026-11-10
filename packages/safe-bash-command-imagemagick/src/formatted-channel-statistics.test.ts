@@ -17,7 +17,7 @@ for (const retained of [false, true]) {
       const input = retained ? { filesystem: fs, cwd: "/" } : new Map([["/input.png", bytes]]);
       for (const selection of [[], ["-channel", test.channel], ["-channel", test.channel, "+channel"]]) {
         for (const extrema of ["%[min]|%[max]", "%[minima]|%[maxima]"]) {
-          expect(await runMagickCli(["/input.png", ...selection, "-format", `%[mean]|%[standard-deviation]|${extrema}`, "info:"], input)).toEqual({ exitCode: 0, stdout: (selection.length === 2 ? test.expected : test.baseline) + "\n", stderr: "" });
+          expect(await runMagickCli(["/input.png", ...selection, "-format", `%[mean]|%[standard-deviation]|${extrema}`, "info:"], input)).toEqual({ exitCode: 0, stdout: (selection.length === 2 ? test.expected : test.baseline), stderr: "" });
         }
       }
     }

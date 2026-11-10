@@ -26,7 +26,7 @@ for (const retained of [false, true]) {
         expect(await runMagickCli(["identify", "-format", format, "/input.png"], input))
           .toEqual({ exitCode: 0, stdout, stderr: "" });
         expect(await runMagickCli(["/input.png", "-format", format, "info:"], input))
-          .toEqual({ exitCode: 0, stdout: `${stdout}\n`, stderr: "" });
+          .toEqual({ exitCode: 0, stdout, stderr: "" });
       }
       expect(await fs.readFile("/input.png")).toEqual(bytes);
     });

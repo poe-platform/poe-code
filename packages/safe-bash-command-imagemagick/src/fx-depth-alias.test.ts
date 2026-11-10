@@ -22,7 +22,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
       const format = "%[fx:z]|%[fx:depth]|%z|%[fx:z*2]";
       const args = route === "magick" ? [path, "-format", format, "info:"] : ["-format", format, path];
       const magickArgs = route === "magick" ? args : ["identify", ...args];
-      const expected = `${depth}|${depth}|${depth}|${depth * 2}${route === "magick" ? "\n" : ""}`;
+      const expected = `${depth}|${depth}|${depth}|${depth * 2}`;
       let result;
       if (mode === "command") {
         const argumentValues = createCommandArguments(route === "identify" ? args : magickArgs);

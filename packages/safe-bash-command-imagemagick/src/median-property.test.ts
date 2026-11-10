@@ -19,7 +19,7 @@ for (const retained of [false, true]) {
         .toEqual({ exitCode: 0, stdout: test.median, stderr: "" });
       for (const selection of [[], ["-channel", "R"], ["-channel", "R", "+channel"]]) {
         expect(await runMagickCli(["/input.png", ...selection, "-format", "%[median]|%[fx:median.r]", "info:"], input))
-          .toEqual({ exitCode: 0, stdout: `${selection.length === 2 ? test.red : test.median}|${Number((Number(test.red) / 65535).toFixed(6))}\n`, stderr: "" });
+          .toEqual({ exitCode: 0, stdout: `${selection.length === 2 ? test.red : test.median}|${Number((Number(test.red) / 65535).toFixed(6))}`, stderr: "" });
       }
     }
   });

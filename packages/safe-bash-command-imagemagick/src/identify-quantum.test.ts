@@ -13,7 +13,7 @@ for (const retained of [false, true]) {
     expect(await runIdentifyCli(["-format", format, "/input"], input))
       .toEqual({ exitCode: 0, stdout: "32810.3 32767.6 0 65535 0.500654", stderr: "" });
     expect(await runMagickCli(["/input", "-format", format, "info:"], input))
-      .toEqual({ exitCode: 0, stdout: "32810.3 32767.6 0 65535 0.500654\n", stderr: "" });
+      .toEqual({ exitCode: 0, stdout: "32810.3 32767.6 0 65535 0.500654", stderr: "" });
   });
 
   it(`scales nonzero minima and intermediate maxima with retained input=${retained}`, async () => {

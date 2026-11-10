@@ -24,7 +24,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         : [name, "-format", "%r|%[channels]|%k", "info:"];
       const result = mode === "sync" ? runMagickCliSync(args, files)
         : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
-      expect(result).toMatchObject({ exitCode: 0, stderr: "", stdout: expected + (identify ? "" : "\n") });
+      expect(result).toMatchObject({ exitCode: 0, stderr: "", stdout: expected });
     }
   });
 
@@ -35,6 +35,6 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
     const args = ["colors.png", "-colors", "3", "-format", "%r|%[channels]|%k", "info:"];
     const result = mode === "sync" ? runMagickCliSync(args, files)
       : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
-    expect(result).toMatchObject({ exitCode: 0, stderr: "", stdout: "PseudoClass sRGB Alpha|srgba 5.0|3\n" });
+    expect(result).toMatchObject({ exitCode: 0, stderr: "", stdout: "PseudoClass sRGB Alpha|srgba 5.0|3" });
   });
 }

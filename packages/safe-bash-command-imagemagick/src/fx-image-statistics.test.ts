@@ -35,7 +35,7 @@ for (const retained of [false, true]) for (const identify of [false, true]) {
     } else {
       result = await runMagickCli(args, new Map([[path, bytes]]));
     }
-    expect(result).toEqual({ exitCode: 0, stdout: [mean, mean, width, height, ...Array(20).fill(0)].join("|") + (identify ? "" : "\n"), stderr: "" });
+    expect(result).toEqual({ exitCode: 0, stdout: [mean, mean, width, height, ...Array(20).fill(0)].join("|"), stderr: "" });
   });
 }
 

@@ -43,7 +43,7 @@ for (const red of [20, 200]) {
       const files = new Map([["/input.png", bytes]]);
       expect(await runIdentifyCli(argumentValues.args, files)).toEqual({ exitCode: 0, stdout: expected, stderr: "" });
       expect(await runMagickCli(["/input.png", "-format", format, "info:"], files))
-        .toEqual({ exitCode: 0, stdout: expected + "\n", stderr: "" });
+        .toEqual({ exitCode: 0, stdout: expected, stderr: "" });
     });
   }
 }

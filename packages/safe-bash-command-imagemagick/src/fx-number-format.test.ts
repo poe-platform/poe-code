@@ -13,7 +13,7 @@ it.each([false, true])("formats FX with six significant digits with retained inp
   const expected = "1e-07|1.5259e-05|0.333333|1.23457e+07|-1e-07|1e-10|0|0.0001|999999|1e+06|1e+06|0.0001";
   for (const identify of [false, true]) {
     const args = identify ? ["identify", "-format", format, "/input.png"] : ["/input.png", "-format", format, "info:"];
-    expect(await runMagickCli(args, input)).toEqual({ exitCode: 0, stderr: "", stdout: expected + (identify ? "" : "\n") });
+    expect(await runMagickCli(args, input)).toEqual({ exitCode: 0, stderr: "", stdout: expected });
   }
 });
 
@@ -28,6 +28,6 @@ it.each([false, true])("preserves small RGB48 standard deviations with retained 
   const format = "%[fx:standard_deviation]|%[fx:standard_deviation.r]";
   for (const identify of [false, true]) {
     const args = identify ? ["identify", "-format", format, "/input.png"] : ["/input.png", "-format", format, "info:"];
-    expect(await runMagickCli(args, input)).toEqual({ exitCode: 0, stderr: "", stdout: "1.07898e-05|1.07898e-05" + (identify ? "" : "\n") });
+    expect(await runMagickCli(args, input)).toEqual({ exitCode: 0, stderr: "", stdout: "1.07898e-05|1.07898e-05" });
   }
 });

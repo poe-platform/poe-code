@@ -51,7 +51,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     });
 
     it(`${mode}: uses composited high-depth samples for mean before encoding`, async () => {
-        expect(await convert(["-alpha", "remove", "-format", "%[fx:mean]"], "info:")).toBe("0.581097\n");
+        expect(await convert(["-alpha", "remove", "-format", "%[fx:mean]"], "info:")).toBe("0.581097");
     });
 
     it(`${mode}: alpha off keeps unblended 16-bit source colors`, async () => {

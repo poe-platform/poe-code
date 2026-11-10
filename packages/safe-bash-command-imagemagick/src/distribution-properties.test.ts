@@ -20,7 +20,7 @@ for (const retained of [false, true]) for (const depth of [8, 16]) {
         .toEqual({ exitCode: 0, stdout: `${test.expected}|${test.expected}|${test.red}`, stderr: "" });
       for (const selection of [[], ["-channel", "R"], ["-channel", "R", "+channel"]]) {
         expect(await runMagickCli(["/input.png", ...selection, "-format", "%[skewness]|%[kurtosis]", "info:"], input))
-          .toEqual({ exitCode: 0, stdout: `${selection.length === 2 ? test.red : test.expected}\n`, stderr: "" });
+          .toEqual({ exitCode: 0, stdout: `${selection.length === 2 ? test.red : test.expected}`, stderr: "" });
       }
     }
   });
@@ -35,7 +35,7 @@ it("averages alpha moments with RGB and honors alpha selection", async () => {
       .toEqual({ exitCode: 0, stdout: "-0.6875|-2.75|0|0", stderr: "" });
     for (const selection of [[], ["-channel", "A"]]) {
       expect(await runMagickCli(["/input.png", ...selection, "-format", "%[skewness]|%[kurtosis]", "info:"], input))
-        .toEqual({ exitCode: 0, stdout: selection.length ? "0|-2.75\n" : "0|-0.6875\n", stderr: "" });
+        .toEqual({ exitCode: 0, stdout: selection.length ? "0|-2.75" : "0|-0.6875", stderr: "" });
     }
   }
 });

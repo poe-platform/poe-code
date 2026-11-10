@@ -15,7 +15,7 @@ it.each([
   for (const input of [new Map([["/input.png", bytes]]), { filesystem: fs, cwd: "/" }]) {
     expect(await runIdentifyCli(args, input)).toEqual({ exitCode: 0, stdout: expected, stderr: "" });
     expect(await runMagickCli(["/input.png", "-format", "%[mean]", "info:"], input))
-      .toEqual({ exitCode: 0, stdout: expected + "\n", stderr: "" });
+      .toEqual({ exitCode: 0, stdout: expected, stderr: "" });
   }
   const argumentValues = createCommandArguments(["identify", ...args]);
   let stdout = "", stderr = "";

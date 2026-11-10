@@ -36,7 +36,7 @@ describe.each([false, true])("identify interlace, ping=%s", ping => {
     expect(await runIdentifyCli(argumentValues.args, new Map([[path, bytes]]))).toEqual(expected);
     if (!ping) {
       for (const files of [new Map([[path, bytes]]), { filesystem: fs, cwd: "/" }]) {
-        expect(await runConvertCli([path, "-format", template, "info:"], files)).toEqual({ ...expected, stdout: `${expected.stdout}\n` });
+        expect(await runConvertCli([path, "-format", template, "info:"], files)).toEqual(expected);
       }
     }
   });

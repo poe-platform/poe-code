@@ -16,7 +16,7 @@ for (const retained of [false, true]) {
       const input = retained ? { filesystem: fs, cwd: "/" } : new Map([["/input.png", bytes]]);
       const format = "%[fx:minima.r]|%[fx:maxima.r]|%[fx:median.r]";
       const args = identify ? ["identify", "-format", format, "/input.png"] : ["/input.png", "-format", format, "info:"];
-      expect(await runMagickCli(args, input)).toEqual({ exitCode: 0, stdout: "0|1|0.25098" + (identify ? "" : "\n"), stderr: "" });
+      expect(await runMagickCli(args, input)).toEqual({ exitCode: 0, stdout: "0|1|0.25098", stderr: "" });
     });
     it(`computes channel extrema and medians across every pixel (retained=${retained}, identify=${identify})`, async () => {
       for (const order of [[0, 0, 0, 1, 2], [1, 2, 0, 0, 0]]) {
@@ -27,7 +27,7 @@ for (const retained of [false, true]) {
         const input = retained ? { filesystem: fs, cwd: "/" } : new Map([["/input.png", bytes]]);
         const format = ["r", "g", "b"].flatMap(channel => ["minima", "maxima", "median", "mean"].map(stat => `%[fx:${stat}.${channel}]`)).join("|");
         const args = identify ? ["identify", "-format", format, "/input.png"] : ["/input.png", "-format", format, "info:"];
-        expect(await runMagickCli(args, input)).toEqual({ exitCode: 0, stdout: "0|1|1|0.6|0|1|0|0.2|0|1|0|0.2" + (identify ? "" : "\n"), stderr: "" });
+        expect(await runMagickCli(args, input)).toEqual({ exitCode: 0, stdout: "0|1|1|0.6|0|1|0|0.2|0|1|0|0.2", stderr: "" });
       }
     });
   }

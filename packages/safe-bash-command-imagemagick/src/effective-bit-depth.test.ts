@@ -39,6 +39,6 @@ for (const { name, colors, depth, png } of fixtures) {
     expect(await runIdentifyCli(["-format", format, "/input.png"], files))
       .toEqual({ exitCode: 0, stdout: expected, stderr: "" });
     expect(runMagickCliSync(["/input.png", "-format", format, "info:"], files))
-      .toEqual({ exitCode: 0, stdout: expected + "\n", stderr: "" });
+      .toEqual({ exitCode: 0, stdout: expected, stderr: "" });
   });
 }

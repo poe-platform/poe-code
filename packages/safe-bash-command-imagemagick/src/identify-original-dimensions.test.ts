@@ -41,7 +41,7 @@ it("keeps original dimensions after resizing in shared property formatting", asy
   const fs = new MemoryFileSystem();
   await fs.writeFile("/image.ppm", bytes);
   const args = ["/image.ppm", "-resize", "6x4!", "-format", "%G|%wx%h|%g|%P", "info:"];
-  const expected = { exitCode: 0, stdout: "3x2|6x4|6x4+0+0|6x4\n", stderr: "" };
+  const expected = { exitCode: 0, stdout: "3x2|6x4|6x4+0+0|6x4", stderr: "" };
   expect(runMagickCliSync(args, files)).toEqual(expected);
   for (const input of [files, { filesystem: fs, cwd: "/" }]) {
     expect(await runMagickCli(args, input)).toEqual(expected);

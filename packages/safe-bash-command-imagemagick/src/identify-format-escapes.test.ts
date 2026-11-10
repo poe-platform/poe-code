@@ -41,5 +41,5 @@ it.each([
     });
     expect(result.exitCode).toBe(0);
     expect(stderr).toEqual([]);
-    expect(stdout).toEqual([...new TextEncoder().encode(expected + (mode === "magick info" ? "\n" : ""))]);
+    expect(stdout).toEqual([...new TextEncoder().encode(expected)]);
 });

@@ -28,7 +28,7 @@ for (const route of ["command", "buffered", "retained", "info"] as const) {
     } else {
       const input = route === "buffered" ? new Map([["/input.png", bytes]]) : { filesystem: fs, cwd: "/" };
       const result = route === "info" ? await runMagickCli(["/input.png", "-format", format, "info:"], input) : await runIdentifyCli(args, input);
-      expect(result).toEqual({ exitCode: 0, stdout: expected + alpha + (route === "info" ? "\n" : ""), stderr: "" });
+      expect(result).toEqual({ exitCode: 0, stdout: expected + alpha, stderr: "" });
     }
   });
 }

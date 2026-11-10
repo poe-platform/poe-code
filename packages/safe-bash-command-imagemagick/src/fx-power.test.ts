@@ -42,6 +42,6 @@ it.each([false, true])("uses native power precedence in FX properties, retained=
   const format = "%[fx:2^3^2]|%[fx:2^(3^2)]|%[fx:-2^2]|%[fx:(-2)^2]|%[fx:2^-2^2]";
   for (const identify of [false, true]) {
     const args = identify ? ["identify", "-format", format, "/input.png"] : ["/input.png", "-format", format, "info:"];
-    expect(await runMagickCli(args, files)).toEqual({ exitCode: 0, stderr: "", stdout: "64|512|-4|4|0.0625" + (identify ? "" : "\n") });
+    expect(await runMagickCli(args, files)).toEqual({ exitCode: 0, stderr: "", stdout: "64|512|-4|4|0.0625" });
   }
 });

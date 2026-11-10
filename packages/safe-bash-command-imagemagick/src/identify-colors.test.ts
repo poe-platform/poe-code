@@ -34,7 +34,7 @@ it.each(["fixture", "alpha", "16-bit", "large palette"])("counts unique colors f
   const files = new Map([["/input.png", bytes]]);
   expect(await runIdentifyCli(argumentValues.args, files)).toEqual({ exitCode: 0, stdout, stderr: "" });
   expect(await runMagickCli(["/input.png", "-format", "%k|%[colors]", "info:"], files))
-    .toEqual({ exitCode: 0, stdout: `${expected}|${expected}\n`, stderr: "" });
+    .toEqual({ exitCode: 0, stdout: `${expected}|${expected}`, stderr: "" });
   for (const run of [runIdentifyCli, runConvertCli]) {
     const filesystem = new MemoryFileSystem();
     await filesystem.writeFile("/input.png", bytes);
@@ -42,7 +42,7 @@ it.each(["fixture", "alpha", "16-bit", "large palette"])("counts unique colors f
       ? ["-format", format, "/input.png"]
       : ["/input.png", "-format", format, "info:"];
     expect(await run(args, { filesystem, cwd: "/" })).toEqual({
-      exitCode: 0, stdout: stdout + (run === runIdentifyCli ? "" : "\n"), stderr: ""
+      exitCode: 0, stdout, stderr: ""
     });
     expect(await filesystem.readdir("/")).toEqual([{ name: "input.png", type: "file" }]);
     expect(await filesystem.readFile("/input.png")).toEqual(new Uint8Array(bytes));

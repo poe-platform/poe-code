@@ -20,7 +20,7 @@ for (const retained of [false, true]) {
       const input = retained ? { filesystem: fs, cwd: "/" } : new Map([["/input.png", bytes]]);
       expect(await runMagickCli(["identify", "-format", "%[entropy]", "/input.png"], input)).toEqual({ exitCode: 0, stdout: test.expected, stderr: "" });
       for (const selection of [[], ["-channel", test.channel], ["-channel", test.channel, "+channel"]]) {
-        expect(await runMagickCli(["/input.png", ...selection, "-format", "%[entropy]", "info:"], input)).toEqual({ exitCode: 0, stdout: (selection.length === 2 ? test.selected : test.expected) + "\n", stderr: "" });
+        expect(await runMagickCli(["/input.png", ...selection, "-format", "%[entropy]", "info:"], input)).toEqual({ exitCode: 0, stdout: (selection.length === 2 ? test.selected : test.expected), stderr: "" });
       }
     }
   });

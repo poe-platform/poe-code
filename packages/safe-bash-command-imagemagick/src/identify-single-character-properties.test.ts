@@ -35,5 +35,5 @@ it("keeps bracketed metadata case-sensitive after resizing for INFO output", () 
     "/tag.png", "-resize", "6x4!", "-quality", "73",
     "-format", "%[w]|%[W]|%[h]|%[H]|%[q]|%[Q]|%[height]|%%[h]", "info:"
   ], files);
-  expect(result).toEqual({ exitCode: 0, stdout: "6|24|4|20|16|73|2|%[h]\n", stderr: "" });
+  expect(result).toEqual({ exitCode: 0, stdout: "6|24|4|20|16|73|2|%[h]", stderr: "" });
 });

@@ -32,9 +32,9 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
   }
 
   it.each([
-    { density: "100x200", expected: "0.03|0.01|0.03|0.01\n" },
-    { density: "0x200", expected: "3e+12|0.01|3e+12|0.01\n" },
-    { density: "100x0", expected: "0.03|2e+12|0.03|2e+12\n" }
+    { density: "100x200", expected: "0.03|0.01|0.03|0.01" },
+    { density: "0x200", expected: "3e+12|0.01|3e+12|0.01" },
+    { density: "100x0", expected: "0.03|2e+12|0.03|2e+12" }
   ])(`${mode}: printsize follows density edits before info output ($density)`, async ({ density, expected }) => {
     const files = new Map([["/tile.ppm", tile]]), fs = new MemoryFileSystem();
     await fs.writeFile("/tile.ppm", tile);

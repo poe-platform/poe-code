@@ -8289,6 +8289,7 @@ if (t === "-seed") {
             state.seed = Number.parseInt(value, 10);
             if (!Number.isSafeInteger(state.seed)) throw new Error("Invalid random seed");
         }
+        else if (t === "+seed") { state.seed = Math.floor(Date.now() / 1000); }
         else if (t === "-precision") {
             const value = tokens[++i], requested = Number(value);
             if (value === undefined || !value.trim() || !Number.isFinite(requested)) throw new Error("invalid argument for option '-precision'");
@@ -12586,7 +12587,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-auto-level", "-auto-gamma", "-white-balance", "-normalize", "-equalize", "-monochrome", "-strip", "-unique-colors", "-sort-pixels",
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin", "+remap",
-        "+region", "+write-mask", "+clip-mask", "+repage", "+channel", "+quantize", "+treedepth", "+compress", "+depth", "+endian", "+size",
+        "+seed", "+region", "+write-mask", "+clip-mask", "+repage", "+channel", "+quantize", "+treedepth", "+compress", "+depth", "+endian", "+size",
         "+read-mask", "+interpolate", "+intensity", "+filter", "+page", "+orient",
         "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete"
     ]);

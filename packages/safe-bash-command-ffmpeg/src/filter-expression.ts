@@ -30,6 +30,10 @@ export function parseFilterExpression(expression: string, filter: string, variab
       }
       const name = source.slice(start, offset);
       if (source[offset] === "(") {
+        // FFmpeg's atrim integer options reject min/max function calls.
+        if (filter === "atrim" && (name === "min" || name === "max")) {
+          throw new Error(`${filter}: invalid expression`);
+        }
         offset++;
         const coefficientStart = offset;
         const args = [parse(0, depth + 1, evaluate && name !== "taylor")];

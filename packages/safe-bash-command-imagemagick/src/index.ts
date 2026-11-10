@@ -10767,7 +10767,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-liquid-rescale") {
             const rawGeometry = tokens[++i] ?? "";
             validateMagickTransformGeometry(rawGeometry, t);
-            const geometry = rawGeometry.replaceAll("(", "").replaceAll(")", "");
+            let geometry = rawGeometry.replaceAll("(", "").replaceAll(")", "");
+            // Native liquid-rescale treats an isolated dimension separator as zero dimensions.
+            if (geometry === "x") geometry = "0x0";
             const seam = parseMagickGeometry(geometry);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const options = magickResizeOptions(image, geometry, state.kernel);
@@ -13664,7 +13666,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-liquid-rescale") {
             const rawGeometry = tokens[++i] ?? "", kernel = state.kernel, settings = state.resizeFilter;
             validateMagickTransformGeometry(rawGeometry, token);
-            const geometry = rawGeometry.replaceAll("(", "").replaceAll(")", "");
+            let geometry = rawGeometry.replaceAll("(", "").replaceAll(")", "");
+            // Native liquid-rescale treats an isolated dimension separator as zero dimensions.
+            if (geometry === "x") geometry = "0x0";
             const seam = parseMagickGeometry(geometry);
             steps.push(async (image, backend) => {
                 if (!image) return;

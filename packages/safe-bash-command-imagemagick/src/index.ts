@@ -4745,17 +4745,18 @@ function magickCropViewport<T extends Pick<RgbaImage, "width" | "height" | "virt
 
 function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: MagickGeometry, operation: "repage" | "set") {
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
-    let width = geometry.width ?? page.width;
-    let height = operation === "repage" && geometry.width === undefined ? page.height : geometry.height ?? (geometry.width === undefined ? page.height : geometry.width);
+    let width = Math.round(geometry.width ?? page.width);
+    let height = Math.round(operation === "repage" && geometry.width === undefined ? page.height : geometry.height ?? (geometry.width === undefined ? page.height : geometry.width));
+    const x = Math.trunc(geometry.x), y = Math.trunc(geometry.y);
     if (operation === "repage" && geometry.hasOffset && !geometry.forceExact) {
-        if (width === 0 && geometry.x > 0) width = image.width + geometry.x;
-        if (height === 0 && geometry.y > 0) height = image.height + geometry.y;
+        if (width === 0 && x > 0) width = image.width + x;
+        if (height === 0 && y > 0) height = image.height + y;
     }
     return {
         width,
         height,
-        x: geometry.hasOffset ? geometry.x + (geometry.forceExact ? page.x : 0) : page.x,
-        y: geometry.hasYOffset ? geometry.y + (geometry.forceExact ? page.y : 0) : page.y
+        x: geometry.hasOffset ? x + (geometry.forceExact ? page.x : 0) : page.x,
+        y: geometry.hasYOffset ? y + (geometry.forceExact ? page.y : 0) : page.y
     };
 }
 
@@ -8443,7 +8444,7 @@ if (t === "-seed") {
             const value = tokens[++i] ?? "";
             validateMagickTransformGeometry(value, t);
             const geometry = parseMagickGeometry(value);
-            state.page = { width: geometry.width ?? 0, height: geometry.height ?? 0, x: geometry.x, y: geometry.y };
+            state.page = { width: Math.round(geometry.width ?? 0), height: Math.round(geometry.height ?? 0), x: Math.trunc(geometry.x), y: Math.trunc(geometry.y) };
         }
         else if (t === "+page") { delete state.page; }
         else if (t === "-tile-offset") {

@@ -1,6 +1,9 @@
-import { extractImageSteps, transformStoredImage, type ImageByteStorage, type RgbaColor, type RgbaImage, type StoredRgbaImage } from "@poe-code/image-ast/portable";
+import { extractImageSteps, transformStoredImage, type ImageByteStorage, type RgbaColor, type RgbaImage as BaseRgbaImage, type StoredRgbaImage as BaseStoredRgbaImage } from "@poe-code/image-ast/portable";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { matchesAlphaFloodfill } from "./floodfill.js";
+
+type RgbaImage = BaseRgbaImage & { writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & { storedWriteMask?: BaseStoredRgbaImage | undefined };
 
 type Area = { left: number; top: number; width: number; height: number };
 type Read = { position: number; length: number };
@@ -154,6 +157,7 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
             cropped = { ...cropped, data16 };
         }
         return { ...cropped,
+            ...(image.writeMask ? { writeMask: yield* extractImageSteps(image.writeMask, area) } : {}),
             virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + area.left, y: (image.virtualCanvas?.y ?? 0) + area.top },
         };
     }
@@ -181,6 +185,7 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     }
     if (next.value) return {
         ...await transformStoredImage(image, storage, { kind: "extract", ...next.value }, signal),
+        ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, storage, { kind: "extract", ...next.value }, signal) } : {}),
         virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + next.value.left, y: (image.virtualCanvas?.y ?? 0) + next.value.top },
     };
     if (analysis) analysis.warnings += "magick: geometry does not contain image\n";

@@ -385,12 +385,17 @@ export interface MagickGeometry {
   readonly aspectRatio?: number;
 }
 
-function normalizeMagickHexOffsets(raw: string): string {
-    // Normalize signed hexadecimal offsets without treating size separators as hex.
+function normalizeMagickOffsets(raw: string): string {
+    // An offset sign may precede a signed number, including hexadecimal offsets.
     let normalized = "";
     for (let i = 0; i < raw.length; i++) {
-        normalized += raw[i];
-        if ((raw[i] === "+" || raw[i] === "-") && raw[i + 1] === "0" && raw[i + 2]?.toLowerCase() === "x") {
+        let sign = raw[i]!;
+        if ((sign === "+" || sign === "-") && (raw[i + 1] === "+" || raw[i + 1] === "-")
+            && raw[i + 2]! >= "0" && raw[i + 2]! <= "9" && raw[i - 1]?.toLowerCase() !== "e") {
+            sign = sign === raw[++i] ? "+" : "-";
+        }
+        normalized += sign;
+        if ((sign === "+" || sign === "-") && raw[i + 1] === "0" && raw[i + 2]?.toLowerCase() === "x") {
             let end = i + 3;
             while (end < raw.length && raw[end]! >= "0" && raw[end]! <= "9") end++;
             if (end > i + 3) {
@@ -403,7 +408,7 @@ function normalizeMagickHexOffsets(raw: string): string {
 }
 
 export function parseMagickGeometry(raw: string): MagickGeometry {
-  let s = normalizeMagickHexOffsets([...raw].filter(character => character.trim() !== "").join(""));
+  let s = normalizeMagickOffsets([...raw].filter(character => character.trim() !== "").join(""));
   let forceExact = false;
   let shrinkOnly = false;
   let enlargeOnly = false;
@@ -2225,7 +2230,7 @@ function parseMagickBorderGeometry(raw: string): MagickGeometry {
 
 function parseMagickRollGeometry(raw: string): MagickGeometry {
     raw = raw.replaceAll(" ", "");
-    let normalized = normalizeMagickHexOffsets(raw.replaceAll("#", ""));
+    let normalized = normalizeMagickOffsets(raw.replaceAll("#", ""));
     // Native roll consumes at most two offsets; comma/colon ends the offset list.
     let offsets = 0;
     let end = normalized.length;

@@ -555,8 +555,8 @@ describe("negate RGBA components", () => {
     ["negate=negate_alpha=off", [245, 215, 165, 64, 235, 205, 155, 192]],
     ["negate=components=r+a", [245, 40, 90, 191, 235, 50, 100, 63]],
     ["negate=components=a", [10, 40, 90, 191, 20, 50, 100, 63]],
-    ["negate=components=64", [10, 40, 90, 191, 20, 50, 100, 63]],
-    ["negate=components=65", [245, 40, 90, 191, 235, 50, 100, 63]],
+    ["negate=components=8", [10, 40, 90, 191, 20, 50, 100, 63]],
+    ["negate=components=9", [245, 40, 90, 191, 235, 50, 100, 63]],
     ["negate=components=g+b", [10, 215, 165, 64, 20, 205, 155, 192]],
     ["negate=r", [245, 40, 90, 64, 235, 50, 100, 192]],
     ["negate=0", [10, 40, 90, 64, 20, 50, 100, 192]]

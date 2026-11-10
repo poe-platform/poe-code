@@ -53,10 +53,12 @@ for (const [components, expected] of [
 }
 
 for (const components of ["+", "-", "r+", "r-", "r++g", "r--g", "r+-g", "r-bogus", "r+128", "-r", "+a"]) {
-  it(`rejects invalid negate flags ${components} without overwriting output`, async () => {
+  it(`rejects invalid negate flags ${components}`, async () => {
     const { result, errors, output } = await render(components);
     assert.notEqual(result.exitCode, 0);
     assert.ok(errors.includes("negate:"), errors);
-    assert.equal(output.toString(), "previous output");
+    const unavailable = components === "-r" || components === "+a";
+    if (unavailable) assert.equal(result.exitCode, 234);
+    assert.equal(output.toString(), unavailable ? "" : "previous output");
   });
 }

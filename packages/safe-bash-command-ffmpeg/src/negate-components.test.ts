@@ -6,7 +6,7 @@ import { createFfmpegCommand } from "./index.js";
 const rgb = "113a638cb5de07305982abd4fd264f78a1caf31c456e97c0";
 const yuv = "113a638cb5de07305982abd4";
 
-// FFmpeg 7.0.2 component bits: R=1, G=2, B=4, Y=8, U=16, V=32, A=64.
+// FFmpeg 7.0.2 component bits: R=1, G=2, B=4, A=8, Y=16, U=32, V=64.
 for (const [format, input, components, expected] of [
   ["rgb24", rgb, "1", "ee3a6373b5def830597dabd402264f87a1ca0c1c459197c0"],
   ["rgb24", rgb, "r", "ee3a6373b5def830597dabd402264f87a1ca0c1c459197c0"],
@@ -16,10 +16,10 @@ for (const [format, input, components, expected] of [
   ["rgb24", rgb, "b", "113a9c8cb5210730a682ab2bfd26b078a135f31cba6e973f"],
   ["rgb24", rgb, "1+g", "eec563734adef8cf597d54d402d94f875eca0ce3459168c0"],
   ["rgb24", rgb, "0", rgb],
-  ["yuv420p", yuv, "8", "eec59c73b5def8cfa67dabd4"],
-  ["yuv420p", yuv, "16", "113a638c4ade0730598254d4"],
-  ["yuv420p", yuv, "32", "113a638cb52107305982ab2b"],
-  ["yuv420p", yuv, "48", "113a638c4a2107305982542b"],
+  ["yuv420p", yuv, "16", "eec59c73b5def8cfa67dabd4"],
+  ["yuv420p", yuv, "32", "113a638c4ade0730598254d4"],
+  ["yuv420p", yuv, "64", "113a638cb52107305982ab2b"],
+  ["yuv420p", yuv, "96", "113a638c4a2107305982542b"],
   ["rgb24", rgb, "8", null],
   ["rgb24", rgb, "64", null],
   ["yuv420p", yuv, "1", null],
@@ -44,9 +44,9 @@ for (const [format, input, components, expected] of [
       stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
     } as never);
     if (expected === null) {
-      assert.notEqual(result.exitCode, 0);
+      assert.equal(result.exitCode, 234);
       assert.match(Buffer.concat(errors).toString(), /negate: Requested components not available/);
-      assert.equal(volume.readFileSync("/out.raw", "utf8"), "preserved");
+      assert.equal(volume.readFileSync("/out.raw", "utf8"), "");
     } else {
       assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
       assert.equal((volume.readFileSync("/out.raw") as Buffer).toString("hex"), expected);

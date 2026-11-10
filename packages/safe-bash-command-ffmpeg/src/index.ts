@@ -2857,10 +2857,9 @@ async function applyVideoFilterChain(
         named.negate_alpha ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "0",
         "negate: invalid negate_alpha boolean"
       );
-      let mask = 0b0111111;
-      let relative = true;
+      let mask = 0x77;
       for (const flags of components) {
-        relative = flags.startsWith("+") || flags.startsWith("-");
+        const relative = flags.startsWith("+") || flags.startsWith("-");
         if (!relative) mask = 0;
         let position = 0;
         do {
@@ -2871,7 +2870,7 @@ async function applyVideoFilterChain(
           const component = flags.slice(start, position);
           if (component === "none") continue;
           if (!component.trim()) throw new Error("negate: invalid empty component");
-          const index = ["r", "g", "b", "y", "u", "v", "a"].indexOf(component);
+          const index = ["r", "g", "b", "a", "y", "u", "v"].indexOf(component);
           const value = index < 0 ? parseFilterExpression(component, "negate", {}) : 1 << index;
           if (!Number.isInteger(value) || value < 0 || value > 127) {
             throw new Error(`negate: invalid component ${component}`);
@@ -2884,12 +2883,12 @@ async function applyVideoFilterChain(
         const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
           [0, 4, 5, 12, 13, 14].includes(source.format) ? source : undefined;
         const gray = pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "gray16be" || pixelFormat === "ya8";
-        const available = planar ? 0b0111000 : gray ? (pixelFormat === "ya8" ? 0b1001000 : 0b0001000) :
-          pixelFormat === "rgb24" || pixelFormat === "bgr24" ? 0b0000111 : 0b1000111;
-        // An unchanged all-color default selects only the negotiated format's components.
+        const available = planar ? 0x70 : gray ? (pixelFormat === "ya8" ? 0x18 : 0x10) :
+          pixelFormat === "rgb24" || pixelFormat === "bgr24" ? 0x07 : 0x0f;
+        // The all-color mask selects only the negotiated format's components.
         // RGBA alpha is selected by components; grayscale alpha also honors negate_alpha.
-        const selected = (relative && mask === 0b0111111 ? available & 0b0111111 : mask) |
-          (pixelFormat === "ya8" && negateAlpha ? 0b1000000 : 0);
+        const selected = (mask === 0x77 ? available & 0x77 : mask) |
+          (pixelFormat === "ya8" && negateAlpha ? 0x08 : 0);
         if (selected & ~available) throw new Error("negate: Requested components not available");
         if (named.enable !== undefined && !(Math.abs(parseFilterExpression(named.enable, "negate enable", {
           n, t: f.ptsSeconds, w: f.width, h: f.height, pos: f.offset ?? NaN, NAN: NaN, INF: Infinity
@@ -2901,7 +2900,7 @@ async function applyVideoFilterChain(
             Math.ceil(f.height / ([0, 12].includes(planar.format) ? 2 : 1));
           const pixels = new Uint8Array(planar.pixels);
           for (let plane = 0; plane < 3; plane++) {
-            if (!(selected & (1 << (3 + plane)))) continue;
+            if (!(selected & (1 << (4 + plane)))) continue;
             const start = plane === 0 ? 0 : lumaSize + (plane - 1) * chromaSize;
             const end = start + (plane === 0 ? lumaSize : chromaSize);
             for (let i = start; i < end; i++) {
@@ -2924,7 +2923,7 @@ async function applyVideoFilterChain(
             signal?.throwIfAborted();
             budget.checkCpu();
           }
-          const component = i % 4 === 3 ? 6 : gray ? 3 : i % 4;
+          const component = i % 4 === 3 ? 3 : gray ? 4 : i % 4;
           if (selected & (1 << component)) data[i] = 255 - data[i]!;
         }
         return { ...f, data };
@@ -14400,8 +14399,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
             if (msg === audioConversionDisabled) return { exitCode: 234 };
             if (msg === "negate: invalid expression" || msg === "negate: invalid or unsupported expression") return { exitCode: 234 };
-            if (msg.startsWith("fps: frame rate:")) {
-              // Rate expressions fail during filter configuration, after file
+            if (msg === "negate: Requested components not available" || msg.startsWith("fps: frame rate:")) {
+              // Filter configuration can fail after file
               // muxers open their output. Image sequences have not opened a frame.
               const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
               if (!imageOutput && outputFormat !== "null" && !isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {

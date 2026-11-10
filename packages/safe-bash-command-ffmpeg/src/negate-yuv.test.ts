@@ -34,7 +34,7 @@ for (const [filter, expected] of [
   ["negate=components=y", [250, 124, 255, 255]],
   ["negate=components=u+v", [8, 135, 0, 255]],
   ["negate=y", [250, 124, 255, 255]],
-  ["negate=components=48", [8, 135, 0, 255]],
+  ["negate=components=96", [8, 135, 0, 255]],
   ["negate", [130, 255, 3, 255]],
 ] as const) {
   it(`selects native YUV planes for ${filter}`, async () => {

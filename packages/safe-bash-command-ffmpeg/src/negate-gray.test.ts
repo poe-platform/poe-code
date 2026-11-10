@@ -33,7 +33,7 @@ for (const [filter, expected] of [
   ["format=gray8,negate=components=y", inverted],
   ["format=gray16be,negate=y", inverted],
   ["format=ya8,negate=y", inverted],
-  ["format=gray,negate=components=8", inverted],
+  ["format=gray,negate=components=16", inverted],
   ["format=gray,negate", inverted],
   ["format=gray,negate=components=0", gray],
   ["format=gray,negate=components=none", gray],

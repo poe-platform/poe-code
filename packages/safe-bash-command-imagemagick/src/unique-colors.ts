@@ -4,7 +4,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import type { HueMetadata } from "./colorspace-hue.js";
 import { magickResizeCanvas } from "./resize-canvas.js";
 
-function colorKey(samples: Uint8Array | Uint16Array | Float64Array, offset: number, hasAlpha: boolean): bigint {
+function colorKey(samples: Uint8Array | Uint16Array | Float64Array, offset: number, hasAlpha: boolean, alpha?: number): bigint {
     let key = 0n;
     if (samples instanceof Float64Array) {
         const bits = new BigUint64Array(samples.buffer, samples.byteOffset, samples.length);
@@ -12,7 +12,8 @@ function colorKey(samples: Uint8Array | Uint16Array | Float64Array, offset: numb
             // Ignore inactive alpha and treat signed zero as the same sample.
             key = key << 64n | (channel === 3 && !hasAlpha || samples[offset + channel] === 0 ? 0n : bits[offset + channel]!);
         }
-        return key;
+        // CMYK stores K in the fourth working channel and alpha separately.
+        return alpha === undefined ? key : key << 16n | BigInt(alpha);
     }
     for (let channel = 0; channel < 4; channel++) key = key << 16n | BigInt(channel === 3 && !hasAlpha ? 65535 : samples[offset + channel]!);
     return key;
@@ -34,13 +35,14 @@ function colorOrder(samples: Uint8Array | Uint16Array, offset: number, hasAlpha:
 
 export function* uniqueColorsSteps(image: RgbaImage & HueMetadata): Generator<void, RgbaImage & HueMetadata, void> {
     const samples = image.data16 ?? image.data, seen = new Set<bigint>();
+    const inks = image.space === "cmyk" ? image.hueSamples : undefined;
     let pixels: { offset: number; order: number }[] = [];
     for (let offset = 0; offset < samples.length; offset += 4) {
         if (offset % 4096 === 0) yield;
-        const key = colorKey(image.evaluateSamples ?? samples, offset, image.hasAlpha);
+        const key = colorKey(inks ?? image.evaluateSamples ?? samples, offset, !!inks || image.hasAlpha, inks ? image.hasAlpha ? samples[offset + 3]! : 0 : undefined);
         if (seen.has(key)) continue;
         seen.add(key);
-        pixels.push({ offset, order: colorOrder(samples, offset, image.hasAlpha, image.space === "cmyk" ? image.hueSamples : undefined) });
+        pixels.push({ offset, order: colorOrder(samples, offset, image.hasAlpha, inks) });
     }
     // Stable radix sorting stays cooperative even for an all-unique raster.
     for (let shift = 0; shift < 28; shift += 4) {
@@ -73,31 +75,43 @@ export function* uniqueColorsSteps(image: RgbaImage & HueMetadata): Generator<vo
 
 export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal): Promise<StoredRgbaImage & HueMetadata> {
     const seen = new IntegerTable(storage, 512), order = new IntegerTable(storage, 512), size = image.width * image.height * 4;
+    const workingPosition = image.space === "cmyk" ? image.storedHueSamples : image.storedEvaluateSamples;
     let count = 0;
     for (let start = 0; start < size; start += 2048) {
         await yieldTurn(signal);
         const length = Math.min(2048, size - start);
         const bytes = await storage.read((image.storedData16?.position ?? image.position) + start * (image.storedData16 ? 2 : 1), length * (image.storedData16 ? 2 : 1));
         const samples = image.storedData16 ? new Uint16Array(bytes.slice().buffer) : bytes;
-        const working = image.storedEvaluateSamples === undefined ? undefined
-            : new Float64Array((await storage.read(image.storedEvaluateSamples + start * 8, length * 8)).slice().buffer);
-        const inks = image.space === "cmyk" && image.storedHueSamples !== undefined
-            ? new Float64Array((await storage.read(image.storedHueSamples + start * 8, length * 8)).slice().buffer) : undefined;
+        const working = workingPosition === undefined ? undefined
+            : new Float64Array((await storage.read(workingPosition + start * 8, length * 8)).slice().buffer);
+        const inks = image.space === "cmyk" ? working : undefined;
         for (let offset = 0; offset < length; offset += 4) {
-            const key = colorKey(working ?? samples, offset, image.hasAlpha);
+            const key = colorKey(working ?? samples, offset, !!inks || image.hasAlpha, inks ? image.hasAlpha ? samples[offset + 3]! : 0 : undefined);
             let slot = key;
             if (working) {
                 // The paged table has 64-bit keys. Hash all working-sample bits,
                 // then compare exact colors and probe on a hash collision.
                 slot = 14695981039346656037n;
-                for (let shift = 0n; shift < 256n; shift += 8n) slot = BigInt.asUintN(64, (slot ^ (key >> shift & 255n)) * 1099511628211n);
+                for (let shift = 0n; shift < (inks ? 272n : 256n); shift += 8n) slot = BigInt.asUintN(64, (slot ^ (key >> shift & 255n)) * 1099511628211n);
             }
             let previous = await seen.get(slot);
             while (working && previous !== undefined) {
                 const source = Number(previous);
                 const candidate = source >= start && source < start + length ? working
-                    : new Float64Array((await storage.read(image.storedEvaluateSamples! + source * 8, 32)).slice().buffer);
-                if (colorKey(candidate, candidate === working ? source - start : 0, image.hasAlpha) === key) break;
+                    : new Float64Array((await storage.read(workingPosition! + source * 8, 32)).slice().buffer);
+                let alpha: number | undefined;
+                if (inks) {
+                    alpha = 0;
+                    if (image.hasAlpha) {
+                        if (candidate === working) alpha = samples[source - start + 3]!;
+                        else {
+                            const stride = image.storedData16 ? 2 : 1;
+                            const bytes = await storage.read((image.storedData16?.position ?? image.position) + (source + 3) * stride, stride);
+                            alpha = image.storedData16 ? new Uint16Array(bytes.slice().buffer)[0]! : bytes[0]!;
+                        }
+                    }
+                }
+                if (colorKey(candidate, candidate === working ? source - start : 0, !!inks || image.hasAlpha, alpha) === key) break;
                 await yieldTurn(signal);
                 slot = BigInt.asUintN(64, slot + 1n);
                 previous = await seen.get(slot);

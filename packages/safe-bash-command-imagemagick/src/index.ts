@@ -1345,8 +1345,9 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   const colors = new Set<string>();
   const uniqueColors = countColors ? new Set<string>() : undefined;
   let count = 0;
-  for(let offset=0;offset<img.width*img.height*4;offset+=8192){
-  const length=Math.min(8192,img.width*img.height*4-offset);
+  const chunkSize = countColors && img.space === "cmyk" ? 2048 : 8192;
+  for(let offset=0;offset<img.width*img.height*4;offset+=chunkSize){
+  const length=Math.min(chunkSize,img.width*img.height*4-offset);
   const chunk=load?yield*load(offset,length):{data:img.data!.subarray(offset,offset+length),data16:img.data16?.subarray(offset,offset+length),hueSamples:img.hueSamples?.subarray(offset,offset+length)};
   const selection = yield* readMaskSelectionSteps(img, offset, length, loadMask);
   const samples = chunk.data16 ?? chunk.data;

@@ -360,6 +360,10 @@ while preserving sample count and timing. It supports native defaults, range, kn
 attack/release, peak/RMS detection, channel linking, input/makeup gain, and downward/upward modes.
 Timeline expressions such as `agate=enable='between(t,0.1,0.3)'` select audio frames;
 disabled frames pass through unchanged and pause the gate envelope.
+`asendcmd=c='0.256 agate@v makeup 2',agate@v` changes makeup gain at the first
+audio frame at or after the requested time, preserving the gate envelope.
+Target `agate` selects the first subsequent gate; a named target selects that
+instance. Invalid runtime gains retain the previous setting.
 
 `acompressor=threshold=0.1:ratio=4:attack=1:release=20` compresses changing PCM levels
 with attack and release in milliseconds. It supports soft knees, peak/RMS detection,

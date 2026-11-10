@@ -10,7 +10,8 @@ export class AgateError extends Error {
 
 export async function applyAudioGate(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[], budget: MediaBudgetTracker, signal?: AbortSignal
+  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[], budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; expression: string }[] = []
 ): Promise<Float64Array[]> {
   const name = "agate";
   const options: Record<string, string> = {
@@ -52,7 +53,7 @@ export async function applyAudioGate(
   const expansion = number("ratio", 1, 9000) - 1;
   const attack = Math.min(1, 4000 / (number("attack", 0.01, 9000) * sampleRate));
   const release = Math.min(1, 4000 / (number("release", 0.01, 9000) * sampleRate));
-  const makeup = number("makeup", 1, 64);
+  let makeup = number("makeup", 1, 64);
   const width = Math.log(number("knee", 1, 8));
   const maximum = choice("link", ["average", "maximum"]) === 1;
   // Like native agate, the detector uses level_in; level_sc is only validated.
@@ -63,7 +64,15 @@ export async function applyAudioGate(
   budget.allocateMemory(length * channels.length * 8);
   const output = channels.map(() => new Float64Array(length));
   let envelope = 0;
+  let nextCommand = 0;
   for (const [n, frame] of frames.entries()) {
+    while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
+      const command = commands[nextCommand++]!;
+      try {
+        const value = parseFilterExpression(command.expression, name, {});
+        if (Number.isFinite(value) && value >= 1 && value <= 64) makeup = value;
+      } catch { /* Native asendcmd continues after a rejected command. */ }
+    }
     const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "agate enable", {
       n, t: frame.pts / sampleRate, pos: frame.pos ?? NaN
     })) >= 0.5;

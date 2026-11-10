@@ -12,7 +12,8 @@ for (const mode of ["map", "retained", "command"] as const) {
     [["-virtual-pixel", "gray"], [152, 102, 84]],
     [["-background", "#204060", "-virtual-pixel", "background"], [104, 70, 68]],
     [["-virtual-pixel", "transparent"], [88, 38, 20]],
-    [["-virtual-pixel", "white", "+virtual-pixel"], [106, 90, 106]],
+    // Native +virtual-pixel clears the setting without changing existing images.
+    [["-virtual-pixel", "white", "+virtual-pixel"], [216, 166, 148]],
   ] as const)(`${mode}: evaluates smaller images using virtual pixels %j`, async (settings, outside) => {
     const files = new Map<string, Uint8Array>(), fs = createMemoryFileSystem();
     for (const [path, width, height, background] of [["/a.png", 1, 1, "#2468ac"], ["/big.png", 3, 2, "#b04c28"]] as const) {

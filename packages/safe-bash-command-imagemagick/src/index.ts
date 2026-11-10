@@ -9782,6 +9782,7 @@ if (t === "-intent" || t === "+intent") {
             const k = (tokens[++i] ?? "").toLowerCase();
             const v = tokens[++i] ?? "";
             if (k.startsWith("option:")) state.optionProperties = { ...state.optionProperties, [k.slice("option:".length)]: v };
+            if (k === "option:magnify:method") state.magnifyMethod = parseMagnifyMethod(v);
             if (k === "option:connected-components:verbose") {
                 const value = v.toLowerCase();
                 if (!["true", "false", "1", "0", "yes", "no", "on", "off"].includes(value)) throw new Error(`Unsupported connected-components setting: ${k}=${v}`);
@@ -10738,6 +10739,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-magnify") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const factor = state.magnifyMethod === "scale3x" ? 3 : 2;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const width = image.width * factor, height = image.height * factor;
@@ -10746,7 +10748,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 // Native magnification retains the mask channel with cleared coverage.
                 output.region = undefined;
                 if (image.region || image.writeMask) output.writeMask = yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 });
-                return output;
+                const virtualCanvas = magickResizeCanvas(image, width, height);
+                return virtualCanvas ? { ...output, virtualCanvas } : output;
             });
         }
         else if (t === "-adaptive-resize") {
@@ -13630,6 +13633,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return applyMagickDensity(resized, density);
             });
         } else if (!operandsOnly && token === "-magnify") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const method = state.magnifyMethod, factor = method === "scale3x" ? 3 : 2, background = state.background, virtualPixel = state.virtualPixel;
             steps.push(async (image, backend) => {
                 if (!image) return;
@@ -13638,7 +13645,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (image.readMask) output.readMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 output.region = undefined;
                 if (image.region || image.storedWriteMask) output.storedWriteMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
-                return output;
+                const virtualCanvas = magickResizeCanvas(image, width, height);
+                return virtualCanvas ? { ...output, virtualCanvas } : output;
             });
         } else if (!operandsOnly && token === "-adaptive-resize") {
             const geometry = tokens[++i] ?? "100%";

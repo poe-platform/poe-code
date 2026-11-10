@@ -2233,11 +2233,12 @@ function parseMagickRaiseGeometry(raw: string, option: string): MagickGeometry {
     return geometry;
 }
 
-function validateMagickStatisticGeometry(raw: string): void {
-    const value = raw.trimStart();
-    if (value.startsWith("+") || value.startsWith("-") || !Number.isFinite(Number.parseFloat(raw)) || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+function parseMagickStatisticGeometry(raw: string): string {
+    const value = raw.replaceAll("(", "").replaceAll(")", "").trimStart();
+    if (value.startsWith("+") || value.startsWith("-") || !Number.isFinite(Number.parseFloat(value)) || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
         throw new Error(`invalid argument for option '-statistic': ${raw}`);
     }
+    return value;
 }
 
 function validateMagickSpliceGeometry(raw: string): void {
@@ -11724,8 +11725,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const context = { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties };
                 const method = yield* formatMagickPropertyStringSteps(statType, im, () => im, context);
                 validateMagickStatistic(method);
-                const geometry = yield* formatMagickPropertyStringSteps(geom, im, () => im, context);
-                validateMagickStatisticGeometry(geometry);
+                const geometry = parseMagickStatisticGeometry(yield* formatMagickPropertyStringSteps(geom, im, () => im, context));
                 const plan = magickMorphologyPlan(method, geometry, true);
                 if (state.virtualPixel === "transparent" && (!state.channelExplicit || state.channels.a)) im = { ...im, hasAlpha: true };
                 const result = yield* applyMagickMorphology4ChSteps({ ...im, isPalette: false }, plan, signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.virtualPixel, state.background);
@@ -14292,8 +14292,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const context = { ...(image as StoredMagickImage)[magickInput], optionProperties };
                 const method = await formatRetainedIdentify(statType, image, context, async () => ({ image: image!, storage: backend.storage }), signal);
                 validateMagickStatistic(method);
-                const geometry = await formatRetainedIdentify(geom, image, context, async () => ({ image: image!, storage: backend.storage }), signal);
-                validateMagickStatisticGeometry(geometry);
+                const geometry = parseMagickStatisticGeometry(await formatRetainedIdentify(geom, image, context, async () => ({ image: image!, storage: backend.storage }), signal));
                 if (virtualPixel === "transparent" && (!channels || channels[3])) image = { ...image, hasAlpha: true };
                 const plan = magickMorphologyPlan(method, geometry, true);
                 const result = await morphStoredMagickImage({ ...image, isPalette: false }, backend, plan, signal, channels, virtualPixel, background);

@@ -19,7 +19,7 @@ for (const [filter, expected] of [
   ["tmix=frames=3:weights=1 0 0", [12, 12, 12, 40, 40, 112, 144, 176]],
   ["tmix=weights=0 0 0", [12, 21, 31, 64, 99, 144, 165, 195]],
   ["tmix=frames=2:weights=-1 1", values.map(() => 0)],
-  ...["frames=0", "frames=1025", "weights=no", "weights=Infinity", "weights=1e308", "unknown=1", "planes=-1", "planes=16", "planes=1.5", "planes=no"].map(value => [`tmix=${value}`, null] as const)
+  ...["frames=0", "frames=1025", "weights=no", "weights=Infinity", "weights=1e308", "unknown=1", "planes=-1", "planes=4294967296", "planes=1.5", "planes=no"].map(value => [`tmix=${value}`, null] as const)
 ] as const) {
   it(`tmix selects frames or safely rejects ${filter}`, async () => {
     const volume = Volume.fromJSON(expected === null ? { "/o01.png": "existing output" } : {});

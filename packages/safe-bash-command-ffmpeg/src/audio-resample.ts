@@ -139,7 +139,7 @@ export async function convertAudioSampleFormat(
   channels: readonly (Float32Array | Float64Array)[], source: string, format: string,
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<readonly (Float32Array | Float64Array)[]> {
-  const truncate = (format === "u8" || format === "u8p") && ["u8", "u8p", "s16", "s16p", "s32", "s32p", "s64", "s64p"].includes(source);
+  const truncate = ["u8", "u8p", "s16", "s16p", "s32", "s32p", "s64", "s64p"].includes(source);
   if (format === "dbl" || format === "dblp") return channels;
   const floating = format === "flt" || format === "fltp";
   const scale = format === "u8" || format === "u8p" ? 128 : format === "s32" || format === "s32p" ? 2147483648

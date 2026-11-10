@@ -2,6 +2,79 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { Shell, MemoryFileSystem, FsError, agentCommands } from "../../src/index.js";
 
+// GNU Bash 5.3, LC_ALL=C.
+const cdHelp = [
+  "cd: cd [-L|[-P [-e]]] [-@] [dir]",
+  "    Change the shell working directory.",
+  "    ",
+  "    Change the current directory to DIR.  The default DIR is the value of the",
+  '    HOME shell variable. If DIR is "-", it is converted to $OLDPWD.',
+  "    ",
+  "    The variable CDPATH defines the search path for the directory containing",
+  "    DIR.  Alternative directory names in CDPATH are separated by a colon (:).",
+  "    A null directory name is the same as the current directory.  If DIR begins",
+  "    with a slash (/), then CDPATH is not used.",
+  "    ",
+  "    If the directory is not found, and the shell option `cdable_vars' is set,",
+  "    the word is assumed to be  a variable name.  If that variable has a value,",
+  "    its value is used for DIR.",
+  "    ",
+  "    Options:",
+  "      -L\tforce symbolic links to be followed: resolve symbolic",
+  "    \t\tlinks in DIR after processing instances of `..'",
+  "      -P\tuse the physical directory structure without following",
+  "    \t\tsymbolic links: resolve symbolic links in DIR before",
+  "    \t\tprocessing instances of `..'",
+  "      -e\tif the -P option is supplied, and the current working",
+  "    \t\tdirectory cannot be determined successfully, exit with",
+  "    \t\ta non-zero status",
+  "      -@\ton systems that support it, present a file with extended",
+  "    \t\tattributes as a directory containing the file attributes",
+  "    ",
+  "    The default is to follow symbolic links, as if `-L' were specified.",
+  "    `..' is processed by removing the immediately previous pathname component",
+  "    back to a slash or the beginning of DIR.",
+  "    ",
+  "    Exit Status:",
+  "    Returns 0 if the directory is changed, and if $PWD is set successfully when",
+  "    -P is used; non-zero otherwise.",
+  "",
+].join("\n");
+
+for (const command of ["cd --help", "builtin cd --help", "command cd --help", "cd -P --help", "cd -LP --help ignored extra"]) {
+  test(`${command} prints Bash help without changing directory state`, async context => {
+    const { fs, shell } = await fixture();
+    context.after(() => shell.dispose());
+    fs.stat = async () => { assert.fail("cd help must not query the filesystem"); };
+    const result = await shell.exec(command);
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdoutBytes, new TextEncoder().encode(cdHelp));
+    const state = await shell.exec('printf "%s|%s|" "$PWD" "$OLDPWD"; pwd');
+    assert.equal(state.stdout, "/work|/search/link|/work\n");
+    assert.equal(state.stderr, "");
+  });
+}
+
+test("cd treats --help after -- as a directory name", async context => {
+  const { fs, shell } = await fixture();
+  context.after(() => shell.dispose());
+  await fs.mkdir("/work/--help");
+  const result = await shell.exec("cd -- --help; pwd");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "/work/--help\n");
+  assert.equal(result.stderr, "");
+});
+
+test("cd does not recognize --help after a directory operand", async context => {
+  const { shell } = await fixture();
+  context.after(() => shell.dispose());
+  const result = await shell.exec("cd dir --help");
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "cd: too many arguments\n");
+});
+
 async function fixture() {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/work/dir/child", { recursive: true });

@@ -2642,8 +2642,16 @@ async function applyVideoFilterChain(
         throw new Error("negate: invalid negate_alpha boolean");
       }
       const negateAlpha = ["1", "true", "yes", "on"].includes(alpha);
-      let mask = 0;
-      for (const component of (components ?? "0").split("+")) {
+      const flags = components ?? "0";
+      const relative = flags.startsWith("+") || flags.startsWith("-");
+      let mask = relative ? 0b0111111 : 0;
+      let position = 0;
+      do {
+        const remove = flags[position] === "-";
+        if (remove || flags[position] === "+") position++;
+        const start = position;
+        while (position < flags.length && flags[position] !== "+" && flags[position] !== "-") position++;
+        const component = flags.slice(start, position);
         if (component === "none") continue;
         if (!component.trim()) throw new Error("negate: invalid empty component");
         const index = ["r", "g", "b", "y", "u", "v", "a"].indexOf(component);
@@ -2651,8 +2659,8 @@ async function applyVideoFilterChain(
         if (!Number.isInteger(value) || value < 0 || value > 127) {
           throw new Error(`negate: invalid component ${component}`);
         }
-        mask |= value;
-      }
+        mask = remove ? mask & ~value : mask | value;
+      } while (position < flags.length);
       current = await mapWork(current, async (f, n) => {
         const source = f.native;
         const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
@@ -2660,7 +2668,9 @@ async function applyVideoFilterChain(
         const gray = pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "gray16be" || pixelFormat === "ya8";
         const available = planar ? 0b0111000 : gray ? (pixelFormat === "ya8" ? 0b1001000 : 0b0001000) :
           pixelFormat === "rgb24" || pixelFormat === "bgr24" ? 0b0000111 : 0b1000111;
-        const selected = (components === undefined ? available & 0b0111111 : mask) | (negateAlpha ? available & 0b1000000 : 0);
+        // An unchanged all-color default selects only the negotiated format's components.
+        const selected = (components === undefined || relative && mask === 0b0111111 ? available & 0b0111111 : mask) |
+          (negateAlpha ? available & 0b1000000 : 0);
         if (selected & ~available) throw new Error("negate: Requested components not available");
         if (named.enable !== undefined && Math.abs(parseFilterExpression(named.enable, "negate enable", {
           n, t: f.ptsSeconds, w: f.width, h: f.height

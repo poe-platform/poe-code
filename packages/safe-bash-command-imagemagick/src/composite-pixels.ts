@@ -337,6 +337,21 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                 out[dIdx + 2] = sb;
                 continue;
             }
+            if (norm === "pegtoplight") {
+                const alpha = sa + da - sa * da;
+                for (let c = 0; c < 3; c++) {
+                    const sc = Math.max(0, Math.min(1, src.data[sIdx + c]! / 255 * sa));
+                    const dc = Math.max(0, Math.min(1, dst.data[dIdx + c]! / 255));
+                    const blend = sc <= 0.5
+                        ? dc - (1 - 2 * sc) * dc * (1 - dc)
+                        : dc + (2 * sc - 1) * ((dc <= 0.25 ? ((16 * dc - 12) * dc + 4) * dc : Math.sqrt(dc)) - dc);
+                    // Native PegtopLight omits the source's outside-destination contribution.
+                    const channel = da === 0 ? sc : blend * da * sa + dc * da * (1 - sa);
+                    out[dIdx + c] = alpha === 0 ? 0 : clampByteVal(255 * channel / alpha);
+                }
+                out[dIdx + 3] = clampByteVal(alpha * 255);
+                continue;
+            }
             if (norm === "softlight") {
                 const alpha = sa + da - sa * da;
                 for (let c = 0; c < 3; c++) {

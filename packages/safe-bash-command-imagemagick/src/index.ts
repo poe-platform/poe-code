@@ -8862,11 +8862,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 percentages[1] = percentages[2] === 0 ? 2 : 1;
             }
         }
-        const [red = 1, green = red, blue = red] = percentages.map(percent => percent / 100);
-        const blend = [red, green, blue];
-        const fill = [state.fill.r, state.fill.g, state.fill.b];
-        const mask = [state.channels.r, state.channels.g, state.channels.b];
+        const [red = 1, green = red, blue = red, black = red] = percentages.map(percent => percent / 100);
+        const blend = [red, green, blue, black];
+        const fill = [state.fill.r, state.fill.g, state.fill.b, 0];
+        const mask = [state.channels.r, state.channels.g, state.channels.b, state.channels.k];
         apply = function* (image) {
+            const cmyk = image.space === "cmyk";
+            if (cmyk) image = yield* convertCmykPixels(image);
             if (state.fillHasAlpha) image = yield* ensureAlphaImageSteps(image, 1);
             if ((image.space === "b-w" || image.space === "grey16") && (fill[0] !== fill[1] || fill[1] !== fill[2] || mask[0] !== mask[1] || mask[1] !== mask[2] || red !== green || green !== blue))
                 image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
@@ -8874,20 +8876,28 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
             const hueSamples = image.hueSamples?.slice();
             const samples = hueSamples ?? image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
+            const evaluateSamples = cmyk ? image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value) : undefined;
             const range = hueSamples ? 1 : 255;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
-                for (let channel = 0; channel < 3; channel++) {
+                for (let channel = 0; channel < (cmyk ? 4 : 3); channel++) {
                     const strength = blend[channel]!;
                     if (!mask[channel]) continue;
                     // Keep HDRI range and fractions between blends; only the encoding views are bounded.
                     const sample = Math.fround((samples[idx + channel]! + (fill[channel]! * (range / 255) - samples[idx + channel]!) * strength) * (65535 / range)) / (65535 / range);
                     samples[idx + channel] = sample;
+                    if (cmyk) continue;
                     if (data16) data16[idx + channel] = Math.round(Math.max(0, Math.min(65535, sample * (65535 / range))));
                     out[idx + channel] = clampByteVal(sample * (255 / range));
                 }
+                if (cmyk) for (let channel = 0; channel < 3; channel++) {
+                    const sample = (1 - samples[idx + channel]!) * (1 - samples[idx + 3]!);
+                    evaluateSamples![idx + channel] = sample * 255;
+                    if (data16) data16[idx + channel] = Math.round(Math.max(0, Math.min(65535, sample * 65535)));
+                    out[idx + channel] = clampByteVal(sample * 255);
+                }
             }
-            return { ...image, isPalette: false, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : { evaluateSamples: samples }) };
+            return { ...image, isPalette: false, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(hueSamples ? { hueSamples } : { evaluateSamples: samples }) };
         };
     } else if (token === "-blue-shift") {
         highDepth = true;

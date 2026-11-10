@@ -9953,7 +9953,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                   starts[slot] = start;
                                   budget.allocateMemory(128);
                                   metadata.tags.set(`lavfi.silence_start${suffix}`, String(Number(start.toPrecision(6))));
-                                  await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_start: ${Number(start.toPrecision(6))}\n`), context.signal);
+                                  if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_start: ${Number(start.toPrecision(6))}\n`), context.signal);
                                 }
                               } else {
                                 const start = starts[slot];
@@ -9962,7 +9962,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                   budget.allocateMemory(256);
                                   metadata.tags.set(`lavfi.silence_end${suffix}`, String(Number(end.toPrecision(6))));
                                   metadata.tags.set(`lavfi.silence_duration${suffix}`, String(Number((end - start).toPrecision(6))));
-                                  await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
+                                  if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
                                 }
                                 counts[slot] = 0;
                                 starts[slot] = undefined;
@@ -9976,7 +9976,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const last = audioTimestamps?.at(-1);
                           const end = (last ? last.pts + last.end - last.start : audioStartSample + length) / origRate;
                           const prefix = mono ? `channel: ${slot} | ` : "";
-                          await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
+                          if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
                         }
                       } else if (trimmed === "astats" || trimmed.startsWith("astats=")) {
                         let perChannel: ReadonlySet<string> | undefined;

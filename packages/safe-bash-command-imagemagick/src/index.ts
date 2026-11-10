@@ -5187,9 +5187,9 @@ function* copyMagickPixelSteps(image: Pick<RgbaImage, "width" | "height">, geome
     validateMagickTransformGeometry(offset, "-copy");
     const source = parseMagickGeometry(geometry), destination = parseMagickGeometry(offset);
     const width = source.width ?? image.width, height = source.height ?? image.height;
-    const left = destination.x, top = destination.y, right = left + width, bottom = top + height;
+    const left = Math.trunc(destination.x), top = Math.trunc(destination.y), right = left + width, bottom = top + height;
     if (left < 0 || top < 0 || right > image.width || bottom > image.height) throw new Error("geometry does not contain image");
-    const dx = left - source.x, dy = top - source.y;
+    const dx = left - Math.trunc(source.x), dy = top - Math.trunc(source.y);
     for (const evaluate of evaluateSamples ? [false, true] : [false]) {
         const pixelBytes = evaluate ? 32 : highDepth ? 8 : 4;
         const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;

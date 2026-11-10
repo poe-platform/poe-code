@@ -11693,6 +11693,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const readMask = im.readMask ? yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
                 // Native decoration creates a zero-valued write-mask channel.
                 const borderColor = (im as MagickImage)[magickInput]?.borderColor ?? state.borderColor;
+                if ((im.space === "b-w" || im.space === "grey16") && (borderColor.r !== borderColor.g || borderColor.g !== borderColor.b))
+                    im = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0)!.apply(im);
                 const writeMask = im.writeMask ? yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
                 const metaChannels: BaseRgbaImage[] = [];
                 for (const plane of im.metaChannels ?? []) metaChannels.push(yield* applyMagickRasterSteps(plane,
@@ -11876,6 +11878,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
                 const g = resolveMagickFrameGeometry(expanded, im);
+                // Border color controls promotion even though the frame uses matte color.
+                if ((im.space === "b-w" || im.space === "grey16") && (state.borderColor.r !== state.borderColor.g || state.borderColor.g !== state.borderColor.b))
+                    im = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0)!.apply(im);
                 const fw = g.width, fh = g.height;
                 const width = im.width + 2 * fw, height = im.height + 2 * fh;
                 const readMask = im.readMask ? yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
@@ -15370,9 +15375,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const { borderColor, matteColor, composeRaw, composeArgs, alphaFuzz, optionProperties } = state;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image: image!, storage: backend.storage }), signal);
                 validateMagickTransformGeometry(expanded, token);
                 const geometry = resolveMagickFrameGeometry(expanded, image);
+                // Border color controls promotion even though the frame uses matte color.
+                if ((image.space === "b-w" || image.space === "grey16") && (borderColor.r !== borderColor.g || borderColor.g !== borderColor.b))
+                    image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], createDefaultState(), 0)!, signal);
                 const left = geometry.width, top = geometry.height;
                 const width = image.width + 2 * left, height = image.height + 2 * top;
                 const readMask = image.readMask ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
@@ -15397,6 +15405,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 // Native decoration creates a zero-valued write-mask channel.
                 const storedWriteMask = image.storedWriteMask ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                 const background = (image as StoredMagickImage)[magickInput]?.borderColor ?? defaultBorderColor;
+                if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
+                    image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], createDefaultState(), 0)!, signal);
                 const storedMetaChannels: BaseStoredRgbaImage[] = [];
                 for (const plane of image.storedMetaChannels ?? []) storedMetaChannels.push(await transformStoredMagickRaster(plane, backend,
                     borderPixels(plane, left, top, { r: 0, g: 0, b: 0, a: 255 }, !!plane.storedData16), signal, { width, height, hasAlpha: false }));

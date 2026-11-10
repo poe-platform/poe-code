@@ -531,6 +531,8 @@ Partial final blocks are zero-padded for filtering and drained without adding ou
 `stereowiden=delay=5:feedback=0.3:crossfeed=0.3:drymix=0.8` widens stereo
 with delayed cross-channel subtraction. Mono input is automatically converted to stereo
 at √½ gain per channel; labeled 5.1 input uses the same downmix as `stereotools`.
+For raw PCM with only `-ac 3`, `-ac 4`, or `-ac 6`, these stereo filters use
+FFmpeg's default 2.1, 4.0, or 5.1 layout before downmixing.
 Delay is in milliseconds (1–100, default 20),
 rounded to the nearest sample with exact halves rounding to even;
 feedback (0–0.9), crossfeed (0–0.8), and drymix (0–1) default to 0.3, 0.3, and 0.8.

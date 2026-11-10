@@ -9954,7 +9954,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
                             || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
                             || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
-                            || action === "feedback" && (target === "stereowiden" || target?.startsWith("stereowiden@"))
+                            || (action === "feedback" || action === "enable") && (target === "stereowiden" || target?.startsWith("stereowiden@"))
                             || action === "delays" && (target === "adelay" || target?.startsWith("adelay@"))
                             || action === "level" && ["afreqshift", "aphaseshift"].some(name => target === name || target?.startsWith(`${name}@`))
                             || action === "wet" && (target === "asubboost" || target?.startsWith("asubboost@"))
@@ -9963,7 +9963,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME tremolo[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback GAIN or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays DELAYS or TIME alimiter[@NAME] limit LIMIT or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN");
+                            throw new Error("asendcmd: expected TIME tremolo[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback|enable EXPR or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] dry GAIN or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays DELAYS or TIME alimiter[@NAME] limit LIMIT or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN");
                           }
                           return { time, target, action: action!, expression };
                         });
@@ -12602,7 +12602,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const count = timestamp ? timestamp.end - timestamp.start
                             : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                           const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
-                          const end = enable === undefined ? length : Math.min(length, start + count);
+                          while (nextCommand < commands.length && commands[nextCommand]!.sample <= start) {
+                            const command = commands[nextCommand++]!;
+                            try {
+                              if (command.action === "enable") {
+                                parseFilterExpression(command.expression, "stereowiden enable", { n: 0, t: 0 });
+                                enable = command.expression;
+                              } else if (command.action === "feedback") {
+                                const value = parseFilterExpression(command.expression, "stereowiden", {
+                                  min: 0, max: 0.9, default: defaults.feedback, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+                                });
+                                if (Number.isFinite(value) && value >= 0 && value <= 0.9) feedback = Math.fround(value);
+                              }
+                            } catch { /* Rejected runtime commands retain the current setting. */ }
+                          }
+                          const end = Math.min(length, start + count);
                           const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "stereowiden enable", {
                             n, t: pts / origRate
                           })) >= 0.5;
@@ -12611,15 +12625,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               await yieldTurn(context.signal);
                               context.signal?.throwIfAborted();
                               budget.checkCpu();
-                            }
-                            while (nextCommand < commands.length && commands[nextCommand]!.sample <= i) {
-                              const command = commands[nextCommand++]!;
-                              try {
-                                const value = parseFilterExpression(command.expression, "stereowiden", {
-                                  min: 0, max: 0.9, default: defaults.feedback, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-                                });
-                                if (Number.isFinite(value) && value >= 0 && value <= 0.9) feedback = Math.fround(value);
-                              } catch { /* Rejected runtime commands leave the current feedback unchanged. */ }
                             }
                             for (let c = 0; c < 2; c++) {
                               const opposite = stretched[1 - c]!;

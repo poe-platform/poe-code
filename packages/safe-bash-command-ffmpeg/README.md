@@ -544,7 +544,10 @@ Setting `feedback=0:crossfeed=0:drymix=1` preserves the input samples.
 changes feedback at the next audio frame without resetting delay history. Commands
 select the named instance or the first subsequent `stereowiden` instance; invalid
 feedback values retain the current setting.
-Downstream `ashowinfo` reports packed float (`flt`) frames before output encoding.
+Schedule bypass changes with
+`asendcmd=c='0.003 stereowiden@w enable 0',stereowiden@w=delay=1`;
+`enable` commands replace the timeline expression at the next audio frame, and
+invalid expressions leave the previous expression unchanged.
 `enable` selects frames by time (`t`) or frame number (`n`); bypassed frames still
 feed the delay history, so re-enabling retains their delayed contributions.
 Downstream `ashowinfo` reports packed float (`flt`) frames before output encoding.

@@ -9596,7 +9596,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const key = separator < 0 ? (index === 0 ? "sample_rate" : undefined) : option.slice(0, separator);
                           const value = separator < 0 ? option : option.slice(separator + 1);
                           if (key !== "sample_rate" && key !== "r") throw new Error(`asetrate: unsupported option ${key}`);
-                          rate = Math.round(parseFilterExpression(value, "asetrate", {}));
+                          rate = roundToEven(parseFilterExpression(value, "asetrate", {}));
                           if (rate < 1 || rate > 2147483647) throw new Error("asetrate: invalid sample rate");
                         }
                         budget.checkDuration((stretched[0]?.length ?? 0) / rate);

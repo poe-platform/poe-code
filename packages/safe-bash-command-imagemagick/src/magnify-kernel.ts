@@ -6,7 +6,7 @@
  */
 import { hq2xPixels } from "./hq2x-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
-import type { RgbaColor } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { magickIntensity } from "./intensity.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
@@ -24,8 +24,10 @@ export function parseMagnifyMethod(value: string): MagnifyMethod {
 }
 
 // Bounded row neighborhoods serve both in-memory and retained rasters.
-// Copy complete Q16 pixels so equality and output preserve alpha and precision.
-export function* magnifyPixelSteps(image: { width: number; height: number; hasAlpha: boolean }, method: MagnifyMethod = "scale2x", background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", intensityMethod = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+// Keep working samples outside the quantum range available to later arithmetic.
+export function* magnifyPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples">>, method: MagnifyMethod = "scale2x", background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", intensityMethod = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
+    const Samples = evaluate ? Float64Array : Uint16Array;
     const factor = method === "scale3x" || method === "eagle3x" ? 3 : 2;
     const radius = method === "xbr2x" ? 2 : 1;
     const gray = virtualPixel === "white" ? 65535 : virtualPixel === "gray" ? 32768 : 0;
@@ -35,9 +37,9 @@ export function* magnifyPixelSteps(image: { width: number; height: number; hasAl
     for (let y = 0; y < image.height; y++) for (let left = 0; left < image.width; left += 1024) {
         yield;
         const count = Math.min(1024, image.width - left);
-        const rows: Uint16Array[] = [];
+        const rows: (Uint16Array | Float64Array)[] = [];
         for (let dy = -radius; dy <= radius; dy++) {
-            const row = new Uint16Array((count + 2 * radius) * 4);
+            const row = new Samples((count + 2 * radius) * 4);
             for (let column = 0; column < count + 2 * radius;) {
                 const pixel = virtualPixelIndex(left + column - radius, y + dy, image.width, image.height, virtualPixel);
                 if (pixel < 0) {
@@ -47,14 +49,14 @@ export function* magnifyPixelSteps(image: { width: number; height: number; hasAl
                 // Keep contiguous reads bounded, splitting where virtual pixels wrap.
                 let length = 1;
                 while (column + length < count + 2 * radius && virtualPixelIndex(left + column + length - radius, y + dy, image.width, image.height, virtualPixel) === pixel + length) length++;
-                const bytes = yield { kind: "read", highDepth: true, position: pixel * 4, length: length * 4 };
-                if (!bytes || bytes.length !== length * 8) throw new Error("Truncated magnify pixels");
-                row.set(new Uint16Array(bytes.slice().buffer), column * 4);
+                const bytes = yield { kind: "read", highDepth: !evaluate, evaluate, position: pixel * 4, length: length * 4 };
+                if (!bytes || bytes.length !== length * 4 * (evaluate ? 8 : 2)) throw new Error("Truncated magnify pixels");
+                row.set(evaluate ? new Float64Array(bytes.slice().buffer).map(value => value * 257) : new Uint16Array(bytes.slice().buffer), column * 4);
                 column += length;
             }
             rows.push(row);
         }
-        const output = Array.from({ length: factor }, () => new Uint16Array(count * factor * 4));
+        const output = Array.from({ length: factor }, () => new Samples(count * factor * 4));
         for (let x = 0; x < count; x++) {
             const pixels = rows.flatMap(row => Array.from({ length: 2 * radius + 1 }, (_, dx) => {
                 const offset = (x + dx) * 4;
@@ -91,7 +93,7 @@ export function* magnifyPixelSteps(image: { width: number; height: number; hasAl
                 else if (be) mix = a > b ? [0, 3] : [1, 4];
                 else mix = [0, 1, 3, 4];
                 // MixPixels truncates the Q16 average, including alpha.
-                const blended = new Uint16Array(4);
+                const blended = new Samples(4);
                 for (let channel = 0; channel < 4; channel++) {
                     blended[channel] = Math.trunc(mix.reduce((sum, index) => sum + pixels[index]![channel]!, 0) / mix.length);
                 }
@@ -155,6 +157,12 @@ export function* magnifyPixelSteps(image: { width: number; height: number; hasAl
                 } else output[dy]!.set(pixel, offset);
             }
         }
-        for (let dy = 0; dy < factor; dy++) yield { kind: "write", highDepth: true, position: ((y * factor + dy) * image.width * factor + left * factor) * 4, data: new Uint8Array(output[dy]!.buffer) };
+        for (let dy = 0; dy < factor; dy++) {
+            const position = ((y * factor + dy) * image.width * factor + left * factor) * 4;
+            const samples = output[dy]!;
+            const encoded = evaluate ? Uint16Array.from(samples, value => Math.max(0, Math.min(65535, Math.round(value)))) : samples;
+            yield { kind: "write", highDepth: true, position, data: new Uint8Array(encoded.buffer) };
+            if (evaluate) yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.map(value => value / 257).buffer) };
+        }
     }
 }

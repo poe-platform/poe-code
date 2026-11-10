@@ -38,7 +38,7 @@ const neighborhoods = [
     [8, 7, 6, 5, 3, 2, 1, 0]
 ] as const;
 
-export function hq2xPixels(pixels: Uint16Array[], equal: (a: number, b: number) => boolean): Uint16Array[] {
+export function hq2xPixels(pixels: (Uint16Array | Float64Array)[], equal: (a: number, b: number) => boolean): Float64Array[] {
     const different = pixels.map((_, index) => !equal(4, index));
     return neighborhoods.map(neighbors => {
         let pattern = 0;
@@ -52,7 +52,7 @@ export function hq2xPixels(pixels: Uint16Array[], equal: (a: number, b: number) 
         else if (rule === 19) rule = equal(d, h) ? 8 : 3;
         const [center, diagonal, top, left] = weights[rule]!;
         const divisor = center + diagonal + top + left;
-        const output = new Uint16Array(4);
+        const output = new Float64Array(4);
         for (let channel = 0; channel < 4; channel++) {
             // Native MixPixels truncates the Q16 integer average, including alpha.
             output[channel] = Math.floor((center * pixels[4]![channel]! + diagonal * pixels[a]![channel]!

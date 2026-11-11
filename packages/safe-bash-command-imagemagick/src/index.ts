@@ -17779,7 +17779,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
     const flagsWithTwoArgs = new Set(["-sparse-color", "-copy", "-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill", "+floodfill"]);
     const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-page", "-comment", "-label", "-caption"]);
     const flagsWithoutArgs = new Set([
-        "-despeckle", "+fill", "+caption",
+        "-despeckle", "+fill", "+caption", "+format",
         "-enhance", "-antialias", "+antialias", "+stroke",
         "-identify", "+identify", "-verbose", "+verbose", "-regard-warnings", "+regard-warnings",
         "-negate", "+negate", "-contrast", "+contrast", "-trim", "-flip", "-flop", "-transpose", "-transverse", "-auto-orient",
@@ -17808,6 +17808,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         if (t === "-identify" || t === "+identify") identify = t === "-identify";
         else if (t === "-verbose" || t === "+verbose") verbose = t === "-verbose";
         else if (t === "-regard-warnings" || t === "+regard-warnings") regardWarnings = t === "-regard-warnings";
+        else if (t === "+format") outFormatExt = undefined;
         else if (t === "-format") {
             const format = argv[++i]!;
             if (!extToImageFormat(format)) {

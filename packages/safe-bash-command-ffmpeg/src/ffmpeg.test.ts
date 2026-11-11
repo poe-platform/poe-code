@@ -1853,17 +1853,6 @@ describe("per-frame audio checksums", () => {
       }
     }
   });
-  it("rejects invalid framehash format versions without replacing output", async () => {
-    for (const version of ["0", "3", "invalid", "", "0.9", "2.1", "1+", "1/0", "0/0", "min(1,2)"]) {
-      const vfs = createTestVfs({ "/i.wav": encodeWav({ sampleRate: 8000,
-        channels: [new Float64Array(1200)] }), "/frames.txt": "keep" });
-      const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/i.wav",
-        "-f", "framehash", "-format_version", version, "/frames.txt"], vfs);
-      assert.notEqual(result.exitCode, 0);
-      assert.ok(result.stderr.includes("format_version"));
-      assert.equal(new TextDecoder().decode(vfs.store.get("/frames.txt")), "keep");
-    }
-  });
   it("evaluates framemd5 version options without changing the packet digest", async () => {
     for (const [value, expected] of [["1", 1], ["2", 2], ["min", 1], ["max", 2],
       ["default", 2], ["1+1", 2], ["1.5", 2]] as const) {

@@ -8116,6 +8116,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let outputFormat: string | undefined;
         let hashAlgorithm: string | undefined;
         let frameHashVersion = 2;
+        let frameHashVersionArg = "2";
         let outputTimestampOffset = 0;
         let muxDelay: number | undefined;
         let avoidNegativeTs = "auto";
@@ -8469,16 +8470,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-format_version") {
             const value = args[++i];
-            try {
-              frameHashVersion = parseFilterExpression(value ?? "", "format_version", { min: 1, max: 2, default: 2 });
-            } catch {
-              frameHashVersion = NaN;
-            }
-            if (!Number.isFinite(frameHashVersion) || frameHashVersion < 1 || frameHashVersion > 2) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid format_version: expected 1 or 2\n"), context.signal);
+            if (value === undefined) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Missing value for -format_version\n"), context.signal);
               return { exitCode: 1 };
             }
-            frameHashVersion = Math.round(frameHashVersion);
+            frameHashVersionArg = value;
           } else if (arg === "-hash") {
             hashAlgorithm = args[++i] ?? "";
           } else if (arg === "-update" || arg === "-atomic_writing" || arg === "-strftime" || arg === "-reset_timestamps" || arg === "-write_empty_segments") {
@@ -9965,7 +9961,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id !== "wav")) {
           throw new Error("-fs currently requires WAV output with audio stream copy");
         }
-        const frameChecksumOutput = outputFormat === "framemd5" || outputFormat === "framehash" || outputFormat === "framecrc";
+        const frameHashOutput = outputFormat === "framemd5" || outputFormat === "framehash";
+        const frameChecksumOutput = frameHashOutput || outputFormat === "framecrc";
         const checksumOutput = frameChecksumOutput || outputFormat === "streamhash" || outputFormat === "hash" || outputFormat === "md5" || outputFormat === "crc";
         const target = outputTarget;
         const protocolTargets = target.startsWith("tee:") ? target.slice(4).split("|") : [target];
@@ -10021,14 +10018,31 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               encodeUtf8(`ffmpeg: Unable to find a suitable output format for '${outputFormat ?? outputTarget}' (format AST not registered)\n`), context.signal);
             return { exitCode: outputFormat !== undefined ? 234 : 1 };
           }
+          let frameHashVersionExitCode = 0;
+          if (frameHashOutput) {
+            try {
+              frameHashVersion = parseFilterExpression(frameHashVersionArg, "format_version", { min: 1, max: 2, default: 2 });
+              if (frameHashVersion < 1 || frameHashVersion > 2) frameHashVersionExitCode = 222;
+              frameHashVersion = roundToEven(frameHashVersion);
+            } catch {
+              frameHashVersionExitCode = 234;
+            }
+          }
           // Open every protocol destination in order, reporting partial open failures.
-          if ((target.startsWith("tee:") || progressOutputIndex < outputs.length - 1) &&
+          // Invalid muxer options fail after opening even a single output.
+          if ((frameHashVersionExitCode || target.startsWith("tee:") || progressOutputIndex < outputs.length - 1) &&
               format !== "null" && format !== "segment" && plugin?.id !== "hls" && plugin?.id !== "image2") {
             for (const destination of protocolTargets) {
               if (!isStdout(destination) && destination !== "/dev/null" && !destination.startsWith("md5:")) {
                 await context.fs.writeFile(resolvePath(context.cwd, destination), new Uint8Array(0), { signal: context.signal });
               }
             }
+          }
+          if (frameHashVersionExitCode) {
+            await writeBytes(context.stderr, encodeUtf8(frameHashVersionExitCode === 222
+              ? "ffmpeg: Invalid format_version: expected 1 or 2\n"
+              : "ffmpeg: Invalid format_version expression\n"), context.signal);
+            return { exitCode: frameHashVersionExitCode };
           }
         });
         for (const map of maps) audioOutputMaps.add(map);

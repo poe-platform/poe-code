@@ -10771,7 +10771,7 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     if (format === "map" && (!image.isPalette || !image.indexedColors?.length && !image.pngPalette || (image.indexedColors?.length ?? 0) > 256)) image = yield* applyMagickRasterSteps(image, quantizePixelSteps(image.width * image.height * 4, 256, false, 0, image.hasAlpha, false, undefined, { width: image.width, height: image.height, method: "riemersma", diffusionAmount: 1 }, true));
     if (format === "xpm") image = yield* applyMagickRasterSteps(image, quantizePixelSteps(image.width * image.height * 4, 256, false, image.hasAlpha || dither ? 5 : 6, image.hasAlpha, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true));
     if (format === "gif" && !image.isPalette && dither) image = { ...(yield* applyMagickRasterSteps(image, gifDitherSteps(image, dither, diffusionAmount))), isPalette: true };
-    if (["exr", "hdr", "pfm", "phm"].includes(format)) image = yield* prepareFloatOutput(image);
+    if (["exr", "hdr", "pfm", "phm"].includes(format) || format === "miff" && image.bitsPerSample === 32) image = yield* prepareFloatOutput(image);
     if (format === "gif" && image.format === "gif" && !image.backgroundColor) image = { ...image, backgroundColor: { r: image.data[0]!, g: image.data[1]!, b: image.data[2]!, a: 255 } };
     if (format === "miff") {
         const scene = (image as MagickImage)[magickInput]?.sceneIdx ?? 0;
@@ -10801,7 +10801,7 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     if (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => prepareHueOutput(frame, format) }, signal);
     }
-    if (["exr", "hdr", "pfm", "phm"].includes(format) && image.storedEvaluateSamples !== undefined) {
+    if ((["exr", "hdr", "pfm", "phm"].includes(format) || format === "miff" && image.bitsPerSample === 32) && image.storedEvaluateSamples !== undefined) {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepareFloatOutput }, signal);
     }
     if (!image.hasAlpha) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: prepareInactiveAlphaOutput }, signal);
@@ -12685,7 +12685,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     }
                 }
                 if (base.writeMask) output = yield* applyMagickRasterSteps(output, writeMaskPixelSteps(output, base.writeMask, true), signal, output, [output, base, base.writeMask]);
-                result.push({ ...output, isPalette: false, inactiveAlpha: false });
+                result.push({ ...output, bitsPerSample: 32, isPalette: false, inactiveAlpha: false });
             }
             stack = result;
         }
@@ -14782,7 +14782,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }
                     }
                     if (base.storedWriteMask) output = await transformStoredMagickRaster(output, backend, writeMaskPixelSteps(output, base.storedWriteMask, true), signal, output, [output, base, base.storedWriteMask]);
-                    output = { ...output, isPalette: false, inactiveAlpha: false };
+                    output = { ...output, bitsPerSample: 32, isPalette: false, inactiveAlpha: false };
                     await result.push(output);
                 }
                 return result;

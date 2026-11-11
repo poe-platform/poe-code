@@ -21,7 +21,8 @@ function miffPixels(bytes: Uint8Array, channels: number, sampleBytes: number, co
         }
         else if (inks) for (let channel = 0; channel < 4; channel++) {
             const value = Math.round(Math.max(0, Math.min(1, inks[offset / sampleBytes + channel]!)) * (sampleBytes === 2 ? 65535 : 255));
-            if (sampleBytes === 2) view.setUint16(output + channel * 2, value);
+            if (sampleBytes === 4) view.setFloat32(output + channel * 4, inks[offset / sampleBytes + channel]!);
+            else if (sampleBytes === 2) view.setUint16(output + channel * 2, value);
             else pixels[output + channel] = value;
         }
         else pixels.set(bytes.subarray(offset, offset + colors * sampleBytes), output);
@@ -57,7 +58,7 @@ function miffPixels(bytes: Uint8Array, channels: number, sampleBytes: number, co
     return encoded.subarray(0, length);
 }
 
-function miffHeader(image: Pick<RgbaImage, "renderingIntent" | "chromaticity" | "properties" | "width" | "height" | "space" | "hasAlpha" | "virtualCanvas" | "resolution" | "magickUnits" | "density" | "disposal" | "loop" | "delayTicks" | "ticksPerSecond"> & { magickColorspace?: string }, depth: 8 | 16, compression: OutputEncodeOptions["miffCompression"], delay: number | undefined, loop: number | undefined, metaCount: number, colors = 0): Uint8Array {
+function miffHeader(image: Pick<RgbaImage, "renderingIntent" | "chromaticity" | "properties" | "width" | "height" | "space" | "hasAlpha" | "virtualCanvas" | "resolution" | "magickUnits" | "density" | "disposal" | "loop" | "delayTicks" | "ticksPerSecond"> & { magickColorspace?: string }, depth: 8 | 16 | 32, compression: OutputEncodeOptions["miffCompression"], delay: number | undefined, loop: number | undefined, metaCount: number, colors = 0): Uint8Array {
     const { width, height } = image;
     const page = image.virtualCanvas ?? { width, height, x: 0, y: 0 };
     let properties = "";
@@ -86,7 +87,7 @@ function miffHeader(image: Pick<RgbaImage, "renderingIntent" | "chromaticity" | 
     const geometry = page.width || page.height || page.x || page.y ? `page=${page.width}x${page.height}${page.x < 0 ? "" : "+"}${page.x}${page.y < 0 ? "" : "+"}${page.y}\n` : "";
     if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0 || !Number.isSafeInteger(width * height * 4)) throw new RangeError("Invalid MIFF dimensions");
     const channels = metaCount ? `number-channels=${miffChannels(image) + metaCount} number-meta-channels=${metaCount}\n` : "";
-    return new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=${colors ? "PseudoClass" : "DirectClass"} colors=${colors} matte=${image.hasAlpha ? "True" : "False"}\n${channels}columns=${width} rows=${height} depth=${depth}\n${geometry}${properties}${chromaticity}${animation}${density}units=${units}\ncolorspace=${image.space === "cmyk" ? "CMYK" : miffChannels(image) <= 2 ? "Gray" : image.magickColorspace ?? "sRGB"}\ncompression=${compression === "zip" ? "Zip" : compression === "bzip" ? "BZip" : compression === "rle" ? "RLE" : "None"}\n\f\n:\x1a`);
+    return new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=${colors ? "PseudoClass" : "DirectClass"} colors=${colors} matte=${image.hasAlpha ? "True" : "False"}\n${channels}columns=${width} rows=${height} depth=${depth}\n${depth === 32 ? "quantum:format=floating-point\n" : ""}${geometry}${properties}${chromaticity}${animation}${density}units=${units}\ncolorspace=${image.space === "cmyk" ? "CMYK" : miffChannels(image) <= 2 ? "Gray" : image.magickColorspace ?? "sRGB"}\ncompression=${compression === "zip" ? "Zip" : compression === "bzip" ? "BZip" : compression === "rle" ? "RLE" : "None"}\n\f\n:\x1a`);
 }
 
 function miffPaletteMatches(pixels: Uint8Array | Uint16Array, indices: Uint8Array, palette: Uint8Array): boolean {
@@ -111,19 +112,22 @@ export function encodeMiffImage(image: RgbaImage, requestedDepth?: 8 | 16, reque
     const chunks: Uint8Array[] = [];
     let length = 0;
     for (const page of image.miffPages ?? [image]) {
-        const depth = requestedDepth ?? (page.depth === "ushort" ? 16 : 8);
+        const depth = requestedDepth ?? (page.bitsPerSample === 32 ? 32 : page.depth === "ushort" ? 16 : 8);
         const meta = page.metaChannels ?? [];
-        const palette = !meta.length && page.isPalette !== false && page.space !== "cmyk" && page.pngPalette && page.pngIndices
+        const palette = depth !== 32 && !meta.length && page.isPalette !== false && page.space !== "cmyk" && page.pngPalette && page.pngIndices
             && miffPaletteMatches(depth === 16 && page.data16 ? page.data16 : page.data, page.pngIndices, page.pngPalette.bytes) ? page.pngPalette.bytes : undefined;
         const channels = palette ? page.hasAlpha ? 2 : 1 : miffChannels(page);
-        // Native MIFF RLE packets only carry color and alpha, so retain extra samples uncompressed.
-        const compression = meta.length && requestedCompression === "rle" ? "none" : requestedCompression;
+        // Native MIFF RLE packets use integer color/alpha samples; retain floats and extra channels uncompressed.
+        const compression = (meta.length || depth === 32) && requestedCompression === "rle" ? "none" : requestedCompression;
         const header = miffHeader(page, depth, compression, page.delay?.[0], loop ?? image.loop, meta.length, palette ? palette.length / 3 : 0), size = page.width * page.height * 4;
         const planes = [page, ...meta].map(plane => {
-            if (plane.width !== page.width || plane.height !== page.height || plane.data.length !== size || plane.data16 && plane.data16.length !== size) throw new Error("Invalid MIFF pixels");
+            if (plane.width !== page.width || plane.height !== page.height || plane.data.length !== size || plane.data16 && plane.data16.length !== size || plane.dataFloat && plane.dataFloat.length !== size) throw new Error("Invalid MIFF pixels");
             if (depth === 8) return plane.data;
-            const pixels = new Uint8Array(size * 2), view = new DataView(pixels.buffer);
-            for (let index = 0; index < size; index++) view.setUint16(index * 2, plane.data16?.[index] ?? plane.data[index]! * 257);
+            const pixels = new Uint8Array(size * (depth / 8)), view = new DataView(pixels.buffer);
+            for (let index = 0; index < size; index++) {
+                if (depth === 32) view.setFloat32(index * 4, plane.dataFloat?.[index] ?? (plane.data16 ? plane.data16[index]! / 65535 : plane.data[index]! / 255));
+                else view.setUint16(index * 2, plane.data16?.[index] ?? plane.data[index]! * 257);
+            }
             return pixels;
         });
         const inks = page.space === "cmyk" ? page.hueSamples : undefined;
@@ -131,7 +135,7 @@ export function encodeMiffImage(image: RgbaImage, requestedDepth?: 8 | 16, reque
         const packed = miffPixels(planes[0]!, channels, depth / 8, compression, planes.slice(1), inks, palette ? page.pngIndices : undefined);
         chunks.push(header);
         length += header.length;
-        if (palette) { const colormap = miffColormap(palette, depth); chunks.push(colormap); length += colormap.length; }
+        if (palette && depth !== 32) { const colormap = miffColormap(palette, depth); chunks.push(colormap); length += colormap.length; }
         const compressor = compression === "zip" || compression === "bzip" ? createMiffCompressor(page.width * (channels + meta.length) * (depth / 8), compression) : undefined;
         try {
             for (const chunk of compressor ? compressor.push(packed, true) : [packed]) {
@@ -151,14 +155,14 @@ export async function* encodeMiffFromStorage(image: StoredRgbaImage, storage: Im
         signal.throwIfAborted();
         const page = image.storedMiffPages ? await image.storedMiffPages.at(index) : image;
         signal.throwIfAborted();
-        const depth = requestedDepth ?? (page.depth === "ushort" ? 16 : 8);
+        const depth = requestedDepth ?? (page.bitsPerSample === 32 ? 32 : page.depth === "ushort" ? 16 : 8);
         const meta = page.storedMetaChannels ?? [];
         const original = page.storedPngIndices;
-        let palette = !meta.length && page.isPalette !== false && page.space !== "cmyk" && original?.width === page.width && original.height === page.height ? page.pngPalette?.bytes : undefined;
-        const compression = meta.length && requestedCompression === "rle" ? "none" : requestedCompression;
+        let palette = depth !== 32 && !meta.length && page.isPalette !== false && page.space !== "cmyk" && original?.width === page.width && original.height === page.height ? page.pngPalette?.bytes : undefined;
+        const compression = (meta.length || depth === 32) && requestedCompression === "rle" ? "none" : requestedCompression;
         const length = page.width * page.height * 4;
         for (const plane of [page, ...meta]) {
-            if (plane.width !== page.width || plane.height !== page.height || plane.storedData16 && plane.storedData16.length !== length) throw new Error("Invalid MIFF pixels");
+            if (plane.width !== page.width || plane.height !== page.height || plane.storedData16 && plane.storedData16.length !== length || plane.storedDataFloat && plane.storedDataFloat.length !== length) throw new Error("Invalid MIFF pixels");
         }
         for (let offset = 0; palette && offset < length; offset += 4096) {
             signal.throwIfAborted();
@@ -174,7 +178,7 @@ export async function* encodeMiffFromStorage(image: StoredRgbaImage, storage: Im
         }
         const channels = palette ? page.hasAlpha ? 2 : 1 : miffChannels(page);
         yield miffHeader(page, depth, compression, await page.storedDelay?.at(0, { signal }) ?? page.delay?.[0], loop ?? image.loop, meta.length, palette ? palette.length / 3 : 0);
-        if (palette) yield miffColormap(palette, depth);
+        if (palette && depth !== 32) yield miffColormap(palette, depth);
         const compressor = compression === "zip" || compression === "bzip" ? createMiffCompressor(page.width * (channels + meta.length) * (depth / 8), compression) : undefined;
         try {
             const chunkSize = page.space === "cmyk" ? 2048 : 4096;
@@ -183,15 +187,20 @@ export async function* encodeMiffFromStorage(image: StoredRgbaImage, storage: Im
                 if (offset % 65536 === 0) await defaultRuntime.yieldTurn(signal);
                 const size = Math.min(chunkSize, length - offset), planes: Uint8Array[] = [];
                 for (const plane of [page, ...meta]) {
-                    const source16 = depth === 16 ? plane.storedData16 : undefined;
-                    const bytes = await storage.read((source16?.position ?? plane.position) + offset * (source16 ? 2 : 1), size * (source16 ? 2 : 1), { signal });
+                    const sourceFloat = depth === 32 ? plane.storedDataFloat : undefined;
+                    const source16 = depth >= 16 ? plane.storedData16 : undefined;
+                    const sampleBytes = sourceFloat ? 4 : source16 ? 2 : 1;
+                    const bytes = await storage.read((sourceFloat?.position ?? source16?.position ?? plane.position) + offset * sampleBytes, size * sampleBytes, { signal });
                     signal.throwIfAborted();
-                    if (bytes.length !== size * (source16 ? 2 : 1)) throw new Error("Truncated MIFF backing storage");
+                    if (bytes.length !== size * sampleBytes) throw new Error("Truncated MIFF backing storage");
                     if (depth === 8) planes.push(new Uint8Array(bytes));
                     else {
-                        const pixels = new Uint8Array(size * 2), view = new DataView(pixels.buffer);
-                        const samples = source16 ? new Uint16Array(new Uint8Array(bytes).buffer) : undefined;
-                        for (let index = 0; index < size; index++) view.setUint16(index * 2, samples?.[index] ?? bytes[index]! * 257);
+                        const pixels = new Uint8Array(size * (depth / 8)), view = new DataView(pixels.buffer);
+                        const samples = sourceFloat ? new Float32Array(new Uint8Array(bytes).buffer) : source16 ? new Uint16Array(new Uint8Array(bytes).buffer) : bytes;
+                        for (let index = 0; index < size; index++) {
+                            if (depth === 32) view.setFloat32(index * 4, samples[index]! / (sourceFloat ? 1 : source16 ? 65535 : 255));
+                            else view.setUint16(index * 2, samples[index]! * (source16 ? 1 : 257));
+                        }
                         planes.push(pixels);
                     }
                 }

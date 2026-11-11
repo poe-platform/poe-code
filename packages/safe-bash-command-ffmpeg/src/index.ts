@@ -6433,8 +6433,8 @@ async function applyVideoFilterChain(
         const key = separator < 0 ? ["strength", "radius"][index]! : part.slice(0, separator).trim().toLowerCase();
         options[key] = separator < 0 ? part : part.slice(separator + 1).trim();
       }
-      const strength = Math.fround(parseFilterExpression(options.strength ?? "1.2", name, {}));
-      const radiusOption = parseFilterExpression(options.radius ?? "16", name, {});
+      const strength = Math.fround(parseFilterExpression(options.strength ?? "1.2", name, { default: 1.2, min: 0.51, max: 64 }));
+      const radiusOption = parseFilterExpression(options.radius ?? "16", name, { default: 16, min: 4, max: 32 });
       if (!Number.isFinite(strength) || strength < Math.fround(0.51) || strength > 64 ||
           !Number.isFinite(radiusOption) || radiusOption < 4 || radiusOption > 32) {
         throw new Error("gradfun: strength must be 0.51..64 and radius must be 4..32");

@@ -71,7 +71,8 @@ export async function denoiseWavelets(
   filter: string, frames: readonly { start: number; end: number; pts: number }[],
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<{ channels: Float64Array[]; frames: { start: number; end: number; pts: number }[] }> {
-  const options = { sigma: 0, levels: 10, wavet: 4, percent: 85, profile: 0, adaptive: 0, samples: 8192, softness: 1 };
+  const defaults = { sigma: 0, levels: 10, wavet: 4, percent: 85, profile: 0, adaptive: 0, samples: 8192, softness: 1 };
+  const options = { ...defaults };
   const ranges = { sigma: [0, 1], levels: [1, 12], wavet: [0, 6], percent: [0, 100],
     profile: [0, 1], adaptive: [0, 1], samples: [512, 65536], softness: [0, 10] };
   const names = Object.keys(options) as (keyof typeof options)[];
@@ -92,10 +93,13 @@ export async function denoiseWavelets(
     const booleanWords = ["true", "yes", "on", "y", "enable", "enabled", "false", "no", "off", "n", "disable", "disabled", ""];
     if (boolean && !booleanWords.includes(raw.toLowerCase()) &&
       (!digits.length || ![...digits].every(char => char >= "0" && char <= "9"))) throw new Error(`afwtdn: invalid ${key}`);
+    const [min, max] = ranges[key];
     const value = boolean && ["true", "yes", "on", "y", "enable", "enabled"].includes(raw.toLowerCase()) ? 1
       : boolean && ["false", "no", "off", "n", "disable", "disabled", ""].includes(raw.toLowerCase()) ? 0
-      : parseFilterExpression(raw, "afwtdn", key === "wavet" ? Object.fromEntries(waveletNames.map((name, i) => [name, i])) : {});
-    const [min, max] = ranges[key];
+      : parseFilterExpression(raw, "afwtdn", {
+        min: min!, max: max!, default: defaults[key],
+        ...(key === "wavet" ? Object.fromEntries(waveletNames.map((name, i) => [name, i])) : {})
+      });
     if ((!raw && !boolean) || !Number.isFinite(value)) throw new Error(`afwtdn: invalid ${key}`);
     if (value < min! || value > max!) {
       if (boolean) throw new Error(`afwtdn: invalid ${key}`);

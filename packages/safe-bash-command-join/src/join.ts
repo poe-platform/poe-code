@@ -177,7 +177,7 @@ function parse(context: CommandContext, budget: Budget, utf8: boolean): Options 
     throw new PublicDiagnostic(`missing operand${after}\nTry 'join --help' for more information.`);
   }
   for (const field of ["1", "2"] as const) if (pendingFields[field]) apply("j", field);
-  if (options.files.every(file => file === "-")) fail("both files cannot be standard input");
+  if (options.files.every(file => file === "-")) throw new PublicDiagnostic("both files cannot be standard input");
   return options;
 }
 

@@ -9566,6 +9566,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = function* (image) {
             const working = image.hueSamples !== undefined || image.magickColorspace === "RGB" && (!state.dither || levels < 2 || Math.trunc(levels) > 16);
             let output = yield* applyMagickRasterSteps({ ...image, isPalette: true }, posterizePixelSteps(image, levels, state.dither, state.diffusionAmount ?? 1, channels, signal, !working), signal);
+            if (state.dither && levels >= 2 && Math.trunc(levels) <= 16 && image.writeMask) {
+                // Native clips both the dither write and the subsequent palette sync.
+                const clipped = yield* applyMagickRasterSteps(output, writeMaskPixelSteps(output, image.writeMask, true, false, state.channels, image.hasAlpha && image.alphaBlend !== false), signal, output, [output, image, image.writeMask]);
+                output = yield* applyMagickRasterSteps(output, writeMaskPixelSteps(output, image.writeMask, true, false, state.channels, image.hasAlpha && image.alphaBlend !== false), signal, output, [output, clipped, image.writeMask]);
+                output = { ...output, writeMask: { ...image.writeMask } };
+            }
             // Dither assigns the palette in the working colorspace; only the
             // undithered quantization path converts it back to sRGB.
             if (!working || state.dither && levels >= 2 && Math.trunc(levels) <= 16) return output;
@@ -16073,6 +16079,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const expandedLevels = levels ?? parsePosterizeLevels(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal));
                 const working = image.storedHueSamples !== undefined || image.magickColorspace === "RGB" && (!dither || expandedLevels < 2 || Math.trunc(expandedLevels) > 16);
                 let output = await transformStoredMagickRaster({ ...image, isPalette: true }, backend, posterizePixelSteps(image, expandedLevels, dither, diffusionAmount, channels, signal, !working), signal);
+                if (dither && expandedLevels >= 2 && Math.trunc(expandedLevels) <= 16 && image.storedWriteMask) {
+                    // Native clips both the dither write and the subsequent palette sync.
+                    const clipped = await transformStoredMagickRaster(output, backend, writeMaskPixelSteps(output, image.storedWriteMask, true, false, channels, image.hasAlpha && image.alphaBlend !== false), signal, output, [output, image, image.storedWriteMask]);
+                    output = await transformStoredMagickRaster(output, backend, writeMaskPixelSteps(output, image.storedWriteMask, true, false, channels, image.hasAlpha && image.alphaBlend !== false), signal, output, [output, clipped, image.storedWriteMask]);
+                    output = { ...output, storedWriteMask: { ...image.storedWriteMask } };
+                }
                 if (!working || dither && expandedLevels >= 2 && Math.trunc(expandedLevels) <= 16) return output;
                 if (image.magickColorspace !== "RGB") {
                     output = await transformStoredMagickPixels(output, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal);

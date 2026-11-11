@@ -2861,7 +2861,7 @@ function normalizeMagickWarpGeometry(raw: string): string {
 }
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
-    let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal", "-density", "-delay", "-loop", "-blue-shift", "-sharpen", "-bilateral-blur"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
+    let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal", "-density", "-delay", "-loop", "-blue-shift", "-sharpen", "-bilateral-blur", "-adaptive-sharpen", "-adaptive-blur"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
     if (["-swirl", "-implode", "-wave", "-spread"].includes(option)) value = value.replaceAll("(", "").replaceAll(")", "");
     if (option === "-roll") value = value.replaceAll(" ", "").replaceAll("(", "").replaceAll(")", "");
     const forcedRegionResize = (option === "-liquid-rescale" || option === "-adaptive-resize") && value.includes("!");
@@ -14937,7 +14937,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(spec, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
-                const geometry = parseMagickGeometry(expanded);
+                const geometry = parseMagickGeometry(expanded.replaceAll(",", "x").replaceAll("/", "x"));
                 if (Math.abs(geometry.height ?? 1) < 1e-12) return im;
                 const edges = yield* applyMagickRasterSteps(im, adaptiveEdgePixelSteps(im, geometry.width ?? 0), signal);
                 const blurred = yield* applyMagickRasterSteps(edges, blurPixelSteps({ ...edges, virtualPixel: "edge" }, geometry, false), signal);
@@ -19190,7 +19190,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 validateMagickTransformGeometry(expanded, token);
-                const geometry = parseMagickGeometry(expanded);
+                const geometry = parseMagickGeometry(expanded.replaceAll(",", "x").replaceAll("/", "x"));
                 if (Math.abs(geometry.height ?? 1) < 1e-12) return image;
                 const edges = await transformStoredMagickRaster(image, backend, adaptiveEdgePixelSteps(image, geometry.width ?? 0), signal);
                 const blurred = await transformStoredMagickRaster(edges, backend, blurPixelSteps({ ...edges, virtualPixel: "edge" }, geometry, false), signal);

@@ -95,7 +95,7 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
     const format = options.format;
     const requestedDepth = options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
     const depth = options.tiffFloatDepth ?? (requestedDepth === 32 || requestedDepth === 64 || requestedDepth === 1 || requestedDepth === 2 || requestedDepth === 4 || requestedDepth >= 8 && requestedDepth <= 16 ? requestedDepth : requestedDepth > 8 ? 16 : 8);
-    const cmykToRgb = image.space === "cmyk" && (format === "rgb" || format === "rgba" || format === "rgbo");
+    const cmykToRgb = depth < 16 && image.space === "cmyk" && (format === "rgb" || format === "rgba" || format === "rgbo");
     const pixels = image.width * image.height;
     const rowSamples = image.width * (options.rawInterlace ? 1 : channels.length);
     const rowBytes = Math.ceil(rowSamples * depth / 8);
@@ -114,7 +114,7 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
         for (let c = 0; c < channels.length; c++) {
             const channel = channels[c]!;
             const index = format === "graya" && channel === 1 ? 3 : reverseChannels && channel < 3 ? 2 - channel : channel;
-            // The RGB coder clamps each ink before converting; explicit sRGB conversion keeps HDRI inks.
+            // Below 16 bits, the RGB coder clamps inks first; otherwise use the converted RGB backing.
             const value = cmykToRgb && image.hueSamples && index < 3
                 ? Math.fround((1 - Math.max(0, Math.min(1, image.hueSamples[pixel * 4 + index]!)))
                     * (1 - Math.max(0, Math.min(1, image.hueSamples[pixel * 4 + 3]!))) * 65535) * scale / 65535

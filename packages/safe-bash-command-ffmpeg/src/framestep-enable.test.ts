@@ -14,6 +14,7 @@ const input = Buffer.concat([
 // Native FFmpeg counts every input frame, including frames that bypass the filter.
 for (const [filter, expected] of [
   ["null", levels],
+  ["sendcmd='0.166 framestep enable ld(0)',framestep=2:enable='st(0,ld(0)+1)'", levels],
   ["sendcmd='0.166 framestep enable 0',framestep=2", levels],
   ["sendcmd='0.167 framestep enable 0',framestep=2", [32, 72, 92, 112, 132, 152, 172]],
   ["sendcmd='0.166 framestep@stride enable 1',framestep@stride=2:enable=0", [32, 72, 112, 152]],

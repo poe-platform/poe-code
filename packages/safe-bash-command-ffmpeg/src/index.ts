@@ -4718,7 +4718,8 @@ async function applyVideoFilterChain(
         while (nextCommand < commands.length && commands[nextCommand]!.time <= frame.ptsSeconds) {
           const command = commands[nextCommand++]!;
           try {
-            parseFilterExpression(command.expression, "framestep enable", variables);
+            parseFilterExpression(command.expression, "framestep enable", variables, undefined, new Float64Array(10));
+            registers.fill(0);
             enable = command.expression;
           } catch { /* Rejected runtime commands retain the previous enable expression. */ }
         }

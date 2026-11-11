@@ -20,9 +20,22 @@ export async function emphasizeAudio(
     // when it was just visited. The named key does not select the next slot.
     if (separator < 0) position++;
     else position = position === 0 ? 1 : 0;
+    const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (name === "threads" || name === "thread_type" || name === "extra_hw_frames") {
+      const minimum = name === "extra_hw_frames" ? -1 : 0;
+      const value = parseFilterExpression(raw, "aemphasis", name === "thread_type" ? { slice: 1 } : {
+        min: minimum, max: 2147483647, default: minimum
+      });
+      if (name === "thread_type"
+        ? !Number.isInteger(value) || value < -2147483648 || value > 4294967295
+        : !Number.isFinite(value) || value < minimum || value > 2147483647) {
+        throw new RangeError(`aemphasis: invalid ${name}`);
+      }
+      // Scheduling and hardware frame reservations do not change software PCM.
+      continue;
+    }
     const key = names.indexOf(name!);
     if (key < 0) throw new Error(`aemphasis: unsupported option ${name}`);
-    const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
     const constants: Record<string, number> = key === 2 ? { reproduction: 0, production: 1 }
       : key === 3 ? { col: 0, emi: 1, bsi: 2, riaa: 3, cd: 4, "50fm": 5, "75fm": 6, "50kf": 7, "75kf": 8 } : {};
     const value = Object.hasOwn(constants, raw) ? constants[raw]! : parseFilterExpression(raw, "aemphasis", constants);

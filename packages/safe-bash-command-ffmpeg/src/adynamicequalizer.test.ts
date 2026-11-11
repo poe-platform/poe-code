@@ -26,6 +26,40 @@ for (const graph of [false, true]) {
   }
 }
 
+// Compare decoded PCM so WAV container metadata cannot hide detector differences.
+for (const graph of [false, true]) {
+  for (const [expression, literal] of [
+    ["mode=listen:dfrequency=2k", "mode=listen:dfrequency=2000"],
+    ["mode=listen:dfrequency=1000*2", "mode=listen:dfrequency=2000"],
+    ["mode=listen:dfrequency=0x10", "mode=listen:dfrequency=16"],
+    ["mode=listen:dqfactor=1/2", "mode=listen:dqfactor=0.5"],
+    ["mode=-1.0", "mode=listen"],
+    ["mode=0-1", "mode=listen"],
+    ["mode=listen:dfrequency=1+1", "mode=listen:dfrequency=2"],
+    ["mode=listen:dfrequency=1M", "mode=listen:dfrequency=1000000"],
+    ["mode=listen:dqfactor=1/1000", "mode=listen:dqfactor=0.001"],
+    ["mode=listen:dqfactor=1k", "mode=listen:dqfactor=1000"]
+  ]) {
+    it(`evaluates detector options (${graph ? "graph" : "simple"}, ${expression})`, async () => {
+      const impulse = new Float64Array(32);
+      impulse[0] = 32767 / 32768;
+      const bytes = encodeWav({ sampleRate: 16000, channels: [impulse] });
+      const actual = await run(`adynamicequalizer=${expression}`, graph, bytes);
+      const expected = await run(`adynamicequalizer=${literal}`, graph, bytes);
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      assert.equal(expected.result.exitCode, 0, expected.stderr);
+      const audio = parseWav(actual.fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+      const referenceAudio = parseWav(expected.fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+      assert.equal(audio.channelData[0]!.length, 32);
+      assert.deepEqual(audio.channelData, referenceAudio.channelData);
+      if (literal === "mode=listen:dfrequency=2000") {
+        // FFmpeg 7.0.2 PCM16 impulse response starts with these samples.
+        assert.deepEqual(Array.from(audio.channelData[0]!.slice(0, 3), sample => sample * 32768), [8559, 8942, -3303]);
+      }
+    });
+  }
+}
+
 it("keeps detector history independent for each channel", async () => {
   const mono = parseWav(input).tracks[0]!.decodedAudio!.channelData[0]!;
   const stereo = encodeWav({ sampleRate: 16000, channels: [Float64Array.from(mono), new Float64Array(mono.length)] });
@@ -46,7 +80,10 @@ for (const filter of ["volume=0,adynamicequalizer=mode=listen", "adynamicequaliz
 
 for (const options of ["", "mode=cutbelow", "mode=0", "mode=invalid", "mode=listen:dfrequency=1",
   "mode=listen:dfrequency=1000001", "mode=listen:dfrequency=NaN", "mode=listen:dfrequency=",
-  "mode=listen:dqfactor=0", "mode=listen:dqfactor=1001", "mode=listen:unknown=1", "mode=listen:dftype=lowpass"]) {
+  "mode=listen:dfrequency=0b1000", "mode=listen:dfrequency=0o10",
+  "mode=listen:dfrequency=1/2", "mode=listen:dfrequency=1M+1", "mode=listen:dfrequency=1/0",
+  "mode=listen:dqfactor=0", "mode=listen:dqfactor=1001", "mode=listen:dqfactor=0b10",
+  "mode=listen:dqfactor=1/10000", "mode=listen:dqfactor=1k+1", "mode=listen:dqfactor=0/0", "mode=listen:unknown=1", "mode=listen:dftype=lowpass"]) {
   it(`rejects unsupported or invalid options without overwriting: ${options}`, async () => {
     const { fs, result, stderr } = await run(`adynamicequalizer${options ? `=${options}` : ""}`);
     assert.equal(result.exitCode, 1);

@@ -1,12 +1,13 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function listenDynamicEqualizer(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float32Array[]> {
   const options = { dfrequency: 1000, dqfactor: 1 };
-  let mode = "";
+  let mode = 0;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const option of argument ? argument.split(":") : []) {
     const separator = option.indexOf("=");
@@ -14,9 +15,9 @@ export async function listenDynamicEqualizer(
     const value = option.slice(separator + 1).trim();
     if (separator < 0) throw new Error("adynamicequalizer: expected named options");
     if (key === "mode") {
-      mode = value;
+      mode = parseFilterExpression(value, "adynamicequalizer", { listen: -1 });
     } else if (key === "dfrequency" || key === "dqfactor") {
-      const number = Number(value);
+      const number = parseFilterExpression(value, "adynamicequalizer", {});
       const min = key === "dfrequency" ? 2 : 0.001;
       const max = key === "dfrequency" ? 1000000 : 1000;
       if (!value || !Number.isFinite(number) || number < min || number > max) {
@@ -27,7 +28,7 @@ export async function listenDynamicEqualizer(
       throw new Error(`adynamicequalizer: unsupported option ${key}`);
     }
   }
-  if (mode !== "listen" && mode !== "-1") {
+  if (mode !== -1) {
     throw new Error("adynamicequalizer: only mode=listen is supported");
   }
 

@@ -19,7 +19,13 @@ export function* writeMaskPixelSteps(image: { width: number; height: number; spa
             for (const source of [0, 1]) {
                 const colors = image.space === "cmyk" ? undefined : yield { kind: "read", hue: true, image: source, position, length: count * 4 };
                 if (colors?.length) {
-                    samples.push(Float64Array.from(new Float64Array(colors.slice().buffer), value => value * 255));
+                    const values = Float64Array.from(new Float64Array(colors.slice().buffer), value => value * 255);
+                    // A source CMYK plane stores black in slot four, not alpha.
+                    const working = yield { kind: "read", evaluate: true, image: source, position, length: count * 4 };
+                    const rgba = working?.length ? new Float64Array(working.slice().buffer)
+                        : Float64Array.from(new Uint16Array((yield { kind: "read", highDepth: true, image: source, position, length: count * 4 })!.slice().buffer), value => value / 257);
+                    for (let offset = 3; offset < values.length; offset += 4) values[offset] = rgba[offset]!;
+                    samples.push(values);
                     hue = true;
                     continue;
                 }
@@ -30,7 +36,10 @@ export function* writeMaskPixelSteps(image: { width: number; height: number; spa
             }
             const edited = samples[0]!, original = samples[1]!;
             const editedInks = image.space === "cmyk" ? new Float64Array((yield { kind: "read", hue: true, position, length: count * 4 })!.slice().buffer) : undefined;
-            const originalInks = editedInks ? new Float64Array((yield { kind: "read", hue: true, image: 1, position, length: count * 4 })!.slice().buffer) : undefined;
+            const inkBytes = editedInks ? yield { kind: "read", hue: true, image: 1, position, length: count * 4 } : undefined;
+            // Entering CMYK preserves protected RGB samples as C/M/Y, with zero K.
+            const originalInks = editedInks ? inkBytes?.length ? new Float64Array(inkBytes.slice().buffer)
+                : Float64Array.from(original, (value, index) => index % 4 === 3 ? 0 : value / 255) : undefined;
             const selectedInks = channels ? [channels.r, channels.g, channels.b, channels.k !== false] : undefined;
             const maskX = Math.min(x, mask.width - 1), maskCount = Math.min(count, mask.width - maskX);
             const maskPosition = (Math.min(y, mask.height - 1) * mask.width + maskX) * 4;

@@ -59,6 +59,7 @@ import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { separateFields } from "./separatefields.js";
 import { decimate } from "./decimate.js";
 import { mpdecimate } from "./mpdecimate.js";
+import { pullup } from "./pullup.js";
 import { minterpolate } from "./minterpolate.js";
 import { meanFrameDifference } from "./select.js";
 import { sceneChangeDifference } from "./scdet.js";
@@ -5528,6 +5529,8 @@ async function applyVideoFilterChain(
       // Native decimate signals EOF at its last output PTS, excluding its duration.
       endTimeSeconds = current.at(-1)?.ptsSeconds ?? 0;
       cleanFrames = undefined;
+    } else if (name === "pullup") {
+      current = await pullup(current, argStr, budget, signal);
     } else if (name === "mpdecimate") {
       if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       current = await mpdecimate(current, argStr, budget, diagnostics, signal);

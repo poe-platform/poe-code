@@ -5199,7 +5199,8 @@ async function applyVideoFilterChain(
       }
       const endTicks = (endTimeSeconds ?? (lastInputFrame ? lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds : 0)) * timescale;
       const count = cols * rows;
-      const interval = frameRateKnown ? frameDuration * frameRateScale / count : 1 / (timescale * count);
+      // setpts advertises 1/0 fps, so all cells retain the sheet timestamp.
+      const interval = frameRateKnown ? frameDuration * frameRateScale / count : 0;
       const [inputNumerator, inputDenominator] = videoTimingRatio(1 / timescale);
       const [intervalNumerator, intervalDenominator] = videoTimingRatio(interval);
       let numerator = inputNumerator, remainder = intervalNumerator;
@@ -5214,7 +5215,7 @@ async function applyVideoFilterChain(
       endTimeSeconds = endTicks / timescale;
       const durationSeconds = Math.round(interval * timescale) / timescale;
       frameDuration = durationSeconds;
-      frameRateScale = interval / durationSeconds;
+      frameRateScale = durationSeconds ? interval / durationSeconds : 1;
       const extracted: MediaVideoFrame[] = [];
       for (const frame of current) {
         const source = frame.native?.rgba === frame.data && frame.native.width === frame.width && frame.native.height === frame.height

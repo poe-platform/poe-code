@@ -56,11 +56,11 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
     }
     const reciprocal = Math.abs(total) < 1e-12 ? (total < 0 ? -1e12 : 1e12) : 1 / total;
     for (let k = 0; k < weights.length; k++) weights[k]! *= reciprocal;
-    const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
+    const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 127.5 : 0;
     const fill = (virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
         ? [background.r, background.g, background.b, background.a]
         : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
-    if (cmyk) fill.push(0);
+    if (cmyk) fill.push(gray);
     // Gray's three backing samples represent the single red/gray channel.
     if (channels && (image.space === "b-w" || image.space === "grey16")) channels = { ...channels, g: channels.r, b: channels.r };
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha, channels.k] : [true, true, true, image.hasAlpha, true];

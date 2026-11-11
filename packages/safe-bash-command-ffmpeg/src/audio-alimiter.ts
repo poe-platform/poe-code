@@ -10,9 +10,9 @@ export class AlimiterError extends Error {
 
 export async function limitAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
-  frames: readonly { start: number; end: number; pts: number }[] = [{ start: 0, end: channels[0]?.length ?? 0, pts: 0 }],
+  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[] = [{ start: 0, end: channels[0]?.length ?? 0, pts: 0 }],
   commands: readonly { sample: number; expression: string }[] = []
-): Promise<{ channels: Float64Array[]; frames: { start: number; end: number; pts: number }[] }> {
+): Promise<{ channels: Float64Array[]; frames: { start: number; end: number; pts: number; pos?: number | undefined }[] }> {
   const options = { level_in: 1, level_out: 1, limit: 1, attack: 5, release: 50, asc: 0, asc_level: 0.5, level: 1, latency: 0 };
   const ranges = { level_in: [0.015625, 64], level_out: [0.015625, 64], limit: [0.0625, 1], attack: [0.1, 80], release: [1, 8000], asc: [0, 1], asc_level: [0, 1], level: [0, 1], latency: [0, 1] };
   const names = Object.keys(options) as (keyof typeof options)[];
@@ -52,7 +52,7 @@ export async function limitAudio(
   budget.allocateMemory(length * channels.length * 8 + window * (8 + channels.length * 8) + Math.max(2, queueSize) * 12);
   const output = channels.map(() => new Float64Array(length));
   const buffered = channels.map(() => new Float64Array(window));
-  const outputFrames: { start: number; end: number; pts: number }[] = [];
+  const outputFrames: { start: number; end: number; pts: number; pos?: number | undefined }[] = [];
   const pending: (typeof frames)[number][] = [];
   let pendingIndex = 0;
   let nextInPts: number | undefined;
@@ -216,8 +216,8 @@ export async function limitAudio(
         nextInPts = meta.pts + meta.end - meta.start;
         nextOutPts = pts + destination - start;
       }
-      budget.allocateMemory(24);
-      outputFrames.push({ start, end: destination, pts });
+      budget.allocateMemory(32);
+      outputFrames.push({ start, end: destination, pts, pos: input.pos });
     }
   }
   return { channels: output, frames: outputFrames };

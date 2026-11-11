@@ -623,18 +623,19 @@ function parseMagickSketchGeometry(raw: string): { width?: number; height?: numb
 }
 
 function parseDelay(value: string, ticksPerSecond = 100, current?: number): { milliseconds: number; ticksPerSecond: number; delayTicks: number } {
-  const geometry = [...value].filter(character => !"%!^<>@()#".includes(character)).join("")
-    .replaceAll("X", "x").replaceAll("/", "x").replaceAll(",", "x");
+  const geometry = [...value].filter(character => !"%!^<>@()#".includes(character)).join("");
   const fields: string[] = [];
   let start = 0;
   for (let index = 1; index < geometry.length; index++) {
-    if ("+-".includes(geometry[index]!) && !"eEx".includes(geometry[index - 1]!)) {
+    if ("+-".includes(geometry[index]!) && !"eExX/,".includes(geometry[index - 1]!)) {
       fields.push(geometry.slice(start, index));
       start = index;
     }
   }
   fields.push(geometry.slice(start));
-  const parts = fields[0]!.split("x");
+  // Preserve hexadecimal tick rates such as 0x2 in 12x0x2.
+  const separator = [...fields[0]!].findIndex(character => "xX/,".includes(character));
+  const parts = separator < 0 ? [fields[0]!] : [fields[0]!.slice(0, separator), fields[0]!.slice(separator + 1)];
   if (fields[0]!.includes(":")) {
     const ratio = fields[0]!.split(":");
     if (ratio.length === 2 && ratio.every(part => part.trim() && Number.isFinite(Number(part)))) {
@@ -642,7 +643,7 @@ function parseDelay(value: string, ticksPerSecond = 100, current?: number): { mi
       parts.splice(0, parts.length, String(Number(ratio[0]) / Number(ratio[1])), "1");
     }
   }
-  if (!geometry.trim() || fields.length > 3 || parts.length > 2 ||
+  if (!geometry.trim() || fields.length > 3 ||
       [...parts, ...fields.slice(1)].some(part => !Number.isFinite(Number(part)))) return { milliseconds: NaN, ticksPerSecond, delayTicks: 0 };
   const [delay, ticks] = parts;
   let next = Math.round(Number(delay));

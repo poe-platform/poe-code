@@ -9474,7 +9474,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 ? alpha + (2 / beta) * Math.atanh(Math.max(-1 + 1e-12, Math.min(1 - 1e-12, span * u + s0)))
                 : (sig(u) - s0) / span;
             // Preserve native Q16-HDRI float samples for subsequent operations.
-            return Math.fround(Math.max(0, Math.min(1, value)) * 65535);
+            return Math.fround(value * 65535);
         };
         const adjust = function* (im: RgbaImage, channels: MagickState["channels"]): Generator<void, RgbaImage> {
             const cmyk = im.space === "cmyk";
@@ -9503,7 +9503,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         evaluateSamples[offset] = quantum / 257;
                         if (hueSamples) hueSamples[offset] = evaluateSamples[offset]! / 255;
                         out[offset] = clampByteVal(evaluateSamples[offset]!);
-                        if (data16) data16[offset] = Math.round(evaluateSamples[offset]! * 257);
+                        if (data16) data16[offset] = Math.max(0, Math.min(65535, Math.round(quantum)));
                     }
                 }
                 // Rebuild RGB from the adjusted inks; alpha is independent of black.

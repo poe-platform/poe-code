@@ -1773,11 +1773,14 @@ async function panAudio(
   let clipPcm16 = false;
   if (pcm16) {
     for (const row of gains) {
+      // SWR's generic mono mixer rounds each coefficient independently when
+      // more than two speakers contribute; its one/two-input mixers carry error.
+      const genericMono = names.length === 1 && row.filter(gain => gain !== 0).length > 2;
       let remainder = 0;
       let sum = 0;
       for (let input = 0; input < row.length; input++) {
         // libswresample carries coefficient error across each Q15 matrix row.
-        const target = row[input]! * 32768 + remainder;
+        const target = row[input]! * 32768 + (genericMono ? 0 : remainder);
         const quantized = roundToEven(Math.fround(target)) | 0;
         remainder += target - quantized;
         sum = (sum + Math.abs(quantized)) | 0;
@@ -18889,21 +18892,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredChannelMask = mask;
                           filteredChannelNames = undefined;
                         }
-                        if (mask === 4 && (stretched.length === 2 || quad || stretched.length === 6)) {
-                          const stereo = stretched.length === 2;
-                          if (!quad && filteredChannelMask && (stereo ? filteredChannelMask !== 3
-                            : filteredChannelMask !== 0x3f && filteredChannelMask !== 0x60f)) {
+                        if (mask === 4 && stretched.length > 1) {
+                          if (filteredChannelMask && ![3, 0x7, 0x103, 0x107, 0x37, 0x63f, 0x70f,
+                            0x137, 0x737, 0xff, 0xb, 0x33, 0x3f, 0x60f].includes(filteredChannelMask)) {
                             throw new Error(`channelsplit: unsupported input channel layout (mask ${filteredChannelMask})`);
                           }
                           if (!autoConversionFilters) throw new Error(audioConversionDisabled);
                           const floating = ["flt", "fltp", "dbl", "dblp"].includes(panSampleFormat);
                           // Native center/surround mix levels are float options; the mono matrix combines them in double.
-                          const center = floating ? Math.SQRT2 * Math.fround(Math.SQRT1_2) : 1;
-                          const surround = floating ? Math.SQRT1_2 * Math.fround(Math.SQRT1_2) : 0.5;
-                          const mixed = await panAudio(stereo
+                          const center = Math.SQRT2 * Math.fround(Math.SQRT1_2);
+                          const surround = Math.SQRT1_2 * Math.fround(Math.SQRT1_2);
+                          const mixed = await panAudio(stretched.length === 2
                             ? `mono|c0=${floating ? Math.SQRT1_2 : 0.5}*c0+${floating ? Math.SQRT1_2 : 0.5}*c1`
                             : quad ? `mono|c0<c0+c1+${Math.SQRT1_2}*c2+${Math.SQRT1_2}*c3`
-                            : `mono|c0${floating ? "=" : "<"}${Math.SQRT1_2}*c0+${Math.SQRT1_2}*c1+${center}*c2+${surround}*c4+${surround}*c5`,
+                            : `mono|FC${floating ? "=" : "<"}${Math.SQRT1_2}*FL+${Math.SQRT1_2}*FR+${center}*FC+${surround}*BL+${surround}*BR+${surround}*BC+${surround}*SL+${surround}*SR+${Math.SQRT1_2}*FLC+${Math.SQRT1_2}*FRC`,
                             stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
                           stretched = mixed.channels;
                           filteredChannelMask = mixed.channelMask;

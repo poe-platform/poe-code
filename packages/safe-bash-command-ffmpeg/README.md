@@ -955,7 +955,9 @@ Partial labels are supported: `-filter_complex 'channelsplit[L]' right.wav -map 
 routes the unlabeled right channel to the first output. Mapping both channels to
 one WAV fails with status 234 and leaves an empty output file.
 Mono and 5.1 input are remixed to stereo before selecting a stereo output channel.
-Stereo and 5.1 input are remixed to mono for `channelsplit=mono:FC`; the 5.1 mix
+Stereo, 2.1, 3.0, 3.0(back), quad, 4.0, 5.0, 5.1, 6.1, 7.1,
+7.1(wide), hexagonal, and octagonal input are remixed to mono for
+`channelsplit=mono:FC`; the mono mix
 uses normalized speaker weights and excludes LFE.
 `channelsplit=3.0:FL` (or `FR`/`FC`) converts mono, stereo, 2.1, and surround layouts
 to front left/right/center before extraction. Mono occupies center; stereo leaves

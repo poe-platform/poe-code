@@ -12145,7 +12145,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const font = state.font === undefined ? defaultCaptionFont : files.get(state.font);
                 if (text !== undefined && state.font !== undefined && !font) throw new Error(`unable to read font '${state.font}'`);
                 const caption = text !== undefined && font ? renderFontCaption(font, text, image.width, state.pointsize, state.density, state.fill, state.borderColor, state.strokeWidth, signal) : undefined;
-                let picture = yield* applyMagickRasterSteps(image, polaroidPixels(image, border, state.borderColor, caption), signal,
+                let picture = yield* applyMagickRasterSteps({ ...image, isPalette: false }, polaroidPixels(image, border, state.borderColor, caption), signal,
                     { width: image.width + 2 * border, height: image.height + 2 * border + (caption?.height ?? 0), hasAlpha: true });
                 // Native PolaroidImage clones the larger raster, scaling its page too.
                 const virtualCanvas = magickResizeCanvas(image, picture.width, picture.height);
@@ -15696,7 +15696,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }) : defaultCaptionFont;
                 if (text !== undefined && settings.font !== undefined && !font) throw new Error(`unable to read font '${settings.font}'`);
                 const caption = text !== undefined && font ? renderFontCaption(font, text, image.width, settings.pointsize, settings.density, settings.fill, settings.borderColor, settings.strokeWidth, signal) : undefined;
-                let picture = await transformStoredMagickRaster(image, backend, polaroidPixels(image, border, settings.borderColor, caption), signal,
+                let picture = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, polaroidPixels(image, border, settings.borderColor, caption), signal,
                     { width: image.width + 2 * border, height: image.height + 2 * border + (caption?.height ?? 0), hasAlpha: true });
                 // Native PolaroidImage clones the larger raster, scaling its page too.
                 const virtualCanvas = magickResizeCanvas(image, picture.width, picture.height);

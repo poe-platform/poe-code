@@ -2282,7 +2282,7 @@ async function applyVideoFilterChain(
   registry: ReturnType<typeof createMediaAstRegistry>,
   signal?: AbortSignal,
   cleanFrames?: MediaVideoFrame[],
-  output?: { frames: number | undefined; start: number | undefined; end: number | undefined }
+  output?: { frames: number | undefined; start: number | undefined; end: number | undefined; synchronization?: { filterIndex: number; duplicates: number } | undefined }
 ): Promise<(MediaVideoFrame & { interlaced?: boolean; topFieldFirst?: boolean })[]> {
   let work = 0;
 
@@ -2298,7 +2298,7 @@ async function applyVideoFilterChain(
   let frameDuration = current[0]!.durationSeconds;
   let videoCommands: { time: number; target: string; action: string; expression: string }[] = [];
 
-  for (const filterSpec of parseFilterChain(filterChainStr)) {
+  for (const [filterIndex, filterSpec] of parseFilterChain(filterChainStr).entries()) {
     if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
     budget.checkCpu();
@@ -4097,6 +4097,7 @@ async function applyVideoFilterChain(
       const firstTimestamp = startTime === undefined ? roundTimestamp(current[0]!.ptsSeconds * targetFps) : outputOffset;
       const resampled: MediaVideoFrame[] = [];
       let srcIdx = 0;
+      let previousSource = -1;
       for (let i = firstTimestamp; i < endTimestamp; i++) {
         if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
@@ -4104,6 +4105,10 @@ async function applyVideoFilterChain(
         while (srcIdx + 1 < current.length && outputOffset + roundTimestamp((current[srcIdx + 1]!.ptsSeconds - inputOffset) * targetFps) <= i) {
           srcIdx++;
         }
+        if (output?.synchronization?.filterIndex === filterIndex && srcIdx === previousSource) {
+          output.synchronization.duplicates++;
+        }
+        previousSource = srcIdx;
         const src = current[srcIdx]!;
         resampled.push({
           ...src,
@@ -8058,6 +8063,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let progressTarget: string | undefined;
       let progressSeconds = -Infinity;
       const progressStarted = performance.now();
+      let progressDuplicates = 0;
       let progressFrames: number | undefined;
       const progressQuality: string[] = [];
       let progressSize: number | undefined;
@@ -11511,6 +11517,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const [w, h] = outputSize.toLowerCase().split("x");
               if (w && h) vfFilters.push(`scale=${w}:${h}`);
             }
+            const synchronizationFilterIndex = outputFps && videoCodec !== "copy" && !numberedImageOutput && outputFormat !== "rawvideo"
+              ? parseFilterChain(vfFilters.join(",")).length : undefined;
             if (outputFps && videoCodec !== "copy" && !numberedImageOutput && outputFormat !== "rawvideo") {
               vfFilters.push(`fps=${outputFps}`);
             }
@@ -11656,10 +11664,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     : displayed;
                   const cleanFrames = decimateSource
                     ? await ensureDecodedFrames(decimateSource.track, decimateSource.doc.timescale, budget, context.signal) : undefined;
+                  const synchronization = synchronizationFilterIndex === undefined ? undefined
+                    : { filterIndex: synchronizationFilterIndex, duplicates: 0 };
                   let filtered = await applyVideoFilterChain(inputFrames, combinedChain, budget, diagnostics, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal, cleanFrames, {
-                    frames: streamFrameLimits[index], start: outputSs,
+                    frames: streamFrameLimits[index], start: outputSs, synchronization,
                     end: outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration
                   });
+                  progressDuplicates += synchronization?.duplicates ?? 0;
                   if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
                     const start = Math.round((outputSs ?? 0) * diagnostics.timescale) / diagnostics.timescale;
                     const end = Math.round((outputDuration === undefined ? outputTo ?? Infinity : (outputSs ?? 0) + outputDuration) * diagnostics.timescale) / diagnostics.timescale;
@@ -11668,7 +11679,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   if (outputFormat === "rawvideo" && (outputFps !== undefined || !diagnostics.frameRateKnown) &&
                       ["auto", "-1", "cfr", "1"].includes(videoSync)) {
-                    filtered = await synchronizeRawVideoFrames(filtered, budget, streamFrameLimits[index], context.signal, outputFps);
+                    const statistics = { duplicates: 0 };
+                    filtered = await synchronizeRawVideoFrames(filtered, budget, streamFrameLimits[index], context.signal, outputFps, statistics);
+                    progressDuplicates += statistics.duplicates;
                     diagnostics.frameRateScale = 1;
                   }
                   if (encoderTimeBaseModes.get(index) === "filter") encoderTimeBases.set(index, 1 / diagnostics.timescale);
@@ -17560,7 +17573,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           ...(progressFrames === undefined ? [] : [`frame=${progressFrames}`, `fps=${(elapsedSeconds > 1 ? progressFrames / elapsedSeconds : 0).toFixed(2)}`, ...progressQuality]),
           `bitrate=${progressSize !== undefined && microseconds > 0 ? `${(progressSize * 8000 / microseconds).toFixed(1)}kbits/s` : "N/A"}`,
           `total_size=${progressSize ?? "N/A"}`, `out_time_us=${hasOutputFrames ? microseconds : "N/A"}`,
-          `out_time_ms=${hasOutputFrames ? microseconds : "N/A"}`, `out_time=${hasOutputFrames ? time : "N/A"}`, "dup_frames=0",
+          `out_time_ms=${hasOutputFrames ? microseconds : "N/A"}`, `out_time=${hasOutputFrames ? time : "N/A"}`, `dup_frames=${progressDuplicates}`,
           "drop_frames=0", `speed=${progressSeconds > 0 && elapsedSeconds > 0 ? `${(progressSeconds / elapsedSeconds).toPrecision(3)}x` : "N/A"}`, "progress=end", ""
         ].join("\n"));
         try {

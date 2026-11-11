@@ -4,14 +4,15 @@ import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
-async function run(flags: string[], output = ["-f", "null", "-"], video = false) {
+async function run(flags: string[], output = ["-f", "null", "-"], video: boolean | "raw" = false) {
   const volume = Volume.fromJSON({});
   volume.writeFileSync("/i.wav", encodeWav({ sampleRate: 8000,
     channels: [Float64Array.from({ length: 4096 }, (_, i) => (i - 2048) / 32768)] }));
-  if (video) volume.writeFileSync("/i.wav", Buffer.concat([
+  if (video === true) volume.writeFileSync("/i.wav", Buffer.concat([
     Buffer.from("YUV4MPEG2 W2 H2 F2:1 Ip A1:1 C420jpeg\n"),
     ...Array.from({ length: 2 }, () => Buffer.concat([Buffer.from("FRAME\n"), Buffer.alloc(6, 128)]))
   ]));
+  if (video === "raw") volume.writeFileSync("/i.wav", Uint8Array.from({ length: 16 }, (_, i) => i));
   let stdout = "";
   let stderr = "";
   const result = await createFfmpegCommand().execute({
@@ -194,3 +195,21 @@ it("reports quality for each video output while counting the first video stream"
   assert.equal(records.stream_0_0_q, "-0.0");
   assert.equal(records.stream_1_0_q, "-0.0");
 });
+
+for (const format of ["rawvideo", "null"]) {
+  for (const [flags, duplicates] of [[["-r", "8"], "4"], [["-vf", "fps=8"], "0"], [["-vf", "fps=8", "-r", "8"], "0"], [["-vf", "fps=8", "-r", "16"], "8"]] as const) {
+    it(`counts only ${format} output synchronization duplicates for ${flags.join(" ")}`, async () => {
+      const result = await run(["-progress", "pipe:1", "-f", "rawvideo", "-framerate", "4",
+        "-pixel_format", "gray", "-video_size", "2x2"], [...flags, "-f", format, "/out.bin"], "raw");
+      assert.equal(result.exitCode, 0, result.stderr);
+      const records = Object.fromEntries(result.stdout.trim().split("\n").map(line => line.split("=")));
+      const copies = flags.some(flag => flag === "16") ? 4 : 2;
+      const expected = Buffer.concat(Array.from({ length: 4 }, (_, frame) =>
+        Buffer.concat(Array.from({ length: copies }, () => Buffer.from([0, 1, 2, 3].map(pixel => frame * 4 + pixel))))));
+      if (format === "rawvideo") assert.deepEqual(result.volume.readFileSync("/out.bin"), expected);
+      assert.equal(records.frame, String(4 * copies));
+      assert.equal(records.dup_frames, duplicates);
+      assert.equal(records.progress, "end");
+    });
+  }
+}

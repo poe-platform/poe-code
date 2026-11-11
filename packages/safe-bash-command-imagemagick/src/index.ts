@@ -4365,7 +4365,7 @@ function* applyMagickShadowSteps(image: RgbaImage, geometry: string, color: Rgba
     const layout = magickShadowLayout(image, geometry);
     if ((image.space === "b-w" || image.space === "grey16") && (color.r !== color.g || color.g !== color.b))
         image = { ...image, space: "srgb", channels: 4 };
-    const writeMask = image.region ? yield* createSolidRgbaImageSteps(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }) : image.writeMask;
+    const writeMask = image.region || image.writeMask ? yield* createSolidRgbaImageSteps(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
     return { ...yield* applyMagickRasterSteps(image, shadowPixelSteps(image, layout, color, alpha), signal, layout), isPalette: false, alphaBlend: true, alphaSeparate: false, inactiveAlpha: false, region: undefined, writeMask, virtualCanvas: layout.virtualCanvas };
 }
 
@@ -15740,7 +15740,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const layout = magickShadowLayout(image, expanded);
                 if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
                     image = { ...image, space: "srgb", channels: 4 };
-                const storedWriteMask = image.region ? await createStoredCanvas(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : image.storedWriteMask;
+                const storedWriteMask = image.region || image.storedWriteMask ? await createStoredCanvas(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                 return { ...await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, backgroundExplicit ? background : image.backgroundColor ?? background, alpha), signal, layout), isPalette: false, alphaBlend: true, alphaSeparate: false, inactiveAlpha: false, region: undefined, storedWriteMask, virtualCanvas: layout.virtualCanvas };
             });
         } else if (!operandsOnly && token === "-statistic") {

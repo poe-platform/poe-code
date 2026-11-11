@@ -84,7 +84,7 @@ function* percentTrimBounds(width: number, height: number, hasAlpha: boolean, fu
 
 // ImageMagick uses the original corner colors independently for each bound,
 // unlike Sharp's median-filtered, single-background trim.
-function* trimBounds(width: number, height: number, hasAlpha: boolean, fuzz: number, scale: number, colorspace: HueMetadata["magickColorspace"], edges?: string, percentBackground?: number, background?: RgbaColor, cmyk = false): Generator<Read | undefined, Area | undefined, TrimPixels | undefined> {
+function* trimBounds(width: number, height: number, hasAlpha: boolean, fuzz: number, scale: number, colorspace: HueMetadata["magickColorspace"], edges?: string, percentBackground?: number, background?: RgbaColor, cmyk = false): Generator<Read | undefined, Area & { warning?: boolean }, TrimPixels | undefined> {
     const hue = colorspace !== undefined && ["HCL", "HCLp", "HSL", "HSB", "HSV"].includes(colorspace);
     if (percentBackground !== undefined) return yield* percentTrimBounds(width, height, hasAlpha, fuzz, scale, percentBackground, hue, background, cmyk);
     const corners: TrimColor[] = [];
@@ -127,9 +127,10 @@ function* trimBounds(width: number, height: number, hasAlpha: boolean, fuzz: num
         if (!selected.includes("east")) right = width;
         if (!selected.includes("south")) bottom = height;
     }
-    // Empty far-edge bounds stay unexpanded in native geometry.
-    if (right === 0 || bottom === 0) return { left, top, width: right, height: bottom };
-    if (left > right || top > bottom) return;
+    // Empty or crossed bounds warn but keep their unexpanded far-edge dimensions.
+    if (right === 0 || bottom === 0 || left > right || top > bottom) {
+        return { left, top, width: right, height: bottom, warning: true };
+    }
     return { left, top, width: right - left + 1, height: bottom - top + 1 };
 }
 
@@ -160,15 +161,11 @@ export function* formatTrimBoundsSteps<Step = never>(
             next = steps.next({ samples: chunk.evaluateSamples ?? chunk.data16 ?? chunk.data, inks: chunk.hueSamples });
         }
     }
-    if ((!next.value || next.value.width === 0 || next.value.height === 0) && analysis && !analysis.boundsWarning) {
+    if ((next.value.warning || next.value.width === 0 || next.value.height === 0) && analysis && !analysis.boundsWarning) {
         analysis.warnings += "magick: geometry does not contain image\n";
         analysis.boundsWarning = true;
     }
-    const area = next.value ?? {
-        left: image.width, top: image.height,
-        width: edges === undefined && percentBackground === undefined && image.width === 1 ? 1 : 0,
-        height: edges === undefined && percentBackground === undefined && image.height === 1 ? 1 : 0
-    };
+    const area = next.value;
     return format === "bounding-box"
         ? `${area.left},${area.top} ${area.left + area.width},${area.top + area.height}`
         : `${area.width}x${area.height}+${area.left}+${area.top}`;
@@ -195,7 +192,8 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
         if (!next.value) { yield; next = steps.next(); }
         else { const { position, length } = next.value; next = steps.next({ samples: pixels.subarray(position, position + length), inks: image.hueSamples?.subarray(position, position + length) }); }
     }
-    if (next.value && next.value.width > 0 && next.value.height > 0 && next.value.left < image.width && next.value.top < image.height) {
+    if (next.value.warning && analysis) analysis.warnings += "magick: geometry does not contain image\n";
+    if (next.value.width > 0 && next.value.height > 0 && next.value.left < image.width && next.value.top < image.height) {
         const area = cropTrimBounds(next.value, image.width, image.height, minSize);
         image = discardDisassociatedAlpha(image);
         let cropped: RgbaImage = yield* extractImageSteps(image, area);
@@ -231,9 +229,9 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
             virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + area.left, y: (image.virtualCanvas?.y ?? 0) + area.top },
         };
     }
-    if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
+    if (!next.value.warning && analysis) analysis.warnings += "magick: geometry does not contain image\n";
     // Bounds outside the raster leave the original image and virtual page intact.
-    if (next.value && next.value.width > 0 && next.value.height > 0) return image;
+    if (next.value.width > 0 && next.value.height > 0) return image;
     // ImageMagick represents an empty trim with one transparent background pixel.
     const { data16: ignored, evaluateSamples: ignoredSamples, hueSamples: ignoredHue, ...metadata } = image;
     return { ...metadata, width: 1, height: 1, data: emptyTrimPixel(image, emptyBackground), channels: 4, hasAlpha: true,
@@ -262,7 +260,8 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
                 inks: inkBytes ? new Float64Array(new Uint8Array(inkBytes).buffer) : undefined });
         }
     }
-    if (next.value && next.value.width > 0 && next.value.height > 0 && next.value.left < image.width && next.value.top < image.height) {
+    if (next.value.warning && analysis) analysis.warnings += "magick: geometry does not contain image\n";
+    if (next.value.width > 0 && next.value.height > 0 && next.value.left < image.width && next.value.top < image.height) {
         const area = cropTrimBounds(next.value, image.width, image.height, minSize);
         image = discardDisassociatedAlpha(image);
         const cropped: StoredRgbaImage = await transformStoredImage(image, storage, { kind: "extract", ...area }, signal);
@@ -277,9 +276,9 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
             virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + area.left, y: (image.virtualCanvas?.y ?? 0) + area.top },
         };
     }
-    if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
+    if (!next.value.warning && analysis) analysis.warnings += "magick: geometry does not contain image\n";
     // Bounds outside the raster leave the original image and virtual page intact.
-    if (next.value && next.value.width > 0 && next.value.height > 0) return image;
+    if (next.value.width > 0 && next.value.height > 0) return image;
     const emptyPosition = storage.allocate(4);
     await storage.write(emptyPosition, emptyTrimPixel(image, emptyBackground), { signal });
     const { storedData16: ignored, storedEvaluateSamples: ignoredSamples, storedHueSamples: ignoredHue, ...metadata } = image;

@@ -37,11 +37,12 @@ for (const retained of [false, true]) {
         expect(result.exitCode).toBe(0);
         expect(result.stderr).toBe("");
         const report = JSON.parse(new TextDecoder().decode(retained ? await fs.readFile("/report.json") : files.get("report.json")));
-        expect(report).toMatchObject([
+        const expected = [
             { version: "1.0", image: { name: "source.png", format: "PNG", baseDepth: 8, geometry: { width: 2, height: 1, x: 0, y: 0 }, properties: { comment } } },
             { version: "1.0", image: { format: "XC", baseDepth: 8, geometry: { width: 3, height: 2, x: 0, y: 0 }, properties: { comment } } }
-        ]);
-        expect(JSON.parse(result.stdout)).toMatchObject(report);
+        ];
+        expect(report).toMatchObject(expected);
+        expect(JSON.parse(result.stdout)).toMatchObject(expected);
     });
 
     it(`keeps INFO and TXT destinations working (retained=${retained})`, async () => {

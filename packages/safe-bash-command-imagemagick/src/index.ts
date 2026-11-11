@@ -3,6 +3,7 @@ import { isMpc, mpcCachePath, mpcToMiff, storeMpc } from "./mpc.js";
 import { solveLinearSystem } from "./linear-system.js";
 import { parseSparseColor, sparseColorPixels } from "./sparse-color-operator.js";
 import { imageDescriptionOutput, imageDescription, type ImageDescriptionOutput } from "./json-output.js";
+import { jsonStatisticsSteps } from "./json-statistics.js";
 import { createIccConversion } from "./icc-conversion.js";
 import { readIccDescription } from "./icc-description.js";
 import { readExifTextProperties } from "./exif-text.js";
@@ -2193,6 +2194,19 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  return formatRgbPixel(channels, (image as StoredRgbaImage).magickColorspace, context.precision);
 }
 
+function* loadIdentifyPixels(raster: IdentifyRaster, signal: AbortSignal | undefined, position:number,length:number):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array;evaluateSamples?:Float64Array},void>{
+   let chunk!: {data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array;evaluateSamples?:Float64Array};
+   yield {async run(){const {image,storage}=raster,data=await storage.read(image.position+position,length,signal?{signal}:undefined);
+    const original=image.storedData16;
+    const bytes=original?await storage.read(original.position+position*2,Math.max(0,Math.min(length,original.length-position))*2,signal?{signal}:undefined):undefined;
+    const inks=image.storedHueSamples !== undefined
+      ? await storage.read(image.storedHueSamples+position*8,length*8,signal?{signal}:undefined) : undefined;
+    const evaluated=image.storedEvaluateSamples === undefined ? undefined : await storage.read(image.storedEvaluateSamples+position*8,length*8,signal?{signal}:undefined);
+    chunk={data,...(evaluated?{evaluateSamples:new Float64Array(evaluated.slice().buffer)}:{}),...(bytes?{data16:new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2)}:{}),...(inks?{hueSamples:new Float64Array(inks.slice().buffer)}:{})};
+   }};
+   return chunk;
+  }
+
 async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string; commandName?: string; errors?: string; readError?: boolean; boundsWarning?: boolean; unknownPropertyWarning?: boolean }; optionProperties?: Record<string, string> | undefined },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal,stack?:StoredImageStack):Promise<string>{
  let raster:IdentifyRaster|undefined,properties:Record<string,string>|undefined,hull:Record<string,string>|undefined;
  const statistics:Record<string,number>={};
@@ -2203,18 +2217,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    yield { async run() { const scene = (metadata as MagickImage)[magickInput]?.sceneIdx ?? context.sceneIdx ?? 0; delay = await raster!.image.storedDelay?.at(scene, signal ? { signal } : undefined) ?? raster!.image.delay?.[scene] ?? 0; } };
    return String(delay);
   }
-  function* load(position:number,length:number):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array;evaluateSamples?:Float64Array},void>{
-   let chunk!: {data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array;evaluateSamples?:Float64Array};
-   yield {async run(){const {image,storage}=raster!,data=await storage.read(image.position+position,length,signal?{signal}:undefined);
-    const original=image.storedData16;
-    const bytes=original?await storage.read(original.position+position*2,Math.max(0,Math.min(length,original.length-position))*2,signal?{signal}:undefined):undefined;
-    const inks=image.storedHueSamples !== undefined
-      ? await storage.read(image.storedHueSamples+position*8,length*8,signal?{signal}:undefined) : undefined;
-    const evaluated=image.storedEvaluateSamples === undefined ? undefined : await storage.read(image.storedEvaluateSamples+position*8,length*8,signal?{signal}:undefined);
-    chunk={data,...(evaluated?{evaluateSamples:new Float64Array(evaluated.slice().buffer)}:{}),...(bytes?{data16:new Uint16Array(bytes.buffer,bytes.byteOffset,bytes.byteLength/2)}:{}),...(inks?{hueSamples:new Float64Array(inks.slice().buffer)}:{})};
-   }};
-   return chunk;
-  }
+  const load = loadIdentifyPixels.bind(undefined, raster!, signal);
   if(property === "trim-geometry" || property === "bounding-box")return yield*formatTrimBoundsSteps(raster!.image,load,property,context.fuzz ?? 0,context.analysis,context.trimEdges,context.trimPercentBackground,context.trimBackgroundColor);
   if(property === "signature")return yield*signatureSteps(raster!.image,load);
   if(property === "convex-hull" || property === "minimum-bounding-box" || property.startsWith("minimum-bounding-box:")) {
@@ -13448,7 +13451,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const writePath = state.filenameLiteral ? writeTemplate : expandFilenameProperties(writeTemplate, stack[0]!.properties, state.optionProperties);
             const descriptionOutput = imageDescriptionOutput(writePath);
             if (descriptionOutput !== undefined) {
-                const result = yield* writeDescriptionOutputSteps(stack, descriptionOutput, files, state.inputDepth);
+                const result = yield* writeDescriptionOutputSteps(stack, descriptionOutput, files, state.inputDepth, state.precision);
                 analysis.text += result.stdout;
                 i++;
                 continue;
@@ -15425,12 +15428,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
     return stack;
 }
 
-function* writeDescriptionOutputSteps(stack: readonly RgbaImage[], { path, format }: ImageDescriptionOutput, files: Map<string, Uint8Array>, depth?: number): Generator<void, ImageMagickCliResult, void> {
+function* writeDescriptionOutputSteps(stack: readonly RgbaImage[], { path, format }: ImageDescriptionOutput, files: Map<string, Uint8Array>, depth?: number, precision?: number): Generator<void, ImageMagickCliResult, void> {
     let text = format === "json" ? "[\n" : "";
     for (let index = 0; index < stack.length; index++) {
         yield;
         if (index && format === "json") text += ",\n";
-        text += imageDescription(stack[index]!, depth, format);
+        const image = stack[index]!, properties = yield* magickPixelPropertiesSteps({ ...image, readMask: undefined });
+        const statistics = yield* jsonStatisticsSteps(image, depth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8), precision);
+        text += imageDescription(image, properties, statistics, depth, format);
     }
     if (format === "json") text += "\n]\n";
     if (!path || path === "-") return { exitCode: 0, stdout: text, stderr: "" };
@@ -15438,13 +15443,16 @@ function* writeDescriptionOutputSteps(stack: readonly RgbaImage[], { path, forma
     return { exitCode: 0, stdout: "", stderr: "" };
 }
 
-async function writeStoredDescriptionOutput(stack: StoredImageStack, { path, format }: ImageDescriptionOutput, input: ConvertFileInput, backend: CompareFileSession, signal: AbortSignal, depth?: number, intermediate = false): Promise<ImageMagickCliResult> {
+async function writeStoredDescriptionOutput(stack: StoredImageStack, { path, format }: ImageDescriptionOutput, input: ConvertFileInput, backend: CompareFileSession, signal: AbortSignal, depth?: number, intermediate = false, precision?: number): Promise<ImageMagickCliResult> {
     async function* descriptions(): AsyncGenerator<string> {
         if (format === "json") yield "[\n";
         for (let index = 0; index < stack.length; index++) {
             await yieldTurn(signal);
             if (index && format === "json") yield ",\n";
-            yield imageDescription((await stack.get(index))!, depth, format);
+            const image = (await stack.get(index))!, load = loadIdentifyPixels.bind(undefined, { image, storage: backend.storage }, signal);
+            const properties = await drainIdentifySteps(magickPixelPropertiesSteps({ ...image, readMask: undefined }, load), signal);
+            const statistics = await drainIdentifySteps(jsonStatisticsSteps(image, depth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8), precision, load), signal);
+            yield imageDescription(image, properties, statistics, depth, format);
         }
         if (format === "json") yield "\n]\n";
     }
@@ -15615,7 +15623,7 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
         const finalImg = stack[stack.length - 1]!;
         const outLower = outSpec.toLowerCase();
         const descriptionOutput = imageDescriptionOutput(outSpec);
-        if (descriptionOutput !== undefined) return yield* writeDescriptionOutputSteps(stack, descriptionOutput, files, state.inputDepth);
+        if (descriptionOutput !== undefined) return yield* writeDescriptionOutputSteps(stack, descriptionOutput, files, state.inputDepth, state.precision);
         if (outLower === "null:" || outLower.startsWith("mpr:")) return { exitCode: 0, stdout: "", stderr: "" };
         if (outLower.startsWith("info:")) {
             const source = (stack[0] as MagickImage)[magickInput];
@@ -18043,7 +18051,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const path = filenameLiteral ? writeTemplate : expandFilenameProperties(writeTemplate, (await stack.get(0))!.properties, settings.optionProperties);
                 const descriptionOutput = imageDescriptionOutput(path);
                 if (descriptionOutput !== undefined) {
-                    const result = await writeStoredDescriptionOutput(stack, descriptionOutput, input, backend, signal, netpbmDepth, true);
+                    const result = await writeStoredDescriptionOutput(stack, descriptionOutput, input, backend, signal, netpbmDepth, true, settings.precision);
                     analysis.text += result.stdout;
                     return stack;
                 }
@@ -19415,7 +19423,7 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
             image = (await stack.get(stack.length - 1))!;
         }
         const descriptionOutput = imageDescriptionOutput(outSpec);
-        if (descriptionOutput !== undefined) return writeStoredDescriptionOutput(stack, descriptionOutput, input, backend, signal, state.inputDepth);
+        if (descriptionOutput !== undefined) return writeStoredDescriptionOutput(stack, descriptionOutput, input, backend, signal, state.inputDepth, false, state.precision);
         let output: ReturnType<typeof inferOutputFormat>;
         try { output = inferOutputFormat(outSpec, "png", (await stack.get(0))![magickInput]?.inputFormat); }
         catch (error) { return { exitCode: 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` }; }

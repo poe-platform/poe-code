@@ -19,7 +19,7 @@ export function imageDescriptionOutput(spec: string): ImageDescriptionOutput | u
     return undefined;
 }
 
-export function imageDescription(image: DescriptionImage, depth?: number, format: ImageDescriptionOutput["format"] = "json"): string {
+export function imageDescription(image: DescriptionImage, properties: Record<string, string>, channelStatistics: Record<string, Record<string, number>>, depth?: number, format: ImageDescriptionOutput["format"] = "json"): string {
     const source = image[magickInput];
     const description = {
         version: format === "json" ? "1.0" : 1.0,
@@ -29,6 +29,10 @@ export function imageDescription(image: DescriptionImage, depth?: number, format
             class: image.isPalette ? "PseudoClass" : "DirectClass",
             geometry: { width: image.width, height: image.height, x: 0, y: 0 },
             colorspace: image.magickColorspace ?? (image.space === "cmyk" ? "CMYK" : image.space === "b-w" || image.space === "grey16" ? "Gray" : "sRGB"),
+            type: properties.type,
+            depth: Number(properties["bit-depth"]),
+            pixels: image.width * image.height,
+            channelStatistics,
             baseDepth: depth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8),
             ...(image.virtualCanvas ? { pageGeometry: image.virtualCanvas } : {}),
             ...(image.properties ? { properties: image.properties } : {})

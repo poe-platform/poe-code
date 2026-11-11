@@ -40,7 +40,7 @@ for (const retained of [false, true]) {
           const image = await decode(indexedTga(payload, rle, indexDepth, paletteDepth, first));
           const a = [10, 20, 30, paletteDepth === 32 ? 127 : 255];
           const b = [40, 50, 60, paletteDepth === 32 ? 0 : 255];
-          expect(image).toMatchObject({ width: 2, height: 2, hasAlpha: paletteDepth === 32 });
+          expect(image).toMatchObject({ width: 2, height: 2, hasAlpha: paletteDepth === 32, isPalette: true });
           expect(image.data).toEqual(Uint8Array.from([...a, ...b, ...a, ...a]));
         });
       }

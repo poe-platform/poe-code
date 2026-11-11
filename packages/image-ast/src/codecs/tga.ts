@@ -27,7 +27,7 @@ export function readTgaMetadata(bytes: Uint8Array): ImageMetadata {
   const width = bytes[12]! + bytes[13]! * 256, height = bytes[14]! + bytes[15]! * 256;
   const x = bytes[8]! + bytes[9]! * 256, y = bytes[10]! + bytes[11]! * 256;
   return { format: "tga", width, height, ...(x || y ? { virtualCanvas: { width, height, x, y } } : {}),
-    channels: grayscale ? 1 : hasAlpha ? 4 : 3, hasAlpha, depth: "uchar", space: grayscale ? "b-w" : "srgb", density: 72, orientation: 1, size: bytes.length };
+    channels: grayscale ? 1 : hasAlpha ? 4 : 3, hasAlpha, isPalette: bytes[1] === 1, depth: "uchar", space: grayscale ? "b-w" : "srgb", density: 72, orientation: 1, size: bytes.length };
 }
 
 /** Byte requests and bounded pixel spans share the same packet and origin handling. */

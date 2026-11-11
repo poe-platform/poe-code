@@ -10496,9 +10496,9 @@ function parseMagickUnits(value: string): MagickState["units"] {
     }
 }
 
-function applyMagickUnits<T extends ImageMetadata & { magickUnits?: MagickState["units"] }>(image: T, unit: NonNullable<MagickState["units"]>): T {
+function applyMagickUnits<T extends ImageMetadata & { magickUnits?: MagickState["units"] }>(image: T, unit: NonNullable<MagickState["units"]>, convert = true): T {
     if (!image.resolution) return { ...image, magickUnits: unit };
-    const sourceUnit = image.resolution.unit === "meter" ? "cm" : image.resolution.unit;
+    const sourceUnit = !convert ? unit : image.resolution.unit === "meter" ? "cm" : image.resolution.unit;
     const scale = (image.resolution.unit === "meter" ? 100 : 1)
         * (sourceUnit === "inch" && unit === "cm" ? 2.54 : 1);
     let x = image.resolution.x / scale;
@@ -11324,7 +11324,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const units = parseMagickUnits(expanded);
             if (units === undefined) throw new Error(`unrecognized units type '-units' '${expanded}'`);
             state.units = units;
-            stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return applyMagickUnits(image, units); });
+            stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return applyMagickUnits(image, units, state.densityGeometry === undefined); });
             i++;
             continue;
         }
@@ -11382,7 +11382,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
                 if (expandedKey.toLowerCase() === "units") {
                     const unit = (state.units === "unknown" ? undefined : state.units) ?? parseMagickUnits(expanded);
-                    return unit === undefined ? image : applyMagickUnits(image, unit);
+                    return unit === undefined ? image : applyMagickUnits(image, unit, false);
                 }
                 if (expandedKey.toLowerCase() === "colorspace") return yield* setColorspacePixels(image, expanded);
                 if (expandedKey.toLowerCase() === "type") return setMagickType(image, expanded);
@@ -14415,7 +14415,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const units = parseMagickUnits(value);
             if (units === undefined) throw new Error(`unrecognized units type '-units' '${value}'`);
             state.units = units;
-            steps.push(async image => image ? applyMagickUnits(image, units) : undefined);
+            const convert = state.densityGeometry === undefined;
+            steps.push(async image => image ? applyMagickUnits(image, units, convert) : undefined);
             continue;
         }
         if (!operandsOnly && (token === "-density" || (token === "-define" && tokens[i + 1]?.toLowerCase().startsWith("density=")) ||
@@ -14480,7 +14481,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 if (expandedKey.toLowerCase() === "units") {
                     const unit = units ?? parseMagickUnits(expanded);
-                    return unit === undefined ? image : applyMagickUnits(image, unit);
+                    return unit === undefined ? image : applyMagickUnits(image, unit, false);
                 }
                 if (expandedKey.toLowerCase() === "colorspace") return transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: image => setColorspacePixels(image, expanded) }, signal);
                 if (expandedKey.toLowerCase() === "type") return setMagickType(image, expanded);

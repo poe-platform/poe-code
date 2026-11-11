@@ -2527,6 +2527,28 @@ describe("tile invalid options", () => {
 });
 
 describe("untile", () => {
+  for (const [options, exitCode] of [
+    ["3x1", 234], ["2x3", 234], ["2x2:bogus=1", 8], ["layout=2x2:bogus=1", 8],
+    ["2x2", 0], ["layout=2x2", 0]
+  ] as const) {
+    for (const complex of [false, true]) {
+      it(`returns native status and raw bytes for ${options} (complex=${complex})`, async () => {
+        const input = Uint8Array.of(1, 2, 3, 4);
+        const vfs = createTestVfs({ "/in.raw": input });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-hide_banner", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "gray",
+          "-s", "2x2", "-r", "2", "-i", "/in.raw",
+          ...(complex ? ["-filter_complex", `[0:v]untile=${options}[out]`, "-map", "[out]"]
+            : ["-vf", `untile=${options}`]),
+          "-fps_mode", "passthrough", "-pix_fmt", "gray", "-f", "rawvideo", "pipe:1"
+        ], vfs);
+        assert.equal(result.exitCode, exitCode, result.stderr);
+        assert.deepEqual(result.stdoutBytes, exitCode === 0 ? input : new Uint8Array());
+        assert.deepEqual(vfs.store, new Map([["/in.raw", input]]));
+        if (exitCode === 8) assert.ok(result.stderr.includes("bogus"), result.stderr);
+      });
+    }
+  }
   for (const layout of ["3x1", "2x2", "6x5"]) {
     it(`extracts ordered RGB frames and blank cells from ${layout} sheets`, async () => {
       const { encodeImage, decodeImage } = await import("@poe-code/image-ast/portable");
@@ -2564,12 +2586,14 @@ describe("untile", () => {
       }
     });
   }
-  for (const options of ["0x1", "2x0", "bad", "3x1", "2x2:unknown=1"]) {
+  for (const [options, exitCode] of [
+    ["0x1", 1], ["2x0", 1], ["bad", 1], ["3x1", 234], ["2x2:unknown=1", 8]
+  ] as const) {
     it(`rejects invalid layout/options ${options} without replacing output`, async () => {
       const vfs = createTestVfs({ "/out.png": "keep" });
       const result = await runCmd(createFfmpegCommand(), ["-y", "-f", "lavfi", "-i",
         "color=s=4x4:r=1:d=1", "-vf", `untile=${options}`, "/out.png"], vfs);
-      assert.equal(result.exitCode, 1);
+      assert.equal(result.exitCode, exitCode);
       assert.ok(result.stderr.includes("untile"), result.stderr);
       assert.equal(new TextDecoder().decode(vfs.store.get("/out.png")), "keep");
     });

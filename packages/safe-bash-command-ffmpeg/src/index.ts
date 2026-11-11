@@ -4150,12 +4150,14 @@ async function applyVideoFilterChain(
         };
       }, signal);
     } else if (name === "untile") {
+      for (const key of Object.keys(named)) {
+        if (key !== "layout") throw new Error(`untile: unknown option ${key}`);
+      }
       const layout = named.layout ?? positional[0] ?? "";
       const dimensions = (layout || "6x5").split("x");
       const cols = Number(dimensions[0]);
       const rows = Number(dimensions[1]);
-      if (positional.length > 1 || Object.keys(named).some(key => key !== "layout") ||
-          dimensions.length !== 2 || !Number.isInteger(cols) || !Number.isInteger(rows) ||
+      if (positional.length > 1 || dimensions.length !== 2 || !Number.isInteger(cols) || !Number.isInteger(rows) ||
           cols <= 0 || rows <= 0 || cols * rows > 4294967295) {
         throw new Error("untile: invalid layout");
       }
@@ -16971,6 +16973,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("loop: invalid ") || msg === "loop: surplus positional option") {
               return { exitCode: err instanceof RangeError ? 222 : 234 };
             }
+            if (msg.startsWith("untile: unknown option ")) return { exitCode: 8 };
+            if (msg === "untile: input dimensions must be multiples of the layout") return { exitCode: 234 };
             if (msg === "tile: unknown option enable") return { exitCode: 176 };
             if (msg.startsWith("tile: unknown option ")) return { exitCode: 8 };
             if (msg.startsWith("tile:")) return { exitCode: err instanceof RangeError ? 222 : 234 };

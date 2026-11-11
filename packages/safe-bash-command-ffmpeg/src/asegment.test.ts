@@ -32,6 +32,19 @@ async function run(graph: string, channels = 1, inputSamples = samples) {
   return { result, stderr, output: Array.from({ length: output.length / 2 }, (_, i) => output.readInt16LE(i * 2)) };
 }
 
+for (const resetPts of [false, true]) {
+  for (const prefix of [true, false]) {
+    it(`advances timestamp segments across four-sample frames (reset=${resetPts}, prefix=${prefix})`, async () => {
+      const input = Array.from({ length: 16 }, (_, i) => i + 1);
+      const graph = `[0:a]asetnsamples=n=4:p=0,${resetPts ? "asetpts=0," : ""}asegment=timestamps=0.000625[a][b];` +
+        (prefix ? "[b]anullsink;[a]anull[out]" : "[a]anullsink;[b]anull[out]");
+      const { result, stderr, output } = await run(graph, 1, input);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.deepEqual(output, prefix ? input.slice(0, 5) : input.slice(5));
+    });
+  }
+}
+
 // FFmpeg 7.0.2 emits [1..5] on the first branch and [6..13] on the second.
 for (const option of ["samples=5", "timestamps=0.000625"]) {
   for (const prefix of [true, false]) {

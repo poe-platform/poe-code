@@ -6903,6 +6903,26 @@ function outputChapters(
     }));
 }
 
+function applyChapterMetadata(
+  chapters: MediaDocument["chapters"],
+  metadata: readonly [number, string, string][]
+): MediaDocument["chapters"] {
+  if (metadata.length === 0) return chapters;
+  const result = [...(chapters ?? [])];
+  for (const [index, key, value] of metadata) {
+    const chapter = result[index];
+    if (!Number.isSafeInteger(index) || !chapter) {
+      throw new Error(`Invalid chapter index ${index} in metadata specifier`);
+    }
+    const tags = { ...chapter.tags ?? { title: chapter.title } };
+    const existing = Object.keys(tags).find(tag => tag.toLowerCase() === key.toLowerCase());
+    if (existing !== undefined) delete tags[existing];
+    if (value !== "") tags[key] = value;
+    result[index] = { ...chapter, tags, title: key.toLowerCase() === "title" ? value : chapter.title };
+  }
+  return result;
+}
+
 function mapGlobalMetadata(documents: readonly MediaDocument[], sources: readonly number[]): Mp4MetadataTags {
   let metadata: Mp4MetadataTags = {};
   for (const source of sources.length ? sources : [0]) {
@@ -8144,6 +8164,7 @@ export function evalSyncFfmpeg(
     let chapterSource: number | undefined;
     const metadataSources: number[] = [];
     const streamMetadataMaps: [string, string][] = [];
+    const chapterMetadata: [number, string, string][] = [];
     const metadata: Record<string, string> = {};
     const streamMetadata: [string, "language" | "handlerName" | "timecode" | "title" | "comment" | "stereo_mode", string][] = [];
     const streamDispositions: [string, string][] = [];
@@ -8681,7 +8702,9 @@ export function evalSyncFfmpeg(
         if (eq >= 0) {
           const k = kv.slice(0, eq).trim().toLowerCase();
           const v = kv.slice(eq + 1);
-          if ((k === "language" || k === "handler_name" || k === "timecode" || k === "title" || k === "comment" || k === "stereo_mode") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
+          if (type === "c") {
+            chapterMetadata.push([arg === "-metadata:c" ? 0 : Number(arg.slice("-metadata:c:".length)), kv.slice(0, eq), v]);
+          } else if ((k === "language" || k === "handler_name" || k === "timecode" || k === "title" || k === "comment" || k === "stereo_mode") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
             streamMetadata.push([arg.slice("-metadata:s:".length), k === "handler_name" ? "handlerName" : k, v]);
           } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
         }
@@ -8848,7 +8871,7 @@ export function evalSyncFfmpeg(
     }
     chapterSource ??= loadedDocs.findIndex(doc => doc.chapters?.length);
     if (chapterSource >= loadedDocs.length) return undefined;
-    workingDoc = { ...workingDoc, chapters: chapterSource < 0 ? undefined : outputChapters(loadedDocs[chapterSource]!.chapters, outputSs, outputDuration, outputTo) };
+    workingDoc = { ...workingDoc, chapters: applyChapterMetadata(chapterSource < 0 ? undefined : outputChapters(loadedDocs[chapterSource]!.chapters, outputSs, outputDuration, outputTo), chapterMetadata) };
     const sourceMetadata = mapGlobalMetadata(loadedDocs, metadataSources);
     const metaTags: Mp4MetadataTags = {
       ...sourceMetadata,
@@ -9469,6 +9492,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let chapterSource: number | undefined;
         const metadataSources: number[] = [];
         const streamMetadataMaps: [string, string][] = [];
+        const chapterMetadata: [number, string, string][] = [];
         const metadata: Record<string, string> = {};
         const streamMetadata: [string, "language" | "handlerName" | "timecode" | "title" | "comment" | "stereo_mode", string][] = [];
         const attachmentFiles: string[] = [];
@@ -10991,7 +11015,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (arg === "-metadata:s" || arg.startsWith("-metadata:s:")) {
                 attachmentMetadata.push([arg.slice("-metadata:s:".length), k, v]);
               }
-              if ((k === "language" || k === "handler_name" || k === "timecode" || k === "title" || k === "comment" || k === "stereo_mode") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
+              if (type === "c") {
+                chapterMetadata.push([arg === "-metadata:c" ? 0 : Number(arg.slice("-metadata:c:".length)), kv.slice(0, eq), v]);
+              } else if ((k === "language" || k === "handler_name" || k === "timecode" || k === "title" || k === "comment" || k === "stereo_mode") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
                 streamMetadata.push([arg.slice("-metadata:s:".length), k === "handler_name" ? "handlerName" : k, v]);
               } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
             }
@@ -18269,7 +18295,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid chapter input index: ${chapterSource}\n`), context.signal);
               return { exitCode: 234 };
             }
-            workingDoc = { ...workingDoc, chapters: chapterSource < 0 ? undefined : outputChapters(loadedDocs[chapterSource]!.chapters, outputSs, outputDuration, outputTo) };
+            workingDoc = { ...workingDoc, chapters: applyChapterMetadata(chapterSource < 0 ? undefined : outputChapters(loadedDocs[chapterSource]!.chapters, outputSs, outputDuration, outputTo), chapterMetadata) };
             const sourceMetadata = mapGlobalMetadata(loadedDocs, metadataSources);
 
             // Apply `-metadata` tags

@@ -2254,7 +2254,7 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
     };
 }
 
-function* createPatternImageSteps(width: number, height: number, pattern: ReturnType<typeof builtinPattern>): Generator<void, RgbaImage, void> {
+function* createPatternImageSteps(width: number, height: number, pattern: ReturnType<typeof builtinPattern>, tileOffset?: { x: number; y: number }): Generator<void, RgbaImage, void> {
     let work = 0;
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
@@ -2265,7 +2265,9 @@ function* createPatternImageSteps(width: number, height: number, pattern: Return
         for (let x = 0; x < w; x++) {
             if (++work % 16384 === 0)
                 yield;
-            const cell = pattern.gray(x, y);
+            // Native shifts whole tiles, including the last partial tile, over a white canvas.
+            const sx = x - (tileOffset?.x ?? 0), sy = y - (tileOffset?.y ?? 0);
+            const cell = sx < 0 || sy < 0 || sx >= Math.ceil(w / pattern.width) * pattern.width || sy >= Math.ceil(h / pattern.height) * pattern.height ? 255 : pattern.gray(sx, sy);
             const idx = (y * w + x) * 4;
             data[idx] = cell;
             data[idx + 1] = cell;
@@ -7617,7 +7619,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     if (lower.startsWith("pattern:")) {
         const pattern = builtinPattern(baseToken.slice(8));
-        return yield* applyMod([Object.assign(yield* createPatternImageSteps(state.hasSize ? state.sizeWidth : pattern.width, state.hasSize ? state.sizeHeight : pattern.height, pattern), { [magickInput]: { inputFormat: "PATTERN" } })]);
+        return yield* applyMod([Object.assign(yield* createPatternImageSteps(state.hasSize ? state.sizeWidth : pattern.width, state.hasSize ? state.sizeHeight : pattern.height, pattern, state.tileOffset), { [magickInput]: { inputFormat: "PATTERN" } })]);
     }
     if (lower === "rose:" || lower === "logo:" || lower === "wizard:" || lower === "granite:") {
         return yield* applyMod([(yield* createRoseImageSteps())]);
@@ -19079,7 +19081,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4),samples=checker?undefined:new Uint16Array(count*4),evaluateSamples=checker?undefined:new Float64Array(count*4),hueSamples=a.cmyk?new Float64Array(count*4):undefined;
    for(let i=0;i<count;i++){
     const x=(start+i)%width,y=Math.floor((start+i)/width),offset=i*4;
-    if(pattern){const cell=pattern.gray(x,y);bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}
+    if(pattern){const sx=x-(state.tileOffset?.x??0),sy=y-(state.tileOffset?.y??0);const cell=sx<0||sy<0||sx>=Math.ceil(width/pattern.width)*pattern.width||sy>=Math.ceil(height/pattern.height)*pattern.height?255:pattern.gray(sx,sy);bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}
     else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:vectorFactor?vectorFactor(x,y):projection(x,y);writeGradientPixel(bytes,samples!,evaluateSamples!,offset,a,b,t,hueSamples,outside);}
    }
    await backend.storage.write(position+start*4,bytes);

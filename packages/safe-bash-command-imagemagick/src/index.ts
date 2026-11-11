@@ -685,6 +685,21 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
   };
 }
 
+function parseSelectiveBlurGeometry(raw: string): MagickGeometry {
+    let normalized = "", dimensions = true;
+    for (const character of raw) {
+        if (character === "(" || character === ")") continue;
+        if (character === "," || character === "/") {
+            normalized += dimensions ? "x" : "+";
+            dimensions = false;
+        } else {
+            normalized += character;
+            if (character === "x" || character === "X") dimensions = false;
+        }
+    }
+    return parseMagickGeometry(normalized);
+}
+
 function parseMagickSketchGeometry(raw: string): { width?: number; height?: number; x?: number } {
     validateMagickTransformGeometry(raw.replaceAll(",", "x"), "-sketch");
     if (!raw.includes(",")) return parseMagickGeometry(raw);
@@ -14800,7 +14815,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const raw = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                const geometry = parseMagickGeometry(expanded);
+                const geometry = parseSelectiveBlurGeometry(expanded);
                 return yield* applyMagickRasterSteps({ ...im, isPalette: false }, selectiveBlurPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.intensity), signal);
             });
         }
@@ -19029,7 +19044,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                const geometry = parseMagickGeometry(expanded);
+                const geometry = parseSelectiveBlurGeometry(expanded);
                 return transformStoredMagickRaster({ ...image, isPalette: false }, backend, selectiveBlurPixelSteps(image, geometry, background, virtualPixel, channels, intensity), signal);
             });
         } else if (!operandsOnly && token === "-enhance") {

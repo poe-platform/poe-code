@@ -2,15 +2,23 @@ import { getCommandArguments, type CommandDefinition } from "safe-bash-contracts
 import { command, compare, encode, fail, Inputs, OrderCheck, settings, type OrderMode, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
 function recordComparison(env: Readonly<Record<string, string>>): typeof compare {
-  const locale = env.LC_ALL || env.LC_COLLATE || env.LANG || "C";
-  if (["C", "POSIX", "C.UTF-8", "C.utf8", "C.UTF8", "C.utf-8"].includes(locale)) return compare;
-  const language = locale.split(".")[0]!.split("_").join("-");
+  const locales = ["LC_CTYPE", "LC_COLLATE", "LC_MESSAGES", "LC_MONETARY", "LC_NUMERIC", "LC_TIME",
+    "LC_PAPER", "LC_NAME", "LC_ADDRESS", "LC_TELEPHONE", "LC_MEASUREMENT", "LC_IDENTIFICATION"]
+    .map(category => env.LC_ALL || env[category] || env.LANG || "C");
+  const byteLocales = ["C", "POSIX", "C.UTF-8", "C.utf8", "C.UTF8", "C.utf-8"];
   let collator: Intl.Collator;
   try {
-    if (!Intl.Collator.supportedLocalesOf([language]).length || locale.includes("@")) throw new RangeError();
-    collator = new Intl.Collator(language, { usage: "sort", sensitivity: "variant", caseFirst: "lower" });
+    for (const locale of new Set(locales)) {
+      if (byteLocales.includes(locale)) continue;
+      const language = locale.split(".")[0]!.split("_").join("-");
+      if (!Intl.Collator.supportedLocalesOf([language]).length || locale.includes("@")) return compare;
+    }
+    const locale = locales[1]!;
+    if (byteLocales.includes(locale)) return compare;
+    collator = new Intl.Collator(locale.split(".")[0]!.split("_").join("-"), { usage: "sort", sensitivity: "variant", caseFirst: "lower" });
   } catch {
-    fail(`unsupported collation locale '${locale}'`);
+    // GNU leaves every category in the initial C locale if setlocale(LC_ALL, "") fails.
+    return compare;
   }
   const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
   return (left, right) => {

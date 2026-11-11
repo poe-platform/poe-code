@@ -429,12 +429,47 @@ for (const file of ["/a", "/b"]) {
  });
 }
 
-for (const locale of ["invalid_locale", "en_US.utf8@unsupported"]) {
- test(`comm rejects unsupported collation ${locale}`, async () => {
-  const result = await run(["/a", "/a"], { "/a": "x\n" }, { LC_ALL: locale });
-  assert.equal(result.exitCode, 1);
-  assert.ok(result.stderr.includes(`unsupported collation locale '${locale}'`));
-  assert.equal(result.stdout, "");
+for (const env of [
+ { LC_ALL: "does_not_exist" },
+ { LC_ALL: "invalid_locale" },
+ { LC_ALL: "en_US.utf8@unsupported" },
+ { LANG: "does_not_exist", LC_COLLATE: "en_US.utf8" },
+ ...["LC_CTYPE", "LC_COLLATE", "LC_MESSAGES", "LC_MONETARY", "LC_NUMERIC", "LC_TIME",
+  "LC_PAPER", "LC_NAME", "LC_ADDRESS", "LC_TELEPHONE", "LC_MEASUREMENT", "LC_IDENTIFICATION"]
+  .map(category => ({ LANG: "C", LC_ALL: "", LC_COLLATE: "en_US.utf8", [category]: "does_not_exist" })),
+]) {
+ test(`comm falls back to C when locale initialization fails: ${JSON.stringify(env)}`, async () => {
+  const result = await run(["/a", "/b"], { "/a": "Z\n", "/b": "a\n" }, env);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.deepEqual(result.stdoutBytes, [0x5a, 0x0a, 0x09, 0x61, 0x0a]);
+
+  for (const separator of ["\n", "\0"]) {
+   const args = [...(separator === "\0" ? ["-z"] : []), "--check-order", "/a", "/b"];
+   const ordered = await run(args, { "/a": `Z${separator}a${separator}`, "/b": "" }, env);
+   assert.equal(ordered.exitCode, 0, ordered.stderr);
+   assert.equal(ordered.stderr, "");
+   assert.equal(ordered.stdout, `Z${separator}a${separator}`);
+   const disordered = await run(args, { "/a": `a${separator}Z${separator}`, "/b": "" }, env);
+   assert.equal(disordered.exitCode, 1);
+   assert.equal(disordered.stderr, "comm: file 1 is not in sorted order\n");
+   assert.equal(disordered.stdout, `a${separator}`);
+  }
+ });
+}
+
+for (const [locale, expected] of [["C", "Z\n\ta\n"], ["en_US.utf8", "\ta\nZ\n"]]) {
+ test(`comm preserves valid ${locale} ordering and locale precedence`, async () => {
+  for (const env of [
+   { LC_ALL: locale! },
+   { LANG: "does_not_exist", LC_COLLATE: "does_not_exist", LC_TIME: "does_not_exist", LC_ALL: locale! },
+   { LANG: locale!, LC_ALL: "", LC_TIME: "", LC_COLLATE: "", LC_UNKNOWN: "does_not_exist" },
+  ]) {
+   const result = await run(["/a", "/b"], { "/a": "Z\n", "/b": "a\n" }, env);
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.equal(result.stderr, "");
+   assert.equal(result.stdout, expected);
+  }
  });
 }
 

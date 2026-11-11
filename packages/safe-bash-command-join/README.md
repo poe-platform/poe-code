@@ -11,7 +11,7 @@ shell.use(joinCommands());
 const result = await shell.exec("join --help");
 ```
 
-The module also exports `createJoinCommand`, its command-list factory, and typed options and limits. The `--header`, `--ignore-case`, `--check-order`, `--nocheck-order`, and `--zero-terminated` options accept unique prefixes, such as `--hea` and `--ignore`; ambiguous `--h` and `--he` are rejected.
+The module also exports `createJoinCommand`, its command-list factory, and typed options and limits. The `--help`, `--version`, `--header`, `--ignore-case`, `--check-order`, `--nocheck-order`, and `--zero-terminated` options accept unique prefixes, such as `--hel`, `--ver`, `--hea` and `--ignore`; ambiguous `--h` and `--he` are rejected.
 
 Field numbers for `-1`, `-2`, `-j`, and `-o` accept positive decimals above JavaScript's safe integer range and saturate at 9223372036854775807, matching 64-bit GNU `join`. Fields past the end of a row are empty; repeated join-field options must agree after saturation. Explicit `-o` field lists take precedence over `-o auto` in either order. `-a` and `-v` still select only file 1 or 2.
 

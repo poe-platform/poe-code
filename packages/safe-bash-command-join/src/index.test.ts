@@ -33,6 +33,39 @@ async function run(args: ShellValue[], files: Record<string, string | Uint8Array
  return { ...result, stdout, stdoutBytes, stderr, combined };
 }
 
+for (const [option, minimum] of [["--help", 5], ["--version", 3]] as const) {
+ test(`join accepts every unique informational prefix of ${option} before opening operands`, async () => {
+  const expected = await run([option], {});
+  assert.equal(expected.exitCode, 0, expected.stderr);
+  assert.equal(expected.stderr, "");
+  assert.ok(expected.stdout.length > 0);
+  for (let length = minimum; length <= option.length; length++) {
+   const prefix = option.slice(0, length);
+   for (const args of [[prefix], [prefix, "missing-left", "missing-right"], ["missing-left", "missing-right", prefix], ["--hea", "--i", "--z", prefix]]) {
+    assert.deepEqual(await run(args, {}), expected, args.join(" "));
+   }
+  }
+ });
+}
+
+for (const option of ["--hel", "--ver", "--help", "--version"]) {
+ test(`join consumes ${option} as the -e replacement`, async () => {
+  for (const args of [["-e", option], [`-e${option}`], ["-ie", option]]) {
+   const result = await run([...args, "-o", "0,1.2,2.2", "left", "right"], { "/left": "a\n", "/right": "a 2\n" });
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.equal(result.stdout, `a ${option} 2\n`);
+   assert.equal(result.stderr, "");
+  }
+ });
+}
+
+test("join preserves informational prefixes as filenames after --", async () => {
+ const result = await run(["--", "--hel", "--ver"], { "/--hel": "a 1\n", "/--ver": "a 2\n" });
+ assert.equal(result.exitCode, 0, result.stderr);
+ assert.equal(result.stdout, "a 1 2\n");
+ assert.equal(result.stderr, "");
+});
+
 for (const { args, files, stdout, stderr } of [
  { args: [".", "absent-input"], files: {}, stdout: "", stderr: "join: absent-input: No such file or directory\n" },
  { args: [".", "right"], files: { "/right": "a right\n" }, stdout: "", stderr: "join: read error: Is a directory\n" },
@@ -360,12 +393,13 @@ for (const [option, diagnostic] of [
  ["--h", "option '--h' is ambiguous; possibilities: '--header' '--help'"],
  ["--he", "option '--he' is ambiguous; possibilities: '--header' '--help'"],
  ["--he=yes", "option '--he=yes' is ambiguous; possibilities: '--header' '--help'"],
- ...["--nochi", "--headers", "--Header", "--unknown=yes"].map(option => [option, `unrecognized option '${option}'`]),
+ ...["--helps", "--versions", "--nochi", "--headers", "--Header", "--unknown=yes"].map(option => [option, `unrecognized option '${option}'`]),
  ...[
   ["--header=yes", "--header"], ["--hea=1", "--header"],
   ["--ignore=", "--ignore-case"], ["--check=yes", "--check-order"],
   ["--nocheck=no", "--nocheck-order"], ["--zero=0", "--zero-terminated"],
   ["--help=yes", "--help"], ["--version=yes", "--version"],
+  ["--hel=1", "--help"], ["--ver=1", "--version"],
  ].map(([option, name]) => [option, `option '${name}' doesn't allow an argument`]),
  ...[..."12jaevto"].map(flag => [`-${flag}`, `option requires an argument -- '${flag}'`]),
  ["-ia", "option requires an argument -- 'a'"],

@@ -18755,7 +18755,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     b: channels?.includes(2) ?? true, a: channels?.includes(3) ?? true, k: channels?.includes(4) ?? true }
             }, i, signal)!);
         }
-        else if (t === "-level" || t === "+level" || t === "-alpha") {
+        else if (t === "-level" || t === "+level" || t === "-alpha" || t === "-brightness-contrast") {
             if (argv[i + 1] === undefined) return { exitCode: 2, stdout: "", stderr: `compare: missing an argument for option '${t}'\n` };
             try {
                 const operation = parseMagickPixelOperation(argv, { ...state, channelExplicit: channels !== undefined,

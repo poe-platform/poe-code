@@ -29,7 +29,7 @@ for (const mode of ["buffered", "sync", "retained", "command"] as const) {
             }) : await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
         expect(result.exitCode).toBe(0);
         expect("stderr" in result ? result.stderr : stderr).toBe("");
-        expect(("stdout" in result ? result.stdout : stdout).split("\n")[1]).toBe(row);
+        expect(("stdout" in result && typeof result.stdout === "string" ? result.stdout : stdout).split("\n")[1]).toBe(row);
     });
 }
 

@@ -12,6 +12,7 @@ import { isRadianceBytes } from "./radiance.js";
 import { decodeRadianceToStorage } from "./radiance-storage.js";
 import { isExrBytes } from "./exr.js";
 import { decodeExrToStorage } from "./exr-storage.js";
+import { isFarbfeldBytes, decodeFarbfeldToStorage } from "./farbfeld.js";
 import { isPhmBytes } from "./phm.js";
 import { decodePhmToStorage } from "./phm-storage.js";
 import { isPfmBytes } from "./pfm.js";
@@ -54,6 +55,7 @@ export async function storedImageDecoder(source:ImageByteSource,signal:AbortSign
  if(isExrBytes(prefix))return decodeExrToStorage;
  if(isRadianceBytes(prefix))return decodeRadianceToStorage;
  if(isPfmBytes(prefix))return decodePfmToStorage;
+ if(isFarbfeldBytes(prefix))return decodeFarbfeldToStorage;
  if(isPhmBytes(prefix))return decodePhmToStorage;
  if(isXbmBytes(prefix))return readXbmFromSource;
  if(isXpmBytes(prefix))return readXpmFromSource;

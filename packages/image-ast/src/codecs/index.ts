@@ -19,6 +19,7 @@ import { isRadianceBytes, readRadianceHeader, decodeRadianceImage } from "./radi
 import { isExrBytes, readExrHeader, decodeExrImage } from "./exr.js";
 import { encodeExrImage } from "./exr-output.js";
 import { encodePfmImage } from "./pfm-output.js";
+import { isFarbfeldBytes, readFarbfeldMetadata, decodeFarbfeldImage } from "./farbfeld.js";
 import { isPhmBytes, readPhmHeader, decodePhmImage } from "./phm.js";
 import { isPfmBytes, readPfmHeader, decodePfmImage } from "./pfm.js";
 import { encodeTgaImage, tgaChannels } from "./tga-output.js";
@@ -91,6 +92,7 @@ export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isMiffBytes(bytes)) return "miff";
   if (isExrBytes(bytes)) return "exr";
   if (isRadianceBytes(bytes)) return "hdr";
+  if (isFarbfeldBytes(bytes)) return "farbfeld";
   if (isPhmBytes(bytes)) return "phm";
   if (isPfmBytes(bytes)) return "pfm";
   if (isXbmBytes(bytes)) return "xbm";
@@ -196,6 +198,7 @@ export function readImageMetadata(
     case "exr": meta = readExrHeader(bytes).metadata; break;
     case "psd": meta = readPsdHeader(bytes, options).metadata; break;
     case "miff": meta = readMiffHeader(bytes, options?.page).metadata; break;
+    case "farbfeld": meta = readFarbfeldMetadata(bytes); break;
     case "phm": meta = readPhmHeader(bytes).metadata; break;
     case "tga":
       meta = readTgaMetadata(bytes);
@@ -442,6 +445,7 @@ export function decodeImage(
     case "exr": decoded = decodeExrImage(bytes, options); break;
     case "psd": decoded = decodePsdImage(bytes, options); break;
     case "miff": decoded = decodeMiffImage(bytes, options); break;
+    case "farbfeld": decoded = decodeFarbfeldImage(bytes, options); break;
     case "phm": decoded = decodePhmImage(bytes, options); break;
     case "tga":
       decoded = decodeTgaImage(bytes, options);

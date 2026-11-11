@@ -8,6 +8,7 @@ export type ImageFormat =
   | "hdr"
   | "exr"
   | "phm"
+  | "farbfeld"
   | "xpm"
   | "xwd"
   | "tga"

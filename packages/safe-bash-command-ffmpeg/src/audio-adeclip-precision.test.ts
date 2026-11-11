@@ -11,7 +11,7 @@ for (const [filter, rate, length, expected] of [
   ["adeclip=m=save", 1000, 16, "a5ead0830da49a19ac2ab1da77c6b0f071f728d1bc7e9dc9afd8f07ce4d622f4"],
   ["anull", 1000, 16, "a5ead0830da49a19ac2ab1da77c6b0f071f728d1bc7e9dc9afd8f07ce4d622f4"],
   ["adeclip=o=50", 1000, 16, "9d7b183699b55debbb3a953981f77da1b7dd4738a532136ad54eb750a893a254"],
-  ["adeclip=o=95", 1000, 16, "e65bcb03498895fcb2dd2e5efb9aa82944440c7226a4b92aa0c699a39d6d97c7"],
+  ["adeclip=o=95", 1000, 16, null],
   ["adeclip", 8000, 16, "d4ea49f2c93a47a1256d0a15f07172d2e59f9469aba3450911c507c81bce16d3"],
   ["adeclip=t=100", 1000, 301, "d5d3ea556bcd0f9c768afed7e7ddb169f96d5fc716552b6108e846bc9a2fcf89"],
   ["adeclick=t=100", 1000, 16, "2a141ec6443ab312741d1a02b2531264e975937ac84f5f2f7f8bcd322990dc81"]
@@ -39,6 +39,16 @@ for (const [filter, rate, length, expected] of [
     assert.equal(result.exitCode, 0, stderr);
     const pcm = Buffer.concat(output);
     assert.equal(pcm.length, input.length);
-    assert.equal(createHash("sha256").update(pcm).digest("hex"), expected);
+    if (expected === null) {
+      // At 95% overlap, the first 16 weights are (i + 1) / 95.
+      // FFT roundoff varies by platform; check the exact ramp within one epsilon.
+      for (let i = 0; i < length; i++) {
+        const sample = input.readDoubleLE(i * 8) * (i + 1) / 95;
+        assert.ok(Math.abs(pcm.readDoubleLE(i * 8) - sample) <= Number.EPSILON,
+          `sample ${i}: ${pcm.readDoubleLE(i * 8)}, expected ${sample}`);
+      }
+    } else {
+      assert.equal(createHash("sha256").update(pcm).digest("hex"), expected);
+    }
   });
 }

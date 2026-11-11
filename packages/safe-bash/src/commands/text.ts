@@ -1171,7 +1171,7 @@ export function textCommands(): CommandDefinition[] {
         }
       }
       return executeCutGeneral(context);
-    }),
+    }, 1, 1),
   ].map(command => ({ ...command, filesystemRequirements: command.name === "cut" ? inputRequirements : textOutputRequirements }));
 }
 

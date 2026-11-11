@@ -472,12 +472,12 @@ describe("obscure fmt, pr, column, nl, paste, comm, cut, and tr parity matrix", 
       r.stdout,
       [
         "rc1=1",
-        "rc2=2",
-        "rc3=2",
-        "rc4=2",
+        "rc2=1",
+        "rc3=1",
+        "rc4=1",
         "cut: invalid decreasing range '3-1'",
         "cut: invalid range ''",
-        "cut: exactly one byte, character, or field list is required",
+        "cut: only one list may be specified",
         "cut: delimiter options require field mode",
         ""
       ].join("\n")

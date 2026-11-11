@@ -1,10 +1,31 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { textCommands } from "../../src/commands/text.js";
-import { FsError, toByteSource, type CommandContext, type FileSystem } from "../../src/contracts/index.js";
+import { Shell } from "../../src/shell/index.js";
+import { CommandRegistry, FsError, toByteSource, type CommandContext, type FileSystem } from "../../src/contracts/index.js";
 import { registerYieldCheckpoint, scheduleTurn } from "../../src/contracts/yield.js";
 import { createStandardCommands } from "../../src/commands/index.js";
 import { chunks, fixture, run } from "./helpers.js";
+
+for (const source of ["stdin", "file"] as const) {
+  for (const args of ["-b2 -s", "-c2 --delimiter=:", "-b0", "--unknown", "-f1 -b2", "-b 2-1", "--c", "-b", "-f1 -d::", "-Q"]) {
+    test(`cut returns GNU failure status for ${args} from ${source}`, async () => {
+      const input = "left:right\nlast:field";
+      const fs = await fixture({ input });
+      const shell = new Shell({ fs, commands: new CommandRegistry(textCommands()) });
+      try {
+        const result = await shell.exec(`LC_ALL=C cut ${args}${source === "file" ? " /work/input" : ""}`, { stdin: input });
+        assert.equal(result.stdout, "");
+        assert.equal(result.exitCode, 1, result.stderr);
+        assert.ok(result.stderr.startsWith("cut: "));
+        const valid = await shell.exec(`LC_ALL=C cut -d: -f1,2${source === "file" ? " /work/input" : ""}`, { stdin: input });
+        assert.equal(valid.exitCode, 0, valid.stderr);
+        assert.equal(valid.stdout, `${input}\n`);
+        assert.equal(valid.stderr, "");
+      } finally { await shell.dispose(); }
+    });
+  }
+}
 
 for (const [label, input, args, expected] of [
   ["invalid suffix width", "c3a9ff0ac3aaff0a", ["-w1"], "c3a9ff0ac3aaff0a"],
@@ -600,7 +621,7 @@ test("cut supports overlapping/open ranges, complement, literal fields and UTF-8
   assert.equal((await run("cut", ["-d", ":", "-f", "2,4", "--output-delimiter=|"], { stdin: "a:b:c:d\nplain\n" })).stdout, "b|d\nplain\n");
   assert.equal((await run("cut", ["-sd", ":", "-f", "2"], { stdin: "plain\na:b" })).stdout, "b\n");
   assert.equal((await run("cut", ["-b", "3-1"])).exitCode, 1);
-  assert.equal((await run("cut", ["-f", "0"])).exitCode, 2);
+  assert.equal((await run("cut", ["-f", "0"])).exitCode, 1);
 });
 
 test("cut selects fields across matching record and field delimiters", async () => {
@@ -971,7 +992,7 @@ test("cut preserves range union record and Unicode behavior across chunk boundar
   assert.equal((await run("cut", ["-b", "1-"], { stdin: "\uFEFFa\n" })).stdout, "\uFEFFa\n");
   assert.equal((await run("cut", ["-b", Array(10001).fill("1").join(",")], { stdin: "abc\n" })).stdout, "a\n");
   for (const ranges of ["0", "-", "1--2"]) {
-    assert.equal((await run("cut", ["-b", ranges])).exitCode, 2, ranges);
+    assert.equal((await run("cut", ["-b", ranges])).exitCode, 1, ranges);
   }
   assert.equal((await run("cut", ["-b", "01,, 2"], { stdin: "abc\n" })).exitCode, 1);
 });
@@ -1013,7 +1034,7 @@ test("cut accepts single separators and rejects empty list entries before readin
       assert.equal(result.stderr, "cut: invalid range ''\n");
       assert.equal(reads, 0);
     }
-    assert.equal((await run("cut", [mode, "1\n2", ...args], { commands: textCommands() })).exitCode, 2);
+    assert.equal((await run("cut", [mode, "1\n2", ...args], { commands: textCommands() })).exitCode, 1);
   }
 });
 
@@ -1031,7 +1052,7 @@ for (const size of [65535, 65536, 65537]) {
 test("cut rejects undocumented short options", async () => {
   for (const args of [["-b", "1,2", "-o", ":"], ["-b", "1", "-C"]]) {
     const result = await run("cut", args, { stdin: "ab\n" });
-    assert.equal(result.exitCode, 2);
+    assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "");
   }
 });

@@ -13975,8 +13975,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const prefix = mono ? `channel: ${slot} | ` : "";
                           logSilence(Number.POSITIVE_INFINITY, `${prefix}silence_end: ${formatTime(end)} | silence_duration: ${formatTime(BigInt.asIntN(64, end - start))}\n`);
                         }
-                        // Adjacent detectors process each frame in graph order, then flush in reverse.
-                        if (audioFilters[filterIndex + 1]?.trim().split("=", 1)[0]!.split("@", 1)[0] !== "silencedetect") {
+                        // Transparent filters preserve frame order between detectors and reverse EOF flushing.
+                        let nextFilter = filterIndex + 1;
+                        while (nextFilter < audioFilters.length) {
+                          const name = audioFilters[nextFilter]!.trim().split("=", 1)[0]!.split("@", 1)[0];
+                          if (name !== "anull" && name !== "acopy") break;
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          nextFilter++;
+                        }
+                        if (audioFilters[nextFilter]?.trim().split("=", 1)[0]!.split("@", 1)[0] !== "silencedetect") {
                           budget.checkCpu();
                           silenceEvents.sort((left, right) => left.frame - right.frame ||
                             (left.frame === Number.POSITIVE_INFINITY ? right.filter - left.filter : left.filter - right.filter));

@@ -177,6 +177,8 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
                 if (depth === 1 && channel === 0) quantum = value > scale / 2 ? 0 : 1;
                 if (depth === 4 && channel === 1) quantum = Math.round(value * 16 / scale) & 15;
             }
+            if (depth === 1 && format.startsWith("gray") && channel === 0
+                && defines?.["quantum:polarity"]?.toLowerCase() === "min-is-white") quantum = 1 - quantum;
             const sample = (options.rawInterlace === "plane" || options.rawInterlace === "partition") ? c * pixels + pixel
                 : options.rawInterlace === "line" ? Math.floor(pixel / image.width) * image.width * channels.length + c * image.width + pixel % image.width
                 : pixel * channels.length + c;

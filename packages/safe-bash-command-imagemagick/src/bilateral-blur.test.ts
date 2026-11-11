@@ -294,7 +294,7 @@ it("bounds reads, writes and cooperative work across raster chunks", () => {
     const width = 2053, pixels = new Uint8Array(width * 4);
     for (let i = 0; i < width; i++) pixels.set([64, 96, 128, 255], i * 4);
     const output = new Uint8Array(pixels.length);
-    const steps = bilateralBlurPixelSteps({ width, height: 1, hasAlpha: false }, { width: 5, height: 5, x: 35, y: 3, hasOffset: true, hasYOffset: true }, { r: 0, g: 0, b: 0, a: 255 }, "tile");
+    const steps = bilateralBlurPixelSteps({ width, height: 1, hasAlpha: false, space: "srgb" }, { width: 5, height: 5, x: 35, y: 3, hasOffset: true, hasYOffset: true }, { r: 0, g: 0, b: 0, a: 255 }, "tile");
     let next = steps.next(), pauses = 0;
     while (!next.done) {
         const request = next.value;

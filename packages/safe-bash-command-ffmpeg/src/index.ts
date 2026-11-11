@@ -2225,8 +2225,13 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const length = Math.min(a.channelData[0]!.length, multiplier[0]!.length);
         budget.checkSamples(length);
         budget.checkDuration(length / a.sampleRate);
-        budget.allocateMemory(length * a.channels * 8);
-        const channelData = a.channelData.map(() => new Float64Array(length));
+        // The first compatible branch fixes multiplication precision before output conversion.
+        const format = [...sources.map(source => audioGraphFormats.get(source.track)
+          ?? pcmSampleFormat(source.track.codecDescriptions[0]?.codecName)), outputSampleFormat]
+          .find(format => format !== undefined && ["flt", "fltp", "dbl", "dblp"].includes(format)) ?? "flt";
+        const Samples = format === "dbl" || format === "dblp" ? Float64Array : Float32Array;
+        budget.allocateMemory(length * a.channels * Samples.BYTES_PER_ELEMENT);
+        const channelData = a.channelData.map(() => new Samples(length));
         for (let channel = 0; channel < a.channels; channel++) {
           for (let sample = 0; sample < length; sample++) {
             if (sample % 4096 === 0) {

@@ -1332,7 +1332,9 @@ shorter resampled input. Mono paired with stereo, 3.0, or quad is
 remixed to the first input’s layout with equal-power gains before multiplication;
 other layouts must match.
 Single-input filters on either branch run before multiplication, for example
-`[0:a]volume=0.5[x];[x][1:a]amultiply[out]`. Output frame boundaries are retained for
+`[0:a]volume=0.5[x];[x][1:a]amultiply[out]`. Products are rounded at the negotiated
+floating-point precision before output conversion, including float64 output.
+Output frame boundaries are retained for
 frame selection (`aselect`), frame limits, and `framecrc`, including split branches
 where reversal buffers the other input.
 

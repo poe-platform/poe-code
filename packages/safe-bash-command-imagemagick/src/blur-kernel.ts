@@ -1,5 +1,7 @@
 import { regionContains, type Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { virtualPixelIndex } from "./virtual-pixel.js";
+import type { VirtualPixelMethod } from "./warp-kernel.js";
 
 export function parseUnsharpGeometry(raw: string): { width: number; height: number; amount: number; threshold: number } {
     const parts: string[] = [];
@@ -18,8 +20,9 @@ export function parseUnsharpGeometry(raw: string): { width: number; height: numb
 }
 
 /** Native sampled Gaussian or rank-three blur, with bounded row caching. */
-export function* blurPixelSteps(image: { width: number; height: number; region?: Region | undefined; evaluateSamples?: Float64Array | undefined; storedEvaluateSamples?: number | undefined }, geometry: { width?: number; height?: number }, gaussian: boolean, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, unsharp?: { amount: number; threshold: number }, writeMask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* blurPixelSteps(image: { width: number; height: number; virtualPixel?: VirtualPixelMethod | undefined; region?: Region | undefined; evaluateSamples?: Float64Array | undefined; storedEvaluateSamples?: number | undefined }, geometry: { width?: number; height?: number }, gaussian: boolean, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, unsharp?: { amount: number; threshold: number }, writeMask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
+    const virtualPixel = unsharp && image.virtualPixel === "mirror" ? "mirror" : "edge";
     const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
     const region = !gaussian ? image.region : undefined;
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
@@ -52,7 +55,7 @@ export function* blurPixelSteps(image: { width: number; height: number; region?:
             const sums = new Float64Array(count * 4);
             for (let ky = -half; ky <= half; ky++) {
                 yield;
-                const sy = Math.max(0, Math.min(height - 1, y + ky));
+                const sy = virtualPixelIndex(0, y + ky, 1, height, virtualPixel);
                 let row = rows.get(sy);
                 if (!row) {
                     const first = Math.max(0, left - half), last = Math.min(width - 1, left + count - 1 + half), length = (last - first + 1) * 4;
@@ -67,7 +70,7 @@ export function* blurPixelSteps(image: { width: number; height: number; region?:
                     for (let x = 0; x < count; x++) {
                         if (x % 32 === 0) yield;
                         for (let k = -half; k <= half; k++) {
-                            const offset = (Math.max(0, Math.min(width - 1, left + x + k)) - first) * 4;
+                            const offset = (virtualPixelIndex(left + x + k, 0, width, 1, virtualPixel) - first) * 4;
                             const alpha = samples[offset + 3]! / 255, weight = weights[k + half]!;
                             for (let c = 0; c < 3; c++) row[x * 4 + c]! += samples[offset + c]! * alpha * weight;
                             row[x * 4 + 3]! += alpha * weight;

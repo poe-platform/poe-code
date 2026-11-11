@@ -25,7 +25,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
   const gray16 = gray10 || pixelFormat === "gray16be" || pixelFormat === "gray16le";
   const yuv10 = pixelFormat === "yuv420p10le";
   const yuv16 = pixelFormat === "yuv420p16le" || pixelFormat === "yuv444p10le" || pixelFormat === "yuv444p16le";
-  const yuv = yuv10 || yuv16 || pixelFormat === "yuv420p" || pixelFormat === "yuv422p" || pixelFormat === "yuv444p";
+  const yuv = yuv10 || yuv16 || pixelFormat === "nv12" || pixelFormat === "yuv420p" || pixelFormat === "yuv422p" || pixelFormat === "yuv444p";
   const rgb16Format = pixelFormat === "rgb48be" ? 34 : pixelFormat === "rgb48le" ? 35
     : pixelFormat === "rgba64be" ? 104 : pixelFormat === "rgba64le" ? 105 : undefined;
   const rgb16 = rgb16Format !== undefined;
@@ -48,6 +48,17 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     if (!decode || data.length !== frameBytes) continue;
     budget.recordFrame(width, height);
     budget.allocateMemory(width * height * 4);
+    if (pixelFormat === "nv12") {
+      budget.allocateMemory(frameBytes);
+      const planar = new Uint8Array(frameBytes);
+      planar.set(data.subarray(0, ySize));
+      for (let chroma = 0; chroma < chromaSize; chroma++) {
+        if (chroma % 4096 === 0) budget.checkCpu();
+        planar[ySize + chroma] = data[ySize + chroma * 2]!;
+        planar[ySize + chromaSize + chroma] = data[ySize + chroma * 2 + 1]!;
+      }
+      data = planar;
+    }
     if (gray10) {
       budget.allocateMemory(frameBytes);
       const input = new DataView(data.buffer, data.byteOffset, data.byteLength);
@@ -65,7 +76,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
         format: rgb16Format ?? (yuv10 ? 62 : pixelFormat === "yuv444p10le" ? 68 : pixelFormat === "yuv420p16le" ? 45 : 49), colorspace: 5, fullRange: rgb16 ? 1 : 0 } }, width, height)!
       : yuv
       ? yuv420pToRgba(data.subarray(0, ySize), data.subarray(ySize, ySize + chromaSize), data.subarray(ySize + chromaSize), width, height,
-        pixelFormat === "yuv444p" ? 0 : 1, pixelFormat === "yuv420p" ? 1 : 0)
+        pixelFormat === "yuv444p" ? 0 : 1, (pixelFormat === "yuv420p" || pixelFormat === "nv12") ? 1 : 0)
       : pixelFormat === "rgba" ? new Uint8Array(data) : new Uint8Array(width * height * 4);
     const view = gray16 ? new DataView(data.buffer, data.byteOffset, data.byteLength) : undefined;
     for (let pixel = 0; !rgb16 && !yuv && pixelFormat !== "rgba" && pixel < width * height; pixel++) {

@@ -12578,9 +12578,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   return last ? last.ptsSeconds + last.durationSeconds : 0;
                 })) : Infinity;
                 const stacked: MediaVideoFrame[] = [];
-                for (let i = 0; framepack ? i < count : Number.isFinite(timestamp) && timestamp < endTime - 1e-9; i++) {
+                for (let i = 0; framepack ? i < count : Number.isFinite(timestamp); i++) {
                   // Framesync places EOF one synchronization tick after the last PTS,
                   // so no later frame event may reuse an exhausted shortest input.
+                  // The last frame is still an event when setpts clears its duration.
                   if (!framepack && stopAtShortest && inputs.some(input => timestamp > input.at(-1)!.ptsSeconds + 1e-9)) break;
                   // Each input keeps its current picture until its next timestamp.
                   const frames = inputs.map((input, index) => {

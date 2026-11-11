@@ -14188,7 +14188,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             formats = compatible;
                             continue;
                           }
-                          if (["vibrato", "compensationdelay", "aeval", "aemphasis", "asubboost", "virtualbass"].includes(name!)) {
+                          if (["vibrato", "flanger", "compensationdelay", "aeval", "aemphasis", "asubboost", "virtualbass"].includes(name!)) {
                             if (!formats || formats.includes("dblp")) formats = ["dblp"];
                           } else if (name === "asoftclip" || name === "aphaseshift") {
                             const compatible = (formats ?? ["fltp", "dblp"]).filter(format => format === "fltp" || format === "dblp");

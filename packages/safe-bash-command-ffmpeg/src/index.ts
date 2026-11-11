@@ -6436,9 +6436,15 @@ async function applyVideoFilterChain(
         [4, 100, 28, 124, 2, 98, 26, 122], [68, 36, 92, 60, 66, 34, 90, 58],
         [20, 116, 12, 108, 18, 114, 10, 106], [84, 52, 76, 44, 82, 50, 74, 42]
       ];
+      const registers = new Float64Array(10);
       current = await mapWork(current, async (f, n) => {
-        if (Math.min(f.width, f.height) <= 2 * radius || (named.enable !== undefined &&
-            Math.abs(parseFilterExpression(named.enable, "gradfun enable", { n, t: f.ptsSeconds, w: f.width, h: f.height })) < 0.5)) return f;
+        if (named.enable !== undefined) {
+          const variables = { n, t: f.ptsSeconds, w: f.width, h: f.height };
+          // FFmpeg evaluates the generic timeline before and during frame dispatch.
+          parseFilterExpression(named.enable, "gradfun enable", variables, undefined, registers);
+          if (!(Math.abs(parseFilterExpression(named.enable, "gradfun enable", variables, undefined, registers)) >= 0.5)) return f;
+        }
+        if (Math.min(f.width, f.height) <= 2 * radius) return f;
         const columns = Math.floor(f.width / 2);
         budget.allocateMemory(f.data.byteLength + columns * 8);
         const data = f.data.slice();

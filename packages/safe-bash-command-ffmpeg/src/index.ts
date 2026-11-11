@@ -17201,6 +17201,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             enabled = Math.abs(parseFilterExpression(enable, "aeval enable", {
                               n: frameIndex, t: pts / origRate
                             })) >= 0.5;
+                            // Without c=same, native aeval negotiates an unspecified input
+                            // layout; a bypassed frame cannot satisfy its named output layout.
+                            if (!enabled && layout !== "same") throw new Error("aeval: Channel layout change is not supported");
                             frameEnd = i + frameLength;
                             frameIndex++;
                           }
@@ -20313,6 +20316,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (err instanceof RangeError && msg.startsWith("apad:")) return { exitCode: 222 };
             if (msg.startsWith("apad: invalid ") || msg === "apad: pad_len and whole_len are mutually exclusive") return { exitCode: 234 };
             if (msg === "aloop: unsupported option enable") return { exitCode: 176 };
+            if (msg === "aeval: Channel layout change is not supported") return { exitCode: 176 };
             if (msg.startsWith("aloop: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("aloop:")) return { exitCode: 222 };
             if (msg === "loop: invalid expression" || msg === "loop: invalid or unsupported expression") return { exitCode: 234 };

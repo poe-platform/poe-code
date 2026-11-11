@@ -38,9 +38,9 @@ for (const [length, impulse, options, expected] of [
 }
 
 it("accounts for reverse-filter scratch memory and cancellation", async () => {
-  await assert.rejects(highpassAudio([new Float64Array(1)], 8000, "highpass=f=1000:b=32768",
+  await assert.rejects(highpassAudio([new Float64Array(1)], 8000, "highpass=f=1000:b=32768", "s16",
     new MediaBudgetTracker({ maxMemoryBytes: 1024 })), /maxMemoryBytes/);
-  await assert.rejects(highpassAudio([new Float64Array(1)], 8000, "highpass=b=8",
+  await assert.rejects(highpassAudio([new Float64Array(1)], 8000, "highpass=b=8", "s16",
     new MediaBudgetTracker(), AbortSignal.abort()));
 });
 

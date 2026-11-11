@@ -12749,7 +12749,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-scene") {
             const value = tokens[++i] ?? "";
             validateMagickTransformGeometry(value, "-scene");
-            state.scene = Number.parseInt(value, 10) || 0;
+            const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
+            const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: 0, optionProperties: state.optionProperties });
+            state.scene = Number.parseInt(expanded, 10) || 0;
             if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
             const scene = state.scene;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
@@ -16784,6 +16786,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-scene") {
+            // Resolve image-dependent settings before subsequent input settings are captured.
+            if (tokens[i + 1]?.includes("%")) return;
             const value = tokens[++i] ?? "";
             validateMagickTransformGeometry(value, "-scene");
             state.scene = Number.parseInt(value, 10) || 0;

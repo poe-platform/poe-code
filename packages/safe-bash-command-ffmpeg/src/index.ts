@@ -3210,13 +3210,14 @@ async function applyVideoFilterChain(
         let sampleBytes = 1;
         const native = frame.native;
         if (native && native.rgba === frame.data && native.width === frame.width && native.height === frame.height &&
-            [0, 4, 5, 12, 13, 14, 45, 49].includes(native.format)) {
-          format = ({ 0: "yuv420p", 4: "yuv422p", 5: "yuv444p", 12: "yuvj420p", 13: "yuvj422p", 14: "yuvj444p", 45: "yuv420p16le", 49: "yuv444p16le" } as Record<number, string>)[native.format]!;
+            [0, 4, 5, 12, 13, 14, 33, 45, 49].includes(native.format)) {
+          format = ({ 0: "yuv420p", 4: "yuv422p", 5: "yuv444p", 12: "yuvj420p", 13: "yuvj422p", 14: "yuvj444p", 33: "yuva420p", 45: "yuv420p16le", 49: "yuv444p16le" } as Record<number, string>)[native.format]!;
           sampleBytes = [45, 49].includes(native.format) ? 2 : 1;
           const luma = frame.width * frame.height * sampleBytes;
           const chroma = Math.ceil(frame.width / ([5, 14, 49].includes(native.format) ? 1 : 2)) *
-            Math.ceil(frame.height / ([0, 12, 45].includes(native.format) ? 2 : 1)) * sampleBytes;
+            Math.ceil(frame.height / ([0, 12, 33, 45].includes(native.format) ? 2 : 1)) * sampleBytes;
           planes = [native.pixels.subarray(0, luma), native.pixels.subarray(luma, luma + chroma), native.pixels.subarray(luma + chroma, luma + 2 * chroma)];
+          if (native.format === 33) planes.push(native.pixels.subarray(luma + 2 * chroma, 2 * luma + 2 * chroma));
         } else {
           const channels = ({ rgb24: [0, 1, 2], bgr24: [2, 1, 0], rgba: [0, 1, 2, 3], bgra: [2, 1, 0, 3], gray: [0], ya8: [0, 3] } as Record<string, number[]>)[format];
           if (!channels) format = "rgba";

@@ -13849,8 +13849,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (stack.length >= 2) {
                 const base = stack[0]!;
                 const mask = stack[2];
-                const origOverlay = mask ? yield* applyMagickRasterSteps(stack[1]!, compositeMaskPixelSteps(stack[1]!, mask), signal, { ...stack[1]!, hasAlpha: true }, [stack[1]!, mask]) : stack[1]!;
-                if (mask) { detachRgbaBuffer(stack[1]!.data); detachRgbaBuffer(mask.data); }
+                const maskedCopy = mask && ["copyred", "copygreen", "copyblue"].includes(magickCompositeMode(state.composeRaw).name);
+                const origOverlay = mask && !maskedCopy ? yield* applyMagickRasterSteps(stack[1]!, compositeMaskPixelSteps(stack[1]!, mask), signal, { ...stack[1]!, hasAlpha: true }, [stack[1]!, mask]) : stack[1]!;
+                if (mask && !maskedCopy) { detachRgbaBuffer(stack[1]!.data); detachRgbaBuffer(mask.data); }
                 let overlay = origOverlay;
                 let gx = 0;
                 let gy = 0;
@@ -13884,6 +13885,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     composed = base;
                 } else {
                     composed = (yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, pos.x, pos.y, state.composeArgs, signal, state.alphaFuzz));
+                    if (maskedCopy) {
+                        // Native channel copies apply the mask to the completed canvas.
+                        const masked = yield* applyMagickCompositeLayerSteps(composed, mask!, "CopyAlpha", 0, 0, undefined, signal);
+                        detachRgbaBuffer(composed.data);
+                        composed = yield* applyMagickCompositeLayerSteps(base, masked, "Over", 0, 0, undefined, signal);
+                        detachRgbaBuffer(masked.data); detachRgbaBuffer(mask!.data);
+                    }
                     if (composed !== base) detachRgbaBuffer(base.data);
                     if (composed !== overlay) detachRgbaBuffer(overlay.data);
                 }
@@ -15762,10 +15770,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (token === "-composite") {
                     const base = (await stack.get(0))!; let overlay = (await stack.get(1))!, gx = 0, gy = 0;
                     const mask = await stack.get(2);
-                    if (mask) overlay = await transformStoredMagickRaster(overlay, backend, compositeMaskPixelSteps(overlay, mask), signal, { ...overlay, hasAlpha: true }, [overlay, mask]);
+                    const maskedCopy = mask && ["copyred", "copygreen", "copyblue"].includes(magickCompositeMode(settings.composeRaw).name);
+                    if (mask && !maskedCopy) overlay = await transformStoredMagickRaster(overlay, backend, compositeMaskPixelSteps(overlay, mask), signal, { ...overlay, hasAlpha: true }, [overlay, mask]);
                     if (settings.geometry && !settings.composeTile) { const geometry = parseMagickGeometry(settings.geometry); gx = geometry.x; gy = geometry.y; const resize = magickResizeOptions(overlay, settings.geometry, settings.kernel); if (resize) overlay = await resizeStoredMagickImage(overlay, backend, resize, signal, false, false, false, settings.resizeFilter); }
                     const offset = settings.composeTile ? { x: 0, y: 0 } : gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, gx, gy, settings.gravity);
                     result = await compositeStoredMagick(base, overlay, backend, signal, offset.x, offset.y, settings.composeRaw, settings.composeArgs, false, false, false, settings.composeTile, settings.alphaFuzz);
+                    if (maskedCopy) {
+                        result = await compositeStoredMagick(result, mask!, backend, signal, 0, 0, "CopyAlpha");
+                        result = await compositeStoredMagick(base, result, backend, signal, 0, 0, "Over");
+                    }
                     await stack.remove(mask ? [1, 2] : [1]); await stack.set(0, result); return stack;
                 }
                 const append = token.endsWith("append"), vertical = token === "-append";

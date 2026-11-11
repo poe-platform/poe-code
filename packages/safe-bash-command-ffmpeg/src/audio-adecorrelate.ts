@@ -19,11 +19,16 @@ export async function decorrelateAudio(
       validateWeaveGenericOption(key, option.slice(separator + 1).trim(), "adecorrelate");
       continue;
     }
-    if (key !== "stages" && key !== "seed") throw new Error(`adecorrelate: unsupported option ${key}`);
+    if (key !== "stages" && key !== "seed") throw new Error(`adecorrelate: unsupported option ${key}: Option not found`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     const number = Number(value);
-    if (!value || !Number.isInteger(number) || number < (key === "stages" ? 1 : -1) || number > (key === "stages" ? 16 : 0xffffffff)) {
+    if (!value || !Number.isInteger(number)) {
       throw new Error(`adecorrelate: invalid ${key}`);
+    }
+    const min = key === "stages" ? 1 : -1;
+    const max = key === "stages" ? 16 : 0xffffffff;
+    if (number < min || number > max) {
+      throw new RangeError(`adecorrelate: invalid ${key}: value ${value} out of range [${min} - ${max}]`);
     }
     options[key] = number;
   }

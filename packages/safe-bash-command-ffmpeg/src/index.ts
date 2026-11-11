@@ -11257,13 +11257,38 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   else if (!quoted && char === ";") {
                     const chain = prefix.slice(branchStart, pos).trim();
                     const inputEnd = chain.indexOf("]");
-                    const outputStart = chain.lastIndexOf("[");
-                    if (!chain.startsWith("[") || !chain.endsWith("]") || inputEnd < 0 || outputStart <= inputEnd) {
+                    if (!chain.startsWith("[") || !chain.endsWith("]") || inputEnd < 0) {
                       throw new Error(`${filter}: unsupported input branch ${chain}`);
                     }
-                    const label = chain.slice(outputStart + 1, -1);
-                    if (branches.has(label)) throw new Error(`${filter}: duplicate input label ${label}`);
-                    branches.set(label, { input: chain.slice(1, inputEnd), expression: chain.slice(inputEnd + 1, outputStart).trim() });
+                    let expression = chain.slice(inputEnd + 1).trim();
+                    const labels: string[] = [];
+                    while (expression.endsWith("]")) {
+                      const start = expression.lastIndexOf("[");
+                      if (start < 0) throw new Error(`${filter}: invalid input branch ${chain}`);
+                      const label = expression.slice(start + 1, -1);
+                      if (!label || labels.includes(label) || branches.has(label)) {
+                        throw new Error(`${filter}: invalid or duplicate input label ${label}`);
+                      }
+                      labels.unshift(label);
+                      expression = expression.slice(0, start).trim();
+                    }
+                    const filters = parseFilterChain(expression);
+                    const last = filters.at(-1) ?? "";
+                    let outputCount = 1;
+                    if (last.split("=", 1)[0]!.split("@", 1)[0] === "split") {
+                      const equals = last.indexOf("=");
+                      const argument = equals < 0 ? "" : last.slice(equals + 1).trim();
+                      outputCount = Number((argument.startsWith("outputs=") ? argument.slice(8) : argument) || 2);
+                      if (!Number.isSafeInteger(outputCount) || outputCount < 1) {
+                        throw new Error("split: outputs must be a positive integer");
+                      }
+                      filters.pop();
+                      expression = serializeFilterChain(filters);
+                    }
+                    if (labels.length !== outputCount) throw new Error(`${filter}: input branch requires ${outputCount} output labels`);
+                    for (const label of labels) {
+                      branches.set(label, { input: chain.slice(1, inputEnd), expression });
+                    }
                     branchStart = pos + 1;
                   }
                 }

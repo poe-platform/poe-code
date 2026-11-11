@@ -53,6 +53,7 @@ function* txtSteps(size: number, page: number, options?: SharpInputOptions): Gen
     });
     if (colon < 0 || open < colon || close < open || coordinates.length !== 2 || coordinates.some(value => !Number.isInteger(value) || value < 0) || coordinates[0]! >= metadata.width || coordinates[1]! >= metadata.height || pixels >= metadata.width * metadata.height || values.length !== metadata.channels || values.some(value => !Number.isFinite(value) || value < 0 || value > maximum)) throw new Error("Invalid TXT pixel");
     if (index === page) {
+      for (let channel = 0; channel < values.length; channel++) values[channel] = Math.trunc(values[channel]!);
       const r = values[0]!, g = metadata.channels < 3 ? r : values[1]!, b = metadata.channels < 3 ? r : values[2]!, a = metadata.hasAlpha ? values[values.length - 1]! : maximum;
       const hueSamples = metadata.space === "cmyk" ? values.slice(0, 4).map(value => value / maximum) : undefined;
       const rgb = hueSamples ? hueSamples.slice(0, 3).map(value => (1 - value) * (1 - hueSamples[3]!) * maximum) : [r, g, b];

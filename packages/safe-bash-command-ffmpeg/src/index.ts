@@ -3366,9 +3366,10 @@ async function applyVideoFilterChain(
       if (argStr && positional.some(part => part.slice(0, part.indexOf("=")).trim() !== "enable" || !part.includes("="))) {
         throw new Error(`${name}: unsupported option`);
       }
+      const registers = new Float64Array(10);
       let enable = named.enable;
       const initialVariables = { n: 0, t: 0, w: 0, h: 0, pos: 0, NAN: NaN, INF: Infinity };
-      if (enable !== undefined) parseFilterExpression(enable, `${name} enable`, initialVariables);
+      if (enable !== undefined) parseFilterExpression(enable, `${name} enable`, initialVariables, undefined, new Float64Array(10));
       const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
       const commands = videoCommands.filter(command => command.target === name || command.target === instance);
       videoCommands = videoCommands.filter(command => command.target !== name && command.target !== instance);
@@ -3379,13 +3380,17 @@ async function applyVideoFilterChain(
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
           const command = commands[nextCommand++]!;
           try {
-            parseFilterExpression(command.expression, `${name} enable`, initialVariables);
+            parseFilterExpression(command.expression, `${name} enable`, initialVariables, undefined, new Float64Array(10));
+            registers.fill(0);
             enable = command.expression;
           } catch { /* Rejected runtime commands retain the previous enable expression. */ }
         }
-        if (enable !== undefined && !(Math.abs(parseFilterExpression(enable, `${name} enable`, {
-          n, t: f.ptsSeconds, w: f.width, h: f.height, NAN: NaN, INF: Infinity, pos: f.offset ?? NaN
-        })) >= 0.5)) return f;
+        if (enable !== undefined) {
+          const variables = { n, t: f.ptsSeconds, w: f.width, h: f.height, NAN: NaN, INF: Infinity, pos: f.offset ?? NaN };
+          // FFmpeg evaluates the generic timeline both before and during frame dispatch.
+          parseFilterExpression(enable, `${name} enable`, variables, undefined, registers);
+          if (!(Math.abs(parseFilterExpression(enable, `${name} enable`, variables, undefined, registers)) >= 0.5)) return f;
+        }
         const image = makeRgbaImg(f.width, f.height, f.data);
         const out = name === "hflip" ? flopImage(image) : flipImage(image);
         const native = f.native;

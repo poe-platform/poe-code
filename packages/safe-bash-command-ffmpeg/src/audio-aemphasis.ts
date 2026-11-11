@@ -112,8 +112,9 @@ export async function emphasizeAudio(
     // Normalize the emphasis stage to unity gain at 1 kHz.
     const zr = Math.cos(1000 * 2 * Math.PI / sampleRate);
     const zi = -Math.sin(1000 * 2 * Math.PI / sampleRate);
-    const gain = Math.hypot(1 + b1 * zr + b2 * (zr * zr - zi * zi), b1 * zi + 2 * b2 * zr * zi)
-      / Math.hypot(a0 + a1 * zr + a2 * (zr * zr - zi * zi), a1 * zi + 2 * a2 * zr * zi);
+    // Preserve native division order: its reciprocal rounds separately.
+    const gain = 1 / (Math.hypot(a0 + a1 * zr + a2 * (zr * zr - zi * zi), a1 * zi + 2 * a2 * zr * zi)
+      / Math.hypot(1 + b1 * zr + b2 * (zr * zr - zi * zi), b1 * zi + 2 * b2 * zr * zi));
     a0 *= gain;
     a1 *= gain;
     a2 *= gain;

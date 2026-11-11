@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import fixtures from "../../image-ast/src/codecs/miff-meta-fixtures.json";
+import fixtures from "../../image-ast/src/codecs/miff-meta-fixtures.json" with { type: "json" };
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 // Native ImageMagick 7.1.2-35 Q16-HDRI fixtures, never written by our encoder.

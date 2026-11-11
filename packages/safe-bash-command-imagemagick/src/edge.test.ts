@@ -162,6 +162,30 @@ it.each(["oops", "NaN", "Infinity", "", " "])(`${mode}: rejects invalid edge rad
     } else expect(files.get("/out.png")).toEqual(existing ? input : undefined);
 });
 
+// Native ImageMagick Q16-HDRI: constant borders also populate black ink.
+for (const mode of ["command", "buffered", "retained", "sync"] as const)
+it.each([
+    ["white", "#505050", "0000000000000000"],
+    ["gray", "#505050", "000000ff00000000"],
+    ["gray", "#808080", "0000000d00000000"],
+    ["edge", "#505050", "000000c000000000"],
+] as const)(`${mode}: matches native CMYK edge with %s virtual pixels and %s`, async (method, color, expected) => {
+    const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
+    const args = [`xc:${color}`, "xc:#909090", "+append", "-colorspace", "CMYK", "-seed", "3",
+        "-virtual-pixel", method, "-edge", "1", "-depth", "8", "cmyk:/out.raw"];
+    let stderr = "";
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async text => { stderr += new TextDecoder().decode(text); } },
+    }) : mode === "sync" ? runMagickCliSync(args, files)
+        : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result.exitCode).toBe(0);
+    expect("stderr" in result ? result.stderr : stderr).toBe("");
+    const output = mode === "command" || mode === "retained" ? await fs.readFile("/out.raw") : files.get("/out.raw")!;
+    expect(Buffer.from(output).toString("hex")).toBe(expected);
+});
+
 // Native ImageMagick 7.1.2-35 Q16-HDRI: CMYK ink filtering and sRGB controls.
 for (const mode of ["command", "buffered", "retained", "sync"] as const)
 it.each([

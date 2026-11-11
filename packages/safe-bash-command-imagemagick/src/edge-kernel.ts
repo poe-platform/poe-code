@@ -19,7 +19,8 @@ export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "has
     const fill = (virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
         ? [background.r, background.g, background.b, background.a].map(value => value * (maximum / 255))
         : [gray, gray, gray, virtualPixel === "transparent" ? 0 : maximum];
-    if (cmyk) fill.push(0);
+    // Native constant virtual pixels fill the black ink channel too.
+    if (cmyk) fill.push(gray);
     function* read(position: number, length: number): Generator<ConvolveRequest | undefined, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
         if (!cmyk && !image.hueSamples && image.storedHueSamples === undefined) {
             const working = yield { kind: "read", evaluate: true, position, length };

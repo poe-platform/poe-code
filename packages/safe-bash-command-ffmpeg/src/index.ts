@@ -3926,6 +3926,7 @@ async function applyVideoFilterChain(
     } else if (name === "thumbnail") {
       // Selecting a batch representative preserves the upstream EOF timestamp.
       if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
+      if (positional.at(-1) === "") positional.pop();
       if (positional.filter(value => !value.includes("=")).length > 2 || Object.keys(named).some(key => key !== "n" && key !== "log" && key !== "threads")) {
         throw new Error("thumbnail: expected batch size n and log level");
       }

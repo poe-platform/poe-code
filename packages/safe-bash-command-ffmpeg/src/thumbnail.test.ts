@@ -30,6 +30,12 @@ async function run(filter: string, logLevel = "error") {
 for (const [filter, length, sha] of [
   ["thumbnail=3", 36, "186db8c79fe514f4d67860d00158402790e2cd26d9677817bfe7edd547a325ad"],
   ["thumbnail=n=3", 36, "186db8c79fe514f4d67860d00158402790e2cd26d9677817bfe7edd547a325ad"],
+  ["thumbnail=n=2:n=3", 36, "186db8c79fe514f4d67860d00158402790e2cd26d9677817bfe7edd547a325ad"],
+  ["thumbnail=n=3:", 36, "186db8c79fe514f4d67860d00158402790e2cd26d9677817bfe7edd547a325ad"],
+  ["thumbnail=n=2:n=3:", 36, "186db8c79fe514f4d67860d00158402790e2cd26d9677817bfe7edd547a325ad"],
+  ["thumbnail=2:n=3", 36, "186db8c79fe514f4d67860d00158402790e2cd26d9677817bfe7edd547a325ad"],
+  ["thumbnail=3:", 36, "186db8c79fe514f4d67860d00158402790e2cd26d9677817bfe7edd547a325ad"],
+  ["thumbnail=n=2:n=4:n=3", 36, "186db8c79fe514f4d67860d00158402790e2cd26d9677817bfe7edd547a325ad"],
   ["thumbnail", 12, "45ccdbb6447bf9e38fc1144130d87ccf3c637cf8de7e146e20ed1bc62fd444d8"],
   ["thumbnail=3,tile=2x1", 48, "e02e793873170e2b08d5158fe35e742c5d80c319cb63017682621a3d5ef5056c"],
   ["null", 84, "8e2747c1c2adfc97c7fa00205ccff38ee39a30a3dfd1fb15794db8bac84a45c0"],
@@ -43,7 +49,7 @@ for (const [filter, length, sha] of [
   });
 }
 
-for (const filter of ["thumbnail=1", "thumbnail=0", "thumbnail=-1", "thumbnail=1.5", "thumbnail=2147483648", "thumbnail=n=no", "thumbnail=unknown=3", "thumbnail=3:info:extra"]) {
+for (const filter of ["thumbnail=1", "thumbnail=0", "thumbnail=-1", "thumbnail=1.5", "thumbnail=2147483648", "thumbnail=n=no", "thumbnail=unknown=3", "thumbnail=n=3:n=0", "thumbnail=n=3:n=no", "thumbnail=n=3::", "thumbnail=n=3:unknown=2", "thumbnail=3:info:extra"]) {
   it(`rejects ${filter} without replacing the destination`, async () => {
     const result = await run(filter);
     assert.notEqual(result.exitCode, 0);

@@ -60,6 +60,7 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
    const mu02 = yy - component.y * component.y / component.area;
    const mu11 = xy - component.x * component.y / component.area;
    component.angle = Math.atan2(2 * mu11, mu20 - mu02) * 90 / Math.PI;
+   if (component.angle < 0) component.angle += 180;
   }
   if (majorAxisThreshold || minorAxisThreshold || eccentricityThreshold) {
    const meanX = component.x / component.area, meanY = component.y / component.area;

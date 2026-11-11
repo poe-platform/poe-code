@@ -10,6 +10,20 @@ for (let y = 0; y < 10; y++) for (let x = 0; x < 14; x++) {
 }
 const bytes = encodePngImage({ width: 14, height: 10, data, hasAlpha: false, format: "png", space: "srgb", channels: 3, depth: "uchar", density: 72 });
 for (const mode of ["buffered", "retained", "sync"] as const) {
+ for (const threshold of ["130-140", "30-60", undefined]) it(`uses the native major-axis direction for descending diagonals (${mode}, ${threshold})`, async () => {
+  const input = new TextEncoder().encode("P2\n5 5\n255\n0 0 0 0 0\n0 0 0 255 0\n0 0 255 0 0\n0 255 0 0 0\n0 0 0 0 0\n");
+  const files = new Map([["in.pgm", input], ["out.raw", new TextEncoder().encode("KEEP")]]), fs = new MemoryFileSystem();
+  for (const [name, bytes] of files) await fs.writeFile(`/${name}`, bytes);
+  const args = ["in.pgm", "-define", "connected-components:verbose=true", ...(threshold ? ["-define", `connected-components:angle-threshold=${threshold}`] : []), "-connected-components", "8", "-depth", "16", "-endian", "MSB", "gray:out.raw"];
+  const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+  expect(result.exitCode).toBe(0);
+  expect(result.stderr).toBe("");
+  const retained = threshold !== "30-60";
+  expect(result.stdout.trimEnd().split("\n").slice(1).map(line => line.trim().split(":")[0])).toEqual(retained ? ["0", "1"] : ["0"]);
+  if (threshold === "130-140") expect(result.stdout.trimEnd().split("\n").at(-1)).toContain(" 135");
+  const output = mode === "retained" ? await fs.readFile("/out.raw") : files.get("out.raw")!;
+  expect([...output]).toEqual(Array.from({ length: 25 }, (_, i) => [0, retained && [8, 12, 16].includes(i) ? 1 : 0]).flat());
+ });
  async function run(threshold: string, connectivity = 8, reset = false) {
   const files = new Map([["input.png", bytes]]), fs = new MemoryFileSystem();
   await fs.writeFile("/input.png", bytes);

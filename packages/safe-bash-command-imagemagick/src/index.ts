@@ -17920,6 +17920,8 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
     let cooperativeWork = 63;
     const options: string[] = [];
     const operands: string[][] = [];
+    const operations: string[] = [];
+    const operandOperations: string[][] = [];
     let groupDepth = 0;
     let stegano: number | undefined;
     let stereo: string | undefined;
@@ -17928,13 +17930,20 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
             yield;
         const t = argv[i]!;
         if (t === "(" || groupDepth > 0) {
-            if (groupDepth === 0) operands.push([]);
+            if (groupDepth === 0) {
+                operands.push([]);
+                operandOperations.push([...operations]);
+            }
             operands[operands.length - 1]!.push(t);
             if (t === "(") groupDepth++;
             else if (t === ")") groupDepth--;
             continue;
         }
-        if (t === "-gravity" || t === "-geometry" || t === "-compose" || t === "-background" || t === "-quality" || t === "-define" || t === "-resize" || t === "-rotate" || t === "-fuzz" || t === "-depth" || t === "-endian" || t === "-interlace" || t === "-colorspace") {
+        if (t === "-negate" || t === "-rotate" || t === "-background") {
+            operations.push(t);
+            if (t !== "-negate") operations.push(argv[++i] ?? "");
+        }
+        else if (t === "-gravity" || t === "-geometry" || t === "-compose" || t === "-quality" || t === "-define" || t === "-resize" || t === "-fuzz" || t === "-depth" || t === "-endian" || t === "-interlace" || t === "-colorspace") {
             options.push(t, argv[++i] ?? "");
         }
         else if (t === "-stereo") {
@@ -17984,7 +17993,7 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
             }
             options.push("-define", `compose:args=${geometry}`, "-compose", "Distort");
         }
-        else if (["-strip", "-negate", "-monochrome", "-antialias", "-quiet", "-verbose", "-monitor", "-regard-warnings"].includes(t)) {
+        else if (["-strip", "-monochrome", "-antialias", "-quiet", "-verbose", "-monitor", "-regard-warnings"].includes(t)) {
             options.push(t);
         }
         else if (t !== "-" && (t.startsWith("-") || t.startsWith("+"))) {
@@ -17992,6 +18001,7 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
         }
         else {
             operands.push([t]);
+            operandOperations.push([...operations]);
         }
     }
     if (operands.length < 3) {
@@ -18001,11 +18011,17 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
             stderr: "composite: missing an image filename\n"
         };
     }
+    // Operators persist for following inputs; operators after the last input
+    // apply to the complete list. Keep each input's edits when reversing roles.
+    const trailingOperations = operations.slice(operandOperations[operands.length - 2]!.length);
+    for (let i = 0; i < operands.length - 1; i++) {
+        if (operandOperations[i]!.length) operands[i] = ["(", ...operands[i]!, ...operandOperations[i]!, ")"];
+    }
     const overlay = operands[0]!;
     const base = operands[1]!;
     const out = operands[operands.length - 1]!;
     // Convert expects the destination first; move complete groups with their edits.
-    return [...base, ...overlay, ...operands.slice(2, -1).flat(), ...options, ...(stegano !== undefined ? ["-stegano", String(stegano)] : stereo !== undefined ? ["-stereo", stereo] : ["-composite"]), ...out];
+    return [...base, ...overlay, ...operands.slice(2, -1).flat(), ...options, ...trailingOperations, ...(stegano !== undefined ? ["-stegano", String(stegano)] : stereo !== undefined ? ["-stereo", stereo] : ["-composite"]), ...out];
 }
 function* runCompositeCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     const parsed = yield* parseCompositeArgumentsSteps(argv);

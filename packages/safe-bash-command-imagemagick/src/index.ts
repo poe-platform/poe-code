@@ -36,7 +36,7 @@ import { identifyHullSteps, formatIdentifyHull } from "./identify-hull.js";
 import { identifyMomentsSteps } from "./identify-moments.js";
 import { identifyMaximumSteps, identifyStoredMaximum } from "./identify-locate.js";
 import { hilbertPixels, riemersmaRemapSteps } from "./riemersma.js";
-import { fillCmykPixels, convertCmykPixels, copyCmykChannelsToRgb, applyCmykLookup, formatCmykPixel, rgbToCmyk } from "./colorspace-cmyk.js";
+import { fillCmykPixels, convertCmykPixels, copyCmykChannelsToRgb, applyCmykLookup, formatCmykPixel, rgbToCmyk, opaqueTargetCmyk } from "./colorspace-cmyk.js";
 import { tintCmykPixels } from "./tint-cmyk.js";
 import { modulateRgb } from "./modulate.js";
 import { cyclePixelSteps, type CyclePalette } from "./cycle.js";
@@ -3089,7 +3089,10 @@ function clampByteVal(n: number): number {
   return Math.max(0, Math.min(255, Math.round(n)));
 }
 
-function* applyMagickOpaqueSteps(img: RgbaImage, target: RgbaColor, replacement: RgbaColor, fuzz: number, invert: boolean, channels: MagickState["channels"], signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickOpaqueSteps(img: RgbaImage, target: ReturnType<typeof parseColor>, replacement: RgbaColor, fuzz: number, invert: boolean, channels: MagickState["channels"], signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    const cmyk = img.space === "cmyk";
+    if (cmyk) img = yield* convertCmykPixels(img);
+    const inks = cmyk ? target.cmyk ?? opaqueTargetCmyk(target.r / 255, target.g / 255, target.b / 255) : undefined;
     let cooperativeWork = 0;
     const out = new Uint8Array(img.data);
     const data16 = img.data16 ? new Uint16Array(img.data16) : undefined;
@@ -3106,8 +3109,17 @@ function* applyMagickOpaqueSteps(img: RgbaImage, target: RgbaColor, replacement:
         const alpha = samples[i + 3]!;
         // Native opaque painting compares alpha plus opacity-weighted RGB distance.
         // Subtract in sample units to preserve exact Q16 fuzz boundaries.
-        const distance = (alpha - target.a * scale) ** 2
+        let distance = (alpha - target.a * scale) ** 2
             + (dr ** 2 + dg ** 2 + db ** 2) * (alpha / (255 * scale)) * (target.a / 255) / 3;
+        if (inks) {
+            const range = 255 * scale, source = img.hueSamples!;
+            const black = source[i + 3]!, targetBlack = inks[3]!;
+            const opacity = alpha / range * (target.a / 255);
+            const colorDistance = (source[i]! - inks[0]!) ** 2
+                + (source[i + 1]! - inks[1]!) ** 2 + (source[i + 2]! - inks[2]!) ** 2;
+            distance = (alpha - target.a * scale) ** 2 + range ** 2 * opacity
+                * ((black - targetBlack) ** 2 + colorDistance * (1 - black) * (1 - targetBlack) / 3);
+        }
         const matched = distance <= (fuzz * scale) ** 2;
         if (invert ? !matched : matched) {
             for (let channel = 0; channel < 4; channel++) {

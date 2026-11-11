@@ -86,3 +86,29 @@ export function* applyCmykLookup(image: RgbaImage & HueMetadata, lookup: readonl
     }
     return { ...image, hueSamples, data, data16, evaluateSamples };
 }
+
+/** Native PixelInfo gamma has endpoint error; Math.pow would change zero-fuzz selection. */
+export function opaqueTargetCmyk(r: number, g: number, b: number): number[] {
+    const rgb = [r, g, b].map(value => {
+        if (value <= 0.0404482362771076) return value / 12.92;
+        const x = (value + 0.055) / 1.055;
+        const exponent = Math.floor(Math.log2(x)) + 1;
+        const t = 4 * x / 2 ** exponent - 3;
+        const coefficients = [1.7917488588043278, 0.8204561437197686,
+            0.027694100686325412, -0.0009424433518176213,
+            6.435554091146971e-05, -5.722440463606075e-06,
+            5.876766943731118e-07, -6.613992005358972e-08, 7.932324269622745e-09];
+        let previous = 1, term = t, sum = coefficients[0]! + coefficients[1]! * t;
+        for (let i = 2; i < coefficients.length; i++) {
+            const next = 2 * t * term - previous;
+            sum += coefficients[i]! * next;
+            previous = term;
+            term = next;
+        }
+        const quotient = Math.floor((exponent - 1) / 5), remainder = exponent - 1 - quotient * 5;
+        const powers = [1, 2.6390158215457883983, 6.9644045063689921093, 18.379173679952558018, 48.502930128332728543];
+        return x * (powers[remainder]! * sum * 2 ** (7 * quotient));
+    });
+    const maximum = Math.max(...rgb);
+    return maximum === 0 ? [0, 0, 0, 1] : [...rgb.map(value => 1 - value / maximum), 1 - maximum];
+}

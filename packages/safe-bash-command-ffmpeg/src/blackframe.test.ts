@@ -44,7 +44,7 @@ for (const mode of ["print", "select"]) {
     assert.deepEqual(error.split("\n").filter(line => line.startsWith("lavfi.blackframe.pblack=")),
       mode === "print" ? [100, 75, 100, 100].map(value => `lavfi.blackframe.pblack=${value}`) : []);
     if (mode === "print") for (const n of selected) {
-      assert.ok(error.includes(`frame:${n} pts:${n} pts_time:${n / 4}\n`), error);
+      assert.ok(error.includes(`frame:${n}    pts:${n}       pts_time:${n / 4}\n`), error);
     }
   });
 }

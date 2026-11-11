@@ -1,5 +1,7 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { dialogueSpectrum, inverseRealSpectrum } from "./audio-dialogue-fft.js";
+import { phaseAngle } from "./audio-float-phase.js";
 import { transform } from "./audio-fft.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { parseAudioChannelLayout } from "./audio-channel-layout.js";
@@ -53,8 +55,10 @@ export async function surroundAudio(
   const length = channels[0]!.length, hop = size / 2;
   const scratchLength = (size & (size - 1)) === 0 ? 0 : 4 * 2 ** Math.ceil(Math.log2(2 * size - 1));
   // Output and overlap planes for each channel, two complex input transforms,
-  // one complex inverse workspace, and the analysis/synthesis window.
-  budget.allocateMemory(length * outputChannels * 4 + size * (outputChannels * 4 + 6 * 8 + 4) + scratchLength * 8);
+  // one complex inverse workspace, the window, and float FFT cosine tables.
+  const cosineLength = scratchLength ? 0 : size / 4 + 1;
+  budget.allocateMemory(length * outputChannels * 4 + size * (outputChannels * 4 + 6 * 8 + 4) + scratchLength * 8 + cosineLength * 4);
+  const cosine = Float32Array.from({ length: cosineLength }, (_, i) => i === size / 4 ? 0 : Math.cos(2 * Math.PI * i / size));
   const scratch = scratchLength ? new Float64Array(scratchLength) : undefined;
   const output = Array.from({ length: outputChannels }, () => new Float32Array(length));
   const overlap = Array.from({ length: outputChannels }, () => new Float32Array(size));
@@ -74,15 +78,16 @@ export async function surroundAudio(
     for (let c = 0; c < 2; c++) {
       for (let i = 0; i < size; i++) real[c]![i] = f(f(channels[c]![start - hop + i] ?? 0) * window[i]!);
       imaginary[c]!.fill(0);
-      transform(real[c]!, imaginary[c]!, false, scratch);
+      if (scratch) transform(real[c]!, imaginary[c]!, false, scratch);
+      else dialogueSpectrum(real[c]!, imaginary[c]!, cosine);
     }
     for (let c = 0; c < outputChannels; c++) {
       for (let n = 0; n <= hop; n++) {
         const lr = f(real[0]![n]!), li = f(imaginary[0]![n]!);
         const rr = f(real[1]![n]!), ri = f(imaginary[1]![n]!);
         const lm = f(Math.hypot(lr, li)), rm = f(Math.hypot(rr, ri));
-        const lp = f(Math.atan2(li, lr)), rp = f(Math.atan2(ri, rr));
-        const centerPhase = f(Math.atan2(f(li + ri), f(lr + rr)));
+        const lp = phaseAngle(li, lr), rp = phaseAngle(ri, rr);
+        const centerPhase = phaseAngle(f(li + ri), f(lr + rr));
         let phase = Math.abs(f(lp - rp));
         if (phase > pi) phase = f(2 * pi - phase);
         const sum = f(lm + rm), center = f(sum * 0.5);
@@ -107,7 +112,8 @@ export async function surroundAudio(
           outImaginary[size - n] = -outImaginary[n]!;
         }
       }
-      transform(outReal, outImaginary, true, scratch);
+      if (scratch) transform(outReal, outImaginary, true, scratch);
+      else inverseRealSpectrum(outReal, outImaginary, cosine);
       const buffer = overlap[c]!;
       buffer.copyWithin(0, hop); buffer.fill(0, hop);
       for (let i = 0; i < size; i++) buffer[i] = f(buffer[i]! + f(f(f(outReal[i]!) * window[i]!) * gains[c]!));

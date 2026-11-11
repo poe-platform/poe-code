@@ -30,6 +30,33 @@ export function dialogueSpectrum(input: Float64Array, output: Float64Array, cosi
   input[half] = last; output[half] = 0;
 }
 
+// Unnormalized inverse real transform. Pack into the imaginary workspace
+// backwards so each bin is read before it is overwritten.
+export function inverseRealSpectrum(real: Float64Array, imaginary: Float64Array, cosine: Float32Array): void {
+  const size = real.length, half = size / 2;
+  for (let i = half - 1; i > 0; i--) {
+    imaginary[2 * i + 1] = imaginary[i]!;
+    imaginary[2 * i] = real[i]!;
+  }
+  imaginary[0] = f(real[0]! + real[half]!);
+  imaginary[1] = f(real[0]! - real[half]!);
+  imaginary[half] = f(2 * imaginary[half]!);
+  imaginary[half + 1] = f(-2 * imaginary[half + 1]!);
+  for (let i = 1; i < size / 4; i++) {
+    const a = 2 * i, b = size - a;
+    const evenR = f(imaginary[a]! + imaginary[b]!);
+    const evenI = -f(imaginary[a + 1]! - imaginary[b + 1]!);
+    const oddR = -f(imaginary[a + 1]! + imaginary[b + 1]!);
+    const oddI = f(imaginary[a]! - imaginary[b]!);
+    const wr = cosine[i]!, wi = cosine[size / 4 - i]!;
+    const r = f(f(oddR * wr) - f(oddI * wi));
+    const im = f(f(oddR * wi) + f(oddI * wr));
+    imaginary[a] = f(evenR + r); imaginary[a + 1] = f(im - evenI);
+    imaginary[b] = f(evenR - r); imaginary[b + 1] = f(im + evenI);
+  }
+  splitRadix(imaginary, real, cosine, 0, -1, half, 0);
+}
+
 function splitRadix(input: Float64Array, out: Float64Array, cosine: Float32Array,
   start: number, step: number, n: number, offset: number): void {
   const mask = input.length / 2 - 1;

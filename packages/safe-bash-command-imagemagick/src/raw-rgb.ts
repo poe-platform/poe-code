@@ -1,11 +1,11 @@
 // Present headerless samples as Netpbm or MIFF for both decoding paths.
-export function rawRasterInput(width: number, height: number, depth: number, endian: string, byteLength: number, layout: 1 | 2 | 3 | 4 | 5 | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro", offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none", floatingPoint = false, extract?: { width?: number; height?: number; x: number; y: number }, scenes?: number[][]) {
+export function rawRasterInput(width: number, height: number, depth: number, endian: string, byteLength: number, layout: 1 | 2 | 3 | 4 | 5 | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro" | "r" | "g" | "b" | "a" | "o" | "c" | "m" | "y" | "k", offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none", floatingPoint = false, extract?: { width?: number; height?: number; x: number; y: number }, scenes?: number[][]) {
     const channels = typeof layout === "string" ? layout.length : layout;
     const bgr = typeof layout === "string" && layout.startsWith("bgr"), sampleBytes = Math.min(depth, 16) / 8, pixelBytes = channels * sampleBytes;
     const coder = typeof layout === "string" ? layout.toUpperCase() : channels === 1 ? "GRAY" : channels === 2 ? "GRAYA" : channels === 3 ? "RGB" : channels === 4 ? "CMYK" : "CMYKA";
     if (interlace === "line" && layout === 1) throw new Error("ImageDoesNotHaveAnAlphaChannel in GRAY input");
-    const packed = depth === 4 && interlace === "none" || (depth === 1 || depth === 2 || depth === 4 || depth === 10 || depth === 12) && (layout === 1 || layout === 3);
-    if (floatingPoint ? depth !== 16 && depth !== 32 && depth !== 64 : !packed && depth !== 8 && depth !== 16 && (depth !== 32 || channels === 2 || typeof layout === "string")) throw new Error(`unsupported ${coder} input depth '${depth}'`);
+    const packed = depth === 4 && interlace === "none" || (depth === 1 || depth === 2 || depth === 4 || depth === 10 || depth === 12) && (channels === 1 || layout === 3);
+    if (floatingPoint ? depth !== 16 && depth !== 32 && depth !== 64 : !packed && depth !== 8 && depth !== 16 && (depth !== 32 || channels === 2 || typeof layout === "string" && channels > 1)) throw new Error(`unsupported ${coder} input depth '${depth}'`);
     const rowChannels = packed && interlace !== "none" ? 1 : channels;
     const rowSamples = width * channels, rowLength = Math.ceil(width * rowChannels * depth / 8);
     // Native GRAYA Line reads gray, alpha and two unused channel spans per row.
@@ -110,6 +110,31 @@ export function rawRasterInput(width: number, height: number, depth: number, end
             return bytes;
         }
     };
+    if (typeof layout === "string" && channels === 1) {
+        // Native named channel coders all import into red, not their named component.
+        const sampleBytes = Math.ceil(Math.min(depth, 16) / 8), pixelBytes = sampleBytes * 3;
+        const rgbHeader = new TextEncoder().encode(`P6\n${width} ${height}\n${depth <= 8 ? 255 : 65535}\n`);
+        return {
+            size: rgbHeader.length + decodedLength * 3,
+            pages: raw.pages,
+            *read(position: number, size: number, page = 0): Generator<{ position: number; length: number; channel: number }, Uint8Array, Uint8Array> {
+                const bytes = new Uint8Array(size);
+                const headerLength = Math.max(0, Math.min(size, rgbHeader.length - position));
+                bytes.set(rgbHeader.subarray(position, position + headerLength));
+                const start = Math.max(0, position - rgbHeader.length), end = start + size - headerLength;
+                for (let pixel = Math.floor(start / pixelBytes); pixel < Math.ceil(end / pixelBytes);) {
+                    const count = Math.min(4096, Math.ceil(end / pixelBytes) - pixel);
+                    const samples = yield* raw.read(header.length + pixel * sampleBytes, count * sampleBytes, page);
+                    for (let i = 0; i < samples.length; i++) {
+                        const output = (pixel + Math.floor(i / sampleBytes)) * pixelBytes + i % sampleBytes;
+                        if (output >= start && output < end) bytes[headerLength + output - start] = samples[i]!;
+                    }
+                    pixel += count;
+                }
+                return bytes;
+            }
+        };
+    }
     if (!extract) return raw;
     const { width: columns, height: rows, x, y } = extract;
     if (!columns || !rows) throw new Error("must specify image size for GRAY input");

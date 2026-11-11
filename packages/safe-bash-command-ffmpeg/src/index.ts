@@ -2139,8 +2139,10 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           expression: serializeFilterChain(["asettb=1/1000000", ...filters.slice(1)]) };
       }
       if (filters[0] === "headphone" || filters[0]?.startsWith("headphone=")) {
-        if (sources.some(source => source.expression && source.expression !== "anull")) {
-          throw new Error("headphone does not support preceding single-input filters");
+        for (const source of sources) {
+          if (source.expression && source.expression !== "anull") {
+            source.track = await filterAudio(source.track, source.expression);
+          }
         }
         const track = await headphoneAudio(sources.map(source => source.track), filters[0]!, budget, signal);
         return { track, expression: filters.slice(1).join(",") || "anull" };

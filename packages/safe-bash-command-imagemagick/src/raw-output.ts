@@ -110,6 +110,8 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
     for (let pixel = 0; pixel < pixels; pixel++) {
         const inks = format.startsWith("cmyk") ? image.space === "cmyk" && image.hueSamples
             ? image.hueSamples.subarray(pixel * 4, pixel * 4 + 4)
+            : image.evaluateSamples
+            ? rgbToCmyk(image.evaluateSamples[pixel * 4]! / 255, image.evaluateSamples[pixel * 4 + 1]! / 255, image.evaluateSamples[pixel * 4 + 2]! / 255)
             : rgbToCmyk(samples[pixel * 4]! / scale, samples[pixel * 4 + 1]! / scale, samples[pixel * 4 + 2]! / scale) : undefined;
         for (let c = 0; c < channels.length; c++) {
             const channel = channels[c]!;
@@ -239,7 +241,7 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
             const pixels = image.width * image.height;
             const depth = options.tiffFloatDepth ?? options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
             const packed = depth === 1 || depth === 2 || depth === 4 || depth > 8 && depth < 16;
-            const workingPosition = options.format === "farbfeld" || options.format === "gray" && (depth === 10 || depth === 12) ? image.storedEvaluateSamples : undefined;
+            const workingPosition = options.format.startsWith("cmyk") || options.format === "farbfeld" || options.format === "gray" && (depth === 10 || depth === 12) ? image.storedEvaluateSamples : undefined;
             const chunkPixels = workingColorspace || workingPosition !== undefined ? 512 : image.storedData16 ? 2048 : 4096;
             const spanPixels = options.rawInterlace === "line" ? image.width : pixels;
             // Finish each row/channel run before advancing, even when it spans several reads.

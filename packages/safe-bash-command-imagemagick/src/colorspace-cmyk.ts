@@ -34,7 +34,8 @@ export function* convertCmykPixels(image: RgbaImage & HueMetadata): Generator<vo
     const hueSamples = new Float64Array(image.data.length);
     // Fractional inks need a Q16 backing for separation and later RGB operations.
     const data16 = image.data16 ?? Uint16Array.from(image.data, value => value * 257);
-    const input = image.data16 ?? image.data, range = image.data16 ? 65535 : 255;
+    // Convert HDRI RGB samples before clamping the exported ink channels.
+    const input = image.evaluateSamples ?? image.data16 ?? image.data, range = image.evaluateSamples ? 255 : image.data16 ? 65535 : 255;
     for (let offset = 0; offset < input.length; offset += 4) {
         if (offset % 65536 === 0) yield;
         hueSamples.set(rgbToCmyk(input[offset]! / range, input[offset + 1]! / range, input[offset + 2]! / range), offset);

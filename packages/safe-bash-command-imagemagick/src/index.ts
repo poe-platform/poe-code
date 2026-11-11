@@ -8960,7 +8960,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         if (space === "transparent") space = "srgb";
         if (space === "scrgb") space = "rgb";
-        evaluate = (paletteType && !bilevelAlpha) || imageType === undefined && (token === "-grayscale" || ["prophoto", "adobe98", "displayp3", "log", "rgb", "srgb", "gray", "grey", "lineargray", "rec709luma", "rec601luma", "lab", "cielab", "luv", "oklch", "lch", "lchab", "lchuv", "oklab", "ohta", "yuv", "yiq", "ydbdr", "ycbcr", "rec601ycbcr"].includes(space));
+        evaluate = (paletteType && !bilevelAlpha) || imageType === undefined && (token === "-grayscale" || ["cmyk", "prophoto", "adobe98", "displayp3", "log", "rgb", "srgb", "gray", "grey", "lineargray", "rec709luma", "rec601luma", "lab", "cielab", "luv", "oklch", "lch", "lchab", "lchuv", "oklab", "ohta", "yuv", "yiq", "ydbdr", "ycbcr", "rec601ycbcr"].includes(space));
         const luminance = space === "lineargray" || space === "rec601luminance" || space === "rec709luminance";
         apply = function* (image) {
             image = { ...image, [magickInput]: { ...image[magickInput],

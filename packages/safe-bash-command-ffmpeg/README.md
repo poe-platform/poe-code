@@ -426,7 +426,9 @@ and `min` (1); `[0:a]join=inputs=min[mix]` routes a single stereo input. Output 
 mono, stereo, `3.0`, quad, `5.1`, `downmix` (`DL+DR`), explicit speaker lists
 such as `WL+WR`, count-prefixed lists such as `2 channels (FL+FR)`, and numeric
 speaker masks such as `0x3`. Explicit counts must match the speaker list; list
-order is preserved in raw PCM output.
+order is preserved in raw PCM output. Count-only layouts such as `2C` or `2 channels`
+route unused input channels in input order; they have no named speakers, so explicit
+speaker targets such as `map=1.0-FL` are rejected.
 Input maps accept numeric indices or speaker names, such as
 `map=0.FR-FL|1.FL-FR`. Both input and channel indices accept decimal, leading-zero
 octal, hexadecimal (`0x`), and an optional `+`, such as `map=0x0.+0-FL|0x1.+1-FR`.

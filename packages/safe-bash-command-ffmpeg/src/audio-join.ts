@@ -1,4 +1,4 @@
-import { audioSpeakerMasks, parseAudioChannelLayout } from "./audio-channel-layout.js";
+import { audioSpeakerMasks, parseAudioChannelCount, parseAudioChannelLayout } from "./audio-channel-layout.js";
 import type { MediaBudgetTracker, MediaSample, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { resampleAudio } from "./audio-resample.js";
@@ -40,12 +40,14 @@ export async function joinAudio(
     throw new Error("join: inputs must match the number of connected inputs");
   }
   const speakers = Object.keys(audioSpeakerMasks);
-  const outputNames = parseAudioChannelLayout(layout);
-  if (outputNames.some(name => !speakers.includes(name)) || new Set(outputNames).size !== outputNames.length) {
+  const outputCount = parseAudioChannelCount(layout);
+  const outputNames: (string | number)[] = outputCount === undefined
+    ? parseAudioChannelLayout(layout) : Array.from({ length: outputCount }, (_, index) => index);
+  if (outputCount === undefined && (outputNames.some(name => typeof name !== "string" || !speakers.includes(name)) || new Set(outputNames).size !== outputNames.length)) {
     throw new Error(`join: unsupported channel layout ${layout}`);
   }
   // The mask identifies speakers; channelData retains the requested interleaving order.
-  const outputMask = outputNames.reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0);
+  const outputMask = outputNames.reduce<number>((mask, name) => mask + (typeof name === "string" ? audioSpeakerMasks[name]! : 0), 0);
   const audio = tracks.map(track => {
     if (!track.decodedAudio) throw new Error("join requires decoded PCM audio");
     return track.decodedAudio;
@@ -68,7 +70,7 @@ export async function joinAudio(
     return speakers.filter(name => Math.floor(mask / audioSpeakerMasks[name]!) % 2 === 1);
   });
   const used = audio.map(() => new Set<number>());
-  const selected = new Map<string, Float32Array | Float64Array>();
+  const selected = new Map<string | number, Float32Array | Float64Array>();
   for (const mapping of map ? map.split("|") : []) {
     const [source, output, ...extra] = mapping.split("-");
     const indices = source!.split(".");
@@ -96,7 +98,7 @@ export async function joinAudio(
       if (selected.has(name)) continue;
       for (const [inputIndex, input] of audio.entries()) {
         const channelIndex = matchSpeaker
-          ? inputNames[inputIndex]!.indexOf(name)
+          ? (typeof name === "string" ? inputNames[inputIndex]!.indexOf(name) : -1)
           : input.channelData.findIndex((_, index) => !used[inputIndex]!.has(index));
         const channel = input.channelData[channelIndex];
         if (!channel || used[inputIndex]!.has(channelIndex)) continue;
@@ -165,7 +167,7 @@ export async function joinAudio(
   }
   return { ...first, timescale: sampleRate, duration: length, samples: frames, editList: undefined,
     codecDescriptions: first.codecDescriptions.map(description => ({ ...description,
-      channels: outputNames.length, channelLayout: outputNames.join("+") })),
+      channels: outputNames.length, channelLayout: outputCount === undefined ? outputNames.join("+") : `${outputCount} channels` })),
     decodedAudio: { ...audio[0]!, channels: outputNames.length, channelMask: outputMask, channelData } };
 }
 

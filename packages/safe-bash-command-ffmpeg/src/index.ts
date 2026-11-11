@@ -13974,7 +13974,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       }
                     }
-                    const applyAudioChannelLayouts = async (value: string, inputSampleFormat: string, filterName: "aformat" | "aresample") => {
+                    const applyAudioChannelLayouts = async (value: string, inputSampleFormat: string, filterName: "aformat" | "aresample", outputSampleFormat: string) => {
                       const layouts = value.split("|");
                       if (layouts.some(layout => !["mono", "stereo", "quad", "5.1"].includes(layout))) {
                         throw new Error(`${filterName}: unsupported channel layout ${value}`);
@@ -13997,7 +13997,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       }
                       if (filterName === "aformat" && !autoConversionFilters) throw new Error(audioConversionDisabled);
                       // Integer rematrixing normalizes the contributing speakers; LFE is omitted.
-                      const assignment = ["u8", "u8p", "s16", "s16p", "s32", "s32p", "s64", "s64p"].includes(panSampleFormat) ? "<" : "=";
+                      const assignment = ["u8", "u8p", "s16", "s16p", "s32", "s32p", "s64", "s64p"].includes(outputSampleFormat) ? "<" : "=";
                       // Native's 4.0 PCM16 mixer rounds each Q15 coefficient independently.
                       const fourChannelGains = inputMask === 0x107 && (panSampleFormat === "s16" || panSampleFormat === "s16p")
                         ? [1, Math.SQRT1_2, 0.5].map(gain => Math.round(gain / (1.5 + Math.SQRT1_2) * 32768) / 32768)
@@ -14061,8 +14061,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         budget.checkDuration(length / targetRate);
                         budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
                         stretched = await resampleAudio(stretched, length, origRate, targetRate, budget, context.signal);
-                        // aformat constrains the resampler output as well as its input.
-                        stretched = await convertAudioSampleFormat(stretched, "flt", filteredSampleFormat, budget, context.signal);
+                        // Keep fractional samples through a simultaneous channel-layout conversion.
+                        panSampleFormat = "flt";
                         audioStartSample = Math.round(audioStartSample * targetRate / origRate);
                         for (const frame of audioTimestamps ?? []) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -16432,14 +16432,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           audioStartSample = firstPts;
                           audioTimestamps = undefined;
                         }
-                        if (layout !== undefined) {
-                          const inputSampleFormat = filteredSampleFormat;
-                          if (format !== undefined) {
-                            stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
-                            filteredSampleFormat = panSampleFormat = format;
-                          }
-                          await applyAudioChannelLayouts(layout, inputSampleFormat, "aresample");
-                        }
+                        const inputSampleFormat = filteredSampleFormat;
+                        const outputSampleFormat = format ?? filteredSampleFormat;
+                        const inputRate = origRate;
                         if (cutoff !== undefined || rate !== undefined || format !== undefined || internalFormat !== undefined) {
                           const targetRate = rate || (index === undefined ? undefined : audioRate) || origRate;
                           if (targetRate !== origRate) {
@@ -16478,6 +16473,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             discard = Math.floor(discard * targetRate / origRate);
                             origRate = targetRate;
                           }
+                        }
+                        if (layout !== undefined) {
+                          if (origRate === inputRate && format !== undefined) {
+                            stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
+                            filteredSampleFormat = panSampleFormat = format;
+                          }
+                          await applyAudioChannelLayouts(layout, inputSampleFormat, "aresample", outputSampleFormat);
                         }
                         if (discard > 0) {
                           stretched = stretched.map(channel => channel.subarray(discard));
@@ -17610,9 +17612,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           return { key, value };
                         });
-                        // Negotiate the sample format before mixing, regardless of option order.
+                        // Negotiate the output format, then resample and mix before quantization.
                         parsed.sort((a, b) => Number(b.key === "sample_fmts" || b.key === "f")
-                          - Number(a.key === "sample_fmts" || a.key === "f"));
+                          - Number(a.key === "sample_fmts" || a.key === "f")
+                          || Number(b.key === "sample_rates" || b.key === "r") - Number(a.key === "sample_rates" || a.key === "r"));
+                        const inputRate = origRate;
                         for (const { key, value } of parsed) {
                           if (!value) throw new Error(`aformat: unsupported empty value for ${key}`);
                           if (key === "sample_rates" || key === "r") {
@@ -17644,7 +17648,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             continue;
                           }
                           if (key !== "channel_layouts" && key !== "cl") throw new Error(`aformat: unsupported option ${key}`);
-                          await applyAudioChannelLayouts(value, inputSampleFormat, "aformat");
+                          await applyAudioChannelLayouts(value, inputSampleFormat, "aformat", filteredSampleFormat);
+                        }
+                        if (origRate !== inputRate) {
+                          stretched = await convertAudioSampleFormat(stretched, panSampleFormat, filteredSampleFormat, budget, context.signal);
+                          panSampleFormat = filteredSampleFormat;
                         }
                         if (doubleMono && ["flt", "fltp"].includes(filteredSampleFormat)) {
                           stretched = await convertAudioSampleFormat(stretched, inputSampleFormat, filteredSampleFormat, budget, context.signal);
@@ -17857,22 +17865,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredChannelMask = stereo.channelMask;
                           filteredChannelNames = undefined;
                         }
-                        if (stretched.length > 2) {
-                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
-                          const inputMask = filteredChannelMask || ({ 3: 0xb, 4: 0x107, 6: 0x3f }[stretched.length]);
-                          // Earwax negotiates PCM16 stereo: normalize the speaker mix and omit LFE.
-                          // Native's 4.0 mixer rounds each Q15 coefficient independently.
-                          const gains = inputMask === 0x107 && panSampleFormat === "s16"
-                            ? [1, Math.SQRT1_2, 0.5].map(gain => Math.round(gain / (1.5 + Math.SQRT1_2) * 32768) / 32768)
-                            : undefined;
-                          const stereo = await panAudio(gains
-                            ? `stereo|FL=${gains[0]}*FL+${gains[1]}*FC+${gains[2]}*BC|FR=${gains[0]}*FR+${gains[1]}*FC+${gains[2]}*BC`
-                            : `stereo|FL<FL+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BL+${Math.SQRT1_2}*SL|FR<FR+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BR+${Math.SQRT1_2}*SR`,
-                          stretched, inputMask, panSampleFormat, budget, context.signal);
-                          stretched = stereo.channels;
-                          filteredChannelMask = stereo.channelMask;
-                          filteredChannelNames = undefined;
-                        }
                         if (origRate !== 44100) {
                           const length = Math.ceil((stretched[0]?.length ?? 0) * 44100 / origRate);
                           if (!Number.isSafeInteger(length)) throw new Error("earwax: output sample count is too large");
@@ -17894,6 +17886,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             return { start, end, pts: firstPts + start };
                           });
                           origRate = 44100;
+                        }
+                        if (stretched.length > 2) {
+                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                          const inputMask = filteredChannelMask || ({ 3: 0xb, 4: 0x107, 6: 0x3f }[stretched.length]);
+                          // Earwax negotiates PCM16 stereo: normalize the speaker mix and omit LFE.
+                          // Native's 4.0 mixer rounds each Q15 coefficient independently.
+                          const gains = inputMask === 0x107 && panSampleFormat === "s16"
+                            ? [1, Math.SQRT1_2, 0.5].map(gain => Math.round(gain / (1.5 + Math.SQRT1_2) * 32768) / 32768)
+                            : undefined;
+                          const stereo = await panAudio(gains
+                            ? `stereo|FL=${gains[0]}*FL+${gains[1]}*FC+${gains[2]}*BC|FR=${gains[0]}*FR+${gains[1]}*FC+${gains[2]}*BC`
+                            : `stereo|FL<FL+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BL+${Math.SQRT1_2}*SL|FR<FR+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BR+${Math.SQRT1_2}*SR`,
+                          stretched, inputMask, panSampleFormat, budget, context.signal);
+                          stretched = stereo.channels;
+                          filteredChannelMask = stereo.channelMask;
+                          filteredChannelNames = undefined;
                         }
                         if (origRate === 44100 && stretched.length === 1) {
                           const stereo = await panAudio(`stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`,

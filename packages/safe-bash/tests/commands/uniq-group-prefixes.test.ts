@@ -45,12 +45,37 @@ for (const option of ["group", "all-repeated"]) {
           commands, fs,
           stdin: { async *[Symbol.asyncIterator]() { assert.fail("invalid method must not read stdin"); yield new Uint8Array(); } },
         });
-        assert.notEqual(result.exitCode, 0, method);
+        assert.equal(result.exitCode, 1, method);
         assert.equal(result.stdout, "");
-        assert.equal(result.stderr, `uniq: invalid argument '${method}' for '${option}'\n`);
+        const methods = option === "group" ? ["prepend", "append", "separate", "both"] : ["none", "prepend", "separate"];
+        assert.equal(result.stderr, `uniq: invalid argument '${method}' for '--${option}'\nValid arguments are:\n${methods.map(value => `  - '${value}'\n`).join("")}`);
         assert.equal(Buffer.from(await fs.readFile("/work/out")).toString(), "KEEP");
         assert.equal(Buffer.from(await fs.readFile("/work/in")).toString(), "A\nA\nB");
       }
     }
+  });
+}
+
+for (const args of [["-cD"], ["--group", "-d"], ["--group=bad"], ["--all-repeated=bad"], ["--invalid"], ["-f"], ["--s"], ["-f", "oops"]]) {
+  test(`uniq usage error exits 1: ${args.join(" ")}`, async () => {
+    const result = await run("uniq", args, { stdin: "a\na\nb\n", commands: textCommands() });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.notEqual(result.stderr, "");
+    if (args[0] === "--s") assert.equal(result.stderr, "uniq: option '--s' is ambiguous; possibilities: '--skip-fields' '--skip-chars'\n");
+  });
+}
+
+for (const [args, stdout] of [
+  [["--group"], "a\na\n\nb\n"],
+  [["--group=both"], "\na\na\n\nb\n\n"],
+  [["-c"], "      2 a\n      1 b\n"],
+  [["-D"], "a\na\n"],
+] as const) {
+  test(`uniq preserves valid ${args[0]} output`, async () => {
+    const result = await run("uniq", args, { stdin: "a\na\nb\n", commands: textCommands() });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, stdout);
+    assert.equal(result.stderr, "");
   });
 }

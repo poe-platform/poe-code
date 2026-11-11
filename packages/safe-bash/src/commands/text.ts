@@ -621,6 +621,7 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
       const equals = argument.indexOf("=");
       const name = argument.slice(2, equals < 0 ? undefined : equals);
       const matches = Object.keys(longOptions).filter(option => option.startsWith(name));
+      if (matches.length > 1) throw new UsageError(`option '--${name}' is ambiguous; possibilities: ${matches.map(option => `'--${option}'`).join(" ")}`);
       if (matches.length === 1) argument = `--${matches[0]}${equals < 0 ? "" : argument.slice(equals)}`;
     }
     if (obsoleteSkip && argument.startsWith("+") && argument.length > 1 && [...argument.slice(1)].every(character => character >= "0" && character <= "9")) return `-s${argument.slice(1)}`;
@@ -632,6 +633,7 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
         break;
       }
     }
+    if (context.env.POSIXLY_CORRECT !== undefined && (!argument.startsWith("-") || argument === "-")) ended = true;
     if (argument === "--all-repeated") return "--all-repeated=none";
     if (argument === "--group") return "--group=separate";
     return argument;
@@ -656,9 +658,9 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
       else width = count;
     } else if (option === "D") repeatedMethod = "none";
     else if (option === "all-repeated" || option === "group") {
-      const methods = option === "all-repeated" ? ["none", "prepend", "separate"] : ["separate", "prepend", "append", "both"];
+      const methods = option === "all-repeated" ? ["none", "prepend", "separate"] : ["prepend", "append", "separate", "both"];
       const matches = methods.filter(candidate => candidate.startsWith(method!));
-      if (matches.length !== 1) throw new UsageError(`invalid argument '${method}' for '${option}'`);
+      if (matches.length !== 1) throw new UsageError(`invalid argument '${method}' for '--${option}'\nValid arguments are:\n${methods.map(value => `  - '${value}'`).join("\n")}`);
       if (option === "all-repeated") repeatedMethod = matches[0]!;
       else groupMethod = matches[0]!;
     }
@@ -984,7 +986,7 @@ export function textCommands(): CommandDefinition[] {
         }
       }
       return executeUniqGeneral(context);
-    }),
+    }, 1, 1),
     define("cut", context => {
       runYieldCheckpoint(context.signal);
       if (!hasYieldCheckpoint(context.signal)) {

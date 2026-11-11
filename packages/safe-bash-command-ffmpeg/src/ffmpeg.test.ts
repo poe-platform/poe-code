@@ -5847,7 +5847,7 @@ describe("decoded audio editing", () => {
         const original = new Uint8Array([1, 2, 3]);
         const vfs = createTestVfs({ "/input.wav": input, ...(existing ? { "/output.wav": original } : {}) });
         const result = await runCmd(createFfmpegCommand(), ["-y", "-v", "error", "-i", "/input.wav", "-af", filter, "/output.wav"], vfs);
-        assert.equal(result.exitCode, 1, result.stderr);
+        assert.equal(result.exitCode, 8, result.stderr);
         assert.ok(result.stderr.includes("Unsupported audio filter:"), result.stderr);
         assert.ok(result.stderr.includes("no_such_filter"), result.stderr);
         assert.deepEqual(vfs.store.get("/output.wav"), existing ? original : undefined);

@@ -7417,8 +7417,9 @@ function mapGlobalMetadata(documents: readonly MediaDocument[], sources: readonl
       if (specifier.length !== 1 || !Number.isSafeInteger(index) || !chapter) {
         throw new Error(`Invalid chapter index ${specifier.join(":")} in metadata source`);
       }
-      tags = { custom: {} };
-      for (const [key, value] of Object.entries(chapter.tags ?? { title: chapter.title })) {
+      const chapterTags = chapter.tags ?? { title: chapter.title };
+      tags = { custom: {}, keyOrder: Object.keys(chapterTags) };
+      for (const [key, value] of Object.entries(chapterTags)) {
         const normalized = key.toLowerCase();
         if (["title", "artist", "album", "date", "comment", "genre", "encoder", "copyright"].includes(normalized)) {
           tags = { ...tags, [normalized]: value,
@@ -7438,6 +7439,7 @@ function mapGlobalMetadata(documents: readonly MediaDocument[], sources: readonl
     metadata = {
       ...Object.fromEntries(Object.entries(tags).filter(([, value]) => value !== undefined)),
       ...metadata,
+      keyOrder: [...new Set([...(metadata.keyOrder ?? []), ...(tags.keyOrder ?? [])])],
       custom: { ...custom, ...metadata.custom }
     };
   }

@@ -29,6 +29,10 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
             components.flatMap((frame, index) => ["(", "-size", index === 0 ? "2x1" : "1x1", ...frame, ")"]) },
         { name: "extend smaller second pair", operation: "Add", expected: "50507070", frames:
             components.flatMap((frame, index) => ["(", "-size", index < 2 ? "2x1" : "1x1", ...frame, ")"]) },
+        { name: "real component region", operation: "Add", size: "2x1", expected: "30507070", frames:
+            ["(", ...components[0]!, "-region", "1x1+1+0", ")", ...components.slice(1).flat()], after: ["+region"] },
+        { name: "imaginary component region", operation: "Add", size: "2x1", expected: "50506070", frames:
+            [...components[0]!, "(", ...components[1]!, "-region", "1x1+1+0", ")", ...components.slice(2).flat()], after: ["+region"] },
         { name: "destination write mask", operation: "Add", expected: "3070", frames:
             ["(", ...components[0]!, "-write-mask", "xc:white", ")", ...components.slice(1).flat()], after: ["+write-mask"] },
     ])(`${mode}: complex $name`, async ({ operation, expected, channel = "Meta0", frames = inputs, after = [], size = "1x1", depth = "8" }) => {

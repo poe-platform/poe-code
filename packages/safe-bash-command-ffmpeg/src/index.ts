@@ -4994,10 +4994,11 @@ async function applyVideoFilterChain(
           const x = (cell % cols) * width;
           const y = Math.floor(cell / cols) * height;
           if (source &&
-              [0, 4, 5, 12, 13, 14, 29, 30, 49, 62, 68].includes(source.format)) {
-            const sampleBytes = [29, 30, 49, 62, 68].includes(source.format) ? 2 : 1;
-            const chromaPlanes = [29, 30].includes(source.format) ? 0 : 2;
-            const size = (width * height + chromaPlanes * Math.ceil(width / hsub) * Math.ceil(height / vsub)) * sampleBytes;
+              [0, 4, 5, 12, 13, 14, 29, 30, 34, 35, 49, 62, 68, 104, 105].includes(source.format)) {
+            const channels = [34, 35].includes(source.format) ? 3 : [104, 105].includes(source.format) ? 4 : 1;
+            const pixelBytes = channels > 1 ? channels * 2 : [29, 30, 49, 62, 68].includes(source.format) ? 2 : 1;
+            const chromaPlanes = channels > 1 || [29, 30].includes(source.format) ? 0 : 2;
+            const size = (width * height + chromaPlanes * Math.ceil(width / hsub) * Math.ceil(height / vsub)) * pixelBytes;
             budget.allocateMemory(size + width * height * 4);
             const pixels = new Uint8Array(size);
             let srcOffset = 0;
@@ -5005,12 +5006,12 @@ async function applyVideoFilterChain(
             for (let plane = 0; plane <= chromaPlanes; plane++) {
               const sx = plane === 0 ? 1 : hsub;
               const sy = plane === 0 ? 1 : vsub;
-              const srcWidth = Math.ceil(frame.width / sx) * sampleBytes;
-              const dstWidth = Math.ceil(width / sx) * sampleBytes;
+              const srcWidth = Math.ceil(frame.width / sx) * pixelBytes;
+              const dstWidth = Math.ceil(width / sx) * pixelBytes;
               const dstHeight = Math.ceil(height / sy);
               for (let row = 0; row < dstHeight; row++) {
                 if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-                const start = srcOffset + (Math.floor(y / sy) + row) * srcWidth + Math.floor(x / sx) * sampleBytes;
+                const start = srcOffset + (Math.floor(y / sy) + row) * srcWidth + Math.floor(x / sx) * pixelBytes;
                 pixels.set(source.pixels.subarray(start, start + dstWidth), dstOffset + row * dstWidth);
               }
               srcOffset += srcWidth * Math.ceil(frame.height / sy);

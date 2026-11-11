@@ -1600,9 +1600,6 @@ async function panAudio(
         names.some(name => audioSpeakerMasks[name] === undefined) || new Set(names).size !== names.length)) {
     throw new Error(`pan: unsupported output layout ${layout}`);
   }
-  if (names.some((name, index) => index > 0 && audioSpeakerMasks[name]! < audioSpeakerMasks[names[index - 1]!]!)) {
-    throw new Error(`pan: unsupported output channel order ${layout}`);
-  }
   const speakers = Object.keys(audioSpeakerMasks);
   // Default layouts are mono, stereo, 2.1, 4.0, 5.0, 5.1, 6.1 and 7.1.
   // An explicit mask takes precedence; four unmasked channels are not quad.
@@ -1710,6 +1707,11 @@ async function panAudio(
         for (let input = 0; input < channels.length; input++) gains[output]![input] = gains[output]![input]! / total;
       }
     }
+  }
+  // SWR rejects reordered speakers for pure routing; weighted matrices retain the requested order.
+  if (pureMapping && names.some((name, index) =>
+    index > 0 && audioSpeakerMasks[name]! < audioSpeakerMasks[names[index - 1]!]!)) {
+    throw new Error(`pan: unsupported output channel order ${layout}`);
   }
   // SWR rejects asymmetric front speakers for pure routing; explicit mixing bypasses this check.
   // Classify the original gains, including absent inputs, before normalization. Single speakers are mono.

@@ -32,6 +32,23 @@ test("uniq processes help and version after preceding option validation", async 
   }
 });
 
+test("uniq information prefixes match full options without touching output", async () => {
+  for (const full of ["--help", "--version"]) {
+    const expected = await run("uniq", [full], { commands: textCommands() });
+    assert.equal(expected.exitCode, 0);
+    assert.notEqual(expected.stdout, "");
+    for (let length = 3; length < full.length; length++) {
+      const prefix = full.slice(0, length);
+      const fs = await fixture({ out: "KEEP" });
+      const result = await run("uniq", [prefix, "-", "out"], { fs, stdin: "a\na\n", env: { LC_ALL: "C" }, commands: textCommands() });
+      assert.equal(result.exitCode, 0, prefix);
+      assert.equal(result.stdout, expected.stdout, prefix);
+      assert.equal(result.stderr, "", prefix);
+      assert.equal(new TextDecoder().decode(await fs.readFile("/work/out")), "KEEP");
+    }
+  }
+});
+
 test("uniq resolves unique long-option prefixes independently of arguments", async () => {
   for (const [args, expected] of [
     [["--gro"], "A x\n\nB x\n\nC y\n"],
@@ -45,6 +62,7 @@ test("uniq resolves unique long-option prefixes independently of arguments", asy
     [["--all", "--skip-f=1"], "A x\nB x\n"],
     [["--all=separate", "--skip-f=1"], "A x\nB x\n"],
     [["--rep", "--skip-f=1"], "A x\n"],
+    [["--r", "--skip-f=1"], "A x\n"],
     [["--uni", "--skip-f=1"], "C y\n"],
   ] as const) {
     const result = await run("uniq", args, { stdin: "A x\nB x\nC y", env: { LC_ALL: "C" }, commands: textCommands() });
@@ -67,7 +85,7 @@ test("uniq prefix flags preserve case folding, delimiters, and optional-argument
 });
 
 test("uniq rejects ambiguous and unknown prefixes without touching output", async () => {
-  for (const option of ["--s=1", "--skip=1", "--unknown", "--gro="]) {
+  for (const option of ["--s", "--s=1", "--skip=1", "--unknown", "--gro=", "--he=value", "--ver=value"]) {
     const fs = await fixture({ in: "A x\nB x\nC y", out: "KEEP" });
     const result = await run("uniq", [option, "in", "out"], { fs, commands: textCommands() });
     assert.notEqual(result.exitCode, 0, option);
@@ -78,7 +96,7 @@ test("uniq rejects ambiguous and unknown prefixes without touching output", asyn
 });
 
 test("uniq keeps long-option prefixes literal after option parsing ends", async () => {
-  for (const name of ["--gro", "--all", "--s=1"]) {
+  for (const name of ["--gro", "--all", "--s=1", "--he", "--ver"]) {
     const fs = await fixture({ [name]: "a\na\n", in: "b\nb\n" });
     const literal = await run("uniq", ["--", name], { fs, commands: textCommands() });
     assert.equal(literal.exitCode, 0);

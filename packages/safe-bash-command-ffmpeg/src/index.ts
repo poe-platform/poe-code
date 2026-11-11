@@ -12736,7 +12736,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (trimmed.startsWith("astats=") && trimmed !== "astats=") {
                           for (const [index, option] of trimmed.slice("astats=".length).split(":").entries()) {
                             const parts = option.split("=");
-                            const key = parts.length === 1 && index === 0 ? "length" : parts[0];
+                            const key = parts.length === 1
+                              ? ["length", "metadata", "reset", "measure_perchannel", "measure_overall"][index]
+                              : parts[0];
                             const value = parts.length === 1 ? parts[0]! : parts[1]!;
                             const extra = parts[2];
                             if ((key === "measure_perchannel" || key === "measure_overall") && value !== undefined && extra === undefined) {
@@ -12757,8 +12759,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 throw new Error("astats: invalid reset");
                               }
                             } else if (key === "metadata" && extra === undefined &&
-                              ["0", "1", "false", "true", "no", "yes", "n", "y", "off", "on"].includes(value?.toLowerCase() ?? "")) {
-                              metadata = ["1", "true", "yes", "y", "on"].includes(value!.toLowerCase());
+                              ["0", "1", "false", "true", "no", "yes", "off", "on"].includes(value?.toLowerCase() ?? "")) {
+                              metadata = ["1", "true", "yes", "on"].includes(value!.toLowerCase());
                             } else {
                               throw new Error(`astats: unsupported option ${option}`);
                             }

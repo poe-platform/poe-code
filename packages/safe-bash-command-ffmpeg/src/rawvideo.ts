@@ -286,12 +286,11 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
 
 // FFmpeg 7 falls back to 25 fps when setpts clears the filter's rate and durations.
 export async function synchronizeRawVideoFrames(
-  frames: MediaVideoFrame[], budget: MediaBudgetTracker, limit = Infinity, signal?: AbortSignal, rate = 25, statistics?: { duplicates: number }, mode: "cfr" | "vfr" = "cfr"
+  frames: MediaVideoFrame[], budget: MediaBudgetTracker, limit = Infinity, signal?: AbortSignal, rate = 25, statistics?: { duplicates: number }, mode: "cfr" | "vfr" | "vscfr" = "cfr", durationLimit = Infinity
 ): Promise<MediaVideoFrame[]> {
   const output: MediaVideoFrame[] = [];
   const previousCopies = [0, 0, 0];
-  // CFR starts at output time zero, filling a delayed first picture.
-  let nextPts = mode === "cfr" ? 0 : Math.round((frames[0]?.ptsSeconds ?? 0) * rate);
+  let nextPts = 0;
   for (let index = 0; index <= frames.length && output.length < limit; index++) {
     if (index % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
     budget.checkCpu();
@@ -299,6 +298,10 @@ export async function synchronizeRawVideoFrames(
     let copies: number;
     let previous: number;
     if (frame) {
+      // Automatic VSCFR skips initial padding only for an unshifted input or copyts.
+      if (index === 0 && mode === "vscfr" && frame.ptsSeconds * rate >= 0.5) {
+        nextPts = Math.round(frame.ptsSeconds * rate);
+      }
       // FFmpeg adds a small positive bias before float32 rate-conversion rounding.
       const delta0 = frame.ptsSeconds * rate + 1 / 131072 - nextPts;
       const delta = delta0 + frame.durationSeconds * rate;
@@ -318,6 +321,7 @@ export async function synchronizeRawVideoFrames(
     }
     if (!Number.isSafeInteger(copies)) throw new Error("Invalid output frame timestamp");
     for (let copy = 0; copy < copies && output.length < limit; copy++, nextPts++) {
+      if (nextPts / rate >= durationLimit) return output;
       if (output.length % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
       const source = copy < previous && index > 0 ? frames[index - 1]! : frame!;
       budget.checkCpu();
@@ -331,7 +335,7 @@ export async function synchronizeRawVideoFrames(
       const duration = source.durationSeconds * rate;
       const lower = Math.floor(duration);
       // VFR retains packet duration, rounded to encoder ticks with exact halves to even.
-      const durationTicks = mode === "cfr" ? 1
+      const durationTicks = mode !== "vfr" ? 1
         : duration - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(duration);
       output.push({ ...source, ptsSeconds: nextPts / rate, durationSeconds: durationTicks / rate });
     }

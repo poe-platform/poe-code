@@ -13118,9 +13118,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     end: outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration
                   });
                   progressDuplicates += synchronization?.duplicates ?? 0;
+                  const rawSync = outputFormat === "rawvideo" && ["auto", "-1", "cfr", "1", "vfr", "2"].includes(videoSync);
+                  const duration = outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0));
                   if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
                     const start = Math.round((outputSs ?? 0) * diagnostics.timescale) / diagnostics.timescale;
-                    const end = Math.round((outputDuration === undefined ? outputTo ?? Infinity : (outputSs ?? 0) + outputDuration) * diagnostics.timescale) / diagnostics.timescale;
+                    // Native output trim measures duration from the first admitted frame;
+                    // the encoder then enforces the limit on synchronized timestamps.
+                    const end = rawSync && duration !== undefined
+                      ? (filtered.find(frame => frame.ptsSeconds >= start)?.ptsSeconds ?? start) + Math.round(duration * diagnostics.timescale) / diagnostics.timescale
+                      : Math.round((outputDuration === undefined ? outputTo ?? Infinity : (outputSs ?? 0) + outputDuration) * diagnostics.timescale) / diagnostics.timescale;
                     filtered = filtered.filter(frame => frame.ptsSeconds >= start && frame.ptsSeconds < end)
                       .map(frame => ({ ...frame, ptsSeconds: frame.ptsSeconds - start }));
                   }
@@ -13133,7 +13139,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     const rate = outputFps ?? (diagnostics.frameRateKnown
                       ? 1 / ((filtered[0]?.durationSeconds || diagnostics.frameDuration) * diagnostics.frameRateScale) : 25);
                     filtered = await synchronizeRawVideoFrames(filtered, budget, streamFrameLimits[index], context.signal, rate, statistics,
-                      videoSync === "vfr" || videoSync === "2" ? "vfr" : "cfr");
+                      videoSync === "vfr" || videoSync === "2" ? "vfr"
+                        : rawSync && ["auto", "-1"].includes(videoSync) && (copyTimestamps ||
+                          !filterComplex && loadedDocs.length === 1 && loadedDocs[0]!.tracks.length === 1 && !inputs[0]!.timestampOffset)
+                          ? "vscfr" : "cfr", rawSync ? duration : undefined);
                     progressDuplicates += statistics.duplicates;
                     diagnostics.frameRateScale = 1;
                   }

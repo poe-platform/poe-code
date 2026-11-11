@@ -4,11 +4,11 @@ import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
 // Final rawvideo progress from FFmpeg 7.0.2-static, with four input frames at 4 fps.
-for (const [filter, mode, ids, microseconds, time] of [
+for (const [filter, mode, ids, microseconds, time, graphMicroseconds = microseconds, graphTime = time] of [
   ["framestep=2", "passthrough", [1, 3], "500000", "00:00:00.500000"],
   ["framestep=2", "vfr", [1, 3], "500000", "00:00:00.500000"],
   ["framestep=2", undefined, [1, 3], "1000000", "00:00:01.000000"],
-  ["trim=start_frame=1,framestep=2", undefined, [2, 4], "1500000", "00:00:01.500000"],
+  ["trim=start_frame=1,framestep=2", undefined, [2, 4], "1500000", "00:00:01.500000", "1000000", "00:00:01.000000"],
   ["trim=start_frame=1,framestep=2", "passthrough", [2, 4], "1000000", "00:00:01.000000"],
   ["trim=start_frame=1,framestep=2", "vfr", [2, 4], "1000000", "00:00:01.000000"],
   ["framestep=3", "passthrough", [1, 4], "750000", "00:00:00.750000"],
@@ -48,9 +48,9 @@ for (const [filter, mode, ids, microseconds, time] of [
       assert.equal(records.frame, String(ids.length));
       assert.equal(records.total_size, String(ids.length * 4));
       assert.equal(records.progress, "end");
-      assert.equal(records.out_time_us, microseconds);
-      assert.equal(records.out_time_ms, microseconds);
-      assert.equal(records.out_time, time);
+      assert.equal(records.out_time_us, graph ? graphMicroseconds : microseconds);
+      assert.equal(records.out_time_ms, graph ? graphMicroseconds : microseconds);
+      assert.equal(records.out_time, graph ? graphTime : time);
     });
   }
 }

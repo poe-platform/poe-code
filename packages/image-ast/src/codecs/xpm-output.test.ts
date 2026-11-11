@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { readXpmImage } from "./xpm.js";
 import type { RgbaImage } from "../ast.js";
 import { encodeXpmImage, encodeXpmFromStorage } from "./xpm-output.js";
 
@@ -23,4 +24,13 @@ it("uses multi-character keys across bounded pixel chunks", async () => {
       expect(palette.get(row.slice(x * 2, x * 2 + 2))).toBe(`#${(i % 256).toString(16).padStart(2, "0")}${Math.floor(i / 256).toString(16).padStart(2, "0")}0c`);
     }
   }
+});
+
+it.each([63, 64, 65, 70, 90, 92, 93, 100])("preserves pixels with native XPM symbol widths for %i colors", colors => {
+  const image: RgbaImage = { width: colors, height: 1,
+    data: Uint8Array.from(Array.from({ length: colors }, (_, i) => [3 * i % 256, i, 255 - i, 255]).flat()),
+    format: "raw", space: "srgb", channels: 4, depth: "uchar", hasAlpha: false, density: 72 };
+  const bytes = encodeXpmImage(image);
+  expect(new TextDecoder().decode(bytes).split("\n")[2]).toBe(`"${colors} 1 ${colors} ${colors <= 92 ? 1 : 2}",`);
+  expect(readXpmImage(bytes).data).toEqual(image.data);
 });

@@ -2,7 +2,8 @@ import type { RgbaImage } from "../ast.js";
 import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 import { defaultRuntime } from "@poe-code/compression";
 
-const symbols = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-";
+// ImageMagick's 92 XPM symbols exclude C string quotes, escapes and question marks.
+const symbols = " .XoO+@#$%&*=-;:>,<1234567890qwertyuipasdfghjklzxcvbnmMNBVCZASDFGHJKLPIUYTREWQ!~^/()_`'][{}|";
 
 /** Scan twice so the palette precedes the pixels without retaining the raster. */
 function* xpmChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "indexedColors">, filename = "image"): Generator<number | Uint8Array, void, Uint8Array> {

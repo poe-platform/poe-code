@@ -111,6 +111,26 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
           append(native.pixels);
           continue;
         }
+        if (shift && native?.format === 8 && native.rgba === frame.data &&
+            native.width === frame.width && native.height === frame.height) {
+          const lumaSize = frame.width * frame.height;
+          const bytes = new Uint8Array(lumaSize * 6);
+          const view = new DataView(bytes.buffer);
+          for (let index = 0; index < lumaSize; index++) {
+            if (index % 4096 === 0) budget.checkCpu();
+            const gray = native.pixels[index]!;
+            // FFmpeg 7 swscale uses 15-bit intermediates for 10-bit output,
+            // and 19-bit intermediates for 16-bit output. Convert range before rounding.
+            const luma = shift === 2
+              ? (((gray * 128 * 14071 + 33561947) >> 14) + 16) >> 5
+              : (((gray * 2048 * 3517 + 134247788) >> 12) + 4) >> 3;
+            view.setUint16(index * 2, luma, true);
+            view.setUint16((lumaSize + index) * 2, 128 << shift, true);
+            view.setUint16((lumaSize * 2 + index) * 2, 128 << shift, true);
+          }
+          append(bytes);
+          continue;
+        }
         const converted = await formatYuv(frame, format === "yuv422p" ? "yuv422p" : "yuv444p", signal);
         const pixels = converted.native!.pixels;
         if (shift) {

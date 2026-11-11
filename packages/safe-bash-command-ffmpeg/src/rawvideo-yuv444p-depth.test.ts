@@ -51,3 +51,33 @@ for (const depth of [8, 10, 16]) {
     assert.equal(result.output.toString(), "KEEP");
   });
 }
+
+// FFmpeg 7.0.2 -bitexact output for gray bytes 0a0b1e1f (2x2).
+for (const inputFormat of ["gray", "gray8"]) {
+  for (const [format, expected] of [
+    ["yuv444p", "19192a2b8080808080808080"],
+    ["yuv444p10le", "62006600a700ab0000020002000200020002000200020002"],
+    ["yuv444p16le", "97187319c3299f2a00800080008000800080008000800080"]
+  ] as const) {
+    it(`converts ${inputFormat} directly to ${format} at the output precision`, async () => {
+      const volume = Volume.fromJSON({ "/in.gray": Buffer.from("0a0b1e1f", "hex") });
+      const output: Uint8Array[] = [];
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error", "-f", "rawvideo", "-pixel_format", inputFormat,
+          "-video_size", "2x2", "-framerate", "4", "-i", "/in.gray", "-vf", "null",
+          "-fps_mode", "passthrough", "-pix_fmt", format, "-bitexact", "-f", "rawvideo", "pipe:1"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(),
+        stdout: { async write(bytes: Uint8Array) { output.push(bytes); } },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.equal(Buffer.concat(output).toString("hex"), expected);
+    });
+  }
+}

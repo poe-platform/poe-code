@@ -113,3 +113,43 @@ for (const scenario of [
     assert.deepEqual(Array.from({ length: bytes.length / 2 }, (_, i) => bytes.readInt16LE(i * 2)), scenario.expected);
   });
 }
+
+for (const scenario of [
+  { name: "late output seek", loop: 2, seek: "0.004", output: ["-ss", "0.006"], expected: [5, 6] },
+  { name: "late atrim", loop: 2, seek: "0.004", output: ["-af", "atrim=start=0.006"], expected: [5, 6] },
+  { name: "late frame timestamps", loop: 2, seek: "0.004", output: ["-af", "ashowinfo"],
+    expected: [5, 6, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6], frames: [[0, 2], [0, 4], [2, 6]] },
+  { name: "one repeat output seek", loop: 1, seek: "0.004", output: ["-ss", "0.003"], expected: [6] },
+  { name: "early output seek", loop: 2, seek: "0.002", output: ["-ss", "0.006"], expected: [5, 6, 1, 2, 3, 4, 5, 6] },
+  { name: "late unfiltered samples", loop: 2, seek: "0.004", output: [], expected: [5, 6, 3, 4, 5, 6, 1, 2, 3, 4, 5, 6] }
+]) {
+  it(`advances looped WAV timestamps after seeking: ${scenario.name}`, async () => {
+    const volume = Volume.fromJSON({});
+    volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 1000,
+      channels: [Float64Array.from([1, 2, 3, 4, 5, 6], value => value / 32768)] }));
+    const chunks: Buffer[] = [];
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "info", "-stream_loop", String(scenario.loop), "-ss", scenario.seek,
+        "-i", "/in.wav", ...scenario.output, "-f", "s16le", "pipe:1"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(),
+      stdout: { async write(bytes: Uint8Array) { chunks.push(Buffer.from(bytes)); } },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, stderr);
+    const bytes = Buffer.concat(chunks);
+    assert.deepEqual(Array.from({ length: bytes.length / 2 }, (_, i) => bytes.readInt16LE(i * 2)), scenario.expected);
+    if (scenario.frames) {
+      const frames = stderr.split("\n").filter(line => line.includes("nb_samples:"));
+      assert.deepEqual(frames.map(line => [
+        Number(line.split("pts:")[1]!.split(" ")[0]),
+        Number(line.split("nb_samples:")[1]!.split(" ")[0])
+      ]), scenario.frames);
+    }
+  });
+}

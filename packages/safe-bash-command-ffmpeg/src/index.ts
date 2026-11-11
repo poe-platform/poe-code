@@ -12671,8 +12671,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     // A demuxer read stops at EOF, then the next loop restarts its packets.
                     const end = soughtLoop ? Math.min(frame + packetFrames, boundary) : frame + packetFrames;
                     const data = bytes.subarray(frame * bytesPerFrame, end * bytesPerFrame);
-                    // FFmpeg advances each loop's clock by the original post-seek duration.
-                    const cts = cycle === 0 ? 0 : -cycle * seekFrames + loopPreroll;
+                    // The discarded second-pass pre-roll also advances each later loop's clock.
+                    const cts = -cycle * (seekFrames - loopPreroll);
                     samples.push({ data, dts: frame, pts: frame + cts, cts, size: data.length,
                       duration: data.length / bytesPerFrame, isKeyframe: true, sampleDescriptionIndex: 1 });
                     frame = end;

@@ -2285,8 +2285,8 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
     if (track.type === "subtitle") {
       // Input seeking retains overlapping cues; output seeking selects by start.
       // Keep whole subtitle packets, including cues extending past the end.
-      // Input seeks rebase timestamps unless -copyts preserves the timeline.
-      const offset = options.inputSeek && options.resetTimestamps !== false
+      // Input seeks and copied output packets rebase timestamps unless preserved.
+      const offset = (options.inputSeek || options.copySubtitles) && options.resetTimestamps !== false
         ? Math.round(startSec * track.timescale) : 0;
       const samples: MediaSample[] = [];
       let duration = 0;

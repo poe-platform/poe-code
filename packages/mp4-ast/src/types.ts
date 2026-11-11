@@ -914,6 +914,8 @@ export interface SliceMediaOptions {
   readonly inputSeek?: boolean | undefined;
   /** Keep the full final compressed audio packet when stream copying. */
   readonly copyAudio?: boolean | undefined;
+  /** Rebase copied subtitle packet timestamps on output seek. */
+  readonly copySubtitles?: boolean | undefined;
   readonly startSeconds?: number | undefined;
   readonly endSeconds?: number | undefined;
   readonly durationSeconds?: number | undefined;

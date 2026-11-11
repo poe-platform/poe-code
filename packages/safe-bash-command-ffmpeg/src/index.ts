@@ -9412,7 +9412,7 @@ export function evalSyncFfmpeg(
             ? { ...track, samples: track.samples.filter(sample => sample.pts >= outputSs * track.timescale) }
             : track) };
       }
-      workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration, copyAudio: audioCodec === "copy" });
+      workingDoc = sliceMp4(workingDoc, { startSeconds: outputSs, endSeconds: outputDuration === undefined ? outputTo : undefined, durationSeconds: outputDuration, copyAudio: audioCodec === "copy", copySubtitles: subtitleCodec === "copy" });
       if (outputSs !== undefined) workingDoc = discardOutputPreroll(workingDoc, { video: videoCodec, audio: audioCodec }, copyInitialNonKeyframes);
     }
     const streamFrameLimits = outputFrameLimits(workingDoc.tracks, frameLimits);
@@ -13679,6 +13679,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 startSeconds: outputSs,
                 endSeconds: outputDuration === undefined ? outputTo : undefined,
                 durationSeconds: outputDuration,
+                copySubtitles: subtitleCodec === "copy",
                 copyAudio: audioCodec === "copy"
               });
               if (outputSs !== undefined) workingDoc = discardOutputPreroll(workingDoc, { video: videoCodec, audio: audioCodec }, copyInitialNonKeyframes);

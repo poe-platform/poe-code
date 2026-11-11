@@ -95,7 +95,8 @@ export function* localContrastPixelSteps(image: Pick<RgbaImage, "width" | "heigh
         }
         vertical[y * width + x] = sum / totalWeight;
     }
-    const selected = channels ? [channels.r, channels.g, channels.b] : [true, true, true];
+    // Native Gray contrast updates its intensity regardless of the channel mask.
+    const selected = channels && image.space !== "b-w" && image.space !== "grey16" ? [channels.r, channels.g, channels.b] : [true, true, true];
     for (let start = 0; start < size; start += 512) {
         yield;
         const count = Math.min(512, size - start);

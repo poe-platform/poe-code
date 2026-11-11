@@ -14391,7 +14391,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         canvas.metaChannels.push({ ...yield* createSolidRgbaImageSteps(maxW, maxH, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16), space: "b-w", channels: 1, hasAlpha: false });
                 }
                 for (const im of oldStack) {
-                    const compose = im.properties?.compose ?? "Over";
+                    const compose = state.composeExplicit ? state.composeRaw : im.properties?.compose ?? "Over";
                     const over = ["over", "srcover"].includes(magickCompositeMode(compose).name);
                     const x = (im.virtualCanvas?.x ?? 0) - originX, y = (im.virtualCanvas?.y ?? 0) - originY;
                     for (const [channel, plane] of (canvas.metaChannels ?? []).entries()) {
@@ -16563,7 +16563,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let cursor = 0;
                 for (let n = 0; n < stack.length; n++) {
                     let frame: StoredRgbaImage = (await stack.get(n))!;
-                    const compose = frame.properties?.compose ?? "Over";
+                    const compose = settings.composeExplicit ? settings.composeRaw : frame.properties?.compose ?? "Over";
                     if (!append) for (const [channel, plane] of (result.storedMetaChannels ?? []).entries()) {
                         const source = frame.storedMetaChannels?.[channel];
                         if (source) result.storedMetaChannels![channel] = await transformStoredMagickRaster(plane, backend,

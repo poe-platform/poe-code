@@ -2534,6 +2534,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
 function validateMagickTransformGeometry(raw: string, option: string): void {
     let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal", "-density"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
     if (["-swirl", "-implode", "-wave", "-spread"].includes(option)) value = value.replaceAll("(", "").replaceAll(")", "");
+    if (option === "-roll") value = value.replaceAll(" ", "").replaceAll("(", "").replaceAll(")", "");
     const forcedRegionResize = (option === "-liquid-rescale" || option === "-adaptive-resize") && value.includes("!");
     let dimensions = false;
     for (const char of value) {

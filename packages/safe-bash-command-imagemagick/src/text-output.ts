@@ -126,7 +126,7 @@ export async function* storedSparseColor(image: StoredRgbaImage, storage: PagedS
     }
 }
 export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal, depth?: number): AsyncGenerator<string> {
-    const maximum = ["HCL", "HCLp", "HSI", "HSL", "HSB", "HSV", "HWB", "XYZ"].includes(image.magickColorspace ?? "") && (depth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) <= 8 ? 255 : 65535;
+    const maximum = ["HCL", "HCLp", "HSI", "HSL", "HSB", "HSV", "HWB", "XYZ", "CIELab"].includes(image.magickColorspace ?? "") && (depth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) <= 8 ? 255 : 65535;
     const srgbDepth = depth !== undefined && image.space === "srgb" && !image.magickColorspace;
     const colorspace = `${image.space === "b-w" || image.space === "grey16" ? "gray" : image.magickColorspace === "RGB" ? "rgb" : "srgb"}${image.hasAlpha ? "a" : ""}`;
     const gray16 = (image.space === "b-w" || image.space === "grey16") && image.storedData16 !== undefined && (depth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8;

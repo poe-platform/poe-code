@@ -10,7 +10,7 @@ const second = Buffer.from("R0lGODlhBAACAPAAAAAA/wAAACH5BAwkAAAAIf4GU2Vjb25kACwA
 
 for (const mode of ["map", "sync", "filesystem", "command"] as const) {
   it.each([
-    ...["17X25", "17/25", "17,25", "17x25!", "17x25^", "17x25+0+0", "17x25"].flatMap(value => [
+    ...["17X25", "17/25", "17,25", "17x25!", "17x25^", "17x25+0+0", "17x25", "(17x25)"].flatMap(value => [
       { args: ["-delay", value, "/first.gif", "/second.gif"], delays: [680, 680] },
       { args: ["/first.gif", "/second.gif", "-set", "delay", value], delays: [680, 680] },
     ]),
@@ -38,3 +38,22 @@ for (const mode of ["map", "sync", "filesystem", "command"] as const) {
     }
   });
 }
+
+it.each(["(12x25)", "12x25"].flatMap(value => [
+  { args: ["-delay", value, "xc:red", "xc:blue"] },
+  { args: ["xc:red", "xc:blue", "-set", "delay", value] },
+]))("encodes inline GIF delay and repeat count: $args", async ({ args }) => {
+  const chunks: Uint8Array[] = [];
+  const result = await createMagickCommand().execute({
+    command: "magick", args: createCommandArguments([...args, "gif:-"]).args,
+    cwd: "/", env: {}, fs: new MemoryFileSystem(),
+    stdin: (async function* () {})(), signal: new AbortController().signal,
+    stdout: { async write(chunk) { chunks.push(chunk); } }, stderr: { async write() {} },
+  });
+  expect(result.exitCode).toBe(0);
+  const output = Buffer.concat(chunks);
+  expect(decodeImage(output, { animated: true }).delay).toEqual([480, 480]);
+  const extension = output.indexOf("NETSCAPE2.0");
+  expect(extension).toBeGreaterThan(-1);
+  expect([...output.subarray(extension + 11, extension + 16)]).toEqual([3, 1, 0, 0, 0]);
+});

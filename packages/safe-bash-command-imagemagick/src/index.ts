@@ -14959,7 +14959,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 const geometry = parseUnsharpGeometry(expanded);
-                return yield* applyMagickRasterSteps(im, blurPixelSteps(im, geometry, false, state.channelExplicit ? state.channels : undefined, geometry, im.writeMask, state.background), signal, im, im.writeMask ? [im, im.writeMask] : [im]);
+                const result = yield* applyMagickRasterSteps(im, blurPixelSteps(im, geometry, false, state.channelExplicit ? state.channels : undefined, geometry, im.writeMask, state.background), signal, im, im.writeMask ? [im, im.writeMask] : [im]);
+                if (im.metaChannels?.length) {
+                    result.metaChannels = [];
+                    for (const [index, plane] of im.metaChannels.entries()) {
+                        const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
+                        result.metaChannels.push(selected ? yield* applyMagickRasterSteps(plane,
+                            blurPixelSteps({ ...plane, region: im.region, virtualPixel: im.virtualPixel }, geometry, false, undefined, geometry), signal) : plane);
+                    }
+                }
+                return result;
             });
         }
         else if (t === "-despeckle") {
@@ -19211,11 +19220,19 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-unsharp") {
             const raw = tokens[++i] ?? "0x1", channels = state.channelExplicit ? state.channels : undefined, optionProperties = state.optionProperties, background = state.background;
+            const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 const geometry = parseUnsharpGeometry(expanded);
-                return transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, false, channels, geometry, image.storedWriteMask, background), signal, image, image.storedWriteMask ? [image, image.storedWriteMask] : [image]);
+                const result = await transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, false, channels, geometry, image.storedWriteMask, background), signal, image, image.storedWriteMask ? [image, image.storedWriteMask] : [image]);
+                if (image.storedMetaChannels?.length) {
+                    result.storedMetaChannels = [];
+                    for (const [index, plane] of image.storedMetaChannels.entries())
+                        result.storedMetaChannels.push(!meta || meta.includes(index) ? await transformStoredMagickRaster(plane, backend,
+                            blurPixelSteps({ ...plane, region: image.region, virtualPixel: image.virtualPixel }, geometry, false, undefined, geometry), signal) : plane);
+                }
+                return result;
             });
         } else if (!operandsOnly && token === "-crop") {
             const geometry = tokens[++i] ?? "100%", gravity = state.gravity, optionProperties = state.optionProperties, background = state.background;

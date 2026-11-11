@@ -14954,7 +14954,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded.replaceAll(",", "x").replaceAll("/", "x"), "-paint");
-                const geometry = parseMagickGeometry(expanded.replaceAll(",", "x").replaceAll("/", "x"));
+                const geometry = parseMagickGeometry(expanded.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
                 return yield* applyMagickRasterSteps({ ...im, isPalette: false }, paintPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.intensity), signal);
             });
         }
@@ -19254,7 +19254,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 validateMagickTransformGeometry(expanded.replaceAll(",", "x").replaceAll("/", "x"), "-paint");
-                const geometry = parseMagickGeometry(expanded.replaceAll(",", "x").replaceAll("/", "x"));
+                const geometry = parseMagickGeometry(expanded.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
                 return transformStoredMagickRaster({ ...image, isPalette: false }, backend, paintPixelSteps(image, geometry, background, virtualPixel, channels, intensity), signal);
             });
         } else if (!operandsOnly && token === "-kuwahara") {

@@ -2962,9 +2962,8 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   const lines: string[] = [];
   let lineStart = 0;
   for (let i = 0; i < text.length; i++) {
-    if (text[i] === "\\") {
-      i++;
-    } else if (text[i] === "\n" || text[i] === "\r") {
+    // FFmpeg continues a physical line after any trailing backslash, even a pair.
+    if ((text[i] === "\n" || text[i] === "\r") && text[i - 1] !== "\\") {
       lines.push(text.slice(lineStart, i));
       lineStart = i + 1;
     }

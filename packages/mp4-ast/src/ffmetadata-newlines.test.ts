@@ -17,12 +17,18 @@ for (const newline of ["\n", "\r\n"]) {
   });
 }
 
-it("keeps escaped backslashes separate from newline continuations", () => {
-  const doc = parseFfmetadata(new TextEncoder().encode(";FFMETADATA1\ncomment=path\\\\\nartist=next\n"));
-  assert.equal(doc.metadata.comment, "path\\");
-  assert.equal(doc.metadata.artist, "next");
-  assert.equal(new TextDecoder().decode(serializeFfmetadata(doc)), ";FFMETADATA1\nartist=next\ncomment=path\\\\\n");
-});
+for (const count of [0, 1, 2, 3, 4]) {
+  it(`continues FFmetadata records after ${count} backslashes before LF`, () => {
+    const input = ";FFMETADATA1\na=b" + "\\".repeat(count) + "\nc=d\n";
+    const doc = parseFfmetadata(new TextEncoder().encode(input));
+    assert.deepEqual(doc.metadata.custom, count === 0
+      ? { a: "b", c: "d" }
+      : { a: "b" + "\\".repeat(Math.floor(count / 2)) + "\nc=d" });
+    assert.equal(new TextDecoder().decode(serializeFfmetadata(doc)), count === 0
+      ? input
+      : ";FFMETADATA1\na=b" + "\\".repeat(2 * Math.floor(count / 2) + 1) + "\nc\\=d\n");
+  });
+}
 
 for (const newline of ["\n", "\r\n"]) {
   it(`keeps the next tag separate after an escaped CR with ${JSON.stringify(newline)} endings`, () => {

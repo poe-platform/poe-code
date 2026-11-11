@@ -4,10 +4,12 @@ import { Volume } from "memfs";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 for (const [input, expected] of [
+  [";FFMETADATA1\na=b" + "\\".repeat(2) + "\nc=d\n", ";FFMETADATA1\na=b" + "\\".repeat(3) + "\nc\\=d\n"],
+  [";FFMETADATA1\na=b\nc=d\n", ";FFMETADATA1\na=b\nc=d\n"],
   [";FFMETADATA1\na=b\\\r\nc=d\n", ";FFMETADATA1\na=b\r\nc=d\n"],
   [";FFMETADATA1\na=b\\\nc=d\n", ";FFMETADATA1\na=b\\\nc\\=d\n"],
   [";FFMETADATA1\ncomment=line one\\\nline two\n", ";FFMETADATA1\ncomment=line one\\\nline two\n"],
-]) {
+] as const) {
   for (const sync of [false, true]) {
     it(`round-trips FFmetadata escapes ${JSON.stringify(input)} (${sync ? "sync" : "async"})`, async () => {
       const volume = Volume.fromJSON({ "/in.ffmeta": input });

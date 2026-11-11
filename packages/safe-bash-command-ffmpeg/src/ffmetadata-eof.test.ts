@@ -6,7 +6,7 @@ import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 for (const [input, expected] of [
   [";FFMETADATA1\na=b\\", ";FFMETADATA1\na=b\n"],
   [";FFMETADATA1\na=b\\\\", ";FFMETADATA1\na=b\\\\\n"]
-]) {
+] as const) {
   for (const sync of [false, true]) {
     it(`round-trips FFmetadata escapes ${JSON.stringify(input)} (${sync ? "sync" : "async"})`, async () => {
       const volume = Volume.fromJSON({ "/in.ffmeta": input });

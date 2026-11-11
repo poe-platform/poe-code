@@ -6430,7 +6430,16 @@ async function applyVideoFilterChain(
     } else if (name === "gradfun") {
       if (positional.length > 1 && positional.at(-1) === "") positional.pop();
       for (const key of Object.keys(named)) {
-        if (!["strength", "radius", "enable"].includes(key)) throw new Error(`gradfun: unsupported option ${key}`);
+        if (!["strength", "radius", "enable", "threads", "thread_type", "extra_hw_frames"].includes(key)) {
+          throw new Error(`gradfun: unsupported option ${key}`);
+        }
+      }
+      for (const part of positional) {
+        const separator = part.indexOf("=");
+        const key = part.slice(0, separator).trim().toLowerCase();
+        if (separator >= 0 && ["threads", "thread_type", "extra_hw_frames"].includes(key)) {
+          validateWeaveGenericOption(key, part.slice(separator + 1).trim(), name);
+        }
       }
       if (positional.some((part, index) => index > 1 && !part.includes("="))) {
         throw new Error("gradfun: too many positional options");

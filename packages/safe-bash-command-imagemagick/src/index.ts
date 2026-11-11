@@ -13712,8 +13712,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-hough-lines") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const spec = tokens[++i] ?? "", result: RgbaImage[] = [];
-            for (const image of stack) {
-                const transform = createHoughTransform(image, spec, state.background, state.stroke, state.fill, state.strokeWidth);
+            for (const [index, image] of stack.entries()) {
+                const expanded = yield* formatMagickPropertyStringSteps(spec, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: index, optionProperties: state.optionProperties });
+                const transform = createHoughTransform(image, expanded, state.background, state.stroke, state.fill, state.strokeWidth);
                 const source = { ...image, properties: undefined, orientation: state.orientation, space: "srgb" as const, channels: 4 as const };
                 result.push(yield* applyMagickRasterSteps(source, transform.lines(), signal, { ...image, hasAlpha: state.background.a < 255 }));
                 if (state.houghAccumulator) result.push(yield* applyMagickRasterSteps(source, transform.accumulator(), signal, { width: 180, height: transform.height, hasAlpha: false }));
@@ -16520,7 +16521,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const result = new StoredImageStack(backend.storage, signal, stack);
                 for (let index = 0; index < stack.length; index++) {
                     const image = (await stack.get(index))!;
-                    const transform = createHoughTransform(image, spec, settings.background, settings.stroke, settings.fill, settings.strokeWidth);
+                    const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, listIndex: index, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack);
+                    const transform = createHoughTransform(image, expanded, settings.background, settings.stroke, settings.fill, settings.strokeWidth);
                     const source = { ...image, properties: undefined, orientation: settings.orientation, space: "srgb" as const, channels: 4 as const };
                     await result.push(await transformStoredMagickRaster(source, backend, transform.lines(), signal, { ...image, hasAlpha: settings.background.a < 255 }));
                     if (settings.houghAccumulator) await result.push(await transformStoredMagickRaster(source, backend, transform.accumulator(), signal, { width: 180, height: transform.height, hasAlpha: false }));

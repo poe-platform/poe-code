@@ -2510,7 +2510,11 @@ function resolveMagickSpliceGeometry(raw: string, image: Pick<RgbaImage, "width"
     const modifiers = [...raw].filter(character => "%!<>^".includes(character)).join("");
     raw = [...raw].filter(character => !"%!<>^".includes(character)).join("") + modifiers;
     // Splice treats @ dimensions literally and ignores # without dropping dimensions or offsets.
-    let g = parseMagickGeometry(raw.replaceAll("@", "").replaceAll("#", ""));
+    const normalized = normalizeMagickOffsets([...raw.replaceAll("@", "").replaceAll("#", "")].filter(character => character.trim() !== "").join(""));
+    // A trailing x field ends rectangle offsets without discarding preceding dimensions.
+    const offsetStart = [...normalized].findIndex((character, index) => (character === "+" || character === "-") && normalized[index - 1]?.toLowerCase() !== "e");
+    const trailingDimension = offsetStart < 0 ? -1 : normalized.toLowerCase().indexOf("x", offsetStart);
+    let g = parseMagickGeometry(trailingDimension < 0 ? normalized : normalized.slice(0, trailingDimension) + modifiers);
     const dimensionSeparator = raw.toLowerCase().indexOf("x");
     // Native scalar percentages with offsets leave the input-sized rectangle untouched.
     if (dimensionSeparator < 0 && g.isPercent && g.width !== undefined && g.hasOffset) {

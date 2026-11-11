@@ -10,7 +10,10 @@ function readLine(line: string): { start: number; end: number; text: string } | 
   const endText = line.slice(first + 1, second).trim();
   const quoted = line.slice(second + 1).trimStart();
   if (!startText || !endText || !quoted.startsWith('"')) return undefined;
-  if (![...startText, ...endText].every(c => c >= "0" && c <= "9")) return undefined;
+  for (const text of [startText, endText]) {
+    const digits = text.startsWith("+") || text.startsWith("-") ? text.slice(1) : text;
+    if (!digits || ![...digits].every(c => c >= "0" && c <= "9")) return undefined;
+  }
   const start = Number(startText);
   const end = Number(endText);
   if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || end < start) return undefined;

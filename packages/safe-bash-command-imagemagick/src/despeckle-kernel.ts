@@ -1,18 +1,23 @@
+import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Directional hull smoothing with the native zero border and Q16 step size. */
-export function* despecklePixelSteps(image: { width: number; height: number; hasAlpha: boolean }, channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* despecklePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples" | "storedEvaluateSamples">>, channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, stride = width + 2;
-    const output = new Uint16Array(width * height * 4);
+    const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
+    const evaluate = !hue && (!!image.evaluateSamples || image.storedEvaluateSamples !== undefined);
+    const scale = hue ? 65535 : 257;
+    const output = new Float64Array(width * height * 4);
     for (let position = 0; position < output.length; position += 4096) {
         yield;
         const length = Math.min(4096, output.length - position);
-        const bytes = yield { kind: "read", highDepth: true, position, length };
-        if (!bytes || bytes.length !== length * 2) throw new Error("Truncated despeckle pixels");
-        output.set(new Uint16Array(bytes.slice().buffer), position);
+        const bytes = yield { kind: "read", hue, evaluate, highDepth: true, position, length };
+        if (!bytes || bytes.length !== length * (hue || evaluate ? 8 : 2)) throw new Error("Truncated despeckle pixels");
+        output.set(hue || evaluate ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => value * scale)
+            : new Uint16Array(bytes.slice().buffer), position);
     }
-    const pixels = new Uint16Array(stride * (height + 2));
-    const buffer = new Uint16Array(pixels.length);
+    const pixels = new Float64Array(stride * (height + 2));
+    const buffer = new Float64Array(pixels.length);
     let work = 0;
     for (let channel = 0; channel < (image.hasAlpha ? 4 : 3); channel++) {
         if (channels && !channels[channel]) continue;
@@ -43,6 +48,12 @@ export function* despecklePixelSteps(image: { width: number; height: number; has
     }
     for (let position = 0; position < output.length; position += 4096) {
         yield;
-        yield { kind: "write", highDepth: true, position, data: new Uint8Array(output.slice(position, position + 4096).buffer) };
+        const samples = output.slice(position, position + 4096);
+        const bounded = Uint16Array.from(samples, value => Math.max(0, Math.min(65535, Math.round(value))));
+        yield { kind: "write", highDepth: true, position, data: new Uint8Array(bounded.buffer) };
+        if (hue || evaluate) {
+            yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.map(value => value / 257).buffer) };
+            if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(samples.map(value => value / 65535).buffer) };
+        }
     }
 }

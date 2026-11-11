@@ -2,7 +2,7 @@ import { md5 } from "@noble/hashes/legacy.js";
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
-import { validateWeaveGenericOption } from "./weave-generic-option.js";
+import { audioExp2 } from "./audio-gate-math.js";
 
 export async function decorrelateAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -15,10 +15,6 @@ export async function decorrelateAudio(
   for (const [index, option] of entries.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["stages", "seed"][index] : option.slice(0, separator).trim();
-    if (key === "threads") {
-      validateWeaveGenericOption(key, option.slice(separator + 1).trim(), "adecorrelate");
-      continue;
-    }
     if (key === "threads") {
       validateWeaveGenericOption(key, option.slice(separator + 1).trim(), "adecorrelate");
       continue;
@@ -60,8 +56,9 @@ export async function decorrelateAudio(
       const lowGain = -60 / (0.1 * sampleRate) * delay;
       const highGain = -60 / (0.008 * sampleRate) * delay;
       const t = Math.tan(Math.PI * 1100 / sampleRate);
-      const high = 10 ** (highGain / 20);
-      const ratio = 10 ** ((lowGain - highGain) / 20);
+      // Match FFmpeg's ff_exp10 coefficient calculation before filtering doubles.
+      const high = audioExp2(Math.log2(10) * (highGain / 20));
+      const ratio = audioExp2(Math.log2(10) * ((lowGain - highGain) / 20));
       const root = Math.sqrt(ratio);
       const a1 = (t - root) / (t + root);
       const b0 = (ratio * t - root) / (t + root) * high;

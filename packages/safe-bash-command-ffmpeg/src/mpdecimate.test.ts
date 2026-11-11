@@ -52,3 +52,47 @@ for (const [values, filter, expected] of [
     }
   });
 }
+
+for (const [format, width, height, middleChroma, expected] of [
+  ["yuv420p", 16, 16, 152, [0, 2]],
+  ["yuv420p", 16, 16, 128, [0, 2]],
+  ["yuv420p", 32, 16, 152, [0, 1, 2]],
+  ["yuv420p", 32, 8, 152, [0, 2]],
+  ["yuv422p", 16, 16, 152, [0, 2]],
+  ["yuv422p", 32, 8, 152, [0, 1, 2]],
+  ["yuv444p", 16, 16, 152, [0, 1, 2]]
+] as const) {
+  for (const plane of ["u", "v"]) {
+    it(`mpdecimate scans ${format} ${width}x${height} ${plane} at native dimensions (${middleChroma})`, async () => {
+      const chromaSize = Math.ceil(width / (format === "yuv444p" ? 1 : 2)) *
+        Math.ceil(height / (format === "yuv420p" ? 2 : 1));
+      const frames = [40, 40, 100].map((y, index) => Buffer.concat([
+        Buffer.alloc(width * height, y),
+        Buffer.alloc(chromaSize, index === 1 && plane === "u" ? middleChroma : 128),
+        Buffer.alloc(chromaSize, index === 1 && plane === "v" ? middleChroma : 128)
+      ]));
+      const volume = Volume.fromJSON({});
+      volume.writeFileSync("/in.raw", Buffer.concat(frames));
+      const output: Uint8Array[] = [], errors: Uint8Array[] = [];
+      const result = await createFfmpegCommand().execute({
+        args: ["-hide_banner", "-nostats", "-v", "info", "-f", "rawvideo", "-pixel_format", format,
+          "-video_size", `${width}x${height}`, "-framerate", "4", "-i", "/in.raw",
+          "-vf", "mpdecimate,showinfo", "-fps_mode", "passthrough", "-pix_fmt", format, "-f", "rawvideo", "pipe:1"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(),
+        stdout: { async write(bytes: Uint8Array) { output.push(bytes); } },
+        stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+      } as never);
+      const stderr = Buffer.concat(errors).toString();
+      assert.equal(result.exitCode, 0, stderr);
+      assert.deepEqual(Buffer.concat(output), Buffer.concat(expected.map(index => frames[index]!)));
+      const timestamps = stderr.split("\n").filter(line => line.includes("pts_time:"))
+        .map(line => Number(line.split("pts:")[1]!.trim().split(" ")[0]));
+      assert.deepEqual(timestamps, expected);
+    });
+  }
+}

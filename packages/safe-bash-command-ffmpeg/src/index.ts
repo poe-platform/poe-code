@@ -5230,24 +5230,36 @@ async function applyVideoFilterChain(
         const reference = retained.at(-1);
         let changed = !reference || frame.width !== reference.width || frame.height !== reference.height;
         if (reference && !changed) {
-          // Compare overlapping 8x8 RGB blocks with FFmpeg's default thresholds.
-          // The reference is the last retained frame, so small changes accumulate.
-          const lowBlockLimit = Math.floor(Math.floor(frame.width / 16) * Math.floor(frame.height / 16) * 0.33);
-          for (let channel = 0; channel < 3 && !changed; channel++) {
+          // Compare retained planar samples at their native dimensions. Fall back
+          // to RGB channels when filters have replaced the retained raster.
+          const native = frame.native, previous = reference.native;
+          const planar = native && previous && native.rgba === frame.data && previous.rgba === reference.data &&
+            native.width === frame.width && native.height === frame.height &&
+            previous.width === reference.width && previous.height === reference.height &&
+            native.format === previous.format && [0, 4, 5, 8, 12, 13, 14].includes(native.format);
+          const pixels = planar ? native.pixels : frame.data;
+          const referencePixels = planar ? previous.pixels : reference.data;
+          const stride = planar ? 1 : 4;
+          let planeOffset = 0;
+          for (let channel = 0; channel < (planar && native.format === 8 ? 1 : 3) && !changed; channel++) {
+            const width = planar && channel > 0 ? Math.ceil(frame.width / ([5, 14].includes(native.format) ? 1 : 2)) : frame.width;
+            const height = planar && channel > 0 ? Math.ceil(frame.height / ([0, 12].includes(native.format) ? 2 : 1)) : frame.height;
+            const lowBlockLimit = Math.floor(Math.floor(width / 16) * Math.floor(height / 16) * 0.33);
             let lowBlocks = 0;
-            for (let y = 0; y + 8 <= frame.height && !changed; y += 4) {
-              for (let x = 8; x + 8 <= frame.width && !changed; x += 4) {
+            for (let y = 0; y + 8 <= height && !changed; y += 4) {
+              for (let x = 8; x + 8 <= width && !changed; x += 4) {
                 if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
                 let difference = 0;
                 for (let row = y; row < y + 8; row++) {
                   for (let column = x; column < x + 8; column++) {
-                    const offset = (row * frame.width + column) * 4 + channel;
-                    difference += Math.abs(frame.data[offset]! - reference.data[offset]!);
+                    const offset = (row * width + column) * stride + (planar ? planeOffset : channel);
+                    difference += Math.abs(pixels[offset]! - referencePixels[offset]!);
                   }
                 }
                 changed = difference > 768 || (difference > 320 && ++lowBlocks > lowBlockLimit);
               }
             }
+            planeOffset += width * height;
           }
         }
         if (changed) retained.push(frame);

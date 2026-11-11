@@ -12100,6 +12100,11 @@ if (t === "-intent" || t === "+intent") {
             if (!["undefined", "saturation", "perceptual", "relative", "absolute"].includes(value.toLowerCase())) throw new Error(`unrecognized intent type '-intent' '${value}'`);
             state.optionProperties = { ...state.optionProperties, intent: value };
         }
+        else if (t === "-attenuate" || t === "+attenuate") {
+            const value = t === "+attenuate" ? "1.0" : tokens[++i] ?? "";
+            validateMagickTransformGeometry(value, t);
+            state.optionProperties = { ...state.optionProperties, attenuate: value };
+        }
         else if (t === "-seed") {
             const value = tokens[++i] ?? "";
             validateMagickTransformGeometry(value, t);
@@ -12985,7 +12990,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         const previousBorderColor = state.borderColor;
         const previousInterlace = state.interlace;
         let setting: number | undefined;
-        if (t === "-interlace" && tokens[i + 1]?.includes("%")) {
+        if ((t === "-interlace" || t === "-attenuate") && tokens[i + 1]?.includes("%")) {
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
             const expanded = yield* formatMagickPropertyStringSteps(tokens[i + 1]!, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
             applyMagickReadSetting([t, expanded], state, 0);
@@ -16494,7 +16499,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         const previousBorderColor = state.borderColor;
         const previousInterlace = state.interlace;
         // Resolve property-dependent settings sequentially before capturing later settings.
-        if (!operandsOnly && token === "-interlace" && tokens[i + 1]?.includes("%")) return;
+        if (!operandsOnly && (token === "-interlace" || token === "-attenuate") && tokens[i + 1]?.includes("%")) return;
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
         if (setting !== undefined) {
             i = setting;
@@ -19388,7 +19393,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-emboss",
         "-shade",
         "-charcoal",
-        "-region", "-write-mask", "-clip-mask", "-sketch", "-seed", "-quantize", "-treedepth", "-virtual-pixel", "-orient", "-profile", "+profile",
+        "-region", "-write-mask", "-clip-mask", "-sketch", "-attenuate", "-seed", "-quantize", "-treedepth", "-virtual-pixel", "-orient", "-profile", "+profile",
         "-scene", "-delay", "-loop", "-transparent-color", "-dispose", "-morph", "-repage", "-raise", "+raise",
         "-clone", "-insert", "-swap", "-delete", "-smush", "+smush", "-layers", "-recolor",
         "-contrast-stretch", "-linear-stretch", "-intensity", "-connected-components", "+connected-components"
@@ -19403,7 +19408,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-auto-level", "-auto-gamma", "-white-balance", "-normalize", "-equalize", "-monochrome", "+monochrome", "-strip", "-unique-colors", "-sort-pixels",
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin", "+remap",
-        "+seed", "+region", "+write-mask", "+clip-mask", "+repage", "+channel", "+quantize", "+treedepth", "+compress", "+depth", "+endian", "+size",
+        "+attenuate", "+seed", "+region", "+write-mask", "+clip-mask", "+repage", "+channel", "+quantize", "+treedepth", "+compress", "+depth", "+endian", "+size",
         "+read-mask", "+interpolate", "+intensity", "+filter", "+page", "+orient",
         "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete", "+dispose"
     ]);

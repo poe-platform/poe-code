@@ -62,7 +62,23 @@ function* xpmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
       rgba.push(65535);
       highDepth ||= digits > 2;
     } else if (color.includes("(")) {
-      const { r, g, b, a } = parseColor(color); rgba = [r, g, b, a].map(value => value * 257);
+      const open = color.indexOf("("), name = color.slice(0, open).trim().toLowerCase();
+      if (["rgb", "srgb", "gray", "rgba", "srgba", "graya"].includes(name)) {
+        const components = words(color.slice(open + 1, -1).replaceAll(",", " "));
+        const channels = name.startsWith("gray") ? 1 : 3;
+        if (!color.endsWith(")") || components.length !== channels + (name.endsWith("a") ? 1 : 0)) throw new Error("Invalid XPM color");
+        const samples = components.map((component, index) => {
+          const percent = component.endsWith("%"), value = percent ? component.slice(0, -1) : component;
+          if (!value || [...value].some(char => !"0123456789.eE+-".includes(char)) || !Number.isFinite(Number(value))) throw new Error("Invalid XPM color");
+          return Math.round(Math.max(0, Math.min(1, Number(value) / (percent ? 100 : index === channels ? 1 : 255))) * 65535);
+        });
+        // Only None enables transparency, but retain functional alpha for that case.
+        const alpha = samples[channels] ?? 65535;
+        rgba = channels === 1 ? [samples[0]!, samples[0]!, samples[0]!, alpha] : [...samples.slice(0, 3), alpha];
+        highDepth ||= rgba.some(value => value % 257 !== 0);
+      } else {
+        const { r, g, b, a } = parseColor(color); rgba = [r, g, b, a].map(value => value * 257);
+      }
     } else {
       // Native XPM replaces lowercase "grey" before its case-insensitive lookup.
       const name = color.replaceAll("grey", "gray").toLowerCase().split(" ").join("");

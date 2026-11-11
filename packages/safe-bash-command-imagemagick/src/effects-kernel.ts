@@ -66,7 +66,11 @@ export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "
                             if (x % 32 === 0) yield;
                             for (let k = -half; k <= half; k++) {
                                 const sx = Math.max(0, Math.min(layout.width - 1, left + x + k)) - layout.offsetX;
-                                if (sx >= first && sx <= last) row[x]! += quantum((source.hasAlpha || source.inactiveAlpha ? samples[(sx - first) * 4 + 3]! : maximum) * layout.opacity) * weights[k + half]!;
+                                if (sx >= first && sx <= last) {
+                                    // Native bounds source alpha before applying shadow strength.
+                                    const opacity = source.hasAlpha || source.inactiveAlpha ? Math.max(0, Math.min(maximum, samples[(sx - first) * 4 + 3]!)) : maximum;
+                                    row[x]! += quantum(opacity * layout.opacity) * weights[k + half]!;
+                                }
                             }
                             row[x] = quantum(row[x]!);
                         }

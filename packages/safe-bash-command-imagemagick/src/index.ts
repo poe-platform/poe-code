@@ -11910,7 +11910,7 @@ if (t === "-intent" || t === "+intent") {
             if (filterKey === "trim:background-color") state.trimBackgroundColor = parseColor(filterValue ?? "", true);
             if (defStr.toLowerCase().startsWith("trim:edges=")) state.trimEdges = defStr.slice("trim:edges=".length);
             if (defStr.toLowerCase().startsWith("trim:minsize=")) {
-                const value = defStr.slice("trim:minsize=".length).replaceAll("(", "").replaceAll(")", "").replace(":", "x").trimStart();
+                const value = defStr.slice("trim:minsize=".length).replaceAll("(", "").replaceAll(")", "").replaceAll("#", "").replace(":", "x").trimStart();
                 // A leading sign starts an offset, leaving both minimum dimensions unset.
                 if (value.startsWith("+") || value.startsWith("-")) delete state.trimMinSize;
                 else {

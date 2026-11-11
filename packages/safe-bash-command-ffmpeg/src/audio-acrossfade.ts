@@ -67,7 +67,8 @@ export async function acrossfadeAudio(
       else curve2 = curve;
     } else throw new Error(`acrossfade: unsupported option ${key}`);
   }
-  if (duration > 0) samples = Math.round(duration * a.sampleRate);
+  // Restore FFmpeg's integer microseconds before rescaling so exact half-samples round up.
+  if (duration > 0) samples = Math.round(Math.round(duration * 1_000_000) * a.sampleRate / 1_000_000);
   // FFmpeg ends after the first input when a positive duration rounds to no samples.
   if (samples === 0) return first;
   let secondChannels = b.channelData;

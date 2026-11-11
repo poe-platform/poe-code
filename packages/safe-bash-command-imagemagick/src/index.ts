@@ -12906,8 +12906,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const bounds = yield* trimMagickSteps({ ...median, virtualCanvas: { ...plan.virtualCanvas, x: 0, y: 0 } }, state.alphaFuzz, state.trimEdges, undefined, state.trimPercentBackground);
                 const missed = bounds.virtualCanvas!.x === -1 && bounds.virtualCanvas!.y === -1;
                 const left = missed ? 0 : bounds.virtualCanvas!.x - plan.virtualCanvas.x, top = missed ? 0 : bounds.virtualCanvas!.y - plan.virtualCanvas.y;
-                const area = { left, top, width: Math.min(bounds.width, rotated.width - left), height: Math.min(bounds.height, rotated.height - top) };
-                const cropped: MagickImage = missed ? bounds : { ...yield* extractImageSteps(rotated, area), virtualCanvas: bounds.virtualCanvas! };
+                const area = { left: Math.max(0, left), top: Math.max(0, top), width: Math.min(rotated.width, left + bounds.width) - Math.max(0, left), height: Math.min(rotated.height, top + bounds.height) - Math.max(0, top) };
+                const cropped: MagickImage = missed ? bounds : { ...yield* extractImageSteps(rotated, area), virtualCanvas: magickCropCanvas(rotated, area.left, area.top) };
                 if (rotated.metaChannels) cropped.metaChannels = yield* mapSteps(rotated.metaChannels, function* (plane) { return yield* extractImageSteps(plane, area); });
                 return cropped;
             });
@@ -16427,8 +16427,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const bounds = await trimStoredMagick({ ...median, virtualCanvas: { ...plan.virtualCanvas, x: 0, y: 0 } }, backend.storage, fuzz, signal, trimEdges, undefined, percentBackground);
                 const missed = bounds.virtualCanvas!.x === -1 && bounds.virtualCanvas!.y === -1;
                 const left = missed ? 0 : bounds.virtualCanvas!.x - plan.virtualCanvas.x, top = missed ? 0 : bounds.virtualCanvas!.y - plan.virtualCanvas.y;
-                const area = { kind: "extract" as const, left, top, width: Math.min(bounds.width, rotated.width - left), height: Math.min(bounds.height, rotated.height - top) };
-                const cropped: StoredMagickImage = missed ? bounds : { ...await transformStoredImage(rotated, backend.storage, area, signal), virtualCanvas: bounds.virtualCanvas! };
+                const area = { kind: "extract" as const, left: Math.max(0, left), top: Math.max(0, top), width: Math.min(rotated.width, left + bounds.width) - Math.max(0, left), height: Math.min(rotated.height, top + bounds.height) - Math.max(0, top) };
+                const cropped: StoredMagickImage = missed ? bounds : { ...await transformStoredImage(rotated, backend.storage, area, signal), virtualCanvas: magickCropCanvas(rotated, area.left, area.top) };
                 if (rotated.storedMetaChannels) {
                     cropped.storedMetaChannels = [];
                     for (const plane of rotated.storedMetaChannels) cropped.storedMetaChannels.push(await transformStoredImage(plane, backend.storage, area, signal));

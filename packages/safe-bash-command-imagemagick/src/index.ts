@@ -6135,7 +6135,7 @@ function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanv
                 if (left === 0 && top === 0 && nextLeft === img.width && nextTop === img.height) return;
             }
         }
-    } else if (!g.hasOffset && !(g.isPercent && gravity !== undefined)) {
+    } else if (!g.hasOffset && !((g.isPercent || g.aspectRatio !== undefined) && gravity !== undefined)) {
         const pageWidth = img.virtualCanvas?.width || img.width;
         const pageHeight = img.virtualCanvas?.height || img.height;
         const width = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.width, img.height * g.aspectRatio) : g.isPercent ? img.width * (g.percentX ?? 100) / 100 : g.width || pageWidth));

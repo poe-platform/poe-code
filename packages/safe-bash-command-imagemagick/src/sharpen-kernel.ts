@@ -1,10 +1,10 @@
-import type { RgbaColor } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 import type { Region } from "./region.js";
 import { convolvePixelSteps, type ConvolveRequest } from "./convolve-kernel.js";
 
 /** ImageMagick's normalized negative Gaussian with a doubled center. */
-export function* sharpenPixelSteps(image: { width: number; height: number; hasAlpha: boolean; region?: Region | undefined }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, virtualPixel?: VirtualPixelMethod, background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* sharpenPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & Partial<Pick<RgbaImage, "space" | "hueSamples"> & Pick<StoredRgbaImage, "storedHueSamples">> & { region?: Region | undefined }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel?: VirtualPixelMethod, background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const radius = geometry.width ?? 0, sigma = Math.max(1e-12, Math.abs(geometry.height ?? 1));
     let half = Math.max(1, Math.ceil(radius));
     if (radius <= 0) {

@@ -13994,6 +13994,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const caption = text !== undefined && font ? renderFontCaption(font, text, image.width, state.pointsize, state.density, state.fill, state.borderColor, state.strokeWidth, signal) : undefined;
                 let picture = yield* applyMagickRasterSteps({ ...image, isPalette: false }, polaroidPixels(image, border, state.borderColor, caption, channels), signal,
                     { width: image.width + 2 * border, height: image.height + 2 * border + (caption?.height ?? 0), hasAlpha: true });
+                picture = { ...picture, alphaBlend: true, alphaSeparate: false, inactiveAlpha: false };
                 if (picture.space === "b-w" || picture.space === "grey16") {
                     const { magickColorspace: ignoredSpace, ...rgb } = picture;
                     picture = { ...rgb, space: "srgb", channels: 4, gamma: 1 / 2.2 };
@@ -18111,6 +18112,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const caption = text !== undefined && font ? renderFontCaption(font, text, image.width, settings.pointsize, settings.density, settings.fill, settings.borderColor, settings.strokeWidth, signal) : undefined;
                 let picture = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, polaroidPixels(image, border, settings.borderColor, caption, channels), signal,
                     { width: image.width + 2 * border, height: image.height + 2 * border + (caption?.height ?? 0), hasAlpha: true });
+                picture = { ...picture, alphaBlend: true, alphaSeparate: false, inactiveAlpha: false };
                 if (picture.space === "b-w" || picture.space === "grey16") {
                     const { magickColorspace: ignoredSpace, ...rgb } = picture;
                     picture = { ...rgb, space: "srgb", channels: 4, gamma: 1 / 2.2 };

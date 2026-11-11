@@ -2310,6 +2310,18 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           audio[index] = { ...input, sampleRate: a.sampleRate,
             channelData: await resampleAudio(input.channelData, length, input.sampleRate, a.sampleRate, budget, signal) };
         }
+        // amerge negotiates the first connected input's format before interleaving.
+        const format = pcmSampleFormat(first.codecDescriptions[0]?.codecName) ?? "flt";
+        for (let index = 0; index < audio.length; index++) {
+          const input = audio[index]!;
+          const source = sources[index]!.track;
+          const sourceFormat = source.decodedAudio!.sampleRate !== input.sampleRate ? "flt"
+            : pcmSampleFormat(source.codecDescriptions[0]?.codecName) ?? "flt";
+          if (sourceFormat !== format) {
+            audio[index] = { ...input, channelData: [...await convertAudioSampleFormat(
+              input.channelData, sourceFormat, format, budget, signal)] };
+          }
+        }
         const defaultMasks = [0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f];
         const masks = audio.map(input => input.channelMask || defaultMasks[input.channels] || 0);
         const inputs = audio.flatMap((audio, input) => {
@@ -2334,20 +2346,13 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         budget.checkDuration(length / a.sampleRate);
         budget.allocateMemory(length * inputs.length * 8);
         const channelData = inputs.map(() => new Float64Array(length));
-        const pcm16 = ["pcm_s16le", "pcm_s16be"].includes(first.codecDescriptions[0]?.codecName ?? "");
         for (let offset = 0; offset < length; offset += 4096) {
           await yieldTurn(signal);
           signal?.throwIfAborted();
           budget.checkCpu();
           for (const [channel, input] of inputs.entries()) {
             const end = Math.min(offset + 4096, length);
-            if (pcm16) {
-              // amerge negotiates the first input's format before downstream filters.
-              for (let i = offset; i < end; i++) {
-                channelData[channel]![i] = Math.max(-32768, Math.min(32767,
-                  roundToEven(input.samples[i]! * 32768))) / 32768;
-              }
-            } else channelData[channel]!.set(input.samples.subarray(offset, end), offset);
+            channelData[channel]!.set(input.samples.subarray(offset, end), offset);
           }
         }
         // Preserve decoded input frame boundaries and take the output

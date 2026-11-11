@@ -2968,6 +2968,7 @@ function setFfmetadataTag(tags: [string, string][], key: string, value: string):
 }
 
 export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
+  const demuxErrors: string[] = [];
   const decoded = decodeUtf8(bytes);
   const text = decoded.startsWith("\uFEFF") ? decoded.slice(1) : decoded;
   const lines: string[] = [];
@@ -3069,7 +3070,16 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
         chapterHeader = "start";
         if (key === "TIMEBASE") {
           const [n, d] = val.split("/");
-          tbNum = parseInt(n ?? "1", 10) || 1;
+          const numerator = parseInt(n ?? "", 10);
+          if (Number.isNaN(numerator)) {
+            demuxErrors.push(
+              `[ffmetadata] Expected chapter start timestamp, found ${rawLine}.`,
+              `[ffmetadata] Expected chapter end timestamp, found ${rawLine}.`
+            );
+            chapterHeader = "tags";
+            continue;
+          }
+          tbNum = numerator || 1;
           tbDen = parseInt(d ?? "", 10);
           if (tbDen <= 0) throw new Error("FFmetadata chapter TIMEBASE denominator must be positive");
           tbDen = tbDen || 1_000_000_000;
@@ -3079,13 +3089,21 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       if (chapterHeader === "start") {
         chapterHeader = "end";
         if (key === "START") {
-          curStart = parseInt(val, 10) || 0;
-          continue;
+          const start = parseInt(val, 10);
+          if (!Number.isNaN(start)) {
+            curStart = start;
+            continue;
+          }
+          demuxErrors.push(`[ffmetadata] Expected chapter start timestamp, found ${line}.`);
         }
       }
       if (chapterHeader === "end") {
         chapterHeader = "tags";
-        if (key === "END") curEnd = parseInt(val, 10) || 0;
+        const end = key === "END" ? parseInt(val, 10) : NaN;
+        if (!Number.isNaN(end)) curEnd = end;
+        else if (key === "START" || key === "END") {
+          demuxErrors.push(`[ffmetadata] Expected chapter end timestamp, found ${line}.`);
+        }
         continue;
       }
       setFfmetadataTag(chapterTags, key, val);
@@ -3107,6 +3125,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
 
   return {
     containerFormat: "ffmetadata",
+    ...(demuxErrors.length ? { demuxErrors } : {}),
     timescale: 1000,
     duration: Math.round((chapters[chapters.length - 1]?.endTimeSeconds ?? 0) * 1000),
     durationSeconds: chapters[chapters.length - 1]?.endTimeSeconds ?? 0,

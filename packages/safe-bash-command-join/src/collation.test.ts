@@ -51,11 +51,51 @@ for (const env of [{}, { LC_CTYPE: "en_US.UTF-8" }, ...["C", "POSIX", "C.UTF-8",
  });
 }
 
-test("join groups collation-equivalent keys for the full Cartesian product", async () => {
- const result = await run(["--check-order", "/a", "/b"], { "/a": "é L1\né L2\n", "/b": "e\u0301 R1\ne\u0301 R2\n" }, { LC_ALL: "en_US.UTF-8" });
+test("join groups identical non-ASCII keys for the full Cartesian product", async () => {
+ const result = await run(["--check-order", "/a", "/b"], { "/a": "é L1\né L2\n", "/b": "é R1\né R2\n" }, { LC_ALL: "en_US.UTF-8" });
  assert.equal(result.exitCode, 0, result.stderr);
  assert.equal(result.stdout.toString(), "é L1 R1\né L1 R2\né L2 R1\né L2 R2\n");
 });
+
+// Verified against GNU coreutils 9.4 with en_US.utf8.
+for (const [first, second] of [["e\u0301", "é"], ["a", "a\u00ad"]] as const) {
+ test(`join keeps Unicode collation ties distinct: ${JSON.stringify([first, second])}`, async () => {
+  for (const mode of [[], ["--check-order"], ["--nocheck-order"]]) {
+   for (const [left, right] of [[first, second], [second, first]]) {
+    const files = { "/a": `${left} x\n`, "/b": `${right} y\n` };
+    const result = await run([...mode, "/a", "/b"], files, { LC_ALL: "en_US.utf8" });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdout, Buffer.alloc(0));
+    assert.equal(result.stderr, "");
+
+    const unpaired = await run([...mode, "-a1", "-a2", "/a", "/b"], files, { LC_ALL: "en_US.utf8" });
+    assert.equal(unpaired.exitCode, 0, unpaired.stderr);
+    assert.deepEqual(unpaired.stdout, Buffer.from(left === first ? `${left} x\n${right} y\n` : `${right} y\n${left} x\n`));
+    assert.equal(unpaired.stderr, "");
+   }
+  }
+ });
+
+ test(`join separates adjacent duplicate groups across Unicode collation ties: ${JSON.stringify([first, second])}`, async () => {
+  const result = await run(["--check-order", "/a", "/b"], {
+   "/a": `${first} L1\n${first} L2\n${second} L3\n`,
+   "/b": `${first} R1\n${second} R2\n${second} R3\n`,
+  }, { LC_ALL: "en_US.utf8" });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdout, Buffer.from(`${first} L1 R1\n${first} L2 R1\n${second} L3 R2\n${second} L3 R3\n`));
+  assert.equal(result.stderr, "");
+ });
+
+ test(`join checks order across Unicode collation ties: ${JSON.stringify([first, second])}`, async () => {
+  for (const file of ["/a", "/b"]) {
+   const result = await run(["--check-order", "/a", "/b"], {
+    "/a": "", "/b": "", [file]: `${second} L\n${first} L\n`,
+   }, { LC_ALL: "en_US.utf8" });
+   assert.equal(result.exitCode, 1);
+   assert.equal(result.stderr, `join: ${file}:2: is not sorted: ${first} L\n`);
+  }
+ });
+}
 
 test("join ignore-case retains folded byte comparison in language locales", async () => {
  const result = await run(["-i", "--check-order", "/a", "/b"], { "/a": "B left\nz left\n", "/b": "b right\nz right\n" }, { LC_ALL: "en_US.UTF-8" });

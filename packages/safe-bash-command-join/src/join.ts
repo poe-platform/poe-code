@@ -240,7 +240,8 @@ function localeSettings(env: Readonly<Record<string, string>>): { utf8: boolean;
     try { first = decoder.decode(left); } catch { /* Invalid bytes follow valid text. */ }
     try { second = decoder.decode(right); } catch { /* Preserve byte ordering for invalid text. */ }
     if (first === undefined) return second === undefined ? compare(left, right) : 1;
-    return second === undefined ? -1 : collator.compare(first, second);
+    // Unicode collation can equate distinct GNU keys; retain their original bytes.
+    return second === undefined ? -1 : collator.compare(first, second) || compare(left, right);
   } };
 }
 

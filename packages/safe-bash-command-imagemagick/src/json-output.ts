@@ -21,10 +21,12 @@ export function imageDescriptionOutput(spec: string): ImageDescriptionOutput | u
 
 export function imageDescription(image: DescriptionImage, properties: Record<string, string>, channelStatistics: Record<string, Record<string, number>>, depth?: number, format: ImageDescriptionOutput["format"] = "json"): string {
     const source = image[magickInput];
+    const filePath = source?.filePath ?? "";
     const description = {
         version: format === "json" ? "1.0" : 1.0,
         image: {
-            name: format === "yaml" && source?.inputFormat === "XC" ? `xc:${source.filePath ?? ""}` : source?.filePath ?? "",
+            name: source?.inputFormat === "XC" ? `xc:${filePath}` : filePath,
+            baseName: filePath.slice(filePath.lastIndexOf("/") + 1),
             format: source?.inputFormat ?? image.format.toUpperCase(),
             class: image.isPalette ? "PseudoClass" : "DirectClass",
             geometry: { width: image.width, height: image.height, x: 0, y: 0 },

@@ -13179,7 +13179,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (width <= 2 || height <= 2) return yield* applyMagickResizeSteps(image, expanded, state.kernel, false, false, false, state.resizeFilter);
                 if (width === image.width && height === image.height) return image;
                 const plan = liquidRescaleSteps(image, width, height, seam.hasOffset ? Math.max(0, seam.x) : 1, seam.hasYOffset ? seam.y : 0);
-                const result = yield* applyMagickRasterSteps(image, plan.pixels, signal, { ...image, width, height }, [image, ...(image.readMask ? [image.readMask as RgbaImage] : []), ...(image.writeMask ? [image.writeMask] : [])]);
+                const result = yield* applyMagickRasterSteps(image, plan.pixels, signal, { ...image, width, height }, [image, ...(image.readMask ? [image.readMask as RgbaImage] : []), ...(image.writeMask ? [image.writeMask] : []), ...(image.metaChannels ?? [])]);
+                if (image.metaChannels) {
+                    result.metaChannels = [];
+                    for (const pixels of plan.metaChannels) result.metaChannels.push(yield* applyMagickRasterSteps(image, pixels, signal, { width, height, hasAlpha: false }));
+                }
                 if (plan.readMask) result.readMask = yield* applyMagickRasterSteps(image, plan.readMask, signal, { width, height, hasAlpha: false });
                 if (plan.writeMask) {
                     result.region = undefined;
@@ -17148,7 +17152,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (width <= 2 || height <= 2) return resizeStoredMagickImage(image, backend, options, signal, false, false, false, settings);
                 if (width === image.width && height === image.height) return image;
                 const plan = liquidRescaleSteps({ ...image, writeMask: image.storedWriteMask }, width, height, seam.hasOffset ? Math.max(0, seam.x) : 1, seam.hasYOffset ? seam.y : 0);
-                const result = await transformStoredMagickRaster(image, backend, plan.pixels, signal, { ...image, width, height }, [image, ...(image.readMask ? [image.readMask as StoredRgbaImage] : []), ...(image.storedWriteMask ? [image.storedWriteMask] : [])]);
+                const result = await transformStoredMagickRaster(image, backend, plan.pixels, signal, { ...image, width, height }, [image, ...(image.readMask ? [image.readMask as StoredRgbaImage] : []), ...(image.storedWriteMask ? [image.storedWriteMask] : []), ...(image.storedMetaChannels ?? [])]);
+                if (image.storedMetaChannels) {
+                    result.storedMetaChannels = [];
+                    for (const pixels of plan.metaChannels) result.storedMetaChannels.push(await transformStoredMagickRaster(image, backend, pixels, signal, { width, height, hasAlpha: false }));
+                }
                 if (plan.readMask) result.readMask = await transformStoredMagickRaster(image, backend, plan.readMask, signal, { width, height, hasAlpha: false });
                 if (plan.writeMask) {
                     result.region = undefined;

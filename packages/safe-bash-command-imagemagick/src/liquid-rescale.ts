@@ -3,7 +3,7 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 import { regionContains, type Region } from "./region.js";
 
 /** Width-first seam carving with liblqr's brightness gradient and leftmost ties. */
-export function liquidRescaleSteps(image: { width: number; height: number; hasAlpha: boolean; region?: Region | undefined; readMask?: { width: number; height: number } | undefined; writeMask?: { width: number; height: number } | undefined; depth: string; space?: string; hueSamples?: Float64Array; storedHueSamples?: number; isPalette?: boolean; pngPalette?: { readonly bytes: Uint8Array }; indexedColors?: readonly number[] }, width: number, height: number, delta = 1, rigidity = 0) {
+export function liquidRescaleSteps(image: { width: number; height: number; hasAlpha: boolean; metaChannels?: readonly { width: number; height: number }[] | undefined; storedMetaChannels?: readonly { width: number; height: number }[] | undefined; region?: Region | undefined; readMask?: { width: number; height: number } | undefined; writeMask?: { width: number; height: number } | undefined; depth: string; space?: string; hueSamples?: Float64Array; storedHueSamples?: number; isPalette?: boolean; pngPalette?: { readonly bytes: Uint8Array }; indexedColors?: readonly number[] }, width: number, height: number, delta = 1, rigidity = 0) {
     // Account for source/output samples, seam indices, brightness and path maps.
     const pixels = Math.max(image.width, width) * Math.max(image.height, height);
     // Carve the working colorspace plane used by the later sRGB conversion.
@@ -18,15 +18,18 @@ export function liquidRescaleSteps(image: { width: number; height: number; hasAl
     const cmyk = image.space === "cmyk";
     const masks = [image.readMask, image.writeMask].filter(mask => mask !== undefined);
     const baseStride = cmyk || palette.size ? 5 : 4;
-    const stride = baseStride + masks.length + (image.region ? 1 : 0);
+    const metaChannels = image.metaChannels ?? image.storedMetaChannels ?? [];
+    const metaOffset = baseStride + masks.length + (image.region ? 1 : 0);
+    const stride = metaOffset + metaChannels.length;
     if (!Number.isSafeInteger(pixels) || pixels * (stride * 8 + 32) > 0x7fffffff) throw new Error("Liquid rescale dimensions exceed resource limits");
     // ImageMagick passes all cache channels to liblqr, including masks. liblqr
     // infers RGB, RGBA, CMYKA, or custom brightness from that channel count.
     const channels = [0, 1, 2, ...(cmyk ? [3] : []), ...(image.hasAlpha ? [cmyk ? 4 : 3] : []),
         ...(!cmyk && palette.size ? [4] : []), ...Array.from({ length: stride - baseStride }, (_, i) => baseStride + i)];
     let data: Float32Array;
-    return { pixels: carve(), readMask: image.readMask ? maskPixels(baseStride) : undefined,
-        writeMask: image.writeMask || image.region ? maskPixels(stride - 1) : undefined };
+    return { pixels: carve(), readMask: image.readMask ? channelPixels(baseStride) : undefined,
+        writeMask: image.writeMask || image.region ? channelPixels(metaOffset - 1) : undefined,
+        metaChannels: metaChannels.map((_, index) => channelPixels(metaOffset + index)) };
 
     function* carve(): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
         data = new Float32Array(image.width * image.height * stride);
@@ -53,7 +56,7 @@ export function liquidRescaleSteps(image: { width: number; height: number; hasAl
                 }
             }
         }
-        for (let channel = 0; channel < stride - baseStride; channel++) {
+        for (let channel = 0; channel < metaOffset - baseStride; channel++) {
             const mask = masks[channel];
             for (let y = 0; y < image.height; y++) for (let x = 0; x < image.width; x += 1024) {
                 yield;
@@ -66,6 +69,16 @@ export function liquidRescaleSteps(image: { width: number; height: number; hasAl
                         ? i < available ? (0.212656 * samples![i * 4]! + 0.715158 * samples![i * 4 + 1]! + 0.072186 * samples![i * 4 + 2]!) / 65535 : 0
                         : Number(!regionContains(image.region!, x + i, y));
                 }
+            }
+        }
+        for (let channel = 0; channel < metaChannels.length; channel++) {
+            for (let offset = 0; offset < image.width * image.height * 4; offset += 4096) {
+                yield;
+                const length = Math.min(4096, image.width * image.height * 4 - offset);
+                const bytes = yield { kind: "read", highDepth: true, image: 1 + masks.length + channel, position: offset, length };
+                if (!bytes || bytes.length !== length * 2) throw new Error("Truncated liquid rescale meta channel");
+                const samples = new Uint16Array(bytes.slice().buffer);
+                for (let i = 0; i < length; i += 4) data[(offset + i) / 4 * stride + metaOffset + channel] = samples[i]! / 65535;
             }
         }
         let currentWidth = image.width, currentHeight = image.height;
@@ -189,7 +202,7 @@ export function liquidRescaleSteps(image: { width: number; height: number; hasAl
         }
     }
 
-    function* maskPixels(channel: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    function* channelPixels(channel: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
         for (let offset = 0; offset < width * height * 4; offset += 4096) {
             yield;
             const length = Math.min(4096, width * height * 4 - offset);

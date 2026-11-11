@@ -32,7 +32,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
             }), stderr
         } : mode === "sync" ? runConvertCliSync(argv, files)
             : await runConvertCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
-        expect(result).toMatchObject({ exitCode: 0, stderr: option ? `magick: option has been replaced '${option}', use "${option[0]}level"\n` : "" });
+        expect(result).toMatchObject({ exitCode: 0, stderr: option ? `magick: option has been replaced '${option}', use "${option[0]}level" at CLI arg 2\n` : "" });
         const output = Buffer.from(mode === "command" || mode === "retained" ? await fs.readFile("/out.pfm") : files.get("/out.pfm")!);
         expect(output.subarray(0, 11)).toEqual(input.subarray(0, 11));
         const samples = Buffer.from(expected, "hex");

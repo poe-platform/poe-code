@@ -30,7 +30,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
             const args = ["input.png", ...channel, option, "out.png"];
             const result = mode === "sync" ? runConvertCliSync(args, files)
                 : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
-            expect(result).toEqual({ exitCode: 0, stdout: "", stderr: `magick: option has been replaced '${option}', use "${option[0]}level"\n` });
+            expect(result).toEqual({ exitCode: 0, stdout: "", stderr: `magick: option has been replaced '${option}', use "${option[0]}level" at CLI arg ${channel.length + 2}\n` });
             const output = mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
             expect([...decodeImage(output).data]).toEqual(expected);
         });

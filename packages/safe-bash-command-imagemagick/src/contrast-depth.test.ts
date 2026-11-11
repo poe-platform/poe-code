@@ -35,7 +35,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
             } : mode === "sync" ? runConvertCliSync(argv, files)
                 : await runConvertCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
             const option = options[0];
-            expect(result).toMatchObject({ exitCode: 0, stderr: option ? `magick: option has been replaced '${option}', use "${option[0]}level"\n` : "" });
+            expect(result).toMatchObject({ exitCode: 0, stderr: option ? `magick: option has been replaced '${option}', use "${option[0]}level" at CLI arg 2\n` : "" });
             const output = mode === "command" || mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!;
             expect(output[24]).toBe(16);
             expect([...decodeImage(output).data16!]).toEqual(expected.flatMap((value, index) => [value, value, value, alphas[index]!]));

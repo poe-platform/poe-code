@@ -23,7 +23,7 @@ it.each(fixtures.cases)(`${mode}: $name`, async ({ input, args, depth, rgba }) =
         : await runMagickCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
     expect(result.exitCode).toBe(0);
     expect("stderr" in result ? result.stderr : stderr).toBe(args.includes("-contrast")
-        ? 'magick: option has been replaced \'-contrast\', use "-level"\n' : "");
+        ? `magick: option has been replaced '-contrast', use "-level" at CLI arg ${argv.indexOf("-contrast") + 1}\n` : "");
     const output = decodeImage(mode === "command" || mode === "retained"
         ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
     expect(Array.from(depth === 16 ? output.data16! : output.data)).toEqual(rgba);

@@ -7897,6 +7897,13 @@ function tryHandleMagickListOption(argv: readonly string[]): ImageMagickCliResul
                     stderr: ""
                 };
             }
+            if (listType === "intensity") {
+                return {
+                    exitCode: 0,
+                    stdout: "Average\nBrightness\nLightness\nMean\nMS\nRec601Luma\nRec601Luminance\nRec709Luma\nRec709Luminance\nRMS\n",
+                    stderr: ""
+                };
+            }
             if (listType === "autothreshold") {
                 return { exitCode: 0, stdout: "Kapur\nOTSU\nTriangle\n", stderr: "" };
             }

@@ -69,7 +69,7 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
   // Native byte-depth binary rasters use the stored byte, even below maxval 255.
   const sampleMax = (magic === "P5" || magic === "P6" || magic === "P7") && maxval >= 128 && maxval <= 255 ? 255 : maxval;
   const rgba = new Uint8Array(width * height * 4);
-  const evaluateSamples = cmyk ? new Float64Array(rgba.length) : undefined;
+  const evaluateSamples = cmyk || 65535 % sampleMax !== 0 ? new Float64Array(rgba.length) : undefined;
   const hueSamples = cmyk ? new Float64Array(rgba.length) : undefined;
   // Retain precision whenever the input scale cannot be represented in 8 bits.
   const data16 = 255 % sampleMax !== 0 ? new Uint16Array(width * height * 4) : undefined;
@@ -105,7 +105,8 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
       const r = format === "pgm" ? Math.min(readSample(), sampleMax) : readSample(), g = channels >= 3 ? readSample() : r, b = channels >= 3 ? readSample() : r, k = cmyk ? readSample() : 0, a = hasAlpha ? readSample() : sampleMax;
       hueSamples?.set([r / sampleMax, g / sampleMax, b / sampleMax, k / sampleMax], i * 4);
       for (const [channel, value] of (cmyk ? [(sampleMax-r)*(sampleMax-k)/sampleMax, (sampleMax-g)*(sampleMax-k)/sampleMax, (sampleMax-b)*(sampleMax-k)/sampleMax, a] : [r, g, b, a]).entries()) {
-        if (evaluateSamples) evaluateSamples[i * 4 + channel] = value * 255 / sampleMax;
+        // HDRI stores each scaled quantum as a float, before integer output quantization.
+        if (evaluateSamples) evaluateSamples[i * 4 + channel] = cmyk ? value * 255 / sampleMax : Math.fround(value * 65535 / sampleMax) / 257;
         rgba[i * 4 + channel] = Math.round(value * 255 / sampleMax);
         if (data16) data16[i * 4 + channel] = Math.round(value * 65535 / sampleMax);
       }

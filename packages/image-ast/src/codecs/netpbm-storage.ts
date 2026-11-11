@@ -25,14 +25,14 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
  // Retain precision whenever the input scale cannot be represented in 8 bits.
  const storedData16=255%sampleMax!==0?{position:storage.allocate(width*height*8),length:width*height*4}:undefined;
  const storedHueSamples=cmyk?storage.allocate(width*height*32):undefined;
- const storedEvaluateSamples=cmyk?storage.allocate(width*height*32):undefined;
- const evaluated=cmyk?new Float64Array(2048):undefined;
- const inks=new Float64Array(2048);let usedInks=0,offsetInks=0;
- const flushInks=async():Promise<void>=>{
-  if(storedHueSamples===undefined||!usedInks)return;
-  await storage.write(storedHueSamples+offsetInks,new Uint8Array(inks.buffer,0,usedInks*8),{signal});
-  if(storedEvaluateSamples!==undefined&&evaluated)await storage.write(storedEvaluateSamples+offsetInks,new Uint8Array(evaluated.buffer,0,usedInks*8),{signal});
-  offsetInks+=usedInks*8;usedInks=0;
+ const storedEvaluateSamples=cmyk||65535%sampleMax!==0?storage.allocate(width*height*32):undefined;
+ const evaluated=storedEvaluateSamples!==undefined?new Float64Array(2048):undefined;
+ const inks=new Float64Array(2048);let usedSamples=0,offsetSamples=0;
+ const flushSamples=async():Promise<void>=>{
+  if(!usedSamples)return;
+  if(storedHueSamples!==undefined)await storage.write(storedHueSamples+offsetSamples,new Uint8Array(inks.buffer,0,usedSamples*8),{signal});
+  if(storedEvaluateSamples!==undefined&&evaluated)await storage.write(storedEvaluateSamples+offsetSamples,new Uint8Array(evaluated.buffer,0,usedSamples*8),{signal});
+  offsetSamples+=usedSamples*8;usedSamples=0;
  };
  const samples16=storedData16?new Uint16Array(2048):undefined;let used16=0,offset16=0;
  const flush16=async():Promise<void>=>{
@@ -70,8 +70,9 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
   else {
    const r=format==="pgm"?Math.min(await sample(),sampleMax):await sample(),g=channels>=3?await sample():r,b=channels>=3?await sample():r,k=cmyk?await sample():0,a=hasAlpha?await sample():sampleMax;
    const values=cmyk?[(sampleMax-r)*(sampleMax-k)/sampleMax,(sampleMax-g)*(sampleMax-k)/sampleMax,(sampleMax-b)*(sampleMax-k)/sampleMax,a]:[r,g,b,a];
-   if(evaluated)for(let channel=0;channel<4;channel++)evaluated[usedInks+channel]=values[channel]!*255/sampleMax;
-   if(cmyk){for(const value of [r,g,b,k])inks[usedInks++]=value/sampleMax;if(usedInks===inks.length)await flushInks();}
+   if(evaluated)for(let channel=0;channel<4;channel++)evaluated[usedSamples+channel]=cmyk?values[channel]!*255/sampleMax:Math.fround(values[channel]!*65535/sampleMax)/257;
+   if(cmyk)inks.set([r/sampleMax,g/sampleMax,b/sampleMax,k/sampleMax],usedSamples);
+   if(evaluated){usedSamples+=4;if(usedSamples===inks.length)await flushSamples();}
    await output.pixel(Math.round(values[0]!*255/sampleMax),Math.round(values[1]!*255/sampleMax),Math.round(values[2]!*255/sampleMax),hasAlpha?Math.round(a*255/sampleMax):255);
    if(samples16) {
     for(const value of values) samples16[used16++]=Math.round(value*65535/sampleMax);
@@ -80,7 +81,7 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
   }
  }
  await flush16();
- await flushInks();
+ await flushSamples();
  return {...await output.finish(),...(storedData16?{storedData16}:{}),...(storedHueSamples===undefined?{}:{storedHueSamples}),...(storedEvaluateSamples===undefined?{}:{storedEvaluateSamples})};
 }
 /** Owned output chunks and pull-driven backpressure; rows never require full buffers. */

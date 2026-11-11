@@ -13,10 +13,20 @@ it.each(["P2", "P3", "P5", "P6"].flatMap(magic => [65535, 1023, 2, 7].flatMap(ma
   const bytes = Buffer.concat([Buffer.from(`${magic}\n${width} 1\n${maxval}\n`), magic === "P2" || magic === "P3" ? Buffer.from(samples.join(" ")) : raster]);
   const expected = Array.from({length: width}, (_, pixel) => [...Array.from({length: 3}, (_, channel) => Math.round(samples[pixel * channels + (channels === 1 ? 0 : channel)]! * 65535 / maxval)), 65535]).flat();
   expect(Array.from(decodeNetpbmImage(bytes).data16 ?? [])).toEqual(expected);
+  const fractional = maxval === 65535 ? undefined : Float64Array.from(Array.from({length: width}, (_, pixel) => [...Array.from({length: 3}, (_, channel) => Math.fround(samples[pixel * channels + (channels === 1 ? 0 : channel)]! * 65535 / maxval) / 257), 255]).flat());
+  expect(decodeNetpbmImage(bytes).evaluateSamples).toEqual(fractional);
   const signal = new AbortController().signal;
   const storage = new PagedStorage({fs: new MemoryFileSystem(), cwd: "/", env: {}, signal}, 1);
   try {
     const image = await decodeNetpbmToStorage({size: bytes.length, async read(position, length) {return bytes.subarray(position, position + length);}}, storage, signal);
+    if (fractional) {
+      expect(image.storedEvaluateSamples).toBeDefined();
+      for (let offset = 0; offset < fractional.length; offset += 2048) {
+        const expectedChunk = fractional.subarray(offset, offset + 2048);
+        const raw = await storage.read(image.storedEvaluateSamples! + offset * 8, expectedChunk.byteLength);
+        expect(new Float64Array(raw.buffer, raw.byteOffset, raw.length / 8)).toEqual(expectedChunk);
+      }
+    } else expect(image.storedEvaluateSamples).toBeUndefined();
     expect(image.storedData16).toBeDefined();
     const raw = await storage.read(image.storedData16!.position, expected.length * 2);
     expect(Array.from(new Uint16Array(raw.buffer, raw.byteOffset, raw.length / 2))).toEqual(expected);

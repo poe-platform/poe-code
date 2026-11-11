@@ -1500,10 +1500,11 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
         means[c]! += delta / n;
         moments[c]! += delta * (value / range - means[c]!);
       }
-      while (bitDepth < (chunk.data16 ? 16 : 8)) {
+      while (bitDepth < (chunk.data16 || chunk.evaluateSamples || chunk.hueSamples ? 16 : 8)) {
         const levels = 2 ** bitDepth - 1;
-        // Effective depth requires exact representation, without rounding samples.
-        if ((value * levels) % range === 0) break;
+        // Compare native float quanta after reducing to the candidate depth.
+        const quantum = Math.fround(value * 65535 / range);
+        if (quantum === Math.fround(Math.round(quantum * levels / 65535) * 65535 / levels)) break;
         bitDepth++;
       }
       const v = chunk.data16 ? value : value * 257;

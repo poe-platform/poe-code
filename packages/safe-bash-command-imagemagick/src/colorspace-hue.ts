@@ -16,6 +16,7 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
     if (image.magickColorspace === target) return image;
     if (target === "CIELab" || target === "XYZ" || target === "HSL") image = { ...image, isPalette: false };
     const rec601 = target === "Rec601YCbCr" || image.magickColorspace === "Rec601YCbCr";
+    const ohta = target === "OHTA" || image.magickColorspace === "OHTA";
     const toHue = target !== "sRGB", hsb = toHue ? target === "HSB" || target === "HSV" : image.magickColorspace === "HSB" || image.magickColorspace === "HSV";
     const hwb = toHue ? target === "HWB" : image.magickColorspace === "HWB";
     const lch = target === "LCH" || target === "LCHab" || target === "LCHuv";
@@ -29,9 +30,9 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
     for (let offset = 0; offset < data.length; offset += 4) {
         if (offset % 65536 === 0) yield;
         let r = input[offset]! / range, g = input[offset + 1]! / range, b = input[offset + 2]! / range;
-        // Rec601 uses Q16 lookup indices in both directions, including float
+        // Rec601 and OHTA use Q16 lookup indices in both directions, including float
         // quantum rounding before the lookup; generic YCbCr uses direct arithmetic.
-        if (rec601) [r, g, b] = [r, g, b].map(value => Math.floor(Math.fround(Math.fround(Math.max(0, Math.min(1, value)) * 65535) + 0.5)) / 65535) as [number, number, number];
+        if (rec601 || ohta) [r, g, b] = [r, g, b].map(value => Math.floor(Math.fround(Math.fround(Math.max(0, Math.min(1, value)) * 65535) + 0.5)) / 65535) as [number, number, number];
         if (target === "ProPhoto" || image.magickColorspace === "ProPhoto") {
             [r, g, b] = convertProPhoto(r, g, b, target === "sRGB");
         } else if (target === "CMY" || image.magickColorspace === "CMY") {
@@ -80,10 +81,9 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
                 -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
                 -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s,
             ].map(value => value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055) as [number, number, number];
-        } else if (target === "OHTA" || image.magickColorspace === "OHTA") {
+        } else if (ohta) {
             // Native OHTA uses Q16 lookup tables in both directions. Its forward
             // chroma offset is 32768, while the inverse subtracts 32767.5.
-            [r, g, b] = [r, g, b].map(value => Math.round(Math.max(0, Math.min(1, value)) * 65535) / 65535) as [number, number, number];
             [r, g, b] = target === "OHTA"
                 ? [0.33333 * r + 0.33334 * g + 0.33333 * b,
                     32768 / 65535 + 0.5 * r - 0.5 * b,
@@ -331,7 +331,7 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
             // neutral chroma must round to exactly half-range before palette classification.
             const value = target === "ProPhoto" || image.magickColorspace === "ProPhoto" ? Math.fround(sample * 65535) / 65535
                 : target === "Adobe98" || image.magickColorspace === "Adobe98" || target === "XYZ" || image.magickColorspace === "XYZ" ? Math.fround(sample * 65535) / 65535
-                : rec601 && channel < 3 ? Math.fround(Math.max(0, Math.min(1, sample)) * 65535) / 65535
+                : (rec601 || ohta) && channel < 3 ? Math.fround(Math.max(0, Math.min(1, sample)) * 65535) / 65535
                 : target === "DisplayP3" || image.magickColorspace === "DisplayP3" || target === "CAT02LMS" || image.magickColorspace === "CAT02LMS" || target === "YIQ" || target === "YDbDr" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || target === "Rec709YCbCr" || image.magickColorspace === "Rec709YCbCr" || lch || sourceLch || target === "Jzazbz" || image.magickColorspace === "Jzazbz" || target === "xyY" || image.magickColorspace === "xyY" || target === "Oklch" || image.magickColorspace === "Oklch" || target === "Oklab" || image.magickColorspace === "Oklab" || target === "CIELab" || image.magickColorspace === "CIELab" || target === "HSI" || image.magickColorspace === "HSI" || target === "HSL" || image.magickColorspace === "HSL" || (target === "YPbPr" || target === "YCbCr") || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "YCC"
                 ? Math.fround(sample * 65535) / 65535 : sample;
             if (hueSamples) hueSamples[offset + channel] = value;

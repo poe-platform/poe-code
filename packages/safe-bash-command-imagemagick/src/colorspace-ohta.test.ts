@@ -8,6 +8,11 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 const colors = [[248, 29, 162], [11, 75, 254], [92, 240, 126], [140, 38, 93]];
 const input = Uint8Array.from([...new TextEncoder().encode("P6\n4 2\n255\n"), ...[1, 2, 3, 0, 3, 1, 0, 2].flatMap(index => colors[index]!)]);
 const cases = [
+    { name: "saturated blue OHTA round trip", args: ["xc:blue", "-colorspace", "OHTA", "-colorspace", "sRGB", "-depth", "16", "-endian", "MSB", "rgb:/out"], raw: "00010000fffe" },
+    { name: "saturated blue OHTA palette round trip", args: ["xc:blue", "-colorspace", "OHTA", "-unique-colors", "-colorspace", "sRGB", "-depth", "16", "-endian", "MSB", "rgb:/out"], raw: "00010000fffe" },
+    { name: "saturated red OHTA components", args: ["xc:red", "-colorspace", "OHTA", "-precision", "12", "-format", "%[fx:r]|%[fx:g]|%[fx:b]", "info:/out"], text: "0.333329995422|1|0.250007629511" },
+    { name: "saturated blue direct output control", args: ["xc:blue", "-depth", "16", "-endian", "MSB", "rgb:/out"], raw: "00000000ffff" },
+    { name: "saturated red OHTA round trip control", args: ["xc:red", "-colorspace", "OHTA", "-colorspace", "sRGB", "-depth", "16", "-endian", "MSB", "rgb:/out"], raw: "ffff00000000" },
     { name: "OHTA components", args: ["xc:#4080c0", "-colorspace", "OHTA", "-format", "%[fx:u.r] %[fx:u.g] %[fx:u.b]", "info:/out"], text: "0.501961 0.249027 0.500008" },
     { name: "OHTA label", args: ["xc:#4080c0", "-colorspace", "OHTA", "-format", "%[colorspace]", "info:/out"], text: "OHTA" },
     { name: "OHTA round trip", args: ["xc:#4080c0", "-colorspace", "OHTA", "-colorspace", "sRGB", "PNG64:/out"], width: 1, pixels: "40408081c0bfffff" },
@@ -36,6 +41,7 @@ for (const mode of ["command", "buffered", "sync"] as const) {
         expect(result.exitCode, "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toBe(0);
         const bytes = mode === "command" ? await fs.readFile("/out") : files.get("/out")!;
         if (test.text !== undefined) expect(new TextDecoder().decode(bytes)).toBe(test.text);
+        else if (test.raw !== undefined) expect(Array.from(bytes, value => value.toString(16).padStart(2, "0")).join("")).toBe(test.raw);
         else if (test.contains !== undefined) expect(new TextDecoder().decode(bytes)).toContain(test.contains);
         else {
             const output = decodeImage(bytes);

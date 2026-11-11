@@ -10,11 +10,8 @@ export const crc32Table = Uint32Array.from({ length: 256 }, (_, value) => {
 });
 
 function videoTimeBase(track: MediaTrack): [number, number] {
-  const ticks = Math.max(1, Math.round((track.decodedVideoFrames?.[0]?.durationSeconds ??
-    (track.samples[0]?.duration ?? 1) / track.timescale) * track.timescale));
-  let a = ticks, b = track.timescale;
-  while (b) [a, b] = [b, a % b];
-  return [ticks / a, track.timescale / a];
+  return encoderClock(track.decodedVideoFrames?.[0]?.durationSeconds ||
+    (track.samples[0]?.duration ?? 1) / track.timescale);
 }
 
 function encoderClock(timeBase: number): [number, number] {

@@ -11735,8 +11735,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     decodedVideoFrames: filtered.map(frame => ({ ...frame,
                       durationSeconds: (outputFormat === "rawvideo" ? frame.durationSeconds
                         : frame.durationSeconds || diagnostics.frameDuration) * diagnostics.frameRateScale,
-                      ptsSeconds: (outputFormat === "rawvideo" && outputFps !== undefined
-                        ? frame.ptsSeconds : Math.round(frame.ptsSeconds * filteredTimescale) / filteredTimescale) + offsetTicks / t.timescale }))
+                      ptsSeconds: frame.ptsSeconds + offsetTicks / t.timescale }))
                   };
                 }, context.signal)
               };

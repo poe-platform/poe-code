@@ -6,7 +6,7 @@ import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 import { fileURLToPath } from "node:url";
 import { defaultRuntime } from "@poe-code/compression";
-import { encodeJpegImage, decodeJpegImage } from "./codecs/jpeg.js";
+import { encodeJpegImage, decodeJpegImage, readJpegMetadata } from "./codecs/jpeg.js";
 import type { ImageMetadata, RgbaImage, SharpInputOptions } from "./ast.js";
 export interface JpegInputSpec {
   kind: "literal" | "encoded" | "synthetic";
@@ -3817,7 +3817,7 @@ it.each(jpegInputVectors)("decodes retained JPEG against frozen input $name", as
   expect(exif).toEqual(vector.spec.kind === "encoded"
     ? bytes.slice(30, 22 + new DataView(bytes.buffer, bytes.byteOffset).getUint16(22))
     : undefined);
-  expect(metadata).toEqual(vector.expected);
+  expect(metadata).toEqual({ ...vector.expected, jpegSamplingFactor: readJpegMetadata(bytes).jpegSamplingFactor });
   const hash = createHash("sha256");
   for (let at = 0; at < metadata.width * metadata.height * 4; at += 4096)
     hash.update(
@@ -4360,7 +4360,7 @@ it("decodes retained images and encodes WebP/raw in Workerd using bounded extern
     cf: false,
     script: bundled.outputFiles[0]!.text,
     serviceBindings: {
-      BACKING: async (request) => {
+      BACKING: async (request: Request) => {
         const url = new URL(request.url),
           [, id, operation] = url.pathname.split("/"),
           index = Number(id),

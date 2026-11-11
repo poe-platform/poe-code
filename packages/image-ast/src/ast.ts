@@ -61,6 +61,7 @@ export type ColorInput =
     };
 
 export interface RgbaImage {
+  readonly jpegSamplingFactor?: string;
   readonly montage?: { readonly geometry: string; readonly directory: readonly string[] } | undefined;
   /** Additional grayscale sample planes, following color and alpha. */
   metaChannels?: RgbaImage[] | undefined;

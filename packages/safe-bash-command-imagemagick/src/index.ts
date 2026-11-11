@@ -7767,7 +7767,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         }
         else if (a === "-define" || a === "+define") {
             const value = argv[++i];
-            if (value === undefined) return { exitCode: 1, stdout: "", stderr: `identify: missing an argument for option '${a}'\n` };
+            if (value === undefined) { optionError = `identify: missing an argument for option '${a}'\n`; break; }
             const equals = value.indexOf("="), key = equals < 0 ? value : value.slice(0, equals);
             const setting = equals < 0 ? "" : value.slice(equals + 1);
             if (key === "identify:locate") locateMaximum = a === "-define" && setting.toLowerCase() === "maximum";
@@ -7779,7 +7779,8 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             // Metadata-first reading
         }
         else if (a === "-format" || a === "--format") {
-            customFormat = argv[++i] ?? "";
+            customFormat = argv[++i];
+            if (customFormat === undefined) { optionError = `identify: missing an argument for option '${a}'\n`; break; }
         }
         else if (a === "+format") {
             customFormat = undefined;

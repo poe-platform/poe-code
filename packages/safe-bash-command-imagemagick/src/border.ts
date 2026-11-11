@@ -1,7 +1,7 @@
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-export function* borderPixels(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "evaluateSamples" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples" | "storedHueSamples">> & { inactiveAlpha?: boolean | undefined }, left: number, top: number, color: RgbaColor & { cmyk?: readonly number[] }, highDepth: boolean, bottom = top): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* borderPixels(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "evaluateSamples" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples" | "storedHueSamples">> & { inactiveAlpha?: boolean | undefined }, left: number, top: number, color: RgbaColor & { cmyk?: readonly number[] }, highDepth: boolean, bottom = top, channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const width = image.width + left * 2, height = image.height + top + bottom;
     const cmyk = image.space === "cmyk";
     const backgroundInks = color.cmyk ?? [color.r / 255, color.g / 255, color.b / 255, 0];
@@ -32,6 +32,7 @@ export function* borderPixels(image: Pick<RgbaImage, "width" | "height" | "hasAl
                 const src = (pixel - first) * 4, dst = (pixel - x) * 4;
                 const alpha = image.hasAlpha || image.inactiveAlpha ? source[src + 3]! / maximum : 1, behind = background[3]! / maximum * (1 - alpha), combined = alpha + behind;
                 for (let channel = 0; channel < 4; channel++) {
+                    if (channels?.[channel] === false) continue;
                     // Native Over clamps each composited channel, including retained HDRI samples.
                     const value = Math.max(0, Math.min(maximum, channel === 3 ? combined * maximum : combined
                         ? (source[src + channel]! * alpha + background[channel]! * behind) / combined : background[channel]!));

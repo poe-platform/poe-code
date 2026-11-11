@@ -2,9 +2,14 @@ import type { OutputEncodeOptions, RgbaImage } from "../ast.js";
 import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 import { defaultRuntime } from "@poe-code/compression";
 
-function tgaHeader(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "orientation">, rle: boolean): Uint8Array {
+function tgaHeader(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "orientation" | "properties">, rle: boolean): Uint8Array {
   if (![image.width, image.height].every(value => Number.isInteger(value) && value > 0 && value <= 65535)) throw new RangeError("Invalid TGA dimensions");
-  const header = new Uint8Array(18), view = new DataView(header.buffer);
+  // Keep a surrogate pair at the byte limit intact before UTF-8 truncation.
+  const comment = (image.properties?.comment ?? "").slice(0, 256).split("\0", 1)[0];
+  const id = new TextEncoder().encode(comment).subarray(0, 255);
+  const header = new Uint8Array(18 + id.length), view = new DataView(header.buffer);
+  header[0] = id.length;
+  header.set(id, 18);
   header[2] = rle ? 10 : 2;
   view.setUint16(12, image.width, true);
   view.setUint16(14, image.height, true);

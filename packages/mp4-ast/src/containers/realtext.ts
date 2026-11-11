@@ -7,14 +7,14 @@ function timeMs(value: string | undefined): number | undefined {
   if (!value) return undefined;
   const parts = (value.endsWith("s") ? value.slice(0, -1) : value).split(":");
   if (parts.length > 3) return undefined;
-  let seconds = 0;
+  let ms = 0;
   for (const [index, part] of parts.entries()) {
     const digits = index === parts.length - 1 ? part.split(".") : [part];
     if (digits.length > 2 || !digits.every(digit => digit.length > 0 &&
       [...digit].every(char => char >= "0" && char <= "9"))) return undefined;
-    seconds = seconds * 60 + Number(part);
+    // RealText stores the field after the dot as a centisecond count.
+    ms = ms * 60 + Number(digits[0]) * 1000 + Number(digits[1] ?? "0") * 10;
   }
-  const ms = Math.round(seconds * 1000);
   return Number.isSafeInteger(ms) ? ms : undefined;
 }
 

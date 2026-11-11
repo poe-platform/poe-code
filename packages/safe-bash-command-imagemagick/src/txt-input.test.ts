@@ -13,6 +13,23 @@ const gray = `# ImageMagick pixel enumeration: 3,1,0,65535,gray
 1,0: (4661) #123512351235 gray(7.11223%)
 2,0: (65535) #FFFFFFFFFFFF gray(255)
 `;
+// ImageMagick 7 native output from PPM pixels 208040ff2200, -colorspace RGB txt:-.
+const linear = `# ImageMagick pixel enumeration: 2,1,0,255,rgb
+0,0: (4,55,13)  #04370D  rgb(1.44438%,21.5861%,5.12695%)
+1,0: (255,4,0)  #FF0400  rgb(100%,1.59963%,0%)
+`;
+for (const mode of ["buffered", "retained", "sync"] as const) {
+  it(`decodes native linear RGB TXT via ${mode}`, async () => {
+    const bytes = new TextEncoder().encode(linear);
+    const files = new Map([["/native.txt", bytes]]), filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/native.txt", bytes);
+    const args = ["/native.txt", "-colorspace", "sRGB", "-depth", "8", "rgb:/out.raw"];
+    const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+    expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+    const output = mode === "retained" ? await filesystem.readFile("/out.raw") : files.get("/out.raw")!;
+    expect([...output]).toEqual([34, 128, 64, 255, 34, 0]);
+  });
+}
 for (const mode of ["buffered", "retained", "sync"] as const) {
   for (const prefix of ["", "txt:"]) {
     it(`reads native TXT sequence with ${prefix || "signature"} via ${mode}`, async () => {

@@ -19392,6 +19392,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("aemphasis: unsupported ")) return { exitCode: 8 };
             if (msg.startsWith("aemphasis:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("Unknown input format:")) return { exitCode: 234 };
+            if (msg.startsWith("Invalid chapter index ")) return { exitCode: 234 };
             if (msg === audioConversionDisabled) return { exitCode: 234 };
             if (err instanceof RangeError && msg.startsWith("compensationdelay:")) return { exitCode: 222 };
             if (msg === "compensationdelay: invalid expression" || msg === "compensationdelay: invalid or unsupported expression") return { exitCode: 234 };

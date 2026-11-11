@@ -213,6 +213,7 @@ import {
   type MediaFeatureOptions,
   type MediaResourceLimits,
   type MediaTrack,
+  type SliceMediaOptions,
   type MediaVideoFrame,
   type Mp4MetadataTags
 } from "@poe-code/mp4-ast";
@@ -7302,6 +7303,19 @@ const subtitleCharencModeNames = new Map([
   ["-1", "do_nothing"], ["0", "auto"], ["1", "pre_decoder"], ["2", "ignore"]
 ]);
 
+function sliceInputMedia(doc: MediaDocument, options: SliceMediaOptions, copySubtitles: boolean): MediaDocument {
+  if (copySubtitles || !doc.tracks.some(track => track.type === "subtitle")) return sliceMp4(doc, options);
+  const tracks = doc.tracks.map(track => sliceMp4({ ...doc, tracks: [track] },
+    // Input recording limits do not stop subtitle decoding. Keep input seeking
+    // while applying the limit to other tracks and copied subtitles.
+    track.type === "subtitle"
+      ? { ...options, endSeconds: undefined, durationSeconds: undefined }
+      : options).tracks[0]!);
+  const durationSeconds = tracks.reduce((duration, track) =>
+    Math.max(duration, track.duration / Math.max(1, track.timescale)), 0);
+  return { ...doc, tracks, durationSeconds, duration: Math.round(durationSeconds * (doc.timescale || 1000)) };
+}
+
 function recodeSubtitles(doc: MediaDocument, charset: string): MediaDocument {
   const name = charset.toUpperCase();
   // WHATWG maps ASCII and ISO-8859-1 to Windows-1252; iconv does not.
@@ -8738,7 +8752,7 @@ export function evalSyncFfmpeg(
         doc = concatMp4(Array.from({ length: inp.streamLoop + 1 }, () => doc), { budget });
       }
       if (startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
-        doc = sliceMp4(doc, { inputSeek: startSeconds !== undefined, startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds, copyAudio: audioCodec === "copy", resetTimestamps: !copyTimestamps });
+        doc = sliceInputMedia(doc, { inputSeek: startSeconds !== undefined, startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds, copyAudio: audioCodec === "copy", resetTimestamps: !copyTimestamps }, subtitleCodec === "copy");
         if (videoCodec === "copy" && !copyPriorStart && startSeconds !== undefined) doc = discardOutputPreroll(doc, { video: videoCodec }, copyInitialNonKeyframes);
       }
       if (inp.streamLoop === -1) {
@@ -11879,14 +11893,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }), containerFormat: doc.containerFormat, metadata: doc.metadata };
                 }
                 // An empty raw seek is already sliced; retain its PCM codec and decoded audio.
-                if (!rawSeek || doc.durationSeconds > 0) doc = sliceMp4(doc, {
+                if (!rawSeek || doc.durationSeconds > 0) doc = sliceInputMedia(doc, {
                   inputSeek: startSeconds !== undefined,
                   startSeconds: rawSeek || concatInputSeek ? 0 : startSeconds,
                   endSeconds: (rawSeek || concatInputSeek) && inp.endSeconds !== undefined ? inp.endSeconds - startSeconds! : inp.endSeconds,
                   durationSeconds: inp.durationSeconds,
                   copyAudio: audioCodec === "copy",
                   resetTimestamps: !copyTimestamps
-                });
+                }, subtitleCodec === "copy");
                 if (videoCodec === "copy" && !copyPriorStart && startSeconds !== undefined) doc = discardOutputPreroll(doc, { video: videoCodec }, copyInitialNonKeyframes);
               }
               if (inp.streamLoop === -1) {

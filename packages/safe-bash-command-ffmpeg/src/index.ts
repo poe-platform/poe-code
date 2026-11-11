@@ -13798,6 +13798,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 }
                               }
                               if (prefixEnd === regionEnd) {
+                                // After replay, advance by emitted samples rather than input PTS gaps.
+                                if (loop! > 0) nextPts ??= pts + prefixEnd - offset;
                                 for (let repeat = 0; repeat < loop!; repeat++) {
                                   for (let sample = 0; sample < regionLength; sample += 1024) {
                                     if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }

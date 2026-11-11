@@ -57,10 +57,11 @@ export function* localThresholdPixelSteps(image: Pick<RgbaImage, "width" | "heig
                 x = index % width; y = Math.floor(index / width);
             } else return fill;
         }
-        const position = y * width + x, start = Math.floor(position / 1024) * 1024;
+        // Four Float64 samples per pixel must fit within a 16 KiB storage read.
+        const position = y * width + x, start = Math.floor(position / 512) * 512;
         let samples = blocks.get(start);
         if (!samples) {
-            const length = Math.min(1024, width * height - start) * 4;
+            const length = Math.min(512, width * height - start) * 4;
             const bytes = yield { kind: "read", hue, evaluate, highDepth: true, position: start * 4, length };
             if (!bytes || bytes.length !== length * (hue || evaluate ? 8 : 2)) throw new Error("Truncated local threshold pixels");
             samples = hue ? new Float64Array(bytes.slice().buffer)

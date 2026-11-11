@@ -22,7 +22,7 @@ export async function echoAudio(
     else position = position === 0 ? 1 : 0;
     if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
       const minimum = key === "extra_hw_frames" ? -1 : 0;
-      const number = parseFilterExpression(value, "aecho", key === "thread_type" ? { slice: 1 } : {
+      const number = parseFilterExpression(value, "aecho", key === "thread_type" ? { slice: 1, none: 0, default: 1, all: -1 } : {
         min: minimum, max: 2147483647, default: minimum
       });
       if (key === "thread_type"

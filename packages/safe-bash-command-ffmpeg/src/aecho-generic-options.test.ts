@@ -11,6 +11,8 @@ for (const graph of [false, true]) {
     ["threads=2147483647:extra_hw_frames=2147483647", 0],
     ["threads=default:extra_hw_frames=default", 0],
     ["threads=1+1:extra_hw_frames=2-1", 0],
+    ["thread_type=none", 0], ["thread_type=default", 0],
+    ["thread_type=all", 0], ["thread_type=all-slice", 0],
     ["thread_type=+slice", 0], ["thread_type=-slice", 0],
     ["thread_type=4294967295", 0],
     ["threads=-1", 222], ["threads=2147483648", 222],

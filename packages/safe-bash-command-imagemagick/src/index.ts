@@ -17932,6 +17932,7 @@ export function runMogrifyCliSync(argv: readonly string[], files: Map<string, Ui
 function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void, string[] | ImageMagickCliResult, void> {
     let cooperativeWork = 63;
     const options: string[] = [];
+    const swaps: number[][] = [];
     const operands: string[][] = [];
     const operations: string[] = [];
     const operandOperations: string[][] = [];
@@ -17958,6 +17959,15 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
         }
         else if (t === "-gravity" || t === "-geometry" || t === "-compose" || t === "-quality" || t === "-define" || t === "-resize" || t === "-fuzz" || t === "-depth" || t === "-endian" || t === "-interlace" || t === "-colorspace") {
             options.push(t, argv[++i] ?? "");
+        }
+        else if (t === "-swap" || t === "+swap") {
+            const spec = t === "-swap" ? argv[++i] : "-2,-1";
+            if (spec === undefined) return { exitCode: 1, stdout: "", stderr: "composite: missing argument '-swap'\n" };
+            try {
+                swaps.push(parseMagickSwapPositions(spec));
+            } catch (error) {
+                return { exitCode: 1, stdout: "", stderr: `composite: ${(error as Error).message}\n` };
+            }
         }
         else if (t === "-stereo") {
             stereo = argv[++i] ?? "";
@@ -18029,6 +18039,16 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
     const trailingOperations = operations.slice(operandOperations[operands.length - 2]!.length);
     for (let i = 0; i < operands.length - 1; i++) {
         if (operandOperations[i]!.length) operands[i] = ["(", ...operands[i]!, ...operandOperations[i]!, ")"];
+    }
+    for (const [first, second] of swaps) {
+        if (++cooperativeWork % 64 === 0) yield;
+        const length = operands.length - 1;
+        const a = first! < 0 ? length + first! : first!;
+        const b = second! < 0 ? length + second! : second!;
+        if (a < 0 || a >= length || b < 0 || b >= length) {
+            return { exitCode: 1, stdout: "", stderr: "composite: invalid image index -swap\n" };
+        }
+        [operands[a], operands[b]] = [operands[b]!, operands[a]!];
     }
     const overlay = operands[0]!;
     const base = operands[1]!;

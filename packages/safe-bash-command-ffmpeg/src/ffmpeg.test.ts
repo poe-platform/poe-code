@@ -1836,14 +1836,16 @@ describe("per-frame audio checksums", () => {
       "559634035f5df002db2c2a92319018124bdcf693acc7008f32a269e1705e0381",
       "2697af264dc1db05044267745e5bd6a3676ce9274d6b18d40c6860b606b11d90"
     ];
-    for (const version of [undefined, "1", "2"]) {
+    for (const [version, expected] of [[undefined, 2], ["1", 1], ["2", 2],
+      ["min", 1], ["max", 2], ["default", 2], ["1+1", 2], ["1.5", 2], ["1.49", 1],
+      ["default-min", 1]] as const) {
       for (const target of ["-", "/frames.txt"]) {
         const vfs = createTestVfs({ "/i.wav": input });
         const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-i", "/i.wav",
           "-f", "framehash", ...(version ? ["-format_version", version] : []), target], vfs);
         assert.equal(result.exitCode, 0, result.stderr);
         const output = target === "-" ? result.stdout : new TextDecoder().decode(vfs.store.get(target));
-        assert.ok(output.includes(`#version: ${version ?? "2"}\n#hash: SHA256\n`));
+        assert.ok(output.includes(`#version: ${expected}\n#hash: SHA256\n`));
         const rows = output.split("\n").filter(line => line && !line.startsWith("#"));
         assert.deepEqual(rows.map(row => row.split(",").map(field => field.trim())),
           digests.map((digest, i) => ["0", String(i * 512), String(i * 512),
@@ -1852,7 +1854,7 @@ describe("per-frame audio checksums", () => {
     }
   });
   it("rejects invalid framehash format versions without replacing output", async () => {
-    for (const version of ["0", "3", "invalid", "", "1.5"]) {
+    for (const version of ["0", "3", "invalid", "", "0.9", "2.1", "1+", "1/0", "0/0", "min(1,2)"]) {
       const vfs = createTestVfs({ "/i.wav": encodeWav({ sampleRate: 8000,
         channels: [new Float64Array(1200)] }), "/frames.txt": "keep" });
       const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/i.wav",
@@ -1860,6 +1862,20 @@ describe("per-frame audio checksums", () => {
       assert.notEqual(result.exitCode, 0);
       assert.ok(result.stderr.includes("format_version"));
       assert.equal(new TextDecoder().decode(vfs.store.get("/frames.txt")), "keep");
+    }
+  });
+  it("evaluates framemd5 version options without changing the packet digest", async () => {
+    for (const [value, expected] of [["1", 1], ["2", 2], ["min", 1], ["max", 2],
+      ["default", 2], ["1+1", 2], ["1.5", 2]] as const) {
+      const vfs = createTestVfs({ "/in.raw": Buffer.from("000100020003000400050006000700080009000a", "hex") });
+      const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-f", "s16le",
+        "-ar", "8000", "-ac", "1", "-i", "/in.raw", "-af", "anull",
+        "-format_version", value, "-f", "framemd5", "-"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.ok(result.stdout.includes(`#version: ${expected}\n`), result.stdout);
+      const rows = result.stdout.split("\n").filter(line => line && !line.startsWith("#"));
+      assert.deepEqual(rows.map(row => row.split(",").map(field => field.trim())),
+        [["0", "0", "0", "10", "20", "a78b11c4328e5e735b3dc23f4aee0b26"]]);
     }
   });
   it("honors framemd5 hash overrides for every PCM packet", async () => {

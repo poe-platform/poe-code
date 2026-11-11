@@ -230,7 +230,9 @@ the output format’s PCM codec; mismatches fail before writing sample data.
 Use `-f framehash -format_version 1 -` for version 1 per-packet audio or video hashes;
 AC-3 elementary input is detected by its frame headers or selected with `-f ac3`. `-c:a copy -f framemd5 -` hashes the original compressed frames on the native 90 kHz packet clock; AC-3 decoding and encoding are not supported.
 
-`framehash` and `framemd5` default to version 2 and accept `-format_version 1` or `2`.
+`framehash` and `framemd5` default to version 2. `-format_version` accepts expressions
+in the range 1–2, rounded to the nearest integer, including `1+1`, `1.5`, and the
+constants `min` (1), `max` (2), and `default` (2).
 `framemd5`, `framehash`, and `framecrc` write one row per video frame, with timestamps,
 duration, raw pixel byte count, and a digest (MD5, SHA256, or Adler-32 respectively).
 Use `-enc_time_base 1:1000` to express audio and video checksum timestamps and durations

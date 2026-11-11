@@ -8469,11 +8469,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-format_version") {
             const value = args[++i];
-            frameHashVersion = value?.trim() ? Number(value) : NaN;
-            if (frameHashVersion !== 1 && frameHashVersion !== 2) {
+            try {
+              frameHashVersion = parseFilterExpression(value ?? "", "format_version", { min: 1, max: 2, default: 2 });
+            } catch {
+              frameHashVersion = NaN;
+            }
+            if (!Number.isFinite(frameHashVersion) || frameHashVersion < 1 || frameHashVersion > 2) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid format_version: expected 1 or 2\n"), context.signal);
               return { exitCode: 1 };
             }
+            frameHashVersion = Math.round(frameHashVersion);
           } else if (arg === "-hash") {
             hashAlgorithm = args[++i] ?? "";
           } else if (arg === "-update" || arg === "-atomic_writing" || arg === "-strftime" || arg === "-reset_timestamps" || arg === "-write_empty_segments") {

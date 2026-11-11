@@ -9330,7 +9330,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             || (character === "+" || character === "-") && value.slice(0, index).includes(".")
                 && value[index - 1]?.toLowerCase() !== "e");
         const parts = [...value.trim()].map(character => character.trim() === "" ? "," : character).join("").split(",");
-        const scalar = Number(parts[0]);
+        const first = parts[0]!;
+        const unsigned = first.startsWith("+") || first.startsWith("-") ? first.slice(1) : first;
+        const scalar = unsigned.toLowerCase().startsWith("0x") ? Number(unsigned) * (first.startsWith("-") ? -1 : 1) : Number(first);
         const gamma = Number.isFinite(scalar) ? scalar : Number(suffix < 0 ? value : value.slice(0, suffix));
         if (!value.trim() || !Number.isFinite(gamma) || !parts.every(part => part.trim() && Number.isFinite(Number(part))) && [...value].some(character => character.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(character))) {
             throw new Error(`Invalid gamma: ${value}`);

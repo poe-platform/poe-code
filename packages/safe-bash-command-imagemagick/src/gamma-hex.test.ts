@@ -34,3 +34,29 @@ it.each(["2", "0x2", "0x1p+1"])("handles gamma %s through the public command wit
         ]);
     }
 });
+
+// Native ImageMagick 7.1.2-31 Q16-HDRI: xc:#345caa80 OP VALUE.
+for (const operator of ["-gamma", "+gamma"]) {
+    it.each(["2", "+2", "-2", "0x2", "+0x2", "-0x2", "+0X2", "-0X2"])(`${operator} reads signed gamma %s pixels and metadata`, async value => {
+        for (const metadata of [false, true]) {
+            const args = createCommandArguments([
+                "xc:#345caa80", operator, value,
+                ...(metadata ? ["-format", "%[gamma]", "info:"] : ["-depth", "8", "rgba:-"])
+            ]);
+            const output: Uint8Array[] = [];
+            let stderr = "";
+            const result = await createMagickCommand().execute({
+                command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs: new MemoryFileSystem(),
+                signal: new AbortController().signal, stdin: (async function* () {})(),
+                stdout: { async write(bytes) { output.push(bytes); } },
+                stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+            });
+            expect(result.exitCode, stderr).toBe(0);
+            expect(stderr).toBe("");
+            const negative = value.startsWith("-");
+            expect(Buffer.concat(output).toString(metadata ? "utf8" : "hex")).toBe(metadata
+                ? negative ? "-0.909091" : "0.909091"
+                : negative ? "ffffffff" : operator === "-gamma" ? "7399d0b5" : "0b217140");
+        }
+    });
+}

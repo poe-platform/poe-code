@@ -216,7 +216,8 @@ function contributions(index: number, source: number, target: number, blur: numb
         return { first, weights: new Float64Array(end - first).fill(1 / (end - first)) };
     }
     const { radius, weight } = resizeFilter(kernel, settings);
-    let scale = Math.max(1, source / target) * blur;
+    // Native support includes MagickEpsilon, retaining boundary taps at unit scale.
+    let scale = Math.max(1, source / target + 1e-12) * blur;
     const narrow = radius * scale < 0.5;
     // Native filter bisectors include MagickEpsilon, even at half-sample ties.
     const center = (index + 0.5) * source / target + 1e-12 - 0.5;

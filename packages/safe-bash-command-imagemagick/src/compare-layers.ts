@@ -82,6 +82,36 @@ export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: numbe
     if (right >= left) return { left, top, width: right - left + 1, height: bottom - top + 1 };
 }
 
+// The first frame can restore the empty canvas before drawing a transparent replacement.
+// OptimizePlus may still prefer a clearing patch when its total area is smaller.
+export function* initialFrameRestoreBounds(previous: Frame, current: Frame, fuzz: number, duplicate: boolean): ReturnType<typeof compareLayerBounds> {
+    const clear = yield* compareLayerBounds(previous, current, 0, "compareclear");
+    if (!clear) return;
+    const restored = yield* compareLayerBounds({ ...current, width: 0, height: 0 }, current, fuzz, "compareany");
+    if (!restored) return;
+    if (duplicate) {
+        const comparison = compareLayerBounds({ ...previous, hasAlpha: true }, current, fuzz, "compareany");
+        let next = comparison.next();
+        while (!next.done) {
+            const request = next.value;
+            let data = yield request;
+            if (request && request.image === 0 && !request.hue && data) {
+                data = data.slice();
+                for (let i = 3; i < data.length; i += 4) {
+                    const pixel = (request.position + i - 3) / 4;
+                    const x = pixel % previous.width, y = Math.floor(pixel / previous.width);
+                    if (!previous.hasAlpha) data[i] = data instanceof Uint16Array ? 65535 : 255;
+                    if (x >= clear.left && x < clear.left + clear.width && y >= clear.top && y < clear.top + clear.height) data[i] = 0;
+                }
+            }
+            next = comparison.next(data);
+        }
+        const area = next.value;
+        if (clear.width * clear.height + (area ? area.width * area.height : 1) < restored.width * restored.height) return;
+    }
+    return restored;
+}
+
 export function* optimizeTransparencyPixels(previous: Frame, current: Frame & Pick<RgbaImage, "space"> & { region?: Region | undefined }, fuzz: number, mask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const dx = (current.virtualCanvas?.x ?? 0) - (previous.virtualCanvas?.x ?? 0);
     const dy = (current.virtualCanvas?.y ?? 0) - (previous.virtualCanvas?.y ?? 0);

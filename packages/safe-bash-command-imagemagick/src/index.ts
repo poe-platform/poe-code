@@ -60,7 +60,7 @@ import { mapRasterInput } from "./map-input.js";
 import { rawRasterInput, rawPartitionPaths } from "./raw-rgb.js";
 import { encodeImage, encodeStoredImage, isRawCoder, type ImageFormat, type RawImage, type StoredRawImage } from "./raw-output.js";
 import { deskewAngleSteps, storedDeskewAngle, deskewPlan, deskewBackground } from "./deskew.js";
-import { compareLayerBounds, optimizePlusPixels, optimizeTransparencyPixels } from "./compare-layers.js";
+import { compareLayerBounds, initialFrameRestoreBounds, optimizePlusPixels, optimizeTransparencyPixels } from "./compare-layers.js";
 import { plasmaPixelSteps } from "./plasma.js";
 import { createMagickRandom } from "./random.js";
 import { evaluateNoiseSteps } from "./noise.js";
@@ -11685,6 +11685,24 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
             }
         }
         let area = transparent ? undefined : next.value;
+        if (n === 1 && area && current.hasAlpha && !optimize) {
+            const restoring = initialFrameRestoreBounds(previous, current, fuzz, false);
+            let back = restoring.next();
+            while (!back.done) {
+                if (!back.value) { yield; back = restoring.next(); }
+                else {
+                    const { image, position, length, hue } = back.value;
+                    const source = image ? current : previous;
+                    back = restoring.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length));
+                }
+            }
+            if (back.value) {
+                stack[n - 1] = { ...previous, disposal: 3 };
+                current = { ...current, disposal: n === stack.length - 1 ? 3 : 1 };
+                area = back.value;
+                stack[n] = current;
+            }
+        }
         // Restoring the preceding canvas can replace a return frame with a pause.
         const restored = n > 1 ? stack[n - 2] : undefined;
         if (area && area.width * area.height > 1 && restored &&
@@ -11744,6 +11762,27 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
             }
         }
         let area = transparent ? undefined : next.value;
+        if (n === 1 && area && current.hasAlpha && !optimize) {
+            const restoring = initialFrameRestoreBounds(previous, current, fuzz, false);
+            let back = restoring.next();
+            while (!back.done) {
+                if (!back.value) { await yieldTurn(signal); back = restoring.next(); }
+                else {
+                    const { image, position, length, hue } = back.value;
+                    const source = image ? current : previous;
+                    const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
+                        ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
+                        : await backend.storage.read(source.position + position, length);
+                    back = restoring.next(data);
+                }
+            }
+            if (back.value) {
+                await stack.set(n - 1, { ...previous, disposal: 3 });
+                current = { ...current, disposal: n === stack.length - 1 ? 3 : 1 };
+                area = back.value;
+                await stack.set(n, current);
+            }
+        }
         // Restoring the preceding canvas can replace a return frame with a pause.
         const restored = n > 1 ? await stack.get(n - 2) : undefined;
         if (area && area.width * area.height > 1 && restored &&
@@ -13910,6 +13949,24 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         frames.push({ ...metadata, ...yield* createSolidRgbaImageSteps(1, 1, { r: 255, g: 255, b: 255, a: 0 }, !!current.data16),
                             disposal: n === stack.length - 1 ? 3 : 1, virtualCanvas: { ...magickCropCanvas(current, 0, 0), x: -1, y: -1 } });
                         continue;
+                    }
+                    if (clear.value && n === 1) {
+                        const restoring = initialFrameRestoreBounds(previous, current, state.alphaFuzz, true);
+                        let back = restoring.next();
+                        while (!back.done) {
+                            if (!back.value) { yield; back = restoring.next(); }
+                            else {
+                                const { image, position, length, hue } = back.value;
+                                const source = image ? current : previous;
+                                back = restoring.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length));
+                            }
+                        }
+                        if (back.value) {
+                            frames[0] = { ...frames[0]!, disposal: 3 };
+                            frames.push({ ...yield* extractImageSteps(current, back.value),
+                                disposal: n === stack.length - 1 ? 3 : 1, virtualCanvas: magickCropCanvas(current, back.value.left, back.value.top) });
+                            continue;
+                        }
                     }
                     if (clear.value) {
                         // Keep the previous display, then clear only the pixels the next frame erases.
@@ -18116,6 +18173,28 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                                 disposal: n === stack.length - 1 ? 3 : 1, virtualCanvas: { ...magickCropCanvas(current, 0, 0), x: -1, y: -1 } });
                             previous = current;
                             continue;
+                        }
+                        if (clear.value && n === 1) {
+                            const restoring = initialFrameRestoreBounds(previous!, current, fuzz, true);
+                            let back = restoring.next();
+                            while (!back.done) {
+                                if (!back.value) { await yieldTurn(signal); back = restoring.next(); }
+                                else {
+                                    const { image, position, length, hue } = back.value;
+                                    const source = image ? current : previous!;
+                                    const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
+                                        ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
+                                        : await backend.storage.read(source.position + position, length);
+                                    back = restoring.next(data);
+                                }
+                            }
+                            if (back.value) {
+                                await frames.set(0, { ...(await frames.get(0))!, disposal: 3 });
+                                await frames.push({ ...await transformStoredImage(current, backend.storage, { kind: "extract", ...back.value }, signal),
+                                    disposal: n === stack.length - 1 ? 3 : 1, virtualCanvas: magickCropCanvas(current, back.value.left, back.value.top) });
+                                previous = current;
+                                continue;
+                            }
                         }
                         if (clear.value) {
                             const prior = (await frames.get(frames.length - 1))!;

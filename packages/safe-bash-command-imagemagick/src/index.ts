@@ -11104,11 +11104,13 @@ async function prepareStoredIcoPages(stack: StoredImageStack, image: StoredRgbaI
 }
 
 // Work backwards so every comparison sees the original full-canvas predecessor.
+// The first frame is compared with an empty canvas, but only an empty result is trimmed.
 // Clearing/restoring frames keep their disposal-dependent encoder optimization.
 function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimize: boolean): Generator<void, void, void> {
-    for (let n = stack.length - 1; n > 0; n--) {
-        const current = stack[n]!, previous = stack[n - 1]!;
-        if ((typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
+    for (let n = stack.length - 1; n >= 0; n--) {
+        const current = stack[n]!, previous = n > 0 ? stack[n - 1]! : { ...current, width: 0, height: 0 };
+        if ((n > 0 && (current.width !== previous.width || current.height !== previous.height)) ||
+            (typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
             (typeof previous.disposal === "number" ? previous.disposal : 0) > 1) continue;
         const bounds = compareLayerBounds(previous, current, fuzz, "compareany");
         let next = bounds.next();
@@ -11129,16 +11131,17 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
             stack[n] = { ...metadata, width: 1, height: 1, data: pause.data,
                 ...(pause.data16 ? { data16: pause.data16 } : {}), hasAlpha: true,
                 virtualCanvas: { ...magickCropCanvas(current, 0, 0), x: -1, y: -1 } };
-        } else if (area.width !== current.width || area.height !== current.height) {
+        } else if (n > 0 && (area.width !== current.width || area.height !== current.height)) {
             stack[n] = { ...yield* extractImageSteps(current, area), virtualCanvas: magickCropCanvas(current, area.left, area.top) };
         }
     }
 }
 
 async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: CompareFileSession, signal: AbortSignal, fuzz: number, optimize: boolean): Promise<void> {
-    for (let n = stack.length - 1; n > 0; n--) {
-        const current = (await stack.get(n))!, previous = (await stack.get(n - 1))!;
-        if ((typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
+    for (let n = stack.length - 1; n >= 0; n--) {
+        const current = (await stack.get(n))!, previous = n > 0 ? (await stack.get(n - 1))! : { ...current, width: 0, height: 0 };
+        if ((n > 0 && (current.width !== previous.width || current.height !== previous.height)) ||
+            (typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
             (typeof previous.disposal === "number" ? previous.disposal : 0) > 1) continue;
         const bounds = compareLayerBounds(previous, current, fuzz, "compareany");
         let next = bounds.next();
@@ -11161,7 +11164,7 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
             await stack.set(n, { ...metadata, width: 1, height: 1, position: pause.position,
                 ...(pause.storedData16 ? { storedData16: pause.storedData16 } : {}), hasAlpha: true,
                 virtualCanvas: { ...magickCropCanvas(current, 0, 0), x: -1, y: -1 } });
-        } else if (area.width !== current.width || area.height !== current.height) {
+        } else if (n > 0 && (area.width !== current.width || area.height !== current.height)) {
             await stack.set(n, { ...await transformStoredImage(current, backend.storage, { kind: "extract", ...area }, signal), virtualCanvas: magickCropCanvas(current, area.left, area.top) });
         }
     }
@@ -13145,6 +13148,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
             }
             stack = frames;
+            if (optimizePlus) yield* optimizeFrameRectanglesSteps(stack, state.alphaFuzz, false);
         }
         else if (t === "-layers" && layerMethod === "optimizetransparency") {
             i++;
@@ -17011,6 +17015,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     previous = comparison;
                 }
+                if (optimizePlus) await optimizeStoredFrameRectangles(frames, backend, signal, fuzz, false);
                 return frames;
             });
             continue;

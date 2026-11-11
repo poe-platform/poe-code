@@ -1,8 +1,8 @@
 import { defaultRuntime } from "@poe-code/compression";
 import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 
-export function netpbmFormat(samples: Uint8Array | Uint16Array): "pbm" | "pgm" | "ppm" {
-    const maximum = samples instanceof Uint16Array ? 65535 : 255;
+export function netpbmFormat(samples: Uint8Array | Uint16Array | Float32Array): "pbm" | "pgm" | "ppm" {
+    const maximum = samples instanceof Float32Array ? 1 : samples instanceof Uint16Array ? 65535 : 255;
     let format: "pbm" | "pgm" = "pbm";
     for (let i = 0; i < samples.length; i += 4) {
         const r = samples[i]!;

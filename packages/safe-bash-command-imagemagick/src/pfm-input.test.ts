@@ -38,3 +38,26 @@ for (const retained of [false, true]) {
         expect(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")).toEqual(original);
     });
 }
+
+for (const mode of ["sync", "buffered", "retained"] as const) for (const little of [false, true]) {
+    it.each([
+        { name: "neutral RGB", magic: "PF", values: [0.2, 0.2, 0.2, 0.7, 0.7, 0.7], operators: [], expectedMagic: "Pf", expected: [0.2, 0.7] },
+        { name: "thresholded RGB", magic: "PF", values: [0.1, 0.2, 0.3, 0.7, 0.8, 0.9], operators: ["-threshold", "50%"], expectedMagic: "Pf", expected: [0, 1] },
+        { name: "colored RGB", magic: "PF", values: [0.2, 0.3, 0.4, 0.7, 0.8, 0.9], operators: [], expectedMagic: "PF", expected: [0.2, 0.3, 0.4, 0.7, 0.8, 0.9] },
+        { name: "sub-16-bit color", magic: "PF", values: [0.2, 0.200001, 0.2, 0.7, 0.7, 0.7], operators: [], expectedMagic: "PF", expected: [0.2, 0.200001, 0.2, 0.7, 0.7, 0.7] },
+        { name: "grayscale", magic: "Pf", values: [-0.2, 1.7], operators: [], expectedMagic: "Pf", expected: [-0.2, 1.7] }
+    ])(`selects PFM channels from output samples: $name (${mode}, little=${little})`, async ({ magic, values, operators, expectedMagic, expected }) => {
+        const header = Buffer.from(`${magic}\n2 1\n${little ? "-1.0" : "1.0"}\n`);
+        const input = Buffer.alloc(header.length + values.length * 4); input.set(header);
+        values.forEach((value, i) => little ? input.writeFloatLE(value, header.length + i * 4) : input.writeFloatBE(value, header.length + i * 4));
+        const files = new Map<string, Uint8Array>([["/in.pfm", input]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/in.pfm", input);
+        const args = ["/in.pfm", ...operators, "/out.pfm"];
+        const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+        const output = Buffer.from(mode === "retained" ? await filesystem.readFile("/out.pfm") : files.get("/out.pfm")!);
+        expect(output.subarray(0, header.length).toString()).toBe(`${expectedMagic}\n2 1\n${little ? "-1.0" : "1.0"}\n`);
+        expect(output.length).toBe(header.length + expected.length * 4);
+        expect(expected.map((_, i) => little ? output.readFloatLE(header.length + i * 4) : output.readFloatBE(header.length + i * 4))).toEqual(expected.map(Math.fround));
+    });
+}

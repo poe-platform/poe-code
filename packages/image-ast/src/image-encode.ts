@@ -6,7 +6,7 @@ import { encodeXwdFromStorage } from "./codecs/xwd-output.js";
 import { encodeXpmFromStorage } from "./codecs/xpm-output.js";
 import { encodeHdrFromStorage } from "./codecs/hdr-output.js";
 import { encodeExrFromStorage } from "./codecs/exr-output.js";
-import { encodePfmFromStorage } from "./codecs/pfm-output.js";
+import { encodePfmFromStorage, storedPfmChannels } from "./codecs/pfm-output.js";
 import {encodeTgaFromStorage} from "./codecs/tga-output.js";
 import {encodeIcoFromStorage} from "./codecs/ico-output.js";
 import {encodeMngFromStorage} from "./codecs/mng.js";
@@ -36,7 +36,7 @@ export function isStoredOutputFormat(format:ImageFormat):boolean {
 export async function* encodeStoredImage(image:StoredRgbaImage,backing:ImageByteStorage,signal:AbortSignal,encoding:OutputEncodeOptions):AsyncGenerator<Uint8Array,OutputInfo|undefined> {
  const requested=imageOutputFormat(image.format,encoding.format);
  const format=requested==="pnm"?await storedNetpbmFormat(image,backing,signal):requested;if(!isStoredOutputFormat(format))throw new UnsupportedStoredResource();
- const pfmChannels = (format === "pfm" || format === "phm") ? (image.storedDataFloat ? image.channels === 1 ? 1 : 3 : await storedNetpbmFormat(image,backing,signal) === "ppm" ? 3 : 1) : undefined;
+ const pfmChannels = (format === "pfm" || format === "phm") ? await storedPfmChannels(image,backing,signal) : undefined;
  let size=0;
  for await(const bytes of format==="psd"?encodePsdFromStorage(image,backing,signal):format==="pcx"?encodePcxFromStorage(image,backing,signal,encoding):format==="qoi"?encodeQoiFromStorage(image,backing,signal):format==="xbm"?encodeXbmFromStorage(image,backing,signal):format==="xwd"?encodeXwdFromStorage(image,backing,signal):format==="xpm"?encodeXpmFromStorage(image,backing,signal,encoding.outputFilename):format==="hdr"?encodeHdrFromStorage(image,backing,signal):format==="exr"?encodeExrFromStorage(image,backing,signal):(format==="pfm"||format==="phm")?encodePfmFromStorage(image,backing,signal,pfmChannels!,format,encoding.endian):format==="tga"?encodeTgaFromStorage(image,backing,signal,encoding):format==="ico"||format==="cur"?encodeIcoFromStorage(image,backing,signal):format==="mng"?encodeMngFromStorage(image,backing,signal,encoding):format==="apng"?encodeApngFromStorage(image,backing,signal,encoding):format==="miff"?encodeMiffFromStorage(image,backing,signal,encoding.miffDepth,encoding.miffCompression,encoding.loop):format==="pdf"?encodePdfFromStorage(image,backing,signal):["heic","heif","avif"].includes(format)?encodeHeifFromStorage(image,backing,signal,{...encoding,format}):format==="raw"?encodeRawFromStorage(image,backing,signal,encoding):format==="png"?encodePngFromStorage(image,backing,signal,encoding):format==="webp"?encodeWebpFromStorage(image,backing,signal,encoding):format==="jpeg"?encodeJpegFromStorage(image,backing,signal,encoding):format==="gif"?encodeGifFromStorage(image,backing,signal,encoding):format==="tiff"?encodeTiffFromStorage(image,backing,signal,encoding):format==="bmp"?encodeBmpFromStorage(image,backing,signal,encoding):encodeNetpbmFromStorage(image,backing,signal,format as "ppm"|"pgm"|"pbm"|"pam",encoding.netpbmDepth,encoding.netpbmAscii)) {size+=bytes.length;yield bytes;}
     const pngCoder = format === "png" && encoding.pngCoder !== "png00" ? encoding.pngCoder : undefined;

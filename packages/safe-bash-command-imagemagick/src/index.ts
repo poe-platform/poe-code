@@ -2590,8 +2590,10 @@ function resolveMagickChopGeometry(raw: string, image: Pick<RgbaImage, "width" |
     const { width, height } = image;
     const pageWidth = image.virtualCanvas?.width || width;
     const pageHeight = image.virtualCanvas?.height || height;
-    // Rectangle geometry ends at the first comma-separated field.
-    raw = raw.split(",", 1)[0]!.replaceAll("(", "").replaceAll(")", "");
+    // Rectangle numbers end at the first comma, but percent and ratio modifiers still apply.
+    const comma = raw.indexOf(",");
+    if (comma >= 0) raw = raw.slice(0, comma) + [...raw.slice(comma + 1)].filter(character => "%:/".includes(character)).join("");
+    raw = raw.replaceAll("(", "").replaceAll(")", "");
     // Once offsets begin, a following x terminates the rectangle geometry.
     raw = normalizeMagickOffsets([...raw].filter(character => character.trim() !== "").join(""));
     const offset = [...raw].findIndex((character, index) => (character === "+" || character === "-")

@@ -191,8 +191,12 @@ function emptyTrimPixel(image: RgbaImage | StoredRgbaImage, background?: RgbaCol
     // Native PNG reading leaves sub-byte grayscale bKGD samples unscaled.
     const value = image.format === "png" && image.space === "b-w" && image.backgroundColor && (image.bitsPerSample ?? 8) < 8
         ? Math.round(image.backgroundColor.b * (2 ** image.bitsPerSample! - 1) / 255)
-        : 255;
-    return new Uint8Array([value, value, value, 0]);
+        : undefined;
+    if (value === undefined && image.backgroundColor) {
+        const { r, g, b } = image.backgroundColor;
+        return new Uint8Array([r, g, b, 0]);
+    }
+    return new Uint8Array([value ?? 255, value ?? 255, value ?? 255, 0]);
 }
 
 export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor, emptyBackground?: RgbaColor, gravity?: GravityPosition): Generator<void, RgbaImage, void> {

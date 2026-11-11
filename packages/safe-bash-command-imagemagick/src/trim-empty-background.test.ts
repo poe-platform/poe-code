@@ -7,6 +7,11 @@ for (const mode of ["command", "sync"] as const) {
     it.each([
         { background: ["-background", "red"], alpha: ["-alpha", "opaque"], pixel: [255, 0, 0, 255] },
         { background: ["-background", "red"], alpha: [], pixel: [255, 0, 0, 0] },
+        { background: ["-set", "background", "red"], alpha: [], pixel: [255, 0, 0, 0] },
+        { background: ["-set", "background", "red"], alpha: ["-alpha", "off"], pixel: [255, 0, 0, 255] },
+        { background: ["-set", "option:background", "red"], alpha: [], pixel: [255, 0, 0, 0] },
+        { background: ["-background", "blue", "-set", "background", "red"], alpha: [], pixel: [0, 0, 255, 0] },
+        { background: ["-set", "background", "blue", "-background", "red"], alpha: [], pixel: [255, 0, 0, 0] },
         { background: [], alpha: ["-alpha", "opaque"], pixel: [255, 255, 255, 255] },
     ])(`${mode}: uses the empty trim background ($background, $alpha)`, async ({ background, alpha, pixel }) => {
         const keep = new TextEncoder().encode("KEEP");

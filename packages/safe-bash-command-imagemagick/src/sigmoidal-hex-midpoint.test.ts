@@ -32,3 +32,44 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         expect(Buffer.from(output).toString("hex")).toBe(expected);
     });
 }
+
+for (const option of ["-sigmoidal-contrast", "+sigmoidal-contrast"]) {
+    it.each([
+        ["5x0x2e", "5x46", "f6c493b5d3dedc68", "5e9a1ac7320837a9"],
+        ["5x0x2E", "5x46", "f6c493b5d3dedc68", "5e9a1ac7320837a9"],
+        ["5,0x2e", "5x46", "f6c493b5d3dedc68", "5e9a1ac7320837a9"],
+        ["5x2e", "5x2", "f6c893d0d3eddc75", "5e881abe31fb379a"],
+        ["5x2E", "5x2", "f6c893d0d3eddc75", "5e881abe31fb379a"],
+        ["5x2.e", "5x2", "f6c893d0d3eddc75", "5e881abe31fb379a"],
+        ["5x0x2e%", "5x46%"],
+        ["5x0x20", "5x32"],
+        ["5x0x2e0", "5x736"],
+        ["5e"],
+        ["5x0x2f%"]
+    ])(`command: ${option} %s preserves native midpoint parsing`, async (geometry, equivalent?: string, forward?: string, inverse?: string) => {
+        // ImageMagick 7.1.2-35 Q16-HDRI, including alpha and 16-bit output.
+        const outputs: string[] = [];
+        for (const value of equivalent === undefined ? [geometry] : [geometry, equivalent]) {
+            const args = createCommandArguments(["xc:#bc427580", option, value, "-depth", "16", "-endian", "MSB", "rgba:-"]);
+            const stdout: Uint8Array[] = [];
+            let stderr = "";
+            const result = await createMagickCommand().execute({
+                command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs: new MemoryFileSystem(),
+                signal: new AbortController().signal, stdin: (async function* () {})(),
+                stdout: { async write(bytes) { stdout.push(bytes); } },
+                stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+            });
+            const output = Buffer.concat(stdout).toString("hex");
+            expect(result.exitCode, stderr).toBe(equivalent === undefined ? 1 : 0);
+            if (equivalent === undefined) {
+                expect(output).toBe("");
+                expect(stderr).toContain(`invalid argument for option '${option}'`);
+            } else {
+                expect(output).toHaveLength(16);
+                if (forward !== undefined) expect(output).toBe(option === "-sigmoidal-contrast" ? forward : inverse);
+                outputs.push(output);
+            }
+        }
+        if (equivalent !== undefined) expect(outputs[0]).toBe(outputs[1]);
+    });
+}

@@ -10260,7 +10260,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         // Native geometry treats signed ratio fields as offsets, not divisors.
         // Its safe reciprocal also accepts zero and very small denominators.
         const strength = parseFloat(cStr ?? "") * (ratio && !signedRatio ? 1 / Math.max(1e-12, parseFloat(mStr ?? "1")) : 1);
-        if (!Number.isFinite(magnitude) || !Number.isFinite(strength) || raw.endsWith("e") || raw.endsWith("E")) {
+        // Incomplete exponents are invalid in the strength, but accepted in the midpoint.
+        if (!Number.isFinite(magnitude) || !Number.isFinite(strength) || cStr.endsWith("e") || cStr.endsWith("E")) {
             throw new Error(`invalid argument for option '${token}': ${raw}`);
         }
         const beta = Math.max(1e-4, strength);

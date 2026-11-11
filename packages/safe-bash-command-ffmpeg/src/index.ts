@@ -2967,6 +2967,56 @@ async function applyVideoFilterChain(
         const { native: ignoredNative, ...frame } = f;
         return { ...frame, width, height, data };
       }, signal);
+    } else if (name === "boxblur") {
+      if (pixelFormat !== "gray" && pixelFormat !== "gray8") throw new Error("boxblur: requires 8-bit grayscale input");
+      let radiusExpression = "2", power = 2;
+      for (const [index, option] of (argStr ? positional : []).entries()) {
+        const separator = option.indexOf("=");
+        const key = separator < 0 ? ["lr", "lp"][index] : option.slice(0, separator);
+        const value = separator < 0 ? option : option.slice(separator + 1);
+        if (key === "enable") continue;
+        if (key === "lr" || key === "luma_radius") radiusExpression = value;
+        else if (key === "lp" || key === "luma_power") {
+          power = parseFilterExpression(value, "boxblur", {});
+          if (!Number.isSafeInteger(power) || power < 0 || power > 2147483647) throw new Error("boxblur: invalid power");
+        } else throw new Error(`boxblur: unsupported option ${key ?? option}`);
+      }
+      current = await mapWork(current, async (frame, n) => {
+        const radius = Math.trunc(parseFilterExpression(radiusExpression, "boxblur", { w: frame.width, h: frame.height, cw: frame.width, ch: frame.height, hsub: 1, vsub: 1 }));
+        if (!Number.isSafeInteger(radius) || radius < 0 || radius > Math.min(frame.width, frame.height) / 2) throw new Error("boxblur: invalid radius");
+        if (!radius || !power || (named.enable !== undefined &&
+            Math.abs(parseFilterExpression(named.enable, "boxblur enable", { n, t: frame.ptsSeconds, w: frame.width, h: frame.height })) < 0.5)) return frame;
+        budget.allocateMemory(frame.data.byteLength * 2);
+        let data = new Uint8Array(frame.data), output = new Uint8Array(data.length);
+        const divisor = radius * 2 + 1;
+        const reciprocal = Math.floor((65536 + divisor / 2) / divisor);
+        // FFmpeg repeats the horizontal pass before repeating the vertical pass.
+        // Edge samples reflect with the boundary pixel included on both sides.
+        for (const vertical of [false, true]) {
+          const length = vertical ? frame.height : frame.width;
+          const lines = vertical ? frame.width : frame.height;
+          const stride = vertical ? frame.width * 4 : 4;
+          for (let pass = 0; pass < power; pass++) {
+            for (let line = 0; line < lines; line++) {
+              if (line % 16 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+              const start = vertical ? line * 4 : line * frame.width * 4;
+              const sample = (position: number) => data[start + (position < 0 ? -position - 1 : position >= length ? 2 * length - position - 1 : position) * stride]!;
+              let sum = 0;
+              for (let offset = -radius; offset <= radius; offset++) sum += sample(offset);
+              for (let position = 0; position < length; position++) {
+                const offset = start + position * stride;
+                const value = Math.floor((sum * reciprocal + 32768) / 65536);
+                output[offset] = output[offset + 1] = output[offset + 2] = value;
+                output[offset + 3] = 255;
+                sum += sample(position + radius + 1) - sample(position - radius);
+              }
+            }
+            [data, output] = [output, data];
+          }
+        }
+        const { native: ignoredNative, ...rest } = frame;
+        return { ...rest, data };
+      }, signal);
     } else if (name === "pixscope") {
       if (argStr) throw new Error("pixscope: options are not supported");
       current = await mapWork(current, f => pixscopeFrame(f, budget, signal), signal);

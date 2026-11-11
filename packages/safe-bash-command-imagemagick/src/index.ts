@@ -2670,7 +2670,8 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     const g = resolveMagickSpliceGeometry(geomStr, img);
     const sw = g.width, sh = g.height;
     // Native splice truncates offsets before adjusting the gravity box.
-    const box = gravityAdjustBox(img.width, img.height, sw, sh, Math.trunc(g.x), Math.trunc(g.y), gravity);
+    // A zero-height band uses the page/image bitwise union for gravity placement.
+    const box = gravityAdjustBox(img.width, img.height, sw, sh || ((img.virtualCanvas?.height ?? 0) | img.height), Math.trunc(g.x), Math.trunc(g.y), gravity);
     // Native West splice uses the width for its vertical anchor.
     const anchor = resolveGravityOffset(sw, gravity === "west" ? sw : sh, gravity);
     const outW = img.width + sw;
@@ -15630,7 +15631,8 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     } else if (token === "-splice") {
         const splice = resolveMagickSpliceGeometry(geometry, image);
         const sw = splice.width, sh = splice.height;
-        const box = gravityAdjustBox(w, h, sw, sh, Math.trunc(splice.x), Math.trunc(splice.y), state.gravity);
+        // A zero-height band uses the page/image bitwise union for gravity placement.
+        const box = gravityAdjustBox(w, h, sw, sh || ((image.virtualCanvas?.height ?? 0) | h), Math.trunc(splice.x), Math.trunc(splice.y), state.gravity);
         // Native West splice uses the width for its vertical anchor.
         const anchor = resolveGravityOffset(sw, state.gravity === "west" ? sw : sh, state.gravity);
         width += sw; height += sh;

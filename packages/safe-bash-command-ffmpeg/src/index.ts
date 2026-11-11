@@ -8965,9 +8965,15 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         if (value !== "0" && value !== "1") throw new Error("Invalid write_id3v1: expected 0 or 1");
         writeId3v1 = value === "1";
-      } else if (arg === "-sample_fmt") {
-        sampleFormat = args[++i];
-        if (!sampleFormat) throw new Error("Missing sample_fmt value");
+      } else if (arg === "-sample_fmt" || arg.startsWith("-sample_fmt:")) {
+        const value = args[++i];
+        if (!value) throw new Error("Missing sample_fmt value");
+        const specifier = arg === "-sample_fmt" ? "" : arg.slice("-sample_fmt:".length);
+        metadataMapTracks([], specifier);
+        const [selector, index] = specifier.split(":");
+        if (selector === "a" ? index === undefined || Number(index) === 0 : !selector || Number(selector) === 0) {
+          sampleFormat = value;
+        }
       } else if (arg === "-ch_mode") {
         channelMode = args[++i];
         if (!channelMode) throw new Error("Missing ch_mode value");
@@ -11229,9 +11235,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             writeId3v1 = value === "1";
-          } else if (arg === "-sample_fmt") {
-            sampleFormat = args[++i];
-            if (!sampleFormat) throw new Error("Missing sample_fmt value");
+          } else if (arg === "-sample_fmt" || arg.startsWith("-sample_fmt:")) {
+            const value = args[++i];
+            if (!value) throw new Error("Missing sample_fmt value");
+            const specifier = arg === "-sample_fmt" ? "" : arg.slice("-sample_fmt:".length);
+            metadataMapTracks([], specifier);
+            const [selector, index] = specifier.split(":");
+            if (selector === "a" ? index === undefined || Number(index) === 0 : !selector || Number(selector) === 0) {
+              sampleFormat = value;
+            }
           } else if (arg === "-ch_mode") {
             channelMode = args[++i];
             if (!channelMode) throw new Error("Missing ch_mode value");

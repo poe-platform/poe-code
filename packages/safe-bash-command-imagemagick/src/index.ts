@@ -66,7 +66,7 @@ import { autoTonalMetaPixelSteps } from "./auto-tonal-meta.js";
 import { histogramPixelSteps } from "./histogram-kernel.js";
 import { convertHuePixels, prepareHueOutput, formatHuePixel, hueTextPixel, type HueMetadata } from "./colorspace-hue.js";
 import { enhancePixelSteps } from "./enhance-kernel.js";
-import { adaptiveSharpenEdgePixelSteps, adaptiveSharpenPixelSteps } from "./adaptive-sharpen-kernel.js";
+import { adaptiveEdgePixelSteps, adaptivePixelSteps } from "./adaptive-kernel.js";
 import { sharpenPixelSteps } from "./sharpen-kernel.js";
 import { despecklePixelSteps } from "./despeckle-kernel.js";
 import { waveletDenoisePixelSteps } from "./wavelet-denoise-kernel.js";
@@ -13944,17 +13944,17 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return yield* applyMagickRasterSteps(im, rotationalBlurPixelSteps(im, angle, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
             }, undefined, true);
         }
-        else if (t === "-adaptive-sharpen") {
+        else if (t === "-adaptive-sharpen" || t === "-adaptive-blur") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const spec = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(spec, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                validateMagickTransformGeometry(expanded, "-adaptive-sharpen");
+                validateMagickTransformGeometry(expanded, t);
                 const geometry = parseMagickGeometry(expanded);
                 if (Math.abs(geometry.height ?? 1) < 1e-12) return im;
-                const edges = yield* applyMagickRasterSteps(im, adaptiveSharpenEdgePixelSteps(im, geometry.width ?? 0), signal);
+                const edges = yield* applyMagickRasterSteps(im, adaptiveEdgePixelSteps(im, geometry.width ?? 0), signal);
                 const blurred = yield* applyMagickRasterSteps(edges, blurPixelSteps(edges, geometry, false), signal);
-                return yield* applyMagickRasterSteps(im, adaptiveSharpenPixelSteps(im, geometry), signal, im, [im, blurred]);
+                return yield* applyMagickRasterSteps(im, adaptivePixelSteps(im, geometry, t === "-adaptive-sharpen"), signal, im, [im, blurred]);
             });
         }
         else if (t === "-sharpen") {
@@ -17909,7 +17909,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const angle = parseMagickRotationalBlurAngle(expanded);
                 return transformStoredMagickRaster(image, backend, rotationalBlurPixelSteps(image, angle, background, virtualPixel, channels), signal);
             }, { handlesRegion: true }));
-        } else if (!operandsOnly && token === "-adaptive-sharpen") {
+        } else if (!operandsOnly && (token === "-adaptive-sharpen" || token === "-adaptive-blur")) {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
@@ -17918,12 +17918,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                validateMagickTransformGeometry(expanded, "-adaptive-sharpen");
+                validateMagickTransformGeometry(expanded, token);
                 const geometry = parseMagickGeometry(expanded);
                 if (Math.abs(geometry.height ?? 1) < 1e-12) return image;
-                const edges = await transformStoredMagickRaster(image, backend, adaptiveSharpenEdgePixelSteps(image, geometry.width ?? 0), signal);
+                const edges = await transformStoredMagickRaster(image, backend, adaptiveEdgePixelSteps(image, geometry.width ?? 0), signal);
                 const blurred = await transformStoredMagickRaster(edges, backend, blurPixelSteps(edges, geometry, false), signal);
-                return transformStoredMagickRaster(image, backend, adaptiveSharpenPixelSteps(image, geometry), signal, image, [image, blurred]);
+                return transformStoredMagickRaster(image, backend, adaptivePixelSteps(image, geometry, token === "-adaptive-sharpen"), signal, image, [image, blurred]);
             });
         } else if (!operandsOnly && token === "-sharpen") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
@@ -18425,7 +18425,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-kmeans",
         "-local-contrast",
         "-wavelet-denoise",
-        "-adaptive-sharpen",
+        "-adaptive-sharpen", "-adaptive-blur",
         "-sharpen",
         "-unsharp",
         "-median",

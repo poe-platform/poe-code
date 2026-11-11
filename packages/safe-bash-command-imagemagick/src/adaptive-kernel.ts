@@ -4,9 +4,9 @@ import { convolvePixelSteps, type ConvolveRequest } from "./convolve-kernel.js";
 type Image = Pick<RgbaImage, "width" | "height" | "hasAlpha">;
 
 /** Edge detection and auto-leveling, retaining HDRI values between operations. */
-export function* adaptiveSharpenEdgePixelSteps(image: Image, radius: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* adaptiveEdgePixelSteps(image: Image, radius: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const half = radius > 0 ? Math.ceil(radius) : 2;
-    if (!Number.isFinite(half) || half >= 5000) throw new Error("Adaptive sharpen radius exceeds 5000");
+    if (!Number.isFinite(half) || half >= 5000) throw new Error("Adaptive filter radius exceeds 5000");
     const width = half * 2 + 1, weights = Array<number>(width * width).fill(-1);
     weights[Math.floor(weights.length / 2)] = weights.length - 1;
     let low = Infinity, high = -Infinity;
@@ -20,7 +20,7 @@ export function* adaptiveSharpenEdgePixelSteps(image: Image, radius: number): Ge
                 let bytes = yield request;
                 if (request.evaluate && !bytes?.length) {
                     const source = yield { ...request, evaluate: false, highDepth: true };
-                    if (!source || source.length !== request.length * 2) throw new Error("Truncated adaptive sharpen pixels");
+                    if (!source || source.length !== request.length * 2) throw new Error("Truncated adaptive filter pixels");
                     bytes = new Uint8Array(Float64Array.from(new Uint16Array(source.slice().buffer), value => value / 257).buffer);
                 }
                 next = steps.next(bytes);
@@ -43,8 +43,8 @@ export function* adaptiveSharpenEdgePixelSteps(image: Image, radius: number): Ge
     }
 }
 
-/** Select a sharpening radius from the leveled, blurred edge intensity at each pixel. */
-export function* adaptiveSharpenPixelSteps(image: Image & Partial<Pick<RgbaImage, "evaluateSamples">> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples">>, geometry: { width?: number; height?: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+/** Select a blur or sharpening radius from the leveled, blurred edge intensity at each pixel. */
+export function* adaptivePixelSteps(image: Image & Partial<Pick<RgbaImage, "evaluateSamples">> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples">>, geometry: { width?: number; height?: number }, sharpen: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = geometry.height ?? 1;
     let half = radius > 0 ? Math.ceil(radius) : 1;
     if (radius <= 0) {
@@ -56,7 +56,7 @@ export function* adaptiveSharpenPixelSteps(image: Image & Partial<Pick<RgbaImage
             if (edge / (sum * sum) < 1 / 65535) { half--; break; }
         }
     }
-    if (!Number.isFinite(half) || half >= 5000) throw new Error("Adaptive sharpen radius exceeds 5000");
+    if (!Number.isFinite(half) || half >= 5000) throw new Error("Adaptive filter radius exceeds 5000");
     const kernels: Float64Array[] = [];
     for (let h = 0; h <= half; h++) {
         yield;
@@ -65,18 +65,19 @@ export function* adaptiveSharpenPixelSteps(image: Image & Partial<Pick<RgbaImage
         for (let y = -h; y <= h; y++) {
             yield;
             for (let x = -h; x <= h; x++) {
-                const weight = -Math.exp(-(x * x + y * y) / (2 * sigma * sigma)) / (2 * Math.PI * sigma * sigma);
+                const weight = (sharpen ? -1 : 1) * Math.exp(-(x * x + y * y) / (2 * sigma * sigma)) / (2 * Math.PI * sigma * sigma);
                 kernel[i++] = weight; sum += weight;
             }
         }
-        kernel[(kernel.length - 1) / 2] = sigma < 1e-12 ? 1 : -2 * sum;
+        const center = (kernel.length - 1) / 2;
+        kernel[center] = sigma < 1e-12 ? 1 : sharpen ? -2 * sum : kernel[center]! + (1 - sum);
         kernels.push(kernel);
     }
     let low = Infinity, high = -Infinity;
     for (let position = 0; position < width * height * 4; position += 4096) {
         const length = Math.min(4096, width * height * 4 - position);
         const bytes = yield { kind: "read", image: 1, evaluate: true, position, length };
-        if (!bytes || bytes.length !== length * 8) throw new Error("Truncated adaptive sharpen edges");
+        if (!bytes || bytes.length !== length * 8) throw new Error("Truncated adaptive filter edges");
         const samples = new Float64Array(bytes.slice().buffer);
         for (let i = 0; i < samples.length; i++) if (i % 4 !== 3 || image.hasAlpha) {
             low = Math.min(low, samples[i]!); high = Math.max(high, samples[i]!);
@@ -87,7 +88,7 @@ export function* adaptiveSharpenPixelSteps(image: Image & Partial<Pick<RgbaImage
         yield;
         const count = Math.min(256, width - left), position = (y * width + left) * 4;
         const edgeBytes = yield { kind: "read", image: 1, evaluate: true, position, length: count * 4 };
-        if (!edgeBytes || edgeBytes.length !== count * 32) throw new Error("Truncated adaptive sharpen edges");
+        if (!edgeBytes || edgeBytes.length !== count * 32) throw new Error("Truncated adaptive filter edges");
         const edges = new Float64Array(edgeBytes.slice().buffer);
         const rows = new Map<number, Float64Array>();
         const first = Math.max(0, left - half), last = Math.min(width - 1, left + count - 1 + half);
@@ -96,7 +97,7 @@ export function* adaptiveSharpenPixelSteps(image: Image & Partial<Pick<RgbaImage
             if (rows.has(sy)) continue;
             const length = (last - first + 1) * 4;
             const bytes = yield { kind: "read", evaluate, highDepth: !evaluate, position: (sy * width + first) * 4, length };
-            if (!bytes || bytes.length !== length * (evaluate ? 8 : 2)) throw new Error("Truncated adaptive sharpen pixels");
+            if (!bytes || bytes.length !== length * (evaluate ? 8 : 2)) throw new Error("Truncated adaptive filter pixels");
             rows.set(sy, evaluate ? new Float64Array(bytes.slice().buffer) : Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257));
         }
         const output = new Float64Array(count * 4);

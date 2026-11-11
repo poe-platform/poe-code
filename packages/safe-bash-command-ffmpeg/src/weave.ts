@@ -1,5 +1,6 @@
 import { scaleVideoPicture, type MediaBudgetTracker, type MediaVideoFrame } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function weave(
@@ -10,6 +11,11 @@ export async function weave(
   let field = 0;
   for (const [index, option] of options.entries()) {
     const separator = option.indexOf("=");
+    const key = separator < 0 ? "" : option.slice(0, separator).trim();
+    if (["threads", "thread_type", "extra_hw_frames"].includes(key)) {
+      validateWeaveGenericOption(key, option.slice(separator + 1).trim(), "weave");
+      continue;
+    }
     if (separator < 0 ? index !== 0 : option.slice(0, separator).trim() !== "first_field") {
       throw new Error("weave: unsupported option");
     }

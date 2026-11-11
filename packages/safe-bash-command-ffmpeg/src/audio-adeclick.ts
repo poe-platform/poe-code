@@ -2,6 +2,7 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 import { declickWindow } from "./audio-declick-window.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function declickAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
@@ -15,12 +16,18 @@ export async function declickAudio(
   const aliases = { w: "window", o: "overlap", a: "arorder", t: "threshold", b: "burst", n: "hsize", m: "method" } as const;
   const ranges = { window: [10, 100], overlap: [50, 95], arorder: [0, 25], threshold: [1, 100], burst: [0, 10], hsize: [100, 9999], method: [0, 1] };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [i, part] of (argument ? argument.split(":") : []).entries()) {
+  const parts = argument ? argument.split(":") : [];
+  if (argument.endsWith(":")) parts.pop();
+  for (const [i, part] of parts.entries()) {
     const separator = part.indexOf("=");
     const option = separator < 0 ? names[i] : part.slice(0, separator).trim();
+    const raw = (separator < 0 ? part : part.slice(separator + 1)).trim();
+    if (option === "threads" || option === "thread_type" || option === "extra_hw_frames") {
+      validateWeaveGenericOption(option, raw, name);
+      continue;
+    }
     const key = (aliases[option as keyof typeof aliases] ?? option) as keyof typeof options;
     if (!names.includes(key)) throw new Error(`${name}: unsupported option ${option}`);
-    const raw = (separator < 0 ? part : part.slice(separator + 1)).trim();
     const [min, max] = ranges[key];
     const value = parseFilterExpression(raw, name, {
       min: min!, max: max!, default: defaults[key],

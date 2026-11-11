@@ -11,6 +11,7 @@ for (const [options, status] of [
   [":threads=1+1:extra_hw_frames=2-1", 0],
   [":thread_type=+slice", 0], [":thread_type=-slice", 0],
   [":thread_type=4294967295", 0],
+  [":threads=all", 222], [":threads=none-1", 222], [":extra_hw_frames=all-1", 222],
   [":threads=-1", 222], [":threads=2147483648", 222],
   [":extra_hw_frames=-2", 222], [":extra_hw_frames=2147483648", 222],
   [":threads=", 234], [":threads=0/0", 234],

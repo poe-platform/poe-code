@@ -5,6 +5,8 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { createFfmpegCommand } from "./index.js";
 
 for (const option of ["thread_type=none", "thread_type=all", "thread_type=default",
+  "threads=none", "threads=0", "extra_hw_frames=none", "extra_hw_frames=0",
+  "extra_hw_frames=all", "extra_hw_frames=-1", "threads=all+1", "extra_hw_frames=none+all",
   "threads=max", "extra_hw_frames=max", "thread_type=slice", "threads=1", ""]) {
   for (const graph of [false, true]) {
     it(`silenceremove scheduling constant ${option || "control"} preserves native PCM (graph=${graph})`, async () => {

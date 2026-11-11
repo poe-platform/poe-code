@@ -40,8 +40,8 @@ export async function removeSilence(
     if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
       const number = parseFilterExpression(value, "silenceremove", key === "thread_type"
         ? { slice: 1, none: 0, all: -1, default: 1 }
-        : key === "threads" ? { default: 0, min: 0, max: 2147483647 }
-        : { default: -1, min: -1, max: 2147483647 });
+        : key === "threads" ? { default: 0, min: 0, max: 2147483647, none: 0, all: -1 }
+        : { default: -1, min: -1, max: 2147483647, none: 0, all: -1 });
       if (key === "thread_type"
         ? !Number.isInteger(number) || number < -2147483648 || number > 4294967295
         : !Number.isFinite(number) || number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {

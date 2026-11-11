@@ -19,7 +19,9 @@ export async function mixAudio(
     (input.channels === 1 ? 4 : input.channels === 2 ? 3 : input.channels === 6 ? 0x3f : undefined));
   const remix = inputs.map((input, index) => input.channels !== a.channels &&
     [layouts[0], layouts[index]].every(layout => layout === 4 || layout === 3 || layout === 0x3f || layout === 0x60f));
-  if (inputs.some((input, index) => !remix[index] && (input.channels !== a.channels || layouts[index] !== layouts[0]))) {
+  // Single-channel inputs mix at unity regardless of their speaker labels.
+  if (inputs.some((input, index) => !remix[index] &&
+    (input.channels !== a.channels || input.channels > 1 && layouts[index] !== layouts[0]))) {
     throw new Error("amix requires matching channel layouts");
   }
   let count = 2;

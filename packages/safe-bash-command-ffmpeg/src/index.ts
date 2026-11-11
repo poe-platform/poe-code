@@ -1547,6 +1547,7 @@ async function panAudio(
   const gains = names.map(() => new Float64Array(channels.length));
   const assigned = new Set<number>();
   let numberedInputs: boolean | undefined;
+  let pureMapping = true;
   for (const assignment of assignments) {
     if (assignment === "") continue;
     const normalize = assignment.includes("<");
@@ -1559,6 +1560,7 @@ async function panAudio(
     const expression = parts[1];
     let offset = 0;
     let sign = 1;
+    let activeInputs = 0;
     while (true) {
       while (expression[offset]?.trim() === "") offset++;
       const gainStart = offset;
@@ -1615,6 +1617,10 @@ async function panAudio(
       numberedInputs = numbered;
       if (referenced.has(input)) throw new Error(`pan: Can not reference in channel ${input} twice`);
       referenced.add(input);
+      if (gain !== 0) {
+        activeInputs++;
+        if (gain !== 1 || activeInputs > 1) pureMapping = false;
+      }
       const source = numbered ? input : inputNames.indexOf(inputName);
       if (source >= 0 && source < channels.length) gains[output]![source] = gain;
       if (offset === expression.length) break;
@@ -1627,6 +1633,11 @@ async function panAudio(
         for (let input = 0; input < channels.length; input++) gains[output]![input] = gains[output]![input]! / total;
       }
     }
+  }
+  // SWR rejects asymmetric front speakers for pure routing; explicit mixing bypasses this check.
+  // Classify the original gains, including absent inputs, before normalization. Single speakers are mono.
+  if (pureMapping && names.length > 1 && names.includes("FL") !== names.includes("FR")) {
+    throw new Error(`pan: unsupported output channel layout ${layout}`);
   }
   // Pure channel selection must retain the source sample precision.
   if (gains.every(row => row.every(gain => gain === 0 || gain === 1) &&
@@ -19766,6 +19777,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const unavailableChannel = msg.startsWith("channelmap: unavailable input channel") &&
               (err instanceof RangeError || msg.endsWith(" (unnamed layout)"));
             const unsupportedPanOrder = msg.startsWith("pan: unsupported output channel order ") ||
+              msg.startsWith("pan: unsupported output channel layout ") ||
               msg === "pan: unsupported input channel layout";
             if (err instanceof AlimiterError || err instanceof CompandError || unavailableChannel || unsupportedPanOrder) {
               if ((unavailableChannel || unsupportedPanOrder || ((err instanceof AlimiterError || err instanceof CompandError) && err.stage === "configuration")) && outputFormat !== "null" &&

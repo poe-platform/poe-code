@@ -9651,10 +9651,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         evaluate = true;
         const raw = tokens[++i] ?? "";
-        if (!Number.isFinite(Number.parseFloat(raw)) || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@^".includes(c))) {
+        const geometry = [...raw].filter(c => c.trim() !== "" && !"%!<>#^@()".includes(c)).join("");
+        if (!Number.isFinite(Number.parseFloat(geometry)) || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@^".includes(c))) {
             throw new Error(`invalid argument '-range-threshold' '${raw}'`);
         }
-        const geometry = [...raw].filter(c => c.trim() !== "" && !"%!<>#^@()".includes(c)).join("");
         const points = [0, 0, 0, 0];
         let position = 0;
         for (let field = 0; field < points.length; field++) {

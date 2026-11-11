@@ -12258,11 +12258,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geom = tokens[++i] ?? "100%";
             const k = t === "-sample" ? "nearest" : state.kernel;
-            stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+            for (let sceneIdx = 0; sceneIdx < stack.length; sceneIdx++) {
+                const im = stack[sceneIdx]!;
+                const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
-                return (yield* applyMagickResizeSteps(im, expanded, k, t === "-thumbnail", t === "-sample", t === "-scale", state.resizeFilter, magickSampleOffset(im, state.optionProperties?.["sample:offset"]), false, stack.length, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined));
-            }));
+                const [image] = yield* mapMagickImagesSteps([im], function* (im) {
+                    return (yield* applyMagickResizeSteps(im, expanded, k, t === "-thumbnail", t === "-sample", t === "-scale", state.resizeFilter, magickSampleOffset(im, state.optionProperties?.["sample:offset"]), false, stack.length, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined));
+                });
+                stack[sceneIdx] = image!;
+            }
         }
         else if (t === "-crop") {
             const geom = tokens[++i] ?? "100%";
@@ -15814,20 +15818,20 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return { ...result, isPalette: false, ...(virtualCanvas ? { virtualCanvas } : {}) };
             });
         } else if (!operandsOnly && ["-resize", "-scale", "-sample", "-thumbnail"].includes(token)) {
-            let thumbnailPages: number;
+            let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
-                thumbnailPages = stack.length;
+                images = stack;
                 return stack;
             });
             const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail", settings = state.resizeFilter;
             const optionProperties = state.optionProperties, channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 validateMagickTransformGeometry(expanded, token);
                 const options = magickResizeOptions(image, expanded, kernel ?? (thumbnail ? "lanczossharp" : undefined));
-                return resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, magickSampleOffset(image, optionProperties?.["sample:offset"]), false, thumbnailPages, channels);
+                return resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, magickSampleOffset(image, optionProperties?.["sample:offset"]), false, images.length, channels);
             });
         } else if (!operandsOnly && token === "-sort-pixels") {
             stackStep(async stack => {

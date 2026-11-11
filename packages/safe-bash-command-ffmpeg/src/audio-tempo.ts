@@ -20,7 +20,7 @@ export function parseTempo(argument: string): number {
 // FFmpeg aligns overlapping windows and feathers them
 // with a Hann window. Alignment can change the number of emitted samples.
 export async function filterTempo(
-  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, tempo: number, pcm16: boolean, frameSize: number,
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, tempo: number, sampleFormat: string, frameSize: number,
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<readonly Float32Array[]> {
   const length = channels[0]?.length ?? 0;
@@ -80,8 +80,14 @@ export async function filterTempo(
         const b = channel[current + i] ?? 0;
         // Match native float blending (fused multiply-add) and PCM16's
         // truncation toward zero, rather than the WAV encoder's rounding.
+        if (sampleFormat === "u8" && current + i >= 0) {
+          // Native blends unsigned levels, then truncates before recentering.
+          const sample = Math.fround((a * 128 + 128) * hann[hop + i]! + Math.fround((b * 128 + 128) * hann[i]!));
+          dst.push((Math.trunc(sample) - 128) / 128);
+          continue;
+        }
         const sample = current + i < 0 ? a : Math.fround(a * hann[hop + i]! + Math.fround(b * hann[i]!));
-        dst.push(pcm16 ? Math.trunc(sample * 32768) / 32768 : sample);
+        dst.push(sampleFormat === "s16" ? Math.trunc(sample * 32768) / 32768 : sample);
       }
       if (final) {
         for (let i = overlap; i < count; i++) dst.push(channel[current + i] ?? 0);

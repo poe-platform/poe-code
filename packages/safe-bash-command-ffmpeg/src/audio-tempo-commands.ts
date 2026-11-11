@@ -5,7 +5,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 // Scheduled updates must retain both WSOLA fragments and the partially filled
 // output frame: a command can arrive between loading and emitting a fragment.
 export async function filterScheduledTempo(
-  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, pcm16: boolean,
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, sampleFormat: string,
   tempo: number, commands: readonly { sample: number; expression: string }[],
   frames: readonly { start: number; end: number; pts: number }[], budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<{ channels: readonly Float32Array[]; frames: { start: number; end: number; pts: number; inputEnd: number }[] }> {
@@ -85,10 +85,16 @@ export async function filterScheduledTempo(
         const bIndex = position - current.output;
         const a = channel[previous.input + aIndex] ?? 0;
         const b = channel[current.input + bIndex] ?? 0;
+        if (blend && sampleFormat === "u8" && current.input + position - emitted >= 0) {
+          // Native blends unsigned levels, then truncates before recentering.
+          const sample = Math.fround(Math.fround((a * 128 + 128) * hann[aIndex]!) + Math.fround((b * 128 + 128) * hann[bIndex]!));
+          dst.push((Math.trunc(sample) - 128) / 128);
+          continue;
+        }
         // FFmpeg 7 rounds each float product before summing and truncating PCM16.
         const sample = !blend ? b : current.input + position - emitted < 0 ? a
           : Math.fround(Math.fround(a * hann[aIndex]!) + Math.fround(b * hann[bIndex]!));
-        dst.push(blend && pcm16 ? Math.trunc(sample * 32768) / 32768 : sample);
+        dst.push(blend && sampleFormat === "s16" ? Math.trunc(sample * 32768) / 32768 : sample);
       }
     }
     emitted = stop;

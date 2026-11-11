@@ -16419,7 +16419,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               start = end;
                             }
                           }
-                          const result = await filterScheduledTempo(stretched, origRate, panSampleFormat === "s16", tempo,
+                          const result = await filterScheduledTempo(stretched, origRate, panSampleFormat, tempo,
                             commands, audioTimestamps, budget, context.signal);
                           stretched = result.channels;
                           audioTimestamps = result.frames;
@@ -16436,7 +16436,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             command.sample = emitted;
                           }
                         } else {
-                          stretched = await filterTempo(stretched, origRate, tempo, panSampleFormat === "s16", frameSize, budget, context.signal);
+                          stretched = await filterTempo(stretched, origRate, tempo, panSampleFormat, frameSize, budget, context.signal);
                           // atempo emits frames sized for the new tempo on a continuous output timeline.
                           const length = stretched[0]?.length ?? 0;
                           budget.allocateMemory(Math.ceil(length / frameSize) * 24);

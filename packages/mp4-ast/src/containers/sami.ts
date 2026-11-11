@@ -11,6 +11,7 @@ function parseSami(bytes: Uint8Array): MediaDocument {
   let start: number | undefined;
   let paragraph = false;
   let text = "";
+  let lastCharacter = "";
   const flush = (end?: number) => {
     if (start !== undefined && suppressed) {
       decodeErrors.push("Error decoding subtitles: Operation not permitted");
@@ -25,6 +26,7 @@ function parseSami(bytes: Uint8Array): MediaDocument {
         data, size: data.length, offset: 0, isKeyframe: true, sampleDescriptionIndex: 1 });
     }
     text = "";
+    lastCharacter = "";
     suppressed = false;
   };
   const parser = new Parser({
@@ -42,26 +44,43 @@ function parseSami(bytes: Uint8Array): MediaDocument {
         let offset = parser.endIndex + 1;
         while (offset < source.length && " \t\r\n\f\v".includes(source[offset]!)) offset++;
         if (source.startsWith("&nbsp;", offset)) suppressed = true;
-        if (text) text = text.trimEnd() + "\n";
+        if (text) {
+          text = text.trimEnd() + "\n";
+          lastCharacter = "\n";
+        }
         paragraph = true;
       } else if (name === "br" && paragraph) {
         if (text.endsWith(" ")) text = text.slice(0, -1);
         text += "\n";
+        lastCharacter = "\n";
+      } else if (paragraph && ["b", "i", "u"].includes(name)) {
+        text += `<${name}>`;
+      } else if (paragraph && name === "font") {
+        const color = attributes.color?.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+        text += color === undefined ? "<font>" : `<font color="${color}">`;
       }
     },
     onclosetag(name) {
+      if (paragraph && ["b", "i", "u", "font"].includes(name)) text += `</${name}>`;
       if (name === "p" || name === "body") paragraph = false;
     },
     oncomment(value) {
-      if (paragraph && start !== undefined) text += `<!--${value}-->`;
+      if (paragraph && start !== undefined) {
+        text += `<!--${value}-->`;
+        lastCharacter = ">";
+      }
     },
     ontext(value) {
       if (!paragraph || start === undefined) return;
       for (const char of value) {
         if (char.trim() === "") {
-          if (text && !text.endsWith(" ") && !text.endsWith("\n")) text += " ";
+          if (lastCharacter && lastCharacter !== " " && lastCharacter !== "\n") {
+            text += " ";
+            lastCharacter = " ";
+          }
         } else {
           text += char;
+          lastCharacter = char;
         }
       }
     }

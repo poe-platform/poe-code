@@ -7725,7 +7725,8 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
       const samples = track.samples.map((sample, index) => {
         const description = track.codecDescriptions[sample.sampleDescriptionIndex - 1];
         const codec = description?.codecName;
-        if (codec === "webvtt" || codec === "subrip") {
+        const sami = doc.containerFormat === "sami";
+        if (codec === "webvtt" || codec === "subrip" || sami) {
           // Subtitle markup is ASCII; scan bytes without repairing invalid UTF-8.
           const text = decodeLatin1(sample.data);
           const parts: string[] = [];
@@ -7743,7 +7744,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           const fonts: number[] = [];
           const assFonts: Record<string, string>[] = [{}];
           const encodeAss = codec === "subrip" && (outputFormat === "ass" || containerCodec === "ass");
-          const encodeSrt = codec === "subrip" && outputFormat === "srt";
+          const encodeSrt = (codec === "subrip" || sami) && outputFormat === "srt";
           const webvtt = outputFormat === "webvtt" || containerCodec === "webvtt";
           let alignments = 0;
           let position = 0;
@@ -7794,7 +7795,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
                 }
               } else if (encodeSrt && ["s", "/s"].includes(tag)) {
                 parts.push(`<${tag}>`);
-              } else if (codec === "subrip" && !(encodeAss && (tag.startsWith("font ") || tag === "font" || tag === "/font"))
+              } else if ((codec === "subrip" || sami) && !(encodeAss && (tag.startsWith("font ") || tag === "font" || tag === "/font"))
                 && ((!webvtt && !encodeSrt && !encodeAss) || Array.from(tag.split(" ", 1)[0]!).some(char =>
                 !(char >= "0" && char <= "9" || char >= "a" && char <= "z"
                   || char >= "A" && char <= "Z" || char === "_" || char === "/")))) {

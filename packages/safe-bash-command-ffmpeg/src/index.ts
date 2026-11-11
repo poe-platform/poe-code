@@ -6168,6 +6168,84 @@ async function applyVideoFilterChain(
         PREV_INPTS: previousInput, PREV_INT: previousInput / timescale,
         PREV_OUTPTS: previousOutput, PREV_OUTT: previousOutput / timescale
       })) / timescale;
+    } else if (name === "gradfun") {
+      for (const key of Object.keys(named)) {
+        if (!["strength", "radius", "enable"].includes(key)) throw new Error(`gradfun: unsupported option ${key}`);
+      }
+      if (positional.some((part, index) => index > 1 && !part.includes("="))) {
+        throw new Error("gradfun: too many positional options");
+      }
+      const values = positional.map(part => !part || part.includes("=") ? undefined : part);
+      const strength = Math.fround(parseFilterExpression(named.strength ?? values[0] ?? "1.2", name, {}));
+      const radiusOption = parseFilterExpression(named.radius ?? values[1] ?? "16", name, {});
+      if (!Number.isFinite(strength) || strength < Math.fround(0.51) || strength > 64 ||
+          !Number.isFinite(radiusOption) || radiusOption < 4 || radiusOption > 32) {
+        throw new Error("gradfun: strength must be 0.51..64 and radius must be 4..32");
+      }
+      if (pixelFormat !== "gray" && pixelFormat !== "gray8") throw new Error("gradfun: only 8-bit grayscale video is supported");
+      const radius = (Math.round(radiusOption) + 1) & ~1;
+      const threshold = Math.trunc(32768 / strength);
+      const factor = Math.trunc(2097152 / (radius * radius));
+      const dither = [
+        [0, 96, 24, 120, 6, 102, 30, 126], [64, 32, 88, 56, 70, 38, 94, 62],
+        [16, 112, 8, 104, 22, 118, 14, 110], [80, 48, 72, 40, 86, 54, 78, 46],
+        [4, 100, 28, 124, 2, 98, 26, 122], [68, 36, 92, 60, 66, 34, 90, 58],
+        [20, 116, 12, 108, 18, 114, 10, 106], [84, 52, 76, 44, 82, 50, 74, 42]
+      ];
+      current = await mapWork(current, async (f, n) => {
+        if (Math.min(f.width, f.height) <= 2 * radius || (named.enable !== undefined &&
+            Math.abs(parseFilterExpression(named.enable, "gradfun enable", { n, t: f.ptsSeconds, w: f.width, h: f.height })) < 0.5)) return f;
+        const columns = Math.floor(f.width / 2);
+        budget.allocateMemory(f.data.byteLength + columns * 8);
+        const data = f.data.slice();
+        const sums = new Uint32Array(columns);
+        const blurred = new Uint32Array(columns);
+        // Native gradfun blurs 2x2 samples. Its first window starts at (2,2),
+        // and extends the first/last computed averages across the frame edges.
+        const hasWindow = f.height > 2 * radius + 1;
+        let top = hasWindow ? 2 : 0;
+        let work = 0;
+        for (let y = top; y < top + 2 * radius; y++) {
+          for (let x = 0; x < columns; x++) {
+            if (++work % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            sums[x] = sums[x]! + f.data[(y * f.width + 2 * x) * 4]! + f.data[(y * f.width + 2 * x + 1) * 4]!;
+          }
+        }
+        for (let y = 0; y < f.height; y++) {
+          const center = Math.max(radius, radius + 2 * Math.floor((y - radius) / 2));
+          if (center + 1 < f.height - radius && center - radius + 2 > top) {
+            for (let row = top; row < top + 2; row++) {
+              for (let x = 0; x < columns; x++) {
+                if (++work % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+                const old = (row * f.width + 2 * x) * 4;
+                const next = ((row + 2 * radius) * f.width + 2 * x) * 4;
+                sums[x] = sums[x]! + f.data[next]! + f.data[next + 4]! - f.data[old]! - f.data[old + 4]!;
+              }
+            }
+            top += 2;
+          }
+          let sum = 0;
+          for (let x = 0; x < radius; x++) sum += sums[x]!;
+          for (let x = radius; x < columns; x++) {
+            sum += sums[x]! - sums[x - radius]!;
+            blurred[x - radius] = Math.floor(sum * factor / 65536);
+          }
+          blurred[Math.max(0, columns - radius - 1)] = Math.floor(sum * factor / 65536);
+          for (let x = 0; x < f.width; x++) {
+            if (++work % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            const index = (y * f.width + x) * 4;
+            const column = (x >> 1) - radius / 2;
+            const average = hasWindow ? blurred[Math.max(0, Math.min(Math.max(0, columns - radius - 1), column))]!
+              : column < 0 ? 0 : sums[column]!;
+            const pixel = f.data[index]! << 7;
+            const delta = average - pixel;
+            const weight = Math.max(0, 127 - ((Math.abs(delta) * threshold) >> 16));
+            const value = Math.max(0, Math.min(255, (pixel + ((weight * weight * delta) >> 14) + dither[y & 7]![x & 7]!) >> 7));
+            data[index] = data[index + 1] = data[index + 2] = value;
+          }
+        }
+        return { ...f, data };
+      }, signal);
     } else if (name === "drawbox" || name === "drawgrid") {
       const grid = name === "drawgrid";
       const values = positional.map(part => part === "" || part.includes("=") ? undefined : part);

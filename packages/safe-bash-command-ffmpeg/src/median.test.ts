@@ -64,6 +64,27 @@ for (const [filter, hash] of [
   });
 }
 
+// Native FFmpeg references cover every pixel, including repeated edge samples.
+const defaultFixture = Buffer.from(Array.from({ length: 48 }, (_, i) => {
+  const x = i % 8;
+  const y = Math.floor(i / 8);
+  return x === 0 && y === 0 ? 245 : x === 3 && y === 2 ? 4 : (x * 37 + y * 29 + x * y * 3) % 251;
+}));
+for (const options of [
+  "", "planes=0:planes=default", "radius=2:radius=default",
+  "percentile=0:percentile=default", "radiusV=2:radiusV=default",
+  "2:0:2:0:radius=default:planes=default:radiusV=default:percentile=default",
+  "radius=2:radius=default+1:radius=default"
+]) {
+  it(`restores declared median defaults after ${options || "no options"}`, async () => {
+    const result = await run(options ? `median=${options}` : "median", defaultFixture, "gray", "8x6");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.output.length, 48);
+    assert.equal(createHash("sha256").update(result.output).digest("hex"),
+      "7209ba8789b5b7c6a1326c193341e8c77c40e493badf1eba6e41aa38741e3b99");
+  });
+}
+
 it("accepts named instances, expressions and the default vertical radius", async () => {
   const expected = await run("median=2:15:2:0.5");
   for (const filter of ["median@noise=radius=1+1", "median=radius=2:radiusV=0"]) {

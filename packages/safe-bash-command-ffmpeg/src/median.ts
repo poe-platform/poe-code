@@ -6,7 +6,8 @@ export async function median(
   frames: MediaVideoFrame[], options: string, pixelFormat: string | undefined,
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaVideoFrame[]> {
-  const values = { radius: 1, planes: 15, radiusV: 0, percentile: 0.5 };
+  const defaults = { radius: 1, planes: 15, radiusV: 0, percentile: 0.5 };
+  const values = { ...defaults };
   let enable: string | undefined;
   let named = false;
   for (const [index, option] of (options ? options.split(":") : []).entries()) {
@@ -21,7 +22,7 @@ export async function median(
     }
     const min = key === "radius" ? 1 : 0;
     const max = key === "percentile" ? 1 : key === "planes" ? 15 : 127;
-    const value = parseFilterExpression(expression, "median", { min, max, default: values[key] });
+    const value = parseFilterExpression(expression, "median", { min, max, default: defaults[key] });
     if (!Number.isFinite(value) || value < min || value > max) {
       throw new Error(`median: ${key} must be between ${min} and ${max}`);
     }

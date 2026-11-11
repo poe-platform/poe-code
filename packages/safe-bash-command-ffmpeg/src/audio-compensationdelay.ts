@@ -25,7 +25,16 @@ export async function compensateAudioDelay(
     if (separator < 0) optionPosition++;
     else optionPosition = optionPosition === 0 ? 1 : 0;
     const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    setOption(name!, raw);
+    if (name === "threads" || name === "extra_hw_frames") {
+      const min = name === "threads" ? 0 : -1;
+      const value = parseFilterExpression(raw, "compensationdelay", { min, max: 2147483647, default: min });
+      if (!Number.isFinite(value) || value < min || value > 2147483647) {
+        throw new RangeError(`compensationdelay: invalid ${name}`);
+      }
+      // Scheduling and hardware-frame options do not change the rendered PCM.
+    } else {
+      setOption(name!, raw);
+    }
   }
   function setOption(name: string, raw: string): void {
     if (name === "enable") {

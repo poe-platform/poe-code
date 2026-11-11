@@ -75,13 +75,24 @@ const cases: [string, readonly number[] | undefined][] = [
   ["stereotools=balance_out=0.5:bmode_out=power", [6000, 8000, -4000, 6000, 0, -8000, 800, 0]],
   ["stereotools=balance_in=0.5:bmode_in=power:delay=0.5:mode=lr>ms:balance_out=-0.5:bmode_out=amplitude:muter=1", [10500, 0, 1500, 0, -6000, 0, 600, 0]]
 ];
+for (const side of ["in", "out"]) {
+  for (const [value, expected] of [
+    ["1+1", [6000, 8000, -4000, 6000, 0, -8000, 800, 0]],
+    ["1.5", [6000, 8000, -4000, 6000, 0, -8000, 800, 0]],
+    ["max", [6000, 8000, -4000, 6000, 0, -8000, 800, 0]],
+    ["power-1", [6000, 6000, -4000, 4500, 0, -6000, 800, 0]],
+    ...["0.5", "default", "min"].map(value => [value, [6000, 4000, -4000, 3000, 0, -4000, 800, 0]] as const)
+  ] as const) {
+    cases.push([`stereotools=bmode_${side}=${value}:balance_${side}=0.5`, expected]);
+  }
+}
 for (const key of ["balance_in", "balance_out"]) {
   for (const value of ["", "-1.001", "1.001", "2", "NaN", "Infinity", "bad"]) {
     cases.push([`stereotools=${key}=${value}`, undefined]);
   }
 }
 for (const key of ["bmode_in", "bmode_out"]) {
-  for (const value of ["", "-1", "3", "NaN", "Infinity", "bad"]) {
+  for (const value of ["", "-1", "-0.1", "2.1", "2.5", "3", "1/0", "NaN", "Infinity", "bad"]) {
     cases.push([`stereotools=${key}=${value}`, undefined]);
   }
 }

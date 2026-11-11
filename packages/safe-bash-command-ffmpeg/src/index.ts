@@ -16240,12 +16240,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                             balance[key] = valueNumber;
                           } else if (key === "bmode_in" || key === "bmode_out") {
-                            let balanceMode = ["balance", "amplitude", "power"].indexOf(value);
-                            if (balanceMode < 0 && value !== "") balanceMode = Number(value);
-                            if (!Number.isInteger(balanceMode) || balanceMode < 0 || balanceMode > 2) {
+                            const balanceMode = parseFilterExpression(value, "stereotools", {
+                              balance: 0, amplitude: 1, power: 2, default: 0, min: 0, max: 2,
+                              PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+                            });
+                            if (!Number.isFinite(balanceMode) || balanceMode < 0 || balanceMode > 2) {
                               throw new Error(`stereotools: invalid ${key}`);
                             }
-                            balanceModes[key] = balanceMode;
+                            balanceModes[key] = roundToEven(balanceMode);
                           } else if (key === "base") {
                             base = parseFilterExpression(value, "stereotools", { min: -1, max: 1, default: 0 });
                             if (!Number.isFinite(base) || base < -1 || base > 1) {
@@ -16263,10 +16265,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                           } else if (key === "mode") {
                             mode = modes.indexOf(value);
-                            if (mode < 0 && value !== "") mode = Number(value);
-                            if (!Number.isInteger(mode) || mode < 0 || mode >= modes.length) {
+                            if (mode < 0) mode = parseFilterExpression(value, "stereotools", {
+                              default: 0, min: 0, max: modes.length - 1,
+                              PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+                            });
+                            if (!Number.isFinite(mode) || mode < 0 || mode > modes.length - 1) {
                               throw new Error("stereotools: invalid mode");
                             }
+                            mode = roundToEven(mode);
                           } else if (key === "mutel" || key === "muter" || key === "phasel" || key === "phaser" || key === "softclip") {
                             flags[key] = parseFilterBoolean(value, `stereotools: invalid ${key}`);
                           } else if (key === "enable") enable = value;

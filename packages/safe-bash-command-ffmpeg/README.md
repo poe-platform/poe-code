@@ -595,7 +595,10 @@ Use `mlev` and `slev` to adjust the mid and side levels (0.015625–64, default 
 Channel balance (`balance_in`, `balance_out`) ranges from -1 to 1 (default 0)
 and applies before or after channel conversion respectively. Positive values
 favor the right channel. `bmode_in` and `bmode_out` accept `balance` (default),
-`amplitude`, or `power`, also numbered 0–2. For example,
+`amplitude`, or `power`, also numbered 0–2. `mode` and both balance modes
+accept numeric expressions, such as `mode=1+1`, and round to the nearest integer
+with ties to even (`mode=1.5` selects `ms>lr`). Values must be within the option's
+range before rounding; `default`, `min`, and `max` are also accepted. For example,
 `stereotools=balance_in=1:mode=lr>rl` silences the input left channel before swapping.
 Stereo width `base` ranges from -1 to 1 (default 0): `base=-1` averages both
 channels, negative values narrow the image, and positive values widen it.

@@ -42,7 +42,12 @@ for (const [expression, expected] of [
   ["mutel=2", undefined],
   ["phaser=maybe", undefined],
   ["mode=11", undefined],
-  ["mode=1.5", undefined],
+  ...["1+1", "1.5", "2.5"].map(value => [
+    `mode=${value}`, [[-3000, -1000, 1000, 3000], [5000, 5000, 5000, 5000]]
+  ] as const),
+  ...["0.5", "default", "min"].map(value => [`mode=${value}`, [left, right]] as const),
+  ["mode=max", [[2500, 2500, 2500, 2500], [2500, 2500, 2500, 2500]]],
+  ...["-0.1", "10.1", "1/0", "NaN"].map(value => [`mode=${value}`, undefined] as const),
   ["mode=unknown", undefined],
   ["mode=LR>LR", undefined],
   ["MUTEL=True", undefined],

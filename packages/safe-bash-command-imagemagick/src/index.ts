@@ -14106,7 +14106,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         }
                         frames[frames.length - 1] = { ...prior, disposal };
                     }
-                    const { magickColorspace: ignoredSpace, gamma: ignoredGamma, hueSamples: ignoredHue, ...frameMetadata } = frame;
+                    const { magickColorspace: ignoredSpace, gamma: ignoredGamma, hueSamples: ignoredHue, region: ignoredRegion, ...frameMetadata } = frame;
                     if (!dispose) frames.push({ ...frameMetadata, space: canvas.space, ...(canvas.magickColorspace ? { magickColorspace: canvas.magickColorspace } : {}), channels: canvas.channels, ...(canvas.gamma === undefined ? {} : { gamma: canvas.gamma }), ...(canvas.hueSamples ? { hueSamples: canvas.hueSamples } : {}), width, height, data: canvas.data, ...(canvas.data16 ? { data16: canvas.data16 } : {}), ...(canvas.evaluateSamples ? { evaluateSamples: canvas.evaluateSamples } : {}), hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 }, disposal });
                     if (frame.disposal === 3) canvas = previous;
                     else if (frame.disposal === 2) {
@@ -18363,7 +18363,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }
                         await frames.set(index - 1, { ...prior, disposal });
                     }
-                    const { magickColorspace: ignoredSpace, gamma: ignoredGamma, storedHueSamples: ignoredHue, ...frameMetadata } = frame as StoredRgbaImage;
+                    const { magickColorspace: ignoredSpace, gamma: ignoredGamma, storedHueSamples: ignoredHue, region: ignoredRegion, ...frameMetadata } = frame as StoredRgbaImage;
                     if (!dispose) await frames.push({ ...frameMetadata, space: canvas.space, ...(canvas.magickColorspace ? { magickColorspace: canvas.magickColorspace } : {}), channels: canvas.channels, ...(canvas.gamma === undefined ? {} : { gamma: canvas.gamma }), ...(canvas.storedHueSamples === undefined ? {} : { storedHueSamples: canvas.storedHueSamples }), width, height, position: canvas.position, ...(canvas.storedData16 ? { storedData16: canvas.storedData16 } : {}), ...(canvas.storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples: canvas.storedEvaluateSamples }), hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 }, disposal });
                     if (frame.disposal === 3) canvas = previous;
                     else if (frame.disposal === 2) {

@@ -1889,7 +1889,7 @@ function warnUnknownMagickProperty(token: string, analysis: { warnings: string; 
 
 function* formatMagickPropertyStringSteps<Step=never>(
   fmt: string,
-  meta: ImageMetadata & { magickUnits?: MagickState["units"] } & Pick<RgbaImage, "readMask" | "writeMask" | "region" | "gravity"> & Pick<StoredRgbaImage, "storedWriteMask">,
+  meta: ImageMetadata & { magickUnits?: MagickState["units"] } & Pick<RgbaImage, "readMask" | "writeMask" | "region"> & Pick<StoredRgbaImage, "storedWriteMask">,
   getImage: () => RgbaImage,
   context: MagickFormatContext & { analysis?: { warnings: string; commandName?: string; errors?: string; readError?: boolean; boundsWarning?: boolean; unknownPropertyWarning?: boolean }; optionProperties?: Record<string, string> | undefined; fxStack?: readonly RgbaImage[] } = {},
   resolvePixels?: (property:string)=>Generator<Step,string,void>
@@ -1941,11 +1941,6 @@ function* formatMagickPropertyStringSteps<Step=never>(
     version: MAGICK_VERSION,
     directory: short.d!, basename: short.t!, extension: short.e!,
     interlace: Object.entries(meta.properties ?? {}).find(([key]) => key.toLowerCase() === "interlace")?.[1] ?? context.interlace ?? (meta.isProgressive ? meta.format.toUpperCase() : "None"),
-    ...(meta.gravity === undefined ? {} : { gravity: ({
-      northwest: "NorthWest", north: "North", northeast: "NorthEast",
-      west: "West", center: "Center", east: "East",
-      southwest: "SouthWest", south: "South", southeast: "SouthEast"
-    } as Partial<Record<GravityPosition, string>>)[meta.gravity] ?? "" }),
     scenes: short.n!,
     profiles: [...(meta.exif ? ["exif"] : []), ...(meta.icc ? ["icc"] : []), ...(meta.xmp ? ["xmp"] : []), ...Object.keys(meta.gifApplications ?? {}).map(name => `gif:${name.toLowerCase()}`)].join(","),
     gamma: String(Number((meta.gamma ?? 1 / 2.2).toPrecision(6))),

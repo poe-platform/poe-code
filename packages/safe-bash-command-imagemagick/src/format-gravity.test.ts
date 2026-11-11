@@ -13,13 +13,13 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     { args: [...inputs, "-gravity", "East", "+append"], expected: "East;" },
     { args: inputs, expected: ";;" },
     { args: [...inputs, "-append"], expected: ";" },
-    { args: ["-gravity", "east", ...inputs], expected: "East;East;" },
+    { args: ["-gravity", "east", ...inputs], expected: "east;east;" },
     { args: [...inputs, "-gravity", "East", "+gravity"], expected: "none;none;" },
     { args: [...inputs, "-gravity", "East", "+gravity", "-append"], expected: "none;" },
     { args: [...inputs, "-gravity", "East", "-gravity", "SouthWest"], expected: "SouthWest;SouthWest;" },
-    { args: ["-respect-parentheses", "(", "xc:red", "-gravity", "NorthEast", ")", "xc:blue"], expected: "NorthEast;;" },
-    { args: ["-respect-parentheses", "(", "xc:red", "-gravity", "NorthEast", ")", "xc:blue", "-append"], expected: "NorthEast;" }
-  ])(`formats per-image gravity (${mode}): $args`, async ({ args, expected }) => {
+    { args: ["-respect-parentheses", "(", "xc:red", "-gravity", "NorthEast", ")", "xc:blue"], expected: ";;" },
+    { args: ["-respect-parentheses", "(", "xc:red", "-gravity", "NorthEast", ")", "xc:blue", "-append"], expected: ";" }
+  ])(`formats active gravity (${mode}): $args`, async ({ args, expected }) => {
     const fs = new MemoryFileSystem();
     const keep = new TextEncoder().encode("KEEP");
     await fs.writeFile("/out", keep);

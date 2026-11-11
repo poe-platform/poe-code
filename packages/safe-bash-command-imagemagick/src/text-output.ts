@@ -30,8 +30,10 @@ export function srgbDepthEnumerationLine(x: number, y: number, samples: Uint8Arr
     const channels = working.map(value => Math.round(value * maximum));
     const color = channels.map(value => hex(value).padStart(maximum === 255 ? 2 : 4, "0")).join("");
     const rgb = channels.slice(0, 3);
-    const percent = working.slice(0, 3).some(value => Math.abs(value * 255 - Math.round(value * 255)) > 1e-9);
-    const values = working.slice(0, 3).map(value => percent ? `${Number((value * 100).toPrecision(6))}%` : String(Math.round(value * 255)));
+    // TXT annotations retain HDRI samples; tuples and hex use output-depth rounding.
+    const annotation = evaluated ? Array.from(evaluated.subarray(0, 3), value => value / 255) : working.slice(0, 3);
+    const percent = annotation.some(value => Math.abs(value * 255 - Math.round(value * 255)) > 1e-9);
+    const values = annotation.map(value => percent ? `${Number((value * 100).toPrecision(6))}%` : String(Math.round(value * 255)));
     if (hasAlpha) values.push(String(Number((evaluated && depth >= 16 ? evaluated[3]! / 255 : working[3]!).toPrecision(6))));
     const name = !hasAlpha || channels[3] === maximum ? histogramColorNames[(Math.round(rgb[0]! * 255 / maximum) << 16) | (Math.round(rgb[1]! * 255 / maximum) << 8) | Math.round(rgb[2]! * 255 / maximum)] : undefined;
     return `${x},${y}: (${channels.join(",")})  #${color}  ${name && !percent ? name : `srgb${hasAlpha ? "a" : ""}(${values.join(",")})`}`;

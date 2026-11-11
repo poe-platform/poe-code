@@ -8882,7 +8882,8 @@ export function evalSyncFfmpeg(
           path: args[++i] ?? "",
           format: pendingFormat,
           sampleRate: audioRate,
-          channels: audioChannelsForStream(audioChannelOptions, 0, 0),
+          // The raw demuxer uses the last -ac value regardless of stream selector.
+          channels: audioChannelOptions.at(-1)?.[1],
           skipInitialBytes: pendingSkipInitialBytes,
           ignoreLength: pendingIgnoreLength,
           maxSize: pendingMaxSize,
@@ -11067,7 +11068,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               path,
               format: pendingFormat,
               sampleRate: audioRate,
-              channels: audioChannelsForStream(audioChannelOptions, 0, 0),
+              // The raw demuxer uses the last -ac value regardless of stream selector.
+              channels: audioChannelOptions.at(-1)?.[1],
               subtitleFrameRate: pendingSubtitleFrameRate,
               subtitleCharencModes: pendingSubtitleCharencModes,
               subtitleCharsets: pendingSubtitleCharsets,

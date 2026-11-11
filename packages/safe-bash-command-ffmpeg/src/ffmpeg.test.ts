@@ -78,7 +78,7 @@ describe("audio channel stream specifiers", () => {
       const audio = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
       assert.equal(audio.sampleRate, 44100);
       assert.deepEqual(audio.channelData.map(samples => Array.from(samples, n => n * 32768)),
-        matches ? [left, right] : [left.flatMap((n, i) => [n, right[i]!])]);
+        [left, right]);
     });
   }
   for (const options of [["-ac", "2", "-ac:a:0", "1"], ["-ac:a:0", "2", "-ac", "1"], ["-ac:a", "1", "-ac:a:1", "2"]]) {

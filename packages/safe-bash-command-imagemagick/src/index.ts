@@ -7183,7 +7183,7 @@ function inferOutputFormat(spec: string, fallback: ImageFormat = "png", inputFor
     if (fmt) return { ...inferOutputFormat(`${ext}:${spec}`, fallback), path: spec };
   }
   if (spec === "-" && inputFormat) {
-    if (inputFormat === "PATTERN") throw new Error("no encode delegate for this image format 'PATTERN'");
+    if (inputFormat === "PATTERN" || inputFormat === "HALD") throw new Error(`no encode delegate for this image format '${inputFormat}'`);
     fallback = extToImageFormat(inputFormat) ?? fallback;
   }
   return { format: fallback, path: spec };
@@ -7386,7 +7386,7 @@ function parseInputToken(token:string):{baseToken:string;pageSpec?:string;inline
  return {baseToken,...(pageSpec===undefined?{}:{pageSpec}),...(inlineGeom===undefined?{}:{inlineGeom})};
 }
 
-function haldInputMetadata(token: string, inputDepth: number = 16): Omit<RgbaImage, "data"> {
+function haldInputMetadata(token: string, inputDepth: number = 16): Omit<MagickImage, "data"> {
     const parsed = Number.parseInt(token.slice(5), 10);
     const level = Number.isNaN(parsed) || parsed < 2 ? 8 : parsed;
     const width = level ** 3;
@@ -7398,7 +7398,7 @@ function haldInputMetadata(token: string, inputDepth: number = 16): Omit<RgbaIma
         0xff000000 + Math.round((pixel % side) * 255 / (side - 1)) * 65536
         + Math.round((Math.floor(pixel / side) % side) * 255 / (side - 1)) * 256
         + Math.round(Math.floor(pixel / (side * side)) * 255 / (side - 1))) : undefined;
-    return { width, height: width, format: "png", channels: 3, depth: 255 % (side - 1) === 0 ? "uchar" : "ushort", bitsPerSample: inputDepth, space: "srgb", density: 72, hasAlpha: false, isPalette: !!indexedColors, ...(indexedColors ? { indexedColors } : {}) };
+    return { width, height: width, format: "png", channels: 3, depth: 255 % (side - 1) === 0 ? "uchar" : "ushort", bitsPerSample: inputDepth, space: "srgb", density: 72, hasAlpha: false, [magickInput]: { filePath: token.slice(5), inputFormat: "HALD" }, isPalette: !!indexedColors, ...(indexedColors ? { indexedColors } : {}) };
 }
 
 function* haldInputPixelSteps(width: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {

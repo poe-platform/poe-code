@@ -129,6 +129,7 @@ for (const [argument, exitCode] of [
   ["threads=-1", 222], ["threads=2147483648", 222], ["threads=invalid", 234],
   ["extra_hw_frames=-2", 222], ["extra_hw_frames=invalid", 234],
   ["thread_type=0.5", 222], ["thread_type=invalid", 234],
+  ["enable=invalid", 234],
   ["level_in=-1", 222], ["level_out=65", 222], ["level_in=invalid", 234],
   ["unknown=1", 8], ["type=invalid", 234],
   ["mode=2", 222], ["type=50fm", 8]
@@ -217,6 +218,43 @@ for (const options of ["", "threads=1", "thread_type=slice", "extra_hw_frames=1"
       const pcm = volume.readFileSync("/out.raw") as Buffer;
       assert.deepEqual(Array.from({ length: pcm.length / 2 }, (_, i) => pcm.readInt16LE(i * 2)),
         [330, 0, 343, -165, 67, -171, 140, -34, 43, -70, 44, -21, 34, -22, 6, -17, 683, 96, 680, 91, 149, 23, 274, 34, 93, 15, 86, 9, 70, 11, 11, 0]);
+    });
+  }
+}
+
+// Complete stereo PCM16 output from native FFmpeg 7.0.2.
+for (const [enable, expected] of [
+  ["NAN", [1001, 0, 0, -501, ...Array(12).fill(0), 2001, 301, ...Array(14).fill(0)]],
+  ["lt(n,1)+gte(n,3)", [330, 0, 343, -165, 67, -171, 140, -34, ...Array(8).fill(0), 2001, 301, ...Array(6).fill(0), 43, -70, 44, -21, 34, -22, 6, -17]],
+  ["gte(st(0,ld(0)+1),5)", [1001, 0, 0, -501, ...Array(12).fill(0), 659, 99, 685, 103, 134, 20, 279, 42, 85, 13, 88, 13, 67, 10, 12, 2]],
+  ["0", [1001, 0, 0, -501, ...Array(12).fill(0), 2001, 301, ...Array(14).fill(0)]],
+  ["gte(n,2)", [1001, 0, 0, -501, ...Array(12).fill(0), 659, 99, 685, 103, 134, 20, 279, 42, 85, 13, 88, 13, 67, 10, 12, 2]],
+  ["gte(t,8/48000)", [1001, 0, 0, -501, ...Array(12).fill(0), 659, 99, 685, 103, 134, 20, 279, 42, 85, 13, 88, 13, 67, 10, 12, 2]]
+] as const) {
+  for (const complex of [false, true]) {
+    it(`honors aemphasis frame timeline: ${enable} (${complex ? "graph" : "simple"})`, async () => {
+      const samples = [1001, 0, 0, -501, ...Array(12).fill(0), 2001, 301, ...Array(14).fill(0)];
+      const input = Buffer.alloc(samples.length * 2);
+      samples.forEach((sample, i) => input.writeInt16LE(sample, i * 2));
+      const volume = Volume.fromJSON({ "/in.raw": input });
+      const filter = `asetnsamples=n=4:p=0,aemphasis@eq=enable='${enable}'`;
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error", "-f", "s16le", "-ar", "48000", "-ac", "2", "-i", "/in.raw",
+          ...(complex ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+          "-f", "s16le", "/out.raw"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, stderr);
+      const pcm = volume.readFileSync("/out.raw") as Buffer;
+      assert.deepEqual(Array.from({ length: pcm.length / 2 }, (_, i) => pcm.readInt16LE(i * 2)), expected);
     });
   }
 }

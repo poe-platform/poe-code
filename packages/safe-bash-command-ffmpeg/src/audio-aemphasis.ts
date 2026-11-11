@@ -4,6 +4,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function emphasizeAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
+  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
   budget: MediaBudgetTracker, signal?: AbortSignal,
   commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<Float64Array[]> {
@@ -13,6 +14,7 @@ export async function emphasizeAudio(
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const options = argument ? argument.split(":") : [];
   if (options.at(-1) === "") options.pop();
+  let enable: string | undefined;
   let position = 0;
   for (const option of options) {
     const separator = option.indexOf("=");
@@ -33,6 +35,13 @@ export async function emphasizeAudio(
         throw new RangeError(`aemphasis: invalid ${name}`);
       }
       // Scheduling and hardware frame reservations do not change software PCM.
+      continue;
+    }
+    if (name === "enable") {
+      enable = raw;
+      try {
+        parseFilterExpression(enable, "aemphasis enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, NAN: NaN, INF: Infinity, PI: Math.PI, E: Math.E }, undefined, new Float64Array(10));
+      } catch { throw new Error("aemphasis: invalid enable expression"); }
       continue;
     }
     const key = names.indexOf(name!);
@@ -96,7 +105,20 @@ export async function emphasizeAudio(
 
   budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * 8, 0));
   const output = channels.map(channel => new Float64Array(channel.length));
+  budget.allocateMemory(frames.length);
+  const enabled = new Uint8Array(frames.length);
+  const registers = new Float64Array(10);
+  for (const [n, frame] of frames.entries()) {
+    if (n % 1024 === 0) { budget.checkCpu(); await yieldTurn(signal); signal?.throwIfAborted(); }
+    if (enable === undefined) { enabled[n] = 1; continue; }
+    const variables = { n, t: frame.pts / sampleRate,
+      pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0, h: 0, NAN: NaN, INF: Infinity, PI: Math.PI, E: Math.E };
+    // Native evaluates the timeline on consumption and before filter_frame.
+    parseFilterExpression(enable, "aemphasis enable", variables, undefined, registers);
+    enabled[n] = Number(Math.abs(parseFilterExpression(enable, "aemphasis enable", variables, undefined, registers)) >= 0.5);
+  }
   for (const [c, channel] of channels.entries()) {
+    let frameIndex = 0;
     let low1 = 0, low2 = 0, emphasis1 = 0, emphasis2 = 0;
     let levelIn = initialLevelIn!, levelOut = initialLevelOut!;
     let commandIndex = 0;
@@ -114,6 +136,11 @@ export async function emphasizeAudio(
           if (command.action === "level_in") levelIn = value;
           else if (command.action === "level_out") levelOut = value;
         } catch { /* Native retains the current gain after a rejected command. */ }
+      }
+      while (frameIndex < frames.length && sample >= frames[frameIndex]!.end) frameIndex++;
+      if (!enabled[frameIndex]) {
+        output[c]![sample] = channel[sample]!;
+        continue;
       }
       const low = channel[sample]! * levelIn! - low1 * lowB1 - low2 * lowB2;
       const input = low * lowA0 + low1 * lowA1 + low2 * lowA0;

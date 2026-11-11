@@ -10174,7 +10174,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 image = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(image);
             const cmyk = image.space === "cmyk";
             if (cmyk) image = yield* convertCmykPixels(image);
-            const hueSamples = cmyk ? image.hueSamples!.slice() : undefined;
+            const hueSamples = image.hueSamples?.slice();
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
             const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(data16 ?? out, value => data16 ? value / 257 : value);
@@ -10196,14 +10196,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     // Preserve native HDRI precision until region/write-mask compositing.
                     const next = Math.fround(level * 65535);
                     if (hueSamples && channel < 4) hueSamples[idx + channel] = next / 65535;
-                    else {
+                    if (!cmyk || !hueSamples || channel === 4) {
                         const offset = idx + (cmyk ? 3 : channel);
                         evaluateSamples[offset] = next / 257;
                         if (data16) data16[offset] = Math.round(next);
                         out[offset] = Math.round(next / 257);
                     }
                 }
-                if (hueSamples) for (let channel = 0; channel < 3; channel++) {
+                if (cmyk && hueSamples) for (let channel = 0; channel < 3; channel++) {
                     const offset = idx + channel, value = (1 - hueSamples[offset]!) * (1 - hueSamples[idx + 3]!) * 65535;
                     evaluateSamples[offset] = value / 257;
                     if (data16) data16[offset] = Math.round(value);

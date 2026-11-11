@@ -18215,7 +18215,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               const bits = parseFilterExpression(flags.slice(start, position), "areverse", {
                                 slice: 1, none: 0, all: -1, min: 0, max: 4294967295, default: 1,
                                 PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-                              });
+                              }, undefined, new Float64Array(10));
                               if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
                                 throw new RangeError("areverse: invalid thread_type");
                               }
@@ -18226,7 +18226,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             min: key === "threads" ? 0 : -1, default: key === "threads" ? 0 : -1,
                             max: 2147483647, none: 0, all: -1,
                             PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-                          });
+                          }, undefined, new Float64Array(10));
                           if (value < (key === "extra_hw_frames" ? -1 : 0) || value > 2147483647) {
                             throw new RangeError(`areverse: invalid ${key}`);
                           }

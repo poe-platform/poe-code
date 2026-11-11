@@ -36,8 +36,8 @@ export async function lagfun(
     const retained = frame.native;
     const native = retained?.rgba === frame.data && retained.width === frame.width &&
       retained.height === frame.height ? retained : undefined;
-    if (native ? native.format !== 8 : pixelFormat !== "gray" && pixelFormat !== "gray8") {
-      throw new Error("lagfun: only 8-bit grayscale input is supported");
+    if (native ? ![8, 29, 30].includes(native.format) : pixelFormat !== "gray" && pixelFormat !== "gray8") {
+      throw new Error("lagfun: only 8-bit or 16-bit grayscale input is supported");
     }
     if (!(planes & 1)) {
       output.push(frame);
@@ -51,15 +51,23 @@ export async function lagfun(
       budget.allocateMemory(length * 4);
       history = new Float32Array(length);
     }
-    budget.allocateMemory(length * 5);
-    const pixels = new Uint8Array(length);
+    const sampleBytes = native && [29, 30].includes(native.format) ? 2 : 1;
+    const littleEndian = native?.format === 30;
+    const source = native?.pixels;
+    const view = source ? new DataView(source.buffer, source.byteOffset, source.byteLength) : undefined;
+    budget.allocateMemory(length * (sampleBytes + 4));
+    const pixels = new Uint8Array(length * sampleBytes);
+    const outputView = new DataView(pixels.buffer);
     for (let index = 0; index < length; index++) {
       if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
       // Retain float history; FFmpeg rounds only the emitted sample, with ties to even.
-      const value = Math.max(native ? native.pixels[index]! : frame.data[index * 4]!,
-        Math.fround(history[index]! * decay));
+      const sample = sampleBytes === 2 ? view!.getUint16(index * 2, littleEndian)
+        : source ? source[index]! : frame.data[index * 4]!;
+      const value = Math.max(sample, Math.fround(history[index]! * decay));
       history[index] = value;
-      pixels[index] = value % 1 === 0.5 ? 2 * Math.round(value / 2) : Math.round(value);
+      const rounded = value % 1 === 0.5 ? 2 * Math.round(value / 2) : Math.round(value);
+      if (sampleBytes === 2) outputView.setUint16(index * 2, rounded, littleEndian);
+      else pixels[index] = rounded;
     }
     const filtered = native ? { ...native, pixels } : {
       pixels, rgba: frame.data, width: frame.width, height: frame.height, format: 8, colorspace: 5, fullRange: 1

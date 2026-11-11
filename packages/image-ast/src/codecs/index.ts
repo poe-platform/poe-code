@@ -519,6 +519,13 @@ export function encodeImage(
   options: OutputEncodeOptions
 ): { readonly data: Uint8Array; readonly format: ImageFormat; readonly channels: number } {
   const requested = imageOutputFormat(img.format,options.format);
+  if (img.netpbmPages?.length && ["pnm", "ppm", "pgm", "pbm", "pam"].includes(requested)) {
+    const frames = img.netpbmPages.map(page => encodeImage({ ...page, netpbmPages: undefined }, options));
+    const data = new Uint8Array(frames.reduce((size, frame) => size + frame.data.length, 0));
+    let offset = 0;
+    for (const frame of frames) { data.set(frame.data, offset); offset += frame.data.length; }
+    return { ...frames[0]!, data };
+  }
   const fmt = requested === "pnm" ? netpbmFormat(img.data16 ?? img.data) : requested;
 
   switch (fmt) {

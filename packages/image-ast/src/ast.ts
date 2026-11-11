@@ -68,6 +68,7 @@ export interface RgbaImage {
   readonly decodeWarnings?: readonly string[];
   /** Original indexed colormap as unsigned 0xAARRGGBB values, in file order. */
   readonly indexedColors?: readonly number[];
+  readonly netpbmPages?: readonly RgbaImage[] | undefined;
   readonly miffPages?: readonly RgbaImage[];
   readonly icoPages?: readonly RgbaImage[];
   readonly tiffPages?: readonly RgbaImage[];

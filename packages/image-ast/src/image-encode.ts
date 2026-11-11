@@ -39,6 +39,18 @@ export function isStoredOutputFormat(format:ImageFormat):boolean {
 /** Shared bounded encoder and exact final output information. */
 export async function* encodeStoredImage(image:StoredRgbaImage,backing:ImageByteStorage,signal:AbortSignal,encoding:OutputEncodeOptions):AsyncGenerator<Uint8Array,OutputInfo|undefined> {
  const requested=imageOutputFormat(image.format,encoding.format);
+ if (image.storedNetpbmPages?.length && ["pnm","ppm","pgm","pbm","pam"].includes(requested)) {
+  let info: OutputInfo | undefined, size = 0;
+  for (let index = 0; index < image.storedNetpbmPages.length; index++) {
+   signal.throwIfAborted();
+   const page = await image.storedNetpbmPages.at(index);
+   const output = encodeStoredImage({...page, storedNetpbmPages: undefined}, backing, signal, encoding);
+   let next = await output.next();
+   while (!next.done) { size += next.value.length; yield next.value; next = await output.next(); }
+   info ??= next.value;
+  }
+  return info ? {...info, size} : undefined;
+ }
  const format=requested==="pnm"?await storedNetpbmFormat(image,backing,signal):requested;if(!isStoredOutputFormat(format))throw new UnsupportedStoredResource();
  const pfmChannels = (format === "pfm" || format === "phm") ? await storedPfmChannels(image,backing,signal) : undefined;
  const fitsChannels = format === "fits" ? await storedNetpbmFormat(image,backing,signal) === "ppm" ? 3 : 1 : undefined;

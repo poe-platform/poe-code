@@ -28,7 +28,7 @@ export async function lagfun(
   }
 
   const output: MediaVideoFrame[] = [];
-  let history: Float32Array | undefined;
+  const history: Float32Array[] = [];
   let work = 0;
   for (const frame of frames) {
     signal?.throwIfAborted();
@@ -36,10 +36,13 @@ export async function lagfun(
     const retained = frame.native;
     const native = retained?.rgba === frame.data && retained.width === frame.width &&
       retained.height === frame.height ? retained : undefined;
-    if (native ? ![8, 29, 30].includes(native.format) : pixelFormat !== "gray" && pixelFormat !== "gray8") {
-      throw new Error("lagfun: only 8-bit or 16-bit grayscale input is supported");
+    const gray = native ? [8, 29, 30].includes(native.format) : pixelFormat === "gray" || pixelFormat === "gray8";
+    const planar = native && [0, 4, 5, 12, 13, 14, 79].includes(native.format) ? native : undefined;
+    if (!gray && !planar && !["rgb24", "bgr24", "gbrp"].includes(pixelFormat ?? "")) {
+      throw new Error("lagfun: only 8-bit or 16-bit grayscale, 8-bit planar YUV and RGB input is supported");
     }
-    if (!(planes & 1)) {
+    const planeCount = gray ? 1 : planar?.format === 79 ? 4 : 3;
+    if (!(planes & ((1 << planeCount) - 1))) {
       output.push(frame);
       continue;
     }
@@ -47,34 +50,54 @@ export async function lagfun(
       throw new Error("lagfun: frames must have matching dimensions");
     }
     const length = frame.width * frame.height;
-    if (!history) {
-      budget.allocateMemory(length * 4);
-      history = new Float32Array(length);
-    }
-    const sampleBytes = native && [29, 30].includes(native.format) ? 2 : 1;
+    const source = planar ?? (gray ? native : undefined);
+    const sampleBytes = gray && native && [29, 30].includes(native.format) ? 2 : 1;
     const littleEndian = native?.format === 30;
-    const source = native?.pixels;
-    const view = source ? new DataView(source.buffer, source.byteOffset, source.byteLength) : undefined;
-    budget.allocateMemory(length * (sampleBytes + 4));
-    const pixels = new Uint8Array(length * sampleBytes);
-    const outputView = new DataView(pixels.buffer);
-    for (let index = 0; index < length; index++) {
-      if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-      // Retain float history; FFmpeg rounds only the emitted sample, with ties to even.
-      const sample = sampleBytes === 2 ? view!.getUint16(index * 2, littleEndian)
-        : source ? source[index]! : frame.data[index * 4]!;
-      const value = Math.max(sample, Math.fround(history[index]! * decay));
-      history[index] = value;
-      const rounded = value % 1 === 0.5 ? 2 * Math.round(value / 2) : Math.round(value);
-      if (sampleBytes === 2) outputView.setUint16(index * 2, rounded, littleEndian);
-      else pixels[index] = rounded;
+    const byteLength = source?.pixels.length ?? (gray ? length : frame.data.length);
+    budget.allocateMemory(byteLength + (source || gray ? frame.data.length : 0));
+    const pixels = source ? new Uint8Array(source.pixels) : gray ? new Uint8Array(length) : new Uint8Array(frame.data);
+    const view = new DataView(pixels.buffer);
+    let offset = 0;
+    for (let plane = 0; plane < planeCount; plane++) {
+      const chroma = planar && (plane === 1 || plane === 2);
+      const width = chroma && [0, 4, 12, 13].includes(planar.format) ? Math.ceil(frame.width / 2) : frame.width;
+      const height = chroma && [0, 12].includes(planar.format) ? Math.ceil(frame.height / 2) : frame.height;
+      const size = width * height;
+      if (planes & (1 << plane)) {
+        if (!history[plane]) {
+          budget.allocateMemory(size * 4);
+          history[plane] = new Float32Array(size);
+        }
+        const previous = history[plane]!;
+        for (let index = 0; index < size; index++) {
+          if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          // Packed RGB negotiates to planar GBR; retain the existing RGBA storage.
+          const position = source || gray ? offset + index * sampleBytes : index * 4 + [1, 2, 0][plane]!;
+          const sample = sampleBytes === 2 ? view.getUint16(position, littleEndian)
+            : gray && !source ? frame.data[index * 4]! : pixels[position]!;
+          // Retain float history; FFmpeg rounds only the emitted sample, with ties to even.
+          const value = Math.max(sample, Math.fround(previous[index]! * decay));
+          previous[index] = value;
+          // Disabled frames update and decay history while retaining their original samples.
+          const rounded = enabled ? (value % 1 === 0.5 ? 2 * Math.round(value / 2) : Math.round(value)) : sample;
+          if (sampleBytes === 2) view.setUint16(position, rounded, littleEndian);
+          else pixels[position] = rounded;
+        }
+      }
+      offset += size * sampleBytes;
     }
-    const filtered = native ? { ...native, pixels } : {
-      pixels, rgba: frame.data, width: frame.width, height: frame.height, format: 8, colorspace: 5, fullRange: 1
-    };
-    const data = scaleVideoPicture({ ...frame, native: filtered }, frame.width, frame.height)!;
-    output.push({ ...frame, data, native: { ...filtered, rgba: data } });
+    if (source || gray) {
+      const filtered = source ? { ...source, pixels } : {
+        pixels, rgba: frame.data, width: frame.width, height: frame.height, format: 8, colorspace: 5, fullRange: 1
+      };
+      const data = scaleVideoPicture({ ...frame, native: filtered }, frame.width, frame.height)!;
+      output.push({ ...frame, data, native: { ...filtered, rgba: data } });
+    } else {
+      const filtered = { ...frame, data: pixels };
+      delete filtered.native;
+      output.push(filtered);
+    }
   }
-  if (history) budget.releaseMemory(history.byteLength);
+  for (const plane of history) if (plane) budget.releaseMemory(plane.byteLength);
   return output;
 }

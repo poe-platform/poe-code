@@ -11404,12 +11404,15 @@ function* prepareInactiveAlphaOutput(image: RgbaImage): Generator<void, RgbaImag
     return { ...image, data, ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}) };
 }
 
-function* prepareFloatOutput(image: RgbaImage): Generator<void, RgbaImage, void> {
-    if (!image.evaluateSamples) return image;
-    const dataFloat = new Float32Array(image.evaluateSamples.length);
+function* prepareFloatOutput(image: RgbaImage, format: ImageFormat): Generator<void, RgbaImage, void> {
+    // Floatmaps export the active channels, including CMY inks, without RGB conversion.
+    const hueSamples = format === "pfm" || format === "phm" ? image.hueSamples : undefined;
+    const samples = hueSamples ?? image.evaluateSamples;
+    if (!samples) return image;
+    const dataFloat = new Float32Array(samples.length);
     for (let offset = 0; offset < dataFloat.length; offset++) {
         if (offset % 16384 === 0) yield;
-        dataFloat[offset] = image.evaluateSamples[offset]! / 255;
+        dataFloat[offset] = samples[offset]! / (hueSamples ? 1 : 255);
     }
     return { ...image, dataFloat };
 }
@@ -11459,7 +11462,7 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     if (format === "map" && (!image.isPalette || !image.indexedColors?.length && !image.pngPalette || (image.indexedColors?.length ?? 0) > 256)) image = yield* applyMagickRasterSteps(image, quantizePixelSteps(image.width * image.height * 4, 256, false, 0, image.hasAlpha, false, undefined, { width: image.width, height: image.height, method: "riemersma", diffusionAmount: 1 }, true));
     if (format === "xpm" && !(image.isPalette && !image.hasAlpha && image.indexedColors?.length && image.pngIndices)) image = yield* applyMagickRasterSteps(image, quantizePixelSteps(image.width * image.height * 4, 256, false, image.hasAlpha || dither ? 5 : 6, image.hasAlpha, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true));
     if (format === "gif" && !image.isPalette && dither) image = { ...(yield* applyMagickRasterSteps(image, gifDitherSteps(image, dither, diffusionAmount))), isPalette: true };
-    if (["exr", "hdr", "pfm", "phm"].includes(format) || format === "miff" && image.bitsPerSample === 32) image = yield* prepareFloatOutput(image);
+    if (["exr", "hdr", "pfm", "phm"].includes(format) || format === "miff" && image.bitsPerSample === 32) image = yield* prepareFloatOutput(image, format);
     if (format === "gif" && image.format === "gif" && !image.backgroundColor) image = { ...image, backgroundColor: { r: image.data[0]!, g: image.data[1]!, b: image.data[2]!, a: 255 } };
     if (format === "miff") {
         const scene = (image as MagickImage)[magickInput]?.sceneIdx ?? 0;
@@ -11503,8 +11506,8 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
             image = await transformStoredMagickRaster(image, backend, writeMaskPixelSteps(image, working.storedWriteMask, !!image.storedData16, false, undefined, working.hasAlpha && working.alphaBlend !== false), signal, image, [image, working, working.storedWriteMask]);
         }
     }
-    if ((["exr", "hdr", "pfm", "phm"].includes(format) || format === "miff" && image.bitsPerSample === 32) && image.storedEvaluateSamples !== undefined) {
-        image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepareFloatOutput }, signal);
+    if ((["exr", "hdr", "pfm", "phm"].includes(format) || format === "miff" && image.bitsPerSample === 32) && (image.storedEvaluateSamples !== undefined || (format === "pfm" || format === "phm") && image.storedHueSamples !== undefined)) {
+        image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: frame => prepareFloatOutput(frame, format) }, signal);
     }
     if (!image.hasAlpha) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: prepareInactiveAlphaOutput }, signal);
     if (format === "png" && image.storedData16 && (!pngCoder || pngCoder === "png00")) {

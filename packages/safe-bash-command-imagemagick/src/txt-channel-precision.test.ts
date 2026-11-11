@@ -13,7 +13,8 @@ for (const mode of ["buffered", "sync", "retained", "command"] as const) {
         { space: "Gray", options: ["-depth", "8"], row: "0,0: (103)  #676767  gray(103)" },
         { space: "RGB", options: ["-depth", "8"], row: "0,0: (4,55,13)  #04370D  rgb(4,55,13)" },
         { space: "Gray", options: ["-threshold", "100%"], row: "0,0: (0)  #000000  gray(0)" },
-        { space: "RGB", options: ["-threshold", "100%"], row: "0,0: (0,0,0)  #000000  rgb(0,0,0)" },
+        // Threshold relabels linear RGB as sRGB, whose exact black has a name.
+        { space: "RGB", options: ["-threshold", "100%"], row: "0,0: (0,0,0)  #000000  black" },
         { space: "Gray", options: ["-alpha", "set", "-channel", "A", "-evaluate", "multiply", "0.5", "+channel"], row: "0,0: (103,128)  #67676780  graya(40.3785%,0.5)" },
     ])(`preserves $space TXT annotations with $options through ${mode}`, async ({ space, options, row }) => {
         const files = new Map([["/in.ppm", input]]), fs = new MemoryFileSystem();

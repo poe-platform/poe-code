@@ -12550,8 +12550,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         } else if (filterName === "afade") {
                           if (filteredSampleFormat === "u8" || filteredSampleFormat === "u8p") {
                             if (!autoConversionFilters) throw new Error(audioConversionDisabled);
-                            // Native afade negotiates signed PCM before processing unsigned input.
-                            const format = filteredSampleFormat === "u8p" ? "s16p" : "s16";
+                            // Let the output constrain afade's supported precision before processing.
+                            const plugin = outputFormat === "segment" ? segmentPlugin : outPlugin;
+                            const codec = audioCodec ?? (plugin?.supportedAudioCodecs.includes(`pcm_${plugin.id}`)
+                              ? `pcm_${plugin.id}` : ["wav", "w64", "null"].includes(outputFormat ?? plugin?.id ?? "") ? "pcm_s16le" : undefined);
+                            const target = filterIndex === audioFilters.length - 1 ? sampleFormat ?? pcmSampleFormat(codec) : undefined;
+                            const format = target && ["s16", "s16p", "s32", "s32p", "flt", "fltp", "dbl", "dblp"].includes(target)
+                              ? target : filteredSampleFormat === "u8p" ? "s16p" : "s16";
                             stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
                             filteredSampleFormat = panSampleFormat = format;
                           }

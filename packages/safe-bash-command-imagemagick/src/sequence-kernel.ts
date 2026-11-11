@@ -175,6 +175,8 @@ export function* haldClutPixelSteps(size: number, lut: Pick<RgbaImage, "width" |
             // Hald activates alpha, initializing inactive source alpha even when unselected.
             if (!sourceHasAlpha) samples[offset + 3] = range;
             for (let channel = 0; channel < 4; channel++) if (mask[channel]) samples[offset + channel] = values[channel]!;
+            // A Gray lookup has one color channel, shared by RGB regardless of the channel mask.
+            if (gray) samples[offset] = samples[offset + 1] = samples[offset + 2] = values[0]!;
             if (cmyk) {
                 for (let channel = 0; channel < 3; channel++) inks![offset + channel] = samples[offset + channel]! / range;
                 if (mask[4]) inks![offset + 3] = values[4]! / range;

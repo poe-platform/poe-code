@@ -86,6 +86,14 @@ it("interpolates Hald cube corners and preserves unselected channels across chun
     expect(run(haldClutPixelSteps(source.length, { width: 8, height: 8, hasAlpha: false }, [true, false, true, false]), [source, lut], source.length)).toEqual(expected);
 });
 
+it.each([0, 1, 2, 3])("writes Gray Hald channels across chunks with only channel %s selected", selected => {
+    const source = Uint8Array.from({ length: 513 * 4 }, (_, i) => [66, 135, 186, 131][i % 4]!);
+    const lut = Uint8Array.from({ length: 8 * 8 * 4 }, (_, i) => i % 4 === 3 ? 255 : 25);
+    const expected = Uint8Array.from(source, (_, i) => i % 4 === 3 ? selected === 3 ? 255 : 131 : 25);
+    expect(run(haldClutPixelSteps(source.length, { width: 8, height: 8, hasAlpha: false, space: "b-w" },
+        [0, 1, 2, 3].map(channel => channel === selected)), [source, lut], source.length)).toEqual(expected);
+});
+
 it.each([
     { pixels: [1, 250], expected: 2 },
     { pixels: [1, 250, 254], expected: 52 },

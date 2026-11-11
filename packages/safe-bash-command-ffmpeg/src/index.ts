@@ -18277,7 +18277,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const surroundStereo = origCh === 6 && targetCh === 2;
                   const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
                   const pcm16Output = audioCodec === "pcm_s16le" || audioCodec === undefined &&
-                    (outputFormat === "segment" ? segmentPlugin?.id : outPlugin?.id) === "wav";
+                    ["wav", "s16le"].includes((outputFormat === "segment" ? segmentPlugin?.id : outPlugin?.id) ?? "");
+                  const pcm16StereoMono = origCh === 2 && !centerLfe && targetCh === 1 && targetRate === origRate &&
+                    (filteredSampleFormat === "s16" || filteredSampleFormat === "s16p") && pcm16Output;
                   const pcm16MonoStereo = monoStereo && !filter && targetRate === origRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const pcm16CenterDownmix = centerDownmix && !filter && targetRate === origRate &&
@@ -18410,6 +18412,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           ? Math.floor(quadFront * 19195 + quadBack * 13573 + 0.5) / 32768
                           : pcm16CenterDownmix
                           ? Math.floor(front * (targetCh === 1 ? 19196 : 19195) + stretched[2]![srcIdx]! * 13573 + 0.5) / 32768
+                          : pcm16StereoMono
+                          ? Math.floor(sample * 32768 + 0.5) / 32768
                           : pcm16MonoStereo
                           ? Math.floor((sample * 32768 * 23170 + 16384) / 32768) / 32768
                           : pcm16SurroundStereo

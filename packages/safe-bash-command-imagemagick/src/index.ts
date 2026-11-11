@@ -5045,7 +5045,16 @@ function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtual
     geometry = geometry.trimEnd();
     if (geometry.endsWith("+") || geometry.endsWith("-")) geometry = geometry.slice(0, -1);
     // Shadow accepts alternate separators and ignores fields after sigma and offsets.
-    const normalized = normalizeMagickOffsets(geometry).replaceAll("X", "x").replaceAll(",", "x").replaceAll("/", "x").split("x", 2).join("x");
+    let normalized = normalizeMagickOffsets(geometry).replaceAll("X", "x").replaceAll(",", "x").replaceAll("/", "x");
+    const sigmaStart = normalized.indexOf("x") + 1;
+    // Consume the hexadecimal sigma before splitting geometry fields at x.
+    if (sigmaStart > 0 && normalized.slice(sigmaStart, sigmaStart + 2) === "0x") {
+        let end = sigmaStart + 2;
+        while (end < normalized.length && "0123456789abcdef".includes(normalized[end]!.toLowerCase())) end++;
+        if (end > sigmaStart + 2) normalized = normalized.slice(0, sigmaStart)
+            + Number.parseInt(normalized.slice(sigmaStart + 2, end), 16) + normalized.slice(end);
+    }
+    normalized = normalized.split("x", 2).join("x");
     // Shadow ignores these geometry modifiers, including resize area semantics.
     const g = parseMagickGeometry(normalized.replaceAll("(", "").replaceAll(")", "").replaceAll("#", "").replaceAll("@", ""));
     const opacity = Math.max(0, g.aspectRatio ?? g.width ?? 0) / 100, sigma = Math.max(0, g.height ?? 1);

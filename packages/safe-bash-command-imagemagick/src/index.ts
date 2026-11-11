@@ -17781,7 +17781,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
     const flagsWithoutArgs = new Set([
         "-despeckle", "+fill", "+caption", "+format",
         "-enhance", "-antialias", "+antialias", "+stroke",
-        "-identify", "+identify", "-verbose", "+verbose", "-regard-warnings", "+regard-warnings",
+        "-identify", "+identify", "-verbose", "+verbose", "-regard-warnings", "+regard-warnings", "+path",
         "-negate", "+negate", "-contrast", "+contrast", "-trim", "-flip", "-flop", "-transpose", "-transverse", "-auto-orient",
         "-auto-level", "-auto-gamma", "-white-balance", "-normalize", "-equalize", "-monochrome", "+monochrome", "-strip", "-unique-colors", "-sort-pixels",
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
@@ -17817,8 +17817,8 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
             }
             outFormatExt = format;
         }
-        else if (t === "-path") {
-            outDir = argv[++i]!;
+        else if (t === "-path" || t === "+path") {
+            outDir = t === "-path" ? argv[++i]! : undefined;
         }
         else if (option) {
             (t === "-write" || t === "+write" ? writeTokens : readFlags.has(t) || t === "+filter" || t === "+page" || t === "+caption" ? readSettings : opTokens).push(...argv.slice(i, i + count + 1));

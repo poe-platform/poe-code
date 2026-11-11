@@ -7950,7 +7950,8 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           const data = encodeUtf8(decodeMatroskaAss(decodeUtf8(sample.data)));
           return { ...sample, data, size: data.byteLength, webvtt: undefined };
         }
-        if (doc.containerFormat === "sami" && (outputFormat === "srt" || containerCodec === "subrip")) {
+        if ((doc.containerFormat === "sami" || doc.containerFormat === "realtext")
+          && (outputFormat === "srt" || containerCodec === "subrip")) {
           const data = encodeUtf8(decodeUtf8(sample.data).replaceAll("\n", "\r\n"));
           return { ...sample, data, size: data.byteLength };
         }

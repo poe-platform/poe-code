@@ -93,7 +93,8 @@ for (const sync of [false, true]) {
           } as never);
           assert.equal(result.exitCode, 0, stderr);
         }
-        assert.equal(String(volume.readFileSync("/out.srt")).replaceAll("\r\n", "\n"), expected);
+        assert.equal(String(volume.readFileSync("/out.srt")),
+          format === "realtext" ? expected.replace("First\nline", "First\r\nline") : expected);
       });
     }
   }

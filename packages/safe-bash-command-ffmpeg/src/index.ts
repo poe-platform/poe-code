@@ -12758,6 +12758,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         // Native s16 detection truncates and wraps noise to signed 16-bit PCM.
                         if (panSampleFormat === "s16") noise = (noise * 32767 << 16 >> 16) / 32768;
+                        else if (panSampleFormat === "s32") {
+                          // Native s32 conversion truncates, returning INT32_MIN on overflow.
+                          const threshold = Math.trunc(noise * 2147483647);
+                          noise = threshold > 2147483647 ? -1 : threshold / 2147483648;
+                        }
                         const channels = stretched.length;
                         const timeBase = audioTimeBase ?? 1 / origRate;
                         const samplesPerTick = timeBase * origRate;

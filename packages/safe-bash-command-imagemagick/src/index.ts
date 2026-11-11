@@ -14672,6 +14672,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-despeckle") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const result = yield* applyMagickRasterSteps(im, despecklePixelSteps(im, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined), signal);
                 if (im.metaChannels?.length) {
@@ -18868,6 +18869,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return trimStoredMagick(image, backend.storage, settings.alphaFuzz, signal, settings.trimEdges, settings.trimMinSize, settings.trimPercentBackground, analysis, settings.trimBackgroundColor, emptyBackground, captured.gravity);
             });
         } else if (!operandsOnly && token === "-despeckle") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             const metaChannels = !state.channelExplicit || state.channelDefault ? "all" : state.channels.meta ?? [];
             steps.push(async (image, backend) => {

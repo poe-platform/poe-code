@@ -26,7 +26,7 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
             stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
         }) : mode === "sync" ? runMagickCliSync(argv, new Map())
             : await runMagickCli(argv, mode === "buffered" ? new Map() : { filesystem: fs, cwd: "/" });
-        if ("stdoutBytes" in result && result.stdoutBytes) stdout.push(...result.stdoutBytes);
+        if ("stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array) stdout.push(...result.stdoutBytes);
         if ("stderr" in result && typeof result.stderr === "string") stderr = result.stderr;
         expect(result.exitCode, stderr).toBe(0);
         expect(stdout).toEqual([pixel]);

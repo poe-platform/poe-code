@@ -13075,11 +13075,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const destinations = stack.slice(0, separator), sources = stack.slice(separator + 1);
             const count = destinations.length === 1 ? sources.length : sources.length === 1 ? destinations.length : Math.min(destinations.length, sources.length);
             const geometry = parseMagickGeometry(state.geometry ?? "+0+0");
+            const first = destinations[0]!, source = sources[0]!;
+            const offset = gravityAdjustBox(first.virtualCanvas?.width || first.width, first.virtualCanvas?.height || first.height,
+                source.virtualCanvas?.width || source.width, source.virtualCanvas?.height || source.height, geometry.x, geometry.y, state.gravity);
             const composed: RgbaImage[] = [];
             for (let n = 0; n < count; n++) {
                 const base = destinations[destinations.length === 1 ? 0 : n]!, overlay = sources[sources.length === 1 ? 0 : n]!;
-                const offset = gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, geometry.x, geometry.y, state.gravity);
-                const result = yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, offset.x, offset.y, state.composeArgs, signal, state.alphaFuzz);
+                const x = offset.x + (overlay.virtualCanvas?.x ?? 0) - (base.virtualCanvas?.x ?? 0);
+                const y = offset.y + (overlay.virtualCanvas?.y ?? 0) - (base.virtualCanvas?.y ?? 0);
+                const result = yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, x, y, state.composeArgs, signal, state.alphaFuzz);
                 composed.push({ ...base, ...result });
             }
             stack = [...composed, ...destinations.slice(count)];
@@ -14765,12 +14769,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const sourceCount = stack.length - separator - 1;
                 const count = separator === 1 ? sourceCount : sourceCount === 1 ? separator : Math.min(separator, sourceCount);
                 const geometry = parseMagickGeometry(settings.geometry ?? "+0+0");
-                const first = (await stack.get(0))!;
+                const first = (await stack.get(0))!, source = (await stack.get(separator + 1))!;
+                const offset = gravityAdjustBox(first.virtualCanvas?.width || first.width, first.virtualCanvas?.height || first.height,
+                    source.virtualCanvas?.width || source.width, source.virtualCanvas?.height || source.height, geometry.x, geometry.y, settings.gravity);
                 for (let n = 0; n < count; n++) {
                     const base = separator === 1 ? first : (await stack.get(n))!;
                     const overlay = (await stack.get(separator + 1 + (sourceCount === 1 ? 0 : n)))!;
-                    const offset = gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, geometry.x, geometry.y, settings.gravity);
-                    const result = await compositeStoredMagick(base, overlay, backend, signal, offset.x, offset.y, settings.composeRaw, settings.composeArgs, false, false, false, false, settings.alphaFuzz);
+                    const x = offset.x + (overlay.virtualCanvas?.x ?? 0) - (base.virtualCanvas?.x ?? 0);
+                    const y = offset.y + (overlay.virtualCanvas?.y ?? 0) - (base.virtualCanvas?.y ?? 0);
+                    const result = await compositeStoredMagick(base, overlay, backend, signal, x, y, settings.composeRaw, settings.composeArgs, false, false, false, false, settings.alphaFuzz);
                     await stack.set(n, result);
                 }
                 stack.length = Math.max(count, separator);

@@ -9497,7 +9497,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = function* (image) {
             const working = image.hueSamples !== undefined || image.magickColorspace === "RGB" && (!state.dither || levels < 2 || Math.trunc(levels) > 16);
             let output = yield* applyMagickRasterSteps({ ...image, isPalette: true }, posterizePixelSteps(image, levels, state.dither, state.diffusionAmount ?? 1, channels, signal, !working), signal);
-            if (!working) return output;
+            // Dither assigns the palette in the working colorspace; only the
+            // undithered quantization path converts it back to sRGB.
+            if (!working || state.dither && levels >= 2 && Math.trunc(levels) <= 16) return output;
             if (image.magickColorspace !== "RGB") {
                 output = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(output);
                 // Palette conversion bounds every channel before quantization and later arithmetic.
@@ -15950,7 +15952,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const expandedLevels = levels ?? parsePosterizeLevels(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal));
                 const working = image.storedHueSamples !== undefined || image.magickColorspace === "RGB" && (!dither || expandedLevels < 2 || Math.trunc(expandedLevels) > 16);
                 let output = await transformStoredMagickRaster({ ...image, isPalette: true }, backend, posterizePixelSteps(image, expandedLevels, dither, diffusionAmount, channels, signal, !working), signal);
-                if (!working) return output;
+                if (!working || dither && expandedLevels >= 2 && Math.trunc(expandedLevels) <= 16) return output;
                 if (image.magickColorspace !== "RGB") {
                     output = await transformStoredMagickPixels(output, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal);
                     // Palette conversion bounds every channel before quantization and later arithmetic.

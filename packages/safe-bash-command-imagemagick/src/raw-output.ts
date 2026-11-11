@@ -1,13 +1,14 @@
 import { encodeImage as encodeRaster, encodeStoredImage as encodeStoredRaster, type ImageFormat as RasterFormat, type OutputEncodeOptions as RasterOptions, type RgbaImage, type StoredRgbaImage, type ImageByteStorage, type OutputInfo } from "@poe-code/image-ast/portable";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { encodeMapImage, encodeMapFromStorage } from "./map-output.js";
+import { encodeMonoImage, encodeMonoFromStorage } from "./mono-output.js";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
 
 export type RawImage = RgbaImage & { rawFrames?: readonly RgbaImage[] };
 export type StoredRawImage = StoredRgbaImage & { rawFrames?: { length: number; at(index: number): Promise<StoredRgbaImage> } };
 
 export type RawCoder = "rgb" | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro" | "gray" | "graya" | "cmyk" | "cmyka";
-export type ImageFormat = RasterFormat | RawCoder | "map" | "farbfeld";
+export type ImageFormat = RasterFormat | RawCoder | "map" | "farbfeld" | "mono";
 export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | "partition" | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
 
 /** Search complete output sizes, including alpha and container overhead. */
@@ -49,6 +50,7 @@ export function encodeImage(image: RawImage, options: OutputEncodeOptions): Retu
         return { data, format: "raw", channels: 4 };
     }
     const format = options.format;
+    if (format === "mono") return { data: encodeMonoImage(image, options.endian), format: "raw", channels: 1 };
     if (format === "map") return { data: encodeMapImage(image), format: "raw", channels: 3 };
     if (!isRawCoder(format)) {
         if (format === "webp" && options.lossless === false && (options.webpTargetSize ?? 0) > 0) {
@@ -170,6 +172,11 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
         yield farbfeldHeader(image);
         const info = yield* encodeStoredImage(image, storage, signal, { format: "rgba", netpbmDepth: 16, endian: "msb" });
         return { ...info!, size: info!.size + 16 };
+    }
+    if (options.format === "mono") {
+        let size = 0;
+        for await (const chunk of encodeMonoFromStorage(image, storage, signal, options.endian)) { size += chunk.length; yield chunk; }
+        return { format: "raw", width: image.width, height: image.height, channels: 1, premultiplied: false, size };
     }
     if (options.format === "map") {
         let size = 0;

@@ -380,7 +380,9 @@ and stopping at the shortest resampled input. Join accepts the declared `inputs`
 count (default 2) of decoded PCM inputs. Input-count expressions accept `default` (2)
 and `min` (1); `[0:a]join=inputs=min[mix]` routes a single stereo input. Output layouts include
 mono, stereo, `3.0`, quad, `5.1`, `downmix` (`DL+DR`), explicit speaker lists
-such as `WL+WR`, and numeric speaker masks such as `0x3`.
+such as `WL+WR`, count-prefixed lists such as `2 channels (FL+FR)`, and numeric
+speaker masks such as `0x3`. Explicit counts must match the speaker list; list
+order is preserved in raw PCM output.
 Input maps accept numeric indices or speaker names, such as
 `map=0.FR-FL|1.FL-FR`. Both input and channel indices accept decimal, leading-zero
 octal, hexadecimal (`0x`), and an optional `+`, such as `map=0x0.+0-FL|0x1.+1-FR`.

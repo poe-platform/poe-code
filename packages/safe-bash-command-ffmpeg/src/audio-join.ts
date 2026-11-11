@@ -26,7 +26,8 @@ export async function joinAudio(
       inputs = numeric % 1 === 0.5 ? 2 * Math.round(numeric / 2) : Math.round(numeric);
     } else if (key === "channel_layout") {
       if (!validChannelLayout(value)) throw new Error("join: invalid channel layout");
-      layout = value;
+      const speakersStart = value.indexOf(" channels (");
+      layout = speakersStart < 0 ? value : value.slice(speakersStart + " channels (".length, -1);
     } else if (key === "map") {
       // This is a native string option; only its final value is interpreted.
       map = value;

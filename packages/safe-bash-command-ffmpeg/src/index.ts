@@ -17268,11 +17268,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           stretched = await convertAudioSampleFormat(stretched, inputSampleFormat, filteredSampleFormat, budget, context.signal);
                         }
                       } else if (trimmed === "pan" || trimmed.startsWith("pan=")) {
-                        // SWR accepts native and count-only layouts, but not custom speaker orders.
-                        if (!filteredChannelMask && filteredChannelNames?.some(name => name !== "")) {
+                        const panned = await panAudio(trimmed.slice(4), stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
+                        // SWR accepts custom input speaker orders when the result is mono.
+                        if (panned.channels.length > 1 && !filteredChannelMask && filteredChannelNames?.some(name => name !== "")) {
                           throw new Error("pan: unsupported input channel layout");
                         }
-                        const panned = await panAudio(trimmed.slice(4), stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
                         stretched = panned.channels;
                         filteredChannelMask = panned.channelMask;
                         filteredChannelNames = panned.channelNames;

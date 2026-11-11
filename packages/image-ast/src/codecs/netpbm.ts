@@ -472,6 +472,7 @@ export function encodeTiffImage(img:RgbaImage,options?:Parameters<typeof createT
   }
   }
   }
+  if(options?.tiffFillOrder === "lsb" && options.tiffCompression !== "jpeg") for(const chunk of chunks) for(let i=0;i<chunk.length;i++) chunk[i]=tiffReversedBytes[chunk[i]!]!;
   payloads.push(chunks);
   layouts[index]=createTiffLayout(page,options,end,index+1<pages.length,stripSizes);end=layouts[index]!.end;
  }

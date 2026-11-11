@@ -2,7 +2,7 @@ import {encodeTiffIntegerSamples} from "./tiff-integer.js";
 import {encodeTiffFloatSamples} from "./tiff-float.js";
 import type {ImageByteStorage,StoredRgbaImage} from "./png-storage.js";
 import {BackingArena} from "./backing-arena.js";
-import {createTiffCompressor} from "./tiff-compression.js";
+import {createTiffCompressor,tiffReversedBytes} from "./tiff-compression.js";
 import {encodeJpegFromStorage} from "./jpeg-storage.js";
 import {tiffChannels,tiffSamplePlane,associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
 import {defaultRuntime} from "@poe-code/compression";
@@ -108,6 +108,7 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
    } finally {compressor.close();}
   }
   for await(const bytes of encode()) {
+   if(options.tiffFillOrder === "lsb" && options.tiffCompression !== "jpeg") for(let i=0;i<bytes.length;i++) bytes[i]=tiffReversedBytes[bytes[i]!]!;
    for(let at=0;at<bytes.length;at+=4096) {
     signal.throwIfAborted();const part=bytes.subarray(at,at+4096);
     await scratch.write(scratch.allocate(part.length),part,{signal});encodedBytes+=part.length;
@@ -122,7 +123,11 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
  end=nextEnd;
  yield index===0 ? header : directory;
  if(encodedBytes === undefined) {
-  for await (const raw of pixels()) yield encodeTiffIntegerSamples(encodeTiffFloatSamples(raw, options.tiffFloatDepth, options.tiffEndian !== "msb"), options.tiffFloatDepth ? undefined : options.tiffIntegerDepth, options.tiffEndian !== "msb");
+  for await (const raw of pixels()) {
+   const bytes=encodeTiffIntegerSamples(encodeTiffFloatSamples(raw, options.tiffFloatDepth, options.tiffEndian !== "msb"), options.tiffFloatDepth ? undefined : options.tiffIntegerDepth, options.tiffEndian !== "msb");
+   if(options.tiffFillOrder === "lsb") for(let i=0;i<bytes.length;i++) bytes[i]=tiffReversedBytes[bytes[i]!]!;
+   yield bytes;
+  }
  }
  else for(let at=0;at<encodedBytes;at+=4096) {
   signal.throwIfAborted();yield await scratch.read(at,Math.min(4096,encodedBytes-at),{signal});

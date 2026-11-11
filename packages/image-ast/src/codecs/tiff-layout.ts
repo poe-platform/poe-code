@@ -4,7 +4,7 @@ export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 3
 }
 export function createTiffLayout(
   img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties"|"virtualCanvas"|"metaChannels"> & { storedMetaChannels?: readonly unknown[] | undefined },
-  options?: Pick<OutputEncodeOptions, "tiffBig" | "tiffIntegerDepth" | "tiffSigned" | "tiffFloatDepth" | "tiffPlanar" | "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffRowsPerStrip" | "tiffTile">,
+  options?: Pick<OutputEncodeOptions, "tiffBig" | "tiffIntegerDepth" | "tiffSigned" | "tiffFloatDepth" | "tiffPlanar" | "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffFillOrder" | "tiffRowsPerStrip" | "tiffTile">,
   offset = 0, hasNext = false, stripSizes?: readonly number[]
 ) {
   const { width, height } = img;
@@ -47,7 +47,7 @@ export function createTiffLayout(
   const padding = (alignment - pixelBytes % alignment) % alignment;
   const comment = img.properties?.comment === undefined ? undefined : new TextEncoder().encode(img.properties.comment + "\0");
   const commentSize = comment ? Math.ceil(comment.length / alignment) * alignment : 0;
-  const numEntries = (extras ? 15 : 14) - (hasResolution ? 0 : 3) + (positions ? 2 : 0) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0) + (options?.tiffFloatDepth || options?.tiffIntegerDepth || options?.tiffSigned ? 1 : 0);
+  const numEntries = (options?.tiffFillOrder === "lsb" ? 1 : 0) + (extras ? 15 : 14) - (hasResolution ? 0 : 3) + (positions ? 2 : 0) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0) + (options?.tiffFloatDepth || options?.tiffIntegerDepth || options?.tiffSigned ? 1 : 0);
   const tableSize = Math.ceil((countBytes + numEntries * entryBytes + offsetBytes) / alignment) * alignment;
   const directorySize = tableSize + bpsSize + extrasSize + 16 + commentSize + stripArraySize + positionSize;
   const pixelOffset = offset === 0 ? (big ? 16 : 8) : offset + directorySize;
@@ -80,6 +80,7 @@ export function createTiffLayout(
   entries.push([258, 3, channels, channels === 1 ? bits : channels === 2 ? bits * 0x10001 : bpsOffset]); // BitsPerSample
   entries.push([259, 3, 1, ({ none: 1, lzw: 5, deflate: 8, packbits: 32773, jpeg: 7 })[options?.tiffCompression ?? "none"]]);
   entries.push([262, 3, 1, jpeg ? 6 : img.space === "cmyk" ? 5 : tiffChannels(img) < 3 ? 1 : 2]); // YCbCr, separated CMYK, BlackIsZero or RGB
+  if (options?.tiffFillOrder === "lsb") entries.push([266, 3, 1, 2]); // FillOrder
   if (!tile) entries.push([273, big ? 16 : 4, stripCount, stripCount === 1 ? pixelOffset : yResOffset + 8 + commentSize]); // StripOffsets
   entries.push([274, 3, 1, orientation]); // Orientation
   entries.push([277, 3, 1, channels]); // SamplesPerPixel

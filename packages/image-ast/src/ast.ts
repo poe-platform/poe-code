@@ -560,6 +560,7 @@ export interface OutputEncodeOptions {
   readonly bmpCompression?: "none" | "rle";
   readonly tiffAlpha?: "associated" | "unassociated" | "unspecified";
   readonly tiffEndian?: "msb" | "lsb";
+  readonly tiffFillOrder?: "msb" | "lsb";
   readonly tiffRowsPerStrip?: number;
   readonly tiffTile?: { readonly width: number; readonly height: number };
   readonly tiffCompression?: "none" | "lzw" | "deflate" | "packbits" | "jpeg";

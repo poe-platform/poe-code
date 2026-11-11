@@ -2658,6 +2658,13 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
     // Chop and shave accept a lone minus and warn without changing the image.
     if (value === "-" && (option === "-chop" || option === "-shave")) return;
     if (![...value].some(c => "0123456789xX!#%.-:<>@^".includes(c)) || value === "-") throw new Error(`invalid argument for option '${option}': ${raw}`);
+    if (["-resize", "-scale", "-sample", "-thumbnail", "-adaptive-resize"].includes(option)
+        && !dimensions && ![...value].some(character => "!#%<>@^".includes(character))) {
+        const geometry = parseMagickGeometry(value);
+        if (geometry.width !== undefined && geometry.hasOffset) {
+            throw new Error(`invalid argument for option '${option}': ${raw}`);
+        }
+    }
     if (["-chop", "-shave", "-swirl", "-implode", "-wave"].includes(option) && !dimensions) {
         const geometry = parseMagickGeometry(value.replaceAll("#", ""));
         if (geometry.width !== undefined && geometry.hasOffset

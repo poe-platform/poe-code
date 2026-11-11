@@ -5,8 +5,8 @@ import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js";
 
 for (const mode of ["command", "buffered", "retained", "sync"] as const) {
-    for (const option of ["-resize", "-scale", "-sample", "-thumbnail"]) {
-        it.each(["bogus", "3xinvalid", "", "3/2"])(`rejects ${option} %s without replacing output (${mode})`, async geometry => {
+    for (const option of ["-resize", "-scale", "-sample", "-thumbnail", "-adaptive-resize"]) {
+        it.each(["bogus", "3xinvalid", "", "3/2", "2+1+2", "2+0", "2-1-2"])(`rejects ${option} %s without replacing output (${mode})`, async geometry => {
             const pixels = Uint8Array.from({ length: 96 }, (_, i) => i % 4 === 3 ? 255 : (Math.floor(i / 4) + 1) * 10);
             const input = await sharp(pixels, { raw: { width: 6, height: 4, channels: 4 } }).png().toBuffer();
             const files = new Map([["/in.png", input]]), filesystem = new MemoryFileSystem();

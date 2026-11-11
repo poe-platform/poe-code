@@ -4737,8 +4737,10 @@ async function applyVideoFilterChain(
       });
     } else if (name === "field") {
       if (positional.at(-1) === "") positional.pop();
-      if (positional.slice(1).some(part => !part.includes("=")) ||
-          Object.keys(named).some(key => !["type", "threads", "thread_type", "extra_hw_frames"].includes(key))) {
+      for (const key of Object.keys(named)) {
+        if (!["type", "threads", "thread_type", "extra_hw_frames"].includes(key)) throw new Error(`field: unsupported option ${key}`);
+      }
+      if (positional.slice(1).some(part => !part.includes("="))) {
         throw new Error("field: expected type=top or bottom");
       }
       // Scheduling and hardware frame reservations do not change field pixels.
@@ -17305,6 +17307,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("pan: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("pan:")) return { exitCode: 222 };
             if (msg.startsWith("pan:") && !msg.startsWith("pan: unsupported output layout ")) return { exitCode: 234 };
+            if (msg === "field: unsupported option enable") return { exitCode: 176 };
+            if (msg.startsWith("field: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("field:")) return { exitCode: 222 };
+            if (msg === "field: invalid expression" || msg === "field: invalid or unsupported expression") return { exitCode: 234 };
             if (msg === "transpose: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("transpose: unsupported option ")) return { exitCode: 8 };
             if (msg === "atrim: unsupported option enable") return { exitCode: 176 };

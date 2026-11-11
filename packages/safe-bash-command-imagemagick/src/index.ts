@@ -3114,6 +3114,7 @@ function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, s
             const virtualCanvas = magickResizeCanvas(a, w, h);
             const source = a.region || a.writeMask ? yield* applyMagickResizeSteps(a, `${w}x${h}!`, kernels[0], false, false, false, settings) : a;
             let frame = yield* applyMagickRasterSteps(source, morphPixelSteps(source, b, w, h, t, channels, !!(source.data16 || b.data16), kernels, settings), signal, { ...source, width: w, height: h }, [source, b]);
+            if (source.readMask) frame.readMask = yield* resizeMagickReadMaskSteps(source, w, h, kernels[0] === "nearest");
             if (source.writeMask) frame = yield* applyMagickRasterSteps(frame, writeMaskPixelSteps(frame, source.writeMask, !!frame.data16, false, undefined, source.hasAlpha && source.alphaBlend !== false), signal, frame, [frame, source, source.writeMask]);
             if (source.region) frame = yield* applyMagickRasterSteps(frame, regionPixelSteps(frame, source.region, !!frame.data16), signal, frame, [frame, source]);
             if (a.metaChannels?.length) {
@@ -6076,6 +6077,28 @@ function thumbnailProperties(image: ImageMetadata & { [magickInput]?: MagickForm
     };
 }
 
+function* resizeMagickReadMaskSteps(image: RgbaImage, width: number, height: number, point = false, sample = false, scale = false, sampleOffset?: { x: number; y: number }): Generator<void, RgbaImage, void> {
+    let mask = image.readMask as RgbaImage;
+    if (width === image.width && height === image.height) return mask;
+    // A read mask is anchored at the source origin; pixels outside it are unselected.
+    if (mask.width !== image.width || mask.height !== image.height)
+        mask = yield* applyMagickRasterSteps(mask, extendEdgePixelSteps(mask, image.width, image.height, !!mask.data16, "black"), undefined, { ...mask, width: image.width, height: image.height });
+    // Filtered resize copies mask channels; scale averages them without rounding.
+    return yield* applyMagickRasterSteps(mask, scale
+        ? resizePixelSteps(mask, width, height, false, true, undefined, !!mask.data16, undefined, true)
+        : point ? pointResizePixelSteps(mask, width, height, sample, 4, sampleOffset) : resizeMaskPixelSteps(mask, width, height), undefined, { ...mask, width, height });
+}
+
+async function resizeStoredMagickReadMask(image: StoredRgbaImage, backend: Pick<CompareFileSession, "storage">, width: number, height: number, signal: AbortSignal, point = false, sample = false, scale = false, sampleOffset?: { x: number; y: number }): Promise<StoredRgbaImage> {
+    let mask = image.readMask as StoredRgbaImage;
+    if (width === image.width && height === image.height) return mask;
+    if (mask.width !== image.width || mask.height !== image.height)
+        mask = await transformStoredMagickRaster(mask, backend, extendEdgePixelSteps(mask, image.width, image.height, !!mask.storedData16, "black"), signal, { ...mask, width: image.width, height: image.height });
+    return transformStoredMagickRaster(mask, backend, scale
+        ? resizePixelSteps(mask, width, height, false, true, undefined, !!mask.storedData16, undefined, true)
+        : point ? pointResizePixelSteps(mask, width, height, sample, 4, sampleOffset) : resizeMaskPixelSteps(mask, width, height), signal, { ...mask, width, height });
+}
+
 function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: ResizeKernel | undefined, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false, thumbnailPages?: number, channels?: readonly boolean[]): Generator<void, RgbaImage, void> {
     if (thumbnail) {
         const { virtualCanvas: ignoredCanvas, xmp: ignoredXmp, ...reset } = img;
@@ -6090,13 +6113,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     kernel = options.kernel;
     const width = options.width!, height = options.height!;
     const point = !scale && kernel === "nearest" && (!thumbnail || Math.min(img.width / width, img.height / height) < 3);
-    if (img.readMask) {
-        const mask = img.readMask as RgbaImage;
-        // Filtered resize copies mask channels; scale averages them without rounding.
-        img = { ...img, readMask: yield* applyMagickRasterSteps(mask, scale
-            ? resizePixelSteps(mask, width, height, false, true, kernel, !!mask.data16, settings, true)
-            : point ? pointResizePixelSteps(mask, width, height, sample, 4, sampleOffset) : resizeMaskPixelSteps(mask, width, height), undefined, { ...mask, width, height }) };
-    }
+    if (img.readMask) img = { ...img, readMask: yield* resizeMagickReadMaskSteps(img, width, height, point, sample, scale, sampleOffset) };
     if ((img.writeMask || img.region || channels?.some(selected => !selected)) && !sample && !scale && !point) {
         if (img.region) {
             const writeMask = yield* applyMagickRasterSteps({ width: img.width, height: img.height, data: img.data,
@@ -6161,12 +6178,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: Pick<Com
     preserveSamples ||= image.storedEvaluateSamples !== undefined || !!image.readMask || image.space === "cmyk";
     const writeMask = !!(image.storedWriteMask || ((sample || scale) && image.region));
     const point = !scale && options.kernel === "nearest" && (!thumbnail || Math.min(image.width / width, image.height / height) < 3);
-    if (image.readMask) {
-        const mask = image.readMask as StoredRgbaImage;
-        image = { ...image, readMask: await transformStoredMagickRaster(mask, backend, scale
-            ? resizePixelSteps(mask, width, height, false, true, options.kernel, !!mask.storedData16, settings, true)
-            : point ? pointResizePixelSteps(mask, width, height, sample, 4, sampleOffset) : resizeMaskPixelSteps(mask, width, height), signal, { ...mask, width, height }) };
-    }
+    if (image.readMask) image = { ...image, readMask: await resizeStoredMagickReadMask(image, backend, width, height, signal, point, sample, scale, sampleOffset) };
     if ((image.storedWriteMask || image.region || channels?.some(selected => !selected)) && !sample && !scale && !point) {
         if (image.region) {
             const storedWriteMask = await transformStoredMagickRaster({ width: image.width, height: image.height, position: image.position,
@@ -16491,6 +16503,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             const virtualCanvas = magickResizeCanvas(a, width, height);
                             const source = a.region || a.storedWriteMask ? await resizeStoredMagickImage(a, backend, magickResizeOptions(a, `${width}x${height}!`, kernels[0]), signal, false, false, false, settings.resizeFilter) : a;
                             let frame = await transformStoredMagickRaster(source, backend, morphPixelSteps(source, b, width, height, fraction, channels, !!(source.storedData16 || b.storedData16), kernels, settings.resizeFilter), signal, { ...source, width, height }, [source, b]);
+                            if (source.readMask) frame.readMask = await resizeStoredMagickReadMask(source, backend, width, height, signal, kernels[0] === "nearest");
                             if (source.storedWriteMask) frame = await transformStoredMagickRaster(frame, backend, writeMaskPixelSteps(frame, source.storedWriteMask, !!frame.storedData16, false, undefined, source.hasAlpha && source.alphaBlend !== false), signal, frame, [frame, source, source.storedWriteMask]);
                             if (source.region) frame = await transformStoredMagickRaster(frame, backend, regionPixelSteps(frame, source.region, !!frame.storedData16), signal, frame, [frame, source]);
                             if (a.storedMetaChannels?.length) {

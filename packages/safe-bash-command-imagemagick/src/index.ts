@@ -48,6 +48,7 @@ import { magnifyPixelSteps, parseMagnifyMethod, type MagnifyMethod } from "./mag
 import { ftxtInput } from "./ftxt-input.js";
 import { cubeInput } from "./cube-input.js";
 import { ftxtPixels, storedFtxt } from "./ftxt.js";
+import { ubrlOutput, ubrlText, storedUbrlText } from "./ubrl.js";
 import { decodeApngSteps, readApng } from "./apng-input.js";
 import { signatureSteps } from "./signature.js";
 import { encipherPixelSteps } from "./encipher-kernel.js";
@@ -13829,7 +13830,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 i++;
                 continue;
             }
-            if (writePath.toLowerCase() === "html:-" || writePath.toLowerCase().startsWith("histogram:") || writePath.toLowerCase().startsWith("sparse-color:")) {
+            if (ubrlOutput(writePath) || writePath.toLowerCase() === "html:-" || writePath.toLowerCase().startsWith("histogram:") || writePath.toLowerCase().startsWith("sparse-color:")) {
                 const result = yield* writeConvertOutputSteps([...stack], state, writeTemplate, files, signal, analysis);
                 analysis.text += result.stdout;
                 if (result.stdoutBytes) analysis.bytes.push(result.stdoutBytes);
@@ -16210,6 +16211,17 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
                 return { exitCode: 0, stdout: "", stderr: "" };
             }
             return { exitCode: 0, stdout: result, stderr: "" };
+        }
+        const ubrl = ubrlOutput(outSpec);
+        if (ubrl) {
+            let text = "";
+            for (const frame of stack) {
+                const prepared = yield* prepareMagickOutput(frame, "pbm");
+                for (const part of ubrlText(prepared, ubrl.cellHeight)) { yield; text += part; }
+            }
+            if (!ubrl.path || ubrl.path === "-") return { exitCode: 0, stdout: text, stderr: "" };
+            files.set(ubrl.path, new TextEncoder().encode(text));
+            return { exitCode: 0, stdout: "", stderr: "" };
         }
         if (outLower.startsWith("ftxt:") || (outLower.endsWith(".ftxt") && !outSpec.includes(":"))) {
             let text = "", work = 0;
@@ -18677,7 +18689,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     analysis.text += result.stdout;
                     return stack;
                 }
-                if (path.toLowerCase() === "html:-" || path.toLowerCase().startsWith("histogram:") || path.toLowerCase().startsWith("sparse-color:")) {
+                if (ubrlOutput(path) || path.toLowerCase() === "html:-" || path.toLowerCase().startsWith("histogram:") || path.toLowerCase().startsWith("sparse-color:")) {
                     const images = new StoredImageStack(backend.storage, signal, stack);
                     for (let index = 0; index < stack.length; index++) await images.push((await stack.get(index))!);
                     const result = await writeStoredConvertOutput(images, writeState, writeTemplate, input, backend, signal, analysis, true);
@@ -20239,10 +20251,11 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
         }
         if (outSpec.toLowerCase() === "null:" || outSpec.toLowerCase().startsWith("mpr:")) { if (!intermediate) await backend.publishPending(); return { exitCode: 0, stdout: "", stderr: "" }; }
         const lower = outSpec.toLowerCase(), info = lower.startsWith("info:");
+        const ubrl = ubrlOutput(outSpec);
         const ftxt = lower.startsWith("ftxt:") || (lower.endsWith(".ftxt") && !outSpec.includes(":"));
         const sparse = lower.startsWith("sparse-color:");
         const text = sparse || lower.startsWith("txt:") || (lower.endsWith(".txt") && !outSpec.includes(":"));
-        if (info || text || ftxt || lower.startsWith("histogram:")) {
+        if (info || text || ftxt || ubrl || lower.startsWith("histogram:")) {
             async function* information(): AsyncGenerator<string> {
                 const source = (await stack.get(0))![magickInput];
                 const firstScene = state.scene ?? source?.outputScene ?? source?.sceneIdx ?? 0;
@@ -20252,6 +20265,7 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
                     await yieldTurn(signal);
                     const frame = (await stack.get(index))!;
                     if (sparse) { yield* storedSparseColor(frame, backend.storage, signal, state.precision); continue; }
+                    if (ubrl) { yield* storedUbrlText(await prepareStoredMagickOutput(frame, "pbm", backend, signal), backend.storage, signal, ubrl.cellHeight); continue; }
                     if (ftxt) { yield* storedFtxt(frame, backend.storage, signal, state.ftxtFormat, state.precision, state.ftxtChannelSeparator); continue; }
                     if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal, state.inputDepth); continue; }
                     if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal, state.precision); continue; }
@@ -20260,11 +20274,11 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
                     if (formatted) last = formatted.at(-1)!;
                     yield formatted;
                 }
-                if (!analysis.errors && !text && !ftxt && state.formatStr === undefined && last !== "\n") yield "\n";
+                if (!analysis.errors && !text && !ftxt && !ubrl && state.formatStr === undefined && last !== "\n") yield "\n";
             }
             try {
-                const parts = info || text || ftxt ? information() : storedHistogram(image, backend.storage, signal, state.precision);
-                const chunks = encodeText(parts, signal), target = sparse ? outSpec.slice(13) : info || lower.startsWith("ftxt:") ? outSpec.slice(5) : ftxt ? outSpec : lower.startsWith("txt:") ? outSpec.slice(4) : text ? outSpec : "-";
+                const parts = info || text || ftxt || ubrl ? information() : storedHistogram(image, backend.storage, signal, state.precision);
+                const chunks = encodeText(parts, signal), target = ubrl ? ubrl.path : sparse ? outSpec.slice(13) : info || lower.startsWith("ftxt:") ? outSpec.slice(5) : ftxt ? outSpec : lower.startsWith("txt:") ? outSpec.slice(4) : text ? outSpec : "-";
                 if (target && target !== "-") {
                     if (sparse && (hasSceneOutputPattern(target, state.filenameLiteral) || (stack.length > 1 && !state.adjoin))) {
                         const source = (await stack.get(0))![magickInput];

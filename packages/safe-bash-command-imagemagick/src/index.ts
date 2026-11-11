@@ -102,6 +102,7 @@ import { shadowPixelSteps, vignetteLayout, vignettePixelSteps, raisePixelSteps }
 import { shearPlan, shearPixelSteps } from "./shear-kernel.js";
 import { compositePixelsSteps, magickCompositeMode, magickComposeNames } from "./composite-pixels.js";
 import { composite16PixelSteps } from "./composite16.js";
+import { stereoPixelSteps } from "./stereo.js";
 import { warpPixelSteps, type WarpPlan, type VirtualPixelMethod } from "./warp-kernel.js";
 import { distancePixelSteps, manhattanDistanceScale } from "./distance-kernel.js";
 import { morphologyIntensityPixelSteps } from "./morphology-intensity.js";
@@ -13827,6 +13828,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             stack = [...composed, ...destinations.slice(count)];
         }
+        else if (t === "-stereo") {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "");
+            if (stack.length < 2) throw new Error("image sequence is required '-stereo'");
+            const left = stack[0]!, right = stack[1]!;
+            const result = yield* applyMagickRasterSteps(left, stereoPixelSteps(left, right, geometry.x, geometry.y), signal, left, [left, right]);
+            detachRgbaBuffer(left.data); detachRgbaBuffer(right.data);
+            stack = [result, ...stack.slice(2)];
+        }
         else if (t === "-composite") {
             if (stack.length >= 2) {
                 const base = stack[0]!;
@@ -15707,6 +15716,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 stack.length = Math.max(count, separator);
                 return stack;
             }); continue;
+        }
+        if (!operandsOnly && token === "-stereo") {
+            const geometry = parseMagickGeometry(tokens[++i] ?? "");
+            stackStep(async (stack, backend) => {
+                if (stack.length < 2) throw new Error("image sequence is required '-stereo'");
+                const left = (await stack.get(0))!, right = (await stack.get(1))!;
+                const result = await transformStoredMagickRaster(left, backend, stereoPixelSteps(left, right, geometry.x, geometry.y), signal, left, [left, right]);
+                await stack.remove([1]); await stack.set(0, result); return stack;
+            });
+            continue;
         }
         if (!operandsOnly && (["-append", "+append", "-flatten", "-mosaic", "-composite"].includes(token) || (token === "-layers" && ["flatten", "merge", "mosaic"].includes(layerMethod)))) {
             const flatten = token === "-flatten" || (token === "-layers" && layerMethod === "flatten");
@@ -17879,12 +17898,16 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
     let cooperativeWork = 63;
     const options: string[] = [];
     const operands: string[] = [];
+    let stereo: string | undefined;
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
         const t = argv[i]!;
         if (t === "-gravity" || t === "-geometry" || t === "-compose" || t === "-background" || t === "-quality" || t === "-define" || t === "-resize" || t === "-rotate" || t === "-fuzz" || t === "-depth" || t === "-endian" || t === "-interlace" || t === "-colorspace") {
             options.push(t, argv[++i] ?? "");
+        }
+        else if (t === "-stereo") {
+            stereo = argv[++i] ?? "";
         }
         else if (t === "-tile" || t === "+tile") {
             options.push("-define", `compose:tile=${t === "-tile"}`);
@@ -17940,7 +17963,7 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
     const overlay = operands[0]!;
     const base = operands[1]!;
     const out = operands[operands.length - 1]!;
-    return [base, overlay, ...operands.slice(2, -1), ...options, "-composite", out];
+    return [base, overlay, ...operands.slice(2, -1), ...options, ...(stereo === undefined ? ["-composite"] : ["-stereo", stereo]), out];
 }
 function* runCompositeCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     const parsed = yield* parseCompositeArgumentsSteps(argv);

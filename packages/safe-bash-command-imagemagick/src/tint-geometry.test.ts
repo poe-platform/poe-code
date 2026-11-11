@@ -9,9 +9,10 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         ["60x20+10", "40203c80"], ["60,20,10", "40203c80"],
         ["60x20-10", "40202d80"], ["60,20,-10", "40202d80"],
         ["60x20", "40206180"], ["60,20", "40206180"],
+        ["60x20x", "40206180"], ["60x20x10", "40206180"],
         ["60", "40476180"], ["60!", "40476180"], ["60@", "40476180"],
         ["60^", "40476180"], ["60<", "40476180"], ["60>", "40476180"],
-        ["bogus", ""], ["30+10+15", ""],
+        ["bogus", ""], ["30+10+15", ""], ["60x20xbogus", ""],
     ])(`${mode}: matches native tint geometry %s`, async (strength, expected) => {
         const argv = ["xc:#4080a080", "-fill", "#bf6050", "-tint", strength, "-depth", "8", "rgba:-"];
         const fs = new MemoryFileSystem();
@@ -34,3 +35,21 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         expect("stderr" in result ? result.stderr : stderr).toContain(expected ? "" : `invalid argument '-tint' '${strength}'`);
     });
 }
+
+it.each([
+    ["15x70x25", "057d44f544718080"], ["15x70x", "057d44f544718080"],
+    ["15x70", "057d44f544718080"], ["15,70,25", "057d44f54a7d8080"],
+    ["15x70+25", "057d44f54a7d8080"], ["bogus", ""],
+])("command: matches native 16-bit tint geometry %s", async (strength, expected) => {
+    const argumentValues = createCommandArguments(["xc:#4278a280", "-fill", "#d65541", "-tint", strength, "-depth", "16", "-endian", "MSB", "rgba:-"]);
+    const stdout: Uint8Array[] = [];
+    const result = await createMagickCommand().execute({
+        command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {},
+        fs: new MemoryFileSystem(), signal: new AbortController().signal,
+        stdin: (async function* () {})(),
+        stdout: { async write(chunk) { stdout.push(chunk.slice()); } },
+        stderr: { async write() {} },
+    });
+    expect(result.exitCode).toBe(expected ? 0 : 1);
+    expect(Buffer.concat(stdout).toString("hex")).toBe(expected);
+});

@@ -729,7 +729,7 @@ interface MagickState {
   backgroundExplicit?: boolean;
   tileOffset?: { x: number; y: number };
   virtualPixel?: VirtualPixelMethod;
-  fill: RgbaColor;
+  fill: ReturnType<typeof parseColor>;
   fillHasAlpha?: boolean;
   stroke: RgbaColor;
   strokeWidth: number;
@@ -9935,7 +9935,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const [red = 1, green = red, blue = red, black = red] = percentages.map(percent => percent / 100);
         const alpha = (percentages[3] ?? 0) / 100;
         const blend = [red, green, blue, black];
-        const fill = [state.fill.r, state.fill.g, state.fill.b, 0];
+        const fill = state.fill.cmyk?.map(component => component * 255) ?? [state.fill.r, state.fill.g, state.fill.b, 0];
         const mask = [state.channels.r, state.channels.g, state.channels.b, state.channels.k];
         apply = function* (image) {
             const cmyk = image.space === "cmyk";
@@ -10038,7 +10038,14 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         while (strength.length > 0 && "!@^<>".includes(strength.at(-1)!)) strength = strength.slice(0, -1);
         const separator = strength.toLowerCase().indexOf("x");
         if (separator >= 0) {
-            const height = strength.slice(separator + 1);
+            const [height = "", ...ignored] = strength.slice(separator + 1).toLowerCase().split("x");
+            // ParseGeometry stops assigning channels at a repeated x, but still validates the operand.
+            for (const part of ignored) {
+                const percent = part.endsWith("%") ? part.slice(0, -1) : part;
+                if (part !== "" && (!Number.isFinite(Number(percent)) || Number.parseFloat(percent) !== Number(percent))) {
+                    throw new Error(`invalid argument '-tint' '${value}'`);
+                }
+            }
             const offset = [...height].findIndex((character, index) => index > 0
                 && (character === "+" || character === "-") && height[index - 1]?.toLowerCase() !== "e");
             strength = strength.slice(0, separator) + "," + (offset < 0 ? height : height.slice(0, offset) + "," + height.slice(offset));
@@ -10064,9 +10071,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         const [red = 1, green = red, blue = red] = percentages.map(percent => percent / 100);
         const strengths = [red, green, blue];
-        const fill = [state.fill.r, state.fill.g, state.fill.b];
+        const fill = state.fill.cmyk?.slice(0, 3).map(component => component * 255) ?? [state.fill.r, state.fill.g, state.fill.b];
         // ImageMagick subtracts the fill luminance even at zero strength.
-        const intensity = 0.212656 * state.fill.r + 0.715158 * state.fill.g + 0.072186 * state.fill.b;
+        const intensity = 0.212656 * fill[0]! + 0.715158 * fill[1]! + 0.072186 * fill[2]!;
         const vector = fill.map((channel, index) => channel * strengths[index]! - intensity);
         apply = function* (image) {
             if (image.space === "cmyk") return yield* tintCmykPixels(image, [...vector, -intensity]);

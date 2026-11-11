@@ -29,7 +29,7 @@ export async function median(
     const max = key === "percentile" ? 1 : key === "planes" ? 15 : 127;
     const value = parseFilterExpression(expression, "median", { min, max, default: defaults[key] });
     if (!Number.isFinite(value) || value < min || value > max) {
-      throw new Error(`median: ${key} must be between ${min} and ${max}`);
+      throw new RangeError(`median: ${key} must be between ${min} and ${max}`);
     }
     values[key] = key === "percentile" ? Math.fround(value)
       : value % 1 === 0.5 ? 2 * Math.round(value / 2) : Math.round(value);

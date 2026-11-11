@@ -19406,6 +19406,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (err instanceof RangeError && msg.startsWith("tmix:")) return { exitCode: 222 };
             if (msg === "tmix: invalid expression" || msg === "tmix: invalid or unsupported expression" ||
                 msg === "tmix: weights must be finite numbers") return { exitCode: 234 };
+            if (msg.startsWith("median: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("median:")) return { exitCode: 222 };
+            if (msg === "median: invalid expression" || msg === "median: invalid or unsupported expression") return { exitCode: 234 };
             if (msg.startsWith("gradfun: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("gradfun:")) return { exitCode: 222 };
             if (msg === "gradfun: invalid expression" || msg === "gradfun: invalid or unsupported expression" ||

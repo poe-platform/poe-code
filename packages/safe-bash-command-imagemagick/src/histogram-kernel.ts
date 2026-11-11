@@ -1,7 +1,7 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
-/** Overlay RGB frequency bars using ImageMagick's default 256x200 canvas. */
-export function* histogramPixelSteps(count: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+/** Overlay RGB frequency bars using the requested histogram canvas. */
+export function* histogramPixelSteps(count: number, width: number, height: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const bins = new Float64Array(256 * 3);
     let maximum = 0;
     for (let first = 0; first < count; first += 4096) {
@@ -13,15 +13,15 @@ export function* histogramPixelSteps(count: number): Generator<ConvolveRequest |
             maximum = Math.max(maximum, ++bins[pixels[i + channel]! * 3 + channel]!);
         }
     }
-    for (let y = 0; y < 200; y++) {
+    for (let y = 0; y < height; y++) {
         yield;
-        const data = new Uint8Array(256 * 4);
-        for (let x = 0; x < 256; x++) {
+        const data = new Uint8Array(width * 4);
+        for (let x = 0; x < width; x++) {
             for (let channel = 0; channel < 3; channel++) {
-                if (y >= Math.round(200 - 200 * bins[x * 3 + channel]! / maximum)) data[x * 4 + channel] = 255;
+                if (y >= Math.round(height - height * (bins[x * 3 + channel] ?? 0) / maximum)) data[x * 4 + channel] = 255;
             }
             data[x * 4 + 3] = 255;
         }
-        yield { kind: "write", position: y * 256 * 4, data };
+        yield { kind: "write", position: y * width * 4, data };
     }
 }

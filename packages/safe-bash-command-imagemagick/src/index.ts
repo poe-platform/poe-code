@@ -10074,6 +10074,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const vector = fill.map((channel, index) => channel * strengths[index]! - intensity);
         apply = function* (image) {
             if (image.space === "cmyk") return yield* tintCmykPixels(image, [...vector, -intensity]);
+            if ((image.space === "b-w" || image.space === "grey16") && (fill[0] !== fill[1] || fill[1] !== fill[2])) {
+                // Tint promotes gray samples without applying a gamma conversion.
+                const { magickColorspace: ignoredSpace, ...rgb } = image;
+                image = { ...rgb, space: "srgb", gamma: 1 / 2.2, channels: image.hasAlpha ? 4 : 3 };
+            }
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
             const hueSamples = image.hueSamples?.slice();

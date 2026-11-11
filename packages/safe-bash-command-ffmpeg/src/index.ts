@@ -14085,7 +14085,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const name = audioFilters[nextIndex]!.split("=", 1)[0]!.split("@", 1)[0];
                             if (name === "asetnsamples") reframe = audioFilters[nextIndex];
                             else if (name === "adelay" && outputDuration === undefined && outputTo === undefined && maxAudioFrames === undefined) delayed = true;
-                            else if (!["anull", "acopy", "volume"].includes(name!)) break;
+                            else if (name === "aformat") {
+                              const filter = audioFilters[nextIndex]!;
+                              const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+                              // Format and layout conversions preserve sample counts; resampling does not.
+                              const changesRate = argument.split(":").some((option, index) => {
+                                const separator = option.indexOf("=");
+                                const key = separator < 0 ? ["sample_fmts", "sample_rates", "channel_layouts"][index] : option.slice(0, separator).trim();
+                                return (key === "sample_rates" || key === "r")
+                                  && (separator < 0 ? option : option.slice(separator + 1)).split("|").some(rate => Number(rate) !== origRate);
+                              });
+                              if (changesRate) break;
+                            } else if (!["anull", "acopy", "volume", "afade"].includes(name!)) break;
                           }
                           const next = audioFilters[nextIndex];
                           let resampleInputRate = origRate;

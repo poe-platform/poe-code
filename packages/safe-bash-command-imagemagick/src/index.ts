@@ -12787,11 +12787,11 @@ if (t === "-intent" || t === "+intent") {
             if (k === "option:compose:args")
                 state.composeArgs = v;
         } else return undefined;
-    if ((t === "-define" || t === "-set") && state.optionProperties?.interlace !== undefined) {
-        const interlace = state.optionProperties.interlace.toLowerCase();
     if ((t === "-define" || t === "-set") && state.optionProperties?.interpolate !== undefined) {
         state.interpolation = parseMagickInterpolation(state.optionProperties.interpolate) ?? "bilinear";
     }
+    if ((t === "-define" || t === "-set") && state.optionProperties?.interlace !== undefined) {
+        const interlace = state.optionProperties.interlace.toLowerCase();
         state.interlace = ["Undefined", "None", "Line", "Plane", "Partition", "GIF", "JPEG", "PNG"]
             .find(method => method.toLowerCase() === interlace) ?? "Unrecognized";
     }
@@ -13012,12 +13012,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (expandedKey.toLowerCase() === "colorspace") return yield* setColorspacePixels(image, expanded);
                 if (expandedKey.toLowerCase() === "background") return { ...image, backgroundColor: parseColor(expanded, true) };
                 if (expandedKey.toLowerCase() === "type") return setMagickType(image, expanded);
-                if (expandedKey.toLowerCase() === "dispose") {
-                    const disposal = parseMagickDisposal(expanded);
                 if (["interpolate", "property:interpolate"].includes(expandedKey.toLowerCase())) {
                     const interpolation = parseMagickInterpolation(expanded);
                     return interpolation === undefined ? image : { ...image, [magickInput]: { ...image[magickInput], interpolation } };
                 }
+                if (expandedKey.toLowerCase() === "dispose") {
+                    const disposal = parseMagickDisposal(expanded);
                     return disposal === undefined ? image : { ...image, disposal };
                 }
                 if (expandedKey.toLowerCase() === "gravity") return { ...image, placementGravity: parseGravity(expanded) };

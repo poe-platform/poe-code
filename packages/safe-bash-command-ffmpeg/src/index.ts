@@ -4878,7 +4878,14 @@ async function applyVideoFilterChain(
         return output;
       }, signal);
     } else if (name === "separatefields") {
-      if (argStr) throw new Error("separatefields: this filter takes no options");
+      for (const option of positional) {
+        if (!option) continue;
+        const separator = option.indexOf("=");
+        if (separator < 0) throw new Error("separatefields: unexpected positional argument");
+        const key = option.slice(0, separator).trim();
+        if (key === "enable") throw new Error("separatefields: timeline is unsupported");
+        throw new Error(`separatefields: unsupported option ${key}`);
+      }
       current = await separateFields(current, budget, signal);
       timescale *= 2;
       diagnostics.timescale = timescale;
@@ -17333,6 +17340,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "earwax: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("earwax: unsupported option ")) return { exitCode: 8 };
             if (msg === "earwax: unexpected positional argument") return { exitCode: 234 };
+            if (msg === "separatefields: timeline is unsupported") return { exitCode: 176 };
+            if (msg.startsWith("separatefields: unsupported option ")) return { exitCode: 8 };
+            if (msg === "separatefields: unexpected positional argument") return { exitCode: 234 };
             if (msg === "reverse: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("reverse: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("reverse:")) return { exitCode: err instanceof RangeError ? 222 : 234 };

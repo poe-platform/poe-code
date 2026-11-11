@@ -1,0 +1,81 @@
+import assert from "node:assert/strict";
+import { it } from "node:test";
+import { Volume } from "memfs";
+import { createFfmpegCommand } from "./index.js";
+
+const input = Buffer.from([36, 40, 44, 192, 44, 40, 36, 32, 30].flatMap(value =>
+  [0, 4, 8, 12].map(delta => value + delta)));
+
+async function run(filter: string, source = input, destination = "pipe:1") {
+  const volume = Volume.fromJSON({ "/in.raw": source, "/out.raw": "KEEP" });
+  const stdout: Uint8Array[] = [];
+  let stderr = "";
+  const result = await createFfmpegCommand().execute({
+    args: ["-y", "-hide_banner", "-nostats", "-v", "info", "-f", "rawvideo",
+      "-pixel_format", "gray", "-video_size", "2x2", "-framerate", "4", "-i", "/in.raw",
+      "-vf", `${filter},showinfo`, "-fps_mode", "passthrough", "-pix_fmt", "gray",
+      "-bitexact", "-f", "rawvideo", destination],
+    cwd: "/", env: {}, signal: new AbortController().signal,
+    fs: {
+      async readFile(path: string) { return volume.readFileSync(path); },
+      async writeFile(path: string, data: Uint8Array) { volume.writeFileSync(path, data); },
+      async stat(path: string) { return volume.statSync(path); }
+    },
+    stdin: (async function* () {})(),
+    stdout: { async write(data: Uint8Array) { stdout.push(data); } },
+    stderr: { async write(data: Uint8Array) { stderr += new TextDecoder().decode(data); } }
+  } as never);
+  return { ...result, volume, stderr, stdout: Buffer.concat(stdout) };
+}
+
+// Native Linux FFmpeg 7.0.2 output, including every pixel after the flash.
+for (const [filter, hex] of [
+  ["null", input.toString("hex")],
+  ["lagfun=decay=0.75", "24282c30282c30342c303438c0c4c8cc909396996c6e7073515354563d3e3f412e2f2f30"],
+  ["lagfun=decay=0.5", "24282c30282c30342c303438c0c4c8cc606264663031323424282c302024282c1e22262a"],
+  ["lagfun=planes=0", input.toString("hex")],
+  ["lagfun=0.75:1", "24282c30282c30342c303438c0c4c8cc909396996c6e7073515354563d3e3f412e2f2f30"],
+  ["lagfun=decay=0", input.toString("hex")],
+  ["lagfun=decay=1", "24282c30282c30342c303438c0c4c8ccc0c4c8ccc0c4c8ccc0c4c8ccc0c4c8ccc0c4c8cc"],
+  ["lagfun=planes=2", input.toString("hex")]
+] as const) {
+  it(`preserves grayscale frame timing and applies ${filter}`, async () => {
+    const { exitCode, volume, stdout, stderr } = await run(filter);
+    assert.equal(exitCode, 0, stderr);
+    assert.equal(stdout.toString("hex"), hex);
+    assert.ok(stderr.includes("time_base: 1/4"), stderr);
+    const frames = stderr.split("\n").filter(line => line.includes("pts_time:"));
+    assert.equal(frames.length, 9, stderr);
+    for (const [n, line] of frames.entries()) {
+      const fields = line.split(" ").filter(Boolean);
+      assert.ok(fields.includes(`pts:${n}`), line);
+      assert.ok(fields.includes(`pts_time:${n / 4}`), line);
+    }
+    assert.deepEqual(volume.readFileSync("/in.raw"), input);
+  });
+}
+
+it("retains fractional brightness and rounds halfway values to even", async () => {
+  const source = Buffer.from([6, 0, 0, 0].flatMap(value => Array(4).fill(value)));
+  const result = await run("lagfun=0.75,lagfun=0", source);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdout, Buffer.from([6, 4, 3, 3].flatMap(value => Array(4).fill(value))));
+});
+
+it("uses the default decay of 0.95", async () => {
+  const source = Buffer.from([200, 0, 0, 0].flatMap(value => Array(4).fill(value)));
+  const result = await run("lagfun", source);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.stdout, Buffer.from([200, 190, 180, 171].flatMap(value => Array(4).fill(value))));
+});
+
+for (const option of ["decay=-0.1", "decay=1.1", "decay=bad", "planes=-2", "planes=1.5", "unknown=1"]) {
+  it(`rejects ${option} before replacing output`, async () => {
+    const result = await run(`lagfun=${option}`, input, "/out.raw");
+    assert.notEqual(result.exitCode, 0, result.stderr);
+    assert.ok(result.stderr.includes("lagfun:"), result.stderr);
+    assert.equal(result.stdout.length, 0);
+    assert.equal(result.volume.readFileSync("/out.raw", "utf8"), "KEEP");
+    assert.deepEqual(result.volume.readFileSync("/in.raw"), input);
+  });
+}

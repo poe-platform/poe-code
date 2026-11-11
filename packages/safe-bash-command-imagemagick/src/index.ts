@@ -10504,10 +10504,20 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const parts = geometry.split(",");
         // Native recognizes four plain comma coordinates before processing percent signs.
         const coordinates = parts.length >= 4 && parts.slice(0, 3).every(part => part.trim() !== "" && Number.isFinite(Number(part)));
+        const scalar = [...geometry].filter(character => !"!#%()<>@^".includes(character)).join("");
+        const separator = [...scalar].findIndex(character => "xX,:/".includes(character));
+        const first = separator < 0 ? scalar : scalar.slice(0, separator);
+        const scalarOffset = !coordinates && !"+-".includes(first[0] ?? "") && [...first].some((character, index) =>
+            (character === "+" || character === "-") && first[index - 1]?.toLowerCase() !== "e");
+        // Native leaves RGB cutoffs at zero when an offset follows the first scalar.
+        // Such input is valid only when a geometry modifier supplies a flag.
+        if (scalarOffset && ![...geometry].some(character => "xX%!.:#<>^@".includes(character))) {
+            throw new Error(`invalid argument for option '${token}': ${raw}`);
+        }
         const scale = raw.includes("%") && !coordinates ? 65535 / 100 : 1;
         // Geometry parsing discards parentheses after the plain-coordinate check.
         // Only the first x separates threshold components; subsequent x values are ignored.
-        const values = (parts.length > 1 ? parts : geometry.toLowerCase().replace("/", "x").split("x").slice(0, 2)).map(part => parseFloat(part.replaceAll("(", "").replaceAll(")", "")) * scale);
+        const values = scalarOffset ? [0] : (parts.length > 1 ? parts : geometry.toLowerCase().replace("/", "x").split("x").slice(0, 2)).map(part => parseFloat(part.replaceAll("(", "").replaceAll(")", "")) * scale);
         const thresh = geometry.toLowerCase().startsWith("x") ? values[1]! : values[0]!;
         const thresholds = [thresh, values[1] ?? thresh, values[2] ?? thresh, values[3] ?? 100 * scale];
         const isBlack = token === "-black-threshold";

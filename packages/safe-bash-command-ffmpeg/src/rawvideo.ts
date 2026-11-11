@@ -16,7 +16,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
   const rgb16Format = pixelFormat === "rgb48be" ? 34 : pixelFormat === "rgb48le" ? 35
     : pixelFormat === "rgba64be" ? 104 : pixelFormat === "rgba64le" ? 105 : undefined;
   const rgb16 = rgb16Format !== undefined;
-  if (!rgb16 && !gray && pixelFormat !== "gbrap" && pixelFormat !== "bgra" && pixelFormat !== "rgb24" && pixelFormat !== "rgba" && !gray16 && !yuv && pixelFormat !== "ya8") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
+  if (!rgb16 && !gray && pixelFormat !== "gbrp" && pixelFormat !== "gbrap" && pixelFormat !== "bgra" && pixelFormat !== "rgb24" && pixelFormat !== "rgba" && !gray16 && !yuv && pixelFormat !== "ya8") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
   const ySize = width * height;
   const chromaSize = (yuv16 && pixelFormat !== "yuv420p16le") || pixelFormat === "yuv444p" ? ySize : Math.ceil(width / 2) * (pixelFormat === "yuv422p" ? height : Math.ceil(height / 2));
   const frameBytes = rgb16 ? ySize * (rgb16Format === 104 || rgb16Format === 105 ? 8 : 6) : pixelFormat === "bgra" || pixelFormat === "rgba" || pixelFormat === "gbrap" ? ySize * 4 : yuv ? (ySize + chromaSize * 2) * (yuv10 || yuv16 ? 2 : 1) : ySize * (gray ? 1 : gray16 || pixelFormat === "ya8" ? 2 : 3);
@@ -45,11 +45,11 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     const view = gray16 ? new DataView(data.buffer, data.byteOffset, data.byteLength) : undefined;
     for (let pixel = 0; !rgb16 && !yuv && pixelFormat !== "rgba" && pixel < width * height; pixel++) {
       if (pixel % 4096 === 0) budget.checkCpu();
-      if (pixelFormat === "gbrap") {
+      if (pixelFormat === "gbrp" || pixelFormat === "gbrap") {
         rgba[pixel * 4] = data[ySize * 2 + pixel]!;
         rgba[pixel * 4 + 1] = data[pixel]!;
         rgba[pixel * 4 + 2] = data[ySize + pixel]!;
-        rgba[pixel * 4 + 3] = data[ySize * 3 + pixel]!;
+        rgba[pixel * 4 + 3] = pixelFormat === "gbrap" ? data[ySize * 3 + pixel]! : 255;
         continue;
       }
       if (pixelFormat === "bgra") {

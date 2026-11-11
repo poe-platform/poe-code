@@ -1905,8 +1905,27 @@ function audioConcatInputs(filter: string): number | undefined {
 const audioDelayTails = new WeakMap<MediaTrack, Set<string>>();
 const audioGraphFormats = new WeakMap<MediaTrack, string>();
 
+// Recognize filters before graph binding can hide an unknown filter in a later chain.
+const audioGraphFilterNames = new Set([
+  "acompressor", "acontrast", "acopy", "acrossfade", "acrusher", "adeclick", "adeclip",
+  "adecorrelate", "adelay", "adynamicequalizer", "aecho", "aemphasis", "aeval", "aexciter",
+  "afade", "afftdn", "aformat", "afreqshift", "afwtdn", "agate", "alimiter",
+  "aloop", "amerge", "ametadata", "amix", "amultiply", "anlmf", "anlms",
+  "anull", "anullsink", "apad", "aphasemeter", "aphaser", "aphaseshift", "apsyclip",
+  "apulsator", "arealtime", "aresample", "areverse", "asegment", "aselect", "asendcmd",
+  "asetnsamples", "asetpts", "asetrate", "asettb", "ashowinfo", "asoftclip", "asplit",
+  "astats", "astreamselect", "asubboost", "asubcut", "asupercut", "atempo", "atilt",
+  "atrim", "axcorrelate", "bandpass", "bass", "channelmap", "channelsplit", "chorus",
+  "compand", "compensationdelay", "concat", "crossfeed", "crystalizer", "dcshift", "deesser",
+  "dialoguenhance", "dynaudnorm", "earwax", "ebur128", "extrastereo", "flanger", "haas",
+  "headphone", "highpass", "highshelf", "join", "loudnorm", "lowpass", "lowshelf",
+  "mcompand", "pan", "replaygain", "sidechaincompress", "sidechaingate", "silencedetect", "silenceremove",
+  "speechnorm", "stereotools", "stereowiden", "surround", "treble", "tremolo", "vibrato",
+  "virtualbass", "volume", "volumedetect",
+]);
+
 // Resolve audio graph inputs and transitions before the PCM filter evaluator runs.
-async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string) => Promise<MediaTrack>, mixCommands: { target: string; action: string; expression: string }[], budget: MediaBudgetTracker, signal?: AbortSignal, outputSampleFormat?: string) {
+async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string) => Promise<MediaTrack>, mixCommands: { target: string; action: string; expression: string }[], budget: MediaBudgetTracker, signal?: AbortSignal, outputSampleFormat?: string, simple = false) {
   const nodes = new Map<string, { inputs: string[]; expression: string; asplit?: boolean }>();
   const inputTrack = (label: string): MediaTrack => {
     const [input, selector, ordinal, ...extra] = label.split(":");
@@ -1959,6 +1978,10 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       throw new Error("Unsupported audio filter graph");
     }
     const filters = parseFilterChain(expression);
+    for (const filter of filters) {
+      const name = filter.split("=", 1)[0]!.split("@", 1)[0]!;
+      if (!audioGraphFilterNames.has(name)) throw new Error(`Unsupported audio filter: ${name}`);
+    }
     const last = filters.at(-1)!;
     const split = last === "channelsplit" || last.startsWith("channelsplit=") || last.startsWith("channelsplit@") ? parseChannelSplit(last) : undefined;
     const segments = last.split("=", 1)[0]!.split("@", 1)[0] === "asegment" ? parseAudioSegment(last) : undefined;
@@ -1999,9 +2022,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       consumed.add(input);
     }
   }
-  const usedInputs = new Set<MediaTrack>();
+  const graphInputs = new Map<string[], number>();
   for (const { inputs, expression } of nodes.values()) {
-    for (const input of inputs) if (!nodes.has(input)) usedInputs.add(inputTrack(input));
     const filter = parseFilterChain(expression)[0]!;
     const first = filter.split("=", 1)[0]?.split("@", 1)[0];
     const inputCount = first === "amerge" ? parseAmergeInputs(filter)
@@ -2009,6 +2031,21 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     if (first === "amerge" && inputs.length > inputCount) {
       throw new Error(`amerge requires ${inputCount} inputs (inputs=${inputCount})`);
     }
+    graphInputs.set(inputs, inputCount);
+  }
+  if (simple) {
+    let inputCount = 0;
+    for (const [inputs, count] of graphInputs) {
+      inputCount += Math.max(0, count - inputs.length) + inputs.filter(input => !nodes.has(input)).length;
+    }
+    const outputCount = [...nodes.keys()].filter(label => !consumed.has(label) && !sinks.includes(label)).length;
+    if (inputCount !== 1 || outputCount !== 1) {
+      throw new Error(`Simple filtergraph '${graph}' was expected to have exactly 1 input and 1 output. However, it had ${inputCount} input(s) and ${outputCount} output(s). Please adjust, or use a complex filtergraph (-filter_complex) instead.`);
+    }
+  }
+  const usedInputs = new Set<MediaTrack>();
+  for (const [inputs, inputCount] of graphInputs) {
+    for (const input of inputs) if (!nodes.has(input)) usedInputs.add(inputTrack(input));
     // Split outputs share this input list; bind it once, before output mapping order matters.
     while (inputs.length < inputCount) {
       let connected = false;
@@ -13683,10 +13720,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     : { expression };
                   if (filter?.expression.includes(";")) {
                     const graph = await resolveAudioGraph(filter.expression, [{ ...workingDoc, tracks: [t] }],
-                      [], new Set(), new Set(), filterAudio, mixCommands, budget, context.signal, outputAudioFormat);
-                    if (graph.outputs.length !== 1 || graph.sinks.length) {
-                      throw new Error("Simple audio filter graph requires one input and one output");
-                    }
+                      [], new Set(), new Set(), filterAudio, mixCommands, budget, context.signal, outputAudioFormat, true);
                     t = graph.outputs[0]!.track;
                     filter = { ...filter, expression: graph.outputs[0]!.expression };
                   }
@@ -20422,6 +20456,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "asendcmd: Only one of the filename or commands options must be specified.") return { exitCode: 234 };
             if (msg.startsWith("More input link labels specified for filter ")) return { exitCode: 234 };
             if (msg.startsWith("Unsupported audio filter:")) return { exitCode: 8 };
+            if (msg.startsWith("Simple filtergraph '")) return { exitCode: 234 };
             if (msg.startsWith("aemphasis: unsupported ")) return { exitCode: 8 };
             if (msg.startsWith("aemphasis:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("Unknown input format:")) return { exitCode: 234 };

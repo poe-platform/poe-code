@@ -27,6 +27,7 @@ async function run(input: string, format = "nv12", size = "2x4", filter = "null"
 
 for (const [format, expected] of [
   ["nv12", "11589fe62d74bb0249d7901e"],
+  ["nv21", "11589fe62d74bb02d7491e90"],
   ["yuv420p", "11589fe62d74bb024990d71e"]
 ]) {
   it(`writes native ${format} bytes through null`, async () => {
@@ -57,6 +58,26 @@ it("preserves showinfo frame fields before output conversion", async () => {
 
 it("checks cumulative NV12 output size before replacing the destination", async () => {
   const result = await run("11589fe62d74bb024990d71e".repeat(2), "nv12", "2x4", "null", 23);
+  assert.notEqual(result.exitCode, 0);
+  assert.match(result.stderr, /maxOutputBytes/);
+  assert.equal(result.file, "KEEP");
+});
+
+it("writes native NV21 bytes for the 4x2 planar fixture", async () => {
+  const result = await run("2f3a45505b66717c87929da8", "nv21", "4x2");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.output, "2f3a45505b66717c9d87a892");
+});
+
+it("writes NV21 odd-sized frames with V before U", async () => {
+  const result = await run("0102030405060708091011121320212223".repeat(2), "nv21", "3x3");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.output, "0102030405060708092010211122122313".repeat(2));
+});
+
+it("checks cumulative NV21 output size before replacing the destination", async () => {
+  const result = await run("11589fe62d74bb024990d71e".repeat(2), "nv21", "2x4", "null", 23);
   assert.notEqual(result.exitCode, 0);
   assert.match(result.stderr, /maxOutputBytes/);
   assert.equal(result.file, "KEEP");

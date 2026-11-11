@@ -206,17 +206,18 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
           alpha[pixel] = Math.min(255, Math.round(frame.data[pixel * 4 + 3]! * 257 / 256));
         }
         append(alpha);
-      } else if (format === "nv12") {
+      } else if (format === "nv12" || format === "nv21") {
         const lumaSize = frame.width * frame.height;
         const chromaSize = Math.ceil(frame.width / 2) * Math.ceil(frame.height / 2);
         budget.checkOutputBytes(size + lumaSize + 2 * chromaSize);
         const pixels = (await formatYuv(frame, "yuv420p", signal)).native!.pixels;
         const bytes = new Uint8Array(lumaSize + 2 * chromaSize);
         bytes.set(pixels.subarray(0, lumaSize));
+        const uOffset = format === "nv21" ? 1 : 0;
         for (let index = 0; index < chromaSize; index++) {
           if (index % 4096 === 0) budget.checkCpu();
-          bytes[lumaSize + index * 2] = pixels[lumaSize + index]!;
-          bytes[lumaSize + index * 2 + 1] = pixels[lumaSize + chromaSize + index]!;
+          bytes[lumaSize + index * 2 + uOffset] = pixels[lumaSize + index]!;
+          bytes[lumaSize + index * 2 + 1 - uOffset] = pixels[lumaSize + chromaSize + index]!;
         }
         append(bytes);
       } else if (format === "yuv420p") {

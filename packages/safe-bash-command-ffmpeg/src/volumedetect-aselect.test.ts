@@ -37,7 +37,7 @@ for (const [selection, limit, count, mean, output] of [
       } as never);
       assert.equal(result.exitCode, 0, stderr);
       assert.equal(Buffer.concat(chunks).toString("hex"), output);
-      assert.equal(stderr, `n_samples: ${count}\nmean_volume: ${mean} dB\nmax_volume: -6.0 dB\n`);
+      assert.equal(stderr, `n_samples: 0\nn_samples: ${count}\nmean_volume: ${mean} dB\nmax_volume: -6.0 dB\n`);
     });
   }
 }

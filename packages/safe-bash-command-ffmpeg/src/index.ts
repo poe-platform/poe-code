@@ -4877,10 +4877,10 @@ async function applyVideoFilterChain(
       const scd = parseFilterExpression(options.scd ?? "fdiff", "minterpolate", { none: 0, fdiff: 1 });
       const threshold = parseFilterExpression(options.scd_threshold ?? "10", "minterpolate", {});
       if (scd < 0 || scd > 1 || threshold < 0 || threshold > 100) throw new Error("minterpolate: invalid scene detection options");
-      if (pixelFormat !== "gray" && pixelFormat !== "gray8") throw new Error("minterpolate: only 8-bit grayscale video is supported");
+      if (pixelFormat !== "gray" && pixelFormat !== "gray8" && pixelFormat !== "yuv420p") throw new Error("minterpolate: only 8-bit grayscale and planar YUV420 video are supported");
       // Buffered interpolation drops the final interval, but forwards the input EOF timestamp.
       if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
-      current = await minterpolate(current, targetFps, roundToEven(mode), roundToEven(scd) === 1, threshold, timescale, budget, signal);
+      current = await minterpolate(current, targetFps, roundToEven(mode), roundToEven(scd) === 1, threshold, timescale, pixelFormat, budget, signal);
       timescale = targetFps;
       frameDuration = 1 / targetFps;
       frameRateKnown = true;

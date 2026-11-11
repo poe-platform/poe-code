@@ -7,12 +7,12 @@ import { createFfmpegCommand } from "./index.js";
 const source = [10, 30, 60, 100, 150, 210];
 const grayFrames = (values: readonly number[]) => Buffer.concat(values.map(value => Buffer.alloc(256, value)));
 
-async function run(filter: string, input = grayFrames(source), options: Parameters<typeof createFfmpegCommand>[0] = {}) {
+async function run(filter: string, input = grayFrames(source), options: Parameters<typeof createFfmpegCommand>[0] = {}, pixelFormat = "gray", size = "16x16", fps = "4") {
   const volume = Volume.fromJSON({ "/in.gray": input, "/out.gray": "KEEP" });
   let stderr = "";
   const result = await createFfmpegCommand(options).execute({
-    args: ["-v", "info", "-y", "-f", "rawvideo", "-pix_fmt", "gray", "-s", "16x16", "-r", "4",
-      "-i", "/in.gray", "-vf", filter, "-fps_mode", "passthrough", "-pix_fmt", "gray",
+    args: ["-v", "info", "-y", "-f", "rawvideo", "-pix_fmt", pixelFormat, "-s", size, "-r", fps,
+      "-i", "/in.gray", "-vf", filter, "-fps_mode", "passthrough", "-pix_fmt", pixelFormat,
       "-bitexact", "-f", "rawvideo", "/out.gray"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
@@ -100,3 +100,34 @@ it("bounds interpolated frame expansion", async () => {
   assert.ok(result.stderr.includes("maxFrames"), result.stderr);
   assert.deepEqual(result.output, Buffer.from("KEEP"));
 });
+
+const yuvFrames = (values: readonly number[]) => Buffer.concat(values.map(value => Buffer.concat([
+  Buffer.alloc(1024, value), Buffer.alloc(256, 64 + value / 4), Buffer.alloc(256, 192 - value / 4)
+])));
+
+for (const mode of ["dup", "blend:scd=none"] as const) {
+  it(`matches all native YUV420 planes for ${mode}`, async () => {
+    const input = yuvFrames([16, 32, 48, 64, 80, 96, 112, 128, 144, 160]);
+    const result = await run(`minterpolate=fps=20:mi_mode=${mode}`, input, {}, "yuv420p", "32x32", "10");
+    assert.equal(result.exitCode, 0, result.stderr);
+    const expected = mode === "dup"
+      ? [16, 16, 32, 32, 48, 48, 64, 64, 80, 80, 96, 96, 112, 112, 128, 128, 144]
+      : [16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 96, 104, 112, 120, 128, 136, 144];
+    assert.deepEqual(result.output, yuvFrames(expected));
+  });
+}
+
+// Full-plane output captured from native FFmpeg with spatially varying chroma.
+for (const [mode, hash] of [
+  ["blend:scd=none", "d9bad9bdbbb1e911eda90597083e078dc4c1d0be5560189e387ab406c3cb0295"],
+  ["dup", "8de9eef8a82f911eda5faba5065ef666dafe153591b50609bf60c78279a3e2f9"],
+  ["blend", "78332bf61791baae8280844333d26043d2813fbd86737eb49176cfcfa1718b55"]
+] as const) {
+  it(`matches every native nonuniform YUV420 sample for ${mode}`, async () => {
+    const input = Buffer.from(Array.from({ length: 6 * 1536 }, (_, i) => (Math.floor(i / 1536) * 37 + i % 1536 * 13) % 256));
+    const result = await run(`minterpolate=fps=6:mi_mode=${mode}`, input, {}, "yuv420p", "32x32");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.output.length, 10752);
+    assert.equal(createHash("sha256").update(result.output).digest("hex"), hash);
+  });
+}

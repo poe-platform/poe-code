@@ -5709,8 +5709,33 @@ async function applyVideoFilterChain(
       for (const [index, part] of parts.entries()) {
         const separator = part.indexOf("=");
         const key = separator < 0 ? keys[index] : part.slice(0, separator).trim();
-        if (!key || !keys.includes(key)) throw new Error(`tpad: unsupported option ${key ?? part}`);
-        options[key] = (separator < 0 ? part : part.slice(separator + 1)).trim();
+        const value = (separator < 0 ? part : part.slice(separator + 1)).trim();
+        if (key === "thread_type") {
+          let position = 0;
+          do {
+            if (value[position] === "+" || value[position] === "-") position++;
+            const start = position;
+            if (value[position] === "+" || value[position] === "-") position++;
+            while (position < value.length && value[position] !== "+" && value[position] !== "-") position++;
+            const bits = parseFilterExpression(value.slice(start, position), "tpad", { slice: 1, none: 0, all: -1 });
+            if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
+              throw new RangeError("tpad: invalid thread_type");
+            }
+          } while (position < value.length);
+        } else if (key === "threads" || key === "extra_hw_frames") {
+          const minimum = key === "extra_hw_frames" ? -1 : 0;
+          const number = parseFilterExpression(value, "tpad", {
+            default: minimum, min: minimum, max: 2147483647,
+            PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+          });
+          if (!Number.isFinite(number) || number < minimum || number > 2147483647) {
+            throw new RangeError(`tpad: invalid ${key}`);
+          }
+        } else {
+          if (!key || !keys.includes(key)) throw new Error(`tpad: unsupported option ${key ?? part}`);
+          options[key] = value;
+        }
+        // Thread scheduling and hardware reservations leave software pixels unchanged.
       }
       const counts = ["start", "stop"].map(key => {
         const value = parseFilterExpression(options[key] ?? "0", `tpad ${key}`, {

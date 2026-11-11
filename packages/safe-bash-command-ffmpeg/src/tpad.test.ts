@@ -31,6 +31,12 @@ for (const graph of [false, true]) {
     ["tpad=start_mode=clone:start=1", [], [0, 0, 1, 2]],
     ["tpad=stop_mode=clone:stop_duration=500ms", [], [0, 1, 2, 2, 2]],
     ["tpad=start=1:stop=1", [], [4, 0, 1, 2, 4]],
+    ["tpad=start=1:stop=1:threads=1", [], [4, 0, 1, 2, 4]],
+    ["tpad=start=1:stop=1:thread_type=slice", [], [4, 0, 1, 2, 4]],
+    ["tpad=start=1:stop=1:extra_hw_frames=1", [], [4, 0, 1, 2, 4]],
+    ["tpad=start=1:stop=1:threads=0:thread_type=none:extra_hw_frames=-1", [], [4, 0, 1, 2, 4]],
+    ["tpad=start=1:stop=1:threads=max:thread_type=all-slice:extra_hw_frames=default", [], [4, 0, 1, 2, 4]],
+    ["tpad=start=1:stop=1:threads=1+1:thread_type=+slice:extra_hw_frames=max", [], [4, 0, 1, 2, 4]],
     ["tpad=start=1:stop=1:color=red", [], [3, 0, 1, 2, 3]],
     ["tpad=start_mode=clone:start=1,select='eq(t,0.5)'", [], [1]],
     ["tpad=stop=-1:stop_mode=clone", ["-frames:v", "5"], [0, 1, 2, 2, 2]],
@@ -47,6 +53,15 @@ for (const graph of [false, true]) {
     ["tpad=start_mode=invalid", [], null],
     ["tpad=start_duration=-1", [], null],
     ["tpad=unknown=1", [], null],
+    ["tpad=start=1:threads=-1", [], null],
+    ["tpad=start=1:threads=2147483648", [], null],
+    ["tpad=start=1:threads=invalid", [], null],
+    ["tpad=start=1:thread_type=frame", [], null],
+    ["tpad=start=1:thread_type=0.5", [], null],
+    ["tpad=start=1:thread_type=4294967296", [], null],
+    ["tpad=start=1:extra_hw_frames=-2", [], null],
+    ["tpad=start=1:extra_hw_frames=2147483648", [], null],
+    ["tpad=start=1:extra_hw_frames=invalid", [], null],
     ["tpad=start=2147483647", [], null]
   ] as const) {
     it(`${graph ? "graph" : "simple"} ${filter} ${options.join(" ")}`, async () => {

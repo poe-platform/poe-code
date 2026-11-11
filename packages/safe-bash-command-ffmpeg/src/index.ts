@@ -14681,9 +14681,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               metadata = previousMetadata[n];
                               n++;
                               end = Math.min(padding + inputLength, start + count);
-                              // Native rescaling clamps missing input PTS to INT64_MIN + 1.
+                              // Native rescaling clamps missing or rounded INT64_MIN input PTS to INT64_MIN + 1.
                               // Keep the integer as well as the expression engine's double.
-                              const sourceExactPts = Number.isNaN(inputPts) ? -9223372036854775807n : frame?.exactPts;
+                              const sourceExactPts = frame?.exactPts ?? (Number.isNaN(inputPts) || inputPts <= -(2 ** 63)
+                                ? -9223372036854775807n : undefined);
                               exactPts = enabled && sourceExactPts !== undefined ? sourceExactPts + BigInt(padding) : frame?.exactPts;
                               const outputPts = Math.sign(inputPts) * Math.round(Math.abs(inputPts));
                               pts = exactPts === undefined ? outputPts + (enabled ? padding : 0) : Number(exactPts);

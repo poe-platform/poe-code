@@ -12,8 +12,10 @@ export async function compensateAudioDelay(
   const values = [0, 0, 0, 0, 1, 20];
   let enable: string | undefined;
   const argument = filter.slice("compensationdelay=".length);
+  const options = argument.split(":");
+  if (options.at(-1) === "") options.pop();
   let optionPosition = 0;
-  for (const option of argument ? argument.split(":") : []) {
+  for (const option of options) {
     const separator = option.indexOf("=");
     const name = separator < 0 ? names[optionPosition] : option.slice(0, separator).trim();
     // Native restarts shorthand after named options, skipping the first slot

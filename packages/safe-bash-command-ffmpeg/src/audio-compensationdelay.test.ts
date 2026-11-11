@@ -63,7 +63,7 @@ for (const [options, equivalent] of [
   }
 }
 
-for (const filter of ["compensationdelay=mm=-1", "compensationdelay=cm=101", "compensationdelay=m=101", "compensationdelay=dry=1.1", "compensationdelay=wet=-1", "compensationdelay=temp=51", "compensationdelay=cm=NaN", "compensationdelay=cm=", "compensationdelay=unknown=1", "compensationdelay=m=0b1", "compensationdelay=m=0o1", "compensationdelay=dry=0b1", "compensationdelay=m=-0.1", "compensationdelay=m=100.1", "compensationdelay=temp=-50.1", "compensationdelay=m=1/0"]) {
+for (const filter of ["compensationdelay=:", "compensationdelay=:m=1", "compensationdelay=m=1::", "compensationdelay=m=1::wet=1", "compensationdelay=m=:", "compensationdelay=mm=-1", "compensationdelay=cm=101", "compensationdelay=m=101", "compensationdelay=dry=1.1", "compensationdelay=wet=-1", "compensationdelay=temp=51", "compensationdelay=cm=NaN", "compensationdelay=cm=", "compensationdelay=unknown=1", "compensationdelay=m=0b1", "compensationdelay=m=0o1", "compensationdelay=dry=0b1", "compensationdelay=m=-0.1", "compensationdelay=m=100.1", "compensationdelay=temp=-50.1", "compensationdelay=m=1/0"]) {
   for (const graph of [false, true]) {
     it(`${filter} rejects invalid options without replacing output (${graph ? "graph" : "simple"})`, async () => {
       const { volume, result, stderr } = await run(filter, graph);

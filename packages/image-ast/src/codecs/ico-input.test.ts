@@ -18,8 +18,9 @@ function dibIcon(bits = 32, width = 2) {
   return bytes;
 }
 
-it.each([1, 4, 8, 24, 32])("decodes %i-bit DIB palettes, zero-alpha legacy pixels and AND masks", async bits => {
-  const bytes = dibIcon(bits), expected = decodeImage(bytes);
+it.each([1, 4, 8, 24, 32].flatMap(bits => [2, 257, 300].map(width => [bits, width] as const)))("decodes %i-bit DIB palettes, zero-alpha legacy pixels and AND masks at width %i", async (bits, width) => {
+  const bytes = dibIcon(bits, width), expected = decodeImage(bytes);
+  expect(expected.width).toBe(width);
   expect([...expected.data.slice(0, 4)]).toEqual([0, 0, 255, 255]);
   expect(expected.data[7]).toBe(0);
   const signal = new AbortController().signal, storage = new PagedStorage({ fs: new MemoryFileSystem(), cwd: "/", env: {}, signal });
@@ -45,4 +46,44 @@ it("rejects truncated directories, invalid payload ranges and mismatched DIB dim
     const bad = bytes.slice(); new DataView(bad.buffer).setUint32(offset!, value!, true);
     expect(() => decodeImage(bad)).toThrow();
   }
+});
+
+it.each([257, 300, 512])("uses full DIB width %i for decoding, metadata and pixel limits", async width => {
+  const bytes = dibIcon(32, width), signal = new AbortController().signal;
+  const source = { size: bytes.length, async read(offset: number, length: number) { return bytes.slice(offset, offset + length); } };
+  expect(readImageMetadata(bytes)).toMatchObject({ width, height: 1 });
+  const image = decodeImage(bytes);
+  expect(image.data.length).toBe(width * 4);
+  expect([...image.data.slice(0, 4)]).toEqual([0, 0, 255, 255]);
+  expect(image.data[7]).toBe(0);
+  expect(await readImageMetadataFromSource(source, signal)).toMatchObject({ width, height: 1 });
+  expect(() => decodeImage(bytes, { limitInputPixels: width - 1 })).toThrow("pixel limit");
+  const storage = new PagedStorage({ fs: new MemoryFileSystem(), cwd: "/", env: {}, signal });
+  try {
+    await expect(decodeImageToStorage(source, storage, signal, { limitInputPixels: width - 1 })).rejects.toThrow("pixel limit");
+    const stored = await decodeImageToStorage(source, storage, signal);
+    expect(await storage.read(stored.position, image.data.length)).toEqual(image.data);
+  } finally { await storage.close(); }
+});
+
+it.each([256, 257, 300])("checks full DIB dimensions before reading pixels at width %i", async width => {
+  const bytes = dibIcon(32, width), options = { limitInputPixels: width - 1 };
+  const signal = new AbortController().signal, storage = new PagedStorage({ fs: new MemoryFileSystem(), cwd: "/", env: {}, signal });
+  const reads: number[] = [];
+  const source = { size: bytes.length, async read(offset: number, length: number) { reads.push(length); return bytes.slice(offset, offset + length); } };
+  try {
+    expect(() => readImageMetadata(bytes, options)).toThrow("pixel limit");
+    expect(() => decodeImage(bytes, options)).toThrow("pixel limit");
+    await expect(readImageMetadataFromSource(source, signal, options)).rejects.toThrow("pixel limit");
+    await expect(decodeImageToStorage(source, storage, signal, options)).rejects.toThrow("pixel limit");
+    expect(Math.max(...reads)).toBeLessThan(bytes.length);
+  } finally { await storage.close(); }
+});
+
+it.each([[26, 0], [26, -1], [30, 0], [30, -2], [30, 3]])("rejects invalid DIB dimensions at offset %i with value %i", async (offset, value) => {
+  const bytes = dibIcon(); new DataView(bytes.buffer).setInt32(offset!, value!, true);
+  const signal = new AbortController().signal;
+  const source = { size: bytes.length, async read(start: number, length: number) { return bytes.slice(start, start + length); } };
+  expect(() => readImageMetadata(bytes)).toThrow("Unsupported ICO DIB dimensions");
+  await expect(readImageMetadataFromSource(source, signal)).rejects.toThrow("Unsupported ICO DIB dimensions");
 });

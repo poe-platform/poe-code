@@ -31,8 +31,8 @@ export async function decodeIcoToStorage(source: ImageByteSource, storage: Image
     if (png.width !== metadata.width || png.height !== metadata.height) throw new Error("ICO PNG dimensions disagree with directory");
     return { ...await decodePngToStorage(payload, storage, signal, options), ...metadata };
   }
-  // DIB dimensions are bounded by the directory's one-byte dimensions. Bound
-  // encoded allocation as well: 124-byte header, 256 colors, RGBA and AND mask.
+  // Bound encoded allocation by the validated DIB dimensions:
+  // 124-byte header, 256 colors, RGBA and AND mask.
   if (length > 124 + 1024 + metadata.width * metadata.height * 4 + Math.ceil(metadata.width / 32) * 4 * metadata.height) throw new Error("Oversized ICO DIB");
   const image = decodeIcoDib(await payload.read(0, length), metadata), output = storage.allocate(image.data.length);
   await storage.write(output, image.data, { signal });

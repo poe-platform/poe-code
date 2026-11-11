@@ -51,7 +51,7 @@ ImageMagick TXT pixel enumerations are detected by signature. RGB and grayscale 
 
 Lossless animated WebP inputs expose `pages`, millisecond `delay` values and `loop` metadata. Use `page` to decode a frame, including its canvas offset and disposal. Buffered and storage-backed decoders support the same frame selection.
 
-ICO and CUR inputs decode PNG entries and uncompressed 1/4/8/24/32-bit DIB entries with transparency. Set `page` to select a directory entry; metadata reports the directory count as `pages`.
+ICO and CUR inputs decode PNG entries and uncompressed 1/4/8/24/32-bit DIB entries with transparency, including native DIB dimensions above 256 pixels. Set `page` to select a directory entry; metadata reports the directory count as `pages`.
 
 ICO output supports 1–256 pixel dimensions and preserves RGBA transparency in 32-bit DIB entries. `encodeImage` accepts `icoPages` for multiple entries; `encodeStoredImage` accepts `storedIcoPages` and streams rows from caller storage.
 

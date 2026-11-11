@@ -15,8 +15,19 @@ export function* icoEntrySteps(size: number, options?: SharpInputOptions): Gener
   if (!Number.isInteger(page) || page < 0 || page >= pages) throw new Error("ICO page out of range");
   const entry = yield { position: 6 + page * 16, length: 16 };
   const view = new DataView(entry.buffer, entry.byteOffset, entry.byteLength);
-  const width = entry[0] || 256, height = entry[1] || 256, length = view.getUint32(8, true), position = view.getUint32(12, true);
+  let width = entry[0] || 256, height = entry[1] || 256;
+  const length = view.getUint32(8, true), position = view.getUint32(12, true);
   if (length < 8 || position < 6 + pages * 16 || position + length > size) throw new Error("Invalid ICO image range");
+  const payload = yield { position, length: Math.min(length, 40) };
+  if (!isPngBytes(payload)) {
+    if (payload.length < 40) throw new Error("Truncated ICO DIB");
+    const dib = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
+    if (dib.getUint32(0, true) < 40 || dib.getUint32(0, true) > length) throw new Error("Unsupported ICO DIB layout");
+    // Native DIB entries wrap directory dimensions at 256; the bitmap stores
+    // the full width and twice the height (XOR bitmap plus AND mask).
+    width = dib.getInt32(4, true); height = dib.getInt32(8, true) / 2;
+    if (width < 1 || height < 1 || !Number.isInteger(height) || width % 256 !== entry[0] || height % 256 !== entry[1]) throw new Error("Unsupported ICO DIB dimensions");
+  }
   checkLimitInputPixels(width, height, options);
   return { position, length, metadata: { format, width, height, pages, space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true, size } };
 }

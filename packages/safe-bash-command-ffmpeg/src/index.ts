@@ -15225,9 +15225,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "loudnorm" || trimmed.startsWith("loudnorm=")) {
+                        // SWR resamples integer/float input in float precision before
+                        // converting to loudnorm's double format. Explicit double input
+                        // keeps the double resampler used by normalizeLoudness.
+                        if (origRate !== 192000 && filteredSampleFormat !== "dbl" && filteredSampleFormat !== "dblp") {
+                          const length = Math.ceil((stretched[0]?.length ?? 0) * 192000 / origRate);
+                          budget.checkSamples(length);
+                          budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
+                          stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, "flt", budget, context.signal);
+                          stretched = await resampleAudio(stretched, length, origRate, 192000, budget, context.signal);
+                          origRate = 192000;
+                        }
                         const normalized = await normalizeLoudness(stretched, origRate,
                           trimmed === "loudnorm" ? "" : trimmed.slice("loudnorm=".length), budget, context.signal);
                         stretched = normalized.channels;
+                        filteredSampleFormat = panSampleFormat = "dbl";
                         origRate = 192000;
                         loudnormResampling = true;
                         if (normalized.report && logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(normalized.report), context.signal);

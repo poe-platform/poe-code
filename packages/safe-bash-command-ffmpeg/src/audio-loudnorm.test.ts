@@ -80,7 +80,7 @@ for (const option of ["I=-71", "I=-4", "TP=1", "LRA=0", "I=NaN", "I=", "TP=-1=2"
 }
 
 for (const length of [1, 4800, 144000]) {
-  it(`preserves ${length} frames of silence with a finite waveform`, async () => {
+  it(`matches native silence output for ${length} input frames`, async () => {
     const { volume, result, stderr } = await run([new Float64Array(length)], "loudnorm=print_format=json");
     assert.equal(result.exitCode, 0, stderr);
     const report = JSON.parse(stderr.slice(stderr.indexOf("{"), stderr.lastIndexOf("}") + 1));
@@ -88,7 +88,8 @@ for (const length of [1, 4800, 144000]) {
     assert.equal(report.output_i, "-inf");
     assert.equal(report.output_tp, "-inf");
     const output = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
-    assert.deepEqual(output.channelData[0], new Float32Array(length));
+    // One input sample cannot fill SWR's startup filter, even after flushing.
+    assert.deepEqual(output.channelData[0], new Float32Array(length === 1 ? 0 : length));
   });
 }
 

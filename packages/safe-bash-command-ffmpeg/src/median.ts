@@ -37,10 +37,10 @@ export async function median(
     budget.checkCpu();
     const { width, height } = frame;
     const native = frame.native;
-    const source = native?.format === 8 && native.rgba === frame.data &&
+    const source = native && [8, 29, 30].includes(native.format) && native.rgba === frame.data &&
       native.width === width && native.height === height ? native.pixels : undefined;
     if (!source && pixelFormat !== "gray" && pixelFormat !== "gray8") {
-      throw new Error("median: only 8-bit grayscale input is supported");
+      throw new Error("median: only 8-bit or 16-bit grayscale input is supported");
     }
     if (!(values.planes & 1) || enable !== undefined && !(Math.abs(parseFilterExpression(enable, "median enable", {
       n, t: frame.ptsSeconds, w: width, h: height, pos: frame.offset ?? NaN
@@ -48,33 +48,50 @@ export async function median(
       output.push(frame);
       continue;
     }
+    const sampleBytes = source && native?.format !== 8 ? 2 : 1;
+    const littleEndian = native?.format === 30;
+    const view = source ? new DataView(source.buffer, source.byteOffset, source.byteLength) : undefined;
+    const read = (index: number) => sampleBytes === 2 ? view!.getUint16(index * 2, littleEndian)
+      : source ? source[index]! : frame.data[index * 4]!;
     const radius = Math.min(values.radius, Math.floor((width - 1) / 2));
     const radiusV = Math.min(values.radiusV || values.radius, Math.floor((height - 1) / 2));
     // FFmpeg selects floor((window size - 1) * percentile), using float precision.
     const rank = Math.trunc(Math.fround(((2 * radius + 1) * (2 * radiusV + 1) - 1) * values.percentile));
-    budget.allocateMemory(width * height * 5 + 256 * 4);
-    const pixels = new Uint8Array(width * height);
+    budget.allocateMemory(width * height * (4 + sampleBytes) + (sampleBytes === 2 ? 65536 + 256 : 256) * 4);
+    const pixels = new Uint8Array(width * height * sampleBytes);
+    const outputView = new DataView(pixels.buffer);
     const data = new Uint8Array(width * height * 4);
-    const histogram = new Uint32Array(256);
+    const histogram = new Uint32Array(sampleBytes === 2 ? 65536 : 256);
+    // Locate the high byte first so 16-bit rank selection scans at most 512 bins.
+    const coarse = sampleBytes === 2 ? new Uint32Array(256) : undefined;
     for (let y = 0; y < height; y++) {
       histogram.fill(0);
+      coarse?.fill(0);
       for (let dy = -radiusV; dy <= radiusV; dy++) {
         const row = Math.max(0, Math.min(height - 1, y + dy)) * width;
         for (let dx = -radius; dx <= radius; dx++) {
           if (++work >= 4096) { work = 0; await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
           const index = row + Math.max(0, dx);
-          histogram[source ? source[index]! : frame.data[index * 4]!]!++;
+          const value = read(index);
+          histogram[value]!++;
+          if (coarse) coarse[value >>> 8]!++;
         }
       }
       for (let x = 0; x < width; x++) {
         if (work >= 4096) { work = 0; await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
         let count = 0;
         let value = 0;
-        while (value < 255 && count + histogram[value]! <= rank) count += histogram[value++]!;
-        work += 256;
+        if (coarse) {
+          let high = 0;
+          while (high < 255 && count + coarse[high]! <= rank) count += coarse[high++]!;
+          value = high << 8;
+        }
+        while (value < histogram.length - 1 && count + histogram[value]! <= rank) count += histogram[value++]!;
+        work += coarse ? 512 : 256;
         const index = y * width + x;
-        pixels[index] = value;
-        data.fill(value, index * 4, index * 4 + 3);
+        if (sampleBytes === 2) outputView.setUint16(index * 2, value, littleEndian);
+        else pixels[index] = value;
+        data.fill(sampleBytes === 2 ? Math.min(255, (value + 128) >> 8) : value, index * 4, index * 4 + 3);
         data[index * 4 + 3] = 255;
         // Slide the window one column, preserving repeated edge samples.
         if (x + 1 === width) continue;
@@ -82,14 +99,20 @@ export async function median(
         const right = Math.min(width - 1, x + radius + 1);
         for (let dy = -radiusV; dy <= radiusV; dy++) {
           const row = Math.max(0, Math.min(height - 1, y + dy)) * width;
-          histogram[source ? source[row + left]! : frame.data[(row + left) * 4]!]!--;
-          histogram[source ? source[row + right]! : frame.data[(row + right) * 4]!]!++;
+          const removed = read(row + left);
+          const added = read(row + right);
+          histogram[removed]!--;
+          histogram[added]!++;
+          if (coarse) {
+            coarse[removed >>> 8]!--;
+            coarse[added >>> 8]!++;
+          }
           work += 2;
         }
       }
     }
     output.push({ ...frame, data, native: {
-      ...native, pixels, rgba: data, width, height, format: 8, colorspace: 5, fullRange: 1
+      ...native, pixels, rgba: data, width, height, format: source ? native!.format : 8, colorspace: 5, fullRange: 1
     } });
   }
   return output;

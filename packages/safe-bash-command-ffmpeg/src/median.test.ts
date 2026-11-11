@@ -33,6 +33,40 @@ it("preserves the raw grayscale control", async () => {
   assert.deepEqual(result.output, impulse);
 });
 
+const gray16 = Buffer.alloc(8 * 6 * 2);
+for (let y = 0; y < 6; y++) {
+  for (let x = 0; x < 8; x++) {
+    const value = x === 0 && y === 0 ? 245 : x === 3 && y === 2 ? 4 : (x * 37 + y * 29 + x * y * 3) % 251;
+    gray16.writeUInt16LE(value * 251 + 7, (y * 8 + x) * 2);
+  }
+}
+
+// Complete native FFmpeg 7.0.2 outputs, including borders and low sample bits.
+for (const format of ["gray16le", "gray16be"]) {
+  for (const [filter, hash] of [
+    ["null", "87bc405060eeb7bbb7af1d4d9827062b50a827ebeba8a0a9db272f419ee74648"],
+    ["median", "0cfc76a7865a68f34d2053f7d0372df7ac12c2884d114a5fbad0b451952dfdd5"],
+    ["median=radius=2:radiusV=1:percentile=0.9", "442ff051bf8f49adb02d5abfd0e355705acb8ef2c73a02703b8bd89415c96637"]
+  ]) {
+    it(`matches native ${filter} with full ${format} precision`, async () => {
+      const input = Buffer.from(gray16);
+      if (format === "gray16be") input.swap16();
+      const result = await run(filter!, input, format, "8x6");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.output.length, 96);
+      if (format === "gray16be") result.output.swap16();
+      assert.equal(createHash("sha256").update(result.output).digest("hex"), hash);
+    });
+  }
+  it(`preserves disabled ${format} samples`, async () => {
+    for (const filter of ["median=planes=0", "median=enable=0"]) {
+      const result = await run(filter, gray16, format, "8x6");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.output, gray16);
+    }
+  });
+}
+
 // Native FFmpeg 7.0.2 references include corner and center impulses.
 for (const [filter, hash] of [
   ["median=radius=2", "7142d4166632b2d118bca6301456178185c234d7e1e1a302b38165521bcbff4d"],
@@ -143,6 +177,6 @@ it("preserves frame metadata and input samples while honoring budgets and cancel
 it("rejects unsupported color input before replacing output", async () => {
   const result = await run("median", Buffer.alloc(32 * 32 * 3, 20), "rgb24");
   assert.notEqual(result.exitCode, 0);
-  assert.match(result.stderr, /median: only 8-bit grayscale/);
+  assert.match(result.stderr, /median: only 8-bit or 16-bit grayscale/);
   assert.equal(result.output.toString(), "KEEP");
 });

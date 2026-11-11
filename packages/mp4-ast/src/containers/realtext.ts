@@ -62,7 +62,7 @@ function parseRealtext(bytes: Uint8Array): MediaDocument {
         start = undefined;
       }
     }
-  }, { recognizeSelfClosing: true });
+  }, { recognizeSelfClosing: true, decodeEntities: false });
   parser.end(decodeUtf8(bytes));
   flush();
   samples.sort((a, b) => a.pts - b.pts);

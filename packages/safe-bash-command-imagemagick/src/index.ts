@@ -2844,7 +2844,13 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
         }
         img = { ...img, metaChannels };
     }
-    if (img.readMask) img = { ...img, readMask: yield* applyMagickChopSteps({ ...img.readMask, ...(img.virtualCanvas ? { virtualCanvas: img.virtualCanvas } : {}) } as RgbaImage, geomStr, gravity, signal) };
+    if (img.readMask) {
+        let mask = img.readMask as RgbaImage;
+        // Resolve the cut on the image canvas; pixels outside the mask are unselected.
+        if (mask.width !== img.width || mask.height !== img.height)
+            mask = yield* applyMagickRasterSteps(mask, extendEdgePixelSteps(mask, img.width, img.height, !!mask.data16, "black"), signal, { ...mask, width: img.width, height: img.height });
+        img = { ...img, readMask: yield* applyMagickChopSteps({ ...mask, ...(img.virtualCanvas ? { virtualCanvas: img.virtualCanvas } : {}) }, geomStr, gravity, signal) };
+    }
     if (img.writeMask) {
         const { virtualCanvas: ignoredCanvas, ...mask } = img.writeMask;
         img = { ...img, writeMask: yield* applyMagickChopSteps({ ...mask, ...(img.virtualCanvas ? { virtualCanvas: img.virtualCanvas } : {}) }, geomStr, gravity, signal) };
@@ -16062,7 +16068,12 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         }
         image = { ...image, storedMetaChannels };
     }
-    if (token === "-chop" && image.readMask) image = { ...image, readMask: await transformStoredMagickCoordinates({ ...image.readMask, ...(image.virtualCanvas ? { virtualCanvas: image.virtualCanvas } : {}) } as StoredRgbaImage, backend, token, geometry, state, signal, { warnings: "" }) };
+    if (token === "-chop" && image.readMask) {
+        let mask = image.readMask as StoredRgbaImage;
+        if (mask.width !== image.width || mask.height !== image.height)
+            mask = await transformStoredMagickRaster(mask, backend, extendEdgePixelSteps(mask, image.width, image.height, !!mask.storedData16, "black"), signal, { ...mask, width: image.width, height: image.height });
+        image = { ...image, readMask: await transformStoredMagickCoordinates({ ...mask, ...(image.virtualCanvas ? { virtualCanvas: image.virtualCanvas } : {}) }, backend, token, geometry, state, signal, { warnings: "" }) };
+    }
     if (token === "-chop" && image.storedWriteMask) {
         const { virtualCanvas: ignoredCanvas, ...mask } = image.storedWriteMask;
         image = { ...image, storedWriteMask: await transformStoredMagickCoordinates({ ...mask, ...(image.virtualCanvas ? { virtualCanvas: image.virtualCanvas } : {}) }, backend, token, geometry, state, signal, analysis) };

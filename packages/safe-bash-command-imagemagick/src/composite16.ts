@@ -15,6 +15,11 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
     left = Math.round(left);
     top = Math.round(top);
     const { name } = magickCompositeMode(mode);
+    const scales = name === "displace" && args !== undefined
+        ? args.toLowerCase().replaceAll(",", "x").split("x").map(value => Number.parseFloat(value)) : [];
+    const scaleX = scales[0] ?? (overlay.width - 1) / 2;
+    const scaleY = scales[1] ?? scales[0] ?? (overlay.height - 1) / 2;
+    const displacementCache = name === "displace" ? new Map<number, Float64Array>() : undefined;
     const clippedCopy = clipToOverlay && !tile && name === "copy"
         && (left < 0 || top < 0 || left + overlay.width > base.width || top + overlay.height > base.height);
     const maskDestination = ["dstin", "destin", "srcin", "in", "srcout", "out", "dstatop", "destatop"].includes(name);
@@ -84,7 +89,40 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
             const src = { ...overlay, hasAlpha: alphaSources?.[1].hasAlpha ?? overlay.hasAlpha, width: count, height: 1, data: new Float64Array(count * 4) };
             for (let i = 0; i < src.data.length; i++) src.data[i] = sourceSamples[outsideX ? i % 4 : i]!;
             const result = new Float64Array(count * 4);
-            yield* compositePixelsSteps(dst, src, result, mode, 0, 0, args, fuzz, clipToOverlay);
+            if (displacementCache) {
+                for (let i = 0; i < samples.length; i += 4) {
+                    // Q16's midpoint is 32768, so white is slightly below a full positive shift.
+                    const dx = Math.max(0, Math.min(base.width - 1, x + i / 4 + scaleX * (src.data[i]! * 257 - 32768) / 32768));
+                    const dy = Math.max(0, Math.min(base.height - 1, y + scaleY * (src.data[i + 1]! * 257 - 32768) / 32768));
+                    const ix = Math.floor(dx), iy = Math.floor(dy), fx = dx - ix, fy = dy - iy;
+                    let alpha = 0;
+                    for (let row = 0; row < 2; row++) for (let column = 0; column < 2; column++) {
+                        const weight = (column ? fx : 1 - fx) * (row ? fy : 1 - fy);
+                        if (weight === 0) continue;
+                        const position = (Math.min(base.height - 1, iy + row) * base.width + Math.min(base.width - 1, ix + column)) * 4;
+                        const page = Math.floor(position / 2048) * 2048;
+                        let pixels = displacementCache.get(page);
+                        if (!pixels) {
+                            // Always sample the original canvas, including across spans and rows.
+                            const bytes = (yield { kind: "read", highDepth: true, evaluate: baseEvaluate,
+                                position: page, length: Math.min(2048, base.width * base.height * 4 - page) })!;
+                            pixels = baseEvaluate ? new Float64Array(bytes.slice().buffer)
+                                : Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257);
+                            if (displacementCache.size === 32) displacementCache.delete(displacementCache.keys().next().value!);
+                            displacementCache.set(page, pixels);
+                        }
+                        const offset = position - page;
+                        const opacity = base.hasAlpha ? pixels[offset + 3]! / 255 : 1;
+                        alpha += weight * opacity;
+                        for (let channel = 0; channel < 3; channel++)
+                            result[i + channel]! += pixels[offset + channel]! * weight * opacity;
+                    }
+                    for (let channel = 0; channel < 3; channel++) result[i + channel] = alpha ? result[i + channel]! / alpha : 0;
+                    result[i + 3] = alpha * src.data[i + 3]!;
+                }
+            } else {
+                yield* compositePixelsSteps(dst, src, result, mode, 0, 0, args, fuzz, clipToOverlay);
+            }
             for (let i = 0; i < samples.length; i++)
                 if (!channels || channels[i % 4]) samples[i] = Math.fround(result[i]! * 257) / 257;
         }

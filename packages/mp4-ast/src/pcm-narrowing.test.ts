@@ -101,3 +101,26 @@ for (const format of ["f32le", "f64le"]) {
     }
   });
 }
+
+for (const bits of [24, 32]) {
+  for (const sign of ["s", "u"]) {
+    for (const endian of ["le", "be"]) {
+      for (const [format, hex] of [["alaw", "55d5d5"], ["mulaw", "7effff"]]) {
+        it(`narrows ${sign}${bits}${endian} to PCM16 before ${format} encoding`, () => {
+          const bytes = Buffer.alloc(3 * bits / 8);
+          [-0.5, 0, 0.5].forEach((value, i) => {
+            const sample = value * 2 ** (bits - 16) + (sign === "u" ? 2 ** (bits - 1) : 0);
+            if (sign === "u") {
+              if (endian === "le") bytes.writeUIntLE(sample, i * bits / 8, bits / 8);
+              else bytes.writeUIntBE(sample, i * bits / 8, bits / 8);
+            } else if (endian === "le") bytes.writeIntLE(sample, i * bits / 8, bits / 8);
+            else bytes.writeIntBE(sample, i * bits / 8, bits / 8);
+          });
+          const doc = raw.find(plugin => plugin.id === `${sign}${bits}${endian}`)!.parse(bytes);
+          const encoded = raw.find(plugin => plugin.id === format)!.serialize(doc);
+          assert.deepEqual(Buffer.from(encoded), Buffer.from(hex!, "hex"));
+        });
+      }
+    }
+  }
+}

@@ -147,9 +147,9 @@ export function rawAudioAsts(): MediaAstPlugin[] {
       const companded = codec === "mulaw" || codec === "alaw";
       const bits = companded ? 8 : Number.parseInt(codec.slice(1), 10);
       // G.711 decodes to PCM16 despite its 8-bit compressed storage width.
-      const truncate = !companded && ((sourceCodec === "pcm_alaw" || sourceCodec === "pcm_mulaw") ? bits < 16
+      const truncate = (sourceCodec === "pcm_alaw" || sourceCodec === "pcm_mulaw") ? !companded && bits < 16
         : (sourceCodec?.startsWith("pcm_s") || sourceCodec?.startsWith("pcm_u")) &&
-          (track.codecDescriptions[0]?.bitsPerSample ?? 0) > bits);
+          (track.codecDescriptions[0]?.bitsPerSample ?? 0) > (companded ? 16 : bits);
       const bytesPerSample = bits / 8;
       const channels = audio.channelData.length;
       const frames = audio.channelData[0]?.length ?? 0;

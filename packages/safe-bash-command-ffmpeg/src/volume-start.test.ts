@@ -36,3 +36,28 @@ for (const variable of ["startt", "startpts"]) {
     });
   }
 }
+
+for (const [expression, enabledSamples] of [
+  ["1+startpts", [500, 500, 500, 500]],
+  ["1+startt*8000", [500, 500, 500, 500]],
+  ["n+1", [300, 300, 400, 400]]
+] as const) {
+  it(`initializes volume timestamps on the first enabled frame for ${expression}`, async () => {
+    const fs = Volume.fromJSON({});
+    fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000,
+      channels: [new Float64Array(8).fill(100 / 32768)] }));
+    const errors: Uint8Array[] = [];
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-i", "/in.wav", "-af",
+        `asetnsamples=n=2:p=0,volume=${expression}:eval=frame:enable=gte(n\\,2)`,
+        "-f", "s16le", "/out.raw"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
+      stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write(b: Uint8Array) { errors.push(b); } }
+    } as never);
+    assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+    const bytes = fs.readFileSync("/out.raw") as Buffer;
+    assert.deepEqual(Array.from({ length: bytes.length / 2 }, (_, i) => bytes.readInt16LE(i * 2)),
+      [100, 100, 100, 100, ...enabledSamples]);
+  });
+}

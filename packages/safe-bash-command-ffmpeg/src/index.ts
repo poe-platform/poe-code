@@ -15341,7 +15341,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const count = timestamp ? timestamp.end - timestamp.start
                             : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                           const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
-                          if (n === 0) startpts = pts;
+                          const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "volume enable", {
+                            n, t: pts / origRate, pos: (audioTimestamps ? timestamp?.pos : packet?.offset) ?? NaN, w: 0, h: 0
+                          })) >= 0.5;
+                          if (enabled && Number.isNaN(startpts)) startpts = pts;
                           const end = evaluation === "once" && enable === undefined && commands.length === 0 ? length : Math.min(length, start + count);
                           while (nextCommand < commands.length && commands[nextCommand]!.sample <= start) {
                             volSpec = commands[nextCommand++]!.expression;
@@ -15355,9 +15358,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           // Fixed precision uses a Q8 gain; optimized x86 PCM32 rounds ties to even.
                           // PCM8 and PCM16 retain half-up rounding.
                           const fixedGain = Math.max(0, Math.floor(factor * 256 + 0.5));
-                          const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "volume enable", {
-                            n, t: pts / origRate, pos: (audioTimestamps ? timestamp?.pos : packet?.offset) ?? NaN, w: 0, h: 0
-                          })) >= 0.5;
                           for (let c = 0; c < stretched.length; c++) {
                             const channel = stretched[c]!;
                             for (let i = start; i < end; i++) {

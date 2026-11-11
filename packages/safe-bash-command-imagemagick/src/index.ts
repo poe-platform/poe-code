@@ -4050,6 +4050,53 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
     }
     const method = spec.toLowerCase().replace(/[-_]/g, ""), nums = args.trim().split(/[\s,]+/).filter(s => s.length > 0).map(Number);
     if (nums.some(value => !Number.isFinite(value))) throw new Error("invalid list of numbers");
+    if (method === "polynomial") {
+        const order = nums[0];
+        if (order === undefined) throw new Error("Polynomial needs at least 1 argument");
+        if (order < 1 || order > 5 || (!Number.isInteger(order) && order - 1.5 > 1e-12))
+            throw new Error("Polynomial: Invalid order, should be integer 1 to 5, or 1.5");
+        const count = Math.floor((order + 1) * (order + 2) / 2);
+        if (nums.length < 1 + count * 4 || (nums.length - 1) % 4 !== 0)
+            throw new Error(`Polynomial: require at least ${count} CPs (complete source/destination point pairs)`);
+        // Native places xy before the quadratic terms to support order 1.5.
+        const powers: [number, number][] = [[0, 0], [1, 0], [0, 1], [1, 1], [2, 0], [0, 2]];
+        for (let degree = 3; degree <= order; degree++)
+            for (let y = 0; y <= degree; y++) powers.push([degree - y, y]);
+        powers.length = count;
+        const matrix = Array.from({ length: count }, () => Array<number>(count).fill(0));
+        const xs = Array<number>(count).fill(0), ys = Array<number>(count).fill(0);
+        for (let p = 1; p < nums.length; p += 4) {
+            const row = powers.map(([x, y]) => nums[p + 2]! ** x! * nums[p + 3]! ** y!);
+            for (let i = 0; i < count; i++) {
+                xs[i]! += row[i]! * nums[p]!;
+                ys[i]! += row[i]! * nums[p + 1]!;
+                for (let j = 0; j < count; j++) matrix[i]![j]! += row[i]! * row[j]!;
+            }
+        }
+        const rx = solveLinearSystem(matrix, xs), ry = solveLinearSystem(matrix, ys);
+        return {
+            ...result((x, y) => {
+                let sx = 0, sy = 0;
+                for (let i = 0; i < count; i++) {
+                    const [px, py] = powers[i]!, term = (x + 0.5) ** px! * (y + 0.5) ** py!;
+                    sx += term * rx[i]!; sy += term * ry[i]!;
+                }
+                return [sx - 0.5, sy - 0.5];
+            }),
+            derivatives(x, y) {
+                let ux = 0, uy = 0, vx = 0, vy = 0;
+                for (let i = 0; i < count; i++) {
+                    const [px, py] = powers[i]!;
+                    // Match native filter derivatives, which omit exponent multipliers.
+                    const dx = px === 0 ? 0 : (x + 0.5) ** (px! - 1) * (y + 0.5) ** py!;
+                    const dy = py === 0 ? 0 : (x + 0.5) ** px! * (y + 0.5) ** (py! - 1);
+                    ux += dx * rx[i]!; uy += dy * rx[i]!;
+                    vx += dx * ry[i]!; vy += dy * ry[i]!;
+                }
+                return [ux, uy, vx, vy];
+            }
+        };
+    }
     if (method === "arc") throw new Error("Unsupported distortion method: Arc");
     if (method === "shepards") {
         if (nums.length === 0 || nums.length % 4 !== 0) throw new Error("Shepards requires control points (4 numbers each)");

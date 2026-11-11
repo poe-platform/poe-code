@@ -81,8 +81,17 @@ export async function crushAudio(
     while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
       const command = commands[nextCommand++]!;
       try {
-        setOption(command.action as keyof typeof options, command.expression);
-        parameters = configure();
+        if (command.action === "enable") {
+          parseFilterExpression(command.expression, "acrusher enable", {
+            n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2
+          }, undefined, new Float64Array(10), []);
+          enable = command.expression;
+          registers.fill(0);
+          randomStates.length = 0;
+        } else {
+          setOption(command.action as keyof typeof options, command.expression);
+          parameters = configure();
+        }
       } catch { /* Native asendcmd continues after a rejected command. */ }
     }
     const { coefficient, scale, plateau, inverseDc, minimum, span, phaseStep } = parameters;

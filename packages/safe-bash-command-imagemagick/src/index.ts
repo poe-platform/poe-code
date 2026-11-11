@@ -695,6 +695,7 @@ interface MagickState {
   optionProperties?: Record<string, string>;
   sizeWidth: number;
   sizeHeight: number;
+  captionHeight?: number;
   hasSize: boolean;
   page?: NonNullable<RgbaImage["virtualCanvas"]>;
   iconAutoResize?: number[];
@@ -5510,7 +5511,7 @@ function* createSolidRgbaImageSteps(width: number, height: number, color: RgbaCo
 function createFontLabel(text: string, state: MagickState, font: Uint8Array, wrap: boolean, signal?: AbortSignal): RgbaImage {
     const caption = renderFontCaption(font, text, state.hasSize ? state.sizeWidth : 0, state.pointsize, state.density,
         state.fill, state.background, state.strokeWidth, signal,
-        { wrap, gravity: state.gravity ?? "northwest", ...(state.hasSize ? { height: state.sizeHeight } : {}) });
+        { wrap, gravity: state.gravity, ...(state.hasSize ? { height: wrap ? state.captionHeight ?? state.sizeHeight : state.sizeHeight } : {}) });
     return { width: caption.width, height: caption.height, data: Uint8Array.from(caption.pixels, Math.round),
         data16: Uint16Array.from(caption.pixels, value => Math.round(value * 257)), evaluateSamples: caption.pixels,
         format: "png", channels: 4, depth: "ushort", space: "srgb", density: state.density,
@@ -7618,12 +7619,12 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const text = baseToken.slice(baseToken.indexOf(":") + 1);
         const font = state.font === undefined ? defaultCaptionFont : files.get(state.font);
         if (!font) throw new Error(`unable to read font '${state.font}'`);
-        const image = state.font !== undefined ? createFontLabel(text, state, font, lower.startsWith("caption:"))
+        const image = state.font !== undefined || lower.startsWith("caption:") ? createFontLabel(text, state, font, lower.startsWith("caption:"))
             : decodeImage(new TextEncoder().encode(createLabelSvg(text, state)), { density: state.density });
         const kind = lower.startsWith("caption:") ? "caption" : "label";
         const properties = { ...image.properties, [kind]: text };
         if (kind === "caption") {
-            properties["caption:lines"] = String(wrapFontCaption(font, text, image.width, state.pointsize, state.density, state.strokeWidth).length);
+            properties["caption:lines"] = String(wrapFontCaption(font, text, image.width, state.pointsize, state.density, state.strokeWidth, undefined, !state.hasSize || state.captionHeight === 0).length);
         }
         return yield* applyMod([Object.assign(image, { properties, [magickInput]: { filePath: text, inputFormat: kind.toUpperCase() } })]);
     }
@@ -11593,6 +11594,7 @@ if (t === "-intent" || t === "+intent") {
             const g = parseMagickGeometry(tokens[++i] ?? "1x1");
             state.sizeWidth = Math.max(1, Math.round(g.width ?? 1));
             state.sizeHeight = Math.max(1, Math.round(g.height ?? state.sizeWidth));
+            state.captionHeight = g.height ? state.sizeHeight : 0;
             state.inputOffset = g.x;
             state.hasSize = true;
         }
@@ -11600,6 +11602,7 @@ if (t === "-intent" || t === "+intent") {
             state.sizeWidth = 1;
             state.sizeHeight = 1;
             state.hasSize = false;
+            delete state.captionHeight;
             delete state.inputOffset;
         }
         else if (t === "-respect-parentheses" || t === "+respect-parentheses") {
@@ -19086,10 +19089,21 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    return source.read(0, source.size, { signal });
   });
   if (!font) throw new Error(`unable to read font '${state.font}'`);
-  image = state.font !== undefined ? await backend.retain(createFontLabel(text, state, font, kind === "caption", signal))
-   : await decodeStoredMagickSvg(createLabelSvg(text,state),state.density,backend,signal);
+  if (state.font !== undefined || kind === "caption") {
+   const { data16, evaluateSamples, ...raster } = createFontLabel(text, state, font, kind === "caption", signal);
+   image = await backend.retain(raster);
+   if (data16) {
+    const storedData16 = { position: backend.storage.allocate(data16.byteLength), length: data16.length };
+    await backend.storage.write(storedData16.position, new Uint8Array(data16.buffer));
+    image = { ...image, storedData16 };
+   }
+   if (evaluateSamples) {
+    image.storedEvaluateSamples = backend.storage.allocate(evaluateSamples.byteLength);
+    await backend.storage.write(image.storedEvaluateSamples, new Uint8Array(evaluateSamples.buffer));
+   }
+  } else image = await decodeStoredMagickSvg(createLabelSvg(text,state),state.density,backend,signal);
   const properties = { ...image.properties, [kind]: text };
-  if (kind === "caption") properties["caption:lines"] = String(wrapFontCaption(font, text, image.width, state.pointsize, state.density, state.strokeWidth, signal).length);
+  if (kind === "caption") properties["caption:lines"] = String(wrapFontCaption(font, text, image.width, state.pointsize, state.density, state.strokeWidth, signal, !state.hasSize || state.captionHeight === 0).length);
   image = Object.assign(image, { properties, [magickInput]: { filePath: text, inputFormat: kind.toUpperCase() } });
  }else{
   const generated=await drainSteps(parseInputOperandSteps(baseToken,new Map(),state),signal);
@@ -19456,6 +19470,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 const geometry = parseMagickGeometry(value);
                 state.sizeWidth = Math.max(1, Math.round(geometry.width ?? 1));
                 state.sizeHeight = Math.max(1, Math.round(geometry.height ?? state.sizeWidth));
+                state.captionHeight = geometry.height ? state.sizeHeight : 0;
                 state.inputOffset = geometry.x;
                 state.hasSize = true;
             }
@@ -19464,6 +19479,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             state.sizeWidth = 1;
             state.sizeHeight = 1;
             state.hasSize = false;
+            delete state.captionHeight;
             delete state.inputOffset;
         }
         else if (t === "+depth") { delete state.inputDepth; }

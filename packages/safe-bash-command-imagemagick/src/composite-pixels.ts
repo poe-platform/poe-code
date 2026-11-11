@@ -19,7 +19,7 @@ export function magickCompositeMode(mode: string): { name: string; delegated: bo
     let name = "";
     for (const character of mode.toLowerCase()) if (character !== "-" && character !== "_" && character.trim()) name += character;
     return { name, delegated: ["over", "srcover", "add"].includes(name),
-        preservesAlpha: ["lightenintensity", "darkenintensity", "intensity", "difference", "src", "source", "copy", "xor", "blend", "in", "srcin", "out", "srcout", "dstin", "destin", "dstout", "destout"].includes(name) };
+        preservesAlpha: ["lightenintensity", "darkenintensity", "intensity", "difference", "src", "source", "copy", "xor", "blend", "dissolve", "in", "srcin", "out", "srcout", "dstin", "destin", "dstout", "destout"].includes(name) };
 }
 
 export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster, out: Uint8Array | Float64Array, modeRaw: string, left: number, top: number, composeArgs?: string, fuzz = 0, clipToOverlay = false): Generator<undefined, void, unknown> {

@@ -29,10 +29,12 @@ function matchesTrimColor(pixel: TrimColor, reference: TrimColor, fuzz: number, 
         if (Math.abs(distance) > 127.5) distance -= 255;
         distance *= 2;
     }
-    // CMYK black contributes independently; alpha weights the other three inks.
-    const squared = (pixel.a - reference.a) ** 2 + ((pixel.black ?? 0) - (reference.black ?? 0)) ** 2
+    const alpha = (pixel.a / 255) * (reference.a / 255);
+    const black = pixel.black ?? 0, referenceBlack = reference.black ?? 0;
+    // Native CMYK distance scales the CMY cube toward black, with alpha weighting all inks.
+    const squared = (pixel.a - reference.a) ** 2 + (black - referenceBlack) ** 2 * alpha
         + (distance ** 2 + (pixel.g - reference.g) ** 2 + (pixel.b - reference.b) ** 2)
-        * (pixel.a / 255) * (reference.a / 255) / 3;
+        * alpha * (1 - black / 255) * (1 - referenceBlack / 255) / 3;
     return squared <= fuzz ** 2 + referenceFuzz ** 2;
 }
 

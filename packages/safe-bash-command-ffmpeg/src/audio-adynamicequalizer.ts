@@ -36,6 +36,14 @@ export async function listenDynamicEqualizer(
         throw new Error("adynamicequalizer: invalid precision");
       }
       precision = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
+    } else if (key === "tftype" || key === "auto") {
+      const constants = key === "tftype"
+        ? { bell: 0, lowshelf: 1, highshelf: 2 }
+        : { disabled: 1, off: 2, on: 3, adaptive: 4 };
+      const number = parseFilterExpression(value, "adynamicequalizer", constants);
+      if (!Number.isFinite(number) || number < (key === "tftype" ? 0 : 1) || number > (key === "tftype" ? 2 : 4)) {
+        throw new Error(`adynamicequalizer: invalid ${key}`);
+      }
     } else if (key && Object.hasOwn(ranges, key)) {
       const number = parseFilterExpression(value, "adynamicequalizer", {});
       const [min, max] = ranges[key as keyof typeof ranges];

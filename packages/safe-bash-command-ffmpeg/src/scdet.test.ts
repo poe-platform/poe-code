@@ -61,7 +61,8 @@ for (const filter of ["scdet=t=10:sc_pass=1", "scdet=threshold=10:s=yes", "scdet
     assert.deepEqual(result.output, Buffer.concat([frames[3]!, frames[6]!, frames[7]!]));
     assert.equal(createHash("sha256").update(result.output).digest("hex"),
       "0b1f642325ac22a98b4bdc5db1551c030a22e79b001d528ef6e12a32d2fdff24");
-    assert.deepEqual(result.stderr.split("\n").filter(line => line.startsWith("frame:")),
+    assert.deepEqual(result.stderr.split("\n").filter(line => line.startsWith("frame:"))
+      .map(line => line.split(" ").filter(Boolean).join(" ")),
       ["frame:0 pts:3 pts_time:0.75", "frame:1 pts:6 pts_time:1.5", "frame:2 pts:7 pts_time:1.75"]);
   });
 }

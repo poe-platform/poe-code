@@ -29,6 +29,19 @@ async function run(filter: string, graph = false, source = input) {
   return { result, stderr, output: fs.readFileSync("/out.wav") as Buffer };
 }
 
+// Generic enable is recognized but surround does not support timeline editing.
+for (const [option, exitCode] of [["enable=0", 176], ["enable=1", 176], ["unknown=1", 8]] as const) {
+  for (const graph of [false, true]) {
+    it(`surround=${option} returns the native option status (${graph ? "graph" : "simple"})`, async () => {
+      const { result, stderr, output } = await run(`surround=${option}`, graph);
+      assert.equal(result.exitCode, exitCode, stderr);
+      assert.ok(stderr.includes("surround"), stderr);
+      assert.ok(stderr.includes(option.slice(0, option.indexOf("="))), stderr);
+      assert.equal(output.toString(), "keep");
+    });
+  }
+}
+
 for (const [filter, fixture, lfe] of [
   ["surround", "default", true],
   ["surround=chl_out=5.1:win_size=1024", "1024", true],

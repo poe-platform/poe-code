@@ -658,6 +658,7 @@ function parseDelay(value: string, ticksPerSecond = 100, current?: number): { mi
 }
 
 function parseDelayOption(value: string, current: number): ReturnType<typeof parseDelay> {
+  validateMagickTransformGeometry(value, "-delay");
   const delay = parseDelay(value);
   if (!Number.isFinite(delay.milliseconds)) {
     throw new Error(`invalid argument for option '-delay' '${value}'`);
@@ -2668,7 +2669,7 @@ function normalizeMagickWarpGeometry(raw: string): string {
 }
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
-    let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal", "-density"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
+    let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal", "-density", "-delay", "-loop"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
     if (["-swirl", "-implode", "-wave", "-spread"].includes(option)) value = value.replaceAll("(", "").replaceAll(")", "");
     if (option === "-roll") value = value.replaceAll(" ", "").replaceAll("(", "").replaceAll(")", "");
     const forcedRegionResize = (option === "-liquid-rescale" || option === "-adaptive-resize") && value.includes("!");
@@ -2683,7 +2684,7 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
     // Chop and shave accept a lone minus and warn without changing the image.
     if (value === "-" && (option === "-chop" || option === "-shave")) return;
     if (![...value].some(c => "0123456789xX!#%.-:<>@^".includes(c)) || value === "-") throw new Error(`invalid argument for option '${option}': ${raw}`);
-    if (["-resize", "-scale", "-sample", "-thumbnail", "-adaptive-resize"].includes(option)
+    if (["-resize", "-scale", "-sample", "-thumbnail", "-adaptive-resize", "-delay", "-loop"].includes(option)
         && !dimensions && ![...value].some(character => "!#%<>@^".includes(character))) {
         const geometry = parseMagickGeometry(value);
         if (geometry.width !== undefined && geometry.hasOffset) {

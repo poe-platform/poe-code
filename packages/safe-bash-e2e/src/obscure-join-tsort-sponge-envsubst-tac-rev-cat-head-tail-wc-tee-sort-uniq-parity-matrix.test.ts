@@ -69,7 +69,7 @@ describe("obscure join, tsort, sponge, envsubst, tac, rev, cat, head, tail, wc, 
 
       const r4 = await sh.exec("join -t ab /work/f.txt /work/f.txt");
       assert.equal(r4.exitCode, 1);
-      assert.equal(r4.stderr, "join: EINVAL: join delimiter must be one byte in the C locale\n");
+      assert.equal(r4.stderr, "join: multi-character tab 'ab'\n");
 
       const r5 = await sh.exec("join -o bad /work/f.txt /work/f.txt");
       assert.equal(r5.exitCode, 1);
@@ -77,7 +77,7 @@ describe("obscure join, tsort, sponge, envsubst, tac, rev, cat, head, tail, wc, 
 
       const r6 = await sh.exec("join -1 1 -1 2 /work/f.txt /work/f.txt");
       assert.equal(r6.exitCode, 1);
-      assert.equal(r6.stderr, "join: EINVAL: incompatible join fields 0, 1\n");
+      assert.equal(r6.stderr, "join: incompatible join fields 0, 1\n");
 
       const r7 = await sh.exec("join /work/missing /work/f.txt");
       assert.equal(r7.exitCode, 1);

@@ -44,7 +44,7 @@ test("join uses LC_ALL, LC_CTYPE, then LANG for delimiter characters", async () 
   const result = await run(["-t", "é", "/a", "/b"], files, env);
   assert.equal(result.exitCode, 1, JSON.stringify(env));
   assert.equal(result.stdout.length, 0);
-  assert.ok(result.stderr.includes("one byte"));
+  assert.equal(result.stderr, "join: multi-character tab 'é'\n");
  }
 });
 
@@ -60,7 +60,7 @@ test("join rejects multiple delimiter characters and conflicting multibyte delim
  assert.deepEqual(repeated.stdout, Buffer.from("kéAéB\n"));
  const conflict = await run(["-té", "-tê", "/a", "/b"], files);
  assert.equal(conflict.exitCode, 1);
- assert.ok(conflict.stderr.includes("incompatible field delimiters"));
+ assert.equal(conflict.stderr, "join: incompatible tabs\n");
 });
 
 test("join matches full delimiters without splitting other UTF-8 characters or changing invalid bytes", async () => {

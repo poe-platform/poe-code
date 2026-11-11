@@ -109,7 +109,7 @@ test("sync join falls back for large field selections", () => {
 test("join rejects conflicting large fields inside command substitution loops", async () => {
   const result = await execute("printf 'k A\\n' > f1; printf 'k B\\n' > f2; for i in 1 2; do x=$(join -j 9007199254740992 -j 9007199254740993 f1 f2); printf '%s:%s\\n' \"$?\" \"$x\"; done");
   assert.equal(result.stdout, "1:\n1:\n");
-  assert.equal(result.stderr, "join: EINVAL: incompatible join fields 9007199254740991, 9007199254740992\n".repeat(2));
+  assert.equal(result.stderr, "join: incompatible join fields 9007199254740991, 9007199254740992\n".repeat(2));
   assert.equal(result.exitCode, 0);
 });
 

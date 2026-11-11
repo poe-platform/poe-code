@@ -74,7 +74,7 @@ for (const capture of [false, true]) {
     const actual = await shell.exec(capture ? `value=$(${command}); status=$?; if [ "$status" = 0 ]; then printf '%s\\n' "$value"; fi; exit "$status"` : command);
     assert.equal(actual.exitCode, exitCode, actual.stderr);
     assert.deepEqual(actual.stdoutBytes, Uint8Array.from(expected));
-    assert.equal(actual.stderr, exitCode ? "join: EINVAL: conflicting empty-field replacement strings\n" : "");
+    assert.equal(actual.stderr, exitCode ? "join: conflicting empty-field replacement strings\n" : "");
    } finally { await shell.dispose(); }
   });
  }

@@ -361,7 +361,12 @@ for (const [option, diagnostic] of [
  ["--he", "option '--he' is ambiguous; possibilities: '--header' '--help'"],
  ["--he=yes", "option '--he=yes' is ambiguous; possibilities: '--header' '--help'"],
  ...["--nochi", "--headers", "--Header", "--unknown=yes"].map(option => [option, `unrecognized option '${option}'`]),
- ...["--header=yes", "--hea=1", "--ignore=", "--check=yes", "--nocheck=no", "--zero=0", "--help=yes", "--version=yes"].map(option => [option, `option '${({ "--hea": "--header", "--ignore": "--ignore-case", "--check": "--check-order", "--nocheck": "--nocheck-order", "--zero": "--zero-terminated" }[option.split("=")[0]!] ?? option.split("=")[0])}' doesn't allow an argument`]),
+ ...[
+  ["--header=yes", "--header"], ["--hea=1", "--header"],
+  ["--ignore=", "--ignore-case"], ["--check=yes", "--check-order"],
+  ["--nocheck=no", "--nocheck-order"], ["--zero=0", "--zero-terminated"],
+  ["--help=yes", "--help"], ["--version=yes", "--version"],
+ ].map(([option, name]) => [option, `option '${name}' doesn't allow an argument`]),
  ...[..."12jaevto"].map(flag => [`-${flag}`, `option requires an argument -- '${flag}'`]),
  ["-ia", "option requires an argument -- 'a'"],
  ["-x", "invalid option -- 'x'"],

@@ -17,9 +17,15 @@ export async function softClipAudio(
       parseFilterExpression(value, "asoftclip enable", { n: 0, t: 0 });
       enable = value;
     } else if (key === "type") {
-      const selected = types.includes(value) ? value : types.find((_, i) => value === String(i - 1));
-      if (!selected) throw new Error("asoftclip: invalid type");
-      type = selected;
+      const number = parseFilterExpression(value, "asoftclip", {
+        ...Object.fromEntries(types.map((name, index) => [name, index - 1])),
+        default: 0, min: -1, max: types.length - 2
+      }, undefined, new Float64Array(10));
+      if (!Number.isFinite(number) || number < -1 || number > types.length - 2) throw new Error("asoftclip: invalid type");
+      // FFmpeg's integer options round exact halves to the nearest even integer.
+      const lower = Math.floor(number);
+      const index = number - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(number);
+      type = types[index + 1]!;
     } else if (key === "oversample") {
       const number = parseFilterExpression(value, "asoftclip", {});
       if (!Number.isInteger(number) || number < 1 || number > 64) throw new Error("asoftclip: invalid oversample");

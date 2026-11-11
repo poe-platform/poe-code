@@ -67,6 +67,16 @@ for (const [filter, expected] of [
 }
 
 for (const [expression, literal] of [
+  ["type=atan+1", "type=cubic"],
+  ["type=2.0", "type=cubic"],
+  ["type=1.5", "type=cubic"],
+  ["type=2.5", "type=cubic"],
+  ["type=-0.5", "type=tanh"],
+  ["type=default", "type=tanh"],
+  ["type=min", "type=hard"],
+  ["type=max", "type=erf"],
+  ["atan+1", "cubic"],
+  ["type=erf-sin+atan", "type=cubic"],
   ["threshold=1/2", "threshold=0.5"],
   ["output=1/2", "output=0.5"],
   ["param=1+1", "type=tanh:param=2"],
@@ -122,7 +132,8 @@ for (const [filter, hash] of [
 
 for (const filter of ["asoftclip=threshold=0", "asoftclip=threshold=1.1", "asoftclip=threshold=NaN", "asoftclip=threshold=", "asoftclip=output=17", "asoftclip=param=0", "asoftclip=param=4", "asoftclip=type=unknown", "asoftclip=type=8", "asoftclip=type=-2", "asoftclip=type=", "asoftclip=oversample=0", "asoftclip=oversample=65", "asoftclip=oversample=1.5", "asoftclip=oversample=NaN", "asoftclip=oversample=", "asoftclip=unknown=1",
   "asoftclip=threshold=1/2000000", "asoftclip=threshold=1+1", "asoftclip=output=1/2000000", "asoftclip=output=16+1",
-  "asoftclip=param=1/200", "asoftclip=param=3+1", "asoftclip=threshold=1/0", "asoftclip=output=0/0", "asoftclip=param=1+"]) {
+  "asoftclip=param=1/200", "asoftclip=param=3+1", "asoftclip=threshold=1/0", "asoftclip=output=0/0", "asoftclip=param=1+",
+  "asoftclip=type=7.1", "asoftclip=type=-1.1", "asoftclip=type=erf+1", "asoftclip=type=1/0", "asoftclip=type=0/0", "asoftclip=type=atan+"]) {
   it(`${filter} fails without replacing output`, async () => {
     const { fs, result } = await run(filter);
     assert.equal(result.exitCode, 1);

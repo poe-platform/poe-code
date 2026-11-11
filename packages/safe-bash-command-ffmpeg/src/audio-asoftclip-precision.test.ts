@@ -4,6 +4,33 @@ import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
 import { createFfmpegCommand } from "./index.js";
 
+for (const type of ["cubic", "atan+1", "2.0"]) for (const graph of [false, true]) for (const runtime of [false, true]) {
+  it(`asoftclip type=${type} matches native PCM32 (${graph ? "graph" : "simple"}, ${runtime ? "command" : "option"})`, async () => {
+    const channels = [Float64Array.from([-28000, -19000, -12000, -3000, 3000, 12000, 19000, 28000], value => value / 32768)];
+    const fs = Volume.fromJSON({ "/in.wav": Buffer.from(encodeWav({ sampleRate: 8000, channels })) });
+    const filter = runtime ? `asendcmd=c='0 asoftclip type ${type}',asoftclip` : `asoftclip=type=${type}`;
+    const output: Buffer[] = [];
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-i", "/in.wav",
+        ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+        "-f", "s32le", "pipe:1"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return fs.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { fs.writeFileSync(path, bytes); },
+        async stat(path: string) { return fs.statSync(path); }
+      },
+      stdin: (async function* () {})(),
+      stdout: { async write(bytes: Uint8Array) { output.push(Buffer.from(bytes)); } },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal(stderr, "");
+    assert.equal(Buffer.concat(output).toString("hex"), "80d0739e000e7ab940570ed260b94bf4a046b40bc0a8f12d00f28546802f8c61");
+  });
+}
+
 // FFmpeg 7.0.2-static references, also verified with -cpuflags 0.
 for (const [filter, expected] of [
   ["anull", "00000000a06ecd0f40cbc0d300398e63"],

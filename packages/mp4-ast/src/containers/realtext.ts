@@ -5,7 +5,7 @@ import type { MediaAstPlugin, MediaDocument, MediaSample } from "../types.js";
 
 function timeMs(value: string | undefined): number | undefined {
   if (!value) return undefined;
-  const parts = value.split(":");
+  const parts = (value.endsWith("s") ? value.slice(0, -1) : value).split(":");
   if (parts.length > 3) return undefined;
   let seconds = 0;
   for (const [index, part] of parts.entries()) {

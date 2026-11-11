@@ -14997,7 +14997,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             else {
                 stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                    return (yield* applyMagickMorphology4ChSteps(im, magickMorphologyPlan(method, kernelSpec), signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined));
+                    return (yield* applyMagickMorphology4ChSteps(im, magickMorphologyPlan(method, kernelSpec), signal, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, state.virtualPixel, state.background));
                 });
             }
         }
@@ -18521,8 +18521,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             } else {
                 const plan = magickMorphologyPlan(method, spec);
                 const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
-                const background = state.background;
-                steps.push(async (image, backend) => image ? morphStoredMagickImage(image, backend, plan, signal, channels, undefined, background) : undefined);
+                const background = state.background, virtualPixel = state.virtualPixel;
+                steps.push(async (image, backend) => image ? morphStoredMagickImage(image, backend, plan, signal, channels, virtualPixel, background) : undefined);
             }
         } else if (!operandsOnly && token === "-shade") {
             stackStep(async stack => {

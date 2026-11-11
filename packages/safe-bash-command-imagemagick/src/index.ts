@@ -1749,8 +1749,10 @@ function* formatMagickPropertyStringSteps<Step=never>(
       parts.push(({ n: "\n", r: "\r", "\n": "" } as Record<string, string>)[token[1]!] ?? token[1]!);
     } else if (token === "%%") {
       parts.push("%");
-    } else if (token === "%#" || token.toLowerCase() === "%[signature]") {
+    } else if (token === "%#") {
       signature ??= resolvePixels ? yield* resolvePixels("signature") : yield* signatureSteps(img ??= getImage());
+      properties.signature = signature;
+      Object.assign(meta, { properties: { ...meta.properties, signature } });
       parts.push(signature);
     } else if (token === "%@" || token.toLowerCase() === "%[bounding-box]") {
       const key = token === "%@" ? "@" : "bounding-box";

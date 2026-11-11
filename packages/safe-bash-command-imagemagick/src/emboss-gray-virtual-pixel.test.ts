@@ -13,6 +13,7 @@ const cases = [
     { space: "Gray", background: "#40c080", method: "horizontal-tile", hex: "000000000000000000ffffffffffff333333000000666666999999" },
     { space: "Gray", background: "#40c080", method: "vertical-tile", hex: "000000000000000000ffffffffffff000000000000ffffffffffff" },
     { space: "Gray", background: "#40c080", method: "background", hex: "000000000000000000ffffffffffff000000000000800080ff0080" },
+    { space: "LinearGray", background: "#40c080", method: "checker-tile", hex: "000000000000000000bcbcbcffffff000000000000000000000000" },
 ];
 
 for (const mode of ["magick", "convert", "buffered", "retained", "sync"] as const)

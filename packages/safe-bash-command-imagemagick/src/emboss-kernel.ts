@@ -14,7 +14,7 @@ export interface EmbossEqualization {
 }
 
 /** Native emboss diagonal Gaussian convolution followed by channel-aware equalization. */
-export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space" | "gamma"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined }, geometry: { width?: number; height?: number }, intensity: string, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, equalization?: EmbossEqualization, writeMask?: Pick<RgbaImage, "width" | "height">, sync = !channels, seed?: bigint): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "channels" | "metaChannels" | "data16" | "evaluateSamples" | "space" | "gamma"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples" | "storedMetaChannels">> & HueMetadata & { region?: Region | undefined }, geometry: { width?: number; height?: number }, intensity: string, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, equalization?: EmbossEqualization, writeMask?: Pick<RgbaImage, "width" | "height">, sync = !channels, seed?: bigint): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
     const hue = !cmyk && !!image.magickColorspace && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
     const linear = image.magickColorspace === "RGB" || image.magickColorspace === "scRGB"
@@ -67,6 +67,10 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
         if (virtualPixel.endsWith("-tile")) fill[0] = fill[1] = fill[2]!;
         if (channels) channels = { ...channels, g: channels.r, b: channels.r };
     }
+    // Native background/transparent modes can add color or alpha channels to Gray.
+    const singleChannel = image.channels === 1 && !image.metaChannels?.length && !image.storedMetaChannels?.length
+        && !writeMask && !image.region && virtualPixel !== "transparent"
+        && (virtualPixel !== "background" || fill[0] === fill[1] && fill[1] === fill[2] && fill[3] === 255);
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha, channels.k] : [true, true, true, image.hasAlpha, true];
     const histograms = equalization?.histogram ? [equalization.histogram] : Array.from({ length: sync ? 1 : stride }, () => new Float64Array(65536));
     const lookups = equalization?.lookup ? [equalization.lookup] : histograms.map(() => new Float64Array(65536));
@@ -160,7 +164,12 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
                 for (let x = 0; x < count; x++) {
                     if (!sync) {
                         for (let channel = 0; channel < stride; channel++) if (mask[channel]) histograms[channel]![bin(sums[x * stride + channel]!)]!++;
-                    } else histograms[0]![bin(magickIntensity(sums[x * stride]!, sums[x * stride + 1]!, sums[x * stride + 2]!, intensity, 255, linear))]!++;
+                    } else {
+                        // Native uses the sample directly when Gray is the only channel.
+                        const value = singleChannel ? sums[x * stride]!
+                            : magickIntensity(sums[x * stride]!, sums[x * stride + 1]!, sums[x * stride + 2]!, intensity, 255, linear);
+                        histograms[0]![bin(value)]!++;
+                    }
                 }
             } else {
                 const values = samples!.slice();

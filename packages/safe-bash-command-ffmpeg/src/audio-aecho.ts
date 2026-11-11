@@ -8,7 +8,7 @@ export async function echoAudio(
   sampleFormat: string, budget: MediaBudgetTracker, signal?: AbortSignal,
   warn?: (message: string) => Promise<void>
 ): Promise<Float64Array[]> {
-  const options = { in_gain: "0.6", out_gain: "0.3", delays: "1000", decays: "0.5" };
+  const options = { in_gain: 0.6, out_gain: 0.3, delays: "1000", decays: "0.5" };
   const names = Object.keys(options) as (keyof typeof options)[];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const parts = argument ? argument.split(":") : [];
@@ -34,13 +34,15 @@ export async function echoAudio(
       continue;
     }
     if (!key || !Object.hasOwn(options, key)) throw new Error(`aecho: unsupported option ${key}`);
-    options[key as keyof typeof options] = value;
+    if (key === "in_gain" || key === "out_gain") {
+      const gain = parseFilterExpression(value, "aecho", { min: 0, max: 1, default: key === "in_gain" ? 0.6 : 0.3 });
+      if (!Number.isFinite(gain) || gain < 0 || gain > 1) throw new Error("aecho: invalid gain");
+      options[key] = gain;
+    } else {
+      options[key as "delays" | "decays"] = value;
+    }
   }
-  const gains = [options.in_gain, options.out_gain].map((value, index) => {
-    const gain = parseFilterExpression(value, "aecho", { min: 0, max: 1, default: index === 0 ? 0.6 : 0.3 });
-    if (!Number.isFinite(gain) || gain < 0 || gain > 1) throw new Error("aecho: invalid gain");
-    return Math.fround(gain);
-  });
+  const gains = [options.in_gain, options.out_gain].map(Math.fround);
   // Native list options count NaN prefixes but skip nonnumeric/empty entries.
   const [delays, decays] = [options.delays, options.decays].map(value =>
     value.split("|").flatMap(part => {

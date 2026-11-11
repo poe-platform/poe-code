@@ -4628,12 +4628,38 @@ async function applyVideoFilterChain(
         PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
       });
       if (positional.slice(1).some(part => !part.includes("=")) ||
-          Object.keys(named).some(key => key !== "step" && key !== "enable") ||
+          Object.keys(named).some(key => !["step", "enable", "threads", "thread_type", "extra_hw_frames"].includes(key)) ||
           !Number.isFinite(value)) {
         throw new Error("framestep: step must be an integer from 1 to 2147483647");
       }
       if (value < 1 || value > 2147483647) {
         throw new RangeError("framestep: step must be an integer from 1 to 2147483647");
+      }
+      for (const [key, option] of Object.entries(named)) {
+        if (key === "step" || key === "enable") continue;
+        if (key === "thread_type") {
+          const flags = option.trim();
+          let position = 0;
+          do {
+            if (flags[position] === "+" || flags[position] === "-") position++;
+            const start = position;
+            if (flags[position] === "+" || flags[position] === "-") position++;
+            while (position < flags.length && flags[position] !== "+" && flags[position] !== "-") position++;
+            const bits = parseFilterExpression(flags.slice(start, position), "framestep", { slice: 1, none: 0, all: -1 });
+            if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
+              throw new RangeError("framestep: invalid thread_type");
+            }
+          } while (position < flags.length);
+          continue;
+        }
+        const minimum = key === "extra_hw_frames" ? -1 : 0;
+        const number = parseFilterExpression(option, "framestep", {
+          default: minimum, min: minimum, max: 2147483647,
+          PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+        });
+        if (number < minimum || number > 2147483647) {
+          throw new RangeError(`framestep: invalid ${key}`);
+        }
       }
       const step = roundToEven(value);
       const variables = {

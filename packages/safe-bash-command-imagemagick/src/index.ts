@@ -11262,6 +11262,11 @@ function parseMagickDisposalSetting(value: string): number {
     return negate ? 0 : disposal;
 }
 
+function parseMagickLayerMethod(value: string): string {
+    if (value.startsWith("-") || value.startsWith("_")) throw new Error(`unrecognized layer method '-layers' '${value}'`);
+    return value.toLowerCase().replaceAll("-", "").replaceAll("_", "");
+}
+
 function parseMagickOrientation(value: string): number {
     const orientation = ["undefined", "topleft", "topright", "bottomright", "bottomleft", "lefttop", "righttop", "rightbottom", "leftbottom"].indexOf(value.toLowerCase().replaceAll("-", "").replaceAll("_", ""));
     if (orientation < 0) throw new Error(`unrecognized image orientation '-orient' '${value}'`);
@@ -12037,7 +12042,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
     while (i < tokens.length) {
         yield;
         const t = tokens[i]!;
-        const layerMethod = t === "-layers" ? (tokens[i + 1] ?? "").toLowerCase().replaceAll("-", "").replaceAll("_", "") : "";
+        const layerMethod = !operandsOnly && t === "-layers" ? parseMagickLayerMethod(tokens[i + 1] ?? "") : "";
         if (!operandsOnly && ["trimbounds", "coalesce", "dispose", "compareany", "compareoverlay", "compareclear", "optimizetransparency", "removedups", "removezero", "optimizeplus", "optimizeframe", "optimize"].includes(layerMethod) && !stack.length) throw new Error("no images found for operation '-layers'");
         if (!operandsOnly && t === "--") { operandsOnly = true; i++; continue; }
         if (operandsOnly) {
@@ -15101,7 +15106,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
     for (let i = 0; i < tokens.length; i++) {
         if (i && i % 64 === 0) await yieldTurn(signal);
         const token = tokens[i]!;
-        const layerMethod = token === "-layers" ? (tokens[i + 1] ?? "").toLowerCase().replaceAll("-", "").replaceAll("_", "") : "";
+        const layerMethod = !operandsOnly && token === "-layers" ? parseMagickLayerMethod(tokens[i + 1] ?? "") : "";
         if (!operandsOnly && ["trimbounds", "coalesce", "dispose", "compareany", "compareoverlay", "compareclear", "optimizetransparency", "removedups", "removezero", "optimizeplus", "optimizeframe", "optimize"].includes(layerMethod)) {
             stackStep(async stack => {
                 if (!stack.length) throw new Error("no images found for operation '-layers'");

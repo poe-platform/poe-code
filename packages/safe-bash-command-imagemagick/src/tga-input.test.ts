@@ -39,3 +39,22 @@ for (const retained of [false, true]) {
     }
   }
 }
+
+for (const retained of [false, true]) {
+  for (const rle of [false, true]) {
+    it(`reads independent grayscale TGA bytes (retained=${retained}, rle=${rle})`, async () => {
+      // Bottom-origin type 3/11 fixture, independent of the image writer.
+      const header = new Uint8Array(18);
+      header[2] = rle ? 11 : 3; header[12] = 3; header[14] = 2; header[16] = 8;
+      const pixels = [216, 69, 75, 76, 150, 29];
+      const input = Uint8Array.from([...header, ...(rle ? [5, ...pixels] : pixels)]);
+      const files = new Map([["/in.tga", input]]);
+      const filesystem = new MemoryFileSystem();
+      await filesystem.writeFile("/in.tga", input);
+      const result = await runConvertCli(["/in.tga", "-depth", "8", "rgba:/out.raw"], retained ? { filesystem, cwd: "/" } : files);
+      expect(result).toMatchObject({ exitCode: 0 });
+      const output = retained ? await filesystem.readFile("/out.raw") : files.get("/out.raw")!;
+      expect(output).toEqual(Uint8Array.from([76, 150, 29, 216, 69, 75].flatMap(gray => [gray, gray, gray, 255])));
+    });
+  }
+}

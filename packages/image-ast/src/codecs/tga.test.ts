@@ -25,6 +25,29 @@ for (const retained of [false, true]) {
     } finally { await storage.close(); }
   }
 
+  for (const rle of [false, true]) {
+    for (const descriptor of [0, 16, 32, 48]) {
+      it(`reads grayscale packets and origin (${retained}, ${rle}, ${descriptor})`, async () => {
+        const bytes = tga(3, 2, rle ? [0x82, 76, 2, 150, 29, 216] : [76, 76, 76, 150, 29, 216], rle, descriptor);
+        bytes[2] = rle ? 11 : 3; bytes[16] = 8;
+        const rows = [[76, 76, 76], [150, 29, 216]];
+        if (!(descriptor & 32)) rows.reverse();
+        if (descriptor & 16) rows.forEach(row => row.reverse());
+        const image = await decode(bytes);
+        expect(image).toMatchObject({ channels: 1, hasAlpha: false, space: "b-w", depth: "uchar" });
+        expect(image.data).toEqual(Uint8Array.from(rows.flat().flatMap(gray => [gray, gray, gray, 255])));
+      });
+    }
+  }
+
+  for (const [name, payload] of [["packet", []], ["pixel", [0x80]], ["oversized run", [0x81, 76]]] as const) {
+    it(`rejects malformed grayscale RLE ${name} (${retained})`, async () => {
+      const bytes = tga(1, 1, [...payload], true);
+      bytes[2] = 11; bytes[16] = 8;
+      await expect(decode(bytes)).rejects.toThrow("TGA");
+    });
+  }
+
   it(`reads right-origin 24-bit pixels across bounded spans (${retained})`, async () => {
     const pixels = Array.from({ length: 1025 }, (_, i) => [i % 256, 10, 20]);
     const image = await decode(tga(1025, 1, pixels.flat()));

@@ -24,7 +24,7 @@ chunks and rejected without whole-file fallback, preserving read failures, cance
 and cleanup errors for primary inputs and secondary image resources.
 `decodeImageToStorage(source, storage, signal, options)` selects a retained raster
 decoder and supports raw or generated inputs. TGA input supports uncompressed and
-RLE true-color images (24-bit RGB or 32-bit RGBA), preserving origin and alpha. It shares the source and backing
+RLE grayscale (8-bit) and true-color images (24-bit RGB or 32-bit RGBA), preserving origin and alpha. It shares the source and backing
 contracts of the format-specific codecs. `encodeStoredImage(image, storage, signal,
 options)` streams the corresponding output and returns final output information.
 PSD input reads the composite (`page: 0`) and layers (`page: 1` onward), with raw or RLE-compressed 8/16-bit RGB and grayscale pixels, alpha, page geometry and resolution. PSB, ZIP compression and other PSD color modes are unsupported.

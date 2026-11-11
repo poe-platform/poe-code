@@ -214,7 +214,11 @@ export async function removeSilence(
           // Native peak detection expires by value, including repeated equal peaks.
           const previous = i >= window ? channel[i - window]! : 0;
           if (front < back && (peakToPeak ? channel[queue[front]!]! === previous
-            : Math.abs(channel[queue[front]!]!) === Math.abs(previous))) front++;
+            : Math.abs(channel[queue[front]!]!) === Math.abs(previous))) {
+            front++;
+            // Native marks the queue empty when expiration brings its ends together.
+            if (back - front === 1) front = back;
+          }
           while (front < back && (peakToPeak ? channel[queue[back - 1]!]!
             : Math.abs(channel[queue[back - 1]!]!)) <= value) back--;
           queue[back++] = i;

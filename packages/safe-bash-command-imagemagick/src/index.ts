@@ -5507,6 +5507,16 @@ function* createSolidRgbaImageSteps(width: number, height: number, color: RgbaCo
     };
 }
 
+function createFontLabel(text: string, state: MagickState, font: Uint8Array, wrap: boolean, signal?: AbortSignal): RgbaImage {
+    const caption = renderFontCaption(font, text, state.hasSize ? state.sizeWidth : 0, state.pointsize, state.density,
+        state.fill, state.background, state.strokeWidth, signal,
+        { wrap, gravity: state.gravity ?? "northwest", ...(state.hasSize ? { height: state.sizeHeight } : {}) });
+    return { width: caption.width, height: caption.height, data: Uint8Array.from(caption.pixels, Math.round),
+        data16: Uint16Array.from(caption.pixels, value => Math.round(value * 257)), evaluateSamples: caption.pixels,
+        format: "png", channels: 4, depth: "ushort", space: "srgb", density: state.density,
+        hasAlpha: state.background.a < 255 };
+}
+
 function createLabelSvg(text: string, state: MagickState): string {
   const fontSize = Math.max(8, state.pointsize);
   const w = state.hasSize ? state.sizeWidth : Math.max(16, Math.ceil(text.length * fontSize * 0.65) + 8);
@@ -7606,12 +7616,13 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     if (lower.startsWith("label:") || lower.startsWith("caption:")) {
         const text = baseToken.slice(baseToken.indexOf(":") + 1);
-        const image = decodeImage(new TextEncoder().encode(createLabelSvg(text, state)), { density: state.density });
+        const font = state.font === undefined ? defaultCaptionFont : files.get(state.font);
+        if (!font) throw new Error(`unable to read font '${state.font}'`);
+        const image = state.font !== undefined ? createFontLabel(text, state, font, lower.startsWith("caption:"))
+            : decodeImage(new TextEncoder().encode(createLabelSvg(text, state)), { density: state.density });
         const kind = lower.startsWith("caption:") ? "caption" : "label";
         const properties = { ...image.properties, [kind]: text };
         if (kind === "caption") {
-            const font = state.font === undefined ? defaultCaptionFont : files.get(state.font);
-            if (!font) throw new Error(`unable to read font '${state.font}'`);
             properties["caption:lines"] = String(wrapFontCaption(font, text, image.width, state.pointsize, state.density, state.strokeWidth).length);
         }
         return yield* applyMod([Object.assign(image, { properties, [magickInput]: { filePath: text, inputFormat: kind.toUpperCase() } })]);
@@ -19070,16 +19081,15 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   image = Object.assign(image, { [magickInput]: { ...(!checker ? { filePath: first } : {}), inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } });
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
   const text = baseToken.slice(baseToken.indexOf(":") + 1), kind = lower.startsWith("caption:") ? "caption" : "label";
-  image=await decodeStoredMagickSvg(createLabelSvg(text,state),state.density,backend,signal);
+  const font = state.font === undefined ? defaultCaptionFont : await backend.read(state.font, async source => {
+   if (source.size > 16 * 1024 * 1024) throw new Error("font exceeds memory limit");
+   return source.read(0, source.size, { signal });
+  });
+  if (!font) throw new Error(`unable to read font '${state.font}'`);
+  image = state.font !== undefined ? await backend.retain(createFontLabel(text, state, font, kind === "caption", signal))
+   : await decodeStoredMagickSvg(createLabelSvg(text,state),state.density,backend,signal);
   const properties = { ...image.properties, [kind]: text };
-  if (kind === "caption") {
-   const font = state.font === undefined ? defaultCaptionFont : await backend.read(state.font, async source => {
-    if (source.size > 16 * 1024 * 1024) throw new Error("font exceeds memory limit");
-    return source.read(0, source.size, { signal });
-   });
-   if (!font) throw new Error(`unable to read font '${state.font}'`);
-   properties["caption:lines"] = String(wrapFontCaption(font, text, image.width, state.pointsize, state.density, state.strokeWidth, signal).length);
-  }
+  if (kind === "caption") properties["caption:lines"] = String(wrapFontCaption(font, text, image.width, state.pointsize, state.density, state.strokeWidth, signal).length);
   image = Object.assign(image, { properties, [magickInput]: { filePath: text, inputFormat: kind.toUpperCase() } });
  }else{
   const generated=await drainSteps(parseInputOperandSteps(baseToken,new Map(),state),signal);

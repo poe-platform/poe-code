@@ -1,4 +1,4 @@
-import type { RgbaColor } from "@poe-code/image-ast/portable";
+import type { GravityPosition, RgbaColor } from "@poe-code/image-ast/portable";
 import createFontRuntime from "./runtime.js";
 
 export function wrapFontCaption(bytes: Uint8Array, text: string, width: number, pointsize: number, density: number, strokeWidth: number, signal?: AbortSignal): string[] {
@@ -36,7 +36,7 @@ export function wrapFontCaption(bytes: Uint8Array, text: string, width: number, 
     } finally { runtime._font_close(); runtime._free(pointer); }
 }
 
-export function renderFontCaption(bytes: Uint8Array, text: string, width: number, pointsize: number, density: number, fill: RgbaColor, background: RgbaColor, strokeWidth: number, signal?: AbortSignal) {
+export function renderFontCaption(bytes: Uint8Array, text: string, width: number, pointsize: number, density: number, fill: RgbaColor, background: RgbaColor, strokeWidth: number, signal?: AbortSignal, layout?: { height?: number; wrap: boolean; gravity: GravityPosition }) {
     if (bytes.length > 16 * 1024 * 1024) throw new Error("font exceeds memory limit");
     signal?.throwIfAborted();
     const runtime = createFontRuntime();
@@ -56,18 +56,34 @@ export function renderFontCaption(bytes: Uint8Array, text: string, width: number
             return { width: values[at]!, height: values[at + 1]!, pitch: values[at + 2]!, bitmap: values[at + 3]!,
                 left: values[at + 4]!, top: values[at + 5]!, advance: values[at + 6]! / 64, id: values[at + 7]! };
         };
-        const lines = wrapFontCaption(bytes, text, width, pointsize, density, strokeWidth, signal);
-        const height = Math.floor(lines.length * lineHeight + 0.5);
+        const measure = (text: string) => {
+            let width = 0, previous = 0;
+            for (const char of text) {
+                const values = glyph(char);
+                width += runtime._font_kerning(previous, values.id) / 64 + values.advance;
+                previous = values.id;
+            }
+            return width;
+        };
+        if (!width) width = Math.max(1, Math.ceil(Math.max(...text.split("\n").map(measure)) + strokeWidth));
+        const lines = layout?.wrap === false ? text.split("\n") : wrapFontCaption(bytes, text, width, pointsize, density, strokeWidth, signal);
+        const textHeight = Math.floor(lines.length * lineHeight + 0.5);
+        const height = layout?.height ?? textHeight;
         if (!Number.isSafeInteger(width * height) || width * height > 2 ** 20) throw new Error("font caption exceeds pixel limit");
         const pixels = new Float64Array(width * height * 4);
         for (let i = 0; i < pixels.length; i += 4) pixels.set([background.r, background.g, background.b, background.a], i);
         for (const [row, content] of lines.entries()) {
-            let x = 0, previous = 0;
+            const gravity = layout?.gravity ?? "undefined";
+            const centered = (gravity === "center" || gravity === "north" || gravity === "south");
+            const east = (gravity === "northeast" || gravity === "east" || gravity === "southeast");
+            let x = centered ? (width - measure(content)) / 2 : east ? width - measure(content) : 0, previous = 0;
+            const yOffset = (gravity === "center" || gravity === "east" || gravity === "west") ? (height - textHeight) / 2
+                : (gravity === "south" || gravity === "southeast" || gravity === "southwest") ? height - textHeight : 0;
             for (const char of content) {
                 const { width: columns, height: rows, pitch, bitmap, left, top, advance, id } = glyph(char);
                 x += runtime._font_kerning(previous, id) / 64;
                 for (let y = 0; y < rows; y++) for (let column = 0; column < columns; column++) {
-                    const dx = Math.floor(x) + left + column, dy = Math.floor(row * lineHeight + ascent) - top + y;
+                    const dx = Math.floor(x) + left + column, dy = Math.floor(yOffset + row * lineHeight + ascent) - top + y;
                     if (dx < 0 || dx >= width || dy < 0 || dy >= height) continue;
                     const alpha = runtime.HEAPU8[bitmap + y * pitch + column]! / 255 * fill.a / 255;
                     const at = (dy * width + dx) * 4, behind = pixels[at + 3]! / 255 * (1 - alpha), combined = alpha + behind;

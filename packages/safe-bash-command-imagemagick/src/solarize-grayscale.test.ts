@@ -36,9 +36,11 @@ for (const mode of ["command", "buffered", "sync"] as const) {
                 // Native Q16: gray.png -channel R/G/B -solarize 40% +channel PNG:out.png
                 const output = await convert(depth, alpha, ["-channel", channel, "-solarize", "40%", "+channel"], "PNG:out.png");
                 if (typeof output === "string") throw new Error("expected image");
+                // Native loads opaque 8-bit grayscale PNG as a palette and solarizes every RGB entry.
+                const palette = depth === 8 && !alpha;
                 const selected = ["R", "G", "B"].indexOf(channel);
                 const expected = [120, 120, 120, alpha ? 30 : 255, 200, 200, 200, alpha ? 160 : 255]
-                    .map((value, index) => index % 4 === selected ? 255 - value : value);
+                    .map((value, index) => (palette ? index % 4 < 3 : index % 4 === selected) ? 255 - value : value);
                 expect([...output.data]).toEqual(expected);
                 if (depth === 16) expect([...output.data16!]).toEqual(expected.map(value => value * 257));
             });

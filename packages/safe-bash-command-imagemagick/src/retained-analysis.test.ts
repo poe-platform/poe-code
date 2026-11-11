@@ -48,7 +48,7 @@ it.each([
 // Contrast-stretch vectors use native ImageMagick 7.1.2 RGBA output.
 // Linear-stretch vectors corrected against ImageMagick 7.1.2 RGBA output.
 // Normalize vectors corrected against ImageMagick 7.1.2 RGBA output.
-// Default RGBA auto-level vector corrected against ImageMagick 7.1.2 output.
+// Default RGBA auto-level and zero auto-gamma vectors corrected against ImageMagick 7.1.2 output.
 const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; hash: string }[] = [
   {
     "channels": 4,
@@ -238,7 +238,7 @@ const vectors: { channels: 3 | 4; constant: number | null; operators: string[]; 
     "operators": [
       "-auto-gamma"
     ],
-    "hash": "24d691b0541dcad2485f7c29ec8195d31a04337a41c91ddd0b1131ad7b852faf"
+    "hash": "c3ae2fab99a8e189e6ad2c27a0787e4466434edd230d9494f6cae78a35f81529"
   },
   {
     "channels": 4,

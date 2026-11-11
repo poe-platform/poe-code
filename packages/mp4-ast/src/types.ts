@@ -906,7 +906,7 @@ export interface ConcatMediaOptions {
 }
 
 export interface SliceMediaOptions {
-  /** Retain Ogg Opus page preroll for an input-side stream-copy seek. */
+  /** Retain overlapping subtitle cues and Ogg Opus stream-copy page preroll on input seek. */
   readonly inputSeek?: boolean | undefined;
   /** Keep the full final compressed audio packet when stream copying. */
   readonly copyAudio?: boolean | undefined;

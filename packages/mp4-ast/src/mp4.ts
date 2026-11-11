@@ -2283,7 +2283,8 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
     }
 
     if (track.type === "subtitle") {
-      // Select whole subtitle packets, including cues extending past the end.
+      // Input seeking retains overlapping cues; output seeking selects by start.
+      // Keep whole subtitle packets, including cues extending past the end.
       // Input seeks rebase timestamps unless -copyts preserves the timeline.
       const offset = options.inputSeek && options.resetTimestamps !== false
         ? Math.round(startSec * track.timescale) : 0;
@@ -2292,7 +2293,8 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
       for (const sample of track.samples) {
         if (++work % 256 === 0) yield;
         const seconds = sample.pts / track.timescale;
-        if (seconds < startSec || seconds >= endSec) continue;
+        if (seconds < startSec && (!options.inputSeek ||
+            (sample.pts + sample.duration) / track.timescale <= startSec) || seconds >= endSec) continue;
         samples.push(offset === 0 ? sample : { ...sample, pts: sample.pts - offset, dts: sample.dts - offset });
         duration = Math.max(duration, sample.pts - offset + sample.duration);
       }

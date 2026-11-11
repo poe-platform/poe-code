@@ -4941,7 +4941,7 @@ function parsePosterizeLevels(value: string): number {
     return levels;
 }
 
-function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">, levelsRaw: number, dither: MagickState["dither"], diffusionAmount: number, channels: MagickState["channels"], signal?: AbortSignal, reducePalette = true, depthDither = false, colormap?: number[][]): Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined> {
+function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "region" | "alphaBlend">, levelsRaw: number, dither: MagickState["dither"], diffusionAmount: number, channels: MagickState["channels"], signal?: AbortSignal, reducePalette = true, depthDither = false, colormap?: number[][]): Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined> {
     let cooperativeWork = 0;
     const levels = Math.max(2, Math.trunc(levelsRaw));
     const step = 255 / (levels - 1);
@@ -4962,16 +4962,48 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
         };
         // Gray occupies all RGB slots, but only the red channel mask selects it.
         if (img.space === "b-w" || img.space === "grey16") mask[1] = mask[2] = channels.r;
-        if (reducePalette && (img.hasAlpha || !channels.r || !channels.g || !channels.b)) {
+        if (reducePalette && (img.region || img.hasAlpha || !channels.r || !channels.g || !channels.b)) {
             // Native rounds samples, then reduces the resulting RGBA palette to
             // levels³ colors. Alpha and unselected RGB channels can exceed that limit.
             const colors = Math.min(65536, levels ** 3);
             const depth = Math.floor(Math.log2(colors) / 2) + 2;
-            const steps = quantizePixelSteps(img.width * img.height * 4, colors, false, img.hasAlpha && depth > 5 ? depth - 1 : depth, img.hasAlpha, true);
+            function* roundedRegionPixels(position: number, length: number): Generator<ConvolveRequest, Float64Array, Uint8Array | undefined> {
+                const working = yield { kind: "read", evaluate: true, position, length };
+                const original = working?.length ? new Float64Array(working.slice().buffer)
+                    : Float64Array.from(new Uint16Array((yield { kind: "read", highDepth: true, position, length })!.slice().buffer), value => value / 257);
+                const rounded = original.map((value, i) => mask[i % 4] ? Math.round(value / 255 * (levels - 1)) / (levels - 1) * 255 : value);
+                for (let i = 0; i < length; i += 4) {
+                    const pixel = (position + i) / 4;
+                    if (!regionContains(img.region!, pixel % img.width, Math.floor(pixel / img.width)))
+                        blendMaskedPixel(rounded, original, rounded, i, 1, 255, channels, img.hasAlpha || img.alphaBlend !== false);
+                }
+                return rounded;
+            }
+            const steps = quantizePixelSteps(img.width * img.height * 4, colors, false, img.hasAlpha && depth > 5 ? depth - 1 : depth, img.hasAlpha, !img.region, undefined, undefined, !!img.region);
             let next = steps.next();
             while (!next.done) {
                 const request = next.value;
-                if (request?.kind === "read") {
+                if (request?.kind === "read" && img.region) {
+                    const samples = yield* roundedRegionPixels(request.position, request.length);
+                    next = steps.next(new Uint8Array(samples.buffer));
+                } else if (request?.kind === "write" && img.region) {
+                    if (request.evaluate) {
+                        const palette = new Float64Array(request.data.slice().buffer);
+                        const samples = yield* roundedRegionPixels(request.position, palette.length);
+                        for (let i = 0; i < samples.length; i += 4) {
+                            const pixel = (request.position + i) / 4;
+                            if (regionContains(img.region, pixel % img.width, Math.floor(pixel / img.width))) samples.set(palette.subarray(i, i + 4), i);
+                            else {
+                                // Palette assignment and SyncImage each composite against the preceding cache.
+                                blendMaskedPixel(samples, samples, palette, i, 1, 255, channels, img.hasAlpha || img.alphaBlend !== false);
+                                blendMaskedPixel(samples, samples, palette, i, 1, 255, channels, img.hasAlpha || img.alphaBlend !== false);
+                            }
+                        }
+                        yield { ...request, data: new Uint8Array(samples.buffer) };
+                        yield { kind: "write", highDepth: true, position: request.position, data: new Uint8Array(Uint16Array.from(samples, value => Math.round(value * 257)).buffer) };
+                    }
+                    next = steps.next();
+                } else if (request?.kind === "read") {
                     const bytes = (yield { ...request, highDepth: true })!;
                     const samples = new Uint16Array(bytes.slice().buffer);
                     for (let i = 0; i < samples.length; i++) {
@@ -9613,6 +9645,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 output = yield* applyMagickRasterSteps(output, writeMaskPixelSteps(output, image.writeMask, true, false, state.channels, image.hasAlpha && image.alphaBlend !== false), signal, output, [output, clipped, image.writeMask]);
                 output = { ...output, writeMask: { ...image.writeMask } };
             }
+            // The regional rounding and palette writes have already applied the mask.
+            if (!working && image.region && levels >= 2 && (!state.dither || Math.trunc(levels) > 16)) output.region = { ...image.region };
             // Dither assigns the palette in the working colorspace; only the
             // undithered quantization path converts it back to sRGB.
             if (!working || state.dither && levels >= 2 && Math.trunc(levels) <= 16) return output;
@@ -16156,6 +16190,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     output = await transformStoredMagickRaster(output, backend, writeMaskPixelSteps(output, image.storedWriteMask, true, false, channels, image.hasAlpha && image.alphaBlend !== false), signal, output, [output, clipped, image.storedWriteMask]);
                     output = { ...output, storedWriteMask: { ...image.storedWriteMask } };
                 }
+                if (!working && image.region && expandedLevels >= 2 && (!dither || Math.trunc(expandedLevels) > 16)) output.region = { ...image.region };
                 if (!working || dither && expandedLevels >= 2 && Math.trunc(expandedLevels) <= 16) return output;
                 if (image.magickColorspace !== "RGB") {
                     output = await transformStoredMagickPixels(output, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal);

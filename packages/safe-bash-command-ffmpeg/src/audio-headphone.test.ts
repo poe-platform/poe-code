@@ -110,3 +110,30 @@ for (const [invalid, valid, diagnostic] of [
     assert.deepEqual(actual.volume.readFileSync("/out.wav"), expected.volume.readFileSync("/out.wav"));
   });
 }
+for (const [expression, literal] of [
+  ["gain=3+3", "gain=6"], ["type=1-1", "type=0"],
+  ["size=2*1024", "size=2048"], ["size=1024.5", "size=1024"],
+  ["gain=default", "gain=0"], ["lfe=3+3", "lfe=6"],
+  ["lfe=default", "lfe=0"], ["type=default", "type=freq"],
+  ["size=default", "size=1024"], ["hrir=default", "hrir=stereo"],
+  ["type=0.5", "type=time"], ["hrir=0.5", "hrir=stereo"],
+  ["type=freq-1", "type=time"], ["gain=max-34", "gain=6"],
+  ["gain=PI-PI", "gain=0"]
+]) {
+  it(`headphone evaluates ${expression} like ${literal}`, async () => {
+    const expected = await render(`headphone=map=FL|FR:${literal}`);
+    const actual = await render(`headphone=map=FL|FR:${expression}`);
+    assert.equal(expected.result.exitCode, 0, expected.error);
+    assert.equal(actual.result.exitCode, 0, actual.error);
+    assert.deepEqual(actual.volume.readFileSync("/out.wav"), expected.volume.readFileSync("/out.wav"));
+  });
+}
+
+for (const option of ["gain=20+21", "lfe=-21", "size=1023.9", "size=96000.1",
+  "type=1.1", "type=-0.1", "gain=3+", "gain=1/0", "gain=0/0", "gain=", "hrir=0.6"]) {
+  it(`headphone rejects ${option} without replacing output`, async () => {
+    const { result, volume } = await render(`headphone=map=FL|FR:${option}`);
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
+  });
+}

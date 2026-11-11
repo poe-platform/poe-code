@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { splitRadix } from "./audio-dialogue-fft.js";
+import { parseFilterExpression } from "./filter-expression.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { resampleAudio } from "./audio-resample.js";
 
@@ -30,13 +31,32 @@ export async function headphoneAudio(
       if (gain < -20 || gain > 40) {
         throw new RangeError(`headphone: ${key} must be between -20 and 40 dB`);
       }
+    let value = separator < 0 ? option : option.slice(separator + 1);
+    if (key !== "map") {
+      const min = key === "gain" || key === "lfe" ? -20 : key === "size" ? 1024 : 0;
+      const max = key === "gain" || key === "lfe" ? 40 : key === "size" ? 96000 : 1;
+      const fallback = key === "size" ? 1024 : key === "type" ? 1 : 0;
+      const diagnostic = key === "gain" || key === "lfe" ? `${key} must be between -20 and 40 dB`
+        : key === "type" ? "invalid processing type" : key === "size" ? "invalid frame size" : "invalid impulse response format";
+      let numeric: number;
+      try {
+        numeric = parseFilterExpression(value, "headphone", {
+        E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2,
+        min, max, default: fallback, none: 0, all: -1,
+        ...(key === "type" ? { time: 0, freq: 1 } : key === "hrir" ? { stereo: 0, multich: 1 } : {})
+      }, undefined, new Float64Array(10));
+      } catch {
+        throw new Error(`headphone: ${diagnostic}`);
+      }
+
+      if (!value.trim() || !Number.isFinite(numeric)) {
+        throw new Error(`headphone: ${diagnostic}`);
+      }
+      if (numeric < min || numeric > max) throw new RangeError(`headphone: ${diagnostic}`);
+      // Native integer options validate before rounding ties to even.
+      value = String(key === "gain" || key === "lfe" ? numeric
+        : numeric % 1 === 0.5 ? 2 * Math.round(numeric / 2) : Math.round(numeric));
     }
-    if (key === "type" && !["time", "freq", "0", "1"].includes(value)) throw new Error("headphone: invalid processing type");
-    if (key === "size") {
-      const size = Number(value);
-      if (!Number.isInteger(size) || size < 1024 || size > 96000) throw new Error("headphone: invalid frame size");
-    }
-    if (key === "hrir" && !["stereo", "multich", "0", "1"].includes(value)) throw new Error("headphone: invalid impulse response format");
     options[key] = value;
   }
   const mapping = options.map?.split("|");

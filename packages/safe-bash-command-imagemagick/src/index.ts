@@ -5374,12 +5374,12 @@ function* compositeMaskPixelSteps(image: Pick<RgbaImage, "width" | "height">, ma
     }
 }
 
-function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal, fuzz = 0, clipToOverlay = false): Generator<void, RgbaImage, void> {
+function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal, fuzz = 0, clipToOverlay = false, channels?: readonly boolean[]): Generator<void, RgbaImage, void> {
     const { name, delegated, preservesAlpha } = magickCompositeMode(modeRaw);
     if (name === "dst" || name === "dest") return dst;
-    if (!delegated || dst.data16 || src.data16 || dst.evaluateSamples || src.evaluateSamples) {
+    if (channels || !delegated || dst.data16 || src.data16 || dst.evaluateSamples || src.evaluateSamples) {
         const hasAlpha = dst.hasAlpha || (!delegated && !preservesAlpha);
-        return yield* applyMagickRasterSteps(dst, composite16PixelSteps(dst, src, left, top, modeRaw, composeArgs, false, fuzz, clipToOverlay), signal,
+        return yield* applyMagickRasterSteps(dst, composite16PixelSteps(dst, src, left, top, modeRaw, composeArgs, false, fuzz, clipToOverlay, undefined, false, channels), signal,
             { ...dst, hasAlpha }, [dst, src]);
     }
     const ox = Math.round(left);
@@ -14383,6 +14383,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const background = state.backgroundExplicit ? state.background : oldStack[0]!.backgroundColor ?? state.background;
                 const highDepth = oldStack.some(image => !!image.data16) || [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value));
                 const colorspace = oldStack[0]!;
+                const mask = (colorspace as MagickImage)[magickInput]?.channelMask;
+                const channels = mask?.default ? undefined : mask;
+                const selected = channels ? [channels.r, channels.g, channels.b, channels.a, channels.k === true] : undefined;
                 let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(maxW, maxH, background, highDepth),
                     space: colorspace.space, ...(colorspace.magickColorspace === undefined ? {} : { magickColorspace: colorspace.magickColorspace }) };
                 if (colorspace.metaChannels?.length) {
@@ -14400,17 +14403,17 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                             composite16PixelSteps(plane, source, x, y, compose, state.composeArgs, false, state.alphaFuzz, true, [canvas, im]), signal, plane, [plane, source, canvas, im]);
                     }
                     if (over) {
-                        canvas = yield* applyMagickRasterSteps(canvas, overCompositePixelSteps(canvas, im, x, y, highDepth), signal, canvas, [canvas, im]);
+                        canvas = yield* applyMagickRasterSteps(canvas, overCompositePixelSteps(canvas, im, x, y, highDepth, false, channels), signal, canvas, [canvas, im]);
                         continue;
                     }
-                    canvas = yield* applyMagickCompositeLayerSteps(canvas, im, compose, x, y, state.composeArgs, signal, state.alphaFuzz, true);
+                    canvas = yield* applyMagickCompositeLayerSteps(canvas, im, compose, x, y, state.composeArgs, signal, state.alphaFuzz, true, selected);
                 }
                 for (const im of oldStack) {
                     if (im.data.buffer !== canvas.data.buffer) detachRgbaBuffer(im.data);
                 }
                 const first = oldStack[0]! as MagickImage;
                 if (first.readMask) canvas.readMask = yield* createSolidRgbaImageSteps(maxW, maxH, { r: 0, g: 0, b: 0, a: 255 });
-                stack = [{ ...canvas, depth: first.depth, ...(first.bitsPerSample === undefined ? {} : { bitsPerSample: first.bitsPerSample }), ...(first.properties ? { properties: first.properties } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0] }];
+                stack = [{ ...canvas, [magickInput]: { channelMask: mask }, depth: first.depth, ...(first.bitsPerSample === undefined ? {} : { bitsPerSample: first.bitsPerSample }), ...(first.properties ? { properties: first.properties } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0] }];
                 if (state.units !== undefined) stack[0] = applyMagickUnits(stack[0]!, state.units);
                 if (state.densityGeometry !== undefined) stack[0] = applyMagickDensity(stack[0]!, state.densityGeometry);
                 if (merge) stack[0] = { ...stack[0]!, virtualCanvas: {
@@ -15126,13 +15129,13 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
-async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, left: number, top: number, mode: string, args?: string, generic = false, inPlace = false, montageRounding = false, tile = false, fuzz = 0, clipToOverlay = false): Promise<StoredRgbaImage> {
+async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal, left: number, top: number, mode: string, args?: string, generic = false, inPlace = false, montageRounding = false, tile = false, fuzz = 0, clipToOverlay = false, channels?: readonly boolean[]): Promise<StoredRgbaImage> {
     const compositeMode = magickCompositeMode(mode);
     if (!generic && (compositeMode.name === "dst" || compositeMode.name === "dest")) return base;
     let hasAlpha = base.hasAlpha || (!generic && !compositeMode.delegated && !compositeMode.preservesAlpha);
-    if (!generic && (!compositeMode.delegated || base.storedData16 || overlay.storedData16 || base.storedEvaluateSamples !== undefined || overlay.storedEvaluateSamples !== undefined)) {
+    if (!generic && (channels || !compositeMode.delegated || base.storedData16 || overlay.storedData16 || base.storedEvaluateSamples !== undefined || overlay.storedEvaluateSamples !== undefined)) {
         return transformStoredMagickRaster({ ...base, storedEvaluateSamples: undefined }, backend,
-            composite16PixelSteps(base, overlay, left, top, mode, args, tile, fuzz, clipToOverlay), signal,
+            composite16PixelSteps(base, overlay, left, top, mode, args, tile, fuzz, clipToOverlay, undefined, false, channels), signal,
             { ...base, hasAlpha }, [base, overlay]);
     }
     const position = inPlace ? base.position : backend.storage.allocate(base.width * base.height * 4);
@@ -16521,6 +16524,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 const background = settings.backgroundExplicit ? settings.background : (await stack.get(0))!.backgroundColor ?? settings.background;
                 const first = (await stack.get(0))!;
+                const mask = (first as StoredMagickImage)[magickInput]?.channelMask;
+                const channels = mask?.default ? undefined : mask;
+                const selected = channels ? [channels.r, channels.g, channels.b, channels.a, channels.k === true] : undefined;
                 highDepth ||= [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value));
                 result = { ...await createStoredCanvas(width, height, background, backend, signal, highDepth), depth: first.depth, ...(first.bitsPerSample === undefined ? {} : { bitsPerSample: first.bitsPerSample }) };
                 if (!append) {
@@ -16610,8 +16616,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         result = { ...result, hasAlpha: result.hasAlpha || frame.hasAlpha };
                     }
                     else if (["over", "srcover"].includes(magickCompositeMode(compose).name)) result = await transformStoredMagickRaster(result, backend,
-                        overCompositePixelSteps(result, frame, (frame.virtualCanvas?.x ?? 0) - originX, (frame.virtualCanvas?.y ?? 0) - originY, highDepth), signal, result, [result, frame]);
-                    else result = await compositeStoredMagick(result, frame, backend, signal, (frame.virtualCanvas?.x ?? 0) - originX, (frame.virtualCanvas?.y ?? 0) - originY, compose, settings.composeArgs, false, true, false, false, settings.alphaFuzz, true);
+                        overCompositePixelSteps(result, frame, (frame.virtualCanvas?.x ?? 0) - originX, (frame.virtualCanvas?.y ?? 0) - originY, highDepth, false, channels), signal, result, [result, frame]);
+                    else result = await compositeStoredMagick(result, frame, backend, signal, (frame.virtualCanvas?.x ?? 0) - originX, (frame.virtualCanvas?.y ?? 0) - originY, compose, settings.composeArgs, false, true, false, false, settings.alphaFuzz, true, selected);
                     cursor += vertical ? frame.height : frame.width;
                 }
                 if (append) {
@@ -16622,7 +16628,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!append) {
                     const first: StoredRgbaImage = (await stack.get(0))!, scene = first[magickInput]?.sceneIdx ?? 0;
                     if (first.readMask) result.readMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
-                    result = { ...result, ...(first.properties ? { properties: first.properties } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0] };
+                    result = { ...result, [magickInput]: { channelMask: mask }, ...(first.properties ? { properties: first.properties } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0] };
                     if (settings.units !== undefined) result = applyMagickUnits(result, settings.units);
                     if (settings.densityGeometry !== undefined) result = applyMagickDensity(result, settings.densityGeometry);
                     if (merge) result = { ...result, virtualCanvas: {

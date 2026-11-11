@@ -1517,7 +1517,7 @@ fn gv_assign_coordinates(
     vertices: &mut [GvVertex],
     arcs: &[GvArc],
     nodesep: f64,
-    ranksep: f64,
+    gaps_before_rank: &[f64],
 ) {
     let mut candidates: Vec<Vec<f64>> = Vec::new();
     for down in [true, false] {
@@ -1671,12 +1671,12 @@ fn gv_assign_coordinates(
     }
     let mut y = 0.0f64;
     let mut previous_height = 0.0f64;
-    for layer in layers {
+    for (rank, layer) in layers.iter().enumerate() {
         let height = layer
             .iter()
             .map(|&v| vertices[v].height)
             .fold(0.0f64, f64::max);
-        y += previous_height / 2.0 + height / 2.0 + if y != 0.0 { ranksep } else { 0.0 };
+        y += previous_height / 2.0 + height / 2.0 + gaps_before_rank[rank];
         for &v in layer {
             vertices[v].y = y;
         }
@@ -2174,7 +2174,25 @@ fn gv_layout_graph(graph: &GvDotGraph, options: &GvLayoutOptions) -> GvGraphLayo
         .get("ranksep")
         .and_then(|s| s.split(' ').next());
     let ranksep = gv_numeric(ranksep_first, 0.5, 0.0) * 72.0;
-    gv_assign_coordinates(&layers, &mut vertices, &segments, nodesep, ranksep);
+    let mut gaps = vec![ranksep; layers.len()];
+    gaps[0] = 0.0;
+    if horizontal {
+        for (route, attrs) in routes.iter().zip(&edge_attributes) {
+            if route.len() != 2 { continue; }
+            let a = vertices[route[0]].rank;
+            let b = vertices[route[1]].rank;
+            if a == b { continue; }
+            if let Some(label) = attrs.get("label") {
+                let size = gv_numeric(attrs.get("fontsize"), 14.0, 1.0);
+                let width = gv_label_lines(label, "").iter()
+                    .map(|line| gv_text_width(line, size, attrs.get("fontname")))
+                    .fold(0.0f64, f64::max);
+                gaps[a.max(b)] = gaps[a.max(b)].max(width + 20.0);
+            }
+        }
+    }
+    gv_assign_coordinates(&layers, &mut vertices, &segments, nodesep, &gaps);
+
     let max_y = vertices
         .iter()
         .map(|v| v.y)
@@ -2377,7 +2395,14 @@ fn gv_layout_graph(graph: &GvDotGraph, options: &GvLayoutOptions) -> GvGraphLayo
                 }
                 points = orthogonal;
             }
-            let label = points[points.len() / 2];
+            let middle = points.len() / 2;
+            let label = if points.len() % 2 == 0 {
+                GvPoint {
+                    x: (points[middle - 1].x + points[middle].x) / 2.0,
+                    y: (points[middle - 1].y + points[middle].y) / 2.0,
+                }
+            } else { points[middle] };
+
             GvLayoutEdge {
                 tail: e.tail.clone(),
                 head: e.head.clone(),
@@ -3752,7 +3777,22 @@ mod graphviz_unit_tests {
     }
 
     #[test]
+    fn horizontal_edge_labels_fit_between_the_node_boundaries() {
+        for direction in ["LR", "RL"] {
+            let graph = gv_parse_dot(&format!("digraph {{ rankdir={direction}; a -> b [label=\"AWS PrivateLink\",fontsize=20]; b -> c }}")).unwrap();
+            let layout = gv_layout_graph(&graph, &GvLayoutOptions::default());
+            let edge = &layout.edges[0];
+            let left = edge.points[0].x.min(edge.points[1].x);
+            let right = edge.points[0].x.max(edge.points[1].x);
+            let half = gv_text_width("AWS PrivateLink", 20.0, None) / 2.0;
+            assert!(edge.label.x - half > left && edge.label.x + half < right);
+            assert!((layout.edges[1].points[0].x - layout.edges[1].points[1].x).abs() < right - left);
+        }
+    }
+
+    #[test]
     fn unit_graphviz_formats_svg_json_plain_dot_canon_and_png() {
+
         let vfs = MemoryVfs::new();
         vfs.mkdir_all("/work").unwrap();
         let src = "digraph Pipeline { rankdir=LR; start [shape=box]; start -> end [label=\"ok\"]; }\n";

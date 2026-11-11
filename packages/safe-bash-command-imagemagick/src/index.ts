@@ -14655,6 +14655,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-sharpen") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geometry = parseMagickGeometry((tokens[++i] ?? "0x1").replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return yield* applyMagickRasterSteps(im, sharpenPixelSteps(im, geometry), signal);
@@ -18758,6 +18759,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return transformStoredMagickRaster(image, backend, adaptivePixelSteps(image, geometry, token === "-adaptive-sharpen"), signal, image, [image, blurred]);
             });
         } else if (!operandsOnly && token === "-sharpen") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const geometry = parseMagickGeometry((tokens[++i] ?? "0x1").replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => image ? transformStoredMagickRaster(image, backend, sharpenPixelSteps(image, geometry), signal) : undefined, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-unsharp") {

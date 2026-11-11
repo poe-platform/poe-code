@@ -1,7 +1,8 @@
 import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli, runMagickCli } from "./index.js";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runMagickCli, runMagickCliSync } from "./index.js";
 
 for (const retained of [false, true]) for (const explicitEdges of [false, true]) {
     it.each([
@@ -29,4 +30,41 @@ for (const retained of [false, true]) for (const explicitEdges of [false, true])
         expect(output.data).toEqual(expected);
         expect((await runMagickCli(["identify", "-format", "%wx%h %X %Y %[page]", "out.png"], backend)).stdout).toBe(`${width}x${height} +${left} +${top} 9x7`);
     });
+}
+
+for (const mode of ["command", "buffered", "retained", "sync"] as const) {
+    for (const setting of ["define", "option", "artifact"] as const) {
+        it.each([
+            ["0x50", "4x3 6x5+1+1"],
+            ["0X50", "4x3 6x5+1+1"],
+            ["+0x50", "4x3 6x5+1+1"],
+            [" 0x50%", "4x3 6x5+1+1"],
+            ["0x50tail", "4x3 6x5+1+1"],
+            ["0x4f.f", "4x3 6x5+1+1"],
+            ["0x5p4", "4x2 6x5+1+2"],
+            ["-0x50", "4x2 6x5+1+2"],
+            ["80", "4x3 6x5+1+1"],
+            ["80%", "4x3 6x5+1+1"],
+            ["0", "4x2 6x5+1+2"],
+            ["invalid", "4x2 6x5+1+2"],
+        ])(`parses trim percentage %s (${mode}, ${setting})`, async (value, geometry) => {
+            const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+            const args = ["-size", "6x5", "xc:white", "-fill", "black", "-draw", "rectangle 1,2 4,3 point 4,1",
+                ...(setting === "define" ? ["-define", `trim:percent-background=${value}`]
+                    : ["-set", `${setting}:trim:percent-background`, value]),
+                "-trim", "-format", "%wx%h %g", "info:/out"];
+            let stderr = "";
+            const result = mode === "command" ? await createMagickCommand().execute({
+                command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+                stdin: (async function* () {})(), signal: new AbortController().signal,
+                stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+            }) : mode === "sync" ? runMagickCliSync(args, files)
+                : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+            expect(result.exitCode).toBe(0);
+            expect("stderr" in result ? result.stderr : stderr).toBe("");
+            const output = mode === "command" || mode === "retained" ? await filesystem.readFile("/out") : files.get("/out")!;
+            // Native ImageMagick 7.1.2-35 reads hexadecimal prefixes as integers, including before a dot or p.
+            expect(new TextDecoder().decode(output)).toBe(geometry);
+        });
+    }
 }

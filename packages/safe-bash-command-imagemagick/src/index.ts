@@ -12242,7 +12242,11 @@ if (t === "-intent" || t === "+intent") {
             if (defStr.toLowerCase().startsWith("bmp3:alpha=")) state.bmp3Alpha = ["true", "1", "yes", "on"].includes(defStr.split("=")[1]!.toLowerCase());
             if (defStr.toLowerCase().startsWith("hough-lines:accumulator=")) state.houghAccumulator = ["true", "1", "yes", "on"].includes(defStr.split("=")[1]!.toLowerCase());
             if (defStr.toLowerCase().startsWith("deskew:auto-crop=")) state.deskewAutoCrop = defStr.slice("deskew:auto-crop=".length).toLowerCase();
-            if (defStr.toLowerCase().startsWith("trim:percent-background=")) state.trimPercentBackground = Number.parseFloat(defStr.slice("trim:percent-background=".length)) || 0;
+            if (defStr.toLowerCase().startsWith("trim:percent-background=")) {
+                const value = defStr.slice("trim:percent-background=".length).trimStart();
+                const unsigned = value.startsWith("+") || value.startsWith("-") ? value.slice(1) : value;
+                state.trimPercentBackground = (unsigned.toLowerCase().startsWith("0x") ? Number.parseInt(value, 16) : Number.parseFloat(value)) || 0;
+            }
             if (filterKey === "trim:background-color") state.trimBackgroundColor = parseColor(filterValue ?? "", true);
             if (defStr.toLowerCase().startsWith("trim:edges=")) state.trimEdges = defStr.slice("trim:edges=".length);
             if (defStr.toLowerCase().startsWith("trim:minsize=")) {

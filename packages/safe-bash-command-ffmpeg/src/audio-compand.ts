@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { parseFilterFloat } from "./filter-float.js";
 
 export class CompandError extends Error {
   constructor(message: string, readonly stage: "options" | "configuration", readonly exitCode = 234) {
@@ -58,8 +59,8 @@ export async function compandAudio(
   if (attackItems.length > channels.length || decayItems.length > channels.length) {
     await warn?.("Number of attacks/decays bigger than number of channels. Ignoring rest of entries.\n");
   }
-  const attacks = attackItems.slice(0, channels.length).map(value => number(value, 0, Infinity, Number.parseFloat));
-  const decays = decayItems.slice(0, channels.length).map(value => number(value, 0, Infinity, Number.parseFloat));
+  const attacks = attackItems.slice(0, channels.length).map(value => number(value, 0, Infinity, parseFilterFloat));
+  const decays = decayItems.slice(0, channels.length).map(value => number(value, 0, Infinity, parseFilterFloat));
   if (!attacks.length || !decays.length || attacks.length !== decays.length) {
     throw new CompandError("compand: attacks and decays must have matching channel counts", "configuration");
   }

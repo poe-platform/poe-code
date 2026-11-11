@@ -62,7 +62,8 @@ for (const [filter, exitCode] of [
   ["adeclick=t=0", 222],
   ["adeclick=b=11", 222],
   ["adeclick=m=2", 222],
-  ["adeclick=m=0.5", 234],
+  ["adeclick=m=-0.1", 222],
+  ["adeclick=method=1.1", 222],
   ["adeclick=unknown=1", 8],
   ["adeclick=t=", 234]
 ] as const) {

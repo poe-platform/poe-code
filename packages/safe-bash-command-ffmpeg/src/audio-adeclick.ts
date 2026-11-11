@@ -27,11 +27,13 @@ export async function declickAudio(
       PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
       ...(key === "method" ? { add: 0, a: 0, save: 1, s: 1 } : {})
     });
-    if (!raw || !Number.isFinite(value) || ((key === "method" || key === "hsize") && !Number.isInteger(value))) {
+    if (!raw || !Number.isFinite(value)) {
       throw new Error(`${name}: invalid ${key}`);
     }
     if (value < min! || value > max!) throw new RangeError(`${name}: invalid ${key}`);
-    options[key] = value;
+    // Native integer options validate the range before rounding ties to even.
+    options[key] = key === "method" || key === "hsize"
+      ? (value % 1 === 0.5 ? 2 * Math.round(value / 2) : Math.round(value)) : value;
   }
   const size = Math.max(100, Math.trunc(sampleRate * options.window / 1000));
   const order = Math.max(1, Math.trunc(size * options.arorder / 100));

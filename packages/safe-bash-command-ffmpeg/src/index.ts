@@ -12751,6 +12751,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         statsScale = 1;
                       } else if (trimmed === "silencedetect" || trimmed.startsWith("silencedetect=")) {
+                        // FFmpeg keeps six decimal places, with extra precision below one second.
+                        const formatTime = (time: number): string => {
+                          const exponent = time === 0 ? 0 : Math.floor(Math.log10(Math.abs(time)));
+                          let text = time.toFixed(exponent < 0 ? 5 - exponent : 6);
+                          while (text.endsWith("0")) text = text.slice(0, -1);
+                          return text.endsWith(".") ? text.slice(0, -1) : text;
+                        };
                         let noise = 0.001;
                         let duration = 2;
                         let mono = false;
@@ -12812,17 +12819,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                   const start = framePts + toTicks(frame - frameStart + 1 - minimum / (mono ? 1 : channels));
                                   starts[slot] = start;
                                   budget.allocateMemory(128);
-                                  metadata.tags.set(`lavfi.silence_start${suffix}`, String(Number((start * timeBase).toPrecision(6))));
-                                  if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_start: ${Number((start * timeBase).toPrecision(6))}\n`), context.signal);
+                                  metadata.tags.set(`lavfi.silence_start${suffix}`, formatTime(start * timeBase));
+                                  if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_start: ${formatTime(start * timeBase)}\n`), context.signal);
                                 }
                               } else {
                                 const start = starts[slot];
                                 if (start !== undefined) {
                                   const end = framePts + toTicks(frame - frameStart);
                                   budget.allocateMemory(256);
-                                  metadata.tags.set(`lavfi.silence_end${suffix}`, String(Number((end * timeBase).toPrecision(6))));
-                                  metadata.tags.set(`lavfi.silence_duration${suffix}`, String(Number(((end - start) * timeBase).toPrecision(6))));
-                                  if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number((end * timeBase).toPrecision(6))} | silence_duration: ${Number(((end - start) * timeBase).toPrecision(6))}\n`), context.signal);
+                                  metadata.tags.set(`lavfi.silence_end${suffix}`, formatTime(end * timeBase));
+                                  metadata.tags.set(`lavfi.silence_duration${suffix}`, formatTime((end - start) * timeBase));
+                                  if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${formatTime(end * timeBase)} | silence_duration: ${formatTime((end - start) * timeBase)}\n`), context.signal);
                                 }
                                 counts[slot] = 0;
                                 starts[slot] = undefined;
@@ -12835,7 +12842,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (start === undefined) continue;
                           const end = frameEndPts;
                           const prefix = mono ? `channel: ${slot} | ` : "";
-                          if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number((end * timeBase).toPrecision(6))} | silence_duration: ${Number(((end - start) * timeBase).toPrecision(6))}\n`), context.signal);
+                          if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${formatTime(end * timeBase)} | silence_duration: ${formatTime((end - start) * timeBase)}\n`), context.signal);
                         }
                       } else if (trimmed === "astats" || trimmed.startsWith("astats=")) {
                         let perChannel: number | undefined;

@@ -4,8 +4,9 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 
 /** Native 5x5 enhancement: average only perceptually similar neighbors. */
-export function* enhancePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, background: RgbaColor, method: VirtualPixelMethod = "edge"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* enhancePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">> & { inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined }, background: RgbaColor, method: VirtualPixelMethod = "edge"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, highDepth = !!(image.data16 || image.storedData16), scale = highDepth ? 1 : 257;
+    const hasAlpha = image.hasAlpha || image.inactiveAlpha === true && image.alphaBlend !== false;
     const weights = [5, 8, 10, 8, 5, 8, 20, 40, 20, 8, 10, 40, 80, 40, 10, 8, 20, 40, 20, 8, 5, 8, 10, 8, 5];
     const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
     const fill = (method === "background" || method.endsWith("-tile") ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255]).map(value => value * 257);
@@ -24,7 +25,7 @@ export function* enhancePixelSteps(image: Pick<RgbaImage, "width" | "height" | "
             blocks.set(start, data);
         }
         const offset = (index - start) * 4;
-        return [data[offset]! * scale, data[offset + 1]! * scale, data[offset + 2]! * scale, image.hasAlpha ? data[offset + 3]! * scale : 65535];
+        return [data[offset]! * scale, data[offset + 1]! * scale, data[offset + 2]! * scale, hasAlpha ? data[offset + 3]! * scale : 65535];
     }
     for (let start = 0; start < width * height; start += 1024) {
         const count = Math.min(1024, width * height - start), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);

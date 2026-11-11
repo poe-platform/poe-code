@@ -14613,6 +14613,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return cropped;
             });
         }
+        else if (t === "-gaussian") {
+            const position = argumentOffset + i + 1;
+            throw new Error((analysis.quiet ? "" : `option has been replaced '-gaussian', use "-gaussian-blur" at CLI arg ${position}\nmagick: `)
+                + `unrecognized option '-gaussian' at CLI arg ${position}`);
+        }
         else if (t === "-blur" || t === "-gaussian-blur") {
             const g = parseMagickGeometry(tokens[++i] ?? "0x1");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -18764,6 +18769,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     ...(image.virtualCanvas ? { virtualCanvas: magickRotateCanvas(image, angle) } : {})
                 }, backend, signal);
             });
+        } else if (!operandsOnly && token === "-gaussian") {
+            const position = i + 1;
+            stackStep(async () => {
+                throw new Error((analysis.quiet ? "" : `option has been replaced '-gaussian', use "-gaussian-blur" at CLI arg ${position}\nmagick: `)
+                    + `unrecognized option '-gaussian' at CLI arg ${position}`);
+            });
+            i++;
         } else if (!operandsOnly && (token === "-blur" || token === "-gaussian-blur")) {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => image ? transformStoredMagickRaster({ ...image, isPalette: false }, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels), signal) : undefined, { handlesRegion: token === "-blur" }));

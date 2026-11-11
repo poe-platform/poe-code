@@ -13576,7 +13576,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             if (!histogramInfo) outSpec = outSpec.slice(10);
             for (let index = 0; index < stack.length; index++) {
                 let source = stack[index]!;
-                if (histogramInfo && state.formatStr && (state.formatStr.includes("%c") || state.formatStr.includes("%[comment]"))) source = { ...source, properties: { ...source.properties, comment: yield* formatHistogramOutputSteps(source) } };
+                if (!histogramInfo || state.formatStr && (state.formatStr.includes("%c") || state.formatStr.includes("%[comment]"))) source = { ...source, properties: { ...source.properties, comment: yield* formatHistogramOutputSteps(source) } };
                 stack[index] = yield* applyMagickRasterSteps({ ...source, space: "srgb", channels: 3 }, histogramPixelSteps(source.width * source.height), signal, { width: 256, height: 200, hasAlpha: false });
             }
         }
@@ -16843,7 +16843,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (!histogramInfo) outSpec = outSpec.slice(10);
             for (let index = 0; index < stack.length; index++) {
                 let source = (await stack.get(index))!;
-                if (histogramInfo && state.formatStr && (state.formatStr.includes("%c") || state.formatStr.includes("%[comment]"))) {
+                if (!histogramInfo || state.formatStr && (state.formatStr.includes("%c") || state.formatStr.includes("%[comment]"))) {
                     let comment = "";
                     for await (const part of storedHistogram(source, backend.storage, signal)) comment += part;
                     source = { ...source, properties: { ...source.properties, comment } };

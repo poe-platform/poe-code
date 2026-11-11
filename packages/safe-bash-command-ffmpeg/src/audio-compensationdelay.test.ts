@@ -42,6 +42,12 @@ for (const [filter, hash] of [
 }
 
 for (const [options, equivalent] of [
+  ["m=1:dry=max", "m=1:dry=1"],
+  ["m=1:temp=default", "m=1:temp=20"],
+  ["mm=max:cm=max:m=max:dry=max:wet=max:temp=max", "mm=10:cm=100:m=100:dry=1:wet=1:temp=50"],
+  ["mm=min:cm=min:m=min:dry=min:wet=min:temp=min", "mm=0:cm=0:m=0:dry=0:wet=0:temp=-50"],
+  ["mm=default:cm=default:m=default:dry=default:wet=default:temp=default", "mm=0:cm=0:m=0:dry=0:wet=1:temp=20"],
+  ["max:min:default:max/2:default:default+min", "10:0:0:0.5:1:-30"],
   ["m=0.6", "m=1"],
   ["m=1.5", "m=2"],
   ["m=1/2+1", "m=2"],
@@ -74,7 +80,7 @@ for (const filter of ["compensationdelay=:", "compensationdelay=:m=1", "compensa
   }
 }
 
-for (const enable of ["", "unknown", "gte(t,)"]) {
+for (const enable of ["", "unknown", "gte(t,)", "default", "min", "max"]) {
   it(`rejects invalid enable=${enable} without replacing output`, async () => {
     const { volume, result, stderr } = await run(`compensationdelay=m=1:enable='${enable}'`);
     assert.notEqual(result.exitCode, 0);

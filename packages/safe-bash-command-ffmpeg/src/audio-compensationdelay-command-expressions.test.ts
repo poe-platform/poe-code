@@ -5,7 +5,7 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { createFfmpegCommand } from "./index.js";
 
 for (const graph of [false, true]) {
-  for (const expression of ["1/2", "1/4+1/4"]) {
+  for (const expression of ["1/2", "1/4+1/4", "max/2", "(max+min)/2", "default+0.5"]) {
     it(`scheduled dry ${expression} matches native PCM at sample 32 (${graph ? "graph" : "simple"})`, async () => {
       const actual = await run(`0.004 compensationdelay@d dry ${expression}`, graph);
       const literal = await run("0.004 compensationdelay@d dry 0.5", graph);
@@ -17,7 +17,7 @@ for (const graph of [false, true]) {
         [0, 0, 0, 256, 264, 409, 410, 444, 457]);
     });
   }
-  for (const invalid of ["unknown", "1/", "1/0", "0/0", "-1/2", "3/2", "0b1"]) {
+  for (const invalid of ["unknown", "1/", "1/0", "0/0", "-1/2", "3/2", "0b1", "max+0.1", "min-0.1"]) {
     it(`rejected dry ${invalid} preserves the previous gain and later commands (${graph ? "graph" : "simple"})`, async () => {
       const first = "0.004 compensationdelay@d dry 0.5";
       const last = "0.012 compensationdelay@d dry 0.25";

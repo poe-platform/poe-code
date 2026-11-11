@@ -9,7 +9,8 @@ export async function compensateAudioDelay(
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
   const names = ["mm", "cm", "m", "dry", "wet", "temp"];
-  const values = [0, 0, 0, 0, 1, 20];
+  const defaults = [0, 0, 0, 0, 1, 20];
+  const values = [...defaults];
   let enable: string | undefined;
   const argument = filter.slice("compensationdelay=".length);
   const options = argument.split(":");
@@ -32,8 +33,11 @@ export async function compensateAudioDelay(
       return;
     }
     const key = names.indexOf(name);
-    const value = parseFilterExpression(raw, "compensationdelay", {});
-    if (key < 0 || value < (key === 5 ? -50 : 0) || value > [10, 100, 100, 1, 1, 50][key]!) {
+    if (key < 0) throw new Error("compensationdelay: invalid option");
+    const min = key === 5 ? -50 : 0;
+    const max = [10, 100, 100, 1, 1, 50][key]!;
+    const value = parseFilterExpression(raw, "compensationdelay", { min, max, default: defaults[key]! });
+    if (value < min || value > max) {
       throw new Error("compensationdelay: invalid option");
     }
     values[key] = value;

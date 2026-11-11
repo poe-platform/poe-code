@@ -6506,7 +6506,7 @@ function* annotatePixelSteps(img: Pick<RgbaImage, "width" | "height">, offsetStr
 }
 
 // Scan bounded pixel chunks into edge profiles, shared by buffered and stored execution.
-function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "gravity">[], vertical: boolean, gap: number, gravity: GravityPosition | undefined, method: VirtualPixelMethod | undefined, background: RgbaColor): Generator<{ index: number; position: number; length: number }, { width: number; height: number; virtualCanvas: NonNullable<RgbaImage["virtualCanvas"]>; offsets: { left: number; top: number }[] }, Uint8Array | Uint16Array> {
+function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "gravity" | "virtualCanvas">[], vertical: boolean, gap: number, gravity: GravityPosition | undefined, method: VirtualPixelMethod | undefined, background: RgbaColor): Generator<{ index: number; position: number; length: number }, { width: number; height: number; virtualCanvas: NonNullable<RgbaImage["virtualCanvas"]>; offsets: { left: number; top: number }[] }, Uint8Array | Uint16Array> {
     const cross = Math.max(...images.map(image => vertical ? image.width : image.height));
     const offsets: { left: number; top: number }[] = [];
     const edgeGap = (profile: Float64Array, line: number, empty: number): number => {
@@ -6547,8 +6547,10 @@ function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlph
         previous = { trailing, offset, empty: image.hasAlpha ? length - 1 : 0 };
     }
     const extent = images.reduce((sum, image) => sum + (vertical ? image.height : image.width), 0) + gap * (images.length - 1);
-    return { width: vertical ? cross : cursor, height: vertical ? cursor : cross,
-        virtualCanvas: { width: vertical ? cross : extent, height: vertical ? extent : cross, x: 0, y: 0 }, offsets };
+    const width = vertical ? cross : extent, height = vertical ? extent : cross;
+    // Native clones the first page at the full join size before trimming transparent margins.
+    const virtualCanvas = magickResizeCanvas(images[0]!, width, height) ?? { width, height, x: 0, y: 0 };
+    return { width: vertical ? cross : cursor, height: vertical ? cursor : cross, virtualCanvas, offsets };
 }
 
 function* overCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "magickColorspace" | "space">, frame: Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha">, left: number, top: number, highDepth: boolean, alphaSource = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {

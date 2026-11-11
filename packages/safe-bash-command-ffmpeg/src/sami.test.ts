@@ -67,3 +67,45 @@ for (const [paragraphs, caption] of [
     });
   }
 }
+
+for (const sync of [false, true]) {
+  for (const format of ["webvtt", "srt"]) {
+    for (const [dialogue, lines] of [
+      ["one<br/><br/>three", ["one", "", "three"]],
+      ["one<br>two", ["one", "two"]]
+    ] as const) {
+      it(`${sync ? "sync" : "async"} SAMI to ${format} preserves native bytes for ${dialogue}`, async () => {
+        const volume = Volume.fromJSON({ "/in.smi":
+          `<SAMI>\n<BODY>\n<SYNC Start=1000><P>${dialogue}\n<SYNC Start=3000><P>done\n</BODY>\n</SAMI>\n` });
+        const expected = Buffer.from(format === "webvtt"
+          ? `WEBVTT\n\n00:01.000 --> 00:03.000\n${lines.join("\n")}\n\n00:03.000 --> 1193:02:50.295\ndone\n`
+          : `1\n00:00:01,000 --> 00:00:03,000\n${lines.join("\r\n")}\n\n2\n00:00:03,000 --> 1193:02:50,295\ndone\n\n`);
+        const target = sync ? "/out" : "pipe:1";
+        const args = ["-v", "error", "-f", "sami", "-i", "/in.smi", "-f", format, target];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined,
+            path => volume.existsSync(path) ? volume.readFileSync(path) as Buffer : undefined,
+            (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), "");
+          assert.deepEqual(volume.readFileSync(target), expected);
+        } else {
+          const stdout: Uint8Array[] = [];
+          const stderr: Uint8Array[] = [];
+          const result = await createFfmpegCommand().execute({
+            args, cwd: "/", env: {}, signal: new AbortController().signal,
+            fs: {
+              async readFile(path: string) { return volume.readFileSync(path); },
+              async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+              async stat(path: string) { return volume.statSync(path); }
+            },
+            stdin: (async function* () {})(),
+            stdout: { async write(bytes: Uint8Array) { stdout.push(bytes); } },
+            stderr: { async write(bytes: Uint8Array) { stderr.push(bytes); } }
+          } as never);
+          assert.equal(result.exitCode, 0);
+          assert.deepEqual(Buffer.concat(stderr), Buffer.alloc(0));
+          assert.deepEqual(Buffer.concat(stdout), expected);
+        }
+      });
+    }
+  }
+}

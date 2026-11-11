@@ -33,3 +33,13 @@ for (const [paragraphs, caption] of [
       [[1000, 2000, caption], [3000, 0xffffffff, "done"]]);
   });
 }
+
+for (const breaks of ["<br/><br/>", " <br> \n\t<br /> "]) {
+  it(`preserves successive SAMI breaks with ${JSON.stringify(breaks)}`, () => {
+    const doc = samiAst().parse(new TextEncoder().encode(
+      `<SAMI><BODY><SYNC Start=1000><P>one${breaks}three<SYNC Start=3000><P>done</BODY></SAMI>`));
+    assert.deepEqual(doc.tracks[0]!.samples.map(sample =>
+      [sample.pts, sample.duration, new TextDecoder().decode(sample.data)]),
+    [[1000, 2000, "one\n\nthree"], [3000, 0xffffffff, "done"]]);
+  });
+}

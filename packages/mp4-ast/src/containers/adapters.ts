@@ -2789,7 +2789,8 @@ export function serializeSubtitleDocument(
     const packet = format === "webvtt" || (format === "srt" && codec === "subrip") ? s.data : undefined;
     const text = packet ? "" : decodeUtf8(s.data);
     const cueText = format === "webvtt" || (format === "srt" && codec === "subrip") ? text
-      : format === "srt" && codec === "ass" ? text.trimStart().replaceAll("\r\n", "\n").replaceAll("\n", "\r\n") : text.trim();
+      : format === "srt" && (codec === "ass" || doc.containerFormat === "sami")
+        ? text.trimStart().replaceAll("\r\n", "\n").replaceAll("\n", "\r\n") : text.trim();
     if (!(packet?.byteLength ?? cueText.length) && format !== "webvtt") continue;
     const startMs = Math.round((s.pts / ts) * 1000);
     const endMs = Math.round(((s.pts + s.duration) / ts) * 1000);

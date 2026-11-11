@@ -16096,7 +16096,7 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
         }
         if (outLower.startsWith("ftxt:") || (outLower.endsWith(".ftxt") && !outSpec.includes(":"))) {
             let text = "", work = 0;
-            for (const frame of stack) for (const row of ftxtPixels(frame, state.ftxtFormat)) {
+            for (const frame of stack) for (const row of ftxtPixels(frame, state.ftxtFormat, 0, state.precision)) {
                 if (++work % 4096 === 0) yield;
                 text += row;
             }
@@ -20119,7 +20119,7 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
                     await yieldTurn(signal);
                     const frame = (await stack.get(index))!;
                     if (sparse) { yield* storedSparseColor(frame, backend.storage, signal, state.precision); continue; }
-                    if (ftxt) { yield* storedFtxt(frame, backend.storage, signal, state.ftxtFormat); continue; }
+                    if (ftxt) { yield* storedFtxt(frame, backend.storage, signal, state.ftxtFormat, state.precision); continue; }
                     if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal, state.inputDepth); continue; }
                     if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal, state.precision); continue; }
                     if (index && state.formatStr === undefined) yield "\n";

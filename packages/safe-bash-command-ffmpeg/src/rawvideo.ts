@@ -154,8 +154,12 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
           append(native.pixels);
         } else {
           budget.checkOutputBytes(size + frame.width * frame.height + 2 * Math.ceil(frame.width / 2) * Math.ceil(frame.height / 2));
-          const { y, u, v } = rgbaToYuv420p(frame.data, frame.width, frame.height);
-          append(y); append(u); append(v);
+          if (native?.format === 8 && native.rgba === frame.data && native.width === frame.width && native.height === frame.height) {
+            append((await formatYuv(frame, format, signal)).native!.pixels);
+          } else {
+            const { y, u, v } = rgbaToYuv420p(frame.data, frame.width, frame.height);
+            append(y); append(u); append(v);
+          }
         }
       } else if (format === "gray" || format === "gray8" || format === "ya8") {
         const channels = format === "ya8" ? 2 : 1;

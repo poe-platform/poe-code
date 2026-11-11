@@ -4976,8 +4976,18 @@ async function applyVideoFilterChain(
       current = blended;
       if (([6, 13].includes(modes[3]!) || fractionalOpacity || hasExpressions) && packedAlpha) pixelFormat = "gbrap";
     } else if (name === "shuffleframes") {
-      for (const key of Object.keys(named)) {
-        if (key !== "mapping" && key !== "enable") throw new Error(`shuffleframes: unsupported option ${key}`);
+      for (const [key, value] of Object.entries(named)) {
+        if (key === "mapping" || key === "enable") continue;
+        if (key !== "threads" && key !== "thread_type" && key !== "extra_hw_frames") {
+          throw new Error(`shuffleframes: unsupported option ${key}`);
+        }
+        const number = parseFilterExpression(value, "shuffleframes", key === "thread_type" ? { slice: 1 } : {});
+        if (key === "thread_type"
+          ? !Number.isInteger(number) || number < -2147483648 || number > 4294967295
+          : number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
+          throw new RangeError(`shuffleframes: invalid ${key}`);
+        }
+        // Scheduling and hardware frame reservations do not change the pixels.
       }
       if (positional.length > 1 && positional.at(-1) === "") positional.pop();
       const mapping = (named.mapping ?? (positional[0]?.includes("=") ? "0" : positional[0] || "0")).split("|").join(" ").split(" ").filter(Boolean).map(value => Number.parseInt(value, 10));

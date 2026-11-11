@@ -1463,7 +1463,9 @@ async function panAudio(
     }
   }
   const [layout = "", ...assignments] = expression.split("|").map(value => value.trim());
-  const count = parseAudioChannelCount(layout);
+  // Numbered first-order ambisonic routes use four components, plus optional stereo.
+  const count = layout === "ambisonic 1" ? 4 : layout === "ambisonic 1+stereo" ? 6
+    : parseAudioChannelCount(layout);
   const speakerList = layout.indexOf(" channels (");
   const explicitCount = speakerList < 0 ? undefined : parseAudioChannelCount(`${layout.slice(0, speakerList)} channels`);
   const names = speakerList >= 0 && layout.endsWith(")")

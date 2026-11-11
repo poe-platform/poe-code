@@ -1896,11 +1896,16 @@ function audioConcatInputs(filter: string): number | undefined {
       parseFilterBoolean(equal < 0 ? option : option.slice(equal + 1), "concat: invalid unsafe boolean");
       continue;
     }
-    const value = Number(equal < 0 ? option : option.slice(equal + 1));
-    if (!key || !(key in values) || !Number.isSafeInteger(value) || value < 0) {
+    if (key !== "n" && key !== "v" && key !== "a") throw new Error("concat: invalid option");
+    const min = key === "n" ? 1 : 0;
+    const value = parseFilterExpression(equal < 0 ? option : option.slice(equal + 1), "concat", {
+      E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2,
+      min, max: 2147483647, default: key === "n" ? 2 : key === "v" ? 1 : 0
+    });
+    if (!Number.isFinite(value) || value < min || value > 2147483647) {
       throw new Error("concat: invalid option");
     }
-    values[key] = value;
+    values[key] = roundToEven(value);
   }
   if (values.v !== 0 || values.a !== 1) return undefined;
   if (!values.n) throw new Error("concat: n must be positive");

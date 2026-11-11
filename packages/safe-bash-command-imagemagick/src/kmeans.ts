@@ -128,8 +128,9 @@ export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
             if (inks) {
                 for (let c = 0; c < 4; c++) inks[i + c] = Math.fround(center[c === 3 ? 4 : c]! * 65535) / 65535;
             }
+            // Native Q16-HDRI palette samples are floats before integer export.
             for (let c = 0; c < 4; c++) {
-                const value = c === 3 && !alphaTraits[index] ? 1 : inks && c < 3 ? (1 - inks[i + c]!) * (1 - inks[i + 3]!) : hue ? Math.fround(center[c]! * 65535) / 65535 : center[c]!;
+                const value = c === 3 && !alphaTraits[index] ? 1 : inks && c < 3 ? (1 - inks[i + c]!) * (1 - inks[i + 3]!) : Math.fround(center[c]! * 65535) / 65535;
                 output[i + c] = Math.max(0, Math.min(65535, Math.round(value * 65535)));
                 if (samples) samples[i + c] = value * 255;
             }

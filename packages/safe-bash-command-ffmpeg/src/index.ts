@@ -3684,6 +3684,8 @@ async function applyVideoFilterChain(
         return { ...f, width, height, data };
       }, signal);
     } else if (name === "thumbnail") {
+      // Selecting a batch representative preserves the upstream EOF timestamp.
+      if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       if (positional.length > 1 || Object.keys(named).some(key => key !== "n")) {
         throw new Error("thumbnail: expected a batch size n");
       }
@@ -5804,7 +5806,7 @@ async function applyVideoFilterChain(
     }
     // Filters that change the final frame's timing establish a new endpoint.
     const lastOutputFrame = current.at(-1);
-    if (name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "trim" && name !== "decimate" && name !== "framestep" &&
+    if (name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "framestep" &&
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;

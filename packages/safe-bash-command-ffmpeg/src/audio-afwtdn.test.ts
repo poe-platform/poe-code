@@ -105,9 +105,9 @@ for (const option of ["sigma=-1", "sigma=1.1", "sigma=NaN", "levels=0", "levels=
   });
 
 it("honors memory limits and cancellation", async () => {
-  await assert.rejects(denoiseWavelets([mono], 16000, "afwtdn", new MediaBudgetTracker({ maxMemoryBytes: 64 })), /maxMemoryBytes/);
-  await assert.rejects(denoiseWavelets([mono], 16000, "afwtdn", new MediaBudgetTracker(), AbortSignal.abort()));
-  await assert.rejects(denoiseWavelets([mono], 16000, "afwtdn", new MediaBudgetTracker({ maxCpuMs: -1 })), /maxCpuMs/);
+  await assert.rejects(denoiseWavelets([mono], 16000, "afwtdn", [], new MediaBudgetTracker({ maxMemoryBytes: 64 })), /maxMemoryBytes/);
+  await assert.rejects(denoiseWavelets([mono], 16000, "afwtdn", [], new MediaBudgetTracker(), AbortSignal.abort()));
+  await assert.rejects(denoiseWavelets([mono], 16000, "afwtdn", [], new MediaBudgetTracker({ maxCpuMs: -1 })), /maxCpuMs/);
 });
 
 for (const graph of [false, true]) for (const option of [

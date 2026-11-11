@@ -13583,7 +13583,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let audioTimestamps: { start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined }[] | undefined;
                   // Silence events and frame tags retain input PTS, including after seeking and reframing.
                   if (!sink && (index === undefined || hasFrameTags || t.samples.some(sample => "exactPts" in sample) || outputCut || (index !== undefined && (audioSegment || frameChecksumOutput)) || (filter && parseFilterChain(filter.expression)
-                    .some(item => ["areverse", "silencedetect", "adeclick", "adeclip"].includes(item.trim().split("=", 1)[0]!.split("@", 1)[0]!))))) {
+                    .some(item => ["areverse", "silencedetect", "adeclick", "adeclip", "afwtdn"].includes(item.trim().split("=", 1)[0]!.split("@", 1)[0]!))))) {
                     if (index !== undefined && audioSegment) segmentAudioPackets = [];
                     audioTimestamps = [];
                     const length = stretched[0]?.length ?? 0;
@@ -14171,7 +14171,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         continue;
                       }
                       if (filterName === "afwtdn") {
-                        stretched = await denoiseWavelets(stretched, origRate, trimmed, budget, context.signal);
+                        const denoised = await denoiseWavelets(stretched, origRate, trimmed,
+                          audioTimestamps ?? [{ start: 0, end: stretched[0]?.length ?? 0, pts: audioStartSample }], budget, context.signal);
+                        stretched = denoised.channels;
+                        audioTimestamps = denoised.frames;
                         continue;
                       }
                       if (trimmed === "anull" || trimmed === "acopy") continue;

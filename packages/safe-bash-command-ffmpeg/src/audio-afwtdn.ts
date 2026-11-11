@@ -68,8 +68,9 @@ const rbior68Inverse = [
 ];
 export async function denoiseWavelets(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
-  filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<Float64Array[]> {
+  filter: string, frames: readonly { start: number; end: number; pts: number }[],
+  budget: MediaBudgetTracker, signal?: AbortSignal
+): Promise<{ channels: Float64Array[]; frames: { start: number; end: number; pts: number }[] }> {
   const options = { sigma: 0, levels: 10, wavet: 4, percent: 85, profile: 0, adaptive: 0, samples: 8192, softness: 1 };
   const ranges = { sigma: [0, 1], levels: [1, 12], wavet: [0, 6], percent: [0, 100],
     profile: [0, 1], adaptive: [0, 1], samples: [512, 65536], softness: [0, 10] };
@@ -122,6 +123,9 @@ export async function denoiseWavelets(
   const scratchBytes = (capacity * 3 + overlapSize + bandSizes.reduce((sum, n) => sum + n, 0) + (levels + 1) * 4) * 8;
   budget.allocateMemory(outputLength * channels.length * 8 + scratchBytes);
   const output = channels.map(() => new Float64Array(outputLength));
+  const outputFrames: { start: number; end: number; pts: number }[] = [];
+  let frameIndex = 0;
+  let nextPts = 0;
   // Reuse bounded scratch space across windows and channels.
   const buffers = [new Float64Array(capacity), new Float64Array(capacity), new Float64Array(capacity)];
   const bands = bandSizes.map(size => new Float64Array(size));
@@ -136,6 +140,22 @@ export async function denoiseWavelets(
       // discards the transform delay. Keep the same phase for non-power-of-two windows.
       for (let start = 0; start < outputLength + overlapSize; start += size) {
         await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
+        if (c === 0) {
+          // Consume fixed-size windows independently of upstream packet boundaries.
+          // Startup drops the transform delay; EOF can emit a shorter flush frame.
+          while (frameIndex + 1 < frames.length && frames[frameIndex]!.end <= start) frameIndex++;
+          const frame = frames[frameIndex];
+          const pts = start < length
+            ? (frame ? frame.pts + start - frame.start : start) - Math.min(start, overlapSize)
+            : nextPts;
+          const from = Math.max(0, start - overlapSize);
+          const end = Math.min(outputLength, start + size - overlapSize);
+          if (end > from) {
+            budget.allocateMemory(24);
+            outputFrames.push({ start: from, end, pts });
+            nextPts = pts + end - from;
+          }
+        }
         const sn = start + 1;
         const extension = (period - 1) * (taps - 2) + sn % period;
         const counts = bandSizes.map((_, level) => {
@@ -246,7 +266,7 @@ export async function denoiseWavelets(
         }
       }
     }
-    return output;
+    return { channels: output, frames: outputFrames };
   } finally {
     budget.releaseMemory(scratchBytes);
   }

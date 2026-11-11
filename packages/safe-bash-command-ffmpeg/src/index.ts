@@ -31,6 +31,7 @@ import { denoiseWavelets } from "./audio-afwtdn.js";
 import { ripemd128, ripemd256, ripemd320 } from "./ripemd.js";
 import { parseTee, selectTeeTracks } from "./tee.js";
 import { measureAstats, parseAstatsMeasurements } from "./audio-astats.js";
+import { updateAudioMetadata } from "./audio-metadata.js";
 import { measureReplayGain } from "./audio-replaygain.js";
 import { colorcontrast } from "./colorcontrast.js";
 import { parseFilterExpression } from "./filter-expression.js";
@@ -14166,7 +14167,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           budget.allocateMemory(64);
                           const frame = audioMetadata[n] ?? { pts: timestamp?.pts ?? audioStartSample + start, tags: new Map<string, string>() };
-                          frame.tags.set("lavfi.aphasemeter.phase", Math.fround(sum / (end - start)).toFixed(6));
+                          updateAudioMetadata(frame.tags, "lavfi.aphasemeter.phase", Math.fround(sum / (end - start)).toFixed(6));
                           audioMetadata[n] = frame;
                           start = end;
                         }
@@ -14225,7 +14226,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             })) >= 0.5;
                             if (enabled && (mode === "modify" ? frame.tags.has(key) : !Array.from(frame.tags.keys()).some(name => name.toLowerCase() === lookupKey))) {
                               budget.allocateMemory(64 + 2 * (key.length + metadataValue.length));
-                              frame.tags.set(key, metadataValue);
+                              updateAudioMetadata(frame.tags, key, metadataValue);
                             }
                             audioMetadata[n] = frame;
                             start += count;
@@ -14327,8 +14328,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (lookupKey !== undefined && lookupKey !== name.toLowerCase()) continue;
                             if (!matchesValue(value)) continue;
                             if (mode === "delete") {
-                              frame.tags.delete(name);
-                              continue;
+                              updateAudioMetadata(frame.tags, name);
+                              break;
                             }
                             const line = `${key ?? name}=${value}\n`;
                             budget.allocateMemory(line.length * 2);
@@ -14942,7 +14943,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                   const start = BigInt.asIntN(64, framePts + toTicks(frame - frameStart + 1 - minimum / (mono ? 1 : channels)));
                                   starts[slot] = start === missingPts ? undefined : start;
                                   budget.allocateMemory(128);
-                                  metadata.tags.set(`lavfi.silence_start${suffix}`, formatTime(start));
+                                  updateAudioMetadata(metadata.tags, `lavfi.silence_start${suffix}`, formatTime(start));
                                   logSilence(n, `${prefix}silence_start: ${formatTime(start)}\n`);
                                 }
                               } else {
@@ -14950,8 +14951,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 if (start !== undefined) {
                                   const end = BigInt.asIntN(64, framePts + toTicks(frame - frameStart));
                                   budget.allocateMemory(256);
-                                  metadata.tags.set(`lavfi.silence_end${suffix}`, formatTime(end));
-                                  metadata.tags.set(`lavfi.silence_duration${suffix}`, formatTime(BigInt.asIntN(64, end - start)));
+                                  updateAudioMetadata(metadata.tags, `lavfi.silence_end${suffix}`, formatTime(end));
+                                  updateAudioMetadata(metadata.tags, `lavfi.silence_duration${suffix}`, formatTime(BigInt.asIntN(64, end - start)));
                                   logSilence(n, `${prefix}silence_end: ${formatTime(end)} | silence_duration: ${formatTime(BigInt.asIntN(64, end - start))}\n`);
                                 }
                                 counts[slot] = 0;

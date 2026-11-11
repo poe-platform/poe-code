@@ -1,5 +1,6 @@
 import type { MediaAudioData, MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { updateAudioMetadata } from "./audio-metadata.js";
 import { createResampleKernel } from "./audio-resample-kernel.js";
 import { parseFilterExpression } from "./filter-expression.js";
 
@@ -201,7 +202,7 @@ export async function* measureEbur128(
       for (const [key, value] of values) {
         const text = value.toFixed(3);
         budget.allocateMemory(64 + 2 * (11 + key.length + text.length));
-        tags.set(`lavfi.r128.${key}`, text);
+        updateAudioMetadata(tags, `lavfi.r128.${key}`, text);
       }
     }
     while (timestamps && timestampIndex + 1 < timestamps.length && timestamps[timestampIndex]!.end <= frame) timestampIndex++;

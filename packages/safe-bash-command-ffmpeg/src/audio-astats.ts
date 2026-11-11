@@ -1,5 +1,6 @@
 import type { MediaAudioData, MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { updateAudioMetadata } from "./audio-metadata.js";
 import { parseFilterExpression } from "./filter-expression.js";
 
 // Bit positions from FFmpeg's af_astats.c (the order is part of the option format).
@@ -87,7 +88,7 @@ export async function measureAstats(
       const key = `lavfi.astats.${section}.${name}`;
       const formatted = typeof value === "number" ? fixed(value) : value;
       budget.allocateMemory(64 + 2 * (key.length + formatted.length));
-      tags.set(key, formatted);
+      updateAudioMetadata(tags, key, formatted);
     }
   };
   budget.allocateMemory((metadata?.length ?? 1) * 256);

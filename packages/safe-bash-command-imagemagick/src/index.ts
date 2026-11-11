@@ -13717,7 +13717,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             for (const [index, image] of stack.entries()) {
                 const expanded = yield* formatMagickPropertyStringSteps(spec, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: index, optionProperties: state.optionProperties });
                 const transform = createHoughTransform(image, expanded, state.background, state.stroke, state.fill, state.strokeWidth);
-                const source = { ...image, properties: undefined, orientation: state.orientation, space: "srgb" as const, channels: 4 as const };
+                const { magickColorspace: ignoredSpace, hueSamples: ignoredHue, ...metadata } = image;
+                const source = { ...metadata, properties: undefined, orientation: state.orientation, space: "srgb" as const, channels: 4 as const };
                 result.push(yield* applyMagickRasterSteps(source, transform.lines(), signal, { ...image, hasAlpha: state.background.a < 255 }));
                 if (state.houghAccumulator) result.push(yield* applyMagickRasterSteps(source, transform.accumulator(), signal, { width: 180, height: transform.height, hasAlpha: false }));
             }
@@ -16525,7 +16526,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const image = (await stack.get(index))!;
                     const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, listIndex: index, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack);
                     const transform = createHoughTransform(image, expanded, settings.background, settings.stroke, settings.fill, settings.strokeWidth);
-                    const source = { ...image, properties: undefined, orientation: settings.orientation, space: "srgb" as const, channels: 4 as const };
+                    const { magickColorspace: ignoredSpace, storedHueSamples: ignoredHue, ...metadata } = image;
+                    const source = { ...metadata, properties: undefined, orientation: settings.orientation, space: "srgb" as const, channels: 4 as const };
                     await result.push(await transformStoredMagickRaster(source, backend, transform.lines(), signal, { ...image, hasAlpha: settings.background.a < 255 }));
                     if (settings.houghAccumulator) await result.push(await transformStoredMagickRaster(source, backend, transform.accumulator(), signal, { width: 180, height: transform.height, hasAlpha: false }));
                 }

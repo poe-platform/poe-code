@@ -13888,8 +13888,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let duration = 2;
                         let mono = false;
                         const argument = trimmed.slice("silencedetect=".length);
-                        const options = argument ? argument.split(":") : [];
-                        if (options.at(-1) === "") options.pop();
+                        const options: string[] = [];
+                        let option = "";
+                        let optionStart = 0;
+                        let quoted = false;
+                        // Decode option escaping after parseFilterChain decoded the graph layer.
+                        for (let i = 0; i < argument.length; i++) {
+                          const char = argument[i]!;
+                          if (char === "'") quoted = !quoted;
+                          else if (!quoted && char === "\\" && i + 1 < argument.length) option += argument[++i]!;
+                          else if (!quoted && char === ":") {
+                            options.push(option);
+                            option = "";
+                            optionStart = i + 1;
+                          } else option += char;
+                        }
+                        if (optionStart < argument.length) options.push(option);
                         for (const [index, option] of options.entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["noise", "duration", "mono"][index] : option.slice(0, separator);

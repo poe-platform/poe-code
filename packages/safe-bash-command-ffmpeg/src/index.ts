@@ -10565,8 +10565,46 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const framepack = filterComplex.includes("framepack");
                 let vertical = filterComplex.includes("vstack");
                 const filter = framepack ? "framepack" : vertical ? "vstack" : "hstack";
-                const spec = filterComplex.slice(filterComplex.indexOf(filter) + filter.length)
-                  .split("[")[0]!.split(",")[0]!.split(";")[0]!.trim();
+                let remaining = filterComplex.slice(filterComplex.indexOf(filter));
+                const downstream: string[] = [];
+                let spec = "";
+                let firstChain = true;
+                while (remaining) {
+                  let end = 0;
+                  let quoted = false;
+                  for (; end < remaining.length; end++) {
+                    const char = remaining[end];
+                    if (char === "'") quoted = !quoted;
+                    else if (!quoted && char === "\\") end++;
+                    else if (!quoted && (char === "[" || char === ";")) break;
+                  }
+                  const filters = parseFilterChain(remaining.slice(0, end));
+                  if (!filters.length) throw new Error(`${filter}: missing filter chain`);
+                  if (firstChain) {
+                    spec = filters.shift()!.slice(filter.length).trim();
+                    firstChain = false;
+                  }
+                  if (filters.length) downstream.push(serializeFilterChain(filters));
+                  remaining = remaining.slice(end).trim();
+                  if (!remaining) break;
+                  if (!remaining.startsWith("[")) throw new Error(`${filter}: unsupported output graph`);
+                  const labelEnd = remaining.indexOf("]");
+                  if (labelEnd <= 1) throw new Error(`${filter}: invalid output label`);
+                  const label = remaining.slice(0, labelEnd + 1);
+                  remaining = remaining.slice(labelEnd + 1).trim();
+                  if (!remaining) {
+                    if (maps.length !== 1 || maps[0] !== label) {
+                      throw new Error(`${filter}: output label must be mapped exactly once`);
+                    }
+                    break;
+                  }
+                  if (!remaining.startsWith(";")) throw new Error(`${filter}: unsupported output graph`);
+                  remaining = remaining.slice(1).trim();
+                  if (!remaining.startsWith(label)) throw new Error(`${filter}: unsupported output link`);
+                  remaining = remaining.slice(label.length).trim();
+                  if (!remaining) throw new Error(`${filter}: missing filter chain`);
+                }
+                vfFilters.push(...downstream);
                 const options = (spec.startsWith("=") ? spec.slice(1) : "").split(":");
                 if (framepack) {
                   const option = options[0]?.trim() ?? "";
@@ -10584,28 +10622,74 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }
                 const inputs: MediaVideoFrame[][] = [];
                 const inputTracks: MediaTrack[] = [];
-                let pads = filterComplex.slice(0, filterComplex.indexOf(filter)).trim();
-                for (let i = 0; i < inputCount; i++) {
-                  let inputIndex = i;
-                  let streamIndex = 0;
-                  if (pads.startsWith("[")) {
-                    const end = pads.indexOf("]");
-                    const label = pads.slice(1, end);
-                    const parts = label.split(":");
-                    if (end < 0 || parts.length > 3 || parts[1] !== "v" ||
-                        !parts[0] || ![...parts[0]].every(char => char >= "0" && char <= "9") ||
-                        (parts[2] !== undefined && (!parts[2] || ![...parts[2]].every(char => char >= "0" && char <= "9")))) {
-                      throw new Error(`${filter}: invalid input label ${label}`);
+                const branches = new Map<string, { input: string; expression: string }>();
+                const prefix = filterComplex.slice(0, filterComplex.indexOf(filter));
+                let branchStart = 0;
+                let quoted = false;
+                for (let pos = 0; pos < prefix.length; pos++) {
+                  const char = prefix[pos];
+                  if (char === "'") quoted = !quoted;
+                  else if (!quoted && char === "\\") pos++;
+                  else if (!quoted && char === ";") {
+                    const chain = prefix.slice(branchStart, pos).trim();
+                    const inputEnd = chain.indexOf("]");
+                    const outputStart = chain.lastIndexOf("[");
+                    if (!chain.startsWith("[") || !chain.endsWith("]") || inputEnd < 0 || outputStart <= inputEnd) {
+                      throw new Error(`${filter}: unsupported input branch ${chain}`);
                     }
-                    inputIndex = Number(parts[0]);
-                    streamIndex = Number(parts[2] ?? 0);
-                    pads = pads.slice(end + 1).trim();
+                    const label = chain.slice(outputStart + 1, -1);
+                    if (branches.has(label)) throw new Error(`${filter}: duplicate input label ${label}`);
+                    branches.set(label, { input: chain.slice(1, inputEnd), expression: chain.slice(inputEnd + 1, outputStart).trim() });
+                    branchStart = pos + 1;
                   }
+                }
+                const resolve = async (label: string, visiting = new Set<string>()): Promise<{ track: MediaTrack; frames: MediaVideoFrame[] }> => {
+                  const branch = branches.get(label);
+                  if (branch) {
+                    if (visiting.has(label)) throw new Error(`${filter}: cyclic input label ${label}`);
+                    visiting.add(label);
+                    const source = await resolve(branch.input, visiting);
+                    const description = source.track.codecDescriptions[0];
+                    const frames = await applyVideoFilterChain(source.frames, branch.expression, budget, {
+                      timescale: source.track.timescale,
+                      sarWidth: description?.sarWidth ?? 1,
+                      sarHeight: description?.sarHeight || 1,
+                      sar: (description?.sarWidth || 1) / (description?.sarHeight || 1),
+                      pixelFormat: description?.pixFmt,
+                      logLevel,
+                      write: text => writeBytes(context.stderr, encodeUtf8(text), context.signal),
+                      writeReport: async (file, text) => {
+                        if (file === "-") await writeBytes(context.stdout, encodeUtf8(text), context.signal);
+                        else await writeFileOutput(context, encodeUtf8(text), data => context.fs.writeFile(resolvePath(context.cwd, file), data, { signal: context.signal }));
+                      }
+                    }, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal);
+                    return { track: { ...source.track, decodedVideoFrames: frames }, frames };
+                  }
+                  const parts = label.split(":");
+                  if (parts.length > 3 || parts[1] !== "v" ||
+                      !parts[0] || ![...parts[0]].every(char => char >= "0" && char <= "9") ||
+                      (parts[2] !== undefined && (!parts[2] || ![...parts[2]].every(char => char >= "0" && char <= "9")))) {
+                    throw new Error(`${filter}: invalid input label ${label}`);
+                  }
+                  const inputIndex = Number(parts[0]);
+                  const streamIndex = Number(parts[2] ?? 0);
                   const doc = loadedDocs[inputIndex];
                   const track = doc?.tracks.filter(t => t.type === "video")[streamIndex];
                   if (!doc || !track) throw new Error(`${filter}: input ${inputIndex}:v:${streamIndex} is unavailable`);
+                  return { track, frames: await ensureDecodedFrames(track, doc.timescale, budget, context.signal) };
+                };
+                let pads = prefix.slice(branchStart).trim();
+                for (let i = 0; i < inputCount; i++) {
+                  let label = `${i}:v`;
+                  if (pads.startsWith("[")) {
+                    const end = pads.indexOf("]");
+                    if (end < 0) throw new Error(`${filter}: invalid input labels ${pads}`);
+                    label = pads.slice(1, end);
+                    pads = pads.slice(end + 1).trim();
+                  }
+                  const { track, frames } = await resolve(label);
                   inputTracks.push(track);
-                  inputs.push(await ensureDecodedFrames(track, doc.timescale, budget, context.signal));
+                  inputs.push(frames);
                 }
                 if (pads) throw new Error(`${filter}: unsupported input labels ${pads}`);
                 const shortestOption = options.find((option) => option.trim().startsWith("shortest="))

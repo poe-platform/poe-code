@@ -65,6 +65,7 @@ export function builtinPattern(name: string) {
     return {
         width: tile.width,
         height: tile.rows.length,
+        bitsPerSample: key === "checkerboard" ? 8 : 1,
         gray(x: number, y: number): number {
             const bit = (tile.rows[y % tile.rows.length]! >>> (x % tile.width)) & 1;
             return key === "checkerboard" ? (bit ? 153 : 102) : (bit ? 0 : 255);

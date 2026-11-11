@@ -7619,7 +7619,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     if (lower.startsWith("pattern:")) {
         const pattern = builtinPattern(baseToken.slice(8));
-        return yield* applyMod([Object.assign(yield* createPatternImageSteps(state.hasSize ? state.sizeWidth : pattern.width, state.hasSize ? state.sizeHeight : pattern.height, pattern, state.tileOffset), { [magickInput]: { inputFormat: "PATTERN" } })]);
+        return yield* applyMod([Object.assign(yield* createPatternImageSteps(state.hasSize ? state.sizeWidth : pattern.width, state.hasSize ? state.sizeHeight : pattern.height, pattern, state.tileOffset), { bitsPerSample: state.hasSize ? state.inputDepth ?? 16 : pattern.bitsPerSample, [magickInput]: { inputFormat: "PATTERN" } })]);
     }
     if (lower === "rose:" || lower === "logo:" || lower === "wizard:" || lower === "granite:") {
         return yield* applyMod([(yield* createRoseImageSteps())]);
@@ -19090,7 +19090,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    if(storedHueSamples!==undefined&&hueSamples)await backend.storage.write(storedHueSamples+start*32,new Uint8Array(hueSamples.buffer));
   }
   image={position,width,height,...(storedData16?{storedData16}:{}),...(storedEvaluateSamples===undefined?{}:{storedEvaluateSamples}),...(storedHueSamples===undefined?{}:{storedHueSamples}),format:"png",channels:a.space?(a.a<255||b.a<255?2:1):4,depth:checker?"uchar":"ushort",space:a.cmyk?"cmyk":a.space??"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
-  image = Object.assign(image, { [magickInput]: { ...(!checker ? { filePath: first } : {}), inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } });
+  image = Object.assign(image, { ...(pattern ? { bitsPerSample: state.hasSize ? state.inputDepth ?? 16 : pattern.bitsPerSample } : {}), [magickInput]: { ...(!checker ? { filePath: first } : {}), inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } });
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
   const text = baseToken.slice(baseToken.indexOf(":") + 1), kind = lower.startsWith("caption:") ? "caption" : "label";
   const font = state.font === undefined ? defaultCaptionFont : await backend.read(state.font, async source => {

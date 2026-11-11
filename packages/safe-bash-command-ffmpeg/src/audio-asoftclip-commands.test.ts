@@ -53,7 +53,7 @@ it("asoftclip applies updates at the next frame boundary on every channel", asyn
 });
 
 it("asoftclip ignores rejected commands and still applies later updates", async () => {
-  for (const command of ["type unknown", "threshold 0", "output 17", "param 0", "oversample 65", "output NaN", "enable unknown", "unknown 1"]) {
+  for (const command of ["type unknown", "threshold 0", "output 17", "param 0", "oversample 65", "oversample 0.9", "oversample 64.1", "output NaN", "enable unknown", "unknown 1"]) {
     assert.deepEqual(await run(`asetnsamples=2:0,asendcmd=c='0.00025 asoftclip@x ${command};0.0005 asoftclip@x output 0.5',asoftclip@x=type=hard`),
       [...Array<number>(4).fill(16000), ...Array<number>(4).fill(8000)]);
   }
@@ -65,6 +65,14 @@ it("asoftclip applies parameter changes and commands at time zero like static op
   }
   assert.deepEqual(await run("asetnsamples=2:0,asendcmd=c='0.001 asoftclip@x output 0.5',asoftclip@x=type=hard"), Array<number>(8).fill(16000));
 });
+
+for (const [fractional, integer] of [[2.5, 2], [3.5, 4]]) for (const complex of [false, true]) {
+  it(`asoftclip rounds oversample command ${fractional} to ${integer} (${complex ? "graph" : "simple"})`, async () => {
+    const prefix = "asetnsamples=2:0,asendcmd=c='0.0005 asoftclip@x oversample ";
+    assert.deepEqual(await run(`${prefix}${fractional}',asoftclip@x`, complex),
+      await run(`${prefix}${integer}',asoftclip@x`, complex));
+  });
+}
 
 it("asoftclip retains each oversampling history when switching factors or bypassing", async () => {
   const control = await run("asetnsamples=2:0,asoftclip=type=hard:oversample=2");

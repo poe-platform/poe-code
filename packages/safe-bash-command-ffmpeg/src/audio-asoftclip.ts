@@ -28,8 +28,9 @@ export async function softClipAudio(
       type = types[index + 1]!;
     } else if (key === "oversample") {
       const number = parseFilterExpression(value, "asoftclip", {});
-      if (!Number.isInteger(number) || number < 1 || number > 64) throw new Error("asoftclip: invalid oversample");
-      options.oversample = number;
+      if (!Number.isFinite(number) || number < 1 || number > 64) throw new Error("asoftclip: invalid oversample");
+      // Native integer options validate the range before rounding ties to even.
+      options.oversample = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
     } else if (key === "threshold" || key === "output" || key === "param") {
       const number = parseFilterExpression(value, "asoftclip", {});
       const min = key === "param" ? 0.01 : 0.000001;

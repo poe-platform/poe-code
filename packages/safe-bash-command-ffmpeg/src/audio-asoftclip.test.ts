@@ -77,6 +77,12 @@ for (const [expression, literal] of [
   ["type=max", "type=erf"],
   ["atan+1", "cubic"],
   ["type=erf-sin+atan", "type=cubic"],
+  ["oversample=1.5", "oversample=2"],
+  ["oversample=2.4", "oversample=2"],
+  ["oversample=2.6", "oversample=3"],
+  ["oversample=63.5", "oversample=64"],
+  ["oversample=5/2", "oversample=2"],
+  ["0:1:1:1:3.5", "oversample=4"],
   ["threshold=1/2", "threshold=0.5"],
   ["output=1/2", "output=0.5"],
   ["param=1+1", "type=tanh:param=2"],
@@ -103,7 +109,22 @@ for (const [oversample, hex] of [
 ] as const) for (const graph of [false, true]) {
   it(`asoftclip oversample=${oversample} matches native raw PCM (${graph ? "graph" : "simple"})`, async () => {
     const channels = [Float64Array.from([0, 8192, -8192, 16384, -16384, 24576, -24576, 0], n => n / 32768)];
-    const { fs, result, stderr } = await run(`asoftclip=oversample=${oversample}`, graph, channels, true);
+    const { fs, result, stderr } = await run(`asoftclip=oversample=${oversample}`, graph, channels, "s16le");
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal((fs.readFileSync("/out.wav") as Buffer).toString("hex"), hex);
+  });
+}
+
+// Complete raw PCM32 output from native FFmpeg 7.0.2 for fractional integer options.
+for (const [oversample, hex] of [
+  [2, "608de0f58066ecc3807e72e5405b33edbc7e2c0050bfde0a80443a1dc0f41d29"],
+  [2.5, "608de0f58066ecc3807e72e5405b33edbc7e2c0050bfde0a80443a1dc0f41d29"],
+  [4, "54d0bffd000478c0408cd3dd808666eb384040fd601bb6080085741b802ebd28"],
+  [3.5, "54d0bffd000478c0408cd3dd808666eb384040fd601bb6080085741b802ebd28"]
+] as const) for (const graph of [false, true]) {
+  it(`asoftclip oversample=${oversample} matches native PCM32 (${graph ? "graph" : "simple"})`, async () => {
+    const channels = [Float64Array.from([-28000, -19000, -12000, -3000, 3000, 12000, 19000, 28000], n => n / 32768)];
+    const { fs, result, stderr } = await run(`asoftclip=oversample=${oversample}`, graph, channels, "s32le");
     assert.equal(result.exitCode, 0, stderr);
     assert.equal((fs.readFileSync("/out.wav") as Buffer).toString("hex"), hex);
   });
@@ -130,7 +151,7 @@ for (const [filter, hash] of [
   });
 }
 
-for (const filter of ["asoftclip=threshold=0", "asoftclip=threshold=1.1", "asoftclip=threshold=NaN", "asoftclip=threshold=", "asoftclip=output=17", "asoftclip=param=0", "asoftclip=param=4", "asoftclip=type=unknown", "asoftclip=type=8", "asoftclip=type=-2", "asoftclip=type=", "asoftclip=oversample=0", "asoftclip=oversample=65", "asoftclip=oversample=1.5", "asoftclip=oversample=NaN", "asoftclip=oversample=", "asoftclip=unknown=1",
+for (const filter of ["asoftclip=threshold=0", "asoftclip=threshold=1.1", "asoftclip=threshold=NaN", "asoftclip=threshold=", "asoftclip=output=17", "asoftclip=param=0", "asoftclip=param=4", "asoftclip=type=unknown", "asoftclip=type=8", "asoftclip=type=-2", "asoftclip=type=", "asoftclip=oversample=0", "asoftclip=oversample=65", "asoftclip=oversample=0.9", "asoftclip=oversample=64.1", "asoftclip=oversample=Inf", "asoftclip=oversample=NaN", "asoftclip=oversample=", "asoftclip=unknown=1",
   "asoftclip=threshold=1/2000000", "asoftclip=threshold=1+1", "asoftclip=output=1/2000000", "asoftclip=output=16+1",
   "asoftclip=param=1/200", "asoftclip=param=3+1", "asoftclip=threshold=1/0", "asoftclip=output=0/0", "asoftclip=param=1+",
   "asoftclip=type=7.1", "asoftclip=type=-1.1", "asoftclip=type=erf+1", "asoftclip=type=1/0", "asoftclip=type=0/0", "asoftclip=type=atan+"]) {
@@ -143,14 +164,14 @@ for (const filter of ["asoftclip=threshold=0", "asoftclip=threshold=1.1", "asoft
 
 async function run(filter: string, graph = false,
   channels = [0, 8].map(offset => Float64Array.from({ length: 8000 }, (_, i) => input[(i + offset) % input.length]! / 32768)),
-  raw = false
+  raw?: "s16le" | "s32le"
 ) {
   const fs = Volume.fromJSON({ "/out.wav": "keep" });
   fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels }));
   let stderr = "";
   const result = await createFfmpegCommand().execute({
     args: ["-y", "-v", "error", "-i", "/in.wav", ...(graph
-      ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-c:a", "pcm_s16le", ...(raw ? ["-f", "s16le"] : []), "/out.wav"],
+      ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-c:a", `pcm_${raw ?? "s16le"}`, ...(raw ? ["-f", raw] : []), "/out.wav"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
       async readFile(path: string) { return fs.readFileSync(path); },

@@ -52,3 +52,38 @@ for (const filter of ["hstack", "vstack"]) {
     }
   }
 }
+
+// Native FFmpeg 7.0.2 stops framesync before reusing an exhausted input.
+for (const filter of ["hstack", "vstack", "xstack"]) {
+  for (const [rate, shortest, expected] of [
+    [3, true, "0a0b64650a0b6e6f"],
+    [2, true, "0a0b646514156e6f"],
+    [3, false, "0a0b64650a0b6e6f14156e6f1e1f6e6f"]
+  ] as const) {
+    it(`${filter} honors native EOF at 2/${rate} fps with shortest=${shortest}`, async () => {
+      const volume = Volume.fromJSON({
+        "/a.gray": Buffer.from([10, 11, 20, 21, 30, 31]),
+        "/b.gray": Buffer.from([100, 101, 110, 111])
+      });
+      const stdout: Uint8Array[] = [];
+      const stderr: Uint8Array[] = [];
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error",
+          "-f", "rawvideo", "-pix_fmt", "gray", "-s", "2x1", "-framerate", "2", "-i", "/a.gray",
+          "-f", "rawvideo", "-pix_fmt", "gray", "-s", "2x1", "-framerate", String(rate), "-i", "/b.gray",
+          "-filter_complex", `[0:v][1:v]${filter}${shortest ? "=shortest=1" : ""}[out]`,
+          "-map", "[out]", "-fps_mode", "passthrough", "-pix_fmt", "gray", "-bitexact", "-f", "rawvideo", "pipe:1"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(),
+        stdout: { async write(bytes: Uint8Array) { stdout.push(bytes); } },
+        stderr: { async write(bytes: Uint8Array) { stderr.push(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, Buffer.concat(stderr).toString());
+      assert.equal(Buffer.concat(stdout).toString("hex"), expected);
+    });
+  }
+}

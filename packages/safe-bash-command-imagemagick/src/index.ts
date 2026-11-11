@@ -7105,7 +7105,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         for (let channel = 0; channel < first.metaChannels.length; channel++)
             canvas.metaChannels.push(yield* createSolidRgbaImageSteps(totalW, totalH, { r: 0, g: 0, b: 0, a: 255 }));
     }
-    const gray = stack.every(image => image.space === "b-w" || image.space === "grey16") && background.r === background.g && background.g === background.b;
+    const gray = stack.every(image => (image.space === "b-w" || image.space === "grey16") && (image.gamma === 1) === (first.gamma === 1)) && background.r === background.g && background.g === background.b;
     return { ...canvas, ...(first.orientation !== undefined ? { orientation: first.orientation } : {}), ...(gray ? { space: first.space, gamma: first.gamma } : {}), ...(first.magickColorspace !== undefined && stack.every(image => image.magickColorspace === first.magickColorspace) ? { magickColorspace: first.magickColorspace } : {}), channels: cmyk ? 4 : gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), ...(first.exif ? { exif: first.exif } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), hasAlpha, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
 }
 
@@ -16492,7 +16492,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     return stack;
                 }
                 let width = 0, height = 0, highDepth = false, cmyk = false, nonCmyk = false, gray = true, evaluate = false, sameColorspace = true;
-                const firstColorspace = ((await stack.get(0))! as StoredRgbaImage).magickColorspace;
+                const firstFrame = (await stack.get(0))! as StoredRgbaImage;
+                const firstColorspace = firstFrame.magickColorspace;
                 if (mosaic) {
                     const first = (await stack.get(0))!;
                     width = first.virtualCanvas?.width || first.width;
@@ -16502,7 +16503,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 for (let n = 0; n < stack.length; n++) {
                     await yieldTurn(signal);
                     const frame = (await stack.get(n))!;
-                    gray &&= frame.space === "b-w" || frame.space === "grey16";
+                    gray &&= (frame.space === "b-w" || frame.space === "grey16") && (frame.gamma === 1) === (firstFrame.gamma === 1);
                     sameColorspace &&= (frame as StoredRgbaImage).magickColorspace === firstColorspace;
                     cmyk ||= frame.space === "cmyk"; nonCmyk ||= frame.space !== "cmyk"; highDepth ||= !!frame.storedData16;
                     evaluate ||= frame.storedEvaluateSamples !== undefined;

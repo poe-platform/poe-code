@@ -72,3 +72,32 @@ it.each([
                 : (color.repeat(2) + other.repeat(3)).repeat(2) + color.repeat(2) + padding.repeat(3));
     }
 });
+
+// Native ImageMagick 7.1.2-35 Q16-HDRI copies mixed grayscale samples into sRGB.
+for (const mode of ["command", "filesystem", "map", "sync"] as const)
+for (const direction of ["-append", "+append"])
+for (const info of [true, false])
+it.each([
+    { first: "LinearGray", second: "Gray", metadata: "sRGB|srgba 4.0", hex: "212121808a8a8ac0" },
+    { first: "Gray", second: "LinearGray", metadata: "sRGB|srgba 4.0", hex: "52525280494949c0" },
+    { first: "Gray", second: "Gray", metadata: "Gray|graya 2.0", hex: "525252808a8a8ac0" },
+    { first: "LinearGray", second: "LinearGray", metadata: "LinearGray|lineargraya 2.0", hex: "65656580929292c0" },
+])(`${mode}: ${direction} grayscale $first/$second (info=${info})`, async ({ first, second, metadata, hex }) => {
+    const fs = createMemoryFileSystem();
+    const files = new Map<string, Uint8Array>();
+    const argv = ["(", "xc:#b2346680", "-colorspace", first, ")",
+        "(", "xc:#34a295c0", "-colorspace", second, ")", direction,
+        ...(info ? ["-format", "%[colorspace]|%[channels]", "info:/out"] : ["-colorspace", "sRGB", "-depth", "8", "rgba:/out"])];
+    const args = createCommandArguments(argv);
+    let stderr = "";
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: args.args, argumentValues: args, fs, cwd: "/", env: {},
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+    }) : mode === "sync" ? runMagickCliSync(argv, files)
+        : await runMagickCli(argv, mode === "map" ? files : { filesystem: fs, cwd: "/" });
+    expect(result.exitCode).toBe(0);
+    expect("stderr" in result ? result.stderr : stderr).toBe("");
+    const output = mode === "map" || mode === "sync" ? files.get("/out")! : await fs.readFile("/out");
+    expect(info ? new TextDecoder().decode(output) : Buffer.from(output).toString("hex")).toBe(info ? metadata : hex);
+});

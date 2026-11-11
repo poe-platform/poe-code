@@ -14547,8 +14547,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (state.units !== undefined) stack[0] = applyMagickUnits(stack[0]!, state.units);
                 if (state.densityGeometry !== undefined) stack[0] = applyMagickDensity(stack[0]!, state.densityGeometry);
                 if (merge) stack[0] = { ...stack[0]!, virtualCanvas: {
-                    width: first.virtualCanvas?.width || maxW + Math.max(0, originX),
-                    height: first.virtualCanvas?.height || maxH + Math.max(0, originY),
+                    width: first.virtualCanvas?.width || first.width,
+                    height: first.virtualCanvas?.height || first.height,
                     x: originX, y: originY,
                 } };
                 if (first.orientation !== undefined) stack[0] = { ...stack[0]!, orientation: first.orientation };
@@ -16784,8 +16784,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (settings.units !== undefined) result = applyMagickUnits(result, settings.units);
                     if (settings.densityGeometry !== undefined) result = applyMagickDensity(result, settings.densityGeometry);
                     if (merge) result = { ...result, virtualCanvas: {
-                        width: first.virtualCanvas?.width || width + Math.max(0, originX),
-                        height: first.virtualCanvas?.height || height + Math.max(0, originY),
+                        width: first.virtualCanvas?.width || first.width,
+                        height: first.virtualCanvas?.height || first.height,
                         x: originX, y: originY,
                     } };
                     if (first.orientation !== undefined) result = { ...result, orientation: first.orientation };

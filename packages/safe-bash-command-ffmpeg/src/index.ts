@@ -12873,7 +12873,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const trim = next?.split("=", 1)[0]!.split("@", 1)[0] === "atrim"
                           ? parseAtrim(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "", origRate)
                           : undefined;
+                        const reframe = next?.split("=", 1)[0]!.split("@", 1)[0] === "asetnsamples"
+                          ? parseAsetnsamples(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "")
+                          : undefined;
                         const length = stretched[0]?.length ?? 0;
+                        let pending = 0;
+                        let pendingPts = 0;
+                        let pendingPos: number | undefined;
+                        let reframeEnabled = true;
                         let measuredEnd = 0;
                         let outputFrames = 0;
                         let firstPts: number | undefined;
@@ -12900,6 +12907,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               if (end === -Infinity) end = size;
                               if (end <= 0) break;
                               if (Math.min(size, end) > Math.max(0, from)) outputFrames++;
+                            }
+                          } else if (reframe && frameLimit !== undefined) {
+                            // Output groups may split one input frame or consume several.
+                            // The detector still measures each consumed input frame in full.
+                            for (let offset = 0; start + offset < measuredEnd && outputFrames < frameLimit;) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              if (pending === 0) {
+                                pendingPts = (frame?.pts ?? audioStartSample + start) + offset;
+                                pendingPos = frame?.pos ?? packet?.offset;
+                              }
+                              const taken = reframeEnabled ? Math.min(measuredEnd - start - offset, reframe.size - pending)
+                                : measuredEnd - start - offset;
+                              pending += taken;
+                              offset += taken;
+                              if (reframeEnabled && pending < reframe.size) continue;
+                              reframeEnabled = reframe.enabled({ start: 0, end: pending, pts: pendingPts, pos: pendingPos }, outputFrames++, origRate);
+                              pending = 0;
                             }
                           } else outputFrames++;
                           start = measuredEnd;

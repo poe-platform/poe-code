@@ -26,9 +26,9 @@ for (const mode of ["sync", "buffered", "retained", "command"]) {
                     stdout: { write: async chunk => { chunks.push(typeof chunk === "string" ? new TextEncoder().encode(chunk) : chunk.slice()); } },
                     stderr: { write: async chunk => { stderr += typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk); } },
                 });
-            if ("stdoutBytes" in result && result.stdoutBytes) chunks.push(result.stdoutBytes);
-            else if ("stdout" in result) chunks.push(typeof result.stdout === "string" ? new TextEncoder().encode(result.stdout) : result.stdout);
-            if ("stderr" in result) stderr = result.stderr;
+            if ("stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array) chunks.push(result.stdoutBytes);
+            else if ("stdout" in result && (typeof result.stdout === "string" || result.stdout instanceof Uint8Array)) chunks.push(typeof result.stdout === "string" ? new TextEncoder().encode(result.stdout) : result.stdout);
+            if ("stderr" in result && typeof result.stderr === "string") stderr = result.stderr;
             expect(result.exitCode, stderr).toBe(0);
             expect(stderr).toBe("");
             const stdout = Buffer.concat(chunks);

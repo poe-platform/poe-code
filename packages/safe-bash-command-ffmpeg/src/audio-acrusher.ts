@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { audioSine } from "./audio-sine.js";
 import { parseFilterBoolean } from "./filter-boolean.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
@@ -151,7 +152,7 @@ export async function crushAudio(
           if (y < k - plateau || y > k + plateau) {
             const direction = y > k ? 1 : -1;
             const adjacent = options.mode === 1 ? Math.exp((k + direction) / scale - scale) : (k + direction) / coefficient;
-            const blend = 0.5 * (Math.sin(Math.PI * (Math.abs(y - k) - plateau) / options.aa - Math.PI / 2) + 1);
+            const blend = 0.5 * (audioSine(Math.PI * (Math.abs(y - k) - plateau) / options.aa - Math.PI / 2) + 1);
             crushed += (adjacent - crushed) * blend;
           }
           if (options.mode === 1) crushed *= Math.sign(sample);

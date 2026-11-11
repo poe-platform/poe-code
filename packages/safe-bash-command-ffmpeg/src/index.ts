@@ -17545,16 +17545,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const result = await output();
         if (result.exitCode !== 0) return result;
       }
-      if (abortOnEmptyOutputStream && emptyOutputStreams.length > 0) {
-        for (const stream of emptyOutputStreams) {
-          await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Empty output stream (output stream ${stream})\n`), context.signal);
-        }
-        return { exitCode: 234 };
-      }
-      if (abortOnEmptyOutput && hasEmptyOutput) {
-        await writeBytes(context.stderr, encodeUtf8("ffmpeg: Nothing was written into output file, because at least one of its streams received no packets.\n"), context.signal);
-        return { exitCode: 234 };
-      }
       if (progressTarget !== undefined && !(exitOnError && inputReadFailed)) {
         const elapsedSeconds = (performance.now() - progressStarted) / 1000;
         const microseconds = Math.round(progressSeconds * 1_000_000);
@@ -17582,6 +17572,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
           return { exitCode: 1 };
         }
+      }
+      if (abortOnEmptyOutputStream && emptyOutputStreams.length > 0) {
+        for (const stream of emptyOutputStreams) {
+          await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Empty output stream (output stream ${stream})\n`), context.signal);
+        }
+        return { exitCode: 234 };
+      }
+      if (abortOnEmptyOutput && hasEmptyOutput) {
+        await writeBytes(context.stderr, encodeUtf8("ffmpeg: Nothing was written into output file, because at least one of its streams received no packets.\n"), context.signal);
+        return { exitCode: 234 };
       }
       return { exitCode: exitOnError && inputReadFailed ? 1 : 0 };
     }

@@ -6646,7 +6646,8 @@ function magickExtentLayout(img: Pick<RgbaImage, "width" | "height" | "virtualCa
 }
 function* applyMagickExtentSteps(img: RgbaImage, geomStr: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     yield;
-    state = { ...state, composeRaw: state.optionProperties?.compose ?? img.properties?.compose ?? state.composeRaw };
+    state = { ...state, composeRaw: state.optionProperties?.compose ?? img.properties?.compose ?? state.composeRaw,
+        composeArgs: img.properties?.["artifact:compose:args"] ?? state.composeArgs };
     const layout = magickExtentLayout(img, geomStr, state);
     // Extent retains the read-mask channel but clears its selection on the new canvas.
     const readMask = img.readMask ? yield* createSolidRgbaImageSteps(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
@@ -6702,7 +6703,8 @@ async function decodeStoredMagickSvg(svg: string, density: number, backend: Comp
     return decodeImageToStorage({ size, async read(position, length) { return backend.storage.read(base + position, length); } }, backend.storage, signal, { density });
 }
 async function applyStoredMagickExtent(image: StoredRgbaImage, geometry: string, captured: MagickState, backend: CompareFileSession, signal: AbortSignal, images?: StoredImageStack, listIndex = 0): Promise<StoredRgbaImage> {
-    captured = { ...captured, composeRaw: captured.optionProperties?.compose ?? image.properties?.compose ?? captured.composeRaw };
+    captured = { ...captured, composeRaw: captured.optionProperties?.compose ?? image.properties?.compose ?? captured.composeRaw,
+        composeArgs: image.properties?.["artifact:compose:args"] ?? captured.composeArgs };
     const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images?.length ?? 1, listIndex, optionProperties: captured.optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
     const layout = magickExtentLayout(image, expanded, captured);
     const readMask = image.readMask ? await createStoredCanvas(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;

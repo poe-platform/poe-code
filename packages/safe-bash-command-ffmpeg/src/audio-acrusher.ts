@@ -1,8 +1,8 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { audioSine } from "./audio-sine.js";
+import { audioExp2, gateExp, gateLog } from "./audio-gate-math.js";
 import { parseFilterBoolean } from "./filter-boolean.js";
-import { gateExp, gateLog } from "./audio-gate-math.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
@@ -59,7 +59,7 @@ export async function crushAudio(
   }
 
   const configure = () => {
-    const coefficient = 2 ** options.bits - 1;
+    const coefficient = audioExp2(options.bits) - 1;
     const scale = Math.sqrt(coefficient / 2);
     const plateau = (1 - options.aa) / 2;
     const inverseDc = 1 / options.dc;

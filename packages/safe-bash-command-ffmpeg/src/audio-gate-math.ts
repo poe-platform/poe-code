@@ -53,6 +53,17 @@ export function gateExp(value: number): number {
   const exponent = Math.round(value / Math.LN2);
   if (exponent < -1022 || exponent > 1023 || !Number.isFinite(value)) return Math.exp(value);
   const reduced = add([value, 0], multiply([-exponent, 0], ln2));
+  return expSeries(reduced, exponent);
+}
+
+// acrusher's validated bit depth is in [1, 64]. Preserve the low ln(2) part
+// before rounding exp2, including when runtime commands change the depth.
+export function audioExp2(value: number): number {
+  const exponent = Math.round(value);
+  return expSeries(multiply([value - exponent, 0], ln2), exponent);
+}
+
+function expSeries(reduced: Pair, exponent: number): number {
   let term: Pair = [1, 0];
   let sum: Pair = [1, 0];
   // The reduced exponent is at most ln(2)/2, so this fixed series is bounded.

@@ -72,7 +72,7 @@ for (const layout of ["ambisonic 7+mono", "ambisonic 8", "ambisonic -1", "ambiso
       },
       stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} }
     } as never);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, 234);
     assert.equal(volume.readFileSync("/out.pcm", "utf8"), "KEEP");
   });
 }

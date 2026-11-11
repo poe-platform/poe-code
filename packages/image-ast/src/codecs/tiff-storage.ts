@@ -27,10 +27,23 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
   if(!(bytes instanceof Uint8Array)||bytes.length!==size) throw new Error("Truncated TIFF backing storage");
   const output=new Uint8Array(size/4*channels);
   const baseChannels = options.tiffCompression === "jpeg" ? 3 : tiffChannels(page);
+  let inks: Float64Array | undefined;
+  if(page.space === "cmyk") {
+   if(page.storedHueSamples === undefined) throw new Error("Invalid TIFF CMYK samples");
+   const samples=await storage.read(page.storedHueSamples+offset*8,size*8,{signal});
+   signal.throwIfAborted();
+   if(samples.length!==size*8) throw new Error("Truncated TIFF CMYK samples");
+   inks=new Float64Array(new Uint8Array(samples).buffer);
+  }
   for(let src=0,dst=0;src<size;src+=4) {
+   if(inks) {
+    for(let channel=0;channel<4;channel++) output[dst++]=Math.round(Math.max(0,Math.min(1,inks[src+channel]!))*255);
+    if(page.hasAlpha) output[dst]=bytes[src+3]!;
+   } else {
    output[dst++]=bytes[src]!;
    if(baseChannels>=3) { output[dst++]=bytes[src+1]!;output[dst++]=bytes[src+2]!; }
    if(baseChannels===2 || baseChannels===4) output[dst]=bytes[src+3]!;
+   }
    dst=(src/4+1)*channels;
   }
   for (const [channel, meta] of (page.storedMetaChannels ?? []).entries()) {

@@ -1,6 +1,6 @@
 import type {OutputEncodeOptions, RgbaImage} from "../ast.js";
-export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 3 | 4 {
-  return img.space === "b-w" || img.space === "grey16" ? img.hasAlpha ? 2 : 1 : img.hasAlpha ? 4 : 3;
+export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 3 | 4 | 5 {
+  return img.space === "cmyk" ? img.hasAlpha ? 5 : 4 : img.space === "b-w" || img.space === "grey16" ? img.hasAlpha ? 2 : 1 : img.hasAlpha ? 4 : 3;
 }
 export function createTiffLayout(
   img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties"|"virtualCanvas"|"metaChannels"> & { storedMetaChannels?: readonly unknown[] | undefined },
@@ -14,6 +14,7 @@ export function createTiffLayout(
   const littleEndian = options?.tiffEndian !== "msb";
   const bits = options?.tiffFloatDepth ?? options?.tiffIntegerDepth ?? 8, sampleBytes = bits / 8;
   const jpeg = options?.tiffCompression === "jpeg";
+  if (jpeg && img.space === "cmyk") throw new Error("CMYK TIFF does not support JPEG compression");
   if (jpeg && options?.tiffFloatDepth) throw new Error("Floating-point TIFF does not support JPEG compression");
   if (jpeg && (bits !== 8 || options?.tiffSigned)) throw new Error("Integer TIFF with JPEG compression requires unsigned 8-bit samples");
   if (jpeg && options?.tiffPlanar) throw new Error("Planar TIFF does not support JPEG compression");
@@ -78,7 +79,7 @@ export function createTiffLayout(
   entries.push([257, 4, 1, height]); // ImageLength
   entries.push([258, 3, channels, channels === 1 ? bits : channels === 2 ? bits * 0x10001 : bpsOffset]); // BitsPerSample
   entries.push([259, 3, 1, ({ none: 1, lzw: 5, deflate: 8, packbits: 32773, jpeg: 7 })[options?.tiffCompression ?? "none"]]);
-  entries.push([262, 3, 1, jpeg ? 6 : tiffChannels(img) < 3 ? 1 : 2]); // YCbCr, BlackIsZero or RGB
+  entries.push([262, 3, 1, jpeg ? 6 : img.space === "cmyk" ? 5 : tiffChannels(img) < 3 ? 1 : 2]); // YCbCr, separated CMYK, BlackIsZero or RGB
   if (!tile) entries.push([273, big ? 16 : 4, stripCount, stripCount === 1 ? pixelOffset : yResOffset + 8 + commentSize]); // StripOffsets
   entries.push([274, 3, 1, orientation]); // Orientation
   entries.push([277, 3, 1, channels]); // SamplesPerPixel

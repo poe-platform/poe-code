@@ -11434,7 +11434,6 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     }
     if (format === "png" && image.virtualCanvas?.width === 0 && image.virtualCanvas.height === 0) image = { ...image, virtualCanvas: { ...image.virtualCanvas, width: image.width, height: image.height } };
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
-    if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
     const working = image;
     image = yield* prepareHueOutput(image, format);
     if (isRawCoder(format) && working.writeMask && image.data !== working.data) {
@@ -11470,7 +11469,6 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     }
     if (format === "png" && image.virtualCanvas?.width === 0 && image.virtualCanvas.height === 0) image = { ...image, virtualCanvas: { ...image.virtualCanvas, width: image.width, height: image.height } };
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
-    if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
     if (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") {
         const working = image;
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => prepareHueOutput(frame, format) }, signal);
@@ -18571,8 +18569,8 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
         try { output = inferOutputFormat(outSpec, "png", (await stack.get(0))![magickInput]?.inputFormat); }
         catch (error) { return { exitCode: 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` }; }
         if (output.format === "tiff") for (let index = 0; index < stack.length; index++) {
+            if (state.tiffCompression === "jpeg" && (await stack.get(index))!.space === "cmyk") return { exitCode: 1, stdout: "", stderr: "magick: CMYK TIFF does not support JPEG compression\n" };
             if ((await stack.get(index) as StoredRgbaImage).magickColorspace === "CIELab") return { exitCode: 1, stdout: "", stderr: "magick: unsupported colorspace 'Lab' for TIFF output\n" };
-            if ((await stack.get(index))!.space === "cmyk") return { exitCode: 1, stdout: "", stderr: "magick: unsupported colorspace 'CMYK' for TIFF output\n" };
         }
         if (outSpec.toLowerCase() === "null:" || outSpec.toLowerCase().startsWith("mpr:")) { if (!intermediate) await backend.publishPending(); return { exitCode: 0, stdout: "", stderr: "" }; }
         const lower = outSpec.toLowerCase(), info = lower.startsWith("info:");

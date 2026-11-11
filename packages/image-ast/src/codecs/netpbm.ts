@@ -434,7 +434,9 @@ export function encodeTiffImage(img:RgbaImage,options?:Parameters<typeof createT
  const payloads: Uint8Array[][]=[];
  let end=0;
  for(let index=0;index<pages.length;index++) {
-  const page=pages[index]!,channels=createTiffLayout(page,options).channels,chunks:Uint8Array[]=[];
+  const page=pages[index]!;
+  if(page.space === "cmyk" && page.hueSamples?.length !== page.width*page.height*4) throw new Error("Invalid TIFF CMYK samples");
+  const channels=createTiffLayout(page,options).channels,chunks:Uint8Array[]=[];
   const rows=options?.tiffTile?.height ?? options?.tiffRowsPerStrip ?? page.height,columns=options?.tiffTile?.width ?? page.width,stripSizes:number[]=[];
   for(let plane=0;plane<(options?.tiffPlanar ? channels : 1);plane++) {
   for(let row=0;row<page.height;row+=rows) {
@@ -452,9 +454,14 @@ export function encodeTiffImage(img:RgbaImage,options?:Parameters<typeof createT
    try {
     for(let offset=0;offset<block.data.length;offset+=4096) {
      const size=Math.min(4096,block.data.length-offset),raw=new Uint8Array(size/4*channels);
-     for(let src=offset,dst=0;src<offset+size;src+=4) {raw[dst++]=block.data[src]!;if(tiffChannels(page)>=3){raw[dst++]=block.data[src+1]!;raw[dst++]=block.data[src+2]!;}if(page.hasAlpha)raw[dst++]=block.data[src+3]!;
+     for(let src=offset,dst=0;src<offset+size;src+=4) {
       const pixel = src / 4, x = left + pixel % columns, y = row + Math.floor(pixel / columns);
+      if(page.space === "cmyk") {
+       for(let channel=0;channel<4;channel++) raw[dst++]=x<page.width && y<page.height ? Math.round(Math.max(0,Math.min(1,page.hueSamples![(y*page.width+x)*4+channel]!))*255) : 0;
+      } else {raw[dst++]=block.data[src]!;if(tiffChannels(page)>=3){raw[dst++]=block.data[src+1]!;raw[dst++]=block.data[src+2]!;}}
+      if(page.hasAlpha)raw[dst++]=block.data[src+3]!;
       for (const meta of page.metaChannels ?? []) raw[dst++] = x < page.width && y < page.height ? meta.data[(y * page.width + x) * 4]! : 0;}
+
      if (page.hasAlpha && options?.tiffAlpha === "associated") associateTiffSamples(raw, channels, tiffChannels(page) - 1);
      chunks.push(...compressor.push(encodeTiffIntegerSamples(encodeTiffFloatSamples(options?.tiffPlanar ? tiffSamplePlane(raw, channels, plane) : raw, options?.tiffFloatDepth, options?.tiffEndian !== "msb"), options?.tiffFloatDepth ? undefined : options?.tiffIntegerDepth, options?.tiffEndian !== "msb")));
     }

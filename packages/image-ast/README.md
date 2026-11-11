@@ -80,7 +80,7 @@ TIFF input preserves alpha and additional sample planes as `metaChannels` (or `s
 state, preserving resolution axes, units, and orientation. Untagged images omit resolution tags unless encoder `density` is supplied. Set `tiffFloatDepth: 16`, `32`, or `64` on encode options for normalized IEEE floating-point samples (incompatible with JPEG compression). Use `tiffIntegerDepth: 8`, `16`, or `32` for integer samples and `tiffSigned: true` for signed sample metadata; 8-bit input samples scale to the full output range. TIFF output supports `none` (default),
 `lzw`, `deflate`, `packbits`, and `jpeg`: use `.tiff({compression: "lzw"})`
 or `tiffCompression` on encode options. Compressed file output uses caller-backed
-scratch storage. Set `tiffAlpha` to `associated`, `unassociated` (default), or `unspecified` to select extra-sample metadata; associated output multiplies all samples by alpha to match ImageMagick. JPEG TIFF uses three color channels and discards alpha.
+scratch storage. Set `tiffAlpha` to `associated`, `unassociated` (default), or `unspecified` to select extra-sample metadata; associated output multiplies all samples by alpha to match ImageMagick. CMYK TIFF preserves stored ink samples as four separated channels, plus optional alpha, and can share a file with RGB pages. JPEG TIFF uses three color channels and discards alpha; CMYK with JPEG compression is unsupported.
 `decodeHeifToStorage`, `encodeHeifFromStorage`, and `readHeifMetadataFromSource`
 use 4 KiB pages and the shared zlib codec for the existing HEIC/HEIF/AVIF
 container contract. File inputs, composite sources, metadata and outputs use the

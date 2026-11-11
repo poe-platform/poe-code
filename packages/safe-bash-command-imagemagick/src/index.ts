@@ -18757,6 +18757,10 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 i = operation.end;
             } catch (error) { return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` }; }
         }
+        else if (["+precision", "+format", "+metric", "+similarity-threshold", "+dissimilarity-threshold"].includes(t)) {
+            // Native compare preserves these settings for their plus forms.
+        }
+        else if (t === "+fuzz") state.fuzz = 0;
         else if (t === "-precision") {
             const value = argv[++i];
             if (value === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-precision'\n" };

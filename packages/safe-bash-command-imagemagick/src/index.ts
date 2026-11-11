@@ -11776,7 +11776,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (stack.length) {
                 const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
                 const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: dispose || first.hasAlpha ? 0 : 255 };
-                const { data16: ignoredData16, evaluateSamples: ignoredEvaluateSamples, ...metadata } = first;
+                const { data16: ignoredData16, evaluateSamples: ignoredEvaluateSamples, hueSamples: ignoredHueSamples, ...metadata } = first;
                 let canvas: RgbaImage = { ...metadata, width, height, data: (yield* createSolidRgbaImageSteps(width, height, background)).data, hasAlpha: dispose || first.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 } };
                 const frames: RgbaImage[] = [];
                 for (const inputFrame of stack) {
@@ -11784,7 +11784,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     const frame = dispose ? first : inputFrame;
                     const previous = canvas, x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
                     // Native coalesce copies the first frame, including RGB under transparent pixels.
-                    canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, frame, x, y, !dispose && frames.length === 0 ? "copy" : "over", undefined, false, 0, true), signal, canvas, [canvas, frame]);
+                    canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, frame, x, y, !dispose && frames.length === 0 ? "copy" : "over", undefined, false, 0, true, undefined, true), signal, canvas, [canvas, frame]);
                     let disposal = 1;
                     const prior = frames.at(-1), priorInput = stack[frames.length - 1];
                     if (!dispose && prior && priorInput) {
@@ -11800,7 +11800,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         }
                         frames[frames.length - 1] = { ...prior, disposal };
                     }
-                    if (!dispose) frames.push({ ...frame, width, height, data: canvas.data, ...(canvas.data16 ? { data16: canvas.data16 } : {}), ...(canvas.evaluateSamples ? { evaluateSamples: canvas.evaluateSamples } : {}), hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 }, disposal });
+                    const { magickColorspace: ignoredSpace, gamma: ignoredGamma, hueSamples: ignoredHue, ...frameMetadata } = frame;
+                    if (!dispose) frames.push({ ...frameMetadata, space: canvas.space, ...(canvas.magickColorspace ? { magickColorspace: canvas.magickColorspace } : {}), channels: canvas.channels, ...(canvas.gamma === undefined ? {} : { gamma: canvas.gamma }), ...(canvas.hueSamples ? { hueSamples: canvas.hueSamples } : {}), width, height, data: canvas.data, ...(canvas.data16 ? { data16: canvas.data16 } : {}), ...(canvas.evaluateSamples ? { evaluateSamples: canvas.evaluateSamples } : {}), hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 }, disposal });
                     if (frame.disposal === 3) canvas = previous;
                     else if (frame.disposal === 2) {
                         const clear = yield* createSolidRgbaImageSteps(frame.width, frame.height, { r: 0, g: 0, b: 0, a: 0 });
@@ -15155,14 +15156,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-layers") i++;
             stackStep(async (stack, backend) => {
                 if (!stack.length) return stack;
-                const first = (await stack.get(0))!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
+                const first = (await stack.get(0))! as StoredRgbaImage, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
                 const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: dispose || first.hasAlpha ? 0 : 255 };
-                let canvas = { ...await createStoredCanvas(width, height, background, backend, signal), hasAlpha: dispose || first.hasAlpha };
+                let canvas: StoredRgbaImage = { ...await createStoredCanvas(width, height, background, backend, signal), space: first.space, ...(first.magickColorspace ? { magickColorspace: first.magickColorspace } : {}), channels: first.channels, ...(first.gamma === undefined ? {} : { gamma: first.gamma }), hasAlpha: dispose || first.hasAlpha };
                 const frames = new StoredImageStack(backend.storage, signal);
                 for (let index = 0; index < stack.length; index++) {
                     const frame = dispose ? first : (await stack.get(index))!, previous = canvas, x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
                     // Native coalesce copies the first frame, including RGB under transparent pixels.
-                    canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, frame, x, y, !dispose && index === 0 ? "copy" : "over", undefined, false, 0, true), signal, canvas, [canvas, frame]);
+                    canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, frame, x, y, !dispose && index === 0 ? "copy" : "over", undefined, false, 0, true, undefined, true), signal, canvas, [canvas, frame]);
                     let disposal = 1;
                     if (!dispose && index > 0) {
                         const prior = (await frames.get(index - 1))!, priorInput = (await stack.get(index - 1))!;
@@ -15180,7 +15181,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }
                         await frames.set(index - 1, { ...prior, disposal });
                     }
-                    if (!dispose) await frames.push({ ...frame, width, height, position: canvas.position, ...(canvas.storedData16 ? { storedData16: canvas.storedData16 } : {}), ...(canvas.storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples: canvas.storedEvaluateSamples }), hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 }, disposal });
+                    const { magickColorspace: ignoredSpace, gamma: ignoredGamma, storedHueSamples: ignoredHue, ...frameMetadata } = frame as StoredRgbaImage;
+                    if (!dispose) await frames.push({ ...frameMetadata, space: canvas.space, ...(canvas.magickColorspace ? { magickColorspace: canvas.magickColorspace } : {}), channels: canvas.channels, ...(canvas.gamma === undefined ? {} : { gamma: canvas.gamma }), ...(canvas.storedHueSamples === undefined ? {} : { storedHueSamples: canvas.storedHueSamples }), width, height, position: canvas.position, ...(canvas.storedData16 ? { storedData16: canvas.storedData16 } : {}), ...(canvas.storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples: canvas.storedEvaluateSamples }), hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 }, disposal });
                     if (frame.disposal === 3) canvas = previous;
                     else if (frame.disposal === 2) {
                         const clear = await createStoredCanvas(frame.width, frame.height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);

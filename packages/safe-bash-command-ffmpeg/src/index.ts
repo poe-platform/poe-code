@@ -1721,6 +1721,12 @@ async function panAudio(
   // With equal channel counts, SWR retains the input layout after pure mapping.
   // It validates that layout and remixes the mapped speakers into the output layout.
   if (pureMapping && names.length === channels.length) {
+    // Remapping stereo to named speakers requires a front speaker; downmix is stereo.
+    if (inputMask === 0x3 && names.some(name => name !== "") &&
+        !names.some(name => name === "FL" || name === "FR" || name === "FC") &&
+        names.join("+") !== "DL+DR") {
+      throw new Error(`pan: unsupported output channel layout ${layout}`);
+    }
     // Back-only input cannot be rematrixed to stereo; same-layout routing remains valid.
     if (inputMask === 0x30 && names.join("+") === "FL+FR") {
       throw new Error("pan: unsupported input channel layout");

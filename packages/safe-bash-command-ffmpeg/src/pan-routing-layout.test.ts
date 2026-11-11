@@ -3,8 +3,18 @@ import { it } from "node:test";
 import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
-// Native FFmpeg 7.0.2 checks front-speaker symmetry for pure routing, before normalization.
+// Native FFmpeg 7.0.2 checks front-speaker support for pure routing, before normalization.
 for (const [expression, exitCode, output] of [
+  ["BL+BR|c0=c1|c1=c0", 234, ""],
+  ["SL+SR|c0=c1|c1=c0", 234, ""],
+  ["FLC+FRC|c0=c1|c1=c0", 234, ""],
+  ["TFL+TFR|c0=c1|c1=c0", 234, ""],
+  ["LFE+BC|c0=c1|c1=c0", 234, ""],
+  ["0x30|c0=c1|c1=c0", 234, ""],
+  ["2 channels (SL+SR)|c0=c1|c1=c0", 234, ""],
+  ["SL+SR|c0=0.5*c1|c1=c0", 0, "06ffe80385014d01"],
+  ["2C|c0=c1|c1=c0", 0, "0cfee80309034d01"],
+  ["downmix|c0=c1|c1=c0", 0, "0cfee80309034d01"],
   ["FL+FC|c0=c1|c1=c0", 234, ""],
   ["FL+FC|c0=c1", 234, ""],
   ["FR+FC|c0=c1", 234, ""],
@@ -46,6 +56,7 @@ for (const [expression, exitCode, output] of [
         assert.deepEqual(actual, Buffer.from(output, "hex"));
         assert.deepEqual(volume.readFileSync("/in.raw"), input);
         if (exitCode !== 0) assert.ok(stderr.includes("pan: unsupported output channel layout"), stderr);
+        else assert.equal(stderr, "");
       });
     }
   }

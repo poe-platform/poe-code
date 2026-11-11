@@ -943,7 +943,10 @@ input layout. Numbered input and output channels accept signed and spaced decima
 The matrix also accepts the named `args` option, for example `pan=args=mono|c0=c1`.
 Repeated `args` options use the last value.
 `-af 'pan=mono|c0=c1'` extracts the right channel and
-`-af 'pan=stereo|FL=FR|FR=FL'` swaps stereo channels. PCM16 mixing uses native Q15
+`-af 'pan=stereo|FL=FR|FR=FL'` swaps stereo channels.
+Pure stereo swaps reject output layouts `BL+BR`, `SL+SR`, `FLC+FRC`,
+`TFL+TFR`, and `LFE+BC` with status 234 and no output samples. Weighted swaps
+such as `pan=SL+SR|c0=0.5*c1|c1=c0` remain supported. PCM16 mixing uses native Q15
 gains and rounds half steps toward positive infinity, including native 32-bit overflow
 for large gains. PCM32 mixing saturates at the integer limits before downstream filters
 reduce the gain; floating-point filter paths retain floating-point mixing. Float64 input retains double precision through weighted sums and gain normalization. Weighted sums use `=`,

@@ -2999,8 +2999,8 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                     break;
                 case "add":
                 case "sum":
-                    // Native percentages use QuantumRange + 1 before scaling to bytes.
-                    next = cur + (isPct ? (rawNum / 100) * 65536 / 257 : vByte);
+                    // Native adds in Q16 units and stores the result as a float32 Quantum.
+                    next = Math.fround(Math.fround(cur * 257) + (isPct ? (rawNum / 100) * 65536 : rawNum)) / 257;
                     break;
                 case "addmodulus":
                     // Wrap Q16 samples before reducing to the byte-scale HDRI view.

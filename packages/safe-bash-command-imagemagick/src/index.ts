@@ -5518,7 +5518,11 @@ function createLabelSvg(text: string, state: MagickState): string {
   const anchor = isHorizCenter ? ' text-anchor="middle"' : isHorizEast ? ' text-anchor="end"' : "";
   const textY = state.gravity === "center" || state.gravity === "west" || state.gravity === "east"
     ? Math.round(h / 2 + fontSize * 0.35)
-    : Math.round(h * 0.75);
+    : state.gravity === "north" || state.gravity === "northwest" || state.gravity === "northeast"
+      ? Math.round(fontSize * 0.76)
+      : state.gravity === "south" || state.gravity === "southwest" || state.gravity === "southeast"
+        ? Math.round(h - fontSize * 0.25)
+        : Math.round(h * 0.75);
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${bg}<text x="${textX}" y="${textY}"${anchor} font-size="${fontSize}" fill="${rgbaToCss(state.fill)}">${escapeXml(text)}</text></svg>`;
   return svg;
 }

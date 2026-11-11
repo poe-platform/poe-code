@@ -9,7 +9,7 @@ export function parseComplexOperator(value: string | undefined): "add" | "subtra
     return operation;
 }
 
-export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, operation: "add" | "subtract" | "multiply" | "conjugate" | "divide" | "magnitude" | "phase" | "real" | "imaginary", images: readonly Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha">[], gray: boolean, grayOnly: boolean, part: number, alpha: boolean, snr: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, operation: "add" | "subtract" | "multiply" | "conjugate" | "divide" | "magnitude" | "phase" | "real" | "imaginary", images: readonly Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha">[], gray: boolean, grayOnly: boolean, part: number, channels: number, snr: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const base = images[0]!;
     const divide = (a: number, b: number, c: number, d: number) => {
         // Components are normalized; b and d belong to the denominator pair.
@@ -37,18 +37,22 @@ export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, 
             if (bytes?.length) {
                 inks[image] = new Float64Array(bytes.slice().buffer);
                 if (active) for (let offset = 0; offset < length; offset++)
-                    if (images[image]!.space !== "cmyk" || offset % 4 !== 3) inputs[image]![offset] = inks[image]![offset]! * 255;
+                    if (images[image]!.space !== "cmyk" || base.space !== "cmyk" || offset % 4 !== 3) inputs[image]![offset] = inks[image]![offset]! * 255;
             }
+            // Native GrayAlpha stores alpha immediately after gray.
+            if (active && (images[image]!.space === "b-w" || images[image]!.space === "grey16"))
+                for (let offset = 0; offset < length; offset += 4) inputs[image]![offset + 1] = inputs[image]![offset + 3]!;
         }
         const samples = !active ? inputs[0]! : Float64Array.from(inputs[0]!, (value, offset) => {
             const channel = offset % 4;
             if (channel === 3 && !images[0]!.hasAlpha) return 255;
-            if (channel === 3 && !alpha) return value;
+            if (channel === 3 && channels <= (gray ? 1 : base.space === "cmyk" ? 4 : 3)) return value;
+            if (gray && channel === 3) offset -= 2;
             // Native complex arithmetic requires the channel in every component.
             // Gray outputs store only red; mirror that result in our RGBA raster.
             if (channel === 1 || channel === 2) {
                 if (gray) offset -= channel;
-                else if (grayOnly) return value;
+                else if (grayOnly && channel >= channels) return value;
             }
             if (operation === "conjugate") return part === 0 ? inputs[0]![offset]! : -inputs[0]![offset]!;
             // Inputs are matching components of the two pairs, then their opposite components.
@@ -65,15 +69,18 @@ export function* complexPixelSteps(extent: Pick<RgbaImage, "width" | "height">, 
                 : inputs[0]![offset]! - inputs[1]![offset]!;
         });
         if (inks[0] && base.space === "cmyk") {
-            // CMYK has four ink channels; alpha remains separate in the RGBA backing.
+            // Native channel positions align CMYK black with RGB alpha.
+            // Channels beyond the shortest operand retain their original samples.
             const output = new Float64Array(inks[0]);
             if (active) for (let offset = 0; offset < length; offset += 4) {
-                const black = inks[1]?.[offset + 3] ?? 0;
-                output[offset + 3] = operation === "conjugate" ? (part === 0 ? inks[0][offset + 3]! : -inks[0][offset + 3]!)
-                    : operation === "divide" ? divide(inks[0][offset + 3]!, black, inks[2]?.[offset + 3] ?? 0, inks[3]?.[offset + 3] ?? 0)
+                const black = images[1]?.space === "cmyk" ? inks[1]![offset + 3]! : (inputs[1]?.[offset + 3] ?? 0) / 255;
+                const oppositeFirst = images[2]?.space === "cmyk" ? inks[2]![offset + 3]! : (inputs[2]?.[offset + 3] ?? 0) / 255;
+                const oppositeSecond = images[3]?.space === "cmyk" ? inks[3]![offset + 3]! : (inputs[3]?.[offset + 3] ?? 0) / 255;
+                if (channels > 3) output[offset + 3] = operation === "conjugate" ? (part === 0 ? inks[0][offset + 3]! : -inks[0][offset + 3]!)
+                    : operation === "divide" ? divide(inks[0][offset + 3]!, black, oppositeFirst, oppositeSecond)
                     : operation === "multiply" ? (part === 0
-                    ? inks[0][offset + 3]! * black - (inks[2]?.[offset + 3] ?? 0) * (inks[3]?.[offset + 3] ?? 0)
-                    : inks[0][offset + 3]! * (inks[3]?.[offset + 3] ?? 0) + (inks[2]?.[offset + 3] ?? 0) * black)
+                    ? inks[0][offset + 3]! * black - oppositeFirst * oppositeSecond
+                    : inks[0][offset + 3]! * oppositeSecond + oppositeFirst * black)
                     : operation === "magnitude" ? Math.hypot(inks[0][offset + 3]!, black)
                     : operation === "phase" ? Math.atan2(inks[0][offset + 3]!, black) / (2 * Math.PI) + 0.5
                     : operation === "real" ? inks[0][offset + 3]! * Math.cos(2 * Math.PI * (black - 0.5))

@@ -7785,7 +7785,10 @@ export function evalSyncFfmpeg(
         const f = frames[idx]!;
         const fileName = formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1))!;
         const encoded = imgFmt === "tga" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
-                    ...(imgFmt === "qoi" ? { hasAlpha: !["rgb24", "bgr24", "gbrp", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba") } : {}),
+                    ...(imgFmt === "qoi" ? {
+                      hasAlpha: !["rgb24", "bgr24", "gbrp", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba"),
+                      magickColorspace: vTrack?.codecDescriptions[0]?.colorMetadata?.transfer === 8 ? "RGB" : "sRGB"
+                    } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "pal8"
                       ? { pngPalette: { bytes: pal8Palette, depth: 8 } } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "monob" || vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8"
@@ -10189,6 +10192,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const packets: Uint8Array[] = [];
                 let codecName = "png";
                 let pixelFormat = "rgb24";
+                let colorMetadata: MediaTrack["codecDescriptions"][number]["colorMetadata"];
                 let sarWidth = 1;
                 let sarHeight = 1;
                 const fps = fpsHint ?? 25;
@@ -10257,6 +10261,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       : decodeImage(imgBytes);
                     if (frames.length === 0) {
                       codecName = decoded.format === "jpeg" ? "mjpeg" : decoded.format;
+                      if (decoded.format === "qoi" && imgBytes[13] === 1) colorMetadata = { transfer: 8 };
                       pixelFormat = planeFrame ? planePixelFormat : decoded.hasAlpha ? "rgba" : "rgb24";
                       sarWidth = decoded.resolution?.x || 1;
                       sarHeight = decoded.resolution?.y || 1;
@@ -10301,7 +10306,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     t.type === "video" ? {
                       ...t, width: first.width, height: first.height,
                       duration: Math.round(frames.length / fps * t.timescale),
-                      codecDescriptions: [{ codecName, formatFourCC: codecName.padEnd(4, " ").slice(0, 4), width: first.width, height: first.height, pixFmt: pixelFormat, sarWidth, sarHeight }],
+                      codecDescriptions: [{ codecName, formatFourCC: codecName.padEnd(4, " ").slice(0, 4), width: first.width, height: first.height, pixFmt: pixelFormat, sarWidth, sarHeight, ...(colorMetadata ? { colorMetadata } : {}) }],
                       samples: packets.map((data, index) => ({
                         data, size: data.byteLength,
                         dts: Math.round(index / fps * t.timescale),
@@ -17465,7 +17470,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   const imgFmt = imageOutputFormat(videoCodec, outExt);
                   const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), imgFmt === "tga" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
-                    ...(imgFmt === "qoi" ? { hasAlpha: !["rgb24", "bgr24", "gbrp", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba") } : {}),
+                    ...(imgFmt === "qoi" ? {
+                      hasAlpha: !["rgb24", "bgr24", "gbrp", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba"),
+                      magickColorspace: vTrack?.codecDescriptions[0]?.colorMetadata?.transfer === 8 ? "RGB" : "sRGB"
+                    } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "pal8"
                       ? { pngPalette: { bytes: pal8Palette, depth: 8 } } : {}),
                     ...(vTrack?.codecDescriptions[0]?.pixFmt === "monob" || vTrack?.codecDescriptions[0]?.pixFmt === "gray" || vTrack?.codecDescriptions[0]?.pixFmt === "gray8" || vTrack?.codecDescriptions[0]?.pixFmt === "gray16be"

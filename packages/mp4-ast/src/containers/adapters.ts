@@ -2387,6 +2387,7 @@ export function image2Ast(): MediaAstPlugin {
                 width,
                 height,
                 pixFmt: tga ? (bytes[16] === 32 ? "bgra" : "bgr24") : pixFmt,
+                ...(codecName === "qoi" && bytes[13] === 1 ? { colorMetadata: { transfer: 8 } } : {}),
                 colorTransfer: codecName === "qoi" && bytes[13] === 1 ? "linear" : undefined
               }
             ],
@@ -2432,8 +2433,11 @@ export function image2Ast(): MediaAstPlugin {
         fmt === "tiff" || fmt === "tif" ? "tiff" :
         fmt === "ppm" ? "ppm" : "png";
       const image = makeRgbaImage(width, height, first);
-      if (imgFmt === "qoi") image.hasAlpha = !["rgb24", "bgr24", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(doc.tracks.find(track => track.type === "video")?.codecDescriptions[0]?.pixFmt ?? "rgba");
-      return encodeImage(image, { format: imgFmt }).data;
+      const codec = doc.tracks.find(track => track.type === "video")?.codecDescriptions[0];
+      if (imgFmt === "qoi") image.hasAlpha = !["rgb24", "bgr24", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(codec?.pixFmt ?? "rgba");
+      return encodeImage({ ...image, ...(imgFmt === "qoi" ? {
+        magickColorspace: codec?.colorMetadata?.transfer === 8 ? "RGB" : "sRGB"
+      } : {}) }, { format: imgFmt }).data;
     },
     probe(bytes, options) {
       const doc = this.parse(bytes, options);

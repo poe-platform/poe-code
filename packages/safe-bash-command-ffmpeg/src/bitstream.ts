@@ -25,6 +25,20 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
   filters.push(value.trim());
   for (const filter of filters) {
     if (filter === "null") continue;
+    if (filter.startsWith("noise=drop=")) {
+      const expression = filter.slice("noise=drop=".length);
+      parseFilterExpression(expression, "noise bitstream filter", { n: 0 });
+      tracks = tracks.map(track => track.type !== type ? track : {
+        ...track,
+        samples: track.samples.filter((_, n) => {
+          budget.checkCpu();
+          const drop = parseFilterExpression(expression, "noise bitstream filter", { n });
+          if (drop < 0) throw new Error("noise bitstream filter: probabilistic dropping is unsupported");
+          return drop === 0;
+        })
+      });
+      continue;
+    }
     if (type === "subtitle") {
       if (filter !== "mov2textsub" && filter !== "text2movsub") {
         throw new Error(`Unsupported subtitle bitstream filter: ${filter}`);
@@ -114,20 +128,6 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
     }
     if (filter === "setts" || filter.startsWith("setts=")) {
       tracks = setPacketTimestamps(tracks, filter, type, budget, movieTimescale);
-      continue;
-    }
-    if (filter.startsWith("noise=drop=")) {
-      const expression = filter.slice("noise=drop=".length);
-      parseFilterExpression(expression, "noise bitstream filter", { n: 0 });
-      tracks = tracks.map(track => track.type !== type ? track : {
-        ...track,
-        samples: track.samples.filter((_, n) => {
-          budget.checkCpu();
-          const drop = parseFilterExpression(expression, "noise bitstream filter", { n });
-          if (drop < 0) throw new Error("noise bitstream filter: probabilistic dropping is unsupported");
-          return drop === 0;
-        })
-      });
       continue;
     }
     if (type === "audio" && (filter === "pcm_rechunk" || filter.startsWith("pcm_rechunk="))) {

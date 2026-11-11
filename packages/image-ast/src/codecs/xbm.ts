@@ -67,8 +67,9 @@ function* xbmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
   const stride = Math.ceil(width / bitsPerValue);
   for (let y = 0; y < height; y++) for (let column = 0; column < stride; column++) {
     if (y || column) { if ((yield* token()) !== ",") throw new Error("Invalid XBM byte separator"); }
-    const literal = yield* token(), value = Number(literal);
-    if (!literal || !Number.isInteger(value) || value < 0 || value >= 2 ** bitsPerValue) throw new Error("Invalid or truncated XBM bytes");
+    // ImageMagick reads hexadecimal even without 0x, then keeps the low byte/word.
+    const literal = yield* token(), value = Number(literal.toLowerCase().startsWith("0x") ? literal : `0x${literal}`);
+    if (!Number.isSafeInteger(value)) throw new Error("Invalid or truncated XBM bytes");
     for (let bit = 0; bit < Math.min(bitsPerValue, width - column * bitsPerValue); bit++) yield { kind: "pixel", value: value & (1 << bit) ? 0 : 255 };
   }
   let end = yield* token();

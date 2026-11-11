@@ -13,7 +13,7 @@ it.each([1, 7, 8, 9, 16, 17])("ignores set padding bits for width %s", width => 
 });
 
 it.each([
-  bitmap(0, 1, "0"), bitmap(1, -1, "0"), bitmap(13, 5, "7,0"), bitmap(1, 1, "256"), bitmap(1, 1, "-1"), bitmap(1, 1, "0,0")
+  bitmap(0, 1, "0"), bitmap(1, -1, "0"), bitmap(13, 5, "7,0"), bitmap(1, 1, "0xgg"), bitmap(1, 1, "-1"), bitmap(1, 1, "0,0")
 ])("rejects malformed XBM", bytes => {
   expect(() => decodeImage(bytes)).toThrow("XBM");
 });
@@ -56,4 +56,16 @@ it("ignores C comment contents when reading XBM metadata and pixels", () => {
 
 it("rejects an unterminated comment in XBM pixels", () => {
   expect(() => decodeImage(bitmap(1, 1, "/* unfinished"))).toThrow("Unterminated XBM comment");
+});
+
+it.each([
+  ["129", [0, 3, 5]],
+  ["0201", [0]],
+  ["256", [1, 2, 4, 6]],
+  ["0XAf", [0, 1, 2, 3, 5, 7]]
+] as const)("reads hexadecimal byte values and discards high bits: %s", (value, blackPixels) => {
+  const image = decodeImage(bitmap(8, 1, value));
+  expect([...image.data.filter((_, index) => index % 4 === 0)]).toEqual(
+    Array.from({ length: 8 }, (_, index) => (blackPixels as readonly number[]).includes(index) ? 0 : 255)
+  );
 });

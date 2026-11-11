@@ -2936,9 +2936,9 @@ function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, s
 }
 
 function hasSceneOutputPattern(path: string, literal = false): boolean {
-    if (literal) return false;
+    // Native ImageMagick does not disable adjoin for patterns containing an escaped percent.
+    if (literal || path.includes("%%")) return false;
     for (let index = 0; index < path.length; index++) if (path[index] === "%") {
-        if (path[index + 1] === "%") { index++; continue; }
         let end = index + 1;
         while (path[end] !== undefined && path[end]! >= "0" && path[end]! <= "9") end++;
         if (path[end] === "d" || path[end] === "o" || path[end] === "x") return true;

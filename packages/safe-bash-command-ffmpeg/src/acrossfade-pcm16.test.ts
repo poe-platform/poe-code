@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
@@ -101,3 +102,35 @@ it("acrossfade bounds rate conversion before allocating the second input", async
   await assert.rejects(acrossfadeAudio(first, second, "acrossfade=ns=4",
     new MediaBudgetTracker({ maxSamplesPerTrack: 128 })), /maxSamplesPerTrack/);
 });
+
+// Native FFmpeg 7.0.2: the transition starts at sample 145; the prefix must
+// retain resampler rounding rather than the fade's truncating integer cast.
+for (const resampler of ["aresample=16000", "aresample=16000:osf=s16"]) {
+  it(`acrossfade preserves PCM16 from ${resampler}`, async () => {
+    const volume = Volume.fromJSON({});
+    for (const [name, length, gain] of [["a", 75, 101], ["b", 97, -203]] as const) {
+      volume.writeFileSync(`/${name}.wav`, encodeWav({ sampleRate: 8000,
+        channels: [Float64Array.from({ length }, (_, i) => gain * (i + 1) / 32768)] }));
+    }
+    const chunks: Uint8Array[] = [];
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-i", "/a.wav", "-i", "/b.wav", "-filter_complex",
+        `[0:a]${resampler}[a];[a][1:a]acrossfade=ns=5[out]`, "-map", "[out]", "-f", "s16le", "pipe:1"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(),
+      stdout: { async write(bytes: Uint8Array) { chunks.push(bytes); } },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, stderr);
+    const pcm = Buffer.concat(chunks);
+    assert.equal(pcm.length / 2, 339);
+    assert.equal(createHash("sha256").update(pcm).digest("hex"),
+      "651d8f27decb59a2252d0b60c758e5fd6455edb5a544679e4d7dbb14d27b10dc");
+  });
+}

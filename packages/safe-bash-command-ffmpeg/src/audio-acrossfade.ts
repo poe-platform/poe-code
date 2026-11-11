@@ -112,7 +112,12 @@ export async function acrossfadeAudio(
     const firstGain = i >= aLength ? 0 : transition < 0 ? 1 : curve1((samples - 1 - transition) / samples);
     const secondGain = secondIndex < 0 ? 0 : secondIndex >= samples ? 1 : curve2(secondIndex / samples);
     for (let channel = 0; channel < a.channels; channel++) {
-      const firstValue = i >= aLength ? 0 : a.channelData[channel]![i]! * firstGain;
+      const firstSample = i >= aLength ? 0 : a.channelData[channel]![i]!;
+      // Upstream resamplers can retain fractional PCM internally. Materialize
+      // the negotiated S16 input before applying the fade's truncating cast.
+      const firstValue = (pcm16
+        ? Math.max(-32768, Math.min(32767, Math.round(firstSample * 32768))) / 32768
+        : firstSample) * firstGain;
       let secondSample = 0;
       if (secondIndex >= 0) {
         if (!remix) secondSample = secondChannels[channel]![secondIndex]!;
@@ -155,8 +160,8 @@ export async function acrossfadeAudio(
       if (pcm16 && secondPcm32 && ratio === 1 && !remix) {
         secondSample = Math.floor(secondSample * 32768) / 32768;
       }
-      // Automatic rate/layout conversion negotiates S16 before the fade's truncating cast.
-      const secondValue = (pcm16 && (ratio !== 1 || remix)
+      // Explicit and automatic rate/layout conversion both negotiate S16.
+      const secondValue = (pcm16
         ? Math.max(-32768, Math.min(32767, Math.round(secondSample * 32768))) / 32768
         : secondSample) * secondGain;
       // Native integer fades truncate the mixed sample before encoding.

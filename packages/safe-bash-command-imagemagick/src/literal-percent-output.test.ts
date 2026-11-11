@@ -19,7 +19,7 @@ for (const [pattern, names, single = false, split = false] of [
     ["frame%%%%d.png", ["frame%%d.png"], false, true],
     ["frame%%-%02d.png", ["frame%-00.png", "frame%-01.png"], false, true],
     ["frame.png", ["frame-0.png", "frame-1.png"], false, true],
-    ["frame%%%02d.gif", ["frame%00.gif", "frame%01.gif"]],
+    ["frame%%%02d.gif", ["frame%00.gif"]],
     ["frame%02d.gif", ["frame00.gif", "frame01.gif"]],
 ] as const)
 it(`expands percent destinations: ${mode}, write=${write}, split=${split}, single=${single}, ${pattern}`, async () => {

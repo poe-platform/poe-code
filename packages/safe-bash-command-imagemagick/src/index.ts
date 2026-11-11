@@ -11423,6 +11423,12 @@ function magickTrimSettings(state: MagickState, properties: ImageMetadata["prope
 function applyMagickReadSetting(tokens: readonly string[], state: MagickState, start: number): number | undefined {
     let i = start;
     const t = tokens[i];
+    // Texture only affects montage rendering, not conversion pixels or inputs.
+    if (t === "+texture") return i;
+    if (t === "-texture") {
+        if (tokens[++i] === undefined) throw new Error("missing argument for option '-texture'");
+        return i;
+    }
     // The plus form does not undo monochrome conversion on loaded images.
     if (t === "+monochrome") return i;
     if (t === "-black-point-compensation" || t === "+black-point-compensation") {

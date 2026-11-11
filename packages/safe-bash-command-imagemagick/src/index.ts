@@ -3895,14 +3895,22 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
 function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: string, channels: MagickState["channels"], method: VirtualPixelMethod | undefined, background: RgbaColor, interpolation: LookupInterpolation | undefined): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const stack: FxStack = "get" in input ? input : { length: input.length, get: index => input[index], indexOf: image => input.indexOf(image) };
     const base = stack.get(0)!, evaluate = compileFxExpression(expression), mask = [channels.r, channels.g, channels.b, channels.a && base.hasAlpha];
-    const highDepth = !!(base.data16 || ("storedData16" in base && base.storedData16)), maximum = highDepth ? 65535 : 255;
+    const highDepth = !!(base.data16 || ("storedData16" in base && base.storedData16));
+    function* readSamples(position: number, length: number, image = 0): Generator<ConvolveRequest, Float64Array, Uint8Array | undefined> {
+        const working = yield { kind: "read", evaluate: true, image, position, length };
+        if (working?.length) {
+            if (working.length !== length * 8) throw new Error("Truncated expression pixels");
+            return new Float64Array(working.slice().buffer);
+        }
+        const bytes = yield { kind: "read", highDepth: true, image, position, length };
+        if (!bytes || bytes.length !== length * 2) throw new Error("Truncated expression pixels");
+        return Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257);
+    }
     const statistics: Record<string, number> | undefined = evaluate.needsStatistics ? {} : undefined;
     if (statistics) {
         yield* magickPixelPropertiesSteps<ConvolveRequest, Uint8Array | undefined>(base, function*(position, length) {
-            const data = yield { kind: "read", highDepth, position, length };
-            if (!data || data.length !== length * (highDepth ? 2 : 1)) throw new Error("Truncated expression statistics");
-            const data16 = highDepth ? new Uint16Array(data.slice().buffer) : undefined;
-            return data16 ? { data: Uint8Array.from(data16, value => Math.round(value / 257)), data16 } : { data };
+            const evaluateSamples = yield* readSamples(position, length);
+            return { data: Uint8Array.from(evaluateSamples, value => Math.max(0, Math.min(255, Math.round(value)))), evaluateSamples };
         }, statistics, false, function*(position, length): Generator<ConvolveRequest, Uint8Array, Uint8Array | undefined> {
             return (yield { kind: "read", image: stack.length, position, length })!;
         });
@@ -3921,7 +3929,7 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
             }
         }
     }
-    const samples = new Map<string, Uint8Array | Uint16Array>(), vars = new Map<string, number>();
+    const samples = new Map<string, Float64Array>(), vars = new Map<string, number>();
     const samplePixel: typeof sampleFxImage = (target, x, y, channel) => {
         if (!target) return 0;
         let px = Math.round(x), py = Math.round(y);
@@ -3939,13 +3947,12 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
         if (!Number.isFinite(position)) return NaN;
         const image = stack.indexOf(target), pixel = samples.get(image + ":" + position);
         if (pixel === undefined) throw new FxPixelDemand(position, image);
-        return sampleFxPixel(pixel, 0, channel, maximum);
+        return sampleFxPixel(pixel, 0, channel);
     };
-    for (let start = 0; start < base.width * base.height; start += 1024) {
+    for (let start = 0; start < base.width * base.height; start += 512) {
         yield;
-        const count = Math.min(1024, base.width * base.height - start), bytes = yield { kind: "read", highDepth, position: start * 4, length: count * 4 };
-        if (!bytes || bytes.length !== count * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated expression pixels");
-        const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
+        const count = Math.min(512, base.width * base.height - start);
+        const data = yield* readSamples(start * 4, count * 4);
         for (let i = 0; i < count; i++) {
             const position = (start + i) * 4, offset = i * 4;
             stack.reset?.();
@@ -3958,21 +3965,21 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
                 // Replaying local assignments is deterministic; retain only this pixel's demanded samples.
                 while (true) {
                     vars.clear();
-                    try { data[offset + ch] = Math.round(Math.max(0, Math.min(1, evaluate(context))) * maximum); break; }
+                    try { data[offset + ch] = evaluate(context) * 255; break; }
                     catch (error) {
                         if (error instanceof FxFrameDemand) { yield; continue; }
                         if (!(error instanceof FxPixelDemand)) throw error;
-                        const value = yield { kind: "read", highDepth, image: error.image, position: error.position, length: 4 };
-                        if (!value || value.length !== 4 * (highDepth ? 2 : 1)) throw new Error("Truncated expression pixels");
-                        samples.set(error.image + ":" + error.position, highDepth ? new Uint16Array(value.slice().buffer) : new Uint8Array(value));
+                        samples.set(error.image + ":" + error.position, yield* readSamples(error.position, 4, error.image));
                     }
                 }
             }
         }
-        yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer) };
+        yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(data.buffer) };
+        const bounded = highDepth ? Uint16Array.from(data, value => Math.max(0, Math.min(65535, Math.round(value * 257))))
+            : Uint8Array.from(data, value => Math.max(0, Math.min(255, Math.round(value))));
+        yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(bounded.buffer) };
     }
 }
-
 
 function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">, token: string, spec: string, args = "0"): WarpPlan | undefined {
     if (token === "-swirl" || token === "-implode" || token === "-wave")

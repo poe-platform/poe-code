@@ -11,6 +11,9 @@ export function* svgPathSteps(): Generator<SvgPathPoint | undefined, boolean, Sv
     let startX = 0;
     let startY = 0;
     let closed = false;
+    let previousCommand = "";
+    let controlX = 0;
+    let controlY = 0;
     let cmd = "M";
     let token = yield undefined;
     while (token !== undefined) {
@@ -18,6 +21,7 @@ export function* svgPathSteps(): Generator<SvgPathPoint | undefined, boolean, Sv
         cmd = token;
         if (cmd === "Z" || cmd === "z") {
           closed = true;
+          previousCommand = "Z";
           curX = startX;
           curY = startY;
           yield [curX, curY];
@@ -26,6 +30,8 @@ export function* svgPathSteps(): Generator<SvgPathPoint | undefined, boolean, Sv
         }
         token = yield undefined;
       }
+      const command = cmd.toUpperCase();
+      const relative = cmd !== command;
       let pending = true;
       const first = token;
       const readNum = function* (): Generator<SvgPathPoint | undefined, number, SvgPathToken | undefined> {
@@ -55,13 +61,14 @@ export function* svgPathSteps(): Generator<SvgPathPoint | undefined, boolean, Sv
         const ny = (yield* readNum());
         curY = cmd === "v" ? curY + ny : ny;
         yield [curX, curY];
-      } else if (cmd === "C" || cmd === "c") {
-        const x1 = cmd === "c" ? curX + (yield* readNum()) : (yield* readNum());
-        const y1 = cmd === "c" ? curY + (yield* readNum()) : (yield* readNum());
-        const x2 = cmd === "c" ? curX + (yield* readNum()) : (yield* readNum());
-        const y2 = cmd === "c" ? curY + (yield* readNum()) : (yield* readNum());
-        const x3 = cmd === "c" ? curX + (yield* readNum()) : (yield* readNum());
-        const y3 = cmd === "c" ? curY + (yield* readNum()) : (yield* readNum());
+      } else if (command === "C" || command === "S") {
+        const reflect = previousCommand === "C" || previousCommand === "S";
+        const x1 = command === "S" ? (reflect ? 2 * curX - controlX : curX) : (relative ? curX : 0) + (yield* readNum());
+        const y1 = command === "S" ? (reflect ? 2 * curY - controlY : curY) : (relative ? curY : 0) + (yield* readNum());
+        const x2 = relative ? curX + (yield* readNum()) : (yield* readNum());
+        const y2 = relative ? curY + (yield* readNum()) : (yield* readNum());
+        const x3 = relative ? curX + (yield* readNum()) : (yield* readNum());
+        const y3 = relative ? curY + (yield* readNum()) : (yield* readNum());
         for (let s = 1; s <= 12; s++) {
           const t = s / 12;
           const mt = 1 - t;
@@ -69,13 +76,16 @@ export function* svgPathSteps(): Generator<SvgPathPoint | undefined, boolean, Sv
           const by = mt * mt * mt * curY + 3 * mt * mt * t * y1 + 3 * mt * t * t * y2 + t * t * t * y3;
           yield [bx, by];
         }
+        controlX = x2;
+        controlY = y2;
         curX = x3;
         curY = y3;
-      } else if (cmd === "Q" || cmd === "q") {
-        const x1 = cmd === "q" ? curX + (yield* readNum()) : (yield* readNum());
-        const y1 = cmd === "q" ? curY + (yield* readNum()) : (yield* readNum());
-        const x2 = cmd === "q" ? curX + (yield* readNum()) : (yield* readNum());
-        const y2 = cmd === "q" ? curY + (yield* readNum()) : (yield* readNum());
+      } else if (command === "Q" || command === "T") {
+        const reflect = previousCommand === "Q" || previousCommand === "T";
+        const x1 = command === "T" ? (reflect ? 2 * curX - controlX : curX) : (relative ? curX : 0) + (yield* readNum());
+        const y1 = command === "T" ? (reflect ? 2 * curY - controlY : curY) : (relative ? curY : 0) + (yield* readNum());
+        const x2 = relative ? curX + (yield* readNum()) : (yield* readNum());
+        const y2 = relative ? curY + (yield* readNum()) : (yield* readNum());
         for (let s = 1; s <= 10; s++) {
           const t = s / 10;
           const mt = 1 - t;
@@ -83,9 +93,12 @@ export function* svgPathSteps(): Generator<SvgPathPoint | undefined, boolean, Sv
           const by = mt * mt * curY + 2 * mt * t * y1 + t * t * y2;
           yield [bx, by];
         }
+        controlX = x1;
+        controlY = y1;
         curX = x2;
         curY = y2;
       }
+      previousCommand = command;
       token = yield undefined;
     }
     return closed;

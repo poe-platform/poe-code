@@ -34,3 +34,35 @@ test("suspends path lexing for caller range reads without owning the source",()=
  while(!next.done){if(typeof next.value==='number'){reads++;next=steps.next(text[next.value]);}else{tokens.push(next.value.token);if(tokens.length===3)break;next=steps.next();}}
  expect(tokens).toEqual(['M',12,34]);expect(reads).toBeLessThan(15);steps.return();
 });
+
+test.each([
+ ['M1,7 Q1,1 4,4 T7,1', 'M1,7 Q1,1 4,4 Q7,7 7,1'],
+ ['M1,7 q0,-6 3,-3 t3,-3', 'M1,7 Q1,1 4,4 Q7,7 7,1'],
+ ['M1,7 Q1,1 4,4 T7,1 8,4', 'M1,7 Q1,1 4,4 Q7,7 7,1 Q7,-5 8,4'],
+ ['M1,7 q0,-6 3,-3 t3,-3 1,3', 'M1,7 Q1,1 4,4 Q7,7 7,1 Q7,-5 8,4'],
+ ['M1,7 C1,1 3,1 4,4 S7,7 7,1', 'M1,7 C1,1 3,1 4,4 C5,7 7,7 7,1'],
+ ['M1,7 c0,-6 2,-6 3,-3 s3,3 3,-3', 'M1,7 C1,1 3,1 4,4 C5,7 7,7 7,1'],
+ ['M1,7 C1,1 3,1 4,4 S7,7 7,1 8,2 8,4', 'M1,7 C1,1 3,1 4,4 C5,7 7,7 7,1 C7,-5 8,2 8,4'],
+ ['M1,7 c0,-6 2,-6 3,-3 s3,3 3,-3 1,1 1,3', 'M1,7 C1,1 3,1 4,4 C5,7 7,7 7,1 C7,-5 8,2 8,4'],
+])('reflects the previous control point in %s', (short, long) => {
+ expect(points(path.svgPathTokens(short))).toEqual(points(path.svgPathTokens(long)));
+});
+
+for (const [curve, short, long] of [
+ ['Q1,1 4,4', 'T7,1', 'Q4,4 7,1'],
+ ['C1,1 3,1 4,4', 'S7,7 7,1', 'C4,4 7,7 7,1'],
+]) {
+ test.each(['M4,4', 'L4,4', 'H4', 'V4', 'Z M4,4', 'Z', 'M4,4 4,4'])(`resets ${short} control after %s`, reset => {
+  const prefix = `M4,4 ${curve} ${reset}`;
+  expect(points(path.svgPathTokens(`${prefix} ${short}`))).toEqual(points(path.svgPathTokens(`${prefix} ${long}`)));
+ });
+}
+
+test.each([
+ ['M4,4 T7,1', 'M4,4 Q4,4 7,1'],
+ ['M4,4 S7,7 7,1', 'M4,4 C4,4 7,7 7,1'],
+ ['M1,7 C1,1 3,1 4,4 T7,1', 'M1,7 C1,1 3,1 4,4 Q4,4 7,1'],
+ ['M1,7 Q1,1 4,4 S7,7 7,1', 'M1,7 Q1,1 4,4 C4,4 7,7 7,1'],
+])('uses the current point without a matching previous curve in %s', (short, long) => {
+ expect(points(path.svgPathTokens(short))).toEqual(points(path.svgPathTokens(long)));
+});

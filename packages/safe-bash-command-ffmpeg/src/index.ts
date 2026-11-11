@@ -18072,6 +18072,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         if (customOrder && !matchingOrder) throw new Error("channelsplit: matching input channel layout required");
                         const mask = input.reduce((value, speaker) => value + audioSpeakerMasks[speaker]!, 0);
+                        if (mask === 3 && stretched.length === 2 &&
+                            (filteredChannelMask === 0xc || filteredChannelMask === 0x60000000)) {
+                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                          stretched = (await panAudio(filteredChannelMask === 0xc
+                            ? `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`
+                            : "stereo|c0=c0|c1=c1",
+                          stretched, filteredChannelMask, panSampleFormat, budget, context.signal)).channels;
+                          filteredChannelMask = 3;
+                          filteredChannelNames = undefined;
+                        }
                         const quad = stretched.length === 4 && filteredChannelMask === 0x33;
                         if (mask === 3 && (stretched.length === 1 || quad || stretched.length === 6)) {
                           const mono = stretched.length === 1;

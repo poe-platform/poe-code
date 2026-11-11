@@ -870,7 +870,10 @@ Stereo input is expanded to 2.1, quad, 5.1, or 5.1(side) before selecting an out
 channel: front left/right keep their samples, while center, LFE, rear, and side
 channels contain silence.
 Use `-af channelsplit=channel_layout=stereo:channels=FR` to extract only the right
-channel (`FL` selects the left). Stereo layouts also accept `0x3`, `FL+FR`, and
+channel (`FL` selects the left). `FC+LFE` input contributes center at −3 dB to
+both stereo speakers and omits LFE; `DL+DR` (`downmix`) preserves left/right
+samples before extraction. These conversions require automatic conversion filters.
+Stereo layouts also accept `0x3`, `FL+FR`, and
 `2c`; channel selections accept masks (`0x1` for left, `0x2` for right) and
 `stereo` or `0x3` for both outputs. Matching mono and 5.1 inputs also support
 named speaker extraction: `-af channelsplit=mono:FC`,

@@ -33,6 +33,11 @@ it.each([
   text.replace("1,1,0,255", "1,1,0,0"),
   text.replace("30,40,50,128", "30,40,50,256"),
   text.replace("0,0:", "1,0:"),
+  text.replace("0,0:", "-1,0:"),
+  text.replace("0,0:", "0,1:"),
+  text.replace("0,0:", "0,-1:"),
+  text.replace("0,0:", "0.5,0:"),
+  text.replace("0,0:", "0,NaN:"),
   text.slice(0, text.indexOf("\n") + 1),
   text.replace("srgba\n", "unknown\n")
 ])("rejects malformed TXT input", text => {

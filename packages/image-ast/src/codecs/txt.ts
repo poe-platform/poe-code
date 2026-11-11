@@ -51,12 +51,12 @@ function* txtSteps(size: number, page: number, options?: SharpInputOptions): Gen
       if (component < 0 || component > 100) return NaN;
       return Math.trunc(component * (0.01 * maximum));
     });
-    if (colon < 0 || open < colon || close < open || coordinates.length !== 2 || coordinates[0] !== pixels % metadata.width || coordinates[1] !== Math.floor(pixels / metadata.width) || pixels >= metadata.width * metadata.height || values.length !== metadata.channels || values.some(value => !Number.isFinite(value) || value < 0 || value > maximum)) throw new Error("Invalid TXT pixel");
+    if (colon < 0 || open < colon || close < open || coordinates.length !== 2 || coordinates.some(value => !Number.isInteger(value) || value < 0) || coordinates[0]! >= metadata.width || coordinates[1]! >= metadata.height || pixels >= metadata.width * metadata.height || values.length !== metadata.channels || values.some(value => !Number.isFinite(value) || value < 0 || value > maximum)) throw new Error("Invalid TXT pixel");
     if (index === page) {
       const r = values[0]!, g = metadata.channels < 3 ? r : values[1]!, b = metadata.channels < 3 ? r : values[2]!, a = metadata.hasAlpha ? values[values.length - 1]! : maximum;
       const hueSamples = metadata.space === "cmyk" ? values.slice(0, 4).map(value => value / maximum) : undefined;
       const rgb = hueSamples ? hueSamples.slice(0, 3).map(value => (1 - value) * (1 - hueSamples[3]!) * maximum) : [r, g, b];
-      yield { kind: "pixel", offset: pixels * 4, values: [...rgb, a].map(value => Math.round(value * 65535 / maximum)), ...(hueSamples ? { hueSamples } : {}) };
+      yield { kind: "pixel", offset: (coordinates[1]! * metadata.width + coordinates[0]!) * 4, values: [...rgb, a].map(value => Math.round(value * 65535 / maximum)), ...(hueSamples ? { hueSamples } : {}) };
     }
     pixels++;
   }
@@ -109,6 +109,8 @@ export async function readTxtFromSource(source: ImageByteSource, storage: ImageB
         if (step.metadata.depth === "ushort" || step.metadata.space === "cmyk") storedData16 = { position: storage.allocate(length * 2), length };
         if (step.metadata.space === "cmyk") storedHueSamples = storage.allocate(length * 8);
       } else {
+        if (step.offset !== offset + used) await flush();
+        if (!used) offset = step.offset;
         if (step.hueSamples) hues.set(step.hueSamples, used);
         for (const value of step.values) { pixels[used] = Math.round(value / 257); samples[used++] = value; }
         if (used === pixels.length) await flush();

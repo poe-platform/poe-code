@@ -19,6 +19,16 @@ const linear = `# ImageMagick pixel enumeration: 2,1,0,255,rgb
 1,0: (255,4,0)  #FF0400  rgb(100%,1.59963%,0%)
 `;
 for (const mode of ["buffered", "retained", "sync"] as const) {
+  it(`places reordered TXT pixels at their coordinates via ${mode}`, async () => {
+    const bytes = new TextEncoder().encode("# ImageMagick pixel enumeration: 2,1,0,255,srgb\n1,0: (0,0,255)\n0,0: (255,0,0)\n");
+    const files = new Map([["/in.txt", bytes]]), filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/in.txt", bytes);
+    const args = ["/in.txt", "-depth", "16", "-endian", "MSB", "rgb:/pix.raw"];
+    const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+    expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+    const output = mode === "retained" ? await filesystem.readFile("/pix.raw") : files.get("/pix.raw")!;
+    expect([...output]).toEqual([255,255,0,0,0,0,0,0,0,0,255,255]);
+  });
   it(`decodes native linear RGB TXT via ${mode}`, async () => {
     const bytes = new TextEncoder().encode(linear);
     const files = new Map([["/native.txt", bytes]]), filesystem = new MemoryFileSystem();

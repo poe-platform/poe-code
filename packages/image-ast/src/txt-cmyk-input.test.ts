@@ -2,13 +2,16 @@ import { expect, it } from "vitest";
 import { decodeImage, readImageMetadata } from "./codecs/index.js";
 import { readTxtFromSource } from "./codecs/txt.js";
 
-it("preserves CMYK samples, alpha, and precision across storage chunks", async () => {
+it.each([false, true])("preserves CMYK samples, alpha, and precision across storage chunks (reordered=%s)", async reordered => {
   const count = 1025;
-  const bytes = new TextEncoder().encode(`# ImageMagick pixel enumeration: ${count},1,0,65535,cmyka\n` + Array.from({ length: count }, (_, x) => `${x},0: (12345,23456,34567,45678,56789)\n`).join(""));
+  const rows = Array.from({ length: count }, (_, y) => `0,${y}: (12345,23456,34567,45678,${56789 + y})\n`);
+  if (reordered) rows.reverse();
+  const bytes = new TextEncoder().encode(`# ImageMagick pixel enumeration: 1,${count},0,65535,cmyka\n` + rows.join(""));
   expect(readImageMetadata(bytes)).toMatchObject({ space: "cmyk", magickColorspace: "CMYK", channels: 5, hasAlpha: true, depth: "ushort" });
   const decoded = decodeImage(bytes);
   expect(Array.from(decoded.hueSamples!.slice(0, 4))).toEqual([12345,23456,34567,45678].map(value => value / 65535));
   expect(decoded.data16![3]).toBe(56789);
+  expect(decoded.data16![count * 4 - 1]).toBe(56789 + count - 1);
   const memory = new Uint8Array(count * 44);
   let allocated = 0;
   const stored = await readTxtFromSource({ size: bytes.length, async read(position, length) { return bytes.slice(position, position + length); } }, {

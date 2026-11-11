@@ -29,3 +29,25 @@ for (const mode of ["sync", "public"] as const) it.each(cases)(`renders charcoal
     const actual = decodeImage(mode === "sync" ? files.get("out.png")! : await fs.readFile("/out.png")).data;
     expect(Buffer.from(actual).toString("hex")).toBe(expected);
 });
+
+// ImageMagick 7.1.2-35 Q16-HDRI reference bytes for a varying grayscale mask.
+for (const mode of ["sync", "public"] as const) it.each([
+    ["gradient:black-white", "df80f1"],
+    ["gradient:#202020-#909090", "c27483"],
+    ["xc:black", "c0258a"],
+    ["xc:white", "1382f1"],
+    ["xc:#808080", "7f8080"],
+])(`blends charcoal mask %s via ${mode}`, async (mask, expected) => {
+    const input = Buffer.concat([Buffer.from("P6\n3 1\n255\n"), Buffer.from("13385d82a7ccf1163b", "hex")]);
+    const files = new Map([["in.ppm", input]]);
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/in.ppm", input);
+    const args = ["in.ppm", "-size", "3x1", "-write-mask", mask!, "-charcoal", "1x1", "-depth", "8", "gray:out"];
+    const argumentValues = createCommandArguments(args);
+    const result = mode === "sync" ? runConvertCliSync(args, files) : await createMagickCommand().execute({
+        command: "magick", args: argumentValues.args, argumentValues, fs, cwd: "/", env: {}, signal: new AbortController().signal,
+        stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} },
+    });
+    expect(result.exitCode).toBe(0);
+    expect(Buffer.from(mode === "sync" ? files.get("out")! : await fs.readFile("/out")).toString("hex")).toBe(expected);
+});

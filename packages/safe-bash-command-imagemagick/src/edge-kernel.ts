@@ -5,7 +5,7 @@ import type { Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { HueMetadata } from "./colorspace-hue.js";
 
-export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">> & HueMetadata & { region?: Region | undefined }, radius: number, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">> & HueMetadata & { region?: Region | undefined }, radius: number, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, retainUnclamped = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
     const hue = !cmyk && !!image.magickColorspace && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
     const highDepth = !!(image.data16 || image.storedData16), maximum = highDepth ? 65535 : 255;
@@ -92,7 +92,7 @@ export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "has
         let data = cmyk || hue ? new Float64Array(samples)
             : highDepth ? Uint16Array.from(samples, value => Math.max(0, Math.min(maximum, Math.round(value))))
                 : Uint8Array.from(samples, value => Math.max(0, Math.min(maximum, Math.round(value))));
-        const working = !cmyk && image.region ? Float64Array.from(samples, value => value * 255 / maximum) : undefined;
+        const working = !cmyk && (image.region || retainUnclamped) ? Float64Array.from(samples, value => value * 255 / maximum) : undefined;
         for (let x = 0; x < count; x++) {
             const alpha = area * samples[x * stride + 3]! - sums[x * stride + 3]!;
             for (let c = 0; c < stride; c++) if (mask[c]) {
@@ -101,7 +101,7 @@ export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "has
                 const value = image.hasAlpha && c !== 3
                     ? (area * samples[x * stride + c]! * samples[x * stride + 3]! - sums[x * stride + c]!) / (alpha === 0 ? maximum * 1e-12 : alpha)
                     : area * samples[x * stride + c]! - sums[x * stride + c]!;
-                // Region compositing needs unclamped Q16-HDRI quantum values.
+                // Region compositing and charcoal masking need unclamped Q16-HDRI values.
                 if (working) working[x * stride + c] = Math.fround(value * 65535 / maximum) / 257;
                 data[x * stride + c] = cmyk || hue ? Math.fround(value * 65535 / maximum) * maximum / 65535 : Math.max(0, Math.min(maximum, Math.round(value)));
             }

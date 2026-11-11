@@ -7,11 +7,11 @@ import { regionContains, type Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Feed the active color planes to the edge filter, retaining alpha from RGBA. */
-export function* charcoalEdgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">>, radius: number, channels: { r: boolean; g: boolean; b: boolean; a: boolean } | undefined, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* charcoalEdgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { writeMask?: Pick<RgbaImage, "width" | "height"> | undefined; storedWriteMask?: Pick<RgbaImage, "width" | "height"> | undefined }, radius: number, channels: { r: boolean; g: boolean; b: boolean; a: boolean } | undefined, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const hue = !!image.hueSamples || image.storedHueSamples !== undefined;
     // Project the active color planes into floating RGB slots so edge detection
     // does not round HSL/Lab samples to the encoded depth before convolution.
-    const steps = edgePixelSteps({ ...image, space: "srgb", magickColorspace: "RGB" }, radius, channels, virtualPixel, background);
+    const steps = edgePixelSteps({ ...image, space: "srgb", magickColorspace: "RGB" }, radius, channels, virtualPixel, background, !!(image.writeMask || image.storedWriteMask));
     let next = steps.next();
     while (!next.done) {
         const request = next.value;
@@ -33,7 +33,7 @@ export function* charcoalEdgePixelSteps(image: Pick<RgbaImage, "width" | "height
     }
 }
 
-/** Blur clamped edges, normalize, negate and grayscale without rounding intermediate pixels. */
+/** Clamp through the mask, blur, normalize, negate and grayscale without rounding intermediate pixels. */
 export function* charcoalPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">> & { magickColorspace?: string; region?: Region | undefined }, geometry: { width?: number; height?: number }, writeMask: Pick<RgbaImage, "width" | "height"> | undefined, channels: { r: boolean; g: boolean; b: boolean; a: boolean } | undefined, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, intensity = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(image.data16 || image.storedData16);
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
@@ -74,7 +74,7 @@ export function* charcoalPixelSteps(image: Pick<RgbaImage, "width" | "height" | 
     const lows = histograms.map(() => 0), highs = histograms.map(() => 65535);
     for (let pass = 0; pass < 2; pass++) {
         for (let left = 0; left < width; left += 1024) {
-            const count = Math.min(1024, width - left), rows = new Map<number, Float64Array>();
+            const count = Math.min(1024, width - left), rows = new Map<number, { blurred: Float64Array; original: Float64Array }>();
             for (let y = 0; y < height; y++) {
                 yield;
                 const sums = new Float64Array(count * 3);
@@ -83,9 +83,11 @@ export function* charcoalPixelSteps(image: Pick<RgbaImage, "width" | "height" | 
                     yield;
                     const pixel = virtualPixelIndex(left, y + ky, width, height, virtualPixel);
                     const sy = pixel < 0 ? -1 : Math.floor(pixel / width);
-                    let row = rows.get(sy);
+                    let cached = rows.get(sy);
+                    let row = cached?.blurred;
                     if (!row) {
                         row = new Float64Array(count * 3);
+                        let sourceRow: Float64Array | undefined;
                         if (sy < 0) {
                             // The vertical pass samples the horizontal result: outside rows
                             // use the constant directly, without another horizontal blur.
@@ -108,7 +110,9 @@ export function* charcoalPixelSteps(image: Pick<RgbaImage, "width" | "height" | 
                                 const working = yield { kind: "read", evaluate: true, position: start * 4, length: readLength };
                                 const bytes = working?.length ? undefined : yield { kind: "read", highDepth, position: start * 4, length: readLength };
                                 if (!working?.length && (!bytes || bytes.length !== readLength * (highDepth ? 2 : 1))) throw new Error("Truncated charcoal pixels");
-                                const values = working?.length ? Float64Array.from(new Float64Array(working.slice().buffer), value => Math.max(0, Math.min(255, value)))
+                                // ClampImage also writes through the mask, retaining protected HDRI values.
+                                const clampProtection = working?.length ? yield* protections(start % width, Math.floor(start / width), readLength / 4) : undefined;
+                                const values = working?.length ? Float64Array.from(new Float64Array(working.slice().buffer), (value, index) => Math.max(0, Math.min(255, value)) * (1 - clampProtection![Math.floor(index / 4)]!) + value * clampProtection![Math.floor(index / 4)]!)
                                     : highDepth ? Float64Array.from(new Uint16Array(bytes!.slice().buffer), value => value / 257) : bytes!;
                                 for (let i = 0; i < run; i++) {
                                     const offset = (direction === 0 ? 0 : direction === -1 ? run - i - 1 : i) * 4;
@@ -124,15 +128,18 @@ export function* charcoalPixelSteps(image: Pick<RgbaImage, "width" | "height" | 
                                 }
                             }
                             // Each blur pass writes through the mask before the next pass reads it.
+                            sourceRow = samples.slice(half * 3, (half + count) * 3);
                             const protection = yield* protections(left, sy, count);
                             for (let x = 0; x < count; x++) for (let c = 0; c < 3; c++) row[x * 3 + c] = row[x * 3 + c]! * (1 - protection[x]!) + samples[(x + half) * 3 + c]! * protection[x]!;
                         }
                         if (rows.size >= 32) rows.delete(rows.keys().next().value!);
-                        rows.set(sy, row);
+                        cached = { blurred: row, original: sourceRow ?? row };
+                        rows.set(sy, cached);
                     }
-                    if (ky === 0) original = row;
+                    if (ky === 0) original = cached!.original;
                     for (let i = 0; i < sums.length; i++) sums[i]! += row[i]! * weights[ky + half]!;
                 }
+                // Both convolution passes clip against the pre-blur image.
                 const protection = yield* protections(left, y, count);
                 for (let x = 0; x < count; x++) for (let c = 0; c < 3; c++) sums[x * 3 + c] = sums[x * 3 + c]! * (1 - protection[x]!) + original![x * 3 + c]! * protection[x]!;
                 if (channels && mask.some(selected => !selected)) {

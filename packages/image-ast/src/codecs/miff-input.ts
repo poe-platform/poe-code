@@ -68,7 +68,7 @@ function* miffFrameHeader(size: number): Generator<MiffRead, MiffHeader, Uint8Ar
     const sampleBytes = depth / 8, indexBytes = Math.max(sampleBytes, colors > 256 ? 2 : 1);
     const pixelBytes = indexed ? indexBytes + (hasAlpha ? sampleBytes : 0) : (channels + metaChannelCount) * sampleBytes;
     const compression = fields.get("compression") ?? "None";
-    if ((!indexed && fields.get("class") !== "DirectClass") || !["None", "LZMA", "Zip", "LZW", "BZip", "RLE"].includes(compression) || indexed && compression !== "None" || !(indexed ? [8, 16] : [8, 16, 32]).includes(depth) || !["sRGB", "RGB", "Gray", "CMYK"].includes(colorspace) && (fields.get("class") !== "DirectClass" || !["CIELab", "XYZ", "HSL", "YCbCr"].includes(colorspace))
+    if ((!indexed && fields.get("class") !== "DirectClass") || !["None", "LZMA", "Zip", "LZW", "BZip", "RLE"].includes(compression) || indexed && compression === "LZMA" || !(indexed ? [8, 16] : [8, 16, 32]).includes(depth) || !["sRGB", "RGB", "Gray", "CMYK"].includes(colorspace) && (fields.get("class") !== "DirectClass" || !["CIELab", "XYZ", "HSL", "YCbCr"].includes(colorspace))
         || compression === "LZMA" && (floating || ![8, 16].includes(depth) || !["sRGB", "RGB", "Gray"].includes(colorspace))
         || compression === "LZMA" && (floating || ![8, 16].includes(depth) || !["sRGB", "RGB", "Gray"].includes(colorspace))
         || floating && (indexed || ![16, 32].includes(depth))
@@ -199,7 +199,7 @@ export function miffPixels(bytes: Uint8Array, metadata: MiffHeader["metadata"], 
 export function* miffRaster(header: ReturnType<typeof readMiffHeader>): Generator<{ offset: number; length: number } | Uint8Array, number, Uint8Array> {
     const { metadata, compression } = header, size = metadata.size!;
     let offset = header.offset + header.colors * 3 * (metadata.depth === "ushort" ? 2 : 1);
-    if (compression === "BZip") return yield* miffBzipRaster(header);
+    if (compression === "BZip") return yield* miffBzipRaster({ ...header, offset });
     if (compression === "LZMA") return yield* miffLzma(offset, size, header.pixelBytes, metadata.width * metadata.height * header.pixelBytes);
     const stride = header.pixelBytes;
     const chunkBytes = Math.min(1024, Math.floor(8192 / stride)) * stride;

@@ -7060,7 +7060,10 @@ export function evalSyncFfmpeg(
       }
       else if (arg === "-vsync" || arg === "-fps_mode" || arg.startsWith("-fps_mode:")) return undefined;
       else if (arg === "-crf") return undefined;
-      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-filter_threads" || arg === "-pix_fmt" || arg === "-tag:a") i++;
+      else if (arg === "-pix_fmt") {
+        if (args[++i]?.startsWith("+")) return undefined;
+      }
+      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-filter_threads" || arg === "-tag:a") i++;
       else if (arg === "-bf") {
         const value = args[++i];
         maxBFrames = value?.trim() ? Number(value) : NaN;
@@ -17376,6 +17379,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 throw new Error(`Unsupported output format for '${outputTarget}' (AST not registered)`);
               }
               const vTrack = workingDoc.tracks.find((t) => t.type === "video");
+              if (imageOutputFormat(videoCodec, outExt) === "qoi" && rawPixelFormat?.startsWith("+")) {
+                const inputFormat = vTrack?.codecDescriptions[0]?.pixFmt;
+                const selectedFormat = rawPixelFormat.slice(1) || inputFormat;
+                if ((selectedFormat !== "rgb24" && selectedFormat !== "rgba") || selectedFormat !== inputFormat) {
+                  await writeBytes(context.stderr, encodeUtf8("ffmpeg: The filters do not have a common format and automatic conversion is disabled.\n"), context.signal);
+                  return { exitCode: 234 };
+                }
+              }
               const frames = vTrack ? await ensureDecodedFrames(vTrack, workingDoc.timescale, budget, context.signal) : [];
               const limit = maxVideoFrames ?? Infinity;
               const duration = outputFps ? 1 / outputFps : frames[0]?.durationSeconds ?? 1;

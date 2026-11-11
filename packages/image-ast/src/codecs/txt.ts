@@ -29,11 +29,12 @@ function* txtSteps(size: number, page: number, options?: SharpInputOptions): Gen
       const width = Number(fields[0]), height = Number(fields[1]);
       maximum = Number(fields[fields.length - 2]);
       const space = fields[fields.length - 1]!.trim().toLowerCase();
-      if (!["srgb", "srgba", "rgb", "rgba", "gray", "graya"].includes(space)) throw new Error(`Unsupported TXT colorspace: ${space}`);
+      if (!["srgb", "srgba", "rgb", "rgba", "gray", "graya", "lineargray", "lineargraya"].includes(space)) throw new Error(`Unsupported TXT colorspace: ${space}`);
       if (!Number.isSafeInteger(width) || width < 1 || !Number.isSafeInteger(height) || height < 1 || !Number.isSafeInteger(width * height * 8) || !Number.isInteger(maximum) || maximum < 1 || maximum > 65535) throw new Error("Invalid TXT dimensions or maximum");
       checkLimitInputPixels(width, height, options);
-      const hasAlpha = space.endsWith("a"), channels = space.startsWith("gray") ? (hasAlpha ? 2 : 1) : (hasAlpha ? 4 : 3);
-      metadata = { format: "txt", width, height, channels, hasAlpha, space: channels < 3 ? "b-w" : "srgb", depth: maximum > 255 ? "ushort" : "uchar", density: 72, size, ...(space === "rgb" || space === "rgba" ? { magickColorspace: "RGB", gamma: 1 } : {}) };
+      const linearGray = space.startsWith("lineargray");
+      const hasAlpha = space.endsWith("a"), channels = space.startsWith("gray") || linearGray ? (hasAlpha ? 2 : 1) : (hasAlpha ? 4 : 3);
+      metadata = { format: "txt", width, height, channels, hasAlpha, space: channels < 3 ? "b-w" : "srgb", depth: maximum > 255 ? "ushort" : "uchar", density: 72, size, ...(space === "rgb" || space === "rgba" ? { magickColorspace: "RGB", gamma: 1 } : {}), ...(linearGray ? { gamma: 1 } : {}) };
       pixels = 0;
       if (++index === page) { selected = metadata; yield { kind: "header", metadata }; }
       continue;

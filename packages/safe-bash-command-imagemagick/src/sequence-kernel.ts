@@ -94,8 +94,9 @@ export function* clutPixelSteps(size: number, lut: Pick<RgbaImage, "width" | "he
         yield;
         const bytes = (yield { kind: "read", highDepth, position, length: Math.min(2048, size - position) })!;
         const data = Float64Array.from(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
-        const hue = sourceCmyk ? yield { kind: "read", hue: true, position, length: data.length } : undefined;
-        const inks = hue?.length ? new Float64Array(hue.slice().buffer) : sourceCmyk ? new Float64Array(data.length) : undefined;
+        const hue = yield { kind: "read", hue: true, position, length: data.length };
+        const inks = sourceCmyk ? hue?.length ? new Float64Array(hue.slice().buffer) : new Float64Array(data.length) : undefined;
+        const colorSamples = !sourceCmyk && hue?.length ? new Float64Array(hue.slice().buffer) : undefined;
         for (let offset = 0; offset < data.length; offset += 4) {
             if (offset % 256 === 0) yield;
             if (inks && !hue?.length) inks.set(rgbToCmyk(data[offset]! / range, data[offset + 1]! / range, data[offset + 2]! / range), offset);
@@ -114,6 +115,11 @@ export function* clutPixelSteps(size: number, lut: Pick<RgbaImage, "width" | "he
         if (inks) yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
         // Interpolation produces fractional Q16-HDRI samples even from byte inputs.
         const working = data.map(value => Math.fround(value * (highDepth ? 1 : 257)) / 257);
+        // Color conversion and expressions read this plane before the integer backing.
+        if (colorSamples) {
+            for (let index = 0; index < data.length; index++) if (mask[index % 4]) colorSamples[index] = working[index]! / 255;
+            yield { kind: "write", hue: true, position, data: new Uint8Array(colorSamples.buffer) };
+        }
         yield { kind: "write", evaluate: true, position, data: new Uint8Array(working.buffer) };
         const rounded = data.map(value => Math.max(0, Math.min(highDepth ? 65535 : 255, Math.round(value))));
         const pixels = highDepth ? Uint16Array.from(rounded) : Uint8Array.from(rounded);

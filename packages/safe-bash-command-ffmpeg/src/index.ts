@@ -14251,10 +14251,26 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "asubcut" || trimmed.startsWith("asubcut=")) {
                         stretched = await cutSubAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
                       } else if (filterName === "highpass" || filterName === "lowpass") {
+                        if (!audioTimestamps) {
+                          audioTimestamps = [];
+                          const length = stretched[0]?.length ?? 0;
+                          for (let start = 0, n = 0; start < length; n++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const packet = t.samples[n];
+                            const count = packet ? Math.max(0, Math.round(packet.duration * origRate / t.timescale)
+                              - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+                            if (count === 0) continue;
+                            const end = Math.min(length, start + count);
+                            const pts = packet ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start;
+                            budget.allocateMemory(32);
+                            audioTimestamps.push({ start, end, pts, pos: packet?.offset });
+                            start = end;
+                          }
+                        }
                         const mask = filteredChannelMask ?? [0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][stretched.length] ?? 0;
                         const names = filteredChannelNames ?? Object.keys(audioSpeakerMasks)
                           .filter(name => Math.floor(mask / audioSpeakerMasks[name]!) % 2 === 1);
-                        const filtered = await passAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal, names);
+                        const filtered = await passAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal, names, audioTimestamps);
                         stretched = filtered.channels;
                         filteredSampleFormat = filtered.sampleFormat;
                         panSampleFormat = filteredSampleFormat;

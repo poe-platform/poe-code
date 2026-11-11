@@ -5,10 +5,12 @@ import { audioSpeakerMasks, parseAudioChannelLayout } from "./audio-channel-layo
 
 export async function passAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  sampleFormat: string, budget: MediaBudgetTracker, signal?: AbortSignal, channelNames?: readonly string[]
+  sampleFormat: string, budget: MediaBudgetTracker, signal?: AbortSignal, channelNames?: readonly string[],
+  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[] = [{ start: 0, end: channels[0]?.length ?? 0, pts: 0 }]
 ): Promise<{ channels: (Float32Array | Float64Array)[]; sampleFormat: string }> {
   const name = filter.split("=", 1)[0]!.split("@", 1)[0]!;
   const lowpass = name === "lowpass";
+  let enable: string | undefined;
   let precision = -1;
   let selected: string[] | undefined;
   const options = { frequency: lowpass ? 500 : 3000, poles: 2, mix: 1, width: 0.707, width_type: 3, blocksize: 0 };
@@ -22,6 +24,14 @@ export async function passAudio(
     const separator = option.indexOf("=");
     const optionName = separator < 0 && index === 0 ? "frequency" : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (optionName === "enable") {
+      enable = value;
+      // Validate without advancing the per-filter expression state.
+      parseFilterExpression(enable, `${name} enable`, {
+        n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2
+      }, undefined, new Float64Array(10));
+      continue;
+    }
     if (optionName === "precision" || optionName === "r") {
       const number = parseFilterExpression(value, name, { auto: -1, s16: 0, s32: 1, f32: 2, f64: 3 });
       if (!value || !Number.isFinite(number) || number < -1 || number > 3) throw new Error(`${name}: invalid precision`);
@@ -117,6 +127,28 @@ export async function passAudio(
   budget.allocateMemory(blocksize * 2 * 8);
   const block = new Float64Array(blocksize * 2);
   let work = 0;
+  let enabledFrames: Uint8Array | undefined;
+  if (enable !== undefined) {
+    const count = blocksize ? Math.ceil((channels[0]?.length ?? 0) / blocksize) : frames.length;
+    budget.allocateMemory(count + 80);
+    enabledFrames = new Uint8Array(count);
+    const registers = new Float64Array(10);
+    const randomStates: BigUint64Array[] = [];
+    let frameIndex = 0;
+    for (let n = 0; n < count; n++) {
+      if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+      const start = blocksize ? n * blocksize : frames[n]!.start;
+      while (frameIndex + 1 < frames.length && frames[frameIndex]!.end <= start) frameIndex++;
+      const frame = frames[frameIndex]!;
+      const variables = {
+        n, t: (frame.pts + start - frame.start) / sampleRate,
+        pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN,
+        w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2
+      };
+      // Biquads evaluate their internal timeline once per consumed frame.
+      enabledFrames[n] = Number(Math.abs(parseFilterExpression(enable, `${name} enable`, variables, undefined, registers, randomStates)) >= 0.5);
+    }
+  }
   for (const [index, channel] of channels.entries()) {
     if (selected && !selected.includes(channelNames[index] ?? "")) {
       output.push(channel);
@@ -128,20 +160,26 @@ export async function passAudio(
     if (blocksize) {
       block.fill(0);
       for (let offset = 0; offset < channel.length; offset += blocksize) {
-        // Keep the previous forward-filtered block and append one block of lookahead.
-        // Only the forward history persists; each reverse pass starts at rest.
-        for (let i = 0; i < blocksize; i++) {
+        const enabled = enabledFrames === undefined || enabledFrames[offset / blocksize] === 1;
+        // Refilter the previous block and lookahead with the current timeline state.
+        // Only the previous block's forward history persists between calls.
+        let savedX1 = x1, savedX2 = x2, savedY1 = y1, savedY2 = y2;
+        for (let i = 0; i < block.length; i++) {
           if (++work % 1024 === 0) {
             await yieldTurn(signal);
             signal?.throwIfAborted();
             budget.checkCpu();
           }
-          const input = channel[offset + i] ?? 0;
+          const input = channel[offset - blocksize + i] ?? 0;
           const filtered = filterSample(input, x1, x2, y1, y2);
           x2 = x1; x1 = input;
           y2 = y1; y1 = filtered;
-          block[blocksize + i] = mixSample(filtered, input);
+          block[i] = enabled ? mixSample(filtered, input) : input;
+          if (i === blocksize - 1) {
+            savedX1 = x1; savedX2 = x2; savedY1 = y1; savedY2 = y2;
+          }
         }
+        x1 = savedX1; x2 = savedX2; y1 = savedY1; y2 = savedY2;
         let rx1 = 0, rx2 = 0, ry1 = 0, ry2 = 0;
         const last = offset + blocksize >= channel.length;
         for (let i = block.length - 1; i >= 0; i--) {
@@ -157,10 +195,9 @@ export async function passAudio(
           const position = offset - blocksize + i;
           // At EOF FFmpeg emits the cached second half without another pass.
           if ((i < blocksize || last) && position >= 0 && position < channel.length) {
-            samples[position] = mixSample(filtered, input);
+            samples[position] = enabled ? mixSample(filtered, input) : input;
           }
         }
-        block.copyWithin(0, blocksize);
       }
       output.push(samples);
       continue;
@@ -178,6 +215,16 @@ export async function passAudio(
       samples[i] = mixSample(filtered, input);
     }
     output.push(samples);
+  }
+  if (enabledFrames && !blocksize) {
+    for (const [n, frame] of frames.entries()) {
+      if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+      if (enabledFrames[n]) continue;
+      // Biquads keep updating their history while disabled, returning the input.
+      for (const [c, channel] of channels.entries()) {
+        output[c]!.set(channel.subarray(frame.start, frame.end), frame.start);
+      }
+    }
   }
   return { channels: output, sampleFormat };
 }

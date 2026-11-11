@@ -4,7 +4,8 @@ import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
 export function parseLocalContrastGeometry(raw: string): { radius: number; strength: number } {
-    const parts = raw.replaceAll("%", "").split("x");
+    const parts = raw.replaceAll("%", "").replaceAll("(", "").replaceAll(")", "")
+        .replaceAll(",", "x").replaceAll("/", "x").split("x");
     const radius = parts[0] ? Number(parts[0]) : 10;
     const strength = parts[1] ? Number(parts[1]) : 12.5;
     if (parts.length > 2 || !parts.some(part => part.trim().length) || ![radius, strength].every(Number.isFinite)) throw new Error("Invalid local contrast geometry");

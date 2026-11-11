@@ -11,9 +11,11 @@ export function* enhancePixelSteps(image: Pick<RgbaImage, "width" | "height" | "
     const hasAlpha = image.hasAlpha || image.inactiveAlpha === true && image.alphaBlend !== false;
     const hue = !!image.hueSamples || image.storedHueSamples !== undefined, cmyk = image.space === "cmyk";
     const weights = [5, 8, 10, 8, 5, 8, 20, 40, 20, 8, 10, 40, 80, 40, 10, 8, 20, 40, 20, 8, 5, 8, 10, 8, 5];
-    const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
+    // Native gray is half the quantum range, not the 8-bit color #808080.
+    const gray = method === "white" ? 255 : method === "gray" ? 127.5 : 0;
     const fill = (method === "background" || method.endsWith("-tile") ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255]).map(value => value * 257);
-    fill.push(0);
+    // Constant virtual pixels use the same quantum for CMYK black ink.
+    fill.push(cmyk ? gray * 257 : 0);
     // Four Float64 samples per pixel must fit the 16 KiB storage read limit.
     const blocks = new Map<number, Float64Array>();
     function* sample(x: number, y: number): Generator<ConvolveRequest, ArrayLike<number>, Uint8Array | undefined> {

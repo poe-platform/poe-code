@@ -17567,7 +17567,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         if (stretched.length !== 2) throw new Error("extrastereo: stereo input required");
                         if (!filteredChannelMask && filteredChannelNames?.some(name => name !== "") ||
-                            filteredChannelMask && filteredChannelMask !== 3 && filteredChannelMask !== 12) {
+                            filteredChannelMask && ![3, 12, 0x60000000].includes(filteredChannelMask)) {
                           throw new Error("extrastereo: unsupported input channel layout");
                         }
                         const commands = audioCommands.filter(command => command.target === "extrastereo" || command.target === filterTarget)

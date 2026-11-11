@@ -52,7 +52,11 @@ for (const mask of [0x30, 5]) for (const mode of ["mono", "stereo", "surround", 
       } else {
         assert.notEqual(result.exitCode, 0, stderr);
         assert.match(stderr, /unsupported.*channel layout/i);
-        if (existing) assert.equal(volume.readFileSync("/out.wav", "utf8"), "existing");
+        if (mode === "extrastereo" || mode === "graph") {
+          // Native FFmpeg opens the output before stereo negotiation fails.
+          assert.equal(result.exitCode, 234);
+          assert.equal(volume.readFileSync("/out.wav").length, 0);
+        } else if (existing) assert.equal(volume.readFileSync("/out.wav", "utf8"), "existing");
         else assert.equal(volume.existsSync("/out.wav"), false);
       }
     });

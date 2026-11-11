@@ -81,6 +81,7 @@ export interface RgbaImage {
   readonly palmPages?: readonly RgbaImage[];
   readonly miffPages?: readonly RgbaImage[];
   readonly icoPages?: readonly RgbaImage[];
+  readonly psdLayers?: readonly RgbaImage[];
   readonly tiffPages?: readonly RgbaImage[];
   readonly pngPalette?: { readonly bytes: Uint8Array; readonly depth: number; readonly transparency?: Uint8Array };
   readonly pngIndices?: Uint8Array;

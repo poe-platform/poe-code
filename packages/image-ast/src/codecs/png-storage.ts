@@ -20,7 +20,7 @@ export interface ImageByteStorage extends Pick<ImageByteSource, "read"> {
   allocate(length: number): number;
   write(position: number, bytes: Uint8Array, options?: {readonly signal?: AbortSignal}): Promise<void>;
 }
-export interface StoredRgbaImage extends Omit<RgbaImage, "metaChannels" | "evaluateSamples" | "hueSamples" | "data" | "data16" | "dataFloat" | "pngIndices" | "netpbmPages" | "palmPages" | "miffPages" | "tiffPages" | "icoPages"> {
+export interface StoredRgbaImage extends Omit<RgbaImage, "metaChannels" | "evaluateSamples" | "hueSamples" | "data" | "data16" | "dataFloat" | "pngIndices" | "netpbmPages" | "palmPages" | "miffPages" | "tiffPages" | "icoPages" | "psdLayers"> {
   storedMetaChannels?: StoredRgbaImage[] | undefined;
   readonly storedHueSamples?: number;
   storedEvaluateSamples?: number | undefined;
@@ -28,6 +28,7 @@ export interface StoredRgbaImage extends Omit<RgbaImage, "metaChannels" | "evalu
   readonly storedPalmPages?: { readonly length: number; at(index: number): Promise<StoredRgbaImage> };
   readonly storedMiffPages?: { readonly length: number; at(index: number): Promise<StoredRgbaImage> };
   readonly storedIcoPages?: { readonly length: number; at(index: number): Promise<StoredRgbaImage> };
+  readonly storedPsdLayers?: { readonly length: number; at(index: number): Promise<StoredRgbaImage> };
   readonly storedTiffPages?: { readonly length: number; at(index: number): Promise<StoredRgbaImage> };
   readonly storedPngIndices?: { readonly position: number; readonly width: number; readonly height: number };
   readonly position: number;

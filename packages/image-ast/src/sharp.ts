@@ -265,6 +265,8 @@ function toBytes(input: Uint8Array | ArrayBuffer | ArrayBufferView | string | un
 function inferFormatFromPath(fileOut: string): ImageFormat | undefined {
   const ext = extname(fileOut).toLowerCase().slice(1);
   switch (ext) {
+    case "psb":
+      return "psb";
     case "fits":
     case "fts":
       return "fits";
@@ -2398,6 +2400,7 @@ export class SharpInstance extends Duplex {
           ? "tiff"
           : (lower as ImageFormat);
     const validFormats = [
+      "psb",
       "fits",
       "sixel",
       "palm",

@@ -13612,7 +13612,39 @@ function storeMagickOutput(files: Map<string, Uint8Array>, path: string, bytes: 
     } else files.set(path, bytes);
 }
 
+function* benchmarkConvert(argv: readonly string[]): Generator<readonly string[], ImageMagickCliResult, ImageMagickCliResult> {
+    const count = Number(argv[1]);
+    if (!Number.isSafeInteger(count) || count <= 0) {
+        return { exitCode: 1, stdout: "", stderr: `magick: invalid argument for option '-bench': ${argv[1] ?? ""}\n` };
+    }
+    const started = performance.now();
+    const analysis = createConvertAnalysis();
+    let result: ImageMagickCliResult = { exitCode: 0, stdout: "", stderr: "" };
+    let iterations = 0;
+    const args = argv.slice(2);
+    while (iterations < count) {
+        result = yield args;
+        iterations++;
+        analysis.text += result.stdout;
+        analysis.warnings += result.stderr;
+        if (result.stdoutBytes) analysis.bytes.push(result.stdoutBytes);
+        if (result.exitCode !== 0) break;
+    }
+    const seconds = Math.max((performance.now() - started) / 1000, Number.EPSILON);
+    return combineConvertOutput({ exitCode: result.exitCode, stdout: "", stderr: `  Performance[1]: ${iterations}i ${(iterations / seconds).toFixed(3)}ips ${seconds.toFixed(6)}s\n` }, analysis);
+}
+
 function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+    if (argv[0] === "-bench") {
+        const benchmark = benchmarkConvert(argv);
+        let next = benchmark.next();
+        while (!next.done) {
+            signal?.throwIfAborted();
+            yield;
+            next = benchmark.next(yield* runConvertCliSteps(next.value, files, stdinBytes, signal));
+        }
+        return next.value;
+    }
     const analysis = createConvertAnalysis();
     const result = yield* runConvertCliResultSteps(argv, files, stdinBytes, signal, analysis);
     return combineConvertOutput(result, analysis);
@@ -17096,6 +17128,19 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
 export async function runConvertCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
     if (files instanceof Map) return drainSteps(runConvertCliSteps(argv, files, stdinBytes, signal), signal);
     const active = signal ?? new AbortController().signal;
+    if (argv[0] === "-bench") {
+        const benchmark = benchmarkConvert(argv);
+        let next = benchmark.next();
+        while (!next.done) {
+            await yieldTurn(active);
+            next = benchmark.next(await runConvertCli(next.value, files, stdinBytes, active));
+        }
+        if (files.stderr && next.value.stderr) {
+            await writeIdentifyText(files.stderr, next.value.stderr, active);
+            return { ...next.value, stderr: "" };
+        }
+        return next.value;
+    }
     const retained = await tryConvertFiles(argv, files, stdinBytes, active);
     if (!retained) return runBufferedImageFiles(argv, files, runConvertCli, stdinBytes, active);
     if (files.stderr && retained.stderr) { await writeIdentifyText(files.stderr, retained.stderr, active); return { ...retained, stderr: "" }; }

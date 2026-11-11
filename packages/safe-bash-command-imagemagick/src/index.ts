@@ -11735,13 +11735,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         const delay = (prior.delay?.[(prior as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0) +
                             (current.delay?.[(current as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0);
                         const survivor = optimizePlus ? prior : current;
-                        // RemoveDuplicateLayers uses the preceding rate for the count, then resets the rate to 100.
-                        const ticksPerSecond = optimizePlus ? (survivor as MagickImage)[magickInput]?.ticksPerSecond ?? 100 : 100;
-                        const delayTicks = optimizePlus ? Math.round(delay * ticksPerSecond / 1000)
+                        // Merged pauses use centiseconds; RemoveDuplicateLayers first counts at the preceding rate.
+                        const ticksPerSecond = 100;
+                        const delayTicks = optimizePlus ? Math.floor(delay / 10)
                             : Math.floor(delay * ((prior as MagickImage)[magickInput]?.ticksPerSecond ?? prior.ticksPerSecond ?? 100) / 1000);
                         frames[frames.length - 1] = { ...survivor, ticksPerSecond, delayTicks,
                             [magickInput]: { ...(survivor as MagickImage)[magickInput], ticksPerSecond, delayTicks },
-                            delay: Array(survivor.delay?.length ?? 1).fill(optimizePlus ? delay : delayTicks * 10) };
+                            delay: Array(survivor.delay?.length ?? 1).fill(delayTicks * 10) };
                     }
                 } else if (next.value) {
                     const crop = { ...next.value, left: next.value.left - (current.virtualCanvas?.x ?? 0), top: next.value.top - (current.virtualCanvas?.y ?? 0) };
@@ -15108,14 +15108,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             const delay = (await prior.storedDelay?.at(priorScene, { signal }) ?? prior.delay?.[priorScene] ?? 0) +
                                 (await current.storedDelay?.at(scene, { signal }) ?? current.delay?.[scene] ?? 0);
                             const survivor = optimizePlus ? prior : current;
-                            // RemoveDuplicateLayers uses the preceding rate for the count, then resets the rate to 100.
-                            const ticksPerSecond = optimizePlus ? survivor[magickInput]?.ticksPerSecond ?? 100 : 100;
-                            const delayTicks = optimizePlus ? Math.round(delay * ticksPerSecond / 1000)
+                            // Merged pauses use centiseconds; RemoveDuplicateLayers first counts at the preceding rate.
+                            const ticksPerSecond = 100;
+                            const delayTicks = optimizePlus ? Math.floor(delay / 10)
                                 : Math.floor(delay * (prior[magickInput]?.ticksPerSecond ?? prior.ticksPerSecond ?? 100) / 1000);
                             await frames.set(frames.length - 1, { ...survivor, ticksPerSecond, delayTicks,
                                 [magickInput]: { ...survivor[magickInput], ticksPerSecond, delayTicks }, storedDelay: {
                                     length: survivor.storedDelay?.length ?? survivor.delay?.length ?? 1,
-                                    async at() { return optimizePlus ? delay : delayTicks * 10; },
+                                    async at() { return delayTicks * 10; },
                                 } });
                         }
                     } else if (next.value) {

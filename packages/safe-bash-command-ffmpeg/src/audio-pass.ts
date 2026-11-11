@@ -10,15 +10,17 @@ export async function passAudio(
 ): Promise<{ channels: (Float32Array | Float64Array)[]; sampleFormat: string }> {
   const name = filter.split("=", 1)[0]!.split("@", 1)[0]!;
   const lowpass = name === "lowpass";
+  const shelf = name === "treble" || name === "highshelf";
   let enable: string | undefined;
   let precision = -1;
   let selected: string[] | undefined;
-  const options = { frequency: lowpass ? 500 : 3000, poles: 2, mix: 1, width: 0.707, width_type: 3, blocksize: 0 };
+  const options = { frequency: lowpass ? 500 : 3000, poles: 2, mix: 1, width: shelf ? 0.5 : 0.707, width_type: 3, blocksize: 0, gain: 0 };
   const aliases: Record<string, keyof typeof options> = {
     frequency: "frequency", f: "frequency", poles: "poles", p: "poles", mix: "mix", m: "mix",
     width: "width", w: "width", width_type: "width_type", t: "width_type",
     blocksize: "blocksize", b: "blocksize"
   };
+  if (shelf) { aliases.gain = "gain"; aliases.g = "gain"; }
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
@@ -51,6 +53,7 @@ export async function passAudio(
     const number = key === "width_type" && Object.hasOwn(widthTypes, value) ? widthTypes[value]! : Number(value);
     if (!value || !Number.isFinite(number)
       || key === "frequency" && (number < 0 || number > 999999)
+      || key === "gain" && (number < -900 || number > 900)
       || key === "poles" && number !== 1 && number !== 2
       || key === "width" && (number < 0 || number > 99999)
       || key === "blocksize" && (number < 0 || number > 32768)
@@ -62,10 +65,10 @@ export async function passAudio(
   const inputFormat = sampleFormat;
   if (precision !== -1) sampleFormat = ["s16p", "s32p", "fltp", "dblp"][precision]!;
   else if (!sampleFormat.endsWith("p")) sampleFormat += "p";
-  const single = sampleFormat === "fltp";
+  const single = sampleFormat === "fltp" || shelf && sampleFormat === "s16p";
   const scale = sampleFormat === "s16p" ? 32768 : sampleFormat === "s32p" ? 2147483648 : 1;
   const convert = (value: number) => {
-    if (single) return Math.fround(value);
+    if (sampleFormat === "fltp") return Math.fround(value);
     if (scale === 1) return value;
     const scaled = value * scale;
     const rounded = scaled % 1 === 0.5 || scaled % 1 === -0.5 ? 2 * Math.round(scaled / 2) : Math.round(scaled);
@@ -89,28 +92,64 @@ export async function passAudio(
   budget.checkCpu();
   // Native FFmpeg bypasses an out-of-band cutoff when configuring the filter.
   if (options.mix === 0 || options.width === 0 || options.frequency === 0 || options.frequency > sampleRate / 2) return { channels: [...channels], sampleFormat };
+  if (shelf && options.gain === 0) return { channels: [...channels], sampleFormat };
   const angle = 2 * Math.PI * options.frequency / sampleRate;
   const sine = Math.sin(angle);
+  const amplitude = Math.pow(10, options.gain / 40);
   let alpha = sine / (2 * options.width);
   switch (options.width_type) {
     case 1: alpha = sine * options.width / (2 * options.frequency); break;
     case 2: alpha = sine * Math.sinh(Math.LN2 / 2 * options.width * angle / sine); break;
-    case 4: alpha = sine / 2 * Math.sqrt(2 / options.width); break;
+    case 4: alpha = sine / 2 * Math.sqrt(shelf
+      ? (amplitude + 1 / amplitude) * (1 / options.width - 1) + 2 : 2 / options.width); break;
     case 5: alpha = sine * options.width * 1000 / (2 * options.frequency); break;
   }
-  const a0 = options.poles === 1 ? 1 : 1 + alpha;
-  let a1 = options.poles === 1 ? -Math.exp(-angle) : -2 * Math.cos(angle) / a0;
-  let a2 = options.poles === 1 ? 0 : (1 - alpha) / a0;
-  let b0 = options.poles === 1
-    ? lowpass ? 1 + a1 : (1 - a1) / 2
-    : (1 + (lowpass ? -Math.cos(angle) : Math.cos(angle))) / (2 * a0);
-  let b1 = options.poles === 1 ? lowpass ? 0 : -b0 : (lowpass ? 2 : -2) * b0;
-  let b2 = options.poles === 1 ? 0 : b0;
+  let a1, a2, b0, b1, b2;
+  if (shelf) {
+    const cosine = Math.cos(angle);
+    // FFmpeg's legacy treble response uses a different beta from highshelf.
+    const beta = name === "treble"
+      ? Math.sqrt((amplitude * amplitude + 1) - (amplitude - 1) * (amplitude - 1))
+      : 2 * Math.sqrt(amplitude);
+    let denominator;
+    if (options.poles === 1) {
+      const gain = Math.pow(10, options.gain / 20);
+      const ro = Math.sin(angle / 2 - Math.PI / 4) / Math.sin(angle / 2 + Math.PI / 4);
+      const n = (gain + 1) / (gain - 1);
+      const alpha1 = gain === 1 ? 0 : n - Math.sign(n) * Math.sqrt(n * n - 1);
+      const beta0 = ((1 + gain) + (1 - gain) * alpha1) * 0.5;
+      const beta1 = ((1 - gain) + (1 + gain) * alpha1) * 0.5;
+      denominator = 1 + ro * alpha1;
+      a1 = ro + alpha1;
+      a2 = 0;
+      b0 = beta0 + ro * beta1;
+      b1 = beta1 + ro * beta0;
+      b2 = 0;
+    } else {
+      denominator = (amplitude + 1) - (amplitude - 1) * cosine + beta * alpha;
+      a1 = 2 * ((amplitude - 1) - (amplitude + 1) * cosine);
+      a2 = (amplitude + 1) - (amplitude - 1) * cosine - beta * alpha;
+      b0 = amplitude * ((amplitude + 1) + (amplitude - 1) * cosine + beta * alpha);
+      b1 = -2 * amplitude * ((amplitude - 1) + (amplitude + 1) * cosine);
+      b2 = amplitude * ((amplitude + 1) + (amplitude - 1) * cosine - beta * alpha);
+    }
+    a1 /= denominator; a2 /= denominator;
+    b0 /= denominator; b1 /= denominator; b2 /= denominator;
+  } else {
+    const a0 = options.poles === 1 ? 1 : 1 + alpha;
+    a1 = options.poles === 1 ? -Math.exp(-angle) : -2 * Math.cos(angle) / a0;
+    a2 = options.poles === 1 ? 0 : (1 - alpha) / a0;
+    b0 = options.poles === 1
+      ? lowpass ? 1 + a1 : (1 - a1) / 2
+      : (1 + (lowpass ? -Math.cos(angle) : Math.cos(angle))) / (2 * a0);
+    b1 = options.poles === 1 ? lowpass ? 0 : -b0 : (lowpass ? 2 : -2) * b0;
+    b2 = options.poles === 1 ? 0 : b0;
+  }
   if (single) {
     a1 = Math.fround(a1); a2 = Math.fround(a2);
     b0 = Math.fround(b0); b1 = Math.fround(b1); b2 = Math.fround(b2);
   }
-  // Native direct-form I rounds each float operation; integer modes keep double feedback.
+  // Native shelf PCM16 and float modes round every operation to single precision.
   const wet = single ? Math.fround(options.mix) : options.mix;
   const dry = single ? Math.fround(1 - wet) : 1 - wet;
   const filterSample = (input: number, x1: number, x2: number, y1: number, y2: number) => single

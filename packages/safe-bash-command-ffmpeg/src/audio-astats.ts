@@ -1,5 +1,35 @@
 import type { MediaAudioData, MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
+
+// Bit positions from FFmpeg's af_astats.c (the order is part of the option format).
+const measurementFlags: Record<string, number> = Object.fromEntries([
+  "DC_offset", "Min_level", "Max_level", "Min_difference", "Max_difference",
+  "Mean_difference", "RMS_difference", "Peak_level", "RMS_level", "RMS_peak",
+  "RMS_trough", "Crest_factor", "Flat_factor", "Peak_count", "Bit_depth",
+  "Dynamic_range", "Zero_crossings", "Zero_crossings_rate", "Number_of_samples",
+  "Number_of_NaNs", "Number_of_Infs", "Number_of_denormals", "Noise_floor",
+  "Noise_floor_count", "Entropy", "Abs_Peak_count"
+].map((name, bit) => [name, 2 ** bit]));
+
+export function parseAstatsMeasurements(value: string, current = 0xffffffff): number {
+  let mask = current;
+  let position = 0;
+  for (;;) {
+    const operation = value[position];
+    if (operation === "+" || operation === "-") position++;
+    const start = position;
+    while (position < value.length && value[position] !== "+" && value[position] !== "-") position++;
+    const bits = parseFilterExpression(value.slice(start, position), "astats", {
+      ...measurementFlags, none: 0, all: 0xffffffff, default: 0xffffffff, min: 0, max: 0xffffffff
+    });
+    if (!Number.isInteger(bits) || bits < 0 || bits > 0xffffffff) {
+      throw new RangeError("astats: invalid measurement mask");
+    }
+    mask = operation === "+" ? mask | bits : operation === "-" ? mask & ~bits : bits;
+    if (position === value.length) return mask >>> 0;
+  }
+}
 
 function fixed(value: number): string {
   return Number.isNaN(value) ? "nan" : value === -Infinity ? "-inf" : value === Infinity ? "inf" : value.toFixed(6);
@@ -24,12 +54,12 @@ function bitDepth(masks: number[], bits: number): number[] {
   return counts;
 }
 
-function measurements(title: string, fields: [string, string | number][], mask?: ReadonlySet<string>): string {
-  if (mask?.size === 0) return "";
+function measurements(title: string, fields: [string, string | number][], mask?: number): string {
+  if (mask === 0) return "";
   let report = `${title}\n`;
   for (const [name, value] of fields) {
     const key = (name.endsWith(" dB") ? name.slice(0, -3) : name).replaceAll(" ", "_");
-    if (!mask || mask.has(key)) report += `${name}: ${value}\n`;
+    if (mask === undefined || (mask & measurementFlags[key]!) !== 0) report += `${name}: ${value}\n`;
   }
   return report;
 }
@@ -39,7 +69,7 @@ function measurements(title: string, fields: [string, string | number][], mask?:
 export async function measureAstats(
   channels: MediaAudioData["channelData"], sampleRate: number, scale: number, length: number,
   budget: MediaBudgetTracker, signal?: AbortSignal,
-  perChannel?: ReadonlySet<string>, overall?: ReadonlySet<string>,
+  perChannel?: number, overall?: number,
   metadata?: { end: number; tags: Map<string, string> }[]
 ): Promise<string> {
   const window = Math.max(1, Math.floor(sampleRate * length + 0.5));
@@ -50,9 +80,10 @@ export async function measureAstats(
   const histogram = new Float64Array(8192);
   const samples = new Float64Array(window);
   const peaks = new Float64Array(window);
-  const setMetadata = (tags: Map<string, string>, section: string, values: Record<string, string | number>, mask?: ReadonlySet<string>) => {
+  const setMetadata = (tags: Map<string, string>, section: string, values: Record<string, string | number>, mask?: number) => {
     for (const [name, value] of Object.entries(values)) {
-      if (mask && !mask.has(name)) continue;
+      const flag = measurementFlags[name.startsWith("Bit_depth") ? "Bit_depth" : name]!;
+      if (mask !== undefined && (mask & flag) === 0) continue;
       const key = `lavfi.astats.${section}.${name}`;
       const formatted = typeof value === "number" ? fixed(value) : value;
       budget.allocateMemory(64 + 2 * (key.length + formatted.length));
@@ -205,8 +236,7 @@ export async function measureAstats(
           ["Peak count", minCount + maxCount], ["Abs Peak count", absPeakCount],
           ["Noise floor dB", db(noise)], ["Noise floor count", noiseCount],
           ["Entropy", fixed(entropy)], ["Bit depth", bitDepth(masks, bits).join("/")], ["Dynamic range", db(2 * peak / minNonzero)],
-          ["Zero crossings", crossings], ["Zero crossings rate", fixed(crossings / channel.length)],
-          ...(perChannel?.has("Number_of_samples") ? [["Number of samples", channel.length]] as [string, number][] : [])
+          ["Zero crossings", crossings], ["Zero crossings rate", fixed(crossings / channel.length)]
         ], perChannel);
       }
       total.count += length;

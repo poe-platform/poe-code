@@ -9,7 +9,7 @@ import { surroundAudio } from "./audio-surround.js";
 import { denoiseWavelets } from "./audio-afwtdn.js";
 import { ripemd128, ripemd256, ripemd320 } from "./ripemd.js";
 import { parseTee, selectTeeTracks } from "./tee.js";
-import { measureAstats } from "./audio-astats.js";
+import { measureAstats, parseAstatsMeasurements } from "./audio-astats.js";
 import { measureReplayGain } from "./audio-replaygain.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { autoConvertConcatTrack } from "./concat-auto-convert.js";
@@ -12800,9 +12800,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
                         }
                       } else if (trimmed === "astats" || trimmed.startsWith("astats=")) {
-                        let perChannel: ReadonlySet<string> | undefined;
-                        let overall: ReadonlySet<string> | undefined;
-                        const supported = ["DC_offset", "Min_level", "Max_level", "Peak_level", "RMS_level", "RMS_peak", "Peak_count", "Zero_crossings", "Number_of_samples"];
+                        let perChannel: number | undefined;
+                        let overall: number | undefined;
                         let reset = 0;
                         let metadata = false;
                         let rmsLength = 0.05;
@@ -12816,12 +12815,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const extra = parts[2];
                             if (extra !== undefined) throw new Error(`astats: invalid option ${option}`);
                             if ((key === "measure_perchannel" || key === "measure_overall") && value !== undefined && extra === undefined) {
-                              const metrics = value === "none" ? [] : value.split("+");
-                              if (metrics.some(metric => !supported.includes(metric))) {
-                                throw new Error(`astats: invalid measurement ${value}`);
-                              }
-                              if (key === "measure_perchannel") perChannel = new Set(metrics);
-                              else overall = new Set(metrics);
+                              if (key === "measure_perchannel") perChannel = parseAstatsMeasurements(value, perChannel);
+                              else overall = parseAstatsMeasurements(value, overall);
                             } else if (key === "thread_type" && extra === undefined) {
                               // Scheduling flags do not affect PCM; validate each set/clear operand.
                               const flags = value.trim();

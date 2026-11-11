@@ -66,6 +66,8 @@ export function* blurPixelSteps(image: Pick<RgbaImage, "space" | "hueSamples"> &
     }
     const region = !gaussian ? image.region : undefined;
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a, ...(cmyk ? [channels.k] : [])] : undefined;
+    // Gray has one logical color channel, stored in all three RGB components.
+    if (unsharp && mask && (image.space === "b-w" || image.space === "grey16")) mask[1] = mask[2] = mask[0];
     let half = 0;
     if (sigma > 0) {
         if (radius > 0) half = radius >= 1 ? Math.floor(radius) : Math.ceil(radius);

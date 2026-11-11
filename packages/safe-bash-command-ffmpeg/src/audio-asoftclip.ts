@@ -43,9 +43,11 @@ export async function softClipAudio(
     let clipped: number;
     switch (type) {
       case "hard": clipped = Math.max(-1, Math.min(1, sample)); break;
-      case "atan": clipped = 2 / Math.PI * Math.atan(sample * options.param); break;
+      // FFmpeg rounds atanf's input and result before the double-precision scale.
+      case "atan": clipped = 2 / Math.PI * round(Math.atan(round(sample * param))); break;
       case "cubic": clipped = Math.abs(sample) >= 1.5 ? Math.sign(sample) : sample - 0.1481 * sample ** 3; break;
-      case "exp": clipped = 2 / (1 + Math.exp(-2 * sample)) - 1; break;
+      // Match expf and the float arithmetic before PCM encoding.
+      case "exp": clipped = round(2 / round(1 + round(Math.exp(round(-2 * sample))))) - 1; break;
       case "alg": clipped = sample / Math.sqrt(options.param + sample * sample); break;
       case "quintic": clipped = Math.abs(sample) >= 1.25 ? Math.sign(sample) : sample - 0.08192 * sample ** 5; break;
       case "sin": clipped = Math.abs(sample) >= Math.PI / 2 ? Math.sign(sample) : Math.sin(sample); break;

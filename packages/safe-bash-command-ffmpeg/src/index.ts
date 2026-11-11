@@ -6457,10 +6457,12 @@ async function applyVideoFilterChain(
           !Number.isFinite(radiusOption) || radiusOption < 4 || radiusOption > 32) {
         throw new RangeError("gradfun: strength must be 0.51..64 and radius must be 4..32");
       }
-      if (pixelFormat !== "gray" && pixelFormat !== "gray8") throw new Error("gradfun: only 8-bit grayscale video is supported");
+      const yuvFormat = pixelFormat === "yuv420p" || pixelFormat === "yuv422p" || pixelFormat === "yuv444p" ? pixelFormat : undefined;
+      if (!yuvFormat && pixelFormat !== "gray" && pixelFormat !== "gray8") {
+        throw new Error("gradfun: only 8-bit grayscale and planar YUV video is supported");
+      }
       const radius = (roundToEven(radiusOption) + 1) & ~1;
       const threshold = Math.trunc(32768 / strength);
-      const factor = Math.trunc(2097152 / (radius * radius));
       const dither = [
         [0, 96, 24, 120, 6, 102, 30, 126], [64, 32, 88, 56, 70, 38, 94, 62],
         [16, 112, 8, 104, 22, 118, 14, 110], [80, 48, 72, 40, 86, 54, 78, 46],
@@ -6476,59 +6478,86 @@ async function applyVideoFilterChain(
           if (!(Math.abs(parseFilterExpression(named.enable, "gradfun enable", variables, undefined, registers)) >= 0.5)) return f;
         }
         if (Math.min(f.width, f.height) <= 2 * radius) return f;
-        const columns = Math.floor(f.width / 2);
-        budget.allocateMemory(f.data.byteLength + columns * 8);
-        const data = f.data.slice();
-        const sums = new Uint32Array(columns);
-        const blurred = new Uint32Array(columns);
-        // Native gradfun blurs 2x2 samples. Its first window starts at (2,2),
-        // and extends the first/last computed averages across the frame edges.
-        const hasWindow = f.height > 2 * radius + 1;
-        let top = hasWindow ? 2 : 0;
+        if (yuvFormat && (f.native?.rgba !== f.data || f.native.width !== f.width || f.native.height !== f.height)) {
+          budget.allocateMemory(f.width * f.height * 7);
+          f = await formatYuv(f, yuvFormat, signal);
+        }
+        const native = yuvFormat ? f.native! : undefined;
+        const source = native?.pixels ?? f.data;
+        const stride = native ? 1 : 4;
+        budget.allocateMemory(source.byteLength + (native ? f.data.byteLength : 0));
+        const data = new Uint8Array(source);
+        const hsub = yuvFormat === "yuv420p" || yuvFormat === "yuv422p" ? 1 : 0;
+        const vsub = yuvFormat === "yuv420p" ? 1 : 0;
+        const chromaRadius = Math.max(4, ((Math.floor(((radius >> hsub) + (radius >> vsub)) / 2) + 1) & ~1));
+        let offset = 0;
         let work = 0;
-        for (let y = top; y < top + 2 * radius; y++) {
-          for (let x = 0; x < columns; x++) {
-            if (++work % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-            sums[x] = sums[x]! + f.data[(y * f.width + 2 * x) * 4]! + f.data[(y * f.width + 2 * x + 1) * 4]!;
+        for (let plane = 0; plane < (native ? 3 : 1); plane++) {
+          const width = Math.ceil(f.width / (plane === 0 ? 1 : 1 << hsub));
+          const height = Math.ceil(f.height / (plane === 0 ? 1 : 1 << vsub));
+          const r = plane === 0 ? radius : chromaRadius;
+          const planeOffset = offset;
+          offset += width * height;
+          if (Math.min(width, height) <= 2 * r) continue;
+          const columns = Math.floor(width / 2);
+          budget.allocateMemory(columns * 8);
+          const sums = new Uint32Array(columns);
+          const blurred = new Uint32Array(columns);
+          const factor = Math.trunc(2097152 / (r * r));
+          // Native gradfun blurs 2x2 samples. Its first window starts at (2,2),
+          // and extends the first/last computed averages across the frame edges.
+          const hasWindow = height > 2 * r + 1;
+          let top = hasWindow ? 2 : 0;
+          for (let y = top; y < top + 2 * r; y++) {
+            for (let x = 0; x < columns; x++) {
+              if (++work % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+              sums[x] = sums[x]! + source[(planeOffset + y * width + 2 * x) * stride]! + source[(planeOffset + y * width + 2 * x + 1) * stride]!;
+            }
+          }
+          for (let y = 0; y < height; y++) {
+            const center = Math.max(r, r + 2 * Math.floor((y - r) / 2));
+            if (center + 1 < height - r && center - r + 2 > top) {
+              for (let row = top; row < top + 2; row++) {
+                for (let x = 0; x < columns; x++) {
+                  if (++work % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+                  const old = (planeOffset + row * width + 2 * x) * stride;
+                  const next = (planeOffset + (row + 2 * r) * width + 2 * x) * stride;
+                  sums[x] = sums[x]! + source[next]! + source[next + stride]! - source[old]! - source[old + stride]!;
+                }
+              }
+              top += 2;
+            }
+            let sum = 0;
+            for (let x = 0; x < r; x++) sum += sums[x]!;
+            for (let x = r; x < columns; x++) {
+              sum += sums[x]! - sums[x - r]!;
+              blurred[x - r] = Math.floor(sum * factor / 65536);
+            }
+            blurred[Math.max(0, columns - r - 1)] = Math.floor(sum * factor / 65536);
+            for (let x = 0; x < width; x++) {
+              if (++work % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+              const index = (planeOffset + y * width + x) * stride;
+              const column = (x >> 1) - r / 2;
+              const average = hasWindow ? blurred[Math.max(0, Math.min(Math.max(0, columns - r - 1), column))]!
+                : column < 0 ? 0 : sums[column]!;
+              const pixel = source[index]! << 7;
+              const delta = average - pixel;
+              const weight = Math.max(0, 127 - ((Math.abs(delta) * threshold) >> 16));
+              // FFmpeg's x86 SSSE3 path shifts delta in a signed 16-bit lane
+              // before multiplying. The final partial eight-pixel block uses C.
+              const correction = x < (width & ~7)
+                ? (weight * weight * ((delta << 18) >> 16)) >> 16
+                : (weight * weight * delta) >> 14;
+              const value = Math.max(0, Math.min(255, (pixel + correction + dither[y & 7]![x & 7]!) >> 7));
+              data[index] = value;
+              if (!native) data[index + 1] = data[index + 2] = value;
+            }
           }
         }
-        for (let y = 0; y < f.height; y++) {
-          const center = Math.max(radius, radius + 2 * Math.floor((y - radius) / 2));
-          if (center + 1 < f.height - radius && center - radius + 2 > top) {
-            for (let row = top; row < top + 2; row++) {
-              for (let x = 0; x < columns; x++) {
-                if (++work % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-                const old = (row * f.width + 2 * x) * 4;
-                const next = ((row + 2 * radius) * f.width + 2 * x) * 4;
-                sums[x] = sums[x]! + f.data[next]! + f.data[next + 4]! - f.data[old]! - f.data[old + 4]!;
-              }
-            }
-            top += 2;
-          }
-          let sum = 0;
-          for (let x = 0; x < radius; x++) sum += sums[x]!;
-          for (let x = radius; x < columns; x++) {
-            sum += sums[x]! - sums[x - radius]!;
-            blurred[x - radius] = Math.floor(sum * factor / 65536);
-          }
-          blurred[Math.max(0, columns - radius - 1)] = Math.floor(sum * factor / 65536);
-          for (let x = 0; x < f.width; x++) {
-            if (++work % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-            const index = (y * f.width + x) * 4;
-            const column = (x >> 1) - radius / 2;
-            const average = hasWindow ? blurred[Math.max(0, Math.min(Math.max(0, columns - radius - 1), column))]!
-              : column < 0 ? 0 : sums[column]!;
-            const pixel = f.data[index]! << 7;
-            const delta = average - pixel;
-            const weight = Math.max(0, 127 - ((Math.abs(delta) * threshold) >> 16));
-            // FFmpeg's x86 SSSE3 path shifts delta in a signed 16-bit lane
-            // before multiplying. The final partial eight-pixel block uses C.
-            const correction = x < (f.width & ~7)
-              ? (weight * weight * ((delta << 18) >> 16)) >> 16
-              : (weight * weight * delta) >> 14;
-            const value = Math.max(0, Math.min(255, (pixel + correction + dither[y & 7]![x & 7]!) >> 7));
-            data[index] = data[index + 1] = data[index + 2] = value;
-          }
+        if (native) {
+          const filtered = { ...native, pixels: data };
+          const rgba = scaleVideoPicture({ ...f, native: filtered }, f.width, f.height)!;
+          return { ...f, data: rgba, native: { ...filtered, rgba } };
         }
         return { ...f, data };
       }, signal);

@@ -7,7 +7,8 @@ import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function mixAudio(
   tracks: MediaTrack[], filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
-  commands: readonly { action: string; expression: string }[] = [], sampleFormat = "flt"
+  commands: readonly { action: string; expression: string }[] = [], sampleFormat = "flt",
+  splitGroups: readonly number[] = []
 ): Promise<MediaTrack> {
   const inputs = tracks.map(track => {
     if (!track.decodedAudio) throw new Error("amix requires decoded PCM audio");
@@ -115,7 +116,19 @@ export async function mixAudio(
     budget.checkCpu();
     for (const [index, track] of tracks.entries()) {
       if (start >= lengths[index]!) continue;
-      while (frameEnds[index]! <= start) {
+      // A trimmed split branch reads the next upstream frame to discover EOF,
+      // buffering that frame on its siblings. Once input zero ends, amix drains
+      // all buffered samples rather than preserving individual input frames.
+      let bufferedThrough = -Infinity;
+      if (start >= lengths[0]! && splitGroups[index] !== undefined && splitGroups[index]! >= 0) {
+        for (const [other, source] of tracks.entries()) {
+          if (splitGroups[other] !== splitGroups[index] || start < lengths[other]!) continue;
+          const last = source.samples.at(-1);
+          bufferedThrough = Math.max(bufferedThrough, last ? (last.pts + last.duration) / source.timescale : 0);
+        }
+      }
+      while (frameEnds[index]! <= start || packetIndices[index]! < track.samples.length &&
+        (track.samples[packetIndices[index]! - 1]?.pts ?? -Infinity) / track.timescale < bufferedThrough) {
         // Implicit resampling buffers input and emits a separate tail at EOF.
         const ends = resampledEnds[index];
         if (ends) {

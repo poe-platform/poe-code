@@ -1,3 +1,5 @@
+import { resampleMultiplyAdd } from "./audio-resample-fma.js";
+import { besselI0 } from "./audio-resample-bessel.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 
@@ -76,24 +78,22 @@ export async function resampleAudio(
         : -0.5 * (-4 + 8 * x - 5 * x * x + x * x * x);
     }
     const phase = Math.PI * distance * cutoff;
-    const w = 2 * distance / filterLength;
+    const w = 2 * phase / (cutoff * filterLength * Math.PI);
     let window: number;
     if (filterType === "blackman_nuttall") {
       const angle = Math.PI * w;
       window = 0.3635819 + 0.4891775 * Math.cos(angle)
         + 0.1365995 * Math.cos(2 * angle) + 0.0106411 * Math.cos(3 * angle);
     } else {
-      const x = kaiserBeta * kaiserBeta * Math.max(1 - w * w, 0) / 4;
-      // I0(beta * sqrt(1 - w²)), evaluated by its convergent power series.
-      window = 1;
-      let term = 1;
-      for (let k = 1; k < 32; k++) {
-        term *= x / (k * k);
-        window += term;
-        if (term < window * Number.EPSILON) break;
-      }
+      window = besselI0(kaiserBeta * Math.sqrt(Math.max(1 - w * w, 0)));
     }
-    return (phase === 0 ? 1 : Math.sin(phase) / phase) * window;
+    // At unit cutoff SWR alternates a shared phase sine, making integer
+    // phase taps exactly zero away from the center.
+    const offset = Math.ceil(distance) - distance;
+    const sine = cutoff === 1
+      ? Math.sin(Math.PI * offset) * (Math.abs(Math.ceil(distance)) % 2 === 0 ? -1 : 1)
+      : Math.sin(phase);
+    return (phase === 0 ? 1 : sine / phase) * window;
   }
   let work = 0;
   // All phases use the integer-phase coefficient sum for normalization.
@@ -129,7 +129,9 @@ export async function resampleAudio(
         const lane = (j - Math.floor(samplePosition) + center) % laneCount;
         for (let c = 0; c < channels.length; c++) {
           if (interpolate) sums[c] = sums[c]! + channels[c]![index]! * weight;
-          else lanes[c * laneCount + lane] = lanes[c * laneCount + lane]! + channels[c]![index]! * coefficient;
+          else lanes[c * laneCount + lane] = internalFormat === "dblp"
+            ? resampleMultiplyAdd(channels[c]![index]!, coefficient, lanes[c * laneCount + lane]!)
+            : lanes[c * laneCount + lane]! + channels[c]![index]! * coefficient;
         }
         if (++work % 16384 === 0) {
           await yieldTurn(signal);

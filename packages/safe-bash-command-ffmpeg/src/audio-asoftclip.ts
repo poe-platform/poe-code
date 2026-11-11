@@ -48,7 +48,7 @@ export async function softClipAudio(
       case "cubic": clipped = Math.abs(sample) >= 1.5 ? Math.sign(sample) : sample - 0.1481 * sample ** 3; break;
       // Match expf and the float arithmetic before PCM encoding.
       case "exp": clipped = round(2 / round(1 + round(Math.exp(round(-2 * sample))))) - 1; break;
-      case "alg": clipped = sample / Math.sqrt(options.param + sample * sample); break;
+      case "alg": clipped = sample / round(Math.sqrt(round(param + round(sample * sample)))); break;
       case "quintic": clipped = Math.abs(sample) >= 1.25 ? Math.sign(sample) : sample - 0.08192 * sample ** 5; break;
       case "sin": clipped = Math.abs(sample) >= Math.PI / 2 ? Math.sign(sample) : Math.sin(sample); break;
       case "erf": {

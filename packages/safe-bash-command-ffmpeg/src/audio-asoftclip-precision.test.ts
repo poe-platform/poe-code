@@ -36,6 +36,9 @@ for (const [filter, expected] of [
 
 // FFmpeg 7.0.2 Linux x86-64 references for PCM16 input 8001.
 for (const [filter, expected] of [
+  ["asoftclip=type=alg", 509388640],
+  ["aformat=sample_fmts=fltp,asoftclip=type=alg", 509388640],
+  ["aformat=sample_fmts=dblp,asoftclip=type=alg", 509388599],
   ["asoftclip=type=exp", 514175488],
   ["aformat=sample_fmts=fltp,asoftclip=type=exp", 514175488],
   ["aformat=sample_fmts=dblp,asoftclip=type=exp", 514175615],

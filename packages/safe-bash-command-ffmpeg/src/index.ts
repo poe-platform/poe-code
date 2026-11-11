@@ -15713,7 +15713,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           return key === "sample_fmts" || key === "f";
                         });
                         // These filters require doubles; negotiate before rematrixing unconstrained aformat input.
-                        if ((nextFilter === "haas" || nextFilter === "apulsator") && !hasSampleFormat) options.unshift("sample_fmts=dbl");
+                        if ((nextFilter === "haas" || nextFilter === "apulsator" || nextFilter === "stereotools") && !hasSampleFormat) options.unshift("sample_fmts=dbl");
                         const inputSampleFormat = filteredSampleFormat;
                         const parsed = options.map((option, index) => {
                           const separator = option.indexOf("=");

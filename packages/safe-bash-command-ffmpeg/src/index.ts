@@ -48,6 +48,7 @@ import { deflicker } from "./deflicker.js";
 import { tmix } from "./tmix.js";
 import { tmidequalizer } from "./tmidequalizer.js";
 import { lagfun } from "./lagfun.js";
+import { atadenoise } from "./atadenoise.js";
 import { prewitt } from "./prewitt.js";
 import { avgblur } from "./avgblur.js";
 import { doubleweave } from "./doubleweave.js";
@@ -5993,6 +5994,8 @@ async function applyVideoFilterChain(
       current = await hqdn3d(current, argStr, pixelFormat, budget, signal);
     } else if (name === "lagfun") {
       current = await lagfun(current, argStr, pixelFormat, budget, signal);
+    } else if (name === "atadenoise") {
+      current = await atadenoise(current, argStr, pixelFormat, budget, signal);
     } else if (name === "deflicker") {
       current = await deflicker(current, argStr, pixelFormat, budget, signal);
     } else if (name === "tmidequalizer") {

@@ -15194,8 +15194,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 + `unrecognized option '-gaussian' at CLI arg ${position}`);
         }
         else if (t === "-blur" || t === "-gaussian-blur") {
-            const g = parseMagickGeometry(tokens[++i] ?? "0x1");
+            const raw = tokens[++i] ?? "0x1";
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
+                const g = parseMagickGeometry(expanded);
                 const writeMask = t === "-blur" ? im.writeMask : undefined;
                 return yield* applyMagickRasterSteps({ ...im, isPalette: false }, blurPixelSteps(im, g, t === "-gaussian-blur", state.channelExplicit ? state.channels : undefined, undefined, writeMask, im.backgroundColor ?? state.background), signal, im, writeMask ? [im, writeMask] : [im]);
             }, undefined, t === "-blur");
@@ -19582,9 +19585,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             i++;
         } else if (!operandsOnly && (token === "-blur" || token === "-gaussian-blur")) {
-            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined, background = state.background;
+            let images: StoredImageStack, sceneIdx = 0;
+            stackStep(async stack => { images = stack; return stack; });
+            const raw = tokens[++i] ?? "0x1", channels = state.channelExplicit ? state.channels : undefined, background = state.background, optionProperties = state.optionProperties;
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return undefined;
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
+                const geometry = parseMagickGeometry(expanded);
                 const writeMask = token === "-blur" ? image.storedWriteMask : undefined;
                 return transformStoredMagickRaster({ ...image, isPalette: false }, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels, undefined, writeMask, image.backgroundColor ?? background), signal, image, writeMask ? [image, writeMask] : [image]);
             }, { handlesRegion: token === "-blur" }));

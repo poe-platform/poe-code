@@ -2441,6 +2441,12 @@ function parseMagickStatisticGeometry(raw: string): string {
     if (value.startsWith("+") || value.startsWith("-") || !Number.isFinite(Number.parseFloat(value)) || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
         throw new Error(`invalid argument for option '-statistic': ${raw}`);
     }
+    if (value.includes(":")) {
+        const geometry = parseMagickGeometry(value.replace(":", "x").replaceAll("#", ""));
+        const ratio = (geometry.width ?? 0) / (geometry.height ?? 1);
+        if (!Number.isFinite(ratio)) throw new Error(`invalid argument for option '-statistic': ${raw}`);
+        return `${ratio}x1`;
+    }
     return value.replaceAll("#", "");
 }
 

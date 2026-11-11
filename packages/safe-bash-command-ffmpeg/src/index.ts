@@ -14191,6 +14191,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           return output;
                         }, context.signal);
                       } else if (trimmed === "adelay" || trimmed.startsWith("adelay=")) {
+                        if (!filteredSampleFormat.endsWith("p")) filteredSampleFormat += "p";
                         let delays = "";
                         let all = false;
                         let enable: string | undefined;
@@ -16251,9 +16252,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       budget.allocateMemory(16);
                       segmentAudioPackets?.push({ pts: start, isKeyframe: true });
                       if (frameChecksumOutput || outPlugin?.id === "s16le") {
-                        // Encoder time-base conversion rounds near-INT64_MIN filter
-                        // timestamps back to NOPTS; preserve missing-PTS synthesis.
-                        const pts = frame.exactPts !== undefined && frame.pts === -(2 ** 63) ? NaN
+                        // Format conversion rounds near-INT64_MIN timestamps back to
+                        // NOPTS; packed PCM without conversion retains its finite PTS.
+                        const pts = filteredSampleFormat.endsWith("p") && frame.exactPts !== undefined && frame.pts === -(2 ** 63) ? NaN
                           : Math.round((frame.pts - frame.start) * ratio) + start;
                         budget.allocateMemory(48);
                         samples.push({ dts: pts, pts, cts: 0,

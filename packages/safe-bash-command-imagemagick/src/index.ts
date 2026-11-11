@@ -15339,8 +15339,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-motion-blur") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geometry = tokens[++i] ?? "";
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(geometry, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(geometry, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded.replaceAll("/", "x"), "-motion-blur");
                 // A lone signed value is a radius, not a rectangle offset (angle).
                 const motion = expanded.trim() && !expanded.toLowerCase().includes("x") && Number.isFinite(Number(expanded)) ? { width: Number(expanded) } : parseMagickGeometry(expanded.replaceAll("/", "x"));
@@ -19744,8 +19745,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return transformStoredMagickRaster(image, backend, kuwaharaPixelSteps(image, geometry, background, virtualPixel, channels, interpolation, image.storedWriteMask), signal, image, image.storedWriteMask ? [image, image.storedWriteMask] : [image]);
             });
         } else if (!operandsOnly && token === "-motion-blur") {
+            let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
                 return stack;
             });
             const geometry = tokens[++i] ?? "", background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined, optionProperties = state.optionProperties, seed = state.seed;
@@ -19753,7 +19756,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 validateMagickTransformGeometry(expanded.replaceAll("/", "x"), "-motion-blur");
                 // A lone signed value is a radius, not a rectangle offset (angle).
                 const motion = expanded.trim() && !expanded.toLowerCase().includes("x") && Number.isFinite(Number(expanded)) ? { width: Number(expanded) } : parseMagickGeometry(expanded.replaceAll("/", "x"));

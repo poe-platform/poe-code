@@ -1,3 +1,4 @@
+import { scharr } from "./scharr.js";
 import { sobel } from "./sobel.js";
 import { parseImageSize } from "./image-size.js";
 import { hqdn3d } from "./hqdn3d.js";
@@ -2494,6 +2495,8 @@ async function applyVideoFilterChain(
       }
     } else if (name === "roberts") {
       current = await roberts(current, argStr, pixelFormat, budget, signal);
+    } else if (name === "scharr") {
+      current = await scharr(current, argStr, pixelFormat, budget, signal);
     } else if (name === "median") {
       current = await median(current, argStr, pixelFormat, budget, signal);
     } else if (name === "blackdetect") {

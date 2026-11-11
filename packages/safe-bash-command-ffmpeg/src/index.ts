@@ -14146,9 +14146,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           if (minimum === undefined) {
                             const duration = outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0));
-                            if (duration === undefined && maxAudioFrames === undefined) {
-                              throw new Error("apad: a finite padding or minimum length is required");
-                            }
                             // Output duration starts at the first retained frame, or the output seek if later.
                             const seek = Math.round((outputSs ?? 0) * resampleInputRate);
                             const firstPts = Math.max(audioTimestamps[0]?.pts ?? audioStartSample,
@@ -14169,7 +14166,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               minimum = Math.ceil((outputSamples + window) * tempo) + window;
                             }
                             let boundedDownstream = false;
-                            if (duration !== undefined && packetSize > 0) {
+                            if (packetSize > 0) {
                               let rate = origRate;
                               const filters: {
                                 clock: ReturnType<typeof createAudioTimestampTransform> | undefined;
@@ -14180,6 +14177,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               }[] = [];
                               let changedFrames = false;
                               let selectsFrames = false;
+                              let finiteTrim = false;
                               let supported = true;
                               for (const item of audioFilters.slice(filterIndex + 1)) {
                                 const separator = item.indexOf("=");
@@ -14200,12 +14198,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                   });
                                   changedFrames = true;
                                   selectsFrames ||= name === "aselect";
+                                  if (name === "atrim") {
+                                    const { duration, endPts, endSample } = parseAtrim(argument, rate);
+                                    finiteTrim ||= duration > 0 || Number.isFinite(endPts) || Number.isFinite(endSample);
+                                  }
                                 } else if (!["anull", "acopy", "volume"].includes(name!)) {
                                   supported = false;
                                   break;
                                 }
                               }
-                              if (changedFrames && supported) {
+                              if (changedFrames && supported && (duration !== undefined || finiteTrim)) {
                                 // Follow retained frames through the downstream filters before allocating
                                 // silence. Each filter counts only the samples that reach its input.
                                 boundedDownstream = true;
@@ -14237,16 +14239,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                     }
                                   }
                                   if (frame) {
-                                    if (!Number.isFinite(frame.pts)) throw new Error("apad: cannot bound a non-finite output timestamp");
                                     const seek = outputSs === undefined ? -Infinity : Math.round(outputSs * rate);
-                                    endPts ??= Math.max(frame.pts, seek) + Math.round(duration * rate);
-                                    if (frame.pts >= endPts) break;
+                                    if (duration !== undefined) {
+                                      if (!Number.isFinite(frame.pts)) throw new Error("apad: cannot bound a non-finite output timestamp");
+                                      endPts ??= Math.max(frame.pts, seek) + Math.round(duration * rate);
+                                      if (frame.pts >= endPts) break;
+                                    }
                                     if (frame.pts + frame.end - frame.start > seek) outputFrames++;
                                   }
                                   if (source || ended) continue;
                                   // Selection must see complete packets; trim also consumes the skipped
                                   // prefix before the samples needed to reach the output duration.
-                                  minimum = start + (selectsFrames || !frame ? packetSize
+                                  minimum = start + (duration === undefined || selectsFrames || !frame ? packetSize
                                     : Math.min(packetSize, skippedSamples + Math.max(0, endPts! - frame.pts)));
                                   budget.checkDuration(minimum / origRate);
                                   budget.checkSamples(minimum);
@@ -14254,6 +14258,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                   pts += Math.round(packetSize / samplesPerTick) * samplesPerTick;
                                 }
                               }
+                            }
+                            if (duration === undefined && maxAudioFrames === undefined && !boundedDownstream) {
+                              throw new Error("apad: a finite padding or minimum length is required");
                             }
                             if (maxAudioFrames !== undefined && !boundedDownstream) {
                               // The output cap counts regrouped frames, not apad's packets.

@@ -23,7 +23,7 @@ for (const complex of [false, true]) {
     ["apad=2,anull,atrim=end_sample=80000", null],
     ["apad=2,volume=bad,atrim=end_sample=14", null],
     ["apad=2,asetnsamples=n=0,atrim=end_sample=14", null],
-    ["apad=2,anull,asetpts=2*PTS,atrim=end_pts=14", null],
+    ["apad=2,anull,asetpts=2*PTS,atrim=end_pts=14", input],
     ["apad=2,anull,aresample=16000,atrim=end_sample=14", null],
     ["apad=2,asetnsamples=4:0,atrim=end_pts=14", padded],
     ["apad=2,asetnsamples=4:0,atrim=duration=0.00175", padded],

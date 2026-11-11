@@ -2958,7 +2958,7 @@ function formatAdjoinedOutputPath(path: string, count: number, scene: number, li
     return literal ? path : path.replaceAll("%%", "%");
 }
 
-function formatSceneOutputPath(pattern: string, index: number, literal = false, properties?: ImageMetadata["properties"]): string {
+function formatSceneOutputPath(pattern: string, index: number, literal = false, properties?: ImageMetadata["properties"], optionProperties?: Record<string, string>): string {
   let path = "", expanded = false;
   for (let cursor = 0; cursor < pattern.length; cursor++) {
     if (!literal && pattern[cursor] === "%") {
@@ -2972,7 +2972,8 @@ function formatSceneOutputPath(pattern: string, index: number, literal = false, 
         const end = pattern.indexOf("]", cursor + 2);
         if (end >= 0) {
           const key = pattern.slice(cursor + 2, end).toLowerCase();
-          const value = key.startsWith("filename:") ? properties?.[key] : undefined;
+          const value = key.startsWith("filename:") ? properties?.[key]
+            : !key.includes(":") ? properties?.[key] ?? optionProperties?.[key] : undefined;
           path += value ?? pattern.slice(cursor + 1, end + 1);
           expanded = true;
           cursor = end;
@@ -7102,7 +7103,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
     return { ...canvas, ...(first.orientation !== undefined ? { orientation: first.orientation } : {}), ...(gray ? { space: first.space, gamma: first.gamma } : {}), ...(first.magickColorspace !== undefined && stack.every(image => image.magickColorspace === first.magickColorspace) ? { magickColorspace: first.magickColorspace } : {}), channels: cmyk ? 4 : gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3, delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), ...(first.exif ? { exif: first.exif } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), hasAlpha, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
 }
 
-function expandFilenameProperties(spec: string, properties: ImageMetadata["properties"]): string {
+function expandFilenameProperties(spec: string, properties: ImageMetadata["properties"], optionProperties?: Record<string, string>): string {
     let output = "";
     for (let i = 0; i < spec.length;) {
         if (spec.startsWith("%%", i)) {
@@ -7114,7 +7115,9 @@ function expandFilenameProperties(spec: string, properties: ImageMetadata["prope
             const end = spec.indexOf("]", i + 2);
             if (end >= 0) {
                 const key = spec.slice(i + 2, end).toLowerCase();
-                output += (key.startsWith("filename:") ? properties?.[key] : undefined) ?? spec.slice(i + 1, end + 1);
+                const value = key.startsWith("filename:") ? properties?.[key]
+                    : !key.includes(":") ? properties?.[key] ?? optionProperties?.[key] : undefined;
+                output += value ?? spec.slice(i + 1, end + 1);
                 i = end + 1;
                 continue;
             }
@@ -12622,7 +12625,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t !== "-identify" && i + 1 >= tokens.length) throw new Error(`missing argument '${t}'`);
             if (stack.length === 0) throw new Error(`no images for write '${t}'`);
             const writeTemplate = t === "-identify" ? "info:" : tokens[++i] ?? "";
-            const writePath = expandFilenameProperties(writeTemplate, stack[0]!.properties);
+            const writePath = expandFilenameProperties(writeTemplate, stack[0]!.properties, state.optionProperties);
             const jsonPath = jsonOutputPath(writePath);
             if (jsonPath !== undefined) {
                 const result = yield* writeJsonOutputSteps(stack, jsonPath, files, state.inputDepth);
@@ -12681,7 +12684,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         if (++cooperativeWork % 65536 === 0)
                             yield;
                         const scene = (state.scene ?? (stack[0] as MagickImage)[magickInput]?.outputScene ?? (stack[0] as MagickImage)[magickInput]?.sceneIdx ?? 0) + idx;
-                        const framePath = path === "-" ? "-" : formatSceneOutputPath(inferOutputFormat(writeTemplate, top.format).path, scene, state.filenameLiteral, stack[idx]!.properties);
+                        const framePath = path === "-" ? "-" : formatSceneOutputPath(inferOutputFormat(writeTemplate, top.format).path, scene, state.filenameLiteral, stack[idx]!.properties, state.optionProperties);
                         const { data: frameBytes } = encodeImage({ ...(yield* prepareMagickOutput(stack[idx]!, format, state.dither, state.diffusionAmount, pngCoder)), ...(format === "gif" && state.backgroundExplicit ? { backgroundColor: state.background } : {}) }, { outputFilename: framePath, format, pngCoder, gifVersion, tiffBig, bmpRenderingIntent: state.optionProperties?.intent, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(state.pngColorType, format, analysis), ...(state.miffCompression === undefined ? {} : { miffCompression: state.miffCompression }), ...(state.tgaCompression === undefined ? {} : { tgaCompression: state.tgaCompression }), ...(state.bmpCompression === undefined ? {} : { bmpCompression: state.bmpCompression }), ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), ...(state.bmp3Alpha === undefined ? {} : { bmp3Alpha: state.bmp3Alpha }), ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(state.tiffSigned === undefined ? {} : { tiffSigned: state.tiffSigned }), ...(state.tiffFloatingPoint ? { tiffFloatDepth: (state.inputDepth ?? 32) <= 16 ? 16 : (state.inputDepth ?? 32) <= 32 ? 32 : 64 } : {}), ...(state.tiffPlanar === undefined ? {} : { tiffPlanar: state.tiffPlanar }), ...(state.tiffAlpha === undefined ? {} : { tiffAlpha: state.tiffAlpha }), ...(state.tiffEndian === undefined && state.inputEndian === undefined ? {} : { tiffEndian: state.tiffEndian ?? "msb" }), ...(state.tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip: state.tiffRowsPerStrip }), ...(state.tiffTile === undefined ? {} : { tiffTile: state.tiffTile }), ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: isRawCoder(format) ? state.inputDepth : Math.min(32, state.inputDepth), miffDepth: state.inputDepth <= 8 ? 8 : 16 }), endian: state.inputEndian, pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth, ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), rawInterlace: state.rawInterlace, pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, synthesizeExif: !state.strip && format !== "webp", omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, webpTargetSize: state.webpTargetSize, webpPass: state.webpPass, jpegExtent: state.jpegExtent, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });
                         if (framePath === "-") analysis.bytes.push(frameBytes);
                         else storeMagickOutput(files, framePath, frameBytes, format, state, stack.length > 1 ? scene : undefined);
@@ -12755,6 +12758,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "+scene") {
             delete state.scene;
+            state.optionProperties = { ...state.optionProperties };
+            delete state.optionProperties.scene;
         }
         else if (t === "-scene") {
             const value = tokens[++i] ?? "";
@@ -12763,6 +12768,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             validateMagickTransformGeometry(expanded, "-scene");
             state.scene = Number.parseInt(expanded, 10) || 0;
             if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
+            state.optionProperties = { ...state.optionProperties, scene: expanded };
             const scene = state.scene;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 yield;
@@ -14618,7 +14624,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
 function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpec: string, files: Map<string, Uint8Array>, signal: AbortSignal | undefined, analysis: ReturnType<typeof createConvertAnalysis>): Generator<void, ImageMagickCliResult, void> {
     let cooperativeWork = 63;
         const outputTemplate = outSpec;
-        outSpec = expandFilenameProperties(outSpec, stack[0]!.properties);
+        outSpec = expandFilenameProperties(outSpec, stack[0]!.properties, state.optionProperties);
         const filenameExpanded = outSpec !== outputTemplate;
         const histogramInfo = outSpec.toLowerCase().startsWith("histogram:info:");
         const histogramComment = histogramInfo && state.formatStr === "%c";
@@ -14686,7 +14692,7 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
                     }
                 } else txt += yield* formatTxtEnumerationSteps(frame, state.inputDepth);
                 if (separate) {
-                    files.set(formatSceneOutputPath(target, firstScene + index, state.filenameLiteral, frame.properties), new TextEncoder().encode(txt));
+                    files.set(formatSceneOutputPath(target, firstScene + index, state.filenameLiteral, frame.properties, state.optionProperties), new TextEncoder().encode(txt));
                     txt = "";
                 }
             }
@@ -14707,7 +14713,7 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
                 if (++cooperativeWork % 64 === 0)
                     yield;
                 const scene = (state.scene ?? (stack[0] as MagickImage)[magickInput]?.outputScene ?? (stack[0] as MagickImage)[magickInput]?.sceneIdx ?? 0) + idx;
-                const framePath = outPath === "-" ? "-" : formatSceneOutputPath(inferOutputFormat(outputTemplate).path, scene, state.filenameLiteral, stack[idx]!.properties);
+                const framePath = outPath === "-" ? "-" : formatSceneOutputPath(inferOutputFormat(outputTemplate).path, scene, state.filenameLiteral, stack[idx]!.properties, state.optionProperties);
                 const { data: frameBytes } = encodeImage({ ...(yield* prepareMagickOutput(stack[idx]!, format, state.dither, state.diffusionAmount, pngCoder)), ...(format === "gif" && state.backgroundExplicit ? { backgroundColor: state.background } : {}) }, { outputFilename: framePath, format, pngCoder, gifVersion, tiffBig, bmpRenderingIntent: state.optionProperties?.intent, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(state.pngColorType, format, analysis), ...(state.miffCompression === undefined ? {} : { miffCompression: state.miffCompression }), ...(state.tgaCompression === undefined ? {} : { tgaCompression: state.tgaCompression }), ...(state.bmpCompression === undefined ? {} : { bmpCompression: state.bmpCompression }), ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), ...(state.bmp3Alpha === undefined ? {} : { bmp3Alpha: state.bmp3Alpha }), ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(state.tiffSigned === undefined ? {} : { tiffSigned: state.tiffSigned }), ...(state.tiffFloatingPoint ? { tiffFloatDepth: (state.inputDepth ?? 32) <= 16 ? 16 : (state.inputDepth ?? 32) <= 32 ? 32 : 64 } : {}), ...(state.tiffPlanar === undefined ? {} : { tiffPlanar: state.tiffPlanar }), ...(state.tiffAlpha === undefined ? {} : { tiffAlpha: state.tiffAlpha }), ...(state.tiffEndian === undefined && state.inputEndian === undefined ? {} : { tiffEndian: state.tiffEndian ?? "msb" }), ...(state.tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip: state.tiffRowsPerStrip }), ...(state.tiffTile === undefined ? {} : { tiffTile: state.tiffTile }), ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: isRawCoder(format) ? state.inputDepth : Math.min(32, state.inputDepth), miffDepth: state.inputDepth <= 8 ? 8 : 16 }), endian: state.inputEndian, pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth, ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), rawInterlace: state.rawInterlace, pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, synthesizeExif: !state.strip && format !== "webp", omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, webpTargetSize: state.webpTargetSize, webpPass: state.webpPass, jpegExtent: state.jpegExtent, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });
                 if (framePath === "-") analysis.bytes.push(frameBytes);
                 else storeMagickOutput(files, framePath, frameBytes, format, state, stack.length > 1 ? scene : undefined);
@@ -16798,7 +16804,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && token === "+scene") { delete state.scene; continue; }
+        if (!operandsOnly && token === "+scene") {
+            delete state.scene;
+            state.optionProperties = { ...state.optionProperties };
+            delete state.optionProperties.scene;
+            continue;
+        }
         if (!operandsOnly && token === "-scene") {
             // Resolve image-dependent settings before subsequent input settings are captured.
             if (tokens[i + 1]?.includes("%")) return;
@@ -16806,6 +16817,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             validateMagickTransformGeometry(value, "-scene");
             state.scene = Number.parseInt(value, 10) || 0;
             if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
+            state.optionProperties = { ...state.optionProperties, scene: value };
             const scene = state.scene;
             steps.push(async image => image ? { ...image, [magickInput]: { ...(image as StoredMagickImage)[magickInput], outputScene: scene } } : undefined);
             continue;
@@ -16920,7 +16932,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async (stack, backend) => {
                 if (stack.length === 0) throw new Error(`no images for write '${token}'`);
                 const image = await stack.get(stack.length - 1);
-                const path = expandFilenameProperties(writeTemplate, (await stack.get(0))!.properties);
+                const path = expandFilenameProperties(writeTemplate, (await stack.get(0))!.properties, settings.optionProperties);
                 const jsonPath = jsonOutputPath(path);
                 if (jsonPath !== undefined) {
                     const result = await writeStoredJsonOutput(stack, jsonPath, input, backend, signal, netpbmDepth, true);
@@ -16986,7 +16998,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const output = inferOutputFormat(path, image.format);
                     if ((!filenameLiteral && path !== writeTemplate) || hasSceneOutputPattern(output.path, filenameLiteral) || (stack.length > 1 && (!adjoin || output.format === "farbfeld" || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format))))) {
                         const firstScene = scene ?? (await stack.get(0))![magickInput]?.outputScene ?? (await stack.get(0))![magickInput]?.sceneIdx ?? 0;
-                        for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); const bytes = await backend.stage({ ...(await prepareStoredMagickOutput((await stack.get(index))!, output.format, backend, signal, dither, diffusionAmount, output.pngCoder)), ...(output.format === "gif" && background ? { backgroundColor: background } : {}) }, output.path === "-" ? "-" : formatSceneOutputPath(inferOutputFormat(writeTemplate, image.format).path, firstScene + index, filenameLiteral, (await stack.get(index))!.properties), { format: output.format, tiffBig: output.tiffBig, pngCoder: output.pngCoder, gifVersion: output.gifVersion, bmpRenderingIntent, bmpFormat: output.bmpFormat ?? bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(pngColorType, output.format, analysis), endian, pngPreserveColormap, pngBitDepth, ...(jpegRestartInterval === undefined ? {} : { jpegRestartInterval }), ...(jpegDctMethod === undefined ? {} : { jpegDctMethod }), ...(jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding }), ...(jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding }), ...(jpegProgressive === undefined ? {} : { jpegProgressive }), rawInterlace, pngInterlace, gifInterlace, transparentColor, synthesizeExif: synthesizeExif && output.format !== "webp", omitPngResolution, ...(miffCompression === undefined ? {} : { miffCompression }), ...(tgaCompression === undefined ? {} : { tgaCompression }), ...(bmpCompression === undefined ? {} : { bmpCompression }), ...(bmpSubtype === undefined ? {} : { bmpSubtype }), ...(bmp3Alpha === undefined ? {} : { bmp3Alpha }), ...(tiffIntegerDepth === undefined ? {} : { tiffIntegerDepth }), ...(tiffSigned === undefined ? {} : { tiffSigned }), ...(tiffFloatDepth === undefined ? {} : { tiffFloatDepth }), ...(tiffPlanar === undefined ? {} : { tiffPlanar }), ...(tiffAlpha === undefined ? {} : { tiffAlpha }), ...(tiffEndian === undefined ? {} : { tiffEndian }), ...(tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip }), ...(tiffTile === undefined ? {} : { tiffTile }), ...(tiffCompression === undefined ? {} : { tiffCompression }), netpbmAscii, ...(netpbmDepth === undefined ? {} : { netpbmDepth: isRawCoder(output.format) ? netpbmDepth : Math.min(32, netpbmDepth), miffDepth: netpbmDepth <= 8 ? 8 : 16 }), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", webpTargetSize, webpPass, jpegExtent, webpExact, smartSubsample, alphaCompression, alphaQuality, quality, ...(output.format === "webp" ? { effort, lossless } : {}) }, stack.length > 1 ? firstScene + index : undefined);
+                        for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); const bytes = await backend.stage({ ...(await prepareStoredMagickOutput((await stack.get(index))!, output.format, backend, signal, dither, diffusionAmount, output.pngCoder)), ...(output.format === "gif" && background ? { backgroundColor: background } : {}) }, output.path === "-" ? "-" : formatSceneOutputPath(inferOutputFormat(writeTemplate, image.format).path, firstScene + index, filenameLiteral, (await stack.get(index))!.properties, settings.optionProperties), { format: output.format, tiffBig: output.tiffBig, pngCoder: output.pngCoder, gifVersion: output.gifVersion, bmpRenderingIntent, bmpFormat: output.bmpFormat ?? bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(pngColorType, output.format, analysis), endian, pngPreserveColormap, pngBitDepth, ...(jpegRestartInterval === undefined ? {} : { jpegRestartInterval }), ...(jpegDctMethod === undefined ? {} : { jpegDctMethod }), ...(jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding }), ...(jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding }), ...(jpegProgressive === undefined ? {} : { jpegProgressive }), rawInterlace, pngInterlace, gifInterlace, transparentColor, synthesizeExif: synthesizeExif && output.format !== "webp", omitPngResolution, ...(miffCompression === undefined ? {} : { miffCompression }), ...(tgaCompression === undefined ? {} : { tgaCompression }), ...(bmpCompression === undefined ? {} : { bmpCompression }), ...(bmpSubtype === undefined ? {} : { bmpSubtype }), ...(bmp3Alpha === undefined ? {} : { bmp3Alpha }), ...(tiffIntegerDepth === undefined ? {} : { tiffIntegerDepth }), ...(tiffSigned === undefined ? {} : { tiffSigned }), ...(tiffFloatDepth === undefined ? {} : { tiffFloatDepth }), ...(tiffPlanar === undefined ? {} : { tiffPlanar }), ...(tiffAlpha === undefined ? {} : { tiffAlpha }), ...(tiffEndian === undefined ? {} : { tiffEndian }), ...(tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip }), ...(tiffTile === undefined ? {} : { tiffTile }), ...(tiffCompression === undefined ? {} : { tiffCompression }), netpbmAscii, ...(netpbmDepth === undefined ? {} : { netpbmDepth: isRawCoder(output.format) ? netpbmDepth : Math.min(32, netpbmDepth), miffDepth: netpbmDepth <= 8 ? 8 : 16 }), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", webpTargetSize, webpPass, jpegExtent, webpExact, smartSubsample, alphaCompression, alphaQuality, quality, ...(output.format === "webp" ? { effort, lossless } : {}) }, stack.length > 1 ? firstScene + index : undefined);
                             if (bytes) analysis.bytes.push(bytes);
                         }
                     } else {
@@ -18132,7 +18144,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
 async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickState, outSpec: string, input: ConvertFileInput, backend: CompareFileSession, signal: AbortSignal, analysis: ReturnType<typeof createConvertAnalysis>, intermediate = false): Promise<ImageMagickCliResult> {
     let image = (await stack.get(stack.length - 1))!;
         const outputTemplate = outSpec;
-        outSpec = expandFilenameProperties(outSpec, (await stack.get(0))!.properties);
+        outSpec = expandFilenameProperties(outSpec, (await stack.get(0))!.properties, state.optionProperties);
         const filenameExpanded = outSpec !== outputTemplate;
         const histogramInfo = outSpec.toLowerCase().startsWith("histogram:info:");
         const histogramComment = histogramInfo && state.formatStr === "%c";
@@ -18193,7 +18205,7 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
                         const firstScene = state.scene ?? source?.outputScene ?? source?.sceneIdx ?? 0;
                         for (let index = 0; index < stack.length; index++) {
                             const frame = (await stack.get(index))!;
-                            await backend.stageText(frame, formatSceneOutputPath(target, firstScene + index, state.filenameLiteral, frame.properties), encodeText(storedSparseColor(frame, backend.storage, signal, state.precision), signal));
+                            await backend.stageText(frame, formatSceneOutputPath(target, firstScene + index, state.filenameLiteral, frame.properties, state.optionProperties), encodeText(storedSparseColor(frame, backend.storage, signal, state.precision), signal));
                         }
                     } else await backend.stageText(image, target, chunks);
                     if (!intermediate) await backend.publishPending();
@@ -18215,7 +18227,7 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
             const firstScene = state.scene ?? (await stack.get(0))![magickInput]?.outputScene ?? (await stack.get(0))![magickInput]?.sceneIdx ?? 0;
             for (let index = 0; index < stack.length; index++) {
                 await yieldTurn(signal);
-                const bytes = await backend.stage({ ...(await prepareStoredMagickOutput((await stack.get(index))!, output.format, backend, signal, state.dither, state.diffusionAmount, output.pngCoder)), ...(output.format === "gif" && state.backgroundExplicit ? { backgroundColor: state.background } : {}) }, output.path === "-" ? "-" : formatSceneOutputPath(inferOutputFormat(outputTemplate).path, firstScene + index, state.filenameLiteral, (await stack.get(index))!.properties), { format: output.format, tiffBig: output.tiffBig, pngCoder: output.pngCoder, gifVersion: output.gifVersion, bmpRenderingIntent: state.optionProperties?.intent, bmpFormat: output.bmpFormat ?? state.bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(state.pngColorType, output.format, analysis), ...(state.miffCompression === undefined ? {} : { miffCompression: state.miffCompression }), ...(state.tgaCompression === undefined ? {} : { tgaCompression: state.tgaCompression }), ...(state.bmpCompression === undefined ? {} : { bmpCompression: state.bmpCompression }), ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), ...(state.bmp3Alpha === undefined ? {} : { bmp3Alpha: state.bmp3Alpha }), ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(state.tiffSigned === undefined ? {} : { tiffSigned: state.tiffSigned }), ...(state.tiffFloatingPoint ? { tiffFloatDepth: (state.inputDepth ?? 32) <= 16 ? 16 : (state.inputDepth ?? 32) <= 32 ? 32 : 64 } : {}), ...(state.tiffPlanar === undefined ? {} : { tiffPlanar: state.tiffPlanar }), ...(state.tiffAlpha === undefined ? {} : { tiffAlpha: state.tiffAlpha }), ...(state.tiffEndian === undefined && state.inputEndian === undefined ? {} : { tiffEndian: state.tiffEndian ?? "msb" }), ...(state.tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip: state.tiffRowsPerStrip }), ...(state.tiffTile === undefined ? {} : { tiffTile: state.tiffTile }), ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: isRawCoder(output.format) ? state.inputDepth : Math.min(32, state.inputDepth), miffDepth: state.inputDepth <= 8 ? 8 : 16 }), endian: state.inputEndian, pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth, ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), rawInterlace: state.rawInterlace, pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, synthesizeExif: !state.strip && output.format !== "webp", omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, webpTargetSize: state.webpTargetSize, webpPass: state.webpPass, jpegExtent: state.jpegExtent, quality: state.quality, ...(output.format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) }, stack.length > 1 ? firstScene + index : undefined);
+                const bytes = await backend.stage({ ...(await prepareStoredMagickOutput((await stack.get(index))!, output.format, backend, signal, state.dither, state.diffusionAmount, output.pngCoder)), ...(output.format === "gif" && state.backgroundExplicit ? { backgroundColor: state.background } : {}) }, output.path === "-" ? "-" : formatSceneOutputPath(inferOutputFormat(outputTemplate).path, firstScene + index, state.filenameLiteral, (await stack.get(index))!.properties, state.optionProperties), { format: output.format, tiffBig: output.tiffBig, pngCoder: output.pngCoder, gifVersion: output.gifVersion, bmpRenderingIntent: state.optionProperties?.intent, bmpFormat: output.bmpFormat ?? state.bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(state.pngColorType, output.format, analysis), ...(state.miffCompression === undefined ? {} : { miffCompression: state.miffCompression }), ...(state.tgaCompression === undefined ? {} : { tgaCompression: state.tgaCompression }), ...(state.bmpCompression === undefined ? {} : { bmpCompression: state.bmpCompression }), ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), ...(state.bmp3Alpha === undefined ? {} : { bmp3Alpha: state.bmp3Alpha }), ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(state.tiffSigned === undefined ? {} : { tiffSigned: state.tiffSigned }), ...(state.tiffFloatingPoint ? { tiffFloatDepth: (state.inputDepth ?? 32) <= 16 ? 16 : (state.inputDepth ?? 32) <= 32 ? 32 : 64 } : {}), ...(state.tiffPlanar === undefined ? {} : { tiffPlanar: state.tiffPlanar }), ...(state.tiffAlpha === undefined ? {} : { tiffAlpha: state.tiffAlpha }), ...(state.tiffEndian === undefined && state.inputEndian === undefined ? {} : { tiffEndian: state.tiffEndian ?? "msb" }), ...(state.tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip: state.tiffRowsPerStrip }), ...(state.tiffTile === undefined ? {} : { tiffTile: state.tiffTile }), ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), netpbmAscii: state.netpbmAscii ?? false, ...(state.inputDepth === undefined ? {} : { netpbmDepth: isRawCoder(output.format) ? state.inputDepth : Math.min(32, state.inputDepth), miffDepth: state.inputDepth <= 8 ? 8 : 16 }), endian: state.inputEndian, pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth, ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), rawInterlace: state.rawInterlace, pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, synthesizeExif: !state.strip && output.format !== "webp", omitPngResolution: state.strip || state.omitPngResolution === true, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, webpTargetSize: state.webpTargetSize, webpPass: state.webpPass, jpegExtent: state.jpegExtent, quality: state.quality, ...(output.format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) }, stack.length > 1 ? firstScene + index : undefined);
                 if (bytes) analysis.bytes.push(bytes);
             }
             if (!intermediate) await backend.publishPending();

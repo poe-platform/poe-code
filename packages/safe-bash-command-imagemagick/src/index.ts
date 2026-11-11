@@ -10396,7 +10396,9 @@ function parseMagickUnits(value: string): MagickState["units"] {
 
 function applyMagickUnits<T extends ImageMetadata & { magickUnits?: MagickState["units"] }>(image: T, unit: NonNullable<MagickState["units"]>): T {
     if (!image.resolution) return { ...image, magickUnits: unit };
-    const scale = image.resolution?.unit === "meter" ? 100 : 1;
+    const sourceUnit = image.resolution.unit === "meter" ? "cm" : image.resolution.unit;
+    const scale = (image.resolution.unit === "meter" ? 100 : 1)
+        * (sourceUnit === "inch" && unit === "cm" ? 2.54 : sourceUnit === "cm" && unit === "inch" ? 1 / 2.54 : 1);
     const x = image.resolution.x / scale;
     const y = image.resolution.y / scale;
     return { ...image, density: x * (unit === "cm" ? 2.54 : 1), resolution: { x, y, unit } };

@@ -6250,6 +6250,10 @@ async function applyVideoFilterChain(
       const grid = name === "drawgrid";
       const values = positional.map(part => part === "" || part.includes("=") ? undefined : part);
       for (const key of Object.keys(named)) {
+        if (["threads", "thread_type", "extra_hw_frames"].includes(key)) {
+          validateWeaveGenericOption(key, named[key]!, name);
+          continue;
+        }
         if (!["x", "y", "w", "width", "h", "height", "c", "color", "t", "thickness", "replace", "enable", ...(grid ? [] : ["box_source"])].includes(key)) {
           throw new Error(`${name}: unsupported option ${key}`);
         }

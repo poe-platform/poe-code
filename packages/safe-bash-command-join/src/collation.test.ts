@@ -42,7 +42,7 @@ for (const env of [
  });
 }
 
-for (const env of [{}, { LC_CTYPE: "en_US.UTF-8" }, ...["C", "POSIX", "C.UTF-8", "C.utf8"].map(LC_ALL => ({ LC_ALL, LC_COLLATE: "en_US.UTF-8" }))]) {
+for (const env of [{}, { LC_CTYPE: "en_US.UTF-8" }, ...["C", "POSIX", "C.UTF-8", "C.utf8", "C.UTF8", "C.utf-8"].map(LC_ALL => ({ LC_ALL, LC_COLLATE: "en_US.UTF-8" }))]) {
  test(`join retains byte order: ${JSON.stringify(env)}`, async () => {
   const result = await run(["/a", "/b"], { "/a": "a left\nB left\n", "/b": "B right\n" }, env);
   assert.equal(result.exitCode, 1);
@@ -62,3 +62,30 @@ test("join ignore-case retains folded byte comparison in language locales", asyn
  assert.equal(result.exitCode, 0, result.stderr);
  assert.equal(result.stdout.toString(), "B left right\nz left right\n");
 });
+
+for (const locale of ["C.UTF8", "C.utf-8"]) {
+ for (const env of [
+  { LC_ALL: locale, LC_COLLATE: "en_US.UTF-8", LANG: "en_US.UTF-8" },
+  { LC_ALL: "", LC_COLLATE: locale, LANG: "en_US.UTF-8" },
+  { LC_ALL: "", LC_COLLATE: "", LANG: locale },
+ ]) {
+  test(`join accepts C UTF-8 aliases: ${JSON.stringify(env)}`, async () => {
+   const result = await run(["--check-order", "/a", "/b"], {
+    "/a": "B L1\nz L2\né L3\n", "/b": "B R1\nz R2\né R3\n",
+   }, env);
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.equal(result.stdout.toString(), "B L1 R1\nz L2 R2\né L3 R3\n");
+   assert.equal(result.stderr, "");
+  });
+ }
+ test(`join preserves UTF-8 fields in ${locale}`, async () => {
+  for (const delimiter of [" ", "\u2003", "é"]) {
+   const result = await run([...(delimiter === "é" ? ["-t", delimiter] : []), "/a", "/b"], {
+    "/a": `a${delimiter}L\n`, "/b": `a${delimiter}R\n`,
+   }, { LC_ALL: locale });
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.equal(result.stdout.toString(), delimiter === "é" ? "aéLéR\n" : "a L R\n");
+   assert.equal(result.stderr, "");
+  }
+ });
+}

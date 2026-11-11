@@ -216,7 +216,7 @@ function split(bytes: Uint8Array, options: Options, budget: Budget): readonly Ui
 
 function keyComparison(env: Readonly<Record<string, string>>): typeof compare {
   const locale = env.LC_ALL || env.LC_COLLATE || env.LANG || "C";
-  if (["C", "POSIX", "C.UTF-8", "C.utf8"].includes(locale)) return compare;
+  if (["C", "POSIX", "C.UTF-8", "C.utf8", "C.UTF8", "C.utf-8"].includes(locale)) return compare;
   const language = locale.split(".")[0]!.split("_").join("-");
   let collator: Intl.Collator;
   try {

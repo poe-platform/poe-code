@@ -8458,10 +8458,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         else if (mode === "associate" || mode === "disassociate") {
             evaluate = true;
+            const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, k: true };
             apply = function* (im) {
                 const cmyk = im.space === "cmyk";
                 if (cmyk) im = yield* convertCmykPixels(im);
                 const hueSamples = im.hueSamples?.slice();
+                const gray = im.space === "b-w" || im.space === "grey16";
+                const selected = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.k];
                 const initializeAlpha = mode === "disassociate" && !im.hasAlpha && !im.inactiveAlpha;
                 const out = new Uint8Array(im.data), data16 = new Uint16Array(im.data.length);
                 const evaluateSamples = im.evaluateSamples?.slice() ?? Float64Array.from(im.data16 ?? im.data, value => im.data16 ? value / 257 : value);
@@ -8477,12 +8480,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     const scale = mode === "associate" ? alpha : 1 / Math.max(alpha, 1e-12);
                     // The fourth CMYK working sample is black ink; alpha stays in RGBA.
                     if (hueSamples) for (let channel = 0; channel < (cmyk ? 4 : 3); channel++) {
+                        if (!selected[channel]) continue;
                         hueSamples[idx + channel] = Math.fround(hueSamples[idx + channel]! * 65535 * scale) / 65535;
                     }
                     for (let channel = 0; channel < 3; channel++) {
                         // Q16-HDRI stores the scaled quantum as a float before export rounding.
                         const source = hueSamples ? (cmyk ? (1 - hueSamples[idx + channel]!) * (1 - hueSamples[idx + 3]!) : hueSamples[idx + channel]!) * 65535
-                            : Math.fround((evaluateSamples[idx + channel]! * 257) * scale);
+                            : selected[channel] ? Math.fround((evaluateSamples[idx + channel]! * 257) * scale) : evaluateSamples[idx + channel]! * 257;
                         evaluateSamples[idx + channel] = source / 257;
                         const scaled = Math.max(0, Math.min(65535, source));
                         data16[idx + channel] = Math.round(scaled);

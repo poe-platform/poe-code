@@ -9,10 +9,15 @@ const cases: { name: string; start: number; options?: string[]; success?: boolea
   { name: "default search excludes 5", start: 5, success: false },
   { name: "explicit matching start", start: 5, options: ["-start_number", "5"] },
   { name: "search from explicit start", start: 7, options: ["-start_number", "5"] },
+  { name: "expression start outside default search", start: 7, options: ["-start_number", "3+4"] },
+  { name: "expression expands search range", start: 7, options: ["-start_number_range", "4+4"] },
+  ...["-2147483648-1", "2147483647+1", "1/0", "3+", "3/2"].map(value => ({
+    name: `reject invalid start expression ${value}`, start: 0, options: ["-start_number", value], success: false
+  })),
   { name: "expanded range", start: 5, options: ["-start_number_range", "6"] },
   { name: "range one requires exact start", start: 1, options: ["-start_number_range", "1"], success: false },
   { name: "stop at subsequent gap", start: 4, gap: true },
-  ...["0", "-1", "1.5", "nope", "2147483648", ""].map(value => ({
+  ...["0", "-1", "1.5", "nope", "2147483648", "", "1-1", "2147483647+1", "1/0", "4+", "3/2"].map(value => ({
     name: `reject invalid range ${value}`, start: 0, options: ["-start_number_range", value], success: false
   }))
 ];

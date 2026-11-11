@@ -7088,7 +7088,7 @@ export function evalSyncFfmpeg(
         if (!Number.isSafeInteger(metadataSource)) return undefined;
         metadataSources.push(metadataSource);
       } else if (arg === "-start_number") {
-        const val = Number(args[++i]);
+        const val = parseFilterExpression(args[++i] ?? "", "start_number", {});
         if (!Number.isSafeInteger(val) || val < 0) return undefined;
         if (args.slice(i + 1).includes("-i")) pendingStartNumber = val;
         else outputStartNumber = val;
@@ -8870,14 +8870,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               framePts = Number(number) === 1;
             }
           } else if (arg === "-start_number_range") {
-            const value = Number(args[++i]);
+            let value = NaN;
+            try { value = parseFilterExpression(args[++i] ?? "", "start_number_range", {}); } catch { /* rejected below */ }
             if (!Number.isInteger(value) || value < 1 || value > 2147483647) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid start_number_range\n"), context.signal);
               return { exitCode: 1 };
             }
             pendingStartNumberRange = value;
           } else if (arg === "-start_number") {
-            const val = Number(args[++i]);
+            let val = NaN;
+            try { val = parseFilterExpression(args[++i] ?? "", "start_number", {}); } catch { /* rejected below */ }
             const isInput = args.slice(i + 1).includes("-i");
             if (!Number.isSafeInteger(val) || (isInput ? val < -2147483648 || val > 2147483647 : val < 0)) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid start_number\n"), context.signal);

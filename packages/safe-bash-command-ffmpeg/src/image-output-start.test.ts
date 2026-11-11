@@ -5,17 +5,21 @@ import { encodeImage } from "@poe-code/image-ast/portable";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 for (const sync of [false, true]) {
-  for (const start of [-1, 0, 2147483647, 2147483648]) {
+  for (const [expression, start] of [
+    ["-1", -1], ["0", 0], ["2147483647", 2147483647], ["2147483648", 2147483648],
+    ["2+2", 4], ["2*(3+1)", 8], ["0-1", -1], ["2147483647+1", 2147483648],
+    ["3/2", 1.5], ["1/0", Infinity], ["2+", NaN]
+  ] as const) {
     for (const explicitFormat of [false, true]) {
-      it(`image2 output start ${start}, sync=${sync}, explicit format=${explicitFormat}`, async () => {
+      it(`image2 output start ${expression}, sync=${sync}, explicit format=${explicitFormat}`, async () => {
         const volume = Volume.fromJSON({});
         volume.writeFileSync("/in.png", encodeImage({
           width: 2, height: 2, channels: 4, data: new Uint8Array(16).fill(255),
           format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true
         }, { format: "png" }).data);
-        const args = ["-i", "/in.png", "-start_number", String(start),
+        const args = ["-i", "/in.png", "-start_number", expression,
           ...(explicitFormat ? ["-f", "image2"] : []), "/out%d.png"];
-        const success = start >= 0 && start <= 2147483647;
+        const success = Number.isInteger(start) && start >= 0 && start <= 2147483647;
         if (sync) {
           const result = evalSyncFfmpeg(args, undefined,
             path => volume.existsSync(path) ? new Uint8Array(volume.readFileSync(path) as Uint8Array) : undefined,

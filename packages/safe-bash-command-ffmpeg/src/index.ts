@@ -15557,6 +15557,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "aresample" || trimmed.startsWith("aresample=")) {
                         let rate: number | undefined = trimmed === "aresample" ? 0 : undefined;
                         let stageFilterSize: number | undefined;
+                        let stagePhaseShift: number | undefined;
+                        let stageLinearInterp: number | undefined;
+                        let stageExactRational: number | undefined;
                         let discard = 0;
                         let firstPts: number | undefined;
                         let format: string | undefined;
@@ -15588,6 +15591,24 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (!raw?.trim() || extra !== undefined || !Number.isFinite(cutoff) || cutoff < 0 || cutoff > 1) {
                               throw new Error("aresample: cutoff must be a number between 0 and 1");
                             }
+                            continue;
+                          }
+                          if (key === "phase_shift") {
+                            stagePhaseShift = Number(raw);
+                            if (!raw?.trim() || extra !== undefined || !Number.isInteger(stagePhaseShift) || stagePhaseShift < 0 || stagePhaseShift > 24) {
+                              throw new Error("aresample: phase_shift must be an integer between 0 and 24");
+                            }
+                            rate ??= 0;
+                            continue;
+                          }
+                          if (key === "linear_interp" || key === "exact_rational") {
+                            const value = Number(raw);
+                            if (!raw?.trim() || extra !== undefined || (value !== 0 && value !== 1)) {
+                              throw new Error(`aresample: ${key} must be 0 or 1`);
+                            }
+                            if (key === "linear_interp") stageLinearInterp = value;
+                            else stageExactRational = value;
+                            rate ??= 0;
                             continue;
                           }
                           if (key === "filter_size") {
@@ -15699,7 +15720,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, internalFormat, budget, context.signal);
                             }
                             stretched = await resampleAudio(stretched, length, origRate, targetRate, budget, context.signal,
-                              window, undefined, stageFilterSize, cutoff, undefined, undefined, undefined, { ends, outputEnds }, internalFormat);
+                              window, undefined, stageFilterSize, cutoff, stagePhaseShift, stageLinearInterp, stageExactRational, { ends, outputEnds }, internalFormat);
                             // Resampling produces floats; later filters and encoders must round
                             // these samples rather than narrow the original integer PCM.
                             const nextFilter = audioFilters[filterIndex + 1]?.trim().split("=", 1)[0]!.split("@", 1)[0];

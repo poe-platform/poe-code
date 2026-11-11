@@ -18798,6 +18798,41 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredChannelMask = 3;
                           filteredChannelNames = undefined;
                         }
+                        if (mask === 7 && (stretched.length !== 3 || filteredChannelMask !== 7)) {
+                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                          const sourceMask = filteredChannelMask ||
+                            ([0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][stretched.length] ?? 0);
+                          if (![4, 3, 0xb, 0x103, 0x107, 0x33, 0x37, 0x3f, 0x60f,
+                            0x63f, 0x70f, 0x137, 0x737, 0xff].includes(sourceMask)) {
+                            throw new Error("channelsplit: matching input channel layout required");
+                          }
+                          const sources = Object.keys(audioSpeakerMasks).filter(name =>
+                            Math.floor(sourceMask / audioSpeakerMasks[name]!) % 2 === 1);
+                          const rows: Record<string, number>[] = [
+                            { FL: 1, BL: Math.SQRT1_2, SL: Math.SQRT1_2, BC: 0.5, FLC: 1 },
+                            { FR: 1, BR: Math.SQRT1_2, SR: Math.SQRT1_2, BC: 0.5, FRC: 1 },
+                            { FC: 1 }
+                          ];
+                          // SWR normalizes the whole matrix, including the otherwise unchanged center.
+                          const floating = ["flt", "fltp", "dbl", "dblp"].includes(panSampleFormat);
+                          const scale = floating ? 1 : Math.max(1, ...rows.map(row =>
+                            sources.reduce((sum, name) => sum + (row[name] ?? 0), 0)));
+                          const expression = rows.map((row, index) => {
+                            const terms = Object.entries(row).map(([name, gain]) => {
+                              const value = gain / scale;
+                              // Automatic PCM16 conversion rounds each coefficient independently.
+                              const coefficient = panSampleFormat === "s16" || panSampleFormat === "s16p"
+                                ? Math.round(value * 32768) / 32768 : value;
+                              return `${coefficient}*${name}`;
+                            });
+                            return `${input[index]}=${terms.join("+")}`;
+                          });
+                          const mixed = await panAudio(`3.0|${expression.join("|")}`, stretched,
+                            sourceMask, panSampleFormat, budget, context.signal);
+                          stretched = mixed.channels;
+                          filteredChannelMask = mixed.channelMask;
+                          filteredChannelNames = undefined;
+                        }
                         const quad = stretched.length === 4 && filteredChannelMask === 0x33;
                         if (mask === 3 && (stretched.length === 1 || quad || stretched.length === 6)) {
                           const mono = stretched.length === 1;

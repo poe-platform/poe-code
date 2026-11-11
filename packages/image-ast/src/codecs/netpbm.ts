@@ -12,7 +12,7 @@ import {BmpRle,bmpRlePacketSize} from "./bmp-rle.js";
 import {tiffLabToRgb} from "./tiff-lab.js";
 import {tiffYCbCrToRgb} from "./tiff-ycbcr.js";
 import {readTiffFloat8} from "./tiff-float.js";
-import {createTiffCompressor} from "./tiff-compression.js";
+import {createTiffCompressor,tiffReversedBytes} from "./tiff-compression.js";
 import {tiffChannels,tiffSamplePlane,associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
 import {createBmpHeader,readBmpHeader,readBmpMasks,bmpMaskedChannel,packBmpPixel} from "./bmp-header.js";
 import {netpbmComment,parseNetpbmSequence} from "./netpbm-header.js";
@@ -705,15 +705,13 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
 
   const decompressChunk = (off: number, rawLen: number, expectedBytes: number, rowSamples: number): Uint8Array => {
     if (!Number.isSafeInteger(off) || off < 0 || !Number.isSafeInteger(rawLen) || rawLen < 0 || off > bytes.length - rawLen) throw new Error("Truncated TIFF strip or tile range");
-    const rawSlice = bytes.subarray(off, off + rawLen);
+    const encoded = bytes.subarray(off, off + rawLen);
+    // JPEG keeps its own bit order, independently of the TIFF FillOrder tag.
+    const rawSlice = fillOrder === 2 && compression !== 6 && compression !== 7
+      ? encoded.map(byte => tiffReversedBytes[byte]!) : encoded;
     if (compression === 3 || compression === 4) {
       if (bitsPerSample !== 1 || samplesPerPixel !== 1 || (faxOptions & 2)) throw new Error("Unsupported TIFF CCITT options");
-      const input = fillOrder === 2 ? rawSlice.map(byte => {
-        let reversed = 0;
-        for (let i = 0; i < 8; i++) reversed = (reversed << 1) | ((byte >>> i) & 1);
-        return reversed;
-      }) : rawSlice;
-      const packed = decodeCcittFax(input, { Columns: rowSamples, Rows: expectedBytes / rowSamples, K: compression === 4 ? -1 : faxOptions & 1, EndOfLine: compression === 3, BlackIs1: true });
+      const packed = decodeCcittFax(rawSlice, { Columns: rowSamples, Rows: expectedBytes / rowSamples, K: compression === 4 ? -1 : faxOptions & 1, EndOfLine: compression === 3, BlackIs1: true });
       const unpacked = new Uint8Array(expectedBytes), packedStride = Math.ceil(rowSamples / 8);
       for (let i = 0; i < unpacked.length; i++) {
         const x = i % rowSamples;
@@ -726,7 +724,7 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
       if (rawLen < packedStride * (expectedBytes / rowSamples)) throw new Error("Truncated TIFF strip or tile pixels");
       for (let i = 0; i < unpacked.length; i++) {
         const x = i % rowSamples, byte = rawSlice[Math.floor(i / rowSamples) * packedStride + (x >>> 3)] ?? 0;
-        unpacked[i] = ((byte >>> (fillOrder === 2 ? x % 8 : 7 - x % 8)) & 1) * 255;
+        unpacked[i] = ((byte >>> (7 - x % 8)) & 1) * 255;
       }
       return unpacked;
     }

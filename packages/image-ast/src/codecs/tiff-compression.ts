@@ -1,6 +1,13 @@
 import { createByteCodec } from "@poe-code/compression";
 import type { OutputEncodeOptions } from "../ast.js";
 
+/** TIFF FillOrder reverses bits within encoded bytes, before decompression. */
+export const tiffReversedBytes = Uint8Array.from({ length: 256 }, (_, byte) => {
+  byte = ((byte & 0x55) << 1) | ((byte >>> 1) & 0x55);
+  byte = ((byte & 0x33) << 2) | ((byte >>> 2) & 0x33);
+  return (byte << 4) | (byte >>> 4);
+});
+
 export function createTiffCompressor(method: OutputEncodeOptions["tiffCompression"], rowBytes: number) {
   if (method === "deflate") return createByteCodec({ direction: "encode", format: "zlib", chunkSize: 4096 });
   const dictionary = new Map<number, number>();

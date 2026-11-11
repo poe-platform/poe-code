@@ -1,3 +1,4 @@
+import {tiffReversedBytes} from "./tiff-compression.js";
 import {tiffTextProperties,tiffPhotometricNames} from "./tiff-properties.js";
 import {decodeCcittFaxChunks} from "@poe-code/pdf-ast";
 import {tiffPageSteps} from "./tiff-pages.js";
@@ -39,10 +40,10 @@ class Raster {
 }
 
 /** TIFF LZW's early-change dictionary is bounded by the 12-bit wire format. */
-async function* lzw(reader:SourceBytes,start:number,length:number,expected:number) {
+async function* lzw(readByte:(at:number)=>Promise<number>,start:number,length:number,expected:number) {
  const prefix=new Int16Array(4096),suffix=new Uint8Array(4096),stack=new Uint8Array(4097);
  let next=258,width=9,previous=-1,at=start,bits=0,buffer=0,written=0;
- const code=async()=>{while(bits<width){if(at>=start+length)return 257;buffer=(buffer<<8)|(await reader.at(at++)??0);bits+=8;}bits-=width;return (buffer>>>bits)&((1<<width)-1);};
+ const code=async()=>{while(bits<width){if(at>=start+length)return 257;buffer=(buffer<<8)|(await readByte(at++));bits+=8;}bits-=width;return (buffer>>>bits)&((1<<width)-1);};
  const expand=(value:number)=>{let used=0;while(value>=258){stack[used++]=suffix[value]!;value=prefix[value]!;}if(value<256)stack[used++]=value;return used;};
  while(written<expected) {
   const current=await code();if(current===257)break;
@@ -57,14 +58,14 @@ async function* lzw(reader:SourceBytes,start:number,length:number,expected:numbe
  }
  if(written<expected)throw new Error("Truncated TIFF LZW pixels");
 }
-async function* packBits(reader:SourceBytes,start:number,length:number,expected:number) {
+async function* packBits(readByte:(at:number)=>Promise<number>,start:number,length:number,expected:number) {
  let at=start,written=0;
- while(at<start+length&&written<expected){const n=await reader.at(at++)??0;
+ while(at<start+length&&written<expected){const n=await readByte(at++);
   if(n<128){
    if(n+1>start+length-at)throw new Error("Truncated TIFF PackBits literal run");
-   for(let i=0;i<=n&&written<expected;i++){yield await reader.at(at++)??0;written++;}
+   for(let i=0;i<=n&&written<expected;i++){yield await readByte(at++);written++;}
   }
-  else if(n!==128){if(at>=start+length)throw new Error("Truncated TIFF PackBits repeat run");const value=await reader.at(at++)??0;for(let i=0;i<257-n&&written<expected;i++){yield value;written++;}}
+  else if(n!==128){if(at>=start+length)throw new Error("Truncated TIFF PackBits repeat run");const value=await readByte(at++);for(let i=0;i<257-n&&written<expected;i++){yield value;written++;}}
  }
  if(written<expected)throw new Error("Truncated TIFF PackBits pixels");
 }
@@ -133,6 +134,10 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  const combined=allocate(total),scratch=allocate(tiled?tileBytes:total),zeros=new Uint8Array(4096);
  for(let at=0;at<total;at+=4096){await write(combined+at,zeros.subarray(0,Math.min(4096,total-at)));if(at%65536===0)await defaultRuntime.yieldTurn(signal);}
  const jpegStorage=new BackingArena(storage);
+ const stripByte=async(at:number)=>{
+  const value=await reader.at(at)??0;
+  return fillOrder===2?tiffReversedBytes[value]!:value;
+ };
  const decompress=async(off:number,rawLength:number,expected:number,max:number,rowSamples:number)=>{
   if(!Number.isSafeInteger(off)||off<0||!Number.isSafeInteger(rawLength)||rawLength<0||off>source.size-rawLength)throw new Error("Truncated TIFF strip or tile range");
   const start=off,end=off+rawLength,position=scratch;
@@ -143,11 +148,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
    const open=async function*(){
     for(let at=start;at<end;at+=4096){
      const bytes=new Uint8Array(Math.min(4096,end-at));
-     for(let i=0;i<bytes.length;i++){
-      const byte=await reader.at(at+i)??0;
-      if(fillOrder===2){let reversed=0;for(let bit=0;bit<8;bit++)reversed=(reversed<<1)|((byte>>>bit)&1);bytes[i]=reversed;}
-      else bytes[i]=byte;
-     }
+     for(let i=0;i<bytes.length;i++)bytes[i]=await stripByte(at+i);
      yield bytes;
     }
    };
@@ -172,8 +173,8 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
     const bytes=new Uint8Array(Math.min(4096,expected-at));
     for(let i=0;i<bytes.length;i++){
      const index=at+i,x=index%rowSamples,offset=start+Math.floor(index/rowSamples)*packedStride+(x>>>3);
-     const value=offset<end?await reader.at(offset)??0:0;
-     bytes[i]=((value>>>(fillOrder===2?x%8:7-x%8))&1)*255;
+     const value=offset<end?await stripByte(offset):0;
+     bytes[i]=((value>>>(7-x%8))&1)*255;
     }
     await append(bytes);await defaultRuntime.yieldTurn(signal);
    }
@@ -205,20 +206,20 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
    return {position,length};
   }
   if(compression===5||compression===32773){const buffer=new Uint8Array(4096);let used=0,work=0;
-   for await(const value of compression===5?lzw(reader,start,end-start,Math.trunc(expected)):packBits(reader,start,end-start,Math.trunc(expected))){
+   for await(const value of compression===5?lzw(stripByte,start,end-start,Math.trunc(expected)):packBits(stripByte,start,end-start,Math.trunc(expected))){
     signal.throwIfAborted();buffer[used++]=value;if(used===4096){await append(buffer);used=0;if(++work%16===0)await defaultRuntime.yieldTurn(signal);}
    }if(used)await append(buffer.subarray(0,used));return {position,length};
   }
   if(compression===8||compression===32946){const codec=createByteCodec({direction:"decode",format:"zlib-or-gzip",chunkSize:4096});
    try {
-    for(let at=start;at<end&&!codec.complete;at+=4096){const input=new Uint8Array(Math.min(4096,end-at));for(let i=0;i<input.length;i++)input[i]=await reader.at(at+i)??0;
+    for(let at=start;at<end&&!codec.complete;at+=4096){const input=new Uint8Array(Math.min(4096,end-at));for(let i=0;i<input.length;i++)input[i]=await stripByte(at+i);
      for(const bytes of codec.push(input)){await append(bytes);await defaultRuntime.yieldTurn(signal);}
     }
     if(!codec.complete)for(const bytes of codec.push(new Uint8Array(),true)){await append(bytes);await defaultRuntime.yieldTurn(signal);}
    }finally{codec.close();}
    return {position,length};
   }
-  for(let at=start;at<end&&length<max;at+=4096){const bytes=new Uint8Array(Math.min(4096,end-at,max-length));for(let i=0;i<bytes.length;i++)bytes[i]=await reader.at(at+i)??0;await append(bytes);}
+  for(let at=start;at<end&&length<max;at+=4096){const bytes=new Uint8Array(Math.min(4096,end-at,max-length));for(let i=0;i<bytes.length;i++)bytes[i]=await stripByte(at+i);await append(bytes);}
   return {position,length};
  };
  const predict=async(position:number,length:number,rowCount:number,rowStride:number)=>{

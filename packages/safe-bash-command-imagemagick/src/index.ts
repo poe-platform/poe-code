@@ -7248,7 +7248,13 @@ function* selectedInputPages(pageSpec: string | undefined, totalPages: number, o
         for (let page = 0; page < totalPages; page++) yield page;
         return;
     }
-    for (const [first, last] of parseMagickIndices(pageSpec)) {
+    const indices = parseMagickIndices(pageSpec);
+    // The GIF reader stops after frame zero when every requested scene is zero.
+    if (format === "gif" && indices.every(range => range.every(index => index === 0))) {
+        yield 0;
+        return;
+    }
+    for (const [first, last] of indices) {
         const start = first! < 0 ? totalPages + first! : first!;
         if (start < 0 || start >= totalPages) {
             if (!onInvalidIndex) throw new Error(`invalid image index ${first}`);

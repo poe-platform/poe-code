@@ -5265,6 +5265,9 @@ async function applyVideoFilterChain(
             planeOffset += width * height;
           }
         }
+        if (diagnostics.logLevel >= 48) {
+          await diagnostics.write(`[mpdecimate] ${changed ? "keep" : "drop"} pts:${Math.round(frame.ptsSeconds * timescale)} pts_time:${Number(frame.ptsSeconds.toPrecision(6))}\n`);
+        }
         if (changed) retained.push(frame);
       }
       current = retained;

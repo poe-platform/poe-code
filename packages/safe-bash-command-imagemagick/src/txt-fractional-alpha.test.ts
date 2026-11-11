@@ -26,7 +26,8 @@ for (const mode of ["sync", "buffered", "retained", "command"]) {
                 stdout: { write: async chunk => { stdout += typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk); } },
                 stderr: { write: async chunk => { stderr += typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk); } },
             });
-        if ("stdout" in result) { stdout = result.stdout; stderr = result.stderr; }
+        if ("stdout" in result && typeof result.stdout === "string") stdout = result.stdout;
+        if ("stderr" in result && typeof result.stderr === "string") stderr = result.stderr;
         expect(result.exitCode, stderr).toBe(0);
         expect(stderr).toBe("");
         expect(stdout).toBe(`# ImageMagick pixel enumeration: 1,1,0,65535,srgba\n0,0: (8224,16448,32896,${sample})  #202040408080${hex}  srgba(32,64,128,${alpha})\n`);

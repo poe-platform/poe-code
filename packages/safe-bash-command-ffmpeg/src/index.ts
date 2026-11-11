@@ -18792,17 +18792,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         if (customOrder && !matchingOrder) throw new Error("channelsplit: matching input channel layout required");
                         const mask = input.reduce((value, speaker) => value + audioSpeakerMasks[speaker]!, 0);
-                        if (mask === 0x3f && filteredChannelMask !== undefined &&
-                            [0x4, 0x7, 0xb, 0x103, 0x107, 0x33, 0x37, 0x60f, 0x63f, 0x70f, 0x137, 0x737, 0xff].includes(filteredChannelMask)) {
+                        if ((mask === 0x3f || mask === 0x60f) && filteredChannelMask !== undefined && filteredChannelMask !== mask &&
+                            [0x4, 0x7, 0xb, 0x103, 0x107, 0x33, 0x37, 0x3f, 0x60f, 0x63f, 0x70f, 0x137, 0x737, 0xff].includes(filteredChannelMask)) {
                           if (!autoConversionFilters) throw new Error(audioConversionDisabled);
                           const sources = Object.keys(audioSpeakerMasks).filter(name =>
                             (filteredChannelMask! & audioSpeakerMasks[name]!) !== 0);
-                          // Side speakers replace missing backs; otherwise mix them into the backs.
-                          const surround = sources.includes("BL") ? Math.SQRT1_2 : 1;
+                          const side = mask === 0x60f;
+                          // Back and side speakers replace each other when absent, or mix at -3 dB.
+                          const surround = sources.includes(side ? "SL" : "BL") ? Math.SQRT1_2 : 1;
                           const matrix: Record<string, number>[] = [
                             { FL: 1, FLC: 1 }, { FR: 1, FRC: 1 }, { FC: 1 }, { LFE: 1 },
-                            { BL: 1, BC: Math.SQRT1_2, SL: surround },
-                            { BR: 1, BC: Math.SQRT1_2, SR: surround }
+                            { BL: side ? surround : 1, BC: Math.SQRT1_2, SL: side ? 1 : surround },
+                            { BR: side ? surround : 1, BC: Math.SQRT1_2, SR: side ? 1 : surround }
                           ];
                           // SWR normalizes the whole integer matrix, including unmixed fronts and LFE.
                           const normalization = ["flt", "fltp", "dbl", "dblp"].includes(panSampleFormat) ? 1
@@ -18816,7 +18817,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               return `${quantize ? roundToEven(Math.fround(gain * 32768)) / 32768 : gain}*${name}`;
                             }).join("+");
                           });
-                          const mixed = await panAudio(`5.1|${assignments.join("|")}`,
+                          const mixed = await panAudio(`${input.join("+")}|${assignments.join("|")}`,
                             stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
                           stretched = mixed.channels;
                           filteredChannelMask = mixed.channelMask;

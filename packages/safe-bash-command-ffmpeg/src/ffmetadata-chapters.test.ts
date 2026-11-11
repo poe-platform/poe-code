@@ -5,8 +5,8 @@ import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 for (const sync of [false, true]) {
   it(`preserves FFmetadata chapter ticks and time bases (${sync ? "sync" : "async"})`, async () => {
-    const chapters = "\n[CHAPTER]\nTIMEBASE=1/48000\nSTART=1\nEND=49\ntitle=beat\n" +
-      "\n[CHAPTER]\nTIMEBASE=1001/30000\nSTART=2\nEND=3\ntitle=frame\n";
+    const chapters = "[CHAPTER]\nTIMEBASE=1/48000\nSTART=1\nEND=49\ntitle=beat\n" +
+      "[CHAPTER]\nTIMEBASE=1001/30000\nSTART=2\nEND=3\ntitle=frame\n";
     const volume = Volume.fromJSON({ "/in.ffmeta": `;FFMETADATA1\n${chapters}` });
     const args = ["-y", "-bitexact", "-v", "error", "-f", "ffmetadata", "-i", "/in.ffmeta", "-f", "ffmetadata", "/out.ffmeta"];
     if (sync) {

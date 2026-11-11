@@ -7,11 +7,11 @@ import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 for (const sync of [false, true]) {
   for (const [end, next, expected] of [
     ["", "", 100],
-    ["", "\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=300\nEND=600\ntitle=Next\n", 300],
+    ["", "[CHAPTER]\nTIMEBASE=1/1000\nSTART=300\nEND=600\ntitle=Next\n", 300],
     ["END=200\n", "", 200]
   ] as const) {
     it(`recovers omitted FFmetadata chapter ends (${sync ? "sync" : "async"}, end=${end}, next=${!!next})`, async () => {
-      const chapter = "\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=100\n";
+      const chapter = "[CHAPTER]\nTIMEBASE=1/1000\nSTART=100\n";
       const volume = Volume.fromJSON({
         "/in.wav": Buffer.from(encodeWav({ sampleRate: 8000, channels: [new Float64Array(8000)] })),
         "/in.ffmeta": `;FFMETADATA1\n${chapter}${end}${end ? "title=Intro\n" : ""}${next}`,

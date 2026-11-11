@@ -65,7 +65,7 @@ for (const titles of [["Intro", "Demo"], [], ["", "ok"]]) {
         } else {
           // Preserve native FFmpeg's 1/8000 sample intervals.
           assert.equal(bytes.toString(), output === "disabled" ? ";FFMETADATA1\n" :
-            `;FFMETADATA1\n\n[CHAPTER]\nTIMEBASE=1/8000\nSTART=0\nEND=2000\n${titles[0] === undefined ? "" : `title=${titles[0]}\n`}\n[CHAPTER]\nTIMEBASE=1/8000\nSTART=2000\nEND=8000\n${titles[1] === undefined ? "" : `title=${titles[1]}\n`}`);
+            `;FFMETADATA1\n[CHAPTER]\nTIMEBASE=1/8000\nSTART=0\nEND=2000\n${titles[0] === undefined ? "" : `title=${titles[0]}\n`}[CHAPTER]\nTIMEBASE=1/8000\nSTART=2000\nEND=8000\n${titles[1] === undefined ? "" : `title=${titles[1]}\n`}`);
         }
       });
     }

@@ -71,6 +71,6 @@ for (const timebase of ["", "TIMEBASE=1/8000\n"]) {
     } as never);
     assert.equal(result.exitCode, 0, stderr);
     assert.equal(volume.readFileSync("/out.ffmeta", "utf8"),
-      `;FFMETADATA1\n\n[CHAPTER]\nTIMEBASE=1/${timebase ? 8000 : 1000000000}\nSTART=0\nEND=${timebase ? 2000 : 250000000}\ntitle=Demo\n`);
+      `;FFMETADATA1\n[CHAPTER]\nTIMEBASE=1/${timebase ? 8000 : 1000000000}\nSTART=0\nEND=${timebase ? 2000 : 250000000}\ntitle=Demo\n`);
   });
 }

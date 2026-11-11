@@ -5,8 +5,8 @@ import { Volume } from "memfs";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 const bytes = readFileSync(new URL("../../safe-bash-command-ffprobe/src/fixtures/chapters.flac", import.meta.url));
-const chapters = "\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=125\nEND=625\ntitle=Intro\n" +
-  "\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=625\nEND=1000\ntitle=Q and A\n";
+const chapters = "[CHAPTER]\nTIMEBASE=1/1000\nSTART=125\nEND=625\ntitle=Intro\n" +
+  "[CHAPTER]\nTIMEBASE=1/1000\nSTART=625\nEND=1000\ntitle=Q and A\n";
 it("exports named FLAC Vorbis-comment chapters in asynchronous and synchronous FFmetadata", async () => {
   const volume = Volume.fromJSON({ "/in.flac": bytes });
   const args = ["-v", "error", "-y", "-i", "/in.flac", "-f", "ffmetadata", "/out.txt"];

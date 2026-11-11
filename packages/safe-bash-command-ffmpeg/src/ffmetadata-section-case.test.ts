@@ -9,7 +9,7 @@ for (const sync of [false, true]) {
   for (const section of ["chapter", "Chapter", "CHAPTER"]) {
     it(`handles case-sensitive FFmetadata sections ${section} (${sync ? "sync" : "async"})`, async () => {
       const body = "START=100\nEND=500\ntitle=Intro";
-      const chapter = "\n[CHAPTER]\nTIMEBASE=1/1000\n";
+      const chapter = "[CHAPTER]\nTIMEBASE=1/1000\n";
       const volume = Volume.fromJSON({
         "/in.wav": Buffer.from(encodeWav({ sampleRate: 8000, channels: [new Float64Array(8000)] })),
         "/in.ffmeta": `;FFMETADATA1\n${chapter.replace("CHAPTER", section)}${body}\n`,

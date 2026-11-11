@@ -32,7 +32,7 @@ test("binary FLAC cuesheet chapters use sample offsets and exclude lead-out acro
     for (let offset = 0; offset < bytes.length; offset += 7) yield bytes.subarray(offset, offset + 7);
   })())).chapters, expected);
   const text = new TextDecoder().decode(serializeFfmetadata(plugin.parse(bytes, { decodeAudio: false })));
-  assert.equal(text, ";FFMETADATA1\n\n[CHAPTER]\nTIMEBASE=1/8000\nSTART=0\nEND=4000\ntitle=\n\n[CHAPTER]\nTIMEBASE=1/8000\nSTART=4000\nEND=8000\ntitle=\n");
+  assert.equal(text, ";FFMETADATA1\n[CHAPTER]\nTIMEBASE=1/8000\nSTART=0\nEND=4000\ntitle=\n[CHAPTER]\nTIMEBASE=1/8000\nSTART=4000\nEND=8000\ntitle=\n");
 });
 
 test("rejects truncated binary cue sheets and indices", () => {

@@ -11,7 +11,7 @@ for (const timescale of [undefined, 8000, 44100]) {
       startTimeSeconds: 1 / denominator, endTimeSeconds: 3 / denominator, title: "cue"
     }];
     assert.equal(new TextDecoder().decode(serializeFfmetadata({ ...doc, chapters })),
-      `;FFMETADATA1\n\n[CHAPTER]\nTIMEBASE=1/${denominator}\nSTART=1\nEND=3\ntitle=cue\n`);
+      `;FFMETADATA1\n[CHAPTER]\nTIMEBASE=1/${denominator}\nSTART=1\nEND=3\ntitle=cue\n`);
   });
 }
 
@@ -23,5 +23,5 @@ it("exports edited chapter boundaries using the source time base", () => {
     ...chapter, timescale: 1000, startTimeSeconds: 2 / 48000, endTimeSeconds: 50 / 48000
   })) };
   assert.equal(new TextDecoder().decode(serializeFfmetadata(edited)),
-    ";FFMETADATA1\n\n[CHAPTER]\nTIMEBASE=1/48000\nSTART=2\nEND=50\ntitle=beat\n");
+    ";FFMETADATA1\n[CHAPTER]\nTIMEBASE=1/48000\nSTART=2\nEND=50\ntitle=beat\n");
 });

@@ -13,7 +13,7 @@ for (const sync of [false, true]) {
     ["start=100\nend=500", "START=0\nEND=0\nend=500"]
   ] as const) {
   it(`preserves positional FFmetadata headers (${sync ? "sync" : "async"}, ${body})`, async () => {
-    const chapter = "\n[CHAPTER]\nTIMEBASE=1/1000\n";
+    const chapter = "[CHAPTER]\nTIMEBASE=1/1000\n";
     const volume = Volume.fromJSON({
         "/in.wav": Buffer.from(encodeWav({ sampleRate: 8000, channels: [new Float64Array(8000)] })),
         "/in.ffmeta": `;FFMETADATA1\n${chapter}${body}\n`,

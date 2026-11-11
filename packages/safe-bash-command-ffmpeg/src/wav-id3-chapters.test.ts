@@ -36,7 +36,7 @@ for (const sync of [false, true]) for (const input of ["/in.wav", "-"]) {
         assert.equal(parseWav(bytes).chapters?.length ?? 0, 0);
       } else {
         assert.equal(bytes.toString(), output === "disabled" ? ";FFMETADATA1\n" :
-          ";FFMETADATA1\n\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=250\nEND=750\ntitle=Verse\n");
+          ";FFMETADATA1\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=250\nEND=750\ntitle=Verse\n");
       }
     });
   }

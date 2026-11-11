@@ -5,7 +5,7 @@ import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 for (const sync of [false, true]) {
   it(`preserves chapter FFmetadata tags without inventing titles (${sync ? "sync" : "async"})`, async () => {
-    const input = ";FFMETADATA1\nartist=Global\n\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=0\nEND=250\nartist=Alice\n";
+    const input = ";FFMETADATA1\nartist=Global\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=0\nEND=250\nartist=Alice\n";
     const volume = Volume.fromJSON({ "/in.ffmeta": input });
     const args = ["-y", "-bitexact", "-v", "error", "-f", "ffmetadata", "-i", "/in.ffmeta", "-f", "ffmetadata", "/out.ffmeta"];
     if (sync) {

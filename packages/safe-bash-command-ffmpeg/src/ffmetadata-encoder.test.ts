@@ -5,8 +5,8 @@ import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 for (const sync of [false, true]) for (const flags of [[], ["-bitexact"], ["-fflags", "bitexact"], ["-fflags", "+bitexact"]]) for (const encoder of ["", "encoder=Old\n"]) {
   it(`exports FFmetadata muxer encoder and chapter ticks ${JSON.stringify(flags)} (${encoder ? "existing encoder" : "no encoder"}) (${sync ? "sync" : "async"})`, async () => {
-    const chapters = "\n[CHAPTER]\nTIMEBASE=1/48000\nSTART=1\nEND=49\ntitle=beat\n" +
-      "\n[CHAPTER]\nTIMEBASE=1001/30000\nSTART=2\nEND=3\ntitle=frame\n";
+    const chapters = "[CHAPTER]\nTIMEBASE=1/48000\nSTART=1\nEND=49\ntitle=beat\n" +
+      "[CHAPTER]\nTIMEBASE=1001/30000\nSTART=2\nEND=3\ntitle=frame\n";
     const volume = Volume.fromJSON({ "/in.ffmeta": `;FFMETADATA1\ntitle=Meeting\n${encoder}${chapters}` });
     const args = ["-y", "-v", "error", "-f", "ffmetadata", "-i", "/in.ffmeta", ...flags, "-f", "ffmetadata", "/out.ffmeta"];
     if (sync) {

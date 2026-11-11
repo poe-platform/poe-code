@@ -32,6 +32,6 @@ for (const sync of [false, true]) {
       assert.equal(result.exitCode, 0, stderr);
     }
     assert.equal(volume.readFileSync("/out.ffmeta", "utf8"),
-      ";FFMETADATA1\ntitle=C:\\\\work\\\\clip\\=x\\;\\#\nencoder=Lavf61.7.100\n\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=100\nEND=500\ntitle=Intro\n");
+      ";FFMETADATA1\ntitle=C:\\\\work\\\\clip\\=x\\;\\#\nencoder=Lavf61.7.100\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=100\nEND=500\ntitle=Intro\n");
   });
 }

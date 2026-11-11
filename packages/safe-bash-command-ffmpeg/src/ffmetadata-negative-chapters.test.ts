@@ -9,7 +9,7 @@ for (const sync of [false, true]) {
   for (const [start, end] of [[-100, 500], [-500, -100], [100, 500], [-100, 0]] as const) {
     it(`clips FFmetadata chapter ${start}..${end} against zero (${sync ? "sync" : "async"})`, async () => {
       const body = `START=${start}\nEND=${end}\ntitle=Intro`;
-      const chapter = "\n[CHAPTER]\nTIMEBASE=1/1000\n";
+      const chapter = "[CHAPTER]\nTIMEBASE=1/1000\n";
       const volume = Volume.fromJSON({
         "/in.wav": Buffer.from(encodeWav({ sampleRate: 8000, channels: [new Float64Array(8000)] })),
         "/in.ffmeta": `;FFMETADATA1\n${chapter}${body}\n`,

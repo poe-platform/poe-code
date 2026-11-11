@@ -9,9 +9,9 @@ for (const labelsFirst of [false, true]) {
   const bytes = readFileSync(new URL(
     `../../safe-bash-command-ffprobe/src/fixtures/wav-cue-order/${labelsFirst ? "labels-first" : "cues-first"}.wav`, import.meta.url
   ));
-  const chapters = "\n[CHAPTER]\nTIMEBASE=1/8000\nSTART=0\nEND=400\n" +
+  const chapters = "[CHAPTER]\nTIMEBASE=1/8000\nSTART=0\nEND=400\n" +
     (labelsFirst ? "" : "title=Intro\n") +
-    "\n[CHAPTER]\nTIMEBASE=1/8000\nSTART=400\nEND=800\n" +
+    "[CHAPTER]\nTIMEBASE=1/8000\nSTART=400\nEND=800\n" +
     (labelsFirst ? "" : "title=Verse\n");
   for (const sync of [false, true]) {
     it(`exports WAV labels ${labelsFirst ? "before" : "after"} cues (${sync ? "sync" : "async"})`, async () => {

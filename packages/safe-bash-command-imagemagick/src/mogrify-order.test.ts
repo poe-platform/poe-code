@@ -8,7 +8,7 @@ for (const mode of ["buffered", "retained", "retained-symlink", "sync"] as const
         { args: ["/a.png", "-negate", "/b.png"], negateA: false, negateB: true, fails: false },
         { args: ["/a.png", "/b.png", "-negate"], negateA: false, negateB: false, fails: false },
         { args: ["-negate", "/a.png", "/b.png"], negateA: true, negateB: true, fails: false },
-        { args: ["-negate", "/a.png", "-resize", "1x1", "/missing.png", "/b.png"], negateA: true, negateB: false, fails: true }
+        { args: ["-negate", "/a.png", "-flop", "/missing.png", "/b.png"], negateA: true, negateB: true, fails: true }
     ])(`applies only operations preceding each mogrify input (${mode}): $args`, async ({ args, negateA, negateB, fails }) => {
         const pixels = [[255, 0, 0, 0, 255, 0], [0, 0, 255, 255, 255, 0]];
         const files = new Map<string, Uint8Array>();
@@ -28,7 +28,8 @@ for (const mode of ["buffered", "retained", "retained-symlink", "sync"] as const
             const decoded = decodeImage(mode.startsWith("retained") ? await filesystem.readFile(mode === "retained-symlink" && path === "/a.png" ? "/link.png" : path) : files.get(path)!);
             expect([decoded.width, decoded.height]).toEqual([2, 1]);
             const negate = index === 0 ? negateA : negateB;
-            expect(Array.from(decoded.data).filter((_, channel) => channel % 4 !== 3)).toEqual(pixels[index]!.map(value => negate ? 255 - value : value));
+            const expected = pixels[index]!.map(value => negate ? 255 - value : value);
+            expect(Array.from(decoded.data).filter((_, channel) => channel % 4 !== 3)).toEqual(fails && index === 1 ? [...expected.slice(3), ...expected.slice(0, 3)] : expected);
         }
     });
 }

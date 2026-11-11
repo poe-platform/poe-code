@@ -17849,13 +17849,21 @@ function* runMogrifyCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     for (const plan of yield* parseMogrifySteps(argv)) {
         if ("exitCode" in plan) return { ...plan, stdout: combined.stdout + plan.stdout, stderr: combined.stderr + plan.stderr };
         for (const target of yield* mogrifyTargets(plan.target, files.keys())) {
-            if (!files.has(target)) return { ...combined, exitCode: 1, stderr: combined.stderr + `mogrify: unable to open image '${target}': No such file or directory\n` };
+            if (!files.has(target)) {
+                combined.exitCode = 1;
+                combined.stderr += `mogrify: unable to open image '${target}': No such file or directory\n`;
+                continue;
+            }
             const args = plan.args(target);
             if (plan.verbose) combined.stderr += runIdentifyCliSync([target], files, undefined, signal).stdout;
             const result = yield* runConvertCliSteps(args, files, undefined, signal);
             combined.stdout += result.stdout;
             combined.stderr += result.stderr;
-            if (result.exitCode !== 0) return { ...combined, exitCode: result.exitCode };
+            if (result.exitCode !== 0) {
+                combined.exitCode = result.exitCode;
+                if (result.exitCode === 11) return combined;
+                continue;
+            }
             if (plan.identify || plan.verbose) combined.stdout += runIdentifyCliSync([args.at(-1)!], files, undefined, signal).stdout;
             if (plan.regardWarnings && result.stderr) combined.exitCode = 1;
         }
@@ -17877,36 +17885,42 @@ export async function runMogrifyCli(argv: readonly string[], files: Map<string, 
         }
         for (const name of await mogrifyFileTargets(plan.target, files.filesystem, files.cwd, active)) {
             const args = plan.args(name);
-            let exists = false;
-            try { exists = (await files.filesystem.stat(resolvePath(files.cwd, name), { signal: active })).type === "file"; }
-            catch (error) {
-                active.throwIfAborted();
-                if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"].includes(error.code)) throw error;
-            }
-            if (!exists) {
-                const stderr = `mogrify: unable to open image '${name}': No such file or directory\n`;
-                if (files.stderr) await writeIdentifyText(files.stderr, stderr, active);
-                return { ...combined, exitCode: 1, stderr: combined.stderr + (files.stderr ? "" : stderr) };
-            }
-            if (plan.verbose) {
-                const report = await runIdentifyCli([name], { filesystem: files.filesystem, cwd: files.cwd, ...(files.stderr ? { stdout: files.stderr } : {}) }, undefined, active);
-                combined.stderr += report.stdout + report.stderr;
-            }
             let current = 0;
-            const target = resolvePath(files.cwd, name);
-            const replaceLink = resolvePath(files.cwd, args.at(-1)!) === target && (await files.filesystem.lstat(target, { signal: active })).type === "symlink";
-            // Encode beside the link, then replace its directory entry only on success.
-            const staging = replaceLink ? `${target.slice(0, target.lastIndexOf("/"))}/.mogrify-${crypto.randomUUID()}` : undefined;
-            if (staging) await files.filesystem.mkdir(staging, { signal: active, mode: 0o700 });
+            let staging: string | undefined;
             try {
+                let exists = false;
+                try { exists = (await files.filesystem.stat(resolvePath(files.cwd, name), { signal: active })).type === "file"; }
+                catch (error) {
+                    active.throwIfAborted();
+                    if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"].includes(error.code)) throw error;
+                }
+                if (!exists) {
+                    const stderr = `mogrify: unable to open image '${name}': No such file or directory\n`;
+                    if (files.stderr) await writeIdentifyText(files.stderr, stderr, active);
+                    combined.exitCode = 1;
+                    if (!files.stderr) combined.stderr += stderr;
+                    continue;
+                }
+                if (plan.verbose) {
+                    const report = await runIdentifyCli([name], { filesystem: files.filesystem, cwd: files.cwd, ...(files.stderr ? { stdout: files.stderr } : {}) }, undefined, active);
+                    combined.stderr += report.stdout + report.stderr;
+                }
+                const target = resolvePath(files.cwd, name);
+                const replaceLink = resolvePath(files.cwd, args.at(-1)!) === target && (await files.filesystem.lstat(target, { signal: active })).type === "symlink";
+                // Encode beside the link, then replace its directory entry only on success.
+                staging = replaceLink ? `${target.slice(0, target.lastIndexOf("/"))}/.mogrify-${crypto.randomUUID()}` : undefined;
+                if (staging) await files.filesystem.mkdir(staging, { signal: active, mode: 0o700 });
                 const output = staging ? `${staging}/${target.slice(target.lastIndexOf("/") + 1)}` : undefined;
                 const conversionArgs = output ? [...args.slice(0, -1), output] : args;
                 const result = await runConvertCli(conversionArgs, { ...conversionInput, inputBudget: { check(total) { files.inputBudget?.check(accounted + total); current = total; } } }, undefined, active);
-                accounted += current;
                 combined.stdout += result.stdout;
                 if (files.stderr) await writeIdentifyText(files.stderr, result.stderr, active);
                 else combined.stderr += result.stderr;
-                if (result.exitCode !== 0) return { ...combined, exitCode: result.exitCode };
+                if (result.exitCode !== 0) {
+                    combined.exitCode = result.exitCode;
+                    if (result.exitCode === 11) return combined;
+                    continue;
+                }
                 if (output) await files.filesystem.rename(output, target, { signal: active });
                 if (plan.identify || plan.verbose) {
                     const report = await runIdentifyCli([args.at(-1)!], { filesystem: files.filesystem, cwd: files.cwd, ...(files.stdout ? { stdout: files.stdout } : {}), ...(errorSink ? { stderr: errorSink } : {}) }, undefined, active);
@@ -17914,7 +17928,15 @@ export async function runMogrifyCli(argv: readonly string[], files: Map<string, 
                     combined.stderr += report.stderr;
                 }
                 if (plan.regardWarnings && result.stderr) combined.exitCode = 1;
+            } catch (error) {
+                active.throwIfAborted();
+                if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM", "EIO", "ENOSPC", "EROFS", "ELOOP"].includes(error.code)) throw error;
+                combined.exitCode = 1;
+                const stderr = `mogrify: ${error.message}\n`;
+                if (files.stderr) await writeIdentifyText(files.stderr, stderr, active);
+                else combined.stderr += stderr;
             } finally {
+                accounted += current;
                 if (staging) await files.filesystem.rm(staging, { recursive: true, force: true });
             }
         }

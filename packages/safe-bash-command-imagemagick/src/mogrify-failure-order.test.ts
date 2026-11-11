@@ -21,7 +21,9 @@ for (const mode of ["buffered", "retained", "retained-symlink", "sync"] as const
         expect(result.stderr).toContain(failure === "corrupt" ? "unsupported image format" : failingArg);
         const edited = mode.startsWith("retained") ? await filesystem.readFile(target) : files.get(target)!;
         expect(Array.from(decodeImage(edited).data).filter((_, index) => index % 4 !== 3)).toEqual(pixels.map(value => 255 - value));
-        expect(mode.startsWith("retained") ? await filesystem.readFile("/b.png") : files.get("/b.png")).toEqual(original);
+        const later = mode.startsWith("retained") ? await filesystem.readFile("/b.png") : files.get("/b.png")!;
+        if (failure === "missing" || failure === "corrupt") expect(Array.from(decodeImage(later).data).filter((_, index) => index % 4 !== 3)).toEqual(pixels.map(value => 255 - value));
+        else expect(later).toEqual(original);
         if (symlink) {
             expect(await filesystem.readFile("/a.png")).toEqual(original);
             expect((await filesystem.lstat(target)).type).toBe("file");

@@ -4100,6 +4100,25 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
         };
     }
     if (method === "arc") throw new Error("Unsupported distortion method: Arc");
+    if (method === "plane2cylinder") {
+        if (nums.length === 0) throw new Error("invalid list of numbers");
+        const fov = nums[0]!;
+        if (fov < 1e-12 || fov > 160) throw new Error("invalid argument for option Plane2Cylinder : Invalid FOV Angle");
+        const angle = fov * Math.PI / 180, radius = w / (2 * Math.tan(angle / 2));
+        const pageX = img.virtualCanvas?.x ?? 0, pageY = img.virtualCanvas?.y ?? 0;
+        const fit = token === "+distort", width = fit ? Math.ceil(angle * radius) : w, height = fit ? h + 2 * pageY : h;
+        const ox = fit ? (width - 1) / 2 : cx + pageX, oy = fit ? (height - 1) / 2 : cy + pageY;
+        const sx = cx + (fit ? 0 : pageX), sy = cy + (fit ? 0 : pageY);
+        return {
+            ...result((x, y) => [sx + radius * Math.tan((x - ox) / radius), sy + (y - oy) / Math.cos((x - ox) / radius)], width, height),
+            ...(fit ? { virtualCanvas: { width, height, x: 0, y: 0 } } : {}),
+            derivatives(x, y) {
+                const secant = 1 / Math.cos((x - ox) / radius);
+                // Match native's EWA footprint, including its vertical cross derivative.
+                return [secant * secant, 0, (y - oy) * secant * secant / radius, secant];
+            }
+        };
+    }
     if (method === "shepards") {
         if (nums.length === 0 || nums.length % 4 !== 0) throw new Error("Shepards requires control points (4 numbers each)");
         return result((x, y) => {

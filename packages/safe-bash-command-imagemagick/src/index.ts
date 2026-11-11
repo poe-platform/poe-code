@@ -5881,7 +5881,7 @@ function parseMagickRepageGeometry(raw: string): MagickGeometry {
 
 function parseMagickPageGeometry(raw: string) {
     const geometry = parseMagickPageSetting(raw, "page");
-    return { width: Math.round(geometry.width ?? 0), height: Math.round(geometry.height ?? (geometry.isPercent ? geometry.width : undefined) ?? 0), x: Math.trunc(geometry.x), y: Math.trunc(geometry.y) };
+    return { width: Math.round(geometry.width ?? 0), height: Math.round(geometry.height ?? (geometry.isPercent ? geometry.width : undefined) ?? 0), x: Math.trunc(geometry.x), y: Math.trunc(geometry.y), hasOffset: geometry.hasOffset };
 }
 
 function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: MagickGeometry, operation: "repage" | "set") {
@@ -12198,8 +12198,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const raw = tokens[++i] ?? "";
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
             const expanded = yield* formatMagickPropertyStringSteps(raw, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
-            const page = state.page = parseMagickPageGeometry(expanded);
-            stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, virtualCanvas: page }; });
+            const { hasOffset, ...page } = parseMagickPageGeometry(expanded);
+            state.page = page;
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                yield;
+                return { ...image, virtualCanvas: !hasOffset && image.virtualCanvas
+                    ? { ...page, x: image.virtualCanvas.x, y: image.virtualCanvas.y } : page };
+            });
             i++;
             continue;
         }
@@ -15540,8 +15545,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async (stack, backend) => {
                 const image = await stack.get(0) ?? await createStoredCanvas(1, 1, settings.background, backend, signal);
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                Object.assign(page, parseMagickPageGeometry(expanded));
-                for (let index = 0; index < stack.length; index++) await stack.set(index, { ...(await stack.get(index))!, virtualCanvas: page });
+                const { hasOffset, ...geometry } = parseMagickPageGeometry(expanded);
+                Object.assign(page, geometry);
+                for (let index = 0; index < stack.length; index++) {
+                    const image = (await stack.get(index))!;
+                    await stack.set(index, { ...image, virtualCanvas: !hasOffset && image.virtualCanvas
+                        ? { ...page, x: image.virtualCanvas.x, y: image.virtualCanvas.y } : page });
+                }
                 return stack;
             });
             continue;

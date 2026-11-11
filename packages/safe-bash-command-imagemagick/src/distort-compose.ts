@@ -42,12 +42,12 @@ export function* distortCompositeSteps(base: Raster, overlay: Raster, left: numb
         const sampler = warpPixelSteps(base, {
             width: count, height: 1, hasAlpha: base.hasAlpha,
             map(i) {
-                if (!map) return [x + i, y, true];
+                if (!map) return [-1, -1];
                 // Native Q16 maps are centered at 32768, not half of 65535.
                 return [centerX + scaleX * (map[i * 4]! * 257 - 32768) / 32768,
                     centerY + scaleY * (map[i * 4 + 1]! * 257 - 32768) / 32768];
             },
-        }, { r: 255, g: 255, b: 255, a: 255 }, "edge");
+        }, { r: 0, g: 0, b: 0, a: base.hasAlpha ? 0 : 255 }, inside ? "edge" : "background");
         let input: Uint8Array | undefined;
         for (;;) {
             const next = sampler.next(input);

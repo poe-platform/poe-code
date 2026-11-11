@@ -57,7 +57,11 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
             const alpha = evaluate ? new Float64Array(bytes.slice().buffer) : new Uint16Array(bytes.slice().buffer);
             for (let i = 3; i < samples.length; i += 4) samples[i] = alpha[i]! / (evaluate ? 1 : 257);
         }
-        if (outside && maskDestination && !tile && !clipToOverlay) {
+        if (outside && displacementCache) {
+            // Displacement replaces the canvas, including pixels beyond the map.
+            for (let i = 0; i < samples.length; i++)
+                if (!channels || channels[i % 4]) samples[i] = i % 4 === 3 && !base.hasAlpha ? 255 : 0;
+        } else if (outside && maskDestination && !tile && !clipToOverlay) {
             if (base.hasAlpha && (!channels || channels[3])) for (let i = 3; i < samples.length; i += 4) samples[i] = 0;
         } else if (!outside || extendSource) {
             const sourceBytes = (yield { kind: "read", highDepth: true, hue: overlayHue, evaluate: !overlayHue && overlayEvaluate, image: 1,

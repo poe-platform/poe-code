@@ -11975,7 +11975,7 @@ function parseMagickDisposalSetting(value: string): number {
     const token = value.slice(start, end);
     const name = (token.slice(0, 1) + token.slice(1).replaceAll("-", "").replaceAll("_", "")).toLowerCase();
     const disposal = parseMagickDisposal(name);
-    if (disposal === undefined) throw new Error(`unrecognized dispose method '-dispose' '${value}'`);
+    if (disposal === undefined) return -1;
     return negate ? 0 : disposal;
 }
 
@@ -12761,6 +12761,7 @@ if (t === "-intent" || t === "+intent") {
                 state.qualityExplicit = true;
             }
             if (k === "option:loop") state.loop = { value: Number.parseInt(v, 10) || 0 };
+            if (k === "option:dispose") state.disposal = parseMagickDisposalSetting(v);
             if (k === "option:scene") {
                 state.scene = Number(v);
                 if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
@@ -13604,6 +13605,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
             const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: 0, optionProperties: state.optionProperties });
             state.disposal = parseMagickDisposalSetting(expanded);
+            if (state.disposal < 0) throw new Error(`unrecognized dispose method '-dispose' '${expanded}'`);
             state.optionProperties = { ...state.optionProperties, dispose: value };
         }
         else if (t === "-layers" && layerMethod === "trimbounds") {
@@ -17612,6 +17614,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (tokens[i + 1]?.includes("%")) return;
             const value = tokens[++i] ?? "";
             state.disposal = parseMagickDisposalSetting(value);
+            if (state.disposal < 0) throw new Error(`unrecognized dispose method '-dispose' '${value}'`);
             state.optionProperties = { ...state.optionProperties, dispose: value };
             continue;
         }

@@ -12998,7 +12998,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const [index, key, ...valueParts] = streamSpecifier;
                 if (index?.startsWith("#") || index === "i") {
                   const id = Number(index === "i" ? key : index.slice(1));
-                  matches = matches.filter(track => "id" in track && track.id === id);
+                  // WAV demuxer IDs are zero; its AST track IDs are one-based.
+                  matches = matches.filter(track => "id" in track && (srcDoc.containerFormat === "wav" ? 0 : track.id) === id);
                 } else if (index === "m") {
                   const value = valueParts.length ? valueParts.join(":") : undefined;
                   matches = matches.filter(track => "samples" in track && key === "language" &&

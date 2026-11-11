@@ -450,7 +450,7 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
     }
 }
 
-export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, height: number, fraction: number, channels?: readonly boolean[], highDepth = false, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, height: number, fraction: number, channels?: readonly boolean[], highDepth = false, kernels: readonly [MagickResizeKernel | undefined, MagickResizeKernel | undefined] = [undefined, undefined], settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     // Undefined alpha stays with the first image; inactive alpha has CopyPixelTrait.
     const blendAlpha = !!(a.hasAlpha || a.inactiveAlpha) && !!(b.hasAlpha || b.inactiveAlpha), blendBlack = a.space === "cmyk" && b.space === "cmyk";
     if (!a.hasAlpha && a.inactiveAlpha) channels = [channels?.[0] ?? true, channels?.[1] ?? true, channels?.[2] ?? true, false, channels?.[4] ?? true];
@@ -461,9 +461,9 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
         yield* interpolatePixelSteps(width * height * 4, fraction, blendAlpha, channels, highDepth, gray);
         return;
     }
-    const sources = [a, b].map(image => resizeSamples(image, width, height, false,
+    const sources = [a, b].map((image, index) => resizeSamples(image, width, height, false,
         image.width === width && image.height === height,
-        kernel ?? (image.hasAlpha || width * height > image.width * image.height ? "mitchell" : "lanczos3"), inks || highDepth, settings, inks));
+        kernels[index] ?? (image.hasAlpha || width * height > image.width * image.height ? "mitchell" : "lanczos3"), inks || highDepth, settings, inks));
     while (true) {
         let blended: Float64Array | undefined, position = 0;
         for (let image = 0; image < sources.length; image++) {

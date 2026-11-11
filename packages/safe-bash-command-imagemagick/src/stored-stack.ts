@@ -5,6 +5,8 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import type { LookupInterpolation } from "./sequence-kernel.js";
 import type { MetaChannels } from "./combine-meta.js";
 
+import type { MagickResizeKernel } from "./resize-kernel.js";
+
 export const magickInput = Symbol("magickInput");
 export interface MagickFormatContext {
     filePath?: string;
@@ -19,6 +21,7 @@ export interface MagickFormatContext {
     listIndex?: number;
     sceneCount?: number;
     quality?: number;
+    resizeKernel?: MagickResizeKernel | undefined;
     borderColor?: RgbaColor;
     fuzz?: number;
     trimEdges?: string | undefined;

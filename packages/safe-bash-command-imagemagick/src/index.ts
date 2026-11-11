@@ -13281,6 +13281,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
     while (i < tokens.length) {
         yield;
         const t = tokens[i]!;
+        if (!operandsOnly && t === "-exit") throw new ConvertExit();
         const layerMethod = !operandsOnly && t === "-layers" ? parseMagickLayerMethod(tokens[i + 1] ?? "") : "";
         if (!operandsOnly && ["trimbounds", "coalesce", "dispose", "compareany", "compareoverlay", "compareclear", "optimizetransparency", "removedups", "removezero", "optimizeplus", "optimizeframe", "optimize"].includes(layerMethod) && !stack.length) throw new Error("no images found for operation '-layers'");
         if (!operandsOnly && t === "--") { operandsOnly = true; i++; continue; }
@@ -16092,6 +16093,7 @@ async function writeStoredDescriptionOutput(stack: StoredImageStack, { path, for
 }
 
 class ConvertSyntaxError extends Error {}
+class ConvertExit extends Error {}
 
 function createConvertAnalysis(composite = false) {
     let warnings = "";
@@ -16179,7 +16181,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
         };
     }
     const outSpec = argv[argv.length - 1]!;
-    const pipelineTokens = argv.slice(0, -1);
+    const pipelineTokens = outSpec === "-exit" && !argv.includes("--") ? argv : argv.slice(0, -1);
     const state = createDefaultState();
     try {
         const stack = (yield* evaluatePipelineTokensSteps(pipelineTokens, files, state, undefined, stdinBytes, signal, analysis));
@@ -16212,6 +16214,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
         return yield* writeConvertOutputSteps(stack, state, outSpec, files, signal, analysis);
     }
     catch (err) {
+        if (err instanceof ConvertExit) return { exitCode: 0, stdout: "", stderr: "" };
         return {
             exitCode: err instanceof ConvertSyntaxError ? 11 : 1,
             stdout: "",
@@ -16747,7 +16750,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
     await yieldTurn(signal);
     let state = createDefaultState();
     let maskChannels = state.channels;
-    const tokens = argv.slice(0, -1), scopes: { state: MagickState; end: number }[] = [];
+    const tokens = outSpec === "-exit" && !argv.includes("--") ? argv : argv.slice(0, -1), scopes: { state: MagickState; end: number }[] = [];
     type StackStep = (stack: StoredImageStack, backend: CompareFileSession, parents: StoredImageStack[]) => Promise<StoredImageStack>;
     type Step = (((image: StoredRgbaImage | undefined, backend: CompareFileSession) => Promise<StoredRgbaImage | undefined>) & Pick<MagickPixelOperation, "maskAlpha"> & { handlesRegion?: boolean }) | { runStack: StackStep };
     const steps: Step[] = [];
@@ -16759,6 +16762,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
     for (let i = 0; i < tokens.length; i++) {
         if (i && i % 64 === 0) await yieldTurn(signal);
         const token = tokens[i]!;
+        if (!operandsOnly && token === "-exit") {
+            stackStep(async () => { throw new ConvertExit(); });
+            break;
+        }
         const layerMethod = !operandsOnly && token === "-layers" ? parseMagickLayerMethod(tokens[i + 1] ?? "") : "";
         if (!operandsOnly && ["trimbounds", "coalesce", "dispose", "compareany", "compareoverlay", "compareclear", "optimizetransparency", "removedups", "removezero", "optimizeplus", "optimizeframe", "optimize"].includes(layerMethod)) {
             stackStep(async stack => {
@@ -20255,6 +20262,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             signal.throwIfAborted();
             if (error instanceof CompareInputFailure) throw error.reason;
             await backend.publishPending();
+            if (error instanceof ConvertExit) return { exitCode: 0, stdout: "", stderr: "" };
             return { exitCode: error instanceof ConvertSyntaxError ? 11 : 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` };
         }
         if (!image) { await backend.publishPending(); return { exitCode: 1, stdout: "", stderr: `magick: no images defined '${outSpec}'\n` }; }

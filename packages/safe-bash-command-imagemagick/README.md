@@ -1,5 +1,7 @@
 # `safe-bash-command-imagemagick`
 
+Use `-exit` to stop conversion successfully at that point. Earlier `-write` outputs are preserved; later arguments and the implicit final output are skipped.
+
 `magick xc:red h:-` writes a C header defining `static const unsigned char MagickImage[]` with the image’s PNM bytes. Use `h:output.bin` or `output.h` to write the header to a file.
 
 `magick input.sun -depth 8 rgb:-` reads 24-bit type-3 Sun raster RGB pixels; `sun:input.sun` selects the same input explicitly. `magick input.sgi -depth 8 rgb:-` and `magick sgi:input.sgi -depth 8 rgb:-` read 8-bit SGI images with verbatim or RLE-compressed channel planes. `magick input.xwd output.png` decodes version-7 X11 window dumps with 8-bit palettes or 24/32-bit true-color pixels, preserving scanline padding and byte order. `magick input.ppm -units PixelsPerInch -density 36x72 output.psd` writes a Photoshop document with a composite and one editable RGB layer; `PSD:output.bin` selects the same writer explicitly. PSD output preserves alpha and 8-bit or 16-bit samples. `.psb` and `PSB:` write Photoshop Large Documents (version 2), including `psb:-` stdout output. For PSB sequences, the first image is the composite and subsequent images are editable layers in the same file.

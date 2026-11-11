@@ -44,7 +44,7 @@ for (const mode of ["buffered", "sync", "retained", "streamed"] as const) {
         expect(result.exitCode, result.stderr).toBe(0);
         expect(mode === "streamed" ? new TextDecoder().decode(Buffer.concat(chunks)) : result.stdout).toBe("256x200;256x200;3x2;3x2;");
         const counts = new TextDecoder().decode(mode === "buffered" || mode === "sync" ? files.get("counts.txt") : await filesystem.readFile("/counts.txt"));
-        expect(counts.split("\n").map(line => line.trimStart())).toEqual(["6: (255,0,0) #FF0000 red", "6: (0,0,255) #0000FF blue", ""]);
+        expect(counts.split("\n").map(line => line.trimStart())).toEqual(["6: (65535,0,0) #FFFF00000000 red", "6: (0,0,65535) #00000000FFFF blue", ""]);
     });
 
 }

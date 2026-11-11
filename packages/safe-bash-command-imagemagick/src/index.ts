@@ -2075,7 +2075,7 @@ function* formatHistogramOutputSteps(img: RgbaImage): Generator<void, string, vo
     for (const [key, cnt] of [...counts.entries()].sort(([a], [b]) => typeof a !== "string" && typeof b !== "string" ? a < b ? -1 : a > b ? 1 : 0 : 0)) {
         if (++work % 16384 === 0)
             yield;
-        lines.push(floating ? floatingHistogramLine(key as bigint, cnt, img.hasAlpha, source ? (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8 : !!img.data16, colorspace) : typeof key === "string" ? `  ${cnt}: ${key}` : histogramLine(key, cnt, img.hasAlpha));
+        lines.push(floating ? floatingHistogramLine(key as bigint, cnt, img.hasAlpha, (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8, colorspace) : typeof key === "string" ? `  ${cnt}: ${key}` : histogramLine(key, cnt, img.hasAlpha, (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8));
     }
     return lines.join("\n") + "\n";
 }

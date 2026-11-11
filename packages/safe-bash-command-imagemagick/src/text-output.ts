@@ -43,17 +43,20 @@ export function gray16EnumerationLine(x: number, y: number, gray: number, alpha:
     const color = hex(gray).padStart(4, "0").repeat(3);
     return `${x},${y}: (${gray}${alpha === undefined ? "" : `,${alpha}`})  #${color}${alpha === undefined ? "" : hex(alpha).padStart(4, "0")}  ${colorspace}(${value}${alpha === undefined ? "" : `,${Number((working ? working[3]! / 255 : alpha / 65535).toPrecision(6))}`})`;
 }
-export function histogramLine(key: number | bigint, count: number, hasAlpha: boolean): string {
-    if (typeof key === "bigint") {
-        const samples = [48n, 32n, 16n, ...(hasAlpha ? [0n] : [])].map(shift => Number((key >> shift) & 65535n));
-        const color = samples.slice(0, 3).map(value => `${Number((value * 100 / 65535).toPrecision(6))}%`);
-        if (hasAlpha) color.push(String(Number((samples[3]! / 65535).toPrecision(6))));
-        return `${String(count).padStart(14)}: (${samples.join(",")}) #${samples.map(value => hex(value).padStart(4, "0")).join("")} srgb${hasAlpha ? "a" : ""}(${color.join(",")})`;
-    }
-    const r = (key >>> 24) & 255, g = (key >>> 16) & 255, b = (key >>> 8) & 255;
-    const a = key & 255;
-    if (hasAlpha) return `  ${count}: (${r},${g},${b},${a}) #${hex(r)}${hex(g)}${hex(b)}${hex(a)} srgba(${r},${g},${b},${Number((a / 255).toPrecision(6))})`;
-    return `${String(count).padStart(14)}: (${r},${g},${b}) #${hex(r)}${hex(g)}${hex(b)} ${histogramColorNames[key >>> 8] ?? `srgb(${r},${g},${b})`}`;
+export function histogramLine(key: number | bigint, count: number, hasAlpha: boolean, highDepth = typeof key === "bigint"): string {
+    const sourceMaximum = typeof key === "bigint" ? 65535 : 255;
+    const maximum = highDepth ? 65535 : 255;
+    const samples = (typeof key === "bigint"
+        ? [48n, 32n, 16n, ...(hasAlpha ? [0n] : [])].map(shift => Number((key >> shift) & 65535n))
+        : [24, 16, 8, ...(hasAlpha ? [0] : [])].map(shift => (key >>> shift) & 255))
+        .map(value => Math.round(value * maximum / sourceMaximum));
+    const rgb = samples.slice(0, 3);
+    const percent = highDepth && rgb.some(value => value % 257 !== 0);
+    const values = rgb.map(value => percent ? `${Number((value * 100 / maximum).toPrecision(6))}%` : String(value / (highDepth ? 257 : 1)));
+    if (hasAlpha) values.push(String(Number((samples[3]! / maximum).toPrecision(6))));
+    const name = !percent && !hasAlpha
+        ? histogramColorNames[(Number(values[0]) << 16) | (Number(values[1]) << 8) | Number(values[2])] : undefined;
+    return `${hasAlpha && !highDepth ? `  ${count}` : String(count).padStart(14)}: (${samples.join(",")}) #${samples.map(value => hex(value).padStart(highDepth ? 4 : 2, "0")).join("")} ${name ?? `srgb${hasAlpha ? "a" : ""}(${values.join(",")})`}`;
 }
 export function sourceHistogramSamples(data: Uint8Array | Uint16Array | Float64Array, cmyk: boolean, inks?: Float64Array): Float64Array {
     const samples = data instanceof Float64Array ? data : Float64Array.from(data, value => value / (data instanceof Uint16Array ? 257 : 1));
@@ -79,9 +82,9 @@ export function floatingHistogramLine(key: bigint, count: number, hasAlpha: bool
         bits.setBigUint64(0, value >> 63n ? value ^ (1n << 63n) : BigInt.asUintN(64, ~value));
         return bits.getFloat64(0);
     });
-    if (colorspace === "srgb" && !highDepth && samples.every(value => Number.isInteger(value) && value >= 0 && value <= 255)) {
+    if (colorspace === "srgb" && samples.every(value => Number.isInteger(value) && value >= 0 && value <= 255)) {
         const packed = samples.reduce((key, value) => key * 256 + value, 0) * (hasAlpha ? 1 : 256);
-        return histogramLine(packed, count, hasAlpha);
+        return histogramLine(packed, count, hasAlpha, highDepth);
     }
     const scale = highDepth ? 257 : 1, maximum = highDepth ? 65535 : 255;
     const color = samples.map(value => hex(Math.round(Math.max(0, Math.min(maximum, value * scale)))).padStart(highDepth ? 4 : 2, "0")).join("");
@@ -94,7 +97,7 @@ export function floatingHistogramLine(key: bigint, count: number, hasAlpha: bool
 async function* storedFloatingHistogram(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal): AsyncGenerator<string> {
     const cmyk = image.space === "cmyk", gray = image.space === "b-w" || image.space === "grey16";
     const colorspace = cmyk ? "cmyk" : gray ? image.gamma === 1 && image.magickColorspace !== "Gray" ? "lineargray" : "gray" : "srgb";
-    const highDepth = cmyk || gray ? (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 : !!image.storedData16;
+    const highDepth = (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8;
     const levels = cmyk ? 20 : 16;
     // A radix tree over the full tuple uses the existing bounded,
     // spillable integer table. Leaf values are counts; internal values are node IDs.
@@ -244,7 +247,7 @@ export async function* storedHistogram(image: StoredRgbaImage & HueMetadata, sto
         let index = 0;
         for await (const [key, count] of counts.entries()) {
             if (index++ % 128 === 0) await yieldTurn(signal);
-            yield histogramLine(image.storedData16 ? key : Number(key), Number(count), image.hasAlpha) + "\n";
+            yield histogramLine(image.storedData16 ? key : Number(key), Number(count), image.hasAlpha, (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8) + "\n";
         }
         if (!unique) yield "\n";
         return;

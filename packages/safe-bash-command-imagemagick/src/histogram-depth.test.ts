@@ -34,3 +34,21 @@ for (const retained of [false, true]) {
         }
     });
 }
+
+for (const retained of [false, true]) {
+    it.each([
+        { input: "red.ppm", options: [], samples: "255,0,0", hex: "FF0000" },
+        { input: "red.ppm", options: ["-depth", "8"], samples: "255,0,0", hex: "FF0000" },
+        { input: "red.ppm", options: ["-depth", "16"], samples: "65535,0,0", hex: "FFFF00000000" },
+        { input: "xc:red", options: [], samples: "65535,0,0", hex: "FFFF00000000" },
+        { input: "xc:red", options: ["-depth", "8"], samples: "255,0,0", hex: "FF0000" },
+        { input: "xc:red", options: ["-depth", "16"], samples: "65535,0,0", hex: "FFFF00000000" }
+    ])(`formats effective histogram depth: $input $options (retained=${retained})`, async ({ input, options, samples, hex }) => {
+        const bytes = new TextEncoder().encode("P3\n3 1\n255\n255 0 0 255 0 0 255 0 0\n");
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/red.ppm", bytes);
+        expect(await runConvertCli(["-size", "3x1", input, ...options, "-format", "%c", "histogram:info:"], retained ? { filesystem, cwd: "/" } : new Map([["red.ppm", bytes]]))).toEqual({
+            exitCode: 0, stdout: `             3: (${samples}) #${hex} red\n`, stderr: ""
+        });
+    });
+}

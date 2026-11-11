@@ -29,6 +29,7 @@ export function parseUnsharpGeometry(raw: string): { width: number; height: numb
 export function* blurPixelSteps(image: Pick<RgbaImage, "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples">> & { width: number; height: number; virtualPixel?: VirtualPixelMethod | undefined; region?: Region | undefined; evaluateSamples?: Float64Array | undefined; storedEvaluateSamples?: number | undefined }, geometry: { width?: number; height?: number }, gaussian: boolean, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, unsharp?: { amount: number; threshold: number }, writeMask?: { width: number; height: number }, background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
     const virtualPixel = image.virtualPixel ?? "edge";
+    const gaussianChecker = gaussian && virtualPixel === "checker-tile";
     // Filter active working samples; CMYK needs black in addition to color and alpha.
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
     const hue = !cmyk && (!!image.hueSamples || image.storedHueSamples !== undefined);
@@ -97,7 +98,7 @@ export function* blurPixelSteps(image: Pick<RgbaImage, "space" | "hueSamples"> &
             const sums = new Float64Array(count * stride);
             for (let ky = -half; ky <= half; ky++) {
                 yield;
-                const sy = virtualPixelIndex(0, y + ky, 1, height, virtualPixel);
+                const sy = virtualPixelIndex(0, y + ky, 1, height, gaussianChecker ? "tile" : virtualPixel);
                 if (sy < 0) {
                     for (let x = 0; x < count; x++) {
                         for (let c = 0; c < stride; c++) if (c !== 3) sums[x * stride + c]! += fill[c]! * fill[3]! / 255 * weights[ky + half]!;
@@ -105,7 +106,10 @@ export function* blurPixelSteps(image: Pick<RgbaImage, "space" | "hueSamples"> &
                     }
                     continue;
                 }
-                let row = rows.get(sy);
+                // Gaussian convolution samples the original 2D checker pattern;
+                // rank-three blur applies virtual pixels separately to each pass.
+                const sampleY = gaussianChecker ? y + ky : sy;
+                let row = rows.get(sampleY);
                 if (!row) {
                     const first = Math.max(0, left - half), last = Math.min(width - 1, left + count - 1 + half), length = (last - first + 1) * 4;
                     const samples = yield* readSamples((sy * width + first) * 4, length);
@@ -117,7 +121,7 @@ export function* blurPixelSteps(image: Pick<RgbaImage, "space" | "hueSamples"> &
                     for (let x = 0; x < count; x++) {
                         if (x % 32 === 0) yield;
                         for (let k = -half; k <= half; k++) {
-                            const index = virtualPixelIndex(left + x + k, sy, width, height, virtualPixel);
+                            const index = virtualPixelIndex(left + x + k, sampleY, width, height, virtualPixel);
                             const offset = (index - sy * width - first) * stride;
                             const pixel = index >= 0 && offset >= 0 && offset + stride <= samples.length
                                 ? samples.subarray(offset, offset + stride) : yield* sample(index);
@@ -147,7 +151,7 @@ export function* blurPixelSteps(image: Pick<RgbaImage, "space" | "hueSamples"> &
                         row[x * stride + 3] = storedAlpha;
                     }
                     if (rows.size >= 32) rows.delete(rows.keys().next().value!);
-                    rows.set(sy, row);
+                    rows.set(sampleY, row);
                 }
                 for (let i = 0; i < sums.length; i++) sums[i]! += row[i]! * weights[ky + half]!;
             }

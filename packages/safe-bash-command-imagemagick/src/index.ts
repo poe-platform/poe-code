@@ -7274,10 +7274,13 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
 }
 
 function tryHandleMagickListOption(argv: readonly string[]): ImageMagickCliResult | undefined {
-    const endIdx = argv.indexOf("--");
-    const limit = endIdx < 0 ? argv.length : endIdx;
-    for (let i = 0; i < limit; i++) {
+    for (let i = 0; i < argv.length; i++) {
         const arg = argv[i]!;
+        if (arg === "--") break;
+        if (arg === "-format" || arg === "--format" || arg === "-print") {
+            i++;
+            continue;
+        }
         if (arg === "-list") {
             const category = argv[i + 1];
             if (category === undefined) {
@@ -11971,6 +11974,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-format") {
             state.formatStr = tokens[++i] ?? "";
         }
+        else if (t === "-print") {
+            const format = tokens[++i];
+            if (format === undefined) throw new Error("missing argument '-print'");
+            const image = stack[0];
+            if (!image) throw new Error("no images found for operation '-print'");
+            analysis.text += yield* formatMagickPropertyStringSteps(format, image, () => image, {
+                ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: 0,
+                optionProperties: state.optionProperties, ...(state.precision !== undefined ? { precision: state.precision } : {}), analysis
+            });
+        }
         else if (t === "+adjoin") {
             state.adjoin = false;
         }
@@ -15549,6 +15562,22 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }); continue;
         }
         if (!operandsOnly && token === "-format") { state.formatStr = tokens[++i] ?? ""; continue; }
+        if (!operandsOnly && token === "-print") {
+            const format = tokens[++i], settings = { ...state };
+            if (format === undefined) throw new Error("missing argument '-print'");
+            stackStep(async (stack, backend) => {
+                const image = await stack.get(0);
+                if (!image) throw new Error("no images found for operation '-print'");
+                const text = await formatRetainedIdentify(format, image, {
+                    ...image[magickInput], sceneCount: stack.length, listIndex: 0,
+                    optionProperties: settings.optionProperties, ...(settings.precision !== undefined ? { precision: settings.precision } : {}), analysis
+                }, async () => ({ image, storage: backend.storage }), signal, stack);
+                if (input.stdout) await writeIdentifyText(input.stdout, text, signal);
+                else analysis.text += text;
+                return stack;
+            });
+            continue;
+        }
         if (!operandsOnly && token === "+delay") { state.delay = { value: "0" }; continue; }
         if (!operandsOnly && token === "-delay") {
             const delay = state.delay = { value: tokens[++i] ?? "0" }, settings = { ...state };

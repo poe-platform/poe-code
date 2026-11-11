@@ -12,7 +12,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         ["madeup", "unrecognized colorspace"],
         ["notgray", "unrecognized colorspace"],
         ["", "unrecognized colorspace"],
-        ["DisplayP3", "unsupported colorspace"],
+        ["Undefined", "unsupported colorspace"],
         ["HSB", ""],
         ["hSb", ""],
     ] as const) {

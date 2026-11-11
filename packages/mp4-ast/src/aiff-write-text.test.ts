@@ -18,7 +18,7 @@ for (const value of ["Speaker", "Studio", "Café", ""]) {
       assert.ok(offset <= bytes.length);
     }
     assert.equal(bytes.readUInt32BE(4), bytes.length - 8);
-    assert.deepEqual([...chunks.keys()], value ? ["COMM", "AUTH", "(c) ", "ANNO", "SSND"] : ["COMM", "SSND"]);
+    assert.deepEqual([...chunks.keys()], value ? ["AUTH", "(c) ", "ANNO", "COMM", "SSND"] : ["COMM", "SSND"]);
     for (const id of ["AUTH", "(c) ", "ANNO"]) assert.deepEqual(chunks.get(id), value ? Buffer.from(value) : undefined);
     assert.deepEqual(chunks.get("SSND"), plain.subarray(46));
     assert.deepEqual(aiffAst().probe(bytes).format.tags ?? {}, value ? { author: value, copyright: value, comment: value } : {});

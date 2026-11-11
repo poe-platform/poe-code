@@ -73,6 +73,14 @@ it("detects and probes native AIFF-C sowt and decodes ordered samples", () => {
     [-32768, -257, 0, 257, 32767]);
 });
 
+for (const copy of [false, true]) {
+  it(`writes native AIFF-C title before COMM (${copy ? "copy" : "encode"})`, () => {
+    assert.deepEqual(Buffer.from(serializeAiff(parseAiff(aifc, { decodeAudio: !copy }), {
+      audioCodec: copy ? "copy" : "pcm_s16le"
+    })), aifc);
+  });
+}
+
 it("rejects unknown AIFF-C compression and missing compression tags", () => {
   const unknown = Buffer.from(aifc);
   unknown.write("zzzz", 64);

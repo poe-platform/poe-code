@@ -174,9 +174,9 @@ export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions
     ["(c) ", metadata.copyright], ["ANNO", metadata.comment]
   ].flatMap(([id, value]) => value ? [{ id: id!, data: new TextEncoder().encode(value) }] : []);
   const compression = ima ? "ima4" : g711 ? (codec === "pcm_alaw" ? "alaw" : "ulaw") : codec === "pcm_s16le" ? "sowt" : codec.startsWith("pcm_f") ? `fl${bits}` : undefined;
-  const comm = compression ? 24 : 12;
-  let textOffset = comm + (compression ? 32 : 26);
-  const sound = textOffset + textChunks.reduce((sum, chunk) => sum + 8 + chunk.data.length + chunk.data.length % 2, 0);
+  let textOffset = compression ? 24 : 12;
+  const comm = textOffset + textChunks.reduce((sum, chunk) => sum + 8 + chunk.data.length + chunk.data.length % 2, 0);
+  const sound = comm + (compression ? 32 : 26);
   const id3Offset = sound + 16 + data.length + data.length % 2;
   const size = id3Offset + (id3 ? 8 + id3.length + id3.length % 2 : 0);
   if (size - 8 > 0xffffffff) throw new Error("AIFF output exceeds FORM size limit");

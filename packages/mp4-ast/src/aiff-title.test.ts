@@ -8,7 +8,7 @@ for (const title of ["Needle", "Odd", "Café"]) {
   it(`writes a padded NAME chunk and preserves title ${title} on copy`, () => {
     const doc = parseAiff(native);
     const bytes = Buffer.from(serializeAiff(doc, { metadata: { title } }));
-    const offset = 38;
+    const offset = 12;
     const encoded = Buffer.from(title);
     assert.equal(bytes.toString("ascii", offset, offset + 4), "NAME");
     assert.equal(bytes.readUInt32BE(offset + 4), encoded.length);

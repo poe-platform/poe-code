@@ -46,6 +46,7 @@ for (const sync of [false, true]) {
       }
       assert.equal(title, "Needle");
       assert.deepEqual(sound, pcm);
+      assert.deepEqual(bytes, tagged);
     });
   }
 }

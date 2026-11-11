@@ -3045,7 +3045,7 @@ async function applyVideoFilterChain(
         yRegisters.fill(0);
         cw = width;
         ch = height;
-        variables = { ...dimensions, ow: cw, oh: ch, out_w: cw, out_h: ch };
+        variables = dimensions;
         xExpression = x;
         yExpression = y;
         // Pixel positions survive NaN results; variables retain evaluated values.

@@ -2774,7 +2774,12 @@ export function serializeSubtitleDocument(
   if (format === "ttml") {
     const language = (subTrack?.language ?? "")
       .replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-    lines.push('<?xml version="1.0" encoding="UTF-8"?>', `<tt xmlns="http://www.w3.org/ns/ttml" xml:lang="${language}"><body><div>`);
+    lines.push(
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      `<tt xmlns="http://www.w3.org/ns/ttml" xmlns:ttp="http://www.w3.org/ns/ttml#parameter" xmlns:tts="http://www.w3.org/ns/ttml#styling" xml:lang="${language}" ttp:cellResolution="384 288">`,
+      '<head><layout><region xml:id="Default" tts:origin="3% 0%" tts:extent="97% 97%" tts:displayAlign="after" tts:textAlign="center" tts:fontSize="16c" tts:fontFamily="Arial" tts:overflow="visible"/></layout></head>',
+      '<body><div>'
+    );
   }
 
   let cueIndex = 1;
@@ -2793,7 +2798,7 @@ export function serializeSubtitleDocument(
         .split("\n").join("<br/>");
       const begin = formatSubtitleTimecode(startMs, ",").replace(",", ".");
       const end = formatSubtitleTimecode(endMs, ",").replace(",", ".");
-      lines.push(`<p begin="${begin}" end="${end}"><span>${text}</span></p>`);
+      lines.push(`<p begin="${begin}" end="${end}"><span region="Default">${text}</span></p>`);
       continue;
     }
     const sep = format === "webvtt" ? "." : ",";

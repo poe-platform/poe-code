@@ -1126,7 +1126,7 @@ SAMI input (`-f sami`, `.smi`, or `.sami`) preserves millisecond SYNC timing and
 
 LRC lyrics support explicit `-f lrc` and automatic detection, infer cue ends from the next timestamp, and write each subtitle line with its own centisecond timestamp. LRC output writes title, artist, album and author metadata before a blank header separator; `-bitexact` omits the encoder and version tags.
 
-TTML output (`-f ttml` or `.ttml`) preserves subtitle cue timing, line breaks, and XML-escaped text. Input `-t`/`-to` retain all subtitle cues when transcoding; output limits and input limits with `-c:s copy` select cues by their start time, preserving their full duration.
+TTML output (`-f ttml` or `.ttml`) preserves subtitle cue timing, line breaks, and XML-escaped text, using FFmpeg’s default bottom-centered layout region and 384 × 288 cell resolution. Input `-t`/`-to` retain all subtitle cues when transcoding; output limits and input limits with `-c:s copy` select cues by their start time, preserving their full duration.
 PJS input (`-f pjs` or automatic detection) reads quoted cues with decisecond timing, converts `|` to line breaks, and preserves commas within dialogue.
 JACOsub input (`-f jacosub` or automatic detection) reads tick rates and timing shifts, and exports alignment and inline line breaks to SRT.
 

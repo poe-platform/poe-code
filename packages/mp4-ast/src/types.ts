@@ -487,6 +487,8 @@ export interface TsProgram {
 }
 
 export interface MediaDocument {
+  /** Recoverable demuxer errors; media remains usable. */
+  readonly demuxErrors?: readonly string[] | undefined;
   readonly containerFormat: string; // 'mp4', 'mov', 'matroska', 'webm', 'mpegts', 'avi', 'flv', 'wav', 'mp3', 'flac', 'ogg', 'aac', 'gif', 'webp', 'image2', 'yuv4mpegpipe'
   readonly majorBrand?: string | undefined;
   readonly minorVersion?: number | undefined;

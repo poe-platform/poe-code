@@ -9183,7 +9183,7 @@ export function evalSyncFfmpeg(
             return { ...track, codecDescriptions: track.codecDescriptions.map(codec => ({ ...codec, channelLayout })) };
           }) };
         }
-        if (doc.tracks.some(track => track.demuxError || track.decodeErrors?.length)) return undefined;
+        if (doc.demuxErrors?.length || doc.tracks.some(track => track.demuxError || track.decodeErrors?.length)) return undefined;
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
         if (imageOutput && videoCodec === "copy") return undefined;
         if ((imageOutput || (maxVideoFrames !== undefined && videoCodec !== "copy")) && doc.tracks.some(track => track.type === "video" && !track.decodedVideoFrames)) return undefined;
@@ -12214,6 +12214,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               concatInputSeek = false;
               let doc = await loadSingleDocument(inp.path, inp.format, inp.fps, inp);
               if (!dumpedInputs.has(inp)) {
+                if (logLevel >= 16 && doc.demuxErrors?.length) {
+                  await writeBytes(context.stderr, encodeUtf8(doc.demuxErrors.join("\n") + "\n"), context.signal);
+                }
                 if (logLevel >= 24 && (inp.guessLayoutMax ?? Infinity) >= 1) {
                   for (const track of doc.tracks) {
                     const codec = track.codecDescriptions[0];

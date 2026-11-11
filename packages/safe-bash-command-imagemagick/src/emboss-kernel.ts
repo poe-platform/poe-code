@@ -62,7 +62,11 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
         : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
     if (cmyk) fill.push(gray);
     // Gray's three backing samples represent the single red/gray channel.
-    if (channels && (image.space === "b-w" || image.space === "grey16")) channels = { ...channels, g: channels.r, b: channels.r };
+    if (image.space === "b-w" || image.space === "grey16") {
+        // Tile borders write RGB into that shared sample; the final blue write wins.
+        if (virtualPixel.endsWith("-tile")) fill[0] = fill[1] = fill[2]!;
+        if (channels) channels = { ...channels, g: channels.r, b: channels.r };
+    }
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha, channels.k] : [true, true, true, image.hasAlpha, true];
     const histograms = equalization?.histogram ? [equalization.histogram] : Array.from({ length: sync ? 1 : stride }, () => new Float64Array(65536));
     const lookups = equalization?.lookup ? [equalization.lookup] : histograms.map(() => new Float64Array(65536));

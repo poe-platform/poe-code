@@ -1,9 +1,9 @@
 /** ImageMagick vector placement, including its radial center and start-pixel rule. */
 export function gradientVector(width: number, height: number, value: string | undefined, radial: boolean, radii?: readonly [number, number]): ((x: number, y: number) => number) | undefined {
     if (value === undefined) return undefined;
-    const coordinates = value.replaceAll(",", " ").split(" ").filter(Boolean).map(Number);
-    if (coordinates.length !== 4 || !coordinates.every(Number.isFinite)) return undefined;
-    const [x1, y1, x2, y2] = coordinates as [number, number, number, number];
+    const coordinates = value.replaceAll(",", " ").split(" ").filter(Boolean).slice(0, 4).map(Number);
+    if (coordinates.length === 0 || !coordinates.every(Number.isFinite)) return undefined;
+    const [x1 = 0, y1 = 0, x2 = width - 1, y2 = height - 1] = coordinates;
     const dx = x2 - x1, dy = y2 - y1;
     const lengthSquared = dx * dx + dy * dy;
     const radius = Math.max(width - 1, height - 1) / 2;

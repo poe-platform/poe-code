@@ -1307,6 +1307,23 @@ describe("aselect", () => {
 });
 
 describe("asetnsamples", () => {
+  for (const [expression, count, checksum] of [
+    ["isnan(t)", 32, "0x2d5001b3"],
+    ["lt(t,0.002)", 29, "0x231e01b3"]
+  ] as const) {
+    it(`matches native framecrc for ${expression} with missing timestamps`, async () => {
+      const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000,
+        channels: [Float64Array.from({ length: 29 }, (_, i) => (i + 1) / 32768)] }) });
+      const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-i", "/in.wav",
+        "-af", `asetpts=NAN,asetnsamples=n=32:enable='${expression}'`, "-f", "framecrc", "pipe:1"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const packets = result.stdout.trim().split("\n").filter(line => !line.startsWith("#"));
+      assert.equal(packets.length, 1, result.stdout);
+      assert.deepEqual(packets[0]!.split(",").slice(3).map(field => field.trim()),
+        [String(count), String(count * 2), checksum]);
+    });
+  }
+
   for (const [filter, count, size] of [
     ["asetnsamples=n=300:p=1", 2400, 300],
     ["asetnsamples=n=512:p=1", 2560, 512],

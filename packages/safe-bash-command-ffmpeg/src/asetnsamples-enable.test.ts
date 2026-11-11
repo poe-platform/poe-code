@@ -26,6 +26,19 @@ async function run(filter: string, graph: boolean, keep = false, options: string
 // Native FFmpeg 7.0.2 reference: the first frame is grouped before enable is
 // evaluated; subsequent consumption follows the previous frame's enabled state.
 for (const graph of [false, true]) {
+  for (const missingTimestamp of [false, true]) {
+    for (const expression of ["isnan(t)", "lt(t,0.002)", "t"]) {
+      it(`asetnsamples evaluates ${expression} with missing timestamp ${missingTimestamp} (graph ${graph})`, async () => {
+        const enabled = expression === "isnan(t)" ? missingTimestamp : expression === "lt(t,0.002)" && !missingTimestamp;
+        const result = await run(`${missingTimestamp ? "asetpts=NAN," : ""}asetnsamples=n=32:enable='${expression}'`, graph);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const output = Buffer.from(await result.fs.readFile("/out.raw"));
+        assert.deepEqual(Array.from({ length: output.length / 2 }, (_, i) => output.readInt16LE(i * 2)),
+          enabled ? [...samples, ...new Array<number>(32 - samples.length).fill(0)] : samples);
+      });
+    }
+  }
+
   for (const [filter, expected, frames] of [
     ["asetnsamples=n=4:p=1:enable=0", samples, [[0, 4], [4, 7]]],
     ["asetnsamples=n=4:p=1:enable=1", [...samples, 0], [[0, 4], [4, 4], [8, 4]]],

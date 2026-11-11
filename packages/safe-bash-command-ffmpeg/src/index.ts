@@ -2469,7 +2469,9 @@ async function applyVideoFilterChain(
     } else if (name === "median") {
       current = await median(current, argStr, pixelFormat, budget, signal);
     } else if (name === "blackdetect") {
-      current = await blackdetect(current, argStr, budget, { ...diagnostics, timescale, pixelFormat }, signal);
+      // Advance detection with downstream consumers so interval logs precede their boundary frame.
+      pending = blackdetect(current, argStr, budget, { ...diagnostics, timescale, pixelFormat }, signal);
+      pendingBounded = true;
     } else if (name === "blackframe") {
       let amount = 98, threshold = 32;
       let sawNamed = false;

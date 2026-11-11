@@ -4,11 +4,11 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 type BlackFrame = MediaVideoFrame & { filterMetadata?: Record<string, string> };
 
-export async function blackdetect(
+export async function* blackdetect(
   frames: BlackFrame[], argument: string, budget: MediaBudgetTracker,
   diagnostics: { timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void> },
   signal?: AbortSignal
-): Promise<BlackFrame[]> {
+): AsyncGenerator<BlackFrame> {
   const options = { d: 2, pic_th: 0.98, pix_th: 0.1 };
   if (argument.endsWith(":")) argument = argument.slice(0, -1);
   for (const [index, part] of (argument ? argument.split(":") : []).entries()) {
@@ -35,40 +35,42 @@ export async function blackdetect(
       await diagnostics.write(`black_start:${timestamp(start)} black_end:${timestamp(end)} black_duration:${timestamp(end - start)}\n`);
     }
   };
-  const output: BlackFrame[] = [];
-  for (const frame of frames) {
-    const source = frame.native;
-    const native = source && source.rgba === frame.data && source.width === frame.width && source.height === frame.height &&
-      [0, 4, 5, 12, 13, 14, 29, 49, 68].includes(source.format) ? source : undefined;
-    const depth = native?.format === 68 ? 10 : native && [29, 49].includes(native.format) ? 16 : 8;
-    const full = native ? native.fullRange || [12, 13, 14].includes(native.format)
-      : diagnostics.pixelFormat === "gray" || diagnostics.pixelFormat === "gray8";
-    const threshold = Math.trunc(full ? options.pix_th * (2 ** depth - 1)
-      : (16 + options.pix_th * 219) * 2 ** (depth - 8));
-    const view = native && depth > 8 ? new DataView(native.pixels.buffer, native.pixels.byteOffset, native.pixels.byteLength) : undefined;
-    const size = frame.width * frame.height;
-    let black = 0;
-    for (let i = 0; i < size; i++) {
-      if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-      const luma = native ? view ? view.getUint16(i * 2, native.format !== 29) : native.pixels[i]!
-        : diagnostics.pixelFormat === "gray" || diagnostics.pixelFormat === "gray8" ? frame.data[i * 4]!
-        : (8414 * frame.data[i * 4]! + 16519 * frame.data[i * 4 + 1]! + 3208 * frame.data[i * 4 + 2]! + (16 << 15) + 16640) >> 15;
-      if (luma <= threshold) black++;
+  let last: BlackFrame | undefined;
+  try {
+    for (const frame of frames) {
+      last = frame;
+      const source = frame.native;
+      const native = source && source.rgba === frame.data && source.width === frame.width && source.height === frame.height &&
+        [0, 4, 5, 12, 13, 14, 29, 49, 68].includes(source.format) ? source : undefined;
+      const depth = native?.format === 68 ? 10 : native && [29, 49].includes(native.format) ? 16 : 8;
+      const full = native ? native.fullRange || [12, 13, 14].includes(native.format)
+        : diagnostics.pixelFormat === "gray" || diagnostics.pixelFormat === "gray8";
+      const threshold = Math.trunc(full ? options.pix_th * (2 ** depth - 1)
+        : (16 + options.pix_th * 219) * 2 ** (depth - 8));
+      const view = native && depth > 8 ? new DataView(native.pixels.buffer, native.pixels.byteOffset, native.pixels.byteLength) : undefined;
+      const size = frame.width * frame.height;
+      let black = 0;
+      for (let i = 0; i < size; i++) {
+        if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+        const luma = native ? view ? view.getUint16(i * 2, native.format !== 29) : native.pixels[i]!
+          : diagnostics.pixelFormat === "gray" || diagnostics.pixelFormat === "gray8" ? frame.data[i * 4]!
+          : (8414 * frame.data[i * 4]! + 16519 * frame.data[i * 4 + 1]! + 3208 * frame.data[i * 4 + 2]! + (16 << 15) + 16640) >> 15;
+        if (luma <= threshold) black++;
+      }
+      const pts = Math.round(frame.ptsSeconds * diagnostics.timescale);
+      let key: string | undefined;
+      if (black / size >= options.pic_th) {
+        if (start === undefined) { start = pts; key = "lavfi.black_start"; }
+      } else if (start !== undefined) {
+        await report(pts);
+        start = undefined;
+        key = "lavfi.black_end";
+      }
+      budget.allocateMemory(key ? 128 : 8);
+      yield key ? { ...frame, filterMetadata: { ...frame.filterMetadata, [key]: timestamp(pts) } } : frame;
     }
-    const pts = Math.round(frame.ptsSeconds * diagnostics.timescale);
-    let key: string | undefined;
-    if (black / size >= options.pic_th) {
-      if (start === undefined) { start = pts; key = "lavfi.black_start"; }
-    } else if (start !== undefined) {
-      await report(pts);
-      start = undefined;
-      key = "lavfi.black_end";
-    }
-    budget.allocateMemory(key ? 128 : 8);
-    output.push(key ? { ...frame, filterMetadata: { ...frame.filterMetadata, [key]: timestamp(pts) } } : frame);
+  } finally {
+    // EOF or downstream trim closes an open interval at the last consumed PTS, without an end tag.
+    if (last) await report(Math.round(last.ptsSeconds * diagnostics.timescale));
   }
-  // Native EOF reporting ends at the last frame's PTS and adds no end tag.
-  const last = frames.at(-1);
-  if (last) await report(Math.round(last.ptsSeconds * diagnostics.timescale));
-  return output;
 }

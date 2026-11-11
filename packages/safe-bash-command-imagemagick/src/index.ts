@@ -14900,8 +14900,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-clahe") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const raw = tokens[++i] ?? "";
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 const geometry = parseClaheGeometry(expanded);
                 const hsl = im.magickColorspace === "HSL";
                 const rgb = hsl ? yield* convertHuePixels(im, "sRGB") : im;
@@ -19200,14 +19201,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return transformStoredMagickRaster({ ...image, isPalette: false }, backend, waveletDenoisePixelSteps(image, expanded, image.storedWriteMask), signal, image, image.storedWriteMask ? [image, image.storedWriteMask] : [image]);
             }, { maskAlpha: "unmasked" as const, handlesRegion: true }));
         } else if (!operandsOnly && token === "-clahe") {
+            let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
                 return stack;
             });
             const raw = tokens[++i] ?? "", { background, virtualPixel, optionProperties } = state;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 const geometry = parseClaheGeometry(expanded);
                 const hsl = image.magickColorspace === "HSL";
                 const rgb = hsl ? await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal) : image;

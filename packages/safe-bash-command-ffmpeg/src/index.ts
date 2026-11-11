@@ -3222,7 +3222,10 @@ async function applyVideoFilterChain(
         else pw = Math.round(ph * pixelAspect);
       }
       // Position expressions use the requested dimensions before chroma alignment.
-      const variables = { ...dimensions, ow: pw, oh: ph, out_w: pw, out_h: ph, x: NaN, y: NaN };
+      const variables = {
+        ...dimensions, ow: pw, oh: ph, out_w: pw, out_h: ph, x: NaN, y: NaN,
+        PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+      };
       pw = Math.floor(pw / hsub) * hsub;
       ph = Math.floor(ph / vsub) * vsub;
       if (!Number.isFinite(pw) || !Number.isFinite(ph) || pw < iw || ph < ih) {

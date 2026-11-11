@@ -5,11 +5,11 @@ import type { SharpInputOptions, ImageMetadata, RgbaImage } from "../ast.js";
 export {isGifBytes} from "./gif-metadata.js";
 import {isGifBytes,gifAnimationSteps,gifMetadataFields} from "./gif-metadata.js";
 
-export function readGifMetadata(bytes:Uint8Array,options?:{readonly animated?:boolean;readonly page?:number;readonly pages?:number}):ImageMetadata {
+export function readGifMetadata(bytes:Uint8Array,options?:Pick<SharpInputOptions,"animated"|"page"|"pages"|"coalesce">):ImageMetadata {
  if(!isGifBytes(bytes)||bytes.length<13)throw new Error("Invalid GIF header");
  const start=13+(bytes[10]!&128?3*(1<<((bytes[10]!&7)+1)):0),steps=gifAnimationSteps(bytes.length,start,options?.page),delays:number[]=[];let next=steps.next();
  while(!next.done){if(typeof next.value==="number")next=steps.next(bytes[next.value]);else {delays.push(next.value.delay);next=steps.next();}}
- return {isProgressive:next.value.isProgressive,...(next.value.icc?{icc:next.value.icc}:{}),...(next.value.gifApplications?{gifApplications:next.value.gifApplications}:{}),...(next.value.properties ? {properties:next.value.properties,gifCommentBytes:next.value.gifCommentBytes} : {}),...gifMetadataFields(bytes[6]!|(bytes[7]!<<8),bytes[8]!|(bytes[9]!<<8),bytes.length,next.value.frames,next.value.loop,options),...(delays.length?{delay:delays}:{})};
+ return {isProgressive:next.value.isProgressive,...(next.value.icc?{icc:next.value.icc}:{}),...(next.value.gifApplications?{gifApplications:next.value.gifApplications}:{}),...(next.value.properties ? {properties:next.value.properties,gifCommentBytes:next.value.gifCommentBytes} : {}),...gifMetadataFields(bytes[6]!|(bytes[7]!<<8),bytes[8]!|(bytes[9]!<<8),bytes.length,next.value.frames,next.value.loop,options,next.value.frame),...(delays.length?{delay:delays}:{})};
 }
 
 function lzwDecode(minCodeSize: number, data: Uint8Array, pixelCount: number): Uint8Array {

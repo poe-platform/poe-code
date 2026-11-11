@@ -7996,7 +7996,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 }
                 bytes = next.value;
             }
-            const inputOptions = pageIdx !== undefined && !rawInput ? { page: pageIdx } : undefined;
+            const inputOptions = { coalesce: false, ...(pageIdx !== undefined && !rawInput ? { page: pageIdx } : {}) };
             if(inspected&&"error" in inspected)throw inspected.error;
             let meta = inlineImage??inspected?.metadata??readImageMetadata(bytes!, inputOptions);
             if (meta.format === "gif" && pageIdx !== undefined && pageIdx >= (meta.pages ?? 1)) throw new Error(`invalid image index ${pageIdx}`);

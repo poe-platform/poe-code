@@ -45,7 +45,7 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
             try {
                 const inspect = async (source: ImageByteSource): Promise<IdentifyInspection> => {
                     const size = source.size;
-                    const options = page === undefined || rawInput ? {} : { page }, checked: ImageByteSource = { get size() { return source.size; }, async read(position, length, options) {
+                    const options = { coalesce: false, ...(page === undefined || rawInput ? {} : { page }) }, checked: ImageByteSource = { get size() { return source.size; }, async read(position, length, options) {
                             try {
                                 return await source.read(position, length, options);
                             }

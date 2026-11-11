@@ -6795,6 +6795,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
   const rawCoder = ext.toLowerCase();
   if (isRawCoder(rawCoder)) return rawCoder;
   switch (ext.toLowerCase()) {
+    case "psd":
+      return "psd";
     case "qoi":
       return "qoi";
     case "xbm":

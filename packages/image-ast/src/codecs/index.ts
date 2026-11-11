@@ -1,5 +1,6 @@
 import { isPsdBytes, readPsdHeader, decodePsdImage } from "./psd-input.js";
 import { isPcxBytes, readPcxHeader, decodePcxImage } from "./pcx-input.js";
+import { encodePsdImage } from "./psd-output.js";
 import { isXwdBytes, readXwdHeader, decodeXwdImage } from "./xwd-input.js";
 import { isQoiBytes, readQoiMetadata, decodeQoiImage } from "./qoi-input.js";
 import { encodeQoiImage } from "./qoi-output.js";
@@ -496,6 +497,7 @@ export function encodeImage(
   const fmt = requested === "pnm" ? netpbmFormat(img.data16 ?? img.data) : requested;
 
   switch (fmt) {
+    case "psd": return { data: encodePsdImage(img), format: "psd", channels: img.hasAlpha ? 4 : 3 };
     case "hdr": return { data: encodeHdrImage(img), format: "hdr", channels: 3 };
     case "exr": return { data: encodeExrImage(img), format: "exr", channels: img.hasAlpha ? 4 : 3 };
     case "qoi": return { data: encodeQoiImage(img), format: "qoi", channels: img.hasAlpha ? 4 : 3 };

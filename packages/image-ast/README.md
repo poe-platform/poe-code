@@ -44,7 +44,7 @@ keep ownership of shared backing for other pending outputs.
 File adapters can use `withImageSource(input, filesystem, signal, callback)` to scope
 retained reads, source-version validation and handle cleanup to a supplied filesystem.
 
-Read and write XBM C byte arrays with least-significant-bit-first pixels and byte-padded scanlines, including widths that are not multiples of eight. QOI output (`format: "qoi"`) preserves 8-bit RGB and RGBA samples, including colors under fully transparent pixels.
+Read and write XBM C byte arrays with least-significant-bit-first pixels and byte-padded scanlines, including widths that are not multiples of eight. QOI output (`format: "qoi"`) preserves 8-bit RGB and RGBA samples, including colors under fully transparent pixels. PSD output (`format: "psd"`) writes an RGB composite and one editable layer, preserving 8-bit or 16-bit samples, alpha, and resolution. Both buffered and storage-backed encoding are supported.
 
 XPM icons support transparent `None` colors, named and hexadecimal colors, and multi-character pixel symbols in buffered and filesystem input.
 ImageMagick TXT pixel enumerations are detected by signature. RGB and grayscale input preserves alpha and 16-bit samples; `page` selects an image from concatenated enumerations.

@@ -4511,6 +4511,22 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
                 map: (x, y) => [x + width * (random() - 0.5), y + width * (random() - 0.5)] };
             return { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel) };
         }
+        if (distort && spec.toLowerCase() === "resize") {
+            try { validateMagickTransformGeometry(geometry, token); }
+            catch { throw new Error(`invalid geometry '${geometry}'`); }
+            const options = magickResizeOptions(image, geometry, kernel);
+            const width = options?.width ?? image.width, height = options?.height ?? image.height;
+            const sx = image.width / width, sy = image.height / height;
+            // DistortResizeImage excludes virtual pixels, normalizes alpha separately,
+            // and crops the affine result to the requested raster with a cleared page.
+            const plan: WarpPlan = {
+                width, height, hasAlpha: image.hasAlpha, interpolation, clipSource: true,
+                virtualCanvas: { width: 0, height: 0, x: 0, y: 0 },
+                map: (x, y) => [(x + 0.5) * sx - 0.5, (y + 0.5) * sy - 0.5],
+                derivatives: () => [sx, 0, 0, sy]
+            };
+            return { ...plan, steps: warpPixelSteps(image, plan, background, "transparent", kernel, filter) };
+        }
         let plan = magickWarpPlan(image, token, distort ? spec : geometry, distort ? geometry : args);
         if (plan && (token === "-swirl" || token === "-implode")) {
             plan = { ...plan, interpolation, channels,

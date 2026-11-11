@@ -8,6 +8,7 @@ export interface WarpPlan {
     readonly height: number;
     readonly hasAlpha: boolean;
     readonly nearest?: boolean;
+    readonly clipSource?: boolean;
     readonly interpolation?: LookupInterpolation;
     readonly channels?: readonly boolean[] | undefined;
     readonly virtualCanvas?: RgbaImage["virtualCanvas"];
@@ -199,6 +200,8 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                 for (const sample of samples) {
                     if (!sample) { yield; continue; }
                     const [x, y] = sample;
+                    // Resize normalizes both color and alpha over the source raster only.
+                    if (plan.clipSource && (x < 0 || y < 0 || x >= width || y >= height)) continue;
                     let weight = sample[2];
                     const pixel = meshPixels?.[sampleIndex++] ?? (yield* readPixel(x, y));
                     const opacity = source.alphaBlend === false ? maximum : pixel[3]!, unassociatedWeight = weight;

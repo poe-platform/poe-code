@@ -9682,8 +9682,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         else if (mode === "deactivate" || mode === "discrete") {
             evaluate = true;
             apply = function* (im) {
-                if (!im.hasAlpha && !im.inactiveAlpha) {
-                    im = { ...yield* prepareInactiveAlphaOutput(im), alphaBlend: true, channels: im.channels <= 2 ? 2 : 4 };
+                // Copy and Disassociate retain unblended samples; these modes initialize them as opaque.
+                if (!im.hasAlpha && !im.inactiveAlpha || im.alphaBlend === false) {
+                    im = { ...yield* prepareInactiveAlphaOutput({ ...im, hasAlpha: false }), alphaBlend: true, channels: im.channels <= 2 ? 2 : 4 };
                 }
                 yield;
                 return { ...im, hasAlpha: false, inactiveAlpha: true, alphaBlend: im.alphaBlend ?? im.hasAlpha, alphaSeparate: mode === "discrete" };

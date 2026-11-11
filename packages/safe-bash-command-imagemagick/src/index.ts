@@ -21945,7 +21945,7 @@ interface MontageArguments {
     warnings: string;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
     shadow: boolean;
-    transforms: ({ kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "scale"; geometry: string } | { kind: "thumbnail"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "scale"; geometry: string } | { kind: "thumbnail"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -22077,6 +22077,12 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             try { validateMagickTransformGeometry(geometry, t); }
             catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
             queuedTransforms.push({ kind: "crop", geometry, gravity: inputGravity });
+        }
+        else if (t === "-repage" || t === "+repage") {
+            const raw = t === "-repage" ? argv[++i] : undefined;
+            if (t === "-repage" && raw === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -repage\n" };
+            try { queuedTransforms.push({ kind: "repage", geometry: raw === undefined ? undefined : parseMagickRepageGeometry(raw) }); }
+            catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
         }
         else if (t === "-transparent") {
             if (argv[i + 1] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -transparent\n" };
@@ -22664,6 +22670,10 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             function* transformTiles(image: RgbaImage, offset = 0): Generator<void, RgbaImage[], void> {
                 const transform = transforms[inputIndex]![offset];
                 if (!transform) return [image];
+                if (transform.kind === "repage") {
+                    image = { ...image, virtualCanvas: transform.geometry ? magickRepageCanvas(image, transform.geometry, "repage") : { width: 0, height: 0, x: 0, y: 0 } };
+                    return yield* transformTiles(image, offset + 1);
+                }
                 const tiles = transform.kind === "crop"
                     ? yield* applyMagickCropToStackSteps(image, transform.geometry, transform.gravity, analysis)
                     : [yield* ("operation" in transform ? transform.operation.apply(image)
@@ -22955,6 +22965,11 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                         async function* transformTiles(tile: StoredRgbaImage, offset = 0): AsyncGenerator<StoredRgbaImage> {
                             const transform = transforms[index]![offset];
                             if (!transform) { yield tile; return; }
+                            if (transform.kind === "repage") {
+                                tile = { ...tile, virtualCanvas: transform.geometry ? magickRepageCanvas(tile, transform.geometry, "repage") : { width: 0, height: 0, x: 0, y: 0 } };
+                                yield* transformTiles(tile, offset + 1);
+                                return;
+                            }
                             if (transform.kind === "resize" || transform.kind === "scale" || transform.kind === "thumbnail") {
                                 const resize = magickResizeOptions(tile, transform.geometry, state.kernel ?? (transform.kind === "thumbnail" ? "lanczossharp" : undefined));
                                 if (resize) tile = await resizeStoredMagickImage(tile, backend, resize, signal, transform.kind === "thumbnail", false, transform.kind === "scale", state.resizeFilter);

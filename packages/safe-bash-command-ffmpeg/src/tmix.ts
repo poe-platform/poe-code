@@ -66,7 +66,7 @@ export async function tmix(
   };
   let scale = Math.fround(parseFilterExpression(options.scale!, "tmix", scaleConstants));
   if (!Number.isFinite(scale) || scale < 0 || scale > 32767) {
-    throw new Error("tmix: scale must be a finite number from 0 to 32767");
+    throw new RangeError("tmix: scale must be a finite number from 0 to 32767");
   }
   const parseWeights = (expression: string) => {
     const supplied = (expression || "1").replaceAll("|", " ").split(" ").filter(Boolean).slice(0, count).map(value => Math.fround(parseFilterFloat(value)));

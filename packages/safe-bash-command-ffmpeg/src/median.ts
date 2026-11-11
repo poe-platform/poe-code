@@ -5,7 +5,8 @@ import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function median(
   frames: MediaVideoFrame[], options: string, pixelFormat: string | undefined,
-  budget: MediaBudgetTracker, signal?: AbortSignal
+  budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { time: number; expression: string }[] = []
 ): Promise<MediaVideoFrame[]> {
   const defaults = { radius: 1, planes: 15, radiusV: 0, percentile: 0.5 };
   const values = { ...defaults };
@@ -38,9 +39,20 @@ export async function median(
   const output: MediaVideoFrame[] = [];
   const registers = new Float64Array(10);
   let work = 0;
+  let nextCommand = 0;
   for (const [n, frame] of frames.entries()) {
     signal?.throwIfAborted();
     budget.checkCpu();
+    while (nextCommand < commands.length && commands[nextCommand]!.time <= frame.ptsSeconds) {
+      if (++work >= 4096) { work = 0; await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+      const command = commands[nextCommand++]!;
+      try {
+        const value = parseFilterExpression(command.expression, "median", { min: 0, max: 1, default: defaults.percentile });
+        if (Number.isFinite(value) && value >= 0 && value <= 1) values.percentile = Math.fround(value);
+      } catch {
+        // Rejected runtime commands preserve the active percentile.
+      }
+    }
     const retained = frame.native;
     const native = retained?.rgba === frame.data && retained.width === frame.width &&
       retained.height === frame.height ? retained : undefined;

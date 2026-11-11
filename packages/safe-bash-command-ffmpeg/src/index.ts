@@ -11925,6 +11925,79 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredChannelMask = stereo.channelMask;
                         filteredChannelNames = undefined;
                       }
+                      let measuredEnd = 0;
+                      if (filterName === "astats" || filterName === "volumedetect") {
+                        // Reverse consumes its entire input before emitting a frame.
+                        const reverse = audioFilters.slice(filterIndex + 1)
+                          .some(filter => filter.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse");
+                        const frameLimit = reverse && maxAudioFrames !== 0 ? undefined : maxAudioFrames;
+                        // Demand includes the complete frame where a downstream trim discovers EOF.
+                        let nextIndex = filterIndex + 1;
+                        while (nextIndex < audioFilters.length) {
+                          const name = audioFilters[nextIndex]!.trim().split("=", 1)[0]!.split("@", 1)[0];
+                          // These filters preserve sample counts, timestamps, and frame boundaries.
+                          if (!["anull", "acopy", "volume"].includes(name!)) break;
+                          nextIndex++;
+                        }
+                        const next = audioFilters[nextIndex]?.trim();
+                        const trim = next?.split("=", 1)[0]!.split("@", 1)[0] === "atrim"
+                          ? parseAtrim(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "", origRate)
+                          : undefined;
+                        const reframe = next?.split("=", 1)[0]!.split("@", 1)[0] === "asetnsamples"
+                          ? parseAsetnsamples(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "")
+                          : undefined;
+                        const length = stretched[0]?.length ?? 0;
+                        let pending = 0;
+                        let pendingPts = 0;
+                        let pendingPos: number | undefined;
+                        let reframeEnabled = true;
+                        let outputFrames = 0;
+                        let firstPts: number | undefined;
+                        let nextPts = 0;
+                        for (let start = 0, n = 0; start < length && (frameLimit === undefined || outputFrames < frameLimit); n++) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          const frame = audioTimestamps?.[n];
+                          const packet = t.samples[n];
+                          const size = frame ? frame.end - frame.start : packet
+                            ? Math.max(0, Math.round(packet.duration * origRate / t.timescale)
+                              - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+                          if (size === 0) continue;
+                          measuredEnd = Math.min(length, start + size);
+                          if (trim) {
+                            const timestamp = frame?.pts ?? (packet ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start);
+                            const pts = Number.isNaN(timestamp) ? nextPts : Math.sign(timestamp) * Math.round(Math.abs(timestamp));
+                            nextPts = pts + size;
+                            let from = Math.min(trim.startPts - pts, trim.startSample - start);
+                            if (from === Infinity) from = 0;
+                            if (from < size) {
+                              firstPts ??= pts + from;
+                              let end = Math.max(trim.endPts - pts, trim.endSample - start,
+                                trim.duration > 0 ? firstPts + trim.duration - pts : -Infinity);
+                              if (end === -Infinity) end = size;
+                              if (end <= 0) break;
+                              if (Math.min(size, end) > Math.max(0, from)) outputFrames++;
+                            }
+                          } else if (reframe && frameLimit !== undefined) {
+                            // Output groups may split one input frame or consume several.
+                            // The detector still measures each consumed input frame in full.
+                            for (let offset = 0; start + offset < measuredEnd && outputFrames < frameLimit;) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              if (pending === 0) {
+                                pendingPts = (frame?.pts ?? audioStartSample + start) + offset;
+                                pendingPos = frame?.pos ?? packet?.offset;
+                              }
+                              const taken = reframeEnabled ? Math.min(measuredEnd - start - offset, reframe.size - pending)
+                                : measuredEnd - start - offset;
+                              pending += taken;
+                              offset += taken;
+                              if (reframeEnabled && pending < reframe.size) continue;
+                              reframeEnabled = reframe.enabled({ start: 0, end: pending, pts: pendingPts, pos: pendingPos }, outputFrames++, origRate);
+                              pending = 0;
+                            }
+                          } else outputFrames++;
+                          start = measuredEnd;
+                        }
+                      }
                       if (filterName === "adeclick" || filterName === "adeclip") {
                         stretched = await declickAudio(stretched, origRate, trimmed, budget, context.signal);
                         continue;
@@ -12789,7 +12862,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         let report = "";
                         if (metadata) {
-                          const length = stretched[0]?.length ?? 0;
+                          const length = measuredEnd;
                           let intervalStart = 0;
                           let frames: { end: number; tags: Map<string, string> }[] = [];
                           for (let start = 0, n = 0; start < length; n++) {
@@ -12815,7 +12888,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           // Reset before the next frame, so an exact interval at EOF is retained.
                           let statsStart = 0;
                           if (reset > 0) {
-                            const length = stretched[0]?.length ?? 0;
+                            const length = measuredEnd;
                             for (let start = 0, n = 0; start < length; n++) {
                               if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                               if (n % reset === 0) statsStart = start;
@@ -12826,7 +12899,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               start += count;
                             }
                           }
-                          report = await measureAstats(statsStart ? stretched.map(channel => channel.subarray(statsStart)) : stretched, origRate, statsScale, rmsLength, budget, context.signal, perChannel, overall);
+                          report = await measureAstats(stretched.map(channel => channel.subarray(statsStart, measuredEnd)), origRate, statsScale, rmsLength, budget, context.signal, perChannel, overall);
                         }
                         await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "loudnorm" || trimmed.startsWith("loudnorm=")) {
@@ -12880,77 +12953,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const report = await measureReplayGain(stretched, origRate, budget, context.signal);
                         if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "volumedetect" || trimmed === "volumedetect=") {
-                        // Reverse consumes its entire input before emitting a frame.
-                        const reverse = audioFilters.slice(filterIndex + 1)
-                          .some(filter => filter.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse");
-                        const frameLimit = reverse && maxAudioFrames !== 0 ? undefined : maxAudioFrames;
-                        // Demand includes the complete frame where a downstream trim discovers EOF.
-                        let nextIndex = filterIndex + 1;
-                        while (nextIndex < audioFilters.length) {
-                          const name = audioFilters[nextIndex]!.trim().split("=", 1)[0]!.split("@", 1)[0];
-                          // These filters preserve sample counts, timestamps, and frame boundaries.
-                          if (!["anull", "acopy", "volume"].includes(name!)) break;
-                          nextIndex++;
-                        }
-                        const next = audioFilters[nextIndex]?.trim();
-                        const trim = next?.split("=", 1)[0]!.split("@", 1)[0] === "atrim"
-                          ? parseAtrim(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "", origRate)
-                          : undefined;
-                        const reframe = next?.split("=", 1)[0]!.split("@", 1)[0] === "asetnsamples"
-                          ? parseAsetnsamples(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "")
-                          : undefined;
-                        const length = stretched[0]?.length ?? 0;
-                        let pending = 0;
-                        let pendingPts = 0;
-                        let pendingPos: number | undefined;
-                        let reframeEnabled = true;
-                        let measuredEnd = 0;
-                        let outputFrames = 0;
-                        let firstPts: number | undefined;
-                        let nextPts = 0;
-                        for (let start = 0, n = 0; start < length && (frameLimit === undefined || outputFrames < frameLimit); n++) {
-                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          const frame = audioTimestamps?.[n];
-                          const packet = t.samples[n];
-                          const size = frame ? frame.end - frame.start : packet
-                            ? Math.max(0, Math.round(packet.duration * origRate / t.timescale)
-                              - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
-                          if (size === 0) continue;
-                          measuredEnd = Math.min(length, start + size);
-                          if (trim) {
-                            const timestamp = frame?.pts ?? (packet ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start);
-                            const pts = Number.isNaN(timestamp) ? nextPts : Math.sign(timestamp) * Math.round(Math.abs(timestamp));
-                            nextPts = pts + size;
-                            let from = Math.min(trim.startPts - pts, trim.startSample - start);
-                            if (from === Infinity) from = 0;
-                            if (from < size) {
-                              firstPts ??= pts + from;
-                              let end = Math.max(trim.endPts - pts, trim.endSample - start,
-                                trim.duration > 0 ? firstPts + trim.duration - pts : -Infinity);
-                              if (end === -Infinity) end = size;
-                              if (end <= 0) break;
-                              if (Math.min(size, end) > Math.max(0, from)) outputFrames++;
-                            }
-                          } else if (reframe && frameLimit !== undefined) {
-                            // Output groups may split one input frame or consume several.
-                            // The detector still measures each consumed input frame in full.
-                            for (let offset = 0; start + offset < measuredEnd && outputFrames < frameLimit;) {
-                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                              if (pending === 0) {
-                                pendingPts = (frame?.pts ?? audioStartSample + start) + offset;
-                                pendingPos = frame?.pos ?? packet?.offset;
-                              }
-                              const taken = reframeEnabled ? Math.min(measuredEnd - start - offset, reframe.size - pending)
-                                : measuredEnd - start - offset;
-                              pending += taken;
-                              offset += taken;
-                              if (reframeEnabled && pending < reframe.size) continue;
-                              reframeEnabled = reframe.enabled({ start: 0, end: pending, pts: pendingPts, pos: pendingPos }, outputFrames++, origRate);
-                              pending = 0;
-                            }
-                          } else outputFrames++;
-                          start = measuredEnd;
-                        }
                         let count = 0;
                         let sumSquares = 0;
                         let peak = 0;

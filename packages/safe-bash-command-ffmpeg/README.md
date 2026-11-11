@@ -516,7 +516,9 @@ list of `DC_offset`, `Min_level`, `Max_level`, `Peak_level`, `RMS_level`, `RMS_p
 `Peak_count`, `Zero_crossings` (channel reports), and `Number_of_samples`.
 For example, `astats=measure_perchannel=RMS_level:measure_overall=none`
 reports only channel RMS levels. `astats=reset=N` resets measurements every N audio
-frames and reports the final interval; `reset=0` measures the whole input.
+frames and reports the final interval; `reset=0` measures all requested input frames.
+Output frame limits and downstream `atrim` stop measurement at the last frame
+requested by the consumer, including any extra frame needed to discover trim EOF.
 `reset` accepts arithmetic expressions and fractions, rounding to the nearest
 integer with ties to even (`reset=2+1` becomes 3; `reset=2.5` becomes 2).
 `metadata=1` attaches cumulative channel and overall measurements to each audio

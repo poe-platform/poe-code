@@ -42,9 +42,7 @@ for (const mode of ["command", "convert", "retained", "buffered", "sync"] as con
 
 for (const retained of [false, true]) {
     it.each([
-        ["-fx", "p{0.5,0.5}"],
-        ["-kuwahara", "1x1"],
-        ["-interpolative-resize", "5x4!"]
+        ["-kuwahara", "1x1"]
     ])(`rejects unsupported blend sampling in %s without replacing output, retained=${retained}`, async (...operation) => {
         const original = Buffer.from("KEEP"), files = new Map([["/in.png", input], ["/out.png", original]]);
         const fs = new MemoryFileSystem();

@@ -3443,7 +3443,6 @@ function sampleFxImage(
   return sampleFxPixel(img.evaluateSamples ?? img.data16 ?? img.data!, idx, ch, img.evaluateSamples ? 255 : img.data16 ? 65535 : 255);
 }
 function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number, interpolation?: LookupInterpolation): number {
-  if (interpolation === "blend") throw new Error(`Unsupported FX interpolation: ${interpolation}`);
   if (!img) return 0;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return NaN;
   if (interpolation === "catrom") {
@@ -3463,7 +3462,12 @@ function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefin
   const averageSize = interpolation === "average16" ? 4 : interpolation === "average9" ? 3 : interpolation === "average" ? 2 : 0;
   // Odd neighborhoods center on the nearest pixel; even ones straddle floor(x/y).
   const left = averageSize === 3 ? Math.floor(x + 0.5) - 1 : Math.floor(x) - (averageSize === 4 ? 1 : 0);
-  const top = averageSize === 3 ? Math.floor(y + 0.5) - 1 : Math.floor(y) - (averageSize === 4 ? 1 : 0), dx = x - left, dy = y - top;
+  const top = averageSize === 3 ? Math.floor(y + 0.5) - 1 : Math.floor(y) - (averageSize === 4 ? 1 : 0);
+  let dx = x - left, dy = y - top;
+  if (interpolation === "blend") {
+    dx = dx >= 0.75 ? 1 : dx > 0.25 ? 0.5 : 0;
+    dy = dy >= 0.75 ? 1 : dy > 0.25 ? 0.5 : 0;
+  }
   if (interpolation === "integer") return sample(img, left, top, ch);
   if (interpolation === "nearest") return sample(img, Math.floor(x + 0.5), Math.floor(y + 0.5), ch);
   if (!averageSize && interpolation !== "spline" && dx === 0 && dy === 0) {
@@ -4707,7 +4711,6 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     if (token === "-interpolative-resize") {
         const geometry = tokens[start + 1] ?? "", interpolation = state.interpolation ?? "bilinear";
         validateMagickTransformGeometry(geometry, token);
-        if (interpolation === "blend") throw new Error(`Unsupported interpolative-resize interpolation: ${interpolation}`);
         const background = state.background, virtualPixel = state.virtualPixel ?? "edge";
         return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">) => {
             const options = magickResizeOptions(image, geometry, undefined);

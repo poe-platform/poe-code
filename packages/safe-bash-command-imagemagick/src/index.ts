@@ -10535,6 +10535,7 @@ function parseChannelAssignments(expression: string): ChannelAssignment[] {
         const parts = assignment.split(exchange ? "<=>" : "=>");
         // Extra destinations use the existing Meta0..Meta21 / 10..31 channel range.
         const destinations = exchange ? names : [...names, ...Array.from({ length: 22 }, (_, index) => [`meta${index}`, String(index + 10)])];
+        if (!exchange) destinations[5]!.push("meta");
         const channels = parts.map((part, index) => (index === 1 ? destinations : names).findIndex(aliases => aliases.includes(part.trim().toLowerCase())));
         if (parts.length !== 2 || channels.some(channel => channel < 0))
             throw new Error(`unsupported channel-fx assignment '${assignment}'`);

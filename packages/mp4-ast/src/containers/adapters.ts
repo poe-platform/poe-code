@@ -2957,13 +2957,14 @@ export function webvttAst(): MediaAstPlugin {
 // --- 10. FFmetadata (;FFMETADATA1) AST ---
 
 export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
-  const text = decodeUtf8(bytes).replace(/^\uFEFF/, "").replace(/\r\n/g, "\n");
+  const decoded = decodeUtf8(bytes);
+  const text = decoded.startsWith("\uFEFF") ? decoded.slice(1) : decoded;
   const lines: string[] = [];
   let lineStart = 0;
   for (let i = 0; i < text.length; i++) {
     if (text[i] === "\\") {
       i++;
-    } else if (text[i] === "\n") {
+    } else if (text[i] === "\n" || text[i] === "\r") {
       lines.push(text.slice(lineStart, i));
       lineStart = i + 1;
     }

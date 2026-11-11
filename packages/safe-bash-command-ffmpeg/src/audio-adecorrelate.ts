@@ -1,6 +1,7 @@
 import { md5 } from "@noble/hashes/legacy.js";
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { audioExp2, audioTan } from "./audio-gate-math.js";
 
@@ -21,16 +22,18 @@ export async function decorrelateAudio(
     }
     if (key !== "stages" && key !== "seed") throw new Error(`adecorrelate: unsupported option ${key}: Option not found`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    const number = Number(value);
-    if (!value || !Number.isInteger(number)) {
-      throw new Error(`adecorrelate: invalid ${key}`);
-    }
     const min = key === "stages" ? 1 : -1;
     const max = key === "stages" ? 16 : 0xffffffff;
+    const number = parseFilterExpression(value, "adecorrelate", {
+      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+      min, max, default: key === "stages" ? 6 : -1, none: 0, all: -1
+    }, undefined, new Float64Array(10));
     if (number < min || number > max) {
       throw new RangeError(`adecorrelate: invalid ${key}: value ${value} out of range [${min} - ${max}]`);
     }
-    options[key] = number;
+    // Integer AVOptions validate before rounding to nearest, with ties to even.
+    const rounded = Math.round(number);
+    options[key] = number === rounded - 0.5 && rounded % 2 !== 0 ? rounded - 1 : rounded;
   }
   const seed = options.seed === -1 ? Math.floor(Math.random() * 0x100000000) : options.seed;
   // FFmpeg's additive lagged Fibonacci generator uses MD5 to expand the seed.

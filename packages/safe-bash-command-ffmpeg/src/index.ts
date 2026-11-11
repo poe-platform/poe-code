@@ -12774,10 +12774,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 throw new Error("astats: length must be between 0 and 10");
                               }
                             } else if (key === "reset" && extra === undefined) {
-                              reset = Number(value);
-                              if (!value?.trim() || !Number.isInteger(reset) || reset < 0 || reset > 2147483647) {
+                              reset = parseFilterExpression(value, "astats", {});
+                              if (!Number.isFinite(reset) || reset < 0 || reset > 2147483647) {
                                 throw new Error("astats: invalid reset");
                               }
+                              reset = roundToEven(reset);
                             } else if (key === "metadata" && extra === undefined &&
                               ["0", "1", "false", "true", "no", "yes", "off", "on"].includes(value?.toLowerCase() ?? "")) {
                               metadata = ["1", "true", "yes", "on"].includes(value!.toLowerCase());

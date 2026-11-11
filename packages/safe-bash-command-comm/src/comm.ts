@@ -21,12 +21,29 @@ function recordComparison(env: Readonly<Record<string, string>>): typeof compare
     return compare;
   }
   const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+  function decode(bytes: Uint8Array): string {
+    try { return decoder.decode(bytes); } catch { /* Collate malformed bytes individually. */ }
+    let text = "";
+    for (let index = 0; index < bytes.length;) {
+      const byte = bytes[index]!;
+      const length = byte < 0x80 ? 1 : byte >= 0xc2 && byte <= 0xdf ? 2
+        : byte >= 0xe0 && byte <= 0xef ? 3 : byte >= 0xf0 && byte <= 0xf4 ? 4 : 0;
+      if (length) {
+        try {
+          text += decoder.decode(bytes.subarray(index, index + length));
+          index += length;
+          continue;
+        } catch { /* This byte is not part of a valid UTF-8 sequence. */ }
+      }
+      // A surrogate cannot occur in valid UTF-8. Keep one weight per malformed
+      // byte, distinct from a literal replacement character and from EOF.
+      text += "\udcff";
+      index++;
+    }
+    return text;
+  }
   return (left, right) => {
-    let first: string | undefined, second: string | undefined;
-    try { first = decoder.decode(left); } catch { /* Invalid bytes follow valid text. */ }
-    try { second = decoder.decode(right); } catch { /* Preserve byte ordering for invalid text. */ }
-    if (first === undefined) return second === undefined ? compare(left, right) : 1;
-    if (second === undefined) return -1;
+    const first = decode(left), second = decode(right);
     // GNU xmemcoll compares NUL-separated portions, including empty ones.
     const firstParts = first.split("\0"), secondParts = second.split("\0");
     for (let index = 0; index < Math.min(firstParts.length, secondParts.length); index++) {
@@ -34,7 +51,7 @@ function recordComparison(env: Readonly<Record<string, string>>): typeof compare
       if (result !== 0) return result;
     }
     // Runtime collation can equate distinct Unicode records; keep their byte order.
-    return firstParts.length - secondParts.length || compare(left, right);
+    return firstParts.length - secondParts.length || (first === second ? 0 : compare(left, right));
   };
 }
 
@@ -97,7 +114,7 @@ export function createCommCommand(options: TableTextCommandsOptions = {}): Comma
         if (!suppressed.has(column)) {
           const parts: Uint8Array[] = [];
           for (let index = 0; index < column; index++) if (!suppressed.has(index)) parts.push(delimiter);
-          parts.push(rows[column === 1 ? 1 : 0]!, terminator);
+          parts.push(rows[column === 0 ? 0 : 1]!, terminator);
           await budget.output(parts);
         }
         for (let index = 0; index < 2; index++) {

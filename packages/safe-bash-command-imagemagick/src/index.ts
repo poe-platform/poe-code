@@ -8874,19 +8874,27 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             };
         }
         else if (mode === "background") {
+            highDepth = evaluate = true;
             apply = function* (im) {
                 let pixelWork = 0;
                 const out = new Uint8Array(im.data);
+                const data16 = im.data16?.slice();
+                const evaluateSamples = im.evaluateSamples?.slice();
+                const samples = im.evaluateSamples ?? im.data16 ?? im.data;
+                const background = [state.background.r, state.background.g, state.background.b];
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (++pixelWork % 16384 === 0)
                         yield;
-                    if (out[idx + 3] === 0) {
-                        out[idx] = state.background.r;
-                        out[idx + 1] = state.background.g;
-                        out[idx + 2] = state.background.b;
+                    if (samples[idx + 3] === 0) {
+                        for (let channel = 0; channel < 3; channel++) {
+                            const value = background[channel]!;
+                            out[idx + channel] = clampByteVal(value);
+                            if (data16) data16[idx + channel] = Math.round(value * 257);
+                            if (evaluateSamples) evaluateSamples[idx + channel] = value;
+                        }
                     }
                 }
-                return { ...im, data: out };
+                return { ...im, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
             };
         }
         else if (mode === "off" || mode === "opaque" || mode === "transparent") {

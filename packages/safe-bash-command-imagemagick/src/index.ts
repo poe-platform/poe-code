@@ -9764,7 +9764,7 @@ function parseChannelAssignments(expression: string): ChannelAssignment[] {
     });
 }
 
-function parseChannelSourceGroups(expression: string): { image: number; assignments: ChannelAssignment[] }[] {
+function parseChannelSourceGroups(expression: string): { image: number; assignments: ChannelAssignment[]; gray: boolean }[] {
     const tokens: string[] = [];
     let word = "";
     for (const character of expression) {
@@ -9775,16 +9775,12 @@ function parseChannelSourceGroups(expression: string): { image: number; assignme
         } else word += character;
     }
     if (word) tokens.push(word);
-    const groups: { image: number; assignments: ChannelAssignment[] }[] = [];
+    const groups: { image: number; assignments: ChannelAssignment[]; gray: boolean }[] = [];
     let image = 0, target = 0, count = 0, extract = false;
     let group = { image: 0, assignments: [] as ChannelAssignment[] };
     const finish = () => {
-        // A single extraction becomes gray, retaining the destination's alpha.
-        if (extract && count === 1) {
-            const assignment = group.assignments[0]!;
-            group.assignments.push({ ...assignment, target: 1 }, { ...assignment, target: 2 });
-        }
-        groups.push(group);
+        // Grayscale covers the whole destination, including pixels outside the source.
+        groups.push({ ...group, gray: extract && count === 1 });
     };
     for (let index = 0; index < tokens.length;) {
         let token = tokens[index++]!;
@@ -12781,7 +12777,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     const { assignments } = group, base = stack[Math.min(group.image, stack.length - 1)]!;
                     const sources = [base, ...stack.slice(1)];
                     const hasAlpha = base.hasAlpha || assignments.some(assignment => "activateAlpha" in assignment && assignment.activateAlpha);
-                    result.push(yield* applyMagickRasterSteps({ ...base, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: base.space === "cmyk" ? 4 : hasAlpha ? 4 : 3 }, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.data16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources));
+                    let output = yield* applyMagickRasterSteps({ ...base, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: base.space === "cmyk" ? 4 : hasAlpha ? 4 : 3 }, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.data16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources);
+                    if ("gray" in group && group.gray) output = yield* selectMagickChannels(output, [0]);
+                    result.push(output);
                 }
             } else {
                 const selections = parseChannelSelections(expression);
@@ -13849,7 +13847,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const lastSource = assignments.reduce((last, assignment) => "image" in assignment ? Math.max(last, assignment.image) : last, 0);
                     for (let source = 1; source <= Math.min(lastSource, stack.length - 1); source++) sources.push((await stack.get(source))!);
                     const hasAlpha = base.hasAlpha || assignments.some(assignment => "activateAlpha" in assignment && assignment.activateAlpha);
-                    await result.push(await transformStoredMagickRaster({ ...base, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: base.space === "cmyk" ? 4 : hasAlpha ? 4 : 3 }, backend, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.storedData16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources));
+                    let output = await transformStoredMagickRaster({ ...base, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: base.space === "cmyk" ? 4 : hasAlpha ? 4 : 3 }, backend, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.storedData16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources);
+                    if ("gray" in group && group.gray) output = await transformStoredMagickPixels(output, backend, { end: 0, highDepth: true, evaluate: true, apply: image => selectMagickChannels(image, [0]) }, signal);
+                    await result.push(output);
                 } else if (image) for (const channels of selections) {
                     await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: channels.length === 1, apply: image => selectMagickChannels(image, channels) }, signal));
                 }

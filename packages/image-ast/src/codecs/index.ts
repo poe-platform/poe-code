@@ -18,6 +18,7 @@ import { encodeXbmImage } from "./xbm-output.js";
 import { isXbmBytes, readXbmImage } from "./xbm.js";
 import { encodePcxImage } from "./pcx-output.js";
 import { encodeXwdImage } from "./xwd-output.js";
+import { encodeUilImage } from "./uil-output.js";
 import { encodeXpmImage } from "./xpm-output.js";
 import { isXpmBytes, readXpmImage } from "./xpm.js";
 import { encodeHdrImage } from "./hdr-output.js";
@@ -542,6 +543,7 @@ export function encodeImage(
     case "xbm": return { data: encodeXbmImage(img, options.outputFilename), format: "xbm", channels: 1 };
     case "xwd": return { data: encodeXwdImage(img), format: "xwd", channels: 3 };
     case "pcx": return { data: encodePcxImage(img, options), format: "pcx", channels: 3 };
+    case "uil": return { data: encodeUilImage(img, options.outputFilename), format: "uil", channels: 3 };
     case "xpm": return { data: encodeXpmImage(img, options.outputFilename), format: "xpm", channels: img.hasAlpha ? 4 : 3 };
     case "tga": return { data: encodeTgaImage(img, options), format: "tga", channels: tgaChannels(img) };
     case "ico":

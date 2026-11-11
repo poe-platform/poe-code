@@ -7574,6 +7574,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
       return "xbm";
     case "xpm":
       return "xpm";
+    case "uil":
+      return "uil";
     case "sixel":
       return "sixel";
     case "xwd":
@@ -11857,7 +11859,7 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
         image = { ...image, depth: gray && highDepth && (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 ? "ushort" : image.depth, hasAlpha, channels: gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3 };
     }
     if (format === "map" && (!image.isPalette || !image.indexedColors?.length && !image.pngPalette || (image.indexedColors?.length ?? 0) > 256)) image = yield* applyMagickRasterSteps(image, quantizePixelSteps(image.width * image.height * 4, 256, false, 0, image.hasAlpha, false, undefined, { width: image.width, height: image.height, method: "riemersma", diffusionAmount: 1 }, true));
-    if (format === "xpm" && !(image.isPalette && !image.hasAlpha && image.indexedColors?.length && image.pngIndices)) image = yield* applyMagickRasterSteps(image, quantizePixelSteps(image.width * image.height * 4, 256, false, image.hasAlpha || dither ? 5 : 6, image.hasAlpha, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true));
+    if ((format === "xpm" || format === "uil") && !(image.isPalette && !image.hasAlpha && image.indexedColors?.length && image.pngIndices)) image = yield* applyMagickRasterSteps(image, quantizePixelSteps(image.width * image.height * 4, 256, false, image.hasAlpha || dither ? 5 : 6, image.hasAlpha, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true));
     if (format === "gif" && !image.isPalette && dither) image = { ...(yield* applyMagickRasterSteps(image, gifDitherSteps(image, dither, diffusionAmount))), isPalette: true };
     if (["exr", "hdr", "pfm", "phm"].includes(format) || format === "miff" && image.bitsPerSample === 32) image = yield* prepareFloatOutput(image, format);
     if (format === "gif" && image.format === "gif" && !image.backgroundColor) image = { ...image, backgroundColor: { r: image.data[0]!, g: image.data[1]!, b: image.data[2]!, a: 255 } };
@@ -11926,7 +11928,7 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
         image = { ...image, depth: gray && highDepth && (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 ? "ushort" : image.depth, hasAlpha, channels: gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3 };
     }
     if (format === "map" && (!image.isPalette || !image.indexedColors?.length && !image.pngPalette || (image.indexedColors?.length ?? 0) > 256)) image = await transformStoredMagickRaster(image, backend, quantizePixelSteps(image.width * image.height * 4, 256, false, 0, image.hasAlpha, false, undefined, { width: image.width, height: image.height, method: "riemersma", diffusionAmount: 1 }, true), signal);
-    if (format === "xpm" && !(image.isPalette && !image.hasAlpha && image.indexedColors?.length && image.storedPngIndices)) image = await transformStoredMagickRaster(image, backend, quantizePixelSteps(image.width * image.height * 4, 256, false, image.hasAlpha || dither ? 5 : 6, image.hasAlpha, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true), signal);
+    if ((format === "xpm" || format === "uil") && !(image.isPalette && !image.hasAlpha && image.indexedColors?.length && image.storedPngIndices)) image = await transformStoredMagickRaster(image, backend, quantizePixelSteps(image.width * image.height * 4, 256, false, image.hasAlpha || dither ? 5 : 6, image.hasAlpha, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true), signal);
     if (format === "gif" && !image.isPalette && dither) image = { ...(await transformStoredMagickRaster(image, backend, gifDitherSteps(image, dither, diffusionAmount), signal)), isPalette: true };
     if (format === "gif" && image.format === "gif" && !image.backgroundColor) {
         const pixel = await backend.storage.read(image.position, 4);

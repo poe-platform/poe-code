@@ -12,6 +12,7 @@ export type ImageFormat =
   | "exr"
   | "phm"
   | "farbfeld"
+  | "uil"
   | "xpm"
   | "xwd"
   | "tga"

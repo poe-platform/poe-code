@@ -61,6 +61,7 @@ export type ColorInput =
     };
 
 export interface RgbaImage {
+  readonly tgaCompression?: "none" | "rle";
   readonly jpegSamplingFactor?: string;
   readonly montage?: { readonly geometry: string; readonly directory: readonly string[] } | undefined;
   /** Additional grayscale sample planes, following color and alpha. */
@@ -130,6 +131,7 @@ export interface RgbaImage {
 }
 
 export interface ImageMetadata {
+  readonly tgaCompression?: "none" | "rle";
   readonly montage?: RgbaImage["montage"];
   readonly endian?: "lsb" | "msb";
   readonly decodeWarnings?: readonly string[];

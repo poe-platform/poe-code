@@ -74,8 +74,8 @@ function tgaSpan(data: Uint8Array, stride: 1 | 3 | 4, rle: boolean, palette?: Re
 }
 
 /** Scan palette sources before emitting the header, retaining at most 256 colors. */
-function* tgaChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "channels" | "isPalette" | "orientation" | "properties" | "virtualCanvas">, options: OutputEncodeOptions): Generator<number | Uint8Array, void, Uint8Array> {
-  const channels = tgaChannels(image), rle = options.tgaCompression === "rle", header = tgaHeader(image, channels, rle);
+function* tgaChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "channels" | "isPalette" | "orientation" | "properties" | "virtualCanvas" | "tgaCompression">, options: OutputEncodeOptions): Generator<number | Uint8Array, void, Uint8Array> {
+  const channels = tgaChannels(image), rle = (options.tgaCompression ?? image.tgaCompression) === "rle", header = tgaHeader(image, channels, rle);
   const packed = options.tgaDepth === 5 && channels !== 1;
   if (packed) {
     header[16] = 16;

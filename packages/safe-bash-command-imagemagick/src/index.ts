@@ -20331,11 +20331,18 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "-geometry") {
             geometry = argv[++i] ?? "+2+2";
             const g = parseMagickGeometry(geometry);
-            cellW = g.width;
-            cellH = g.height;
+            const scalarPercent = g.isPercent && !geometry.toLowerCase().includes("x");
+            // GetGeometry discards scalar dimensions followed by offsets. For
+            // percentages it then copies the initial tile width into its height.
+            const discarded = scalarPercent && g.hasOffset;
+            cellW = discarded ? undefined : g.width ?? (g.isPercent ? g.height : undefined);
+            cellH = discarded ? undefined : g.height ?? (scalarPercent ? g.width : undefined);
             if (cellW !== undefined || cellH !== undefined) concatenate = false;
-            padX = Math.max(0, Math.round(g.x));
-            padY = Math.max(0, Math.round(g.y));
+            padX = discarded ? 0 : Math.max(0, Math.round(g.x));
+            padY = discarded ? 0 : Math.max(0, Math.round(g.y));
+            // Without offsets, -geometry also resizes the input before montage
+            // makes its thumbnail, so percentage scaling is applied twice.
+            if (g.isPercent && !g.hasOffset) queuedTransforms.push({ kind: "resize", geometry });
         }
         else if (t === "+background") {
             // Montage preserves its sheet color when the image background setting is cleared.
@@ -20648,7 +20655,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     if ("exitCode" in parsed) return parsed;
     const { trim, shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnails, frame, matte, title, texture } = parsed;
     const analysis = { warnings: parsed.warnings };
-    const variableCells = !frame && cellW === undefined && cellH === undefined;
+    const squareCells = parseMagickGeometry(geometry).isPercent && !geometry.toLowerCase().includes("x");
+    const variableCells = !frame && !squareCells && cellW === undefined && cellH === undefined;
     if (operands.length < 2) {
         return {
             exitCode: 1,
@@ -20668,7 +20676,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const inPaths = operands.slice(0, -1);
     let inputErrors = "";
     const fastMetaDims: { width: number; height: number }[] = [];
-    let canStreamTiles = !shadow && !trim && !transforms.some(operations => operations.length > 0) && !frame && borderW === 0 && thumbnails.length === 0 && cellW === undefined && cellH === undefined && !labels.some(Boolean);
+    let canStreamTiles = !shadow && !trim && !transforms.some(operations => operations.length > 0) && !frame && borderW === 0 && thumbnails.length === 0 && variableCells && !labels.some(Boolean);
     if (canStreamTiles) {
         for (const p of inPaths) {
             const rawBytes = files.get(p);
@@ -20923,7 +20931,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n)))));
         const rows = tileRows ?? Math.ceil(n / cols);
         const maxThumbW = Math.max((cellW ?? 0) + (frame ? 0 : borderW * 2), ...images.map((im) => im.width));
-        const maxThumbH = Math.max(cellH ?? 0, ...images.map((im) => im.height));
+        const maxThumbH = Math.max(cellH ?? (squareCells ? images[0]!.width - (frame ? 0 : borderW * 2) : 0), ...images.map((im) => im.height));
         const slotW = maxThumbW + padX * 2 + (frame ? frame.size * 2 : 0);
         const slotH = maxThumbH + padY * 2 + (frame ? frame.size * 2 : 0) + (shadow ? 4 : 0);
         for (let pageStart = 0; pageStart < n; pageStart += cols * rows) {
@@ -21081,7 +21089,8 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
     if ("exitCode" in parsed) return parsed;
     const { trim, shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, thumbnails, frame, matte, title, texture } = parsed;
     const analysis = { warnings: parsed.warnings };
-    const variableCells = !frame && cellW === undefined && cellH === undefined;
+    const squareCells = parseMagickGeometry(geometry).isPercent && !geometry.toLowerCase().includes("x");
+    const variableCells = !frame && !squareCells && cellW === undefined && cellH === undefined;
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
         let textureImage: StoredRgbaImage | undefined;
@@ -21095,7 +21104,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         }
         let inputErrors = "";
         const sources = new IntegerTable(backend.storage, 128), images = new StoredImageStack(backend.storage, signal);
-        let fast = !shadow && !trim && !transforms.some(operations => operations.length > 0) && !frame && borderW === 0 && thumbnails.length === 0 && cellW === undefined && cellH === undefined && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
+        let fast = !shadow && !trim && !transforms.some(operations => operations.length > 0) && !frame && borderW === 0 && thumbnails.length === 0 && variableCells && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
         const sourceAt = async (index: number): Promise<ImageByteSource | null> => {
             const size = Number(await sources.get(BigInt(index * 5 + 1)) ?? -1n);
             if (size < 0) return null;
@@ -21196,6 +21205,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                                 const resize = magickResizeOptions(image, geometry, state.kernel ?? "lanczossharp");
                                 if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true, false, false, state.resizeFilter);
                             }
+                            if (images.length === 0 && cellH === undefined && squareCells) maxThumbH = image.width;
                             // Match buffered montage rounding without discarding 16-bit samples.
                             const { storedEvaluateSamples: ignoredEvaluateSamples, ...tile } = image;
                             image = tile;

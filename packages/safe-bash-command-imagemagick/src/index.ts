@@ -12760,6 +12760,7 @@ if (t === "-intent" || t === "+intent") {
                 state.quality = Math.max(1, Math.min(100, Number(v)));
                 state.qualityExplicit = true;
             }
+            if (k === "option:loop") state.loop = { value: Number.parseInt(v, 10) || 0 };
             if (k === "option:scene") {
                 state.scene = Number(v);
                 if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");

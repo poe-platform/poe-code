@@ -102,6 +102,7 @@ import { shadowPixelSteps, vignetteLayout, vignettePixelSteps, raisePixelSteps }
 import { shearPlan, shearPixelSteps } from "./shear-kernel.js";
 import { compositePixelsSteps, magickCompositeMode, magickComposeNames } from "./composite-pixels.js";
 import { composite16PixelSteps } from "./composite16.js";
+import { steganoPixelSteps } from "./stegano.js";
 import { stereoPixelSteps } from "./stereo.js";
 import { warpPixelSteps, type WarpPlan, type VirtualPixelMethod } from "./warp-kernel.js";
 import { distancePixelSteps, manhattanDistanceScale } from "./distance-kernel.js";
@@ -13836,6 +13837,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             detachRgbaBuffer(left.data); detachRgbaBuffer(right.data);
             stack = [result, ...stack.slice(2)];
         }
+        else if (t === "-stegano") {
+            const offset = Number.parseInt(tokens[++i] ?? "", 10);
+            if (!Number.isSafeInteger(offset)) throw new Error("invalid argument for option '-stegano'");
+            if (stack.length < 2) throw new Error("image sequence is required '-stegano'");
+            const [base, watermark] = stack;
+            const result = yield* applyMagickRasterSteps(base!, steganoPixelSteps(base!, watermark!, offset), signal, base!, [base!, watermark!]);
+            stack = [{ ...result, depth: "ushort", bitsPerSample: 16, isPalette: false }, ...stack.slice(2)];
+        }
         else if (t === "-composite") {
             if (stack.length >= 2) {
                 const base = stack[0]!;
@@ -15724,6 +15733,19 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const left = (await stack.get(0))!, right = (await stack.get(1))!;
                 const result = await transformStoredMagickRaster(left, backend, stereoPixelSteps(left, right, geometry.x, geometry.y), signal, left, [left, right]);
                 await stack.remove([1]); await stack.set(0, result); return stack;
+            });
+            continue;
+        }
+        if (!operandsOnly && token === "-stegano") {
+            const offset = Number.parseInt(tokens[++i] ?? "", 10);
+            if (!Number.isSafeInteger(offset)) throw new Error("invalid argument for option '-stegano'");
+            stackStep(async (stack, backend) => {
+                if (stack.length < 2) throw new Error("image sequence is required '-stegano'");
+                const base = (await stack.get(0))!, watermark = (await stack.get(1))!;
+                const result = await transformStoredMagickRaster(base, backend, steganoPixelSteps(base, watermark, offset), signal, base, [base, watermark]);
+                await stack.set(0, { ...result, depth: "ushort", bitsPerSample: 16, isPalette: false });
+                await stack.remove([1]);
+                return stack;
             });
             continue;
         }
@@ -17898,6 +17920,7 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
     let cooperativeWork = 63;
     const options: string[] = [];
     const operands: string[] = [];
+    let stegano: number | undefined;
     let stereo: string | undefined;
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
@@ -17908,6 +17931,16 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
         }
         else if (t === "-stereo") {
             stereo = argv[++i] ?? "";
+        }
+        else if (t === "-stegano") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "composite: missing argument '-stegano'\n" };
+            const offset = Number.parseInt(value, 10);
+            if (!Number.isSafeInteger(offset)) return { exitCode: 1, stdout: "", stderr: `composite: invalid argument for option '-stegano': ${value}\n` };
+            stegano = offset === -1 ? undefined : offset;
+        }
+        else if (t === "+stegano") {
+            stegano = undefined;
         }
         else if (t === "-tile" || t === "+tile") {
             options.push("-define", `compose:tile=${t === "-tile"}`);
@@ -17963,7 +17996,7 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
     const overlay = operands[0]!;
     const base = operands[1]!;
     const out = operands[operands.length - 1]!;
-    return [base, overlay, ...operands.slice(2, -1), ...options, ...(stereo === undefined ? ["-composite"] : ["-stereo", stereo]), out];
+    return [base, overlay, ...operands.slice(2, -1), ...options, ...(stegano !== undefined ? ["-stegano", String(stegano)] : stereo !== undefined ? ["-stereo", stereo] : ["-composite"]), out];
 }
 function* runCompositeCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     const parsed = yield* parseCompositeArgumentsSteps(argv);

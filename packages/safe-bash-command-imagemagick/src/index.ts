@@ -11785,7 +11785,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (optimize) state.optimizeLayers = true;
             if (t === "-layers") i++;
             if (stack.length) {
-                const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
+                let first = stack[0]!;
+                if (dispose && !first.hasAlpha) first = { ...yield* prepareInactiveAlphaOutput(first), hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false };
+                const width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
                 const mask = dispose ? (first as MagickImage)[magickInput]?.channelMask : undefined;
                 const channels = mask ? [mask.r, mask.g, mask.b, mask.a, mask.k === true] : undefined;
                 const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: dispose || first.hasAlpha ? 0 : 255 };
@@ -15181,7 +15183,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-layers") i++;
             stackStep(async (stack, backend) => {
                 if (!stack.length) return stack;
-                const first = (await stack.get(0))! as StoredRgbaImage, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
+                let first: StoredRgbaImage = (await stack.get(0))!;
+                if (dispose && !first.hasAlpha) first = { ...await transformStoredMagickPixels(first, backend, { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal), hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false };
+                const width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
                 const mask = dispose ? (first as StoredMagickImage)[magickInput]?.channelMask : undefined;
                 const channels = mask ? [mask.r, mask.g, mask.b, mask.a, mask.k === true] : undefined;
                 const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: dispose || first.hasAlpha ? 0 : 255 };

@@ -16957,6 +16957,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let all = false;
                         let enable: string | undefined;
                         const enableRegisters = new Float64Array(10);
+                        const enableRandomStates: BigUint64Array[] = [];
                         let optionPosition = 0;
                         const options = trimmed.slice("adelay=".length).split(":");
                         // A final separator terminates the list without adding an option.
@@ -16974,7 +16975,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             all = parseFilterBoolean(value, "adelay: invalid all option");
                           } else if (key === "enable") {
                             enable = value;
-                            parseFilterExpression(enable, "adelay enable", { n: 0, t: 0, pos: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity }, undefined, new Float64Array(10));
+                            parseFilterExpression(enable, "adelay enable", { n: 0, t: 0, pos: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity }, undefined, new Float64Array(10), []);
                           } else if (key === "thread_type") {
                             // Scheduling flags do not affect PCM, but each set/clear term must be valid.
                             let position = 0;
@@ -17111,9 +17112,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 const update = updates[nextCommand++]!;
                                 if (update.action === "enable") {
                                   try {
-                                    parseFilterExpression(update.expression, "adelay enable", { n: 0, t: 0, pos: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity }, undefined, new Float64Array(10));
+                                    parseFilterExpression(update.expression, "adelay enable", { n: 0, t: 0, pos: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity }, undefined, new Float64Array(10), []);
                                     enable = update.expression;
                                     enableRegisters.fill(0);
+                                    enableRandomStates.length = 0;
                                   } catch { /* Rejected runtime expressions retain the previous setting. */ }
                                 }
                                 for (const [channel, delay] of update.offsets.entries()) {
@@ -17159,7 +17161,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               const inputPts = frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start - padding);
                               enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "adelay enable", {
                                 n, t: inputPts / origRate, pos: pos ?? NaN, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, NaN, INF: Infinity
-                              }, undefined, enableRegisters)) >= 0.5;
+                              }, undefined, enableRegisters, enableRandomStates)) >= 0.5;
                               metadata = previousMetadata[n];
                               n++;
                               end = Math.min(padding + inputLength, start + count);

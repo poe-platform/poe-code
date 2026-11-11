@@ -195,7 +195,9 @@ Output timestamps use the sample-rate time base, even after `asettb` and with em
 input packet byte offset `pos` (NaN when unknown), and audio dimensions `w` and `h` (both zero).
 Registers `st(index,value)` and `ld(index)` start at zero and persist between input frames within each delay instance.
 For example, `enable='st(0,not(ld(0)))'` alternates enabled and disabled frames, starting enabled.
-Replacing the enable expression with a runtime command resets its registers; rejected expressions retain the previous state.
+`random(index)` and `randomi(index,min,max)` use deterministic FFmpeg 7 random sequences, evaluated once per input frame.
+For example, `adelay=2S|5S:enable=random(0)` selects delayed frames; `asendcmd` can install the same expression at runtime.
+Replacing the enable expression with a runtime command resets its registers and random sequence; rejected expressions retain the previous state.
 Disabled frames pass through and freeze
 the delay buffers. Common leading silence and the full delayed tail are retained;
 the final input frame’s enable state controls whether the tail drains buffered audio or emits silence.

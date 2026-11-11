@@ -624,6 +624,9 @@ Width expressions accept `E`, `PI`, and `PHI`, for example `extrastereo=m=PI/2`.
 windowed frequency transform, retaining the sample rate and frame count.
 `surround=chl_out=5.1:win_size=1024:lfe=0` silences only LFE. The default
 window is 4096 samples; powers of two from 1024 to 65536 are supported.
+`win_size` accepts expressions such as `512*2` and constants `min`, `max`, and
+`default`. Values are checked against that range, then rounded to the nearest
+integer (ties to even) before selecting the transform size.
 Other layouts and surround options are rejected.
 
 `stereotools` supports stereo channel mute (`mutel`, `muter`), phase inversion

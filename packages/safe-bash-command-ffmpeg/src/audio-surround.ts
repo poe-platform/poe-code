@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { transform } from "./audio-fft.js";
+import { parseFilterExpression } from "./filter-expression.js";
 import { parseAudioChannelLayout } from "./audio-channel-layout.js";
 
 export async function surroundAudio(
@@ -18,8 +19,13 @@ export async function surroundAudio(
     } else if (key === "chl_in") {
       if (parseAudioChannelLayout(value).join("+") !== "FL+FR") throw new Error("surround: supported input layout is stereo");
     } else if (key === "win_size") {
-      size = Number(value);
-      if (!Number.isInteger(size) || size < 1024 || size > 65536 || (size & (size - 1)) !== 0) {
+      const number = parseFilterExpression(value, "surround", { min: 1024, max: 65536, default: 4096 });
+      if (!Number.isFinite(number) || number < 1024 || number > 65536) {
+        throw new Error("surround: win_size must be between 1024 and 65536");
+      }
+      // Integer AVOptions validate the range before rounding, with ties to even.
+      size = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
+      if ((size & (size - 1)) !== 0) {
         throw new Error("surround: win_size must be a power of two between 1024 and 65536");
       }
     } else if (key === "lfe") {

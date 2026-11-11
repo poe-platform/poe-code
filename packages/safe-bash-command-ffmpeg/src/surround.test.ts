@@ -31,6 +31,9 @@ async function run(filter: string, graph = false, source = input) {
 for (const [filter, fixture, lfe] of [
   ["surround", "default", true],
   ["surround=chl_out=5.1:win_size=1024", "1024", true],
+  ["surround=win_size=1024.5", "1024", true],
+  ["surround=win_size=min", "1024", true],
+  ["surround=win_size=512*2", "1024", true],
   ["surround=chl_out=5.1:win_size=1024:lfe=0", "1024", false]
 ] as const) for (const graph of [false, true]) {
   it(`${filter} matches native per-speaker PCM (${graph ? "graph" : "simple"})`, async () => {
@@ -49,6 +52,23 @@ for (const [filter, fixture, lfe] of [
           `speaker ${c}, sample ${i}: ${sample * 32768}, expected ${reference * 32768}`);
       }
     }
+  });
+}
+
+// Native FFmpeg 7.0.2 validates the range before rounding integer AVOptions,
+// with exact halves going to even, then configures the transform.
+for (const [value, size] of [
+  ["1024.4", 1024], ["2047.5", 2048], ["2048.5", 2048],
+  ["default", 4096], ["max", 65536], ["65535.5", 65536]
+] as const) for (const graph of [false, true]) {
+  it(`surround win_size=${value} selects ${size} samples (${graph ? "graph" : "simple"})`, async () => {
+    const channels = parseWav(input).tracks[0]!.decodedAudio!.channelData.map(channel => Float64Array.from(channel.subarray(0, 512)));
+    const source = Buffer.from(encodeWav({ sampleRate: 16000, channels }));
+    const expected = await run(`surround=win_size=${size}`, graph, source);
+    const actual = await run(`surround=win_size=${value}`, graph, source);
+    assert.equal(expected.result.exitCode, 0, expected.stderr);
+    assert.equal(actual.result.exitCode, 0, actual.stderr);
+    assert.deepEqual(actual.output, expected.output);
   });
 }
 
@@ -81,7 +101,9 @@ for (const graph of [false, true]) {
 
 for (const filter of ["surround=chl_in=FR+FL", "surround=chl_in=FC+LFE", "surround=chl_in=0x4",
   "surround=chl_out=5.1(side)", "surround=chl_out=0x60f", "surround=chl_out=invalid",
-  "surround=win_size=0", "surround=win_size=65537", "surround=win_size=NaN", "surround=win_size=1024.5",
+  "surround=win_size=0", "surround=win_size=65537", "surround=win_size=NaN",
+  "surround=win_size=1023.9", "surround=win_size=65536.1", "surround=win_size=1024.6",
+  "surround=win_size=1/0", "surround=win_size=bad", "surround=win_size=",
   "surround=win_size=1025", "surround=lfe=bad", "surround=chl_out=stereo", "surround=unknown=1"]) {
   it(`${filter} fails without replacing output`, async () => {
     const { result, stderr, output } = await run(filter);

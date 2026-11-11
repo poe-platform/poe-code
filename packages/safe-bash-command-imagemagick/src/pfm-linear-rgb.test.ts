@@ -25,7 +25,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
                 : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : new Map());
             expect(result.exitCode).toBe(0);
             expect("stderr" in result ? result.stderr : stderr).toBe("");
-            const output = Buffer.from("stdoutBytes" in result ? result.stdoutBytes! : Buffer.concat(stdout));
+            const output = Buffer.from("stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : Buffer.concat(stdout));
             const header = `PF\n1 1\n${endian === "LSB" ? "-1.0" : "1.0"}\n`;
             expect(output.subarray(0, -12).toString()).toBe(header);
             const samples = output.subarray(-12);

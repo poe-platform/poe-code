@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js";
-import fixtures from "./tiff-fill-order-fixtures.json";
+import fixtures from "./tiff-fill-order-fixtures.json" with { type: "json" };
 
 // Native ImageMagick 7.1.2-35 Q16-HDRI, independent of our TIFF writer:
 // P6\n3 2\n255\n + RGB 123456234567345678abcdef98badc765432

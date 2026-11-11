@@ -120,7 +120,7 @@ test("seq preserves operand width and accepts hexadecimal numbers and conversion
       ["seq -w 001.5 0.5 2.5", "001.5\n002.0\n002.5\n"],
       ["seq 0x4", "1\n2\n3\n4\n"],
       ["seq 0x1p2", "1\n2\n3\n4\n"],
-      ["seq 0x1.8p0 0x.8 0x2.8", "1.5\n2.0\n2.5\n"],
+      ["seq 0x1.8p0 0x.8 0x2.8", "1.5\n2\n2.5\n"],
       // GNU x86_64 Linux/glibc long-double hexadecimal normalization.
       ["seq -f '%a' 1 2", "0x8p-3\n0x8p-2\n"],
       ["seq -f '%a' -0 -0", "-0x0p+0\n"],

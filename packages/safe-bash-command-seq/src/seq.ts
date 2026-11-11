@@ -18,9 +18,8 @@ function decimal(text: string, session: Session): Decimal {
     const scale = Math.max(0, -power);
     coefficient = power >= 0 ? coefficient << BigInt(power) : coefficient * 5n ** BigInt(scale);
     session.check(coefficient.toString().length, session.limits.maxNumericDigits + 1, "numeric digit");
-    let precision = scale;
-    let reduced = coefficient;
-    while (precision > 0 && reduced % 10n === 0n) { reduced /= 10n; precision--; }
+    // GNU selects general format for hex fractions and lowercase p exponents.
+    const precision = text.includes(".") || text.includes("p") ? Infinity : 0;
     return { coefficient, scale, precision, width: 0, negativeZero: coefficient === 0n && hexadecimal[1] === "-" };
   }
   const match = /^([+-]?)(?:(\d+)(?:\.(\d*))?|\.(\d+))(?:[eE]([+-]?\d+))?$/u.exec(text.trimStart());
@@ -265,7 +264,8 @@ export function createSeqWithSettings(limits: StreamFormatLimits): CommandDefini
     let current = align(first);
     const step = align(increment), finish = align(last);
     const precision = Math.max(first.precision, increment.precision);
-    const format = formatText === undefined ? undefined : await parseFormat(formatText, session);
+    const selectedFormat = formatText ?? (precision === Infinity || last.precision === Infinity ? "%g" : undefined);
+    const format = selectedFormat === undefined ? undefined : await parseFormat(selectedFormat, session);
     if (format) {
       await floatingSequence(Number(first.negativeZero ? "-0" : fixed(first.coefficient, first.scale, Math.max(0, first.scale))), Number(fixed(increment.coefficient, increment.scale, Math.max(0, increment.scale))), Number(fixed(last.coefficient, last.scale, Math.max(0, last.scale))), format, separator, session);
       return;

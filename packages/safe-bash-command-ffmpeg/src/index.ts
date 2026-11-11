@@ -4817,7 +4817,16 @@ async function applyVideoFilterChain(
       }, signal);
       pixelFormat = diagnostics.pixelFormat = "gbrap";
     } else if (name === "swapuv") {
-      if (argStr) throw new Error("swapuv: unsupported option");
+      if (positional.at(-1) === "") positional.pop();
+      for (const option of argStr ? positional : []) {
+        const separator = option.indexOf("=");
+        const key = option.slice(0, separator).trim();
+        if (separator < 0) throw new Error("swapuv: missing option name");
+        if (!["threads", "thread_type", "extra_hw_frames"].includes(key)) {
+          throw new Error(`swapuv: unsupported option ${key}`);
+        }
+        validateWeaveGenericOption(key, option.slice(separator + 1), "swapuv");
+      }
       current = await mapWork(current, frame => swapUv(frame, budget, signal), signal);
     } else if (name === "premultiply") {
       let planes = 15, inplace = false, enable: string | undefined, sawNamed = false;

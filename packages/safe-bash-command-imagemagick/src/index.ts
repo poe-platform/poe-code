@@ -7806,6 +7806,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
     case "ff":
     case "farbfeld":
       return "farbfeld";
+    case "yuv":
+      return "yuv";
     case "pal":
     case "uyvy":
       return "pal";

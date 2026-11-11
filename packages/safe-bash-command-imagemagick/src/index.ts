@@ -7032,6 +7032,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             if (state.page !== undefined) image = { ...image, virtualCanvas: state.page };
             if (state.densityGeometry !== undefined) image = applyMagickDensity(image, state.densityGeometry);
             if (state.chromaticity !== undefined) image = { ...image, chromaticity: { ...image.chromaticity, ...state.chromaticity } };
+            if (state.optionProperties?.intent !== undefined) image = { ...image, renderingIntent: state.optionProperties.intent };
             if (state.delay !== undefined) {
                 const delay = state.delay.value;
                 const source = image[magickInput];
@@ -7076,6 +7077,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             if (state.units !== undefined) im = applyMagickUnits(im, state.units);
             if (state.densityGeometry !== undefined) im = applyMagickDensity(im, state.densityGeometry);
             if (state.chromaticity !== undefined) im = { ...im, chromaticity: { ...im.chromaticity, ...state.chromaticity } };
+            if (state.optionProperties?.intent !== undefined) im = { ...im, renderingIntent: state.optionProperties.intent };
             for (const key of ["comment", "label", "caption"] as const) {
                 const value = state[key];
                 if (value !== undefined) {
@@ -11468,6 +11470,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         const analysisOperation = setting === undefined && !pixelOperation ? parseMagickAnalysisOperation(tokens, state, i) : undefined;
         if (setting !== undefined) {
             i = setting;
+            if (t === "-intent" || t === "+intent") {
+                stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                    yield;
+                    return { ...image, renderingIntent: state.optionProperties!.intent! };
+                });
+            }
             if (t === "-filter" || t === "+filter") {
                 stack = yield* mapMagickImagesSteps(stack, function* (image) {
                     yield;
@@ -14504,6 +14512,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
         if (setting !== undefined) {
             i = setting;
+            if (token === "-intent" || token === "+intent") {
+                const renderingIntent = state.optionProperties!.intent!;
+                steps.push(async image => image ? { ...image, renderingIntent } : undefined);
+            }
             if (token === "-filter" || token === "+filter") {
                 const resizeKernel = state.kernel;
                 steps.push(async image => image ? { ...image, [magickInput]: { ...image[magickInput], resizeKernel } } : undefined);
@@ -17273,6 +17285,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
          if (state.page !== undefined) savedImage = { ...savedImage, virtualCanvas: state.page };
          if (state.densityGeometry !== undefined) savedImage = applyMagickDensity(savedImage, state.densityGeometry);
          if (state.chromaticity !== undefined) savedImage = { ...savedImage, chromaticity: { ...savedImage.chromaticity, ...state.chromaticity } };
+         if (state.optionProperties?.intent !== undefined) savedImage = { ...savedImage, renderingIntent: state.optionProperties.intent };
          for (const key of ["comment", "label", "caption"] as const) {
              const value = state[key];
              if (value !== undefined) {
@@ -17489,6 +17502,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   if(state.units!==undefined)image=applyMagickUnits(image,state.units);
   if(state.densityGeometry!==undefined)image=applyMagickDensity(image,state.densityGeometry);
   if (state.chromaticity !== undefined) image = { ...image, chromaticity: { ...image.chromaticity, ...state.chromaticity } };
+  if (state.optionProperties?.intent !== undefined) image = { ...image, renderingIntent: state.optionProperties.intent };
  for (const key of ["comment", "label", "caption"] as const) {
   const value = state[key];
   if (value !== undefined) {

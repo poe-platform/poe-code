@@ -82,6 +82,7 @@ export interface RgbaImage {
   readonly channels: 1 | 2 | 3 | 4 | 5;
   readonly depth: "uchar" | "char" | "ushort" | "short" | "uint" | "int" | "float" | "double" | "bit";
   readonly gamma?: number;
+  readonly renderingIntent?: string;
   readonly chromaticity?: NonNullable<ImageMetadata["chromaticity"]>;
   readonly density: number;
   readonly resolution?: NonNullable<ImageMetadata["resolution"]>;
@@ -130,6 +131,7 @@ export interface ImageMetadata {
   readonly channels: 1 | 2 | 3 | 4 | 5;
   readonly depth: "uchar" | "char" | "ushort" | "short" | "uint" | "int" | "float" | "double" | "bit";
   readonly gamma?: number;
+  readonly renderingIntent?: string;
   readonly chromaticity?: Readonly<Partial<Record<"red-primary" | "green-primary" | "blue-primary" | "white-point", readonly [number, number]>>>;
   readonly density: number;
   readonly hasAlpha: boolean;

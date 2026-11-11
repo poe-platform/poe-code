@@ -40,7 +40,7 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
    return source.read(dataOffset+position,length,{signal});
   }};
   const image=await (compression===4?decodeJpegToStorage:decodePngToStorage)(payload,storage,signal,options);
-  return {...image,...(metadata.icc?{icc:metadata.icc}:{}),format:"bmp",density:metadata.density,...(metadata.resolution?{resolution:metadata.resolution}:{})};
+  return {...image,...(metadata.renderingIntent?{renderingIntent:metadata.renderingIntent}:{}),...(metadata.icc?{icc:metadata.icc}:{}),format:"bmp",density:metadata.density,...(metadata.resolution?{resolution:metadata.resolution}:{})};
  }
  if(dataOffset<dibHeaderSize||dataOffset>=source.size) throw new Error("Invalid BMP pixel offset");
  // ImageMagick tolerates offsets into the DIB, but never seeks back into it.

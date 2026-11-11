@@ -243,10 +243,12 @@ export function readBmpHeaderMetadata(bytes: Uint8Array): ImageMetadata {
   if (!core && [1, 4, 8].includes(bpp) && view.getUint32(46, true) > 2 ** bpp) throw new Error("Invalid BMP palette count");
   const ppmX = core ? 0 : view.getInt32(38, true);
   const ppmY = core ? 0 : view.getInt32(42, true);
+  const renderingIntent = dibHeaderSize === 124 ? ({ 1: "Saturation", 2: "Relative", 4: "Perceptual", 8: "Absolute" } as Record<number, string>)[view.getUint32(122, true)] : undefined;
   const density = ppmX > 0 ? Math.max(1, Math.round(ppmX * 0.0254)) : 72;
   const hasAlpha = (bpp === 32 && (core || view.getUint32(30, true) !== 3)) || ((bpp === 16 || bpp === 32) && !core && view.getUint32(30, true) === 3 && view.getUint32(14, true) >= 56 && view.byteLength >= 70 && view.getUint32(66, true) !== 0);
   return {
     format: "bmp",
+    ...(renderingIntent ? { renderingIntent } : {}),
     width,
     height,
     space: "srgb",
@@ -269,7 +271,7 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
   if (compression === 4 || compression === 5) {
     if (dataOffset < 14 + dibHeaderSize || dataOffset >= bytes.length) throw new Error("Invalid BMP payload offset");
     const image = (compression === 4 ? decodeJpegImage : decodePngImage)(bytes.subarray(dataOffset));
-    return { ...image, ...(meta.icc ? { icc: meta.icc } : {}), format: "bmp", density: meta.density, ...(meta.resolution ? { resolution: meta.resolution } : {}) };
+    return { ...image, ...(meta.renderingIntent ? { renderingIntent: meta.renderingIntent } : {}), ...(meta.icc ? { icc: meta.icc } : {}), format: "bmp", density: meta.density, ...(meta.resolution ? { resolution: meta.resolution } : {}) };
   }
   if (dataOffset < dibHeaderSize || dataOffset >= bytes.length) throw new Error("Invalid BMP pixel offset");
   // ImageMagick tolerates offsets into the DIB, but never seeks back into it.
@@ -356,6 +358,7 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
     depth: "uchar",
     density: meta.density,
     ...(meta.resolution ? { resolution: meta.resolution } : {}),
+    ...(meta.renderingIntent ? { renderingIntent: meta.renderingIntent } : {}),
     ...(meta.icc ? { icc: meta.icc } : {}),
     hasAlpha: meta.hasAlpha
   };

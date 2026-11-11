@@ -11729,7 +11729,17 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
                 if (removeDups) {
                     // OptimizePlus preserves the first transition, including an empty one.
-                    if (next.value || (optimizePlus && n === 1)) frames.push(current);
+                    if (!next.value && optimizePlus && n === 1) frames.push({
+                        ...yield* createSolidRgbaImageSteps(1, 1, { r: 255, g: 255, b: 255, a: 0 }),
+                        [magickInput]: { ...current[magickInput] }, disposal: 1,
+                        ...(current.properties !== undefined ? { properties: current.properties } : {}),
+                        ...(current.delay !== undefined ? { delay: current.delay } : {}),
+                        ...(current.ticksPerSecond !== undefined ? { ticksPerSecond: current.ticksPerSecond } : {}),
+                        ...(current.delayTicks !== undefined ? { delayTicks: current.delayTicks } : {}),
+                        ...(current.loop !== undefined ? { loop: current.loop } : {}),
+                        virtualCanvas: { ...magickCropCanvas(current, 0, 0), x: -1, y: -1 },
+                    });
+                    else if (next.value) frames.push(current);
                     else {
                         const prior = frames[frames.length - 1]!;
                         const delay = (prior.delay?.[(prior as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0) +
@@ -15101,7 +15111,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     if (removeDups) {
                         // OptimizePlus preserves the first transition, including an empty one.
-                        if (next.value || (optimizePlus && n === 1)) await frames.push(current);
+                        if (!next.value && optimizePlus && n === 1) await frames.push({
+                            ...await createStoredCanvas(1, 1, { r: 255, g: 255, b: 255, a: 0 }, backend, signal),
+                            [magickInput]: { ...current[magickInput] }, disposal: 1,
+                            ...(current.properties !== undefined ? { properties: current.properties } : {}),
+                            ...(current.delay !== undefined ? { delay: current.delay } : {}),
+                            ...(current.storedDelay !== undefined ? { storedDelay: current.storedDelay } : {}),
+                            ...(current.ticksPerSecond !== undefined ? { ticksPerSecond: current.ticksPerSecond } : {}),
+                            ...(current.delayTicks !== undefined ? { delayTicks: current.delayTicks } : {}),
+                            ...(current.loop !== undefined ? { loop: current.loop } : {}),
+                            virtualCanvas: { ...magickCropCanvas(current, 0, 0), x: -1, y: -1 },
+                        });
+                        else if (next.value) await frames.push(current);
                         else {
                             const prior = (await frames.get(frames.length - 1))!;
                             const priorScene = prior[magickInput]?.sceneIdx ?? 0, scene = current[magickInput]?.sceneIdx ?? 0;

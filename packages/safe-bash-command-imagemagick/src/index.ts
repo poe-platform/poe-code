@@ -664,6 +664,7 @@ interface MagickState {
   ftxtFormat?: string;
   comment?: string;
   label?: string;
+  caption?: string;
   filenameLiteral?: boolean;
   optionProperties?: Record<string, string>;
   sizeWidth: number;
@@ -6980,7 +6981,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 image = { ...image, ticksPerSecond: timing.ticksPerSecond, delayTicks: timing.delayTicks, [magickInput]: { ...source, ticksPerSecond: timing.ticksPerSecond, delayTicks: timing.delayTicks },
                     delay: (image.delay ?? [0]).map(current => parseDelayOption(delay, current).milliseconds) };
             }
-            for (const key of ["comment", "label"] as const) {
+            for (const key of ["comment", "label", "caption"] as const) {
                 const value = state[key];
                 if (value !== undefined) {
                     const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { filePath: baseToken });
@@ -7016,7 +7017,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             if (state.orientation !== undefined) im = { ...im, orientation: state.orientation };
             if (state.units !== undefined) im = applyMagickUnits(im, state.units);
             if (state.densityGeometry !== undefined) im = applyMagickDensity(im, state.densityGeometry);
-            for (const key of ["comment", "label"] as const) {
+            for (const key of ["comment", "label", "caption"] as const) {
                 const value = state[key];
                 if (value !== undefined) {
                     const expanded = yield* formatMagickPropertyStringSteps(value, im, () => im, { filePath: baseToken });
@@ -10612,11 +10613,11 @@ if (t === "-intent" || t === "+intent") {
         else if (t === "+gravity") {
             state.gravity = undefined;
         }
-        else if (t === "-comment" || t === "-label") {
-            state[t === "-comment" ? "comment" : "label"] = tokens[++i] ?? "";
+        else if (t === "-comment" || t === "-label" || t === "-caption") {
+            state[t === "-comment" ? "comment" : t === "-label" ? "label" : "caption"] = tokens[++i] ?? "";
         }
-        else if (t === "+label") {
-            delete state.label;
+        else if (t === "+label" || t === "+caption") {
+            delete state[t === "+label" ? "label" : "caption"];
         }
         else if (t === "-sampling-factor") {
             state.samplingFactor = tokens[++i] ?? "";
@@ -10999,7 +11000,7 @@ if (t === "-intent" || t === "+intent") {
         state.density = Math.max(1, Math.round(parseMagickDensity(state.densityGeometry).width));
     }
     const property = t?.slice(1);
-    if (property && ["compose", "gravity", "filter", "background", "interpolate", "interlace", "virtual-pixel"].includes(property)) {
+    if (property && ["compose", "gravity", "filter", "background", "interpolate", "interlace", "virtual-pixel", "caption"].includes(property)) {
         state.optionProperties = { ...state.optionProperties };
         if (t![0] === "-") state.optionProperties[property] = tokens[i]!;
         else if (property === "interlace") state.optionProperties[property] = "undefined";
@@ -16745,9 +16746,9 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-contrast-stretch", "-linear-stretch", "-intensity", "-connected-components", "+connected-components"
     ]);
     const flagsWithTwoArgs = new Set(["-copy", "-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill", "+floodfill"]);
-    const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-page", "-comment", "-label"]);
+    const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-page", "-comment", "-label", "-caption"]);
     const flagsWithoutArgs = new Set([
-        "-despeckle", "+fill",
+        "-despeckle", "+fill", "+caption",
         "-enhance", "-antialias", "+antialias", "+stroke",
         "-identify", "+identify", "-verbose", "+verbose", "-regard-warnings", "+regard-warnings",
         "-negate", "+negate", "-contrast", "+contrast", "-trim", "-flip", "-flop", "-transpose", "-transverse", "-auto-orient",
@@ -16788,7 +16789,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
             outDir = argv[++i]!;
         }
         else if (option) {
-            (t === "-write" || t === "+write" ? writeTokens : readFlags.has(t) || t === "+filter" || t === "+page" ? readSettings : opTokens).push(...argv.slice(i, i + count + 1));
+            (t === "-write" || t === "+write" ? writeTokens : readFlags.has(t) || t === "+filter" || t === "+page" || t === "+caption" ? readSettings : opTokens).push(...argv.slice(i, i + count + 1));
             i += count;
         }
         else {
@@ -17020,7 +17021,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
          if (state.compression !== undefined) savedImage = { ...savedImage, [magickInput]: { ...savedImage[magickInput], compression: state.compression } };
          if (state.page !== undefined) savedImage = { ...savedImage, virtualCanvas: state.page };
          if (state.densityGeometry !== undefined) savedImage = applyMagickDensity(savedImage, state.densityGeometry);
-         for (const key of ["comment", "label"] as const) {
+         for (const key of ["comment", "label", "caption"] as const) {
              const value = state[key];
              if (value !== undefined) {
                  const expanded = await formatRetainedIdentify(value, savedImage, { filePath: baseToken }, async () => ({ image: savedImage, storage: backend.storage }), signal);
@@ -17234,7 +17235,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   if(state.orientation!==undefined)image={...image,orientation:state.orientation};
   if(state.units!==undefined)image=applyMagickUnits(image,state.units);
   if(state.densityGeometry!==undefined)image=applyMagickDensity(image,state.densityGeometry);
- for (const key of ["comment", "label"] as const) {
+ for (const key of ["comment", "label", "caption"] as const) {
   const value = state[key];
   if (value !== undefined) {
    const expanded = await formatRetainedIdentify(value, image, { filePath: baseToken }, async () => ({ image, storage: backend.storage }), signal);

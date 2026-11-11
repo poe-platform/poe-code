@@ -4192,6 +4192,42 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
             return [x + dx / total, y + dy / total];
         });
     }
+    if (method === "polar") {
+        if (nums.length === 0) throw new Error("invalid list of numbers");
+        if (nums.length === 3 || nums.length > 6) throw new Error("invalid argument for option Polar : number of arguments");
+        const pageX = img.virtualCanvas?.x ?? 0, pageY = img.virtualCanvas?.y ?? 0;
+        let ox = nums[2] ?? w / 2 + pageX, oy = nums[3] ?? h / 2 + pageY;
+        let outer = nums[0] ?? 0;
+        const inner = nums[1] ?? 0, from = (nums[4] ?? -180) * Math.PI / 180;
+        let to = (nums[5] ?? nums[4] ?? -180) * Math.PI / 180;
+        if (Math.abs(from - to) < 1e-12) to += 2 * Math.PI;
+        if (Math.abs(outer) < 1e-12) outer = Math.min(Math.abs(ox - pageX), Math.abs(oy - pageY), Math.abs(ox - pageX - w), Math.abs(oy - pageY - h));
+        else if (Math.abs(outer + 1) < 1e-12) outer = Math.hypot(Math.max(Math.abs(ox - pageX), Math.abs(ox - pageX - w)), Math.max(Math.abs(oy - pageY), Math.abs(oy - pageY - h)));
+        if (outer < 1e-12 || inner < -1e-12 || outer - inner < 1e-12) throw new Error("invalid argument for option Polar : Invalid Radius");
+        const angleScale = w / (to - from), radiusScale = h / (outer - inner), best = token === "+distort";
+        let x = 0, y = 0, width = w, height = h;
+        if (best) {
+            if (nums.length < 2) ox = oy = 0;
+            x = Math.floor(ox - outer - 0.5); y = Math.floor(oy - outer - 0.5);
+            width = Math.ceil(ox + outer - x + 0.5); height = Math.ceil(oy + outer - y + 0.5);
+        }
+        return {
+            ...result((px, py) => {
+                const dx = px + x + 0.5 - ox, dy = py + y + 0.5 - oy;
+                let angle = (Math.atan2(dx, dy) - (from + to) / 2) / (2 * Math.PI);
+                // Native rounds half turns away from zero at the polar seam.
+                angle = (angle - Math.sign(angle) * Math.floor(Math.abs(angle) + 0.5)) * 2 * Math.PI;
+                return [angle * angleScale + w / 2 + (best ? 0 : pageX) - 0.5,
+                    (Math.hypot(dx, dy) - inner) * radiusScale + (best ? 0 : pageY) - 0.5];
+            }, width, height),
+            ...(best ? { virtualCanvas: { width, height, x, y } } : {}),
+            derivatives(px, py) {
+                const radius = Math.hypot(px + x + 0.5 - ox, py + y + 0.5 - oy);
+                // Native filters in orthogonal angle/radius axes, including the center fallback.
+                return [radius > 1e-12 ? angleScale / (2 * Math.PI * radius) : width * 2, 0, 0, radiusScale];
+            }
+        };
+    }
     if (method === "srt" || method === "scalerotatetranslate") {
         const pageX = img.virtualCanvas?.x ?? 0, pageY = img.virtualCanvas?.y ?? 0;
         const offsetX = token === "+distort" ? pageX : 0, offsetY = token === "+distort" ? pageY : 0;
@@ -4567,13 +4603,15 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
         const samplingOrigin = plan?.virtualCanvas;
         if (plan && distort && image.virtualCanvas) {
             const page = image.virtualCanvas, origin = plan.virtualCanvas;
+            // Polar bounds already include the input page offset.
+            const absoluteOrigin = spec.toLowerCase().replaceAll("-", "").replaceAll("_", "") === "polar";
             // Scale the input page to the output raster; only best-fit retains
             // the input offsets in addition to the computed viewport origin.
             plan = { ...plan, virtualCanvas: {
                 width: Math.floor(page.width * plan.width / image.width + 0.5),
                 height: Math.floor(page.height * plan.height / image.height + 0.5),
-                x: origin ? page.x + origin.x : 0,
-                y: origin ? page.y + origin.y : 0
+                x: origin ? (absoluteOrigin ? 0 : page.x) + origin.x : 0,
+                y: origin ? (absoluteOrigin ? 0 : page.y) + origin.y : 0
             } };
         }
         if (plan) plan = applyMagickDistortViewport(plan, image, viewport, samplingOrigin, analysis);

@@ -14282,7 +14282,19 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const expanded = yield* formatMagickPropertyStringSteps(argument, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 const geometry = parseMagickVignetteGeometry(expanded);
                 const layout = vignetteLayout(im);
-                return { ...yield* applyMagickRasterSteps(im, vignettePixelSteps(im, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, geometry, state.channelExplicit ? state.channels : undefined, state.composeRaw, state.composeArgs), signal, layout), region: undefined, virtualCanvas: layout.virtualCanvas };
+                const background = state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background;
+                const channels = state.channelExplicit ? state.channels : undefined;
+                const result = yield* applyMagickRasterSteps(im, vignettePixelSteps(im, background, geometry, channels, state.composeRaw, state.composeArgs), signal, layout);
+                if (im.metaChannels) {
+                    result.metaChannels = [];
+                    for (const [index, plane] of im.metaChannels.entries()) {
+                        const source = { ...plane, ...(im.virtualCanvas ? { virtualCanvas: im.virtualCanvas } : {}), region: im.region };
+                        result.metaChannels.push(yield* applyMagickRasterSteps(plane,
+                            vignettePixelSteps(source, { r: 0, g: 0, b: 0, a: background.a }, geometry, channels, state.composeRaw, state.composeArgs,
+                                !state.channelExplicit || state.channelDefault || !!channels?.meta?.includes(index)), signal, layout));
+                    }
+                }
+                return { ...result, region: undefined, virtualCanvas: layout.virtualCanvas };
             });
         }
         else if (t === "-dither" || t === "+dither") {
@@ -18461,13 +18473,24 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const argument = tokens[++i] ?? "0x1";
-            const background = state.background, backgroundExplicit = state.backgroundExplicit, channels = state.channelExplicit ? { ...state.channels } : undefined, compose = state.composeRaw, composeArgs = state.composeArgs, optionProperties = state.optionProperties;
+            const background = state.background, backgroundExplicit = state.backgroundExplicit, channels = state.channelExplicit ? { ...state.channels } : undefined, compose = state.composeRaw, composeArgs = state.composeArgs, optionProperties = state.optionProperties, channelDefault = state.channelDefault;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 const geometry = parseMagickVignetteGeometry(expanded);
                 const layout = vignetteLayout(image);
-                return { ...await transformStoredMagickRaster(image, backend, vignettePixelSteps(image, backgroundExplicit ? background : image.backgroundColor ?? background, geometry, channels, compose, composeArgs), signal, layout), region: undefined, virtualCanvas: layout.virtualCanvas };
+                const fill = backgroundExplicit ? background : image.backgroundColor ?? background;
+                const result = await transformStoredMagickRaster(image, backend, vignettePixelSteps(image, fill, geometry, channels, compose, composeArgs), signal, layout);
+                if (image.storedMetaChannels) {
+                    result.storedMetaChannels = [];
+                    for (const [index, plane] of image.storedMetaChannels.entries()) {
+                        const source = { ...plane, ...(image.virtualCanvas ? { virtualCanvas: image.virtualCanvas } : {}), region: image.region };
+                        result.storedMetaChannels.push(await transformStoredMagickRaster(plane, backend,
+                            vignettePixelSteps(source, { r: 0, g: 0, b: 0, a: fill.a }, geometry, channels, compose, composeArgs,
+                                !channels || channelDefault || !!channels.meta?.includes(index)), signal, layout));
+                    }
+                }
+                return { ...result, region: undefined, virtualCanvas: layout.virtualCanvas };
             });
         } else if (!operandsOnly && token === "-polaroid") {
             let images: StoredImageStack, sceneIdx = 0;

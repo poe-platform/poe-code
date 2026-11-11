@@ -106,7 +106,7 @@ export function vignetteLayout(source: Pick<RgbaImage, "width" | "height" | "vir
     return { width, height, hasAlpha: true, virtualCanvas: { width, height, x: 0, y: 0 } };
 }
 export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" | "virtualCanvas" | "data16" | "space" | "gamma" | "hasAlpha" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { region?: Region | undefined; magickColorspace?: string | undefined }, background: RgbaColor,
-    geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; hasYOffset: boolean; isPercent: boolean }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, compose = "Over", composeArgs?: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; hasYOffset: boolean; isPercent: boolean }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, compose = "Over", composeArgs?: string, metaSelected?: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { name } = magickCompositeMode(compose);
     const sourceIn = name === "srcin" || name === "in", destinationOut = name === "dstout" || name === "destout";
     const sourceAtop = name === "atop" || name === "srcatop", destinationAtop = name === "dstatop" || name === "destatop";
@@ -283,7 +283,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                     overlay.data[3] = foreground * 255;
                     yield* compositePixelsSteps(destination, overlay, composite, compose, 0, 0, composeArgs, 0, true);
                     for (let c = 0; c < 3; c++) {
-                        const selected = !channels || (c === 0 ? channels.r : c === 1 ? channels.g : channels.b);
+                        const selected = metaSelected ?? (!channels || (c === 0 ? channels.r : c === 1 ? channels.g : channels.b));
                         samples[x * 4 + c] = round((selected ? composite[c]! : destination.data[c]!) * pixelScale);
                     }
                     data[x * 4 + 3] = quantum((!channels || channels.a ? composite[3]! : background.a) * scale);
@@ -305,7 +305,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                     : name === "xor" ? foreground * (1 - background.a / 255) + back : Math.min(1, foreground + back);
                 for (let channel = 0; channel < (inks ? 4 : 3); channel++) {
                     const color = backgroundInks ? backgroundInks[channel]! * 255 : channel === 0 ? background.r : channel === 1 ? background.g : background.b;
-                    const selected = !channels || (channel === 0 ? channels.r : channel === 1 ? channels.g : channel === 2 ? channels.b : channels.k);
+                    const selected = metaSelected ?? (!channels || (channel === 0 ? channels.r : channel === 1 ? channels.g : channel === 2 ? channels.b : channels.k));
                     const sourceColor = protectedPixel ? Math.fround(samples[x * 4 + channel]! / pixelScale * intensity * 257) / 257 * pixelScale : samples[x * 4 + channel]!;
                     if (copyChannel >= 0) {
                         samples[x * 4 + channel] = round(selected && channel === copyChannel ? sourceColor : color * pixelScale);

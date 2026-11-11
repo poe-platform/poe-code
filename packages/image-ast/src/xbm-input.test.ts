@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { decodeImage, readImageMetadata } from "./codecs/index.js";
-import { readXbmFromSource } from "./codecs/xbm.js";
+import { isXbmBytes, readXbmFromSource } from "./codecs/xbm.js";
 
 const bitmap = (width: number, height: number, values: string) => new TextEncoder().encode(`#define test_width ${width}\n#define test_height ${height}\nstatic char test_bits[] = { ${values} };`);
 
@@ -36,4 +36,24 @@ it("rejects explicitly sized XBM arrays before reading pixels or metadata", asyn
   expect(() => readImageMetadata(bytes)).toThrow("XBM");
   const source = { size: bytes.length, async read(position: number, length: number) { return bytes.subarray(position, position + length); } };
   await expect(readXbmFromSource(source, undefined, new AbortController().signal)).rejects.toThrow("XBM");
+});
+
+it.each([
+  "/* XPM */\nstatic char *icon[] = {",
+  "/* ordinary C */\nstatic char data[] = { 1 };",
+  "#defineSomething 1",
+  "/* unterminated #define test_width 8",
+  "/* comment */\n#define"
+])("does not admit unrelated or incomplete headers: %s", header => {
+  expect(isXbmBytes(new TextEncoder().encode(header))).toBe(false);
+});
+
+it("ignores C comment contents when reading XBM metadata and pixels", () => {
+  const bytes = new TextEncoder().encode("/* #define short { */\n# \tdefine\ttest_width 1\n#define test_height 1\nstatic char test_bits[] = { /* pixel */ 1 };");
+  expect(readImageMetadata(bytes)).toMatchObject({ format: "xbm", width: 1, height: 1 });
+  expect([...decodeImage(bytes).data]).toEqual([0, 0, 0, 255]);
+});
+
+it("rejects an unterminated comment in XBM pixels", () => {
+  expect(() => decodeImage(bitmap(1, 1, "/* unfinished"))).toThrow("Unterminated XBM comment");
 });

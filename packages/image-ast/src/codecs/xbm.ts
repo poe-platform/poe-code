@@ -4,7 +4,15 @@ import type { ImageByteSource, ImageByteStorage, StoredRgbaImage } from "./png-s
 import { SourceBytes } from "./storage-source.js";
 
 export function isXbmBytes(bytes: Uint8Array): boolean {
-  return new TextDecoder().decode(bytes.subarray(0, 54)).trimStart().startsWith("#define ");
+  let header = new TextDecoder().decode(bytes.subarray(0, 54)).trimStart();
+  while (header.startsWith("/*")) {
+    const end = header.indexOf("*/", 2);
+    if (end < 0) return false;
+    header = header.slice(end + 2).trimStart();
+  }
+  if (!header.startsWith("#")) return false;
+  header = header.slice(1).trimStart();
+  return header.startsWith("define") && header.length > 6 && header.charAt(6).trim() === "";
 }
 
 type Step = { kind: "read"; position: number } | { kind: "header"; metadata: ImageMetadata } | { kind: "pixel"; value: number };
@@ -15,6 +23,19 @@ function* xbmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
     while (position < size || pending !== undefined) {
       const char = pending ?? String.fromCharCode((yield { kind: "read", position: position++ }) ?? 0);
       pending = undefined;
+      if (char === "/") {
+        if (value) { pending = char; return value; }
+        const next = position < size ? yield { kind: "read" as const, position: position++ } : undefined;
+        if (next !== 42) throw new Error("Invalid XBM comment");
+        let previous = 0, closed = false;
+        while (position < size) {
+          const byte = yield { kind: "read", position: position++ };
+          if (previous === 42 && byte === 47) { closed = true; break; }
+          previous = byte ?? 0;
+        }
+        if (!closed) throw new Error("Unterminated XBM comment");
+        continue;
+      }
       if (char.trim() === "" || "#[]={},;".includes(char)) {
         if (value) { pending = char; return value; }
         if (char.trim()) return char;

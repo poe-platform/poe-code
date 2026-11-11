@@ -26,13 +26,15 @@ function* sampleLookup(lut: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & {
         dx = dx >= 0.75 ? 1 : dx > 0.25 ? 0.5 : 0;
         dy = dy >= 0.75 ? 1 : dy > 0.25 ? 0.5 : 0;
     }
-    const meshPixels: (Uint8Array | Uint16Array)[] = [];
+    const meshPixels: (Uint8Array | Uint16Array | Float64Array)[] = [];
     let meshWeights: number[] | undefined;
     if (interpolation === "mesh") {
         for (let row = 0; row < 2; row++) for (let column = 0; column < 2; column++) {
             const position = (Math.max(0, Math.min(lut.height - 1, top + row)) * lut.width + Math.max(0, Math.min(lut.width - 1, left + column))) * 4;
-            const bytes = (yield { kind: "read", highDepth, image: 1, position, length: 4 })!;
-            meshPixels.push(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
+            const working = yield { kind: "read", evaluate: true, image: 1, position, length: 4 };
+            const bytes = working?.length ? working : (yield { kind: "read", highDepth, image: 1, position, length: 4 })!;
+            meshPixels.push(working?.length ? new Float64Array(bytes.slice().buffer).map(value => highDepth ? value * 257 : value)
+                : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
         }
         const luma = meshPixels.map(p => 0.212656 * p[0]! + 0.715158 * p[1]! + 0.072186 * p[2]!);
         // Split along the diagonal with the smaller luminance difference.
@@ -61,8 +63,11 @@ function* sampleLookup(lut: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & {
                 : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
             pixel = highDepth ? color.map(value => value * 257) : color;
         } else if (!pixel) {
-            const bytes = (yield { kind: "read", highDepth, image: 1, position, length: 4 })!;
-            pixel = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+            // Evaluated lookup samples retain fractional colors and alpha before quantization.
+            const working = yield { kind: "read", evaluate: true, image: 1, position, length: 4 };
+            const bytes = working?.length ? working : (yield { kind: "read", highDepth, image: 1, position, length: 4 })!;
+            pixel = working?.length ? new Float64Array(bytes.slice().buffer).map(value => highDepth ? value * 257 : value)
+                : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
         }
         // Native cubic interpolation retains premultiplied colors without dividing by alpha.
         if (cmyk) {

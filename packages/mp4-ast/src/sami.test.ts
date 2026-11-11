@@ -9,7 +9,7 @@ it("detects SAMI and reads unclosed paragraphs, entities, and line breaks", () =
   assert.equal(plugin?.id, "sami");
   const doc = plugin!.parse(bytes);
   assert.deepEqual(doc.tracks[0]!.samples.map(s => [s.pts, s.duration, new TextDecoder().decode(s.data)]),
-    [[1240, 2160, "Café & tea\ncontinuation"], [3400, 0xffffffff, "Last caption"]]);
+    [[1240, 2160, "Café &amp; tea\ncontinuation"], [3400, 0xffffffff, "Last caption"]]);
   assert.equal(samiAst().probe(bytes).streams[0]?.codec_type, "subtitle");
   assert.equal(samiAst().canMux, false);
   assert.throws(() => samiAst().serialize(doc), /SAMI output is not supported/);

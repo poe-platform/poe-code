@@ -10,7 +10,7 @@ function parseSami(bytes: Uint8Array): MediaDocument {
   let text = "";
   const flush = (end?: number) => {
     const caption = text.trim();
-    if (start !== undefined && caption) {
+    if (start !== undefined && caption && !caption.startsWith("&nbsp;")) {
       const data = encodeUtf8(caption);
       // FFmpeg's subtitle decoder uses UINT32_MAX for an unspecified end time.
       samples.push({ pts: start, dts: start, cts: 0, duration: end === undefined ? 0xffffffff : Math.max(0, end - start),
@@ -48,7 +48,7 @@ function parseSami(bytes: Uint8Array): MediaDocument {
         }
       }
     }
-  });
+  }, { decodeEntities: false });
   parser.end(decodeUtf8(bytes));
   flush();
   const duration = samples.reduce((end, sample) => Math.max(end, sample.pts + sample.duration), 0);

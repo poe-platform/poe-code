@@ -132,7 +132,7 @@ for (const [argument, exitCode] of [
   ["enable=invalid", 234],
   ["level_in=-1", 222], ["level_out=65", 222], ["level_in=invalid", 234],
   ["unknown=1", 8], ["type=invalid", 234],
-  ["mode=2", 222], ["type=50fm", 8]
+  ["mode=2", 222], ["type=9", 222]
 ] as const) {
   it(`rejects aemphasis=${argument} without replacing output`, async () => {
     const volume = Volume.fromJSON({ "/in.raw": Buffer.alloc(16), "/out.raw": "existing" });

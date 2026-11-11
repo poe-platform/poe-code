@@ -60,40 +60,66 @@ export async function emphasizeAudio(
     values[key] = key < 2 ? value : value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
   }
   const [initialLevelIn, initialLevelOut, mode, type] = values;
-  if (type !== 3 && type !== 4) throw new Error("aemphasis: unsupported type (only cd and riaa are supported)");
-
-  // Bilinear transform of the CD (50/15 microsecond) or RIAA
-  // (3180/318/75 microsecond) reproduction curve, inverted for production.
-  const i = 1 / (type === 4 ? 0.000050 : 0.003180);
-  const j = 1 / (type === 4 ? 0.000015 : 0.000318);
-  const k = 1 / (type === 4 ? 0.0000001 : 0.000075);
-  const t = 1 / sampleRate;
+  const useLowPass = type! < 7;
   let a0, a1, a2, b1, b2;
-  if (mode === 0) {
-    const g = 1 / (4 + 2 * i * t + 2 * k * t + i * k * t * t);
-    a0 = (2 * t + j * t * t) * g;
-    a1 = 2 * j * t * t * g;
-    a2 = (-2 * t + j * t * t) * g;
-    b1 = (-8 + 2 * i * k * t * t) * g;
-    b2 = (4 - 2 * i * t - 2 * k * t + i * k * t * t) * g;
+  if (!useLowPass) {
+    // FM-KF uses a high shelf without the low-pass or 1 kHz normalization.
+    const tau = type === 7 ? 0.000050 : 0.000075;
+    const frequency = 1 / (2 * Math.PI * tau);
+    const nyquist = sampleRate * 0.5;
+    const gain = Math.sqrt(1 + nyquist * nyquist / (frequency * frequency));
+    const corner = Math.sqrt((gain - 1) * frequency * frequency);
+    const q = Math.pow(sampleRate / (type === 7 ? 4750 : 3269) + 19.5, -0.25);
+    const amplitude = Math.sqrt(mode === 0 ? 1 / gain : gain);
+    const omega = corner * 2 * Math.PI / sampleRate;
+    const alpha = Math.sin(omega) / (2 * q);
+    const cosine = Math.cos(omega);
+    const term = 2 * Math.sqrt(amplitude) * alpha;
+    const inverse = 1 / (amplitude + 1 - (amplitude - 1) * cosine + term);
+    a0 = amplitude * (amplitude + 1 + (amplitude - 1) * cosine + term) * inverse;
+    a1 = -2 * amplitude * (amplitude - 1 + (amplitude + 1) * cosine) * inverse;
+    a2 = amplitude * (amplitude + 1 + (amplitude - 1) * cosine - term) * inverse;
+    b1 = 2 * (amplitude - 1 - (amplitude + 1) * cosine) * inverse;
+    b2 = (amplitude + 1 - (amplitude - 1) * cosine - term) * inverse;
   } else {
-    const g = 1 / (2 * t + j * t * t);
-    a0 = (4 + 2 * i * t + 2 * k * t + i * k * t * t) * g;
-    a1 = (-8 + 2 * i * k * t * t) * g;
-    a2 = (4 - 2 * i * t - 2 * k * t + i * k * t * t) * g;
-    b1 = 2 * j * t * t * g;
-    b2 = (-2 * t + j * t * t) * g;
+    // Analog corner frequencies in radians/second, in native type order:
+    // Columbia, EMI, BSI, RIAA, CD, 50us FM, 75us FM.
+    const [i, j, k] = ([
+      [100 * 2 * Math.PI, 500 * 2 * Math.PI, 1590 * 2 * Math.PI],
+      [70 * 2 * Math.PI, 500 * 2 * Math.PI, 2500 * 2 * Math.PI],
+      [50 * 2 * Math.PI, 353 * 2 * Math.PI, 3180 * 2 * Math.PI],
+      [1 / 0.003180, 1 / 0.000318, 1 / 0.000075],
+      [1 / 0.000050, 1 / 0.000015, 1 / 0.0000001],
+      [1 / 0.000050, 1 / (0.000050 / 20), 1 / (0.000050 / 50)],
+      [1 / 0.000075, 1 / (0.000075 / 20), 1 / (0.000075 / 50)]
+    ] as const)[type!]!;
+    const t = 1 / sampleRate;
+    if (mode === 0) {
+      const g = 1 / (4 + 2 * i * t + 2 * k * t + i * k * t * t);
+      a0 = (2 * t + j * t * t) * g;
+      a1 = 2 * j * t * t * g;
+      a2 = (-2 * t + j * t * t) * g;
+      b1 = (-8 + 2 * i * k * t * t) * g;
+      b2 = (4 - 2 * i * t - 2 * k * t + i * k * t * t) * g;
+    } else {
+      const g = 1 / (2 * t + j * t * t);
+      a0 = (4 + 2 * i * t + 2 * k * t + i * k * t * t) * g;
+      a1 = (-8 + 2 * i * k * t * t) * g;
+      a2 = (4 - 2 * i * t - 2 * k * t + i * k * t * t) * g;
+      b1 = 2 * j * t * t * g;
+      b2 = (-2 * t + j * t * t) * g;
+    }
+    // Normalize the emphasis stage to unity gain at 1 kHz.
+    const zr = Math.cos(1000 * 2 * Math.PI / sampleRate);
+    const zi = -Math.sin(1000 * 2 * Math.PI / sampleRate);
+    const gain = Math.hypot(1 + b1 * zr + b2 * (zr * zr - zi * zi), b1 * zi + 2 * b2 * zr * zi)
+      / Math.hypot(a0 + a1 * zr + a2 * (zr * zr - zi * zi), a1 * zi + 2 * a2 * zr * zi);
+    a0 *= gain;
+    a1 *= gain;
+    a2 *= gain;
   }
-  // Normalize the emphasis stage to unity gain at 1 kHz.
-  const zr = Math.cos(1000 * 2 * Math.PI / sampleRate);
-  const zi = -Math.sin(1000 * 2 * Math.PI / sampleRate);
-  const gain = Math.hypot(1 + b1 * zr + b2 * (zr * zr - zi * zi), b1 * zi + 2 * b2 * zr * zi)
-    / Math.hypot(a0 + a1 * zr + a2 * (zr * zr - zi * zi), a1 * zi + 2 * a2 * zr * zi);
-  a0 *= gain;
-  a1 *= gain;
-  a2 *= gain;
 
-  // Native CD/RIAA filtering first applies a low-pass stage at 0.45 * rate,
+  // Native non-KF filtering first applies a low-pass stage at 0.45 * rate,
   // capped at 21 kHz, with Q = 0.707.
   const omega = 2 * Math.PI * Math.min(0.45 * sampleRate, 21000) / sampleRate;
   const alpha = Math.sin(omega) / (2 * 0.707);
@@ -142,10 +168,13 @@ export async function emphasizeAudio(
         output[c]![sample] = channel[sample]!;
         continue;
       }
-      const low = channel[sample]! * levelIn! - low1 * lowB1 - low2 * lowB2;
-      const input = low * lowA0 + low1 * lowA1 + low2 * lowA0;
-      low2 = low1;
-      low1 = low;
+      let input = channel[sample]! * levelIn!;
+      if (useLowPass) {
+        const low = input - low1 * lowB1 - low2 * lowB2;
+        input = low * lowA0 + low1 * lowA1 + low2 * lowA0;
+        low2 = low1;
+        low1 = low;
+      }
       const emphasis = input - emphasis1 * b1 - emphasis2 * b2;
       output[c]![sample] = (emphasis * a0 + emphasis1 * a1 + emphasis2 * a2) * levelOut!;
       emphasis2 = emphasis1;

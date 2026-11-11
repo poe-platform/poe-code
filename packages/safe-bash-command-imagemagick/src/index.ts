@@ -2662,7 +2662,11 @@ function parseMagickBorderGeometry(raw: string): MagickGeometry {
     // Rectangle geometry ends at the first comma-separated field.
     raw = raw.split(",", 1)[0]!;
     const geometry = parseMagickGeometry(raw.replace(":", "x").replaceAll("#", ""));
-    if (geometry.width === undefined && geometry.height === undefined && geometry.aspectRatio === undefined && geometry.areaLimit === undefined) {
+    const offset = [...raw].findIndex((character, index) => (character === "+" || character === "-") && raw[index - 1]?.toLowerCase() !== "e");
+    // Scalar modifiers may end the geometry, but only percent may precede offsets.
+    const scalarModifierOffset = geometry.hasOffset && !raw.toLowerCase().includes("x") && !raw.includes(":")
+        && [...raw.slice(0, offset)].some(character => "!@<>^#".includes(character));
+    if (scalarModifierOffset || (geometry.width === undefined && geometry.height === undefined && geometry.aspectRatio === undefined && geometry.areaLimit === undefined)) {
         throw new Error(`invalid argument for option '-border': ${raw}`);
     }
     return geometry.height === undefined && raw.toLowerCase().includes("x") ? { ...geometry, height: 0 } : geometry;

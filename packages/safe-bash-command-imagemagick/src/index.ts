@@ -11418,7 +11418,7 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     if (image.inactiveAlpha && (format === "farbfeld" || format === "miff" && image.alphaSeparate)) image = { ...image, hasAlpha: true };
     // Convert working colorspaces first; keep ordinary sRGB luma at exporter precision.
     if ((format === "gray" || format === "graya") && (image.magickColorspace || (image.space === "b-w" || image.space === "grey16") && image.gamma === 1)) image = yield* parseMagickPixelOperation(["-colorspace", "Gray"], createDefaultState(), 0)!.apply(image);
-    if (pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format)) image = yield* prepare16BitOutput(image);
+    if (pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff") image = yield* prepare16BitOutput(image);
     if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false
         || (pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && !image.hasAlpha && (image.writeMask || image.region)) {
         // Raw RGBA synchronizes the masked cache before activating stored alpha.
@@ -11441,7 +11441,7 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     if (format === "gif" && image.format === "gif" && !image.backgroundColor) image = { ...image, backgroundColor: { r: image.data[0]!, g: image.data[1]!, b: image.data[2]!, a: 255 } };
     if (format === "miff") {
         const scene = (image as MagickImage)[magickInput]?.sceneIdx ?? 0;
-        return { ...image, delay: [image.delay?.[scene] ?? image.delay?.[0] ?? 0], disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene] ?? 0 };
+        return { ...image, depth: image.data16 && image.bitsPerSample === 16 ? "ushort" : image.depth, delay: [image.delay?.[scene] ?? image.delay?.[0] ?? 0], disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene] ?? 0 };
     }
     if (format !== "otb" && format !== "pbm" && format !== "xbm" && format !== "wbmp" && format !== "mono") return image;
     const source = image.data16 ? { ...image, data: new Uint8Array(image.data16.buffer, image.data16.byteOffset, image.data16.byteLength) } : image;
@@ -11453,7 +11453,7 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     if (image.inactiveAlpha && (format === "farbfeld" || format === "miff" && image.alphaSeparate)) image = { ...image, hasAlpha: true };
     // Convert working colorspaces first; keep ordinary sRGB luma at exporter precision.
     if ((format === "gray" || format === "graya") && (image.magickColorspace || (image.space === "b-w" || image.space === "grey16") && image.gamma === 1)) image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "Gray"], createDefaultState(), 0)!, signal);
-    if ((pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format)) && image.storedEvaluateSamples !== undefined) {
+    if ((pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff") && image.storedEvaluateSamples !== undefined) {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepare16BitOutput }, signal);
     }
     if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false
@@ -11484,7 +11484,7 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     }
     if (format === "miff") {
         const scene = (image as StoredMagickImage)[magickInput]?.sceneIdx ?? 0;
-        const frame = { ...image, delay: [await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] ?? image.delay?.[0] ?? 0], disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene] ?? 0 };
+        const frame = { ...image, depth: image.storedData16 && image.bitsPerSample === 16 ? "ushort" as const : image.depth, delay: [await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] ?? image.delay?.[0] ?? 0], disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene] ?? 0 };
         delete frame.storedDelay;
         return frame;
     }

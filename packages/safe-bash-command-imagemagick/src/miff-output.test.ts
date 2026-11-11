@@ -49,7 +49,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     it(`preserves each MIFF frame's linear RGB colorspace in ${mode}`, async () => {
         const files = new Map<string, Uint8Array>();
         const filesystem = new MemoryFileSystem();
-        const args = ["xc:#123456", "xc:#abcdef", "+append", "-colorspace", "RGB", "(", "xc:#abcdef", ")", "out.miff"];
+        const args = ["xc:#123456", "xc:#abcdef", "+append", "-colorspace", "RGB", "(", "xc:#abcdef", ")", "-depth", "8", "out.miff"];
         const result = mode === "command" ? await createMagickCommand().execute({
             command: "magick", args, cwd: "/", env: {}, fs: filesystem,
             signal: new AbortController().signal, stdin: (async function* () {})(),

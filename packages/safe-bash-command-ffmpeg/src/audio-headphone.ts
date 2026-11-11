@@ -22,15 +22,6 @@ export async function headphoneAudio(
     if (!key || !["map", "gain", "lfe", "type", "size", "hrir"].includes(key)) {
       throw new Error(`headphone: unsupported option ${key}`);
     }
-    const value = separator < 0 ? option : option.slice(separator + 1);
-    if (key === "gain" || key === "lfe") {
-      const gain = Number(value);
-      if (!value.trim() || !Number.isFinite(gain)) {
-        throw new Error(`headphone: ${key} must be between -20 and 40 dB`);
-      }
-      if (gain < -20 || gain > 40) {
-        throw new RangeError(`headphone: ${key} must be between -20 and 40 dB`);
-      }
     let value = separator < 0 ? option : option.slice(separator + 1);
     if (key !== "map") {
       const min = key === "gain" || key === "lfe" ? -20 : key === "size" ? 1024 : 0;
@@ -41,10 +32,10 @@ export async function headphoneAudio(
       let numeric: number;
       try {
         numeric = parseFilterExpression(value, "headphone", {
-        E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2,
-        min, max, default: fallback, none: 0, all: -1,
-        ...(key === "type" ? { time: 0, freq: 1 } : key === "hrir" ? { stereo: 0, multich: 1 } : {})
-      }, undefined, new Float64Array(10));
+          E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2,
+          min, max, default: fallback, none: 0, all: -1,
+          ...(key === "type" ? { time: 0, freq: 1 } : key === "hrir" ? { stereo: 0, multich: 1 } : {})
+        }, undefined, new Float64Array(10));
       } catch {
         throw new Error(`headphone: ${diagnostic}`);
       }

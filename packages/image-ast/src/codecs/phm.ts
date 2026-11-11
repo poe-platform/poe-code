@@ -41,25 +41,26 @@ function halfFloat(bits: number): number {
 }
 
 export function phmPixels(bytes: Uint8Array, channels: number, little: boolean, scale: number) {
-    const count = bytes.length / (channels * 2), data = new Uint8Array(count * 4), data16 = new Uint16Array(count * 4);
+    const count = bytes.length / (channels * 2), data = new Uint8Array(count * 4), data16 = new Uint16Array(count * 4), dataFloat = new Float32Array(count * 4);
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     for (let pixel = 0; pixel < count; pixel++) for (let channel = 0; channel < 4; channel++) {
         const value = channel === 3 ? 1 : halfFloat(view.getUint16((pixel * channels + (channels === 1 ? 0 : channel)) * 2, little)) * scale;
         const bounded = Math.max(0, Math.min(1, value)), index = pixel * 4 + channel;
+        dataFloat[index] = value;
         data[index] = Math.round(bounded * 255);
         data16[index] = Math.round(bounded * 65535);
     }
-    return { data, data16 };
+    return { data, data16, dataFloat };
 }
 
 export function decodePhmImage(bytes: Uint8Array, options?: SharpInputOptions): RgbaImage {
     const { metadata, offset, little, scale } = readPhmHeader(bytes), { width, height, channels } = metadata;
     checkLimitInputPixels(width, height, options);
-    const data = new Uint8Array(width * height * 4), data16 = new Uint16Array(data.length);
+    const data = new Uint8Array(width * height * 4), data16 = new Uint16Array(data.length), dataFloat = new Float32Array(data.length);
     for (let y = 0; y < height; y++) {
         const start = offset + (height - 1 - y) * width * channels * 2;
         const row = phmPixels(bytes.subarray(start, start + width * channels * 2), channels, little, scale);
-        data.set(row.data, y * width * 4); data16.set(row.data16, y * width * 4);
+        data.set(row.data, y * width * 4); data16.set(row.data16, y * width * 4); dataFloat.set(row.dataFloat, y * width * 4);
     }
-    return { ...metadata, data, data16 };
+    return { ...metadata, data, data16, dataFloat };
 }

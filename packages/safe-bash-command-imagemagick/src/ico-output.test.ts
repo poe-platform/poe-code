@@ -4,7 +4,7 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli, runConvertCliSync } from "./index.js";
 
 it.each(["sync", "buffered", "retained"] as const)("writes ICO directories and DIB pixels (%s)", async mode => {
-    for (const suffix of ["ico", "cur", "ico:output.bin"]) for (const count of [1, 3]) for (const write of [false, true]) {
+    for (const suffix of ["ico", "ico:output.bin"]) for (const count of [1, 3]) for (const write of [false, true]) {
         const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
         const target = suffix.includes(":") ? suffix : `output.${suffix}`;
         const path = target.includes(":") ? "output.bin" : target;

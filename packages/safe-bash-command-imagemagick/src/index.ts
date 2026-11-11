@@ -7786,7 +7786,9 @@ function pngOutputColorType(value: string | undefined, format: ImageFormat, anal
     return undefined;
 }
 
-function inferOutputFormat(spec: string, fallback: ImageFormat = "png", inputFormat?: string, analysis?: { warnings: string }): { format: ImageFormat; path: string; tiffBig?: boolean; gifVersion?: "87a"; bmpFormat?: "bmp2" | "bmp3" | "dib"; pngCoder?: "png00" | "png8" | "png24" | "png32" | "png48" | "png64" } {
+const singleImageOutputFormats = new Set<ImageFormat>(["png", "jpeg", "bmp", "qoi", "tga", "pcx", "exr", "xbm", "xpm", "wbmp", "otb", "uil", "sixel", "xwd"]);
+
+function inferOutputFormat(spec: string, fallback: ImageFormat = "png", inputFormat?: string, analysis?: { warnings: string }): { format: ImageFormat; path: string; singleImage?: boolean; tiffBig?: boolean; gifVersion?: "87a"; bmpFormat?: "bmp2" | "bmp3" | "dib"; pngCoder?: "png00" | "png8" | "png24" | "png32" | "png48" | "png64" } {
   const prefixMatch = /^([a-zA-Z0-9]+):(.*)$/.exec(spec);
   if (prefixMatch) {
     const prefix = prefixMatch[1]!.toLowerCase();
@@ -7798,7 +7800,7 @@ function inferOutputFormat(spec: string, fallback: ImageFormat = "png", inputFor
     }
     const fmt = ["r", "g", "b", "a", "k", "c", "m", "y", "o"].includes(prefix) ? "gray" : prefix === "tiff64" ? "tiff" : extToImageFormat(prefix);
     if (fmt) {
-      return { format: fmt, path: rest, ...(prefix === "tiff64" ? { tiffBig: true } : {}), ...(prefix === "gif87" ? { gifVersion: "87a" as const } : {}), ...(prefix === "bmp2" || prefix === "bmp3" || prefix === "dib" ? { bmpFormat: prefix } : {}), ...(["png00", "png8", "png24", "png32", "png48", "png64"].includes(prefix) ? { pngCoder: prefix as "png00" | "png8" | "png24" | "png32" | "png48" | "png64" } : {}) };
+      return { format: fmt, path: rest, singleImage: prefix === "cur" || singleImageOutputFormats.has(fmt), ...(prefix === "tiff64" ? { tiffBig: true } : {}), ...(prefix === "gif87" ? { gifVersion: "87a" as const } : {}), ...(prefix === "bmp2" || prefix === "bmp3" || prefix === "dib" ? { bmpFormat: prefix } : {}), ...(["png00", "png8", "png24", "png32", "png48", "png64"].includes(prefix) ? { pngCoder: prefix as "png00" | "png8" | "png24" | "png32" | "png48" | "png64" } : {}) };
     }
   }
   const dotIdx = spec.lastIndexOf(".");
@@ -7811,7 +7813,7 @@ function inferOutputFormat(spec: string, fallback: ImageFormat = "png", inputFor
     if (inputFormat === "PATTERN" || inputFormat === "HALD") throw new Error(`no encode delegate for this image format '${inputFormat}'`);
     fallback = extToImageFormat(inputFormat) ?? fallback;
   }
-  return { format: fallback, path: spec };
+  return { format: fallback, path: spec, singleImage: singleImageOutputFormats.has(fallback) };
 }
 
 function extToImageFormat(ext: string): ImageFormat | undefined {
@@ -13894,8 +13896,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             else if (stack.length > 0 && writePath && writePath.toLowerCase() !== "null:") {
                 const top = stack[stack.length - 1]!;
-                const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(writePath, top.format, (stack[0] as MagickImage)[magickInput]?.inputFormat, analysis);
-                if ((!state.filenameLiteral && writePath !== writeTemplate) || hasSceneOutputPattern(path, state.filenameLiteral) || (stack.length > 1 && (!state.adjoin || format === "farbfeld" || (path !== "-" && ["png", "jpeg", "bmp"].includes(format))))) {
+                const { format, path, singleImage, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(writePath, top.format, (stack[0] as MagickImage)[magickInput]?.inputFormat, analysis);
+                if ((!state.filenameLiteral && writePath !== writeTemplate) || hasSceneOutputPattern(path, state.filenameLiteral) || (stack.length > 1 && (!state.adjoin || format === "farbfeld" || (path !== "-" && singleImage)))) {
                     for (let idx = 0; idx < stack.length; idx++) {
                         if (++cooperativeWork % 65536 === 0)
                             yield;
@@ -16284,8 +16286,8 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
             const hist = (yield* formatHistogramOutputSteps(finalImg, state.precision));
             return { exitCode: 0, stdout: hist, stderr: "" };
         }
-        const { format, path: outPath, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png", (stack[0] as MagickImage)[magickInput]?.inputFormat, analysis);
-        if ((!state.filenameLiteral && filenameExpanded) || hasSceneOutputPattern(outPath, state.filenameLiteral) || (stack.length > 1 && (!state.adjoin || format === "farbfeld" || (outPath !== "-" && ["png", "jpeg", "bmp"].includes(format))))) {
+        const { format, path: outPath, singleImage, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png", (stack[0] as MagickImage)[magickInput]?.inputFormat, analysis);
+        if ((!state.filenameLiteral && filenameExpanded) || hasSceneOutputPattern(outPath, state.filenameLiteral) || (stack.length > 1 && (!state.adjoin || format === "farbfeld" || (outPath !== "-" && singleImage)))) {
             for (let idx = 0; idx < stack.length; idx++) {
                 if (++cooperativeWork % 64 === 0)
                     yield;
@@ -18764,7 +18766,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 else if (image && path && path.toLowerCase() !== "null:") {
                     const output = inferOutputFormat(path, image.format, (await stack.get(0))![magickInput]?.inputFormat, analysis);
-                    if ((!filenameLiteral && path !== writeTemplate) || hasSceneOutputPattern(output.path, filenameLiteral) || (stack.length > 1 && (!adjoin || output.format === "farbfeld" || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format))))) {
+                    if ((!filenameLiteral && path !== writeTemplate) || hasSceneOutputPattern(output.path, filenameLiteral) || (stack.length > 1 && (!adjoin || output.format === "farbfeld" || (output.path !== "-" && output.singleImage)))) {
                         const firstScene = scene ?? (await stack.get(0))![magickInput]?.outputScene ?? (await stack.get(0))![magickInput]?.sceneIdx ?? 0;
                         for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); const prepared = await prepareStoredMagickOutput((await stack.get(index))!, output.format, backend, signal, dither, diffusionAmount, output.pngCoder, settings.inputType); const bytes = await backend.stage({ ...prepared, ...(output.format === "gif" && background ? { backgroundColor: background } : {}) }, output.path === "-" ? "-" : formatSceneOutputPath(inferOutputFormat(writeTemplate, image.format).path, firstScene + index, filenameLiteral, (await stack.get(index))!.properties, settings.optionProperties), { format: output.format, tiffBig: output.tiffBig, tiffScene: firstScene + index, pngCoder: output.pngCoder, gifVersion: output.gifVersion, bmpRenderingIntent, bmpFormat: output.bmpFormat ?? bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(pngColorType, output.format, analysis, prepared, output.pngCoder), endian, pngPreserveColormap, pngBitDepth, ...(jpegRestartInterval === undefined ? {} : { jpegRestartInterval }), ...(jpegDctMethod === undefined ? {} : { jpegDctMethod }), ...(jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding }), ...(jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding }), ...(jpegProgressive === undefined ? {} : { jpegProgressive }), rawDefines: settings.optionProperties, rawInterlace, pngInterlace, gifInterlace, transparentColor, synthesizeExif: synthesizeExif && output.format !== "webp", omitPngResolution, ...(miffCompression === undefined ? {} : { miffCompression }), ...(netpbmDepth === undefined ? {} : { tgaDepth: netpbmDepth }), ...(tgaCompression === undefined ? {} : { tgaCompression }), ...(bmpCompression === undefined ? {} : { bmpCompression }), ...(bmpSubtype === undefined ? {} : { bmpSubtype }), ...(bmp3Alpha === undefined ? {} : { bmp3Alpha }), ...(tiffIntegerDepth === undefined ? {} : { tiffIntegerDepth }), ...(tiffSigned === undefined ? {} : { tiffSigned }), ...(tiffFloatDepth === undefined ? {} : { tiffFloatDepth }), ...(tiffPlanar === undefined ? {} : { tiffPlanar }), ...(tiffAlpha === undefined ? {} : { tiffAlpha }), ...(tiffEndian === undefined ? {} : { tiffEndian }), ...(tiffFillOrder === undefined ? {} : { tiffFillOrder }), ...(tiffPredictor === undefined ? {} : { tiffPredictor }), ...(tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip }), ...(tiffTile === undefined ? {} : { tiffTile }), ...(tiffCompression === undefined ? {} : { tiffCompression }), netpbmAscii, ...(netpbmDepth === undefined ? {} : { netpbmDepth: isRawCoder(output.format) ? netpbmDepth : Math.min(32, netpbmDepth), miffDepth: netpbmDepth <= 8 ? 8 : 16 }), ...(prepared.jpegSamplingFactor === undefined ? {} : { samplingFactor: prepared.jpegSamplingFactor }), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", webpTargetSize, webpPass, jpegExtent, webpExact, smartSubsample, alphaCompression, alphaQuality, quality: output.format === "jpeg" ? prepared.quality || quality : quality, ...(output.format === "webp" ? { effort, lossless } : {}) }, stack.length > 1 ? firstScene + index : undefined);
                             if (bytes) analysis.bytes.push(bytes);
@@ -20321,7 +20323,7 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
                 return { exitCode: 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` };
             }
         }
-        if ((!state.filenameLiteral && filenameExpanded) || hasSceneOutputPattern(output.path, state.filenameLiteral) || (stack.length > 1 && (!state.adjoin || output.format === "farbfeld" || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format))))) {
+        if ((!state.filenameLiteral && filenameExpanded) || hasSceneOutputPattern(output.path, state.filenameLiteral) || (stack.length > 1 && (!state.adjoin || output.format === "farbfeld" || (output.path !== "-" && output.singleImage)))) {
             const firstScene = state.scene ?? (await stack.get(0))![magickInput]?.outputScene ?? (await stack.get(0))![magickInput]?.sceneIdx ?? 0;
             for (let index = 0; index < stack.length; index++) {
                 await yieldTurn(signal);

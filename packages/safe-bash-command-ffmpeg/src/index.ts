@@ -3945,10 +3945,16 @@ async function applyVideoFilterChain(
     } else if (name === "thumbnail") {
       // Selecting a batch representative preserves the upstream EOF timestamp.
       if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
-      if (positional.length > 1 || Object.keys(named).some(key => key !== "n")) {
-        throw new Error("thumbnail: expected a batch size n");
+      if (positional.length > 2 || Object.keys(named).some(key => key !== "n" && key !== "log")) {
+        throw new Error("thumbnail: expected batch size n and log level");
       }
-      const count = Number(named.n ?? (argStr || 100));
+      const count = Number(named.n ?? (positional[0]?.includes("=") ? 100 : positional[0] || 100));
+      const log = named.log ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "info";
+      const levels: Record<string, number> = { quiet: -8, info: 32, verbose: 40 };
+      const level = levels[log] ?? Number(log);
+      if (!log || !Number.isInteger(level) || level < -2147483648 || level > 2147483647) {
+        throw new Error("thumbnail: log must be quiet, info, verbose or a signed 32-bit integer");
+      }
       if (!Number.isInteger(count) || count < 1 || count > 2147483647) {
         throw new Error("thumbnail: n must be an integer from 1 to 2147483647");
       }
@@ -3998,7 +4004,7 @@ async function applyVideoFilterChain(
             if (error < minimum) { minimum = error; best = n; }
           }
           selected.push(current[start + best]!);
-          if (diagnostics.logLevel >= 32) {
+          if (level !== -8 && diagnostics.logLevel >= level) {
             await diagnostics.write(`[thumbnail] frame id #${best} (pts_time=${current[start + best]!.ptsSeconds.toFixed(6)}) selected from a set of ${length} images\n`);
           }
         } finally {
@@ -4094,7 +4100,7 @@ async function applyVideoFilterChain(
     } else if (name === "unsharp") {
       current = await unsharp(current, argStr, pixelFormat, budget, signal);
     } else if (name === "negate") {
-      if (positional.filter(value => !value.includes("=")).length > 2 || Object.keys(named).some(key =>
+      if (positional.length > 2 || Object.keys(named).some(key =>
         !["components", "negate_alpha", "enable", "threads", "thread_type", "extra_hw_frames"].includes(key))) {
         throw new Error("negate: unknown option");
       }

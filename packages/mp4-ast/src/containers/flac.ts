@@ -61,7 +61,7 @@ export function encodeFlacPackets(doc: MediaDocument, copy = false, compressionL
   const precision = lpcCoeffPrecision || 15;
   const shift = Math.max(0, precision - 3);
   if ((lpcCoeffPrecision !== undefined || multiDimQuant !== undefined || exactRiceParameters !== undefined) && lpcType === undefined) lpcType = "levinson";
-  const level = compressionLevel === -1 ? 5 : compressionLevel;
+  const level = compressionLevel === undefined || compressionLevel === -1 ? 5 : compressionLevel;
   if (level !== undefined && (!Number.isInteger(level) || level < 0 || level > 12)) {
     throw new Error("FLAC compression_level must be between 0 and 12 (or -1 for default)");
   }

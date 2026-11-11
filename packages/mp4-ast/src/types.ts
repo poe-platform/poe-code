@@ -774,7 +774,7 @@ export interface SerializeMediaOptions {
   readonly blockSize?: number | undefined;
   /** FLAC stereo decorrelation: indep, left_side, right_side or mid_side. */
   readonly channelMode?: string | undefined;
-  /** FLAC compression effort, 0–12; -1 selects the default. */
+  /** FLAC compression effort, 0–12; omitted or -1 selects level 5. */
   readonly compressionLevel?: number | undefined;
   /** FLAC predictor algorithm: none, fixed, levinson or cholesky. */
   readonly lpcType?: string | undefined;

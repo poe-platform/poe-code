@@ -9130,7 +9130,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         const value = tokens[++i] ?? "1";
         const suffix = [...value].findIndex(character => "xX!#%(),/:<>@\\^".includes(character));
-        const parts = value.split(",");
+        const parts = [...value.trim()].map(character => character.trim() === "" ? "," : character).join("").split(",");
         const scalar = Number(parts[0]);
         const gamma = Number.isFinite(scalar) ? scalar : Number(suffix < 0 ? value : value.slice(0, suffix));
         if (!value.trim() || !Number.isFinite(gamma) || !parts.every(part => part.trim() && Number.isFinite(Number(part))) && [...value].some(character => character.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(character))) {

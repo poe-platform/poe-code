@@ -2484,7 +2484,8 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     if ((img.space === "b-w" || img.space === "grey16") && (bg.r !== bg.g || bg.g !== bg.b))
         img = { ...img, space: "srgb", channels: 4 };
     const virtualCanvas = magickResizeCanvas(img, outW, outH);
-    if (!img.hasAlpha && bg.a < 255) img = yield* prepareInactiveAlphaOutput(img);
+    // Reactivate retained alpha; only an absent alpha channel needs opaque samples.
+    if (!img.hasAlpha && !img.inactiveAlpha && bg.a < 255) img = yield* prepareInactiveAlphaOutput(img);
     img = { ...img, alphaSeparate: img.alphaBlend === false ? false : img.alphaSeparate, isPalette: false, hasAlpha: img.hasAlpha || bg.a < 255, ...(bg.a < 255 ? { alphaBlend: true } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
     if (sw === 0 && sh === 0) return img;
     const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
@@ -12886,8 +12887,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++ });
                 validateMagickSpliceGeometry(expanded);
-                im = discardDisassociatedAlpha(im);
-                const result = yield* applyMagickSpliceSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, state.gravity, signal, im.virtualPixel, state.seed);
+                const background = state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background;
+                if (background.a >= 255) im = discardDisassociatedAlpha(im);
+                const result = yield* applyMagickSpliceSteps(im, expanded, background, state.gravity, signal, im.virtualPixel, state.seed);
                 if (im.readMask) result.readMask = yield* applyMagickSpliceSteps(im.readMask as RgbaImage, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, im.virtualPixel, state.seed);
                 if (im.region && (result.width !== im.width || result.height !== im.height)) {
                     // Inserted bands are editable; existing protection travels with its pixels.
@@ -14723,7 +14725,8 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     const virtualBackground = background;
     const virtualCanvas = token !== "-roll" ? magickResizeCanvas(image, width, height) : undefined;
     if (token === "-splice") {
-        if (!image.hasAlpha && background.a < 255) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: prepareInactiveAlphaOutput }, signal);
+        // Reactivate retained alpha; only an absent alpha channel needs opaque samples.
+        if (!image.hasAlpha && !image.inactiveAlpha && background.a < 255) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: prepareInactiveAlphaOutput }, signal);
         if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
             image = { ...image, space: "srgb", channels: 4 };
         image = { ...image, alphaSeparate: image.alphaBlend === false ? false : image.alphaSeparate, isPalette: false, hasAlpha: image.hasAlpha || background.a < 255, ...(background.a < 255 ? { alphaBlend: true } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
@@ -17238,7 +17241,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const expanded = await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++ }, async () => ({ image: source, storage: backend.storage }), signal, images);
                 if (token === "-splice") validateMagickSpliceGeometry(expanded);
                 else validateMagickTransformGeometry(expanded, token);
-                image = discardDisassociatedAlpha(image);
+                const background = captured.backgroundExplicit ? captured.background : image.backgroundColor ?? captured.background;
+                if (token !== "-splice" || background.a >= 255) image = discardDisassociatedAlpha(image);
                 let result = await transformStoredMagickCoordinates(image, backend, token, expanded, captured, signal, analysis);
                 if (token === "-roll" && image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];

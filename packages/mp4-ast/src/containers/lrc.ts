@@ -47,6 +47,15 @@ export function lrcAst(): MediaAstPlugin {
     serialize(doc) {
       const track = doc.tracks.find(t => t.type === "subtitle");
       const lines: string[] = [];
+      for (const [tag, value] of [
+        ["ti", doc.metadata.title], ["ar", doc.metadata.artist],
+        ["al", doc.metadata.album], ["au", doc.metadata.custom?.author],
+        ["re", doc.metadata.encoder],
+        ["ve", doc.metadata.encoder?.startsWith("Lavf") ? doc.metadata.encoder.slice(4) : undefined]
+      ]) {
+        if (value) lines.push(`[${tag}:${value}]\n`);
+      }
+      lines.push("\n");
       for (const sample of track?.samples ?? []) {
         const time = Math.round(sample.pts / track!.timescale * 100);
         const minutes = String(Math.floor(time / 6000)).padStart(2, "0");

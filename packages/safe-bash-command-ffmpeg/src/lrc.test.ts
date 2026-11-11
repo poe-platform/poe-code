@@ -32,7 +32,7 @@ for (const sync of [false, true]) {
         assert.equal(result.exitCode, 0, stderr);
       }
         assert.equal(volume.readFileSync(target, "utf8"), output
-          ? "[00:01.24]First line\n[00:01.24]continuation\n[00:03.40]Last & final\n"
+          ? "[re:Lavf61.7.100]\n[ve:61.7.100]\n\n[00:01.24]First line\n[00:01.24]continuation\n[00:03.40]Last & final\n"
           : "WEBVTT\n\n00:01.240 --> 00:03.400\nFirst line\n\n00:03.400 --> 00:05.000\nLast & final\n\n00:05.000 --> 00:05.000\nDone\n");
       });
     }

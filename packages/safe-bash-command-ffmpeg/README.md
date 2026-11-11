@@ -1124,7 +1124,7 @@ RealText input (`-f realtext` or automatic detection) preserves `<time begin="â€
 
 SAMI input (`-f sami`, `.smi`, or `.sami`) preserves millisecond SYNC timing and `<br>` line breaks; each cue ends at the next SYNC.
 
-LRC lyrics support explicit `-f lrc` and automatic detection, infer cue ends from the next timestamp, and write each subtitle line with its own centisecond timestamp.
+LRC lyrics support explicit `-f lrc` and automatic detection, infer cue ends from the next timestamp, and write each subtitle line with its own centisecond timestamp. LRC output writes title, artist, album and author metadata before a blank header separator; `-bitexact` omits the encoder and version tags.
 
 TTML output (`-f ttml` or `.ttml`) preserves subtitle cue timing, line breaks, and XML-escaped text. Input `-t`/`-to` retain all subtitle cues when transcoding; output limits and input limits with `-c:s copy` select cues by their start time, preserving their full duration.
 PJS input (`-f pjs` or automatic detection) reads quoted cues with decisecond timing, converts `|` to line breaks, and preserves commas within dialogue.

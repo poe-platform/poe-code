@@ -9197,7 +9197,7 @@ export function evalSyncFfmpeg(
       keySpellings: { ...sourceMetadata.keySpellings, ...metadataKeySpellings },
       description: metadata.description ?? sourceMetadata.description,
       compilation: metadata.compilation ?? sourceMetadata.compilation,
-      custom: writeBext || useMetadataTags || outPlugin?.id === "aiff" || outPlugin?.id === "mpegts" ? { ...sourceMetadata.custom, ...metadata } : sourceMetadata.custom,
+      custom: writeBext || useMetadataTags || outPlugin?.id === "aiff" || outPlugin?.id === "mpegts" || outPlugin?.id === "lrc" ? { ...sourceMetadata.custom, ...metadata } : sourceMetadata.custom,
       title: metadata.title ?? sourceMetadata.title,
       artist: metadata.artist ?? sourceMetadata.artist,
       composer: metadata.composer ?? sourceMetadata.composer,
@@ -9209,7 +9209,7 @@ export function evalSyncFfmpeg(
       genre: metadata.genre ?? sourceMetadata.genre,
       trackNumber: metadata.track ?? sourceMetadata.trackNumber,
       discNumber: metadata.disc ?? sourceMetadata.discNumber,
-      encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac" || outPlugin?.id === "caf") ? ((outPlugin.id === "ffmetadata" ? outputBitexact : bitexact) ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
+      encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac" || outPlugin?.id === "caf" || outPlugin?.id === "lrc") ? ((outPlugin.id === "ffmetadata" || outPlugin.id === "lrc" ? outputBitexact : bitexact) ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
     if (outPlugin?.id === "ffmetadata") metaTags = orderFfmetadataReplacements(metaTags, sourceMetadata, metadata);
     workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamMetadata(mapStreamMetadata(workingDoc.tracks, loadedDocs, streamMetadataMaps), streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id, defaultMode) };
@@ -19230,7 +19230,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               keySpellings: { ...sourceMetadata.keySpellings, ...metadataKeySpellings },
               description: metadata.description ?? sourceMetadata.description,
               compilation: metadata.compilation ?? sourceMetadata.compilation,
-              custom: writeBext || useMetadataTags || outPlugin?.id === "aiff" || outPlugin?.id === "mpegts" ? { ...sourceMetadata.custom, ...metadata } : sourceMetadata.custom,
+              custom: writeBext || useMetadataTags || outPlugin?.id === "aiff" || outPlugin?.id === "mpegts" || outPlugin?.id === "lrc" ? { ...sourceMetadata.custom, ...metadata } : sourceMetadata.custom,
               title: metadata.title ?? sourceMetadata.title,
               artist: metadata.artist ?? sourceMetadata.artist,
               composer: metadata.composer ?? sourceMetadata.composer,
@@ -19242,7 +19242,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               genre: metadata.genre ?? sourceMetadata.genre,
               trackNumber: metadata.track ?? sourceMetadata.trackNumber,
               discNumber: metadata.disc ?? sourceMetadata.discNumber,
-              encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac" || outPlugin?.id === "caf") ? ((outPlugin.id === "ffmetadata" ? outputBitexact : bitexact) ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder
+              encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac" || outPlugin?.id === "caf" || outPlugin?.id === "lrc") ? ((outPlugin.id === "ffmetadata" || outPlugin.id === "lrc" ? outputBitexact : bitexact) ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder
             };
             if (outPlugin?.id === "ffmetadata") metaTags = orderFfmetadataReplacements(metaTags, sourceMetadata, metadata);
             workingDoc = {

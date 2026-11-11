@@ -18,5 +18,5 @@ it("uses the subtitle track timescale when writing centisecond lyrics", () => {
   const track = doc.tracks[0]!;
   const scaled = { ...doc, tracks: [{ ...track, timescale: 10000,
     samples: track.samples.map(s => ({ ...s, pts: s.pts * 10, duration: s.duration * 10 })) }] };
-  assert.equal(new TextDecoder().decode(lrcAst().serialize(scaled)), "[01:01.24]First\n[01:01.24]Second\n");
+  assert.equal(new TextDecoder().decode(lrcAst().serialize(scaled)), "\n[01:01.24]First\n[01:01.24]Second\n");
 });

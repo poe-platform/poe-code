@@ -7,7 +7,9 @@ export async function headphoneAudio(
 ): Promise<MediaTrack> {
   const options: Record<string, string> = { gain: "0", lfe: "0", type: "freq", size: "1024", hrir: "stereo" };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  const values = argument ? argument.split(":") : [];
+  if (values.at(-1) === "") values.pop();
+  for (const [index, option] of values.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["map", "gain", "lfe", "type", "size", "hrir"][index] : option.slice(0, separator);
     if (!key || !["map", "gain", "lfe", "type", "size", "hrir"].includes(key)) {

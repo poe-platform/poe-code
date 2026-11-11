@@ -60,7 +60,23 @@ for (const [options, direct, delayed] of [
   });
 }
 
+for (const options of [
+  "map=FL|FR:gain=0",
+  "FL|FR:0",
+  "map=FL|FR:gain=0:lfe=0:type=time:size=1024:hrir=stereo"
+]) {
+  it(`headphone ignores a final option separator after ${options}`, async () => {
+    const control = await render(`headphone=${options}`);
+    const trailing = await render(`headphone=${options}:`);
+    assert.equal(control.result.exitCode, 0, control.error);
+    assert.equal(trailing.result.exitCode, 0, trailing.error);
+    assert.equal(trailing.error, control.error);
+    assert.deepEqual(trailing.volume.readFileSync("/out.wav"), control.volume.readFileSync("/out.wav"));
+  });
+}
+
 for (const options of ["map=FL|FL", "map=FL", "map=FC|FR", "map=FL|FR:type=bad",
+  "map=FL|FR:gain=", "map=FL|FR:gain=:", "FL|FR::type=time",
   "map=FL|FR:gain=NaN", "map=FL|FR:gain=41", "map=FL|FR:size=1", "map=FL|FR:hrir=multich", "map=FL|FR:unknown=1"]) {
   it(`headphone rejects ${options} without replacing output`, async () => {
     const { result, volume } = await render(`headphone=${options}`);

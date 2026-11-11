@@ -1086,6 +1086,33 @@ function parseAloop(argument: string) {
     if (separator < 0) optionPosition++;
     else optionPosition = optionPosition === 0 ? 1 : 0;
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key === "thread_type") {
+      // Scheduling flags do not change PCM; validate each set/clear operand.
+      let position = 0;
+      do {
+        if (value[position] === "+" || value[position] === "-") position++;
+        const start = position;
+        if (value[position] === "+" || value[position] === "-") position++;
+        while (position < value.length && value[position] !== "+" && value[position] !== "-") position++;
+        const number = parseFilterExpression(value.slice(start, position), "aloop", {
+          slice: 1, none: 0, all: -1, default: 1
+        });
+        if (!Number.isInteger(number) || number < -2147483648 || number > 4294967295) {
+          throw new RangeError("aloop: invalid thread_type");
+        }
+      } while (position < value.length);
+      continue;
+    }
+    if (key === "threads" || key === "extra_hw_frames") {
+      const minimum = key === "threads" ? 0 : -1;
+      const number = parseFilterExpression(value, "aloop", {
+        default: minimum, min: minimum, max: 2147483647,
+        PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+      });
+      if (number < minimum || number > 2147483647) throw new RangeError(`aloop: invalid ${key}`);
+      // Scheduling and hardware frame reservations do not change PCM samples.
+      continue;
+    }
     if (!key || !Object.hasOwn(values, key)) throw new Error(`aloop: unsupported option ${key}`);
     const number = key === "time" ? parseHlsDuration(value) : parseFilterExpression(value, "aloop", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
     if (!value || !Number.isFinite(number)) throw new Error(`aloop: invalid ${key}`);
@@ -20035,6 +20062,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("aloop: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("aloop:")) return { exitCode: 222 };
             if (msg === "loop: invalid expression" || msg === "loop: invalid or unsupported expression") return { exitCode: 234 };
+            if (err instanceof RangeError && msg.startsWith("aloop:")) return { exitCode: 222 };
             if (msg.startsWith("apad packet_size:") || msg === "aloop: invalid expression" || msg === "aloop: invalid or unsupported expression" ||
                 msg === "dcshift: too many positional options" ||
                 msg === "dcshift: invalid expression" || msg === "dcshift: invalid or unsupported expression" ||

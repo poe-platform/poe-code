@@ -47,7 +47,9 @@ export async function removeSilence(
       // Scheduling and hardware-frame options do not change the rendered PCM.
     } else if (key === "enable") {
       enable = value;
-      parseFilterExpression(enable, "silenceremove enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 });
+      parseFilterExpression(enable, "silenceremove enable", {
+        n: 0, t: 0, pos: NaN, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+      });
     } else if (key === "start_mode" || key === "stop_mode" || key === "detection" || key === "timestamp") {
       const names = key === "detection" ? ["avg", "rms", "peak", "median", "ptp", "dev"]
         : key === "timestamp" ? ["write", "copy"] : ["any", "all"];
@@ -105,7 +107,8 @@ export async function removeSilence(
     stopThresholds[n] = stopThreshold;
     enabledFrames[n] = Number(enable === undefined || Math.abs(parseFilterExpression(enable, "silenceremove enable", {
       n, t: frame.pts / sampleRate,
-      pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0, h: 0
+      pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0, h: 0,
+      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
     })) >= 0.5);
   }
   const firstPts = frames[0]?.pts ?? 0;

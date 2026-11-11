@@ -56,6 +56,18 @@ for (const expected of cases) for (const graph of [false, true]) {
   }
 }
 
+for (const enable of ["PI", "E", "PHI", "eq(PI\\,3.141592653589793)", "eq(E\\,2.718281828459045)", "eq(PHI\\,1.618033988749895)"]) {
+  for (const graph of [false, true]) {
+    it(`silenceremove enable=${enable} matches enabled native PCM (graph=${graph})`, async () => {
+      const { result, stderr, output } = await run(
+        `asetnsamples=n=5:p=0,silenceremove=stop_periods=-1:stop_threshold=0.1:window=0:enable=${enable}`,
+        "s16le", graph);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.deepEqual(Array.from({ length: output.length / 2 }, (_, i) => output.readInt16LE(i * 2)), cases[2].samples);
+    });
+  }
+}
+
 for (const enable of ["", "unknown", "gte(t,)"]) {
   it(`rejects invalid silenceremove enable=${enable} before replacing output`, async () => {
     const { result, stderr, output } = await run(`silenceremove=enable='${enable}'`);

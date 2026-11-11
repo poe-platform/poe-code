@@ -4666,8 +4666,9 @@ async function applyVideoFilterChain(
         n: 0, t: NaN, w: NaN, h: NaN, pos: NaN, NAN: NaN, INF: Infinity,
         PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
       };
+      const registers = new Float64Array(10);
       if (named.enable !== undefined && current.length === 0) {
-        parseFilterExpression(named.enable, "framestep enable", variables);
+        parseFilterExpression(named.enable, "framestep enable", variables, undefined, registers);
       }
       current = current.filter((frame, n) => {
         variables.n = n;
@@ -4675,9 +4676,11 @@ async function applyVideoFilterChain(
         variables.w = frame.width;
         variables.h = frame.height;
         variables.pos = frame.offset ?? NaN;
-        if (named.enable !== undefined && !(Math.abs(parseFilterExpression(
-          named.enable, "framestep enable", variables
-        )) >= 0.5)) return true;
+        if (named.enable !== undefined) {
+          // FFmpeg evaluates the generic timeline both before and during frame dispatch.
+          parseFilterExpression(named.enable, "framestep enable", variables, undefined, registers);
+          if (!(Math.abs(parseFilterExpression(named.enable, "framestep enable", variables, undefined, registers)) >= 0.5)) return true;
+        }
         return n % step === 0;
       })
         .map(frame => ({ ...frame, durationSeconds: frame.durationSeconds * step }));

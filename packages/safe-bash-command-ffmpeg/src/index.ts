@@ -46,6 +46,7 @@ import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
 import { deflicker } from "./deflicker.js";
 import { tmix } from "./tmix.js";
+import { tmidequalizer } from "./tmidequalizer.js";
 import { lagfun } from "./lagfun.js";
 import { prewitt } from "./prewitt.js";
 import { avgblur } from "./avgblur.js";
@@ -5994,6 +5995,8 @@ async function applyVideoFilterChain(
       current = await lagfun(current, argStr, pixelFormat, budget, signal);
     } else if (name === "deflicker") {
       current = await deflicker(current, argStr, pixelFormat, budget, signal);
+    } else if (name === "tmidequalizer") {
+      current = await tmidequalizer(current, argStr, budget, signal);
     } else if (name === "tmix") {
       const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
       // Rejected runtime options leave the mix unchanged, without stopping rendering.

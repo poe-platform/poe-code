@@ -4501,8 +4501,12 @@ async function applyVideoFilterChain(
       current = extracted;
     } else if (name === "tile") {
       const keys = ["layout", "nb_frames", "margin", "padding", "color", "overlap", "init_padding"];
-      for (const key of Object.keys(named)) {
-        if (!keys.includes(key)) throw new Error(`tile: unknown option ${key}`);
+      for (const [key, value] of Object.entries(named)) {
+        if (keys.includes(key)) continue;
+        if (!["threads", "thread_type", "extra_hw_frames"].includes(key)) {
+          throw new Error(`tile: unknown option ${key}`);
+        }
+        validateWeaveGenericOption(key, value, "tile");
       }
       for (const [index, value] of positional.entries()) {
         if (!value || value.includes("=")) continue;

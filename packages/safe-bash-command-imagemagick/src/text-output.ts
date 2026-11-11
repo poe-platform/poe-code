@@ -1,7 +1,7 @@
 import { formatSignificantMetric } from "./compare-kernel.js";
-import { rgbToCmyk } from "./colorspace-cmyk.js";
+import { formatCmykPixel, rgbToCmyk } from "./colorspace-cmyk.js";
 import { histogramColorNames } from "./histogram-color-names.js";
-import { hueTextPixel, type HueMetadata } from "./colorspace-hue.js";
+import { formatHuePixel, hueTextPixel, type HueMetadata } from "./colorspace-hue.js";
 import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -139,26 +139,44 @@ async function* storedFloatingHistogram(image: StoredRgbaImage & HueMetadata, st
     yield* visit(0n, 0, 0n);
     if (!size) yield "\n";
 }
-export function* sparseColorPoints(image: Pick<RgbaImage, "width" | "space" | "hasAlpha">, data: Uint8Array | Uint16Array, start = 0, precision = 6): Generator<string> {
-    const highDepth = data instanceof Uint16Array, opaque = highDepth ? 65535 : 255;
+export function* sparseColorPoints(image: Pick<RgbaImage, "width" | "space" | "hasAlpha" | "gamma" | "evaluateSamples"> & HueMetadata, data: Uint8Array | Uint16Array, start = 0, precision = 6, hueSamples = image.hueSamples?.subarray(start * 4), working = image.evaluateSamples?.subarray(start * 4)): Generator<string> {
+    const maximum = data instanceof Uint16Array ? 65535 : 255;
     const gray = image.space === "b-w" || image.space === "grey16";
+    const space = image.magickColorspace;
     for (let offset = 0; offset < data.length; offset += 4) {
-        if (image.hasAlpha && data[offset + 3] !== opaque) continue;
+        const alpha = working ? working[offset + 3]! / 255 : data[offset + 3]! / maximum;
+        if (image.hasAlpha && alpha !== 1) continue;
         const pixel = start + offset / 4;
-        const channels = data.subarray(offset, offset + (gray ? 1 : 3));
-        const percent = highDepth && channels.some(value => value % 257 !== 0);
-        const samples = Array.from(channels, value => percent ? `${Number((value * 100 / 65535).toPrecision(precision))}%` : String(value / (highDepth ? 257 : 1)));
-        if (image.hasAlpha) samples.push("1");
-        yield `${pixel % image.width},${Math.floor(pixel / image.width)},${gray ? "gray" : "srgb"}${image.hasAlpha ? "a" : ""}(${samples.join(",")}) `;
+        let color: string;
+        if (image.space === "cmyk") {
+            const inks = hueSamples?.subarray(offset, offset + 4) ?? rgbToCmyk(data[offset]! / maximum, data[offset + 1]! / maximum, data[offset + 2]! / maximum);
+            color = formatCmykPixel([...inks, alpha], image.hasAlpha, precision);
+        } else if (space && space !== "RGB" && space !== "Gray") {
+            const channels = hueSamples ? Array.from(hueSamples.subarray(offset, offset + 4))
+                : Array.from(data.subarray(offset, offset + 4), value => value / maximum);
+            color = formatHuePixel(channels, space, image.hasAlpha, precision);
+        } else {
+            const channels = working ? Array.from(working.subarray(offset, offset + (gray ? 1 : 3)))
+                : Array.from(data.subarray(offset, offset + (gray ? 1 : 3)), value => value * 255 / maximum);
+            const percent = channels.some(value => Math.abs(value - Math.round(value)) > 1e-9);
+            const samples = channels.map(value => percent ? `${Number((value * 100 / 255).toPrecision(precision))}%` : String(Math.round(value)));
+            if (image.hasAlpha) samples.push("1");
+            const name = gray ? image.gamma === 1 && space !== "Gray" ? "lineargray" : "gray" : space === "RGB" ? "rgb" : "srgb";
+            color = `${name}${image.hasAlpha ? "a" : ""}(${samples.join(",")})`;
+        }
+        yield `${pixel % image.width},${Math.floor(pixel / image.width)},${color} `;
     }
 }
-export async function* storedSparseColor(image: StoredRgbaImage, storage: PagedStorage, signal: AbortSignal, precision?: number): AsyncGenerator<string> {
+export async function* storedSparseColor(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal, precision?: number): AsyncGenerator<string> {
     const size = image.width * image.height * 4, highDepth = image.storedData16 !== undefined;
-    for (let start = 0; start < size; start += 16384) {
+    for (let start = 0; start < size; start += 2048) {
         await yieldTurn(signal);
-        const bytes = await storage.read((image.storedData16?.position ?? image.position) + start * (highDepth ? 2 : 1), Math.min(16384, size - start) * (highDepth ? 2 : 1));
-        const data = highDepth ? new Uint16Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)) : bytes;
-        yield* sparseColorPoints(image, data, start / 4, precision);
+        const length = Math.min(2048, size - start);
+        const bytes = await storage.read((image.storedData16?.position ?? image.position) + start * (highDepth ? 2 : 1), length * (highDepth ? 2 : 1));
+        const data = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+        const hues = image.storedHueSamples === undefined ? undefined : await storage.read(image.storedHueSamples + start * 8, length * 8);
+        const evaluated = image.storedEvaluateSamples === undefined ? undefined : await storage.read(image.storedEvaluateSamples + start * 8, length * 8);
+        yield* sparseColorPoints(image, data, start / 4, precision, hues ? new Float64Array(hues.slice().buffer) : undefined, evaluated ? new Float64Array(evaluated.slice().buffer) : undefined);
     }
 }
 export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal, depth?: number): AsyncGenerator<string> {

@@ -40,7 +40,6 @@ export interface MagickFormatContext {
     interlace?: string;
     compression?: string;
     imageType?: "Bilevel" | "Grayscale" | "GrayscaleAlpha" | undefined;
-    virtualPixel?: string | undefined;
     channelMask?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean; meta?: number[]; default: boolean } | undefined;
     channelSelection?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean } | undefined;
 }

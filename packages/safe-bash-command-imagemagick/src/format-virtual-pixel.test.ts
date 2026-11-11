@@ -4,14 +4,20 @@ import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runMagickCliSync } from "./index.js";
 
 for (const mode of ["command", "sync"] as const) {
- for (const beforeInput of [false, true]) {
   it.each([
-    { options: ["-virtual-pixel", "mirror"], expected: "mirror" },
-    { options: ["-virtual-pixel", "mirror", "-virtual-pixel", "tile"], expected: "tile" },
-    { options: ["-virtual-pixel", "mirror", "-virtual-pixel", "tile", "+virtual-pixel"], expected: beforeInput ? "" : "tile" },
-    { options: [], expected: "" }
-  ])(`${mode} formats virtual-pixel with $options (before input=${beforeInput})`, async ({ options, expected }) => {
-    const args = [...(beforeInput ? [...options, "xc:#2060b080"] : ["xc:#2060b080", ...options]), "-format", "a:%[virtual-pixel]:b", "info:/out"];
+    ...[false, true].flatMap(beforeInput => [
+      { options: ["-virtual-pixel", "mirror"], expected: "mirror" },
+      { options: ["-virtual-pixel", "mirror", "-virtual-pixel", "tile"], expected: "tile" },
+      { options: ["-virtual-pixel", "mirror", "-virtual-pixel", "tile", "+virtual-pixel"], expected: "" },
+      { options: [], expected: "" }
+    ].map(({ options, expected }) => ({
+      input: beforeInput ? [...options, "xc:#2060b080"] : ["xc:#2060b080", ...options], expected
+    }))),
+    { input: ["-respect-parentheses", "-virtual-pixel", "Mirror", "(", "xc:red", "-virtual-pixel", "Tile", ")"], expected: "Mirror" },
+    { input: ["-respect-parentheses", "(", "xc:red", "-virtual-pixel", "Tile", ")"], expected: "" },
+    { input: ["(", "xc:red", "-virtual-pixel", "Tile", ")"], expected: "Tile" }
+  ])(`${mode} formats virtual-pixel with $input`, async ({ input, expected }) => {
+    const args = [...input, "-format", "a:%[virtual-pixel]:b", "info:/out"];
     const files = new Map([["/out", new TextEncoder().encode("KEEP")]]);
     const fs = new MemoryFileSystem();
     await fs.writeFile("/out", files.get("/out")!);
@@ -31,5 +37,4 @@ for (const mode of ["command", "sync"] as const) {
     expect(result).toEqual({ exitCode: 0, stdout: "", stderr: expected ? "" : "magick: unknown image property '%[virtual-pixel]'\n" });
     expect(new TextDecoder().decode(mode === "sync" ? files.get("/out") : await fs.readFile("/out"))).toBe(`a:${expected}:b`);
   });
-}
 }

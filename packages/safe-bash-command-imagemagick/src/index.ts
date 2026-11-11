@@ -12737,6 +12737,7 @@ if (t === "-intent" || t === "+intent") {
             const k = (tokens[++i] ?? "").toLowerCase();
             const v = tokens[++i] ?? "";
             if (k.startsWith("option:")) state.optionProperties = { ...state.optionProperties, [k.slice("option:".length)]: v };
+            if (k === "option:delay") state.delay = { value: v };
             if (k === "option:virtual-pixel") {
                 const method = parseMagickVirtualPixel(v);
                 if (method) state.virtualPixel = method;

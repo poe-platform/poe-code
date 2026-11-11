@@ -17188,19 +17188,25 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const index = Math.min(stretched.length - 1, Math.trunc(channel));
                           return index < 0 ? 0 : stretched[index]![variables.n]!;
                         };
+                        let frameStart = 0;
+                        let framePts = 0;
                         let frameEnd = 0;
                         let frameIndex = 0;
                         let enabled = true;
                         for (let i = 0; i < stretched[0]!.length; i++) {
-                          if (enable !== undefined && i >= frameEnd) {
+                          if (i >= frameEnd) {
                             const packet = t.samples[frameIndex];
                             const timestamp = audioTimestamps?.[frameIndex];
                             const frameLength = timestamp ? timestamp.end - timestamp.start
                               : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                             const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + i);
-                            enabled = Math.abs(parseFilterExpression(enable, "aeval enable", {
-                              n: frameIndex, t: pts / origRate
-                            })) >= 0.5;
+                            frameStart = i;
+                            framePts = pts;
+                            if (enable !== undefined) {
+                              enabled = Math.abs(parseFilterExpression(enable, "aeval enable", {
+                                n: frameIndex, t: pts / origRate
+                              })) >= 0.5;
+                            }
                             // Without c=same, native aeval negotiates an unspecified input
                             // layout; a bypassed frame cannot satisfy its named output layout.
                             if (!enabled && layout !== "same") throw new Error("aeval: Channel layout change is not supported");
@@ -17213,7 +17219,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             budget.checkCpu();
                           }
                           variables.n = i;
-                          variables.t = i / origRate;
+                          variables.t = framePts / origRate + (i - frameStart) / origRate;
                           for (let c = 0; c < count; c++) {
                             variables.ch = c;
                             output[c]![i] = !enabled ? sampleValue(c) : parseFilterExpression(exprs[Math.min(c, exprs.length - 1)]!, "aeval", variables, sampleValue, registers[c], randomStates[c]);

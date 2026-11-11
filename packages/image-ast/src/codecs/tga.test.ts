@@ -40,6 +40,23 @@ for (const retained of [false, true]) {
     }
   }
 
+  for (const rle of [false, true]) {
+    for (const alpha of [false, true]) {
+      it(`reads packed RGB555 pixels and alpha (${retained}, ${rle}, ${alpha})`, async () => {
+        const bytes = tga(3, 1, rle ? [0x81, 0x04, 0xc1, 0, 0x1f, 0] : [0x04, 0xc1, 0x04, 0xc1, 0x1f, 0], rle, alpha ? 0x31 : 0x30);
+        bytes[16] = 16;
+        const image = await decode(bytes);
+        expect(image).toMatchObject({ channels: alpha ? 4 : 3, hasAlpha: alpha });
+        expect(image.data).toEqual(Uint8Array.from([0, 0, 255, alpha ? 0 : 255, 132, 66, 33, 255, 132, 66, 33, 255]));
+      });
+    }
+    it(`rejects truncated packed TGA pixels (${retained}, ${rle})`, async () => {
+      const bytes = tga(1, 1, rle ? [0x80, 0] : [0], rle);
+      bytes[16] = 16;
+      await expect(decode(bytes)).rejects.toThrow("Truncated TGA pixels");
+    });
+  }
+
   for (const [name, payload] of [["packet", []], ["pixel", [0x80]], ["oversized run", [0x81, 76]]] as const) {
     it(`rejects malformed grayscale RLE ${name} (${retained})`, async () => {
       const bytes = tga(1, 1, [...payload], true);

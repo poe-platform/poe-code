@@ -58,3 +58,21 @@ for (const retained of [false, true]) {
     });
   }
 }
+
+for (const retained of [false, true]) {
+  for (const [hex, rgba] of [
+    ["000002000000000000000000030001001020007ce0031f00", "ff0000ff00ff00ff0000ffff"],
+    ["00000200000000000000000003000100102100fce0831f00", "ff0000ff00ff00ff0000ff00"]
+  ]) {
+    it(`reads packed 16-bit TGA samples (retained=${retained}, ${hex})`, async () => {
+      const input = Uint8Array.from(Buffer.from(hex!, "hex"));
+      const files = new Map([["/in.tga", input]]);
+      const filesystem = new MemoryFileSystem();
+      await filesystem.writeFile("/in.tga", input);
+      const result = await runConvertCli(["/in.tga", "-depth", "8", "rgba:/out.raw"], retained ? { filesystem, cwd: "/" } : files);
+      expect(result).toMatchObject({ exitCode: 0 });
+      const output = retained ? await filesystem.readFile("/out.raw") : files.get("/out.raw")!;
+      expect(output).toEqual(Uint8Array.from(Buffer.from(rgba!, "hex")));
+    });
+  }
+}

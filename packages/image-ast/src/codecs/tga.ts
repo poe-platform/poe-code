@@ -7,21 +7,21 @@ export function isTgaBytes(bytes: Uint8Array): boolean {
   const grayscale = bytes[2] === 3 || bytes[2] === 11;
   return bytes.length >= 18 && bytes[1] === 0 && (grayscale || bytes[2] === 2 || bytes[2] === 10)
     && bytes.subarray(3, 8).every(byte => byte === 0)
-    && (grayscale ? bytes[16] === 8 : bytes[16] === 24 || bytes[16] === 32) && (bytes[17]! & 0xc0) === 0
-    && (bytes[17]! & 15) === (bytes[16] === 32 ? 8 : 0)
+    && (grayscale ? bytes[16] === 8 : bytes[16] === 16 || bytes[16] === 24 || bytes[16] === 32) && (bytes[17]! & 0xc0) === 0
+    && (bytes[16] === 16 ? (bytes[17]! & 15) <= 1 : (bytes[17]! & 15) === (bytes[16] === 32 ? 8 : 0))
     && (bytes[12]! + bytes[13]! * 256) > 0 && (bytes[14]! + bytes[15]! * 256) > 0;
 }
 
 export function readTgaMetadata(bytes: Uint8Array): ImageMetadata {
   if (!isTgaBytes(bytes)) throw new Error("Unsupported TGA header");
-  const hasAlpha = bytes[16] === 32, grayscale = bytes[16] === 8;
+  const hasAlpha = bytes[16] === 32 || (bytes[16] === 16 && (bytes[17]! & 15) === 1), grayscale = bytes[16] === 8;
   return { format: "tga", width: bytes[12]! + bytes[13]! * 256, height: bytes[14]! + bytes[15]! * 256,
     channels: grayscale ? 1 : hasAlpha ? 4 : 3, hasAlpha, depth: "uchar", space: grayscale ? "b-w" : "srgb", density: 72, size: bytes.length };
 }
 
 /** Byte requests and bounded pixel spans share the same packet and origin handling. */
 function* tgaPixels(header: Uint8Array): Generator<number | { position: number; data: Uint8Array }, void, number | undefined> {
-  const { width, height } = readTgaMetadata(header);
+  const { width, height, hasAlpha } = readTgaMetadata(header);
   let offset = 18 + header[0]!, remaining = 0, repeat = false;
   const pixel = new Uint8Array(4), stride = header[16]! / 8;
   const rle = header[2] === 10 || header[2] === 11;
@@ -46,8 +46,17 @@ function* tgaPixels(header: Uint8Array): Generator<number | { position: number; 
         }
         remaining--;
         const dest = (right ? count - 1 - i : i) * 4;
-        data[dest] = pixel[stride === 1 ? 0 : 2]!; data[dest + 1] = pixel[stride === 1 ? 0 : 1]!; data[dest + 2] = pixel[0]!;
-        data[dest + 3] = stride === 4 ? pixel[3]! : 255;
+        if (stride === 2) {
+          const packed = pixel[0]! | (pixel[1]! << 8);
+          for (let c = 0; c < 3; c++) {
+            const sample = (packed >> ((2 - c) * 5)) & 31;
+            data[dest + c] = (sample << 3) | (sample >> 2);
+          }
+          data[dest + 3] = hasAlpha && !(packed & 0x8000) ? 0 : 255;
+        } else {
+          data[dest] = pixel[stride === 1 ? 0 : 2]!; data[dest + 1] = pixel[stride === 1 ? 0 : 1]!; data[dest + 2] = pixel[0]!;
+          data[dest + 3] = stride === 4 ? pixel[3]! : 255;
+        }
       }
       yield { position: ((top ? y : height - 1 - y) * width + (right ? width - x - count : x)) * 4, data };
       x += count;

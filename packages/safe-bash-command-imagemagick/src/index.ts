@@ -12920,11 +12920,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
-        if (t === "-units") {
+        if (t === "-units" || (t === "-set" && tokens[i + 1]?.toLowerCase() === "option:units")) {
+            if (t === "-set") i++;
             const value = tokens[++i] ?? "", image = stack[0];
             const expanded = image ? yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }) : value;
             const units = parseMagickUnits(expanded);
             if (units === undefined) throw new Error(`unrecognized units type '-units' '${expanded}'`);
+            if (t === "-set") state.optionProperties = { ...state.optionProperties, units: expanded };
             state.units = units;
             stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return applyMagickUnits(image, units, state.densityGeometry === undefined); });
             i++;
@@ -16477,12 +16479,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async image => image ? { ...image, chromaticity: { ...image.chromaticity, ...chromaticity } } : undefined);
             continue;
         }
-        if (!operandsOnly && token === "-units") {
+        if (!operandsOnly && (token === "-units" || (token === "-set" && tokens[i + 1]?.toLowerCase() === "option:units"))) {
+            if (token === "-set") i++;
             // Resolve expanded settings sequentially before capturing later input settings.
             if (tokens[i + 1]?.includes("%")) return;
             const value = tokens[++i] ?? "";
             const units = parseMagickUnits(value);
             if (units === undefined) throw new Error(`unrecognized units type '-units' '${value}'`);
+            if (token === "-set") state.optionProperties = { ...state.optionProperties, units: value };
             state.units = units;
             const convert = state.densityGeometry === undefined;
             steps.push(async image => image ? applyMagickUnits(image, units, convert) : undefined);

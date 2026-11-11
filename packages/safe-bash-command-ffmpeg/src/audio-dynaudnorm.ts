@@ -26,22 +26,25 @@ export async function normalizeAudio(
       parseFilterExpression(enable, "dynaudnorm enable", variables, undefined, new Float64Array(10), []);
       continue;
     }
-    const number = parseFilterExpression(value, "dynaudnorm", {});
     // AVOption integers round to nearest, with halfway values going to even.
-    const rounded = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
     if (key === "f" || key === "framelen") {
+      const number = parseFilterExpression(value, "dynaudnorm", { min: 10, max: 8000, default: 500 });
       if (number < 10 || number > 8000) throw new Error("dynaudnorm: invalid framelen");
-      milliseconds = rounded;
+      milliseconds = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
     } else if (key === "g" || key === "gausssize") {
+      const number = parseFilterExpression(value, "dynaudnorm", { min: 3, max: 301, default: 31 });
       if (number < 3 || number > 301) throw new Error("dynaudnorm: invalid gausssize");
-      size = rounded;
+      size = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
     } else if (key === "p" || key === "peak") {
+      const number = parseFilterExpression(value, "dynaudnorm", { min: 0, max: 1, default: 0.95 });
       if (number < 0 || number > 1) throw new Error("dynaudnorm: invalid peak");
       peak = number;
     } else if (key === "m" || key === "maxgain") {
+      const number = parseFilterExpression(value, "dynaudnorm", { min: 1, max: 100, default: 10 });
       if (number < 1 || number > 100) throw new Error("dynaudnorm: invalid maxgain");
       maxGain = number;
     } else if (key === "r" || key === "targetrms") {
+      const number = parseFilterExpression(value, "dynaudnorm", { min: 0, max: 1, default: 0 });
       if (number < 0 || number > 1) throw new Error("dynaudnorm: invalid targetrms");
       targetRms = number;
     } else throw new Error(`dynaudnorm: unsupported option ${key}`);

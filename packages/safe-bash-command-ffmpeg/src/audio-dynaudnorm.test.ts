@@ -38,6 +38,19 @@ for (const [filter, length, scales, indices, expected] of [
 });
 
 for (const [expression, literal] of [
+  ["f=min:g=min:p=min:m=min", "f=10:g=3:p=0:m=1"],
+  ["framelen=max:gausssize=max:peak=max:maxgain=max", "f=8000:g=301:p=1:m=100"],
+  ["f=default:g=default:p=default:m=default", "f=500:g=31:p=0.95:m=10"],
+  ["framelen=min:gausssize=min:peak=min:maxgain=min", "f=10:g=3:p=0:m=1"],
+  ["f=max:g=max:p=max:m=max", "f=8000:g=301:p=1:m=100"],
+  ["framelen=default:gausssize=default:peak=default:maxgain=default", "f=500:g=31:p=0.95:m=10"],
+  ["min:min:max:default", "10:3:1:10"],
+  ["f=20:f=default:g=5:g=default:p=0.1:p=default:m=2:m=default", "500:31:0.95:10"],
+  ["f=min*2:g=min+2:p=max/2:m=default/2", "20:5:0.5:5"],
+  ["f=10:g=3:p=1/E:m=PHI", "10:3:0.36787944117144233:1.618033988749895"],
+  ["f=10:g=3:r=min", "10:3:0.95:10:0"],
+  ["f=10:g=3:targetrms=max", "10:3:0.95:10:1"],
+  ["f=10:g=3:r=0.2:targetrms=default", "10:3:0.95:10:0"],
   ["f=10:g=3:p=1/2", "f=10:g=3:p=0.5"],
   ["f=10*2:g=3", "f=20:g=3"],
   ["framelen=(10+10)*5:gausssize=2+3:peak=1/2:maxgain=sqrt(9)", "framelen=100:gausssize=5:peak=0.5:maxgain=3"],
@@ -62,7 +75,7 @@ for (const [expression, literal] of [
   assert.deepEqual(fs.readFileSync("/expression.pcm"), fs.readFileSync("/literal.pcm"));
 });
 
-for (const filter of ["dynaudnorm=f=0", "dynaudnorm=f=8001", "dynaudnorm=f=1.5", "dynaudnorm=g=2", "dynaudnorm=g=302", "dynaudnorm=p=1.1", "dynaudnorm=p=-1", "dynaudnorm=m=0", "dynaudnorm=m=101", "dynaudnorm=p=NaN", "dynaudnorm=f=", "dynaudnorm=r=-0.1", "dynaudnorm=targetrms=1.1", "dynaudnorm=r=NaN", "dynaudnorm=r=1/0", "dynaudnorm=p=1/", "dynaudnorm=p=unknown", "dynaudnorm=p=1/0", "dynaudnorm=p=0/0", "dynaudnorm=p=3/2", "dynaudnorm=p=-1/2", "dynaudnorm=f=5*1", "dynaudnorm=f=8000+1", "dynaudnorm=g=1+1", "dynaudnorm=g=300+2", "dynaudnorm=m=1/2", "dynaudnorm=m=100+1"]) {
+for (const filter of ["dynaudnorm=f=min-0.1", "dynaudnorm=g=max+0.1", "dynaudnorm=p=max+0.1", "dynaudnorm=m=min-0.1", "dynaudnorm=r=max+0.1", "dynaudnorm=p=pi", "dynaudnorm=f=0", "dynaudnorm=f=8001", "dynaudnorm=f=1.5", "dynaudnorm=g=2", "dynaudnorm=g=302", "dynaudnorm=p=1.1", "dynaudnorm=p=-1", "dynaudnorm=m=0", "dynaudnorm=m=101", "dynaudnorm=p=NaN", "dynaudnorm=f=", "dynaudnorm=r=-0.1", "dynaudnorm=targetrms=1.1", "dynaudnorm=r=NaN", "dynaudnorm=r=1/0", "dynaudnorm=p=1/", "dynaudnorm=p=unknown", "dynaudnorm=p=1/0", "dynaudnorm=p=0/0", "dynaudnorm=p=3/2", "dynaudnorm=p=-1/2", "dynaudnorm=f=5*1", "dynaudnorm=f=8000+1", "dynaudnorm=g=1+1", "dynaudnorm=g=300+2", "dynaudnorm=m=1/2", "dynaudnorm=m=100+1"]) {
   it(`${filter} fails without replacing output`, async () => {
     const fs = Volume.fromJSON({ "/out.wav": "keep" });
     fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array([0.25])] }));
@@ -101,4 +114,29 @@ for (const [options, length, scales, hash] of [
   const pcm = fs.readFileSync("/out.pcm") as Buffer;
   assert.equal(pcm.length, length * scales.length * 2);
   assert.equal(createHash("sha256").update(pcm).digest("hex"), hash);
+});
+
+// Native FFmpeg 7.0.2 PCM16 references for a stereo level step at 60 ms.
+for (const [option, hash] of [
+  ["p=max", "99b69ebd545d96130225e05ebbfa5953bc9ee2a93c0c8d61f93e62cc39f315ba"],
+  ["m=default", "edd66bebed21c08fa8edd22df980ee19488921dd9a5cfbe84cd3659a2a1fb33a"],
+  ["p=1/PI", "a4b10e8320dbe49bc2b68d5d1eb6ec9b22d8058a2446e7b830f0b50c7b0a9ada"]
+]) for (const graph of [false, true]) it(`dynaudnorm ${option} matches native PCM (${graph ? "graph" : "simple"})`, async () => {
+  const samples = Float64Array.from({ length: 120 }, (_, i) =>
+    (i % 2 ? 1 : -1) * (i < 60 ? 500 : 5000) / 32768);
+  const fs = Volume.fromJSON({ "/in.wav": Buffer.from(encodeWav({
+    sampleRate: 1000, channels: [samples, samples.map(value => value * 4)]
+  })) });
+  const filter = `dynaudnorm=f=10:g=3:${option}`;
+  let stderr = "";
+  const result = await createFfmpegCommand().execute({
+    args: ["-i", "/in.wav", ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-f", "s16le", "/out.pcm"],
+    cwd: "/", env: {}, signal: new AbortController().signal,
+    fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
+    stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write(b: Uint8Array) { stderr += new TextDecoder().decode(b); } }
+  } as never);
+  assert.equal(result.exitCode, 0, stderr);
+  const output = fs.readFileSync("/out.pcm") as Buffer;
+  assert.equal(output.length, 480);
+  assert.equal(createHash("sha256").update(output).digest("hex"), hash);
 });

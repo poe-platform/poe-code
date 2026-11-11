@@ -2,6 +2,7 @@ import { isSgiBytes, readSgiHeader, decodeSgiImage } from "./sgi-input.js";
 import { isSunBytes, readSunHeader, decodeSunImage } from "./sun-input.js";
 import { encodeSunImage } from "./sun-output.js";
 import { isDdsBytes, readDdsMetadata, decodeDdsImage } from "./dds-input.js";
+import { isPalmBytes, readPalmHeader, decodePalmImage } from "./palm-input.js";
 import { isWbmpBytes, readWbmpHeader, decodeWbmpImage } from "./wbmp-input.js";
 import { isOtbBytes, readOtbHeader, decodeOtbImage } from "./otb-input.js";
 import { encodeFitsImage } from "./fits-output.js";
@@ -114,6 +115,7 @@ export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isTxtBytes(bytes)) return "txt";
   if (isTgaBytes(bytes)) return "tga";
   if (isIcoBytes(bytes)) return bytes[2] === 1 ? "ico" : "cur";
+  if (isPalmBytes(bytes)) return "palm";
   if (isOtbBytes(bytes)) return "otb";
   if (isMngBytes(bytes)) return "mng";
   if (isPngBytes(bytes)) return "png";
@@ -223,6 +225,7 @@ export function readImageMetadata(
     case "tga":
       meta = readTgaMetadata(bytes);
       break;
+    case "palm": meta = readPalmHeader(bytes).metadata; break;
     case "wbmp": meta = readWbmpHeader(bytes).metadata; break;
     case "xbm": meta = readXbmImage(bytes, options, true); break;
     case "xpm": meta = readXpmImage(bytes, options, true); break;
@@ -475,6 +478,7 @@ export function decodeImage(
     case "tga":
       decoded = decodeTgaImage(bytes, options);
       break;
+    case "palm": decoded = decodePalmImage(bytes, options); break;
     case "wbmp": decoded = decodeWbmpImage(bytes, options); break;
     case "xbm": decoded = readXbmImage(bytes, options); break;
     case "xpm": decoded = readXpmImage(bytes, options); break;

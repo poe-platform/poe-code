@@ -1,6 +1,7 @@
 import { isDdsBytes, decodeDdsToStorage } from "./dds-input.js";
 import { isSgiBytes, decodeSgiToStorage } from "./sgi-input.js";
 import { isSunBytes, decodeSunToStorage } from "./sun-input.js";
+import { isPalmBytes, decodePalmToStorage } from "./palm-input.js";
 import { isWbmpBytes, decodeWbmpToStorage } from "./wbmp-input.js";
 import { isFitsBytes, decodeFitsToStorage } from "./fits-input.js";
 import { isOtbBytes, decodeOtbToStorage } from "./otb-input.js";
@@ -70,6 +71,7 @@ export async function storedImageDecoder(source:ImageByteSource,signal:AbortSign
  if(isTxtBytes(prefix))return readTxtFromSource;
  if(isTgaBytes(prefix))return decodeTgaToStorage;
  if(isIcoBytes(prefix))return decodeIcoToStorage;
+ if(isPalmBytes(prefix))return decodePalmToStorage;
  if(isOtbBytes(prefix))return decodeOtbToStorage;
  const decoder=await detectHeifFormatFromSource(source,signal)?decodeHeifToStorage:isWebpBytes(prefix)?decodeWebpToStorage:isJpegBytes(prefix)?decodeJpegToStorage:isPngBytes(prefix)?decodePngToStorage:isNetpbmBytes(prefix)?decodeNetpbmToStorage:isBmpBytes(prefix)?decodeBmpToStorage:isTiffBytes(prefix)?decodeTiffToStorage:isGifBytes(prefix)?decodeGifToStorage:isMngBytes(prefix)?decodeMngToStorage:undefined;
  if(decoder)return decoder;

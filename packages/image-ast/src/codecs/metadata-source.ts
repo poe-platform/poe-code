@@ -1,6 +1,7 @@
 import { isDdsBytes, readDdsMetadataFromSource } from "./dds-input.js";
 import { isSgiBytes, readSgiHeader } from "./sgi-input.js";
 import { isSunBytes, readSunHeader } from "./sun-input.js";
+import { isPalmBytes, readPalmHeader } from "./palm-input.js";
 import { isWbmpBytes, readWbmpHeader } from "./wbmp-input.js";
 import { isFitsBytes, readFitsFromSource } from "./fits-input.js";
 import { isOtbBytes, readOtbHeader } from "./otb-input.js";
@@ -76,6 +77,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  else if(isTxtBytes(prefix))metadata=await readTxtFromSource(source,undefined,signal,options);
  else if(isTgaBytes(prefix))metadata={...readTgaMetadata(prefix),size:source.size};
  else if(isIcoBytes(prefix))metadata=(await readIcoEntryFromSource(source,signal,options)).metadata;
+ else if(isPalmBytes(prefix))metadata=readPalmHeader(prefix,source.size).metadata;
  else if(isOtbBytes(prefix))metadata=readOtbHeader(prefix,source.size).metadata;
  else if(isMngBytes(prefix))metadata=(await readMngLayoutFromSource(source,signal)).metadata;
  else if(isPngBytes(prefix))metadata=await readPngMetadataFromSource(source,signal);

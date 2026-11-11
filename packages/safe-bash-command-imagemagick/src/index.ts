@@ -15002,6 +15002,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const result = yield* applyMagickRasterSteps({ ...im, isPalette: false }, localThresholdPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.seed), signal);
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
+                    // Constant virtual pixels have zero metadata samples.
+                    const virtualPixel = state.virtualPixel === "white" || state.virtualPixel === "gray" ? "black" : state.virtualPixel;
                     for (const [index, plane] of im.metaChannels.entries()) {
                         const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
                         result.metaChannels.push(selected ? yield* applyMagickRasterSteps(plane,
@@ -15020,8 +15022,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const geometry = { ...parseKmeansGeometry(expanded), seed, seedColors, report };
                 return geometry.iterations > 0 ? yield* applyMagickRasterSteps({ ...image, isPalette: true }, kmeansPixelSteps(image, geometry), signal) : image;
             }, undefined, true);
-                    // Constant virtual pixels have zero metadata samples.
-                    const virtualPixel = state.virtualPixel === "white" || state.virtualPixel === "gray" ? "black" : state.virtualPixel;
         }
         else if (t === "-segment") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
@@ -19364,6 +19364,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const result = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, localThresholdPixelSteps(image, geometry, background, virtualPixel, channels, seed), signal);
                 if (image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];
+                    const metaVirtualPixel = virtualPixel === "white" || virtualPixel === "gray" ? "black" : virtualPixel;
                     for (const [index, plane] of image.storedMetaChannels.entries())
                         result.storedMetaChannels.push(!meta || meta.includes(index) ? await transformStoredMagickRaster(plane, backend,
                             localThresholdPixelSteps(plane, geometry, { r: 0, g: 0, b: 0, a: 255 }, metaVirtualPixel, undefined, seed), signal) : plane);
@@ -19384,7 +19385,6 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return geometry.iterations > 0 ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, kmeansPixelSteps(image, geometry), signal) : image;
             }, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-segment") {
-                    const metaVirtualPixel = virtualPixel === "white" || virtualPixel === "gray" ? "black" : virtualPixel;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;

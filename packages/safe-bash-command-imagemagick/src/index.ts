@@ -2509,13 +2509,26 @@ function resolveMagickSpliceGeometry(raw: string, image: Pick<RgbaImage, "width"
     // GetGeometry accepts modifiers anywhere without interrupting dimensions or offsets.
     const modifiers = [...raw].filter(character => "%!<>^".includes(character)).join("");
     raw = [...raw].filter(character => !"%!<>^".includes(character)).join("") + modifiers;
+    const dimensionSeparator = raw.toLowerCase().indexOf("x");
+    // A second decimal in the height or offsets ends parsing, retaining earlier fields.
+    let decimal = false;
+    for (let index = dimensionSeparator + 1; dimensionSeparator >= 0 && index < raw.length; index++) {
+        const character = raw[index];
+        if ((character === "+" || character === "-") && raw[index - 1]?.toLowerCase() !== "e") decimal = false;
+        if (character !== ".") continue;
+        if (decimal) {
+            const end = raw[index - 1] === "." ? index - 1 : index;
+            raw = raw.slice(0, end) + [...raw.slice(index)].filter(character => ":/".includes(character)).join("") + modifiers;
+            break;
+        }
+        decimal = true;
+    }
     // Splice treats @ dimensions literally and ignores # without dropping dimensions or offsets.
     const normalized = normalizeMagickOffsets([...raw.replaceAll("@", "").replaceAll("#", "")].filter(character => character.trim() !== "").join(""));
     // A trailing x field ends rectangle offsets without discarding preceding dimensions.
     const offsetStart = [...normalized].findIndex((character, index) => (character === "+" || character === "-") && normalized[index - 1]?.toLowerCase() !== "e");
     const trailingDimension = offsetStart < 0 ? -1 : normalized.toLowerCase().indexOf("x", offsetStart);
     let g = parseMagickGeometry(trailingDimension < 0 ? normalized : normalized.slice(0, trailingDimension) + modifiers);
-    const dimensionSeparator = raw.toLowerCase().indexOf("x");
     // Native scalar percentages with offsets leave the input-sized rectangle untouched.
     if (dimensionSeparator < 0 && g.isPercent && g.width !== undefined && g.hasOffset) {
         return { ...g, width, height, x: 0, y: 0 };

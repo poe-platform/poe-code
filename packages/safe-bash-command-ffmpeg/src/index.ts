@@ -13038,8 +13038,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             histogram[db]!++;
                           }
                         }
-                        filteredSampleFormat = "s16";
-                        panSampleFormat = "s16";
+                        filteredSampleFormat = filteredSampleFormat === "s16p" ? "s16p" : "s16";
+                        panSampleFormat = filteredSampleFormat;
                         let report = `n_samples: ${count}\n`;
                         if (count > 0) {
                           const meanSquare = Math.round(sumSquares / count);

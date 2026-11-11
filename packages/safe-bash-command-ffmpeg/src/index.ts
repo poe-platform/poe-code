@@ -15238,9 +15238,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let enable: string | undefined;
                         const options = argument.split(":");
                         if (options.at(-1) === "") options.pop();
-                        for (const [index, option] of options.entries()) {
+                        let position = 0;
+                        for (const option of options) {
                           const separator = option.indexOf("=");
-                          const key = separator < 0 ? ["shift", "limitergain"][index] : option.slice(0, separator).trim();
+                          const key = separator < 0 ? ["shift", "limitergain"][position] : option.slice(0, separator).trim();
+                          if (key === undefined) throw new Error("dcshift: too many positional options");
+                          // Native restarts shorthand after named options, skipping the first
+                          // slot when it was just visited, regardless of the named key.
+                          if (separator < 0) position++;
+                          else position = position === 0 ? 1 : 0;
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           if (key === "enable") {
                             enable = value;
@@ -20027,6 +20033,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("apad: invalid ") || msg === "apad: pad_len and whole_len are mutually exclusive") return { exitCode: 234 };
             if (msg === "loop: invalid expression" || msg === "loop: invalid or unsupported expression") return { exitCode: 234 };
             if (msg.startsWith("apad packet_size:") || msg === "aloop: invalid expression" || msg === "aloop: invalid or unsupported expression" ||
+                msg === "dcshift: too many positional options" ||
                 msg === "dcshift: invalid expression" || msg === "dcshift: invalid or unsupported expression" ||
                 msg === "aeval: invalid expression" || msg === "aeval: invalid or unsupported expression") {
               return { exitCode: 234 };

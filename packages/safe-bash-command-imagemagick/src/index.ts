@@ -7913,7 +7913,10 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                         const metadata = inspection?.metadata ?? readImageMetadata(bytes!);
                         validateCoder(metadata);
                         let offset = 0;
-                        for (const page of selectedInputPages(parsed.pageSpec, metadata.pages ?? 1)) {
+                        for (const page of selectedInputPages(parsed.pageSpec, metadata.pages ?? 1, index => {
+                            errParts.push(`identify: invalid image index ${index} '${inPath}'\n`);
+                            exitCode = 1;
+                        })) {
                             yield;
                             targets.splice(targetIndex + ++offset, 0, { path: `${parsed.baseToken}[${page}]`, originalInput: target.originalInput, listIndex: offset - 1, readState, customFormat, channelSelection, density });
                         }

@@ -905,7 +905,7 @@ Audio `concat=n=2:v=0:a=1` joins connected branches in pad order, including
 multiple branches from one input. Its `threads`, `thread_type`, and
 `extra_hw_frames` options accept FFmpeg values without changing PCM. For example,
 `-filter_complex '[0:a]asplit[a][b];[b][a]concat=n=2:v=0:a=1[out]' -map '[out]' twice.wav`
-plays the input twice; filters on each branch run before concatenation. Downstream audio expressions use concat’s microsecond time base: at 8 kHz, `asetpts=PTS+125` shifts timestamps by one sample. An explicit `asettb` overrides this time base.
+plays the input twice; filters on each branch run before concatenation. When the first segment is stereo, later mono segments use FFmpeg’s native mono-to-stereo gain; explicitly duplicating both channels with `pan` retains unity gain. Downstream audio expressions use concat’s microsecond time base: at 8 kHz, `asetpts=PTS+125` shifts timestamps by one sample. An explicit `asettb` overrides this time base.
 Packet timestamp gaps are retained, and each segment starts at the preceding
 segment's final packet end; gaps do not insert silence into PCM output.
 Consume an unused audio branch with `anullsink`, which has no output:

@@ -2097,9 +2097,13 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         for (const source of sources) {
           let track = source.expression && source.expression !== "anull"
             ? await filterAudio(source.track, source.expression) : source.track;
-          const sampleRate = segments[0]?.tracks[0]?.decodedAudio?.sampleRate;
-          if (sampleRate !== undefined && track.decodedAudio?.sampleRate !== sampleRate) {
-            track = await filterAudio(track, `aresample=${sampleRate}`);
+          const target = segments[0]?.tracks[0]?.decodedAudio;
+          if (target?.channels === 2 && (!target.channelMask || target.channelMask === 3) &&
+              track.decodedAudio?.channels === 1) {
+            track = await filterAudio(track, "aformat=channel_layouts=stereo");
+          }
+          if (target && track.decodedAudio?.sampleRate !== target.sampleRate) {
+            track = await filterAudio(track, `aresample=${target.sampleRate}`);
           }
           segments.push({ ...docs[0]!, tracks: [track], duration: track.duration,
             timescale: track.timescale, durationSeconds: track.duration / track.timescale });

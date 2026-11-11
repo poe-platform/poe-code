@@ -33,7 +33,7 @@ export function* paintPixelSteps(image: Pick<RgbaImage, "width" | "height" | "sp
     const gray = method === "white" ? 255 : method === "gray" ? 127.5 : 0;
     const fill = Float64Array.from(method === "background" || method.endsWith("-tile")
         ? [background.r, background.g, background.b, background.a, 0, 0]
-        : [gray, gray, gray, method === "transparent" ? 0 : 255, 0, 0]);
+        : [gray, gray, gray, method === "transparent" ? 0 : 255, cmyk ? gray : 0, 0]);
     fill[5] = bin(fill[0]!, fill[1]!, fill[2]!);
     const blocks = new Map<number, Float64Array>();
     function* sample(x: number, y: number): Generator<ConvolveRequest | undefined, Float64Array, Uint8Array | undefined> {

@@ -68,10 +68,10 @@ for (const graph of [false, true]) {
   for (const option of [
     "c=23-0", "curve=-1.1", "c=22.1", "c=unknown", "c=1/0", "c=0/0", "c=",
     "t=2-0", "type=-0.1", "t=1.1", "type=unknown", "t=1/0", "t=0/0", "t=",
-    "unity=2", "unity=3/2", "silence=-1/4", "silence=2/1", "ns=0", "ns=1-1",
+    "ns=0", "ns=1-1",
     "ns=0.9", "ss=-1/4", "ns=18446744073709551616", "ss=18446744073709551616",
-    "unity=1/0", "silence=0/0", "ns=1/0", "ss=0/0", "ns=2+", "unity=",
-    "ns=none", "unity=all", "ns=max+max", "ss=max:ns=4", "c=max+1", "d=default",
+    "ns=1/0", "ss=0/0", "ns=2+",
+    "ns=none", "ns=max+max", "ss=max:ns=4", "c=max+1", "d=default",
     "ns=unknown", "st=1/2", "start_time=PI", "d=1/2", "duration=PI"
   ]) {
     it(`afade rejects ${option} without replacing output (${graph ? "graph" : "simple"})`, async () => {

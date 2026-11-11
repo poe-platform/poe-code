@@ -63,16 +63,18 @@ export async function fadeAudio(
       registers.fill(0);
       enable = value;
     } else {
+      const gain = key === "silence" || key === "unity";
       const time = key === "st" || key === "start_time" || key === "d" || key === "duration";
       const number = time
         ? parseHlsDuration(value)
-        : parseFilterExpression(value, "afade", {
+        : parseFilterExpression(value, gain ? `afade: ${key}` : "afade", {
           PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
           min: key === "ns" || key === "nb_samples" ? 1 : 0,
           max: key === "silence" || key === "unity" ? 1 : Number(maxSamples),
           default: key === "ns" || key === "nb_samples" ? 44100 : key === "unity" ? 1 : 0,
           none: 0, all: -1
         }, undefined, new Float64Array(10));
+      if (gain && (number < 0 || number > 1)) throw new RangeError(`afade: ${key}: must be in [0,1]`);
       if (!value || !Number.isFinite(number) || number < 0) throw new Error(`afade: invalid ${key}`);
       if (key === "ss" || key === "start_sample" || key === "ns" || key === "nb_samples") {
         // FFmpeg integer options round to nearest, with exact halves going to even.
@@ -88,7 +90,6 @@ export async function fadeAudio(
       } else if (key === "st" || key === "start_time") startTime = number;
       else if (key === "d" || key === "duration") duration = number;
       else if (key === "silence" || key === "unity") {
-        if (number > 1) throw new Error(`afade: invalid ${key}`);
         if (key === "silence") silence = number;
         else unity = number;
       } else throw new Error(`afade: unsupported option ${key}`);

@@ -1,3 +1,4 @@
+import { parseAudioSegment } from "./audio-asegment.js";
 import { createAudioTimestampTransform } from "./audio-clock.js";
 import { audioSpeakerMasks, parseAudioChannelCount, parseAudioChannelLayout } from "./audio-channel-layout.js";
 import { ffmpegColors } from "./ffmpeg-colors.js";
@@ -1711,8 +1712,9 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     const filters = parseFilterChain(expression);
     const last = filters.at(-1)!;
     const split = last === "channelsplit" || last.startsWith("channelsplit=") || last.startsWith("channelsplit@") ? parseChannelSplit(last) : undefined;
+    const segments = last.split("=", 1)[0]!.split("@", 1)[0] === "asegment" ? parseAudioSegment(last) : undefined;
     const sink = last.split("=", 1)[0]!.split("@", 1)[0] === "anullsink";
-    let outputCount = sink ? 0 : split?.selected.length ?? 1;
+    let outputCount = sink ? 0 : segments?.length ?? split?.selected.length ?? 1;
     if (sink) {
       if (last.includes("=") && last.indexOf("=") !== last.length - 1) throw new Error("anullsink does not accept options");
       // Internal sink nodes run through the same evaluator, but never become output streams.
@@ -1738,8 +1740,9 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     if (outputs.length !== outputCount) throw new Error("Audio filter output label count does not match filter outputs");
     for (const [index, output] of outputs.entries()) {
       if (!output || nodes.has(output)) throw new Error("Duplicate or empty audio filter output");
-      // Each graph edge evaluates the preceding chain, then selects its own PCM channel.
-      const selected = split ? expression + (last.includes("=") ? ":" : "=") + `channels=${split.selected[index]}` : expression;
+      // Each graph edge evaluates the preceding chain, then selects its own PCM range or channel.
+      const selected = segments ? serializeFilterChain([...filters.slice(0, -1), segments[index]!])
+        : split ? expression + (last.includes("=") ? ":" : "=") + `channels=${split.selected[index]}` : expression;
       nodes.set(output, { inputs, expression: selected, asplit: last === "asplit" || last.startsWith("asplit=") });
     }
     for (const input of inputs) {

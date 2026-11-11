@@ -132,7 +132,7 @@ export async function tryImageFile(input: ImageResourceInput | StoredImageFileIn
         }
         info=retained.encoded.info;
       } else {
-        const encoded=encodeStoredImage(image,backing,signal,{...encoding,format});
+        const encoded=encodeStoredImage(image,backing,signal,{...encoding,format,outputFilename:output});
         try {while(true){const next=await encoded.next();if(next.done){info=next.value;break;}yield next.value;}}
         finally {await encoded.return(undefined);}
       }

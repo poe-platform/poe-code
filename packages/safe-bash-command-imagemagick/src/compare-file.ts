@@ -61,6 +61,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
     try {
         const result = await withImageInputs(input, stdinBytes, signal, async (read) => {
         const publishImage = async (image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions, snapshot?: NonNullable<import("@poe-code/image-ast/portable").StoredImageFileInput["encoded"]>, retire = true): Promise<Uint8Array | undefined> => {
+                encoding = { ...encoding, outputFilename: path };
                 if (encoding.format === "pam") encoding = { ...encoding, netpbmDepth: encoding.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
                 try {
                 if (path !== "-" || snapshot) {
@@ -107,6 +108,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                 }
             };
         const stage = async (image: StoredRawImage, path: string, encoding: OutputEncodeOptions) => {
+            encoding = { ...encoding, outputFilename: path };
             if (!isRawCoder(encoding.format) || encoding.rawInterlace !== "partition") return snapshots.stage(image, path, encoding);
             let size = 0;
             for (let index = 0; index < (image.rawFrames?.length ?? 1); index++) {

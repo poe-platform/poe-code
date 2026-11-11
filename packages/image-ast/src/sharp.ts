@@ -2465,11 +2465,13 @@ export class SharpInstance extends Duplex {
       }
       const filesystem = this.inputOptions?.filesystem;
       if (!filesystem) throw new Error("File outputs require an explicit filesystem");
+      const prevOptions = this.outputOptions;
       const prevFormat = this.outputOptions.format;
       const inferred = prevFormat ?? inferFormatFromPath(fileOut);
       if (!prevFormat && inferred) {
         this.outputOptions = { ...this.outputOptions, format: inferred };
       }
+      this.outputOptions = { ...this.outputOptions, outputFilename: fileOut };
       try {
         await this.waitForStreamInput(false);
         if (isStoredOutputFormat(this.outputOptions.format??"png")) {
@@ -2484,10 +2486,7 @@ export class SharpInstance extends Duplex {
         if (callback) callback(null, res.info);
         return res.info;
       } finally {
-        if (!prevFormat && inferred) {
-          const { format: _omit, ...rest } = this.outputOptions;
-          this.outputOptions = rest;
-        }
+        this.outputOptions = prevOptions;
       }
     } catch (err) {
       if (callback) callback(err as Error);

@@ -5,7 +5,7 @@ import { defaultRuntime } from "@poe-code/compression";
 const symbols = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-";
 
 /** Scan twice so the palette precedes the pixels without retaining the raster. */
-function* xpmChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">): Generator<number | Uint8Array, void, Uint8Array> {
+function* xpmChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">, filename = "image"): Generator<number | Uint8Array, void, Uint8Array> {
   const palette = new Map<number, string>(), encoder = new TextEncoder();
   const color = (data: Uint8Array, i: number): number => image.hasAlpha && data[i + 3]! < 128 ? -1 : data[i]! * 65536 + data[i + 1]! * 256 + data[i + 2]!;
   for (let offset = 0; offset < image.width * image.height * 4; offset += 4096) {
@@ -14,7 +14,13 @@ function* xpmChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">): Ge
   }
   let cpp = 1;
   while (symbols.length ** cpp < palette.size) cpp++;
-  yield encoder.encode(`/* XPM */\nstatic char *image[] = {\n"${image.width} ${image.height} ${palette.size} ${cpp}",\n`);
+  const basename = filename.slice(filename.lastIndexOf("/") + 1);
+  const dot = basename.lastIndexOf(".");
+  const stem = dot > 0 ? basename.slice(0, dot) : basename;
+  const name = Array.from(encoder.encode(stem), (byte, index) =>
+    (byte >= 65 && byte <= 90) || (byte >= 97 && byte <= 122) || (index > 0 && byte >= 48 && byte <= 57)
+      ? String.fromCharCode(byte) : "_").join("") || "_";
+  yield encoder.encode(`/* XPM */\nstatic char *${name}[] = {\n"${image.width} ${image.height} ${palette.size} ${cpp}",\n`);
   let index = 0;
   for (const value of palette.keys()) {
     let key = "", remaining = index++;
@@ -36,8 +42,8 @@ function* xpmChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">): Ge
   yield encoder.encode("};\n");
 }
 
-export function encodeXpmImage(image: RgbaImage): Uint8Array {
-  const chunks: Uint8Array[] = [], steps = xpmChunks(image);
+export function encodeXpmImage(image: RgbaImage, filename?: string): Uint8Array {
+  const chunks: Uint8Array[] = [], steps = xpmChunks(image, filename);
   let step = steps.next(), size = 0;
   while (!step.done) {
     if (typeof step.value === "number") step = steps.next(image.data.subarray(step.value, step.value + 4096));
@@ -49,8 +55,8 @@ export function encodeXpmImage(image: RgbaImage): Uint8Array {
   return bytes;
 }
 
-export async function* encodeXpmFromStorage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal): AsyncGenerator<Uint8Array> {
-  const steps = xpmChunks(image);
+export async function* encodeXpmFromStorage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal, filename?: string): AsyncGenerator<Uint8Array> {
+  const steps = xpmChunks(image, filename);
   let step = steps.next();
   while (!step.done) {
     await defaultRuntime.yieldTurn(signal);

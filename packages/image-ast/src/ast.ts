@@ -512,6 +512,8 @@ export type ImageAstNode =
     };
 
 export interface OutputEncodeOptions {
+  /** Output path used to name the C array in XPM source. */
+  readonly outputFilename?: string;
   readonly endian?: string | undefined;
   readonly bmpFormat?: "bmp2" | "bmp3" | "bmp4" | "dib";
   readonly bmpRenderingIntent?: string | undefined;

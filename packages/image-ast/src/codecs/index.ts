@@ -505,7 +505,7 @@ export function encodeImage(
     case "xbm": return { data: encodeXbmImage(img), format: "xbm", channels: 1 };
     case "xwd": return { data: encodeXwdImage(img), format: "xwd", channels: 3 };
     case "pcx": return { data: encodePcxImage(img, options), format: "pcx", channels: 3 };
-    case "xpm": return { data: encodeXpmImage(img), format: "xpm", channels: img.hasAlpha ? 4 : 3 };
+    case "xpm": return { data: encodeXpmImage(img, options.outputFilename), format: "xpm", channels: img.hasAlpha ? 4 : 3 };
     case "tga": return { data: encodeTgaImage(img, options), format: "tga", channels: img.hasAlpha ? 4 : 3 };
     case "ico":
     case "cur": return { data: encodeIcoImage(img), format: fmt, channels: 4 };

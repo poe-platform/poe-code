@@ -3794,6 +3794,47 @@ async function applyVideoFilterChain(
         return { width, height, data, ptsSeconds: f.ptsSeconds,
           durationSeconds: f.durationSeconds, keyframe: true };
       }, signal);
+    } else if (name === "lutrgb") {
+      const expressions = ["val", "val", "val", "val"];
+      let sawNamed = false;
+      for (const [index, option] of (argStr ? positional : []).entries()) {
+        const separator = option.indexOf("=");
+        const key = separator < 0 ? ["c0", "c1", "c2", "c3"][index] : option.slice(0, separator);
+        const channel = ["r", "g", "b", "a"].indexOf(key ?? "");
+        const component = channel >= 0 ? channel : ["c0", "c1", "c2", "c3"].indexOf(key ?? "");
+        if (component < 0 || separator < 0 && sawNamed) throw new Error("lutrgb: unknown option");
+        sawNamed ||= separator >= 0;
+        expressions[component] = separator < 0 ? option : option.slice(separator + 1);
+      }
+      budget.allocateMemory(1024);
+      try {
+        const tables = new Uint8Array(1024);
+        let width = -1, height = -1;
+        current = await mapWork(current, async (frame) => {
+          if (frame.width !== width || frame.height !== height) {
+            width = frame.width; height = frame.height;
+            for (let channel = 0; channel < 4; channel++) {
+              await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
+              for (let value = 0; value < 256; value++) {
+                const result = parseFilterExpression(expressions[channel]!, "lutrgb", {
+                  val: value, negval: 255 - value, minval: 0, maxval: 255, clipval: value,
+                  w: width, h: height
+                });
+                tables[channel * 256 + value] = Math.max(0, Math.min(255, Math.trunc(result)));
+              }
+            }
+          }
+          const data = frame.data.slice();
+          for (let i = 0; i < data.length; i++) {
+            if (i % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            data[i] = tables[(i % 4) * 256 + data[i]!]!;
+          }
+          const { native: ignoredNative, ...rest } = frame;
+          return { ...rest, data };
+        }, signal);
+      } finally {
+        budget.releaseMemory(1024);
+      }
     } else if (name === "negate") {
       if (positional.filter(value => !value.includes("=")).length > 2 || Object.keys(named).some(key =>
         !["components", "negate_alpha", "enable", "threads", "thread_type", "extra_hw_frames"].includes(key))) {
@@ -16155,11 +16196,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
 
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          if (!enabled) {
-                            left[i] = stretched[0]![i]!;
-                            right[i] = stretched[1]![i]!;
-                            continue;
-                          }
                           let l = stretched[0]![i]! * levels.level_in * inputLeft;
                           let r = stretched[1]![i]! * levels.level_in * inputRight;
                           if (flags.softclip) {
@@ -16204,6 +16240,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             delayed[slot] = delay < 0 ? outputLeft : outputRight;
                             if (delay < 0) outputLeft = previous;
                             else outputRight = previous;
+                          }
+                          // Disabled frames still feed processed samples into the delay history.
+                          if (!enabled) {
+                            left[i] = stretched[0]![i]!;
+                            right[i] = stretched[1]![i]!;
+                            continue;
                           }
                           // Width follows mute, phase inversion and delay, before output rotation/gain.
                           const wideLeft = outputLeft + width * outputLeft - width * outputRight;

@@ -128,6 +128,29 @@ for (const graph of [false, true]) {
   }
 }
 
+for (const graph of [false, true]) {
+  for (const option of ["", ":threads=1", ":threads=2", ":thread_type=slice", ":extra_hw_frames=0",
+    ":threads=2:thread_type=slice:extra_hw_frames=0", ":bogus=1"]) {
+    it(`chorus generic option ${option || "control"} preserves stereo PCM (graph ${graph})`, async () => {
+      const channels = [1, -1].map(sign => Float64Array.from([100, 200, 300, 400], sample => sign * sample / 32768));
+      const { result, stderr, output } = await run(`chorus=0.6:0.7:1:0.4:2:0.25${option}`, graph, channels);
+      if (option === ":bogus=1") {
+        assert.equal(result.exitCode, 8, stderr);
+        assert.equal(output.toString(), "keep");
+      } else {
+        assert.equal(result.exitCode, 0, stderr);
+        // Native FFmpeg 7.0.2: 14 stereo frames, including the nine-frame silent tail.
+        const expected = Buffer.alloc(56);
+        [42, 112, 182, 252, 112].forEach((sample, frame) => {
+          expected.writeInt16LE(sample, frame * 4);
+          expected.writeInt16LE(-sample, frame * 4 + 2);
+        });
+        assert.deepEqual(output, expected);
+      }
+    });
+  }
+}
+
 async function run(filter: string, graph = false, channels?: Float64Array[]) {
   if (!channels) {
     channels = [new Float64Array(256)];

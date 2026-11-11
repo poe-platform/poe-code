@@ -87,7 +87,7 @@ function* percentTrimBounds(width: number, height: number, hasAlpha: boolean, fu
 // ImageMagick uses the original corner colors independently for each bound,
 // unlike Sharp's median-filtered, single-background trim.
 function* trimBounds(width: number, height: number, hasAlpha: boolean, fuzz: number, scale: number, colorspace: HueMetadata["magickColorspace"], edges?: string, percentBackground?: number, background?: RgbaColor, cmyk = false): Generator<Read | undefined, Area & { warning?: boolean }, TrimPixels | undefined> {
-    const hue = colorspace !== undefined && ["HCL", "HCLp", "HSL", "HSB", "HSV"].includes(colorspace);
+    const hue = colorspace !== undefined && ["HCL", "HCLp", "HSI", "HSL", "HSB", "HSV"].includes(colorspace);
     if (percentBackground !== undefined) return yield* percentTrimBounds(width, height, hasAlpha, fuzz, scale, percentBackground, hue, background, cmyk);
     const corners: TrimColor[] = [];
     for (const pixel of [0, width - 1, (height - 1) * width, width * height - 1]) {

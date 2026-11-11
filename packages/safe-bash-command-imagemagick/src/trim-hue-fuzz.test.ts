@@ -6,12 +6,13 @@ import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js"
 // ImageMagick 7.1.2-35 Q16-HDRI: page offsets distinguish an empty trim
 // from retaining the center pixel, even though both outputs are 1x1.
 for (const mode of ["command", "retained", "buffered", "sync"] as const) {
-    for (const space of ["HSL", "HSB", "sRGB"]) {
+    for (const space of ["HSI", "HSL", "HSB", "sRGB"]) {
         it.each([
             { background: "#ff1000", center: "#ff0010", fuzz: "5%", percent: false, empty: true },
             { background: "#803820", center: "#508020", fuzz: "10%", percent: false, empty: false },
             { background: "#803820", center: "#508020", fuzz: "10%", percent: true, empty: false },
             { background: "#ff1000", center: "#ff0010", fuzz: "0%", percent: false, empty: false },
+            { background: "#803820", center: "#508020", fuzz: "0%", percent: false, empty: false },
         ])(`${mode} ${space}: $background / $center fuzz=$fuzz percent=$percent`, async test => {
             const files = new Map([["/out", new TextEncoder().encode("KEEP")]]);
             const fs = new MemoryFileSystem();
@@ -36,9 +37,15 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
             else expect(stderr).toBe("");
         });
     }
-    it(`${mode}: preserves the zero-fuzz HSL RGB round trip`, async () => {
+    it.each([
+        { space: "HSL", background: "#ff1000", center: "#ff0010", fuzz: "0%", hex: "ff0010ff" },
+        { space: "HSI", background: "#ff1000", center: "#ff0010", fuzz: "5%", hex: "ff000000" },
+        { space: "HSI", background: "#803820", center: "#508020", fuzz: "10%", hex: "508020ff" },
+        { space: "HSI", background: "#ff1000", center: "#ff0010", fuzz: "0%", hex: "ff0010ff" },
+        { space: "HSI", background: "#803820", center: "#508020", fuzz: "0%", hex: "508020ff" },
+    ])(`${mode}: $space trim RGB round trip at $fuzz ($background / $center)`, async test => {
         const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
-        const argv = ["xc:#ff1000", "xc:#ff0010", "xc:#ff1000", "+append", "-colorspace", "HSL", "-fuzz", "0%", "-trim", "-colorspace", "sRGB", "-depth", "8", "rgba:/out"];
+        const argv = [`xc:${test.background}`, `xc:${test.center}`, `xc:${test.background}`, "+append", "-colorspace", test.space, "-fuzz", test.fuzz, "-trim", "-colorspace", "sRGB", "-depth", "8", "rgba:/out"];
         const args = createCommandArguments(argv);
         const result = mode === "command" ? await createMagickCommand().execute({
             command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
@@ -47,6 +54,6 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         }) : mode === "sync" ? runMagickCliSync(argv, files)
             : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
         expect(result.exitCode).toBe(0);
-        expect([...(mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!)]).toEqual([255, 0, 16, 255]);
+        expect(Buffer.from(mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!).toString("hex")).toBe(test.hex);
     });
 }

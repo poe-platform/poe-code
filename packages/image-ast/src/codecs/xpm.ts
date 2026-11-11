@@ -39,7 +39,7 @@ function* xpmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
   checkLimitInputPixels(width, height, options);
   if (options?.page) throw new Error("XPM page is out of range");
   const palette = new Map<string, number[]>();
-  let hasAlpha = false;
+  let hasAlpha = false, highDepth = false;
   for (let i = 0; i < colors; i++) {
     const line = yield* string(4096), symbol = line.slice(0, cpp), fields = words(line.slice(cpp));
     const keys = ["c", "g", "g4", "m", "s"];
@@ -56,12 +56,13 @@ function* xpmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
     else if (color.startsWith("#")) {
       const hex = color.slice(1).toLowerCase(), digits = hex.length / 3;
       if (![1, 2, 3, 4].includes(digits) || [...hex].some(char => !"0123456789abcdef".includes(char))) throw new Error("Invalid XPM color");
-      rgba = [0, 1, 2].map(channel => Math.round(parseInt(hex.slice(channel * digits, (channel + 1) * digits), 16) * 255 / (16 ** digits - 1)));
-      rgba.push(255);
-    } else { const { r, g, b, a } = parseColor(color); rgba = [r, g, b, a]; }
+      rgba = [0, 1, 2].map(channel => Math.round(parseInt(hex.slice(channel * digits, (channel + 1) * digits), 16) * 65535 / (16 ** digits - 1)));
+      rgba.push(65535);
+      highDepth ||= digits > 2;
+    } else { const { r, g, b, a } = parseColor(color); rgba = [r, g, b, a].map(value => value * 257); }
     palette.set(symbol, rgba);
   }
-  const metadata: ImageMetadata = { format: "xpm", width, height, channels: hasAlpha ? 4 : 3, hasAlpha, space: "srgb", depth: "uchar", density: 72, size };
+  const metadata: ImageMetadata = { format: "xpm", width, height, channels: hasAlpha ? 4 : 3, hasAlpha, space: "srgb", depth: highDepth ? "ushort" : "uchar", density: 72, size };
   yield { kind: "header", metadata };
   for (let y = 0; y < height; y++) {
     const row = yield* string(width * cpp);
@@ -78,34 +79,54 @@ function* xpmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
 export function readXpmImage(bytes: Uint8Array, options?: SharpInputOptions, metadataOnly = false): RgbaImage {
   const steps = xpmSteps(bytes.length, options);
   let next = steps.next(), data = new Uint8Array(), offset = 0;
+  let data16: Uint16Array | undefined;
   while (!next.done) {
     const step = next.value;
     if (step.kind === "read") { next = steps.next(bytes[step.position]); continue; }
     if (!metadataOnly) {
-      if (step.kind === "header") data = new Uint8Array(step.metadata.width * step.metadata.height * 4);
-      else { data.set(step.values, offset); offset += 4; }
+      if (step.kind === "header") {
+        data = new Uint8Array(step.metadata.width * step.metadata.height * 4);
+        if (step.metadata.depth === "ushort") data16 = new Uint16Array(data.length);
+      } else {
+        for (const value of step.values) data[offset++] = Math.round(value / 257);
+        data16?.set(step.values, offset - 4);
+      }
     }
     next = steps.next();
   }
-  return { ...next.value, data };
+  return { ...next.value, data, ...(data16 ? { data16 } : {}) };
 }
 
 export async function readXpmFromSource(source: ImageByteSource, storage: ImageByteStorage | undefined, signal: AbortSignal, options?: SharpInputOptions): Promise<StoredRgbaImage> {
   const reader = new SourceBytes(source, signal, "XPM"), steps = xpmSteps(source.size, options);
   let next = steps.next(), position = 0, offset = 0, used = 0;
-  const pixels = new Uint8Array(4096);
+  const pixels = new Uint8Array(2048);
+  let samples16: Uint16Array | undefined, storedData16: StoredRgbaImage["storedData16"];
+  async function flush() {
+    if (!storage || !used) return;
+    await storage.write(position + offset, pixels.subarray(0, used), { signal });
+    if (storedData16 && samples16) await storage.write(storedData16.position + offset * 2, new Uint8Array(samples16.buffer, 0, used * 2), { signal });
+    offset += used; used = 0;
+  }
   while (!next.done) {
     const step = next.value;
     if (step.kind === "read") { next = steps.next(await reader.at(step.position)); continue; }
     if (storage) {
-      if (step.kind === "header") position = storage.allocate(step.metadata.width * step.metadata.height * 4);
-      else {
-        pixels.set(step.values, used); used += 4;
-        if (used === pixels.length) { await storage.write(position + offset, pixels, { signal }); offset += used; used = 0; }
+      if (step.kind === "header") {
+        const length = step.metadata.width * step.metadata.height * 4;
+        position = storage.allocate(length);
+        if (step.metadata.depth === "ushort") {
+          storedData16 = { position: storage.allocate(length * 2), length };
+          samples16 = new Uint16Array(pixels.length);
+        }
+      } else {
+        for (const value of step.values) pixels[used++] = Math.round(value / 257);
+        samples16?.set(step.values, used - 4);
+        if (used === pixels.length) await flush();
       }
     }
     next = steps.next();
   }
-  if (storage && used) await storage.write(position + offset, pixels.subarray(0, used), { signal });
-  return { ...next.value, position };
+  await flush();
+  return { ...next.value, position, ...(storedData16 ? { storedData16 } : {}) };
 }

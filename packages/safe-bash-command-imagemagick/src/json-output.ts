@@ -1,20 +1,30 @@
+import { stringify } from "yaml";
 import type { RgbaImage } from "@poe-code/image-ast/portable";
 import type { HueMetadata } from "./colorspace-hue.js";
 import { magickInput, type MagickFormatContext } from "./stored-stack.js";
 
-type JsonImage = Pick<RgbaImage, "width" | "height" | "format" | "space" | "bitsPerSample" | "depth" | "isPalette" | "virtualCanvas" | "properties"> & HueMetadata & { [magickInput]?: MagickFormatContext };
+type DescriptionImage = Pick<RgbaImage, "width" | "height" | "format" | "space" | "bitsPerSample" | "depth" | "isPalette" | "virtualCanvas" | "properties"> & HueMetadata & { [magickInput]?: MagickFormatContext };
 
-export function jsonOutputPath(spec: string): string | undefined {
-    const lower = spec.toLowerCase();
-    return lower.startsWith("json:") ? spec.slice(5) : !spec.includes(":") && lower.endsWith(".json") ? spec : undefined;
+export interface ImageDescriptionOutput {
+    path: string;
+    format: "json" | "yaml";
 }
 
-export function jsonImageDescription(image: JsonImage, depth?: number): string {
+export function imageDescriptionOutput(spec: string): ImageDescriptionOutput | undefined {
+    const lower = spec.toLowerCase();
+    for (const format of ["json", "yaml"] as const) {
+        if (lower.startsWith(`${format}:`)) return { path: spec.slice(5), format };
+        if (!spec.includes(":") && lower.endsWith(`.${format}`)) return { path: spec, format };
+    }
+    return undefined;
+}
+
+export function imageDescription(image: DescriptionImage, depth?: number, format: ImageDescriptionOutput["format"] = "json"): string {
     const source = image[magickInput];
-    return JSON.stringify({
-        version: "1.0",
+    const description = {
+        version: format === "json" ? "1.0" : 1.0,
         image: {
-            name: source?.filePath ?? "",
+            name: format === "yaml" && source?.inputFormat === "XC" ? `xc:${source.filePath ?? ""}` : source?.filePath ?? "",
             format: source?.inputFormat ?? image.format.toUpperCase(),
             class: image.isPalette ? "PseudoClass" : "DirectClass",
             geometry: { width: image.width, height: image.height, x: 0, y: 0 },
@@ -23,5 +33,6 @@ export function jsonImageDescription(image: JsonImage, depth?: number): string {
             ...(image.virtualCanvas ? { pageGeometry: image.virtualCanvas } : {}),
             ...(image.properties ? { properties: image.properties } : {})
         }
-    }, null, 2);
+    };
+    return format === "json" ? JSON.stringify(description, null, 2) : `---\n${stringify(description)}`;
 }

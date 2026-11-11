@@ -1,6 +1,6 @@
 import { solveLinearSystem } from "./linear-system.js";
 import { parseSparseColor, sparseColorPixels } from "./sparse-color-operator.js";
-import { jsonOutputPath, jsonImageDescription } from "./json-output.js";
+import { imageDescriptionOutput, imageDescription, type ImageDescriptionOutput } from "./json-output.js";
 import { createIccConversion } from "./icc-conversion.js";
 import { readIccDescription } from "./icc-description.js";
 import { readExifTextProperties } from "./exif-text.js";
@@ -13437,9 +13437,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (stack.length === 0) throw new Error(`no images for write '${t}'`);
             const writeTemplate = t === "-identify" ? "info:" : tokens[++i] ?? "";
             const writePath = state.filenameLiteral ? writeTemplate : expandFilenameProperties(writeTemplate, stack[0]!.properties, state.optionProperties);
-            const jsonPath = jsonOutputPath(writePath);
-            if (jsonPath !== undefined) {
-                const result = yield* writeJsonOutputSteps(stack, jsonPath, files, state.inputDepth);
+            const descriptionOutput = imageDescriptionOutput(writePath);
+            if (descriptionOutput !== undefined) {
+                const result = yield* writeDescriptionOutputSteps(stack, descriptionOutput, files, state.inputDepth);
                 analysis.text += result.stdout;
                 i++;
                 continue;
@@ -15416,28 +15416,28 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
     return stack;
 }
 
-function* writeJsonOutputSteps(stack: readonly RgbaImage[], path: string, files: Map<string, Uint8Array>, depth?: number): Generator<void, ImageMagickCliResult, void> {
-    let text = "[\n";
+function* writeDescriptionOutputSteps(stack: readonly RgbaImage[], { path, format }: ImageDescriptionOutput, files: Map<string, Uint8Array>, depth?: number): Generator<void, ImageMagickCliResult, void> {
+    let text = format === "json" ? "[\n" : "";
     for (let index = 0; index < stack.length; index++) {
         yield;
-        if (index) text += ",\n";
-        text += jsonImageDescription(stack[index]!, depth);
+        if (index && format === "json") text += ",\n";
+        text += imageDescription(stack[index]!, depth, format);
     }
-    text += "\n]\n";
+    if (format === "json") text += "\n]\n";
     if (!path || path === "-") return { exitCode: 0, stdout: text, stderr: "" };
     files.set(path, new TextEncoder().encode(text));
     return { exitCode: 0, stdout: "", stderr: "" };
 }
 
-async function writeStoredJsonOutput(stack: StoredImageStack, path: string, input: ConvertFileInput, backend: CompareFileSession, signal: AbortSignal, depth?: number, intermediate = false): Promise<ImageMagickCliResult> {
+async function writeStoredDescriptionOutput(stack: StoredImageStack, { path, format }: ImageDescriptionOutput, input: ConvertFileInput, backend: CompareFileSession, signal: AbortSignal, depth?: number, intermediate = false): Promise<ImageMagickCliResult> {
     async function* descriptions(): AsyncGenerator<string> {
-        yield "[\n";
+        if (format === "json") yield "[\n";
         for (let index = 0; index < stack.length; index++) {
             await yieldTurn(signal);
-            if (index) yield ",\n";
-            yield jsonImageDescription((await stack.get(index))!, depth);
+            if (index && format === "json") yield ",\n";
+            yield imageDescription((await stack.get(index))!, depth, format);
         }
-        yield "\n]\n";
+        if (format === "json") yield "\n]\n";
     }
     const chunks = encodeText(descriptions(), signal);
     if (path && path !== "-") {
@@ -15598,8 +15598,8 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
         }
         const finalImg = stack[stack.length - 1]!;
         const outLower = outSpec.toLowerCase();
-        const jsonPath = jsonOutputPath(outSpec);
-        if (jsonPath !== undefined) return yield* writeJsonOutputSteps(stack, jsonPath, files, state.inputDepth);
+        const descriptionOutput = imageDescriptionOutput(outSpec);
+        if (descriptionOutput !== undefined) return yield* writeDescriptionOutputSteps(stack, descriptionOutput, files, state.inputDepth);
         if (outLower === "null:" || outLower.startsWith("mpr:")) return { exitCode: 0, stdout: "", stderr: "" };
         if (outLower.startsWith("info:")) {
             const source = (stack[0] as MagickImage)[magickInput];
@@ -18025,9 +18025,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (stack.length === 0) throw new Error(`no images for write '${token}'`);
                 const image = await stack.get(stack.length - 1);
                 const path = filenameLiteral ? writeTemplate : expandFilenameProperties(writeTemplate, (await stack.get(0))!.properties, settings.optionProperties);
-                const jsonPath = jsonOutputPath(path);
-                if (jsonPath !== undefined) {
-                    const result = await writeStoredJsonOutput(stack, jsonPath, input, backend, signal, netpbmDepth, true);
+                const descriptionOutput = imageDescriptionOutput(path);
+                if (descriptionOutput !== undefined) {
+                    const result = await writeStoredDescriptionOutput(stack, descriptionOutput, input, backend, signal, netpbmDepth, true);
                     analysis.text += result.stdout;
                     return stack;
                 }
@@ -19388,8 +19388,8 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
             }
             image = (await stack.get(stack.length - 1))!;
         }
-        const jsonPath = jsonOutputPath(outSpec);
-        if (jsonPath !== undefined) return writeStoredJsonOutput(stack, jsonPath, input, backend, signal, state.inputDepth);
+        const descriptionOutput = imageDescriptionOutput(outSpec);
+        if (descriptionOutput !== undefined) return writeStoredDescriptionOutput(stack, descriptionOutput, input, backend, signal, state.inputDepth);
         let output: ReturnType<typeof inferOutputFormat>;
         try { output = inferOutputFormat(outSpec, "png", (await stack.get(0))![magickInput]?.inputFormat); }
         catch (error) { return { exitCode: 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` }; }

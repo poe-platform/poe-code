@@ -36,7 +36,8 @@
   },
   "dependencies": {
     "@noble/hashes": "2.4.0",
-    "@noble/ciphers": "2.4.0"
+    "@noble/ciphers": "2.4.0",
+    "yaml": "2.9.0"
   },
   "devDependencies": {
     "@poe-code/image-ast": "*",

@@ -10246,7 +10246,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             else if (raw[index] === ")") nesting--;
             else if (raw[index] === "-" && nesting === 0) { separator = index; break; }
         }
-        const endpoints = separator < 0 ? undefined : [{ r: 0, g: 0, b: 0, a: 255 }, { r: 0, g: 0, b: 0, a: 255 }];
+        const endpoints: ReturnType<typeof parseColor>[] | undefined = separator < 0 ? undefined : [{ r: 0, g: 0, b: 0, a: 255 }, { r: 0, g: 0, b: 0, a: 255 }];
         if (endpoints) {
             const values = [raw.slice(0, separator), raw.slice(separator + 1)];
             for (const [index, value] of values.entries()) {
@@ -10258,18 +10258,35 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 }
             }
         }
-        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-        const selected = [channels.r, channels.g, channels.b, channels.a];
-        const bounds = endpoints?.map(color => [color.r, color.g, color.b, color.a]);
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
+        const selected = [channels.r, channels.g, channels.b, channels.a, channels.k];
         apply = function* (image) {
+            const cmyk = image.space === "cmyk";
+            if (cmyk) image = yield* convertCmykPixels(image);
+            const bounds = endpoints?.map(color => {
+                if (image.magickColorspace === "HSL") {
+                    const r = color.r / 255, g = color.g / 255, b = color.b / 255;
+                    const maximum = Math.max(r, g, b), minimum = Math.min(r, g, b);
+                    const chroma = maximum - minimum, lightness = (maximum + minimum) / 2;
+                    const hue = chroma === 0 ? 0 : maximum === r ? (g - b) / chroma + (g < b ? 6 : 0)
+                        : maximum === g ? 2 + (b - r) / chroma : 4 + (r - g) / chroma;
+                    const saturation = chroma === 0 ? 0 : chroma / (lightness <= 0.5 ? 2 * lightness : 2 - 2 * lightness);
+                    return [hue / 6 * 255, saturation * 255, lightness * 255, color.a, 0];
+                }
+                // Native compares CMY against the endpoint components and K against its separate black value.
+                return cmyk && color.cmyk ? [...color.cmyk.slice(0, 3).map(value => value * 255), color.a, color.cmyk[3]! * 255]
+                    : [color.r, color.g, color.b, color.a, 0];
+            });
             const out = new Uint8Array(image.data.length);
             const data16 = image.data16 ? new Uint16Array(out.length) : undefined;
             for (let offset = 0; offset < out.length; offset += 4) {
                 if (offset % 65536 === 0) yield;
                 let inside = bounds !== undefined;
-                for (let channel = 0; inside && channel < 4; channel++) {
+                for (let channel = 0; inside && channel < (cmyk ? 5 : 4); channel++) {
                     if (!selected[channel] || channel === 3 && !image.hasAlpha && image.alphaSeparate !== true) continue;
-                    const value = image.evaluateSamples?.[offset + channel] ?? (image.data16 ? image.data16[offset + channel]! / 257 : image.data[offset + channel]!);
+                    const value = channel === 4 ? image.hueSamples![offset + 3]! * 255
+                        : channel < 3 && image.hueSamples ? image.hueSamples[offset + channel]! * 255
+                        : image.evaluateSamples?.[offset + channel] ?? (image.data16 ? image.data16[offset + channel]! / 257 : image.data[offset + channel]!);
                     inside = value >= bounds![0]![channel]! && value <= bounds![1]![channel]!;
                 }
                 out.fill(inside ? 255 : 0, offset, offset + 3);
@@ -10279,7 +10296,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     data16[offset + 3] = 65535;
                 }
             }
-            const { hueSamples: ignoredHue, evaluateSamples: ignoredEvaluate, magickColorspace: ignoredColorspace, pngPalette: ignoredPalette, pngIndices: ignoredIndices, ...metadata } = image;
+            const { hueSamples: ignoredHue, storedHueSamples: ignoredStored, evaluateSamples: ignoredEvaluate, magickColorspace: ignoredColorspace, pngPalette: ignoredPalette, pngIndices: ignoredIndices, ...metadata } = image;
             return { ...metadata, data: out, ...(data16 ? { data16 } : {}), hasAlpha: false, channels: 3,
                 space: "srgb", isPalette: true, indexedColors: [0xff000000, 0xffffffff] };
         };

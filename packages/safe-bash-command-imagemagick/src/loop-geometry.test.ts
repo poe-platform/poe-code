@@ -7,7 +7,7 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 // Native ImageMagick 7.1.2-35: repeat counts, not total plays; null means play once.
 for (const mode of ["buffered", "retained", "sync", "command"] as const) {
   it.each([
-    ["3x2", 2], ["12%", 11], ["1e1", null], ["0x3", 0], ["3", 2], ["3.75", 2],
+    ["3x2", 2], ["3/2", 2], ["12%", 11], ["1e1", null], ["0x3", 0], ["3", 2], ["3.75", 2],
     ["garbage", undefined], ["3bad", undefined],
   ] as const)(`parses -loop %s before publishing a GIF (${mode})`, async (value, repeats) => {
     const keep = new TextEncoder().encode("KEEP");
@@ -58,3 +58,24 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     if ("stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array) expect(result.stdoutBytes.length).toBe(0);
   });
 }
+
+// Native accepts slash geometry before the inputs without changing frame timing.
+it.each(["3/2", "3x2", "3"])("streams GIF loop geometry %s through the public command", async value => {
+  const argumentValues = createCommandArguments(["-loop", value, "xc:red", "xc:blue", "gif:-"]);
+  const chunks: Uint8Array[] = [];
+  let stderr = "";
+  const result = await createMagickCommand().execute({
+    command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {},
+    signal: new AbortController().signal, fs: new MemoryFileSystem(),
+    stdin: (async function* () {})(),
+    stdout: { async write(bytes) { chunks.push(bytes.slice()); } },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+  });
+  expect(result.exitCode).toBe(0);
+  expect(stderr).toBe("");
+  const output = Buffer.concat(chunks);
+  const extension = output.indexOf("NETSCAPE2.0");
+  expect(extension).toBeGreaterThan(-1);
+  expect([...output.subarray(extension + 11, extension + 16)]).toEqual([3, 1, 2, 0, 0]);
+  expect(await sharp(output, { animated: true }).metadata()).toMatchObject({ pages: 2, delay: [0, 0] });
+});

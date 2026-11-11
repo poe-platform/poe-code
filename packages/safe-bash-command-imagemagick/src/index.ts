@@ -2675,7 +2675,7 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
     for (const char of value) {
         if (char === "x" || char === "X" || char === ":") dimensions = true;
         if ((char.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(char)) ||
-            (!dimensions && (char === "/" || (char === "," && !forcedRegionResize && value[0] !== "+" && value[0] !== "-")))) {
+            (!dimensions && ((char === "/" && option !== "-loop") || (char === "," && !forcedRegionResize && value[0] !== "+" && value[0] !== "-")))) {
             throw new Error(`invalid argument for option '${option}': ${raw}`);
         }
     }

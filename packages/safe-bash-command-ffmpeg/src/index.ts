@@ -16907,6 +16907,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         });
                         // These filters require doubles; negotiate before rematrixing unconstrained aformat input.
                         if ((nextFilter === "haas" || nextFilter === "apulsator" || nextFilter === "stereotools") && !hasSampleFormat) options.unshift("sample_fmts=dbl");
+                        // Widen integer input before an unconstrained remix into a PCM32 sink.
+                        if (!hasSampleFormat && filterIndex === audioFilters.length - 1 &&
+                            ["u8", "u8p", "s16", "s16p"].includes(filteredSampleFormat)) {
+                          const plugin = outputFormat === "segment" ? segmentPlugin : outPlugin;
+                          const codec = audioCodec ?? (plugin?.supportedAudioCodecs.includes(`pcm_${plugin.id}`) ? `pcm_${plugin.id}` : undefined);
+                          const target = sampleFormat ?? pcmSampleFormat(codec);
+                          if (target === "s32" || target === "s32p") options.unshift(`sample_fmts=${target}`);
+                        }
                         const inputSampleFormat = filteredSampleFormat;
                         const doubleMono = stretched.length === 1 && ["dbl", "dblp"].includes(inputSampleFormat);
                         const parsed = options.map((option, index) => {

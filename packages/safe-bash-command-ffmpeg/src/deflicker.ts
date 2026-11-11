@@ -2,6 +2,7 @@ import { scaleVideoPicture, type MediaBudgetTracker, type MediaVideoFrame } from
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 import { parseFilterBoolean } from "./filter-boolean.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 type DeflickerFrame = MediaVideoFrame & { filterMetadata?: Record<string, string> };
 
@@ -23,6 +24,10 @@ export async function deflicker(
     // FFmpeg restarts shorthand after named options, skipping the first slot if just visited.
     if (separator >= 0) position = position === 0 ? 1 : 0;
     const expression = separator < 0 ? option : option.slice(separator + 1);
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, expression, "deflicker");
+      continue;
+    }
     if (key === "bypass") { bypass = parseFilterBoolean(expression, "deflicker: invalid bypass"); continue; }
     if (key !== "size" && key !== "s" && key !== "mode" && key !== "m") throw new Error(`deflicker: unsupported option ${key}`);
     const isSize = key === "size" || key === "s";

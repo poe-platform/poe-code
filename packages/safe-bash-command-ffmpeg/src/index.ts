@@ -27,6 +27,7 @@ import { encodeH264PresetTrack, h264Presets } from "@poe-code/mp4-ast";
 import { parseFeedbackGraph, applyFeedback } from "./feedback.js";
 import { applyOutputColors, parseOutputColorOption, type OutputColorOption } from "./color-options.js";
 import { surroundAudio } from "./audio-surround.js";
+import { virtualBassAudio } from "./audio-virtualbass.js";
 import { denoiseFft } from "./audio-afftdn.js";
 import { denoiseWavelets } from "./audio-afwtdn.js";
 import { ripemd128, ripemd256, ripemd320 } from "./ripemd.js";
@@ -13763,6 +13764,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || target === "amix" || target?.startsWith("amix@")
                             || ["level", "shift"].includes(action!) && ["afreqshift", "aphaseshift"].some(name => target === name || target?.startsWith(`${name}@`))
                             || action === "wet" && (target === "asubboost" || target?.startsWith("asubboost@"))
+                            || action === "strength" && (target === "virtualbass" || target?.startsWith("virtualbass@"))
                             || ["mm", "cm", "m", "dry", "wet", "temp", "enable"].includes(action!) && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
                             || ["p", "peak"].includes(action!) && (target === "dynaudnorm" || target?.startsWith("dynaudnorm@"))
                             || ["limit", "level_in", "level_out", "level", "enable"].includes(action!) && (target === "alimiter" || target?.startsWith("alimiter@"))
@@ -14007,7 +14009,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             formats = compatible;
                             continue;
                           }
-                          if (["vibrato", "compensationdelay", "aeval", "aemphasis", "asubboost"].includes(name!)) {
+                          if (["vibrato", "compensationdelay", "aeval", "aemphasis", "asubboost", "virtualbass"].includes(name!)) {
                             if (!formats || formats.includes("dblp")) formats = ["dblp"];
                           } else if (name === "asoftclip" || name === "aphaseshift") {
                             const compatible = (formats ?? ["fltp", "dblp"]).filter(format => format === "fltp" || format === "dblp");
@@ -14175,6 +14177,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (filterName === "adeclick" || filterName === "adeclip") {
                         stretched = await declickAudio(stretched, origRate, trimmed, budget, context.signal,
                           audioTimestamps ?? [{ start: 0, end: stretched[0]?.length ?? 0, pts: audioStartSample }]);
+                        continue;
+                      }
+                      if (filterName === "virtualbass") {
+                        if (!autoConversionFilters && filteredSampleFormat !== "dblp") throw new Error(audioConversionDisabled);
+                        if (filteredChannelMask && filteredChannelMask !== 3) throw new Error("virtualbass: stereo input required");
+                        const commands = audioCommands.filter(command => command.target === "virtualbass" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        audioCommands = audioCommands.filter(command => command.target !== "virtualbass" && command.target !== filterTarget);
+                        stretched = await virtualBassAudio(stretched, origRate, trimmed, budget, context.signal, commands);
+                        filteredChannelMask = 0xb;
+                        filteredChannelNames = undefined;
+                        filteredSampleFormat = panSampleFormat = "dblp";
                         continue;
                       }
                       if (filterName === "surround") {
@@ -20507,6 +20521,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("afftdn:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("afwtdn: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("afwtdn:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg.startsWith("virtualbass: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("virtualbass:") || msg.startsWith("virtualbass enable:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg === "surround: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("surround: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("surround:")) return { exitCode: 222 };

@@ -622,6 +622,7 @@ disabled frames pass through while updating the previous-sample history.
 The width multiplier defaults to 2.5 (range -10 to 10); `c=0` disables clipping.
 `asendcmd=c='0.064 extrastereo@mix m -1',extrastereo@mix=m=1` swaps channels starting at the first audio frame at or after 0.064 seconds. Commands target the named instance, or the first subsequent `extrastereo` instance when unnamed; invalid width changes retain the current setting.
 Width expressions accept `E`, `PI`, and `PHI`, for example `extrastereo=m=PI/2`.
+`virtualbass` adds an LFE channel to stereo, preserving left/right samples, sample rate, and length. `virtualbass=cutoff=100:strength=0.5` sets the cutoff (100–500 Hz, default 250) and strength (0.5–3, default 3). Positional options and numeric expressions are accepted. `asendcmd` can change `strength` at audio frame boundaries. Like native FFmpeg, `enable=0` still generates bass.
 `surround` upmixes stereo to 5.1 (FL, FR, FC, LFE, BL, BR) using a
 windowed frequency transform, retaining the sample rate and frame count.
 `surround=chl_out=5.1:win_size=1024:lfe=0` silences only LFE. `lfe` also accepts

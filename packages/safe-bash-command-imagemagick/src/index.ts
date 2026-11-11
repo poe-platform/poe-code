@@ -10672,6 +10672,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return Math.fround(value * 65535);
         };
         const adjust = function* (im: RgbaImage, channels: MagickState["channels"]): Generator<void, RgbaImage> {
+            // Gray has one intensity channel addressed by red, including its colormap.
+            if (im.space === "b-w" || im.space === "grey16") channels = { ...channels, g: channels.r, b: channels.r };
             const cmyk = im.space === "cmyk";
             if (cmyk) im = yield* convertCmykPixels(im);
             const inkSamples = cmyk ? im.hueSamples?.slice() : undefined;

@@ -11864,7 +11864,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (count === 0) continue;
                       const end = Math.min(length, start + count);
                       budget.allocateMemory(32);
-                      audioTimestamps.push({ start, end, pts: start, pos: packet?.offset });
+                      const pts = packet ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start;
+                      audioTimestamps.push({ start, end, pts, pos: packet?.offset });
                       start = end;
                     }
                   }
@@ -12332,7 +12333,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                           const end = Math.min(length, start + count);
                           const timeBase = audioTimeBase ?? 1 / origRate;
-                          const samplePts = timestamp?.pts ?? audioStartSample + start;
+                          const samplePts = timestamp?.pts ?? (packet
+                            ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start);
                           const pts = Math.sign(samplePts) * Math.round(Math.abs(samplePts) / (timeBase * origRate));
                           let a = 0, b = 0;
                           const planeChecksums: string[] = [];

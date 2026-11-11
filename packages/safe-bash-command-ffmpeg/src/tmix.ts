@@ -83,7 +83,7 @@ export async function tmix(
   const output: MediaVideoFrame[] = [];
   const registers = new Float64Array(10);
   const randomStates: BigUint64Array[] = [];
-  let runningSum: Uint16Array | undefined;
+  let runningSum: Uint16Array | Uint32Array | undefined;
   let work = 0;
   let nextCommand = 0;
   for (const [index, frame] of frames.entries()) {
@@ -121,7 +121,7 @@ export async function tmix(
       continue;
     }
     const native = frame.native;
-    const useNative = native && [0, 4, 5, 12, 13, 14].includes(native.format) && history.every(previous =>
+    const useNative = native && [0, 4, 5, 8, 12, 13, 14, 29, 30, 34, 35, 45, 49, 62, 68, 104, 105].includes(native.format) && history.every(previous =>
       previous.native?.rgba === previous.data && previous.native.width === previous.width &&
       previous.native.height === previous.height && previous.native.format === native.format &&
       previous.native.colorspace === native.colorspace && previous.native.fullRange === native.fullRange &&
@@ -129,40 +129,50 @@ export async function tmix(
     const sources = history.map(previous => useNative ? previous.native!.pixels : previous.data);
     budget.allocateMemory(useNative ? native.pixels.length + frame.data.length : frame.data.length);
     const data = new Uint8Array(sources[0]!.length);
+    const wide = useNative && native.format >= 29;
+    const littleEndian = useNative && ![29, 34, 104].includes(native.format);
+    const sampleBytes = wide ? 2 : 1;
+    const sampleCount = data.length / sampleBytes;
+    const sourceViews = wide ? sources.map(source => new DataView(source.buffer, source.byteOffset, source.byteLength)) : [];
+    const targetView = new DataView(data.buffer);
+    const maximum = wide ? ([62, 68].includes(native.format) ? 1023 : 65535) : 255;
+    const planar = useNative && [0, 4, 5, 12, 13, 14, 45, 49, 62, 68].includes(native.format);
     const lumaSize = frame.width * frame.height;
-    const chromaSize = useNative ? (native.pixels.length - lumaSize) / 2 : 0;
+    const chromaSize = planar ? (sampleCount - lumaSize) / 2 : 0;
     if (average && !runningSum) {
-      budget.allocateMemory(data.length * 2);
-      runningSum = new Uint16Array(data.length);
+      budget.allocateMemory(sampleCount * (wide ? 4 : 2));
+      runningSum = wide ? new Uint32Array(sampleCount) : new Uint16Array(sampleCount);
     }
-    for (let offset = 0; offset < data.length; offset++) {
-      const plane = useNative && offset >= lumaSize ? (offset < lumaSize + chromaSize ? 1 : 2) : 0;
+    for (let offset = 0; offset < sampleCount; offset++) {
+      const plane = planar && offset >= lumaSize ? (offset < lumaSize + chromaSize ? 1 : 2) : 0;
+      let value = 0;
       if ((planes & (1 << plane)) === 0) {
         // Native tmix copies unselected planes from the oldest history frame.
         if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-        data[offset] = sources[0]![offset]!;
-        continue;
-      }
-      if (average) {
+        value = wide ? sourceViews[0]!.getUint16(offset * 2, littleEndian) : sources[0]![offset]!;
+      } else if (average) {
         if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-        // The native uint16 accumulator freezes during bypass, even at startup.
-        runningSum![offset]! += sources[count - 1]![offset]! * (index === 0 ? count : 1);
-        data[offset] = Math.floor((runningSum![offset]! + (count >> 1)) / count);
-        runningSum![offset]! -= sources[Math.max(0, count - index - 1)]![offset]!;
-        continue;
+        // Native accumulators freeze during bypass, even at startup.
+        const newest = wide ? sourceViews[count - 1]!.getUint16(offset * 2, littleEndian) : sources[count - 1]![offset]!;
+        runningSum![offset]! += newest * (index === 0 ? count : 1);
+        value = Math.floor((runningSum![offset]! + (count >> 1)) / count);
+        const oldest = Math.max(0, count - index - 1);
+        runningSum![offset]! -= wide ? sourceViews[oldest]!.getUint16(offset * 2, littleEndian) : sources[oldest]![offset]!;
+      } else {
+        for (let slot = 0; slot < count; slot++) {
+          if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          const sample = wide ? sourceViews[slot]!.getUint16(offset * 2, littleEndian) : sources[slot]![offset]!;
+          value = Math.fround(value + Math.fround(sample * weights[slot]!));
+        }
+        value = Math.fround(value * factor);
+        // Weighted mixing uses lrintf (ties to even).
+        const rounded = value - Math.floor(value) === 0.5
+          ? 2 * Math.round(value / 2) : Math.round(value);
+        // Native integer mixing converts non-finite results of canceling weights to zero.
+        value = Number.isFinite(rounded) ? Math.max(0, Math.min(maximum, rounded)) : 0;
       }
-
-      let value = 0;
-      for (let slot = 0; slot < count; slot++) {
-        if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-        value = Math.fround(value + Math.fround(sources[slot]![offset]! * weights[slot]!));
-      }
-      value = Math.fround(value * factor);
-      // Weighted mixing uses lrintf (ties to even).
-      const rounded = value - Math.floor(value) === 0.5
-        ? 2 * Math.round(value / 2) : Math.round(value);
-      // Native integer mixing converts non-finite results of canceling weights to zero.
-      data[offset] = Number.isFinite(rounded) ? Math.max(0, Math.min(255, rounded)) : 0;
+      if (wide) targetView.setUint16(offset * 2, value, littleEndian);
+      else data[offset] = value;
     }
     if (useNative) {
       const mixedNative = { ...native, pixels: data };

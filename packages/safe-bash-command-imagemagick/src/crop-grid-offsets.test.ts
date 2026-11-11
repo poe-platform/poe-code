@@ -4,16 +4,20 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runMagickCli } from "./index.js";
 
-for (const [geometry, columns, rows] of [
+for (const [geometry, columns, rows, width = 7, height = 5] of [
     ["2x2@", [[0, 4], [4, 3]], [[0, 3], [3, 2]]],
     ["2x2+1+1@", [[0, 4], [3, 4]], [[0, 3], [2, 3]]],
     ["2x2-1-1@", [[1, 2], [4, 2]], [[1, 1], [3, 1]]],
     ["2x2+1-1@", [[0, 4], [3, 4]], [[1, 1], [3, 1]]],
     ["2x2-1+1@", [[1, 2], [4, 2]], [[0, 3], [2, 3]]],
+    ["2x1-1+0@", [[1, 2], [2, 1]], [[0, 1]], 3, 1],
+    ["1x2+0-1@", [[0, 1]], [[1, 2], [2, 1]], 1, 3],
+    ["2x1@", [[0, 2], [2, 1]], [[0, 1]], 3, 1],
+    ["1x2@", [[0, 1]], [[0, 2], [2, 1]], 1, 3],
 ] as const) {
     it(`preserves every patterned crop tile for ${geometry}`, async () => {
-        const pixels = Uint8Array.from({ length: 7 * 5 * 3 }, (_, i) => Math.floor(i / 3) + 1);
-        const bytes = await sharp(pixels, { raw: { width: 7, height: 5, channels: 3 } }).png().toBuffer();
+        const pixels = Uint8Array.from({ length: width * height * 3 }, (_, i) => Math.floor(i / 3) + 1);
+        const bytes = await sharp(pixels, { raw: { width, height, channels: 3 } }).png().toBuffer();
         const fs = new MemoryFileSystem();
         const command = createMagickCommand();
         async function execute(output: string) {
@@ -42,7 +46,7 @@ for (const [geometry, columns, rows] of [
             const expectedPixels = decodeImage(await sharp(bytes).extract(tile).png().toBuffer());
             expect(actual.data).toEqual(expectedPixels.data);
             expect([actual.width, actual.height]).toEqual([tile.width, tile.height]);
-            expect(actual.virtualCanvas).toEqual({ width: 7, height: 5, x: tile.left, y: tile.top });
+            expect(actual.virtualCanvas).toEqual({ width, height, x: tile.left, y: tile.top });
         }
     });
 }

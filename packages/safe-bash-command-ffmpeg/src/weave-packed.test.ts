@@ -4,7 +4,7 @@ import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
 for (const [format, pixelBytes] of [
-  ["gray16be", 2], ["gray16le", 2], ["rgb48be", 6], ["rgba64be", 8],
+  ["gray16be", 2], ["gray16le", 2], ["rgb48be", 6], ["rgba64be", 8], ["rgb48le", 6], ["rgba64le", 8],
   ["gray", 1], ["rgb24", 3], ["rgba", 4]
 ] as const) {
   for (const [width, height, count] of [[1, 1, 2], [2, 3, 5]] as const) {

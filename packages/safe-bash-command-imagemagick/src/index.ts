@@ -8320,13 +8320,16 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     if (ftxt) {
         if (!state.hasSize) throw new Error("must specify image size for FTXT input");
         const steps = ftxtInput(state.sizeWidth, state.sizeHeight, rawBytes.length, state.ftxtFormat, state.ftxtHasAlpha, state.ftxtChannelSeparator);
-        let next = steps.next(), offset = 0;
+        let next = steps.next();
         let bytes: Uint8Array | undefined;
         while (!next.done) {
             yield;
             if (next.value instanceof Uint8Array) {
-                bytes ??= new Uint8Array(next.value.length + state.sizeWidth * state.sizeHeight * (state.ftxtHasAlpha ? 8 : 6));
-                bytes.set(next.value, offset); offset += next.value.length;
+                bytes = new Uint8Array(next.value.length + state.sizeWidth * state.sizeHeight * (state.ftxtHasAlpha ? 8 : 6));
+                bytes.set(next.value);
+                next = steps.next(new Uint8Array());
+            } else if ("data" in next.value) {
+                bytes!.set(next.value.data, next.value.position);
                 next = steps.next(new Uint8Array());
             } else next = steps.next(rawBytes.subarray(next.value.position, next.value.position + next.value.length));
         }
@@ -20893,12 +20896,15 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   if(!state.hasSize)throw new Error("must specify image size for FTXT input");
   const consume=async(source:ImageByteSource)=>{
    const steps=ftxtInput(state.sizeWidth,state.sizeHeight,source.size,state.ftxtFormat,state.ftxtHasAlpha,state.ftxtChannelSeparator);
-   let next=steps.next(),position=0,size=0,written=0;
+   let next=steps.next(),position=0,size=0;
    while(!next.done){
     await yieldTurn(signal);
     if(next.value instanceof Uint8Array){
-     if(size===0){size=next.value.length+state.sizeWidth*state.sizeHeight*(state.ftxtHasAlpha?8:6);position=backend.storage.allocate(size);}
-     await backend.storage.write(position+written,next.value);written+=next.value.length;
+     size=next.value.length+state.sizeWidth*state.sizeHeight*(state.ftxtHasAlpha?8:6);position=backend.storage.allocate(size);
+     await backend.storage.write(position,next.value);
+     next=steps.next(new Uint8Array());
+    }else if("data" in next.value){
+     await backend.storage.write(position+next.value.position,next.value.data);
      next=steps.next(new Uint8Array());
     }else next=steps.next(await source.read(next.value.position,next.value.length,{signal}));
    }

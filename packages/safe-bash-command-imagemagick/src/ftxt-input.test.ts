@@ -27,15 +27,18 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
 }
 
 for (const retained of [false, true]) {
-    it(`reads FTXT across chunk boundaries (${retained})`, async () => {
+    it.each([false, true])(`reads FTXT across chunk boundaries (${retained}, reordered=%s)`, async reordered => {
         const width = 2000;
-        const bytes = new TextEncoder().encode(Array.from({ length: width }, (_, x) => `${x}/0=${x},32768,65535`).join("\n"));
+        const bytes = new TextEncoder().encode(Array.from({ length: width * 2 }, (_, index) => {
+            const pixel = reordered ? (index + width) % (width * 2) : index;
+            return `${pixel % width}/${Math.floor(pixel / width)}=${pixel},32768,65535`;
+        }).join("\n"));
         const files = new Map([["/in", bytes]]), filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/in", bytes);
-        const result = await runConvertCli(["-size", `${width}x1`, "-define", "ftxt:format=\\x/\\y=\\c\\n", "ftxt:/in", "/out.png"], retained ? { filesystem, cwd: "/" } : files);
+        const result = await runConvertCli(["-size", `${width}x2`, "-define", "ftxt:format=\\x/\\y=\\c\\n", "ftxt:/in", "/out.png"], retained ? { filesystem, cwd: "/" } : files);
         expect(result).toMatchObject({ exitCode: 0, stderr: "" });
         const image = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
-        expect(Array.from(image.data16!)).toEqual(Array.from({ length: width }, (_, x) => [x, 32768, 65535, 65535]).flat());
+        expect(Array.from(image.data16!)).toEqual(Array.from({ length: width * 2 }, (_, pixel) => [pixel, 32768, 65535, 65535]).flat());
     });
 
     it.each([
@@ -45,7 +48,7 @@ for (const retained of [false, true]) {
         { size: ["-size", "2x1"], text: "0,0:65535,0,0\n", error: "truncated FTXT" },
         { size: ["-size", "1x1"], text: "0,0:65536,0,0\n", error: "invalid FTXT pixel" },
         { size: ["-size", "1x1"], text: "0,0:0,,0\n", error: "invalid FTXT pixel" },
-        { size: ["-size", "1x1"], text: "1,0:65535,0,0\n", error: "invalid FTXT pixel" }
+        ...["1,0", "0,1", "-1,0", "0,-1", "0.5,0", "0,0.5", ",0", "0,"].map(coordinates => ({ size: ["-size", "1x1"], text: `${coordinates}:65535,0,0\n`, error: "invalid FTXT pixel" }))
     ])(`preserves output on invalid FTXT (${retained}): $error`, async ({ size, text, error }) => {
         const bytes = new TextEncoder().encode(text), original = Uint8Array.of(42);
         const files = new Map([["/in", bytes], ["/out.png", original]]), filesystem = new MemoryFileSystem();

@@ -13978,7 +13978,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (layouts.some(layout => !["mono", "stereo", "quad", "5.1"].includes(layout))) {
                         throw new Error(`${filterName}: unsupported channel layout ${value}`);
                       }
-                      if (stretched.length === 1 && (filteredChannelMask === 1 || filteredChannelMask === 2)) {
+                      if (stretched.length === 1) {
                         filteredChannelMask = 4;
                         filteredChannelNames = undefined;
                       }

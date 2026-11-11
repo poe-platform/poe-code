@@ -26,7 +26,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   let channelMask: number | undefined;
   let data: Uint8Array | undefined;
   let cookie: Uint8Array | undefined, packetTable: Uint8Array | undefined;
-  const metadata: { title?: string; artist?: string; album?: string; comment?: string; encoder?: string } = {};
+  const metadata: { title?: string; artist?: string; album?: string; comment?: string; encoder?: string; custom?: Record<string, string> } = {};
   for (let offset = 8; offset < bytes.length;) {
     budget.checkCpu();
     if (offset + 12 > bytes.length) {
@@ -107,6 +107,10 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
         const key = decoder.decode(info.subarray(cursor, keyEnd));
         if (key === "title" || key === "artist" || key === "album" || key === "comment" || key === "encoder") {
           metadata[key] = decoder.decode(info.subarray(keyEnd + 1, valueEnd));
+        } else {
+          Object.defineProperty(metadata.custom ??= {}, key, {
+            value: decoder.decode(info.subarray(keyEnd + 1, valueEnd)), enumerable: true, configurable: true
+          });
         }
         cursor = valueEnd + 1;
       }

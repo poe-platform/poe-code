@@ -24,7 +24,7 @@ export async function surroundAudio(
     } else if (key === "win_size") {
       const number = parseFilterExpression(value, "surround", { min: 1024, max: 65536, default: 4096 });
       if (!Number.isFinite(number) || number < 1024 || number > 65536) {
-        throw new Error("surround: win_size must be between 1024 and 65536");
+        throw new RangeError("surround: win_size must be between 1024 and 65536");
       }
       // Integer AVOptions validate the range before rounding, with ties to even.
       size = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);

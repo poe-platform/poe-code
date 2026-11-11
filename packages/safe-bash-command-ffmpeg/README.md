@@ -628,7 +628,9 @@ window is 4096 samples; multiples of four from 1024 to 65536 are supported,
 including `surround=win_size=1536`. Other transform sizes fail with status 218.
 `win_size` accepts expressions such as `512*2` and constants `min`, `max`, and
 `default`. Values are checked against that range, then rounded to the nearest
-integer (ties to even) before selecting the transform size.
+integer (ties to even) before selecting the transform size. Out-of-range sizes fail
+with status 222, invalid expressions with 234, unsupported transform sizes with
+218, and unknown options with 8.
 Use `surround=chl_out=stereo` to retain two output channels with the same
 frequency-domain processing of the front speakers.
 Other layouts and surround options are rejected.

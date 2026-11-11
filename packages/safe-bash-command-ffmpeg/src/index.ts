@@ -20382,6 +20382,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("deesser:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("afwtdn: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("afwtdn:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg.startsWith("surround: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("surround:")) return { exitCode: 222 };
+            if (msg === "surround: invalid expression" || msg === "surround: invalid or unsupported expression") return { exitCode: 234 };
             if (msg.startsWith("asubboost: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("asubboost: invalid ")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("pad: generic option")) return { exitCode: err instanceof RangeError ? 222 : 234 };

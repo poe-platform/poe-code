@@ -101,15 +101,28 @@ for (const graph of [false, true]) {
   });
 }
 
-for (const filter of ["surround=chl_in=FR+FL", "surround=chl_in=FC+LFE", "surround=chl_in=0x4",
-  "surround=chl_out=5.1(side)", "surround=chl_out=0x60f", "surround=chl_out=invalid",
-  "surround=win_size=0", "surround=win_size=65537", "surround=win_size=NaN",
-  "surround=win_size=1023.9", "surround=win_size=65536.1",
-  "surround=win_size=1/0", "surround=win_size=bad", "surround=win_size=",
-  "surround=lfe=bad", "surround=chl_out=mono", "surround=unknown=1"]) {
+for (const [filter, exitCode] of [
+  ["surround=chl_in=FR+FL", 1],
+  ["surround=chl_in=FC+LFE", 1],
+  ["surround=chl_in=0x4", 1],
+  ["surround=chl_out=5.1(side)", 1],
+  ["surround=chl_out=0x60f", 1],
+  ["surround=chl_out=invalid", 1],
+  ["surround=win_size=0", 222],
+  ["surround=win_size=65537", 222],
+  ["surround=win_size=NaN", 234],
+  ["surround=win_size=1023.9", 222],
+  ["surround=win_size=65536.1", 222],
+  ["surround=win_size=1/0", 234],
+  ["surround=win_size=bad", 234],
+  ["surround=win_size=", 234],
+  ["surround=lfe=bad", 1],
+  ["surround=chl_out=mono", 1],
+  ["surround=unknown=1", 8]
+] as const) {
   it(`${filter} fails without replacing output`, async () => {
     const { result, stderr, output } = await run(filter);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, exitCode);
     assert.ok(stderr.includes("surround"), stderr);
     assert.equal(output.toString(), "keep");
   });

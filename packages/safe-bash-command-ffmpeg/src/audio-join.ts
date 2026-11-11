@@ -61,6 +61,12 @@ export async function joinAudio(
     audio[index] = { ...input, sampleRate,
       channelData: await resampleAudio(input.channelData, length, input.sampleRate, sampleRate, budget, signal) };
   }
+  const inputNames = audio.map((input, index) => {
+    const layout = tracks[index]!.codecDescriptions[0]?.channelLayout;
+    if (layout) return parseAudioChannelLayout(layout);
+    const mask = input.channelMask || ([0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][input.channels] ?? 0);
+    return speakers.filter(name => Math.floor(mask / audioSpeakerMasks[name]!) % 2 === 1);
+  });
   const used = audio.map(() => new Set<number>());
   const selected = new Map<string, Float32Array | Float64Array>();
   for (const mapping of map ? map.split("|") : []) {
@@ -77,8 +83,7 @@ export async function joinAudio(
     const name = indices[1];
     let channelIndex = readMapIndex(name).index;
     if (Number.isNaN(channelIndex)) {
-      const mask = input.channelMask || ([0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][input.channels] ?? 0);
-      channelIndex = speakers.filter(name => Math.floor(mask / audioSpeakerMasks[name]!) % 2 === 1).indexOf(name);
+      channelIndex = inputNames[inputIndex.index]!.indexOf(name);
     }
     const channel = input.channelData[channelIndex];
     if (!channel) throw new Error("join: invalid input channel");
@@ -90,10 +95,8 @@ export async function joinAudio(
     for (const name of outputNames) {
       if (selected.has(name)) continue;
       for (const [inputIndex, input] of audio.entries()) {
-        const mask = input.channelMask || ([0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][input.channels] ?? 0);
-        const inputNames = speakers.filter(name => Math.floor(mask / audioSpeakerMasks[name]!) % 2 === 1);
         const channelIndex = matchSpeaker
-          ? inputNames.indexOf(name)
+          ? inputNames[inputIndex]!.indexOf(name)
           : input.channelData.findIndex((_, index) => !used[inputIndex]!.has(index));
         const channel = input.channelData[channelIndex];
         if (!channel || used[inputIndex]!.has(channelIndex)) continue;
@@ -161,6 +164,8 @@ export async function joinAudio(
     start = end;
   }
   return { ...first, timescale: sampleRate, duration: length, samples: frames, editList: undefined,
+    codecDescriptions: first.codecDescriptions.map(description => ({ ...description,
+      channels: outputNames.length, channelLayout: outputNames.join("+") })),
     decodedAudio: { ...audio[0]!, channels: outputNames.length, channelMask: outputMask, channelData } };
 }
 

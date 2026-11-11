@@ -386,8 +386,8 @@ order is preserved in raw PCM output.
 Input maps accept numeric indices or speaker names, such as
 `map=0.FR-FL|1.FL-FR`. Both input and channel indices accept decimal, leading-zero
 octal, hexadecimal (`0x`), and an optional `+`, such as `map=0x0.+0-FL|0x1.+1-FR`.
-Names resolve against each input’s layout; missing speakers
-are rejected. Maps are optional and may assign only one output channel. Unmapped
+Names resolve against each input’s layout, including custom speaker order from an
+earlier join; missing speakers are rejected. Maps are optional and may assign only one output channel. Unmapped
 outputs first use unused inputs with matching speaker positions, then the first
 unused input channels.
 For example, `[0:a][1:a]join[mix]` selects both channels of a stereo second input

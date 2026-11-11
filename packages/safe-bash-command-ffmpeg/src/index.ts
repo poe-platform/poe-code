@@ -11997,7 +11997,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let audioTimeBase: number | undefined;
                   let loudnormResampling = false;
                   let filteredChannelMask = audio.channelMask;
-                  let filteredChannelNames: string[] | undefined;
+                  const inputChannelLayout = t.codecDescriptions[0]?.channelLayout;
+                  let filteredChannelNames = inputChannelLayout ? parseAudioChannelLayout(inputChannelLayout) : undefined;
                   const inputCodec = t.codecDescriptions[0]?.codecName;
                   let filteredSampleFormat = inputCodec === "pcm_u8" ? "u8" : inputCodec === "pcm_s16le" ? "s16" : ["pcm_s24le", "pcm_s32le"].includes(inputCodec ?? "") ? "s32"
                     : inputCodec === "pcm_f32le" ? "flt" : "dbl";
@@ -16533,7 +16534,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                     return { ...t, timescale: origRate, duration: length, samples, editList: undefined,
                       codecDescriptions: t.codecDescriptions.map(description => ({ ...description,
-                        sampleRate: origRate, channels: stretched.length })),
+                        sampleRate: origRate, channels: stretched.length,
+                        channelLayout: filteredChannelNames?.join("+") })),
                       decodedAudio: { ...audio, sampleRate: origRate, channels: stretched.length,
                         channelMask: filteredChannelMask, channelData: stretched } };
                   }

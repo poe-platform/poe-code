@@ -64,6 +64,9 @@ export function createHoughTransform(image: { width: number; height: number }, s
                 const x = (start + i) % image.width, y = Math.floor((start + i) / image.width);
                 for (const line of segments) {
                     if (++work % 4096 === 0) yield;
+                    // Native edge bounds exclude the leading edge and include the trailing edge.
+                    if (x <= Math.min(line.x, line.x + line.dx) - mid - 0.5 || x > Math.max(line.x, line.x + line.dx) + mid + 0.5 ||
+                        y <= Math.min(line.y, line.y + line.dy) - mid - 0.5 || y > Math.max(line.y, line.y + line.dy) + mid + 0.5) continue;
                     const t = Math.max(0, Math.min(1, ((x - line.x) * line.dx + (y - line.y) * line.dy) / line.lengthSquared));
                     const distance = Math.hypot(x - line.x - t * line.dx, y - line.y - t * line.dy);
                     const strokeCoverage = strokeWidth <= 0 || distance > mid + 0.75 ? 0 : distance <= Math.abs(mid - 0.25) ? 1 : (distance - mid - 0.75) ** 2;

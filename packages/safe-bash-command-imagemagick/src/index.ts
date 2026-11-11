@@ -13720,7 +13720,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const expanded = yield* formatMagickPropertyStringSteps(spec, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: index, optionProperties: state.optionProperties });
                 const transform = createHoughTransform(image, expanded, state.background, state.stroke, state.fill, state.strokeWidth);
                 const { magickColorspace: ignoredSpace, hueSamples: ignoredHue, ...metadata } = image;
-                const source = { ...metadata, properties: undefined, orientation: state.orientation, space: "srgb" as const, channels: 4 as const, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } };
+                const source = { ...metadata, properties: {}, orientation: state.orientation ?? 0, space: "srgb" as const, channels: 4 as const, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } };
                 const { indexedColors: ignoredColors, pngPalette: ignoredPalette, pngIndices: ignoredIndices, ...direct } = source;
                 result.push(yield* applyMagickRasterSteps({ ...direct, isPalette: false, depth: "ushort", bitsPerSample: 16,
                     [magickInput]: { ...image[magickInput], inputFormat: "" } }, transform.lines(), signal, { ...image, hasAlpha: true }));
@@ -16531,7 +16531,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, listIndex: index, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack);
                     const transform = createHoughTransform(image, expanded, settings.background, settings.stroke, settings.fill, settings.strokeWidth);
                     const { magickColorspace: ignoredSpace, storedHueSamples: ignoredHue, ...metadata } = image;
-                    const source = { ...metadata, properties: undefined, orientation: settings.orientation, space: "srgb" as const, channels: 4 as const, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } };
+                    const source = { ...metadata, properties: {}, orientation: settings.orientation ?? 0, space: "srgb" as const, channels: 4 as const, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } };
                     const { indexedColors: ignoredColors, pngPalette: ignoredPalette, storedPngIndices: ignoredIndices, ...direct } = source;
                     await result.push(await transformStoredMagickRaster({ ...direct, isPalette: false, depth: "ushort", bitsPerSample: 16,
                         [magickInput]: { ...image[magickInput], inputFormat: "" } }, backend, transform.lines(), signal, { ...image, hasAlpha: true }));

@@ -53,7 +53,6 @@ function* cHeaderBytes(bytes: Uint8Array): Generator<Uint8Array> {
 }
 
 export function encodeImage(image: RawImage, options: OutputEncodeOptions): ReturnType<typeof encodeRaster> {
-    if (options.format === "brf") return { data: encodeBrfImage(image), format: "raw", channels: 1 };
     if (options.format === "svg") return { data: encodeSvgImage(image), format: "svg", channels: image.hasAlpha ? 4 : 3 };
     if (options.format === "jpeg" && image.quality) options = { ...options, quality: image.quality, chromaSubsampling: image.quality < 90 ? "4:2:0" : "4:4:4" };
     if (options.format === "png" && (image.resolution?.x === 0 || image.resolution?.y === 0)) options = { ...options, omitPngResolution: true };
@@ -79,6 +78,7 @@ export function encodeImage(image: RawImage, options: OutputEncodeOptions): Retu
         return { data, format: "raw", channels: 4 };
     }
     const format = options.format;
+    if (format === "brf") return { data: encodeBrfImage(image), format: "raw", channels: 1 };
     if (format === "isobrl" || format === "isobrl6") return { data: encodeIsobrlImage(image, format === "isobrl6" ? 3 : 4), format: "raw", channels: 1 };
     if (format === "yuv") return { data: encodeYuvImage(image, options), format: "raw", channels: 3 };
     if (format === "pal") return { data: encodePalImage(image), format: "raw", channels: 3 };
@@ -226,11 +226,6 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
 }
 
 export async function* encodeStoredImage(image: StoredRawImage, storage: ImageByteStorage, signal: AbortSignal, options: OutputEncodeOptions): ReturnType<typeof encodeStoredRaster> {
-    if (options.format === "brf") {
-        let size = 0;
-        for await (const chunk of encodeBrfFromStorage(image, storage, signal)) { size += chunk.length; yield chunk; }
-        return { format: "raw", width: image.width, height: image.height, channels: 1, premultiplied: false, size };
-    }
     if (options.format === "svg") {
         let size = 0;
         for await (const chunk of encodeSvgFromStorage(image, storage, signal)) { size += chunk.length; yield chunk; }
@@ -274,6 +269,11 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
     if (options.format === "isobrl" || options.format === "isobrl6") {
         let size = 0;
         for await (const chunk of encodeIsobrlFromStorage(image, storage, signal, options.format === "isobrl6" ? 3 : 4)) { size += chunk.length; yield chunk; }
+        return { format: "raw", width: image.width, height: image.height, channels: 1, premultiplied: false, size };
+    }
+    if (options.format === "brf") {
+        let size = 0;
+        for await (const chunk of encodeBrfFromStorage(image, storage, signal)) { size += chunk.length; yield chunk; }
         return { format: "raw", width: image.width, height: image.height, channels: 1, premultiplied: false, size };
     }
     if (options.format === "mono") {

@@ -6892,8 +6892,11 @@ function outputChapters(
   chapters: MediaDocument["chapters"],
   startSeconds = 0,
   durationSeconds?: number,
-  endSeconds = Infinity
+  endSeconds = Infinity,
+  inputTimestampOffset = 0
 ): MediaDocument["chapters"] {
+  startSeconds -= inputTimestampOffset;
+  endSeconds -= inputTimestampOffset;
   const end = durationSeconds === undefined ? endSeconds : startSeconds + durationSeconds;
   return chapters?.filter(chapter => chapter.endTimeSeconds >= startSeconds && chapter.startTimeSeconds < end)
     .map(chapter => ({
@@ -8874,7 +8877,7 @@ export function evalSyncFfmpeg(
     }
     chapterSource ??= loadedDocs.findIndex(doc => doc.chapters?.length);
     if (chapterSource >= loadedDocs.length) return undefined;
-    workingDoc = { ...workingDoc, chapters: applyChapterMetadata(chapterSource < 0 ? undefined : outputChapters(loadedDocs[chapterSource]!.chapters, outputSs, outputDuration, outputTo), chapterMetadata) };
+    workingDoc = { ...workingDoc, chapters: applyChapterMetadata(chapterSource < 0 ? undefined : outputChapters(loadedDocs[chapterSource]!.chapters, outputSs, outputDuration, outputTo, inputs[chapterSource]!.timestampOffset), chapterMetadata) };
     const sourceMetadata = mapGlobalMetadata(loadedDocs, metadataSources);
     const metaTags: Mp4MetadataTags = {
       ...sourceMetadata,
@@ -18301,7 +18304,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid chapter input index: ${chapterSource}\n`), context.signal);
               return { exitCode: 234 };
             }
-            workingDoc = { ...workingDoc, chapters: applyChapterMetadata(chapterSource < 0 ? undefined : outputChapters(loadedDocs[chapterSource]!.chapters, outputSs, outputDuration, outputTo), chapterMetadata) };
+            workingDoc = { ...workingDoc, chapters: applyChapterMetadata(chapterSource < 0 ? undefined : outputChapters(loadedDocs[chapterSource]!.chapters, outputSs, outputDuration, outputTo, inputs[chapterSource]!.timestampOffset), chapterMetadata) };
             const sourceMetadata = mapGlobalMetadata(loadedDocs, metadataSources);
 
             // Apply `-metadata` tags

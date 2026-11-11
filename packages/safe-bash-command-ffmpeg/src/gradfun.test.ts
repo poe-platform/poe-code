@@ -81,6 +81,22 @@ for (const [options, hash] of [
     assert.equal(createHash("sha256").update(output!).digest("hex"), hash);
   });
 }
+for (const [options, hash] of [
+  ["radius=6:4", "19188aa0a3589b107474cd33e3552947a87d0b8f05a7d8a5efff6a7551d7d757"],
+  ["1.2:4", "19188aa0a3589b107474cd33e3552947a87d0b8f05a7d8a5efff6a7551d7d757"],
+  ["1.2:6", "b8d043ac8fc9f27fac4e2f57017e04ee7fd15d160e3025701c9b87f82c17a9f0"],
+  ["radius=6:4:radius=6", "b8d043ac8fc9f27fac4e2f57017e04ee7fd15d160e3025701c9b87f82c17a9f0"]
+]) {
+  it(`applies gradfun options in order for ${options}`, async () => {
+    const pattern = Buffer.from(Array.from({ length: 1024 }, (_, i) =>
+      50 + 2 * Math.floor((i % 32) / 3) + Math.floor(i / 128)));
+    const { result, stderr, output } = await run(`gradfun=${options}`, 32, 32, pattern);
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal(output!.length, 1024);
+    assert.equal(createHash("sha256").update(output!).digest("hex"), hash);
+  });
+}
+
 for (const filter of ["null", "gradfun", "gradfun=5:32", "gradfun=5:4:enable=0"]) {
   it(`preserves pixels for ${filter}`, async () => {
     const { result, stderr, output } = await run(filter);

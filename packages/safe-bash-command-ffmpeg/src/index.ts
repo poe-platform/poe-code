@@ -6413,9 +6413,15 @@ async function applyVideoFilterChain(
       if (positional.some((part, index) => index > 1 && !part.includes("="))) {
         throw new Error("gradfun: too many positional options");
       }
-      const values = positional.map(part => !part || part.includes("=") ? undefined : part);
-      const strength = Math.fround(parseFilterExpression(named.strength ?? values[0] ?? "1.2", name, {}));
-      const radiusOption = parseFilterExpression(named.radius ?? values[1] ?? "16", name, {});
+      const options: Record<string, string> = {};
+      for (const [index, part] of positional.entries()) {
+        if (!part) continue;
+        const separator = part.indexOf("=");
+        const key = separator < 0 ? ["strength", "radius"][index]! : part.slice(0, separator).trim().toLowerCase();
+        options[key] = separator < 0 ? part : part.slice(separator + 1).trim();
+      }
+      const strength = Math.fround(parseFilterExpression(options.strength ?? "1.2", name, {}));
+      const radiusOption = parseFilterExpression(options.radius ?? "16", name, {});
       if (!Number.isFinite(strength) || strength < Math.fround(0.51) || strength > 64 ||
           !Number.isFinite(radiusOption) || radiusOption < 4 || radiusOption > 32) {
         throw new Error("gradfun: strength must be 0.51..64 and radius must be 4..32");

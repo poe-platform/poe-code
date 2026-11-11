@@ -51,6 +51,20 @@ for (const [format, size, inputHex, expectedHex] of [
   });
 }
 
+for (const [filter, expectedHex] of [
+  ["swapuv=enable='eq(n,1)'", "2f3a45505b66717c87929da8b3bec9d4df18232e4f5a3944"],
+  ["swapuv=enable='gte(t,0.04)'", "2f3a45505b66717c87929da8b3bec9d4df18232e4f5a3944"],
+  ["swapuv=enable=0", "2f3a45505b66717c87929da8b3bec9d4df18232e39444f5a"],
+  ["swapuv=enable=NAN", "2f3a45505b66717c87929da8b3bec9d4df18232e39444f5a"],
+  ["swapuv", "2f3a45505b66717c9da88792b3bec9d4df18232e4f5a3944"],
+  ["swapuv,swapuv", "2f3a45505b66717c87929da8b3bec9d4df18232e39444f5a"]
+] as const) {
+  it(`honors the per-frame timeline for ${filter}`, async () => {
+    const input = Buffer.from("2f3a45505b66717c87929da8b3bec9d4df18232e39444f5a", "hex");
+    assert.deepEqual(await run(input, "yuv420p", filter, "4x2"), Buffer.from(expectedHex, "hex"));
+  });
+}
+
 it("renders the swapped chroma for downstream RGB consumers", async () => {
   const input = Buffer.from("5064788c3090c020d06040b0", "hex");
   const swapped = Buffer.from("5064788cd06040b03090c020", "hex");

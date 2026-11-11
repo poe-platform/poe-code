@@ -4822,12 +4822,25 @@ async function applyVideoFilterChain(
         const separator = option.indexOf("=");
         const key = option.slice(0, separator).trim();
         if (separator < 0) throw new Error("swapuv: missing option name");
+        if (key === "enable") continue;
         if (!["threads", "thread_type", "extra_hw_frames"].includes(key)) {
           throw new Error(`swapuv: unsupported option ${key}`);
         }
         validateWeaveGenericOption(key, option.slice(separator + 1), "swapuv");
       }
-      current = await mapWork(current, frame => swapUv(frame, budget, signal), signal);
+      const enable = named.enable;
+      const registers = new Float64Array(10);
+      const variables = { n: 0, t: 0, w: 0, h: 0, pos: NaN, NAN: NaN, INF: Infinity };
+      if (enable !== undefined) parseFilterExpression(enable, "swapuv enable", variables, undefined, new Float64Array(10));
+      current = await mapWork(current, (frame, n) => {
+        if (enable !== undefined) {
+          Object.assign(variables, { n, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN });
+          // FFmpeg evaluates the generic timeline before and during frame dispatch.
+          parseFilterExpression(enable, "swapuv enable", variables, undefined, registers);
+          if (!(Math.abs(parseFilterExpression(enable, "swapuv enable", variables, undefined, registers)) >= 0.5)) return frame;
+        }
+        return swapUv(frame, budget, signal);
+      }, signal);
     } else if (name === "premultiply") {
       let planes = 15, inplace = false, enable: string | undefined, sawNamed = false;
       for (const [index, option] of (argStr ? positional : []).entries()) {

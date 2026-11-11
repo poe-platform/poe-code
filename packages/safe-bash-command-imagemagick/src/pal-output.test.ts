@@ -43,7 +43,7 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
             expect(files.has("uyvy:-")).toBe(false);
             expect((await fs.readdir("/")).map(entry => entry.name)).not.toContain("uyvy:-");
             expect(Buffer.concat(chunks).toString("hex")).toBe(hex);
-            if (args.some(arg => arg === "-write")) for (const path of [args.includes("out.uyvy") ? "out.uyvy" : "out.pal", "out.bin"]) {
+            if (args.some(arg => arg === "-write")) for (const path of [args.some(arg => arg === "out.uyvy") ? "out.uyvy" : "out.pal", "out.bin"]) {
                 const data = mode === "sync" || mode === "buffered" ? files.get(path)! : await fs.readFile(`/${path}`);
                 expect(Buffer.from(data).toString("hex")).toBe(hex);
             }

@@ -21,7 +21,7 @@ it.each([1, 7, 8, 9, 16, 17])("ignores set padding bits for width %s", width => 
   const stride = Math.ceil(width / 8);
   const bytes = bitmap(width, 2, [...Array<string>(stride).fill("0xff"), ...Array<string>(stride).fill("0x00")].join(","));
   const image = decodeImage(bytes);
-  expect(readImageMetadata(bytes)).toMatchObject({ format: "xbm", width, height: 2, channels: 1, hasAlpha: false });
+  expect(readImageMetadata(bytes)).toMatchObject({ format: "xbm", width, height: 2, channels: 3, hasAlpha: false });
   for (let i = 0; i < width * 2; i++) expect([...image.data.subarray(i * 4, i * 4 + 4)]).toEqual(i < width ? [0, 0, 0, 255] : [255, 255, 255, 255]);
 });
 

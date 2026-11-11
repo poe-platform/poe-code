@@ -17897,6 +17897,11 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
         else if (t === "-blend") {
             options.push("-define", `compose:args=${argv[++i] ?? "50"}`, "-compose", "Blend");
         }
+        else if (t === "-unsharp") {
+            const geometry = argv[++i] ?? "";
+            // Composite both sharpens the images and selects Threshold composition.
+            options.push(t, geometry, "-define", `compose:args=${geometry}`, "-compose", "Threshold");
+        }
         else if (t !== "-" && t.startsWith("-")) {
             options.push(t);
         }

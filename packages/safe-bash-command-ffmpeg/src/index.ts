@@ -3965,14 +3965,18 @@ async function applyVideoFilterChain(
             const bins = new Float64Array(768);
             const native = frame.native;
             if (native?.rgba === frame.data && native.width === frame.width && native.height === frame.height &&
-                [0, 4, 5, 12, 13, 14].includes(native.format)) {
+                [0, 4, 5, 12, 13, 14, 62].includes(native.format)) {
               const size = frame.width * frame.height;
               const chroma = Math.ceil(frame.width / ([5, 14].includes(native.format) ? 1 : 2)) *
-                Math.ceil(frame.height / ([0, 12].includes(native.format) ? 2 : 1));
+                Math.ceil(frame.height / ([0, 12, 62].includes(native.format) ? 2 : 1));
+              const samples = native.format === 62
+                ? new DataView(native.pixels.buffer, native.pixels.byteOffset, native.pixels.byteLength) : undefined;
               for (let i = 0; i < size + 2 * chroma; i++) {
                 if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
                 const channel = i < size ? 0 : i < size + chroma ? 1 : 2;
-                bins[channel * 256 + native.pixels[i]!]!++;
+                // Native thumbnail reduces high-depth samples to 256 bins per plane.
+                const value = samples ? samples.getUint16(i * 2, true) >> 2 : native.pixels[i]!;
+                bins[channel * 256 + value]!++;
               }
             } else {
               for (let i = 0; i < frame.data.length; i += 4) {
@@ -3994,6 +3998,9 @@ async function applyVideoFilterChain(
             if (error < minimum) { minimum = error; best = n; }
           }
           selected.push(current[start + best]!);
+          if (diagnostics.logLevel >= 32) {
+            await diagnostics.write(`[thumbnail] frame id #${best} (pts_time=${current[start + best]!.ptsSeconds.toFixed(6)}) selected from a set of ${length} images\n`);
+          }
         } finally {
           budget.releaseMemory(bytes);
         }

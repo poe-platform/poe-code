@@ -68,3 +68,37 @@ it("selects representative RGB frames after format conversion", async () => {
   assert.equal(control.exitCode, 0, control.stderr);
   assert.deepEqual(result.output, control.output);
 });
+
+for (const filter of ["null", "thumbnail=5", "thumbnail=5,select=eq(t\\,0.25)"]) {
+  it(`preserves native 10-bit YUV420 samples and timestamps through ${filter}`, async () => {
+    const planes = [[50, 100, 100], [150, 150, 50], [150, 150, 100], [100, 100, 50], [50, 150, 150]];
+    const raw = Buffer.alloc(60);
+    let offset = 0;
+    for (const [y, u, v] of planes) {
+      for (const value of [y, y, y, y, u, v]) {
+        raw.writeUInt16LE(value! * 4, offset);
+        offset += 2;
+      }
+    }
+    const volume = Volume.fromJSON({ "/in.raw": raw });
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-hide_banner", "-nostats", "-v", "info", "-f", "rawvideo", "-pixel_format", "yuv420p10le",
+        "-video_size", "2x2", "-framerate", "4", "-i", "/in.raw", "-vf", `${filter},showinfo`,
+        "-fps_mode", "passthrough", "-pix_fmt", "yuv420p10le", "-f", "rawvideo", "/out.raw"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, data: Uint8Array) { volume.writeFileSync(path, data); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(), stdout: { async write() {} },
+      stderr: { async write(data: Uint8Array) { stderr += new TextDecoder().decode(data); } }
+    } as never);
+    assert.equal(result.exitCode, 0, stderr);
+    assert.deepEqual(volume.readFileSync("/out.raw"), filter === "null" ? raw : Buffer.from("58025802580258025802c800", "hex"));
+    if (filter !== "null") {
+      assert.ok(stderr.includes("frame id #1 (pts_time=0.250000) selected from a set of 5 images"), stderr);
+    }
+  });
+}

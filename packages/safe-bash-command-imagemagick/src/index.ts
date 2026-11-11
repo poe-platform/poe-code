@@ -47,7 +47,7 @@ import { decodeApngSteps, readApng } from "./apng-input.js";
 import { signatureSteps } from "./signature.js";
 import { encipherPixelSteps } from "./encipher-kernel.js";
 import { chopRegion, orientRegion, rotateRegion, rollRegion, regionContains, regionPixelSteps, regionMaskPixelSteps, type Region } from "./region.js";
-import { clearWriteMaskPixelSteps, statisticWriteMaskPixelSteps, writeMaskExtentSteps, writeMaskPixelSteps } from "./write-mask.js";
+import { blendMaskedPixel, clearWriteMaskPixelSteps, statisticWriteMaskPixelSteps, writeMaskExtentSteps, writeMaskPixelSteps } from "./write-mask.js";
 import { pngAlphaPixelSteps } from "./png-alpha.js";
 import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
 import { monoRasterInput } from "./mono-input.js";
@@ -10260,7 +10260,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         const selected = [channels.r, channels.g, channels.b, channels.a, channels.k];
-        apply = function* (image) {
+        apply = function* (image, pixelOffset = 0, imageWidth = image.width) {
             const cmyk = image.space === "cmyk";
             if (cmyk) image = yield* convertCmykPixels(image);
             const bounds = endpoints?.map(color => {
@@ -10279,6 +10279,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             });
             const out = new Uint8Array(image.data.length);
             const data16 = image.data16 ? new Uint16Array(out.length) : undefined;
+            const evaluateSamples = image.region ? image.evaluateSamples?.slice()
+                ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value) : undefined;
             for (let offset = 0; offset < out.length; offset += 4) {
                 if (offset % 65536 === 0) yield;
                 let inside = bounds !== undefined;
@@ -10295,10 +10297,26 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     data16.fill(inside ? 65535 : 0, offset, offset + 3);
                     data16[offset + 3] = 65535;
                 }
+                if (evaluateSamples) {
+                    const pixel = pixelOffset + offset / 4;
+                    if (!regionContains(image.region!, pixel % imageWidth, Math.floor(pixel / imageWidth))) {
+                        // Native syncs the index cache before replacing pixels from the colormap.
+                        // Both cache syncs composite protected pixels and retain their alpha.
+                        const alphaActive = image.hasAlpha || image.alphaBlend !== false;
+                        blendMaskedPixel(evaluateSamples, evaluateSamples, evaluateSamples, offset, 1, 255, state.channels, alphaActive);
+                        blendMaskedPixel(evaluateSamples, evaluateSamples, out, offset, 1, 255, state.channels, alphaActive);
+                        for (let channel = 0; channel < 4; channel++) {
+                            const value = evaluateSamples[offset + channel]!;
+                            out[offset + channel] = clampByteVal(value);
+                            if (data16) data16[offset + channel] = Math.round(Math.max(0, Math.min(65535, value * 257)));
+                        }
+                    } else evaluateSamples.set(out.subarray(offset, offset + 4), offset);
+                }
             }
             const { hueSamples: ignoredHue, storedHueSamples: ignoredStored, evaluateSamples: ignoredEvaluate, magickColorspace: ignoredColorspace, pngPalette: ignoredPalette, pngIndices: ignoredIndices, ...metadata } = image;
-            return { ...metadata, data: out, ...(data16 ? { data16 } : {}), hasAlpha: false, channels: 3,
-                space: "srgb", isPalette: true, indexedColors: [0xff000000, 0xffffffff] };
+            return { ...metadata, data: out, ...(data16 ? { data16 } : {}), hasAlpha: image.hasAlpha, channels: image.hasAlpha ? 4 : 3,
+                space: "srgb", isPalette: true, indexedColors: [0xff000000, 0xffffffff],
+                ...(evaluateSamples ? { evaluateSamples, region: { ...image.region! } } : {}) };
         };
     }
     else if (token === "-black-threshold" || token === "-white-threshold") {

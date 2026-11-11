@@ -109,6 +109,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
     const copySource = ["src", "source", "copy"].includes(name), copyDestination = ["dst", "destination"].includes(name);
     const blend = name === "multiply" || name === "screen" || name === "difference" || name === "hardlight" || name === "overlay";
     const copyAlpha = name === "copyalpha" || name === "copyopacity";
+    const copyChannel = ["copyred", "copygreen", "copyblue"].indexOf(name);
     const linearCoverage = source.magickColorspace === "RGB" ||
         (source.space === "b-w" || source.space === "grey16") && source.gamma === 1 && source.magickColorspace !== "Gray";
     const { width, height } = source, cx = width / 2, cy = height / 2;
@@ -254,6 +255,10 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                     const color = backgroundInks ? backgroundInks[channel]! * 255 : channel === 0 ? background.r : channel === 1 ? background.g : background.b;
                     const selected = !channels || (channel === 0 ? channels.r : channel === 1 ? channels.g : channel === 2 ? channels.b : channels.k);
                     const sourceColor = protectedPixel ? Math.fround(samples[x * 4 + channel]! / pixelScale * intensity * 257) / 257 * pixelScale : samples[x * 4 + channel]!;
+                    if (copyChannel >= 0) {
+                        samples[x * 4 + channel] = round(selected && channel === copyChannel ? sourceColor : color * pixelScale);
+                        continue;
+                    }
                     if (selected && (name === "minussrc" || name === "minusdst" || name === "minus")) {
                         const source = sourceColor / pixelScale, destinationAlpha = background.a / 255;
                         // Subtract only in the overlap, retaining both outside contributions.
@@ -314,7 +319,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                 }
                 if (inks) for (let channel = 0; channel < 3; channel++)
                     data[x * 4 + channel] = Math.round((1 - inks[x * 4 + channel]!) * (1 - inks[x * 4 + 3]!) * 255 * scale);
-                data[x * 4 + 3] = quantum(((!channels || channels.a) && !copyDestination ? (copySource || copyAlpha ? foreground
+                data[x * 4 + 3] = quantum(((!channels || channels.a) && !copyDestination && copyChannel < 0 ? (copySource || copyAlpha ? foreground
                     : name === "difference" ? Math.abs(foreground - background.a / 255) : alpha) * 255 : background.a) * scale);
             }
             // Replace the working channels too, so later colorspace conversion sees the rendered vignette.

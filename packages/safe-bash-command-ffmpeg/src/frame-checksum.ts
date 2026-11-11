@@ -17,6 +17,22 @@ function videoTimeBase(track: MediaTrack): [number, number] {
   return [ticks / a, track.timescale / a];
 }
 
+function encoderClock(timeBase: number): [number, number] {
+  let value = timeBase;
+  let numerator = 1, denominator = 0, previousNumerator = 0, previousDenominator = 1;
+  while (Number.isFinite(value)) {
+    const whole = Math.floor(value);
+    const nextNumerator = whole * numerator + previousNumerator;
+    const nextDenominator = whole * denominator + previousDenominator;
+    if (nextNumerator > 2147483647 || nextDenominator > 2147483647) break;
+    [previousNumerator, numerator] = [numerator, nextNumerator];
+    [previousDenominator, denominator] = [denominator, nextDenominator];
+    if (Math.abs(numerator / denominator - timeBase) <= timeBase * 1e-12) break;
+    value = 1 / (value - whole);
+  }
+  return [numerator, denominator];
+}
+
 function videoBytes(frame: MediaVideoFrame, format: string, budget: MediaBudgetTracker): Uint8Array {
   const native = frame.native;
   if (native && native.rgba === frame.data && native.width === frame.width && native.height === frame.height) {
@@ -59,7 +75,8 @@ export function serializeFrameChecksum(
   videoCodec?: string,
   subtitleCodec?: string,
   bitexact = false,
-  copyTimestamps = false
+  copyTimestamps = false,
+  encoderTimeBases: ReadonlyMap<number, number> = new Map()
 ): Uint8Array {
   if (audioCodec === "copy") {
     doc = { ...doc, tracks: doc.tracks.map(track => track.type === "audio" &&
@@ -88,6 +105,14 @@ export function serializeFrameChecksum(
       return bytesToHex(hash.digest());
     }
   }
+  const clocks = doc.tracks.map((track, index): [number, number] => {
+    const copy = (track.type === "video" ? videoCodec : track.type === "subtitle" ? subtitleCodec : audioCodec) === "copy";
+    if (copy) return [1, track.timescale];
+    const selected = encoderTimeBases.get(index);
+    if (selected !== undefined) return encoderClock(selected);
+    return track.type === "video" ? videoTimeBase(track)
+      : [1, track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale];
+  });
   const lines = format === "framecrc" ? [] : ["#format: frame checksums", `#version: ${formatVersion}`, `#hash: ${name.toUpperCase()}`];
   for (const [index, track] of doc.tracks.entries()) {
     if ((track.type === "video" ? videoCodec : track.type === "subtitle" ? subtitleCodec : audioCodec) !== "copy") continue;
@@ -104,7 +129,7 @@ export function serializeFrameChecksum(
   for (const [index, track] of doc.tracks.entries()) {
     if (track.type === "video") {
       if (videoCodec && videoCodec !== "rawvideo" && videoCodec !== "copy") throw new Error(`Unsupported frame checksum video codec '${videoCodec}'`);
-      const [num, den] = videoCodec === "copy" ? [1, track.timescale] : videoTimeBase(track);
+      const [num, den] = clocks[index]!;
       const codec = track.codecDescriptions[0];
       lines.push(`#tb ${index}: ${num}/${den}`, `#media_type ${index}: video`,
         `#codec_id ${index}: ${videoCodec === "copy" ? codec?.codecName : "rawvideo"}`,
@@ -134,7 +159,8 @@ export function serializeFrameChecksum(
       ? layouts[mask] ?? `${channels} channels (${speakers.join("+")})`
       : (track.codecDescriptions[0]?.channels === channels ? track.codecDescriptions[0]?.channelLayout : undefined) ??
         ["0 channels", "mono", "stereo", "2.1", "4.0", "5.0", "5.1", "6.1", "7.1"][channels] ?? `${channels} channels`;
-    lines.push(`#tb ${index}: 1/${copy ? track.timescale : rate}`, `#media_type ${index}: audio`,
+    const [num, den] = clocks[index]!;
+    lines.push(`#tb ${index}: ${num}/${den}`, `#media_type ${index}: audio`,
       `#codec_id ${index}: ${copy ? track.codecDescriptions[0]?.codecName : audioCodec ?? "pcm_s16le"}`,
       `#sample_rate ${index}: ${track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? rate}`, `#channel_layout_name ${index}: ${layout}`);
   }
@@ -252,6 +278,8 @@ export function serializeFrameChecksum(
       dts: frame.ptsSeconds * track.timescale, pts: frame.ptsSeconds * track.timescale,
       duration: frame.durationSeconds * track.timescale, frame
     })) : decodedAudioPackets ?? (audioPackets.length ? audioPackets : payload.length ? [{ dts: 0, pts: 0, duration: track.duration, data: payload }] : []);
+    const [clockNum, clockDen] = clocks[index]!;
+    const clockRate = clockDen / clockNum;
     let nextAudioPts = 0;
     let previousDts = -Infinity;
     for (const packet of packets) {
@@ -260,9 +288,10 @@ export function serializeFrameChecksum(
       if (track.type === "subtitle" && track.codecDescriptions[0]?.codecName === "mov_text" &&
           packet === track.samples.at(-1) && packet.duration === 0 && "data" in packet &&
           (packet.data.length === 0 || packet.data.length === 2 && packet.data[0] === 0 && packet.data[1] === 0)) continue;
-      const duration = Math.round(packet.duration * rate / track.timescale);
+      const sampleCount = Math.round(packet.duration * rate / track.timescale);
+      const duration = Math.round(packet.duration * clockRate / track.timescale);
       const bytes = "frame" in packet ? videoBytes(packet.frame, track.codecDescriptions[0]?.pixFmt ?? "rgba", budget)
-        : track.type !== "audio" || decodedAudioPackets ? packet.data : payload.subarray(offset, offset + (copy ? packet.data.length : Math.min(payload.length - offset, Math.round(duration * bytesPerFrame))));
+        : track.type !== "audio" || decodedAudioPackets ? packet.data : payload.subarray(offset, offset + (copy ? packet.data.length : Math.min(payload.length - offset, Math.round(sampleCount * bytesPerFrame))));
       const size = bytes.length;
       offset += size;
       const digest = checksum(bytes);
@@ -276,8 +305,8 @@ export function serializeFrameChecksum(
             (codec?.codecName === "aac" && packet === track.samples[0] && packet.pts < mediaStart);
         if (skip || ("discardPadding" in packet && packet.discardPadding)) annotations += ", S=1,       10";
       }
-      let dts = Math.round((packet.dts + timestampOffset) * rate / track.timescale);
-      let pts = Math.round((packet.pts + timestampOffset) * rate / track.timescale);
+      let dts = Math.round((packet.dts + timestampOffset) * clockRate / track.timescale);
+      let pts = Math.round((packet.pts + timestampOffset) * clockRate / track.timescale);
       if (track.type === "audio" && !copy) {
         // The audio encoder fills missing timestamps before muxer corrections.
         if (Number.isNaN(pts)) pts = nextAudioPts;
@@ -290,7 +319,7 @@ export function serializeFrameChecksum(
         pts = Math.max(pts, dts);
       }
       previousDts = dts;
-      rows.push({ dts, rate,
+      rows.push({ dts, rate: clockRate,
         line: `${index}, ${String(dts).padStart(10)}, ${String(pts).padStart(10)}, ${String(duration).padStart(8)}, ${String(size).padStart(8)}, ${digest}${annotations}` });
     }
   }

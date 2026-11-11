@@ -8087,7 +8087,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let strftime = false;
         let atomicWriting = false;
         let framePts = false;
-        let encoderTimeBase: number | undefined;
+        const encoderTimeBaseOptions: [string, number | "demux" | "filter" | undefined][] = [];
 
         let outputFormat: string | undefined;
         let hashAlgorithm: string | undefined;
@@ -8461,18 +8461,27 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             else if (arg === "-reset_timestamps") resetTimestamps = enabled;
             else if (arg === "-write_empty_segments") writeEmptySegments = enabled;
             else atomicWriting = enabled;
-          } else if (["-enc_time_base", "-enc_time_base:v", "-enc_time_base:v:0", "-enc_time_base:V", "-enc_time_base:V:0", "-enc_time_base:0", "-enc_time_base:a", "-enc_time_base:a:0"].includes(arg)) {
+          } else if (arg === "-enc_time_base" || arg.startsWith("-enc_time_base:")) {
             const value = args[++i] ?? "";
-            const parts = value.split(value.includes(":") ? ":" : "/");
-            const numerator = Number(parts[0]);
-            const denominator = parts.length === 1 ? 1 : Number(parts[1]);
-            const timeBase = numerator / denominator;
-            if (parts.length > 2 || parts.some(part => !part.trim()) ||
-                !Number.isFinite(timeBase) || numerator < 0 || denominator <= 0) {
-              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid value for -enc_time_base: ${value}\n`), context.signal);
-              return { exitCode: 234 };
+            let timeBase: number | "demux" | "filter" | undefined;
+            if (value === "demux" || value === "filter") {
+              timeBase = value;
+            } else {
+              const parts = value.split(value.includes(":") ? ":" : "/");
+              const numerator = Number(parts[0]);
+              const denominator = parts.length === 1 ? 1 : Number(parts[1]);
+              timeBase = numerator / denominator;
+              if (parts.length > 2 || parts.some(part => !part.trim()) ||
+                  !Number.isFinite(timeBase) || numerator < 0 || denominator <= 0) {
+                await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid value for -enc_time_base: ${value}\n`), context.signal);
+                return { exitCode: 234 };
+              }
+              if (timeBase === 0) timeBase = undefined;
             }
-            if (!arg.startsWith("-enc_time_base:a")) encoderTimeBase = timeBase === 0 ? undefined : timeBase;
+            const specifier = arg === "-enc_time_base" ? "" : arg.slice("-enc_time_base:".length);
+            const selector = specifier.startsWith("V") ? `v${specifier.slice(1)}` : specifier;
+            metadataMapTracks([], selector);
+            encoderTimeBaseOptions.push([selector, timeBase]);
           } else if (arg === "-vsync") {
             const value = args[++i] ?? "";
             const mode = value.toLowerCase();
@@ -11583,6 +11592,25 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               };
             }
 
+            const encoderTimeBaseModes = new Map<number, number | "demux" | "filter" | undefined>();
+            for (const [specifier, timeBase] of encoderTimeBaseOptions) {
+              for (const track of metadataMapTracks(workingDoc.tracks, specifier)) {
+                encoderTimeBaseModes.set(workingDoc.tracks.indexOf(track), timeBase);
+              }
+            }
+            // Retain demux clocks before filters replace track timing.
+            const encoderTimeBases = new Map<number, number>();
+            for (const [index, track] of workingDoc.tracks.entries()) {
+              const selected = encoderTimeBaseModes.get(index);
+              const copy = (track.type === "video" ? videoCodec : audioCodec) === "copy";
+              if (selected === undefined || copy) continue;
+              const inputTimeBase = workingDoc.containerFormat === "image2" && track.type === "video"
+                ? track.decodedVideoFrames?.[0]?.durationSeconds ?? 1 / track.timescale : 1 / track.timescale;
+              encoderTimeBases.set(index, typeof selected === "number" ? selected
+                : selected === "filter" && track.type === "audio"
+                  ? 1 / (track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale) : inputTimeBase);
+            }
+
             // Apply video filters (`-vf`)
             if (vfFilters.length > 0) {
               if (features.videoTranscode === false || features.filterGraph === false) {
@@ -11642,6 +11670,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       ["auto", "-1", "cfr", "1"].includes(videoSync)) {
                     filtered = await synchronizeRawVideoFrames(filtered, budget, streamFrameLimits[index], context.signal);
                   }
+                  if (encoderTimeBaseModes.get(index) === "filter") encoderTimeBases.set(index, 1 / diagnostics.timescale);
                   const first = filtered[0];
                   const filteredTimescale = Math.max(t.timescale, diagnostics.timescale);
                   return {
@@ -16219,6 +16248,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       samples: exactSamples, decodedAudio: undefined };
                   }
 
+                  if (encoderTimeBaseModes.get(index) === "filter") {
+                    encoderTimeBases.set(index, targetRate !== origRate ? 1 / targetRate : audioTimeBase ?? 1 / targetRate);
+                  }
+
                   return {
                     ...t,
                     timescale: targetRate,
@@ -17033,6 +17066,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const frames = vTrack ? await ensureDecodedFrames(vTrack, workingDoc.timescale, budget, context.signal) : [];
               const limit = maxVideoFrames ?? Infinity;
               const duration = outputFps ? 1 / outputFps : frames[0]?.durationSeconds ?? 1;
+              const imageTimeBase = encoderTimeBases.get(workingDoc.tracks.indexOf(vTrack!)) ?? duration;
               const constantRate = ["auto", "-1", "cfr", "1"].includes(videoSync);
               let nextPts = (frames[0]?.ptsSeconds ?? 0) / duration;
               let idx = 0;
@@ -17063,7 +17097,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const f = copy < previousCopies && sourceIndex > 0 ? frames[sourceIndex - 1]! : source;
                   if (copy > 0) budget.recordFrame(f.width, f.height);
                   const number = framePts
-                    ? Math.round((constantRate ? nextPts * duration : source.ptsSeconds) / (encoderTimeBase ?? duration))
+                    ? Math.round((constantRate ? nextPts * duration : source.ptsSeconds) / imageTimeBase)
                     : idx + (outputStartNumber ?? 1);
                   const fileName = imageFileName(number);
                   const fullOutPath = resolvePath(context.cwd, fileName);
@@ -17202,7 +17236,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             const serializedBytes = checksumOutput
               ? (frameChecksumOutput
-                ? serializeFrameChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec, subtitleCodec, bitexact, copyTimestamps && !startAtZero)
+                ? serializeFrameChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec, subtitleCodec, bitexact, copyTimestamps && !startAtZero, encoderTimeBases)
                 : serializeChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "md5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget,
                   audioCodec === "flac" ? registry.findByFormatName("flac") : audioCodec === "adpcm_ima_wav" ? registry.findByFormatName("wav") : undefined,
                   { blockSize, trellis, compressionLevel, sampleFormat, frameSize, lpcType, channelMode, lpcPasses,

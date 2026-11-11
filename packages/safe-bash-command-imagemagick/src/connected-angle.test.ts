@@ -1,7 +1,8 @@
 import { expect, it } from "vitest";
 import { decodeImage, encodePngImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli, runConvertCliSync } from "./index.js";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 const data = new Uint8Array(14 * 10 * 4);
 for (let y = 0; y < 10; y++) for (let x = 0; x < 14; x++) {
@@ -52,9 +53,41 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
   expect(result.stdout).not.toContain("angle");
   expect([0, 15, 22, 58, 91].map(i => labels![i])).toEqual([0, 1, 2, 3, 4]);
  });
- for (const threshold of ["", "bad", "NaN", "Infinity", "1-2-3", "1=2"]) it(`rejects malformed angle ${threshold} (${mode})`, async () => {
+ it(`accepts a signed lower angle bound (${mode})`, async () => {
+  expect(await run("-45-45")).toEqual(await run("0-45"));
+  expect(await run("-45")).toEqual(await run("0"));
+ });
+ for (const threshold of ["", "bad", "NaN", "Infinity", "1-2-3", "1=2", "--45-45", "-45-45-60", "-bad-45"]) it(`rejects malformed angle ${threshold} (${mode})`, async () => {
   const { result } = await run(threshold);
   expect(result.exitCode).toBe(1);
   expect(result.stderr).toContain("Unsupported connected-components define");
+ });
+}
+
+for (const threshold of [undefined, "-45-45", "30-60"]) {
+ it(`magick matches native angle filtering for ${threshold ?? "unfiltered input"}`, async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/in.pgm", new TextEncoder().encode("P2\n5 5\n255\n0 0 0 0 0\n0 0 0 255 0\n0 0 255 0 0\n0 255 0 0 0\n0 0 0 0 0\n"));
+  await fs.writeFile("/out.raw", new TextEncoder().encode("KEEP"));
+  const args = createCommandArguments([
+   "in.pgm", "-define", "connected-components:verbose=true",
+   ...(threshold === undefined ? [] : ["-define", `connected-components:angle-threshold=${threshold}`]),
+   "-connected-components", "8", "-depth", "16", "-endian", "MSB", "gray:out.raw",
+  ]);
+  let stdout = "", stderr = "";
+  const result = await createMagickCommand().execute({
+   command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+   signal: new AbortController().signal,
+   stdin: (async function* () {})(),
+   stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
+   stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } },
+  });
+  expect(result.exitCode).toBe(0);
+  expect(stderr).toBe("");
+  expect(stdout.trim().split("\n").slice(1).map(row => Number(row.trim().split(":")[0])))
+   .toEqual(threshold === undefined ? [0, 1] : [0]);
+  const expected = new Uint8Array(50);
+  if (threshold === undefined) for (const pixel of [8, 12, 16]) expected[pixel * 2 + 1] = 1;
+  expect(await fs.readFile("/out.raw")).toEqual(expected);
  });
 }

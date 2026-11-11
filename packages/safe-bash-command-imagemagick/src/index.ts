@@ -11472,8 +11472,10 @@ if (t === "-intent" || t === "+intent") {
                     if (extra !== undefined || (value !== "increasing" && value !== "decreasing")) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     state.connectedSortOrder = value;
                 } else if (key === "connected-components:diameter-threshold" || key === "connected-components:eccentricity-threshold" || key === "connected-components:minor-axis-threshold" || key === "connected-components:perimeter-threshold" || key === "connected-components:angle-threshold" || key === "connected-components:major-axis-threshold" || key === "connected-components:circularity-threshold") {
-                    const bounds = value?.trim().split("-").map(part => part.trim()) ?? [];
-                    if (extra !== undefined || bounds.length < 1 || bounds.length > 2 || bounds.some(part => !part || !Number.isFinite(Number(part)) || Number(part) < 0)) throw new Error(`Unsupported connected-components define: ${defStr}`);
+                    const range = value?.trim() ?? "";
+                    const separator = range.indexOf("-", range.startsWith("-") ? 1 : 0);
+                    const bounds = (separator < 0 ? [range] : [range.slice(0, separator), range.slice(separator + 1)]).map(part => part.trim());
+                    if (extra !== undefined || bounds.some(part => !part || !Number.isFinite(Number(part)) || (Number(part) < 0 && key !== "connected-components:angle-threshold"))) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     const threshold = [Number(bounds[0]), bounds.length === 2 ? Number(bounds[1]) : Infinity];
                     if (key === "connected-components:angle-threshold") state.connectedAngleThreshold = threshold;
                     else if (key === "connected-components:major-axis-threshold") state.connectedMajorAxisThreshold = threshold;

@@ -4941,7 +4941,7 @@ function parsePosterizeLevels(value: string): number {
     return levels;
 }
 
-function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">, levelsRaw: number, dither: MagickState["dither"], diffusionAmount: number, channels: MagickState["channels"], signal?: AbortSignal, reducePalette = true, depthDither = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">, levelsRaw: number, dither: MagickState["dither"], diffusionAmount: number, channels: MagickState["channels"], signal?: AbortSignal, reducePalette = true, depthDither = false): Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined> {
     let cooperativeWork = 0;
     const levels = Math.max(2, Math.trunc(levelsRaw));
     const step = 255 / (levels - 1);
@@ -4983,7 +4983,8 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
                     next = steps.next();
                 }
             }
-            return;
+            // Retain the quantized colormap so later palette operations preserve alpha.
+            return next.value;
         }
         // Quantize Q16 samples directly; an eight-bit palette loses both input
         // precision and output levels. Transfers stay bounded in caller storage.

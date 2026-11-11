@@ -3257,8 +3257,8 @@ async function applyVideoFilterChain(
       current = await mapWork(current, async (f) => {
         const source = f.native;
         if (source?.rgba === f.data && source.width === f.width && source.height === f.height &&
-            (source.format === 34 || source.format === 104)) {
-          const channels = source.format === 34 ? 3 : 4;
+            [29, 30, 34, 104].includes(source.format)) {
+          const channels = source.format === 34 ? 3 : source.format === 104 ? 4 : 1;
           const stride = channels * 2;
           budget.recordFrame(pw, ph);
           budget.allocateMemory(pw * ph * (stride + 4) + 128);
@@ -3267,7 +3267,7 @@ async function applyVideoFilterChain(
           for (let pixel = 0; pixel < pw * ph; pixel++) {
             if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
             for (let channel = 0; channel < channels; channel++) {
-              view.setUint16(pixel * stride + channel * 2, col[channel]! * 257);
+              view.setUint16(pixel * stride + channel * 2, col[channel]! * 257, source.format === 30);
             }
           }
           for (let row = 0; row < f.height; row++) {

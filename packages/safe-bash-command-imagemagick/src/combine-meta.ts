@@ -28,7 +28,7 @@ export function* combineMetaPixelSteps(extent: Pick<RgbaImage, "width" | "height
             const channels = offset < count && source.space === "cmyk" ? inks?.subarray(offset, offset + 3)
                 ?? rgbToCmyk(samples[offset]! / maximum, samples[offset + 1]! / maximum, samples[offset + 2]! / maximum) : undefined;
             const value = channels ? magickIntensity(channels[0]!, channels[1]!, channels[2]!, intensity, 1, false) * maximum
-                : offset < count ? magickIntensity(samples[offset]!, samples[offset + 1]!, samples[offset + 2]!, intensity, maximum, source.magickColorspace === "RGB") : 0;
+                : offset < count ? magickIntensity(samples[offset]!, samples[offset + 1]!, samples[offset + 2]!, intensity, maximum, source.magickColorspace === "RGB" || source.magickColorspace === "scRGB") : 0;
             data[offset] = data[offset + 1] = data[offset + 2] = Math.round(Math.max(0, Math.min(maximum, value)));
             working[offset] = working[offset + 1] = working[offset + 2] = value * 255 / maximum;
             working[offset + 3] = 255;

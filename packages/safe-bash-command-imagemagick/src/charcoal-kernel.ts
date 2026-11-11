@@ -140,7 +140,7 @@ export function* charcoalPixelSteps(image: Pick<RgbaImage, "width" | "height" | 
                     for (let x = 0; x < count; x++) {
                         if (channels) {
                             for (let c = 0; c < 3; c++) if (mask[c]) histograms[c]![Math.max(0, Math.min(65535, Math.round(257 * sums[x * 3 + c]!)))]!++;
-                        } else histograms[0]![Math.max(0, Math.min(65535, Math.round(257 * magickIntensity(sums[x * 3]!, sums[x * 3 + 1]!, sums[x * 3 + 2]!, intensity, 255, image.magickColorspace === "RGB"))))]!++;
+                        } else histograms[0]![Math.max(0, Math.min(65535, Math.round(257 * magickIntensity(sums[x * 3]!, sums[x * 3 + 1]!, sums[x * 3 + 2]!, intensity, 255, image.magickColorspace === "RGB" || image.magickColorspace === "scRGB"))))]!++;
                     }
                 } else {
                     const data = new Uint16Array(count * 4);
@@ -154,7 +154,7 @@ export function* charcoalPixelSteps(image: Pick<RgbaImage, "width" | "height" | 
                             negated[c] = mask[c] ? (255 - normalized) * (1 - protection[x]!) + normalized * protection[x]! : normalized;
                         }
                         // Grayscale collapses the color planes even where the mask protects the red sample.
-                        const gray = magickIntensity(negated[0]!, negated[1]!, negated[2]!, intensity, 255, image.magickColorspace === "RGB") * (1 - protection[x]!) + negated[0]! * protection[x]!;
+                        const gray = magickIntensity(negated[0]!, negated[1]!, negated[2]!, intensity, 255, image.magickColorspace === "RGB" || image.magickColorspace === "scRGB") * (1 - protection[x]!) + negated[0]! * protection[x]!;
                         data.fill(Math.min(65535, Math.round(gray * 257 * (intensity === "ms" ? 65535 : 1))), x * 4, x * 4 + 3); data[x * 4 + 3] = 65535;
                     }
                     yield { kind: "write", highDepth: true, position: (y * width + left) * 4, data: new Uint8Array(data.buffer) };

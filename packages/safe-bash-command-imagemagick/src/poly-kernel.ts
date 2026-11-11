@@ -49,7 +49,7 @@ export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, 
     const canvas = sequenceCanvas(inputs), cmyk = canvas.space === "cmyk";
     const hasAlpha = inputs.some(image => image.hasAlpha);
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
-    const hue = !!canvas.magickColorspace && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "Gray" && !cmyk;
+    const hue = !!canvas.magickColorspace && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "scRGB" && canvas.magickColorspace !== "Gray" && !cmyk;
     const sourceChannels = inputs.some(image => image[magickInput]?.channelMask) ? inputs.map(image => {
         const mask = image[magickInput]?.channelMask;
         return mask ? [mask.r, mask.g, mask.b, mask.a, mask.k === true] : undefined;

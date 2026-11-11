@@ -1983,7 +1983,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
 }
 
 function formatRgbPixel(channels: readonly number[], colorspace: string | undefined, precision?: number): string {
-  const name = colorspace === "RGB" ? "rgb" : "srgb";
+  const name = colorspace === "scRGB" ? "scrgb" : colorspace === "RGB" ? "rgb" : "srgb";
   const rgb = channels.slice(0, 3);
   const fractional = rgb.some(value => Math.abs(value - Math.round(value)) > 1e-9);
   const color = rgb.map(value => fractional ? `${formatSignificantMetric(value * 100 / 255, precision)}%` : String(Math.round(value))).join(",");
@@ -2118,7 +2118,7 @@ function* formatTxtEnumerationSteps(img: RgbaImage, depth = img.bitsPerSample ??
         return lines.join("\n") + "\n";
     }
     const maximum = ["HCL", "HCLp", "HSI", "HSL", "HSB", "HSV", "HWB", "XYZ", "CIELab"].includes(img.magickColorspace ?? "") && (depth ?? img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) <= 8 ? 255 : 65535;
-    const colorspace = `${img.space === "b-w" || img.space === "grey16" ? img.gamma === 1 && img.magickColorspace !== "Gray" ? "lineargray" : "gray" : img.magickColorspace === "RGB" ? "rgb" : "srgb"}${img.hasAlpha ? "a" : ""}`;
+    const colorspace = `${img.space === "b-w" || img.space === "grey16" ? img.gamma === 1 && img.magickColorspace !== "Gray" ? "lineargray" : "gray" : img.magickColorspace === "scRGB" ? "scrgb" : img.magickColorspace === "RGB" ? "rgb" : "srgb"}${img.hasAlpha ? "a" : ""}`;
     const srgbDepth = img.space === "srgb" && !img.magickColorspace;
     const gray16 = (img.space === "b-w" || img.space === "grey16") && img.data16 !== undefined && (depth ?? img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8;
     let work = 0;
@@ -2144,7 +2144,7 @@ function* formatTxtEnumerationSteps(img: RgbaImage, depth = img.bitsPerSample ??
             const g = img.data[idx + 1]!;
             const b = img.data[idx + 2]!;
             const a = img.data[idx + 3]!;
-            lines.push(appendEnumerationMetaSamples((img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HSI" || img.magickColorspace === "HWB" || img.magickColorspace === "LMS" || img.magickColorspace === "CAT02LMS" || img.magickColorspace === "XYZ" || img.magickColorspace === "DisplayP3" || img.magickColorspace === "xyY" || img.magickColorspace === "ProPhoto" || img.magickColorspace === "Jzazbz" || (img.magickColorspace === "YPbPr" || img.magickColorspace === "YCbCr") || img.magickColorspace === "Rec601YCbCr" || img.magickColorspace === "YCC" || img.magickColorspace === "Rec709YCbCr" || img.magickColorspace === "Log" || img.magickColorspace === "Adobe98" || img.magickColorspace === "OHTA" || img.magickColorspace === "CMY" || img.magickColorspace === "YUV" || img.magickColorspace === "YIQ" || img.magickColorspace === "YDbDr" || img.magickColorspace === "Oklab" || img.magickColorspace === "Luv" || img.magickColorspace === "Oklch" || img.magickColorspace === "LCH" || img.magickColorspace === "LCHab" || img.magickColorspace === "LCHuv" || img.magickColorspace === "CIELab") ? `${x},${y}: ${hueTextPixel(Array.from(img.data16?.subarray(idx, idx + 4) ?? img.data.subarray(idx, idx + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace, (img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSI" || img.magickColorspace === "HWB" || img.magickColorspace === "LMS" || img.magickColorspace === "CAT02LMS" || img.magickColorspace === "XYZ" || img.magickColorspace === "DisplayP3" || img.magickColorspace === "xyY" || img.magickColorspace === "ProPhoto" || img.magickColorspace === "Jzazbz" || (img.magickColorspace === "YPbPr" || img.magickColorspace === "YCbCr") || img.magickColorspace === "Rec601YCbCr" || img.magickColorspace === "YCC" || img.magickColorspace === "Rec709YCbCr" || img.magickColorspace === "Log" || img.magickColorspace === "Adobe98" || img.magickColorspace === "OHTA" || img.magickColorspace === "CMY" || img.magickColorspace === "YUV" || img.magickColorspace === "YIQ" || img.magickColorspace === "YDbDr" || img.magickColorspace === "Oklab" || img.magickColorspace === "Luv" || img.magickColorspace === "Oklch" || img.magickColorspace === "LCH" || img.magickColorspace === "LCHab" || img.magickColorspace === "LCHuv" || img.magickColorspace === "CIELab") && img.hueSamples ? Array.from(img.hueSamples.subarray(idx, idx + 4)) : undefined, maximum)}` : pixelEnumerationLine(x, y, r, g, b, a, colorspace, img.evaluateSamples?.subarray(idx, idx + 4)), metaSamples, idx, img.magickColorspace && img.magickColorspace !== "RGB" ? maximum : 255));
+            lines.push(appendEnumerationMetaSamples((img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HSI" || img.magickColorspace === "HWB" || img.magickColorspace === "LMS" || img.magickColorspace === "CAT02LMS" || img.magickColorspace === "XYZ" || img.magickColorspace === "DisplayP3" || img.magickColorspace === "xyY" || img.magickColorspace === "ProPhoto" || img.magickColorspace === "Jzazbz" || (img.magickColorspace === "YPbPr" || img.magickColorspace === "YCbCr") || img.magickColorspace === "Rec601YCbCr" || img.magickColorspace === "YCC" || img.magickColorspace === "Rec709YCbCr" || img.magickColorspace === "Log" || img.magickColorspace === "Adobe98" || img.magickColorspace === "OHTA" || img.magickColorspace === "CMY" || img.magickColorspace === "YUV" || img.magickColorspace === "YIQ" || img.magickColorspace === "YDbDr" || img.magickColorspace === "Oklab" || img.magickColorspace === "Luv" || img.magickColorspace === "Oklch" || img.magickColorspace === "LCH" || img.magickColorspace === "LCHab" || img.magickColorspace === "LCHuv" || img.magickColorspace === "CIELab") ? `${x},${y}: ${hueTextPixel(Array.from(img.data16?.subarray(idx, idx + 4) ?? img.data.subarray(idx, idx + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace, (img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSI" || img.magickColorspace === "HWB" || img.magickColorspace === "LMS" || img.magickColorspace === "CAT02LMS" || img.magickColorspace === "XYZ" || img.magickColorspace === "DisplayP3" || img.magickColorspace === "xyY" || img.magickColorspace === "ProPhoto" || img.magickColorspace === "Jzazbz" || (img.magickColorspace === "YPbPr" || img.magickColorspace === "YCbCr") || img.magickColorspace === "Rec601YCbCr" || img.magickColorspace === "YCC" || img.magickColorspace === "Rec709YCbCr" || img.magickColorspace === "Log" || img.magickColorspace === "Adobe98" || img.magickColorspace === "OHTA" || img.magickColorspace === "CMY" || img.magickColorspace === "YUV" || img.magickColorspace === "YIQ" || img.magickColorspace === "YDbDr" || img.magickColorspace === "Oklab" || img.magickColorspace === "Luv" || img.magickColorspace === "Oklch" || img.magickColorspace === "LCH" || img.magickColorspace === "LCHab" || img.magickColorspace === "LCHuv" || img.magickColorspace === "CIELab") && img.hueSamples ? Array.from(img.hueSamples.subarray(idx, idx + 4)) : undefined, maximum)}` : pixelEnumerationLine(x, y, r, g, b, a, colorspace, img.evaluateSamples?.subarray(idx, idx + 4)), metaSamples, idx, img.magickColorspace && img.magickColorspace !== "RGB" && img.magickColorspace !== "scRGB" ? maximum : 255));
         }
     }
     return lines.join("\n") + "\n";
@@ -2152,8 +2152,8 @@ function* formatTxtEnumerationSteps(img: RgbaImage, depth = img.bitsPerSample ??
 
 function* formatHistogramOutputSteps(img: RgbaImage, precision = 6): Generator<void, string, void> {
     const source = img.space === "cmyk" || img.space === "b-w" || img.space === "grey16";
-    const colorspace = img.space === "cmyk" ? "cmyk" : source ? img.gamma === 1 && img.magickColorspace !== "Gray" ? "lineargray" : "gray" : img.magickColorspace === "RGB" ? "rgb" : "srgb";
-    const floating = source || img.space === "srgb" && img.evaluateSamples !== undefined && (!img.magickColorspace || img.magickColorspace === "RGB");
+    const colorspace = img.space === "cmyk" ? "cmyk" : source ? img.gamma === 1 && img.magickColorspace !== "Gray" ? "lineargray" : "gray" : img.magickColorspace === "scRGB" ? "scrgb" : img.magickColorspace === "RGB" ? "rgb" : "srgb";
+    const floating = source || img.space === "srgb" && img.evaluateSamples !== undefined && (!img.magickColorspace || (img.magickColorspace === "RGB" || img.magickColorspace === "scRGB"));
     const hue = (img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HSI" || img.magickColorspace === "HWB" || img.magickColorspace === "LMS" || img.magickColorspace === "CAT02LMS" || img.magickColorspace === "XYZ" || img.magickColorspace === "DisplayP3" || img.magickColorspace === "xyY" || img.magickColorspace === "ProPhoto" || img.magickColorspace === "Jzazbz" || (img.magickColorspace === "YPbPr" || img.magickColorspace === "YCbCr") || img.magickColorspace === "Rec601YCbCr" || img.magickColorspace === "YCC" || img.magickColorspace === "Rec709YCbCr" || img.magickColorspace === "Log" || img.magickColorspace === "Adobe98" || img.magickColorspace === "OHTA" || img.magickColorspace === "CMY" || img.magickColorspace === "YUV" || img.magickColorspace === "YIQ" || img.magickColorspace === "YDbDr" || img.magickColorspace === "Oklab" || img.magickColorspace === "Luv" || img.magickColorspace === "Oklch" || img.magickColorspace === "LCH" || img.magickColorspace === "LCHab" || img.magickColorspace === "LCHuv" || img.magickColorspace === "CIELab") ? img.magickColorspace : undefined;
     let work = 0;
     const counts = new Map<number | bigint, number>();
@@ -7029,7 +7029,7 @@ function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlph
 
 function* overCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "magickColorspace" | "space">, frame: Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha">, left: number, top: number, highDepth: boolean, alphaSource = false, channels?: MagickState["channels"]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = canvas.space === "cmyk", gray = canvas.space === "b-w" || canvas.space === "grey16";
-    const hue = cmyk || canvas.magickColorspace !== undefined && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "Gray";
+    const hue = cmyk || canvas.magickColorspace !== undefined && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "scRGB" && canvas.magickColorspace !== "Gray";
     const sourceCmyk = frame.space === "cmyk", sourceHue = sourceCmyk || !cmyk && hue;
     const quantum = hue ? 1 : 255;
     const selected = channels ? [channels.r, channels.g, channels.b, channels.k === true] : undefined;
@@ -8810,7 +8810,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 const working = Float64Array.from(samples, value => Math.fround(value * scale) / (pixels.hueSamples ? 65535 : 257));
                 for (let i = 0; i < data.length; i += 4) {
                     if (i % 65536 === 0) yield;
-                    const intensity = magickIntensity(Math.fround(samples[i]! * scale), Math.fround(samples[i + 1]! * scale), Math.fround(samples[i + 2]! * scale), method, 65535, pixels.magickColorspace === "RGB") / 257;
+                    const intensity = magickIntensity(Math.fround(samples[i]! * scale), Math.fround(samples[i + 1]! * scale), Math.fround(samples[i + 2]! * scale), method, 65535, pixels.magickColorspace === "RGB" || pixels.magickColorspace === "scRGB") / 257;
                     const tone = magickSepiaTone(intensity, threshold, gray);
                     const region = image.region, pixel = pixelOffset + i / 4;
                     const protectedPixel = region && !regionContains(region, pixel % image.width, Math.floor(pixel / image.width));
@@ -9073,6 +9073,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             throw new Error(`unsupported grayscale method '${tokens[i] ?? ""}'`);
         }
         if (space === "transparent") space = "srgb";
+        const linearSpace = space === "scrgb" ? "scRGB" : "RGB";
         if (space === "scrgb") space = "rgb";
         evaluate = (paletteType && !bilevelAlpha) || imageType === undefined && (token === "-grayscale" || ["cmyk", "prophoto", "adobe98", "displayp3", "log", "rgb", "srgb", "gray", "grey", "lineargray", "rec709luma", "rec601luma", "lab", "cielab", "luv", "oklch", "lch", "lchab", "lchuv", "oklab", "ohta", "yuv", "yiq", "ydbdr", "ycbcr", "rec601ycbcr"].includes(space));
         const luminance = space === "lineargray" || space === "rec601luminance" || space === "rec709luminance";
@@ -9081,21 +9082,19 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 ...(imageType === undefined ? {} : { inputType: imageType }),
                 imageType: imageType === "bilevel" ? "Bilevel" : imageType === "grayscale" ? "Grayscale" : imageType === "grayscalealpha" ? "GrayscaleAlpha" : undefined
             } };
-            // A declared scRGB image has linear RGB samples; conversion uses the RGB path.
-            if (image.magickColorspace === "scRGB") image = { ...image, magickColorspace: "RGB" };
-            if (space === "srgb" && (image.space === "b-w" || image.space === "grey16" || image.magickColorspace === "RGB")) image = { ...image, isPalette: false };
+            if (space === "srgb" && (image.space === "b-w" || image.space === "grey16" || (image.magickColorspace === "RGB" || image.magickColorspace === "scRGB"))) image = { ...image, isPalette: false };
             const linearGray = (image.space === "b-w" || image.space === "grey16") && image.gamma === 1 && image.magickColorspace !== "Gray";
             if (token === "-colorspace" && image.magickColorspace === "Gray" && (space === "gray" || space === "grey")) return image;
             if (linearGray && space === "lineargray") return image;
-            if (linearGray && space === "rgb") return { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3, magickColorspace: "RGB" };
-            if (image.magickColorspace === "RGB" && space === "rgb") return image;
+            if (linearGray && space === "rgb") return { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3, magickColorspace: linearSpace };
+            if ((image.magickColorspace === "RGB" || image.magickColorspace === "scRGB") && space === "rgb") return { ...image, magickColorspace: linearSpace };
             if ((image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") && (space === image.magickColorspace.toLowerCase() || (space === "lab" && image.magickColorspace === "CIELab"))) return image;
             if (token !== "-grayscale" && (image.magickColorspace === "Oklab" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Luv" || image.magickColorspace === "CIELab")) image = { ...(yield* convertHuePixels(image, "sRGB")), gamma: 1 / 2.2 };
             if (token !== "-grayscale" && image.space === "cmyk" && space !== "cmyk") {
                 const { hueSamples: ignoredCmyk, storedHueSamples: ignoredStoredCmyk, ...rgb } = image;
                 image = { ...rgb, space: "srgb", gamma: 1 / 2.2, channels: image.hasAlpha ? 4 : 3 };
             }
-            if (token !== "-grayscale" && space !== "lineargray" && (space === "rgb" || !paletteType && image.magickColorspace === "RGB" || linearGray)) {
+            if (token !== "-grayscale" && space !== "lineargray" && (space === "rgb" || !paletteType && (image.magickColorspace === "RGB" || image.magickColorspace === "scRGB") || linearGray)) {
                 const linearize = space === "rgb";
                 const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
                 const input = image.evaluateSamples ?? image.data16 ?? image.data, range = image.evaluateSamples ? 255 : image.data16 ? 65535 : 255;
@@ -9113,7 +9112,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     data16[idx] = Math.round(Math.max(0, Math.min(1, value)) * 65535);
                 }
                 const { magickColorspace: ignored, ...metadata } = image;
-                image = { ...metadata, data, data16, evaluateSamples, space: "srgb", gamma: linearize ? 1 : 1 / 2.2, channels: image.hasAlpha ? 4 : 3, ...(linearize ? { magickColorspace: "RGB" as const } : {}) };
+                image = { ...metadata, data, data16, evaluateSamples, space: "srgb", gamma: linearize ? 1 : 1 / 2.2, channels: image.hasAlpha ? 4 : 3, ...(linearize ? { magickColorspace: linearSpace } : {}) };
                 if (linearize) return image;
             }
             if (!evaluate) {
@@ -9188,7 +9187,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     g = 65535 * (g / 65535 <= 0.04045 ? g / 65535 / 12.92 : ((g / 65535 + 0.055) / 1.055) ** 2.4);
                     b = 65535 * (b / 65535 <= 0.04045 ? b / 65535 / 12.92 : ((b / 65535 + 0.055) / 1.055) ** 2.4);
                 }
-                if ((space === "rec601luma" || space === "rec709luma") && image.magickColorspace === "RGB") {
+                if ((space === "rec601luma" || space === "rec709luma") && (image.magickColorspace === "RGB" || image.magickColorspace === "scRGB")) {
                     r = 65535 * (r / 65535 <= 0.0031308 ? r / 65535 * 12.92 : 1.055 * (r / 65535) ** (1 / 2.4) - 0.055);
                     g = 65535 * (g / 65535 <= 0.0031308 ? g / 65535 * 12.92 : 1.055 * (g / 65535) ** (1 / 2.4) - 0.055);
                     b = 65535 * (b / 65535 <= 0.0031308 ? b / 65535 * 12.92 : 1.055 * (b / 65535) ** (1 / 2.4) - 0.055);
@@ -9449,7 +9448,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (++pixelWork % 16384 === 0)
                         yield;
-                    const intensity = magickIntensity(samples[idx]! * scale, samples[idx + 1]! * scale, samples[idx + 2]! * scale, state.intensity, 65535, im.magickColorspace === "RGB");
+                    const intensity = magickIntensity(samples[idx]! * scale, samples[idx + 1]! * scale, samples[idx + 2]! * scale, state.intensity, 65535, im.magickColorspace === "RGB" || im.magickColorspace === "scRGB");
                     if (mode === "shape") {
                         for (let channel = 0; channel < 3; channel++) {
                             evaluateSamples[idx + channel] = background[channel]!;
@@ -9668,7 +9667,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const levels = parsePosterizeLevels(tokens[++i] ?? "");
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = function* (image) {
-            const working = image.hueSamples !== undefined || image.magickColorspace === "RGB" && (!state.dither || levels < 2 || Math.trunc(levels) > 16);
+            const working = image.hueSamples !== undefined || (image.magickColorspace === "RGB" || image.magickColorspace === "scRGB") && (!state.dither || levels < 2 || Math.trunc(levels) > 16);
             // Posterize replaces the colormap, including unused input PNG entries.
             const colormap: number[][] = [];
             const { pngPalette: ignoredPalette, pngIndices: ignoredIndices, indexedColors: ignoredIndexedColors, indexedColorSamples: ignoredSamples, ...unindexed } = image;
@@ -9685,13 +9684,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             // Dither assigns the palette in the working colorspace; only the
             // undithered quantization path converts it back to sRGB.
             if (!working || state.dither && levels >= 2 && Math.trunc(levels) <= 16) return output;
-            if (image.magickColorspace !== "RGB") {
+            if (image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB") {
                 output = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(output);
                 // Palette conversion bounds every channel before quantization and later arithmetic.
                 output = yield* parseMagickPixelOperation(["-clamp"], { ...state, channelExplicit: false }, 0, signal)!.apply(output);
             }
             output = yield* applyMagickRasterSteps(output, quantizePixelSteps(output.data.length, Math.min(65536, Math.max(2, Math.trunc(levels)) ** 3), false, 0, output.hasAlpha, false, undefined, undefined, true), signal);
-            if (image.magickColorspace !== "RGB" || !output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
+            if (image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" || !output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
             const { indexedColors: ignoredColors, ...pixels } = output;
             output = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(pixels);
             return { ...output, isPalette: true, magickColorspace: "Gray", space: "b-w", channels: output.hasAlpha ? 2 : 1 };
@@ -9943,9 +9942,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (cmyk) mask.splice(3, 0, !explicit || channels.k === true);
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
-                const intensity = (state.intensity === "rec709luma" || state.intensity === "rec601luma") && image.magickColorspace !== "RGB" && samples[idx] === samples[idx + 1] && samples[idx] === samples[idx + 2]
+                const intensity = (state.intensity === "rec709luma" || state.intensity === "rec601luma") && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && samples[idx] === samples[idx + 1] && samples[idx] === samples[idx + 2]
                     ? samples[idx]! * quantumScale
-                    : magickIntensity(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!, state.intensity, hueSamples ? 1 : 255, image.magickColorspace === "RGB") * quantumScale;
+                    : magickIntensity(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!, state.intensity, hueSamples ? 1 : 255, image.magickColorspace === "RGB" || image.magickColorspace === "scRGB") * quantumScale;
                 for (let channel = 0; channel < mask.length; channel++) {
                     if (!mask[channel]) continue;
                     const value = explicit ? cmyk && channel === 4 ? evaluateSamples[idx + 3]! * 257 : samples[idx + channel]! * quantumScale : intensity;
@@ -10025,7 +10024,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         }
                     }
                 } else {
-                    const intensity = magickIntensity(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!, state.intensity, maximum, image.magickColorspace === "RGB") * quantumScale;
+                    const intensity = magickIntensity(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!, state.intensity, maximum, image.magickColorspace === "RGB" || image.magickColorspace === "scRGB") * quantumScale;
                     const result = intensity > value ? 255 : 0;
                     samples[idx] = samples[idx + 1] = samples[idx + 2] = result ? maximum : 0;
                     if (hueSamples) hueSamples[idx] = hueSamples[idx + 1] = hueSamples[idx + 2] = result ? 1 : 0;
@@ -10779,7 +10778,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (++pixelWork % 16384 === 0)
                     yield;
-                const intensity = magickIntensity(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!, state.intensity, maximum, im.magickColorspace === "RGB") * quantumScale;
+                const intensity = magickIntensity(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!, state.intensity, maximum, im.magickColorspace === "RGB" || im.magickColorspace === "scRGB") * quantumScale;
                 for (let channel = 0; channel < 4; channel++) {
                     const value = channels ? samples[idx + channel]! * quantumScale : intensity;
                     if (mask[channel] && (isBlack ? value < cutoffs[channel]! : value > cutoffs[channel]!)) {
@@ -12783,7 +12782,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const cmykStretch = image.space === "cmyk" && (t === "-contrast-stretch" || t === "-linear-stretch");
                 const histogram = sums ? [] : t === "-auto-level" ? Array.from({ length: image.space === "cmyk" ? 5 : 4 }, () => new Float64Array([Infinity, -Infinity])) : Array.from({ length: cmykStretch || operation.sepiaThreshold !== undefined && image.space === "cmyk" ? 6 : analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(cmykStretch || channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.data16 ? 65536 : 256));
                 const selection = t === "-auto-gamma" ? yield* readMaskSelectionSteps(image, 0, image.data.length) : undefined;
-                yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram, state.intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, 0, state.channels, cmykStretch || operation.sepiaThreshold !== undefined || t === "-auto-level" || t === "-auto-threshold" && image.space === "cmyk" || t === "-equalize" || sums ? image.hueSamples ?? image.evaluateSamples : undefined, !!image.hueSamples, image.space === "cmyk", sums, t === "-auto-level");
+                yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram, state.intensity, image.magickColorspace === "RGB" || image.magickColorspace === "scRGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, 0, state.channels, cmykStretch || operation.sepiaThreshold !== undefined || t === "-auto-level" || t === "-auto-threshold" && image.space === "cmyk" || t === "-equalize" || sums ? image.hueSamples ?? image.evaluateSamples : undefined, !!image.hueSamples, image.space === "cmyk", sums, t === "-auto-level");
                 const metaChannels = (t === "-auto-level" || sums) && state.channelDefault ? image.metaChannels : undefined;
                 // Extra planes contribute one channel to the default shared range or mean.
                 if (metaChannels) for (const plane of metaChannels) {
@@ -12826,7 +12825,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expandedAmount = amount ?? parseMagickCycleAmount(yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties }));
-                if (image.isPalette === false && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "Gray") image = yield* convertHuePixels(image, "sRGB");
+                if (image.isPalette === false && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray") image = yield* convertHuePixels(image, "sRGB");
                 const output = yield* applyMagickRasterSteps(image, cyclePixelSteps(image, expandedAmount, state.channels, !!image.writeMask), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha }, image.writeMask ? [image, image.writeMask] : [image]);
                 // Direct images are clipped during palette conversion inside the cycle kernel.
                 if (image.region && !output.hasAlpha && !(image.isPalette !== false && (image.indexedColors?.length || image.pngPalette?.bytes.length))) output.region = { ...image.region };
@@ -12860,7 +12859,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const colorspace = state.quantizeColorspace;
                 if (colorspace && colorspace !== "gray") image = yield* parseMagickPixelOperation(["-colorspace", colorspace === "cmyk" ? "sRGB" : colorspace], state, 0, signal)!.apply(image);
                 else if (image.space === "cmyk") image = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(image);
-                else if (image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "Gray") image = yield* convertHuePixels(image, "sRGB");
+                else if (image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray") image = yield* convertHuePixels(image, "sRGB");
                 const working = colorspace === "cmyk" ? "cmyk" : colorspace && colorspace !== "gray" && image.hueSamples ? "hue" : undefined;
                 const { hueSamples: ignoredHue, ...pixels } = image;
                 const output = yield* applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, count, state.quantizeColorspace === "gray", state.treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, state.dither ? { width: image.width, height: image.height, method: state.dither, diffusionAmount: state.diffusionAmount ?? 1 } : undefined, true, working), signal, image, [image]);
@@ -13601,7 +13600,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 : yield* parseInputOperandSteps(palSpec, files, state, stdinBytes, analysis);
             if (!palImg) throw new Error(`unable to open image '${palSpec}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                if (t === "-remap" && im.magickColorspace === "RGB") {
+                if (t === "-remap" && (im.magickColorspace === "RGB" || im.magickColorspace === "scRGB")) {
                     const { evaluateSamples: ignoredSamples, ...converted } = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(im);
                     im = converted;
                 }
@@ -16277,7 +16276,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!source) return;
                 let image = source;
                 const expandedAmount = amount ?? parseMagickCycleAmount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images));
-                if (image.isPalette === false && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "Gray") image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
+                if (image.isPalette === false && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray") image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
                 const output = await transformStoredMagickRaster(image, backend, cyclePixelSteps(image, expandedAmount, cycleChannels, !!image.storedWriteMask), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha }, image.storedWriteMask ? [image, image.storedWriteMask] : [image]);
                 if (image.region && !output.hasAlpha && !(image.isPalette !== false && (image.indexedColors?.length || image.pngPalette?.bytes.length))) output.region = { ...image.region };
                 if (image.storedWriteMask && !output.hasAlpha && !(image.isPalette !== false && (image.indexedColors?.length || image.pngPalette?.bytes.length))) output.storedWriteMask = { ...image.storedWriteMask };
@@ -16319,7 +16318,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const count = quantization.count = colors ?? parseMagickColorCount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image: source, storage: backend.storage }), signal));
                 if (conversion) image = await transformStoredMagickPixels(image, backend, conversion, signal);
                 else if (image.space === "cmyk") image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal);
-                else if (image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "Gray") image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
+                else if (image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray") image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
                 const working = colorspace === "cmyk" ? "cmyk" : colorspace && colorspace !== "gray" && image.storedHueSamples !== undefined ? "hue" : undefined;
                 const output = await transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, count, colorspace === "gray", treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true, working), signal);
                 if (working === "cmyk") return { ...output, space: "cmyk", channels: 4 };
@@ -16353,7 +16352,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expandedLevels = levels ?? parsePosterizeLevels(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal));
-                const working = image.storedHueSamples !== undefined || image.magickColorspace === "RGB" && (!dither || expandedLevels < 2 || Math.trunc(expandedLevels) > 16);
+                const working = image.storedHueSamples !== undefined || (image.magickColorspace === "RGB" || image.magickColorspace === "scRGB") && (!dither || expandedLevels < 2 || Math.trunc(expandedLevels) > 16);
                 // Posterize replaces the colormap, including unused input PNG entries.
                 const colormap: number[][] = [];
                 const { pngPalette: ignoredPalette, storedPngIndices: ignoredIndices, indexedColors: ignoredIndexedColors, indexedColorSamples: ignoredSamples, ...unindexed } = image;
@@ -16367,13 +16366,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 if (!working && image.region && expandedLevels >= 2 && (!dither || Math.trunc(expandedLevels) > 16)) output.region = { ...image.region };
                 if (!working || dither && expandedLevels >= 2 && Math.trunc(expandedLevels) <= 16) return output;
-                if (image.magickColorspace !== "RGB") {
+                if (image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB") {
                     output = await transformStoredMagickPixels(output, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal);
                     // Palette conversion bounds every channel before quantization and later arithmetic.
                     output = await transformStoredMagickPixels(output, backend, parseMagickPixelOperation(["-clamp"], { ...state, channelExplicit: false }, 0, signal)!, signal);
                 }
                 output = await transformStoredMagickRaster(output, backend, quantizePixelSteps(output.width * output.height * 4, Math.min(65536, Math.max(2, Math.trunc(expandedLevels)) ** 3), false, 0, output.hasAlpha, false, undefined, undefined, true), signal);
-                if (image.magickColorspace !== "RGB" || !output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
+                if (image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" || !output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
                 const { indexedColors: ignoredColors, ...pixels } = output;
                 output = await transformStoredMagickPixels(pixels, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal);
                 return { ...output, isPalette: true, magickColorspace: "Gray", space: "b-w", channels: output.hasAlpha ? 2 : 1 };
@@ -16573,7 +16572,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }), signal) : undefined;
                         const workingBytes = workingPosition !== undefined ? await backend.storage.read(workingPosition + offset * 8, Math.min(chunkSize, size - offset) * 8) : undefined;
                         const workingSamples = workingBytes ? new Float64Array(workingBytes.buffer.slice(workingBytes.byteOffset, workingBytes.byteOffset + workingBytes.byteLength)) : undefined;
-                        await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, plane === image ? histogram : [histogram[0]!], intensity, plane === image && image.magickColorspace === "RGB", selection, operation.sepiaThreshold, plane.space === "b-w" || plane.space === "grey16", plane, offset / 4, settings.channels, workingSamples, plane.storedHueSamples !== undefined, plane.space === "cmyk", planeSums, token === "-auto-level"), signal);
+                        await drainSteps(accumulateMagickHistogram(original ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes, plane === image ? histogram : [histogram[0]!], intensity, plane === image && (image.magickColorspace === "RGB" || image.magickColorspace === "scRGB"), selection, operation.sepiaThreshold, plane.space === "b-w" || plane.space === "grey16", plane, offset / 4, settings.channels, workingSamples, plane.storedHueSamples !== undefined, plane.space === "cmyk", planeSums, token === "-auto-level"), signal);
                     }
                     if (planeSums && plane !== image) sums!.values.push(planeSums.values[0]!);
                 }
@@ -17549,7 +17548,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     ? await registers.get(palette.slice(4).toLowerCase())?.get(0)
                     : await parseStoredCompareInput(palette, settings, backend, signal, { analysis });
                 if (!colors) throw new Error(`unable to open image '${palette}'`);
-                if (image.magickColorspace === "RGB") {
+                if (image.magickColorspace === "RGB" || image.magickColorspace === "scRGB") {
                     const { storedEvaluateSamples: ignoredSamples, ...converted } = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], settings, 0, signal)!, signal);
                     image = converted;
                 }

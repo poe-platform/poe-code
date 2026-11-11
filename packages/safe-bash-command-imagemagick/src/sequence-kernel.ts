@@ -347,7 +347,7 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
                     const channels = inkSamples ? inkSamples.subarray(offset, offset + 3) : sourceImage.space === "cmyk"
                         ? rgbToCmyk(source[offset]! / range, source[offset + 1]! / range, source[offset + 2]! / range)
                         : [source[offset]! / range, source[offset + 1]! / range, source[offset + 2]! / range];
-                    const value = magickIntensity(channels[0]!, channels[1]!, channels[2]!, intensity, 1, sourceImage.magickColorspace === "RGB");
+                    const value = magickIntensity(channels[0]!, channels[1]!, channels[2]!, intensity, 1, sourceImage.magickColorspace === "RGB" || sourceImage.magickColorspace === "scRGB");
                     if (inks && image < 4) inks[offset + image] = value;
                     else {
                         const channel = inks ? 3 : image;
@@ -356,7 +356,7 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
                     }
                     continue;
                 }
-                const value = magickIntensity(source[offset]!, source[offset + 1]!, source[offset + 2]!, intensity, highDepth ? 65535 : 255, sourceImage.magickColorspace === "RGB");
+                const value = magickIntensity(source[offset]!, source[offset + 1]!, source[offset + 2]!, intensity, highDepth ? 65535 : 255, sourceImage.magickColorspace === "RGB" || sourceImage.magickColorspace === "scRGB");
                 const channel = gray && image === 1 ? 3 : image;
                 samples[offset + channel] = highDepth ? value / 257 : value;
                 data[offset + channel] = Math.round(Math.max(0, Math.min(range, value)));
@@ -398,7 +398,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
     const canvas = sequenceCanvas(inputs), cmyk = canvas.space === "cmyk", stride = cmyk ? 5 : 4;
     size = size / 4 * stride;
     const frames = inputs.length, hasAlpha = inputs.some(image => image.hasAlpha);
-    const hue = !!canvas.magickColorspace && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "Gray" && !cmyk;
+    const hue = !!canvas.magickColorspace && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "scRGB" && canvas.magickColorspace !== "Gray" && !cmyk;
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     // ParseCommandOption with list=false reads one token; a pipe takes precedence over a comma.
     const separator = raw.includes("|") ? "|" : ",", whitespace = " \t\n\r\v\f";

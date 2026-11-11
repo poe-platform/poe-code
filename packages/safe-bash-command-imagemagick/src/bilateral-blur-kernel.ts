@@ -40,7 +40,7 @@ export function* bilateralBlurPixelSteps(image: Pick<RgbaImage, "width" | "heigh
         }
         return data.subarray((index - start) * 4, (index - start) * 4 + 4);
     }
-    const luma = (pixel: ArrayLike<number>): number => Math.max(0, Math.min(255, Math.floor(Math.fround(magickIntensity(pixel[0]!, pixel[1]!, pixel[2]!, intensity, quantum, image.magickColorspace === "RGB") * 65535 / quantum) / 257 + 0.5)));
+    const luma = (pixel: ArrayLike<number>): number => Math.max(0, Math.min(255, Math.floor(Math.fround(magickIntensity(pixel[0]!, pixel[1]!, pixel[2]!, intensity, quantum, image.magickColorspace === "RGB" || image.magickColorspace === "scRGB") * 65535 / quantum) / 257 + 0.5)));
     for (let start = 0; start < width * height; start += 1024) {
         const count = Math.min(1024, width * height - start), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
         for (let i = 0; i < count; i++) {

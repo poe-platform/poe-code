@@ -7,7 +7,7 @@ type CompareRaster = RgbaImage & HueMetadata & { evaluateSamples?: Float64Array 
 export function* compareColorspaceSteps(image: CompareRaster, target: string): Generator<void, CompareRaster, void> {
     const current = image.space === "cmyk" ? "cmyk" : image.magickColorspace?.toLowerCase() ?? (image.space === "b-w" || image.space === "grey16" ? "gray" : "srgb");
     if (current === target || current === "cielab" && target === "lab") return image;
-    if (image.magickColorspace && image.magickColorspace !== "RGB") image = yield* convertHuePixels(image, "sRGB");
+    if (image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB") image = yield* convertHuePixels(image, "sRGB");
     const { hueSamples: ignoredHue, evaluateSamples: ignoredEvaluate, magickColorspace: ignoredSpace, ...metadata } = image;
     const source = image.space === "cmyk" ? image.data16 ?? image.data : image.evaluateSamples ?? image.hueSamples ?? image.data16 ?? image.data;
     const range = source === image.hueSamples ? 1 : source === image.data16 ? 65535 : 255;
@@ -16,7 +16,7 @@ export function* compareColorspaceSteps(image: CompareRaster, target: string): G
         if (offset % 65536 === 0) yield;
         for (let channel = 0; channel < 3; channel++) {
             let value = samples[offset + channel]!;
-            if (current === "rgb") value = value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055;
+            if (current === "rgb" || current === "scrgb") value = value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055;
             if (target === "rgb") value = value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
             samples[offset + channel] = Math.fround(value * 65535) / 65535;
         }

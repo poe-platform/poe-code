@@ -10,7 +10,7 @@ export function* sortPixelSteps(image: { width: number; height: number; [magickI
     // Native luminance decodes gamma only for sRGB/Gray, not other working spaces.
     const linear = method === "rec601luminance" || method === "rec709luminance"
         ? colorspace !== "sRGB" && colorspace !== "Gray"
-        : colorspace === "RGB";
+        : colorspace === "RGB" || colorspace === "scRGB";
     const row = new Uint16Array(width * 4), intensities = new Float64Array(width);
     // 512 RGBA float pixels fit the 16 KiB paged-storage read limit.
     const working: { hue?: Float64Array; evaluate?: Float64Array } = {};

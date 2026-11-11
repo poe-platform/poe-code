@@ -26,7 +26,7 @@ export function* whiteThresholdMetaPixelSteps(image: Pick<RgbaImage, "width" | "
             }
         }
         for (let offset = 0; offset < length; offset += 4) {
-            const value = independent ? samples[offset]! : magickIntensity(source[offset]!, source[offset + 1]!, source[offset + 2]!, intensity, maximum, image.magickColorspace === "RGB");
+            const value = independent ? samples[offset]! : magickIntensity(source[offset]!, source[offset + 1]!, source[offset + 2]!, intensity, maximum, image.magickColorspace === "RGB" || image.magickColorspace === "scRGB");
             if (value > 0) {
                 data.fill(65535, offset, offset + 3);
                 samples.fill(255, offset, offset + 3);

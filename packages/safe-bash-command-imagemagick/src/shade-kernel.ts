@@ -68,7 +68,7 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
             for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
                 if (dx === 0 && dy === 0) continue;
                 const pixel = yield* sample(x + dx, y + dy);
-                const luma = Math.max(0, Math.min(1, magickIntensity(pixel[0]!, pixel[1]!, pixel[2]!, intensity, quantum, image.magickColorspace === "RGB") / quantum));
+                const luma = Math.max(0, Math.min(1, magickIntensity(pixel[0]!, pixel[1]!, pixel[2]!, intensity, quantum, image.magickColorspace === "RGB" || image.magickColorspace === "scRGB") / quantum));
                 nx -= dx * luma;
                 ny += dy * luma;
             }

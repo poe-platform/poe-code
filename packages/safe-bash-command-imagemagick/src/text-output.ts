@@ -17,7 +17,7 @@ export function pixelEnumerationLine(x: number, y: number, r: number, g: number,
     const alpha = colorspace.endsWith("a");
     const gray = colorspace.startsWith("gray") || colorspace.startsWith("lineargray");
     const samples = gray ? String(r) : `${r},${g},${b}`;
-    const channels = working && (gray || colorspace === "rgb" || colorspace === "rgba") ? working.subarray(0, gray ? 1 : 3) : undefined;
+    const channels = working && (gray || colorspace === "rgb" || colorspace === "rgba" || colorspace === "scrgb" || colorspace === "scrgba") ? working.subarray(0, gray ? 1 : 3) : undefined;
     const fractional = channels?.some(value => Math.abs(value - Math.round(value)) > 1e-9);
     const description = fractional ? Array.from(channels!, value => `${Number((value * 100 / 255).toPrecision(6))}%`).join(",") : samples;
     const name = colorspace === "srgba" && a === 255 ? histogramColorNames[(r << 16) | (g << 8) | b] : undefined;
@@ -110,7 +110,7 @@ export function floatingHistogramLine(key: bigint, count: number, hasAlpha: bool
         bits.setBigUint64(0, value >> 63n ? value ^ (1n << 63n) : BigInt.asUintN(64, ~value));
         return bits.getFloat64(0);
     });
-    if ((colorspace === "srgb" || colorspace === "rgb") && samples.every(value => Number.isInteger(value) && value >= 0 && value <= 255)) {
+    if ((colorspace === "srgb" || colorspace === "rgb" || colorspace === "scrgb") && samples.every(value => Number.isInteger(value) && value >= 0 && value <= 255)) {
         const packed = samples.reduce((key, value) => key * 256 + value, 0) * (hasAlpha ? 1 : 256);
         return histogramLine(packed, count, hasAlpha, highDepth, precision, colorspace);
     }
@@ -124,7 +124,7 @@ export function floatingHistogramLine(key: bigint, count: number, hasAlpha: bool
 }
 async function* storedFloatingHistogram(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal, precision = 6): AsyncGenerator<string> {
     const cmyk = image.space === "cmyk", gray = image.space === "b-w" || image.space === "grey16";
-    const colorspace = cmyk ? "cmyk" : gray ? image.gamma === 1 && image.magickColorspace !== "Gray" ? "lineargray" : "gray" : image.magickColorspace === "RGB" ? "rgb" : "srgb";
+    const colorspace = cmyk ? "cmyk" : gray ? image.gamma === 1 && image.magickColorspace !== "Gray" ? "lineargray" : "gray" : image.magickColorspace === "scRGB" ? "scrgb" : image.magickColorspace === "RGB" ? "rgb" : "srgb";
     const highDepth = (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8;
     const levels = cmyk ? 20 : 16;
     // A radix tree over the full tuple uses the existing bounded,
@@ -261,7 +261,7 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
     }
     const maximum = ["HCL", "HCLp", "HSI", "HSL", "HSB", "HSV", "HWB", "XYZ", "CIELab"].includes(image.magickColorspace ?? "") && (depth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) <= 8 ? 255 : 65535;
     const srgbDepth = image.space === "srgb" && !image.magickColorspace;
-    const colorspace = `${image.space === "b-w" || image.space === "grey16" ? image.gamma === 1 && image.magickColorspace !== "Gray" ? "lineargray" : "gray" : image.magickColorspace === "RGB" ? "rgb" : "srgb"}${image.hasAlpha ? "a" : ""}`;
+    const colorspace = `${image.space === "b-w" || image.space === "grey16" ? image.gamma === 1 && image.magickColorspace !== "Gray" ? "lineargray" : "gray" : image.magickColorspace === "scRGB" ? "scrgb" : image.magickColorspace === "RGB" ? "rgb" : "srgb"}${image.hasAlpha ? "a" : ""}`;
     const gray16 = (image.space === "b-w" || image.space === "grey16") && image.storedData16 !== undefined && (depth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8;
     yield srgbDepth ? `# ImageMagick pixel enumeration: ${image.width},${image.height},${image.storedMetaChannels?.length ?? 0},${depth > 8 ? 65535 : 255},srgb${image.hasAlpha ? "a" : ""}\n` : gray16 ? `# ImageMagick pixel enumeration: ${image.width},${image.height},${image.storedMetaChannels?.length ?? 0},65535,${colorspace}\n` : (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${image.width},${image.height},${image.storedMetaChannels?.length ?? 0},${maximum},${image.magickColorspace.toLowerCase()}${image.hasAlpha ? "a" : ""}\n` : `# ImageMagick pixel enumeration: ${image.width},${image.height},${image.storedMetaChannels?.length ?? 0},255,${colorspace}\n`;
     const size = image.width * image.height * 4;
@@ -273,7 +273,7 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
             const data = await storage.read((plane.storedData16?.position ?? plane.position) + start * (plane.storedData16 ? 2 : 1), bytes.length * (plane.storedData16 ? 2 : 1));
             metaSamples.push(plane.storedData16 ? new Uint16Array(data.slice().buffer) : data);
         }
-        const evaluated = (srgbDepth || image.space === "b-w" || image.space === "grey16" || image.magickColorspace === "RGB") && image.storedEvaluateSamples !== undefined
+        const evaluated = (srgbDepth || image.space === "b-w" || image.space === "grey16" || (image.magickColorspace === "RGB" || image.magickColorspace === "scRGB")) && image.storedEvaluateSamples !== undefined
             ? await storage.read(image.storedEvaluateSamples + start * 8, bytes.length * 8) : undefined;
         const working = evaluated ? new Float64Array(evaluated.slice().buffer) : undefined;
         const original = (srgbDepth || gray16 || image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") && image.storedData16 ? await storage.read(image.storedData16.position + start * 2, bytes.length * 2) : undefined;
@@ -299,7 +299,7 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
     }
 }
 export async function* storedHistogram(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal, precision = 6): AsyncGenerator<string> {
-    if (image.space === "cmyk" || image.space === "b-w" || image.space === "grey16" || image.space === "srgb" && image.storedEvaluateSamples !== undefined && (!image.magickColorspace || image.magickColorspace === "RGB")) {
+    if (image.space === "cmyk" || image.space === "b-w" || image.space === "grey16" || image.space === "srgb" && image.storedEvaluateSamples !== undefined && (!image.magickColorspace || (image.magickColorspace === "RGB" || image.magickColorspace === "scRGB"))) {
         yield* storedFloatingHistogram(image, storage, signal, precision);
         return;
     }
@@ -339,7 +339,7 @@ export async function* storedHistogram(image: StoredRgbaImage & HueMetadata, sto
         let index = 0;
         for await (const [key, count] of ordered()) {
             if (index++ % 128 === 0) await yieldTurn(signal);
-            yield histogramLine(image.storedData16 ? key : Number(key), Number(count), image.hasAlpha, (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8, precision, image.magickColorspace === "RGB" ? "rgb" : "srgb") + "\n";
+            yield histogramLine(image.storedData16 ? key : Number(key), Number(count), image.hasAlpha, (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8, precision, image.magickColorspace === "scRGB" ? "scrgb" : image.magickColorspace === "RGB" ? "rgb" : "srgb") + "\n";
         }
         if (!unique) yield "\n";
         return;

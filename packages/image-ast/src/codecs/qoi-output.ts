@@ -10,7 +10,7 @@ function* qoiChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & { 
   view.setUint32(4, image.width);
   view.setUint32(8, image.height);
   header[12] = image.hasAlpha ? 4 : 3;
-  header[13] = image.magickColorspace === "RGB" ? 1 : 0;
+  header[13] = image.magickColorspace === "RGB" || image.magickColorspace === "scRGB" ? 1 : 0;
   yield header;
   let red = 0, green = 0, blue = 0, alpha = 255, run = 0;
   for (let offset = 0; offset < image.width * image.height * 4; offset += 4096) {

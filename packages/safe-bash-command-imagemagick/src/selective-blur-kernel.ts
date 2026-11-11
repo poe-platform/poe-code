@@ -45,7 +45,7 @@ export function* selectiveBlurPixelSteps(image: Pick<RgbaImage, "width" | "heigh
         return data.subarray((index - start) * 4, (index - start) * 4 + 4);
     }
     const selected = channels ? [channels.r, channels.g, channels.b, channels.a] : [true, true, true, true];
-    const luma = (pixel: ArrayLike<number>, mode: string): number => magickIntensity(pixel[0]!, pixel[1]!, pixel[2]!, mode, 65535, image.magickColorspace === "RGB");
+    const luma = (pixel: ArrayLike<number>, mode: string): number => magickIntensity(pixel[0]!, pixel[1]!, pixel[2]!, mode, 65535, image.magickColorspace === "RGB" || image.magickColorspace === "scRGB");
     let work = 0;
     for (let start = 0; start < width * height; start += 1024) {
         const count = Math.min(1024, width * height - start), output = new Float64Array(count * 4);

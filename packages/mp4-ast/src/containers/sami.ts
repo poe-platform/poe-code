@@ -16,15 +16,16 @@ function parseSami(bytes: Uint8Array): MediaDocument {
       decodeErrors.push("Error decoding subtitles: Operation not permitted");
       text = "";
     }
-    suppressed = false;
     const caption = text.trim();
-    if (start !== undefined && caption) {
+    // A nonbreaking-space marker clears the caption; an empty paragraph is a cue.
+    if (start !== undefined && !suppressed) {
       const data = encodeUtf8(caption);
       // FFmpeg's subtitle decoder uses UINT32_MAX for an unspecified end time.
       samples.push({ pts: start, dts: start, cts: 0, duration: end === undefined ? 0xffffffff : Math.max(0, end - start),
         data, size: data.length, offset: 0, isKeyframe: true, sampleDescriptionIndex: 1 });
     }
     text = "";
+    suppressed = false;
   };
   const parser = new Parser({
     onopentag(name, attributes) {

@@ -8752,6 +8752,9 @@ export function evalSyncFfmpeg(
       } else if (arg === "-ar" || (arg === "-sample_rate" && args.slice(i + 1).includes("-i"))) {
         audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
         if (audioRate !== undefined && audioRate < 0) return undefined;
+      } else if (arg === "-sample_rate") {
+        // This demuxer option is accepted after input without changing the output rate.
+        if (args[++i] === undefined) return undefined;
       }
       else if (arg === "-ac" || arg.startsWith("-ac:")) audioChannelOptions.push(parseAudioChannels(arg, args[++i]));
       else if ((arg === "-ch_layout" || arg === "-channel_layout") && args.slice(i + 1).includes("-i")) {
@@ -10637,6 +10640,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: sample rate must be nonnegative\n"), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-sample_rate") {
+            // This demuxer option is accepted after input without changing the output rate.
+            if (args[++i] === undefined) throw new Error("Missing argument for option sample_rate");
           } else if (arg === "-resample_cutoff") {
             const raw = args[++i];
             resampleCutoff = Number(raw);

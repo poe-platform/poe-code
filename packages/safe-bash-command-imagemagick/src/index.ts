@@ -14673,7 +14673,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-despeckle") {
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return yield* applyMagickRasterSteps(im, despecklePixelSteps(im, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined), signal);
+                const result = yield* applyMagickRasterSteps(im, despecklePixelSteps(im, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined), signal);
+                if (im.metaChannels?.length) {
+                    result.metaChannels = [];
+                    for (const [index, plane] of im.metaChannels.entries()) {
+                        const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
+                        result.metaChannels.push(selected ? yield* applyMagickRasterSteps(plane, despecklePixelSteps(plane), signal) : plane);
+                    }
+                }
+                return result;
             });
         }
         else if (t === "-median") {
@@ -18861,7 +18869,19 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && token === "-despeckle") {
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, despecklePixelSteps(image, channels), signal) : undefined);
+            const metaChannels = !state.channelExplicit || state.channelDefault ? "all" : state.channels.meta ?? [];
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const result = await transformStoredMagickRaster(image, backend, despecklePixelSteps(image, channels), signal);
+                if (image.storedMetaChannels?.length) {
+                    result.storedMetaChannels = [];
+                    for (const [index, plane] of image.storedMetaChannels.entries()) {
+                        const selected = metaChannels === "all" || metaChannels.includes(index);
+                        result.storedMetaChannels.push(selected ? await transformStoredMagickRaster(plane, backend, despecklePixelSteps(plane), signal) : plane);
+                    }
+                }
+                return result;
+            });
         } else if (!operandsOnly && token === "-median") {
             stackStep(async stack => {
                 analysis.warnings += 'magick: option has been replaced \'-median\', use "-statistic Median"\n';

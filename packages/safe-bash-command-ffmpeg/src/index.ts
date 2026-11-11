@@ -14561,6 +14561,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         stretched = await phaseAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal);
                       } else if (trimmed === "apulsator" || trimmed.startsWith("apulsator=")) {
+                        if (stretched.length === 2 && (filteredChannelNames?.some(name => name !== "")
+                          ? filteredChannelNames[0] !== "FL" || filteredChannelNames[1] !== "FR"
+                          : filteredChannelMask && filteredChannelMask !== 3)) {
+                          throw new Error("apulsator: unsupported input channel layout");
+                        }
                         if (stretched.length > 2) {
                           if (!autoConversionFilters) throw new Error(audioConversionDisabled);
                           // Negotiate floating stereo before the effect, omitting LFE.
@@ -20017,6 +20022,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("flanger: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("flanger:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("stereotools: unsupported option ")) return { exitCode: 8 };
+            if (msg === "apulsator: unsupported input channel layout") return { exitCode: 234 };
             if (msg.startsWith("stereotools:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("stereowiden: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("stereowiden:")) return { exitCode: 222 };

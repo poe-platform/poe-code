@@ -16536,7 +16536,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const image = (await stack.get(index))!;
                     const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, listIndex: index, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack);
                     const transform = createHoughTransform(image, expanded, settings.background, settings.stroke, settings.fill, settings.strokeWidth);
-                    const { magickColorspace: ignoredSpace, storedHueSamples: ignoredHue, ...metadata } = image;
+                    const { magickColorspace: ignoredSpace, storedHueSamples: ignoredHue, ...metadata } = image as StoredRgbaImage;
                     const source = { ...metadata, properties: {}, orientation: settings.orientation ?? 0, space: "srgb" as const, channels: 4 as const, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } };
                     const { indexedColors: ignoredColors, pngPalette: ignoredPalette, storedPngIndices: ignoredIndices, ...direct } = source;
                     const { storedDelay: ignoredDelay, ...lines } = await transformStoredMagickRaster({ ...direct, isPalette: false, depth: "ushort", bitsPerSample: 16,

@@ -2,6 +2,7 @@ import { scaleVideoPicture, type MediaVideoFrame, type MediaBudgetTracker } from
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterFloat } from "./filter-float.js";
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 function parsePlanes(text: string, planes: number): number {
   let cursor = 0;
@@ -41,8 +42,12 @@ export async function tmix(
     // only when it was just visited, regardless of the named key.
     if (separator < 0) position++;
     else position = position === 0 ? 1 : 0;
-    if (key !== "frames" && key !== "weights" && key !== "enable" && key !== "planes" && key !== "scale") throw new Error(`tmix: unsupported option ${key}`);
     const text = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, text, "tmix");
+      continue;
+    }
+    if (key !== "frames" && key !== "weights" && key !== "enable" && key !== "planes" && key !== "scale") throw new Error(`tmix: unsupported option ${key}`);
     if (key !== "planes") {
       options[key] = text;
       continue;

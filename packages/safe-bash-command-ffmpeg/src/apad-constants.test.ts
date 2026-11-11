@@ -5,6 +5,16 @@ import { createFfmpegCommand } from "./index.js";
 
 // FFmpeg evaluates constants before rounding the requested sample count.
 for (const [options, limit, frames] of [
+  ["pad_len=none", "0.008", 3],
+  ["whole_len=none", "0.008", 3],
+  ["pad_len=all", "0.008", 64],
+  ["whole_len=all", "0.008", 64],
+  ["pad_len=all:whole_len=5", "0.008", 5],
+  ["whole_len=all:pad_len=2", "0.008", 5],
+  ["pad_len=none+2", "0.008", 5],
+  ["whole_len=all+6", "0.008", 5],
+  ["pad_len=all-1", "0.008", null],
+  ["whole_len=none:pad_len=2", "0.008", null],
   ["pad_len=min", "0.004", 32],
   ["pad_len=default", "0.004", 32],
   ["pad_len=-1", "0.004", 32],
@@ -59,6 +69,7 @@ for (const [options, limit, frames] of [
         assert.equal(volume.readFileSync("/out.raw", "utf8"), "KEEP");
       } else {
         assert.equal(result.exitCode, 0, stderr);
+        assert.equal(stderr, "");
         const output = volume.readFileSync("/out.raw") as Buffer;
         assert.deepEqual(Array.from({ length: output.length / 2 }, (_, index) => output.readInt16LE(index * 2)),
           [...samples, ...Array<number>((frames - 3) * 2).fill(0)]);

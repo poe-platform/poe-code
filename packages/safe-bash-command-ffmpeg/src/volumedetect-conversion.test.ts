@@ -31,8 +31,8 @@ for (const filter of ["volumedetect", "volumedetect,volume=2", "anull"]) {
         for (let i = 0; i < 2400; i++) expected.writeFloatLE(0.5 / 32768, i * 4);
       }
       assert.deepEqual(Buffer.concat(stdout), expected);
-      assert.equal(stderr, level === "info" && filter !== "anull"
-        ? "n_samples: 0\nn_samples: 2400\nmean_volume: -91.0 dB\nmax_volume: -91.0 dB\nhistogram_91db: 2400\n" : "");
+      assert.equal(stderr, (level === "info" ? "ffmpeg: Guessed Channel Layout: mono\n" : "") + (level === "info" && filter !== "anull"
+        ? "n_samples: 0\nn_samples: 2400\nmean_volume: -91.0 dB\nmax_volume: -91.0 dB\nhistogram_91db: 2400\n" : ""));
     });
   }
 }

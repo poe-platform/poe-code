@@ -30,9 +30,9 @@ for (const option of ["-v", "-loglevel"]) {
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
         assert.equal(result.exitCode, 0, stderr);
-        assert.equal(stderr, reports && filter === "volumedetect"
+        assert.equal(stderr, (reports || level === "warning" || level === "24" ? "ffmpeg: Guessed Channel Layout: mono\n" : "") + (reports && filter === "volumedetect"
           ? "n_samples: 0\nn_samples: 4\nmean_volume: -12.0 dB\nmax_volume: -12.0 dB\n"
-          : "");
+          : ""));
         const output = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
         assert.equal(output.sampleRate, 8000);
         assert.deepEqual(output.channelData.map(channel => Array.from(channel)), channels.map(channel => Array.from(channel)));

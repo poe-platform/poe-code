@@ -10417,6 +10417,8 @@ function* prepare16BitOutput(image: RgbaImage): Generator<void, RgbaImage, void>
 }
 
 function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: MagickState["dither"] = false, diffusionAmount = 1, pngCoder?: ReturnType<typeof inferOutputFormat>["pngCoder"]): Generator<void, RgbaImage, void> {
+    // MIFF stores discrete alpha samples even though blending is disabled.
+    if (format === "miff" && image.inactiveAlpha && image.alphaSeparate) image = { ...image, hasAlpha: true };
     // Convert working colorspaces first; keep ordinary sRGB luma at exporter precision.
     if ((format === "gray" || format === "graya") && (image.magickColorspace || (image.space === "b-w" || image.space === "grey16") && image.gamma === 1)) image = yield* parseMagickPixelOperation(["-colorspace", "Gray"], createDefaultState(), 0)!.apply(image);
     if (pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format)) image = yield* prepare16BitOutput(image);
@@ -10445,6 +10447,8 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
 }
 
 async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFormat, backend: CompareFileSession, signal: AbortSignal, dither: MagickState["dither"] = false, diffusionAmount = 1, pngCoder?: ReturnType<typeof inferOutputFormat>["pngCoder"]): Promise<StoredRgbaImage> {
+    // MIFF stores discrete alpha samples even though blending is disabled.
+    if (format === "miff" && image.inactiveAlpha && image.alphaSeparate) image = { ...image, hasAlpha: true };
     // Convert working colorspaces first; keep ordinary sRGB luma at exporter precision.
     if ((format === "gray" || format === "graya") && (image.magickColorspace || (image.space === "b-w" || image.space === "grey16") && image.gamma === 1)) image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "Gray"], createDefaultState(), 0)!, signal);
     if ((pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format)) && image.storedEvaluateSamples !== undefined) {

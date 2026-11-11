@@ -533,6 +533,8 @@ without emitting audio.
 `crystalizer=i=2` sharpens changes between successive samples independently per channel.
 Intensity defaults to 2 (range -10 to 10); negative values smooth the audio.
 Clipping is enabled by default; `c=0` preserves peaks for subsequent filters.
+`enable='gte(t,0.256)'` enables processing from that audio frame timestamp;
+disabled frames pass through while updating the previous-sample history.
 `extrastereo=m=0` averages left and right while retaining stereo; `m=-1` swaps them.
 The width multiplier defaults to 2.5 (range -10 to 10); `c=0` disables clipping.
 `asendcmd=c='0.064 extrastereo@mix m -1',extrastereo@mix=m=1` swaps channels starting at the first audio frame at or after 0.064 seconds. Commands target the named instance, or the first subsequent `extrastereo` instance when unnamed; invalid width changes retain the current setting.

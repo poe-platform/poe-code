@@ -14632,6 +14632,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "crystalizer" || trimmed.startsWith("crystalizer=")) {
                         let intensity = 2;
                         let clip = true;
+                        let enable: string | undefined;
                         const argument = trimmed.slice("crystalizer=".length);
                         for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
                           const separator = option.indexOf("=");
@@ -14647,20 +14648,42 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               throw new Error("crystalizer: invalid clipping option");
                             }
                             clip = ["1", "true", "yes", "on"].includes(value);
-                          } else throw new Error(`crystalizer: unsupported option ${key}`);
+                          } else if (key === "enable") enable = value;
+                          else throw new Error(`crystalizer: unsupported option ${key}`);
                         }
                         stretched = await mapWork(stretched, async channel => {
                           budget.allocateMemory(channel.length * Float32Array.BYTES_PER_ELEMENT);
                           const output = new Float32Array(channel.length);
                           const scale = Math.fround(1 / Math.fround(1 - intensity));
                           let previous = 0;
+                          let frameEnd = 0;
+                          let frameIndex = 0;
+                          let enabled = true;
                           for (let i = 0; i < channel.length; i++) {
+                            if (enable !== undefined && i >= frameEnd) {
+                              const packet = t.samples[frameIndex];
+                              const timestamp = audioTimestamps?.[frameIndex];
+                              const frameLength = timestamp ? timestamp.end - timestamp.start
+                                : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                              const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + i);
+                              enabled = Math.abs(parseFilterExpression(enable, "crystalizer enable", {
+                                n: frameIndex, t: pts / origRate
+                              })) >= 0.5;
+                              frameEnd = i + frameLength;
+                              frameIndex++;
+                            }
                             if (i % 4096 === 0) {
                               await yieldTurn(context.signal);
                               context.signal?.throwIfAborted();
                               budget.checkCpu();
                             }
                             const current = Math.fround(channel[i]!);
+                            // Disabled frames pass through but still seed the next frame's history.
+                            if (!enabled) {
+                              previous = current;
+                              output[i] = current;
+                              continue;
+                            }
                             const value = intensity < 0
                               ? Math.fround(Math.fround(current - Math.fround(previous * intensity)) * scale)
                               : Math.fround(current + Math.fround(Math.fround(current - previous) * intensity));

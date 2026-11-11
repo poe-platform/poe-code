@@ -60,7 +60,7 @@ for (const color of [false, true]) {
       const output = volume.readFileSync("/out.y4m") as Buffer;
       const headerEnd = output.indexOf(10) + 1;
       if (selected.length > 0) assert.equal(output.subarray(0, headerEnd).toString(),
-        `YUV4MPEG2 W4 H4 F${rate}:1 Ip A1:1 C444\n`);
+        `YUV4MPEG2 W4 H4 F${rate}:1 Ip A1:1 C444 XYSCSS=444\n`);
       assert.deepEqual(output.subarray(headerEnd), Buffer.concat(
         selected.flatMap(index => [Buffer.from("FRAME\n"), frames[index]!])));
       if (!color && hash) {

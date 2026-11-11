@@ -5815,6 +5815,8 @@ async function applyVideoFilterChain(
           ![0, 1, 2, 3, 4, 5, 6, 7].includes(roundToEven(mode))) {
         throw new Error("tinterlace: unsupported mode or options");
       }
+      // tinterlace forwards input EOF even when selected frames have longer durations.
+      if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       const doubleRate = roundToEven(mode) === 6;
       const sliding = roundToEven(mode) === 7;
       const heightFactor = [0, 3, 7].includes(roundToEven(mode)) ? 2 : 1;
@@ -6877,7 +6879,7 @@ async function applyVideoFilterChain(
     }
     // Filters that change the final frame's timing establish a new endpoint.
     const lastOutputFrame = current.at(-1);
-    if (!pending && name !== "tpad" && name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "mpdecimate" && name !== "framestep" && name !== "tile" && name !== "untile" && name !== "shuffleframes" && name !== "minterpolate" &&
+    if (!pending && name !== "tpad" && name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "mpdecimate" && name !== "framestep" && name !== "tile" && name !== "untile" && name !== "tinterlace" && name !== "shuffleframes" && name !== "minterpolate" &&
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;

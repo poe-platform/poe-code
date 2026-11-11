@@ -39,7 +39,7 @@ for (const color of [false, true]) {
         }
         assert.equal(result.exitCode, 0, stderr);
         const headerEnd = output.indexOf(10) + 1;
-        assert.equal(output.subarray(0, headerEnd).toString(), "YUV4MPEG2 W4 H4 F3:1 It A1:1 C444\n");
+        assert.equal(output.subarray(0, headerEnd).toString(), "YUV4MPEG2 W4 H4 F3:1 It A1:1 C444 XYSCSS=444\n");
         assert.equal(output.length, headerEnd + 3 * (6 + 48));
         const planes = Array.from({ length: 3 }, (_, i) => {
           const start = headerEnd + i * (6 + 48);

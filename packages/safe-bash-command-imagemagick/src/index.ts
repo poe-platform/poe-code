@@ -1,3 +1,4 @@
+import { jsonOutputPath, jsonImageDescription } from "./json-output.js";
 import { createIccConversion } from "./icc-conversion.js";
 import { readIccDescription } from "./icc-description.js";
 import { readExifTextProperties } from "./exif-text.js";
@@ -7126,7 +7127,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         let image: RgbaImage = { ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c, [c.r, c.g, c.b, c.a].some(value => !Number.isInteger(value)))), bitsPerSample: state.inputDepth ?? 16, endian: "lsb", hasAlpha, ...(!hasAlpha ? { inactiveAlpha: false } : {}) };
         if (c.space) image = { ...image, space: c.space, channels: hasAlpha ? 2 : 1 };
         if (c.cmyk) image = yield* fillCmykPixels(image, c.cmyk);
-        return yield* applyMod([Object.assign(image, { [magickInput]: { filePath: baseToken.slice(baseToken.indexOf(":") + 1), compression: "Undefined" } })]);
+        return yield* applyMod([Object.assign(image, { [magickInput]: { filePath: baseToken.slice(baseToken.indexOf(":") + 1), inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase(), compression: "Undefined" } })]);
     }
     if (lower.startsWith("gradient:") || lower.startsWith("radial-gradient:")) {
         const radial = lower.startsWith("radial-gradient:");
@@ -11799,6 +11800,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (stack.length === 0) throw new Error(`no images for write '${t}'`);
             const writeTemplate = tokens[++i] ?? "";
             const writePath = expandFilenameProperties(writeTemplate, stack[0]!.properties);
+            const jsonPath = jsonOutputPath(writePath);
+            if (jsonPath !== undefined) {
+                const result = yield* writeJsonOutputSteps(stack, jsonPath, files, state.inputDepth);
+                analysis.text += result.stdout;
+                i++;
+                continue;
+            }
             if (writePath.toLowerCase().startsWith("histogram:")) {
                 const result = yield* writeConvertOutputSteps([...stack], state, writeTemplate, files, signal, analysis);
                 analysis.text += result.stdout;
@@ -13525,6 +13533,42 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
     return stack;
 }
 
+function* writeJsonOutputSteps(stack: readonly RgbaImage[], path: string, files: Map<string, Uint8Array>, depth?: number): Generator<void, ImageMagickCliResult, void> {
+    let text = "[\n";
+    for (let index = 0; index < stack.length; index++) {
+        yield;
+        if (index) text += ",\n";
+        text += jsonImageDescription(stack[index]!, depth);
+    }
+    text += "\n]\n";
+    if (!path || path === "-") return { exitCode: 0, stdout: text, stderr: "" };
+    files.set(path, new TextEncoder().encode(text));
+    return { exitCode: 0, stdout: "", stderr: "" };
+}
+
+async function writeStoredJsonOutput(stack: StoredImageStack, path: string, input: ConvertFileInput, backend: CompareFileSession, signal: AbortSignal, depth?: number, intermediate = false): Promise<ImageMagickCliResult> {
+    async function* descriptions(): AsyncGenerator<string> {
+        yield "[\n";
+        for (let index = 0; index < stack.length; index++) {
+            await yieldTurn(signal);
+            if (index) yield ",\n";
+            yield jsonImageDescription((await stack.get(index))!, depth);
+        }
+        yield "\n]\n";
+    }
+    const chunks = encodeText(descriptions(), signal);
+    if (path && path !== "-") {
+        await backend.stageText((await stack.get(0))!, path, chunks);
+        if (!intermediate) await backend.publishPending();
+        return { exitCode: 0, stdout: "", stderr: "" };
+    }
+    let stdout = "";
+    if (input.stdout) for await (const chunk of chunks) await writeBytes(input.stdout, chunk, signal);
+    else for await (const part of descriptions()) { signal.throwIfAborted(); stdout += part; }
+    if (!intermediate) await backend.publishPending();
+    return { exitCode: 0, stdout, stderr: "" };
+}
+
 class UnrecognizedConvertOptionError extends Error {}
 
 function createConvertAnalysis() {
@@ -13637,6 +13681,8 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
         }
         const finalImg = stack[stack.length - 1]!;
         const outLower = outSpec.toLowerCase();
+        const jsonPath = jsonOutputPath(outSpec);
+        if (jsonPath !== undefined) return yield* writeJsonOutputSteps(stack, jsonPath, files, state.inputDepth);
         if (outLower === "null:" || outLower.startsWith("mpr:")) return { exitCode: 0, stdout: "", stderr: "" };
         if (outLower.startsWith("info:")) {
             const source = (stack[0] as MagickImage)[magickInput];
@@ -15793,6 +15839,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (stack.length === 0) throw new Error(`no images for write '${token}'`);
                 const image = await stack.get(stack.length - 1);
                 const path = expandFilenameProperties(writeTemplate, (await stack.get(0))!.properties);
+                const jsonPath = jsonOutputPath(path);
+                if (jsonPath !== undefined) {
+                    const result = await writeStoredJsonOutput(stack, jsonPath, input, backend, signal, netpbmDepth, true);
+                    analysis.text += result.stdout;
+                    return stack;
+                }
                 if (path.toLowerCase().startsWith("histogram:")) {
                     const images = new StoredImageStack(backend.storage, signal, stack);
                     for (let index = 0; index < stack.length; index++) await images.push((await stack.get(index))!);
@@ -16951,6 +17003,8 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
             }
             image = (await stack.get(stack.length - 1))!;
         }
+        const jsonPath = jsonOutputPath(outSpec);
+        if (jsonPath !== undefined) return writeStoredJsonOutput(stack, jsonPath, input, backend, signal, state.inputDepth);
         const output = inferOutputFormat(outSpec, "png");
         if (output.format === "tiff") for (let index = 0; index < stack.length; index++) {
             if ((await stack.get(index) as StoredRgbaImage).magickColorspace === "CIELab") return { exitCode: 1, stdout: "", stderr: "magick: unsupported colorspace 'Lab' for TIFF output\n" };
@@ -17573,7 +17627,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const colorStr=(baseToken.slice(baseToken.indexOf(":")+1)||"white").trim();
   const color: ReturnType<typeof parseColor>=lower==="null:"?state.background:parseColor(colorStr,true),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
   const hasAlpha=color.a<255||colorStr.startsWith("#")&&[5,9,17].includes(colorStr.length)||colorStr.toLowerCase().includes("a(");
-  image={...await createStoredCanvas(width,height,color,backend,signal,[color.r,color.g,color.b,color.a].some(value=>!Number.isInteger(value))),endian:"lsb",hasAlpha,...(!hasAlpha?{inactiveAlpha:false}:{}),...(lower==="null:"?{[magickInput]:{filePath:"null:",compression:"Undefined"}}:{bitsPerSample:state.inputDepth??16,[magickInput]:{filePath:baseToken.slice(baseToken.indexOf(":")+1),compression:"Undefined"}})};
+  image={...await createStoredCanvas(width,height,color,backend,signal,[color.r,color.g,color.b,color.a].some(value=>!Number.isInteger(value))),endian:"lsb",hasAlpha,...(!hasAlpha?{inactiveAlpha:false}:{}),...(lower==="null:"?{[magickInput]:{filePath:"null:",compression:"Undefined"}}:{bitsPerSample:state.inputDepth??16,[magickInput]:{filePath:baseToken.slice(baseToken.indexOf(":")+1),inputFormat:baseToken.slice(0,baseToken.indexOf(":")).toUpperCase(),compression:"Undefined"}})};
   if ("space" in color && color.space) image = { ...image, space: color.space, channels: hasAlpha ? 2 : 1 };
   if ("cmyk" in color && color.cmyk) {
    const inks = color.cmyk;

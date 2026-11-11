@@ -3207,13 +3207,15 @@ async function applyVideoFilterChain(
         budget.checkCpu();
         let format = diagnostics.pixelFormat ?? "rgba";
         let planes: Uint8Array[];
+        let sampleBytes = 1;
         const native = frame.native;
         if (native && native.rgba === frame.data && native.width === frame.width && native.height === frame.height &&
-            [0, 4, 5, 12, 13, 14].includes(native.format)) {
-          format = ({ 0: "yuv420p", 4: "yuv422p", 5: "yuv444p", 12: "yuvj420p", 13: "yuvj422p", 14: "yuvj444p" } as Record<number, string>)[native.format]!;
-          const luma = frame.width * frame.height;
-          const chroma = Math.ceil(frame.width / ([5, 14].includes(native.format) ? 1 : 2)) *
-            Math.ceil(frame.height / ([0, 12].includes(native.format) ? 2 : 1));
+            [0, 4, 5, 12, 13, 14, 45, 49].includes(native.format)) {
+          format = ({ 0: "yuv420p", 4: "yuv422p", 5: "yuv444p", 12: "yuvj420p", 13: "yuvj422p", 14: "yuvj444p", 45: "yuv420p16le", 49: "yuv444p16le" } as Record<number, string>)[native.format]!;
+          sampleBytes = [45, 49].includes(native.format) ? 2 : 1;
+          const luma = frame.width * frame.height * sampleBytes;
+          const chroma = Math.ceil(frame.width / ([5, 14, 49].includes(native.format) ? 1 : 2)) *
+            Math.ceil(frame.height / ([0, 12, 45].includes(native.format) ? 2 : 1)) * sampleBytes;
           planes = [native.pixels.subarray(0, luma), native.pixels.subarray(luma, luma + chroma), native.pixels.subarray(luma + chroma, luma + 2 * chroma)];
         } else {
           const channels = ({ rgb24: [0, 1, 2], bgr24: [2, 1, 0], rgba: [0, 1, 2, 3], bgra: [2, 1, 0, 3], gray: [0], ya8: [0, 3] } as Record<string, number[]>)[format];
@@ -3240,11 +3242,15 @@ async function applyVideoFilterChain(
               const value = plane[i]!;
               a = (a + value) % 65521; b = (b + a) % 65521;
               pa = (pa + value) % 65521; pb = (pb + pa) % 65521;
-              sum += value; squares += value * value;
+              if (i % sampleBytes === 0) {
+                const sample = sampleBytes === 2 ? value + plane[i + 1]! * 256 : value;
+                sum += sample; squares += sample * sample;
+              }
             }
             checksums.push(hex(pb * 65536 + pa));
-            means.push(Math.round(sum / plane.length));
-            deviations.push(Math.sqrt(Math.max(0, squares / plane.length - (sum / plane.length) ** 2)).toFixed(1));
+            const samples = plane.length / sampleBytes;
+            means.push(Math.round(sum / samples));
+            deviations.push(Math.sqrt(Math.max(0, squares / samples - (sum / samples) ** 2)).toFixed(1));
           }
           stats = ` checksum:${hex(b * 65536 + a)} plane_checksum:[${checksums.join(" ")}] mean:[${means.join(" ")}] stdev:[${deviations.join(" ")}]`;
         }

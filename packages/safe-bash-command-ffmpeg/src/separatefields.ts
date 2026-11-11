@@ -25,12 +25,12 @@ export async function separateFields(
         interlaced: false, topFieldFirst: false };
       const native = frame.native;
       if (native && native.rgba === frame.data && native.width === frame.width && native.height === frame.height &&
-          [0, 4, 5, 8, 12, 13, 14, 29, 30, 34, 35, 49, 68, 104, 105].includes(native.format)) {
-        const hsub = [0, 4, 12, 13].includes(native.format) ? 2 : 1;
-        const vsub = [0, 12].includes(native.format) ? 2 : 1;
+          [0, 4, 5, 8, 12, 13, 14, 29, 30, 34, 35, 45, 49, 68, 104, 105].includes(native.format)) {
+        const hsub = [0, 4, 12, 13, 45].includes(native.format) ? 2 : 1;
+        const vsub = [0, 12, 45].includes(native.format) ? 2 : 1;
         const planes = [8, 29, 30, 34, 35, 104, 105].includes(native.format) ? 1 : 3;
         const sampleBytes = [34, 35].includes(native.format) ? 6 : [104, 105].includes(native.format) ? 8
-          : [29, 30, 49, 68].includes(native.format) ? 2 : 1;
+          : [29, 30, 45, 49, 68].includes(native.format) ? 2 : 1;
         const pixelBytes = (frame.width * height + (planes - 1) * Math.ceil(frame.width / hsub) * Math.ceil(height / vsub)) * sampleBytes;
         budget.allocateMemory(pixelBytes + frame.width * height * 4 + 128);
         const pixels = new Uint8Array(pixelBytes);

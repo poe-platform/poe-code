@@ -11755,7 +11755,8 @@ function* prepare16BitOutput(image: RgbaImage): Generator<void, RgbaImage, void>
     const data16 = new Uint16Array(image.evaluateSamples.length);
     for (let offset = 0; offset < data16.length; offset++) {
         if (offset % 16384 === 0) yield;
-        data16[offset] = Math.round(Math.max(0, Math.min(65535, image.evaluateSamples[offset]! * 257)));
+        // Restore Q16-HDRI float precision after rescaling normalized working samples.
+        data16[offset] = Math.round(Math.max(0, Math.min(65535, Math.fround(image.evaluateSamples[offset]! * 257))));
     }
     return { ...image, data16 };
 }

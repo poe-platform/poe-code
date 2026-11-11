@@ -135,11 +135,21 @@ export async function emphasizeAudio(
   budget.allocateMemory(frames.length);
   const enabled = new Uint8Array(frames.length);
   const registers = new Float64Array(10);
+  let nextEnableCommand = 0;
   for (const [n, frame] of frames.entries()) {
     if (n % 1024 === 0) { budget.checkCpu(); await yieldTurn(signal); signal?.throwIfAborted(); }
-    if (enable === undefined) { enabled[n] = 1; continue; }
     const variables = { n, t: frame.pts / sampleRate,
       pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0, h: 0, NAN: NaN, INF: Infinity, PI: Math.PI, E: Math.E };
+    while (nextEnableCommand < commands.length && commands[nextEnableCommand]!.sample <= frame.start) {
+      const command = commands[nextEnableCommand++]!;
+      if (command.action !== "enable") continue;
+      try {
+        parseFilterExpression(command.expression, "aemphasis enable", variables, undefined, new Float64Array(10));
+        enable = command.expression;
+        registers.fill(0);
+      } catch { /* Native retains the current timeline after a rejected command. */ }
+    }
+    if (enable === undefined) { enabled[n] = 1; continue; }
     // Native evaluates the timeline on consumption and before filter_frame.
     parseFilterExpression(enable, "aemphasis enable", variables, undefined, registers);
     enabled[n] = Number(Math.abs(parseFilterExpression(enable, "aemphasis enable", variables, undefined, registers)) >= 0.5);

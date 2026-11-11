@@ -14825,7 +14825,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const rows = magickMedianRows(parseMagickStatisticGeometry(tokens[++i] ?? "3"));
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return yield* applyMagickRasterSteps(im, morphologyPixelSteps(im, rows, "median"), signal);
+                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, morphologyPixelSteps(im, rows, "median"), signal);
             });
         }
         else if (t === "-morphology") {
@@ -19105,7 +19105,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const rows = magickMedianRows(parseMagickStatisticGeometry(tokens[++i] ?? "3"));
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, morphologyPixelSteps(image, rows, "median"), signal) : undefined);
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: false }, backend, morphologyPixelSteps(image, rows, "median"), signal) : undefined);
         } else if (!operandsOnly && token === "-extent") {
             let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {

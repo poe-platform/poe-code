@@ -3,7 +3,7 @@ import { concatBytes, decodeFourCC } from "../binary.js";
 import { parseId3, type AudioPicture } from "@poe-code/audio-ast";
 
 export const wavInfoTags = {
-  INAM: "title", IART: "artist", IPRD: "album", ICRD: "date", ICMT: "comment",
+  IART: "artist", INAM: "title", IPRD: "album", ICRD: "date", ICMT: "comment",
   IGNR: "genre", ISFT: "encoder", ITRK: "trackNumber", ICOP: "copyright"
 } as const;
 

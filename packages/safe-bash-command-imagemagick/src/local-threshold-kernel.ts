@@ -1,3 +1,4 @@
+import { createMagickRandom } from "./random.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
@@ -33,7 +34,7 @@ export function parseLocalThresholdGeometry(raw: string): { width: number; heigh
 }
 
 /** Sliding neighborhood sums over unclipped working samples with bounded source blocks. */
-export function* localThresholdPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples" | "storedEvaluateSamples">>, geometry: ReturnType<typeof parseLocalThresholdGeometry>, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* localThresholdPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples" | "storedEvaluateSamples">>, geometry: ReturnType<typeof parseLocalThresholdGeometry>, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, seed?: bigint): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, rx = Math.floor(geometry.width / 2), ry = Math.floor(geometry.height / 2);
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
     const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
@@ -42,6 +43,7 @@ export function* localThresholdPixelSteps(image: Pick<RgbaImage, "width" | "heig
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a, channels.k] : [true, true, true, image.hasAlpha, true];
     // Gray's projected RGB samples share the logical red/gray channel.
     if (image.space === "b-w" || image.space === "grey16") mask[1] = mask[2] = mask[0]!;
+    const random = method === "random" ? createMagickRandom(seed) : undefined;
     const blocks = new Map<number, Uint16Array | Float64Array>();
     const gray = method === "white" ? maximum : method === "gray" ? maximum / 2 : 0;
     const fill = (method === "background" || method?.endsWith("-tile"))
@@ -50,7 +52,7 @@ export function* localThresholdPixelSteps(image: Pick<RgbaImage, "width" | "heig
     if (cmyk) fill.push(gray);
     function* sample(x: number, y: number): Generator<ConvolveRequest | undefined, ArrayLike<number>, Uint8Array | undefined> {
         if (x < 0 || y < 0 || x >= width || y >= height) {
-            const index = virtualPixelIndex(x, y, width, height, method);
+            const index = virtualPixelIndex(x, y, width, height, method, random);
             if (index >= 0) {
                 x = index % width; y = Math.floor(index / width);
             } else return fill;
@@ -86,12 +88,30 @@ export function* localThresholdPixelSteps(image: Pick<RgbaImage, "width" | "heig
     let work = 0;
     for (let y = 0; y < height; y++) {
         const sums = [0, 0, 0, 0, 0];
+        // Native realizes a row-major virtual rectangle once per output row.
+        // Keep column sums so sliding windows reuse the same random border pixels.
+        const columns = random && area > 0 ? new Float64Array((width + geometry.width) * stride) : undefined;
+        if (columns) {
+            for (let row = 0; row < geometry.height; row++) {
+                for (let column = 0; column < width + geometry.width; column++) {
+                    if (++work % 4096 === 0) yield;
+                    const pixel = yield* sample(column - rx, y + row - ry);
+                    for (let c = 0; c < stride; c++) columns[column * stride + c]! += pixel[c]!;
+                }
+            }
+        }
         for (let left = 0; left < width; left += 1024) {
             yield;
             const count = Math.min(1024, width - left), data = hue || cmyk || evaluate ? new Float64Array(count * stride) : new Uint16Array(count * stride);
             for (let i = 0; i < count; i++) {
                 const x = left + i;
-                for (let row = 0; row < geometry.height; row++) {
+                if (columns) {
+                    for (let c = 0; c < stride; c++) {
+                        if (x === 0) {
+                            for (let column = 0; column < geometry.width; column++) sums[c]! += columns[column * stride + c]!;
+                        } else sums[c]! += columns[(x + geometry.width - 1) * stride + c]! - columns[(x - 1) * stride + c]!;
+                    }
+                } else for (let row = 0; row < geometry.height; row++) {
                     const first = x === 0 ? -rx : x - rx - 1;
                     const end = x === 0 ? geometry.width - rx : first + 2;
                     for (let column = first; column < end; column++) {

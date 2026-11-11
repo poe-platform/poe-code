@@ -7,6 +7,7 @@ import { encodeQoiImage } from "./qoi-output.js";
 import { isMiffBytes, readMiffHeader, decodeMiffImage } from "./miff-input.js";
 import { encodeXbmImage } from "./xbm-output.js";
 import { isXbmBytes, readXbmImage } from "./xbm.js";
+import { encodePcxImage } from "./pcx-output.js";
 import { encodeXwdImage } from "./xwd-output.js";
 import { encodeXpmImage } from "./xpm-output.js";
 import { isXpmBytes, readXpmImage } from "./xpm.js";
@@ -503,6 +504,7 @@ export function encodeImage(
     case "qoi": return { data: encodeQoiImage(img), format: "qoi", channels: img.hasAlpha ? 4 : 3 };
     case "xbm": return { data: encodeXbmImage(img), format: "xbm", channels: 1 };
     case "xwd": return { data: encodeXwdImage(img), format: "xwd", channels: 3 };
+    case "pcx": return { data: encodePcxImage(img, options), format: "pcx", channels: 3 };
     case "xpm": return { data: encodeXpmImage(img), format: "xpm", channels: img.hasAlpha ? 4 : 3 };
     case "tga": return { data: encodeTgaImage(img, options), format: "tga", channels: img.hasAlpha ? 4 : 3 };
     case "ico":

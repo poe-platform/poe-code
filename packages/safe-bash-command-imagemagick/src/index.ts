@@ -6805,6 +6805,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
       return "xpm";
     case "xwd":
       return "xwd";
+    case "pcx":
+      return "pcx";
     case "tga":
       return "tga";
     case "txt":

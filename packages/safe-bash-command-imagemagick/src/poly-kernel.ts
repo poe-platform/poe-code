@@ -2,6 +2,7 @@ import type { RgbaImage } from "@poe-code/image-ast";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
 import { sequenceCanvas } from "./sequence-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { magickInput, type MagickFormatContext } from "./stored-stack.js";
 
 export function parseMagickPoly(value: string): number[] {
     const fields: string[] = [];
@@ -44,11 +45,18 @@ export function parseMagickPoly(value: string): number[] {
     return terms.slice(0, terms.length - terms.length % 2);
 }
 
-export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette"> & { magickColorspace?: string })[], terms: readonly number[], channels?: readonly boolean[], highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette"> & { magickColorspace?: string; [magickInput]?: MagickFormatContext })[], terms: readonly number[], channels?: readonly boolean[], highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const canvas = sequenceCanvas(inputs), cmyk = canvas.space === "cmyk";
     const hasAlpha = inputs.some(image => image.hasAlpha);
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     const hue = !!canvas.magickColorspace && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "Gray" && !cmyk;
+    const sourceChannels = inputs.some(image => image[magickInput]?.channelMask) ? inputs.map(image => {
+        const mask = image[magickInput]?.channelMask;
+        return mask ? [mask.r, mask.g, mask.b, mask.a, mask.k === true] : undefined;
+    }) : undefined;
+    // The first image supplies the output channel selection; each term also
+    // requires that channel to be selected on its own source image.
+    if (sourceChannels) channels = sourceChannels[0];
     // Float64 reads must fit the 16 KiB storage page limit.
     for (let position = 0; position < size; position += 2048) {
         yield;
@@ -61,6 +69,7 @@ export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, 
             const samples = evaluated.length ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
             const range = !evaluated.length && highDepth ? 65535 : 255;
             const input = inputs[image]!;
+            const sourceMask = sourceChannels?.[image];
             if (inks && input.space === "cmyk") {
                 const hue = yield { kind: "read", hue: true, image, position, length };
                 const source = hue?.length ? new Float64Array(hue.slice().buffer) : undefined;
@@ -68,7 +77,8 @@ export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, 
                     const ink = source?.subarray(offset, offset + 4)
                         ?? rgbToCmyk(samples[offset]! / range, samples[offset + 1]! / range, samples[offset + 2]! / range);
                     for (let channel = 0; channel < 4; channel++) {
-                        if (channels && !channels[channel === 3 ? 4 : channel]) continue;
+                        const slot = channel === 3 ? 4 : channel;
+                        if (channels && !channels[slot] || sourceMask && !sourceMask[slot]) continue;
                         inks[offset + channel]! += terms[image * 2]! * ink[channel]! ** terms[image * 2 + 1]!;
                     }
                 }
@@ -77,7 +87,7 @@ export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, 
             const colorSlots = gray ? 1 + Number(input.hasAlpha || (input.format === "png" && input.depth === "uchar")) : 3;
             for (let offset = 0; offset < length; offset++) {
                 const channel = offset % 4;
-                if (channels && !channels[channel] || (channel === 3 ? !input.hasAlpha || gray : channel >= colorSlots)) continue;
+                if (channels && !channels[channel] || sourceMask && !sourceMask[channel] || (channel === 3 ? !input.hasAlpha || gray : channel >= colorSlots)) continue;
                 // Native GrayAlpha stores alpha in slot 1; our samples are expanded RGBA.
                 const source = gray && input.hasAlpha && channel === 1 ? offset + 2 : offset;
                 const value = terms[image * 2]! * (samples[source]! / range) ** terms[image * 2 + 1]!;

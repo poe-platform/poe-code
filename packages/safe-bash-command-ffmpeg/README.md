@@ -514,7 +514,8 @@ preceding single-input filters apply to their respective input branches before c
 
 `sidechaingate` uses the second audio input to gate the first, stopping at the shorter
 input. For example, `[0:a][1:a]sidechaingate=threshold=0.1:ratio=8:attack=1:release=20[mix]`
-attenuates the program when the control signal becomes quiet. Supports `range`,
+attenuates the program when the control signal becomes quiet. A final option separator
+(`sidechaingate=threshold=0.125:`) is accepted without changing the audio. Supports `range`,
 `knee`, `detection=peak|rms`, `link=average|maximum`, `mode=downward|upward`,
 `level_in`, `level_sc`, and `makeup`; the control input can have a different channel count
 or sample rate. The control input is resampled to the program rate, which is preserved

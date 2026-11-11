@@ -20,7 +20,9 @@ export async function gateAudio(
   const names = Object.keys(options);
   let enable: string | undefined;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  const fields = argument ? argument.split(":") : [];
+  if (fields.at(-1) === "") fields.pop();
+  for (const [index, option] of fields.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();

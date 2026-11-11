@@ -17000,7 +17000,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const command = commands[commandIndex++]!;
                             try {
                               if (command.action === "enable") {
-                                parseFilterExpression(command.expression, "stereotools enable", { n: 0, t: 0 }, undefined, new Float64Array(10));
+                                parseFilterExpression(command.expression, "stereotools enable", { n: 0, t: 0, w: 0, h: 0, pos: NaN }, undefined, new Float64Array(10));
                                 enable = command.expression;
                                 enableRegisters.fill(0);
                               } else applyMixOption(command.action, command.expression);
@@ -17012,10 +17012,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const frameLength = timestamp ? timestamp.end - timestamp.start
                               : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                             const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + i);
+                            const pos = audioTimestamps ? timestamp?.pos : packet?.offset;
                             // FFmpeg evaluates the timeline twice per input frame, using the second result.
                             for (let evaluation = 0; evaluation < 2; evaluation++) {
                               enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "stereotools enable", {
-                                n: frameIndex, t: pts / origRate
+                                n: frameIndex, t: pts / origRate, w: 0, h: 0,
+                                pos: pos === undefined || pos < 0 ? NaN : pos
                               }, undefined, enableRegisters)) >= 0.5;
                             }
                             frameEnd = i + frameLength;

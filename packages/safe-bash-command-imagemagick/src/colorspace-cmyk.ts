@@ -1,6 +1,6 @@
 import type { RgbaImage } from "@poe-code/image-ast/portable";
 import type { HueMetadata } from "./colorspace-hue.js";
-import { formatMetricNum } from "./compare-kernel.js";
+import { formatSignificantMetric } from "./compare-kernel.js";
 
 export function rgbToCmyk(r: number, g: number, b: number): number[] {
     const maximum = Math.max(r, g, b);
@@ -57,8 +57,8 @@ export function* copyCmykChannelsToRgb(image: RgbaImage & HueMetadata): Generato
     return { ...metadata, data, ...(data16 ? { data16 } : {}), space: "srgb", channels: image.hasAlpha ? 4 : 3 };
 }
 
-export function formatCmykPixel(channels: readonly number[], hasAlpha: boolean): string {
-    return `cmyk${hasAlpha ? "a" : ""}(${channels.slice(0, 4).map(value => formatMetricNum(value * 255)).join(",")}${hasAlpha ? `,${formatMetricNum(channels[4] ?? 1)}` : ""})`;
+export function formatCmykPixel(channels: readonly number[], hasAlpha: boolean, precision?: number): string {
+    return `cmyk${hasAlpha ? "a" : ""}(${channels.slice(0, 4).map(value => formatSignificantMetric(value * 255, precision)).join(",")}${hasAlpha ? `,${formatSignificantMetric(channels[4] ?? 1, precision)}` : ""})`;
 }
 
 /** Apply Q16 stretch maps to inks while keeping alpha in the RGBA backing. */

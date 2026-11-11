@@ -25,7 +25,7 @@ for (const [options, left] of [
       stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
     } as never);
     if (left === null) {
-      assert.equal(result.exitCode, 1);
+      assert.equal(result.exitCode, 234);
       assert.equal(volume.readFileSync("/o.raw", "utf8"), "KEEP");
       return;
     }

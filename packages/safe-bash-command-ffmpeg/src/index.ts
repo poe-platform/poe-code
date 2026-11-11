@@ -17214,7 +17214,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("asubboost: invalid ")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("pad: generic option")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("pad: unsupported option ")) return { exitCode: 8 };
-            if (msg === "pad: eval must be init or frame" || msg.startsWith("pad: Invalid color")) return { exitCode: 234 };
+            if (msg === "pad: eval must be init or frame" || msg.startsWith("pad: Invalid color") ||
+                msg === "pad: invalid expression" || msg === "pad: invalid or unsupported expression") return { exitCode: 234 };
             if (msg.startsWith("apad: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("apad:")) return { exitCode: 222 };
             if (msg.startsWith("apad: invalid ") || msg === "apad: pad_len and whole_len are mutually exclusive") return { exitCode: 234 };

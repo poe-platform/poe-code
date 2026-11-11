@@ -36,7 +36,7 @@ for (const [options, left, top] of [
       stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
     } as never);
     if (left === null || top === null) {
-      assert.equal(result.exitCode, 1);
+      assert.equal(result.exitCode, 234);
       assert.match(Buffer.concat(errors).toString(), /pad: invalid or unsupported expression/);
       assert.equal(volume.existsSync("/output.png"), false);
       return;

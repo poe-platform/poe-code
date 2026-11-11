@@ -158,6 +158,9 @@ Both forms apply to every channel and may omit either bound.
 `chorus=0.5:0.9:10|20:0.5|0.3:1|2:1|2` mixes modulated voices independently into each PCM channel and emits the complete delayed tail. Supports positional or named `in_gain`, `out_gain`, `delays`, `decays`, `speeds`, and `depths`. The four voice lists are required and must have matching lengths; delays and depths are in milliseconds, speeds in Hz. Voice lists accept hexadecimal floats: delay `0x10` is 16 ms, as is `0x1p4`. Like native FFmpeg, depth controls the sinusoidal voice offsets, while the largest delay plus depth determines tail duration. Gains that can cause clipping emit a warning at `-v warning` or higher without changing the PCM output. Invalid options or resource limits preserve existing output.
 
 `adelay=0S|1S` delays each audio channel independently and pads with silence.
+Its scheduling options accept `none` (0) and `all` (-1), including in expressions;
+`threads=none` and `extra_hw_frames=all` leave PCM unchanged. Values must remain
+within the option range: `threads=all` is rejected because threads cannot be negative.
 Generic `threads`, `thread_type` (including `slice`), and `extra_hw_frames` settings
 are validated and leave rendered PCM unchanged.
 `asendcmd=c='0.003 adelay@d delays 0S|5S',adelay@d=0S|3S` updates the named delay

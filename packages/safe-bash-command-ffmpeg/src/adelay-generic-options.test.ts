@@ -6,10 +6,13 @@ import { createFfmpegCommand } from "./index.js";
 const validOptions = ["", "threads=1", "thread_type=slice", "extra_hw_frames=1",
   "threads=default", "threads=min", "extra_hw_frames=default", "extra_hw_frames=min",
   "threads=0", "extra_hw_frames=-1",
+  "threads=none", "extra_hw_frames=all", "extra_hw_frames=none",
+  "threads=none:extra_hw_frames=all", "threads=all+1:extra_hw_frames=all+1",
   "threads=1:thread_type=slice:extra_hw_frames=1",
   "threads=0:thread_type=0:extra_hw_frames=-1",
   "threads=2147483647:extra_hw_frames=2147483647", "threads=1+1"];
 const invalidOptions = ["threads=-1", "threads=2147483648", "threads=", "threads=bogus",
+  "threads=all", "threads=none-1", "extra_hw_frames=all-1",
   "thread_type=bogus", "extra_hw_frames=-2", "extra_hw_frames=2147483648", "unknown=1"];
 
 for (const graph of [false, true]) {
@@ -42,6 +45,7 @@ for (const graph of [false, true]) {
         assert.equal(output.toString(), "KEEP");
       } else {
         assert.equal(result.exitCode, 0, stderr);
+        assert.equal(stderr, "");
         assert.equal(output.length, 44);
         // Native FFmpeg 7.0.2 produces these eleven stereo PCM16 pairs.
         assert.deepEqual(Array.from({ length: 11 }, (_, i) => [

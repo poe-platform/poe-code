@@ -16987,8 +16987,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               }
                             } while (position < value.length);
                           } else if (key === "threads" || key === "extra_hw_frames") {
-                            const number = parseFilterExpression(value, "adelay",
-                              key === "threads" ? { default: 0, min: 0 } : { default: -1, min: -1 });
+                            const number = parseFilterExpression(value, "adelay", {
+                              none: 0, all: -1,
+                              ...(key === "threads" ? { default: 0, min: 0 } : { default: -1, min: -1 })
+                            });
                             if (!Number.isFinite(number) || number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
                               throw new RangeError(`adelay: invalid ${key}`);
                             }

@@ -31,6 +31,12 @@ async function run(filter: string, width = 32, height = 32) {
 
 for (const [options, hash] of [
   ["strength=5:radius=4", "9806068629cde0e20a0cd940c555f6b42060b15940403fd4d7b77e2fb6b30931"],
+  ["5:4.49", "9806068629cde0e20a0cd940c555f6b42060b15940403fd4d7b77e2fb6b30931"],
+  ["5:4.5", "9806068629cde0e20a0cd940c555f6b42060b15940403fd4d7b77e2fb6b30931"],
+  ["strength=5:radius=4.5", "9806068629cde0e20a0cd940c555f6b42060b15940403fd4d7b77e2fb6b30931"],
+  ["5:4.51", "9d3d84366aefc7878e3dc45fbf39ca90b10c824491f19b8dda42c3abc4d31fad"],
+  ["5:5.5", "9d3d84366aefc7878e3dc45fbf39ca90b10c824491f19b8dda42c3abc4d31fad"],
+  ["5:6.5", "9d3d84366aefc7878e3dc45fbf39ca90b10c824491f19b8dda42c3abc4d31fad"],
   ["strength=1.2:radius=8", "17b53723bcfd38bf11d20ebb49e701a0887fa663e2eca7dfdf27d1ed049429fc"],
   ["5:4", "9806068629cde0e20a0cd940c555f6b42060b15940403fd4d7b77e2fb6b30931"]
 ]) {

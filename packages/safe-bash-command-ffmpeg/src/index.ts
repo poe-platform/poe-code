@@ -6400,7 +6400,7 @@ async function applyVideoFilterChain(
         throw new Error("gradfun: strength must be 0.51..64 and radius must be 4..32");
       }
       if (pixelFormat !== "gray" && pixelFormat !== "gray8") throw new Error("gradfun: only 8-bit grayscale video is supported");
-      const radius = (Math.round(radiusOption) + 1) & ~1;
+      const radius = (roundToEven(radiusOption) + 1) & ~1;
       const threshold = Math.trunc(32768 / strength);
       const factor = Math.trunc(2097152 / (radius * radius));
       const dither = [

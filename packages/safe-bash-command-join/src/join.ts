@@ -1,5 +1,6 @@
 import { getCommandArguments, isFsError, writeBytes, type CommandDefinition, type CommandContext } from "safe-bash-contracts";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
+import { escapeText, quoteShellOperand } from "safe-bash-contracts/escaping";
 import { argument, type Budget, command, compare, empty, encode, fail, Inputs, settings, type OrderMode, type RecordReader, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
 interface Field { readonly file: number; readonly index: number }
@@ -124,7 +125,7 @@ function parse(context: CommandContext, budget: Budget, utf8: boolean): Options 
       // GNU defers -j1/-j2 and -o continuations until excess operands reveal them.
       if (options.files.length === 2) {
         const position = fieldCandidates.findIndex(field => field !== undefined);
-        if (position < 0) fail("join requires exactly two files");
+        if (position < 0) throw new PublicDiagnostic(`extra operand ${quoteShellOperand(token, utf8)}\nTry 'join --help' for more information.`);
         const field = fieldCandidates[position]!;
         apply(field, options.files[position]!);
         if (field !== "o") pendingFields[field]--;
@@ -172,7 +173,10 @@ function parse(context: CommandContext, budget: Budget, utf8: boolean): Options 
       } else optionError(`invalid option -- '${flag}'`);
     }
   }
-  if (options.files.length !== 2) fail("join requires exactly two files");
+  if (options.files.length < 2) {
+    const after = options.files.length ? ` after '${escapeText(context.args.at(-1)!, "display").split("'").join("\\'")}'` : "";
+    throw new PublicDiagnostic(`missing operand${after}\nTry 'join --help' for more information.`);
+  }
   for (const field of ["1", "2"] as const) if (pendingFields[field]) apply("j", field);
   if (options.files.every(file => file === "-")) fail("both files cannot be standard input");
   return options;

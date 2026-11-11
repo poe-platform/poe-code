@@ -51,7 +51,7 @@ for (const graph of [false, true]) {
         assert.equal(frames.length, 8);
         const raw = filter === "ashowinfo";
         const planar = !raw && !filter.includes("aformat");
-        const description = `pos:-1 fmt:${planar ? "fltp" : "s16"} channels:${raw ? 2 : 3} chlayout:${raw ? "stereo" : "3.0"} rate:8000`;
+        const description = `fmt:${planar ? "fltp" : "s16"} channels:${raw ? 2 : 3} chlayout:${raw ? "stereo" : "3.0"} rate:8000`;
         for (const [n, line] of frames.entries()) {
           const prefix = `[ashowinfo] n:${n} pts:${n * 512} pts_time:${n * 0.064} ${description} nb_samples:512`;
           assert.ok(line.startsWith(prefix), line);

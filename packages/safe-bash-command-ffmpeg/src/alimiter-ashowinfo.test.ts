@@ -29,7 +29,7 @@ for (const graph of [false, true]) {
         } as never);
         assert.equal(result.exitCode, 0, stderr);
         assert.deepEqual(stderr.trim().split("\n"), checksums.map((checksum, n) =>
-          `[ashowinfo] n:${n} pts:${n * 512} pts_time:${n * 0.064} pos:-1 fmt:dbl channels:${scales.length} chlayout:${scales.length === 1 ? "mono" : "stereo"} rate:8000 nb_samples:${n ? 88 : 512} checksum:${checksum} plane_checksums: [ ${checksum} ]`));
+          `[ashowinfo] n:${n} pts:${n * 512} pts_time:${n * 0.064} fmt:dbl channels:${scales.length} chlayout:${scales.length === 1 ? "mono" : "stereo"} rate:8000 nb_samples:${n ? 88 : 512} checksum:${checksum} plane_checksums: [ ${checksum} ]`));
         const pcm = fs.readFileSync("/out.pcm") as Buffer;
         assert.equal(pcm.length, 600 * scales.length * 2);
         for (let i = 0; i < 600; i++) for (const [c, scale] of scales.entries()) {

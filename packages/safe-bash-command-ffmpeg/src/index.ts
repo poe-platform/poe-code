@@ -12458,7 +12458,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             planeChecksums.push(((pb * 65536 + pa) >>> 0).toString(16).padStart(8, "0").toUpperCase());
                           }
                           const checksum = ((b * 65536 + a) >>> 0).toString(16).padStart(8, "0").toUpperCase();
-                          await writeBytes(context.stderr, encodeUtf8(`[ashowinfo] n:${n} pts:${Number.isNaN(pts) ? "NOPTS" : timestamp?.exactPts !== undefined && timeBase * origRate === 1 ? timestamp.exactPts : pts} pts_time:${Number.isNaN(pts) ? "NOPTS" : Number((pts * timeBase).toPrecision(6))} pos:-1 fmt:${format} channels:${channels} chlayout:${layout} rate:${origRate} nb_samples:${end - start} checksum:${checksum} plane_checksums: [ ${planeChecksums.join(" ")} ]\n`), context.signal);
+                          await writeBytes(context.stderr, encodeUtf8(`[ashowinfo] n:${n} pts:${Number.isNaN(pts) ? "NOPTS" : timestamp?.exactPts !== undefined && timeBase * origRate === 1 ? timestamp.exactPts : pts} pts_time:${Number.isNaN(pts) ? "NOPTS" : Number((pts * timeBase).toPrecision(6))} fmt:${format} channels:${channels} chlayout:${layout} rate:${origRate} nb_samples:${end - start} checksum:${checksum} plane_checksums: [ ${planeChecksums.join(" ")} ]\n`), context.signal);
                           start = end;
                         }
                       } else if (trimmed === "asubcut" || trimmed.startsWith("asubcut=")) {

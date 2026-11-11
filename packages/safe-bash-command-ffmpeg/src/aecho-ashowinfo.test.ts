@@ -43,7 +43,7 @@ for (const graph of [false, true]) {
           "1048ce2da23745ca9a4cd9139f9ef2a04e69ccd75c34db8e9b3204db92a07f11");
       }
       assert.deepEqual(stderr.trim().split("\n"), Array.from({ length: filter === "anull" ? 1 : 2 }, (_, n) =>
-        `[ashowinfo] n:${n} pts:${n * 8} pts_time:${n * 0.001} pos:-1 fmt:${format} channels:2 chlayout:stereo rate:8000 nb_samples:8 checksum:${checksum} plane_checksums: [ ${planes} ]`));
+        `[ashowinfo] n:${n} pts:${n * 8} pts_time:${n * 0.001} fmt:${format} channels:2 chlayout:stereo rate:8000 nb_samples:8 checksum:${checksum} plane_checksums: [ ${planes} ]`));
     });
   }
 }

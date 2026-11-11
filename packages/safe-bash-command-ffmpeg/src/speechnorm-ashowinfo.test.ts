@@ -30,7 +30,7 @@ for (const graph of [false, true]) {
     assert.equal(result.exitCode, 0, stderr);
     const frames = stderr.trim().split("\n");
     assert.equal(frames.length, 9);
-    const description = `pos:-1 fmt:${format} channels:${channels} chlayout:${channels === 1 ? "mono" : "stereo"} rate:8000`;
+    const description = `fmt:${format} channels:${channels} chlayout:${channels === 1 ? "mono" : "stereo"} rate:8000`;
     assert.equal(frames[0], `[ashowinfo] n:0 pts:0 pts_time:0 ${description} nb_samples:512 checksum:${checksum} plane_checksums: [ ${planes} ]`);
     assert.equal(frames[8], `[ashowinfo] n:8 pts:4096 pts_time:0.512 ${description} nb_samples:1 checksum:${finalChecksum} plane_checksums: [ ${finalPlanes} ]`);
     assert.equal(createHash("sha256").update(fs.readFileSync("/out.pcm") as Buffer).digest("hex"), pcmHash);

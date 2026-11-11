@@ -34,7 +34,7 @@ for (const graph of [false, true]) {
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
       assert.equal(result.exitCode, 0, stderr);
-      assert.equal(stderr.trim(), `[ashowinfo] n:0 pts:0 pts_time:0 pos:-1 fmt:${format} channels:2 chlayout:stereo rate:44100 nb_samples:2059 checksum:${checksum} plane_checksums: [ ${planes} ]`);
+      assert.equal(stderr.trim(), `[ashowinfo] n:0 pts:0 pts_time:0 fmt:${format} channels:2 chlayout:stereo rate:44100 nb_samples:2059 checksum:${checksum} plane_checksums: [ ${planes} ]`);
       const audio = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
       assert.equal(audio.sampleRate, 44100);
       assert.equal(audio.channels, 2);

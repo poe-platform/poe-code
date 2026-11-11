@@ -35,7 +35,7 @@ for (const graph of [false, true]) {
       } as never);
       assert.equal(result.exitCode, 0, stderr);
       assert.equal(stderr.trim(),
-        `[ashowinfo] n:0 pts:0 pts_time:0 pos:-1 fmt:${format} channels:2 chlayout:stereo rate:44100 nb_samples:150 checksum:${checksum} plane_checksums: [ ${checksum} ]`);
+        `[ashowinfo] n:0 pts:0 pts_time:0 fmt:${format} channels:2 chlayout:stereo rate:44100 nb_samples:150 checksum:${checksum} plane_checksums: [ ${checksum} ]`);
       const pcm = fs.readFileSync("/out.pcm") as Buffer;
       assert.equal(pcm.length, 150 * 2 * 2);
       assert.equal(createHash("sha256").update(pcm).digest("hex"), filter === "ashowinfo"

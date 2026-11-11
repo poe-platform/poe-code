@@ -34,7 +34,7 @@ for (const graph of [false, true]) {
       } as never);
       assert.equal(result.exitCode, 0, stderr);
       assert.deepEqual(stderr.trim().split("\n"), checksums.map((checksum, n) =>
-        `[ashowinfo] n:${n} pts:${n * 512} pts_time:${n * 0.064} pos:-1 fmt:${format} channels:2 chlayout:stereo rate:8000 nb_samples:512 checksum:${checksum} plane_checksums: [ ${checksum} ]`));
+        `[ashowinfo] n:${n} pts:${n * 512} pts_time:${n * 0.064} fmt:${format} channels:2 chlayout:stereo rate:8000 nb_samples:512 checksum:${checksum} plane_checksums: [ ${checksum} ]`));
       assert.equal(createHash("sha256").update(fs.readFileSync("/out.pcm") as Buffer).digest("hex"), filter === "ashowinfo"
         ? "a7e6a6884946ec1109f7b4d893616633f7203278818ae54f439cda05d39d56cc"
         : "28d7b722138fae1e69d85f4200e91b9ee311c0314f4322c9d04a5b0f53ef0637");

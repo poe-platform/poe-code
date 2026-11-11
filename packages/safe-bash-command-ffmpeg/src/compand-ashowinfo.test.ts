@@ -52,7 +52,7 @@ for (const graph of [false, true]) {
       const checksums: string[][] = [[checksum, planes]];
       if (checksum === "F9DA0A3B") checksums.push(["F2FA0A36", "33B9F293 BDB51794"]);
       assert.ok(checksums.some(([sum, planeSums]) => lines[n] ===
-        `[ashowinfo] n:${n} pts:${n * 512} pts_time:${n * 0.064} pos:-1 fmt:${format} channels:2 chlayout:stereo rate:8000 nb_samples:${n === 3 ? 67 : 512} checksum:${sum} plane_checksums: [ ${planeSums} ]`), lines[n]);
+        `[ashowinfo] n:${n} pts:${n * 512} pts_time:${n * 0.064} fmt:${format} channels:2 chlayout:stereo rate:8000 nb_samples:${n === 3 ? 67 : 512} checksum:${sum} plane_checksums: [ ${planeSums} ]`), lines[n]);
     }
     assert.equal(createHash("sha256").update(fs.readFileSync("/out.pcm") as Buffer).digest("hex"), pcmHash);
   });

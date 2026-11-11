@@ -14597,6 +14597,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-enhance") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 im = discardDisassociatedAlpha(im);
                 return yield* applyMagickRasterSteps({ ...im, isPalette: false }, enhancePixelSteps(im, state.background, state.virtualPixel), signal);
@@ -18708,6 +18709,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = parseMagickGeometry(tokens[++i] ?? ""), { background, virtualPixel, intensity } = state, channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: false }, backend, selectiveBlurPixelSteps(image, geometry, background, virtualPixel, channels, intensity), signal) : undefined);
         } else if (!operandsOnly && token === "-enhance") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const { background, virtualPixel } = state;
             steps.push(async (image, backend) => {
                 if (!image) return undefined;

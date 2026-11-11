@@ -28,7 +28,7 @@ export async function flangeAudio(
     const value = separator < 0 ? option : option.slice(separator + 1);
     const [min, max] = ranges[key];
     const number = parseFilterExpression(value, "flanger", {
-      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, min, max, default: defaults[key],
+      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, none: 0, all: -1, min, max, default: defaults[key],
       ...(key === "shape" ? { sinusoidal: 0, s: 0, triangular: 1, t: 1 } : {}),
       ...(key === "interp" ? { linear: 0, quadratic: 1 } : {})
     }, undefined, new Float64Array(10));

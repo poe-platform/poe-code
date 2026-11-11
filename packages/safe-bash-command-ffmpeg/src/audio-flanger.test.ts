@@ -68,6 +68,29 @@ for (const [filter, frames, stereo, hash] of cases) {
   }
 }
 
+for (const [expression, decimal, hash] of [
+  ["none", "0", "3ec023179765761e298eee4e944b7840182d88d5f0dd54600ccac901ccd75908"],
+  ["all", "-1", "889355994178836af95771cd43c4cb003c7a498d37bddddc9ffa053d8dfdd2d6"],
+  ["all+1", "0", "3ec023179765761e298eee4e944b7840182d88d5f0dd54600ccac901ccd75908"]
+]) {
+  for (const graph of [false, true]) {
+    it(`flanger regen=${expression} matches native PCM and literal ${decimal} (graph=${graph})`, async () => {
+      const channels = [
+        Float64Array.from({ length: 16 }, (_, i) => (1000 + i * 97) / 32768),
+        Float64Array.from({ length: 16 }, (_, i) => ((i * 257) % 20001 - 10000) / 32768)
+      ];
+      const control = await run(`flanger=regen=${decimal}`, 16, true, graph, "s16le", channels, 1000);
+      assert.equal(control.result.exitCode, 0, control.stderr);
+      const actual = await run(`flanger=regen=${expression}`, 16, true, graph, "s16le", channels, 1000);
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      const pcm = actual.volume.readFileSync("/out.s16") as Buffer;
+      assert.equal(pcm.length, 64);
+      assert.deepEqual(pcm, control.volume.readFileSync("/out.s16"));
+      assert.equal(createHash("sha256").update(pcm).digest("hex"), hash);
+    });
+  }
+}
+
 for (const [expression, decimal] of [
   ["PI", "3.141592653589793"],
   ["E", "2.718281828459045"],

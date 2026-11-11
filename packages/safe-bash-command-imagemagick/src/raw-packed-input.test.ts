@@ -44,6 +44,19 @@ const cases: { coder: string; depth: number; input: string; output: string; size
     { coder: "gray", depth: 2, input: "093e", output: "000000ff000000ff000000ffffffffff" },
     { coder: "gray", depth: 4, input: "093e", output: "000000ff999999ff333333ffeeeeeeff" },
     { coder: "gray", depth: 8, input: "093e73a8", output: "090909ff3e3e3eff737373ffa8a8a8ff" },
+    ...[
+        { depth: 3, input: "111213", output: "000000ff929292ff494949ff242424ff242424ff000000ff494949ff6d6d6dff" },
+        { depth: 5, input: "1112131415", output: "101010ff212121ff4a4a4aff080808ff313131ff292929ff000000ffadadadff" },
+        { depth: 6, input: "111213141516", output: "101010ff454545ff202020ff4d4d4dff141414ff040404ff515151ff595959ff" },
+        { depth: 7, input: "11121314151617", output: "101010ff898989ff858585ff626262ff404040ffa9a9a9ff585858ff2e2e2eff" },
+        { depth: 4, input: "11121314", output: "111111ff111111ff111111ff222222ff111111ff333333ff111111ff444444ff" },
+        { depth: 8, input: "1112131415161718", output: "111111ff121212ff131313ff141414ff151515ff161616ff171717ff181818ff" }
+    ].flatMap(fixture => [
+        { ...fixture, coder: "gray", size: "8x1" },
+        { ...fixture, coder: "gray", size: "7x2", input: fixture.input.slice(0, Math.ceil(7 * fixture.depth / 8) * 2).repeat(2), output: fixture.output.slice(0, 7 * 8).repeat(2) },
+        { ...fixture, coder: "gray", size: "8x1+1", selector: "[1]", input: "ff" + fixture.input.repeat(2) },
+        { ...fixture, coder: "gray", size: "8x1", input: fixture.input.slice(0, -2), output: "4b454550", exitCode: 1 }
+    ]),
     { coder: "rgb", depth: 1, input: "", output: "4b454550", exitCode: 1 },
     { coder: "rgb", depth: 2, input: "093e", output: "4b454550", exitCode: 1 },
     { coder: "gray", depth: 4, input: "09", output: "4b454550", exitCode: 1 },
@@ -147,4 +160,32 @@ it("keeps BGR channel order across bounded packed reads", () => {
     expect(Buffer.from(next.value)).toEqual(Buffer.concat([
         Buffer.from("P6\n6002 1\n255\n"), Buffer.from("332211665544".repeat(3001), "hex")
     ]));
+});
+
+it.each([
+    [3, "111213", "009249242400496d"],
+    [5, "1112131415", "10214a08312900ad"],
+    [6, "111213141516", "1045204d14045159"],
+    [7, "11121314151617", "1089856240a9582e"]
+] as const)("reads bounded and partial %i-bit GRAY rows with offsets and scenes", (depth, hex, decoded) => {
+    const width = 1031, row = Buffer.from(hex.repeat(129), "hex");
+    const input = Buffer.concat([Buffer.from("skip"), row, row, row, row]);
+    const pixels = Buffer.from(decoded.repeat(129), "hex").subarray(0, width);
+    const header = Buffer.from(`P5\n${width} 2\n255\n`);
+    const expected = Buffer.concat([header, pixels, pixels]);
+    for (const endian of ["msb", "lsb"]) {
+        const raw = rawRasterInput(width, 2, depth, endian, input.length, 1, 4);
+        expect(raw.pages).toBe(2);
+        expect(raw.size).toBe(expected.length);
+        const reads = [[0, raw.size], ...[0, 1, 1023, 1024, 1029, 1030, 1031, 2054].map(pixel => [header.length + pixel, 7])];
+        for (const [position, length] of reads) {
+            const steps = raw.read(position!, length!, 1);
+            let next = steps.next();
+            while (!next.done) {
+                expect(next.value.length).toBeLessThanOrEqual(1024 * depth / 8 + 1);
+                next = steps.next(input.subarray(next.value.position, next.value.position + next.value.length));
+            }
+            expect(Buffer.from(next.value)).toEqual(expected.subarray(position!, position! + length!));
+        }
+    }
 });

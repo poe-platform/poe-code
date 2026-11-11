@@ -122,8 +122,9 @@ function extractVideoFramesFromDoc(doc: MediaDocument, maxFrames?: number): {
     for (const frame of decoded) {
       // MP4 retains reference pictures outside its visible interval. Other
       // containers must export only the displayed portion of each picture.
-      const start = Math.max(Math.round(frame.ptsSeconds * ts) / ts, mediaStart);
-      const end = Math.min(Math.round((frame.ptsSeconds + frame.durationSeconds) * ts) / ts, mediaEnd);
+      const start = edit ? Math.max(Math.round(frame.ptsSeconds * ts) / ts, mediaStart) : frame.ptsSeconds;
+      const end = edit ? Math.min(Math.round((frame.ptsSeconds + frame.durationSeconds) * ts) / ts, mediaEnd)
+        : frame.ptsSeconds + frame.durationSeconds;
       if (end <= start) continue;
       frames.push(edit ? { ...frame, ptsSeconds: presentationStart + start - mediaStart, durationSeconds: end - start } : frame);
       if (maxFrames !== undefined && frames.length >= maxFrames) break;

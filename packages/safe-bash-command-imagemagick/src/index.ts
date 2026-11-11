@@ -11662,7 +11662,7 @@ async function prepareStoredIcoPages(stack: StoredImageStack, image: StoredRgbaI
 }
 
 // Work backwards so every comparison sees the original full-canvas predecessor.
-// The first frame is compared with an empty canvas, but only an empty result is trimmed.
+// Compare the first frame with an empty canvas to trim its transparent margins.
 // Clearing/restoring frames keep their disposal-dependent encoder optimization.
 function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimize: boolean): Generator<void, void, void> {
     for (let n = stack.length - 1; n >= 0; n--) {
@@ -11715,7 +11715,7 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
             stack[n] = { ...metadata, ...(n === stack.length - 1 && transparent && next.value && !optimize ? { disposal: 3 } : {}), width: 1, height: 1, data: pause.data,
                 ...(pause.data16 ? { data16: pause.data16 } : {}), hasAlpha: true,
                 virtualCanvas: { ...magickCropCanvas(current, 0, 0), x: -1, y: -1 } };
-        } else if (n > 0 && (area.width !== current.width || area.height !== current.height)) {
+        } else if (area.width !== current.width || area.height !== current.height) {
             stack[n] = { ...yield* extractImageSteps(current, area), virtualCanvas: magickCropCanvas(current, area.left, area.top) };
         }
     }
@@ -11776,7 +11776,7 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
             await stack.set(n, { ...metadata, ...(n === stack.length - 1 && transparent && next.value && !optimize ? { disposal: 3 } : {}), width: 1, height: 1, position: pause.position,
                 ...(pause.storedData16 ? { storedData16: pause.storedData16 } : {}), hasAlpha: true,
                 virtualCanvas: { ...magickCropCanvas(current, 0, 0), x: -1, y: -1 } });
-        } else if (n > 0 && (area.width !== current.width || area.height !== current.height)) {
+        } else if (area.width !== current.width || area.height !== current.height) {
             await stack.set(n, { ...await transformStoredImage(current, backend.storage, { kind: "extract", ...area }, signal), virtualCanvas: magickCropCanvas(current, area.left, area.top) });
         }
     }

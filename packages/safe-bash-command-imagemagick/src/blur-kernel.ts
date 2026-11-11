@@ -20,7 +20,7 @@ export function parseUnsharpGeometry(raw: string): { width: number; height: numb
 /** Native sampled Gaussian or rank-three blur, with bounded row caching. */
 export function* blurPixelSteps(image: { width: number; height: number; region?: Region | undefined; evaluateSamples?: Float64Array | undefined; storedEvaluateSamples?: number | undefined }, geometry: { width?: number; height?: number }, gaussian: boolean, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, unsharp?: { amount: number; threshold: number }, writeMask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
-    const evaluate = !!unsharp && (!!image.evaluateSamples || image.storedEvaluateSamples !== undefined);
+    const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
     const region = !gaussian ? image.region : undefined;
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
     let half = 0;
@@ -83,7 +83,7 @@ export function* blurPixelSteps(image: { width: number; height: number; region?:
                         }
                     }
                     // Q16-HDRI stores float quantum samples between separable passes.
-                    if (evaluate) for (let i = 0; i < row.length; i++) row[i] = Math.fround(row[i]! * (i % 4 === 3 ? 65535 : 257)) / (i % 4 === 3 ? 65535 : 257);
+                    if (evaluate && !gaussian) for (let i = 0; i < row.length; i++) row[i] = Math.fround(row[i]! * (i % 4 === 3 ? 65535 : 257)) / (i % 4 === 3 ? 65535 : 257);
                     if (rows.size >= 32) rows.delete(rows.keys().next().value!);
                     rows.set(sy, row);
                 }

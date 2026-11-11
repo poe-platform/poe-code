@@ -10514,7 +10514,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     if (data16) data16[idx + c] = Math.max(0, Math.min(65535, Math.round(value)));
                 }
             }
-            const colored = endpointColors?.some(color => color.r !== color.g || color.g !== color.b);
+            const colored = endpointColors?.some(color => color.space !== "b-w");
             return { ...im, ...(im.writeMask ? { writeMask: { ...im.writeMask } } : {}), ...(im.region ? { region: { ...im.region } } : {}), ...(colored && (im.space === "b-w" || im.space === "grey16") ? { space: "srgb" as const, channels: im.hasAlpha ? 4 as const : 3 as const } : {}), data: out, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), ...(data16 ? { data16 } : {}) };
         };
         if (!colorEndpoints) meta = {

@@ -358,6 +358,14 @@ function serializeLimitedWav(
   document: MediaDocument, plugin: MediaAstPlugin,
   options: Parameters<MediaAstPlugin["serialize"]>[1], fileSize: number | undefined
 ): Uint8Array {
+  if (plugin.id === "y4m" && options?.videoCodec !== "copy") {
+    // Y4M encoders write an unspecified SAR as 0:0; filters use 0:1.
+    document = { ...document, tracks: document.tracks.map(track => track.type !== "video" ? track : {
+      ...track,
+      codecDescriptions: track.codecDescriptions.map(codec => codec.sarWidth === 0
+        ? { ...codec, sarHeight: 0 } : codec)
+    }) };
+  }
   if (fileSize !== undefined) {
     // The muxer checks its current position before accepting the next packet.
     // Serialize only the header to account for metadata and optional WAV chunks.

@@ -32,7 +32,7 @@ async function run(filter: string, aspect = "1:1", graph = false) {
 for (const [filter, aspect] of [
   ["null", "1:1"], ["setsar=2", "2:1"], ["setsar=3/2", "3:2"],
   ["setsar=sar=1.5", "3:2"], ["setsar=ratio=6/4", "3:2"], ["setsar=r=2", "2:1"],
-  ["setsar", "0:1"], ["setsar=0", "0:1"], ["setsar=w/h", "2:1"],
+  ["setsar", "0:0"], ["setsar=0", "0:0"], ["setsar=w/h", "2:1"],
   ["setsar=2,setsar=sar/2", "1:1"], ["setsar=2,setsar=dar", "4:1"],
   ["setsar=3/2:max=2", "1:1"], ["setsar=3/2:10", "3:2"],
   ["setsar=1001/1000", "1:1"], ["setsar=1001/1000:max=1001", "1001:1000"]

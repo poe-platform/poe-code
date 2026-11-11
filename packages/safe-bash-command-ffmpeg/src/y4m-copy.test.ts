@@ -4,7 +4,7 @@ import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
 for (const codec of [[], ["-c:v", "copy"]]) {
-  for (const [aspect, interlace, range] of [["1:1", "p"], ["4:3", "p"], ["0:0", "p"], ["1:1", "t"], ["1:1", "b"], ["1:1", "p", "FULL"], ["1:1", "p", "LIMITED"]]) {
+  for (const [aspect, interlace, range] of [["1:1", "p"], ["4:3", "p"], ["0:0", "p"], ["0:1", "p"], ["1:1", "t"], ["1:1", "b"], ["1:1", "p", "FULL"], ["1:1", "p", "LIMITED"]]) {
     it(`preserves YUV420 payloads and aspect ${aspect}, field order I${interlace}, range ${range ?? "unspecified"} with ${codec.join(" ") || "the default codec"}`, async () => {
       const payloads = [Buffer.from("103050708090", "hex"), Buffer.from("90b0d0eb4048", "hex")];
       const input = Buffer.concat([
@@ -31,7 +31,7 @@ for (const codec of [[], ["-c:v", "copy"]]) {
       let cursor = bytes.indexOf(10) + 1;
       assert.ok(cursor > 0);
       const header = bytes.subarray(0, cursor - 1).toString().split(" ");
-      assert.ok(header.includes(`A${aspect}`));
+      assert.ok(header.includes(`A${aspect === "0:1" && codec.length === 0 ? "0:0" : aspect}`));
       assert.ok(header.includes(`I${interlace}`));
       assert.ok(header.includes("W2"));
       assert.ok(header.includes("H2"));

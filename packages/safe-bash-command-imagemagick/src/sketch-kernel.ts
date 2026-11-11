@@ -1,4 +1,6 @@
 import { resizeContributions, type MagickResizeKernel, type ResizeFilterSettings } from "./resize-kernel.js";
+import type { RgbaImage } from "@poe-code/image-ast/portable";
+import type { HueMetadata } from "./colorspace-hue.js";
 import { createMagickRandom } from "./random.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
@@ -15,8 +17,10 @@ function kernelWidth(radius: number, sigma: number): number {
 }
 
 /** ImageMagick's noise, directional blur, edge, normalize and color-dodge sketch. */
-export function* sketchPixelSteps(image: { width: number; height: number; hasAlpha: boolean; inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined }, geometry: { width?: number; height?: number; x?: number }, seed: bigint, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, kernel?: MagickResizeKernel, settings: ResizeFilterSettings = {}): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const selected = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
+export function* sketchPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space"> & HueMetadata & { inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined }, geometry: { width?: number; height?: number; x?: number }, seed: bigint, selection?: { r: boolean; g: boolean; b: boolean; a: boolean }, kernel?: MagickResizeKernel, settings: ResizeFilterSettings = {}): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const selected = selection ? [selection.r, selection.g, selection.b, selection.a] : undefined;
+    const cmyk = image.space === "cmyk";
+    const hue = image.hueSamples !== undefined || image.storedHueSamples !== undefined;
     const radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1), angle = geometry.x ?? 0;
     if (![radius, sigma, angle].every(Number.isFinite) || radius < 0 || radius > 5000) throw new Error("Invalid sketch geometry");
     const width = image.width * 2, height = image.height * 2, size = width * height;
@@ -124,6 +128,9 @@ export function* sketchPixelSteps(image: { width: number; height: number; hasAlp
         const originalSamples = evaluate?.length ? new Float64Array(bytes.slice().buffer)
             : Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257);
         const data = new Float64Array(originalSamples);
+        const workingBytes = hue ? yield { kind: "read", hue: true, position, length: count * 4 } : undefined;
+        if (hue && workingBytes?.length !== count * 32) throw new Error("Truncated sketch working samples");
+        const channels = workingBytes ? new Float64Array(workingBytes.slice().buffer) : undefined;
         for (let x = 0; x < count; x++) {
             const horizontal = resizeContributions(left + x, width, image.width, blur, false, kernel, 0, settings);
             let sum = 0, weight = 0, alpha = 0;
@@ -141,16 +148,27 @@ export function* sketchPixelSteps(image: { width: number; height: number; hasAlp
             // Sketch's final Blend adds the original when it has an alpha channel.
             const blendAlpha = image.hasAlpha ? originalAlpha : 0;
             const outputAlpha = Math.max(0, Math.min(1, blendAlpha + (copyAlpha ? originalAlpha : dodgeAlpha)));
-            for (let channel = 0; channel < 3; channel++) {
+            for (let channel = 0; channel < (cmyk ? 4 : 3); channel++) {
                 if (selected && !selected[channel]) continue;
-                const original = originalSamples[x * 4 + channel]! / 255;
+                const original = channels ? channels[x * 4 + channel]! : originalSamples[x * 4 + channel]! / 255;
                 const color = dodge >= 1 ? 1 : Math.min(1, original / Math.max(1e-12, 1 - dodge));
                 const premultiplied = sourceAlpha * originalAlpha * color + sourceAlpha * (1 - originalAlpha) * sourceColor + originalAlpha * (1 - sourceAlpha) * original;
                 const dodgeColor = Math.max(0, Math.min(1, premultiplied / Math.max(1e-12, dodgeAlpha)));
                 const value = Math.max(0, Math.min(1, (blendAlpha * original + (copyAlpha ? originalAlpha : dodgeAlpha) * dodgeColor) / Math.max(1e-12, outputAlpha)));
-                data[x * 4 + channel] = Math.fround(65535 * value) / 257;
+                if (channels) channels[x * 4 + channel] = Math.fround(value * 65535) / 65535;
+                else data[x * 4 + channel] = Math.fround(65535 * value) / 257;
             }
             if (!copyAlpha && (!selected || selected[3])) data[x * 4 + 3] = 255 * outputAlpha;
+            if (channels && !cmyk && !copyAlpha && (!selected || selected[3])) channels[x * 4 + 3] = Math.fround(outputAlpha * 65535) / 65535;
+        }
+        if (channels) {
+            yield { kind: "write", hue: true, position, data: new Uint8Array(channels.buffer) };
+            // CMYK keeps alpha in the RGBA backing and black in the fourth ink plane.
+            for (let x = 0; x < count; x++) {
+                for (let channel = 0; channel < 3; channel++) data[x * 4 + channel] = 255 * (cmyk
+                    ? (1 - channels[x * 4 + channel]!) * (1 - channels[x * 4 + 3]!) : channels[x * 4 + channel]!);
+                if (!cmyk) data[x * 4 + 3] = channels[x * 4 + 3]! * 255;
+            }
         }
         yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
         const bounded = Uint8Array.from(data, value => Math.round(Math.max(0, Math.min(255, value))));

@@ -14271,20 +14271,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         (filterName === "stereotools" && filteredChannelMask === 0xc ||
                           stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ||
                           !filteredChannelMask && [3, 4, 6, 8].includes(stretched.length) ||
-                          stretched.length === 3 && filteredChannelMask === 0xb ||
-                          stretched.length === 4 && filteredChannelMask === 0x107 ||
+                          stretched.length === 3 && [0x7, 0xb, 0x103].includes(filteredChannelMask ?? 0) ||
+                          stretched.length === 4 && (filteredChannelMask === 0x33 || filteredChannelMask === 0x107) ||
+                          stretched.length === 5 && filteredChannelMask === 0x37 ||
                           stretched.length === 6 && (filteredChannelMask === 0x3f || filteredChannelMask === 0x60f) ||
                           stretched.length === 8 && filteredChannelMask === 0x63f)) {
                         // Floating-point stereo negotiation keeps front gain and omits LFE.
                         // Unspecified 3/4/6/8-channel layouts default to 2.1/4.0/5.1/7.1.
                         const expression = stretched.length === 1 || filteredChannelMask === 0xc
                           ? `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`
-                          : stretched.length === 3 ? "stereo|c0=c0|c1=c1"
-                            : stretched.length === 4
-                              ? `stereo|c0=c0+${Math.SQRT1_2}*c2+0.5*c3|c1=c1+${Math.SQRT1_2}*c2+0.5*c3`
-                              : stretched.length === 8
-                                ? `stereo|c0=c0+${Math.SQRT1_2}*c2+${Math.SQRT1_2}*c4+${Math.SQRT1_2}*c6|c1=c1+${Math.SQRT1_2}*c2+${Math.SQRT1_2}*c5+${Math.SQRT1_2}*c7`
-                                : `stereo|c0=c0+${Math.SQRT1_2}*c2+${Math.SQRT1_2}*c4|c1=c1+${Math.SQRT1_2}*c2+${Math.SQRT1_2}*c5`;
+                          : `stereo|FL=FL+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BL+${Math.SQRT1_2}*SL|FR=FR+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BR+${Math.SQRT1_2}*SR`;
                         // Mono double input is remixed before the stereo filter's float conversion.
                         const mixSampleFormat = stretched.length === 1 && ["dbl", "dblp"].includes(filteredSampleFormat) ? "dbl" : "flt";
                         const stereo = await panAudio(expression, stretched, filteredChannelMask, mixSampleFormat, budget, context.signal);

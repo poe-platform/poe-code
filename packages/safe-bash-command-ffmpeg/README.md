@@ -716,9 +716,10 @@ Both filters accept case-insensitive Boolean
 words (`true`/`false`, `yes`/`no`, `on`/`off`, `y`/`n`, `enable`/`disable`,
 `enabled`/`disabled`) and decimal 0/1 values, such as `phasel=True` or `c=OFF`.
 Both `extrastereo` and `stereotools` convert mono input to stereo before processing,
-with each channel receiving the mono samples at √½ gain. They also downmix 5.1,
-5.1(side), and 7.1 input: front channels retain their gain, center and both
-surround pairs contribute at √½ gain, and LFE is omitted. Eight-channel PCM WAV
+with each channel receiving the mono samples at √½ gain. They also downmix 2.1,
+3.0, 3.0(back) (`FL+FR+BC`), 4.0, quad, 5.0, 5.1, 5.1(side), and 7.1 input:
+front channels retain their gain, front center and surround pairs contribute at
+√½ gain, rear center contributes at ½ gain to both sides, and LFE is omitted. Eight-channel PCM WAV
 without a speaker mask is treated as 7.1.
 `crossfeed=strength=0.5` applies frequency-dependent headphone crossfeed to stereo audio.
 Downstream `ashowinfo` reports packed double (`dbl`) frames before output encoding.
@@ -742,7 +743,7 @@ default 0 for the causal filter). It also accepts a sixth positional value.
 Partial final blocks are zero-padded for filtering and drained without adding output samples.
 `stereowiden=delay=5:feedback=0.3:crossfeed=0.3:drymix=0.8` widens stereo
 with delayed cross-channel subtraction. Mono input is automatically converted to stereo
-at √½ gain per channel; labeled 5.1 input uses the same downmix as `stereotools`.
+at √½ gain per channel; named multichannel input uses the same downmix as `stereotools`.
 For raw PCM with only `-ac 3`, `-ac 4`, or `-ac 6`, these stereo filters use
 FFmpeg's default 2.1, 4.0, or 5.1 layout before downmixing.
 Delay is in milliseconds (1–100, default 20),

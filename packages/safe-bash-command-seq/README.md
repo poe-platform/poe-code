@@ -1,6 +1,6 @@
 # seq
 
-Run `seq` against your Safe Bash virtual filesystem, with streaming I/O and configurable resource limits. Enable only the commands your application needs.
+Run `seq` against your Safe Bash virtual filesystem, with streaming I/O and configurable resource limits. Enable only the commands your application needs. The apostrophe format flag (`%'.0f`) groups thousands in `en_US.utf8` / `en_US.UTF-8` and leaves C/POSIX output ungrouped; numeric locale precedence is `LC_ALL`, `LC_NUMERIC`, then `LANG`.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";

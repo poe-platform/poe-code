@@ -4,7 +4,7 @@ import { UsageError } from "safe-bash-io-engine/internal";
 import { command, type Session, type StreamFormatLimits } from "safe-bash-text-stream-engine/stream-format/shared";
 
 interface Decimal { readonly coefficient: bigint; readonly scale: number; readonly precision: number; readonly negativeZero: boolean; readonly width: number }
-interface Format { readonly prefix: string; readonly suffix: string; readonly flags: string; readonly width: number; readonly precision: number; readonly kind: string }
+interface Format { readonly prefix: string; readonly suffix: string; readonly flags: string; readonly width: number; readonly precision: number; readonly kind: string; readonly grouping: boolean }
 
 function decimal(text: string, session: Session): Decimal {
   const hexadecimal = /^([+-]?)0x(?:([\da-f]+)(?:\.([\da-f]*))?|\.([\da-f]+))(?:p([+-]?\d+))?$/iu.exec(text.trimStart());
@@ -104,6 +104,16 @@ function formatted(coefficient: bigint, scale: number, format: Format, negativeZ
     }
   }
   if (format.flags.includes("#") && !text.includes(".") && !text.includes("e") && kind !== "a") text += ".";
+  if (format.grouping && kind !== "a") {
+    const signLength = text.startsWith("-") ? 1 : 0;
+    let end = signLength;
+    while (end < text.length && text[end]! >= "0" && text[end]! <= "9") end++;
+    let offset = end;
+    const groups: string[] = [];
+    for (; offset > signLength + 3; offset -= 3) groups.push(text.slice(offset - 3, offset));
+    groups.push(text.slice(0, offset));
+    text = groups.reverse().join(",") + text.slice(end);
+  }
   if ((coefficient < 0n || negativeZero) && !text.startsWith("-")) text = "-" + text;
   if (coefficient >= 0n && !negativeZero) text = (format.flags.includes("+") ? "+" : format.flags.includes(" ") ? " " : "") + text;
   if (format.kind === format.kind.toUpperCase()) text = text.toUpperCase();
@@ -156,7 +166,7 @@ async function floatingSequence(first: number, increment: number, last: number, 
     const outside = increment > 0 ? current > last : current < last;
     const text = render(current);
     if (outside) {
-      const numeric = text.slice(format.prefix.length, text.length - format.suffix.length);
+      const numeric = text.slice(format.prefix.length, text.length - format.suffix.length).split(",").join("");
       if (Number(numeric) !== last || text === previous) break;
     }
     if (canBatch) {
@@ -186,7 +196,7 @@ async function parseFormat(text: string, session: Session): Promise<Format> {
     if (result) throw new UsageError(`format '${text}' has too many % directives`);
     let cursor = offset + 1;
     let flags = "";
-    while (cursor < text.length && "-+ #0".includes(text[cursor]!)) {
+    while (cursor < text.length && "-+ #0'".includes(text[cursor]!)) {
       if ((cursor & 127) === 0) { const s = session.step(); if (s) await s; }
       flags += text[cursor++]!;
     }
@@ -212,7 +222,10 @@ async function parseFormat(text: string, session: Session): Promise<Format> {
     const precision = precisionDigits === undefined ? (kind.toLowerCase() === "a" ? -1 : 6) : Number(precisionDigits || 0);
     session.check(width, session.limits.maxRecordBytes, "format width");
     session.check(Math.max(0, precision), session.limits.maxNumericDigits, "format precision");
-    result = { prefix: literal, suffix: "", flags, width, precision, kind };
+    const env = session.context.env;
+    const locale = (env.LC_ALL || env.LC_NUMERIC || env.LANG || "C").toLowerCase();
+    const grouping = flags.includes("'") && ["en_us.utf8", "en_us.utf-8"].includes(locale);
+    result = { prefix: literal, suffix: "", flags, width, precision, kind, grouping };
     literal = ""; offset = cursor;
   }
   if (!result) throw new UsageError(`format '${text}' has no % directive`);

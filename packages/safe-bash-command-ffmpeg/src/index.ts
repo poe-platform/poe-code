@@ -20942,6 +20942,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 encodeUtf8("Could not write header (incorrect codec parameters ?): Invalid argument\n"), context.signal);
               return { exitCode: 234 };
             }
+            if (msg.startsWith("Chapter end time ")) return { exitCode: 244 };
             if (msg.startsWith("asendcmd: Cannot read file '")) return { exitCode: 254 };
             if (msg === "asendcmd: Only one of the filename or commands options must be specified.") return { exitCode: 234 };
             if (msg === "asegment: timeline is unsupported") return { exitCode: 176 };

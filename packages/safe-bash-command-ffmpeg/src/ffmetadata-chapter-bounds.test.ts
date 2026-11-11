@@ -31,7 +31,7 @@ for (const sync of [false, true]) {
           stdin: (async function* () {})(), stdout: { async write() {} },
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
-        assert.equal(result.exitCode, start > 100 ? 1 : 0, stderr);
+        assert.equal(result.exitCode, start > 100 ? 244 : 0, stderr);
         if (start > 100) assert.ok(stderr.includes("Chapter end time 100 before start 500"), stderr);
       }
       const output = volume.readFileSync("/out.ffmeta", "utf8") as string;
@@ -39,4 +39,25 @@ for (const sync of [false, true]) {
       else assert.ok(output.includes(`START=${start}\nEND=100\n`), output);
     });
   }
+}
+
+for (const end of [2, 3]) {
+  it(`returns native status and stdout for chapter 3..${end}`, async () => {
+    const input = `;FFMETADATA1\n[CHAPTER]\nTIMEBASE=1/1\nSTART=3\nEND=${end}\ntitle=A\n`;
+    const volume = Volume.fromJSON({ "/a.meta": input });
+    let stdout = "";
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-i", "a.meta", "-bitexact", "-f", "ffmetadata", "pipe:1"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: { async readFile(path: string) { return volume.readFileSync(path); } },
+      stdin: (async function* () {})(),
+      stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, end < 3 ? 244 : 0, stderr);
+    assert.equal(stdout, end < 3 ? "" : input);
+    if (end < 3) assert.ok(stderr.includes("Chapter end time 2 before start 3"), stderr);
+    else assert.equal(stderr, "");
+  });
 }

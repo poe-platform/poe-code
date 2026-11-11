@@ -42,7 +42,7 @@ for (const [filter, hash, changes] of [
   });
 }
 
-for (const options of ["1thr=0", "1thr=0.6", "r=-2.5", "d=-7", "b=wrong", "c=wrong", "unknown=1"]) {
+for (const options of ["1thr=0", "1thr=0.6", "r=-2147483649", "r=2147483647.1", "d=-7", "b=wrong", "c=wrong", "unknown=1"]) {
   it(`rejects invalid or unsupported deband ${options} without replacing output`, async () => {
     const result = await run(`deband=r=-3:d=-1:${options}`);
     assert.notEqual(result.exitCode, 0);
@@ -64,6 +64,7 @@ for (const [filter, hash, changes] of [
   ["deband=r=3:d=-1", "280246faf0de6d8def95ad19a8793e7953c24773659b6411723e435ac1049569", 51],
   ["deband=r=-3:d=1", "0d53a50dfe32a50145f35052834634d223ea197fe2fd80f36dcc1d6d0a2c7c27", 176],
   ["deband=r=-3:d=-1:1thr=0.1", "55f93c19c04617cdbb09c1d2d63e7dc728400a2a65ae0d967f5a4c500e6c6a41", 166],
+  ["deband=r=-2.6:d=-1:1thr=0.1", "55f93c19c04617cdbb09c1d2d63e7dc728400a2a65ae0d967f5a4c500e6c6a41", 166],
 ] as const) {
   it(`matches native sampling for ${filter} across repeated frames`, async () => {
     const result = await run(filter, "rawvideo", undefined, Buffer.concat([samplingInput, samplingInput]), "16x16");
@@ -88,4 +89,17 @@ for (const filter of ["deband=r=0", "deband=r=-3:d=0"]) {
       assert.deepEqual(result.output, horizontal.output);
     }
   });
+}
+
+for (const [fraction, integer] of [[-2.6, -3], [-2.5, -2], [-3.5, -4], [2.5, 2], [3.5, 4]] as const) {
+  for (const range of [`r=${fraction}`, `range=${fraction}`,
+    `0.1:0.02:0.02:0.02:${fraction}:-1`]) {
+    it(`rounds deband range ${range} like native FFmpeg`, async () => {
+      const result = await run(`deband=${range}:d=-1:1thr=0.1`);
+      const control = await run(`deband=r=${integer}:d=-1:1thr=0.1`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(control.exitCode, 0, control.stderr);
+      assert.deepEqual(result.output, control.output);
+    });
+  }
 }

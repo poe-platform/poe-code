@@ -11977,7 +11977,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       let commands = item.slice(item.indexOf("=") + 1);
                       if (commands.startsWith("c=")) commands = commands.slice(2);
                       else if (commands.startsWith("commands=")) commands = commands.slice(9);
-                      const scheduled = commands.split(";").filter(command => command.trim()).map(command => {
+                      const intervals: string[] = [];
+                      for (let start = 0; start < commands.length;) {
+                        budget.checkCpu();
+                        if (!commands[start]!.trim()) { start++; continue; }
+                        if (commands[start] === "#") {
+                          const end = commands.indexOf("\n", start);
+                          start = end < 0 ? commands.length : end + 1;
+                          continue;
+                        }
+                        const end = commands.indexOf(";", start);
+                        intervals.push(commands.slice(start, end < 0 ? commands.length : end));
+                        start = end < 0 ? commands.length : end + 1;
+                      }
+                      const scheduled = intervals.filter(command => command.trim()).map(command => {
                         const words = Array.from(command, char => char.trim() ? char : " ").join("").split(" ").filter(Boolean);
                         const time = Number(words.shift());
                         if (words[0] === "[enter]") words.shift();

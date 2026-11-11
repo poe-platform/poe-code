@@ -86,7 +86,7 @@ function parseAu(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   for (const line of annotation.split("\n")) {
     const separator = line.indexOf("=");
     const key = line.slice(0, separator).toLowerCase();
-    if (separator >= 0 && (key === "title" || key === "artist")) metadata[key] = line.slice(separator + 1);
+    if (separator >= 0 && (key === "title" || key === "artist" || key === "album")) metadata[key] = line.slice(separator + 1);
   }
   return { ...doc, metadata, containerFormat: "au", byteLength: bytes.length };
 }
@@ -154,7 +154,7 @@ export function auAst(): MediaAstPlugin {
         data = raw.find(plugin => plugin.id === encoding![1])!.serialize(doc, options);
       }
       const metadata = options.metadata ?? doc.metadata;
-      const annotation = new TextEncoder().encode((["title", "artist"] as const)
+      const annotation = new TextEncoder().encode((["title", "artist", "album"] as const)
         .filter(key => metadata[key])
         .map(key => `${key[0]!.toUpperCase()}${key.slice(1)}=${metadata[key]}`)
         .join("\n"));

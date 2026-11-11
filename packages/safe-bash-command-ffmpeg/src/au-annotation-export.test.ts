@@ -4,8 +4,8 @@ import { Volume } from "memfs";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 for (const sync of [false, true]) {
-  it(`exports AU title and artist annotations while ignoring unsupported fields (${sync ? "sync" : "async"})`, async () => {
-    const annotation = Buffer.from("Title=Evening\nArtist=Kay\nComment=note\ncustom=solo\n\0");
+  it(`exports AU title, artist and album annotations while ignoring unsupported fields (${sync ? "sync" : "async"})`, async () => {
+    const annotation = Buffer.from("Title=Evening\nArtist=Kay\nAlbum=Record\nComment=note\ncustom=solo\n\0");
     const header = Buffer.alloc(24);
     [0x2e736e64, 24 + annotation.length, 8, 3, 8000, 1]
       .forEach((value, index) => header.writeUInt32BE(value, index * 4));
@@ -31,6 +31,6 @@ for (const sync of [false, true]) {
       assert.equal(result.exitCode, 0, stderr);
     }
     const lines = String(volume.readFileSync("/out.ffmeta", "utf8")).trim().split("\n").filter(line => !line.startsWith("encoder="));
-    assert.deepEqual(lines.sort(), [";FFMETADATA1", "title=Evening", "artist=Kay"].sort());
+    assert.deepEqual(lines.sort(), [";FFMETADATA1", "title=Evening", "artist=Kay", "album=Record"].sort());
   });
 }

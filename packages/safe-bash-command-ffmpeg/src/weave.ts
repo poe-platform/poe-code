@@ -47,18 +47,20 @@ export async function weave(
       durationSeconds: first.durationSeconds + second.durationSeconds,
       interlaced: true, topFieldFirst };
     const native = first.native;
-    if (native && [0, 4, 5, 12, 13, 14, 49, 68].includes(native.format) && [first, second].every(frame =>
+    if (native && [0, 4, 5, 12, 13, 14, 29, 30, 34, 49, 68, 104].includes(native.format) && [first, second].every(frame =>
       frame.native?.rgba === frame.data && frame.native.width === frame.width && frame.native.height === frame.height &&
       frame.native.format === native.format && frame.native.colorspace === native.colorspace && frame.native.fullRange === native.fullRange)) {
       const hsub = [0, 4, 12, 13].includes(native.format) ? 2 : 1;
       const vsub = [0, 12].includes(native.format) ? 2 : 1;
-      const sampleBytes = [49, 68].includes(native.format) ? 2 : 1;
-      const size = (first.width * height + 2 * Math.ceil(first.width / hsub) * Math.ceil(height / vsub)) * sampleBytes;
+      const planes = [29, 30, 34, 104].includes(native.format) ? 1 : 3;
+      const sampleBytes = native.format === 34 ? 6 : native.format === 104 ? 8
+        : [29, 30, 49, 68].includes(native.format) ? 2 : 1;
+      const size = (first.width * height + (planes - 1) * Math.ceil(first.width / hsub) * Math.ceil(height / vsub)) * sampleBytes;
       budget.allocateMemory(size + first.width * height * 4 + 128);
       const pixels = new Uint8Array(size);
       let sourceOffset = 0;
       let targetOffset = 0;
-      for (let plane = 0; plane < 3; plane++) {
+      for (let plane = 0; plane < planes; plane++) {
         const stride = Math.ceil(first.width / (plane === 0 ? 1 : hsub)) * sampleBytes;
         const sourceHeight = Math.ceil(first.height / (plane === 0 ? 1 : vsub));
         const targetHeight = Math.ceil(height / (plane === 0 ? 1 : vsub));

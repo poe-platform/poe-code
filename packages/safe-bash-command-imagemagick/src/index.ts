@@ -2557,7 +2557,8 @@ function resolveMagickSpliceGeometry(raw: string, image: Pick<RgbaImage, "width"
         const numerator = dimensions.width ?? 0;
         g = { ...g, aspectRatio: numerator === 0 ? 0 : numerator / (dimensions.height ?? 1) };
     }
-    const hasDimensions = raw.toLowerCase().includes("x");
+    // A leading offset keeps both band dimensions at their virtual-page defaults.
+    const hasDimensions = dimensionSeparator >= 0 && offsetStart !== 0;
     const geometry = { ...g,
         width: Math.max(0, Math.round(g.aspectRatio !== undefined ? Math.min(width, height * g.aspectRatio) : g.isPercent
             ? (g.width ?? 100) * width / 100

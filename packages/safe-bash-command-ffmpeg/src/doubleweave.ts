@@ -46,14 +46,14 @@ export async function doubleweave(
       filterMetadata: second.filterMetadata,
       interlaced: true, topFieldFirst };
     const native = first.native;
-    if (native && [0, 4, 5, 12, 13, 14, 29, 30, 34, 35, 49, 68, 104, 105].includes(native.format) && [first, second].every(frame =>
+    if (native && [0, 4, 5, 12, 13, 14, 29, 30, 34, 35, 45, 49, 68, 104, 105].includes(native.format) && [first, second].every(frame =>
       frame.native?.rgba === frame.data && frame.native.width === frame.width && frame.native.height === frame.height &&
       frame.native.format === native.format && frame.native.colorspace === native.colorspace && frame.native.fullRange === native.fullRange)) {
-      const hsub = [0, 4, 12, 13].includes(native.format) ? 2 : 1;
-      const vsub = [0, 12].includes(native.format) ? 2 : 1;
+      const hsub = [0, 4, 12, 13, 45].includes(native.format) ? 2 : 1;
+      const vsub = [0, 12, 45].includes(native.format) ? 2 : 1;
       const planes = [29, 30, 34, 35, 104, 105].includes(native.format) ? 1 : 3;
       const sampleBytes = [34, 35].includes(native.format) ? 6 : [104, 105].includes(native.format) ? 8
-        : [29, 30, 49, 68].includes(native.format) ? 2 : 1;
+        : [29, 30, 45, 49, 68].includes(native.format) ? 2 : 1;
       const size = (first.width * height + (planes - 1) * Math.ceil(first.width / hsub) * Math.ceil(height / vsub)) * sampleBytes;
       budget.allocateMemory(size + first.width * height * 4 + 128);
       const pixels = new Uint8Array(size);

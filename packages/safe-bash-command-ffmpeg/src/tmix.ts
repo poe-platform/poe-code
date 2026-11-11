@@ -50,8 +50,8 @@ export async function tmix(
     planes = parsePlanes(text, planes);
   }
   const value = parseFilterExpression(options.frames!, "tmix", {
-    PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, default: 3, min: 1, max: 1024
-  });
+    PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, default: 3, min: 1, max: 1024, none: 0
+  }, undefined, new Float64Array(10));
   if (value < 1 || value > 1024) {
     throw new RangeError("tmix: frames must be from 1 to 1024");
   }
@@ -62,9 +62,10 @@ export async function tmix(
     throw new Error("tmix: invalid expression");
   }
   const scaleConstants = {
-    PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, default: 0, min: 0, max: 32767
+    PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, default: 0, min: 0, max: 32767, none: 0
   };
-  let scale = Math.fround(parseFilterExpression(options.scale!, "tmix", scaleConstants));
+  // Numeric options use fresh registers for each evaluation, unlike timeline expressions.
+  let scale = Math.fround(parseFilterExpression(options.scale!, "tmix", scaleConstants, undefined, new Float64Array(10)));
   if (!Number.isFinite(scale) || scale < 0 || scale > 32767) {
     throw new RangeError("tmix: scale must be a finite number from 0 to 32767");
   }
@@ -98,7 +99,7 @@ export async function tmix(
         if (command.action === "planes") {
           planes = parsePlanes(command.expression, planes);
         } else {
-          const value = Math.fround(parseFilterExpression(command.expression, "tmix", scaleConstants));
+          const value = Math.fround(parseFilterExpression(command.expression, "tmix", scaleConstants, undefined, new Float64Array(10)));
           if (Number.isFinite(value) && value >= 0 && value <= 32767) scale = value;
         }
       } catch { /* Rejected runtime commands preserve the current options. */ }

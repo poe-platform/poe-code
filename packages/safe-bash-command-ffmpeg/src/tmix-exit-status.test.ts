@@ -7,6 +7,7 @@ import { createFfmpegCommand } from "./index.js";
 // Linux FFmpeg 7.0.2 statuses and output for the same YUV444 input.
 for (const [filter, exitCode] of [
   ["tmix=frames=0", 222],
+  ["tmix=frames=none", 222],
   ["tmix=frames=-1", 222],
   ["tmix=frames=1025", 222],
   ["tmix=frames=bad", 234],

@@ -17,6 +17,7 @@ for (const [scale, expected] of [
   ["1/2", averaged], ["default", averaged], ["1k", clipped],
   ["0.5", averaged], ["0", averaged], ["1e3", clipped],
   ["min", averaged], ["max", clipped], ["500m", averaged],
+  ["none", averaged], ["ld(0)", averaged],
   ["PI/PI/2", averaged], ["E/E/2", averaged], ["PHI/PHI/2", averaged]
 ] as const) {
   for (const timed of [false, true]) {

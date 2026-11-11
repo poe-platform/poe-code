@@ -1,3 +1,4 @@
+import { formatSignificantMetric } from "./compare-kernel.js";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
 import { histogramColorNames } from "./histogram-color-names.js";
 import { hueTextPixel, type HueMetadata } from "./colorspace-hue.js";
@@ -54,48 +55,66 @@ export function histogramLine(key: number | bigint, count: number, hasAlpha: boo
     if (hasAlpha) return `  ${count}: (${r},${g},${b},${a}) #${hex(r)}${hex(g)}${hex(b)}${hex(a)} srgba(${r},${g},${b},${Number((a / 255).toPrecision(6))})`;
     return `${String(count).padStart(14)}: (${r},${g},${b}) #${hex(r)}${hex(g)}${hex(b)} ${histogramColorNames[key >>> 8] ?? `srgb(${r},${g},${b})`}`;
 }
+export function sourceHistogramSamples(data: Uint8Array | Uint16Array | Float64Array, cmyk: boolean, inks?: Float64Array): Float64Array {
+    const samples = data instanceof Float64Array ? data : Float64Array.from(data, value => value / (data instanceof Uint16Array ? 257 : 1));
+    if (!cmyk) return samples;
+    const channels = inks ?? rgbToCmyk(samples[0]! / 255, samples[1]! / 255, samples[2]! / 255);
+    return Float64Array.of(...Array.from(channels, value => value * 255), samples[3]!);
+}
 // Sort IEEE doubles by numeric value, keeping the complete tuple as the bin key.
 export function floatingHistogramKey(samples: Float64Array, hasAlpha: boolean): bigint {
     const bits = new DataView(new ArrayBuffer(8));
     let key = 0n;
-    for (let channel = 0; channel < 4; channel++) {
-        bits.setFloat64(0, channel === 3 && !hasAlpha ? 255 : samples[channel]! || 0);
+    for (let channel = 0; channel < samples.length; channel++) {
+        bits.setFloat64(0, channel === samples.length - 1 && !hasAlpha ? 255 : samples[channel]! || 0);
         const value = bits.getBigUint64(0);
         key = (key << 64n) | (value >> 63n ? BigInt.asUintN(64, ~value) : value ^ (1n << 63n));
     }
     return key;
 }
-export function floatingHistogramLine(key: bigint, count: number, hasAlpha: boolean, highDepth: boolean): string {
+export function floatingHistogramLine(key: bigint, count: number, hasAlpha: boolean, highDepth: boolean, colorspace = "srgb"): string {
     const bits = new DataView(new ArrayBuffer(8));
-    const samples = [192n, 128n, 64n, ...(hasAlpha ? [0n] : [])].map(shift => {
+    const samples = [...(colorspace === "cmyk" ? [256n] : []), 192n, 128n, 64n, ...(hasAlpha ? [0n] : [])].map(shift => {
         const value = BigInt.asUintN(64, key >> shift);
         bits.setBigUint64(0, value >> 63n ? value ^ (1n << 63n) : BigInt.asUintN(64, ~value));
         return bits.getFloat64(0);
     });
-    if (!highDepth && samples.every(value => Number.isInteger(value) && value >= 0 && value <= 255)) {
+    if (colorspace === "srgb" && !highDepth && samples.every(value => Number.isInteger(value) && value >= 0 && value <= 255)) {
         const packed = samples.reduce((key, value) => key * 256 + value, 0) * (hasAlpha ? 1 : 256);
         return histogramLine(packed, count, hasAlpha);
     }
     const scale = highDepth ? 257 : 1, maximum = highDepth ? 65535 : 255;
     const color = samples.map(value => hex(Math.round(Math.max(0, Math.min(maximum, value * scale)))).padStart(highDepth ? 4 : 2, "0")).join("");
-    const values = samples.slice(0, 3).map(value => `${Number((value * 100 / 255).toPrecision(6))}%`);
-    if (hasAlpha) values.push(String(Number((samples[3]! / 255).toPrecision(6))));
-    return `  ${count}: (${samples.map(value => Number((value * scale).toPrecision(6))).join(",")}) #${color} srgb${hasAlpha ? "a" : ""}(${values.join(",")})`;
+    const channels = samples.slice(0, colorspace === "cmyk" ? 4 : colorspace.endsWith("gray") ? 1 : 3);
+    const percent = colorspace !== "cmyk" && (colorspace === "srgb" || channels.some(value => Math.abs(value - Math.round(value)) > 1e-9));
+    const values = channels.map(value => percent ? `${Number((value * 100 / 255).toPrecision(6))}%` : String(Number(value.toPrecision(6))));
+    if (hasAlpha) values.push(String(Number((samples.at(-1)! / 255).toPrecision(6))));
+    return `${colorspace === "srgb" ? `  ${count}` : String(count).padStart(14)}: (${samples.map(value => colorspace === "srgb" ? Number((value * scale).toPrecision(6)) : formatSignificantMetric(value * scale)).join(",")}) #${color} ${colorspace}${hasAlpha ? "a" : ""}(${values.join(",")})`;
 }
-async function* storedFloatingHistogram(image: StoredRgbaImage, storage: PagedStorage, signal: AbortSignal): AsyncGenerator<string> {
-    // A 16-level radix tree over the full tuple uses the existing bounded,
+async function* storedFloatingHistogram(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal): AsyncGenerator<string> {
+    const cmyk = image.space === "cmyk", gray = image.space === "b-w" || image.space === "grey16";
+    const colorspace = cmyk ? "cmyk" : gray ? image.gamma === 1 && image.magickColorspace !== "Gray" ? "lineargray" : "gray" : "srgb";
+    const highDepth = cmyk || gray ? (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 : !!image.storedData16;
+    const levels = cmyk ? 20 : 16;
+    // A radix tree over the full tuple uses the existing bounded,
     // spillable integer table. Leaf values are counts; internal values are node IDs.
     const tree = new IntegerTable(storage, 512);
     let nextNode = 1n;
     const size = image.width * image.height * 4;
     for (let start = 0; start < size; start += 4096) {
-        const bytes = await storage.read(image.storedEvaluateSamples! + start * 8, Math.min(4096, size - start) * 8);
-        const samples = new Float64Array(bytes.slice().buffer);
+        const length = Math.min(4096, size - start);
+        const evaluated = image.storedEvaluateSamples === undefined ? undefined : await storage.read(image.storedEvaluateSamples + start * 8, length * 8);
+        const backing = evaluated ? undefined : await storage.read((image.storedData16?.position ?? image.position) + start * (image.storedData16 ? 2 : 1), length * (image.storedData16 ? 2 : 1));
+        const samples = evaluated ? new Float64Array(evaluated.slice().buffer) : sourceHistogramSamples(image.storedData16 ? new Uint16Array(backing!.slice().buffer) : backing!, false);
+        const inkBytes = cmyk && image.storedHueSamples !== undefined ? await storage.read(image.storedHueSamples + start * 8, length * 8) : undefined;
+        const inks = inkBytes ? new Float64Array(inkBytes.slice().buffer) : undefined;
         for (let offset = 0; offset < samples.length; offset += 4) {
             if (offset % 128 === 0) await yieldTurn(signal);
-            const key = floatingHistogramKey(samples.subarray(offset, offset + 4), image.hasAlpha);
+            const pixel = samples.subarray(offset, offset + 4);
+            const channels = sourceHistogramSamples(pixel, cmyk, inks?.subarray(offset, offset + 4));
+            const key = floatingHistogramKey(channels, image.hasAlpha);
             let node = 0n;
-            for (let shift = 240n; shift >= 0n; shift -= 16n) {
+            for (let shift = BigInt((levels - 1) * 16); shift >= 0n; shift -= 16n) {
                 const edge = (node << 16n) | ((key >> shift) & 65535n);
                 const value = await tree.get(edge);
                 if (shift === 0n) await tree.set(edge, (value ?? 0n) + 1n);
@@ -110,7 +129,7 @@ async function* storedFloatingHistogram(image: StoredRgbaImage, storage: PagedSt
         await yieldTurn(signal);
         for await (const [edge, value] of tree.entries(node << 16n, (node + 1n) << 16n)) {
             const key = (prefix << 16n) | (edge & 65535n);
-            if (depth === 15) yield floatingHistogramLine(key, Number(value), image.hasAlpha, !!image.storedData16) + "\n";
+            if (depth === levels - 1) yield floatingHistogramLine(key, Number(value), image.hasAlpha, highDepth, colorspace) + "\n";
             else yield* visit(value, depth + 1, key);
         }
     }
@@ -198,7 +217,7 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
     }
 }
 export async function* storedHistogram(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal): AsyncGenerator<string> {
-    if (image.space === "srgb" && image.storedEvaluateSamples !== undefined && (!image.magickColorspace || image.magickColorspace === "RGB")) {
+    if (image.space === "cmyk" || image.space === "b-w" || image.space === "grey16" || image.space === "srgb" && image.storedEvaluateSamples !== undefined && (!image.magickColorspace || image.magickColorspace === "RGB")) {
         yield* storedFloatingHistogram(image, storage, signal);
         return;
     }

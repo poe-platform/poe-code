@@ -1373,8 +1373,8 @@ function parseChannelSplit(spec: string): { input: string[]; selected: string[] 
   for (const [index, option] of options.entries()) {
     if (option === "") throw new Error("channelsplit: empty option");
     const separator = option.indexOf("=");
-    const key = separator < 0 ? ["channel_layout", "channels"][index] : option.slice(0, separator);
-    const value = separator < 0 ? option : option.slice(separator + 1);
+    const key = separator < 0 ? ["channel_layout", "channels"][index] : option.slice(0, separator).trim();
+    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "channel_layout") layout = value;
     else if (key === "channels") channels = value;
     else if (key === "thread_type") {

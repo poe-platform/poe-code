@@ -12970,7 +12970,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geom = tokens[++i] ?? "0x0";
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++ });
+                const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 validateMagickSpliceGeometry(expanded);
                 const background = state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background;
                 if (background.a >= 255) im = discardDisassociatedAlpha(im);
@@ -12991,7 +12991,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geom = tokens[++i] ?? "0x0";
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++ });
+                const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
                 im = discardDisassociatedAlpha(im);
                 return (yield* applyMagickChopSteps(im, expanded, state.gravity, signal, analysis));
@@ -13020,7 +13020,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geom = tokens[++i] ?? "+0+0";
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++ });
+                const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
                 im = discardDisassociatedAlpha(im);
                 let result = yield* applyMagickRollSteps(im, expanded, signal);
@@ -13537,7 +13537,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geometry = tokens[++i] ?? "";
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(geometry, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, (im as MagickImage)[magickInput]);
+                const expanded = yield* formatMagickPropertyStringSteps(geometry, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
                 const g = parseMagickShaveGeometry(expanded, im);
                 const sw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? 0));
@@ -17368,7 +17368,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const source = image;
                 const captured = { ...settings, virtualPixel: image.virtualPixel ?? "edge" };
-                const expanded = await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++ }, async () => ({ image: source, storage: backend.storage }), signal, images);
+                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties: captured.optionProperties }, async () => ({ image: source, storage: backend.storage }), signal, images);
                 if (token === "-splice") validateMagickSpliceGeometry(expanded);
                 else validateMagickTransformGeometry(expanded, token);
                 const background = captured.backgroundExplicit ? captured.background : image.backgroundColor ?? captured.background;
@@ -17860,7 +17860,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = tokens[++i] ?? "", captured = { ...state };
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(geometry, { ...image, properties: { ...captured.optionProperties, ...image.properties } }, (image as StoredMagickImage)[magickInput] ?? {}, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: captured.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 validateMagickTransformGeometry(expanded, token);
                 const parsed = parseMagickShaveGeometry(expanded, image);
                 const width = Math.max(0, Math.round(parsed.isPercent ? image.width * (parsed.percentX ?? 100) / 100 : parsed.width ?? 0));

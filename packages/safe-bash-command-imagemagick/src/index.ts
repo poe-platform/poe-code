@@ -3443,7 +3443,7 @@ function sampleFxImage(
   return sampleFxPixel(img.evaluateSamples ?? img.data16 ?? img.data!, idx, ch, img.evaluateSamples ? 255 : img.data16 ? 65535 : 255);
 }
 function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number, interpolation?: LookupInterpolation): number {
-  if (interpolation === "average9" || interpolation === "average16" || interpolation === "blend" || interpolation === "mesh" || interpolation === "catrom") throw new Error(`Unsupported FX interpolation: ${interpolation}`);
+  if (interpolation === "average9" || interpolation === "average16" || interpolation === "blend" || interpolation === "catrom") throw new Error(`Unsupported FX interpolation: ${interpolation}`);
   if (!img) return 0;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return NaN;
   const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
@@ -3464,10 +3464,22 @@ function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefin
     }
     return value;
   }
+  let meshWeights: number[] | undefined;
+  if (interpolation === "mesh") {
+    const luma = [0, 1, 2, 3].map(pixel => {
+      const px = left + pixel % 2, py = top + Math.floor(pixel / 2);
+      return 0.212656 * sample(img, px, py, 0) + 0.715158 * sample(img, px, py, 1) + 0.072186 * sample(img, px, py, 2);
+    });
+    // Split along the diagonal with the smaller luminance difference.
+    // Keep native triangle-complement arithmetic at Q16 rounding boundaries.
+    meshWeights = Math.abs(luma[0]! - luma[3]!) < Math.abs(luma[1]! - luma[2]!)
+      ? dx <= dy ? [1 - dy, 0, 1 - dx - (1 - dy), dx] : [1 - dx, 1 - (1 - dx) - dy, 0, dy]
+      : dx <= 1 - dy ? [1 - dx - dy, dx, dy, 0] : [0, 1 - dy, 1 - dx, 1 - (1 - dx) - (1 - dy)];
+  }
   let value = 0, alpha = 0;
   for (let row = 0; row < 2; row++) {
     for (let column = 0; column < 2; column++) {
-      const weight = interpolation === "average" ? 0.25 : (column ? dx : 1 - dx) * (row ? dy : 1 - dy);
+      const weight = meshWeights?.[row * 2 + column] ?? (interpolation === "average" ? 0.25 : (column ? dx : 1 - dx) * (row ? dy : 1 - dy));
       if (weight === 0) continue;
       const opacity = img.hasAlpha && ch !== 3 ? sample(img, left + column, top + row, 3) : 1;
       value += weight * opacity * sample(img, left + column, top + row, ch);
@@ -4676,7 +4688,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     if (token === "-interpolative-resize") {
         const geometry = tokens[start + 1] ?? "", interpolation = state.interpolation ?? "bilinear";
         validateMagickTransformGeometry(geometry, token);
-        if (interpolation === "blend" || interpolation === "mesh" || interpolation === "catrom") throw new Error(`Unsupported interpolative-resize interpolation: ${interpolation}`);
+        if (interpolation === "blend" || interpolation === "catrom") throw new Error(`Unsupported interpolative-resize interpolation: ${interpolation}`);
         const background = state.background, virtualPixel = state.virtualPixel ?? "edge";
         return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">) => {
             const options = magickResizeOptions(image, geometry, undefined);

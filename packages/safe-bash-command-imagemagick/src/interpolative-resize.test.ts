@@ -30,7 +30,7 @@ for (const mode of ["command", "retained", "buffered", "sync", "mogrify"] as con
 }
 
 for (const retained of [false, true]) {
-    it.each([[], ["bogus"], ["8x5!", "-interpolate", "mesh", "-interpolative-resize", "9x6!"]])(`preserves output on invalid resize, retained=${retained}, %j`, async (...options) => {
+    it.each([[], ["bogus"], ["8x5!", "-interpolative-resize", "bogus"]])(`preserves output on invalid resize, retained=${retained}, %j`, async (...options) => {
         const input = Buffer.from(fixtures[0]!.input, "base64"), existing = Buffer.from("existing output");
         const files = new Map([["/input.png", input], ["/out.png", existing]]), filesystem = new MemoryFileSystem();
         for (const [path, bytes] of files) await filesystem.writeFile(path, bytes);

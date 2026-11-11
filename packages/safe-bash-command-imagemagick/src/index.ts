@@ -20770,7 +20770,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
             const canvasW = Math.max(1, originX + (variableCells ? Math.max(0, ...rowWidths) : cols * slotW));
             const canvasH = Math.max(1, originY + (variableCells ? rowHeights.reduce((sum, height) => sum + height, (rows - rowHeights.length) * padY * 2) : rows * slotH));
-            let tileX = 0, tileY = 0;
+            let tileX = 0, tileY = 0, rowHeight = 0;
                 if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
             canvas = { ...yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background), hasAlpha: state.background.a < 255 };
             if (textureImage) for (let y = 0; y < canvasH; y += textureImage.height) {
@@ -20787,11 +20787,14 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 const effH = fastMetaDims[idx]!.height;
                 if (variableCells && col === 0) {
                     tileX = 0;
+                    rowHeight = 0;
                     if (row > 0) tileY += rowHeights[row - 1]!;
                 }
                 const cellX = originX + (variableCells ? tileX : col * slotW) + padX;
                 const cellY = originY + (variableCells ? tileY : row * slotH) + padY;
-                const off = resolveGravityOffset(variableCells ? 0 : maxThumbW - effW, variableCells && !concatenate ? 0 : (variableCells ? rowHeights[row]! - padY * 2 : maxThumbH) - effH, state.gravity);
+                // Offset-only geometry aligns against the tallest tile seen in this row.
+                rowHeight = Math.max(rowHeight, effH);
+                const off = resolveGravityOffset(variableCells ? 0 : maxThumbW - effW, (variableCells ? rowHeight : maxThumbH) - effH, state.gravity);
                 tileX += effW + padX * 2;
                 const dstX = cellX + off.left;
                 const dstY = cellY + off.top;
@@ -20937,7 +20940,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
             const canvasW = Math.max(1, originX + (variableCells ? Math.max(0, ...rowWidths) + (shadow ? 4 : 0) : cols * slotW + (shadow ? 4 : 0)));
             const canvasH = Math.max(1, originY + (variableCells ? rowHeights.reduce((sum, height) => sum + height, (rows - rowHeights.length) * padY * 2) : rows * slotH));
-            let tileX = 0, tileY = 0;
+            let tileX = 0, tileY = 0, rowHeight = 0;
             canvas = { ...yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background), hasAlpha: state.background.a < 255 };
             if (textureImage) for (let y = 0; y < canvasH; y += textureImage.height) {
                 for (let x = 0; x < canvasW; x += textureImage.width) {
@@ -20959,8 +20962,10 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 }
                 if (variableCells && col === 0) {
                     tileX = 0;
+                    rowHeight = 0;
                     if (row > 0) tileY += rowHeights[row - 1]!;
                 }
+                rowHeight = Math.max(rowHeight, im.height);
                 if ((im as MagickImage)[magickInput]?.filePath === "null:") {
                     tileX += im.width + padX * 2;
                     detachRgbaBuffer(im.data);
@@ -20984,7 +20989,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     detachRgbaBuffer(shadowImage.data);
                     continue;
                 }
-                const off = resolveGravityOffset(variableCells ? 0 : maxThumbW - im.width, variableCells && !concatenate ? 0 : (variableCells ? rowHeights[row]! - padY * 2 - (shadow ? 4 : 0) : maxThumbH) - im.height, state.gravity);
+                const off = resolveGravityOffset(variableCells ? 0 : maxThumbW - im.width, (variableCells ? rowHeight : maxThumbH) - im.height, state.gravity);
                 tileX += im.width + padX * 2;
                 if (shadow) {
                     const shadowImage = yield* applyMagickRasterSteps(im, montageShadowPixels(im), signal, { width: im.width + 20, height: im.height + 20, hasAlpha: true });
@@ -21252,7 +21257,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     }
                 }
             }
-            let tileX = 0, tileY = 0;
+            let tileX = 0, tileY = 0, rowHeight = 0;
             const directory: string[] = [];
             let titleHeight = 0;
             let canvas = { ...await createStoredCanvas(Math.max(1, originX + canvasWidth), Math.max(1, originY + canvasHeight), state.background, backend, signal), hasAlpha: state.background.a < 255 };
@@ -21275,8 +21280,10 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 directory.push((image as StoredMagickImage)[magickInput]?.filePath ?? paths[pageStart + index]!);
                 if (variableCells && col === 0) {
                     tileX = 0;
+                    rowHeight = 0;
                     if (row > 0) tileY += Number(await rowHeights.get(BigInt(row - 1)));
                 }
+                rowHeight = Math.max(rowHeight, image.height);
                 if ((image as StoredMagickImage)[magickInput]?.filePath === "null:") {
                     tileX += image.width + padX * 2;
                     continue;
@@ -21293,7 +21300,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     continue;
                 }
                 const width = fast ? Number(await sources.get(BigInt((pageStart + index) * 5 + 2))) : image.width, height = fast ? Number(await sources.get(BigInt((pageStart + index) * 5 + 3))) : image.height;
-                const offset = resolveGravityOffset(variableCells ? 0 : maxThumbW - width, variableCells && !concatenate ? 0 : (variableCells ? Number(await rowHeights.get(BigInt(row))) - padY * 2 - (shadow ? 4 : 0) : maxThumbH) - height, state.gravity);
+                const offset = resolveGravityOffset(variableCells ? 0 : maxThumbW - width, (variableCells ? rowHeight : maxThumbH) - height, state.gravity);
                 // Concatenate offsets bordered tiles without enlarging the canvas.
                 const x = originX + (variableCells ? tileX : col * slotW) + (concatenate ? borderW : 0) + padX + offset.left, y = originY + (variableCells ? tileY : row * slotH) + (concatenate ? borderW : 0) + padY + offset.top;
                 tileX += width + padX * 2;

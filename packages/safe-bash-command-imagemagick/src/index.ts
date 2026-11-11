@@ -22583,7 +22583,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 const transform = transforms[inputIndex]![offset];
                 if (!transform) return [image];
                 const tiles = transform.kind === "crop"
-                    ? yield* applyMagickCropToStackSteps(image, transform.geometry, transform.gravity)
+                    ? yield* applyMagickCropToStackSteps(image, transform.geometry, transform.gravity, analysis)
                     : [yield* ("operation" in transform ? transform.operation.apply(image)
                         : (transform.kind === "resize" || transform.kind === "scale" || transform.kind === "thumbnail") ? applyMagickResizeSteps(image, transform.geometry, state.kernel, transform.kind === "thumbnail", false, transform.kind === "scale", state.resizeFilter)
                         : transform.kind === "trim" ? trimMagickSteps(image, transform.fuzz)
@@ -22882,6 +22882,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                             if (transform.kind === "crop") {
                                 for (const area of magickCropAreas(tile, transform.geometry, transform.gravity)) {
                                     await yieldTurn(signal);
+                                    if (!area) analysis.warnings += `magick: geometry does not contain image '${transform.geometry}'\n`;
                                     if (area === false) break;
                                     const cropped = area === null
                                         ? await createStoredCanvas(1, 1, { ...state.background, a: 0 }, backend, signal)

@@ -17227,13 +17227,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = output;
                       } else if (filterName === "earwax") {
                         const argument = trimmed.slice("earwax=".length);
-                        if (argument) {
-                          const option = argument.split(":", 1)[0]!;
+                        const options = argument ? argument.split(":") : [];
+                        if (options.at(-1) === "") options.pop();
+                        for (const option of options) {
                           const separator = option.indexOf("=");
                           if (separator < 0) throw new Error("earwax: unexpected positional argument");
                           const key = option.slice(0, separator).trim();
                           if (key === "enable") throw new Error("earwax: timeline is unsupported");
-                          throw new Error(`earwax: unsupported option ${key}`);
+                          if (!["threads", "thread_type", "extra_hw_frames"].includes(key)) {
+                            throw new Error(`earwax: unsupported option ${key}`);
+                          }
+                          validateWeaveGenericOption(key, option.slice(separator + 1), "earwax");
                         }
                         if (stretched.length === 2 && filteredChannelMask &&
                             filteredChannelMask !== 3 && filteredChannelMask !== 0x60000000) {
@@ -19906,7 +19910,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "earwax: timeline is unsupported") return { exitCode: 176 };
             if (msg === "earwax: unsupported input channel layout") return { exitCode: 234 };
             if (msg.startsWith("earwax: unsupported option ")) return { exitCode: 8 };
-            if (msg === "earwax: unexpected positional argument") return { exitCode: 234 };
+            if (err instanceof RangeError && msg.startsWith("earwax:")) return { exitCode: 222 };
+            if (msg === "earwax: unexpected positional argument" || msg === "earwax: invalid expression" ||
+                msg === "earwax: invalid or unsupported expression") return { exitCode: 234 };
             if (msg === "separatefields: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("separatefields: unsupported option ")) return { exitCode: 8 };
             if (msg === "separatefields: unexpected positional argument") return { exitCode: 234 };

@@ -3994,13 +3994,9 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
     if (nums.some(value => !Number.isFinite(value))) throw new Error("invalid list of numbers");
     if (method === "arc") throw new Error("Unsupported distortion method: Arc");
     if (method === "srt" || method === "scalerotatetranslate") {
-        let ox = w / 2, oy = h / 2, scaleX = 1, scaleY = 1, angle = 0, nx = ox, ny = oy;
-        // Native's default center includes the page offset. Unlike best-fit,
-        // -distort samples in raster coordinates without removing that offset.
-        if (token === "-distort") {
-            ox = nx = w / 2 + (img.virtualCanvas?.x ?? 0);
-            oy = ny = h / 2 + (img.virtualCanvas?.y ?? 0);
-        }
+        const pageX = img.virtualCanvas?.x ?? 0, pageY = img.virtualCanvas?.y ?? 0;
+        const offsetX = token === "+distort" ? pageX : 0, offsetY = token === "+distort" ? pageY : 0;
+        let ox = w / 2 + pageX, oy = h / 2 + pageY, scaleX = 1, scaleY = 1, angle = 0, nx = ox, ny = oy;
         if (nums.length === 1) angle = nums[0]!;
         else if (nums.length === 2) { scaleX = scaleY = nums[0]!; angle = nums[1]!; }
         else if (nums.length >= 3) {
@@ -4010,11 +4006,6 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
             else { scaleX = nums[2]!; scaleY = nums[3]!; angle = nums[4]!; }
             if (nums.length === 6) { nx = nums[4]!; ny = nums[5]!; }
             else if (nums.length >= 7) { nx = nums[5]!; ny = nums[6]!; }
-            // Best-fit samples in raster coordinates; explicit centers are on the virtual page.
-            if (token === "+distort" && img.virtualCanvas) {
-                ox -= img.virtualCanvas.x; oy -= img.virtualCanvas.y;
-                nx -= img.virtualCanvas.x; ny -= img.virtualCanvas.y;
-            }
         }
         if (scaleX === 0 || scaleY === 0) throw new Error("invalid argument for option ScaleRotateTranslate : 'Zero Scale Given'");
         const radians = (angle * Math.PI) / 180, cos = Math.cos(radians), sin = Math.sin(radians);
@@ -4022,13 +4013,19 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
         // it for best-fit bounds. Preserve that order at integer rounding boundaries.
         const a = cos / scaleX, b = sin / scaleX, c = -sin / scaleY, d = cos / scaleY;
         const e = ox - nx * a - ny * b, f = oy - nx * c - ny * d;
-        const map: WarpPlan["map"] = (x, y) => [a * (x + 0.5) + b * (y + 0.5) + e - 0.5, c * (x + 0.5) + d * (y + 0.5) + f - 0.5];
+        // Keep page coordinates until after the affine sum, as native does:
+        // removing offsets earlier changes rounding at radial filter table boundaries.
+        const map: WarpPlan["map"] = (x, y) => [
+            a * (x + offsetX + 0.5) + b * (y + offsetY + 0.5) + e - offsetX - 0.5,
+            c * (x + offsetX + 0.5) + d * (y + offsetY + 0.5) + f - offsetY - 0.5
+        ];
         const determinant = a * d - b * c;
         const reciprocal = 1 / (Math.abs(determinant) >= 1e-12 ? determinant : determinant < 0 ? -1e-12 : 1e-12);
         const sx = reciprocal * d, rx = reciprocal * -b, tx = reciprocal * (b * f - e * d);
         const ry = reciprocal * -c, sy = reciprocal * a, ty = reciprocal * (e * c - a * f);
         return bestFit({ ...result(map), derivatives: () => [a, b, c, d] }, (x, y) =>
-            [sx * (x + 0.5) + rx * (y + 0.5) + tx - 0.5, ry * (x + 0.5) + sy * (y + 0.5) + ty - 0.5]);
+            [sx * (x + offsetX + 0.5) + rx * (y + offsetY + 0.5) + tx - 0.5 - offsetX,
+                ry * (x + offsetX + 0.5) + sy * (y + offsetY + 0.5) + ty - 0.5 - offsetY]);
     }
     if (method === "affine" && (nums.length === 0 || nums.length % 4 !== 0)) throw new Error("Affine requires complete source/destination point pairs");
     if (method === "affineprojection") {

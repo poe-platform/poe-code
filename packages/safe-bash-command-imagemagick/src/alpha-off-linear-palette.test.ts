@@ -10,8 +10,11 @@ it.each([
     { name: "PaletteAlpha alpha off", options: ["-type", "PaletteAlpha", "-alpha", "off"], expected: "b03050ff" },
     { name: "PaletteAlpha retains alpha", options: ["-type", "PaletteAlpha"], expected: "b0305070" },
     { name: "direct alpha off", options: ["-alpha", "off"], expected: "b03050ff" },
-])(`${mode}: $name`, async ({ options, expected }) => {
-    const argv = ["xc:#b0305070", "-colorspace", "RGB", ...options, "-colorspace", "sRGB", "-depth", "8", "rgba:-"];
+    { name: "direct alpha off at 16-bit depth", color: "#2878a080", depth: "16", options: ["-alpha", "off"], expected: "28287878a0a0ffff" },
+    { name: "direct alpha opaque at 16-bit depth", color: "#2878a080", depth: "16", options: ["-alpha", "opaque"], expected: "28287878a0a0ffff" },
+    { name: "direct retains alpha at 16-bit depth", color: "#2878a080", depth: "16", options: [], expected: "28287878a0a08080" },
+])(`${mode}: $name`, async ({ options, expected, color = "#b0305070", depth = "8" }) => {
+    const argv = [`xc:${color}`, "-colorspace", "RGB", ...options, "-colorspace", "sRGB", "-depth", depth, "-endian", "MSB", "rgba:-"];
     const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
     const args = createCommandArguments(argv), chunks: Uint8Array[] = [];
     let stderr = "";

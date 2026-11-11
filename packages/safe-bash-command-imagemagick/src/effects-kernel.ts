@@ -248,7 +248,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                 const foreground = protectedPixel ? sourceAlpha : coverage[x]!;
                 const intensity = protectedPixel ? sourceAlpha + coverage[x]! * (1 - sourceAlpha) : 1;
                 const back = (name === "plus" ? 1 : 1 - foreground) * background.a / 255;
-                const alpha = sourceIn || destinationIn ? foreground * background.a / 255
+                const alpha = name === "clear" ? 0 : sourceIn || destinationIn ? foreground * background.a / 255
                     : sourceOut ? foreground * (1 - background.a / 255) : destinationOut ? back : Math.min(1, foreground + back);
                 for (let channel = 0; channel < (inks ? 4 : 3); channel++) {
                     const color = backgroundInks ? backgroundInks[channel]! * 255 : channel === 0 ? background.r : channel === 1 ? background.g : background.b;

@@ -181,7 +181,7 @@ export function encodePpm(img: RgbaImage, depth = Math.min(16, img.bitsPerSample
   return ascii ? new TextEncoder().encode(header + text.join("")) : out;
 }
 
-export function encodePgm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = false): Uint8Array {
+export function encodePgm(img: RgbaImage, depth = Math.min(16, img.bitsPerSample ?? (img.data16 ? 16 : 8)), ascii = false): Uint8Array {
   if (!Number.isInteger(depth) || depth < 1 || depth > 16) throw new RangeError("Invalid Netpbm depth");
   const maximum = ascii ? (depth <= 8 ? 255 : 65535) : 2 ** depth - 1;
   const text: string[] = [];

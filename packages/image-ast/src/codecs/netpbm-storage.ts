@@ -85,7 +85,7 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
  return {...await output.finish(),...(storedData16?{storedData16}:{}),...(storedHueSamples===undefined?{}:{storedHueSamples}),...(storedEvaluateSamples===undefined?{}:{storedEvaluateSamples})};
 }
 /** Owned output chunks and pull-driven backpressure; rows never require full buffers. */
-export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:ImageByteStorage,signal:AbortSignal,format:"ppm"|"pgm"|"pbm"|"pam",depth=format==="ppm"||format==="pam"?Math.min(16,image.bitsPerSample??(image.storedData16?16:8)):image.storedData16?16:8,ascii=false):AsyncGenerator<Uint8Array> {
+export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:ImageByteStorage,signal:AbortSignal,format:"ppm"|"pgm"|"pbm"|"pam",depth=Math.min(16,image.bitsPerSample??(image.storedData16?16:8)),ascii=false):AsyncGenerator<Uint8Array> {
  signal.throwIfAborted();
  if(format!=="pam"&&format!=="ppm"&&format!=="pgm"&&format!=="pbm") throw new Error(`Unsupported Netpbm output format: ${format}`);
  if(!Number.isInteger(depth)||depth<1||depth>16) throw new RangeError("Invalid Netpbm depth");

@@ -7739,10 +7739,11 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     let convexHull = false;
     let customFormat: string | undefined;
     let precision = 6;
+    let channelSelection: MagickFormatContext["channelSelection"];
     let locateMaximum = false;
     let locateLimit = 0;
     let optionError = "";
-    const targets: { path: string; originalInput: string; sceneCount?: number; listIndex: number; customFormat: string | undefined }[] = [];
+    const targets: { path: string; originalInput: string; sceneCount?: number; listIndex: number; customFormat: string | undefined; channelSelection: MagickFormatContext["channelSelection"] }[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
@@ -7783,6 +7784,21 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         else if (a === "+format") {
             customFormat = undefined;
         }
+        else if (a === "-channel") {
+            const value = argv[++i];
+            if (value === undefined) {
+                optionError = "identify: missing required argument '-channel'\n";
+                break;
+            }
+            try { channelSelection = parseChannelMask(value); }
+            catch (error) {
+                optionError = `identify: ${(error as Error).message}\n`;
+                break;
+            }
+        }
+        else if (a === "+channel") {
+            channelSelection = undefined;
+        }
         else if (a === "-precision") {
             const value = argv[++i];
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "identify: missing an argument for option '-precision'\n" };
@@ -7791,7 +7807,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             precision = requested < 1 ? 6 : Math.min(100, Math.trunc(requested));
         }
         else if (a === "-" || (!a.startsWith("-") && !a.startsWith("+"))) {
-            targets.push({ path: a, originalInput: a, listIndex: 0, customFormat });
+            targets.push({ path: a, originalInput: a, listIndex: 0, customFormat, channelSelection });
         }
         else {
             optionError = `identify: unrecognized option '${a}'\n`;
@@ -7817,7 +7833,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     let exitCode = 0;
     for (let targetIndex = 0; targetIndex < targets.length; targetIndex++) {
         const target = targets[targetIndex]!;
-        const { customFormat } = target;
+        const { customFormat, channelSelection } = target;
         let inPath = target.path;
         yield;
         const bracketMatch = /^(.*)\[(\d+)\]$/.exec(inPath);
@@ -7846,7 +7862,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                         let offset = 0;
                         for (const page of selectedInputPages(parsed.pageSpec, metadata.pages ?? 1)) {
                             yield;
-                            targets.splice(targetIndex + ++offset, 0, { path: `${baseInPath}[${page}]`, originalInput: target.originalInput, listIndex: offset - 1, customFormat });
+                            targets.splice(targetIndex + ++offset, 0, { path: `${baseInPath}[${page}]`, originalInput: target.originalInput, listIndex: offset - 1, customFormat, channelSelection });
                         }
                         for (let index = 1; index <= offset; index++) targets[targetIndex + index]!.sceneCount = offset;
                     }
@@ -7878,7 +7894,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             continue;
         }
         let inspected:IdentifyInspection|undefined;
-        if(reader && !inlineImage)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,originalInput:target.originalInput,byteLen:size,sceneIdx:pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis,optionProperties:{format:customFormat!}},pixels,signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision);}};
+        if(reader && !inlineImage)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,metadata,{filePath:baseInPath,originalInput:target.originalInput,byteLen:size,sceneIdx:pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis,channelSelection,optionProperties:{format:customFormat!}},pixels,signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision);}};
         const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
         if (!bytes&&!inspected&&!inlineImage) {
             errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
@@ -7893,7 +7909,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             if (pageIdx === undefined && (meta.format === "tiff" || meta.format === "gif") && (meta.pages ?? 1) > 1) {
                 for (let page = 1; page < meta.pages!; page++) {
                     yield;
-                    targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, originalInput: target.originalInput, sceneCount: meta.pages!, listIndex: page, customFormat });
+                    targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, originalInput: target.originalInput, sceneCount: meta.pages!, listIndex: page, customFormat, channelSelection });
                 }
                 inPath = `${baseInPath}[0]`;
             }
@@ -7902,7 +7918,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
             if (customFormat !== undefined) {
                 outParts.push(inspected?.formatted??(yield* formatMagickPropertyStringSteps(customFormat, meta, () => inlineImage ?? decodeImage(encoded!, inputOptions), {
-                    filePath: baseInPath, originalInput: target.originalInput, byteLen: size, sceneIdx: pageIdx ?? 0, listIndex: target.listIndex, sceneCount: sceneCount ?? meta.pages ?? 1, precision, analysis, optionProperties: { format: customFormat }
+                    filePath: baseInPath, originalInput: target.originalInput, byteLen: size, sceneIdx: pageIdx ?? 0, listIndex: target.listIndex, sceneCount: sceneCount ?? meta.pages ?? 1, precision, analysis, channelSelection, optionProperties: { format: customFormat }
                 })));
             }
             else if (locateMaximum) {

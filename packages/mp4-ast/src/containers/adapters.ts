@@ -363,9 +363,9 @@ export function serializeY4m(doc: MediaDocument): Uint8Array {
   const chroma = preserveNative && sourceFormat === 49 ? "444p16"
     : preserveNative && sourceFormat === 68 ? "444p10"
     : preserveNative && sourceFormat === 8 ? "mono"
-    : preserveNative && sourceFormat === 4 ? "422"
-    : preserveNative && sourceFormat === 5 ? "444"
-    : codec?.chromaLocation === "left" ? "420mpeg2 XYSCSS=420MPEG2" : "420jpeg";
+    : preserveNative && sourceFormat === 4 ? "422 XYSCSS=422"
+    : preserveNative && sourceFormat === 5 ? "444 XYSCSS=444"
+    : codec?.chromaLocation === "left" ? "420mpeg2 XYSCSS=420MPEG2" : "420jpeg XYSCSS=420JPEG";
   const header = encodeUtf8(`YUV4MPEG2 W${width} H${height} F${rate} I${interlace} A${codec?.sarWidth ?? 1}:${codec?.sarHeight ?? 1} C${chroma}${range}\n`);
   const frameTag = encodeUtf8("FRAME\n");
   const chunks: Uint8Array[] = [header];

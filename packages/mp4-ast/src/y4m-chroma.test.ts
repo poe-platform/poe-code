@@ -11,7 +11,7 @@ for (const [chroma, location] of [["420mpeg2", "left"], ["420jpeg", "center"]]) 
     const output = serializeY4m(doc);
     const fields = new TextDecoder().decode(output.subarray(0, output.indexOf(10))).split(" ");
     assert.ok(fields.includes(`C${chroma}`));
-    if (chroma === "420mpeg2") assert.ok(fields.includes("XYSCSS=420MPEG2"));
+    assert.ok(fields.includes(chroma === "420mpeg2" ? "XYSCSS=420MPEG2" : "XYSCSS=420JPEG"));
     assert.ok(fields.includes("W2"));
     assert.ok(fields.includes("H2"));
     assert.deepEqual(output.slice(-6), samples);
@@ -28,7 +28,7 @@ for (const [chroma, pixFmt, format, horizontal, vertical] of [
     it(`round trips two ${width}x${height} ${chroma} frames with exact planes`, () => {
       const size = width * height + (horizontal ? 2 * Math.ceil(width / horizontal) * Math.ceil(height / vertical) : 0);
       const payloads = [128, 160].map(value => Uint8Array.from({ length: size }, (_, i) => value + i));
-      const input = concatBytes([encodeUtf8(`YUV4MPEG2 W${width} H${height} F25:1 Ip A1:1 C${chroma}\n`),
+      const input = concatBytes([encodeUtf8(`YUV4MPEG2 W${width} H${height} F25:1 Ip A1:1 C${chroma}${chroma === "mono" ? "" : ` XYSCSS=${chroma}`}\n`),
         ...payloads.flatMap(payload => [encodeUtf8("FRAME\n"), payload])]);
       const doc = parseY4m(input);
       assert.equal(doc.tracks[0]!.codecDescriptions[0]!.pixFmt, pixFmt);
@@ -50,7 +50,7 @@ it("writes matching 4:2:0 planes when one native 4:4:4 frame is edited", () => {
   const track = doc.tracks[0]!;
   const frames = track.decodedVideoFrames!.map((frame, i) => i === 0 ? { ...frame, data: frame.data.slice() } : frame);
   const output = serializeY4m({ ...doc, tracks: [{ ...track, decodedVideoFrames: frames }] });
-  const expected = concatBytes([encodeUtf8("YUV4MPEG2 W2 H2 F25:1 Ip A1:1 C420jpeg\n"),
+  const expected = concatBytes([encodeUtf8("YUV4MPEG2 W2 H2 F25:1 Ip A1:1 C420jpeg XYSCSS=420JPEG\n"),
     ...frames.flatMap(frame => {
       const { y, u, v } = rgbaToYuv420p(frame.data, 2, 2);
       return [encodeUtf8("FRAME\n"), y, u, v];

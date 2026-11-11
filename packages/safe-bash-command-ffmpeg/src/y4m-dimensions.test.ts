@@ -36,7 +36,10 @@ for (const fields of ["H2 F25:1", "W0 H2 F25:1", "W2 F25:1", "W2 H0 F25:1", "W2 
       } else {
         assert.equal(result.exitCode, 0, stderr);
         const output = target === "-" ? concatBytes(chunks) : new Uint8Array(volume.readFileSync(target) as Buffer);
-        assert.deepEqual(output, input);
+        assert.deepEqual(output, concatBytes([
+          encode("YUV4MPEG2 W2 H2 F25:1 Ip A1:1 C420jpeg XYSCSS=420JPEG\n"),
+          input.subarray(input.indexOf(10) + 1)
+        ]));
       }
     });
   }

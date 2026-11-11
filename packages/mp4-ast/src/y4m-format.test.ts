@@ -12,7 +12,7 @@ for (const chroma of ["nonsense", "", "420jpeg-invalid", "420p99", "MONO"]) {
 }
 
 it("preserves both C420jpeg frames and their source bytes", () => {
-  const input = concatBytes([encodeUtf8("YUV4MPEG2 W2 H2 F25:1 Ip A1:1 C420jpeg\n"),
+  const input = concatBytes([encodeUtf8("YUV4MPEG2 W2 H2 F25:1 Ip A1:1 C420jpeg XYSCSS=420JPEG\n"),
     ...[128, 160].flatMap(value => [encodeUtf8("FRAME\n"), new Uint8Array(6).fill(value)])]);
   assert.deepEqual(serializeY4m(parseY4m(input)), input);
 });

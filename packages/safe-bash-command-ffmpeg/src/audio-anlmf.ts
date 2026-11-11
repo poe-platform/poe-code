@@ -2,37 +2,41 @@ import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 
-export async function anlmfAudio(
+export async function adaptiveAudio(
   first: MediaTrack, desired: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaTrack> {
+  const name = filter.split("=", 1)[0]!;
   const options: Record<string, number> = { order: 256, mu: 0.75, eps: 1, leakage: 0, out_mode: 2, precision: 0 };
   const bounds: Record<string, readonly [number, number]> = {
     order: [1, 32767], mu: [0, 2], eps: [0, 1], leakage: [0, 1], out_mode: [0, 4], precision: [0, 2]
   };
   const names = Object.keys(options);
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  const fields = argument ? argument.split(":") : [];
+  for (const [index, option] of fields.entries()) {
+    if (!option && index === fields.length - 1) continue;
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    if (!key || !Object.hasOwn(options, key)) throw new Error(`anlmf: unsupported option ${key}`);
+    if (!key || !Object.hasOwn(options, key)) throw new Error(`${name}: unsupported option ${key}`);
     const choices = key === "out_mode" ? ["i", "d", "o", "n", "e"] : key === "precision" ? ["auto", "float", "double"] : [];
-    const numeric = choices.includes(value) ? choices.indexOf(value) : parseFilterExpression(value, "anlmf", {});
+    const numeric = choices.includes(value) ? choices.indexOf(value) : parseFilterExpression(value, name, {});
     const [min, max] = bounds[key]!;
     if (!value || !Number.isFinite(numeric) || numeric < min || numeric > max ||
-      (["order", "out_mode", "precision"].includes(key) && !Number.isInteger(numeric))) throw new Error(`anlmf: invalid ${key}`);
+      (["order", "out_mode", "precision"].includes(key) && !Number.isInteger(numeric))) throw new Error(`${name}: invalid ${key}`);
     options[key] = Math.fround(numeric);
   }
   const a = first.decodedAudio;
   const b = desired.decodedAudio;
-  if (!a || !b) throw new Error("anlmf requires decoded PCM audio");
+  if (!a || !b) throw new Error(`${name} requires decoded PCM audio`);
   if (a.sampleRate !== b.sampleRate || a.channels !== b.channels || a.channelMask !== b.channelMask) {
-    throw new Error("anlmf requires matching sample rates and channel layouts");
+    throw new Error(`${name} requires matching sample rates and channel layouts`);
   }
   const order = options.order!;
   const kernel = Math.ceil(order / 16) * 16;
   const length = Math.min(a.channelData[0]!.length, b.channelData[0]!.length);
-  const double = options.precision === 2;
+  // FFmpeg 7 anlms always negotiates float planar PCM.
+  const double = name === "anlmf" && options.precision === 2;
   const round = double ? (value: number) => value : Math.fround;
   const ArrayType = double ? Float64Array : Float32Array;
   budget.checkSamples(length);
@@ -61,7 +65,8 @@ export async function anlmfAudio(
         power = round(power + round(delay[tap]! * delay[tap]!));
       }
       const error = round(target - filtered);
-      const gain = round(round(round(options.mu! * error) / round(options.eps! + power)) * round(error * error));
+      let gain = round(round(options.mu! * error) / round(options.eps! + power));
+      if (name === "anlmf") gain = round(gain * round(error * error));
       for (let tap = 0; tap < order; tap++) {
         coeffs[tap] = round(round(coeffs[tap]! * leakage) + round(delay[offset + tap]! * gain));
       }

@@ -14277,8 +14277,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-vignette") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const argument = tokens[++i] ?? "0x1";
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(argument, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(argument, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 const geometry = parseMagickVignetteGeometry(expanded);
                 const layout = vignetteLayout(im);
                 return { ...yield* applyMagickRasterSteps(im, vignettePixelSteps(im, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, geometry, state.channelExplicit ? state.channels : undefined, state.composeRaw, state.composeArgs), signal, layout), region: undefined, virtualCanvas: layout.virtualCanvas };
@@ -18453,7 +18454,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }, backend, signal);
             });
         } else if (!operandsOnly && token === "-vignette") {
-            let images: StoredImageStack;
+            let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 images = stack;
@@ -18463,7 +18464,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const background = state.background, backgroundExplicit = state.backgroundExplicit, channels = state.channelExplicit ? { ...state.channels } : undefined, compose = state.composeRaw, composeArgs = state.composeArgs, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
+                const expanded = await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 const geometry = parseMagickVignetteGeometry(expanded);
                 const layout = vignetteLayout(image);
                 return { ...await transformStoredMagickRaster(image, backend, vignettePixelSteps(image, backgroundExplicit ? background : image.backgroundColor ?? background, geometry, channels, compose, composeArgs), signal, layout), region: undefined, virtualCanvas: layout.virtualCanvas };

@@ -100,7 +100,10 @@ function* xbmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
       if ((yield* token(true)) === "define") {
         const key = yield* token(true);
         if (key.endsWith("_width")) { width = Number(yield* token(true)); name = key.slice(0, -6); }
-        else if (key.endsWith("_height")) height = Number(yield* token(true));
+        else if (key.endsWith("_height")) {
+          if (!width) throw new Error("improper image header: XBM width must precede height");
+          height = Number(yield* token(true));
+        }
       }
       // Preprocessor lines are header text, never includes or executable directives.
       while (position < size || pending !== undefined) {

@@ -7606,7 +7606,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     if (lower.startsWith("label:") || lower.startsWith("caption:")) {
         const text = baseToken.slice(baseToken.indexOf(":") + 1);
-        return yield* applyMod([decodeImage(new TextEncoder().encode(createLabelSvg(text, state)), { density: state.density })]);
+        return yield* applyMod([Object.assign(decodeImage(new TextEncoder().encode(createLabelSvg(text, state)), { density: state.density }), { [magickInput]: { inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } })]);
     }
     if (lower === "null:") {
         return yield* applyMod([Object.assign(yield* createSolidRgbaImageSteps(1, 1, state.background), { [magickInput]: { filePath: "null:", compression: "Undefined" } })]);
@@ -14483,27 +14483,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const { baseToken } = parseInputToken(inputName);
                 for (const filename of yield* mogrifyTargets(baseToken, files.keys())) {
                     const name = filename + inputName.slice(baseToken.length);
-                    const isLabelOperand = name.toLowerCase().startsWith("label:") || name.toLowerCase().startsWith("caption:");
-                    const mergeOntoCanvas = isLabelOperand && stack.length === 1 && state.hasSize && stack[0]!.width === state.sizeWidth && stack[0]!.height === state.sizeHeight && state.background.r === 255 && state.background.g === 255 && state.background.b === 255 && state.background.a === 255;
-                    const prevBg = state.background;
-                    if (mergeOntoCanvas) {
-                        state.background = { r: 0, g: 0, b: 0, a: 0 };
-                    }
                     const maxDecodeDim = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
                     const loaded = (yield* parseInputOperandsSteps(name, files, state, stdinBytes, maxDecodeDim, state.extract, registers, analysis));
-                    if (mergeOntoCanvas) {
-                        state.background = prevBg;
-                    }
                     if (!loaded) throw new Error(`unable to open image '${name}'`);
                     for (const warning of loaded[0]?.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
-                    if (mergeOntoCanvas && loaded[0]) {
-                        yield* blitOverRgbaInPlaceSteps(stack[0]!, loaded[0], 0, 0);
-                        detachRgbaBuffer(loaded[0].data);
-                    } else {
-                        for (const image of loaded) {
-                            if (state.scene !== undefined) (image as MagickImage)[magickInput] = { ...(image as MagickImage)[magickInput], outputScene: state.scene };
-                            stack.push(state.backgroundExplicit ? { ...image, backgroundColor: state.background } : image);
-                        }
+                    for (const image of loaded) {
+                        if (state.scene !== undefined) (image as MagickImage)[magickInput] = { ...(image as MagickImage)[magickInput], outputScene: state.scene };
+                        stack.push(state.backgroundExplicit ? { ...image, backgroundColor: state.background } : image);
                     }
                 }
             }
@@ -18148,7 +18134,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 break;
             }
             if (!operandsOnly && (token === "(" || token === ")")) continue;
-            const captured = { ...state }, literal = operandsOnly, maxDecodeDimension = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
+            const captured = { ...state }, maxDecodeDimension = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
             stackStep(async (stack, backend) => {
                 let names: string[];
                 try { names = await readImageInputNames(token, backend.read, signal); }
@@ -18157,17 +18143,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const { baseToken } = parseInputToken(inputName);
                     for (const filename of await mogrifyFileTargets(baseToken, input.filesystem, input.cwd, signal)) {
                         const name = filename + inputName.slice(baseToken.length);
-                        const base = stack.length === 1 ? await stack.get(0) : undefined, lower = name.toLowerCase();
-                        const merge = !literal && (lower.startsWith("label:") || lower.startsWith("caption:")) && base && captured.hasSize && base.width === captured.sizeWidth && base.height === captured.sizeHeight && Object.values(captured.background).every(value => value === 255);
-                        const settings = merge ? { ...captured, background: { r: 0, g: 0, b: 0, a: 0 } } : captured;
-                        const loaded = await parseStoredCompareInput(name, settings, backend, signal, { analysis, registers, ...(settings.extract === undefined ? {} : { extract: settings.extract }), visit: async image => {
-                            if (settings.scene !== undefined) image = { ...image, [magickInput]: { ...image[magickInput], outputScene: settings.scene } };
+                        const loaded = await parseStoredCompareInput(name, captured, backend, signal, { analysis, registers, ...(captured.extract === undefined ? {} : { extract: captured.extract }), visit: async image => {
+                            if (captured.scene !== undefined) image = { ...image, [magickInput]: { ...image[magickInput], outputScene: captured.scene } };
                             for (const warning of image.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
-                            if (merge) {
-                                const composed = await compositeStoredMagick(base, image, backend, signal, 0, 0, "over");
-                                await stack.set(0, { ...composed, hasAlpha: base.hasAlpha, channels: base.channels });
-                            }
-                            else await stack.push(settings.backgroundExplicit ? { ...image, backgroundColor: settings.background } : image);
+                            await stack.push(captured.backgroundExplicit ? { ...image, backgroundColor: captured.background } : image);
                         }, ...(maxDecodeDimension === undefined ? {} : { maxDecodeDimension }) });
                         if (!loaded) throw new Error(`unable to open image '${name}'`);
                     }
@@ -19083,6 +19062,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   image = Object.assign(image, { [magickInput]: { ...(!checker ? { filePath: first } : {}), inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } });
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
   image=await decodeStoredMagickSvg(createLabelSvg(baseToken.slice(baseToken.indexOf(":")+1),state),state.density,backend,signal);
+  image = Object.assign(image, { [magickInput]: { inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } });
  }else{
   const generated=await drainSteps(parseInputOperandSteps(baseToken,new Map(),state),signal);
   if(generated)image=await backend.retain(generated);

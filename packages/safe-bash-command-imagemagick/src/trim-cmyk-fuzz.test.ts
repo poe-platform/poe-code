@@ -8,7 +8,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         it.each([
             { space: "CMYK", fuzz: "20%", hex: "d02020ff", geometry: "1x1|3x1+1+0", bounds: percent ? "1x1+1+0|1,0 2,1" : "1x2+1+0|1,0 2,2", warning: "" },
             { space: "CMYK", fuzz: "0%", hex: "d02020ff", geometry: "1x1|3x1+1+0", bounds: percent ? "1x1+1+0|1,0 2,1" : "1x2+1+0|1,0 2,2", warning: "" },
-            { space: "sRGB", fuzz: "20%", hex: "ffffff00", geometry: "1x1|3x1-1-1", bounds: percent ? "0x0+3+1|3,1 3,1" : "0x1+3+1|3,1 3,2", warning: "magick: geometry does not contain image\n" },
+            { space: "sRGB", fuzz: "20%", hex: "ffffff00", geometry: "1x1|3x1-1-1", bounds: percent ? "0x1+3+0|3,0 3,1" : "0x1+3+1|3,1 3,2", warning: "magick: geometry does not contain image\n" },
         ])(`${mode}, percent=${percent}: $space trim at $fuzz`, async test => {
             for (const output of ["rgba", "geometry", "bounds"]) {
                 const files = new Map([["/out", new TextEncoder().encode("KEEP")]]);

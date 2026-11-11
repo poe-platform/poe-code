@@ -13318,9 +13318,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         let frameListOperand: string | undefined;
         if (["-clone", "-duplicate", "-delete", "-insert", "-swap"].includes(t)) {
             frameListOperand = tokens[++i] ?? (t === "-swap" ? "-2,-1" : t === "-insert" ? "0" : t === "-duplicate" ? "" : "-1");
-            const source = t === "-clone" ? parentStack ?? stack : stack;
-            const image = source[0];
-            if (image && frameListOperand.includes("%")) frameListOperand = yield* formatMagickPropertyStringSteps(frameListOperand, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: source, sceneCount: source.length, optionProperties: state.optionProperties });
+            const image = stack[0] ?? (t === "-clone" && frameListOperand.includes("%") ? yield* createSolidRgbaImageSteps(1, 1, state.background) : undefined);
+            if (image && frameListOperand.includes("%")) frameListOperand = yield* formatMagickPropertyStringSteps(frameListOperand, image, () => image, { ...(image as MagickImage)[magickInput], ...(stack.length ? { fxStack: stack, sceneCount: stack.length } : {}), optionProperties: state.optionProperties });
             if ((t === "-clone" || t === "-delete") && (frameListOperand.includes("\t") || frameListOperand.includes("\n"))) throw new Error(`invalid argument ${frameListOperand}`);
         }
         if (t === "-fft" || t === "+fft") {
@@ -16823,11 +16822,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && ["+clone", "-clone", "+duplicate", "-duplicate", "+delete", "-delete", "+swap", "-swap", "-reverse", "+insert", "-insert"].includes(token)) {
             const operand = token.startsWith("-") && token !== "-reverse" ? tokens[++i] ?? (token === "-swap" ? "-2,-1" : token === "-insert" ? "0" : token === "-duplicate" ? "" : "-1") : "-1";
-            const optionProperties = state.optionProperties;
+            const { optionProperties, background } = state;
             stackStep(async (stack, backend, parents) => {
-                const source = token === "-clone" ? parents.at(-1) ?? stack : stack;
-                const image = operand.includes("%") ? await source.get(0) : undefined;
-                let spec = image ? await formatRetainedIdentify(operand, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: source.length, optionProperties }, async () => ({ image, storage: backend.storage }), signal, source) : operand;
+                const image = operand.includes("%") ? await stack.get(0) ?? (token === "-clone" ? await createStoredCanvas(1, 1, background, backend, signal) : undefined) : undefined;
+                let spec = image ? await formatRetainedIdentify(operand, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length || 1, optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack.length ? stack : undefined) : operand;
                 if ((token === "-clone" || token === "-delete") && (spec.includes("\t") || spec.includes("\n"))) throw new Error(`invalid argument ${spec}`);
                 let count = 1;
                 if (token === "-duplicate") {

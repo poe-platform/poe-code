@@ -4,11 +4,16 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCliSync } from "./index.js";
 
-const colors = { R: [255, 0, 0, 255], G: [0, 255, 0, 255], B: [0, 0, 255, 255], W: [255, 255, 255, 255] };
+const colors = { R: [255, 0, 0, 255], G: [0, 255, 0, 255], B: [0, 0, 255, 255], W: [255, 255, 255, 255], C: [0, 255, 255, 255], Y: [255, 255, 0, 255] };
 for (const mode of ["public", "sync"] as const) {
     it.each([
         { options: ["-delete", "%[fx:n-1]"], order: "RGB" },
         { options: ["-clone", "%[fx:0],%[fx:2]"], order: "RGBWRB" },
+        { options: ["(", "xc:cyan", "xc:yellow", "-clone", "%[fx:n-1]", ")"], order: "RGBWCYG" },
+        { options: ["(", "-clone", "%[fx:n-1]", ")"], order: "RGBWR" },
+        { options: ["-set", "label", "3", "(", "xc:cyan", "-set", "label", "1", "-clone", "%[label]", ")"], order: "RGBWCG" },
+        { options: ["-clone", "%[fx:n-1]"], order: "RGBWW" },
+        { options: ["(", "-clone", "3", ")"], order: "RGBWW" },
         { options: ["-duplicate", "%[fx:1]"], order: "RGBWW" },
         { options: ["-insert", "%w"], order: "RWGB" },
         { options: ["-set", "option:k", "2", "-swap", "%[option:k]"], order: "RGWB" },

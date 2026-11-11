@@ -10416,6 +10416,11 @@ function magickSampleOffset(image: ImageMetadata, option?: string): { x: number;
     const offset = image.properties?.["artifact:sample:offset"] ?? option;
     if (offset === undefined) return;
     const value = offset.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x");
+    if (value.includes(":")) {
+        const dimensions = parseMagickGeometry(value.replace(":", "x"));
+        // ParseGeometry normalizes ratios to rho/sigma:1, using an epsilon for zero sigma.
+        if (dimensions.height !== undefined) return { x: (dimensions.width ?? 0) / Math.max(dimensions.height, 1e-12) / 100, y: 0.01 };
+    }
     const geometry = parseMagickGeometry(value);
     // Native scalar geometry followed by signed offsets leaves both sample offsets at zero.
     const x = geometry.hasOffset && !value.toLowerCase().includes("x") ? 0 : geometry.aspectRatio ?? geometry.width ?? 0;

@@ -151,7 +151,9 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
             const little = options.endian === undefined || options.endian === "lsb";
             if (options.tiffFloatDepth) {
                 // ImageMagick scales Q16 samples by the reciprocal quantum range.
-                const normalized = value * (65535 / scale) * (1 / 65535);
+                const sampleQuantum = value * (65535 / scale);
+                // Computed gray passes through Q16-HDRI float storage before export.
+                const normalized = (format.startsWith("gray") && channel === 0 ? Math.fround(sampleQuantum) : sampleQuantum) * (1 / 65535);
                 if (depth === 64) view.setFloat64(offset, normalized, little);
                 else if (depth === 32) view.setFloat32(offset, normalized, little);
                 else {

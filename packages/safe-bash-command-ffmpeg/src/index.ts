@@ -33,6 +33,7 @@ import { swapUv } from "./swapuv.js";
 import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
 import { tmix } from "./tmix.js";
+import { prewitt } from "./prewitt.js";
 import { avgblur } from "./avgblur.js";
 import { doubleweave } from "./doubleweave.js";
 import { padTinterlace } from "./tinterlace-pad.js";
@@ -4205,6 +4206,8 @@ async function applyVideoFilterChain(
       } finally {
         budget.releaseMemory(1024);
       }
+    } else if (name === "prewitt") {
+      current = await prewitt(current, argStr, pixelFormat, budget, signal);
     } else if (name === "avgblur") {
       current = await avgblur(current, argStr, pixelFormat, budget, signal);
     } else if (name === "sobel") {

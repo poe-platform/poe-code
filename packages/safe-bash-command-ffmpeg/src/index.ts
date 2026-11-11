@@ -2231,6 +2231,9 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             undefined, undefined, undefined, undefined, undefined, undefined, undefined,
             { ends, outputEnds: multiplierEnds });
         }
+        const multiplierFormat = audioGraphFormats.get(sources[1]!.track)
+          ?? pcmSampleFormat(sources[1]!.track.codecDescriptions[0]?.codecName);
+        const doubleRemix = ["dbl", "dblp", "s64", "s64p"].includes(multiplierFormat ?? "");
         const length = Math.min(a.channelData[0]!.length, multiplier[0]!.length);
         budget.checkSamples(length);
         budget.checkDuration(length / a.sampleRate);
@@ -2248,9 +2251,12 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
               signal?.throwIfAborted();
               budget.checkCpu();
             }
+            // SWR remixes integer/float mono in float precision, even before double output.
             const gain = downmix
               ? downmix.reduce((sum, coefficient, input) => sum + coefficient * multiplier[input]![sample]!, 0)
-              : upmix ? upmix[channel]! * multiplier[0]![sample]! : multiplier[channel]![sample]!;
+              : upmix ? doubleRemix ? upmix[channel]! * multiplier[0]![sample]!
+                : Math.fround(Math.fround(upmix[channel]!) * Math.fround(multiplier[0]![sample]!))
+                : multiplier[channel]![sample]!;
             channelData[channel]![sample] = a.channelData[channel]![sample]! * gain;
           }
         }

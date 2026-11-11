@@ -589,7 +589,7 @@ Other layouts and surround options are rejected.
 channel conversions, including `lr>ms` and
 `ms>lr`. For example, `-af stereotools=mutel=1` silences only the left channel.
 `asendcmd` updates mute and phase-inversion flags, `softclip`, gains (`level_in`,
-`level_out`, `mlev`, `slev`), and `mode` at audio frame boundaries. Named targets
+`level_out`, `mlev`, `slev`), `mode`, and `delay` at audio frame boundaries. Named targets
 such as `stereotools@x` select one instance; invalid updates keep the previous
 setting. For example, `asendcmd=c='1 stereotools@x level_out 0.5',stereotools@x`
 halves output gain starting with the first frame at or after one second.
@@ -612,6 +612,8 @@ Signed `delay` accepts -20 to 20 (default 0):
 positive values delay the right channel, negative values delay the left, with
 silence at the start and no change in output length. Native FFmpeg's rounding
 applies: `delay=1` shifts four stereo frames at 8 kHz.
+Timed delay changes use buffered audio from both channels, including samples
+processed while delay was zero or the filter was disabled.
 Use `mlev` and `slev` to adjust the mid and side levels (0.015625–64, default 1),
 `mpan` to pan the mid signal, and `sbal` to balance the side signal
 (-1–1, default 0). For example, `stereotools=slev=0.5` narrows the stereo image.

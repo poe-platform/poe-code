@@ -16866,6 +16866,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const modes = ["lr>lr", "lr>ms", "ms>lr", "lr>ll", "lr>rr", "lr>l+r", "lr>rl", "ms>ll", "ms>rr", "ms>rl", "lr>l-r"];
                         let mode = 0;
                         let delay = 0;
+                        let delayFrames = 0;
                         let phase = 0;
                         let base = 0;
                         const flags = { mutel: false, muter: false, phasel: false, phaser: false, softclip: false };
@@ -16893,6 +16894,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             mode = roundToEven(nextMode);
                           } else if (key === "mutel" || key === "muter" || key === "phasel" || key === "phaser" || key === "softclip") {
                             flags[key] = parseFilterBoolean(value, `stereotools: invalid ${key}`);
+                          } else if (key === "delay") {
+                            const nextDelay = parseFilterExpression(value, "stereotools", { min: -20, max: 20, default: 0 });
+                            if (!Number.isFinite(nextDelay) || nextDelay < -20 || nextDelay > 20) {
+                              throw new RangeError("stereotools: delay must be in the range [-20, 20]");
+                            }
+                            delay = nextDelay;
+                            // Native FFmpeg rounds the interleaved delay down to an even sample count.
+                            delayFrames = Math.floor(origRate * (Math.abs(delay) / 1000) / 2);
                           } else if (key === "sclevel") {
                             const number = parseFilterExpression(value, "stereotools", { min: 1, max: 100, default: 1 });
                             if (!Number.isFinite(number) || number < 1 || number > 100) {
@@ -16945,12 +16954,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else position = position === 0 ? 1 : 0;
                           const value = option.slice(separator + 1).trim();
                           if (applyMixOption(key!, value)) continue;
-                          if (key === "delay") {
-                            delay = parseFilterExpression(value, "stereotools", { min: -20, max: 20, default: 0 });
-                            if (!Number.isFinite(delay) || delay < -20 || delay > 20) {
-                              throw new RangeError("stereotools: delay must be in the range [-20, 20]");
-                            }
-                          } else if (key === "thread_type") {
+                          if (key === "thread_type") {
                             // Scheduling flags do not affect PCM, but each set/clear term must be valid.
                             let position = 0;
                             do {
@@ -16996,10 +17000,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         budget.allocateMemory(stretched[0]!.length * 2 * Float64Array.BYTES_PER_ELEMENT);
                         const left = new Float64Array(stretched[0]!.length);
                         const right = new Float64Array(left.length);
-                        // Native FFmpeg rounds the interleaved delay down to an even sample count.
-                        const delayFrames = Math.floor(origRate * (Math.abs(delay) / 1000) / 2);
-                        budget.allocateMemory(delayFrames * 8);
-                        const delayed = new Float64Array(delayFrames);
+                        // Retain both channels up to the maximum delay, even while delay is zero.
+                        const delayLength = (Math.floor(origRate * (20 / 1000) / 2) + 1) * 2;
+                        budget.allocateMemory(delayLength * Float64Array.BYTES_PER_ELEMENT);
+                        const delayed = new Float64Array(delayLength);
                         let delayPosition = 0;
                         const commands = audioCommands.filter(command => command.target === "stereotools" || command.target === filterTarget)
                           .sort((a, b) => a.sample - b.sample);
@@ -17089,13 +17093,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                             outputLeft *= (flags.mutel ? 0 : 1) * (flags.phasel ? -1 : 1);
                             outputRight *= (flags.muter ? 0 : 1) * (flags.phaser ? -1 : 1);
-                            if (delayFrames > 0) {
-                              const slot = delayPosition++ % delayFrames;
-                              const previous = delayed[slot]!;
-                              delayed[slot] = delay < 0 ? outputLeft : outputRight;
-                              if (delay < 0) outputLeft = previous;
-                              else outputRight = previous;
-                            }
+                            delayed[delayPosition] = outputLeft;
+                            delayed[delayPosition + 1] = outputRight;
+                            const delayedPosition = (delayPosition - delayFrames * 2 + delayLength) % delayLength;
+                            if (delay < 0) outputLeft = delayed[delayedPosition]!;
+                            else if (delay > 0) outputRight = delayed[delayedPosition + 1]!;
+                            delayPosition = (delayPosition + 2) % delayLength;
                             // Disabled frames still feed processed samples into the delay history.
                             if (!enabled) {
                               left[i] = stretched[0]![i]!;

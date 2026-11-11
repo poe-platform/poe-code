@@ -7831,6 +7831,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         }
     };
     let exitCode = 0;
+    const analysis = { warnings: "", errors: "" };
     for (let targetIndex = 0; targetIndex < targets.length; targetIndex++) {
         const target = targets[targetIndex]!;
         const { customFormat, channelSelection } = target;
@@ -7879,7 +7880,8 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         }
         const pageIdx = bracketMatch ? parseInt(bracketMatch[2]!, 10) : undefined;
         const sceneCount = target.sceneCount ?? (pageIdx === undefined ? undefined : 1);
-        const analysis = { warnings: "", errors: "" };
+        const warningOffset = analysis.warnings.length;
+        analysis.errors = "";
         let inlineImage: RgbaImage | undefined;
         try {
             const lower = baseInPath.toLowerCase();
@@ -7990,7 +7992,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             else {
                 outParts.push(`${inPath} ${meta.format.toUpperCase()} ${meta.width}x${meta.height} ${meta.width}x${meta.height}+0+0 ${bitDepth}-bit ${spaceLabel} ${size}B 0.000u 0:00.000\n`);
             }
-            if (analysis.warnings) errParts.push(analysis.warnings);
+            if (analysis.warnings.length > warningOffset) errParts.push(analysis.warnings.slice(warningOffset));
             if (analysis.errors) {
                 errParts.push(analysis.errors.replaceAll("magick: ", "identify: "));
                 exitCode = 1;

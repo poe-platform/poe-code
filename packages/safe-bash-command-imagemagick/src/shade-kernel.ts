@@ -5,9 +5,29 @@ import { magickIntensity } from "./intensity.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 
 /** Directional surface normals from a 3x3 intensity neighborhood. */
-export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { magickColorspace?: string | undefined }, spec: string, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, intensity = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const angles = spec.toLowerCase().split("x"), azimuth = Number(angles[0]), elevation = Number(angles[1]);
-    if (!spec.trim() || angles.length !== 2 || !angles.every(value => value.trim()) || ![azimuth, elevation].every(Number.isFinite)) throw new Error(`invalid argument for option '-shade': ${spec}`);
+export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { magickColorspace?: string | undefined }, spec: string, argument: number, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, intensity = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const geometry = [...spec.toLowerCase()].filter(character => character.trim() && !"()!%<>^@#".includes(character)).join("")
+        .replaceAll(",", "x").replaceAll("/", "x").replaceAll(":", "x");
+    const fields: string[] = [];
+    let start = 0;
+    for (let i = 1; i < geometry.length; i++) {
+        if ("+-".includes(geometry[i]!) && !"ex".includes(geometry[i - 1]!)) {
+            fields.push(geometry.slice(start, i));
+            start = i;
+        }
+    }
+    fields.push(geometry.slice(start));
+    const angles = fields[0]!.split("x");
+    let azimuth = Number(angles[0]), elevation = Number(angles[1]);
+    if (angles.length !== 2 || !angles.every(value => value.length) || fields.length > 3
+        || ![azimuth, elevation, ...fields.slice(1).map(Number)].every(Number.isFinite)) {
+        throw new Error(`invalid argument for option '-shade': ${spec} at CLI arg ${argument}`);
+    }
+    // Native ParseGeometry treats a colon as a ratio with unit elevation.
+    if (spec.includes(":")) {
+        azimuth /= Math.abs(elevation) >= 1e-12 ? elevation : elevation < 0 ? -1e-12 : 1e-12;
+        elevation = 1;
+    }
     const a = azimuth * Math.PI / 180, e = elevation * Math.PI / 180;
     const lightX = Math.cos(a) * Math.cos(e), lightY = Math.sin(a) * Math.cos(e), lightZ = Math.sin(e);
     const { width, height } = image, highDepth = !!(image.data16 || image.storedData16), quantum = highDepth ? 65535 : 255;

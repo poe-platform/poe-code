@@ -13263,7 +13263,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const spec = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(spec, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                return yield* applyMagickRasterSteps(im, shadePixelSteps(im, expanded, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.intensity), signal);
+                return yield* applyMagickRasterSteps(im, shadePixelSteps(im, expanded, argumentOffset + i, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.intensity), signal);
             });
         }
         else if (t === "-emboss") {
@@ -17169,11 +17169,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const spec = tokens[++i] ?? "", background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? { ...state.channels } : undefined, intensity = state.intensity, optionProperties = state.optionProperties;
+            const spec = tokens[++i] ?? "", background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? { ...state.channels } : undefined, intensity = state.intensity, optionProperties = state.optionProperties, argument = i;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                return transformStoredMagickRaster(image, backend, shadePixelSteps(image, expanded, background, virtualPixel, channels, intensity), signal);
+                return transformStoredMagickRaster(image, backend, shadePixelSteps(image, expanded, argument, background, virtualPixel, channels, intensity), signal);
             });
         } else if (!operandsOnly && token === "-emboss") {
             stackStep(async stack => {

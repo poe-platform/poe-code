@@ -14,7 +14,10 @@ for (const [options, status] of [
   [":extra_hw_frames=min", 0], [":extra_hw_frames=default", 0],
   [":threads=default+1:extra_hw_frames=min+1:thread_type=+slice", 0],
   [":threads=min-1", 222], [":extra_hw_frames=default-1", 222],
-  [":threads=none", 234], [":extra_hw_frames=slice", 234],
+  [":threads=none", 0], [":extra_hw_frames=all", 0],
+  [":extra_hw_frames=none", 0], [":threads=all+1:extra_hw_frames=none-1", 0],
+  [":threads=all", 222], [":threads=none-1", 222], [":extra_hw_frames=all-1", 222],
+  [":extra_hw_frames=slice", 234],
   [":thread_type=+slice", 0], [":thread_type=-slice", 0],
   [":thread_type=4294967295", 0],
   [":threads=-1", 222], [":threads=2147483648", 222],
@@ -63,5 +66,33 @@ for (const [options, status] of [
         });
       }
     }
+  }
+}
+
+for (const setting of ["threads=0", "threads=none", "extra_hw_frames=-1", "extra_hw_frames=all"]) {
+  for (const graph of [false, true]) {
+    it(`apad ${setting} matches native PCM on stdout (${graph ? "graph" : "simple"})`, async () => {
+      const volume = Volume.fromJSON({ "/in.pcm": Buffer.from("6400c8002c019001f4015802bc022003", "hex") });
+      const filter = `apad=pad_len=3:${setting}`;
+      const output: Uint8Array[] = [];
+      let stderr = "";
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/in.pcm",
+          ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+          "-t", "0.008", "-f", "s16le", "pipe:1"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(),
+        stdout: { async write(bytes: Uint8Array) { output.push(bytes); } },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.equal(stderr, "");
+      // FFmpeg 7.0.2: eight input samples followed by three silent samples.
+      assert.equal(Buffer.concat(output).toString("hex"), "6400c8002c019001f4015802bc022003000000000000");
+    });
   }
 }

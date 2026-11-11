@@ -16530,9 +16530,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             continue;
                           }
                           if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
-                            const number = parseFilterExpression(value, "apad", key === "thread_type"
-                              ? { slice: 1, none: 0, all: -1 }
-                              : key === "threads" ? { min: 0, default: 0 } : { min: -1, default: -1 });
+                            const number = parseFilterExpression(value, "apad", {
+                              none: 0, all: -1,
+                              ...(key === "thread_type" ? { slice: 1 }
+                                : key === "threads" ? { min: 0, default: 0 } : { min: -1, default: -1 })
+                            });
                             if (key === "thread_type"
                               ? !Number.isInteger(number) || number < -2147483648 || number > 4294967295
                               : number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {

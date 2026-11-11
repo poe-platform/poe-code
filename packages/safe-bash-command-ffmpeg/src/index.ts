@@ -11972,6 +11972,52 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }) : [];
                   if (filter) {
                     let audioCommands: { sample: number; target: string; action: string; expression: string }[] = [];
+                    const commandSenders = audioFilters.flatMap((item, sender) => {
+                      if (item.trim().split("=", 1)[0]!.split("@", 1)[0] !== "asendcmd") return [];
+                      let commands = item.slice(item.indexOf("=") + 1);
+                      if (commands.startsWith("c=")) commands = commands.slice(2);
+                      else if (commands.startsWith("commands=")) commands = commands.slice(9);
+                      const scheduled = commands.split(";").filter(command => command.trim()).map(command => {
+                        const words = Array.from(command, char => char.trim() ? char : " ").join("").split(" ").filter(Boolean);
+                        const time = Number(words.shift());
+                        if (words[0] === "[enter]") words.shift();
+                        const [target, action, expression] = words;
+                        const supported = action === "enable" && ["tremolo", "vibrato"].some(name => target === name || target?.startsWith(`${name}@`))
+                          || target === "silenceremove" || target?.startsWith("silenceremove@")
+                          || action === "tempo" && (target === "atempo" || target?.startsWith("atempo@"))
+                          || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
+                          || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
+                          || ["i", "c"].includes(action!) && (target === "crystalizer" || target?.startsWith("crystalizer@"))
+                          || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
+                          || target === "stereowiden" || target?.startsWith("stereowiden@")
+                          // aphaser declines runtime commands without aborting the render.
+                          || target === "aphaser" || target?.startsWith("aphaser@")
+                          || target === "adelay" || target?.startsWith("adelay@")
+                          || target === "amix" || target?.startsWith("amix@")
+                          || action === "level" && ["afreqshift", "aphaseshift"].some(name => target === name || target?.startsWith(`${name}@`))
+                          || action === "wet" && (target === "asubboost" || target?.startsWith("asubboost@"))
+                          || ["mm", "cm", "m", "dry", "wet", "temp", "enable"].includes(action!) && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
+                          || action === "limit" && (target === "alimiter" || target?.startsWith("alimiter@"))
+                          || action === "makeup" && (target === "agate" || target?.startsWith("agate@"))
+                          || target === "atilt" || target?.startsWith("atilt@")
+                          || target === "aexciter" || target?.startsWith("aexciter@")
+                          || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
+                          || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
+                        if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
+                          throw new Error("asendcmd: expected TIME silenceremove[@NAME] start_threshold|stop_threshold|start_mode|stop_mode|enable VALUE or TIME tremolo[@NAME] enable EXPR or TIME vibrato[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback|crossfeed|drymix|enable EXPR or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME crystalizer[@NAME] i|c VALUE or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] mm|cm|m|dry|wet|temp|enable VALUE or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays|enable VALUE or TIME alimiter[@NAME] limit LIMIT or TIME agate[@NAME] makeup GAIN or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN or TIME aphaser[@NAME] COMMAND ARG or TIME aexciter[@NAME] level_in|level_out|amount|drive|blend|freq|ceil|listen VALUE or TIME atilt[@NAME] freq|slope|width|order|level VALUE or TIME amix[@NAME] weights|normalize VALUE");
+                        }
+                        return { time, target, action: action!, expression };
+                      });
+                      if (!scheduled.length) throw new Error("asendcmd: commands are required");
+                      budget.allocateMemory(scheduled.length * 64);
+                      scheduled.sort((a, b) => a.time - b.time);
+                      return [{ sender, scheduled: scheduled.map(command => ({ ...command,
+                        receiver: audioFilters.findIndex(item => {
+                          const target = item.trim().split("=", 1)[0]!;
+                          return target === command.target || target.split("@", 1)[0] === command.target;
+                        })
+                      })) }];
+                    });
                     const volumeReports: string[] = [];
                     if (logLevel >= 32) {
                       // Native tears down a probe graph before processing audio frames.
@@ -11997,6 +12043,31 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       // These filters retain their input sample format. Other DSP filters
                       // negotiate floating-point audio before a subsequent pan mixer.
                       const filterName = trimmed.split("=", 1)[0]!;
+                      for (const { sender, scheduled } of commandSenders) {
+                        const pending = scheduled.filter(command => sender === filterIndex
+                          ? command.receiver >= sender || command.receiver < 0
+                          : sender > filterIndex && command.receiver === filterIndex);
+                        let next = 0;
+                        const length = stretched[0]?.length ?? 0;
+                        for (let start = 0, n = 0; start < length && next < pending.length; n++) {
+                          budget.checkCpu();
+                          if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          const packet = t.samples[n];
+                          const timestamp = audioTimestamps?.[n];
+                          const count = timestamp ? timestamp.end - timestamp.start
+                            : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                          const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
+                          while (next < pending.length && pending[next]!.time <= pts / origRate) {
+                            const command = pending[next++]!;
+                            if (command.target === "amix" || command.target.startsWith("amix@")) mixCommands.push(command);
+                            // A downstream sender sees this frame after the receiver has processed it.
+                            else audioCommands.push({ sample: sender > filterIndex ? Math.min(length, start + count) : start,
+                              target: command.target, action: command.action, expression: command.expression });
+                          }
+                          start += count;
+                        }
+                      }
+
                       if (filterName === "highpass" || filterName === "aecho") {
                         // These planar filters share their input/output format. Negotiate downstream
                         // requirements through filters that preserve sample formats before rounding.
@@ -12415,62 +12486,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         continue;
                       }
-                      if (trimmed.startsWith("asendcmd=")) {
-                        let commands = trimmed.slice("asendcmd=".length);
-                        if (commands.startsWith("c=")) commands = commands.slice(2);
-                        else if (commands.startsWith("commands=")) commands = commands.slice(9);
-                        const scheduled = commands.split(";").filter(command => command.trim()).map(command => {
-                          const words = Array.from(command, char => char.trim() ? char : " ").join("").split(" ").filter(Boolean);
-                          const time = Number(words.shift());
-                          if (words[0] === "[enter]") words.shift();
-                          const [target, action, expression] = words;
-                          const supported = action === "enable" && ["tremolo", "vibrato"].some(name => target === name || target?.startsWith(`${name}@`))
-                            || target === "silenceremove" || target?.startsWith("silenceremove@")
-                            || action === "tempo" && (target === "atempo" || target?.startsWith("atempo@"))
-                            || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
-                            || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
-                            || ["i", "c"].includes(action!) && (target === "crystalizer" || target?.startsWith("crystalizer@"))
-                            || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
-                            || target === "stereowiden" || target?.startsWith("stereowiden@")
-                            // aphaser declines runtime commands without aborting the render.
-                            || target === "aphaser" || target?.startsWith("aphaser@")
-                            || target === "adelay" || target?.startsWith("adelay@")
-                            || target === "amix" || target?.startsWith("amix@")
-                            || action === "level" && ["afreqshift", "aphaseshift"].some(name => target === name || target?.startsWith(`${name}@`))
-                            || action === "wet" && (target === "asubboost" || target?.startsWith("asubboost@"))
-                            || ["mm", "cm", "m", "dry", "wet", "temp", "enable"].includes(action!) && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
-                            || action === "limit" && (target === "alimiter" || target?.startsWith("alimiter@"))
-                            || action === "makeup" && (target === "agate" || target?.startsWith("agate@"))
-                            || target === "atilt" || target?.startsWith("atilt@")
-                            || target === "aexciter" || target?.startsWith("aexciter@")
-                            || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
-                            || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
-                          if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME silenceremove[@NAME] start_threshold|stop_threshold|start_mode|stop_mode|enable VALUE or TIME tremolo[@NAME] enable EXPR or TIME vibrato[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback|crossfeed|drymix|enable EXPR or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME crystalizer[@NAME] i|c VALUE or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] mm|cm|m|dry|wet|temp|enable VALUE or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays|enable VALUE or TIME alimiter[@NAME] limit LIMIT or TIME agate[@NAME] makeup GAIN or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN or TIME aphaser[@NAME] COMMAND ARG or TIME aexciter[@NAME] level_in|level_out|amount|drive|blend|freq|ceil|listen VALUE or TIME atilt[@NAME] freq|slope|width|order|level VALUE or TIME amix[@NAME] weights|normalize VALUE");
-                          }
-                          return { time, target, action: action!, expression };
-                        });
-                        if (!scheduled.length) throw new Error("asendcmd: commands are required");
-                        budget.allocateMemory(scheduled.length * 64);
-                        scheduled.sort((a, b) => a.time - b.time);
-                        let next = 0;
-                        const length = stretched[0]?.length ?? 0;
-                        for (let start = 0, n = 0; start < length && next < scheduled.length; n++) {
-                          budget.checkCpu();
-                          if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          const packet = t.samples[n];
-                          const timestamp = audioTimestamps?.[n];
-                          const count = timestamp ? timestamp.end - timestamp.start
-                            : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
-                          const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
-                          while (next < scheduled.length && scheduled[next]!.time <= pts / origRate) {
-                            const command = scheduled[next++]!;
-                            if (command.target === "amix" || command.target.startsWith("amix@")) mixCommands.push(command);
-                            else audioCommands.push({ sample: start, target: command.target, action: command.action, expression: command.expression });
-                          }
-                          start += count;
-                        }
-                      } else if (trimmed === "asetrate" || trimmed.startsWith("asetrate=")) {
+                      if (filterName === "asendcmd") continue;
+                      if (trimmed === "asetrate" || trimmed.startsWith("asetrate=")) {
                         const rate = parseAsetrate(trimmed === "asetrate" ? "" : trimmed.slice("asetrate=".length));
                         budget.checkDuration((stretched[0]?.length ?? 0) / rate);
                         // Capture incoming frames before changing the rate used to interpret packets.
@@ -13271,6 +13288,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (replayGain !== "ignore") replayGainAvailable = false;
                         const commands = audioCommands.filter(command => command.target === "volume" || command.target === filterTarget)
                           .sort((a, b) => a.sample - b.sample);
+                        audioCommands = audioCommands.filter(command => command.target !== "volume" && command.target !== filterTarget);
                         let nextCommand = 0;
                         const output = stretched.map(channel => precision !== "float"
                           ? new Float64Array(channel.length) : new Float32Array(channel.length));

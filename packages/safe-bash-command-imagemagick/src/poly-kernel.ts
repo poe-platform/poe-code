@@ -87,6 +87,8 @@ export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, 
             const colorSlots = gray ? 1 + Number(input.hasAlpha || (input.format === "png" && input.depth === "uchar")) : 3;
             for (let offset = 0; offset < length; offset++) {
                 const channel = offset % 4;
+                // Native CMYK alpha occupies slot 4, which non-CMYK sources lack.
+                if (channel === 3 && cmyk && input.space !== "cmyk") continue;
                 if (channels && !channels[channel] || sourceMask && !sourceMask[channel] || (channel === 3 ? !input.hasAlpha || gray : channel >= colorSlots)) continue;
                 // Native GrayAlpha stores alpha in slot 1; our samples are expanded RGBA.
                 const source = gray && input.hasAlpha && channel === 1 ? offset + 2 : offset;

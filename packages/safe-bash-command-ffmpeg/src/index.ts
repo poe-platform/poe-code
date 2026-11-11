@@ -13971,15 +13971,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (["highpass", "lowpass", "bass", "lowshelf", "treble", "highshelf"].includes(filterName) || filterName === "aecho") {
                         // These planar filters share their input/output format. Negotiate downstream
                         // requirements through filters that preserve sample formats before rounding.
-                        // A compatible planar input fixes biquad precision before downstream conversion.
-                        let formats: string[] | undefined = (["highpass", "lowpass", "bass", "lowshelf", "treble", "highshelf"].includes(filterName)) && filteredSampleFormat.endsWith("p")
+                        // A compatible planar input fixes precision before downstream conversion.
+                        let formats: string[] | undefined = ["s16p", "s32p", "fltp", "dblp"].includes(filteredSampleFormat)
                           ? [filteredSampleFormat] : undefined;
                         for (let nextIndex = filterIndex + 1; nextIndex < audioFilters.length; nextIndex++) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           const next = audioFilters[nextIndex]!.trim();
                           const name = next.split("=", 1)[0]!.split("@", 1)[0];
                           if (["anull", "acopy", "atrim", "asetpts", "asetnsamples", "areverse", "apad",
-                            "asetrate", "adelay", "aecho", "aphaser"].includes(name!)) continue;
+                            "asetrate", "adelay", "aecho", "aphaser", "afade"].includes(name!)) continue;
                           const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "";
                           if (name === "aformat") {
                             let requested: string[] | undefined;
@@ -13995,8 +13995,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             formats = compatible;
                             continue;
                           }
-                          if (name === "vibrato" || name === "compensationdelay") {
+                          if (name === "vibrato" || name === "compensationdelay" || name === "aeval") {
                             if (!formats || formats.includes("dblp")) formats = ["dblp"];
+                          } else if (name === "acontrast") {
+                            if (!formats || formats.includes("fltp")) formats = ["fltp"];
                           } else if (name === "volume") {
                             let precision = "float";
                             for (const [index, option] of argument.split(":").entries()) {

@@ -4927,7 +4927,7 @@ function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtual
 }
 function* applyMagickShadowSteps(image: RgbaImage, geometry: string, color: RgbaColor, alpha: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     const layout = magickShadowLayout(image, geometry);
-    if ((image.space === "b-w" || image.space === "grey16") && (color.r !== color.g || color.g !== color.b))
+    if (image.space === "b-w" || image.space === "grey16")
         image = { ...image, space: "srgb", channels: 4 };
     const writeMask = image.region || image.writeMask ? yield* createSolidRgbaImageSteps(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
     const readMask = image.readMask ? yield* createSolidRgbaImageSteps(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
@@ -17880,7 +17880,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, optionProperties }, async () => ({ image: image!, storage: backend.storage }), signal, images);
                 const layout = magickShadowLayout(image, expanded);
-                if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
+                if (image.space === "b-w" || image.space === "grey16")
                     image = { ...image, space: "srgb", channels: 4 };
                 const storedWriteMask = image.region || image.storedWriteMask ? await createStoredCanvas(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                 const readMask = image.readMask ? await createStoredCanvas(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;

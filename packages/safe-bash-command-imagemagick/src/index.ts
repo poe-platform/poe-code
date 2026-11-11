@@ -9811,6 +9811,18 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         apply = image => applyMagickEvaluateSteps(image, "clamp", 0, false, channels, undefined, signal);
+    } else if (token === "+noise") {
+        const distribution = tokens[++i] ?? "";
+        const name = distribution.toLowerCase();
+        if (name !== "uniform" && name !== "gaussian")
+            throw new Error(`unrecognized noise type '+noise' '${distribution}'`);
+        highDepth = evaluate = true;
+        const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+        let random: (() => number) | undefined;
+        apply = (image, pixelOffset = 0) => {
+            if (pixelOffset === 0) random = createMagickRandom(state.seed ?? 0n);
+            return applyMagickEvaluateSteps({ ...image, isPalette: false }, `${name}noise`, 1, false, channels, random, signal);
+        };
     } else if (token === "-evaluate") {
         const operationRaw = tokens[++i] ?? "Add", value = tokens[++i] ?? "0";
         const operation = operationRaw.toLowerCase().split("-").join("").split("_").join("");
@@ -19298,6 +19310,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-threshold",
         "-range-threshold",
         "-random-threshold",
+        "+noise",
         "-color-threshold",
         "-black-threshold",
         "-white-threshold",

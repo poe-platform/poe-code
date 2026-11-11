@@ -17,9 +17,12 @@ export function* convolvePixelSteps(image: { width: number; height: number; hasA
     for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 1024) {
         yield;
         const count = Math.min(1024, width - left), position = (y * width + left) * 4;
-        const center = yield { kind: "read", position, length: count * 4 };
-        if (!center || center.length !== count * 4) throw new Error("Truncated convolution pixels");
-        const data = new Uint8Array(center), sums = new Float64Array(count * 4);
+        const working = yield { kind: "read", evaluate: true, position, length: count * 4 };
+        const evaluate = !!working?.length;
+        const centerBytes = evaluate ? working : yield { kind: "read", position, length: count * 4 };
+        if (!centerBytes || centerBytes.length !== count * 4 * (evaluate ? 8 : 1)) throw new Error("Truncated convolution pixels");
+        const center = evaluate ? new Float64Array(centerBytes.slice().buffer) : centerBytes;
+        const data = evaluate ? new Float64Array(center) : new Uint8Array(center), sums = new Float64Array(count * 4);
         sums.fill(bias);
         for (let ky = 0; ky < kernel.height; ky++) {
             yield;
@@ -28,12 +31,13 @@ export function* convolvePixelSteps(image: { width: number; height: number; hasA
                 const first = Math.max(0, Math.min(width - 1, left + kx - kernel.x));
                 const last = Math.max(0, Math.min(width - 1, left + count - 1 + kx - kernel.x));
                 const length = (last - first + 1) * 4, weight = kernel.weights[ky * kernel.width + kx] ?? 0;
-                const bytes = yield { kind: "read", position: (sy * width + first) * 4, length };
-                if (!bytes || bytes.length !== length) throw new Error("Truncated convolution pixels");
+                const bytes = yield { kind: "read", evaluate, position: (sy * width + first) * 4, length };
+                if (!bytes || bytes.length !== length * (evaluate ? 8 : 1)) throw new Error("Truncated convolution pixels");
+                const pixels = evaluate ? new Float64Array(bytes.slice().buffer) : bytes;
                 for (let x = 0; x < count; x++) {
                     const offset = (Math.max(0, Math.min(width - 1, left + x + kx - kernel.x)) - first) * 4;
-                    const alpha = image.hasAlpha ? bytes[offset + 3]! / 255 : 1;
-                    for (let channel = 0; channel < 3; channel++) sums[x * 4 + channel]! += bytes[offset + channel]! * weight * alpha;
+                    const alpha = image.hasAlpha ? pixels[offset + 3]! / 255 : 1;
+                    for (let channel = 0; channel < 3; channel++) sums[x * 4 + channel]! += pixels[offset + channel]! * weight * alpha;
                     sums[x * 4 + 3]! += alpha * weight;
                 }
             }
@@ -49,8 +53,14 @@ export function* convolvePixelSteps(image: { width: number; height: number; hasA
                 value = channel === 3 ? center[x * 4 + 3]!
                     : center[x * 4 + channel]! * sourceAlpha + Math.fround(value * 257) / 257 * editedAlpha * (1 - sourceAlpha);
             }
-            data[x * 4 + channel] = Number.isFinite(value) ? Math.max(0, Math.min(255, Math.round(value + 1e-12))) : 0;
+            // HDRI stores float32 quantum values without clipping to the output gamut.
+            data[x * 4 + channel] = evaluate ? Math.fround(value * 257) / 257
+                : Number.isFinite(value) ? Math.max(0, Math.min(255, Math.round(value + 1e-12))) : 0;
         }
-        yield { kind: "write", position, data };
+        if (evaluate) {
+            yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
+            const bounded = Uint16Array.from(data, value => Math.max(0, Math.min(65535, Math.round(value * 257))));
+            yield { kind: "write", highDepth: true, position, data: new Uint8Array(bounded.buffer) };
+        } else yield { kind: "write", position, data: new Uint8Array(data.buffer) };
     }
 }

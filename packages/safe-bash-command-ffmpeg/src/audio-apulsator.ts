@@ -19,7 +19,7 @@ export async function pulsateAudio(
   let optionPosition = 0;
   for (const option of argumentsList) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? names[optionPosition] : option.slice(0, separator).trim() as keyof typeof options | "mode" | "timing" | "threads" | "thread_type" | "extra_hw_frames";
+    const key = separator < 0 ? names[optionPosition] : option.slice(0, separator).trim() as keyof typeof options | "mode" | "timing" | "enable" | "threads" | "thread_type" | "extra_hw_frames";
     // FFmpeg 7 restarts shorthand after named options, skipping the first slot
     // when it was just visited. The named key does not select the next slot.
     if (separator < 0) optionPosition++;
@@ -28,6 +28,7 @@ export async function pulsateAudio(
       validateWeaveGenericOption(key, option.slice(separator + 1).trim(), "apulsator");
       continue;
     }
+    if (key === "enable") throw new Error("apulsator: timeline is unsupported");
     if (!key || (key !== "mode" && key !== "timing" && !Object.hasOwn(options, key))) throw new Error(`apulsator: unsupported option ${option}`);
     const value = option.slice(separator + 1).trim();
     if (key === "mode" || key === "timing") {
@@ -37,7 +38,7 @@ export async function pulsateAudio(
         min: 0, max: values.length - 1, default: key === "mode" ? 0 : 2,
         ...Object.fromEntries(values.map((name, index) => [name, index]))
       });
-      if (number < 0 || number > values.length - 1) throw new Error(`apulsator: invalid ${key}`);
+      if (number < 0 || number > values.length - 1) throw new RangeError(`apulsator: invalid ${key}`);
       // Native integer options validate bounds before rounding ties to even.
       const rounded = Math.round(number);
       const selected = values[number % 1 === 0.5 && rounded % 2 !== 0 ? rounded - 1 : rounded]!;
@@ -52,7 +53,7 @@ export async function pulsateAudio(
       PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, min, max, default: defaults[key]
     });
     if (number < min || number > max) {
-      throw new Error(`apulsator: invalid ${key}`);
+      throw new RangeError(`apulsator: invalid ${key}`);
     }
     // Native integer options validate bounds before rounding ties to even.
     const rounded = Math.round(number);

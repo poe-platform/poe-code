@@ -75,9 +75,10 @@ export async function denoiseWavelets(
   const names = Object.keys(options) as (keyof typeof options)[];
   const waveletNames = Object.keys(wavelets) as (keyof typeof wavelets)[];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [i, part] of (argument ? argument.split(":") : []).entries()) {
+  let positional = 0;
+  for (const part of argument ? argument.split(":") : []) {
     const separator = part.indexOf("=");
-    const key = (separator < 0 ? names[i] : part.slice(0, separator).trim()) as keyof typeof options;
+    const key = (separator < 0 ? names[positional++] : part.slice(0, separator).trim()) as keyof typeof options;
     if (!names.includes(key)) throw new Error(`afwtdn: unsupported option ${key}`);
     const raw = (separator < 0 ? part : part.slice(separator + 1)).trim();
     const boolean = key === "profile" || key === "adaptive";

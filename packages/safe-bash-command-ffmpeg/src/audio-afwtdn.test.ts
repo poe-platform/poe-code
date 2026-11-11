@@ -32,6 +32,29 @@ it("preserves the original PCM without filtering", async () => {
     parseWav(input).tracks[0]!.decodedAudio!.channelData);
 });
 
+for (const graph of [false, true]) {
+  for (const options of [
+    "samples=512:levels=2:0.1:wavet=sym2",
+    "samples=512:levels=2:wavet=sym2:sigma=0.1",
+    "samples=512:0.1:2:sym2",
+    "sigma=0:0.1:levels=2:samples=512:wavet=sym2",
+    "samples=512:levels=2:0.1:wavet=sym2:sigma=0"
+  ]) it(`resolves afwtdn shorthand independently of named options: ${options} (graph=${graph})`, async () => {
+    const channels = [Float64Array.from({ length: 1200 }, (_, i) => ((i * 13129) % 30001 - 15000) / 32768)];
+    const bytes = Buffer.from(encodeWav({ sampleRate: 8000, channels }));
+    const { fs, result, stderr } = await run(`afwtdn=${options}`, graph, bytes);
+    assert.equal(result.exitCode, 0, stderr);
+    const samples = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
+    const pcm = Buffer.alloc(samples.length * 2);
+    samples.forEach((sample, i) => pcm.writeInt16LE(sample * 32768, i * 2));
+    assert.equal(pcm.length, 3054);
+    // Native FFmpeg 7.0.2 output for the issue's deterministic PCM16 input.
+    assert.equal(createHash("sha256").update(pcm).digest("hex"), options.endsWith("sigma=0")
+      ? "3b580af95602a2b1d31c45cc2248683c1147cbc95ff260c92421f251b6bb1366"
+      : "2f2ba9f7bee86dd971296640edace24e1665063b4b55e640804c503b7b4de795");
+  });
+}
+
 async function run(filter?: string, graph = false, bytes = input) {
   const fs = Volume.fromJSON({ "/out.wav": "KEEP" });
   fs.writeFileSync("/in.wav", bytes);

@@ -108,6 +108,31 @@ for (const [options, hash] of [
   }
 }
 
+// Native FFmpeg 7.0.2, 1 kHz stereo, with fresh registers for each AVOption.
+for (const options of [
+  "in_gain=st(0\\,0.25)+ld(0)",
+  "in_gain=st(0\\,0.25)+ld(0):out_gain=ld(0)+0.74",
+  "in_gain=0.5"
+]) {
+  for (const graph of [false, true]) {
+    it(`aphaser=${options} matches native register-expression PCM (${graph ? "graph" : "simple"})`, async () => {
+      const input = encodeWav({ sampleRate: 1000, channels: [
+        Float64Array.from({ length: 16 }, (_, i) => ((i * 97) % 30001 - 15000) / 32768),
+        Float64Array.from({ length: 16 }, (_, i) => ((i * 257) % 20001 - 10000) / 32768)
+      ] }, { bitsPerSample: 16 });
+      const { volume, result, stderr } = await run(`aphaser=${options}`, graph, 16, input);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.equal(stderr, "");
+      const output = volume.readFileSync("/out.raw") as Buffer;
+      assert.equal(output.length, 64);
+      assert.equal(output.readInt16LE(0), -5550);
+      assert.equal(output.readInt16LE(2), -3700);
+      assert.equal(createHash("sha256").update(output).digest("hex"),
+        "04f2024f39751f3749648ee216b5568aade2c0045a2e1f1913921707892adcd3");
+    });
+  }
+}
+
 // Native FFmpeg 7.0.2 accepts one trailing option separator in either graph form.
 for (const filter of ["aphaser=delay=3", "aphaser=delay=3:"]) {
   for (const graph of [false, true]) {

@@ -33,7 +33,7 @@ export async function phaseAudio(
       PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
       min: min!, max: max!, default: defaults[key], none: 0, all: -1,
       ...(key === "type" ? { t: 1, triangular: 1, s: 0, sinusoidal: 0 } : {})
-    });
+    }, undefined, new Float64Array(10));
     if (!value || !Number.isFinite(number) || number < min! || number > max!) {
       throw new RangeError(`aphaser: invalid ${key}`);
     }

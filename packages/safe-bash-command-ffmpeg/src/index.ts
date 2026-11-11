@@ -439,6 +439,25 @@ function parseFrameRate(value: string): number | undefined {
   return Number.isFinite(rate) && rate > 0 ? rate : undefined;
 }
 
+function loopInputMedia(
+  doc: MediaDocument,
+  loop: number,
+  startSeconds: number | undefined,
+  budget: MediaBudgetTracker
+): MediaDocument {
+  const copies = Array.from({ length: loop + 1 }, () => doc);
+  if (doc.containerFormat === "wav" && doc.tracks[0]?.decodedAudio &&
+      doc.tracks[0].codecDescriptions[0]?.codecName?.startsWith("pcm_") &&
+      startSeconds !== undefined && startSeconds < doc.durationSeconds) {
+    // The first loop advances the demuxer clock by the post-seek duration.
+    // Accurate seeking still discards samples before the original seek time
+    // on the next pass; later passes have already crossed that threshold.
+    const preroll = 2 * startSeconds - doc.durationSeconds;
+    if (preroll > 0) copies[1] = sliceMp4(doc, { startSeconds: preroll });
+  }
+  return concatMp4(copies, { budget });
+}
+
 function loopToOutputEnd(
   doc: MediaDocument,
   endSeconds: number | undefined,
@@ -9012,7 +9031,7 @@ export function evalSyncFfmpeg(
       if (audioCodec === "copy" && (startSeconds !== undefined || outputSs !== undefined) &&
           doc.tracks.some(track => track.codecDescriptions[0]?.codecName === `pcm_${doc.containerFormat}`)) return undefined;
       if (inp.streamLoop && inp.streamLoop > 0) {
-        doc = concatMp4(Array.from({ length: inp.streamLoop + 1 }, () => doc), { budget });
+        doc = loopInputMedia(doc, inp.streamLoop, audioCodec === "copy" || isStdin(inp.path) ? undefined : startSeconds, budget);
       }
       if (startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
         doc = sliceInputMedia(doc, { inputSeek: startSeconds !== undefined, startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds, copyAudio: audioCodec === "copy", resetTimestamps: !copyTimestamps }, subtitleCodec === "copy");
@@ -12142,8 +12161,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (audioCodec !== "copy" && !stripAudio) doc = decodeAacInput(doc);
               const loopSourceDuration = doc.durationSeconds;
               if (inp.streamLoop && inp.streamLoop > 0) {
-                const copies = Array.from({ length: inp.streamLoop + 1 }, () => doc);
-                doc = concatMp4(copies, { limits: options.limits, budget });
+                doc = loopInputMedia(doc, inp.streamLoop, audioCodec === "copy" || isStdin(inp.path) ? undefined : startSeconds, budget);
               }
               if (
                 startSeconds !== undefined ||

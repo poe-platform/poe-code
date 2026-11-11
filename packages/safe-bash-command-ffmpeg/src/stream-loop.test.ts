@@ -29,21 +29,22 @@ for (const sync of [false, true]) {
         const result = evalSyncFfmpeg(args, undefined,
           path => volume.existsSync(path) ? volume.readFileSync(path) as Buffer : undefined,
           (path, bytes) => { volume.writeFileSync(path, bytes); return true; });
-        assert.equal(result, count === undefined ? undefined : "");
-      } else {
-        let stderr = "";
-        const result = await createFfmpegCommand({ limits: { maxDurationSeconds: 60, maxConcatInputs: 1000 } }).execute({
-          args, cwd: "/", env: {}, signal: new AbortController().signal,
-          fs: {
-            async readFile(path: string) { return volume.readFileSync(path); },
-            async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
-            async stat(path: string) { return volume.statSync(path); }
-          },
-          stdin: (async function* () {})(), stdout: { async write() {} },
-          stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
-        } as never);
-        assert.equal(result.exitCode, count === undefined ? 1 : 0, stderr);
+        // Decoded PCM output cuts decline sync execution before writing.
+        assert.equal(result, undefined);
+        assert.equal(volume.existsSync("/out.wav"), false);
       }
+      let stderr = "";
+      const result = await createFfmpegCommand({ limits: { maxDurationSeconds: 60, maxConcatInputs: 1000 } }).execute({
+        args, cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(), stdout: { async write() {} },
+        stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, count === undefined ? 1 : 0, stderr);
       assert.equal(volume.existsSync("/out.wav"), count !== undefined);
       if (count !== undefined) {
         const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;

@@ -25,6 +25,7 @@ function parseRealtext(bytes: Uint8Array): MediaDocument {
   let end: number | undefined;
   let windowDuration = 60000;
   let text = "";
+  let previousWasSpace = true;
   const flush = (trailingSeparator = false) => {
     const caption = text.trim();
     if (start !== undefined && caption) {
@@ -34,6 +35,7 @@ function parseRealtext(bytes: Uint8Array): MediaDocument {
         data, size: data.length, offset: 0, isKeyframe: true, sampleDescriptionIndex: 1 });
     }
     text = "";
+    previousWasSpace = true;
   };
   const parser = new Parser({
     onopentag(name, attributes) {
@@ -52,11 +54,9 @@ function parseRealtext(bytes: Uint8Array): MediaDocument {
     ontext(value) {
       if (start === undefined) return;
       for (const char of value) {
-        if (" \t\r\n\f\v".includes(char)) {
-          if (text && !text.endsWith(" ") && !text.endsWith("\n")) text += " ";
-        } else {
-          text += char;
-        }
+        const isSpace = " \t\r\n\f\v".includes(char);
+        if (!isSpace || !previousWasSpace) text += isSpace ? " " : char;
+        previousWasSpace = isSpace;
       }
     },
     onclosetag(name, isImplied) {

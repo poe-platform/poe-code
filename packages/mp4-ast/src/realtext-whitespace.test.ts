@@ -8,7 +8,9 @@ for (const [input, expected] of [
   ["A\tB", "A B"],
   [" \tA\r\n\f\v B \n", "A B"],
   ["A<br/>B", "A\nB"],
-  ["A \n<br/> \tB", "A\nB"],
+  ["A \n<br/> \tB", "A \nB"],
+  ["A<br/> \tB", "A\n B"],
+  ["A<br/><br/>B", "A\n\nB"],
   ['A <font color="red"> \n B</font> C', "A B C"],
   ["A\u00a0\u00a0B", "A\u00a0\u00a0B"]
 ] as const) {

@@ -99,6 +99,7 @@ export async function acrossfadeAudio(
   // FFmpeg negotiates the first input's precision and converts the second before fading.
   const pcm16 = ["pcm_s16le", "pcm_s16be"].includes(first.codecDescriptions[0]?.codecName ?? "");
   const pcm32 = ["pcm_s24le", "pcm_s24be", "pcm_s32le", "pcm_s32be"].includes(first.codecDescriptions[0]?.codecName ?? "");
+  const float32 = ["pcm_f32le", "pcm_f32be"].includes(first.codecDescriptions[0]?.codecName ?? "");
   const secondPcm32 = ["pcm_s32le", "pcm_s32be", "pcm_s24le", "pcm_s24be"]
     .includes(second.codecDescriptions[0]?.codecName ?? "");
   // Speaker order follows the WAV mask: FL, FR, FC, LFE, BL, BR, ..., BC, SL, SR.
@@ -200,10 +201,11 @@ export async function acrossfadeAudio(
       const secondValue = (pcm16
         ? Math.max(-32768, Math.min(32767, Math.round(secondSample * 32768))) / 32768
         : secondSample) * secondGain;
-      // Native integer fades truncate the mixed sample before encoding.
+      // Store the mixed sample at the negotiated precision before output conversion.
       const value = firstValue + secondValue;
       channelData[channel]![i] = pcm16 ? (Math.trunc(value * 32768) << 16 >> 16) / 32768
-        : pcm32 ? (Math.trunc(value * 2147483648) | 0) / 2147483648 : value;
+        : pcm32 ? (Math.trunc(value * 2147483648) | 0) / 2147483648
+        : float32 ? Math.fround(value) : value;
     }
   }
   const frames: MediaSample[] = [];

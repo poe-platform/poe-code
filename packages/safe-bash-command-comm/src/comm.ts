@@ -1,5 +1,6 @@
-import { getCommandArguments, type CommandDefinition } from "safe-bash-contracts";
-import { command, compare, encode, fail, Inputs, OrderCheck, settings, type OrderMode, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
+import { getCommandArguments, isFsError, type CommandDefinition } from "safe-bash-contracts";
+import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
+import { command, compare, encode, fail, Inputs, OrderCheck, settings, type OrderMode, type RecordReader, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
 function recordComparison(env: Readonly<Record<string, string>>): typeof compare {
   const locales = ["LC_CTYPE", "LC_COLLATE", "LC_MESSAGES", "LC_MONETARY", "LC_NUMERIC", "LC_TIME",
@@ -100,10 +101,17 @@ export function createCommCommand(options: TableTextCommandsOptions = {}): Comma
     })() : context.stdin;
     const inputs = new Inputs({ ...context, stdin }, budget, separator), order = new OrderCheck(mode, context, budget, compareRecords), terminator = Uint8Array.of(separator);
     try {
-      const readers = [await inputs.open(files[0]!)];
-      const rows = [await readers[0]!.next()];
-      readers.push(await inputs.open(files[1]!));
-      rows.push(await readers[1]!.next());
+      const readers: RecordReader[] = [], rows: (Uint8Array | undefined)[] = [];
+      for (const file of files) {
+        try {
+          const reader = await inputs.open(file);
+          readers.push(reader);
+          rows.push(await reader.next());
+        } catch (error) {
+          if (isFsError(error) && error.code === "EISDIR") throw new PublicDiagnostic(`${file}: Is a directory`);
+          throw error;
+        }
+      }
       const totals = [0n, 0n, 0n];
       while (rows[0] !== undefined || rows[1] !== undefined) {
         const step = budget.step(); if (step) await step;

@@ -33,6 +33,32 @@ async function run(args: ShellValue[], files: Record<string, string>, env: Recor
  return { ...result, stdout, stdoutBytes, stderr, combined };
 }
 
+for (const directory of [".", "./", "/", "/./"]) {
+ for (const args of [[directory, "x"], ["x", directory], [directory, "missing"]]) {
+  test(`comm preserves directory operand spelling: ${JSON.stringify(args)}`, async () => {
+   const result = await run(args, { "/x": "a\n" }, { LC_ALL: "C" });
+   assert.equal(result.exitCode, 1);
+   assert.equal(result.stdout, "");
+   assert.equal(result.stderr, `comm: ${directory}: Is a directory\n`);
+  });
+ }
+}
+
+test("comm reports a missing first operand before a directory second operand", async () => {
+ const result = await run(["missing", "."], {}, { LC_ALL: "C" });
+ assert.equal(result.exitCode, 1);
+ assert.equal(result.stdout, "");
+ assert.ok(result.stderr.includes("missing"));
+ assert.ok(!result.stderr.includes("Is a directory"));
+});
+
+test("comm still compares ordinary files", async () => {
+ const result = await run(["x", "y"], { "/x": "a\n", "/y": "a\n" }, { LC_ALL: "C" });
+ assert.equal(result.exitCode, 0);
+ assert.equal(result.stdout, "\t\ta\n");
+ assert.equal(result.stderr, "");
+});
+
 for (const option of ["--help", "--version"]) {
  for (const value of [undefined, "", "1"]) {
   test(`comm ${option} operand with POSIXLY_CORRECT=${JSON.stringify(value)}`, async () => {

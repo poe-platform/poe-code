@@ -12582,7 +12582,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             const next = audioFilters[nextIndex]!.trim();
                             const name = next.split("=", 1)[0]!.split("@", 1)[0];
-                            if (["anull", "acopy", "atrim", "asetpts", "asetnsamples", "areverse", "apad"].includes(name!)) continue;
+                            if (["anull", "acopy", "atrim", "asetpts", "asetnsamples", "areverse", "apad",
+                              "asetrate", "adelay", "aecho", "aphaser"].includes(name!)) continue;
                             const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "";
                             if (name === "aformat") {
                               let requested: string[] | undefined;

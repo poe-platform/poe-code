@@ -239,6 +239,12 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
             }
             // Native stores the drawn mask and each blur pass in Q16-HDRI samples.
             for (let x = 0; x < count; x++) coverage[x] = Math.fround(coverage[x]! * 65535) / 65535;
+            // Blur respects RGB channel selection on the drawn mask before copying its intensity.
+            if (channels) {
+                const blurredWeight = (channels.r ? 0.212656 : 0) + (channels.g ? 0.715158 : 0) + (channels.b ? 0.072186 : 0);
+                for (let x = 0; x < count; x++) coverage[x] = Math.fround((coverage[x]! * blurredWeight
+                    + mask(left + x, y) * (1 - blurredWeight)) * 65535) / 65535;
+            }
             // Native converts the blurred linear mask to sRGB before copying its intensity to alpha.
             if (linearCoverage) for (let x = 0; x < count; x++) {
                 const value = coverage[x]!;

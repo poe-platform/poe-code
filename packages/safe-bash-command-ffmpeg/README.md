@@ -321,6 +321,8 @@ Multiple mapped streams contribute packets in timestamp order to one digest, wit
 output stream order breaking timestamp ties.
 Use `-map 0:a -map 1:a -f streamhash -` for a separate digest per mapped audio
 stream, in output order, labeled `0,a,SHA256=...`, `1,a,SHA256=...`, and so on.
+For mapped PCM audio, `-frames:a:N` stops checksum output for all audio streams at
+the limited stream’s last packet end time, retaining only complete packets.
 Use `-c:a:0 pcm_u8 -c:a:1 pcm_s16be` to select separate encoders for mapped audio checksum streams. `-codec:a:N` is also accepted; the last matching codec option wins.
 With `-c:a adpcm_ima_wav`, `-c:a flac`, or `-c:a alac`, stream hashes cover the encoder's compressed packets, excluding container headers, and honor the codec's encoding options.
 `-c:a alac` also supports `hash`, `framehash`, and `framecrc`: checksums cover the existing verbatim ALAC encoder’s packets, with codec configuration reported in frame checksum headers.

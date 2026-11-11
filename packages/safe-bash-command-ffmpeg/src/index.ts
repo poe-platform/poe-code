@@ -20834,6 +20834,29 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 return { ...track, samples };
               }) };
             }
+            if (checksumOutput && frameLimits.length > 0 && workingDoc.tracks.length > 1) {
+              let end = Infinity;
+              for (const [index, track] of workingDoc.tracks.entries()) {
+                const limit = streamFrameLimits[index];
+                if (track.type !== "audio" || limit === undefined || limit > track.samples.length) continue;
+                const last = track.samples[limit - 1];
+                end = Math.min(end, last ? (last.pts + last.duration) / track.timescale : -Infinity);
+              }
+              if (end !== Infinity) workingDoc = { ...workingDoc, tracks: workingDoc.tracks.map(track => {
+                if (!track.decodedAudio) return track;
+                // The mux queue stops on packet end timestamps, retaining whole frames.
+                const count = track.samples.findIndex(packet => {
+                  budget.checkCpu();
+                  return (packet.pts + packet.duration) / track.timescale > end + 1e-9;
+                });
+                if (count < 0) return track;
+                const samples = track.samples.slice(0, count);
+                const duration = samples.reduce((total, packet) => total + packet.duration, 0);
+                const length = Math.round(duration * track.decodedAudio.sampleRate / track.timescale);
+                return { ...track, samples, duration, decodedAudio: { ...track.decodedAudio,
+                  channelData: track.decodedAudio.channelData.map(channel => channel.subarray(0, length)) } };
+              }) };
+            }
             const checksumEncoderOptions = { blockSize, trellis, compressionLevel, sampleFormat, frameSize, lpcType, channelMode, lpcPasses,
               lpcCoeffPrecision, multiDimQuant, minPredictionOrder, maxPredictionOrder, predictionOrderMethod,
               minPartitionOrder, maxPartitionOrder, exactRiceParameters };

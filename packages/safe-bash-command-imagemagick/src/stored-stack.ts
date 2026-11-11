@@ -15,6 +15,7 @@ export interface MagickFormatContext {
     outputFilePath?: string;
     originalInput?: string;
     byteLen?: number;
+    blobSize?: number;
     mtimeMs?: number;
     originalWidth?: number;
     originalHeight?: number;

@@ -5260,7 +5260,7 @@ function thumbnailProperties(image: ImageMetadata & { [magickInput]?: MagickForm
         "Thumb::Image::Height": String(source.originalHeight ?? image.height),
         "Thumb::Document::Pages": String(pages),
         "Thumb::URI": path.startsWith("/") ? `file://${uriPath}` : path.includes(":") ? uriPath : `./${uriPath}`,
-        ...(source.byteLen === undefined ? {} : { "Thumb::Size": String(source.byteLen) }),
+        ...(source.byteLen === undefined ? {} : { "Thumb::Size": String(source.blobSize ?? source.byteLen) }),
         ...(source.mtimeMs === undefined ? {} : { "Thumb::MTime": String(Math.floor(source.mtimeMs / 1000)) })
     };
 }
@@ -5271,7 +5271,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
         img = { ...reset, bitsPerSample: 8, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, properties: updateMagickProperty(thumbnailProperties(reset, thumbnailPages), "comment") };
     }
     // Resize clones the native image and detaches its source blob, even at the same size.
-    img = { ...img, [magickInput]: { ...img[magickInput], byteLen: 0 } };
+    img = { ...img, [magickInput]: { ...img[magickInput], blobSize: 0 } };
     const options = magickResizeOptions(img, geomStr, kernel ?? (thumbnail ? "lanczossharp" : undefined));
     if (!options || (options.width === img.width && options.height === img.height)) return img;
     preserveSamples ||= !!img.evaluateSamples || !!img.readMask || img.space === "cmyk";
@@ -5343,7 +5343,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareF
         const { virtualCanvas: ignoredCanvas, xmp: ignoredXmp, ...reset } = image;
         image = { ...reset, bitsPerSample: 8, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, properties: updateMagickProperty(thumbnailProperties(reset, thumbnailPages), "comment") };
     }
-    image = { ...image, [magickInput]: { ...image[magickInput], byteLen: 0 } };
+    image = { ...image, [magickInput]: { ...image[magickInput], blobSize: 0 } };
     if (!options) return image;
     const width = options.width!, height = options.height!;
     if (width === image.width && height === image.height) return image;
@@ -5527,7 +5527,7 @@ function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtual
 }
 
 function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: GravityPosition | undefined, analysis?: { warnings: string }, warningSource = geomStr, background: RgbaColor = { r: 255, g: 255, b: 255, a: 255 }): Generator<void, RgbaImage[], void> {
-    img = { ...img, [magickInput]: { ...img[magickInput], byteLen: 0 } };
+    img = { ...img, [magickInput]: { ...img[magickInput], blobSize: 0 } };
     const tiles: RgbaImage[] = [];
     for (const area of magickCropAreas(img, geomStr, gravity)) {
         yield;
@@ -12788,7 +12788,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 im = discardDisassociatedAlpha(im);
                 return { ...yield* flipImageSteps(im),
-                    [magickInput]: { ...im[magickInput], byteLen: 0 },
+                    [magickInput]: { ...im[magickInput], blobSize: 0 },
                     alphaSeparate: im.alphaBlend === false ? false : im.alphaSeparate,
                     ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* flipImageSteps(plane); }) } : {}),
                     ...(im.readMask ? { readMask: yield* flipImageSteps(im.readMask as RgbaImage) } : {}),
@@ -12802,7 +12802,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 im = discardDisassociatedAlpha(im);
                 return { ...yield* flopImageSteps(im),
-                    [magickInput]: { ...im[magickInput], byteLen: 0 },
+                    [magickInput]: { ...im[magickInput], blobSize: 0 },
                     alphaSeparate: im.alphaBlend === false ? false : im.alphaSeparate,
                     ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* flopImageSteps(plane); }) } : {}),
                     ...(im.readMask ? { readMask: yield* flopImageSteps(im.readMask as RgbaImage) } : {}),
@@ -16432,7 +16432,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 if (kind !== "autoOrient" || image.orientation && image.orientation >= 2 && image.orientation <= 8) image = discardDisassociatedAlpha(image);
                 let output: StoredRgbaImage = await transformStoredImage(image, backend.storage, { kind }, signal);
-                if (kind !== "autoOrient") output[magickInput] = { ...image[magickInput], byteLen: 0 };
+                if (kind !== "autoOrient") output[magickInput] = { ...image[magickInput], blobSize: 0 };
                 if (kind !== "autoOrient" && image.alphaBlend === false) output.alphaSeparate = false;
                 if (image.storedMetaChannels) {
                     output.storedMetaChannels = [];
@@ -16650,7 +16650,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const image = (await stack.get(n))! as StoredRgbaImage & StoredMagickImage;
                     const expanded = await formatRetainedIdentify(geometry, image, { ...image[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                     validateMagickTransformGeometry(expanded, token);
-                    image[magickInput] = { ...image[magickInput], byteLen: 0 };
+                    image[magickInput] = { ...image[magickInput], blobSize: 0 };
                     for (const area of magickCropAreas(image, expanded, gravity)) {
                         await yieldTurn(signal);
                         if (!area) analysis.warnings += `magick: geometry does not contain image '${expanded}'\n`;

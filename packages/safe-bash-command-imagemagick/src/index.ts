@@ -771,6 +771,7 @@ interface MagickState {
   gradientExtent?: string;
   gradientCenter?: { x: number; y?: number };
   ftxtFormat?: string;
+  ftxtChannelSeparator?: string;
   ftxtHasAlpha?: boolean;
   comment?: string;
   label?: string;
@@ -8314,7 +8315,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         return undefined;
     if (ftxt) {
         if (!state.hasSize) throw new Error("must specify image size for FTXT input");
-        const steps = ftxtInput(state.sizeWidth, state.sizeHeight, rawBytes.length, state.ftxtFormat, state.ftxtHasAlpha);
+        const steps = ftxtInput(state.sizeWidth, state.sizeHeight, rawBytes.length, state.ftxtFormat, state.ftxtHasAlpha, state.ftxtChannelSeparator);
         let next = steps.next(), offset = 0;
         let bytes: Uint8Array | undefined;
         while (!next.done) {
@@ -12820,6 +12821,7 @@ if (t === "-intent" || t === "+intent") {
             if (key === "gradient:center") delete state.gradientCenter;
             if (key === "filename:literal") delete state.filenameLiteral;
             if (key === "ftxt:format") delete state.ftxtFormat;
+            if (key === "ftxt:chsep") delete state.ftxtChannelSeparator;
             if (key === "ftxt:hasalpha") delete state.ftxtHasAlpha;
             if (key === "icon:auto-resize") delete state.iconAutoResize;
             if (key === "bmp:format") delete state.bmpFormat;
@@ -12969,6 +12971,7 @@ if (t === "-intent" || t === "+intent") {
                 state.resizeFilter = { ...state.resizeFilter, [filterKey.slice(7)]: filterKey === "filter:lobes" ? Math.max(1, Math.trunc(value)) : filterKey === "filter:support" ? Math.abs(value) : Math.max(1e-12, value) };
             }
             if (defStr.toLowerCase().startsWith("ftxt:format=")) state.ftxtFormat = defStr.slice("ftxt:format=".length);
+            if (defStr.toLowerCase().startsWith("ftxt:chsep=")) state.ftxtChannelSeparator = defStr["ftxt:chsep=".length] ?? ",";
             if (defStr.toLowerCase() === "icon:auto-resize" || defStr.toLowerCase().startsWith("icon:auto-resize=")) {
                 const value = defStr.slice("icon:auto-resize".length + 1);
                 const sizes = value ? value.split(",").map(Number) : [256, 192, 128, 96, 64, 48, 40, 32, 24, 16];
@@ -16157,7 +16160,7 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
         }
         if (outLower.startsWith("ftxt:") || (outLower.endsWith(".ftxt") && !outSpec.includes(":"))) {
             let text = "", work = 0;
-            for (const frame of stack) for (const row of ftxtPixels(frame, state.ftxtFormat, 0, state.precision)) {
+            for (const frame of stack) for (const row of ftxtPixels(frame, state.ftxtFormat, 0, state.precision, state.ftxtChannelSeparator)) {
                 if (++work % 4096 === 0) yield;
                 text += row;
             }
@@ -20167,7 +20170,7 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
                     await yieldTurn(signal);
                     const frame = (await stack.get(index))!;
                     if (sparse) { yield* storedSparseColor(frame, backend.storage, signal, state.precision); continue; }
-                    if (ftxt) { yield* storedFtxt(frame, backend.storage, signal, state.ftxtFormat, state.precision); continue; }
+                    if (ftxt) { yield* storedFtxt(frame, backend.storage, signal, state.ftxtFormat, state.precision, state.ftxtChannelSeparator); continue; }
                     if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal, state.inputDepth); continue; }
                     if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal, state.precision); continue; }
                     if (index && state.formatStr === undefined) yield "\n";
@@ -20881,7 +20884,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }else if(lower.startsWith("ftxt:")){
   if(!state.hasSize)throw new Error("must specify image size for FTXT input");
   const consume=async(source:ImageByteSource)=>{
-   const steps=ftxtInput(state.sizeWidth,state.sizeHeight,source.size,state.ftxtFormat,state.ftxtHasAlpha);
+   const steps=ftxtInput(state.sizeWidth,state.sizeHeight,source.size,state.ftxtFormat,state.ftxtHasAlpha,state.ftxtChannelSeparator);
    let next=steps.next(),position=0,size=0,written=0;
    while(!next.done){
     await yieldTurn(signal);

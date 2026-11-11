@@ -5,7 +5,7 @@ import type { HueMetadata } from "./colorspace-hue.js";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
-export function* ftxtPixels(image: Pick<RgbaImage, "width" | "space" | "hasAlpha" | "data" | "data16" | "evaluateSamples"> & HueMetadata, format = "\\x,\\y:\\c\\n", start = 0, precision = 6): Generator<string> {
+export function* ftxtPixels(image: Pick<RgbaImage, "width" | "space" | "hasAlpha" | "data" | "data16" | "evaluateSamples"> & HueMetadata, format = "\\x,\\y:\\c\\n", start = 0, precision = 6, separator = ","): Generator<string> {
     const channels = image.space === "b-w" || image.space === "grey16" ? [0] : [0, 1, 2];
     if (image.hasAlpha) channels.push(3);
     for (let offset = 0; offset < image.data.length; offset += 4) {
@@ -20,7 +20,7 @@ export function* ftxtPixels(image: Pick<RgbaImage, "width" | "space" | "hasAlpha
             const escape = format[++i];
             if (escape === "x") row += pixel % image.width;
             else if (escape === "y") row += Math.floor(pixel / image.width);
-            else if (escape === "c") row += values.map(value => formatSignificantMetric(value, precision)).join(",");
+            else if (escape === "c") row += values.map(value => formatSignificantMetric(value, precision)).join(separator);
             else if (escape === "n") row += "\n";
             else if (escape === "\\") row += escape;
         }
@@ -28,7 +28,7 @@ export function* ftxtPixels(image: Pick<RgbaImage, "width" | "space" | "hasAlpha
     }
 }
 
-export async function* storedFtxt(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal, format?: string, precision?: number): AsyncGenerator<string> {
+export async function* storedFtxt(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal, format?: string, precision?: number, separator?: string): AsyncGenerator<string> {
     const size = image.width * image.height * 4;
     for (let start = 0; start < size; start += 2048) {
         await yieldTurn(signal);
@@ -39,6 +39,6 @@ export async function* storedFtxt(image: StoredRgbaImage & HueMetadata, storage:
         const evaluateSamples = evaluated ? new Float64Array(evaluated.slice().buffer) : undefined;
         const inks = image.space === "cmyk" && image.storedHueSamples !== undefined ? await storage.read(image.storedHueSamples + start * 8, data.length * 8) : undefined;
         const hueSamples = inks ? new Float64Array(inks.slice().buffer) : undefined;
-        yield* ftxtPixels({ ...image, data, ...(hueSamples ? { hueSamples } : {}), ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) }, format, start, precision);
+        yield* ftxtPixels({ ...image, data, ...(hueSamples ? { hueSamples } : {}), ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) }, format, start, precision, separator);
     }
 }

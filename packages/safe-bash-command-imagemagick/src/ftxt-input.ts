@@ -1,5 +1,5 @@
 // Present FTXT records as Q16 Netpbm to share raster decoding.
-export function* ftxtInput(width: number, height: number, size: number, format = "\\x,\\y:\\c\\n", hasAlpha = false): Generator<{ position: number; length: number } | Uint8Array, void, Uint8Array> {
+export function* ftxtInput(width: number, height: number, size: number, format = "\\x,\\y:\\c\\n", hasAlpha = false, separator = ","): Generator<{ position: number; length: number } | Uint8Array, void, Uint8Array> {
     const parts: (string | { field: string })[] = [""];
     for (let index = 0; index < format.length; index++) {
         let character = format[index]!;
@@ -47,7 +47,7 @@ export function* ftxtInput(width: number, height: number, size: number, format =
                     const end = delimiter ? record.indexOf(delimiter, cursor) : record.length;
                     if (end < 0) throw new Error("invalid FTXT pixel");
                     const value = record.slice(cursor, end).trim();
-                    if (token.field === "c") values = value.split(",").map(sample => sample.trim() ? Number(sample) : NaN);
+                    if (token.field === "c") values = value.split(separator).map(sample => sample.trim() ? Number(sample) : NaN);
                     else if (!value || Number(value) !== (token.field === "x" ? pixel % width : Math.floor(pixel / width))) throw new Error("invalid FTXT pixel");
                     cursor = end;
                 }

@@ -13162,7 +13162,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       durationSeconds: rawTimeBase !== undefined
                         ? roundToEven(frame.durationSeconds / rawTimeBase) * rawTimeBase
                         : (outputFormat === "rawvideo" ? frame.durationSeconds
-                          : frame.durationSeconds || diagnostics.frameDuration) * diagnostics.frameRateScale,
+                          : frame.durationSeconds || diagnostics.frameDuration)
+                          * (encoderTimeBases.has(index) ? 1 : diagnostics.frameRateScale),
                       ptsSeconds: (rawTimeBase !== undefined
                         ? Math.round(frame.ptsSeconds / rawTimeBase) * rawTimeBase
                         : frame.ptsSeconds) + offsetTicks / t.timescale }))

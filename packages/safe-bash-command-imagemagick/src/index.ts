@@ -9159,7 +9159,7 @@ function parseMagickDuplicateCount(spec: string): number {
     throw new Error(`invalid argument ${spec}`);
   }
   const geometry = [...spec].filter(c => c.trim() !== "" && c !== "(" && c !== ")").join("");
-  const hasGeometryFlag = geometry.startsWith("-") || [...geometry].some(c => "xX.!#%:<>@^".includes(c));
+  const hasGeometryFlag = geometry.startsWith("+") || geometry.startsWith("-") || [...geometry].some(c => "xX.!#%:<>@^".includes(c));
   if (!hasGeometryFlag && !Number.isFinite(Number(geometry.split("/")[0]))) {
     throw new Error(`invalid argument ${spec}`);
   }

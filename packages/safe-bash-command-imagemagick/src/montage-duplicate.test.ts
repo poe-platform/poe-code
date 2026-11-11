@@ -19,6 +19,10 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
     { inputs: ["a.png", "b.png", "-duplicate", "1,0,+1"], order: [0, 1, 0, 1] },
     { inputs: ["a.png", "b.png", "-duplicate", "1,0-+1"], order: [0, 1, 0, 1] },
     { inputs: ["a.png", "b.png", "+duplicate"], order: [0, 1, 1] },
+    { inputs: ["a.png", "b.png", "-duplicate", "+2+1"], order: [0, 1, 1, 1] },
+    { inputs: ["a.png", "b.png", "-duplicate", "+2-1"], order: [0, 1, 1, 1] },
+    { inputs: ["a.png", "b.png", "-duplicate", "+2+1,0"], order: [0, 1, 0, 0] },
+    { inputs: ["a.png", "b.png", "-duplicate", "+2-1,0"], order: [0, 1, 0, 0] },
   ])(`duplicates preceding montage inputs via ${mode}: $inputs`, async ({ inputs, order }) => {
     const pixels = [[255, 0, 0, 255, 0, 255, 0, 255], [0, 0, 255, 255, 255, 255, 255, 255]];
     const files = new Map<string, Uint8Array>();

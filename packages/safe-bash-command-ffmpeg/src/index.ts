@@ -20945,6 +20945,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 msg === "fps: invalid expression" || msg === "fps: invalid or unsupported expression") {
               return { exitCode: err instanceof RangeError ? 222 : 234 };
             }
+            if (msg.startsWith("sidechaingate: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("sidechaingate:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg === "acompressor: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("acompressor: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("acompressor:")) return { exitCode: err instanceof RangeError ? 222 : 234 };

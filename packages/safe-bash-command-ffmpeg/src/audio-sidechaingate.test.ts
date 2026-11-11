@@ -55,7 +55,19 @@ for (const link of ["average", "maximum"]) {
   });
 }
 
-for (const filter of ["sidechaingate=ratio=9001", "sidechaingate=attack=0", "sidechaingate=release=9001", "sidechaingate=knee=0", "sidechaingate=mix=2", "sidechaingate=detection=bad", "sidechaingate=link=2", "sidechaingate=mode=bad", "sidechaingate=threshold=NaN", "sidechaingate=attack=", "sidechaingate=unknown=1"]) {
+for (const [filter, status] of [
+  ["sidechaingate=ratio=9001", 222],
+  ["sidechaingate=attack=0", 222],
+  ["sidechaingate=release=9001", 222],
+  ["sidechaingate=knee=0", 222],
+  ["sidechaingate=mix=2", 8],
+  ["sidechaingate=detection=bad", 234],
+  ["sidechaingate=link=2", 234],
+  ["sidechaingate=mode=bad", 234],
+  ["sidechaingate=threshold=NaN", 234],
+  ["sidechaingate=attack=", 234],
+  ["sidechaingate=unknown=1", 8]
+] as const) {
   it(`${filter} fails without replacing output`, async () => {
     const fs = Volume.fromJSON({ "/out.wav": "keep" });
     fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array([0.25])] }));
@@ -64,7 +76,7 @@ for (const filter of ["sidechaingate=ratio=9001", "sidechaingate=attack=0", "sid
       fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
       stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} }
     } as never);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, status);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
   });
 }

@@ -71,30 +71,30 @@ for (const [option, expression, literal] of [
   });
 }
 
-for (const option of ["level_in=0b1", "range=0b1", "level_sc=0o1", "level_sc=1/0",
-  "level_sc=0/0", "level_sc=1/", "level_sc=65/1", "level_sc=1/128", "level_sc=unknown",
+for (const [option, status] of [["level_in=0b1", 234], ["range=0b1", 234], ["level_sc=0o1", 234], ["level_sc=1/0", 234],
+  ["level_sc=0/0", 234], ["level_sc=1/", 234], ["level_sc=65/1", 222], ["level_sc=1/128", 222], ["level_sc=unknown", 234],
   ...["mode", "detection", "link"].flatMap(option =>
-    ["", "-0.1", "1.1", "1/0", "0/0", "unknown", "1/"].map(value => `${option}=${value}`)),
-  "mode=rms", "detection=maximum", "link=upward"])
+    ["", "-0.1", "1.1", "1/0", "0/0", "unknown", "1/"].map(value => [`${option}=${value}`, 234] as const)),
+  ["mode=rms", 234], ["detection=maximum", 234], ["link=upward", 234]] as const)
   it(`sidechaingate rejects ${option} without replacing output`, async () => {
     const { result, stderr, output } = await run(option);
-    assert.equal(result.exitCode, 1, stderr);
+    assert.equal(result.exitCode, status, stderr);
     assert.ok(stderr.includes("sidechaingate:"), stderr);
     assert.equal(output.toString(), "KEEP");
   });
 
-for (const option of [
-  "ratio=bad:ratio=2", "ratio=0:ratio=2", "ratio=9001:ratio=2", "ratio=2:ratio=0",
-  "level_in=0:level_in=1", "range=2:range=0.25", "threshold=-1:threshold=0.125",
-  "attack=0:attack=20", "release=9001:release=250", "makeup=0:makeup=1",
-  "knee=9:knee=2", "level_sc=0:level_sc=1", "threshold=NaN:threshold=0.125",
-  "attack=:attack=20", "mode=no:mode=downward", "detection=bad:detection=rms",
-  "link=2:link=average", "0:level_in=1", "1:no:mode=downward",
-  "mode=1.1:mode=0", "detection=-0.1:detection=1", "link=average+2:link=0"
-]) {
+for (const [option, status] of [
+  ["ratio=bad:ratio=2", 234], ["ratio=0:ratio=2", 222], ["ratio=9001:ratio=2", 222], ["ratio=2:ratio=0", 222],
+  ["level_in=0:level_in=1", 222], ["range=2:range=0.25", 222], ["threshold=-1:threshold=0.125", 222],
+  ["attack=0:attack=20", 222], ["release=9001:release=250", 222], ["makeup=0:makeup=1", 222],
+  ["knee=9:knee=2", 222], ["level_sc=0:level_sc=1", 222], ["threshold=NaN:threshold=0.125", 234],
+  ["attack=:attack=20", 234], ["mode=no:mode=downward", 234], ["detection=bad:detection=rms", 234],
+  ["link=2:link=average", 234], ["0:level_in=1", 222], ["1:no:mode=downward", 234],
+  ["mode=1.1:mode=0", 234], ["detection=-0.1:detection=1", 234], ["link=average+2:link=0", 234]
+] as const) {
   it(`sidechaingate validates overridden options in ${option} without replacing output`, async () => {
     const { result, stderr, output } = await run(option);
-    assert.equal(result.exitCode, 1, stderr);
+    assert.equal(result.exitCode, status, stderr);
     assert.ok(stderr.includes("sidechaingate:"), stderr);
     assert.equal(output.toString(), "KEEP");
   });
@@ -161,10 +161,10 @@ for (const [option, min, max, defaultValue] of [
     assert.deepEqual(actual.output, expected.output);
   });
 
-  for (const expression of ["min-1", "max+1", "default/0"]) {
+  for (const [expression, status] of [["min-1", 222], ["max+1", 222], ["default/0", 234]] as const) {
     it(`sidechaingate rejects ${option}=${expression} without replacing output`, async () => {
       const { result, stderr, output } = await run(`${option}=${expression}:${option}=default`);
-      assert.equal(result.exitCode, 1, stderr);
+      assert.equal(result.exitCode, status, stderr);
       assert.ok(stderr.includes("sidechaingate:"), stderr);
       assert.equal(output.toString(), "KEEP");
     });

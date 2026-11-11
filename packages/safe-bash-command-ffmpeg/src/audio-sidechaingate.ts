@@ -46,7 +46,8 @@ export async function gateAudio(
     } else {
       const [min, max] = bounds[key]!;
       const numeric = parseFilterExpression(value, "sidechaingate", { min, max, default: defaults[key]! });
-      if (!value || !Number.isFinite(numeric) || numeric < min || numeric > max) throw new Error(`sidechaingate: invalid ${key}`);
+      if (!value || !Number.isFinite(numeric)) throw new Error(`sidechaingate: invalid ${key}`);
+      if (numeric < min || numeric > max) throw new RangeError(`sidechaingate: invalid ${key}`);
       options[key] = numeric;
     }
   }

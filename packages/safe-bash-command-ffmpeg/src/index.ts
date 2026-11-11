@@ -4560,19 +4560,20 @@ async function applyVideoFilterChain(
         budget.allocateMemory(outW * outH * 4);
         const canvas = new Uint8Array(outW * outH * 4);
         const source = batch[0]?.native;
-        // Keep original planar samples only while they still describe the RGBA image.
-        const native = source && [0, 4, 5, 12, 13, 14, 49, 68].includes(source.format) && batch.every(frame =>
+        // Keep original native samples only while they still describe the RGBA image.
+        const native = source && [0, 4, 5, 12, 13, 14, 29, 30, 49, 68].includes(source.format) && batch.every(frame =>
           frame.native?.rgba === frame.data && frame.width === fw && frame.height === fh &&
           frame.native.width === fw && frame.native.height === fh && frame.native.format === source.format &&
           frame.native.colorspace === source.colorspace && frame.native.fullRange === source.fullRange)
           ? source : undefined;
         const hsub = native && [0, 4, 12, 13].includes(native.format) ? 2 : 1;
         const vsub = native && [0, 12].includes(native.format) ? 2 : 1;
-        const depth = native?.format === 49 ? 16 : native?.format === 68 ? 10 : 8;
+        const planes = native && [29, 30].includes(native.format) ? 1 : 3;
+        const depth = native && [29, 30, 49].includes(native.format) ? 16 : native?.format === 68 ? 10 : 8;
         const sampleBytes = depth > 8 ? 2 : 1;
         const chromaWidth = Math.ceil(outW / hsub);
         const chromaHeight = Math.ceil(outH / vsub);
-        const nativeSize = (outW * outH + 2 * chromaWidth * chromaHeight) * sampleBytes;
+        const nativeSize = (outW * outH + (planes - 1) * chromaWidth * chromaHeight) * sampleBytes;
         if (native) budget.allocateMemory(nativeSize + canvas.byteLength);
         const pixels = native ? new Uint8Array(nativeSize) : undefined;
         if (pixels) {
@@ -4587,13 +4588,13 @@ async function applyVideoFilterChain(
             : [(y * 219 + 16) / 255, (u * 224 + 128) / 255, (v * 224 + 128) / 255];
           const view = new DataView(pixels.buffer);
           let offset = 0;
-          for (let plane = 0; plane < 3; plane++) {
+          for (let plane = 0; plane < planes; plane++) {
             const size = plane === 0 ? outW * outH : chromaWidth * chromaHeight;
             const value = Math.round(fill[plane]! * (2 ** depth - 1));
             if (sampleBytes === 1) pixels.fill(value, offset, offset + size);
             else for (let i = 0; i < size; i++) {
               if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-              view.setUint16(offset + i * 2, value, true);
+              view.setUint16(offset + i * 2, value, native!.format !== 29);
             }
             offset += size * sampleBytes;
           }
@@ -4611,7 +4612,7 @@ async function applyVideoFilterChain(
           if (pixels) {
             let srcOffset = 0;
             let dstOffset = 0;
-            for (let plane = 0; plane < 3; plane++) {
+            for (let plane = 0; plane < planes; plane++) {
               const sx = plane === 0 ? 1 : hsub;
               const sy = plane === 0 ? 1 : vsub;
               const width = Math.ceil(fw / sx);

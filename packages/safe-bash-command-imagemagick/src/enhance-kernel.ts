@@ -32,6 +32,7 @@ export function* enhancePixelSteps(image: Pick<RgbaImage, "width" | "height" | "
     }
     for (let start = 0; start < width * height; start += 512) {
         const count = Math.min(512, width * height - start), data = evaluate ? new Float64Array(count * 4) : highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
+        const samples = evaluate ? undefined : new Float64Array(count * 4);
         for (let i = 0; i < count; i++) {
             yield;
             const x = (start + i) % width, y = Math.floor((start + i) / width), center = yield* sample(x, y);
@@ -52,9 +53,11 @@ export function* enhancePixelSteps(image: Pick<RgbaImage, "width" | "height" | "
             }
             for (let c = 0; c < 4; c++) {
                 const value = sums[c]! / total + 0.5;
+                if (samples) samples[i * 4 + c] = Math.fround(value) / 257;
                 data[i * 4 + c] = evaluate ? Math.fround(value) / 257 : Math.max(0, Math.min(65535 / scale, Math.round(value / scale)));
             }
         }
+        if (samples) yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(samples.buffer) };
         if (evaluate) {
             yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(data.buffer) };
             const bounded = Uint16Array.from(data, value => Math.max(0, Math.min(65535, Math.round(value * 257))));

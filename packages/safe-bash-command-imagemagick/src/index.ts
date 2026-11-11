@@ -14911,7 +14911,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     const virtualCanvas = token !== "-roll" ? magickResizeCanvas(image, width, height) : undefined;
     if (token === "-splice") {
         // Reactivate retained alpha; only an absent alpha channel needs opaque samples.
-        if (!image.hasAlpha && !image.inactiveAlpha && background.a < 255) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: prepareInactiveAlphaOutput }, signal);
+        if (!image.hasAlpha && !image.inactiveAlpha && background.a < 255) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal);
         if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
             image = { ...image, space: "srgb", channels: 4 };
         image = { ...image, alphaSeparate: image.alphaBlend === false ? false : image.alphaSeparate, isPalette: false, hasAlpha: image.hasAlpha || background.a < 255, ...(background.a < 255 ? { alphaBlend: true } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };

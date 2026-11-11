@@ -7278,7 +7278,7 @@ function tryHandleMagickListOption(argv: readonly string[]): ImageMagickCliResul
     const limit = endIdx < 0 ? argv.length : endIdx;
     for (let i = 0; i < limit; i++) {
         const arg = argv[i]!;
-        if (arg === "-list" || arg === "--list") {
+        if (arg === "-list") {
             const category = argv[i + 1];
             if (category === undefined) {
                 return {
@@ -13561,7 +13561,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else {
             if (t === "+roll" || t === "+chop" || t === "+splice") throw new Error(`option deprecated, unable to execute '${t}' at CLI arg ${argumentOffset + i + 1}`);
             if (t === "+flip" || t === "+flop" || t === "+auto-level" || t === "+auto-gamma" || t === "+normalize" || t === "+color-matrix" || t === "+colors" || t === "+solarize" || t === "+separate" || t === "+unique-colors" || t === "+sort-pixels" || t === "+reverse") throw new Error(`option deprecated, unable to execute '${t}'`);
-            if ((t.startsWith("-") && t !== "-") || t.startsWith("+")) throw new UnrecognizedConvertOptionError(`unrecognized option '${t}'`);
+            if ((t.startsWith("-") && t !== "-" && t !== "--list") || t.startsWith("+")) throw new UnrecognizedConvertOptionError(`unrecognized option '${t}'`);
             const isLabelOperand = /^(?:label|caption):/i.test(t);
             const mergeOntoCanvas = isLabelOperand && stack.length === 1 && state.hasSize && stack[0]!.width === state.sizeWidth && stack[0]!.height === state.sizeHeight && state.background.r === 255 && state.background.g === 255 && state.background.b === 255 && state.background.a === 255;
             const prevBg = state.background;
@@ -16991,7 +16991,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     storedWriteMask, readMask, storedMetaChannels, virtualCanvas: magickBorderCanvas(image, left, top) };
             });
         } else {
-            if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+"))) {
+            if (!operandsOnly && ((token.startsWith("-") && token !== "-" && token !== "--list") || token.startsWith("+"))) {
                 // Execute preceding writes before reporting the option error.
                 stackStep(async () => {
                     if (token === "+roll" || token === "+chop" || token === "+splice") throw new Error(`option deprecated, unable to execute '${token}' at CLI arg ${i + 1}`);

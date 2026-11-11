@@ -12903,7 +12903,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (!["1", "true", "yes", "on"].includes(state.deskewAutoCrop ?? "")) return rotated;
                 const median = yield* applyMagickRasterSteps(rotated, morphologyPixelSteps(rotated, magickMedianRows("3"), "median", undefined, "background", background), signal);
                 // Native crop geometry is relative to the virtual page, not the raster origin.
-                const bounds = yield* trimMagickSteps({ ...median, virtualCanvas: { ...plan.virtualCanvas, x: 0, y: 0 } }, state.alphaFuzz, undefined, undefined, state.trimPercentBackground);
+                const bounds = yield* trimMagickSteps({ ...median, virtualCanvas: { ...plan.virtualCanvas, x: 0, y: 0 } }, state.alphaFuzz, state.trimEdges, undefined, state.trimPercentBackground);
                 const missed = bounds.virtualCanvas!.x === -1 && bounds.virtualCanvas!.y === -1;
                 const left = missed ? 0 : bounds.virtualCanvas!.x - plan.virtualCanvas.x, top = missed ? 0 : bounds.virtualCanvas!.y - plan.virtualCanvas.y;
                 const area = { left, top, width: Math.min(bounds.width, rotated.width - left), height: Math.min(bounds.height, rotated.height - top) };
@@ -16405,7 +16405,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const spec = tokens[++i] ?? "", background = state.background, autoCrop = state.deskewAutoCrop, fuzz = state.alphaFuzz, percentBackground = state.trimPercentBackground, pointFilter = state.pointFilter, interpolation = state.interpolation, kernel = state.kernel, filter = state.resizeFilter;
-            const backgroundExplicit = state.backgroundExplicit, optionProperties = state.optionProperties;
+            const backgroundExplicit = state.backgroundExplicit, optionProperties = state.optionProperties, trimEdges = state.trimEdges;
             steps.push(async (input, backend) => {
                 if (!input) return;
                 let image = input;
@@ -16424,7 +16424,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (image.readMask) rotated.readMask = await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 if (!["1", "true", "yes", "on"].includes(autoCrop ?? "")) return rotated;
                 const median = await transformStoredMagickRaster(rotated, backend, morphologyPixelSteps(rotated, magickMedianRows("3"), "median", undefined, "background", color), signal);
-                const bounds = await trimStoredMagick({ ...median, virtualCanvas: { ...plan.virtualCanvas, x: 0, y: 0 } }, backend.storage, fuzz, signal, undefined, undefined, percentBackground);
+                const bounds = await trimStoredMagick({ ...median, virtualCanvas: { ...plan.virtualCanvas, x: 0, y: 0 } }, backend.storage, fuzz, signal, trimEdges, undefined, percentBackground);
                 const missed = bounds.virtualCanvas!.x === -1 && bounds.virtualCanvas!.y === -1;
                 const left = missed ? 0 : bounds.virtualCanvas!.x - plan.virtualCanvas.x, top = missed ? 0 : bounds.virtualCanvas!.y - plan.virtualCanvas.y;
                 const area = { kind: "extract" as const, left, top, width: Math.min(bounds.width, rotated.width - left), height: Math.min(bounds.height, rotated.height - top) };

@@ -5,13 +5,13 @@ import { formatMetricNum } from "./compare-kernel.js";
 const yccMap = Float32Array.from({ length: 1389 }, (_, index) => Math.round(Math.fround(index / 1388) * 1e6) / 1e6);
 
 export interface HueMetadata {
-    magickColorspace?: "HCL" | "HCLp" | "HSI" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "xyY" | "Jzazbz" | "CIELab" | "YCbCr" | "Rec601YCbCr" | "YCC" | "Rec709YCbCr" | "Log" | "Adobe98" | "OHTA" | "CMY" | "YUV" | "YIQ" | "YDbDr" | "Luv" | "LCH" | "LCHab" | "LCHuv" | "Oklab" | "Oklch" | "RGB" | "Gray";
+    magickColorspace?: "HCL" | "HCLp" | "HSI" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "LMS" | "xyY" | "Jzazbz" | "CIELab" | "YCbCr" | "Rec601YCbCr" | "YCC" | "Rec709YCbCr" | "Log" | "Adobe98" | "OHTA" | "CMY" | "YUV" | "YIQ" | "YDbDr" | "Luv" | "LCH" | "LCHab" | "LCHuv" | "Oklab" | "Oklch" | "RGB" | "Gray";
     // Preserve native HDRI precision for expressions; codecs use the integer planes.
     hueSamples?: Float64Array;
     storedHueSamples?: number;
 }
 
-export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" | "HCLp" | "HSI" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "xyY" | "Jzazbz" | "CIELab" | "YCbCr" | "Rec601YCbCr" | "YCC" | "Rec709YCbCr" | "Log" | "Adobe98" | "OHTA" | "CMY" | "YUV" | "YIQ" | "YDbDr" | "Luv" | "LCH" | "LCHab" | "LCHuv" | "Oklch" | "Oklab" | "sRGB"): Generator<void, RgbaImage & HueMetadata, void> {
+export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" | "HCLp" | "HSI" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "LMS" | "xyY" | "Jzazbz" | "CIELab" | "YCbCr" | "Rec601YCbCr" | "YCC" | "Rec709YCbCr" | "Log" | "Adobe98" | "OHTA" | "CMY" | "YUV" | "YIQ" | "YDbDr" | "Luv" | "LCH" | "LCHab" | "LCHuv" | "Oklch" | "Oklab" | "sRGB"): Generator<void, RgbaImage & HueMetadata, void> {
     if (image.magickColorspace === target) return image;
     const rec601 = target === "Rec601YCbCr" || image.magickColorspace === "Rec601YCbCr";
     const toHue = target !== "sRGB", hsb = toHue ? target === "HSB" || target === "HSV" : image.magickColorspace === "HSB" || image.magickColorspace === "HSV";
@@ -20,7 +20,7 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
     const sourceLch = image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv";
     const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
     // Lab, LCH, Oklab, Oklch, Luv, xyY, YUV, YCbCr and OHTA need HDRI samples before integer rounding or clamping.
-    const inputEvaluateSamples = target === "Adobe98" || target === "HSI" || target === "Jzazbz" || target === "CMY" || lch || target === "Log" || target === "xyY" || target === "Oklch" || target === "Oklab" || target === "Luv" || target === "OHTA" || target === "CIELab" || target === "YUV" || target === "YIQ" || target === "YDbDr" || target === "Rec601YCbCr" || (target === "YCbCr" || target === "YCC" || target === "Rec709YCbCr") ? image.evaluateSamples : undefined;
+    const inputEvaluateSamples = target === "LMS" || target === "Adobe98" || target === "HSI" || target === "Jzazbz" || target === "CMY" || lch || target === "Log" || target === "xyY" || target === "Oklch" || target === "Oklab" || target === "Luv" || target === "OHTA" || target === "CIELab" || target === "YUV" || target === "YIQ" || target === "YDbDr" || target === "Rec601YCbCr" || (target === "YCbCr" || target === "YCC" || target === "Rec709YCbCr") ? image.evaluateSamples : undefined;
     const input = image.hueSamples ?? inputEvaluateSamples ?? image.data16 ?? image.data, range = image.hueSamples ? 1 : inputEvaluateSamples ? 255 : image.data16 ? 65535 : 255;
     const hueSamples = toHue ? new Float64Array(data.length) : undefined;
     const evaluateSamples = toHue ? undefined : new Float64Array(data.length);
@@ -151,7 +151,7 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
             [r, g, b] = [0.9999999999991468 * r - 1.2188941887145875e-6 * (g - 0.5) + 1.401999588656144 * (b - 0.5),
                 0.9999997591050251 * r - 0.34413567816504304 * (g - 0.5) - 0.7141364933164679 * (b - 0.5),
                 1.0000012404000462 * r + 1.772000066072304 * (g - 0.5) + 2.1453384174593273e-6 * (b - 0.5)];
-        } else if (target === "Jzazbz" || target === "Adobe98" || target === "XYZ" || target === "xyY" || target === "CIELab" || target === "Luv" || lch) {
+        } else if (target === "Jzazbz" || target === "Adobe98" || target === "LMS" || target === "XYZ" || target === "xyY" || target === "CIELab" || target === "Luv" || lch) {
             // Native Jzazbz swaps green and blue in both RGB conversion directions.
             if (target === "Jzazbz") [g, b] = [b, g];
             const linear = [r, g, b].map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
@@ -182,6 +182,10 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
                     -0.9692436362808795 * r + 1.8759675015077202 * g + 0.04155505740717557 * b,
                     0.013444280632031142 * r - 0.11836239223101838 * g + 1.0151749943912054 * b,
                 ].map(value => value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055) as [number, number, number];
+            } else if (target === "LMS") {
+                [r, g, b] = [0.7328 * r + 0.4296 * g - 0.1624 * b,
+                    -0.7036 * r + 1.6975 * g + 0.0061 * b,
+                    0.0030 * r + 0.0136 * g + 0.9834 * b];
             } else if (target === "xyY") {
                 const sum = r + g + b;
                 const reciprocal = 1 / (Math.abs(sum) >= 1e-12 ? sum : sum < 0 ? -1e-12 : 1e-12);
@@ -206,7 +210,7 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
                 g = Math.hypot(a, chromaB) + 0.5;
                 b = hue < 0 ? hue + 1 : hue;
             }
-        } else if (image.magickColorspace === "Jzazbz" || image.magickColorspace === "Adobe98" || image.magickColorspace === "XYZ" || image.magickColorspace === "xyY" || image.magickColorspace === "CIELab" || image.magickColorspace === "Luv" || sourceLch) {
+        } else if (image.magickColorspace === "Jzazbz" || image.magickColorspace === "Adobe98" || image.magickColorspace === "LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "xyY" || image.magickColorspace === "CIELab" || image.magickColorspace === "Luv" || sourceLch) {
             if (sourceLch) {
                 const chroma = (g - 0.5) * 255, hue = b * 2 * Math.PI;
                 const a = chroma * Math.cos(hue), chromaB = chroma * Math.sin(hue);
@@ -235,6 +239,10 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
                     0.29734497525053605 * linear[0]! + 0.6273635662554661 * linear[1]! + 0.07529145849399788 * linear[2]!,
                     0.02703136138641234 * linear[0]! + 0.07068885253582723 * linear[1]! + 0.9913375368376388 * linear[2]!,
                 ];
+            } else if (image.magickColorspace === "LMS") {
+                [r, g, b] = [1.096123820835514 * r - 0.278869000218287 * g + 0.182745179382773 * b,
+                    0.454369041975359 * r + 0.473533154307412 * g + 0.072097803717229 * b,
+                    -0.009627608738429 * r - 0.005698031216113 * g + 1.015325639954543 * b];
             } else if (image.magickColorspace === "xyY") {
                 const reciprocal = 1 / (Math.abs(g) >= 1e-12 ? g : g < 0 ? -1e-12 : 1e-12);
                 [r, g, b] = [reciprocal * b * r, b, reciprocal * b * (1 - r - g)];
@@ -313,22 +321,22 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
         }
     }
     const { magickColorspace: ignored, hueSamples: ignoredSamples, storedHueSamples: ignoredStored, evaluateSamples: ignoredEvaluate, ...metadata } = image;
-    return { ...metadata, data, data16, ...(evaluateSamples ? { evaluateSamples } : {}), space: "srgb", channels: image.hasAlpha ? 4 : 3, ...(hueSamples ? { magickColorspace: target as "HCL" | "HCLp" | "HSI" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "xyY" | "Jzazbz" | "CIELab" | "YCbCr" | "Rec601YCbCr" | "YCC" | "Rec709YCbCr" | "Log" | "Adobe98" | "OHTA" | "CMY" | "YUV" | "YIQ" | "YDbDr" | "Luv" | "LCH" | "LCHab" | "LCHuv" | "Oklch" | "Oklab", hueSamples } : {}) };
+    return { ...metadata, data, data16, ...(evaluateSamples ? { evaluateSamples } : {}), space: "srgb", channels: image.hasAlpha ? 4 : 3, ...(hueSamples ? { magickColorspace: target as "HCL" | "HCLp" | "HSI" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "LMS" | "xyY" | "Jzazbz" | "CIELab" | "YCbCr" | "Rec601YCbCr" | "YCC" | "Rec709YCbCr" | "Log" | "Adobe98" | "OHTA" | "CMY" | "YUV" | "YIQ" | "YDbDr" | "Luv" | "LCH" | "LCHab" | "LCHuv" | "Oklch" | "Oklab", hueSamples } : {}) };
 }
 
-export function formatHuePixel(channels: readonly number[], space: "HCL" | "HCLp" | "HSI" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "xyY" | "Jzazbz" | "CIELab" | "YCbCr" | "Rec601YCbCr" | "YCC" | "Rec709YCbCr" | "Log" | "Adobe98" | "OHTA" | "CMY" | "YUV" | "YIQ" | "YDbDr" | "Luv" | "LCH" | "LCHab" | "LCHuv" | "Oklch" | "Oklab", hasAlpha: boolean): string {
+export function formatHuePixel(channels: readonly number[], space: "HCL" | "HCLp" | "HSI" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "LMS" | "xyY" | "Jzazbz" | "CIELab" | "YCbCr" | "Rec601YCbCr" | "YCC" | "Rec709YCbCr" | "Log" | "Adobe98" | "OHTA" | "CMY" | "YUV" | "YIQ" | "YDbDr" | "Luv" | "LCH" | "LCHab" | "LCHuv" | "Oklch" | "Oklab", hasAlpha: boolean): string {
     if (space === "Adobe98") return `adobe98${hasAlpha ? "a" : ""}(${channels.slice(0, 3).map(value => `${Number((value * 100).toPrecision(6))}%`).join(",")}${hasAlpha ? `,${formatMetricNum(channels[3] ?? 1)}` : ""})`;
     if (space === "CIELab" || space === "Oklab") return `${space.toLowerCase()}${hasAlpha ? "a" : ""}(${channels.slice(0, 3).map((value, index) => Number((index === 0 ? value * 100 : (value - (index === 1 || space === "CIELab" ? 0.5 : 0)) * 255).toPrecision(6))).join(",")}${hasAlpha ? `,${formatMetricNum(channels[3] ?? 1)}` : ""})`;
     if (space === "LCH" || space === "LCHab" || space === "LCHuv") return `${space.toLowerCase()}${hasAlpha ? "a" : ""}(${channels.slice(0, 3).map((value, index) => Number((index === 0 ? value * 100 : index === 1 ? (value - 0.5) * 255 : value * 360).toPrecision(6))).join(",")}${hasAlpha ? `,${formatMetricNum(channels[3] ?? 1)}` : ""})`;
     if (space === "Oklch") return `oklch${hasAlpha ? "a" : ""}(${channels.slice(0, 3).map((value, index) => Number((index === 2 ? value * 180 / Math.PI : value).toPrecision(6))).join(",")}${hasAlpha ? `,${formatMetricNum(channels[3] ?? 1)}` : ""})`;
     if (space === "XYZ") return `xyz${hasAlpha ? "a" : ""}(${channels.slice(0, 3).map(value => Number((value * 100).toPrecision(6))).join(",")}${hasAlpha ? `,${formatMetricNum(channels[3] ?? 1)}` : ""})`;
-    if (space === "Jzazbz" || space === "xyY" || space === "Log" || space === "HWB" || space === "YCbCr" || space === "Rec601YCbCr" || space === "YCC" || space === "Rec709YCbCr" || space === "OHTA" || space === "CMY" || space === "YUV" || space === "YIQ" || space === "YDbDr" || space === "Luv") return `${space.toLowerCase()}${hasAlpha ? "a" : ""}(${channels.slice(0, 3).map(value => Number((value * 255).toPrecision(6))).join(",")}${hasAlpha ? `,${formatMetricNum(channels[3] ?? 1)}` : ""})`;
+    if (space === "Jzazbz" || space === "LMS" || space === "xyY" || space === "Log" || space === "HWB" || space === "YCbCr" || space === "Rec601YCbCr" || space === "YCC" || space === "Rec709YCbCr" || space === "OHTA" || space === "CMY" || space === "YUV" || space === "YIQ" || space === "YDbDr" || space === "Luv") return `${space.toLowerCase()}${hasAlpha ? "a" : ""}(${channels.slice(0, 3).map(value => Number((value * 255).toPrecision(6))).join(",")}${hasAlpha ? `,${formatMetricNum(channels[3] ?? 1)}` : ""})`;
     return `${space.toLowerCase()}${hasAlpha ? "a" : ""}(${Number((channels[0]! * 360).toPrecision(6))},${Number((channels[1]! * 100).toPrecision(6))}%,${Number((channels[2]! * 100).toPrecision(6))}%${hasAlpha ? `,${formatMetricNum(channels[3] ?? 1)}` : ""})`;
 }
 
 export function* prepareHueOutput(image: RgbaImage & HueMetadata, format: string): Generator<void, RgbaImage & HueMetadata, void> {
     if (image.magickColorspace === "CIELab" && format === "tiff") throw new Error("unsupported colorspace 'Lab' for TIFF output");
-    if (image.magickColorspace !== "Jzazbz" && image.magickColorspace !== "Log" && image.magickColorspace !== "LCH" && image.magickColorspace !== "LCHab" && image.magickColorspace !== "LCHuv" && image.magickColorspace !== "Oklch" && image.magickColorspace !== "CIELab" && image.magickColorspace !== "HCL" && image.magickColorspace !== "HCLp" && image.magickColorspace !== "HSI" && image.magickColorspace !== "HSL" && image.magickColorspace !== "HSB" && image.magickColorspace !== "HSV" && image.magickColorspace !== "HWB" && image.magickColorspace !== "XYZ" && image.magickColorspace !== "xyY" && image.magickColorspace !== "YCbCr" && image.magickColorspace !== "Rec601YCbCr" && image.magickColorspace !== "YCC" && image.magickColorspace !== "Rec709YCbCr" && image.magickColorspace !== "OHTA" && image.magickColorspace !== "CMY" && image.magickColorspace !== "YUV" && image.magickColorspace !== "YIQ" && image.magickColorspace !== "YDbDr" && image.magickColorspace !== "Luv" && image.magickColorspace !== "Oklab") return image;
+    if (image.magickColorspace !== "Jzazbz" && image.magickColorspace !== "Log" && image.magickColorspace !== "LCH" && image.magickColorspace !== "LCHab" && image.magickColorspace !== "LCHuv" && image.magickColorspace !== "Oklch" && image.magickColorspace !== "CIELab" && image.magickColorspace !== "HCL" && image.magickColorspace !== "HCLp" && image.magickColorspace !== "HSI" && image.magickColorspace !== "HSL" && image.magickColorspace !== "HSB" && image.magickColorspace !== "HSV" && image.magickColorspace !== "HWB" && image.magickColorspace !== "LMS" && image.magickColorspace !== "XYZ" && image.magickColorspace !== "xyY" && image.magickColorspace !== "YCbCr" && image.magickColorspace !== "Rec601YCbCr" && image.magickColorspace !== "YCC" && image.magickColorspace !== "Rec709YCbCr" && image.magickColorspace !== "OHTA" && image.magickColorspace !== "CMY" && image.magickColorspace !== "YUV" && image.magickColorspace !== "YIQ" && image.magickColorspace !== "YDbDr" && image.magickColorspace !== "Luv" && image.magickColorspace !== "Oklab") return image;
     if (format === "tiff" || format === "raw") {
         const { magickColorspace: ignored, hueSamples: ignoredSamples, storedHueSamples: ignoredStored, ...output } = image;
         return output;
@@ -336,9 +344,9 @@ export function* prepareHueOutput(image: RgbaImage & HueMetadata, format: string
     return yield* convertHuePixels(image, "sRGB");
 }
 
-export function hueTextPixel(values: readonly number[], hasAlpha: boolean, space: "HCL" | "HCLp" | "HSI" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "xyY" | "Jzazbz" | "CIELab" | "YCbCr" | "Rec601YCbCr" | "YCC" | "Rec709YCbCr" | "Log" | "Adobe98" | "OHTA" | "CMY" | "YUV" | "YIQ" | "YDbDr" | "Luv" | "LCH" | "LCHab" | "LCHuv" | "Oklch" | "Oklab", samples?: readonly number[], maximum = 65535): string {
+export function hueTextPixel(values: readonly number[], hasAlpha: boolean, space: "HCL" | "HCLp" | "HSI" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "LMS" | "xyY" | "Jzazbz" | "CIELab" | "YCbCr" | "Rec601YCbCr" | "YCC" | "Rec709YCbCr" | "Log" | "Adobe98" | "OHTA" | "CMY" | "YUV" | "YIQ" | "YDbDr" | "Luv" | "LCH" | "LCHab" | "LCHuv" | "Oklch" | "Oklab", samples?: readonly number[], maximum = 65535): string {
     const channels = values.slice(0, hasAlpha ? 4 : 3).map(value => Math.round(value * maximum / 65535));
-    const color = formatHuePixel((space === "Adobe98" || space === "Jzazbz" || space === "Log" || space === "LCH" || space === "LCHab" || space === "LCHuv" || space === "Oklch" || space === "HCL" || space === "HCLp" || space === "HSI" || space === "HSL" || space === "HWB" || space === "XYZ" || space === "xyY" || space === "CIELab" || space === "YCbCr" || space === "Rec601YCbCr" || space === "YCC" || space === "Rec709YCbCr" || space === "OHTA" || space === "CMY" || space === "YUV" || space === "YIQ" || space === "YDbDr" || space === "Luv" || space === "Oklab") && samples ? samples : values.map(value => value / 65535), space, true);
+    const color = formatHuePixel((space === "Adobe98" || space === "Jzazbz" || space === "Log" || space === "LCH" || space === "LCHab" || space === "LCHuv" || space === "Oklch" || space === "HCL" || space === "HCLp" || space === "HSI" || space === "HSL" || space === "HWB" || space === "XYZ" || space === "LMS" || space === "xyY" || space === "CIELab" || space === "YCbCr" || space === "Rec601YCbCr" || space === "YCC" || space === "Rec709YCbCr" || space === "OHTA" || space === "CMY" || space === "YUV" || space === "YIQ" || space === "YDbDr" || space === "Luv" || space === "Oklab") && samples ? samples : values.map(value => value / 65535), space, true);
     const spelling = hasAlpha ? color : `${space.toLowerCase()}(${color.slice(color.indexOf("(") + 1, color.lastIndexOf(","))})`;
     return `(${channels.join(",")})  #${channels.map(value => value.toString(16).toUpperCase().padStart(maximum === 255 ? 2 : 4, "0")).join("")}  ${spelling}`;
 }

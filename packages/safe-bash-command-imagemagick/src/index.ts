@@ -793,7 +793,7 @@ interface MagickState {
   connectedExcludeHeader?: boolean;
   connectedExcludeIds?: boolean;
   connectedMeanColor?: boolean;
-  connectedAreaThreshold?: number;
+  connectedAreaThreshold?: number[];
   connectedBackgroundId?: number;
   connectedKeep?: number[][];
   connectedRemove?: number[][];
@@ -11478,13 +11478,14 @@ if (t === "-intent" || t === "+intent") {
                 } else if (key === "connected-components:sort-order") {
                     if (extra !== undefined || (value !== "increasing" && value !== "decreasing")) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     state.connectedSortOrder = value;
-                } else if (key === "connected-components:diameter-threshold" || key === "connected-components:eccentricity-threshold" || key === "connected-components:minor-axis-threshold" || key === "connected-components:perimeter-threshold" || key === "connected-components:angle-threshold" || key === "connected-components:major-axis-threshold" || key === "connected-components:circularity-threshold") {
+                } else if (key === "connected-components:area-threshold" || key === "connected-components:diameter-threshold" || key === "connected-components:eccentricity-threshold" || key === "connected-components:minor-axis-threshold" || key === "connected-components:perimeter-threshold" || key === "connected-components:angle-threshold" || key === "connected-components:major-axis-threshold" || key === "connected-components:circularity-threshold") {
                     const range = value?.trim() ?? "";
-                    const separator = range.indexOf("-", range.startsWith("-") ? 1 : 0);
+                    const separator = key === "connected-components:area-threshold" && Number.isFinite(Number(range)) ? -1 : range.indexOf("-", range.startsWith("-") ? 1 : 0);
                     const bounds = (separator < 0 ? [range] : [range.slice(0, separator), range.slice(separator + 1)]).map(part => part.trim());
                     if (extra !== undefined || bounds.some(part => !part || !Number.isFinite(Number(part)) || (Number(part) < 0 && key !== "connected-components:angle-threshold"))) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     const threshold = [Number(bounds[0]), bounds.length === 2 ? Number(bounds[1]) : Infinity];
-                    if (key === "connected-components:angle-threshold") state.connectedAngleThreshold = threshold;
+                    if (key === "connected-components:area-threshold") state.connectedAreaThreshold = threshold;
+                    else if (key === "connected-components:angle-threshold") state.connectedAngleThreshold = threshold;
                     else if (key === "connected-components:major-axis-threshold") state.connectedMajorAxisThreshold = threshold;
                     else if (key === "connected-components:diameter-threshold") state.connectedDiameterThreshold = threshold;
                     else if (key === "connected-components:minor-axis-threshold") state.connectedMinorAxisThreshold = threshold;
@@ -11509,10 +11510,6 @@ if (t === "-intent" || t === "+intent") {
                     const id = Number(value);
                     if (extra !== undefined || !value?.trim() || !Number.isSafeInteger(id) || id < -1) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     state.connectedBackgroundId = id;
-                } else if (key === "connected-components:area-threshold") {
-                    const threshold = Number(value);
-                    if (extra !== undefined || !value?.trim() || !Number.isFinite(threshold) || threshold < 0) throw new Error(`Unsupported connected-components define: ${defStr}`);
-                    state.connectedAreaThreshold = threshold;
                 } else {
                     if (extra !== undefined || (key !== "connected-components:mean-color" && key !== "connected-components:exclude-header" && key !== "connected-components:exclude-ids") || (value !== "true" && value !== "false")) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     if (key === "connected-components:mean-color") state.connectedMeanColor = value === "true";
@@ -11909,7 +11906,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-connected-components" || t === "+connected-components") {
             const connectivity = parseConnectedComponents(tokens, i++);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const result = yield* connectedComponentsSteps(image, connectivity, state.alphaFuzz, state.connectedVerbose ?? false, state.connectedMeanColor ?? false, state.connectedAreaThreshold ?? 0, state.connectedKeep, state.connectedRemove, state.connectedRemoveColors, state.connectedKeepTop, state.connectedSort, state.connectedAngleThreshold, state.connectedPerimeterThreshold, state.connectedExcludeHeader, state.connectedExcludeIds, state.connectedBackgroundId, state.connectedSortOrder, state.connectedMajorAxisThreshold, state.connectedMinorAxisThreshold, state.connectedEccentricityThreshold, state.connectedDiameterThreshold, state.connectedCircularityThreshold, state.connectedKeepColors, state.precision);
+                const result = yield* connectedComponentsSteps(image, connectivity, state.alphaFuzz, state.connectedVerbose ?? false, state.connectedMeanColor ?? false, state.connectedAreaThreshold, state.connectedKeep, state.connectedRemove, state.connectedRemoveColors, state.connectedKeepTop, state.connectedSort, state.connectedAngleThreshold, state.connectedPerimeterThreshold, state.connectedExcludeHeader, state.connectedExcludeIds, state.connectedBackgroundId, state.connectedSortOrder, state.connectedMajorAxisThreshold, state.connectedMinorAxisThreshold, state.connectedEccentricityThreshold, state.connectedDiameterThreshold, state.connectedCircularityThreshold, state.connectedKeepColors, state.precision);
                 analysis.text += result.text;
                 return result.image;
             });
@@ -15468,7 +15465,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-connected-components" || token === "+connected-components")) {
-            const connectivity = parseConnectedComponents(tokens, i++), fuzz = state.alphaFuzz, verbose = state.connectedVerbose ?? false, meanColor = state.connectedMeanColor ?? false, areaThreshold = state.connectedAreaThreshold ?? 0, keep = state.connectedKeep, remove = state.connectedRemove, removeColors = state.connectedRemoveColors, keepTop = state.connectedKeepTop, sort = state.connectedSort, sortOrder = state.connectedSortOrder, majorAxisThreshold = state.connectedMajorAxisThreshold, angleThreshold = state.connectedAngleThreshold, keepColors = state.connectedKeepColors, circularityThreshold = state.connectedCircularityThreshold, minorAxisThreshold = state.connectedMinorAxisThreshold, eccentricityThreshold = state.connectedEccentricityThreshold, diameterThreshold = state.connectedDiameterThreshold, perimeterThreshold = state.connectedPerimeterThreshold, excludeHeader = state.connectedExcludeHeader, backgroundId = state.connectedBackgroundId, excludeIds = state.connectedExcludeIds, precision = state.precision;
+            const connectivity = parseConnectedComponents(tokens, i++), fuzz = state.alphaFuzz, verbose = state.connectedVerbose ?? false, meanColor = state.connectedMeanColor ?? false, areaThreshold = state.connectedAreaThreshold, keep = state.connectedKeep, remove = state.connectedRemove, removeColors = state.connectedRemoveColors, keepTop = state.connectedKeepTop, sort = state.connectedSort, sortOrder = state.connectedSortOrder, majorAxisThreshold = state.connectedMajorAxisThreshold, angleThreshold = state.connectedAngleThreshold, keepColors = state.connectedKeepColors, circularityThreshold = state.connectedCircularityThreshold, minorAxisThreshold = state.connectedMinorAxisThreshold, eccentricityThreshold = state.connectedEccentricityThreshold, diameterThreshold = state.connectedDiameterThreshold, perimeterThreshold = state.connectedPerimeterThreshold, excludeHeader = state.connectedExcludeHeader, backgroundId = state.connectedBackgroundId, excludeIds = state.connectedExcludeIds, precision = state.precision;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const result = await connectedComponentsStored(image, backend.storage, connectivity, fuzz, verbose, signal, meanColor, areaThreshold, keep, remove, removeColors, keepTop, sort, angleThreshold, perimeterThreshold, excludeHeader, excludeIds, backgroundId, sortOrder, majorAxisThreshold, minorAxisThreshold, eccentricityThreshold, diameterThreshold, circularityThreshold, keepColors, precision);

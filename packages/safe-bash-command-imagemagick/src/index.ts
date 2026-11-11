@@ -6111,8 +6111,6 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha"|"isP
             targetW = Math.max(srcW, targetW);
             targetH = Math.max(srcH, targetH);
         }
-        if (srcW === targetW && srcH === targetH)
-            return undefined;
     }
     else if (g.fillArea) {
         const boxW = Math.round(g.width ?? g.height ?? srcW);
@@ -6160,6 +6158,8 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha"|"isP
             return undefined;
         }
     }
+    // Only automatic filtering may skip resampling at unchanged dimensions.
+    if (kernel === undefined && targetW === srcW && targetH === srcH) return undefined;
     return {
         width: targetW,
         height: targetH,
@@ -6223,7 +6223,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     // Resize clones the native image and detaches its source blob, even at the same size.
     img = { ...img, [magickInput]: { ...img[magickInput], blobSize: 0 } };
     const options = magickResizeOptions(img, geomStr, kernel ?? (thumbnail ? "lanczossharp" : undefined));
-    if (!options || (options.width === img.width && options.height === img.height)) return img;
+    if (!options || ((thumbnail || sample || scale) && options.width === img.width && options.height === img.height)) return img;
     preserveSamples ||= !!img.evaluateSamples || !!img.readMask || img.space === "cmyk";
     const writeMask = !!(img.writeMask || ((sample || scale) && img.region));
     kernel = options.kernel;
@@ -6292,7 +6292,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: Pick<Com
     image = { ...image, [magickInput]: { ...image[magickInput], blobSize: 0 } };
     if (!options) return image;
     const width = options.width!, height = options.height!;
-    if (width === image.width && height === image.height) return image;
+    if ((thumbnail || sample || scale) && width === image.width && height === image.height) return image;
     preserveSamples ||= image.storedEvaluateSamples !== undefined || !!image.readMask || image.space === "cmyk";
     const writeMask = !!(image.storedWriteMask || ((sample || scale) && image.region));
     const point = !scale && options.kernel === "nearest" && (!thumbnail || Math.min(image.width / width, image.height / height) < 3);

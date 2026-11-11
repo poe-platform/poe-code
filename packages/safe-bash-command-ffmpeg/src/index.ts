@@ -3381,7 +3381,7 @@ async function applyVideoFilterChain(
       }
       const registers = new Float64Array(10);
       let enable = named.enable;
-      const initialVariables = { n: 0, t: 0, w: 0, h: 0, pos: 0, NAN: NaN, INF: Infinity };
+      const initialVariables = { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, n: 0, t: 0, w: 0, h: 0, pos: 0, NAN: NaN, INF: Infinity };
       if (enable !== undefined) parseFilterExpression(enable, `${name} enable`, initialVariables, undefined, new Float64Array(10));
       const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
       const commands = videoCommands.filter(command => command.target === name || command.target === instance);
@@ -3399,7 +3399,7 @@ async function applyVideoFilterChain(
           } catch { /* Rejected runtime commands retain the previous enable expression. */ }
         }
         if (enable !== undefined) {
-          const variables = { n, t: f.ptsSeconds, w: f.width, h: f.height, NAN: NaN, INF: Infinity, pos: f.offset ?? NaN };
+          const variables = { ...initialVariables, n, t: f.ptsSeconds, w: f.width, h: f.height, pos: f.offset ?? NaN };
           // FFmpeg evaluates the generic timeline both before and during frame dispatch.
           parseFilterExpression(enable, `${name} enable`, variables, undefined, registers);
           if (!(Math.abs(parseFilterExpression(enable, `${name} enable`, variables, undefined, registers)) >= 0.5)) return f;

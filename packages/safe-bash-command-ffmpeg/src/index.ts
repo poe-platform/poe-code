@@ -9362,7 +9362,9 @@ export function evalSyncFfmpeg(
       doc = applyInputDisplayTransforms(doc, inp.displayTransforms);
       if (inp.subtitleCharsets?.length && subtitleCodec !== "copy") doc = recodeSubtitles(doc, inp.subtitleCharsets, inp.subtitleCharencModes);
       if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
-      const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
+      // Standalone text subtitles have cue bounds, but no demuxer duration for -sseof.
+      const durationUnknown = doc.containerFormat === "srt" || doc.containerFormat === "webvtt";
+      const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined || durationUnknown
         ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
       if (!copyTimestamps && startSeconds !== undefined && doc.chapters) {
         // Keep intervals intact until the input offset and output bounds are applied.
@@ -12594,7 +12596,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               if (inp.subtitleCharsets?.length && subtitleCodec !== "copy") doc = recodeSubtitles(doc, inp.subtitleCharsets, inp.subtitleCharencModes);
               if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
-              const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
+              // Standalone text subtitles have cue bounds, but no demuxer duration for -sseof.
+              const durationUnknown = doc.containerFormat === "srt" || doc.containerFormat === "webvtt";
+              if (durationUnknown && inp.endRelativeSeconds !== undefined && inp.startSeconds === undefined && logLevel >= 24) {
+                await writeBytes(context.stderr, encodeUtf8("ffmpeg: Cannot use -sseof, file duration not known\n"), context.signal);
+              }
+              const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined || durationUnknown
                 ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
               if (!copyTimestamps && startSeconds !== undefined && doc.chapters) {
                 // Keep intervals intact until the input offset and output bounds are applied.

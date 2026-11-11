@@ -11,13 +11,15 @@ export async function median(
   const defaults = { radius: 1, planes: 15, radiusV: 0, percentile: 0.5 };
   const values = { ...defaults };
   let enable: string | undefined;
-  let named = false;
-  for (const [index, option] of (options ? options.split(":") : []).entries()) {
+  let position = 0;
+  const parts = options ? options.split(":") : [];
+  if (parts.at(-1) === "") parts.pop();
+  for (const option of parts) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? Object.keys(values)[index] : option.slice(0, separator).trim();
+    const key = separator < 0 ? Object.keys(values)[position++] : option.slice(0, separator).trim();
+    // FFmpeg advances from the first shorthand on a named option, otherwise resets it.
+    if (separator >= 0) position = position === 0 ? 1 : 0;
     const expression = separator < 0 ? option : option.slice(separator + 1).trim();
-    if (separator < 0 && named) throw new Error("median: positional option after named option");
-    named ||= separator >= 0;
     if (key === "enable") { enable = expression; continue; }
     if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
       validateWeaveGenericOption(key, expression, "median");

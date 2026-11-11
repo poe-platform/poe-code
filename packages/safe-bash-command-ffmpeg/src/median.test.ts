@@ -168,7 +168,7 @@ for (const option of ["radius=0", "radius=128", "radiusV=-1", "radiusV=128", "pe
   "threads=-1", "threads=2147483648", "threads=nan", "threads=no",
   "thread_type=frame", "thread_type=0.5", "thread_type=4294967296",
   "extra_hw_frames=-2", "extra_hw_frames=2147483648", "extra_hw_frames=nan",
-  "threads=-1:threads=1", "threads=1:1",
+  "threads=-1:threads=1",
   "percentile=nan", "radius=no", "planes=16", "unknown=1", "1:15:0:0.5:1"]) {
   it(`rejects ${option} before replacing output`, async () => {
     const result = await run(`median=${option}`);

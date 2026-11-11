@@ -5,9 +5,9 @@ import { createFfmpegCommand } from "./index.js";
 
 const samples = Array.from({ length: 13 }, (_, i) => i + 1);
 
-async function run(graph: string, channels = 1) {
-  const input = Buffer.alloc(samples.length * channels * 2);
-  samples.forEach((sample, i) => {
+async function run(graph: string, channels = 1, inputSamples = samples) {
+  const input = Buffer.alloc(inputSamples.length * channels * 2);
+  inputSamples.forEach((sample, i) => {
     for (let channel = 0; channel < channels; channel++) {
       input.writeInt16LE(channel === 0 ? sample : -sample, (i * channels + channel) * 2);
     }
@@ -43,6 +43,23 @@ for (const option of ["samples=5", "timestamps=0.000625"]) {
         assert.equal(result.exitCode, 0, stderr);
         const expected = prefix ? samples.slice(0, 5) : samples.slice(5).reverse();
         assert.deepEqual(output, expected.flatMap(sample => channels === 1 ? [sample] : [sample, -sample]));
+      });
+    }
+  }
+}
+
+for (const [clock, cut] of [[4000, 3], [16000, 16]] as const) {
+  for (const option of ["timestamps=0.000625", "samples=5"]) {
+    for (const prefix of [true, false]) {
+      it(`uses clock 1/${clock} for ${option} ${prefix ? "prefix" : "suffix"}`, async () => {
+        const input = Array.from({ length: 16 }, (_, i) => i + 1);
+        const { result, stderr, output } = await run(
+          `[0:a]asettb=1/${clock},asegment=${option}[a][b];` +
+          (prefix ? "[b]anullsink;[a]anull[out]" : "[a]anullsink;[b]anull[out]"), 1, input
+        );
+        assert.equal(result.exitCode, 0, stderr);
+        const boundary = option.startsWith("samples") ? 5 : cut;
+        assert.deepEqual(output, prefix ? input.slice(0, boundary) : input.slice(boundary));
       });
     }
   }

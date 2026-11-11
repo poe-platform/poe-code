@@ -7123,6 +7123,7 @@ function* parseInputOperandSteps(token: string, files: Map<string, Uint8Array>, 
 function* applyInlineReadModifierSteps(img: RgbaImage, inlineGeom: string, filename: string, kernel: ResizeKernel | undefined, settings?: ResizeFilterSettings, preserveSamples = false, analysis?: { warnings: string }): Generator<void, RgbaImage, void> {
     const g = parseMagickGeometry(inlineGeom);
     if (g.hasOffset) {
+        if (g.width === undefined && g.height === undefined) return img;
         // Read geometry ignores offsets when both dimensions match the raster.
         if (g.width === img.width && g.height === img.height) return img;
         return (yield* applyMagickCropToStackSteps(img, inlineGeom, "northwest", analysis, filename))[0]!;
@@ -17917,6 +17918,7 @@ export function runCompositeCliSync(argv: readonly string[], files: Map<string, 
 async function applyStoredInlineReadModifier(image: StoredRgbaImage, inlineGeom: string, filename: string, state: MagickState, backend: CompareFileSession, signal: AbortSignal, preserveSamples = false, analysis?: { warnings: string }): Promise<StoredRgbaImage> {
     const geometry = parseMagickGeometry(inlineGeom);
     if (geometry.hasOffset) {
+        if (geometry.width === undefined && geometry.height === undefined) return image;
         // Read geometry ignores offsets when both dimensions match the raster.
         if (geometry.width === image.width && geometry.height === image.height) return image;
         const area = magickCropArea(image, inlineGeom, "northwest");

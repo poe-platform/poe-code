@@ -101,8 +101,8 @@ async function* storedFloatingHistogram(image: StoredRgbaImage & HueMetadata, st
     const tree = new IntegerTable(storage, 512);
     let nextNode = 1n;
     const size = image.width * image.height * 4;
-    for (let start = 0; start < size; start += 4096) {
-        const length = Math.min(4096, size - start);
+    for (let start = 0; start < size; start += 2048) {
+        const length = Math.min(2048, size - start);
         const evaluated = image.storedEvaluateSamples === undefined ? undefined : await storage.read(image.storedEvaluateSamples + start * 8, length * 8);
         const backing = evaluated ? undefined : await storage.read((image.storedData16?.position ?? image.position) + start * (image.storedData16 ? 2 : 1), length * (image.storedData16 ? 2 : 1));
         const samples = evaluated ? new Float64Array(evaluated.slice().buffer) : sourceHistogramSamples(image.storedData16 ? new Uint16Array(backing!.slice().buffer) : backing!, false);

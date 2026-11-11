@@ -3,18 +3,24 @@ import type { OutputEncodeOptions, RgbaImage } from "../ast.js";
 import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 import { createByteCodec, defaultRuntime } from "@poe-code/compression";
 
-export function miffChannels(image: Pick<RgbaImage, "space" | "hasAlpha">): 1 | 2 | 3 | 4 {
-    return image.space === "b-w" || image.space === "grey16" ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3;
+export function miffChannels(image: Pick<RgbaImage, "space" | "hasAlpha">): 1 | 2 | 3 | 4 | 5 {
+    return image.space === "cmyk" ? image.hasAlpha ? 5 : 4 : image.space === "b-w" || image.space === "grey16" ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3;
 }
 
-function miffPixels(bytes: Uint8Array, channels: number, sampleBytes: number, compression: OutputEncodeOptions["miffCompression"], meta: readonly Uint8Array[]): Uint8Array {
+function miffPixels(bytes: Uint8Array, channels: number, sampleBytes: number, compression: OutputEncodeOptions["miffCompression"], meta: readonly Uint8Array[], inks?: Float64Array): Uint8Array {
     const pixels = new Uint8Array(bytes.length / 4 * (channels + meta.length));
+    const view = new DataView(pixels.buffer);
     let output = 0;
     for (let offset = 0; offset < bytes.length; offset += 4 * sampleBytes) {
-        const colors = channels <= 2 ? 1 : 3;
-        pixels.set(bytes.subarray(offset, offset + colors * sampleBytes), output);
+        const colors = inks ? 4 : channels <= 2 ? 1 : 3;
+        if (inks) for (let channel = 0; channel < 4; channel++) {
+            const value = Math.round(Math.max(0, Math.min(1, inks[offset / sampleBytes + channel]!)) * (sampleBytes === 2 ? 65535 : 255));
+            if (sampleBytes === 2) view.setUint16(output + channel * 2, value);
+            else pixels[output + channel] = value;
+        }
+        else pixels.set(bytes.subarray(offset, offset + colors * sampleBytes), output);
         output += colors * sampleBytes;
-        if (channels === 2 || channels === 4) {
+        if (channels > colors) {
             pixels.set(bytes.subarray(offset + 3 * sampleBytes, offset + 4 * sampleBytes), output);
             output += sampleBytes;
         }
@@ -74,7 +80,7 @@ function miffHeader(image: Pick<RgbaImage, "renderingIntent" | "chromaticity" | 
     const geometry = page.width || page.height || page.x || page.y ? `page=${page.width}x${page.height}${page.x < 0 ? "" : "+"}${page.x}${page.y < 0 ? "" : "+"}${page.y}\n` : "";
     if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0 || !Number.isSafeInteger(width * height * 4)) throw new RangeError("Invalid MIFF dimensions");
     const channels = metaCount ? `number-channels=${miffChannels(image) + metaCount} number-meta-channels=${metaCount}\n` : "";
-    return new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=DirectClass colors=0 matte=${image.hasAlpha ? "True" : "False"}\n${channels}columns=${width} rows=${height} depth=${depth}\n${geometry}${properties}${chromaticity}${animation}${density}units=${units}\ncolorspace=${miffChannels(image) <= 2 ? "Gray" : image.magickColorspace === "RGB" ? "RGB" : "sRGB"}\ncompression=${compression === "zip" ? "Zip" : compression === "bzip" ? "BZip" : compression === "rle" ? "RLE" : "None"}\n\f\n:\x1a`);
+    return new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=DirectClass colors=0 matte=${image.hasAlpha ? "True" : "False"}\n${channels}columns=${width} rows=${height} depth=${depth}\n${geometry}${properties}${chromaticity}${animation}${density}units=${units}\ncolorspace=${image.space === "cmyk" ? "CMYK" : miffChannels(image) <= 2 ? "Gray" : image.magickColorspace === "RGB" ? "RGB" : "sRGB"}\ncompression=${compression === "zip" ? "Zip" : compression === "bzip" ? "BZip" : compression === "rle" ? "RLE" : "None"}\n\f\n:\x1a`);
 }
 
 export function encodeMiffImage(image: RgbaImage, requestedDepth?: 8 | 16, requestedCompression?: OutputEncodeOptions["miffCompression"], loop?: number): Uint8Array {
@@ -93,7 +99,9 @@ export function encodeMiffImage(image: RgbaImage, requestedDepth?: 8 | 16, reque
             for (let index = 0; index < size; index++) view.setUint16(index * 2, plane.data16?.[index] ?? plane.data[index]! * 257);
             return pixels;
         });
-        const packed = miffPixels(planes[0]!, channels, depth / 8, compression, planes.slice(1));
+        const inks = page.space === "cmyk" ? page.hueSamples : undefined;
+        if (page.space === "cmyk" && inks?.length !== size) throw new Error("Invalid MIFF CMYK samples");
+        const packed = miffPixels(planes[0]!, channels, depth / 8, compression, planes.slice(1), inks);
         chunks.push(header);
         length += header.length;
         const compressor = compression === "zip" || compression === "bzip" ? createMiffCompressor(page.width * (channels + meta.length) * (depth / 8), compression) : undefined;
@@ -125,10 +133,11 @@ export async function* encodeMiffFromStorage(image: StoredRgbaImage, storage: Im
         yield miffHeader(page, depth, compression, await page.storedDelay?.at(0, { signal }) ?? page.delay?.[0], loop ?? image.loop, meta.length);
         const compressor = compression === "zip" || compression === "bzip" ? createMiffCompressor(page.width * (channels + meta.length) * (depth / 8), compression) : undefined;
         try {
-            for (let offset = 0; offset < length; offset += 4096) {
+            const chunkSize = page.space === "cmyk" ? 2048 : 4096;
+            for (let offset = 0; offset < length; offset += chunkSize) {
                 signal.throwIfAborted();
                 if (offset % 65536 === 0) await defaultRuntime.yieldTurn(signal);
-                const size = Math.min(4096, length - offset), planes: Uint8Array[] = [];
+                const size = Math.min(chunkSize, length - offset), planes: Uint8Array[] = [];
                 for (const plane of [page, ...meta]) {
                     const source16 = depth === 16 ? plane.storedData16 : undefined;
                     const bytes = await storage.read((source16?.position ?? plane.position) + offset * (source16 ? 2 : 1), size * (source16 ? 2 : 1), { signal });
@@ -142,7 +151,15 @@ export async function* encodeMiffFromStorage(image: StoredRgbaImage, storage: Im
                         planes.push(pixels);
                     }
                 }
-                const packed = miffPixels(planes[0]!, channels, depth / 8, compression, planes.slice(1));
+                let inks: Float64Array | undefined;
+                if (page.space === "cmyk") {
+                    if (page.storedHueSamples === undefined) throw new Error("Invalid MIFF CMYK samples");
+                    const bytes = await storage.read(page.storedHueSamples + offset * 8, size * 8, { signal });
+                    signal.throwIfAborted();
+                    if (bytes.length !== size * 8) throw new Error("Truncated MIFF CMYK samples");
+                    inks = new Float64Array(new Uint8Array(bytes).buffer);
+                }
+                const packed = miffPixels(planes[0]!, channels, depth / 8, compression, planes.slice(1), inks);
                 for (const chunk of compressor ? compressor.push(packed, offset + size === length) : [packed]) {
                     signal.throwIfAborted();
                     yield chunk;

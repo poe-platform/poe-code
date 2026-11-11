@@ -13998,8 +13998,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             formats = compatible;
                             continue;
                           }
-                          if (name === "vibrato" || name === "compensationdelay" || name === "aeval") {
+                          if (["vibrato", "compensationdelay", "aeval", "aemphasis", "asubboost"].includes(name!)) {
                             if (!formats || formats.includes("dblp")) formats = ["dblp"];
+                          } else if (name === "asoftclip" || name === "aphaseshift") {
+                            const compatible = (formats ?? ["fltp", "dblp"]).filter(format => format === "fltp" || format === "dblp");
+                            if (compatible.length > 0) formats = compatible;
                           } else if (name === "acontrast") {
                             if (!formats || formats.includes("fltp")) formats = ["fltp"];
                           } else if (name === "volume") {

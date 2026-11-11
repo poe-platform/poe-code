@@ -14762,7 +14762,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioTimestamps = [];
                         // Dropped or buffered input leaves no timestamp available when
                         // native adelay first schedules its unconditional silence.
-                        let nextPts = audioInitialFrameUnavailable ? NaN
+                        let nextPts = audioInitialFrameUnavailable || inputLength === 0 ? NaN
                           : previous?.[0]?.pts ?? (t.samples[0] ? t.samples[0].pts * origRate / t.timescale : audioStartSample);
                         nextPts = Math.sign(nextPts) * Math.round(Math.abs(nextPts));
                         let nextExactPts: bigint | undefined;

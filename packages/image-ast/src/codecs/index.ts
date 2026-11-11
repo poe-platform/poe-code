@@ -1,3 +1,4 @@
+import { isSunBytes, readSunHeader, decodeSunImage } from "./sun-input.js";
 import { encodeSunImage } from "./sun-output.js";
 import { isDdsBytes, readDdsMetadata, decodeDdsImage } from "./dds-input.js";
 import { isWbmpBytes, readWbmpHeader, decodeWbmpImage } from "./wbmp-input.js";
@@ -96,6 +97,7 @@ export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isSixelBytes(bytes)) return "sixel";
   if (isPcxBytes(bytes)) return "pcx";
   if (isFitsBytes(bytes)) return "fits";
+  if (isSunBytes(bytes)) return "sun";
   if (isXwdBytes(bytes)) return "xwd";
   if (isQoiBytes(bytes)) return "qoi";
   if (isPsdBytes(bytes)) return "psd";
@@ -204,6 +206,7 @@ export function readImageMetadata(
     case "otb": meta = readOtbHeader(bytes).metadata; break;
     case "sixel": meta = readSixelMetadata(bytes, options); break;
     case "pcx": meta = readPcxHeader(bytes).metadata; break;
+    case "sun": meta = readSunHeader(bytes).metadata; break;
     case "xwd": meta = readXwdHeader(bytes).metadata; break;
     case "fits": meta = readFitsHeader(bytes).metadata; break;
     case "qoi": meta = readQoiMetadata(bytes); break;
@@ -454,6 +457,7 @@ export function decodeImage(
     case "otb": decoded = decodeOtbImage(bytes, options); break;
     case "sixel": decoded = decodeSixelImage(bytes, options); break;
     case "pcx": decoded = decodePcxImage(bytes, options); break;
+    case "sun": decoded = decodeSunImage(bytes, options); break;
     case "xwd": decoded = decodeXwdImage(bytes, options); break;
     case "qoi": decoded = decodeQoiImage(bytes, options); break;
     case "fits": decoded = decodeFitsImage(bytes, options); break;

@@ -1,4 +1,5 @@
 import { isDdsBytes, decodeDdsToStorage } from "./dds-input.js";
+import { isSunBytes, decodeSunToStorage } from "./sun-input.js";
 import { isWbmpBytes, decodeWbmpToStorage } from "./wbmp-input.js";
 import { isFitsBytes, decodeFitsToStorage } from "./fits-input.js";
 import { isOtbBytes, decodeOtbToStorage } from "./otb-input.js";
@@ -52,6 +53,7 @@ export async function storedImageDecoder(source:ImageByteSource,signal:AbortSign
  if(isSixelBytes(prefix))return decodeSixelToStorage;
  if(isPcxBytes(prefix))return decodePcxToStorage;
  if(isFitsBytes(prefix))return decodeFitsToStorage;
+ if(isSunBytes(prefix))return decodeSunToStorage;
  if(isXwdBytes(prefix))return decodeXwdToStorage;
  if(isQoiBytes(prefix))return decodeQoiToStorage;
  if(isPsdBytes(prefix))return decodePsdToStorage;

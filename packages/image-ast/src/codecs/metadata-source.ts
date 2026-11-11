@@ -1,4 +1,5 @@
 import { isDdsBytes, readDdsMetadataFromSource } from "./dds-input.js";
+import { isSunBytes, readSunHeader } from "./sun-input.js";
 import { isWbmpBytes, readWbmpHeader } from "./wbmp-input.js";
 import { isFitsBytes, readFitsFromSource } from "./fits-input.js";
 import { isOtbBytes, readOtbHeader } from "./otb-input.js";
@@ -58,13 +59,14 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  const length=Math.min(138,source.size),borrowed=await source.read(0,length,{signal});signal.throwIfAborted();
  if(!(borrowed instanceof Uint8Array)||borrowed.length!==length)throw new Error("Truncated image metadata source");
  const prefix=new Uint8Array(borrowed);let metadata:RetainedImageMetadata;
- if(await detectHeifFormatFromSource(source,signal))metadata=await readHeifMetadataFromSource(source,signal);
+ if(isSunBytes(prefix))metadata=readSunHeader(prefix,source.size).metadata;
+ else if(isXwdBytes(prefix))metadata=readXwdHeader(prefix,source.size).metadata;
+ else if(await detectHeifFormatFromSource(source,signal))metadata=await readHeifMetadataFromSource(source,signal);
  else if(await isXbmSource(source,signal))metadata=await readXbmFromSource(source,undefined,signal,options);
  else if(isDdsBytes(prefix))metadata=await readDdsMetadataFromSource(source,signal);
  else if(isSixelBytes(prefix))metadata=(await readSixelFromSource(source,signal,options)).metadata;
  else if(isPcxBytes(prefix))metadata=readPcxHeader(prefix,source.size).metadata;
  else if(isFitsBytes(prefix))metadata=(await readFitsFromSource(source,signal)).metadata;
- else if(isXwdBytes(prefix))metadata=readXwdHeader(prefix,source.size).metadata;
  else if(isQoiBytes(prefix))metadata={...readQoiMetadata(prefix),size:source.size};
  else if(isPsdBytes(prefix))metadata=(await readPsdFromSource(source,signal,options)).metadata;
  else if(isMiffBytes(prefix))metadata=(await readMiffFromSource(source,signal,options?.page)).metadata;

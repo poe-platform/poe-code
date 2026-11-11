@@ -2,7 +2,7 @@
 
 `magick xc:red h:-` writes a C header defining `static const unsigned char MagickImage[]` with the image’s PNM bytes. Use `h:output.bin` or `output.h` to write the header to a file.
 
-`magick input.xwd output.png` decodes version-7 X11 window dumps with 8-bit palettes or 24/32-bit true-color pixels, preserving scanline padding and byte order. `magick input.ppm -units PixelsPerInch -density 36x72 output.psd` writes a Photoshop document with a composite and one editable RGB layer; `PSD:output.bin` selects the same writer explicitly. PSD output preserves alpha and 8-bit or 16-bit samples.
+`magick input.sun -depth 8 rgb:-` reads 24-bit type-3 Sun raster RGB pixels; `sun:input.sun` selects the same input explicitly. `magick input.xwd output.png` decodes version-7 X11 window dumps with 8-bit palettes or 24/32-bit true-color pixels, preserving scanline padding and byte order. `magick input.ppm -units PixelsPerInch -density 36x72 output.psd` writes a Photoshop document with a composite and one editable RGB layer; `PSD:output.bin` selects the same writer explicitly. PSD output preserves alpha and 8-bit or 16-bit samples.
 
 `-ift` and `+ift` require an input pair. Fourier support (FFTW) is unavailable; these operators warn and consume the first pair, leaving later images in order. With exactly two inputs, no images remain and output fails with status 1 without replacing the destination.
 

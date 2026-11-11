@@ -33,7 +33,8 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     expect(result.stderr).toBe(delays.every(delay => delay === 0) ? "magick: animation only contains zero time delays\n" : "");
     const output = decodeImage(mode === "retained" || mode === "command" ? await filesystem.readFile("/out.gif") : files.get("out.gif")!, { animated: true });
     expect(output.delay).toEqual(delays);
-    expect(output.loop).toBe(decodeImage(input, { animated: true }).loop);
+    // A single surviving GIF frame has no animation loop extension.
+    expect(output.loop).toBe(colors.length === 1 ? undefined : decodeImage(input, { animated: true }).loop);
     expect([...output.data]).toEqual(colors.flatMap(channel => Array.from({ length: 3 }, () => [channel === 0 ? 255 : 0, channel === 1 ? 255 : 0, channel === 2 ? 255 : 0, 255]).flat()));
   });
 }

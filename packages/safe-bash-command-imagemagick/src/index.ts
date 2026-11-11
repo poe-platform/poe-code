@@ -11644,7 +11644,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             const frames: RgbaImage[] = [];
             for (const frame of stack) {
-                if ((frame.delay?.[(frame as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0) !== 0) frames.push(frame);
+                const source = (frame as MagickImage)[magickInput];
+                if ((source?.delayTicks ?? frame.delayTicks ?? frame.delay?.[source?.sceneIdx ?? 0] ?? 0) !== 0) frames.push(frame);
                 yield;
             }
             if (frames.length) stack = frames;
@@ -15010,7 +15011,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const frames = new StoredImageStack(backend.storage, signal);
                 for (let n = 0; n < stack.length; n++) {
                     const frame = (await stack.get(n))!, scene = frame[magickInput]?.sceneIdx ?? 0;
-                    const delay = await frame.storedDelay?.at(scene, { signal }) ?? frame.delay?.[scene] ?? 0;
+                    const delay = frame[magickInput]?.delayTicks ?? frame.delayTicks ?? await frame.storedDelay?.at(scene, { signal }) ?? frame.delay?.[scene] ?? 0;
                     if (delay !== 0) await frames.push(frame);
                 }
                 if (frames.length) return frames;

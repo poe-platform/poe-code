@@ -20,11 +20,11 @@ for (const graph of [false, true]) {
     ["0.003 stereowiden@w feedback 0.3", 0],
     ["0.003 stereowiden@other feedback 0", 0],
     ["0 stereowiden@w feedback 0.3;0.003 stereowiden@w bad 0;0.004 stereowiden@w delay 0", 0],
-    ["invalid stereowiden@w bad 0", 1],
-    ["-1 stereowiden@w bad 0", 1],
+    ["invalid stereowiden@w bad 0", 234],
+    ["-1 stereowiden@w bad 0", 234],
     ["0 stereowiden@w", 1],
     ["0 stereowiden@w bad 0 extra", 1],
-    ["0 [leave] stereowiden@w bad 0", 1]
+    ["0 [unknown] stereowiden@w bad 0", 1]
   ] as const) {
     it(`${expectedStatus ? "rejects malformed schedule" : "retains native PCM after"} ${command || "no command"} (${graph ? "graph" : "simple"})`, async () => {
       const fs = Volume.fromJSON({ "/in.raw": input, "/out": "KEEP" });

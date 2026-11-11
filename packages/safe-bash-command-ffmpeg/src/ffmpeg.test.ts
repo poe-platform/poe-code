@@ -829,12 +829,12 @@ describe("asendcmd", () => {
       }
     }
   }
-  for (const command of ["", "; ;", "invalid volume@v volume 0.5", "-1 no_such_filter volume 2", "0 volume@v", "0 no_such_filter volume 2 extra", "0 [leave] volume@v volume 1"]) {
+  for (const command of ["", "; ;", "invalid volume@v volume 0.5", "-1 no_such_filter volume 2", "0 volume@v", "0 no_such_filter volume 2 extra", "0 [unknown] volume@v volume 1"]) {
     it(`rejects unsupported schedule ${command} without replacing output`, async () => {
       const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] }), "/out.wav": "keep" });
       const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af",
         `asendcmd=c='${command}',volume@v=1`, "/out.wav"], vfs);
-      assert.equal(result.exitCode, 1);
+      assert.equal(result.exitCode, command.startsWith("invalid ") || command.startsWith("-1 ") ? 234 : 1);
       assert.ok(result.stderr.includes("asendcmd:"), result.stderr);
       assert.equal(new TextDecoder().decode(vfs.store.get("/out.wav")), "keep");
     });

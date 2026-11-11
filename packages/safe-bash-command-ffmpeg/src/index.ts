@@ -12055,7 +12055,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (separator >= 0 && (!Number.isFinite(end) || end < time)) throw new Error("asendcmd: invalid end time");
                           }
                           const leave = words[0] === "[leave]";
-                          if (words[0] === "[enter]" || leave) words.shift();
+                          const evaluate = words[0] === "[expr]";
+                          if (words[0] === "[enter]" || leave || evaluate) words.shift();
                           const [target, action, expression] = words;
                           const supported = action === "enable" && ["tremolo", "vibrato"].some(name => target === name || target?.startsWith(`${name}@`))
                             || target === "silenceremove" || target?.startsWith("silenceremove@")
@@ -12082,7 +12083,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             throw new Error("asendcmd: expected TIME [enter] TARGET COMMAND ARG");
                           }
                           // Unmatched targets and declined actions do not invalidate the schedule.
-                          return supported ? [{ time, end, leave, active: false, target, action: action!, expression }] : [];
+                          return supported ? [{ time, end, leave, evaluate, active: false, target, action: action!, expression }] : [];
                         });
                       });
                       budget.allocateMemory(scheduled.length * 96);
@@ -12137,15 +12138,28 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (Number.isFinite(pts)) for (const command of pending) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             const active = command.time <= seconds && seconds < command.end;
-                            if (active === command.active) continue;
+                            const dispatch = command.evaluate ? active : active !== command.active && command.leave !== active;
                             command.active = active;
-                            if (command.leave === active) continue;
-                            // Dispatch only on an observed transition into or out of the interval.
-                            budget.allocateMemory(64);
-                            if (command.target === "amix" || command.target.startsWith("amix@")) mixCommands.push(command);
+                            if (!dispatch) continue;
+                            let expression = command.expression;
+                            if (command.evaluate) {
+                              const end = Number.isFinite(command.end) ? command.end : Number(2n ** 63n - 1n) / 1_000_000;
+                              const value = parseFilterExpression(expression, "asendcmd", {
+                                N: n + 1, T: pts / origRate, PTS: Math.round(pts / (origRate * (audioTimeBase ?? 1 / origRate))),
+                                TS: command.time, TE: end, TI: (pts / origRate - command.time) / (end - command.time),
+                                POS: timestamp ? timestamp.pos ?? -1 : packet?.offset ?? -1, W: 0, H: 0,
+                                PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+                              }, undefined, new Float64Array(10));
+                              // Native sendcmd formats evaluated arguments with %g (six significant digits).
+                              if (Number.isNaN(value)) throw new Error("asendcmd: invalid expression argument");
+                              expression = Number.isFinite(value) ? Number(value.toPrecision(6)).toString() : value < 0 ? "-inf" : "inf";
+                            }
+                            budget.allocateMemory(64 + expression.length * 2);
+                            const dispatched = { target: command.target, action: command.action, expression };
+                            if (command.target === "amix" || command.target.startsWith("amix@")) mixCommands.push(dispatched);
                             // A downstream sender sees this frame after the receiver has processed it.
                             else audioCommands.push({ sample: sender > filterIndex ? Math.min(length, start + count) : start,
-                              target: command.target, action: command.action, expression: command.expression });
+                              ...dispatched });
                           }
                           start += count;
                         }

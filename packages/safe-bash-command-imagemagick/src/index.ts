@@ -9755,6 +9755,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const factor = Number.parseFloat(geometry);
         if (!Number.isFinite(factor)) throw new Error(`invalid argument '-blue-shift' '${value}'`);
         apply = function* (image) {
+            // BlueShiftImage drops alpha channels without the blend trait.
+            if (!image.hasAlpha && image.inactiveAlpha && image.alphaBlend === false) {
+                image = { ...image, inactiveAlpha: false, alphaSeparate: false,
+                    channels: image.channels === 4 ? 3 : image.channels === 2 ? 1 : image.channels };
+            }
             const cmyk = image.space === "cmyk";
             if (cmyk) image = yield* convertCmykPixels(image);
             const hueSamples = image.hueSamples?.slice();

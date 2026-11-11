@@ -1114,7 +1114,11 @@ function parseAloop(argument: string) {
       continue;
     }
     if (!key || !Object.hasOwn(values, key)) throw new Error(`aloop: unsupported option ${key}`);
-    const number = key === "time" ? parseHlsDuration(value) : parseFilterExpression(value, "aloop", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+    const number = key === "time" ? parseHlsDuration(value) : parseFilterExpression(value, "aloop", {
+      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+      min: key === "size" ? 0 : -1, max: key === "start" ? 2 ** 63 : 2147483647,
+      default: 0, none: 0, all: -1
+    });
     if (!value || !Number.isFinite(number)) throw new Error(`aloop: invalid ${key}`);
     if ((key !== "time" && number > (key === "start" ? 2 ** 63 : 2147483647)) ||
       number < (key === "start" || key === "loop" ? -1 : 0) ||

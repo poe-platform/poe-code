@@ -6,6 +6,18 @@ import { createFfmpegCommand } from "./index.js";
 // FFmpeg 7.0.2-static: stereo s16le at 8 kHz, eight sample pairs.
 for (const complex of [false, true]) {
   for (const [options, valid] of [
+    ["loop=1:size=3:time=min", false],
+    ["loop=1:size=3:time=max", false],
+    ["loop=1:size=3:time=default", false],
+    ["loop=1:size=3:time=none", false],
+    ["loop=1:size=3:time=all", false],
+    ["loop=1:size=all", false],
+    ["loop=1:size=min-1", false],
+    ["loop=min-1:size=0", false],
+    ["loop=max+1:size=0", false],
+    ["loop=0:size=max+1", false],
+    ["loop=1:size=3:start=min-1", false],
+    ["loop=1:size=3:start=max*2", false],
     ["loop=2:size=2147483648", false],
     ["loop=2147483648:size=0", false],
     ["loop=0:size=3:start=9007199254740992", true],

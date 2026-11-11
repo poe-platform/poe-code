@@ -31,7 +31,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
       const name = source.slice(start, offset);
       if (source[offset] === "(") {
         // Numeric AVOption constants shadow min/max functions, unlike timeline expressions.
-        if ((filter === "atrim" || filter === "tremolo" || filter === "stereowiden" || filter === "format_version") && (name === "min" || name === "max")) {
+        if (((filter === "aloop" && Object.hasOwn(variables, name)) || filter === "atrim" || filter === "tremolo" || filter === "stereowiden" || filter === "format_version") && (name === "min" || name === "max")) {
           throw new Error(`${filter}: invalid expression`);
         }
         offset++;

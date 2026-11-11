@@ -458,12 +458,13 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
     // A grayscale first frame has one color channel, shared by R, G and B.
     const gray = a.space === "b-w" || a.space === "grey16";
     const inks = a.space === "cmyk" || b.space === "cmyk", stride = inks ? 5 : 4;
-    if (!inks && a.width === width && a.height === height && b.width === width && b.height === height) {
+    // Default and Point sampling leave unchanged dimensions unfiltered.
+    if (!inks && kernels.every(kernel => kernel === undefined || kernel === "nearest") && a.width === width && a.height === height && b.width === width && b.height === height) {
         yield* interpolatePixelSteps(width * height * 4, fraction, blendAlpha, channels, highDepth, gray);
         return;
     }
     const sources = [a, b].map((image, index) => resizeSamples(image, width, height, false,
-        image.width === width && image.height === height,
+        kernels[index] === undefined && image.width === width && image.height === height,
         kernels[index] ?? (image.hasAlpha || width * height > image.width * image.height ? "mitchell" : "lanczos3"), inks || highDepth, settings, inks));
     while (true) {
         let blended: Float64Array | undefined, position = 0;

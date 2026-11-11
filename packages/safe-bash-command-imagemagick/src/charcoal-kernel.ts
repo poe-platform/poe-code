@@ -11,7 +11,9 @@ export function* charcoalEdgePixelSteps(image: Pick<RgbaImage, "width" | "height
     const hue = !!image.hueSamples || image.storedHueSamples !== undefined;
     // Project the active color planes into floating RGB slots so edge detection
     // does not round HSL/Lab samples to the encoded depth before convolution.
-    const steps = edgePixelSteps({ ...image, space: "srgb", magickColorspace: "RGB" }, radius, channels, virtualPixel, background, !!(image.writeMask || image.storedWriteMask));
+    // Alpha-weighted edges can be fractional even for integer input samples.
+    // Keep HDRI precision until charcoal clamps and blurs those edges.
+    const steps = edgePixelSteps({ ...image, space: "srgb", magickColorspace: "RGB" }, radius, channels, virtualPixel, background, true);
     let next = steps.next();
     while (!next.done) {
         const request = next.value;

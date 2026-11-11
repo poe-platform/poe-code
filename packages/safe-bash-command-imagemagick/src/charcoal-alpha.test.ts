@@ -6,6 +6,29 @@ import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js"
 // Native ImageMagick 7.1.2-35 Q16-HDRI: charcoal removes the alpha channel.
 for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     it.each([
+        { colors: ["50586070", "789080b0", "d0c0a090"], geometry: "2x1", expected: "353535ffadadadff333333ff" },
+        { colors: ["50586070", "789080b0", "d0c0a090"], geometry: "1x1", expected: "131313ff7f7f7ffff8f8f8ff" },
+        { colors: ["505860b0", "789080b0", "d0c0a0b0"], geometry: "2x1", expected: "ebebebff737373ff141414ff" }
+    ])(`${mode}: preserves partial-alpha charcoal precision for $colors at $geometry`, async ({ colors, geometry, expected }) => {
+        const argv = [...colors.map(color => `xc:#${color}`), "+append", "-charcoal", geometry, "-depth", "8", "rgba:out"];
+        const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
+        const argumentValues = createCommandArguments(argv);
+        let stderr = "";
+        const result = mode === "sync" ? runMagickCliSync(argv, files)
+            : mode === "buffered" ? await runMagickCli(argv, files)
+            : mode === "retained" ? await runMagickCli(argv, { filesystem: fs, cwd: "/" })
+            : await createMagickCommand().execute({
+                command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+                signal: new AbortController().signal, stdin: (async function* () {})(),
+                stdout: { async write() {} },
+                stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+            });
+        expect(result.exitCode).toBe(0);
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        const bytes = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("out")!;
+        expect(Buffer.from(bytes).toString("hex")).toBe(expected);
+    });
+    it.each([
         { operators: ["-alpha", "Activate"], output: ["-depth", "8", "rgba:out"], expected: Uint8Array.of(64, 128, 160, 128) },
         ...[[], ["-alpha", "Discrete"], ["-alpha", "Deactivate"], ["-alpha", "Off"]].flatMap(alpha => [
             { operators: [...alpha, "-charcoal", "1x1"], output: ["-format", "%[channels]", "info:out"], expected: "gray  1.0" },

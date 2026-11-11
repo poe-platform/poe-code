@@ -384,9 +384,9 @@ function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly
       const k = parseUnit(parts[3]);
       const a = parseAlphaByte(parts[4]);
       return {
-        r: Math.round(255 * (1 - c) * (1 - k)),
-        g: Math.round(255 * (1 - m) * (1 - k)),
-        b: Math.round(255 * (1 - y) * (1 - k)),
+        r: round(255 * (1 - c) * (1 - k)),
+        g: round(255 * (1 - m) * (1 - k)),
+        b: round(255 * (1 - y) * (1 - k)),
         a,
         cmyk: [c, m, y, k]
       };
@@ -6018,10 +6018,17 @@ function* applyMagickCropToStackSteps(img: RgbaImage, geomStr: string, gravity: 
                 virtualCanvas: { ...magickCropCanvas(img, 0, 0), x: -1, y: -1 } });
             continue;
         }
+        const hueSamples = area && img.hueSamples ? new Float64Array(area.width * area.height * 4) : undefined;
+        if (hueSamples && area) for (let y = 0; y < area.height; y++) for (let x = 0; x < area.width; x += 4096) {
+            yield;
+            const start = ((area.top + y) * img.width + area.left + x) * 4;
+            hueSamples.set(img.hueSamples!.subarray(start, start + Math.min(4096, area.width - x) * 4), (y * area.width + x) * 4);
+        }
         const metaChannels: BaseRgbaImage[] | undefined = area && img.metaChannels ? [] : undefined;
         if (metaChannels && area) for (const plane of img.metaChannels!) metaChannels.push(yield* extractImageSteps(plane, area));
         tiles.push(area ? {
             ...(yield* extractImageSteps(discardDisassociatedAlpha(img), area)),
+            ...(hueSamples ? { hueSamples } : {}),
             ...(metaChannels ? { metaChannels } : {}),
             ...(img.region ? { region: { ...img.region, x: img.region.x - area.left, y: img.region.y - area.top } } : {}),
             ...(img.readMask ? { readMask: yield* cropReadMaskSteps(img.readMask as RgbaImage, area) } : {}),
@@ -7071,7 +7078,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
     const totalH = vertical
         ? stack.reduce((acc, im) => acc + im.height, 0)
         : Math.max(...stack.map((im) => im.height));
-    const background = state.backgroundExplicit ? state.background : stack[0]!.backgroundColor ?? state.background;
+    const background: ReturnType<typeof parseColor> = state.backgroundExplicit ? state.background : stack[0]!.backgroundColor ?? state.background;
     let canvas = (yield* createSolidRgbaImageSteps(totalW, totalH, background, stack.some(im => !!im.data16) || [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value))));
     if (stack.some(im => !!im.evaluateSamples)) {
         canvas.evaluateSamples = new Float64Array(canvas.data.length);
@@ -7092,7 +7099,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
     }
     if (cmyk) {
         const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
-        canvas = yield* fillCmykPixels(canvas, rgbToCmyk(rgb[0]!, rgb[1]!, rgb[2]!));
+        canvas = yield* fillCmykPixels(canvas, background.cmyk ?? rgbToCmyk(rgb[0]!, rgb[1]!, rgb[2]!));
     }
     let hasAlpha = background.a < 255;
     let cursor = 0;
@@ -14348,7 +14355,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const mask = (image as MagickImage)[magickInput]?.channelMask;
             const channels = mask?.default ? undefined : mask;
             const gap = smushGap(yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties }));
-            const background = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
+            const background: ReturnType<typeof parseColor> = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
             const layout = smushLayoutSteps(stack, t === "-smush", gap, state.gravity, state.virtualPixel, background);
             let next = layout.next();
             while (!next.done) {
@@ -14359,6 +14366,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             const { width, height, virtualCanvas, offsets } = next.value;
             let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, background, [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value))), hasAlpha: stack.some(frame => frame.hasAlpha || frame.inactiveAlpha) || background.a < 255, ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}), space: image.space };
+            if (image.space === "cmyk" && background.cmyk) canvas = yield* fillCmykPixels(canvas, background.cmyk);
             if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b)) {
                 canvas = { ...canvas, space: "srgb" };
                 delete canvas.magickColorspace;
@@ -16355,7 +16363,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const gap = smushGap(await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack));
                 const images: StoredRgbaImage[] = [];
                 for (let n = 0; n < stack.length; n++) images.push((await stack.get(n))!);
-                const background = settings.backgroundExplicit ? settings.background : image.backgroundColor ?? settings.background;
+                const background: ReturnType<typeof parseColor> = settings.backgroundExplicit ? settings.background : image.backgroundColor ?? settings.background;
                 const layout = smushLayoutSteps(images, token === "-smush", gap, settings.gravity, settings.virtualPixel, background);
                 let next = layout.next();
                 while (!next.done) {
@@ -16369,6 +16377,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 const { width, height, virtualCanvas, offsets } = next.value;
                 let canvas: StoredRgbaImage = { gravity: images[0]!.gravity, ...await createStoredCanvas(width, height, background, backend, signal, [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value))), hasAlpha: images.some(frame => frame.hasAlpha || frame.inactiveAlpha) || background.a < 255, ...(images[0]!.magickColorspace ? { magickColorspace: images[0]!.magickColorspace } : {}), space: image.space };
+                if (image.space === "cmyk" && background.cmyk) {
+                    const inks = background.cmyk;
+                    canvas = await transformStoredMagickPixels(canvas, backend, { end: 0, apply: image => fillCmykPixels(image, inks) }, signal);
+                }
                 if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b)) {
                     canvas = { ...canvas, space: "srgb" };
                     delete canvas.magickColorspace;
@@ -16569,7 +16581,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     width = first.virtualCanvas?.width || first.width;
                     height = first.virtualCanvas?.height || first.height;
                 }
-                const background = settings.backgroundExplicit ? settings.background : (await stack.get(0))!.backgroundColor ?? settings.background;
+                const background: ReturnType<typeof parseColor> = settings.backgroundExplicit ? settings.background : (await stack.get(0))!.backgroundColor ?? settings.background;
                 const first = (await stack.get(0))!;
                 const mask = (first as StoredMagickImage)[magickInput]?.channelMask;
                 const channels = mask?.default ? undefined : mask;
@@ -16620,7 +16632,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 if (append && cmyk && !nonCmyk) {
                     const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
-                    const inks = rgbToCmyk(rgb[0]!, rgb[1]!, rgb[2]!);
+                    const inks = background.cmyk ?? rgbToCmyk(rgb[0]!, rgb[1]!, rgb[2]!);
                     result = await transformStoredMagickPixels(result, backend, { end: 0, apply: image => fillCmykPixels(image, inks) }, signal);
                 }
                 let cursor = 0;

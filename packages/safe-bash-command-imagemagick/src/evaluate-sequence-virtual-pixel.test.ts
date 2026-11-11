@@ -81,3 +81,23 @@ for (const mode of ["map", "retained", "command"] as const) {
     expect(Buffer.from(mode === "map" ? files.get("/out")! : await fs.readFile("/out")).toString("hex")).toBe(expected);
   });
 }
+
+for (const mode of ["map", "retained", "command"] as const) {
+  // Native ImageMagick 7.1.2-35 Q16-HDRI reference bytes.
+  it.each([
+    ["gray(50%)", "00008000"],
+    ["gray(25%)", "00004000"],
+    ["#808080", "00008080"],
+    ["black", "00000000"],
+  ])(`${mode}: preserves %s background precision in sequence Max`, async (background, expected) => {
+    const files = new Map<string, Uint8Array>(), fs = createMemoryFileSystem();
+    const args = ["-virtual-pixel", "Background", "-background", background!, "-size", "2x1", "xc:black", "-size", "1x1", "xc:black", "-evaluate-sequence", "Max", "-depth", "16", "-endian", "MSB", "gray:/out"];
+    const result = mode === "command"
+      ? await createMagickCommand().execute({ command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async () => {} }, stderr: { write: async () => {} } })
+      : await runMagickCli(args, mode === "map" ? files : { filesystem: fs, cwd: "/" });
+    expect(result.exitCode).toBe(0);
+    expect(Buffer.from(mode === "map" ? files.get("/out")! : await fs.readFile("/out")).toString("hex")).toBe(expected);
+  });
+}

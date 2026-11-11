@@ -6,8 +6,10 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 
 /** Extend the pixel grid without resampling; unspecified virtual pixels repeat edges. */
 export function* extendEdgePixelSteps(source: { width: number; height: number; space?: string | undefined }, width: number, height: number, highDepth = false, method: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    // Preserve half-range gray until sequence arithmetic finishes, even for 8-bit inputs.
-    for (const plane of ["rgba", ...(method === "gray" ? ["evaluate"] : []), ...(source.space === "cmyk" ? ["hue"] : [])]) {
+    // Preserve fractional virtual colors until sequence arithmetic finishes, even for 8-bit inputs.
+    const fractionalBackground = (method === "background" || method.endsWith("-tile")) && background &&
+        [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value));
+    for (const plane of ["rgba", ...(method === "gray" || fractionalBackground ? ["evaluate"] : []), ...(source.space === "cmyk" ? ["hue"] : [])]) {
         const hue = plane === "hue", evaluate = plane === "evaluate";
         const stride = hue || evaluate ? 32 : highDepth ? 8 : 4;
         const gray = method === "white" ? 255 : method === "gray" ? 127.5 : 0;

@@ -240,11 +240,11 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
 
 // FFmpeg 7 falls back to 25 fps when setpts clears the filter's rate and durations.
 export async function synchronizeRawVideoFrames(
-  frames: MediaVideoFrame[], budget: MediaBudgetTracker, limit = Infinity, signal?: AbortSignal
+  frames: MediaVideoFrame[], budget: MediaBudgetTracker, limit = Infinity, signal?: AbortSignal, rate = 25
 ): Promise<MediaVideoFrame[]> {
   const output: MediaVideoFrame[] = [];
   const previousCopies = [0, 0, 0];
-  let nextPts = Math.round((frames[0]?.ptsSeconds ?? 0) * 25);
+  let nextPts = Math.round((frames[0]?.ptsSeconds ?? 0) * rate);
   for (let index = 0; index <= frames.length && output.length < limit; index++) {
     if (index % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
     budget.checkCpu();
@@ -253,9 +253,10 @@ export async function synchronizeRawVideoFrames(
     let previous: number;
     if (frame) {
       // FFmpeg adds a small positive bias before float32 rate-conversion rounding.
-      const delta = frame.ptsSeconds * 25 + 1 / 131072 - nextPts;
+      const delta0 = frame.ptsSeconds * rate + 1 / 131072 - nextPts;
+      const delta = delta0 + frame.durationSeconds * rate;
       copies = delta < -1.1 ? 0 : delta > 1.1 ? Math.round(Math.fround(delta)) : 1;
-      previous = delta > 1.1 ? Math.round(Math.fround(delta - 0.6)) : 0;
+      previous = delta0 > 1.1 ? Math.round(Math.fround(delta0 - 0.6)) : 0;
       previousCopies.pop();
       previousCopies.unshift(previous);
     } else {
@@ -268,10 +269,10 @@ export async function synchronizeRawVideoFrames(
       const source = copy < previous ? frames[index - 1]! : frame!;
       budget.checkCpu();
       budget.checkSamples(output.length + 1);
-      budget.checkDuration((output.length + 1) / 25);
+      budget.checkDuration((output.length + 1) / rate);
       if (copy !== previous) budget.recordFrame(source.width, source.height);
       budget.allocateMemory(128);
-      output.push({ ...source, ptsSeconds: nextPts / 25, durationSeconds: 1 / 25 });
+      output.push({ ...source, ptsSeconds: nextPts / rate, durationSeconds: 1 / rate });
     }
   }
   return output;

@@ -11511,7 +11511,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const [w, h] = outputSize.toLowerCase().split("x");
               if (w && h) vfFilters.push(`scale=${w}:${h}`);
             }
-            if (outputFps && videoCodec !== "copy" && !numberedImageOutput) {
+            if (outputFps && videoCodec !== "copy" && !numberedImageOutput && outputFormat !== "rawvideo") {
               vfFilters.push(`fps=${outputFps}`);
             }
             if (videoCodec !== "copy" && (rawPixelFormat === "gray" || rawPixelFormat === "gray8" || rawPixelFormat === "ya8" ||
@@ -11612,7 +11612,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             // Apply video filters (`-vf`)
-            if (vfFilters.length > 0) {
+            if (vfFilters.length > 0 || (outputFormat === "rawvideo" && outputFps !== undefined && videoCodec !== "copy")) {
               if (features.videoTranscode === false || features.filterGraph === false) {
                 throw new Error("Video transcoding / filtergraph is disabled by consumer feature configuration");
               }
@@ -11666,9 +11666,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     filtered = filtered.filter(frame => frame.ptsSeconds >= start && frame.ptsSeconds < end)
                       .map(frame => ({ ...frame, ptsSeconds: frame.ptsSeconds - start }));
                   }
-                  if (outputFormat === "rawvideo" && !diagnostics.frameRateKnown &&
+                  if (outputFormat === "rawvideo" && (outputFps !== undefined || !diagnostics.frameRateKnown) &&
                       ["auto", "-1", "cfr", "1"].includes(videoSync)) {
-                    filtered = await synchronizeRawVideoFrames(filtered, budget, streamFrameLimits[index], context.signal);
+                    filtered = await synchronizeRawVideoFrames(filtered, budget, streamFrameLimits[index], context.signal, outputFps);
+                    diagnostics.frameRateScale = 1;
                   }
                   if (encoderTimeBaseModes.get(index) === "filter") encoderTimeBases.set(index, 1 / diagnostics.timescale);
                   const first = filtered[0];
@@ -11695,7 +11696,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     // Preserve encoder cadence when setpts clears filter-frame durations.
                     decodedVideoFrames: filtered.map(frame => ({ ...frame,
                       durationSeconds: (frame.durationSeconds || diagnostics.frameDuration) * diagnostics.frameRateScale,
-                      ptsSeconds: Math.round(frame.ptsSeconds * filteredTimescale) / filteredTimescale + offsetTicks / t.timescale }))
+                      ptsSeconds: (outputFormat === "rawvideo" && outputFps !== undefined
+                        ? frame.ptsSeconds : Math.round(frame.ptsSeconds * filteredTimescale) / filteredTimescale) + offsetTicks / t.timescale }))
                   };
                 }, context.signal)
               };

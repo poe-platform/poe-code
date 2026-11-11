@@ -11346,7 +11346,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   inputs.push(frames);
                 }
                 if (pads) throw new Error(`${filter}: unsupported input labels ${pads}`);
-                const shortestOption = xstack ? xoptions.shortest : options.find((option) => option.trim().startsWith("shortest="))
+                const shortestOption = xstack ? xoptions.shortest : options.filter((option) => option.trim().startsWith("shortest=")).at(-1)
                   ?.split("=")[1]?.trim() ?? options[1]?.trim();
                 const stopAtShortest = framepack || ["1", "true", "yes", "on"].includes(shortestOption ?? "0");
                 const lengths = inputs.map(frames => frames.length);

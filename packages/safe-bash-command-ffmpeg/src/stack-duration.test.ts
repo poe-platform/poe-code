@@ -7,7 +7,7 @@ import { createFfmpegCommand } from "./index.js";
 
 for (const filter of ["hstack", "vstack"]) {
   for (const durations of [[2, 4], [4, 2]]) {
-    for (const option of ["", ":shortest=0", ":shortest=1", ":1"]) {
+    for (const option of ["", ":shortest=0", ":shortest=1", ":1", ":shortest=0:shortest=1", ":shortest=1:shortest=0"]) {
       it(`${filter} ${durations.join("/")} seconds with ${option || "defaults"} preserves frames and timing`, async () => {
         const volume = Volume.fromJSON({});
         const errors: Uint8Array[] = [];
@@ -15,7 +15,7 @@ for (const filter of ["hstack", "vstack"]) {
           "-f", "lavfi", "-i", `color=c=red:s=8x8:r=1:d=${durations[0]}`,
           "-f", "lavfi", "-i", `color=c=green:s=8x8:r=1:d=${durations[1]}`,
           "-filter_complex", `[0:v][1:v]${filter}=${option === ":1" ? "2" : "inputs=2"}${option}`];
-        const count = option === ":shortest=1" || option === ":1" ? 2 : 4;
+        const count = option.endsWith(":shortest=1") || option === ":1" ? 2 : 4;
         for (const output of ["/out_%d.png", "/out.mp4"]) {
           const result = await createFfmpegCommand().execute({
             args: [...args, output], cwd: "/", env: {}, signal: new AbortController().signal,

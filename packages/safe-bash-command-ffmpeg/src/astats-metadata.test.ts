@@ -77,3 +77,12 @@ it("honors independent measurement masks for frame tags and the report", async (
   assert.equal(stderr, "Overall\nRMS level dB: -9.884384\n");
   assert.equal(volume.readFileSync("/tags.txt", "utf8"), reference.map(frame => `${frame.header}\nlavfi.astats.Overall.RMS_level=${frame.tags["lavfi.astats.Overall.RMS_level"]}\n`).join(""));
 });
+
+it("selects native RMS peaks, peak counts and zero crossings in frame tags", async () => {
+  const { volume, stderr } = await run("astats=metadata=1:measure_perchannel=RMS_peak+Peak_count+Zero_crossings:measure_overall=RMS_peak+Peak_count,ametadata=mode=print:file=tags.txt");
+  assert.equal(stderr, "Channel: 1\nRMS peak dB: -16.386257\nPeak count: 768\nZero crossings: 769\nChannel: 2\nRMS peak dB: -6.114698\nPeak count: 2048\nZero crossings: 1\nOverall\nRMS peak dB: -6.114698\nPeak count: 1408.000000\n");
+  const expected = reference.map(frame => frame.header + "\n" + Object.entries(frame.tags)
+    .filter(([key]) => ["RMS_peak", "Peak_count", "Zero_crossings"].includes(key.split(".").at(-1)!))
+    .map(([key, value]) => `${key}=${value}\n`).join("")).join("");
+  assert.equal(volume.readFileSync("/tags.txt", "utf8"), expected);
+});

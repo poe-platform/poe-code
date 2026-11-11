@@ -12729,7 +12729,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "astats" || trimmed.startsWith("astats=")) {
                         let perChannel: ReadonlySet<string> | undefined;
                         let overall: ReadonlySet<string> | undefined;
-                        const supported = ["DC_offset", "Min_level", "Max_level", "Peak_level", "RMS_level", "Number_of_samples"];
+                        const supported = ["DC_offset", "Min_level", "Max_level", "Peak_level", "RMS_level", "RMS_peak", "Peak_count", "Zero_crossings", "Number_of_samples"];
                         let reset = 0;
                         let metadata = false;
                         let rmsLength = 0.05;

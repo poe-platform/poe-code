@@ -512,8 +512,9 @@ options without changing PCM samples or statistics.
 `astats=length=0.02` sets the RMS peak/trough and noise-floor window to 20 ms
 (default 0.05 seconds, range 0–10); full-input RMS and PCM samples are unchanged.
 `measure_perchannel` and `measure_overall` independently select `none` or a `+`-joined
-list of `DC_offset`, `Min_level`, `Max_level`, `Peak_level`, `RMS_level`, and
-`Number_of_samples`. For example, `astats=measure_perchannel=RMS_level:measure_overall=none`
+list of `DC_offset`, `Min_level`, `Max_level`, `Peak_level`, `RMS_level`, `RMS_peak`,
+`Peak_count`, `Zero_crossings` (channel reports), and `Number_of_samples`.
+For example, `astats=measure_perchannel=RMS_level:measure_overall=none`
 reports only channel RMS levels. `astats=reset=N` resets measurements every N audio
 frames and reports the final interval; `reset=0` measures the whole input.
 `reset` accepts arithmetic expressions and fractions, rounding to the nearest

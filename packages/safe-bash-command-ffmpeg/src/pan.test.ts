@@ -69,9 +69,7 @@ for (const [expression, expected] of [
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
       if (expected === null) {
-        assert.equal(result.exitCode,
-          expression.includes(" channels (") ||
-          ["unknown|c0=c0", "0x0|FL=c0", "FL+FL|FL=c0"].includes(expression) ? 1 : 234);
+        assert.equal(result.exitCode, 234, stderr);
         assert.ok(stderr.includes("pan:"), stderr);
         assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
         return;

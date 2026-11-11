@@ -19777,7 +19777,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("channelsplit: invalid channels ")) return { exitCode: 234 };
             if (msg.startsWith("pan: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("pan:")) return { exitCode: 222 };
-            if (msg.startsWith("pan:") && !msg.startsWith("pan: unsupported output layout ")) return { exitCode: 234 };
+            if (msg.startsWith("pan:")) return { exitCode: 234 };
             for (const filter of ["weave", "doubleweave"]) {
               if (msg === `${filter}: unsupported option enable`) return { exitCode: 176 };
               if (msg.startsWith(`${filter}: unsupported option `)) return { exitCode: 8 };

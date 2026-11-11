@@ -13054,7 +13054,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 next = layout.next((image.data16 ?? image.data).subarray(request.position, request.position + request.length));
             }
             const { width, height, virtualCanvas, offsets } = next.value;
-            let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, background, [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value))), hasAlpha: stack.some(frame => frame.hasAlpha) || background.a < 255, ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}), space: image.space };
+            let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, background, [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value))), hasAlpha: stack.some(frame => frame.hasAlpha || frame.inactiveAlpha) || background.a < 255, ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}), space: image.space };
             if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b)) {
                 canvas = { ...canvas, space: "srgb" };
                 delete canvas.magickColorspace;
@@ -14834,7 +14834,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     } else next = layout.next(await backend.storage.read(image.position + request.position, request.length));
                 }
                 const { width, height, virtualCanvas, offsets } = next.value;
-                let canvas: StoredRgbaImage = { gravity: images[0]!.gravity, ...await createStoredCanvas(width, height, background, backend, signal, [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value))), hasAlpha: images.some(frame => frame.hasAlpha) || background.a < 255, ...(images[0]!.magickColorspace ? { magickColorspace: images[0]!.magickColorspace } : {}), space: image.space };
+                let canvas: StoredRgbaImage = { gravity: images[0]!.gravity, ...await createStoredCanvas(width, height, background, backend, signal, [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value))), hasAlpha: images.some(frame => frame.hasAlpha || frame.inactiveAlpha) || background.a < 255, ...(images[0]!.magickColorspace ? { magickColorspace: images[0]!.magickColorspace } : {}), space: image.space };
                 if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b)) {
                     canvas = { ...canvas, space: "srgb" };
                     delete canvas.magickColorspace;

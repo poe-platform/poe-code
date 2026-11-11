@@ -7280,6 +7280,13 @@ function tryHandleMagickListOption(argv: readonly string[]): ImageMagickCliResul
         const arg = argv[i]!;
         if (arg === "-list" || arg === "--list") {
             const listType = (argv[i + 1] ?? "list").toLowerCase();
+            if (listType === "gravity") {
+                return {
+                    exitCode: 0,
+                    stdout: "None\nCenter\nEast\nForget\nNorthEast\nNorth\nNorthWest\nSouthEast\nSouth\nSouthWest\nWest\n",
+                    stderr: ""
+                };
+            }
             if (listType === "autothreshold") {
                 return { exitCode: 0, stdout: "Kapur\nOTSU\nTriangle\n", stderr: "" };
             }

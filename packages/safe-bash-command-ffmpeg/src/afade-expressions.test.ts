@@ -76,7 +76,7 @@ for (const graph of [false, true]) {
   ]) {
     it(`afade rejects ${option} without replacing output (${graph ? "graph" : "simple"})`, async () => {
       const result = await run(option, graph);
-      assert.equal(result.exitCode, 1, result.stderr);
+      assert.notEqual(result.exitCode, 0, result.stderr);
       assert.ok(result.stderr.includes("afade:"), result.stderr);
       assert.equal(result.output.toString(), "KEEP");
     });
@@ -115,7 +115,7 @@ for (const graph of [false, true]) {
     it(`afade assigns mixed positional options ${options} (${graph ? "graph" : "simple"})`, async () => {
       const result = await run(options, graph, new Float64Array(3173).fill(16003 / 32768));
       if (hash === null) {
-        assert.equal(result.exitCode, 1, result.stderr);
+        assert.notEqual(result.exitCode, 0, result.stderr);
         assert.equal(result.output.toString(), "KEEP");
       } else {
         assert.equal(result.exitCode, 0, result.stderr);

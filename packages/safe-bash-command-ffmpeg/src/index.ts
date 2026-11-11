@@ -19761,8 +19761,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === audioConversionDisabled) return { exitCode: 234 };
             if (err instanceof RangeError && msg.startsWith("compensationdelay:")) return { exitCode: 222 };
             if (msg === "compensationdelay: invalid expression" || msg === "compensationdelay: invalid or unsupported expression") return { exitCode: 234 };
-            if (msg.startsWith("afade: silence:") || msg.startsWith("afade: unity:")) {
-              return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (err instanceof RangeError && msg.startsWith("afade:")) return { exitCode: 222 };
+            if (msg.startsWith("afade: silence:") || msg.startsWith("afade: unity:") ||
+                msg === "afade: invalid expression" || msg === "afade: invalid or unsupported expression") {
+              return { exitCode: 234 };
             }
             if (msg === "hflip: unsupported option" || msg === "vflip: unsupported option") return { exitCode: 8 };
             if (msg === "hflip: missing option name" || msg === "vflip: missing option name" ||

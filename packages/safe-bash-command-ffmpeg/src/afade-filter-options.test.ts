@@ -16,6 +16,7 @@ for (const complex of [false, true]) {
     [":thread_type=-slice", true],
     [":thread_type=4294967295", true],
     [":threads=-1", false],
+    [":threads=all", false],
     [":threads=2147483648", false],
     [":threads=", false],
     [":threads=0/0", false],
@@ -62,6 +63,44 @@ for (const complex of [false, true]) {
           assert.ok(stderr.includes("afade:"), stderr);
           assert.equal(volume.existsSync("/out.raw"), outputExists);
           if (outputExists) assert.deepEqual(volume.readFileSync("/out.raw"), existing);
+        }
+        assert.deepEqual(volume.readFileSync("/in.raw"), input);
+      });
+    }
+  }
+}
+
+for (const complex of [false, true]) {
+  for (const key of ["threads", "thread_type", "extra_hw_frames"]) {
+    for (const value of ["default", "min", "max", "none", "all"]) {
+      it(`afade ${key}=${value} matches native PCM (${complex ? "complex" : "simple"})`, async () => {
+        const input = Buffer.from("803e".repeat(8), "hex");
+        const volume = Volume.fromJSON({ "/in.raw": input });
+        const stdout: Uint8Array[] = [];
+        let stderr = "";
+        const filter = `afade=ns=4:${key}=${value}`;
+        const result = await createFfmpegCommand().execute({
+          args: ["-v", "error", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/in.raw",
+            ...(complex ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+            "-f", "s16le", "pipe:1"],
+          cwd: "/", env: {}, signal: new AbortController().signal,
+          fs: {
+            async readFile(path: string) { return volume.readFileSync(path); },
+            async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+            async stat(path: string) { return volume.statSync(path); }
+          },
+          stdin: (async function* () {})(),
+          stdout: { async write(bytes: Uint8Array) { stdout.push(bytes.slice()); } },
+          stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+        } as never);
+        if (key === "threads" && value === "all") {
+          assert.notEqual(result.exitCode, 0);
+          assert.match(stderr, /afade:/);
+          assert.equal(Buffer.concat(stdout).length, 0);
+        } else {
+          assert.equal(result.exitCode, 0, stderr);
+          // Native FFmpeg's exact s16le output for every accepted named constant.
+          assert.equal(Buffer.concat(stdout).toString("hex"), "0000a00f401fe02e803e803e803e803e");
         }
         assert.deepEqual(volume.readFileSync("/in.raw"), input);
       });

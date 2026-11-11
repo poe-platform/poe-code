@@ -39,23 +39,29 @@ export async function fadeAudio(
   function applyOption(key: string | undefined, value: string) {
     if (key === "t" || key === "type") {
       const number = parseFilterExpression(value, "afade", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, in: 0, out: 1, min: 0, max: 1, default: 0, none: 0, all: -1 }, undefined, new Float64Array(10));
-      if (number < 0 || number > 1) throw new Error("afade: invalid type");
+      if (number < 0 || number > 1) throw new RangeError("afade: invalid type");
       type = number > 0.5 ? "out" : "in";
     } else if (key === "c" || key === "curve") {
       const entries = Object.entries(curves);
       const names = Object.fromEntries(entries.map(([name], index) => [name, index - 1]));
       const number = parseFilterExpression(value, "afade", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, ...names, min: -1, max: entries.length - 2, default: 0, none: 0, all: -1 }, undefined, new Float64Array(10));
-      if (number < -1 || number > entries.length - 2) throw new Error("afade: invalid curve");
+      if (number < -1 || number > entries.length - 2) throw new RangeError("afade: invalid curve");
       // FFmpeg integer options round to nearest, with exact halves going to even.
       const floor = Math.floor(number);
       const index = number - floor === 0.5 ? floor + Math.abs(floor % 2) : Math.round(number);
       curve = entries[index + 1]![1];
     } else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
-      const number = parseFilterExpression(value, "afade", key === "thread_type" ? { slice: 1 } : {}, undefined, new Float64Array(10));
+      const minimum = key === "extra_hw_frames" ? -1 : 0;
+      const number = parseFilterExpression(value, "afade", {
+        ...(key === "thread_type" ? { slice: 1 } : {}),
+        default: key === "thread_type" ? 1 : minimum,
+        min: minimum, max: key === "thread_type" ? 4294967295 : 2147483647,
+        none: 0, all: -1
+      }, undefined, new Float64Array(10));
       if (key === "thread_type"
         ? !Number.isInteger(number) || number > 4294967295
         : number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
-        throw new Error(`afade: invalid ${key}`);
+        throw new RangeError(`afade: invalid ${key}`);
       }
       // Thread scheduling and hardware frame reservations do not change PCM samples.
     } else if (key === "enable") {
@@ -84,7 +90,7 @@ export async function fadeAudio(
         const integer = rounded === 2 ** 63 ? maxSamples : BigInt(rounded);
         if (key === "ss" || key === "start_sample") startOption = integer;
         else {
-          if (number < 1) throw new Error("afade: nb_samples must be positive");
+          if (number < 1) throw new RangeError("afade: nb_samples must be positive");
           samplesOption = integer;
         }
       } else if (key === "st" || key === "start_time") startTime = number;

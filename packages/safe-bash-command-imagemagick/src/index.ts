@@ -2121,7 +2121,7 @@ function formatRgbPixel(channels: readonly number[], colorspace: string | undefi
   const rgb = channels.slice(0, 3);
   const fractional = rgb.some(value => Math.abs(value - Math.round(value)) > 1e-9);
   const color = rgb.map(value => fractional ? `${formatSignificantMetric(value * 100 / 255, precision)}%` : String(Math.round(value))).join(",");
-  return channels[3] === undefined ? `${name}(${color})` : `${name}a(${color},${formatMetricNum(channels[3])})`;
+  return channels[3] === undefined ? `${name}(${color})` : `${name}a(${color},${formatSignificantMetric(channels[3], precision)})`;
 }
 
 function formatGrayPixel(channels: readonly number[], colorspace: string, precision?: number): string {

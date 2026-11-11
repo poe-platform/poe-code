@@ -4150,14 +4150,26 @@ async function applyVideoFilterChain(
         };
       }, signal);
     } else if (name === "untile") {
-      for (const key of Object.keys(named)) {
-        if (key !== "layout") throw new Error(`untile: unknown option ${key}`);
+      for (const [key, expression] of Object.entries(named)) {
+        if (key === "layout") continue;
+        if (!["threads", "thread_type", "extra_hw_frames"].includes(key)) {
+          throw new Error(`untile: unknown option ${key}`);
+        }
+        const value = parseFilterExpression(expression, "untile",
+          key === "thread_type" ? { slice: 1 } : {});
+        if (key === "thread_type"
+          ? !Number.isInteger(value) || value < -2147483648 || value > 4294967295
+          : value < (key === "extra_hw_frames" ? -1 : 0) || value > 2147483647) {
+          throw new RangeError(`untile: ${key} is out of range`);
+        }
+        // Scheduling and hardware frame reservations do not affect software extraction.
       }
-      const layout = named.layout ?? positional[0] ?? "";
+      const layout = named.layout ?? (positional[0]?.includes("=") ? "" : positional[0]) ?? "";
       const dimensions = (layout || "6x5").split("x");
       const cols = Number(dimensions[0]);
       const rows = Number(dimensions[1]);
-      if (positional.length > 1 || dimensions.length !== 2 || !Number.isInteger(cols) || !Number.isInteger(rows) ||
+      if (positional.some((part, index) => index > 0 && !part.includes("=")) ||
+          dimensions.length !== 2 || !Number.isInteger(cols) || !Number.isInteger(rows) ||
           cols <= 0 || rows <= 0 || cols * rows > 4294967295) {
         throw new Error("untile: invalid layout");
       }

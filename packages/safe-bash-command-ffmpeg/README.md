@@ -197,7 +197,7 @@ Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
 Invalid expressions, unsupported flags, and unsupported options fail before replacing output.
 `datascope=size=320x240` renders monochrome hexadecimal RGB pixel values for each frame, preserving timing. `s` and positional size are also accepted; the default is `1280x720` (`hd720`). Other datascope options are unsupported.
 
-`untile=3x1` splits contact sheets into frames in row order, including blank cells. It accepts `layout=3x1`, defaults to `6x5`, and requires sheet dimensions divisible by the grid.
+`untile=3x1` splits contact sheets into frames in row order, including blank cells. It accepts `layout=3x1`, defaults to `6x5`, and requires sheet dimensions divisible by the grid. The `threads`, `thread_type`, and `extra_hw_frames` options are accepted without changing the extracted pixels.
 
 `tile=3x1:init_padding=1` leaves the first cell blank before placing input frames. Initial blank cells use the background color and participate in overlap; values at or above the frame capacity are ignored. Rejected tile margins/padding return Linux FFmpeg status 222 when out of range or 234 when invalid; unknown options return 8 and unsupported `enable` returns 176, preserving existing output files.
 

@@ -383,7 +383,25 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
     const frames = inputs.length, hasAlpha = inputs.some(image => image.hasAlpha);
     const hue = !!canvas.magickColorspace && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "Gray" && !cmyk;
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
-    const operation = raw.toLowerCase().split("-").join("").split("_").join("");
+    // ParseCommandOption with list=false reads one token; a pipe takes precedence over a comma.
+    const separator = raw.includes("|") ? "|" : ",", whitespace = " \t\n\r\v\f";
+    let start = 0;
+    while (start < raw.length && (whitespace.includes(raw[start]!) || raw[start] === separator)) start++;
+    const negate = raw[start] === "!";
+    if (negate) start++;
+    let end = start;
+    while (end < raw.length && !whitespace.includes(raw[end]!) && raw[end] !== separator) end++;
+    const token = raw.slice(start, end).toLowerCase();
+    // Native normalization keeps the first character, including a leading '-' or '_'.
+    let operation = token.slice(0, 1) + token.slice(1).replaceAll("-", "").replaceAll("_", "");
+    if (!["abs", "add", "addmodulus", "and", "cos", "cosine", "divide", "exp", "exponential",
+        "gaussiannoise", "impulsenoise", "inverselog", "laplaciannoise", "leftshift", "log", "max", "mean",
+        "median", "min", "multiplicativenoise", "multiply", "or", "poissonnoise", "pow", "rightshift",
+        "rms", "rootmeansquare", "set", "sin", "sine", "subtract", "sum", "threshold", "thresholdblack",
+        "thresholdwhite", "undefined", "uniformnoise", "xor"].includes(operation)) {
+        throw new Error(`unrecognized evaluate operator '-evaluate-sequence' '${raw}'`);
+    }
+    if (negate) operation = "undefined";
     const sourceChannels = ["mean", "median", "max"].includes(operation) && inputs.some(image => image[magickInput]?.channelMask)
         ? inputs.map(image => {
             const mask = image[magickInput]?.channelMask;
@@ -435,13 +453,6 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
     const noise = operation.endsWith("noise");
     const range = highDepth ? 65535 : 255, scale = highDepth ? 1 : 257;
     const clamp = (value: number) => Math.max(0, Math.min(range, Math.round(value)));
-    if (!["abs", "add", "addmodulus", "and", "cos", "cosine", "divide", "exp", "exponential",
-        "gaussiannoise", "impulsenoise", "inverselog", "laplaciannoise", "leftshift", "log", "max", "mean",
-        "median", "min", "multiplicativenoise", "multiply", "or", "poissonnoise", "pow", "rightshift",
-        "rms", "rootmeansquare", "set", "sin", "sine", "subtract", "sum", "threshold", "thresholdblack",
-        "thresholdwhite", "undefined", "uniformnoise", "xor"].includes(operation)) {
-        throw new Error(`unrecognized evaluate operator '-evaluate-sequence' '${raw}'`);
-    }
     function* write(position: number, values: Uint8Array | Uint16Array | Float64Array, evaluate = false): Steps {
         // Unselected native channels are zero in both working and encoded output.
         if (channels) for (let offset = 0; offset < values.length; offset++) {

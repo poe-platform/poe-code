@@ -11723,9 +11723,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       sarHeight: diagnostics.sarHeight
                     })),
                     samples: [],
-                    // Preserve encoder cadence when setpts clears filter-frame durations.
+                    // Rawvideo retains zero durations cleared by setpts; other encoders need a cadence.
                     decodedVideoFrames: filtered.map(frame => ({ ...frame,
-                      durationSeconds: (frame.durationSeconds || diagnostics.frameDuration) * diagnostics.frameRateScale,
+                      durationSeconds: (outputFormat === "rawvideo" ? frame.durationSeconds
+                        : frame.durationSeconds || diagnostics.frameDuration) * diagnostics.frameRateScale,
                       ptsSeconds: (outputFormat === "rawvideo" && outputFps !== undefined
                         ? frame.ptsSeconds : Math.round(frame.ptsSeconds * filteredTimescale) / filteredTimescale) + offsetTicks / t.timescale }))
                   };

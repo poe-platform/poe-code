@@ -7473,10 +7473,13 @@ function pcmSampleFormat(codec: string | undefined): string | undefined {
   return undefined;
 }
 
-function validateRawAudioCodec(doc: MediaDocument, plugin: MediaAstPlugin | undefined, codec: string | undefined): void {
+function validateRawAudioOutput(doc: MediaDocument, plugin: MediaAstPlugin | undefined, codec: string | undefined): void {
   if (!plugin) return;
   const required = `pcm_${plugin.id}`;
   if (!plugin.supportedAudioCodecs.includes(required)) return;
+  if (doc.tracks.length !== 1) {
+    throw new Error(`${plugin.id} muxer supports exactly one stream`);
+  }
   for (const track of doc.tracks) {
     if (track.type !== "audio") continue;
     const codecs = codec === "copy" ? track.codecDescriptions.map(description => description.codecName) : [codec ?? required];
@@ -9181,7 +9184,7 @@ export function evalSyncFfmpeg(
       workingDoc = { ...workingDoc, tracks: mergeVp9Superframes(workingDoc.tracks, budget) };
     }
     workingDoc = applyVideoTag(workingDoc, outPlugin.id, videoCodec, videoTag);
-    validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
+    validateRawAudioOutput(workingDoc, outPlugin, audioCodec);
     validateStreamCopy(workingDoc, outPlugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
     validateSubtitleEncoder(subtitleCodec, workingDoc, outPlugin.id);
     if (movieTimescale !== undefined && (outPlugin.id === "mp4" || outPlugin.id === "mov")) {
@@ -18910,7 +18913,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   const doc = { ...workingDoc, tracks: selectTeeTracks(workingDoc.tracks, slave.select) };
                   if (!doc.tracks.length) throw new Error("Tee destination does not contain any stream");
-                  validateRawAudioCodec(doc, plugin, audioCodec);
+                  validateRawAudioOutput(doc, plugin, audioCodec);
                   validateStreamCopy(doc, plugin.id, { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec });
                   validateSubtitleEncoder(subtitleCodec, doc, plugin.id);
                   const bytes = serializeLimitedWav(doc, plugin, {
@@ -18957,7 +18960,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (segmentHeaderFilename !== undefined && segmentPlugin.id !== "wav") {
                 throw new Error("segment_header_filename requires WAV segment output");
               }
-              validateRawAudioCodec(workingDoc, segmentPlugin, audioCodec);
+              validateRawAudioOutput(workingDoc, segmentPlugin, audioCodec);
               validateStreamCopy(workingDoc, segmentPlugin.id, { audio: audioCodec, video: videoCodec });
               if (!writeHeaderTrailer && !audioSegment) {
                 throw new Error("write_header_trailer 0 requires WAV or raw audio segments");
@@ -19701,7 +19704,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (outPlugin?.id === "wav" && workingDoc.tracks.length !== 1) {
                 throw new Error("WAVE files have exactly one stream");
               }
-              if (!checksumOutput) validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
+              if (!checksumOutput) validateRawAudioOutput(workingDoc, outPlugin, audioCodec);
             } catch (error) {
               if (!isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {
                 await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });

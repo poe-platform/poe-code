@@ -17579,6 +17579,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (storedMetaChannels) for (const plane of image.storedMetaChannels!) storedMetaChannels.push(await transformStoredImage(plane, backend.storage, { kind: "extract", ...area }, signal));
                 return { ...await transformStoredImage(image, backend.storage, { kind: "extract", ...area }, signal),
                     ...(storedMetaChannels ? { storedMetaChannels } : {}),
+                    ...(image.readMask ? { readMask: await transformStoredImage(image.readMask as StoredRgbaImage, backend.storage, { kind: "extract", ...area }, signal) } : {}),
                     ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, backend.storage, { kind: "extract", ...area }, signal) } : {}),
                     ...(image.region ? { region: { ...image.region, x: image.region.x - width, y: image.region.y - height } } : {}),
                     virtualCanvas: image.virtualCanvas && (!image.virtualCanvas.width || !image.virtualCanvas.height)

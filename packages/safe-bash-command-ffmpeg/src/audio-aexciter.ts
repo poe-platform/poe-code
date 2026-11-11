@@ -4,10 +4,11 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function exciteAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  frames: readonly { start: number; end: number; pts: number }[],
+  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
   budget: MediaBudgetTracker, signal?: AbortSignal,
   commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<Float64Array[]> {
+  let enable: string | undefined;
   const options = { level_in: 1, level_out: 1, amount: 1, drive: 8.5, blend: 0, freq: 7500, ceil: 9999, listen: 0 };
   const ranges = { level_in: [0, 64], level_out: [0, 64], amount: [0, 64], drive: [0.1, 10], blend: [-10, 10], freq: [2000, 12000], ceil: [9999, 20000], listen: [0, 1] };
   const names = Object.keys(options) as (keyof typeof options)[];
@@ -27,7 +28,7 @@ export async function exciteAudio(
   if (args.at(-1) === "") args.pop();
   for (const [index, option] of args.entries()) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options | "threads" | "extra_hw_frames";
+    const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options | "enable" | "threads" | "extra_hw_frames";
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "threads" || key === "extra_hw_frames") {
       const min = key === "threads" ? 0 : -1;
@@ -38,6 +39,11 @@ export async function exciteAudio(
       // Scheduling and hardware frame reservations do not change PCM samples.
       continue;
     }
+    if (key === "enable") {
+      enable = value;
+      parseFilterExpression(enable, "aexciter enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
+      continue;
+    }
     if (!key || !Object.hasOwn(options, key)) throw new Error(`aexciter: unsupported option ${key}`);
     setOption(key, value);
   }
@@ -46,7 +52,8 @@ export async function exciteAudio(
   const history = channels.map(() => new Float64Array(14));
   let work = 0;
   let nextCommand = 0;
-  for (const frame of frames) {
+  const registers = new Float64Array(10);
+  for (const [n, frame] of frames.entries()) {
     while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
       const command = commands[nextCommand++]!;
       const key = command.action as keyof typeof options;
@@ -54,6 +61,13 @@ export async function exciteAudio(
       try {
         setOption(key, command.expression);
       } catch { /* Native asendcmd continues after a rejected command. */ }
+    }
+    let enabled = true;
+    if (enable !== undefined) {
+      const variables = { n, t: frame.pts / sampleRate, pos: frame.pos ?? NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 };
+      // FFmpeg evaluates on frame consumption and again before filter_frame.
+      parseFilterExpression(enable, "aexciter enable", variables, undefined, registers);
+      enabled = Math.abs(parseFilterExpression(enable, "aexciter enable", variables, undefined, registers)) >= 0.5;
     }
     // Native exciter transfer curve, with its near-zero suppression and DC blocker.
     const root = (value: number) => Math.abs(value) > 1e-8 ? Math.sqrt(Math.abs(value)) : 0;
@@ -106,7 +120,8 @@ export async function exciteAudio(
         previousOutput = Math.abs(value) > 1e-8 ? value : 0;
         value = process(process(value, hp, 2), hp, 3);
         if (options.ceil >= 10000) value = process(process(value, lp, 4), lp, 5);
-        samples[i] = (value * options.amount + (1 - options.listen) * input) * options.level_out;
+        // Disabled frames return dry PCM while the filter history keeps updating.
+        samples[i] = enabled ? (value * options.amount + (1 - options.listen) * input) * options.level_out : input;
       }
       state[12] = previousMedium;
       state[13] = previousOutput;

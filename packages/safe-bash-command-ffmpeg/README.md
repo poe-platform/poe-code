@@ -1038,6 +1038,8 @@ WebVTT input `-kind subtitles|captions|descriptions|metadata` applies to the nex
 
 `-mpegts_service_id 42` sets the MPEG-TS program/service ID in PAT, PMT and SDT. IDs range from 1 through 65535 and default to 1; the PMT PID remains 4096 and stream copy preserves compressed packets.
 
+`unsharp=5:5:1` sharpens 8-bit grayscale edges; `unsharp=5:5:-1` softens them. Luma options are `luma_msize_x`/`lx`, `luma_msize_y`/`ly`, and `luma_amount`/`la`, in that positional order (defaults: 5, 5, 1). Matrix sizes must be odd, from 3 through 23, with their sum at most 26; amount accepts -2 through 5, with zero preserving the input. Numeric expressions and per-frame `enable` expressions are supported. Other pixel formats and chroma/alpha options are unsupported.
+
 ## Features
 
 - **Dynamic AST-Driven Format Support**: Pass `asts: [...]` to `ffmpegCommands({ asts })` to dynamically determine which container formats, extensions, demuxers, muxers, and codecs are supported by `ffmpeg` and `ffprobe`.

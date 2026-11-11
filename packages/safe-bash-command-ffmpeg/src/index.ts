@@ -1,3 +1,4 @@
+import { unsharp } from "./unsharp.js";
 import { bilateral } from "./bilateral.js";
 import { gblur } from "./gblur.js";
 import { median } from "./median.js";
@@ -4059,6 +4060,8 @@ async function applyVideoFilterChain(
       }
     } else if (name === "avgblur") {
       current = await avgblur(current, argStr, pixelFormat, budget, signal);
+    } else if (name === "unsharp") {
+      current = await unsharp(current, argStr, pixelFormat, budget, signal);
     } else if (name === "negate") {
       if (positional.filter(value => !value.includes("=")).length > 2 || Object.keys(named).some(key =>
         !["components", "negate_alpha", "enable", "threads", "thread_type", "extra_hw_frames"].includes(key))) {

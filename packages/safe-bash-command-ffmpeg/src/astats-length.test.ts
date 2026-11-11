@@ -58,10 +58,13 @@ for (const [filter, peaks, troughs] of [
   });
 }
 
-for (const length of ["-0.01", "10.01", "NaN", "Infinity", "nope", "", "0.02=extra"]) {
+for (const [length, status] of [
+  ["-0.01", 222], ["10.01", 222], ["NaN", 234], ["Infinity", 222],
+  ["nope", 234], ["", 234], ["0.02=extra", 234]
+] as const) {
   it(`rejects invalid astats length ${JSON.stringify(length)} without replacing output`, async () => {
     const result = await run(`astats=length=${length}`);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, status);
     assert.ok(result.stderr.includes("astats:"), result.stderr);
     assert.equal(result.output.toString(), "keep existing output");
   });

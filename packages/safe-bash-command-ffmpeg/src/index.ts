@@ -12814,10 +12814,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               : parts[0];
                             const value = parts.length === 1 ? parts[0]! : parts[1]!;
                             const extra = parts[2];
+                            if (extra !== undefined) throw new Error(`astats: invalid option ${option}`);
                             if ((key === "measure_perchannel" || key === "measure_overall") && value !== undefined && extra === undefined) {
                               const metrics = value === "none" ? [] : value.split("+");
                               if (metrics.some(metric => !supported.includes(metric))) {
-                                throw new Error(`astats: unsupported option ${option}`);
+                                throw new Error(`astats: invalid measurement ${value}`);
                               }
                               if (key === "measure_perchannel") perChannel = new Set(metrics);
                               else overall = new Set(metrics);
@@ -12844,17 +12845,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             } else if (key === "length" && extra === undefined) {
                               rmsLength = parseFilterExpression(value, "astats", {});
                               if (!Number.isFinite(rmsLength) || rmsLength < 0 || rmsLength > 10) {
-                                throw new Error("astats: length must be between 0 and 10");
+                                throw new RangeError("astats: length must be between 0 and 10");
                               }
                             } else if (key === "reset" && extra === undefined) {
                               reset = parseFilterExpression(value, "astats", {});
                               if (!Number.isFinite(reset) || reset < 0 || reset > 2147483647) {
-                                throw new Error("astats: invalid reset");
+                                throw new RangeError("astats: invalid reset");
                               }
                               reset = roundToEven(reset);
                             } else if (key === "metadata" && extra === undefined &&
                               ["0", "1", "false", "true", "no", "yes", "n", "y", "off", "on"].includes(value?.toLowerCase() ?? "")) {
                               metadata = ["1", "true", "yes", "y", "on"].includes(value!.toLowerCase());
+                            } else if (key === "metadata") {
+                              throw new Error("astats: invalid metadata");
                             } else {
                               throw new Error(`astats: unsupported option ${option}`);
                             }
@@ -17521,6 +17524,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: msg === "separatefields: height must be even" ? 183 : 234 };
             }
             if (err instanceof AgateError) return { exitCode: err.exitCode };
+            if (msg.startsWith("astats: unsupported option enable=")) return { exitCode: 176 };
+            if (msg.startsWith("astats: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("astats:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg === "channelmap: invalid or duplicate output channel") return { exitCode: 234 };
             const unavailableChannel = msg.startsWith("channelmap: unavailable input channel") &&
               (err instanceof RangeError || msg.endsWith(" (unnamed layout)"));

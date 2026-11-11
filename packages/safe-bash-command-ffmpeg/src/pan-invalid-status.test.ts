@@ -8,6 +8,10 @@ for (const [expression, status, output] of [
   ["mono|c0=0*c0+c0", 234, "4b454550"],
   ["mono|c0=c0|c0=c1", 234, "4b454550"],
   ["2C|FL=c1|FR=c0", 234, "4b454550"],
+  ["mono|c0=LFE2", 234, "4b454550"],
+  ["LFE2|LFE2=c0", 234, "4b454550"],
+  ["LFE2|c0=c0", 0, "1027589e307500830004c7cf"],
+  ["mono|c0=LFE", 0, "000000000000000000000000"],
   ["mono|c0=c0", 0, "1027589e307500830004c7cf"]
 ] as const) {
   for (const complex of [false, true]) {

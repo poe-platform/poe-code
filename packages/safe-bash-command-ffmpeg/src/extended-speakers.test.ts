@@ -16,7 +16,7 @@ for (const [name, bit] of [["DL", 29], ["DR", 30], ["WL", 31], ["WR", 32],
   ["BFC", 38], ["BFL", 39], ["BFR", 40]] as const) {
   cases.push([`channelmap=1-${name},channelmap=${name}`, right],
     [`channelmap=1:0x${(2 ** bit).toString(16)},channelmap=${name}`, right],
-    [`channelmap=1-${name},pan=mono|FC=${name}`, right]);
+    [`channelmap=1-${name},pan=mono|FC=${name === "LFE2" ? "c0" : name}`, right]);
 }
 for (const [filter, expected] of cases) {
   for (const graph of [false, true]) {

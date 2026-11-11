@@ -10,6 +10,9 @@ const silence = left.map(() => 0);
 
 // Native FFmpeg 7.0.2 PCM16 output, in speaker order.
 for (const [filter, channels, mask] of [
+  ["pan=2 channels (FL+FR)|FL=FR", [right, silence], 3],
+  ["pan=3 channels (FL+FR+FC)|c0=c1", [right, silence, silence], 7],
+  ["pan=1 channels (FC)|c0=c1", [right], 4],
   ["pan=5.1|FC=c1|LFE=c0", [silence, silence, right, left, silence, silence], 0x3f],
   ["pan=quad|BL=c1|BR=c0", [silence, silence, right, left], 0x33],
   ["pan=stereo|FL=FR|FR=FL", [right, left], 3],

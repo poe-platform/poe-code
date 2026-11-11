@@ -805,7 +805,7 @@ Terms accept hexadecimal gains (`0x1`, `0x1p-1`), subtraction (`c0-c1`), compact
 `pan=mono|c0=nan*c0` produces silence on PCM16 input/output. Floating-point paths retain nonfinite samples. Zero-gain inputs do not affect other channels, so selecting or swapping channels preserves finite samples even when an unused input contains NaN.
 Count-only outputs also accept `2C` and `2 channels`, for example
 `pan=2C|c0=c1|c1=c0`; use numbered output channels because these layouts have no speaker assignments.
-Stereo layouts also accept `0x3` and `FL+FR`. `pan=5.1|FC=c1|LFE=c0` routes
+Stereo layouts also accept `0x3` and `FL+FR`. Explicit counts with speaker lists, such as `2 channels (FL+FR)` and `3 channels (FL+FR+FC)`, accept named or numbered assignments and leave unassigned outputs silent. The count must match the speaker list. `pan=5.1|FC=c1|LFE=c0` routes
 stereo into center and LFE; unassigned speakers stay silent. Empty equation fields
 between or after assignments are ignored, so `pan=stereo|c0=c0||c1=c1` preserves
 both channels and `pan=stereo|c0=c0|` leaves the right channel silent. Output preserves
@@ -814,6 +814,7 @@ Each input channel may appear only once per output equation, including zero-gain
 terms; the same input may be used in separate output equations.
 All input references in a pan filter must use the same style: named or numbered.
 Output labels may mix styles, as in `pan=stereo|FL=c0|c1=c1`.
+`LFE2` is valid as a layout (`pan=LFE2|c0=c0`), but not as a speaker name in an equation.
 Valid input channels absent from the input contribute silence: on stereo,
 `pan=mono|c0=FC` is silent and `pan=mono|c0=c0+c2` preserves the left channel.
 Numbered input channels range from `c0` to `c63`. Invalid identifiers and output

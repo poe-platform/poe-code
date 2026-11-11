@@ -1446,11 +1446,16 @@ async function panAudio(
       expression = option;
     }
   }
-  const [layout, ...assignments] = expression.split("|").map(value => value.trim());
-  const count = parseAudioChannelCount(layout ?? "");
-  const names = count === undefined ? parseAudioChannelLayout(layout ?? "") : Array<string>(count).fill("");
+  const [layout = "", ...assignments] = expression.split("|").map(value => value.trim());
+  const count = parseAudioChannelCount(layout);
+  const speakerList = layout.indexOf(" channels (");
+  const explicitCount = speakerList < 0 ? undefined : parseAudioChannelCount(`${layout.slice(0, speakerList)} channels`);
+  const names = speakerList >= 0 && layout.endsWith(")")
+    ? layout.slice(speakerList + " channels (".length, -1).split("+")
+    : count === undefined ? parseAudioChannelLayout(layout) : Array<string>(count).fill("");
   if (count === undefined &&
-      (names.some(name => audioSpeakerMasks[name] === undefined) || new Set(names).size !== names.length)) {
+      ((speakerList >= 0 && explicitCount !== names.length) ||
+        names.some(name => audioSpeakerMasks[name] === undefined) || new Set(names).size !== names.length)) {
     throw new Error(`pan: unsupported output layout ${layout}`);
   }
   if (names.some((name, index) => index > 0 && audioSpeakerMasks[name]! < audioSpeakerMasks[names[index - 1]!]!)) {
@@ -1462,6 +1467,10 @@ async function panAudio(
   const inputMask = channelMask || ([0, 0x4, 0x3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][channels.length] ?? 0);
   const inputNames = speakers.filter(name => Math.floor(inputMask / audioSpeakerMasks[name]!) % 2 === 1);
   const channelIndex = (name: string, labels: string[], count: number) => {
+    // Pan equation speaker names contain only letters, unlike layout names (LFE2).
+    if (!name.startsWith("c") && ![...name].every(char => char >= "A" && char <= "Z")) {
+      throw new Error(`pan: invalid channel ${name}`);
+    }
     const number = name.slice(1).trimStart();
     const digits = number.startsWith("+") || number.startsWith("-") ? number.slice(1) : number;
     const index = name.startsWith("c") && digits.length > 0 &&

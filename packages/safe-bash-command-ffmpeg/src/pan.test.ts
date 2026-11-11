@@ -40,7 +40,13 @@ for (const [expression, expected] of [
   ["quad|FC=c0", null],
   ["5.1|c6=c0", null],
   ["0x0|FL=c0", null],
-  ["FL+FL|FL=c0", null]
+  ["FL+FL|FL=c0", null],
+  ["2 channels (FC)|c0=c1", null],
+  ["0 channels (FC)|c0=c1", null],
+  ["2 channels (FL+FL)|c0=c1", null],
+  ["2 channels (FL+XX)|c0=c1", null],
+  ["2 channels (stereo)|c0=c1", null],
+  ["2 channels (FL+FR)junk|c0=c1", null]
 ] as const) {
   for (const complex of [false, true]) {
     it(`pans PCM channels (${complex ? "graph" : "simple"}): ${expression}`, async () => {
@@ -64,6 +70,7 @@ for (const [expression, expected] of [
       } as never);
       if (expected === null) {
         assert.equal(result.exitCode,
+          expression.includes(" channels (") ||
           ["unknown|c0=c0", "0x0|FL=c0", "FL+FL|FL=c0"].includes(expression) ? 1 : 234);
         assert.ok(stderr.includes("pan:"), stderr);
         assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");

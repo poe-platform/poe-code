@@ -62,7 +62,7 @@ function miffHeader(image: Pick<RgbaImage, "montage" | "renderingIntent" | "chro
     const { width, height } = image;
     const page = image.virtualCanvas ?? { width, height, x: 0, y: 0 };
     let properties = image.montage ? `montage=${image.montage.geometry}\n` : "";
-    for (const key of ["comment", "label"] as const) {
+    for (const key of ["comment", "label", "compression"] as const) {
         const value = image.properties?.[key];
         if (value !== undefined) properties += `${key}={${value.replaceAll("\\", "\\\\").replaceAll("{", "\\{").replaceAll("}", "\\}")}}\n`;
     }
@@ -87,7 +87,7 @@ function miffHeader(image: Pick<RgbaImage, "montage" | "renderingIntent" | "chro
     const geometry = page.width || page.height || page.x || page.y ? `page=${page.width}x${page.height}${page.x < 0 ? "" : "+"}${page.x}${page.y < 0 ? "" : "+"}${page.y}\n` : "";
     if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0 || !Number.isSafeInteger(width * height * 4)) throw new RangeError("Invalid MIFF dimensions");
     const channels = metaCount ? `number-channels=${miffChannels(image) + metaCount} number-meta-channels=${metaCount}\n` : "";
-    const header = new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=${colors ? "PseudoClass" : "DirectClass"} colors=${colors} matte=${image.hasAlpha ? "True" : "False"}\n${channels}columns=${width} rows=${height} depth=${depth}\n${depth === 32 ? "quantum:format=floating-point\n" : ""}${geometry}${properties}${chromaticity}${animation}${density}units=${units}\ncolorspace=${image.space === "cmyk" ? "CMYK" : miffChannels(image) <= 2 ? "Gray" : image.magickColorspace ?? "sRGB"}\ncompression=${compression === "zip" ? "Zip" : compression === "bzip" ? "BZip" : compression === "rle" ? "RLE" : "None"}\n\f\n:\x1a`);
+    const header = new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=${colors ? "PseudoClass" : "DirectClass"} colors=${colors} matte=${image.hasAlpha ? "True" : "False"}\n${channels}columns=${width} rows=${height} depth=${depth}\n${depth === 32 ? "quantum:format=floating-point\n" : ""}${geometry}${chromaticity}${animation}${density}units=${units}\ncolorspace=${image.space === "cmyk" ? "CMYK" : miffChannels(image) <= 2 ? "Gray" : image.magickColorspace ?? "sRGB"}\ncompression=${compression === "zip" ? "Zip" : compression === "bzip" ? "BZip" : compression === "rle" ? "RLE" : "None"}\n${properties}\f\n:\x1a`);
     if (!image.montage) return header;
     const names = image.montage.directory.map(name => new TextEncoder().encode(name));
     const bytes = new Uint8Array(header.length + names.reduce((size, name) => size + name.length + 1, 1));

@@ -10789,8 +10789,9 @@ function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<
         ? image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value) : undefined;
     for (let offset = 0; offset < data.length; offset += 4) {
         if (offset % 65536 === 0) yield;
-        for (let target = 0; target < 3; target++) {
-            const channel = channels[target] ?? (single ? channels[0]! : target);
+        for (let target = 0; target < (image.hasAlpha && channels.length >= 5 ? 4 : 3); target++) {
+            // Native channel IDs reserve slot 3 for black and slot 4 for alpha.
+            const channel = channels[target === 3 ? 4 : target] ?? (single ? channels[0]! : target);
             const plane = channel >= 5 ? image.metaChannels![channel - 5]! : image;
             const source = channel >= 5 ? 0 : channel;
             data[offset + target] = source === 3 && !image.hasAlpha && !image.inactiveAlpha ? 255 : plane.data[offset + source]!;

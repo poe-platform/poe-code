@@ -3443,13 +3443,16 @@ function sampleFxImage(
   return sampleFxPixel(img.evaluateSamples ?? img.data16 ?? img.data!, idx, ch, img.evaluateSamples ? 255 : img.data16 ? 65535 : 255);
 }
 function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number, interpolation?: LookupInterpolation): number {
-  if (interpolation === "average9" || interpolation === "average16" || interpolation === "blend" || interpolation === "catrom") throw new Error(`Unsupported FX interpolation: ${interpolation}`);
+  if (interpolation === "average16" || interpolation === "blend" || interpolation === "catrom") throw new Error(`Unsupported FX interpolation: ${interpolation}`);
   if (!img) return 0;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return NaN;
-  const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
+  const averageSize = interpolation === "average9" ? 3 : interpolation === "average" ? 2 : 0;
+  // The 3x3 neighborhood centers on the nearest pixel, including at integer coordinates.
+  const left = averageSize === 3 ? Math.floor(x + 0.5) - 1 : Math.floor(x);
+  const top = averageSize === 3 ? Math.floor(y + 0.5) - 1 : Math.floor(y), dx = x - left, dy = y - top;
   if (interpolation === "integer") return sample(img, left, top, ch);
   if (interpolation === "nearest") return sample(img, Math.floor(x + 0.5), Math.floor(y + 0.5), ch);
-  if (interpolation !== "average" && interpolation !== "spline" && dx === 0 && dy === 0) {
+  if (!averageSize && interpolation !== "spline" && dx === 0 && dy === 0) {
     return img.hasAlpha && ch !== 3 && sample(img, x, y, 3) === 0 ? 0 : sample(img, x, y, ch);
   }
   if (ch >= 4 && ch <= 7) {
@@ -3477,9 +3480,10 @@ function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefin
       : dx <= 1 - dy ? [1 - dx - dy, dx, dy, 0] : [0, 1 - dy, 1 - dx, 1 - (1 - dx) - (1 - dy)];
   }
   let value = 0, alpha = 0;
-  for (let row = 0; row < 2; row++) {
-    for (let column = 0; column < 2; column++) {
-      const weight = meshWeights?.[row * 2 + column] ?? (interpolation === "average" ? 0.25 : (column ? dx : 1 - dx) * (row ? dy : 1 - dy));
+  const size = averageSize || 2;
+  for (let row = 0; row < size; row++) {
+    for (let column = 0; column < size; column++) {
+      const weight = meshWeights?.[row * 2 + column] ?? (averageSize ? 1 / (size * size) : (column ? dx : 1 - dx) * (row ? dy : 1 - dy));
       if (weight === 0) continue;
       const opacity = img.hasAlpha && ch !== 3 ? sample(img, left + column, top + row, 3) : 1;
       // Average counts every neighbor equally, but excludes fully transparent colors.

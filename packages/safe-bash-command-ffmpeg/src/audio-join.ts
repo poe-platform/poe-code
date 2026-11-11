@@ -18,8 +18,8 @@ export async function joinAudio(
   let positional = 0;
   for (const option of options) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? ["inputs", "channel_layout", "map"][positional++] : option.slice(0, separator);
-    const value = separator < 0 ? option : option.slice(separator + 1);
+    const key = separator < 0 ? ["inputs", "channel_layout", "map"][positional++] : option.slice(0, separator).trim();
+    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "inputs") {
       const numeric = parseFilterExpression(value, "join", { default: 2, min: 1, max: 2147483647 });
       if (numeric < 1 || numeric > 2147483647) throw new RangeError("join: invalid input count");

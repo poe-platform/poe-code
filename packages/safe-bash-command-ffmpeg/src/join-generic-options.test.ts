@@ -12,12 +12,19 @@ for (const [valid, options] of [
     "threads=2147483647:thread_type=4294967295:extra_hw_frames=2147483647",
     "threads=0.5:extra_hw_frames=-0.5", "thread_type=+slice", "thread_type=-slice",
     "threads=1:threads=2:", "2:stereo:0.0-FL|1.0-FR:threads=1",
-    "threads=1:inputs=2:channel_layout=stereo:map=0.0-FL|1.0-FR"]],
+    "threads=1:inputs=2:channel_layout=stereo:map=0.0-FL|1.0-FR",
+    "inputs = 2", "channel_layout= stereo ", "map = 0.0-FL|1.0-FR",
+    "inputs=2 : channel_layout=stereo", "threads = 1", "inputs= 2",
+    "inputs=2:channel_layout=stereo", "map= 0.0-FL|1.0-FR ",
+    " 2 : stereo : 0.0-FL|1.0-FR ", "channel_layout = 2 channels (FL+FR) ",
+    "\tinputs\t=\t2\t:\tchannel_layout\t=\tstereo\t:\tmap\t=\t0.0-FL|1.0-FR\t",
+    "thread_type = slice : extra_hw_frames = 1 "]],
   [false, ["threads=-1", "threads=2147483648", "threads=", "threads=bogus",
     "thread_type=bogus", "thread_type=0.5", "thread_type=4294967296", "thread_type=slice+",
     "extra_hw_frames=-2", "extra_hw_frames=2147483648", "extra_hw_frames=", "extra_hw_frames=NaN",
     "threads=-1:threads=1", "thread_type=bogus:thread_type=slice",
-    "extra_hw_frames=-2:extra_hw_frames=1", "threads=1:unknown=1", "enable=1"]]
+    "extra_hw_frames=-2:extra_hw_frames=1", "threads=1:unknown=1", "enable=1",
+    " unknown = 1 ", " channel_layout = ste reo ", " inputs = 0 "]]
 ] as const) {
   for (const option of options) {
     for (const output of ["pipe:1", "/out.pcm"]) {

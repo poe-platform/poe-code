@@ -1,3 +1,5 @@
+import { gateExp } from "./audio-gate-math.js";
+
 const cubeRootFactors = [1 / 1.5874010519681996, 1 / 1.2599210498948732, 1, 1.2599210498948732, 1.5874010519681996];
 
 // FFmpeg's curve enum runs from nofade (-1) through hsin2 (22).
@@ -31,7 +33,8 @@ export const audioFadeCurves: Record<string, (gain: number) => number> = {
     return root * (cube + 2 * mantissa) / (2 * cube + mantissa) * factor * 2 ** Math.trunc(exponent / 3);
   },
   par: gain => 1 - Math.sqrt(1 - gain),
-  exp: gain => Math.exp(-11.512925464970227 * (1 - gain)),
+  // Preserve native exponential rounding at PCM conversion boundaries.
+  exp: gain => gateExp(-11.512925464970227 * (1 - gain)),
   iqsin: gain => 0.6366197723675814 * Math.asin(gain),
   ihsin: gain => 0.3183098861837907 * Math.acos(1 - 2 * gain),
   dese: gain => gain <= 0.5 ? Math.cbrt(2 * gain) / 2 : 1 - Math.cbrt(2 * (1 - gain)) / 2,

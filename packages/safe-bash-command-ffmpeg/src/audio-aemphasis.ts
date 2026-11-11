@@ -4,7 +4,8 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function emphasizeAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  budget: MediaBudgetTracker, signal?: AbortSignal
+  budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<Float64Array[]> {
   const names = ["level_in", "level_out", "mode", "type"];
   const values = [1, 1, 0, 4];
@@ -28,7 +29,7 @@ export async function emphasizeAudio(
     const lower = Math.floor(value);
     values[key] = key < 2 ? value : value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
   }
-  const [levelIn, levelOut, mode, type] = values;
+  const [initialLevelIn, initialLevelOut, mode, type] = values;
   if (mode !== 0) throw new Error("aemphasis: unsupported mode (only reproduction is supported)");
   if (type !== 3 && type !== 4) throw new Error("aemphasis: unsupported type (only cd and riaa are supported)");
 
@@ -67,11 +68,22 @@ export async function emphasizeAudio(
   const output = channels.map(channel => new Float64Array(channel.length));
   for (const [c, channel] of channels.entries()) {
     let low1 = 0, low2 = 0, emphasis1 = 0, emphasis2 = 0;
+    let levelIn = initialLevelIn!, levelOut = initialLevelOut!;
+    let commandIndex = 0;
     for (let sample = 0; sample < channel.length; sample++) {
       if (sample % 4096 === 0) {
         budget.checkCpu();
         await yieldTurn(signal);
         signal?.throwIfAborted();
+      }
+      while (commandIndex < commands.length && commands[commandIndex]!.sample <= sample) {
+        const command = commands[commandIndex++]!;
+        try {
+          const value = parseFilterExpression(command.expression, "aemphasis", {});
+          if (!Number.isFinite(value) || value < 0 || value > 64) continue;
+          if (command.action === "level_in") levelIn = value;
+          else if (command.action === "level_out") levelOut = value;
+        } catch { /* Native retains the current gain after a rejected command. */ }
       }
       const low = channel[sample]! * levelIn! - low1 * lowB1 - low2 * lowB2;
       const input = low * lowA0 + low1 * lowA1 + low2 * lowA0;

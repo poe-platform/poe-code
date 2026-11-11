@@ -12932,6 +12932,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
                             || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
                             || ["i", "c"].includes(action!) && (target === "crystalizer" || target?.startsWith("crystalizer@"))
+                            || ["level_in", "level_out"].includes(action!) && (target === "aemphasis" || target?.startsWith("aemphasis@"))
                             || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
                             || target === "stereowiden" || target?.startsWith("stereowiden@")
                             || target === "stereotools" || target?.startsWith("stereotools@")
@@ -13779,7 +13780,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredSampleFormat = "dbl";
                         statsScale = 1;
                       } else if (filterName === "aemphasis") {
-                        stretched = await emphasizeAudio(stretched, origRate, trimmed, budget, context.signal);
+                        const commands = audioCommands.filter(command => command.target === "aemphasis" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        audioCommands = audioCommands.filter(command => command.target !== "aemphasis" && command.target !== filterTarget);
+                        stretched = await emphasizeAudio(stretched, origRate, trimmed, budget, context.signal, commands);
                         filteredSampleFormat = "dblp";
                         statsScale = 1;
                       } else if (trimmed === "adynamicequalizer" || trimmed.startsWith("adynamicequalizer=")) {

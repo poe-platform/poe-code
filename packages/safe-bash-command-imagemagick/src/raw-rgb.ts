@@ -142,11 +142,12 @@ export function rawRasterInput(width: number, height: number, depth: number, end
     };
 }
 
-export function rawPartitionPaths(path: string, format = "rgb"): string[] {
+export function rawPartitionPaths(path: string, format = "rgb", scene?: number): string[] {
     const dot = path.lastIndexOf("."), slash = path.lastIndexOf("/");
     const stem = dot > slash ? path.slice(0, dot) : path;
     const channels = format === "gray" ? "G" : format === "graya" ? "GA" : (format.endsWith("o") ? format.slice(0, -1) : format).toUpperCase();
-    return [...channels].map(channel => `${stem}.${channel}`);
+    // Split image lists reopen each channel with the scene appended again.
+    return [...channels].map((channel, index) => `${stem}${scene === undefined ? "" : `-${scene}`.repeat(index)}.${channel}`);
 }
 
 function rawSamplesTo16(input: Uint8Array, depth: number, endian: string, floatingPoint: boolean): Uint8Array {

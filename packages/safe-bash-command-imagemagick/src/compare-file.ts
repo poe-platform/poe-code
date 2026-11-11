@@ -22,7 +22,7 @@ export interface CompareFileSession {
     readonly read: ImageInputReader;
     load(path: string, options: (metadata: ImageMetadata | undefined) => SharpInputOptions | Iterable<SharpInputOptions>, visit?: (image: StoredRgbaImage, options: SharpInputOptions, metadata: ImageMetadata | undefined, byteLength: number) => Promise<void>, source?: ImageByteSource | null): Promise<StoredRgbaImage | undefined>;
     retain(image: RgbaImage): Promise<StoredRgbaImage>;
-    stage(image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions): Promise<Uint8Array | undefined>;
+    stage(image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions, scene?: number): Promise<Uint8Array | undefined>;
     publishPending(): Promise<void>;
     stageText(image: StoredRgbaImage, path: string, chunks: AsyncIterable<Uint8Array>): Promise<void>;
     publish(image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions): Promise<Uint8Array | undefined>;
@@ -107,7 +107,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                     throw error;
                 }
             };
-        const stage = async (image: StoredRawImage, path: string, encoding: OutputEncodeOptions) => {
+        const stage = async (image: StoredRawImage, path: string, encoding: OutputEncodeOptions, scene?: number) => {
             encoding = { ...encoding, outputFilename: path };
             if (!isRawCoder(encoding.format) || encoding.rawInterlace !== "partition") return snapshots.stage(image, path, encoding);
             let size = 0;
@@ -119,7 +119,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
             }
             const encoder = encodeStoredImage(image, storage, signal, encoding);
             try {
-                for (const target of rawPartitionPaths(path, encoding.format)) {
+                for (const target of rawPartitionPaths(path, encoding.format, scene)) {
                     const source = (async function* () {
                         let written = 0;
                         while (written < size) {
@@ -219,9 +219,9 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                     throw error;
                 }
             },
-            async stage(image, path, encoding) {
+            async stage(image, path, encoding, scene) {
                 if (path === "-") return publishImage(image, path, encoding, undefined, false);
-                await stage(image, path, encoding);
+                await stage(image, path, encoding, scene);
             },
             publishPending,
             async stageText(image, path, chunks) {

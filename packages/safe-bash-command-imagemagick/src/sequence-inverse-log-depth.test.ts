@@ -25,7 +25,7 @@ it.each([
     }) : mode === "sync" ? runMagickCliSync(argv, files)
         : await runMagickCli(argv, mode === "map" ? files : { filesystem: fs, cwd: "/" });
     expect(result.exitCode).toBe(0);
-    expect(mode === "command" ? Buffer.concat(stderr).toString() : result.stderr).toBe("");
+    expect("stderr" in result ? result.stderr : Buffer.concat(stderr).toString()).toBe("");
     const output = mode === "command" ? Buffer.concat(stdout) : Buffer.from("stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : []);
     expect(output.toString("hex")).toBe((depth === 16 ? rgba16 : rgba8).repeat(unequal && colors.length > 1 ? 2 : 1));
 });

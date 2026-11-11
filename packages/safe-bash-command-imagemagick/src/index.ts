@@ -14909,10 +14909,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 const geometry = parseClaheGeometry(expanded);
+                const linearSpace = im.magickColorspace === "RGB" || im.magickColorspace === "scRGB" ? im.magickColorspace
+                    : (im.space === "b-w" || im.space === "grey16") && im.gamma === 1 && im.magickColorspace !== "Gray" ? "LinearGray" : undefined;
                 const hsl = im.magickColorspace === "HSL";
-                const rgb = hsl ? yield* convertHuePixels(im, "sRGB") : im;
+                const rgb = linearSpace ? yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(im)
+                    : hsl ? yield* convertHuePixels(im, "sRGB") : im;
                 const result = yield* applyMagickRasterSteps({ ...rgb, isPalette: false }, clahePixelSteps(rgb, geometry, state.background, state.virtualPixel), signal);
-                return hsl ? yield* convertHuePixels(result, "HSL") : result;
+                return linearSpace ? yield* parseMagickPixelOperation(["-colorspace", linearSpace], state, 0, signal)!.apply(result)
+                    : hsl ? yield* convertHuePixels(result, "HSL") : result;
             });
         }
         else if (t === "-lat") {
@@ -19232,10 +19236,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 const geometry = parseClaheGeometry(expanded);
+                const linearSpace = image.magickColorspace === "RGB" || image.magickColorspace === "scRGB" ? image.magickColorspace
+                    : (image.space === "b-w" || image.space === "grey16") && image.gamma === 1 && image.magickColorspace !== "Gray" ? "LinearGray" : undefined;
                 const hsl = image.magickColorspace === "HSL";
-                const rgb = hsl ? await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal) : image;
+                const rgb = linearSpace ? await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal)
+                    : hsl ? await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal) : image;
                 const result = await transformStoredMagickRaster({ ...rgb, isPalette: false }, backend, clahePixelSteps(rgb, geometry, background, virtualPixel), signal);
-                return hsl ? transformStoredMagickPixels(result, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "HSL") }, signal) : result;
+                return linearSpace ? transformStoredMagickPixels(result, backend, parseMagickPixelOperation(["-colorspace", linearSpace], state, 0, signal)!, signal)
+                    : hsl ? transformStoredMagickPixels(result, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "HSL") }, signal) : result;
             });
         } else if (!operandsOnly && token === "-lat") {
             let images: StoredImageStack, sceneIdx = 0;

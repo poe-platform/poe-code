@@ -40,7 +40,7 @@ for (const mode of ["command", "retained", "map", "sync"] as const) {
         if ("stdout" in result && typeof result.stdout === "string") stdout = result.stdout;
         expect(result.exitCode, stderr).toBe(0);
         expect(stdout).toBe(geometry);
-        expect(stderr).toBe(warning ? "magick: geometry does not contain image\n" : "");
+        expect(stderr).toBe(warning ? "magick: geometry does not contain image 'white'\n" : "");
         const output = mode === "command" || mode === "retained" ? await fs.readFile("/pixels") : files.get("/pixels")!;
         expect(output).toEqual(empty ? new Uint8Array([255, 255, 255, 0]) : new Uint8Array(pixels * 4).fill(255));
     });

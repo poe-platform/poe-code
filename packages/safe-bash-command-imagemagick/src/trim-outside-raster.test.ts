@@ -32,7 +32,7 @@ for (const mode of ["command", "retained", "map", "sync"] as const) {
             : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
         if ("stderr" in result && typeof result.stderr === "string") stderr = result.stderr;
         expect(result.exitCode, stderr).toBe(0);
-        expect(stderr).toBe(trim && !draw ? "magick: geometry does not contain image\n" : "");
+        expect(stderr).toBe(trim && !draw ? "magick: geometry does not contain image 'white'\n" : "");
         const output = mode === "command" || mode === "retained" ? await fs.readFile("/geometry") : files.get("/geometry")!;
         expect(new TextDecoder().decode(output)).toBe(geometry);
         const pixels = mode === "command" || mode === "retained" ? await fs.readFile("/pixels") : files.get("/pixels")!;

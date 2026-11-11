@@ -1,3 +1,4 @@
+import { magickInput, type MagickFormatContext } from "./stored-stack.js";
 import { discardDisassociatedAlpha } from "./alpha-state.js";
 import { cropReadMaskSteps, cropStoredReadMask } from "./crop-read-mask.js";
 import { extractImageSteps, transformStoredImage, type ImageByteStorage, type GravityPosition, type RgbaColor, type RgbaImage as BaseRgbaImage, type StoredRgbaImage as BaseStoredRgbaImage } from "@poe-code/image-ast/portable";
@@ -5,8 +6,8 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
 import type { HueMetadata } from "./colorspace-hue.js";
 
-type RgbaImage = BaseRgbaImage & HueMetadata & { inactiveAlpha?: boolean | undefined; writeMask?: BaseRgbaImage | undefined; metaChannels?: BaseRgbaImage[] | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { inactiveAlpha?: boolean | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined; storedMetaChannels?: BaseStoredRgbaImage[] | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & { [magickInput]?: MagickFormatContext; inactiveAlpha?: boolean | undefined; writeMask?: BaseRgbaImage | undefined; metaChannels?: BaseRgbaImage[] | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { [magickInput]?: MagickFormatContext; inactiveAlpha?: boolean | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined; storedMetaChannels?: BaseStoredRgbaImage[] | undefined };
 
 type Area = { left: number; top: number; width: number; height: number };
 type Read = { position: number; length: number };
@@ -203,8 +204,9 @@ function emptyTrimPixel(image: RgbaImage | StoredRgbaImage, background?: RgbaCol
 }
 
 export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor, emptyBackground?: RgbaColor, gravity?: GravityPosition): Generator<void, RgbaImage, void> {
+    const warning = `magick: geometry does not contain image${image[magickInput]?.filePath === undefined ? "" : ` '${image[magickInput]!.filePath}'`}\n`;
     if (image.width === 1 && image.height === 1 && edges === undefined) {
-        if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
+        if (analysis) analysis.warnings += warning;
         return image;
     }
     // HWB neutral hue is -1 and Oklch hue is in radians; preserve values outside [0, 1].
@@ -216,7 +218,7 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
         if (!next.value) { yield; next = steps.next(); }
         else { const { position, length } = next.value; next = steps.next({ samples: pixels.subarray(position, position + length), inks: image.hueSamples?.subarray(position, position + length) }); }
     }
-    if (next.value.warning && analysis) analysis.warnings += "magick: geometry does not contain image\n";
+    if (next.value.warning && analysis) analysis.warnings += warning;
     const area = cropTrimBounds(next.value, image.width, image.height, minSize, gravity);
     if (area) {
         image = discardDisassociatedAlpha(image);
@@ -253,7 +255,7 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
             virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + area.left, y: (image.virtualCanvas?.y ?? 0) + area.top },
         };
     }
-    if (!next.value.warning && analysis) analysis.warnings += "magick: geometry does not contain image\n";
+    if (!next.value.warning && analysis) analysis.warnings += warning;
     // Bounds outside the raster leave the original image and virtual page intact.
     if (next.value.width > 0 && next.value.height > 0) return image;
     // ImageMagick represents an empty trim with one transparent background pixel.
@@ -263,8 +265,9 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
 }
 
 export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor, emptyBackground?: RgbaColor, gravity?: GravityPosition): Promise<StoredRgbaImage> {
+    const warning = `magick: geometry does not contain image${image[magickInput]?.filePath === undefined ? "" : ` '${image[magickInput]!.filePath}'`}\n`;
     if (image.width === 1 && image.height === 1 && edges === undefined) {
-        if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
+        if (analysis) analysis.warnings += warning;
         return image;
     }
     const unclampedHue = (image.magickColorspace === "HWB" || image.magickColorspace === "Oklch") && image.storedHueSamples !== undefined;
@@ -285,7 +288,7 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
                 inks: inkBytes ? new Float64Array(new Uint8Array(inkBytes).buffer) : undefined });
         }
     }
-    if (next.value.warning && analysis) analysis.warnings += "magick: geometry does not contain image\n";
+    if (next.value.warning && analysis) analysis.warnings += warning;
     const area = cropTrimBounds(next.value, image.width, image.height, minSize, gravity);
     if (area) {
         image = discardDisassociatedAlpha(image);
@@ -301,7 +304,7 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
             virtualCanvas: { width: image.width, height: image.height, x: (image.virtualCanvas?.x ?? 0) + area.left, y: (image.virtualCanvas?.y ?? 0) + area.top },
         };
     }
-    if (!next.value.warning && analysis) analysis.warnings += "magick: geometry does not contain image\n";
+    if (!next.value.warning && analysis) analysis.warnings += warning;
     // Bounds outside the raster leave the original image and virtual page intact.
     if (next.value.width > 0 && next.value.height > 0) return image;
     const emptyPosition = storage.allocate(4);

@@ -37,7 +37,7 @@ for (const mode of ["sync", "map", "retained", "command"] as const) {
             : await runMagickCli(args, mode === "map" ? files : { filesystem, cwd: "/" });
         expect(result).toEqual({
             exitCode: 0, stdout: output,
-            stderr: background ? "" : "magick: geometry does not contain image\n"
+            stderr: background ? "" : trim ? "magick: geometry does not contain image 'white'\n" : "magick: geometry does not contain image\n"
         });
         if (trim) {
             const pixel = decodeImage(mode === "sync" || mode === "map"

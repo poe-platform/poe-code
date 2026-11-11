@@ -34,7 +34,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         const output = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
         expect(new TextDecoder().decode(output)).toBe(empty ? "1x1|3x1-1-1" : "1x1|3x1+1+0");
         expect({ stdout, stderr, ...result }).toEqual({
-            exitCode: 0, stdout: "", stderr: empty ? "magick: geometry does not contain image\n" : "",
+            exitCode: 0, stdout: "", stderr: empty ? `magick: geometry does not contain image '${background}'\n` : "",
         });
     });
 }

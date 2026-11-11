@@ -49,5 +49,5 @@ it.each([
   const actual = decodeImage(output);
   expect([actual.width, actual.height]).toEqual([width, height]);
   expect(actual.data).toEqual(Uint8Array.from(pixels.flatMap(value => [value, value, value, 255])));
-  expect(diagnostic).toBe("montage: geometry does not contain image\n".repeat(warnings));
+  expect(diagnostic).toBe("montage: geometry does not contain image 'in.ppm'\n".repeat(warnings));
 });

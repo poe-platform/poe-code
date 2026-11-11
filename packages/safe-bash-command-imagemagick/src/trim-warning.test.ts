@@ -28,7 +28,7 @@ for (const mode of ["map", "sync", "retained", "stream", "command"] as const) {
             });
         expect(result.exitCode).toBe(0);
         if ("stderr" in result) stderr += result.stderr;
-        expect(stderr).toBe("magick: geometry does not contain image\n".repeat(warnings));
+        expect(stderr).toBe("magick: geometry does not contain image 'red'\n".repeat(warnings));
         const output = mode === "map" || mode === "sync" ? files.get("/out")! : await filesystem.readFile("/out");
         expect(new TextDecoder().decode(output)).toBe("1x1|4x3+2+1");
         const pixel = decodeImage(mode === "map" || mode === "sync" ? files.get("/pixel.png")! : await filesystem.readFile("/pixel.png"));
@@ -58,4 +58,35 @@ for (const mode of ["map", "retained", "stream"] as const) {
             expect(Array.from(output.data)).toEqual(foreground ? [255, 0, 0, 255] : [255, 255, 255, 0]);
         });
     }
+}
+
+for (const mode of ["map", "sync", "retained", "stream", "command"] as const) {
+    it.each([
+        { operands: ["first.miff", "middle.miff", "second.miff"], quiet: false },
+        { operands: ["second.miff", "middle.miff", "first.miff"], quiet: false },
+        { operands: ["middle.miff"], quiet: false },
+        { operands: ["first.miff", "middle.miff", "second.miff"], quiet: true },
+    ])(`names empty trim inputs in operand order (${mode}): $operands, quiet=$quiet`, async ({ operands, quiet }) => {
+        const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+        const args = ["-size", "3x3", "xc:white", "-write", "first.miff", "+delete",
+            "xc:black", "-write", "second.miff", "+delete", "xc:white", "-fill", "red", "-draw", "point 1,1",
+            "-write", "middle.miff", "+delete", ...operands, ...(quiet ? ["-quiet"] : []),
+            "-trim", "-format", "%f:%wx%h:%g;", "info:"];
+        let stdout = "", stderr = "";
+        const sink = { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } };
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } }, stderr: sink,
+        }) : mode === "sync" ? runMagickCliSync(args, files)
+            : await runMagickCli(args, mode === "map" ? files : {
+                filesystem, cwd: "/", ...(mode === "stream" ? { stderr: sink } : {}),
+            });
+        expect(result.exitCode).toBe(0);
+        if ("stderr" in result) stderr += result.stderr;
+        if ("stdout" in result) stdout += result.stdout;
+        expect(stdout).toBe(operands.map(name => `${name}:1x1:3x3${name === "middle.miff" ? "+1+1" : "-1-1"};`).join(""));
+        expect(stderr).toBe(quiet ? "" : operands.filter(name => name !== "middle.miff")
+            .map(name => `magick: geometry does not contain image '${name}'\n`).join(""));
+    });
 }

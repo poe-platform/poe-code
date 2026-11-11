@@ -30,7 +30,7 @@ for (const mode of ["sync", "map", "retained", "command"] as const) {
                 expect(result).toEqual({
                     exitCode: 0,
                     stdout: trim ? `1x1|${size}-1-1|False` : `${boundsWidth}x${boundsHeight}+0+0|0,0 ${boundsWidth},${boundsHeight}`,
-                    stderr: "magick: geometry does not contain image\n"
+                    stderr: trim ? "magick: geometry does not contain image 'white'\n" : "magick: geometry does not contain image\n"
                 });
             });
         }

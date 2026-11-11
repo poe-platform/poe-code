@@ -9402,7 +9402,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 metadata.alphaBlend = false;
                 metadata.alphaSeparate = false;
             }
-            return { ...metadata, isPalette: false, data: out, data16, evaluateSamples, space: "b-w", ...(luminance ? { gamma: 1 } : {}), hasAlpha, channels: hasAlpha ? 2 : 1 };
+            return { ...metadata, isPalette: false, data: out, data16, evaluateSamples, space: "b-w", ...(luminance ? { gamma: 1 } : token === "-grayscale" ? { gamma: 1 / 2.2 } : {}), hasAlpha, channels: hasAlpha ? 2 : 1 };
         };
     }
     else if (token === "-gamma" || token === "+gamma") {

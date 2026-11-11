@@ -12,7 +12,7 @@ export interface EmbossEqualization {
 }
 
 /** Native emboss diagonal Gaussian convolution followed by channel-aware equalization. */
-export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, equalization?: EmbossEqualization): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, equalization?: EmbossEqualization, writeMask?: Pick<RgbaImage, "width" | "height">): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
     const hue = !cmyk && !!image.magickColorspace && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
     const highDepth = !!(image.data16 || image.storedData16);
@@ -108,12 +108,24 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
             }
             const region = image.region;
             const position = (y * width + left) * 4;
-            const samples = pass === 1 || image.region ? yield* read(position, count * 4) : undefined;
-            // The native cache composites the region mask after convolution, before
+            const samples = pass === 1 || region || writeMask ? yield* read(position, count * 4) : undefined;
+            const protection = new Float64Array(count);
+            if (writeMask) {
+                const maskX = Math.min(left, writeMask.width - 1), maskCount = Math.min(count, writeMask.width - maskX);
+                const maskPosition = (Math.min(y, writeMask.height - 1) * writeMask.width + maskX) * 4;
+                const bytes = (yield { kind: "read", highDepth: true, image: 1, position: maskPosition, length: maskCount * 4 })!;
+                const pixels = new Uint16Array(bytes.slice().buffer);
+                for (let x = 0; x < count; x++) {
+                    const offset = Math.min(x, maskCount - 1) * 4;
+                    protection[x] = (pixels[offset]! * 0.212656 + pixels[offset + 1]! * 0.715158 + pixels[offset + 2]! * 0.072186) / 65535;
+                }
+            }
+            if (region) for (let x = 0; x < count; x++) if (!regionContains(region, left + x, y)) protection[x] = 1;
+            // The native cache composites the write mask after convolution, before
             // building the histogram. Keep HDRI values through both mask applications.
-            if (region) for (let x = 0; x < count; x++) {
-                if (regionContains(region, left + x, y)) continue;
-                const sourceAlpha = image.hasAlpha ? samples![x * stride + 3]! / 255 : 1;
+            for (let x = 0; x < count; x++) {
+                if (protection[x] === 0) continue;
+                const sourceAlpha = protection[x]! * (image.hasAlpha ? samples![x * stride + 3]! / 255 : 1);
                 const editedAlpha = image.hasAlpha ? sums[x * stride + 3]! / 255 : 1;
                 for (let channel = 0; channel < stride; channel++) if (channel !== 3) sums[x * stride + channel] = samples![x * stride + channel]! * sourceAlpha + sums[x * stride + channel]! * editedAlpha * (1 - sourceAlpha);
                 sums[x * stride + 3] = samples![x * stride + 3]!;
@@ -132,8 +144,8 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
                     const value = sums[x * stride + channel]!;
                     let equalized = black === width * height ? value : lookup[bin(value)]!;
                     // Equalization writes through the same mask using the convolved source.
-                    if (region && !regionContains(region, left + x, y)) {
-                        const sourceAlpha = image.hasAlpha ? sums[x * stride + 3]! / 255 : 1;
+                    if (protection[x] !== 0) {
+                        const sourceAlpha = protection[x]! * (image.hasAlpha ? sums[x * stride + 3]! / 255 : 1);
                         const editedAlpha = image.hasAlpha ? (black === width * height ? sums[x * stride + 3]! : lookup[bin(sums[x * stride + 3]!)]!) / 255 : 1;
                         equalized = channel === 3 ? value : value * sourceAlpha + equalized * editedAlpha * (1 - sourceAlpha);
                     }

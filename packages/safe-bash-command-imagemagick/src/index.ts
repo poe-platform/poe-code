@@ -13309,7 +13309,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const geometry = parseMagickGeometry(normalized);
                 const channels = state.channelExplicit ? state.channels : undefined;
                 const equalization: EmbossEqualization | undefined = !channels && im.metaChannels?.length ? {} : undefined;
-                const result = yield* applyMagickRasterSteps(im, embossPixelSteps(im, geometry, channels, state.virtualPixel, state.background, equalization), signal);
+                const result = yield* applyMagickRasterSteps(im, embossPixelSteps(im, geometry, channels, state.virtualPixel, state.background, equalization, im.writeMask), signal, im, im.writeMask ? [im, im.writeMask] : [im]);
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
                     for (const [index, plane] of im.metaChannels.entries()) {
@@ -13319,7 +13319,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     }
                 }
                 return result;
-            }, undefined, true);
+            }, "unmasked", true);
         }
         else if (t === "-white-balance") {
             const toLab = parseMagickPixelOperation(["-colorspace", "Lab"], state, 0, signal)!;
@@ -17231,7 +17231,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 validateMagickTransformGeometry(normalized, token);
                 const geometry = parseMagickGeometry(normalized);
                 const equalization: EmbossEqualization | undefined = !channels && image.storedMetaChannels?.length ? {} : undefined;
-                const result = await transformStoredMagickRaster(image, backend, embossPixelSteps(image, geometry, channels, virtualPixel, background, equalization), signal);
+                const result = await transformStoredMagickRaster(image, backend, embossPixelSteps(image, geometry, channels, virtualPixel, background, equalization, image.storedWriteMask), signal, image, image.storedWriteMask ? [image, image.storedWriteMask] : [image]);
                 if (image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries())
@@ -17239,7 +17239,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             embossPixelSteps(plane, geometry, channels ? { r: true, g: true, b: true, a: false } : undefined, virtualPixel, background, equalization), signal) : plane);
                 }
                 return result;
-            }, { handlesRegion: true }));
+            }, { maskAlpha: "unmasked" as const, handlesRegion: true }));
         } else if (!operandsOnly && token === "-canny") {
             const spec = tokens[++i] ?? "0x1+10%+30%", channels = state.channelExplicit ? { ...state.channels } : undefined, virtualPixel = state.virtualPixel, background = state.background;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, cannyPixelSteps(image, spec, channels, virtualPixel, background), signal, { ...image, hasAlpha: false }) : undefined);

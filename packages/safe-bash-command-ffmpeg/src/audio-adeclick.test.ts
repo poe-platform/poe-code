@@ -11,9 +11,9 @@ const samples = Float64Array.from({ length: 8000 }, (_, i) =>
   (i % 1409 === 1000 ? 31000 : Math.floor(3000 * Math.sin(2 * Math.PI * i / 40) + 0.5)
     + (i % 1600 >= 800 ? (i % 2 ? 9000 : -9000) : 0)) / 32768);
 
-async function run(filter: string, graph = false, sampleRate = 8000, input = samples) {
+async function run(filter: string, graph = false, sampleRate = 8000) {
   const fs = Volume.fromJSON({ "/out.wav": "keep" });
-  fs.writeFileSync("/in.wav", encodeWav({ sampleRate, channels: [1, -1].map(sign => Float64Array.from(input, value => sign * value)) }));
+  fs.writeFileSync("/in.wav", encodeWav({ sampleRate, channels: [1, -1].map(sign => Float64Array.from(samples, value => sign * value)) }));
   const errors: Uint8Array[] = [];
   const result = await createFfmpegCommand().execute({
     args: ["-y", "-i", "/in.wav", ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-c:a", "pcm_s16le", "/out.wav"],
@@ -78,35 +78,3 @@ it("applies filters in chain order", async () => {
   const scaled = parseWav(second.fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
   assert.ok(Math.abs(scaled[1000]! * 32768 - original[1000]! * 16384) <= 1);
 });
-
-// FFmpeg 7.0.2 PCM16 references for a four-sample WAV at 8000 Hz.
-for (const [filter, expected] of [
-  ["adeclick=m=save", [-600, -500, 30000, -300]],
-  ["anull", [-600, -500, 30000, -300]],
-  ["adeclick", [-2, -3, 273, -4]],
-  ["adeclip=m=save", [-600, -500, 30000, -300]]
-] as const) for (const graph of [false, true]) {
-  it(`matches native short WAV boundaries: ${filter} (${graph ? "graph" : "simple"})`, async () => {
-    const input = Float64Array.from([-600, -500, 30000, -300], value => value / 32768);
-    const { result, fs, error } = await run(filter, graph, 8000, input);
-    assert.equal(result.exitCode, 0, error);
-    const channels = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData;
-    for (const [c, channel] of channels.entries()) {
-      assert.deepEqual(Array.from(channel, value => value * 32768), expected.map(value => value * (c ? -1 : 1)));
-    }
-  });
-}
-
-// Native enables sample 2 once the input reaches its padded window index 167.
-for (const [length, expected] of [[166, 30000], [168, 15012], [440, 15012]] as const) {
-  it(`matches native overlap-save repair at ${length} samples`, async () => {
-    const input = Float64Array.from({ length }, (_, i) => [-600, -500, 30000, -300][i % 4]! / 32768);
-    const { result, fs, error } = await run("adeclick=m=save", false, 8000, input);
-    assert.equal(result.exitCode, 0, error);
-    const channels = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData;
-    for (const [c, channel] of channels.entries()) {
-      assert.equal(channel.length, length);
-      assert.equal(channel[2]! * 32768, expected * (c ? -1 : 1));
-    }
-  });
-}

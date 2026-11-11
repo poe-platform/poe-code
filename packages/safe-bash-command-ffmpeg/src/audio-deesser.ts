@@ -26,7 +26,8 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function deessAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
-  budget: MediaBudgetTracker, signal?: AbortSignal
+  budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<Float64Array[]> {
   let enable: string | undefined;
   const options = { i: 0, m: 0.5, f: 0.5, s: 1 };
@@ -86,11 +87,21 @@ export async function deessAudio(
   budget.allocateMemory(frames.length * 8 + 80);
   const registers = new Float64Array(10);
   const enabled: boolean[] = [];
+  let commandIndex = 0;
   for (const [n, frame] of frames.entries()) {
     if (n % 1024 === 0) {
       await yieldTurn(signal);
       signal?.throwIfAborted();
       budget.checkCpu();
+    }
+    while (commandIndex < commands.length && commands[commandIndex]!.sample <= frame.start) {
+      const command = commands[commandIndex++]!;
+      if (command.action !== "enable") continue;
+      try {
+        parseFilterExpression(command.expression, "deesser enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 }, undefined, new Float64Array(10));
+        enable = command.expression;
+        registers.fill(0);
+      } catch { /* Native asendcmd retains the previous expression after a rejected command. */ }
     }
     if (enable === undefined) {
       enabled.push(true);

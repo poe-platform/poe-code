@@ -13737,7 +13737,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const evaluate = words[0] === "[expr]";
                           if (words[0] === "[enter]" || leave || evaluate) words.shift();
                           const [target, action, expression] = words;
-                          const supported = action === "enable" && ["tremolo", "vibrato", "dcshift"].some(name => target === name || target?.startsWith(`${name}@`))
+                          const supported = action === "enable" && ["tremolo", "vibrato", "dcshift", "deesser"].some(name => target === name || target?.startsWith(`${name}@`))
                             || target === "silenceremove" || target?.startsWith("silenceremove@")
                             || action === "tempo" && (target === "atempo" || target?.startsWith("atempo@"))
                             || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
@@ -14753,7 +14753,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredSampleFormat = "dblp";
                           statsScale = 1;
                         } else if (filterName === "deesser") {
-                          stretched = await deessAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                          const commands = audioCommands.filter(command => command.target === "deesser" || command.target === filterTarget)
+                            .sort((a, b) => a.sample - b.sample);
+                          audioCommands = audioCommands.filter(command => command.target !== "deesser" && command.target !== filterTarget);
+                          stretched = await deessAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal, commands);
                         } else if (filterName === "aexciter") {
                           const commands = audioCommands.filter(command => command.target === "aexciter" || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);

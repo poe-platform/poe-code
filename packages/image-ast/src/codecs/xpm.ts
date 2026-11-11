@@ -55,7 +55,8 @@ function* xpmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
     let rgba: number[];
     if (color.toLowerCase() === "none") { rgba = [0, 0, 0, 0]; hasAlpha = true; }
     else if (color.startsWith("#")) {
-      const hex = color.slice(1).toLowerCase(), digits = hex.length / 3;
+      // XPM accepts a trailing alpha component but only None enables transparency.
+      const hex = color.slice(1).toLowerCase(), digits = hex.length / (hex.length % 3 === 0 ? 3 : 4);
       if (![1, 2, 3, 4].includes(digits) || [...hex].some(char => !"0123456789abcdef".includes(char))) throw new Error("Invalid XPM color");
       rgba = [0, 1, 2].map(channel => Math.round(parseInt(hex.slice(channel * digits, (channel + 1) * digits), 16) * 65535 / (16 ** digits - 1)));
       rgba.push(65535);

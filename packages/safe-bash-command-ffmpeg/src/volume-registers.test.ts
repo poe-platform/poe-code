@@ -56,7 +56,7 @@ it("resets registers when a command replaces the expression", async () => {
 for (const expression of ["st(0)", "st(0,1,2)", "ld(0,1)", "st(0,unknown)"]) {
   it(`rejects ${expression} without overwriting output`, async () => {
     const { result, fs } = await run(`volume='${expression}':eval=frame`);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, 234);
     assert.equal(fs.readFileSync("/out.raw", "utf8"), "keep");
   });
 }

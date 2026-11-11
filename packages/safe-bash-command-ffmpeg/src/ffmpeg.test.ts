@@ -5565,8 +5565,8 @@ describe("decoded audio editing", () => {
   }
 
   for (const [filter, status] of [
-    ["volume=volume=invalid", 1], ["volume=wrong=0.5", 1], ["atempo=tempo=0.25", 222], ["atempo=wrong=1", 8],
-    ["volume@quiet=invalid", 1], ["atempo@fast=0.25", 222], ["unsupported@label", 1], ["volume=0.5@quiet", 1],
+    ["volume=volume=invalid", 234], ["volume=wrong=0.5", 8], ["atempo=tempo=0.25", 222], ["atempo=wrong=1", 8],
+    ["volume@quiet=invalid", 234], ["atempo@fast=0.25", 222], ["unsupported@label", 1], ["volume=0.5@quiet", 234],
     ["anull,unsupported", 1], ["unsupported,anull", 1], ["anull=invalid", 1]
   ] as const) {
     it(`rejects ${filter} without replacing output`, async () => {
@@ -9067,7 +9067,7 @@ describe("volumedetect", () => {
         "-i", "/in.wav", "-af", filter, "-f", "f32le", "-"], vfs);
       assert.equal(result.exitCode, 0, result.stderr);
       const prefix = filter.includes("@") ? "[volumedetect@meter] " : "";
-      assert.equal(result.stderr, ["n_samples: 0", "n_samples: 2400", "mean_volume: -12.0 dB", "max_volume: -6.0 dB", "histogram_6db: 600"]
+      assert.equal(result.stderr, "ffmpeg: Guessed Channel Layout: mono\n" + ["n_samples: 0", "n_samples: 2400", "mean_volume: -12.0 dB", "max_volume: -6.0 dB", "histogram_6db: 600"]
         .map(line => `${prefix}${line}\n`).join(""));
       const expected = new Uint8Array(9600);
       const view = new DataView(expected.buffer);

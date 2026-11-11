@@ -64,7 +64,7 @@ for (const expression of ["1kfoo", "1kb", "1Kii", "1KiBB", "1Q", "1e", "1E-", "1
       fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
       stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} }
     } as never);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, 234);
     assert.equal(fs.existsSync("/out.wav"), false);
   });
 }

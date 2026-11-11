@@ -41,7 +41,7 @@ for (const [filter, expected] of [
       stdin: (async function* () {})(), stdout: { async write() {} },
       stderr: { async write(b: Uint8Array) { errors.push(b); } }
     } as never);
-    assert.equal(result.exitCode, expected === null ? 1 : 0, Buffer.concat(errors).toString());
+    assert.equal(result.exitCode, expected === null ? 234 : 0, Buffer.concat(errors).toString());
     if (expected === null) {
       assert.equal(fs.readFileSync("/out.wav", "utf8"), "KEEP");
     } else {

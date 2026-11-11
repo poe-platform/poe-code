@@ -28,7 +28,7 @@ for (const [expression, expected] of [
 for (const expression of ["pow()", "pow(2)", "pow(2,3,4)", "2^", "^2"]) {
   it(`rejects ${expression} without overwriting output`, async () => {
     const { result, fs } = await run(expression);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, 234);
     assert.equal(fs.readFileSync("/out.raw", "utf8"), "keep");
   });
 }

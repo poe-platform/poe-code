@@ -45,7 +45,7 @@ for (const option of [
 ]) {
   it(`rejects volume ${option} without replacing output`, async () => {
     const { result, fs } = await run(option);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, option.endsWith("=1+") || option.endsWith("=unknown") ? 234 : 1);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "KEEP");
   });
 }

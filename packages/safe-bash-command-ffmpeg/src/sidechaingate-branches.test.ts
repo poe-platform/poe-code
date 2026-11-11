@@ -67,7 +67,7 @@ for (const graph of [
 ]) {
   it(`sidechaingate rejects invalid upstream filters without replacing output: ${graph}`, async () => {
     const { result, stderr, output } = await run(graph);
-    assert.equal(result.exitCode, 1, stderr);
+    assert.equal(result.exitCode, 234, stderr);
     assert.ok(stderr.includes("volume"), stderr);
     assert.equal(output.toString(), "KEEP");
   });

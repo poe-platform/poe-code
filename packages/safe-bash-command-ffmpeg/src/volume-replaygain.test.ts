@@ -92,7 +92,7 @@ for (const [filter, metadata, amplitude] of [
 for (const option of ["replaygain=bad", "replaygain_preamp=61", "replaygain_preamp=-61", "replaygain_preamp=NaN", "replaygain_noclip=2"]) {
   it(`rejects invalid ${option} before writing output`, async () => {
     const { result, fs } = await run(`volume=${option}`);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, ["replaygain=bad", "replaygain_preamp=NaN"].includes(option) ? 234 : 1);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
   });
 }

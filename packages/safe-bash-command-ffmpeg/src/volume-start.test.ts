@@ -26,7 +26,7 @@ for (const variable of ["startt", "startpts"]) {
         stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write(b: Uint8Array) { errors.push(b); } }
       } as never);
       if (gain === null) {
-        assert.equal(result.exitCode, 1);
+        assert.equal(result.exitCode, 234);
         assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
         return;
       }

@@ -35,7 +35,7 @@ for (const [numeric, named] of [
         stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write(b: Uint8Array) { errors.push(b); } }
       } as never);
       if (named === null) {
-        assert.equal(result.exitCode, 1);
+        assert.equal(result.exitCode, numeric!.endsWith("=bogus") ? 234 : 1);
         assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
         return;
       }

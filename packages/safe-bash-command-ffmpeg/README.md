@@ -1022,6 +1022,7 @@ Other `aformat` sample formats, options and layouts are not supported.
 These filters also work in labeled single-input audio graphs with `-map`.
 `volume` and `atempo` default to 1 and accept named primary arguments, such as
 `volume=volume=0.5` and `atempo=tempo=2`, as well as positional values.
+Invalid volume expressions return Linux FFmpeg status 234; unknown volume options return 8. Both failures emit no audio and preserve existing output files.
 `volume=` also uses gain 1; a final colon, as in `volume=0.5:` or `volume=0.5:eval=frame:`, leaves the options unchanged.
 Volume expressions support `sin(x)`, `cos(x)` (angles in radians), and `tanh(x)`, such as `volume=sin(t):eval=frame`. These functions also work in `aeval`, such as `aeval=tanh(val(ch)):c=same`.
 

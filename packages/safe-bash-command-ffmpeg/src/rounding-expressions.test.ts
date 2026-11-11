@@ -44,7 +44,7 @@ for (const [name, expected] of [
   for (const args of ["", "0,1"]) {
     it(`rejects ${name}(${args}) without overwriting output`, async () => {
       const { result, fs } = await run(`volume='${name}(${args})':eval=frame`);
-      assert.equal(result.exitCode, 1);
+      assert.equal(result.exitCode, 234);
       assert.equal(fs.readFileSync("/out.raw", "utf8"), "keep");
     });
   }

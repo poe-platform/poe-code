@@ -2277,7 +2277,7 @@ async function applyVideoFilterChain(
   frames: MediaVideoFrame[],
   filterChainStr: string,
   budget: MediaBudgetTracker,
-  diagnostics: { frameRateKnown?: boolean; sar: number; sarWidth: number; sarHeight: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void>; writeReport: (file: string, text: string) => Promise<void> },
+  diagnostics: { frameRateScale?: number; frameRateKnown?: boolean; sar: number; sarWidth: number; sarHeight: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void>; writeReport: (file: string, text: string) => Promise<void> },
   readSubtitle: (filename: string) => Promise<Uint8Array>,
   registry: ReturnType<typeof createMediaAstRegistry>,
   signal?: AbortSignal,
@@ -2294,6 +2294,7 @@ async function applyVideoFilterChain(
   let pending: AsyncIterable<typeof current[number]> | undefined;
   let pendingBounded = false;
   let frameRateKnown = true;
+  let frameRateScale = 1;
   let frameDuration = current[0]!.durationSeconds;
   let videoCommands: { time: number; target: string; action: string; expression: string }[] = [];
 
@@ -2672,7 +2673,7 @@ async function applyVideoFilterChain(
         throw new Error("showinfo: checksum must be a boolean");
       }
       if (diagnostics.logLevel < 32) continue;
-      const [timeBase, frameRate] = [1 / timescale, frameRateKnown ? 1 / frameDuration : 0].map(ratio => {
+      const [timeBase, frameRate] = [1 / timescale, frameRateKnown ? 1 / (frameDuration * frameRateScale) : 0].map(ratio => {
         // Link timing is stored in seconds; recover its reduced rational form.
         let value = ratio;
         let numerator = 1, denominator = 0, previousNumerator = 0, previousDenominator = 1;
@@ -4059,12 +4060,13 @@ async function applyVideoFilterChain(
       if (eofValue < 0 || eofValue > 1) throw new RangeError("fps: invalid eof_action value");
       // Validate options before evaluating the rate, which happens after output opens.
       const targetFps = parseFilterExpression(options.fps ?? "25", "fps: frame rate", {
-        source_fps: frameRateKnown ? 1 / (current[0]?.durationSeconds ?? 1 / timescale) : Infinity,
+        source_fps: frameRateKnown ? 1 / ((current[0]?.durationSeconds ?? 1 / timescale) * frameRateScale) : Infinity,
         ntsc: 30000 / 1001, pal: 25, film: 24, "ntsc_film": 24000 / 1001
       });
       if (targetFps === Infinity) throw new Error("fps: frame rate: The encoder timebase is not set.");
       if (targetFps <= 0) throw new Error("fps: frame rate: must be positive");
       frameRateKnown = true;
+      frameRateScale = 1;
       const rounding = roundToEven(roundValue);
       if (rounding === 4 || current.length === 0) {
         // Native accepts 4 but rescaling produces unknown timestamps, discarding every frame.
@@ -4695,6 +4697,9 @@ async function applyVideoFilterChain(
         }
       }
       const step = roundToEven(value);
+      // Framestep changes the nominal rate, not retained frame durations or EOF.
+      frameRateScale *= step;
+      if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       const variables = {
         n: 0, t: NaN, w: NaN, h: NaN, pos: NaN, NAN: NaN, INF: Infinity,
         PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
@@ -4728,8 +4733,7 @@ async function applyVideoFilterChain(
           if (!(Math.abs(parseFilterExpression(enable, "framestep enable", variables, undefined, registers)) >= 0.5)) return true;
         }
         return n % step === 0;
-      })
-        .map(frame => ({ ...frame, durationSeconds: frame.durationSeconds * step }));
+      });
     } else if (name === "field") {
       if (positional.at(-1) === "") positional.pop();
       if (positional.slice(1).some(part => !part.includes("=")) ||
@@ -5524,7 +5528,7 @@ async function applyVideoFilterChain(
       }), signal);
       timescale = 1 / timeBase;
     } else if (name === "setpts") {
-      const inputFrameRate = frameRateKnown ? 1 / (current[0]?.durationSeconds ?? 1 / timescale) : NaN;
+      const inputFrameRate = frameRateKnown ? 1 / ((current[0]?.durationSeconds ?? 1 / timescale) * frameRateScale) : NaN;
       // FFmpeg 7 advertises 1/0 after setpts, independently of frame durations.
       frameRateKnown = false;
       const expr = named.expr ?? positional[0] ?? "PTS";
@@ -5682,7 +5686,7 @@ async function applyVideoFilterChain(
     }
     // Filters that change the final frame's timing establish a new endpoint.
     const lastOutputFrame = current.at(-1);
-    if (name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "trim" && name !== "decimate" &&
+    if (name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "trim" && name !== "decimate" && name !== "framestep" &&
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;
@@ -5706,6 +5710,7 @@ async function applyVideoFilterChain(
 
   diagnostics.timescale = timescale;
   diagnostics.frameRateKnown = frameRateKnown;
+  diagnostics.frameRateScale = frameRateScale;
   return current;
 }
 
@@ -11543,6 +11548,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const decoded = await ensureDecodedFrames(t, workingDoc.timescale, budget, context.signal);
                   const diagnostics = {
                     frameRateKnown: true,
+                    frameRateScale: 1,
                     timescale: workingDoc.containerFormat === "image2" && decoded[0]?.durationSeconds
                       ? 1 / decoded[0].durationSeconds : t.timescale,
                     sarWidth: t.codecDescriptions[0]?.sarWidth ?? 1,
@@ -11600,7 +11606,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       sarHeight: diagnostics.sarHeight
                     })),
                     samples: [],
-                    decodedVideoFrames: filtered.map(frame => ({ ...frame, ptsSeconds: Math.round(frame.ptsSeconds * filteredTimescale) / filteredTimescale + offsetTicks / t.timescale }))
+                    // Encoders derive their nominal cadence from frame durations.
+                    decodedVideoFrames: filtered.map(frame => ({ ...frame,
+                      durationSeconds: frame.durationSeconds * diagnostics.frameRateScale,
+                      ptsSeconds: Math.round(frame.ptsSeconds * filteredTimescale) / filteredTimescale + offsetTicks / t.timescale }))
                   };
                 }, context.signal)
               };

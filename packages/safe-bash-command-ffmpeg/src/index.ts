@@ -2423,9 +2423,10 @@ async function applyVideoFilterChain(
         if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !action || !expression ||
             !(filter === "negate" && action === "components" || filter === "tmix" ||
               filter === "tblend" && action === "all_mode" ||
+              filter === "drawbox" && ["x", "y", "c", "color"].includes(action) ||
               (filter === "hflip" || filter === "vflip" || filter === "framestep") && action === "enable" ||
               filter === "crop" && ["w", "out_w", "h", "out_h", "x", "y"].includes(action))) {
-          throw new Error("sendcmd: expected TIME hflip[@NAME]|vflip[@NAME]|framestep[@NAME] enable EXPR or TIME negate[@NAME] components FLAGS or TIME tmix[@NAME] COMMAND VALUE or TIME tblend[@NAME] all_mode MODE or TIME crop[@NAME] w|out_w|h|out_h|x|y EXPR");
+          throw new Error("sendcmd: expected TIME hflip[@NAME]|vflip[@NAME]|framestep[@NAME] enable EXPR or TIME negate[@NAME] components FLAGS or TIME tmix[@NAME] COMMAND VALUE or TIME tblend[@NAME] all_mode MODE or TIME crop[@NAME] w|out_w|h|out_h|x|y EXPR or TIME drawbox[@NAME] x|y|c|color VALUE");
         }
         budget.allocateMemory(64);
         scheduled.push({ time, target, action, expression });
@@ -6023,26 +6024,13 @@ async function applyVideoFilterChain(
         throw new Error(`${name}: invalid replace boolean`);
       }
       const color = named.color ?? named.c ?? values[4] ?? "black";
-      const invert = color === "invert";
-      const col = parseColorRgba(invert ? "black" : color);
-      // FFmpeg uses limited-range BT.601 integer coefficients for drawbox colors.
-      const [r, g, b] = col;
-      const yuvColor = [
-        (263 * r + 516 * g + 100 * b + 512 + (16 << 10)) >> 10,
-        ((-152 * r - 298 * g + 450 * b + 511) >> 10) + 128,
-        ((450 * r - 377 * g - 73 * b + 511) >> 10) + 128
-      ];
-      const yuvAlpha = col[3] / 255;
-      // Native packed-RGB drawbox blends with single-precision arithmetic.
-      const alpha = Math.fround(col[3] / 255);
-      const inverseAlpha = Math.fround(1 - alpha);
+      let invert = color === "invert";
+      let col = parseColorRgba(invert ? "black" : color);
       const thicknessOption = named.t ?? named.thickness ?? values[5] ?? (grid ? "1" : "3");
       const replace = ["1", "true", "yes", "on"].includes(replaceOption);
-      current = await mapWork(current, async (f, n) => {
-        let work = 0;
-
+      const geometry = (frameWidth: number, frameHeight: number) => {
         const variables = {
-          iw: f.width, ih: f.height, in_w: f.width, in_h: f.height,
+          iw: frameWidth, ih: frameHeight, in_w: frameWidth, in_h: frameHeight,
           x: NaN, y: NaN, w: NaN, h: NaN, t: NaN
         };
         // Match FFmpeg's six passes so geometry can refer to later expressions.
@@ -6057,6 +6045,46 @@ async function applyVideoFilterChain(
         if (![variables.x, variables.y, variables.w, variables.h, variables.t].every(Number.isFinite)) {
           throw new Error(`${name}: invalid or unsupported expression`);
         }
+        return variables;
+      };
+      const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
+      const commands = videoCommands.filter(command => command.target === name || command.target === instance);
+      videoCommands = videoCommands.filter(command => command.target !== name && command.target !== instance);
+      commands.sort((a, b) => a.time - b.time);
+      let nextCommand = 0;
+      current = await mapWork(current, async (f, n) => {
+        let work = 0;
+        let variables = geometry(f.width, f.height);
+        while (nextCommand < commands.length && commands[nextCommand]!.time <= f.ptsSeconds) {
+          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          const command = commands[nextCommand++]!;
+          const previous = named[command.action];
+          try {
+            if (command.action === "color" || command.action === "c") {
+              const nextInvert = command.expression === "invert";
+              col = parseColorRgba(nextInvert ? "black" : command.expression);
+              invert = nextInvert;
+            } else {
+              named[command.action] = command.expression;
+              variables = geometry(f.width, f.height);
+            }
+          } catch {
+            // Rejected runtime commands leave the active box unchanged.
+            if (previous === undefined) delete named[command.action];
+            else named[command.action] = previous;
+          }
+        }
+        // FFmpeg uses limited-range BT.601 integer coefficients for drawbox colors.
+        const [r, g, b] = col;
+        const yuvColor = [
+          (263 * r + 516 * g + 100 * b + 512 + (16 << 10)) >> 10,
+          ((-152 * r - 298 * g + 450 * b + 511) >> 10) + 128,
+          ((450 * r - 377 * g - 73 * b + 511) >> 10) + 128
+        ];
+        const yuvAlpha = col[3] / 255;
+        // Native packed-RGB drawbox blends with single-precision arithmetic.
+        const alpha = Math.fround(col[3] / 255);
+        const inverseAlpha = Math.fround(1 - alpha);
         if (named.enable !== undefined && Math.abs(parseFilterExpression(named.enable, `${name} enable`, {
           n, t: f.ptsSeconds, w: f.width, h: f.height
         })) < 0.5) return f;

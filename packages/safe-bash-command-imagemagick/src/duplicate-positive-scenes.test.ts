@@ -10,6 +10,12 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     it.each([
         { operation: "-duplicate", spec: "1,+2", tail: [blue] },
         { operation: "-duplicate", spec: "1,0,+2", tail: [red, blue] },
+        { operation: "-duplicate", spec: "1,2+1", tail: [blue, green] },
+        { operation: "-duplicate", spec: "1,2+0", tail: [blue, red] },
+        { operation: "-duplicate", spec: "1,2,+1", tail: [blue, green] },
+        { operation: "-clone", spec: "2+1", tail: null },
+        { operation: "-duplicate", spec: "1,2++1", tail: null },
+        { operation: "-duplicate", spec: "1,2+", tail: null },
         { operation: "-duplicate", spec: "1,1-+2", tail: [green, blue], appendBlack: true },
         { operation: "-duplicate", spec: "1,2", tail: [blue] },
         { operation: "-duplicate", spec: "1,0,2", tail: [red, blue] },

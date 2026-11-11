@@ -9148,7 +9148,7 @@ function parseMagickIndices(spec: string, operation: "clone" | "duplicate" | "de
       continue;
     }
     const next = spec[position];
-    if (next !== undefined && next.trim() && next !== ",") throw new Error(`invalid argument ${spec}`);
+    if (next !== undefined && next.trim() && next !== "," && !(operation === "duplicate" && next === "+")) throw new Error(`invalid argument ${spec}`);
     if (!incompleteRange) parts.push(values);
   }
   return parts;

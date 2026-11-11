@@ -12767,7 +12767,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const key = separator < 0 ? ["noise", "duration", "mono"][index] : option.slice(0, separator);
                           const value = separator < 0 ? option : option.slice(separator + 1);
                           if (key === "noise" || key === "n") {
-                            noise = parseFilterExpression(value, "silencedetect", {});
+                            noise = parseFilterExpression(value, "silencedetect", {
+                              PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+                              default: 0.001, min: 0, max: Number.MAX_VALUE
+                            });
                             if (!value || Number.isNaN(noise)) throw new Error("silencedetect: invalid noise");
                             if (noise < 0 || noise > Number.MAX_VALUE) throw new RangeError("silencedetect: invalid noise");
                           } else if (key === "duration" || key === "d") {

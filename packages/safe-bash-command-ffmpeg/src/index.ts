@@ -5827,15 +5827,38 @@ async function applyVideoFilterChain(
         if (length === 0) continue;
         let picture = side === 0 ? first : last;
         if (!modes[side]) {
-          budget.allocateMemory(width * height * 4);
-          const data = new Uint8Array(width * height * 4);
-          for (let offset = 0; offset < data.length; offset += 4) {
-            if (offset % 16384 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-            data.set(color, offset);
+          const source = picture?.native;
+          if (picture && source?.rgba === picture.data && source.width === picture.width && source.height === picture.height &&
+              [29, 30, 34, 35, 104, 105].includes(source.format)) {
+            const channels = source.format === 29 || source.format === 30 ? 1
+              : source.format === 34 || source.format === 35 ? 3 : 4;
+            const littleEndian = [30, 35, 105].includes(source.format);
+            const stride = channels * 2;
+            budget.allocateMemory(picture.width * picture.height * (stride + 4));
+            const pixels = new Uint8Array(picture.width * picture.height * stride);
+            const view = new DataView(pixels.buffer);
+            // Draw in the native sample depth, before RGBA preview rounding or swscale conversion.
+            const gray = Math.round((0.299 * color[0] + 0.587 * color[1] + 0.114 * color[2]) * 257);
+            for (let pixel = 0; pixel < picture.width * picture.height; pixel++) {
+              if (pixel % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+              for (let channel = 0; channel < channels; channel++) {
+                view.setUint16(pixel * stride + channel * 2, channels === 1 ? gray : color[channel]! * 257, littleEndian);
+              }
+            }
+            const native = { ...source, pixels };
+            const data = scaleVideoPicture({ ...picture, native }, picture.width, picture.height)!;
+            picture = { ...picture, data, native: { ...native, rgba: data } };
+          } else {
+            budget.allocateMemory(width * height * 4);
+            const data = new Uint8Array(width * height * 4);
+            for (let offset = 0; offset < data.length; offset += 4) {
+              if (offset % 16384 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+              data.set(color, offset);
+            }
+            const solid = { width, height, ptsSeconds: 0, durationSeconds: duration, keyframe: true, ...picture, data };
+            delete solid.native;
+            picture = solid;
           }
-          const solid = { width, height, ptsSeconds: 0, durationSeconds: duration, keyframe: true, ...picture, data };
-          delete solid.native;
-          picture = solid;
         }
         if (!picture) continue;
         if (length === -1) {

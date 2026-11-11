@@ -13767,7 +13767,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "wet" && (target === "asubboost" || target?.startsWith("asubboost@"))
                             || ["mm", "cm", "m", "dry", "wet", "temp", "enable"].includes(action!) && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
                             || ["p", "peak"].includes(action!) && (target === "dynaudnorm" || target?.startsWith("dynaudnorm@"))
-                            || action === "limit" && (target === "alimiter" || target?.startsWith("alimiter@"))
+                            || ["limit", "enable"].includes(action!) && (target === "alimiter" || target?.startsWith("alimiter@"))
                             || action === "makeup" && ["agate", "acompressor"].some(name => target === name || target?.startsWith(`${name}@`))
                             || target === "atilt" || target?.startsWith("atilt@")
                             || target === "aexciter" || target?.startsWith("aexciter@")

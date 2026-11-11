@@ -11,7 +11,7 @@ export class AlimiterError extends Error {
 export async function limitAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
   frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[] = [{ start: 0, end: channels[0]?.length ?? 0, pts: 0 }],
-  commands: readonly { sample: number; expression: string }[] = []
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<{ channels: Float64Array[]; frames: { start: number; end: number; pts: number; pos?: number | undefined }[] }> {
   const options = { level_in: 1, level_out: 1, limit: 1, attack: 5, release: 50, asc: 0, asc_level: 0.5, level: 1, latency: 0 };
   const ranges = { level_in: [0.015625, 64], level_out: [0.015625, 64], limit: [0.0625, 1], attack: [0.1, 80], release: [1, 8000], asc: [0, 1], asc_level: [0, 1], level: [0, 1], latency: [0, 1] };
@@ -88,8 +88,13 @@ export async function limitAudio(
       const command = commands[nextCommand++]!;
       // Failed runtime commands leave the current option and DSP state intact.
       try {
-        const value = parseFilterExpression(command.expression, "alimiter", {});
-        if (Number.isFinite(value) && value >= ranges.limit[0]! && value <= ranges.limit[1]!) limit = value;
+        if (command.action === "enable") {
+          parseFilterExpression(command.expression, "alimiter enable", { t: 0, n: 0, w: 0, h: 0, pos: NaN });
+          enable = command.expression;
+        } else if (command.action === "limit") {
+          const value = parseFilterExpression(command.expression, "alimiter", {});
+          if (Number.isFinite(value) && value >= ranges.limit[0]! && value <= ranges.limit[1]!) limit = value;
+        }
       } catch { /* Native asendcmd continues after a rejected command. */ }
     }
     const gain = outputGain * (options.level ? 1 / limit : 1);

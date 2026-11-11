@@ -330,6 +330,7 @@ rate remains the source sample rate. Use `-vn` to exclude video.
 Read headerless samples, including unsigned `u16le/be`, `u24le/be`, and `u32le/be`,
 with input format, rate, and channel options:
 `ffmpeg -f s16be -ar 8000 -ac 1 -i input.pcm -c:a pcm_s16le output.wav`.
+Raw Archimedes VIDC input uses `-f vidc`: `ffmpeg -f vidc -ar 8000 -ac 1 -i pipe:0 -f s16le pipe:1` decodes its logarithmic codewords to signed little-endian PCM.
 `-ac` requires a complete integer channel count, including hexadecimal (`0x10`) and exponent (`1e1`) forms; malformed values fail before replacing output. Raw input requires a positive count; output `-ac 0` retains the input channel count.
 Raw PCM decoding ignores an incomplete trailing frame when complete frames precede it; input containing only an incomplete frame fails. Stream copy preserves all payload bytes.
 Input `-sample_rate 8000` also sets the raw PCM sample rate; place it before `-i`. After the final `-i`, `-sample_rate` is accepted without changing the output rate or samples; use output `-ar` to resample.

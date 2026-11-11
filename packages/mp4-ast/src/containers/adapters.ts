@@ -26,7 +26,7 @@ import { ircamAst } from "./ircam.js";
 import { nistSphereAst } from "./nistsphere.js";
 import { auAst } from "./au.js";
 import { aiffAst } from "./aiff.js";
-import { rawAudioAsts, mulawTable, alawTable } from "./raw-audio.js";
+import { rawAudioAsts, parseRawAudio, mulawTable, alawTable } from "./raw-audio.js";
 import { encodeAudio, scaleVideoPicture } from "@poe-code/media-codecs";
 import { compressedWavPackets, decodeCompressedWav } from "./wav-compressed.js";
 import { decodeG726, encodeG726 } from "./au-g726.js";
@@ -3358,7 +3358,11 @@ export function allMediaAsts(): MediaAstPlugin[] {
       id: "vidc",
       formatName: "vidc",
       formatLongName: "PCM Archimedes VIDC",
-      canDemux: false
+      canDemux: true,
+      parse(bytes, options) { return parseRawAudio(bytes, "vidc", options); },
+      probe(bytes, options = {}) {
+        return buildProbeResultFromDoc(parseRawAudio(bytes, "vidc", options), bytes.length, options.filename, { ...options, formatName: "vidc" });
+      }
     },
     mp3Ast(),
     flacAst(),

@@ -7715,7 +7715,7 @@ function pcmSampleFormat(codec: string | undefined): string | undefined {
   if (!codec?.startsWith("pcm_")) return undefined;
   const format = codec.slice(4);
   if (format === "u8") return "u8";
-  if (format.startsWith("s16") || format === "alaw" || format === "mulaw") return "s16";
+  if (format.startsWith("s16") || format === "alaw" || format === "mulaw" || format === "vidc") return "s16";
   if (format.startsWith("s24") || format.startsWith("s32")) return "s32";
   if (format.startsWith("s64")) return "s64";
   if (format.startsWith("f32")) return "flt";

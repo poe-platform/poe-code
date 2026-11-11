@@ -9,7 +9,7 @@ When encoding decoded frames with `serializeMp4`, use `{ forceKeyFrames: [0.5, 1
 to force H.264 keyframes at presentation times in seconds, rounded to the encoder time base.
 
 TTML subtitle export preserves cue timing, line breaks, and XML-escaped text, using FFmpeg’s default bottom-centered layout region and 384 × 288 cell resolution. SubRip serialization preserves the original packet bytes, including non-UTF-8 text. Subtitle input seeking retains cues overlapping the seek time; output seeking selects cues by their start time.
-MOV QuickTime IMA4 ADPCM input decodes to PCM, retaining the final block’s padded samples; `decodeAudio: false` preserves compressed packets for stream copy. Matroska `A_MS/ACM` PCM, including signed PCM64 in a WAV extensible header, preserves every sample bit when copied to WAV.
+Raw Archimedes VIDC input decodes logarithmic codewords to PCM with explicit sample rate and channel count. MOV QuickTime IMA4 ADPCM input decodes to PCM, retaining the final block’s padded samples; `decodeAudio: false` preserves compressed packets for stream copy. Matroska `A_MS/ACM` PCM, including signed PCM64 in a WAV extensible header, preserves every sample bit when copied to WAV.
 `serializeMpegTs(doc, { mpegtsServiceId: 42 })` sets matching PAT, PMT and SDT identifiers (1–65535, default 1), preserving elementary streams and PMT PID 4096.
 
 `serializeMp4(doc, { maxBFrames: 2 })` encodes decoded video with at most two consecutive H.264 B-frames. Zero (default) disables B-frames; positive counts are capped at 16. B-slices use PCM macroblocks, retain all pictures and preserve presentation order. Existing encoded samples remain stream copies.

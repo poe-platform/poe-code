@@ -33,14 +33,14 @@ function compandingTable(alaw: boolean): Uint8Array {
 export const mulawTable = compandingTable(false);
 export const alawTable = compandingTable(true);
 
-function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOptions = {}): MediaDocument {
+export function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOptions = {}): MediaDocument {
   const sampleRate = options.sampleRate ?? 44100;
   const channels = options.channels ?? 1;
   if (!Number.isSafeInteger(sampleRate) || sampleRate <= 0 || sampleRate > 0xffffffff ||
       !Number.isSafeInteger(channels) || channels <= 0 || channels > 65535) {
     throw new Error("Invalid raw audio sample rate or channel count");
   }
-  const bits = format === "mulaw" || format === "alaw" ? 8 : Number.parseInt(format.slice(1), 10);
+  const bits = format === "mulaw" || format === "alaw" || format === "vidc" ? 8 : Number.parseInt(format.slice(1), 10);
   const width = bits / 8;
   const frames = Math.floor(bytes.length / (width * channels));
   if (options.decodeAudio !== false && bytes.length > 0 && frames === 0) throw new Error("Incomplete raw audio sample frame");
@@ -80,6 +80,11 @@ function parseRawAudio(bytes: Uint8Array, format: string, options: ParseMediaOpt
           const magnitude = ((code & 15) * 8 + 132) * 2 ** ((code >> 4) & 7) - 132;
           // Both G.711 zero codewords decode to positive PCM zero.
           value = (code & 128 ? 0 - magnitude : magnitude) / 32768;
+        } else if (format === "vidc") {
+          // VIDC stores the sign in bit 0 and the logarithmic magnitude in bits 1–7.
+          const code = bytes[offset]!;
+          const magnitude = (((code >> 1) & 15) * 8 + 132) * 2 ** (code >> 5) - 132;
+          value = (code & 1 ? 0 - magnitude : magnitude) / 32768;
         } else if (format === "alaw") {
           const code = bytes[offset]! ^ 85;
           const exponent = (code >> 4) & 7;

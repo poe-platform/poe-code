@@ -143,7 +143,7 @@ export function finishCodecMetadata(state: CodecEntryState): Mp4CodecMetadata {
 /** Existing general-media PCM naming, shared by resident and source frame probes. */
 export function probeSampleFormat(type: MediaTrackType, codecName: string): string | undefined {
   if (type !== 'audio') return undefined;
-  return ({ pcm_u8: 'u8', pcm_s8: 'u8', pcm_mulaw: 's16', pcm_alaw: 's16',
+  return ({ pcm_u8: 'u8', pcm_s8: 'u8', pcm_mulaw: 's16', pcm_alaw: 's16', pcm_vidc: 's16',
     pcm_s16le: 's16', pcm_s16be: 's16', pcm_s24le: 's32', pcm_s24be: 's32',
     pcm_s64le: 's64', pcm_s32le: 's32', pcm_s32be: 's32', pcm_f32le: 'flt', pcm_f32be: 'flt', pcm_f64le: 'dbl', pcm_f64be: 'dbl' } as Record<string, string>)[codecName] ?? 'fltp';
 }

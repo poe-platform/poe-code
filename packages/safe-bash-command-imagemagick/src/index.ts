@@ -332,10 +332,25 @@ function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly
     const a = round(parseInt(s.slice(13, 17), 16) / 257);
     return { r, g, b, a };
   }
-  const fnMatch = /^(s?rgba?|gr[ae]ya?|cmyka?)\(\s*([^)]+)\s*\)$/i.exec(s);
+  const fnMatch = /^(s?rgba?|gr[ae]ya?|cmyka?|lab|cielab)\(\s*([^)]+)\s*\)$/i.exec(s);
   if (fnMatch) {
     const kind = fnMatch[1]!.toLowerCase();
     const parts = fnMatch[2]!.split(/[\s,]+/).filter(Boolean);
+    if (kind === "lab" || kind === "cielab") {
+      const components = parts.map(part => Number(part.endsWith("%") ? part.slice(0, -1) : part) * (part.endsWith("%") ? 2.55 : 1));
+      if (components.length !== 3 || components.some(value => !Number.isFinite(value))) return baseParseColor(s);
+      // Native percent components use the 0–255 scale, including lightness;
+      // signed chroma is offset by (QuantumRange + 1) / 2.
+      const conversion = convertHuePixels({
+        width: 1, height: 1, data: new Uint8Array(4), format: "raw", space: "srgb",
+        channels: 3, depth: "ushort", density: 72, hasAlpha: false, magickColorspace: "CIELab",
+        hueSamples: new Float64Array([components[0]! / 100, components[1]! / 255 + 32768 / 65535, components[2]! / 255 + 32768 / 65535, 1]),
+      }, "sRGB");
+      let step = conversion.next();
+      while (!step.done) step = conversion.next();
+      const [r, g, b] = step.value.evaluateSamples!.slice(0, 3).map(value => round(Math.max(0, Math.min(255, value))));
+      return { r: r!, g: g!, b: b!, a: 255 };
+    }
     const parseChanByte = (p: string | undefined, def = 0) => {
       if (!p) return def;
       if (p.endsWith("%")) {

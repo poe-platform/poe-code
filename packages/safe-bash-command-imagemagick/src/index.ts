@@ -3169,7 +3169,8 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                     next = cur - (isPct ? (rawNum / 100) * 65536 / 257 : vByte);
                     break;
                 case "multiply":
-                    next = cur * vFactor;
+                    // Store the product as a native Q16-HDRI float32 Quantum.
+                    next = Math.fround(Math.fround(cur * 257) * vFactor) / 257;
                     break;
                 case "divide":
                     next = cur / (vFactor || 1);

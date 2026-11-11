@@ -2063,7 +2063,7 @@ function* formatTxtEnumerationSteps(img: RgbaImage, depth?: number): Generator<v
     return lines.join("\n") + "\n";
 }
 
-function* formatHistogramOutputSteps(img: RgbaImage): Generator<void, string, void> {
+function* formatHistogramOutputSteps(img: RgbaImage, precision = 6): Generator<void, string, void> {
     const source = img.space === "cmyk" || img.space === "b-w" || img.space === "grey16";
     const colorspace = img.space === "cmyk" ? "cmyk" : source ? img.gamma === 1 && img.magickColorspace !== "Gray" ? "lineargray" : "gray" : "srgb";
     const floating = source || img.space === "srgb" && img.evaluateSamples !== undefined && (!img.magickColorspace || img.magickColorspace === "RGB");
@@ -2079,7 +2079,7 @@ function* formatHistogramOutputSteps(img: RgbaImage): Generator<void, string, vo
     for (const [key, cnt] of [...counts.entries()].sort(([a], [b]) => typeof a !== "string" && typeof b !== "string" ? a < b ? -1 : a > b ? 1 : 0 : 0)) {
         if (++work % 16384 === 0)
             yield;
-        lines.push(floating ? floatingHistogramLine(key as bigint, cnt, img.hasAlpha, (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8, colorspace) : typeof key === "string" ? `  ${cnt}: ${key}` : histogramLine(key, cnt, img.hasAlpha, (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8));
+        lines.push(floating ? floatingHistogramLine(key as bigint, cnt, img.hasAlpha, (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8, colorspace, precision) : typeof key === "string" ? `  ${cnt}: ${key}` : histogramLine(key, cnt, img.hasAlpha, (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8, precision));
     }
     return lines.join("\n") + "\n";
 }
@@ -14265,7 +14265,7 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
             const width = Math.max(1, Math.round(geometry.width ?? 1)), height = Math.max(1, Math.round(geometry.height ?? 1));
             for (let index = 0; index < stack.length; index++) {
                 let source = stack[index]!;
-                if (!histogramInfo || state.formatStr && (state.formatStr.includes("%c") || state.formatStr.includes("%[comment]"))) source = { ...source, properties: { ...source.properties, comment: yield* formatHistogramOutputSteps(source) } };
+                if (!histogramInfo || state.formatStr && (state.formatStr.includes("%c") || state.formatStr.includes("%[comment]"))) source = { ...source, properties: { ...source.properties, comment: yield* formatHistogramOutputSteps(source, state.precision) } };
                 stack[index] = yield* applyMagickRasterSteps({ ...source, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, channels: source.space === "cmyk" ? 4 : source.space === "b-w" || source.space === "grey16" ? 1 : 3 }, histogramPixelSteps(source, width, height, state.channels), signal, { width, height, hasAlpha: false });
             }
         }
@@ -14279,7 +14279,7 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
             const firstScene = state.scene ?? source?.outputScene ?? source?.sceneIdx ?? 0;
             const formatted: string[] = [];
             for (const [idx, im] of stack.entries()) {
-                formatted.push(histogramComment ? yield* formatHistogramOutputSteps(im) : state.formatStr !== undefined
+                formatted.push(histogramComment ? yield* formatHistogramOutputSteps(im, state.precision) : state.formatStr !== undefined
                     ? yield* formatMagickPropertyStringSteps(state.formatStr, im, () => im, {
                         ...(im as MagickImage)[magickInput], fxStack: stack, outputFilePath: outSpec.slice(5), interpolation: state.interpolation, ...(state.precision !== undefined ? { precision: state.precision } : {}), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, trimPercentBackground: state.trimPercentBackground, trimBackgroundColor: state.trimBackgroundColor, analysis, sceneIdx: idx, outputScene: firstScene + idx, sceneCount: histogramInfo ? 1 : stack.length, ...(histogramInfo ? { listIndex: 0 } : {}), ...(state.qualityExplicit ? { quality: state.quality } : {}), channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr }
                     })
@@ -14333,7 +14333,7 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
             return { exitCode: 0, stdout: "", stderr: "" };
         }
         if (outLower.startsWith("histogram:")) {
-            const hist = (yield* formatHistogramOutputSteps(finalImg));
+            const hist = (yield* formatHistogramOutputSteps(finalImg, state.precision));
             return { exitCode: 0, stdout: hist, stderr: "" };
         }
         const { format, path: outPath, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png");
@@ -17690,7 +17690,7 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
                 let source = (await stack.get(index))!;
                 if (!histogramInfo || state.formatStr && (state.formatStr.includes("%c") || state.formatStr.includes("%[comment]"))) {
                     let comment = "";
-                    for await (const part of storedHistogram(source, backend.storage, signal)) comment += part;
+                    for await (const part of storedHistogram(source, backend.storage, signal, state.precision)) comment += part;
                     source = { ...source, properties: { ...source.properties, comment } };
                 }
                 await stack.set(index, await transformStoredMagickRaster({ ...source, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, channels: source.space === "cmyk" ? 4 : source.space === "b-w" || source.space === "grey16" ? 1 : 3 }, backend, histogramPixelSteps(source, width, height, state.channels), signal, { width, height, hasAlpha: false }));
@@ -17720,7 +17720,7 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
                     if (sparse) { yield* storedSparseColor(frame, backend.storage, signal, state.precision); continue; }
                     if (ftxt) { yield* storedFtxt(frame, backend.storage, signal, state.ftxtFormat); continue; }
                     if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal, state.inputDepth); continue; }
-                    if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal); continue; }
+                    if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal, state.precision); continue; }
                     if (index && state.formatStr === undefined) yield "\n";
                     const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], outputFilePath: outSpec.slice(5), interpolation: state.interpolation, ...(state.precision !== undefined ? { precision: state.precision } : {}), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, trimPercentBackground: state.trimPercentBackground, trimBackgroundColor: state.trimBackgroundColor, analysis, sceneIdx: index, outputScene: firstScene + index, sceneCount: histogramInfo ? 1 : stack.length, ...(histogramInfo ? { listIndex: 0 } : {}), ...(state.qualityExplicit ? { quality: state.quality } : {}), channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr } }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
                     if (formatted) last = formatted.at(-1)!;
@@ -17729,7 +17729,7 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
                 if (!analysis.errors && !text && !ftxt && state.formatStr === undefined && last !== "\n") yield "\n";
             }
             try {
-                const parts = info || text || ftxt ? information() : storedHistogram(image, backend.storage, signal);
+                const parts = info || text || ftxt ? information() : storedHistogram(image, backend.storage, signal, state.precision);
                 const chunks = encodeText(parts, signal), target = sparse ? outSpec.slice(13) : info || lower.startsWith("ftxt:") ? outSpec.slice(5) : ftxt ? outSpec : lower.startsWith("txt:") ? outSpec.slice(4) : text ? outSpec : "-";
                 if (target && target !== "-") {
                     if (sparse && (hasSceneOutputPattern(target, state.filenameLiteral) || (stack.length > 1 && !state.adjoin))) {

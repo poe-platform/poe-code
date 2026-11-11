@@ -43,7 +43,7 @@ export function gray16EnumerationLine(x: number, y: number, gray: number, alpha:
     const color = hex(gray).padStart(4, "0").repeat(3);
     return `${x},${y}: (${gray}${alpha === undefined ? "" : `,${alpha}`})  #${color}${alpha === undefined ? "" : hex(alpha).padStart(4, "0")}  ${colorspace}(${value}${alpha === undefined ? "" : `,${Number((working ? working[3]! / 255 : alpha / 65535).toPrecision(6))}`})`;
 }
-export function histogramLine(key: number | bigint, count: number, hasAlpha: boolean, highDepth = typeof key === "bigint"): string {
+export function histogramLine(key: number | bigint, count: number, hasAlpha: boolean, highDepth = typeof key === "bigint", precision = 6): string {
     const sourceMaximum = typeof key === "bigint" ? 65535 : 255;
     const maximum = highDepth ? 65535 : 255;
     const samples = (typeof key === "bigint"
@@ -56,7 +56,7 @@ export function histogramLine(key: number | bigint, count: number, hasAlpha: boo
     if (hasAlpha) values.push(String(Number((samples[3]! / maximum).toPrecision(6))));
     const name = !percent && !hasAlpha
         ? histogramColorNames[(Number(values[0]) << 16) | (Number(values[1]) << 8) | Number(values[2])] : undefined;
-    return `${hasAlpha && !highDepth ? `  ${count}` : String(count).padStart(14)}: (${samples.join(",")}) #${samples.map(value => hex(value).padStart(highDepth ? 4 : 2, "0")).join("")} ${name ?? `srgb${hasAlpha ? "a" : ""}(${values.join(",")})`}`;
+    return `${hasAlpha && !highDepth ? `  ${count}` : String(count).padStart(14)}: (${samples.map(value => formatSignificantMetric(value, precision)).join(",")}) #${samples.map(value => hex(value).padStart(highDepth ? 4 : 2, "0")).join("")} ${name ?? `srgb${hasAlpha ? "a" : ""}(${values.join(",")})`}`;
 }
 export function sourceHistogramSamples(data: Uint8Array | Uint16Array | Float64Array, cmyk: boolean, inks?: Float64Array): Float64Array {
     const samples = data instanceof Float64Array ? data : Float64Array.from(data, value => value / (data instanceof Uint16Array ? 257 : 1));
@@ -75,7 +75,7 @@ export function floatingHistogramKey(samples: Float64Array, hasAlpha: boolean): 
     }
     return key;
 }
-export function floatingHistogramLine(key: bigint, count: number, hasAlpha: boolean, highDepth: boolean, colorspace = "srgb"): string {
+export function floatingHistogramLine(key: bigint, count: number, hasAlpha: boolean, highDepth: boolean, colorspace = "srgb", precision = 6): string {
     const bits = new DataView(new ArrayBuffer(8));
     const samples = [...(colorspace === "cmyk" ? [256n] : []), 192n, 128n, 64n, ...(hasAlpha ? [0n] : [])].map(shift => {
         const value = BigInt.asUintN(64, key >> shift);
@@ -84,7 +84,7 @@ export function floatingHistogramLine(key: bigint, count: number, hasAlpha: bool
     });
     if (colorspace === "srgb" && samples.every(value => Number.isInteger(value) && value >= 0 && value <= 255)) {
         const packed = samples.reduce((key, value) => key * 256 + value, 0) * (hasAlpha ? 1 : 256);
-        return histogramLine(packed, count, hasAlpha, highDepth);
+        return histogramLine(packed, count, hasAlpha, highDepth, precision);
     }
     const scale = highDepth ? 257 : 1, maximum = highDepth ? 65535 : 255;
     const color = samples.map(value => hex(Math.round(Math.max(0, Math.min(maximum, value * scale)))).padStart(highDepth ? 4 : 2, "0")).join("");
@@ -92,9 +92,9 @@ export function floatingHistogramLine(key: bigint, count: number, hasAlpha: bool
     const percent = colorspace !== "cmyk" && (colorspace === "srgb" || channels.some(value => Math.abs(value - Math.round(value)) > 1e-9));
     const values = channels.map(value => percent ? `${Number((value * 100 / 255).toPrecision(6))}%` : String(Number(value.toPrecision(6))));
     if (hasAlpha) values.push(String(Number((samples.at(-1)! / 255).toPrecision(6))));
-    return `${colorspace === "srgb" ? `  ${count}` : String(count).padStart(14)}: (${samples.map(value => colorspace === "srgb" ? Number((value * scale).toPrecision(6)) : formatSignificantMetric(value * scale)).join(",")}) #${color} ${colorspace}${hasAlpha ? "a" : ""}(${values.join(",")})`;
+    return `${colorspace === "srgb" ? `  ${count}` : String(count).padStart(14)}: (${samples.map(value => formatSignificantMetric(value * scale, precision)).join(",")}) #${color} ${colorspace}${hasAlpha ? "a" : ""}(${values.join(",")})`;
 }
-async function* storedFloatingHistogram(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal): AsyncGenerator<string> {
+async function* storedFloatingHistogram(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal, precision = 6): AsyncGenerator<string> {
     const cmyk = image.space === "cmyk", gray = image.space === "b-w" || image.space === "grey16";
     const colorspace = cmyk ? "cmyk" : gray ? image.gamma === 1 && image.magickColorspace !== "Gray" ? "lineargray" : "gray" : "srgb";
     const highDepth = (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8;
@@ -132,7 +132,7 @@ async function* storedFloatingHistogram(image: StoredRgbaImage & HueMetadata, st
         await yieldTurn(signal);
         for await (const [edge, value] of tree.entries(node << 16n, (node + 1n) << 16n)) {
             const key = (prefix << 16n) | (edge & 65535n);
-            if (depth === levels - 1) yield floatingHistogramLine(key, Number(value), image.hasAlpha, highDepth, colorspace) + "\n";
+            if (depth === levels - 1) yield floatingHistogramLine(key, Number(value), image.hasAlpha, highDepth, colorspace, precision) + "\n";
             else yield* visit(value, depth + 1, key);
         }
     }
@@ -237,9 +237,9 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
         }
     }
 }
-export async function* storedHistogram(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal): AsyncGenerator<string> {
+export async function* storedHistogram(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal, precision = 6): AsyncGenerator<string> {
     if (image.space === "cmyk" || image.space === "b-w" || image.space === "grey16" || image.space === "srgb" && image.storedEvaluateSamples !== undefined && (!image.magickColorspace || image.magickColorspace === "RGB")) {
-        yield* storedFloatingHistogram(image, storage, signal);
+        yield* storedFloatingHistogram(image, storage, signal, precision);
         return;
     }
     const hue = ["HCL", "HCLp", "HSI", "HSL", "HSB", "HSV", "HWB", "DisplayP3", "XYZ", "CAT02LMS", "LMS", "xyY", "ProPhoto", "YPbPr", "YCbCr", "Rec601YCbCr", "YCC", "Rec709YCbCr", "Log", "OHTA", "CMY", "YUV", "YIQ", "YDbDr", "Luv", "Oklch", "LCH", "LCHab", "LCHuv", "CIELab"].includes(image.magickColorspace ?? "");
@@ -265,7 +265,7 @@ export async function* storedHistogram(image: StoredRgbaImage & HueMetadata, sto
         let index = 0;
         for await (const [key, count] of counts.entries()) {
             if (index++ % 128 === 0) await yieldTurn(signal);
-            yield histogramLine(image.storedData16 ? key : Number(key), Number(count), image.hasAlpha, (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8) + "\n";
+            yield histogramLine(image.storedData16 ? key : Number(key), Number(count), image.hasAlpha, (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8, precision) + "\n";
         }
         if (!unique) yield "\n";
         return;
@@ -275,7 +275,7 @@ export async function* storedHistogram(image: StoredRgbaImage & HueMetadata, sto
         const key = (await order!.get(BigInt(index)))!;
         const samples = sampleOffsets ? await storage.read(image.storedHueSamples! + Number(await sampleOffsets.get(BigInt(index))) * 8, 32) : undefined;
         const hueSamples = samples ? Array.from(new Float64Array(samples.buffer.slice(samples.byteOffset, samples.byteOffset + samples.byteLength))) : undefined;
-        yield (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") ? `  ${Number(await counts.get(key))}: ${hueTextPixel([48n, 32n, 16n, 0n].map(shift => Number((key >> shift) & 65535n)), image.hasAlpha, image.magickColorspace, hueSamples)}\n` : histogramLine(Number(key), Number(await counts.get(key)), image.hasAlpha) + "\n";
+        yield (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") ? `  ${Number(await counts.get(key))}: ${hueTextPixel([48n, 32n, 16n, 0n].map(shift => Number((key >> shift) & 65535n)), image.hasAlpha, image.magickColorspace, hueSamples)}\n` : histogramLine(Number(key), Number(await counts.get(key)), image.hasAlpha, false, precision) + "\n";
     }
     if (!unique) yield "\n";
 }

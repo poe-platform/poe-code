@@ -46,7 +46,7 @@ function* xbmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
     }
     return value;
   }
-  let width = 0, height = 0, name = "", charArray = false;
+  let width = 0, height = 0, name = "", bitsPerValue = 0;
   for (;;) {
     const part = yield* token();
     if (!part) throw new Error("Invalid XBM header");
@@ -55,21 +55,21 @@ function* xbmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
       const key = yield* token(), value = Number(yield* token());
       if (key.endsWith("_width")) { width = value; name = key.slice(0, -6); }
       else if (key.endsWith("_height")) height = value;
-    } else if (part === "char") charArray = true;
+    } else if (part === "char") bitsPerValue = 8;
+    else if (part === "short") bitsPerValue = 16;
     else if (part === "[" && (yield* token()) !== "]") throw new Error("Invalid XBM array declaration");
     else if (part === "{") break;
-    else if (part === "short") throw new Error("Unsupported XBM short array");
   }
-  if (!name || !charArray || !Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width <= 0 || height <= 0 || !Number.isSafeInteger(width * height * 4)) throw new Error("Invalid XBM dimensions or array");
+  if (!name || !bitsPerValue || !Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width <= 0 || height <= 0 || !Number.isSafeInteger(width * height * 4)) throw new Error("Invalid XBM dimensions or array");
   checkLimitInputPixels(width, height, options);
   const metadata: ImageMetadata = { format: "xbm", width, height, channels: 1, space: "b-w", depth: "uchar", bitsPerSample: 1, hasAlpha: false, density: 72, size };
   yield { kind: "header", metadata };
-  const stride = Math.ceil(width / 8);
+  const stride = Math.ceil(width / bitsPerValue);
   for (let y = 0; y < height; y++) for (let column = 0; column < stride; column++) {
     if (y || column) { if ((yield* token()) !== ",") throw new Error("Invalid XBM byte separator"); }
     const literal = yield* token(), value = Number(literal);
-    if (!literal || !Number.isInteger(value) || value < 0 || value > 255) throw new Error("Invalid or truncated XBM bytes");
-    for (let bit = 0; bit < Math.min(8, width - column * 8); bit++) yield { kind: "pixel", value: value & (1 << bit) ? 0 : 255 };
+    if (!literal || !Number.isInteger(value) || value < 0 || value >= 2 ** bitsPerValue) throw new Error("Invalid or truncated XBM bytes");
+    for (let bit = 0; bit < Math.min(bitsPerValue, width - column * bitsPerValue); bit++) yield { kind: "pixel", value: value & (1 << bit) ? 0 : 255 };
   }
   let end = yield* token();
   if (end === ",") end = yield* token();

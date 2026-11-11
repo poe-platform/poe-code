@@ -6612,7 +6612,10 @@ function smushGap(value: string | undefined): number {
 function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: MagickState): Generator<void, RgbaImage, void> {
     let work = 0;
     if (stack.length === 1) {
-        const image = stack[0]!;
+        let image = stack[0]!;
+        const background = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
+        if (background.a < 255 && !image.hasAlpha)
+            image = yield* parseMagickPixelOperation(["-alpha", "set"], state, 0)!.apply(image);
         return { ...image, region: undefined,
             ...(image.writeMask ? { writeMask: yield* createSolidRgbaImageSteps(image.width, image.height, { r: 0, g: 0, b: 0, a: 255 }) } : {}),
             ...(image.readMask ? { readMask: yield* createSolidRgbaImageSteps(image.width, image.height, { r: 0, g: 0, b: 0, a: 255 }) } : {}) };
@@ -14891,7 +14894,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 const append = token.endsWith("append"), vertical = token === "-append";
                 if (append && stack.length === 1) {
-                    const image = (await stack.get(0))! as StoredRgbaImage;
+                    let image = (await stack.get(0))! as StoredRgbaImage;
+                    const background = settings.backgroundExplicit ? settings.background : image.backgroundColor ?? settings.background;
+                    if (background.a < 255 && !image.hasAlpha)
+                        image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-alpha", "set"], settings, 0)!, signal);
                     await stack.set(0, { ...image, region: undefined,
                         ...(image.storedWriteMask ? { storedWriteMask: await createStoredCanvas(image.width, image.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) } : {}),
                         ...(image.readMask ? { readMask: await createStoredCanvas(image.width, image.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) } : {}) } as StoredRgbaImage);

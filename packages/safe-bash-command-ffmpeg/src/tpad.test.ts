@@ -19,6 +19,15 @@ for (const graph of [false, true]) {
     ...["start_mode", "stop_mode"].flatMap(key =>
       ["-0.01", "1.01", "2", "NaN", "1/0", "unknown"].map(mode =>
         [`tpad=${key}=${mode}`, [], null] as const)),
+    ["select=0,tpad=start=1:stop=2:color=red", [], [3, 3, 3]],
+    ["select=0,tpad=stop=2", [], [4, 4]],
+    ["select=0,tpad=stop=2:stop_mode=clone", [], []],
+    ["select=0,tpad=start=2:start_mode=clone:stop=1", [], []],
+    ["select=0,tpad=start=1:stop=2:stop_mode=clone", [], [4]],
+    ["select=0,tpad=stop_duration=500ms", [], [4, 4]],
+    ["select=0,tpad=stop=-1,trim=end_frame=2", [], [4, 4]],
+    ["select=0,tpad", [], []],
+    ["select=0,tpad=start=2147483647", [], null],
     ["tpad=start_mode=clone:start=1", [], [0, 0, 1, 2]],
     ["tpad=stop_mode=clone:stop_duration=500ms", [], [0, 1, 2, 2, 2]],
     ["tpad=start=1:stop=1", [], [4, 0, 1, 2, 4]],

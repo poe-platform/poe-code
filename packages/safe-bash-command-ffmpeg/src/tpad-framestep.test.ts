@@ -6,6 +6,10 @@ import { createFfmpegCommand } from "./index.js";
 // Native FFmpeg: padding uses the filtered rate, while retained frames keep their durations.
 for (const graph of [false, true]) {
   for (const [filter, ids, times, durations] of [
+    ["select=0,tpad=start=1:stop=2:color=red", [76, 76, 76], [0, 1.25, 1.5], [.25, .25, .25]],
+    ["select=0,tpad=stop=2", [0, 0], [1, 1.25], [.25, .25]],
+    ["select=0,tpad=stop=2:stop_mode=clone", [], [], []],
+    ["select=0,tpad=stop=-1,trim=end_frame=2", [0, 0], [1, 1.25], [.25, .25]],
     ["tpad=stop_duration=1:stop_mode=clone", [1, 2, 3, 4, 4, 4, 4, 4], [0, .25, .5, .75, 1, 1.25, 1.5, 1.75], Array(8).fill(.25)],
     ["framestep=2,tpad=stop_duration=1:stop_mode=clone", [1, 3, 3, 3], [0, .5, 1, 1.5], [.25, .25, .5, .5]],
     ["framestep=2,tpad=stop=2:stop_mode=clone", [1, 3, 3, 3], [0, .5, 1, 1.5], [.25, .25, .5, .5]],

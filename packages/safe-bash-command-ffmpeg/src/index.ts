@@ -2362,6 +2362,7 @@ async function applyVideoFilterChain(
   let endTimeSeconds: number | undefined;
   let current: (MediaVideoFrame & { filterMetadata?: Record<string, string>; interlaced?: boolean; topFieldFirst?: boolean })[] = frames;
   if (current.length === 0) return current;
+  let { width, height } = current[0]!;
   let pending: AsyncIterable<typeof current[number]> | undefined;
   let pendingBounded = false;
   let frameRateKnown = true;
@@ -2384,6 +2385,7 @@ async function applyVideoFilterChain(
       pending = undefined;
     }
     frameDuration = current[0]?.durationSeconds || frameDuration;
+    if (current[0]) ({ width, height } = current[0]);
     const lastInputFrame = pending ? undefined : current.at(-1);
     const argStr = eqIdx >= 0 ? filterSpec.slice(eqIdx + 1).trim() : "";
     const positional = argStr.split(":");
@@ -5737,9 +5739,13 @@ async function applyVideoFilterChain(
         if (!Number.isFinite(value) || value < 0) throw new Error(`tpad: invalid ${key}`);
         if (value > 0) counts[index] = Math.round(value / duration);
       }
-      if (!first || !last) continue;
+      if (!first) {
+        if (modes[0] && counts[0] !== 0) continue;
+        if (modes[1]) counts[1] = 0;
+      }
+      if (!first && counts.every(count => count === 0)) continue;
       if (!frameRateKnown || !(duration > 0)) throw new Error("tpad: a known frame rate is required");
-      const end = endTimeSeconds ?? last.ptsSeconds + last.durationSeconds;
+      const end = endTimeSeconds ?? (last ? last.ptsSeconds + last.durationSeconds : 0);
       const start = counts[0]!;
       const stop = counts[1]!;
       const count = start + current.length + Math.max(0, stop);
@@ -5755,16 +5761,17 @@ async function applyVideoFilterChain(
         if (length === 0) continue;
         let picture = side === 0 ? first : last;
         if (!modes[side]) {
-          budget.allocateMemory(picture.width * picture.height * 4);
-          const data = new Uint8Array(picture.width * picture.height * 4);
+          budget.allocateMemory(width * height * 4);
+          const data = new Uint8Array(width * height * 4);
           for (let offset = 0; offset < data.length; offset += 4) {
             if (offset % 16384 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
             data.set(color, offset);
           }
-          const solid = { ...picture, data };
+          const solid = { width, height, ptsSeconds: 0, durationSeconds: duration, keyframe: true, ...picture, data };
           delete solid.native;
           picture = solid;
         }
+        if (!picture) continue;
         if (length === -1) {
           pendingBounded = false;
           pending = (async function* () {
@@ -5789,7 +5796,7 @@ async function applyVideoFilterChain(
         }
       }
       current = padded;
-      frameDuration = current[0]!.durationSeconds;
+      frameDuration = current[0]?.durationSeconds ?? duration;
       frameRateScale = duration / frameDuration;
       endTimeSeconds = end + (start + Math.max(0, stop)) * duration;
     } else if (name === "loop") {

@@ -70,6 +70,7 @@ import { adaptiveSharpenEdgePixelSteps, adaptiveSharpenPixelSteps } from "./adap
 import { sharpenPixelSteps } from "./sharpen-kernel.js";
 import { despecklePixelSteps } from "./despeckle-kernel.js";
 import { waveletDenoisePixelSteps } from "./wavelet-denoise-kernel.js";
+import { segmentPixelSteps } from "./segment.js";
 import { meanShiftPixelSteps, parseMeanShiftGeometry } from "./mean-shift-kernel.js";
 import { kmeansPixelSteps, parseKmeansGeometry } from "./kmeans.js";
 import { motionBlurPixelSteps } from "./motion-blur-kernel.js";
@@ -13881,6 +13882,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return geometry.iterations > 0 ? yield* applyMagickRasterSteps({ ...image, isPalette: true }, kmeansPixelSteps(image, geometry), signal) : image;
             });
         }
+        else if (t === "-segment") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
+            const raw = tokens[++i] ?? "";
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                const expanded = yield* formatMagickPropertyStringSteps(raw, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                validateMagickTransformGeometry(expanded, "-segment");
+                const geometry = parseMagickGeometry(expanded);
+                return yield* applyMagickRasterSteps(image, segmentPixelSteps(image.data.length, geometry.width ?? 1, geometry.height ?? 1), signal);
+            });
+        }
         else if (t === "-mean-shift") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const raw = tokens[++i] ?? "";
@@ -17823,6 +17834,19 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const geometry = { ...parseKmeansGeometry(expanded), seed, seedColors };
                 return geometry.iterations > 0 ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, kmeansPixelSteps(image, geometry), signal) : image;
             });
+        } else if (!operandsOnly && token === "-segment") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
+            const raw = tokens[++i] ?? "", optionProperties = state.optionProperties;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                validateMagickTransformGeometry(expanded, "-segment");
+                const geometry = parseMagickGeometry(expanded);
+                return transformStoredMagickRaster(image, backend, segmentPixelSteps(image.width * image.height * 4, geometry.width ?? 1, geometry.height ?? 1), signal);
+            });
         } else if (!operandsOnly && token === "-mean-shift") {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
@@ -18389,6 +18413,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-rotational-blur",
         "-clahe",
         "-lat",
+        "-segment",
         "-mean-shift",
         "-kmeans",
         "-local-contrast",

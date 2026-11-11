@@ -44,9 +44,10 @@ export async function deessAudio(
     }
     if (key !== "i" && key !== "m" && key !== "f" && key !== "s") throw new Error(`deesser: unsupported option ${key}`);
     const number = key === "s" && ["i", "o", "e"].includes(value) ? ["i", "o", "e"].indexOf(value) : Number(value);
-    if (!value || !Number.isFinite(number) || number < 0 || number > (key === "s" ? 2 : 1)
-      || (key === "s" && !Number.isInteger(number))) throw new Error(`deesser: invalid ${key}`);
+    if (!value || !Number.isFinite(number) || number < 0 || number > (key === "s" ? 2 : 1)) throw new Error(`deesser: invalid ${key}`);
     options[key] = number;
+    // AVOption integers validate the range before rounding, with ties to even.
+    if (key === "s") options.s = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
   }
   budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * 8, 0));
   const output = channels.map(channel => new Float64Array(channel.length));

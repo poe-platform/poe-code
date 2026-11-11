@@ -59,7 +59,22 @@ for (const filter of ["anull", "deesser", "deesser=i=0.8:s=i", "deesser=i=0.8:m=
   assert.deepEqual(Array.from(parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!), Array.from(mono));
 });
 
-for (const option of ["i=-1", "m=1.1", "f=NaN", "i=", "s=3", "s=0.5", "unknown=1"]) it(`rejects ${option} without overwriting output`, async () => {
+// Native FFmpeg rounds integer AVOptions to nearest, with exact halves to even.
+for (const [value, mode] of [[0.5, "i"], [0.6, "o"], [1.4, "o"], [1.5, "e"], [1.6, "e"]] as const) {
+  for (const graph of [false, true]) for (const positional of [false, true]) {
+    it(`deesser s=${value} matches ${mode} (graph=${graph}, positional=${positional})`, async () => {
+      const channels = [Float64Array.from({ length: 384 }, (_, i) => ((i * 7919) % 50000 - 25000) / 32768)];
+      const filter = positional ? `deesser=1:0.5:0.5:${value}` : `deesser=i=1:s=${value}`;
+      const actual = await run(filter, graph, channels);
+      const expected = await run(`deesser=i=1:s=${mode}`, graph, channels);
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      assert.equal(expected.result.exitCode, 0, expected.stderr);
+      assert.deepEqual(actual.fs.readFileSync("/out.wav"), expected.fs.readFileSync("/out.wav"));
+    });
+  }
+}
+
+for (const option of ["i=-1", "m=1.1", "f=NaN", "i=", "s=3", "s=-0.1", "s=2.1", "s=NaN", "s=Infinity", "s=", "unknown=1"]) it(`rejects ${option} without overwriting output`, async () => {
   const { fs, result } = await run(`deesser=${option}`);
   assert.equal(result.exitCode, 1);
   assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");

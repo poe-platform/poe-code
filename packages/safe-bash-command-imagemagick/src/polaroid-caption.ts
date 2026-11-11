@@ -10,7 +10,18 @@ export function* polaroidPixels(image: Parameters<typeof borderPixels>[0], borde
             .map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
         color = { ...color, cmyk: rgbToCmyk(rgb[0]!, rgb[1]!, rgb[2]!) };
     }
-    yield* borderPixels(image, border, border, color, true, border + (caption?.height ?? 0), channels);
+    const frame = borderPixels(image, border, border, color, true, border + (caption?.height ?? 0), channels);
+    let response: Uint8Array | undefined;
+    for (let step = frame.next(); !step.done; step = frame.next(response)) {
+        const request = step.value;
+        // Native polaroid makes the composed canvas opaque before bending it.
+        if (color.a !== 255 && request?.kind === "write" && !(request.hue && image.space === "cmyk")) {
+            const samples = request.evaluate || request.hue ? new Float64Array(request.data.buffer, request.data.byteOffset, request.data.byteLength / 8)
+                : new Uint16Array(request.data.buffer, request.data.byteOffset, request.data.byteLength / 2);
+            for (let i = 3; i < samples.length; i += 4) samples[i] = request.hue ? 1 : request.evaluate ? 255 : 65535;
+        }
+        response = yield request;
+    }
     if (!caption) return;
     const width = image.width + 2 * border, top = image.height + Math.floor(3 * border / 2);
     for (let y = 0; y < caption.height; y++) for (let x = 0; x < caption.width; x += 1024) {

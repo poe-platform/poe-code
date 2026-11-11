@@ -5,6 +5,7 @@ import { encodeMapImage, encodeMapFromStorage } from "./map-output.js";
 import { encodePalImage, encodePalFromStorage } from "./pal-output.js";
 import { encodeMonoImage, encodeMonoFromStorage } from "./mono-output.js";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
+import { encodeSvgImage, encodeSvgFromStorage } from "./svg-output.js";
 
 export type RawImage = RgbaImage & { rawFrames?: readonly RgbaImage[] };
 export type StoredRawImage = StoredRgbaImage & { rawFrames?: { length: number; at(index: number): Promise<StoredRgbaImage> } };
@@ -49,6 +50,7 @@ function* cHeaderBytes(bytes: Uint8Array): Generator<Uint8Array> {
 }
 
 export function encodeImage(image: RawImage, options: OutputEncodeOptions): ReturnType<typeof encodeRaster> {
+    if (options.format === "svg") return { data: encodeSvgImage(image), format: "svg", channels: image.hasAlpha ? 4 : 3 };
     if (options.format === "jpeg" && image.quality) options = { ...options, quality: image.quality, chromaSubsampling: image.quality < 90 ? "4:2:0" : "4:4:4" };
     if (options.format === "png" && (image.resolution?.x === 0 || image.resolution?.y === 0)) options = { ...options, omitPngResolution: true };
     if (options.format === "pam") options = { ...options, netpbmDepth: options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
@@ -213,6 +215,11 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
 }
 
 export async function* encodeStoredImage(image: StoredRawImage, storage: ImageByteStorage, signal: AbortSignal, options: OutputEncodeOptions): ReturnType<typeof encodeStoredRaster> {
+    if (options.format === "svg") {
+        let size = 0;
+        for await (const chunk of encodeSvgFromStorage(image, storage, signal)) { size += chunk.length; yield chunk; }
+        return { format: "svg", width: image.width, height: image.height, channels: image.hasAlpha ? 4 : 3, premultiplied: false, size };
+    }
     if (options.format === "jpeg" && image.quality) options = { ...options, quality: image.quality, chromaSubsampling: image.quality < 90 ? "4:2:0" : "4:4:4" };
     if (options.format === "png" && (image.resolution?.x === 0 || image.resolution?.y === 0)) options = { ...options, omitPngResolution: true };
     if (options.format === "pam") options = { ...options, netpbmDepth: options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };

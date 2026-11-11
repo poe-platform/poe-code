@@ -7809,6 +7809,7 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
     case "pdf":
       return "pdf";
     case "svg":
+    case "msvg":
       return "svg";
     default:
       return undefined;

@@ -12,7 +12,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
     const bgr = typeof layout === "string" && layout.startsWith("bgr"), sampleBytes = Math.min(depth, 16) / 8, pixelBytes = channels * sampleBytes;
     const coder = typeof layout === "string" ? layout.toUpperCase() : channels === 1 ? "GRAY" : channels === 2 ? "GRAYA" : channels === 3 ? "RGB" : channels === 4 ? "CMYK" : "CMYKA";
     if (interlace === "line" && layout === 1) throw new Error("ImageDoesNotHaveAnAlphaChannel in GRAY input");
-    const packed = (depth === 10 || depth === 12) && interlace === "none" && (layout === "bgr" || layout === "rgba" || layout === "bgra" || layout === "rgbo") || depth === 4 && interlace === "none" || (depth === 1 || depth === 2 || depth === 4 || depth === 10 || depth === 12) && (channels === 1 || layout === 3) || layout === 3 && Number.isInteger(depth) && depth > 8 && depth < 16;
+    const packed = layout === 2 && interlace === "none" && Number.isInteger(depth) && depth > 0 && depth < 8 || (depth === 10 || depth === 12) && interlace === "none" && (layout === "bgr" || layout === "rgba" || layout === "bgra" || layout === "rgbo") || depth === 4 && interlace === "none" || (depth === 1 || depth === 2 || depth === 4 || depth === 10 || depth === 12) && (channels === 1 || layout === 3) || layout === 3 && Number.isInteger(depth) && depth > 8 && depth < 16;
     if (floatingPoint ? depth !== 16 && depth !== 32 && depth !== 64 : !packed && depth !== 8 && depth !== 16 && (depth !== 32 || channels === 2 || typeof layout === "string" && channels > 1)) throw new Error(`unsupported ${coder} input depth '${depth}'`);
     const rowChannels = packed && interlace !== "none" ? 1 : channels;
     const rowSamples = width * channels, rowLength = Math.ceil(width * rowChannels * depth / 8);
@@ -59,6 +59,8 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                                 const sampleChannel = interlace === "none" ? i % channels : channel;
                                 let value = Math.round(sample * (sampleBytes === 1 ? 255 : 65535) / (2 ** depth - 1));
                                 if (minIsWhite) value = 255 - value;
+                                // Native bilevel GRAYA uses zero for white; alpha keeps its usual polarity.
+                                if (layout === 2 && depth === 1 && sampleChannel === 0) value = 255 - value;
                                 if ((layout === "bgro" || layout === "rgbo") && sampleChannel === 3) value = (sampleBytes === 1 ? 255 : 65535) - value;
                                 // Native 10-bit BGRA imports RGB order; 12-bit BGRA and BGR swap red and blue.
                                 const output = ((interlace === "none" ? pixel * channels + i : (pixel + i) * channels + channel) + (bgr && !(layout === "bgra" && depth === 10) && sampleChannel < 3 ? 2 - 2 * sampleChannel : 0)) * sampleBytes;

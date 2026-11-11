@@ -1,10 +1,37 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
 import { normalizeLoudness } from "./audio-loudnorm.js";
 import { MediaBudgetTracker, parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
+
+for (const [filter, peak, hash] of [
+  ["anull", 3200, "09c0bea63d4c839df5848548a90ce0795656c66b100e44fa146bae04b8c7ce35"],
+  ["aresample=192000", 3218, "648ed4129c6cba79b0640eb2d38616fcabd332a4eece6c94f9e780988135ff58"],
+  // Default-target PCM rounding varies between native builds; check its peak
+  // and first samples below instead of requiring a byte-identical hash.
+  ["loudnorm", 26029, null],
+  ["loudnorm=TP=-1", 29205, "9a950b39fda200b4a4e16c5ebed8cc70b31d2bb6ba52eb2251f78d38d933eddf"],
+  ["loudnorm=TP=-6", 16423, "bf40c58ce15d09de1e638328a189c226ae9826217310d430ee2b30f8fee9219a"]
+] as const) {
+  it(`matches native FFmpeg 7.0.2 PCM for a 4 ms mono ramp with ${filter}`, async () => {
+    const input = Float64Array.from({ length: 32 }, (_, i) => (i + 1) * 100 / 32768);
+    const { volume, result, stderr } = await run([input], filter, false, 8000, false);
+    assert.equal(result.exitCode, 0, stderr);
+    const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, filter === "anull" ? 8000 : 192000);
+    assert.equal(audio.channelData.length, 1);
+    const samples = audio.channelData[0]!;
+    assert.equal(samples.length, filter === "anull" ? 32 : 768);
+    const pcm = Buffer.alloc(samples.length * 2);
+    for (let i = 0; i < samples.length; i++) pcm.writeInt16LE(Math.round(samples[i]! * 32768), i * 2);
+    assert.equal(Math.max(...samples.map(sample => Math.abs(sample * 32768))), peak);
+    if (hash) assert.equal(createHash("sha256").update(pcm).digest("hex"), hash);
+    else assert.deepEqual(Array.from({ length: 4 }, (_, i) => pcm.readInt16LE(i * 2)), [809, 811, 817, 826]);
+  });
+}
 
 // Native FFmpeg 7.0.2 and 9.0.1 agree on these stereo square-wave fixtures.
 for (const kind of ["mix", "same", "inverse"]) for (const target of [-16, -23]) {
@@ -92,13 +119,13 @@ it("matches native dynamic loudness reports across a four-second level change", 
   });
 });
 
-async function run(input: Float64Array[], filter: string, graph = false) {
+async function run(input: Float64Array[], filter: string, graph = false, sampleRate = 48000, forceRate = true) {
   const volume = Volume.fromJSON({ "/out.wav": "keep" });
-  volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 48000, channels: input }));
+  volume.writeFileSync("/in.wav", encodeWav({ sampleRate, channels: input }));
   let stderr = "";
   const result = await createFfmpegCommand().execute({
     args: ["-y", "-v", "info", "-i", "/in.wav", ...(graph
-      ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-ar", "48000", "-c:a", "pcm_s16le", "/out.wav"],
+      ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), ...(forceRate ? ["-ar", "48000"] : []), "-c:a", "pcm_s16le", "/out.wav"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
       async readFile(path: string) { return volume.readFileSync(path); },

@@ -139,7 +139,9 @@ export async function normalizeLoudness(
   const first = input.read();
   const linear = length < window;
   const ceiling = 10 ** (targets.tp / 20);
-  let gain = (linear ? Number.isFinite(first.integrated) : first.short > -70)
+  // Ungated short clips have -Infinity integrated loudness; their gain is
+  // bounded by the true-peak ceiling below. Keep silence at unity gain.
+  let gain = (linear ? first.peak > 0 : first.short > -70)
     ? 10 ** ((targets.i - (linear ? first.integrated : first.short)) / 20) : 1;
   if (linear && first.peak) gain = Math.min(gain, ceiling / first.peak);
   const deltas = new Float64Array(30).fill(gain);

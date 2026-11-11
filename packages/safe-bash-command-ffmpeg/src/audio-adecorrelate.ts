@@ -1,9 +1,9 @@
 import { md5 } from "@noble/hashes/legacy.js";
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { parseFilterExpression } from "./filter-expression.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { audioExp2, audioTan } from "./audio-gate-math.js";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function decorrelateAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,

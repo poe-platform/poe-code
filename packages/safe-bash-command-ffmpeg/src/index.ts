@@ -1430,14 +1430,29 @@ async function panAudio(
       const key = option.slice(0, separator).trim();
       const value = option.slice(separator + 1);
       if (key === "args") expression = value;
-      else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      else if (key === "thread_type") {
+        // Scheduling flags do not change PCM; validate each set/clear operand.
+        const flags = value.trim();
+        let position = 0;
+        do {
+          if (flags[position] === "+" || flags[position] === "-") position++;
+          const start = position;
+          if (flags[position] === "+" || flags[position] === "-") position++;
+          while (position < flags.length && flags[position] !== "+" && flags[position] !== "-") position++;
+          const bits = parseFilterExpression(flags.slice(start, position), "pan", {
+            slice: 1, none: 0, all: -1, default: 1
+          });
+          if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
+            throw new RangeError("pan: invalid thread_type");
+          }
+        } while (position < flags.length);
+      }
+      else if (key === "threads" || key === "extra_hw_frames") {
         const minimum = key === "extra_hw_frames" ? -1 : 0;
-        const number = parseFilterExpression(value, "pan", key === "thread_type" ? { slice: 1, none: 0 } : {
+        const number = parseFilterExpression(value, "pan", {
           default: minimum, min: minimum, max: 2147483647
         }, undefined, new Float64Array(10));
-        if (key === "thread_type"
-          ? !Number.isInteger(number) || number < -2147483648 || number > 4294967295
-          : number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
+        if (number < minimum || number > 2147483647) {
           throw new RangeError(`pan: invalid ${key}`);
         }
         // Scheduling and hardware frame reservations do not change PCM samples.

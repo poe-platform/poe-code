@@ -2,6 +2,7 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { audioSine } from "./audio-sine.js";
 import { parseFilterBoolean } from "./filter-boolean.js";
+import { gateExp, gateLog } from "./audio-gate-math.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
@@ -142,17 +143,18 @@ export async function crushAudio(
         }
         let sample = options.mix * held + source * (1 - options.mix) * options.level_in;
         sample *= sample > 0 ? options.dc : inverseDc;
-        const y = options.mode === 1 ? scale * Math.log(Math.abs(sample)) + scale * scale : sample * coefficient;
+        // Keep log/exp rounding errors from shifting the double-precision blend.
+        const y = options.mode === 1 ? scale * gateLog(Math.abs(sample)) + scale * scale : sample * coefficient;
         // FFmpeg rounds a float coordinate with ties away from zero.
         const coordinate = Math.fround(y);
         const k = Math.sign(coordinate) * Math.floor(Math.abs(coordinate) + 0.5);
-        let crushed = options.mode === 1 ? Math.exp(k / scale - scale) : k / coefficient;
+        let crushed = options.mode === 1 ? gateExp(k / scale - scale) : k / coefficient;
         if (options.mode === 1 && sample === 0) {
           crushed = 0;
         } else {
           if (y < k - plateau || y > k + plateau) {
             const direction = y > k ? 1 : -1;
-            const adjacent = options.mode === 1 ? Math.exp((k + direction) / scale - scale) : (k + direction) / coefficient;
+            const adjacent = options.mode === 1 ? gateExp((k + direction) / scale - scale) : (k + direction) / coefficient;
             const blend = 0.5 * (audioSine(Math.PI * (Math.abs(y - k) - plateau) / options.aa - Math.PI / 2) + 1);
             crushed += (adjacent - crushed) * blend;
           }

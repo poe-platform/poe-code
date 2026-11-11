@@ -2,15 +2,21 @@ import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import { regionContains, type Region } from "./region.js";
 import { matchesAlphaFloodfill } from "./floodfill.js";
+import { magickInput, type MagickFormatContext } from "./stored-stack.js";
 
 type Frame = Pick<RgbaImage | StoredRgbaImage, "width" | "height" | "virtualCanvas" | "hasAlpha">;
 
 // Compare the original frames, never the cropped output of the previous step.
-export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: number, method: string, canvas?: Frame): Generator<
+export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: number, method: string, canvas?: Frame & { [magickInput]?: MagickFormatContext }): Generator<
     { image: 0 | 1; position: number; length: number } | undefined,
     { left: number; top: number; width: number; height: number } | undefined,
     Uint8Array | Uint16Array | undefined
 > {
+    const mask = canvas?.[magickInput]?.channelMask;
+    const channels = mask?.default ? undefined : mask;
+    // The native comparison canvas starts transparent. Without alpha updates,
+    // every copied frame stays transparent and cannot change its visible pixels.
+    if (channels && !channels.a) return;
     let left = current.width, top = current.height, right = -1, bottom = -1;
     const dx = (current.virtualCanvas?.x ?? 0) - (previous.virtualCanvas?.x ?? 0);
     const dy = (current.virtualCanvas?.y ?? 0) - (previous.virtualCanvas?.y ?? 0);
@@ -38,7 +44,13 @@ export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: numbe
                     if (!inside || priorAlpha < 127.5 || alpha >= 127.5) continue;
                 } else {
                     if (method === "compareoverlay" && alpha < 127.5) continue;
-                    if (matchesAlphaFloodfill(data[i]! / scale, data[i + 1]! / scale, data[i + 2]! / scale, alpha, inside ? prior[j]! / priorScale : 0, inside ? prior[j + 1]! / priorScale : 0, inside ? prior[j + 2]! / priorScale : 0, priorAlpha, fuzz)) continue;
+                    if (matchesAlphaFloodfill(
+                        channels?.r === false ? 0 : data[i]! / scale,
+                        channels?.g === false ? 0 : data[i + 1]! / scale,
+                        channels?.b === false ? 0 : data[i + 2]! / scale, alpha,
+                        inside && channels?.r !== false ? prior[j]! / priorScale : 0,
+                        inside && channels?.g !== false ? prior[j + 1]! / priorScale : 0,
+                        inside && channels?.b !== false ? prior[j + 2]! / priorScale : 0, priorAlpha, fuzz)) continue;
                 }
                 left = Math.min(left, x + pixel); right = Math.max(right, x + pixel);
                 top = Math.min(top, y); bottom = y;

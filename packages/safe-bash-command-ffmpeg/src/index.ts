@@ -1,3 +1,4 @@
+import { edgedetect } from "./edgedetect.js";
 import { scharr } from "./scharr.js";
 import { sobel } from "./sobel.js";
 import { parseImageSize } from "./image-size.js";
@@ -5853,6 +5854,10 @@ async function applyVideoFilterChain(
     } else if (name === "gblur") {
       current = await gblur(current, argStr, pixelFormat, budget, signal);
       if (pixelFormat === "rgba" || pixelFormat === "bgra") pixelFormat = diagnostics.pixelFormat = "gbrap";
+    } else if (name === "edgedetect") {
+      const filtered = await edgedetect(current, argStr, pixelFormat, budget, signal);
+      current = filtered.frames;
+      pixelFormat = diagnostics.pixelFormat = filtered.pixelFormat;
     } else if (name === "bilateral") {
       current = await bilateral(current, argStr, pixelFormat, budget, signal);
       if (pixelFormat === "rgba" || pixelFormat === "bgra") pixelFormat = diagnostics.pixelFormat = "gbrap";

@@ -1,6 +1,7 @@
 import { scaleVideoPicture, type MediaBudgetTracker, type MediaVideoFrame } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function lagfun(
   frames: MediaVideoFrame[], argument: string, pixelFormat: string | undefined,
@@ -49,6 +50,10 @@ export async function lagfun(
     const key = separator < 0 ? ["decay", "planes"][position++] : part.slice(0, separator).trim();
     if (separator >= 0) position = position === 0 ? 1 : 0;
     if (key === "enable") { enable = part.slice(separator + 1).trim(); continue; }
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, part.slice(separator + 1), "lagfun");
+      continue;
+    }
     update(key, separator < 0 ? part : part.slice(separator + 1));
   }
 

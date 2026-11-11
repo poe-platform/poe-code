@@ -2502,8 +2502,10 @@ function* createPatternImageSteps(width: number, height: number, pattern: Return
 
 function resolveMagickSpliceGeometry(raw: string, image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">) {
     const { width, height } = image;
-    // Rectangle geometry ends at the first comma-separated field.
-    raw = raw.split(",", 1)[0]!.replaceAll("(", "").replaceAll(")", "");
+    // Rectangle numbers end at the first comma, but percent and ratio modifiers still apply.
+    const comma = raw.indexOf(",");
+    if (comma >= 0) raw = raw.slice(0, comma) + [...raw.slice(comma + 1)].filter(character => "%:/".includes(character)).join("");
+    raw = raw.replaceAll("(", "").replaceAll(")", "");
     // GetGeometry accepts modifiers anywhere without interrupting dimensions or offsets.
     const modifiers = [...raw].filter(character => "%!<>^".includes(character)).join("");
     raw = [...raw].filter(character => !"%!<>^".includes(character)).join("") + modifiers;

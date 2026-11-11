@@ -18,6 +18,7 @@ import { mergeVp9Superframes } from "./vp9-superframe.js";
 import { authorTimecode } from "./timecode.js";
 import { parseRawVideo, serializeRawVideo, synchronizeRawVideoFrames } from "./rawvideo.js";
 import { formatYuv } from "./format-yuv.js";
+import { swapUv } from "./swapuv.js";
 import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
 import { tmix } from "./tmix.js";
@@ -3757,6 +3758,9 @@ async function applyVideoFilterChain(
         }
         return { ...f, data };
       }, signal);
+    } else if (name === "swapuv") {
+      if (argStr) throw new Error("swapuv: unsupported option");
+      current = await mapWork(current, frame => swapUv(frame, budget, signal), signal);
     } else if (name === "format") {
       let formats: string[] | undefined;
       for (const [index, part] of (argStr ? positional : []).entries()) {

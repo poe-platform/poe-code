@@ -49,3 +49,33 @@ it(`preserves default expansion after reset ${reset.join(" ")} (retained=${retai
     const names = retained ? (await filesystem.readdir("/")).map(entry => entry.name) : [...files.keys()];
     expect(names.sort()).toEqual(["frame00.png", "frame01.png"]);
 });
+
+for (const mode of ["buffered", "retained", "command", "sync"] as const)
+for (const write of ["final", "-write", "+write"])
+for (const count of [1, 2])
+for (const setting of ["literal", "default", "reset", "false"])
+it(`preserves bracketed filename properties: ${mode}, ${write}, frames=${count}, ${setting}`, async () => {
+    const filesystem = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
+    const settings = setting === "default" ? [] : ["-define", "filename:literal=true", ...(setting === "reset" ? ["+define", "filename:literal"] : setting === "false" ? ["-define", "filename:literal=false"] : [])];
+    const output = "out-%[filename:tag].ppm";
+    const args = ["xc:red", ...(count === 2 ? ["xc:lime"] : []), "-depth", "8", "-set", "filename:tag", "snap", ...settings, ...(write === "final" ? [output] : [write, output, "+append", "rgb:-"])];
+    let stdout: Uint8Array;
+    if (mode === "command") {
+        const command = createMagickCommand(), arguments_ = createCommandArguments(args);
+        const chunks: Uint8Array[] = [], errors: Uint8Array[] = [];
+        expect(await command.execute({ command: command.name, args: arguments_.args, argumentValues: arguments_, cwd: "/", env: {}, fs: filesystem, signal: new AbortController().signal, stdin: (async function* () {})(), stdout: { async write(bytes: Uint8Array) { chunks.push(bytes); } }, stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } } } as CommandContext)).toEqual({ exitCode: 0 });
+        stdout = Buffer.concat(chunks);
+        expect(Buffer.concat(errors).length).toBe(0);
+    } else {
+        const result = mode === "sync" ? runConvertCliSync(args, files) : await runMagickCli(args, mode === "buffered" ? files : { filesystem, cwd: "/" });
+        expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+        stdout = result.stdoutBytes ?? new TextEncoder().encode(result.stdout);
+    }
+    const literal = setting === "literal";
+    const name = literal ? `out-%[filename:tag]${count === 2 ? "-0" : ""}.ppm` : "out-snap.ppm";
+    const inMemory = mode === "buffered" || mode === "sync";
+    expect(inMemory ? [...files.keys()] : (await filesystem.readdir("/")).map(entry => entry.name)).toEqual([name]);
+    const red = "50360a3120310a3235350aff0000", lime = "50360a3120310a3235350a00ff00";
+    expect(Buffer.from(inMemory ? files.get(name)! : await filesystem.readFile(`/${name}`)).toString("hex")).toBe(count === 1 ? red : literal ? red + lime : lime);
+    expect(Buffer.from(stdout).toString("hex")).toBe(write === "final" ? "" : count === 1 ? "ff0000" : "ff000000ff00");
+});

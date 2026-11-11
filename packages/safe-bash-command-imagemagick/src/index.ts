@@ -2950,6 +2950,10 @@ function formatAdjoinedOutputPath(path: string, count: number, scene: number, li
     if (count > 1) {
         if (literal) {
             if (hasSceneOutputPattern(path)) return formatSceneOutputPath(path, scene, true);
+            for (let index = 0; index < path.length; index++) if (path[index] === "%") {
+                if (path[index + 1] === "%") { index++; continue; }
+                if (path[index + 1] === "[" && path.indexOf("]", index + 2) >= 0) return formatSceneOutputPath(path, scene, true);
+            }
         } else {
             for (let index = 0; index < path.length; index++) if (path[index] === "%") {
                 if (path[index + 1] === "%") { index++; continue; }
@@ -12646,7 +12650,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t !== "-identify" && i + 1 >= tokens.length) throw new Error(`missing argument '${t}'`);
             if (stack.length === 0) throw new Error(`no images for write '${t}'`);
             const writeTemplate = t === "-identify" ? "info:" : tokens[++i] ?? "";
-            const writePath = expandFilenameProperties(writeTemplate, stack[0]!.properties, state.optionProperties);
+            const writePath = state.filenameLiteral ? writeTemplate : expandFilenameProperties(writeTemplate, stack[0]!.properties, state.optionProperties);
             const jsonPath = jsonOutputPath(writePath);
             if (jsonPath !== undefined) {
                 const result = yield* writeJsonOutputSteps(stack, jsonPath, files, state.inputDepth);
@@ -14655,7 +14659,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
 function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpec: string, files: Map<string, Uint8Array>, signal: AbortSignal | undefined, analysis: ReturnType<typeof createConvertAnalysis>): Generator<void, ImageMagickCliResult, void> {
     let cooperativeWork = 63;
         const outputTemplate = outSpec;
-        outSpec = expandFilenameProperties(outSpec, stack[0]!.properties, state.optionProperties);
+        if (!state.filenameLiteral) outSpec = expandFilenameProperties(outSpec, stack[0]!.properties, state.optionProperties);
         const filenameExpanded = outSpec !== outputTemplate;
         const histogramInfo = outSpec.toLowerCase().startsWith("histogram:info:");
         const histogramComment = histogramInfo && state.formatStr === "%c";
@@ -16968,7 +16972,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async (stack, backend) => {
                 if (stack.length === 0) throw new Error(`no images for write '${token}'`);
                 const image = await stack.get(stack.length - 1);
-                const path = expandFilenameProperties(writeTemplate, (await stack.get(0))!.properties, settings.optionProperties);
+                const path = filenameLiteral ? writeTemplate : expandFilenameProperties(writeTemplate, (await stack.get(0))!.properties, settings.optionProperties);
                 const jsonPath = jsonOutputPath(path);
                 if (jsonPath !== undefined) {
                     const result = await writeStoredJsonOutput(stack, jsonPath, input, backend, signal, netpbmDepth, true);
@@ -18193,7 +18197,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
 async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickState, outSpec: string, input: ConvertFileInput, backend: CompareFileSession, signal: AbortSignal, analysis: ReturnType<typeof createConvertAnalysis>, intermediate = false): Promise<ImageMagickCliResult> {
     let image = (await stack.get(stack.length - 1))!;
         const outputTemplate = outSpec;
-        outSpec = expandFilenameProperties(outSpec, (await stack.get(0))!.properties, state.optionProperties);
+        if (!state.filenameLiteral) outSpec = expandFilenameProperties(outSpec, (await stack.get(0))!.properties, state.optionProperties);
         const filenameExpanded = outSpec !== outputTemplate;
         const histogramInfo = outSpec.toLowerCase().startsWith("histogram:info:");
         const histogramComment = histogramInfo && state.formatStr === "%c";

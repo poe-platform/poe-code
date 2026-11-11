@@ -1,3 +1,4 @@
+import { sobel } from "./sobel.js";
 import { parseImageSize } from "./image-size.js";
 import { hqdn3d } from "./hqdn3d.js";
 import { unsharp } from "./unsharp.js";
@@ -4206,6 +4207,8 @@ async function applyVideoFilterChain(
       }
     } else if (name === "avgblur") {
       current = await avgblur(current, argStr, pixelFormat, budget, signal);
+    } else if (name === "sobel") {
+      current = await sobel(current, argStr, pixelFormat, budget, signal);
     } else if (name === "unsharp") {
       current = await unsharp(current, argStr, pixelFormat, budget, signal);
     } else if (name === "negate") {

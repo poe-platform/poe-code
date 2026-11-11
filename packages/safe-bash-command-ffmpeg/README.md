@@ -1047,6 +1047,8 @@ WebVTT input `-kind subtitles|captions|descriptions|metadata` applies to the nex
 
 `-mpegts_service_id 42` sets the MPEG-TS program/service ID in PAT, PMT and SDT. IDs range from 1 through 65535 and default to 1; the PMT PID remains 4096 and stream copy preserves compressed packets.
 
+`sobel` computes edge magnitudes on 8-bit grayscale and retained planar YUV input. Options `planes`, `scale`, and `delta` (also positional) default to 15, 1, and 0. For example, `sobel=planes=2:scale=0.25:delta=16` filters only U while preserving Y and V. Numeric expressions and per-frame `enable` expressions are supported.
+
 `unsharp=5:5:1` sharpens 8-bit grayscale edges; `unsharp=5:5:-1` softens them. Luma options are `luma_msize_x`/`lx`, `luma_msize_y`/`ly`, and `luma_amount`/`la`, in that positional order (defaults: 5, 5, 1). Matrix sizes must be odd, from 3 through 23, with their sum at most 26; amount accepts -2 through 5, with zero preserving the input. Numeric expressions and per-frame `enable` expressions are supported. Other pixel formats and chroma/alpha options are unsupported.
 
 ## Features

@@ -91,7 +91,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
       for (let bit = 0; bit < 18; bit++) if (bitmap & (1 << bit)) speakers++;
       channelMask = bitmap > 0 && bitmap < 0x40000 && speakers === channels ? bitmap : undefined;
       const layouts: Record<number, string> = {
-        0x00640001: "mono", 0x00650002: "stereo", 0x006c0004: "quad", 0x00840004: "quad(side)"
+        0x00640001: "mono", 0x00650002: "stereo", 0x00730004: "4.0", 0x006c0004: "quad", 0x00840004: "quad(side)"
       };
       channelLayout = (tag & 0xffff) === channels ? layouts[tag] : undefined;
     } else if (id === 0x696e666f) {
@@ -399,7 +399,7 @@ export function cafAst(): MediaAstPlugin {
       const infoSize = entries.length ? 16 + entries.reduce((size, entry) => size + entry.length, 0) : 0;
       // FFmpeg 7.0.2 writes ITU 2/2 for quad, interpreted as quad(side).
       const layoutTags: Record<string, number> = {
-        mono: 0x00640001, stereo: 0x00650002, quad: 0x00840004, "quad(side)": 0x00840004
+        mono: 0x00640001, stereo: 0x00650002, "4.0": 0x00730004, quad: 0x00840004, "quad(side)": 0x00840004
       };
       const layoutTag = layoutTags[desc?.channelLayout ?? ""];
       const chanSize = layoutTag && (layoutTag & 0xffff) === channels ? 24 : 0;

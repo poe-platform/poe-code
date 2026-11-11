@@ -7566,6 +7566,13 @@ export function evalSyncFfmpeg(
         if (plugin.id === "au" && rawBytes.length >= 12 &&
           new DataView(rawBytes.buffer, rawBytes.byteOffset, rawBytes.byteLength).getUint32(8) === 0) return undefined;
         doc = plugin.parse(rawBytes, { seekable: !isStdin(inp.path), decodeSubtitles: subtitleCodec !== "copy", decodeAudio: audioCodec !== "copy" || !(["flac", "ogg", "wav", "w64", "aiff", "wv", "mp4", "mov", "latm"].includes(plugin.id) || plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)), filename: inp.path, budget, webvttKind: inp.webvttKind, subtitleFrameRate: inp.subtitleFrameRate, sampleRate: inp.sampleRate, channels: inp.channels, maxSize: inp.maxSize, ignoreLength: inp.ignoreLength });
+        if (audioCodec !== "copy" && plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)) {
+          doc = { ...doc, tracks: doc.tracks.map(track => {
+            const channels = track.codecDescriptions[0]?.channels ?? 0;
+            const channelLayout = [undefined, "mono", "stereo", "2.1", "4.0", "5.0", "5.1", "6.1", "7.1"][channels];
+            return { ...track, codecDescriptions: track.codecDescriptions.map(codec => ({ ...codec, channelLayout })) };
+          }) };
+        }
         if (doc.tracks.some(track => track.demuxError || track.decodeErrors?.length)) return undefined;
         const imageOutput = (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
         if (imageOutput && videoCodec === "copy") return undefined;
@@ -10389,11 +10396,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 limits: options.limits,
                 budget
               });
-              if (input?.channelLayout && plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)) {
-                const channelMask = parseAudioChannelLayout(input.channelLayout)
+              const rawChannels = document.tracks[0]?.codecDescriptions[0]?.channels ?? 0;
+              const rawLayout = input?.channelLayout ?? (audioCodec !== "copy" && rawChannels <= (input?.guessLayoutMax ?? Infinity)
+                ? [undefined, "mono", "stereo", "2.1", "4.0", "5.0", "5.1", "6.1", "7.1"][rawChannels] : undefined);
+              if (rawLayout && plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)) {
+                const channelMask = parseAudioChannelLayout(rawLayout)
                   .reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0);
                 return { ...document, tracks: document.tracks.map(track => ({ ...track,
-                  codecDescriptions: track.codecDescriptions.map(codec => ({ ...codec, channelLayout: input.channelLayout })),
+                  codecDescriptions: track.codecDescriptions.map(codec => ({ ...codec, channelLayout: rawLayout })),
                   ...(track.decodedAudio ? { decodedAudio: { ...track.decodedAudio, channelMask } } : {})
                 })) };
               }

@@ -6,10 +6,16 @@ import { createMagickCommand, runMagickCli, runConvertCliSync } from "./index.js
 
 for (const mode of ["buffered", "retained", "command", "sync"] as const)
 for (const write of [false, true])
-for (const scene of [undefined, 7])
+for (const [scene, pngNames, gifNames] of [
+    [undefined, ["out00.png", "out01.png"], ["out-0.gif", "out-1.gif"]],
+    ["0", ["out00.png", "out01.png"], ["out-0.gif", "out-1.gif"]],
+    ["+7", ["out07.png", "out08.png"], ["out-7.gif", "out-8.gif"]],
+    ["-2", ["out-2.png", "out-1.png"], ["out--2.gif", "out--1.gif"]],
+    ["-1", ["out-1.png", "out00.png"], ["out--1.gif", "out-0.gif"]],
+] as const)
 for (const [pattern, names] of [
-    ["out%02d.png", scene === undefined ? ["out00.png", "out01.png"] : ["out07.png", "out08.png"]],
-    ["out.gif", scene === undefined ? ["out-0.gif", "out-1.gif"] : ["out-7.gif", "out-8.gif"]],
+    ["out%02d.png", pngNames],
+    ["out.gif", gifNames],
 ] as const)
 it(`starts output numbering: scene=${scene}, ${mode}, write=${write}, ${pattern}`, async () => {
     const filesystem = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
@@ -24,7 +30,7 @@ it(`starts output numbering: scene=${scene}, ${mode}, write=${write}, ${pattern}
     } else {
         expect(await runMagickCli(args, mode === "buffered" ? files : { filesystem, cwd: "/" })).toMatchObject({ exitCode: 0 });
     }
-    expect((mode === "buffered" || mode === "sync") ? [...files.keys()].sort() : (await filesystem.readdir("/")).map(entry => entry.name).sort()).toEqual(names);
+    expect((mode === "buffered" || mode === "sync") ? [...files.keys()].sort() : (await filesystem.readdir("/")).map(entry => entry.name).sort()).toEqual([...names].sort());
     for (const [index, name] of names.entries()) {
         const image = decodeImage((mode === "buffered" || mode === "sync") ? files.get(name)! : await filesystem.readFile(`/${name}`));
         expect([image.width, image.height]).toEqual([1, 1]);

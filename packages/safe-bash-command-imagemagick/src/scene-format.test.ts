@@ -7,6 +7,9 @@ import { createMagickCommand, runMagickCli, runConvertCliSync } from "./index.js
 for (const mode of ["buffered", "retained", "command", "sync"] as const)
 for (const write of [false, true])
 for (const [pattern, names, scene = 0] of [
+    ["z%03d.png", ["z-01.png", "z000.png"], -1],
+    ["z%3d.png", ["z -1.png", "z  0.png"], -1],
+    ["z%d.png", ["z-1.png", "z0.png"], -1],
     ["z%02d-f%02d.png", ["z00-f00.png", "z01-f01.png"]],
     ["z%d-f%d.png", ["z0-f0.png", "z1-f1.png"]],
     ["z%02d-%%.png", ["z00-%.png", "z01-%.png"]],

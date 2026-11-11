@@ -2980,7 +2980,9 @@ function formatSceneOutputPath(pattern: string, index: number, literal = false, 
       while (pattern[end] !== undefined && pattern[end]! >= "0" && pattern[end]! <= "9") end++;
       if (pattern[end] === "d" || pattern[end] === "o" || pattern[end] === "x") {
         const width = Number(pattern.slice(cursor + 1, end));
-        path += index.toString(pattern[end] === "o" ? 8 : pattern[end] === "x" ? 16 : 10).padStart(width, pattern[cursor + 1] === "0" ? "0" : " ");
+        const number = index.toString(pattern[end] === "o" ? 8 : pattern[end] === "x" ? 16 : 10);
+        const zeroPad = pattern[cursor + 1] === "0";
+        path += index < 0 && zeroPad ? `-${number.slice(1).padStart(width - 1, "0")}` : number.padStart(width, zeroPad ? "0" : " ");
         hasScene = true;
         cursor = end;
         continue;
@@ -12743,7 +12745,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-scene") {
             state.scene = Number(tokens[++i]);
-            if (!Number.isSafeInteger(state.scene) || state.scene < 0) throw new Error("invalid scene number");
+            if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
             const scene = state.scene;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 yield;
@@ -16778,7 +16780,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-scene") {
             state.scene = Number(tokens[++i]);
-            if (!Number.isSafeInteger(state.scene) || state.scene < 0) throw new Error("invalid scene number");
+            if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
             const scene = state.scene;
             steps.push(async image => image ? { ...image, [magickInput]: { ...(image as StoredMagickImage)[magickInput], outputScene: scene } } : undefined);
             continue;

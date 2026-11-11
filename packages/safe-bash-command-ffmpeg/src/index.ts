@@ -2845,10 +2845,11 @@ async function applyVideoFilterChain(
               filter === "tblend" && action === "all_mode" ||
               filter === "deband" && ["1thr", "2thr", "3thr", "4thr"].includes(action) ||
               filter === "median" && action === "percentile" ||
+              filter === "lagfun" && ["decay", "planes"].includes(action) ||
               filter === "drawbox" && ["x", "y", "c", "color"].includes(action) ||
               (filter === "hflip" || filter === "vflip" || filter === "framestep") && action === "enable" ||
               filter === "crop" && ["w", "out_w", "h", "out_h", "x", "y"].includes(action))) {
-          throw new Error("sendcmd: expected TIME hflip[@NAME]|vflip[@NAME]|framestep[@NAME] enable EXPR or TIME negate[@NAME] components FLAGS or TIME tmix[@NAME] COMMAND VALUE or TIME tblend[@NAME] all_mode MODE or TIME crop[@NAME] w|out_w|h|out_h|x|y EXPR or TIME drawbox[@NAME] x|y|c|color VALUE or TIME deband[@NAME] 1thr|2thr|3thr|4thr VALUE or TIME median[@NAME] percentile VALUE");
+          throw new Error("sendcmd: expected TIME hflip[@NAME]|vflip[@NAME]|framestep[@NAME] enable EXPR or TIME negate[@NAME] components FLAGS or TIME tmix[@NAME] COMMAND VALUE or TIME tblend[@NAME] all_mode MODE or TIME crop[@NAME] w|out_w|h|out_h|x|y EXPR or TIME drawbox[@NAME] x|y|c|color VALUE or TIME deband[@NAME] 1thr|2thr|3thr|4thr VALUE or TIME median[@NAME] percentile VALUE or TIME lagfun[@NAME] decay|planes VALUE");
         }
         budget.allocateMemory(64);
         scheduled.push({ time, target, action, expression });
@@ -6376,7 +6377,11 @@ async function applyVideoFilterChain(
     } else if (name === "hqdn3d") {
       current = await hqdn3d(current, argStr, pixelFormat, budget, signal);
     } else if (name === "lagfun") {
-      current = await lagfun(current, argStr, pixelFormat, budget, signal);
+      const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
+      const commands = videoCommands.filter(command => command.target === name || command.target === instance);
+      videoCommands = videoCommands.filter(command => command.target !== name && command.target !== instance);
+      commands.sort((a, b) => a.time - b.time);
+      current = await lagfun(current, argStr, pixelFormat, budget, signal, commands);
     } else if (name === "atadenoise") {
       current = await atadenoise(current, argStr, pixelFormat, budget, signal);
     } else if (name === "deflicker") {

@@ -4,19 +4,14 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function lagfun(
   frames: MediaVideoFrame[], argument: string, pixelFormat: string | undefined,
-  budget: MediaBudgetTracker, signal?: AbortSignal
+  budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { time: number; action: string; expression: string }[] = []
 ): Promise<MediaVideoFrame[]> {
   let decay = Math.fround(0.95);
   let planes = 15;
-  let position = 0;
-  const parts = argument ? argument.split(":") : [];
-  if (parts.at(-1) === "") parts.pop();
-  for (const part of parts) {
-    const separator = part.indexOf("=");
-    const key = separator < 0 ? ["decay", "planes"][position++] : part.slice(0, separator).trim();
-    if (separator >= 0) position = position === 0 ? 1 : 0;
-    if (key !== "decay" && key !== "planes") throw new Error(`lagfun: unsupported option ${key ?? part}`);
-    const value = parseFilterExpression(separator < 0 ? part : part.slice(separator + 1), "lagfun", {
+  const update = (key: string | undefined, expression: string): void => {
+    if (key !== "decay" && key !== "planes") throw new Error(`lagfun: unsupported option ${key}`);
+    const value = parseFilterExpression(expression, "lagfun", {
       min: 0, max: key === "decay" ? 1 : 15, default: key === "decay" ? 0.95 : 15
     });
     if (!Number.isFinite(value) || value < 0 || value > (key === "decay" ? 1 : 15) ||
@@ -25,14 +20,33 @@ export async function lagfun(
     }
     if (key === "decay") decay = Math.fround(value);
     else planes = value;
+  };
+  let position = 0;
+  const parts = argument ? argument.split(":") : [];
+  if (parts.at(-1) === "") parts.pop();
+  for (const part of parts) {
+    const separator = part.indexOf("=");
+    const key = separator < 0 ? ["decay", "planes"][position++] : part.slice(0, separator).trim();
+    if (separator >= 0) position = position === 0 ? 1 : 0;
+    update(key, separator < 0 ? part : part.slice(separator + 1));
   }
 
   const output: MediaVideoFrame[] = [];
   const history: Float32Array[] = [];
   let work = 0;
+  let nextCommand = 0;
   for (const frame of frames) {
     signal?.throwIfAborted();
     budget.checkCpu();
+    while (nextCommand < commands.length && commands[nextCommand]!.time <= frame.ptsSeconds) {
+      if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+      const command = commands[nextCommand++]!;
+      try {
+        update(command.action, command.expression);
+      } catch {
+        // Rejected runtime commands retain the active setting and frame history.
+      }
+    }
     const retained = frame.native;
     const native = retained?.rgba === frame.data && retained.width === frame.width &&
       retained.height === frame.height ? retained : undefined;

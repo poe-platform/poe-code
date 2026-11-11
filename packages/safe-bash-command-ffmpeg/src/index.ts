@@ -8757,7 +8757,8 @@ export function evalSyncFfmpeg(
         if (args[++i] === undefined) return undefined;
       }
       else if (arg === "-ac" || arg.startsWith("-ac:")) audioChannelOptions.push(parseAudioChannels(arg, args[++i]));
-      else if ((arg === "-ch_layout" || arg === "-channel_layout") && args.slice(i + 1).includes("-i")) {
+      else if ((arg === "-ch_layout" || arg.startsWith("-ch_layout:") ||
+          arg === "-channel_layout" || arg.startsWith("-channel_layout:")) && args.slice(i + 1).includes("-i")) {
         const layout = args[++i];
         if (layout !== "mono" && layout !== "stereo") return undefined;
         audioChannelOptions.push(["", layout === "mono" ? 1 : 2]);
@@ -10751,7 +10752,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             pendingGuessLayoutMax = threshold;
-          } else if (arg === "-ch_layout" || arg === "-channel_layout") {
+          } else if (arg === "-ch_layout" || arg.startsWith("-ch_layout:") ||
+              arg === "-channel_layout" || arg.startsWith("-channel_layout:")) {
             const layout = args[++i];
             const beforeInput = args.slice(i + 1).includes("-i");
             const channels = parseAudioChannelLayout(layout ?? "");
@@ -10764,7 +10766,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 : "ffmpeg: only mono and stereo output channel layouts are supported\n"), context.signal);
               return { exitCode: 1 };
             }
-            audioChannelOptions.push(["", count ?? channels.length]);
+            const separator = arg.indexOf(":");
+            const specifier = beforeInput || separator < 0 ? "" : arg.slice(separator + 1);
+            audioChannelOptions.push([specifier, count ?? channels.length]);
             if (beforeInput) pendingChannelLayout = layout;
           } else if (arg === "-auto_conversion_filters" || arg === "-noauto_conversion_filters") {
             autoConversionFilters = arg === "-auto_conversion_filters";

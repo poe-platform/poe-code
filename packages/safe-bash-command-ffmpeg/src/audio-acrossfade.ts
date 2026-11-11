@@ -4,6 +4,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterBoolean } from "./filter-boolean.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { audioFadeCurves } from "./audio-fade-curves.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
 
 export async function acrossfadeAudio(
@@ -45,7 +46,10 @@ export async function acrossfadeAudio(
     if (separator < 0) position++;
     else position = position === 0 ? 1 : 0;
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    if (key === "ns" || key === "nb_samples") {
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      // Scheduling and hardware reservations do not change decoded PCM samples.
+      validateWeaveGenericOption(key, value, "acrossfade");
+    } else if (key === "ns" || key === "nb_samples") {
       samples = parseFilterExpression(value, "acrossfade", {});
       if (samples < 1 || samples > 214748364) throw new Error("acrossfade: invalid sample count");
       // Native integer options validate bounds before rounding ties to even.

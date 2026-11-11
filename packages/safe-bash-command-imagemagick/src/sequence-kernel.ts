@@ -97,8 +97,11 @@ export function* clutPixelSteps(size: number, lut: Pick<RgbaImage, "width" | "he
     }
     for (let position = 0; position < size; position += 2048) {
         yield;
-        const bytes = (yield { kind: "read", highDepth, position, length: Math.min(2048, size - position) })!;
-        const data = Float64Array.from(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
+        const length = Math.min(2048, size - position);
+        const evaluated = yield { kind: "read", evaluate: true, position, length };
+        const bytes = evaluated?.length ? evaluated : (yield { kind: "read", highDepth, position, length })!;
+        const data = evaluated?.length ? new Float64Array(bytes.slice().buffer).map(value => highDepth ? value * 257 : value)
+            : Float64Array.from(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
         const hue = yield { kind: "read", hue: true, position, length: data.length };
         const inks = sourceCmyk ? hue?.length ? new Float64Array(hue.slice().buffer) : new Float64Array(data.length) : undefined;
         const colorSamples = !sourceCmyk && hue?.length ? new Float64Array(hue.slice().buffer) : undefined;
@@ -111,7 +114,9 @@ export function* clutPixelSteps(size: number, lut: Pick<RgbaImage, "width" | "he
                 const ink = inks && channel !== 3 ? offset + (channel === 4 ? 3 : channel) : undefined;
                 const value = ink === undefined ? data[offset + channel]! / range : inks![ink]!;
                 const index = cmyk ? Math.round(Math.max(0, Math.min(1, value)) * 65535) / 65535 : value;
-                const mapped = table ? table[data[offset + channel]! * 4 + channel]! : (yield* sample(index))[channel] ?? 0;
+                const source = data[offset + channel]!;
+                const mapped = table && Number.isInteger(source) && source >= 0 && source <= 255
+                    ? table[source * 4 + channel]! : (yield* sample(index))[channel] ?? 0;
                 if (ink === undefined) data[offset + channel] = mapped;
                 else inks![ink] = mapped / range;
             }
@@ -143,12 +148,14 @@ export function* haldClutPixelSteps(size: number, lut: Pick<RgbaImage, "width" |
         yield;
         const bytes = (yield { kind: "read", highDepth, position, length: Math.min(2048, size - position) })!;
         const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
-        const working = Float64Array.from(data, value => highDepth ? value / 257 : value);
+        const evaluated = yield { kind: "read", evaluate: true, position, length: data.length };
+        const working = evaluated?.length ? new Float64Array(evaluated.slice().buffer)
+            : Float64Array.from(data, value => highDepth ? value / 257 : value);
         const hue = sourceCmyk ? yield { kind: "read", hue: true, position, length: data.length } : undefined;
         const inks = hue?.length ? new Float64Array(hue.slice().buffer) : cmyk || sourceCmyk ? new Float64Array(data.length) : undefined;
-        const samples = Float64Array.from(data);
+        const samples = working.map(value => highDepth ? value * 257 : value);
         if (inks) for (let offset = 0; offset < data.length; offset += 4) {
-            if (sourceCmyk && !hue?.length) inks.set(rgbToCmyk(data[offset]! / range, data[offset + 1]! / range, data[offset + 2]! / range), offset);
+            if (sourceCmyk && !hue?.length) inks.set(rgbToCmyk(samples[offset]! / range, samples[offset + 1]! / range, samples[offset + 2]! / range), offset);
             for (let channel = 0; channel < 3; channel++) {
                 if (sourceCmyk) samples[offset + channel] = inks[offset + channel]! * range;
                 else inks[offset + channel] = samples[offset + channel]! / range;

@@ -4905,7 +4905,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     if (token === "-interpolative-resize") {
         const geometry = tokens[start + 1] ?? "", interpolation = state.interpolation ?? "bilinear";
         validateMagickTransformGeometry(geometry, token);
-        const background = state.background, virtualPixel = state.virtualPixel ?? "edge";
+        const background = state.background, virtualPixel = state.virtualPixel ?? "edge", seed = state.seed;
         return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">) => {
             const options = magickResizeOptions(image, geometry, undefined);
             if (!options || options.width === image.width && options.height === image.height) return;
@@ -4915,7 +4915,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
                 virtualCanvas: magickResizeCanvas(image, width, height),
                 map: (x, y) => [(x + 0.5) * image.width / width - 0.5, (y + 0.5) * image.height / height - 0.5]
             };
-            return { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel) };
+            return { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel, undefined, undefined, seed) };
         } };
     }
     // Right angles retain the lossless pixel permutation; arbitrary rotations
@@ -4986,7 +4986,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             const plan: WarpPlan = { width: image.width, height: image.height, hasAlpha: image.hasAlpha,
                 interpolation, channels,
                 map: (x, y) => [x + width * (random() - 0.5), y + width * (random() - 0.5)] };
-            return { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel) };
+            return { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel, undefined, undefined, seed) };
         }
         if (distort && spec.toLowerCase() === "resize") {
             try { validateMagickTransformGeometry(geometry, token); }
@@ -5046,7 +5046,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
         // DePolar samples local output coordinates, ignoring viewport/page offsets.
         if (plan && depolar) plan = { ...plan, interpolation, derivatives: depolar.derivatives!,
             map: (x, y) => depolar.map((x + 0.5) / (scale ?? 1) - 0.5, (y + 0.5) / (scale ?? 1) - 0.5) };
-        return plan ? { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel, kernel, filter) } : undefined;
+        return plan ? { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel, kernel, filter, seed) } : undefined;
     } };
 }
 

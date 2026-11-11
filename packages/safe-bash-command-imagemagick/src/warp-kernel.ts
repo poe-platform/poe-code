@@ -1,4 +1,5 @@
 import type { LookupInterpolation } from "./sequence-kernel.js";
+import { createMagickRandom } from "./random.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
@@ -88,8 +89,9 @@ function* averageSamples(x: number, y: number, size: number): Generator<readonly
         yield [left + column, top + row, 1];
 }
 
-export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "space" | "storedData16" | "storedEvaluateSamples" | "storedHueSamples">> & { alphaBlend?: boolean | undefined }, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "space" | "storedData16" | "storedEvaluateSamples" | "storedHueSamples">> & { alphaBlend?: boolean | undefined }, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings, seed?: bigint): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = source;
+    const random = virtualPixel === "random" ? createMagickRandom(seed) : undefined;
     const filter = kernel === "nearest" ? undefined : resizeFilter(kernel ?? "robidoux", settings, true);
     const blur = Math.max(1e-12, (settings?.blur ?? 1) * (kernel === "lanczos2sharp" ? 0.9549963639785485 : kernel === "lanczossharp" ? 0.9812505644269356 : 1));
     const support = filter ? filter.radius * blur : 2;
@@ -102,7 +104,7 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "ha
     const cache = new Map<number, Float64Array>(), inkCache = new Map<number, Float64Array>();
     function* readPixel(x: number, y: number): Generator<ConvolveRequest, ArrayLike<number>, Uint8Array | undefined> {
         if (x < 0 || y < 0 || x >= width || y >= height) {
-            const index = virtualPixelIndex(x, y, width, height, virtualPixel);
+            const index = virtualPixelIndex(x, y, width, height, virtualPixel, random);
             if (index >= 0) {
                 x = index % width; y = Math.floor(index / width);
             } else {

@@ -8,7 +8,7 @@ import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
 
 export async function acrossfadeAudio(
-  first: MediaTrack, second: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal, simultaneousEof = false, sampleFormat?: string
+  first: MediaTrack, second: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal, simultaneousEof = false, sampleFormat?: string, eofSamples?: number
 ): Promise<MediaTrack> {
   const a = first.decodedAudio;
   const b = second.decodedAudio;
@@ -94,7 +94,7 @@ export async function acrossfadeAudio(
   // FFmpeg 7 checks second-input EOF before starting the transition, even
   // when enough PCM is queued on both unbuffered branches of a split.
   const length = simultaneousEof || samples > aLength || samples > bLength
-    ? Math.max(0, aLength - samples)
+    ? Math.max(0, Math.min(aLength, eofSamples ?? aLength) - samples)
     : aLength + bLength - (overlap ? samples : 0);
   budget.checkSamples(length);
   budget.checkDuration(length / a.sampleRate);

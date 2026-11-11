@@ -1927,7 +1927,8 @@ function parseConcatOptions(filter: string) {
   return values;
 }
 
-// Delay tails are execution metadata, not part of the media container.
+// Filter EOF and format state are execution metadata, not part of the media container.
+const audioPaddingEof = new WeakMap<MediaTrack, number>();
 const audioDelayTails = new WeakMap<MediaTrack, Set<string>>();
 const audioPassthroughFormats = new WeakMap<MediaTrack, Set<string>>();
 const audioGraphFormats = new WeakMap<MediaTrack, string>();
@@ -2530,8 +2531,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
                 buffered ||= audioDelayTails.get(sources[inputIndex]!.track)?.has(filter) ?? false;
                 return true;
               }
-              if (inputIndex === 0 && (name === "areverse" || name === "asetnsamples")) {
-                // Draining buffered or regrouped frames also ends the other split output.
+              if (inputIndex === 0 && (name === "areverse" || name === "asetnsamples" || name === "apad" || name === "atrim")) {
+                // Draining or ending the first branch exposes EOF on the other split output.
                 buffered = true;
                 return true;
               }
@@ -2565,7 +2566,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           ? [...inputFormats, outputSampleFormat]
             .find(format => format !== undefined && ["s16", "s32", "flt", "dbl"].includes(format)) ?? "s16"
           : inputFormats[0];
-        const track = await acrossfadeAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal, simultaneousEof, format);
+        const track = await acrossfadeAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal, simultaneousEof, format,
+          simultaneousEof ? audioPaddingEof.get(sources[0]!.track) : undefined);
         return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "amerge" || filters[0]?.startsWith("amerge=")) {
@@ -14015,6 +14017,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let replayGainAvailable = true;
                   let audioStartSample = 0;
                   let audioInitialFrameUnavailable = false;
+                  let paddingEof = audioPaddingEof.get(t);
                   const delayTails = new Set<string>();
                   const passthroughFormats = new Set<string>();
                   let audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
@@ -17251,6 +17254,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         if (!enabled || length === inputLength) continue;
+                        // apad emits its first silent packet when it receives upstream EOF.
+                        // A sibling split output can expose that EOF before another packet.
+                        paddingEof ??= Math.min(length, inputLength + packetSize);
                         budget.allocateMemory(Math.ceil((length - inputLength) / packetSize) * (paddingExactPts === undefined ? 24 : 48));
                         for (let start = inputLength; start < length; start += packetSize) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -19401,6 +19407,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       decodedAudio: { ...audio, sampleRate: origRate, channels: stretched.length,
                         channelMask: filteredChannelMask, channelData: stretched } };
                     audioGraphFormats.set(result, filteredSampleFormat);
+                    if (paddingEof !== undefined) audioPaddingEof.set(result, paddingEof);
                     if (delayTails.size) audioDelayTails.set(result, delayTails);
                     if (passthroughFormats.size) audioPassthroughFormats.set(result, passthroughFormats);
                     return result;

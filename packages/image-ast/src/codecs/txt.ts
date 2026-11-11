@@ -43,14 +43,14 @@ function* txtSteps(size: number, page: number, options?: SharpInputOptions): Gen
       const space = fields[fields.length - 1]!.trim().toLowerCase();
       const magickColorspace = ["RGB", "XYZ", "HSL", "CIELab", "CMYK", "HSV", "HSB", "HWB", "YCbCr", "DisplayP3", "CMY", "Luv"].find(name => space === name.toLowerCase() || space === name.toLowerCase() + "a");
       if (!magickColorspace && !["srgb", "srgba", "gray", "graya", "lineargray", "lineargraya"].includes(space)) throw new Error(`Unsupported TXT colorspace: ${space}`);
-      if (!Number.isSafeInteger(width) || width < 1 || !Number.isSafeInteger(height) || height < 1 || !Number.isSafeInteger(width * height * 8) || !Number.isInteger(maximum) || maximum < 1 || maximum > 65535) throw new Error("Invalid TXT dimensions or maximum");
+      if (!Number.isSafeInteger(width) || width < 1 || !Number.isSafeInteger(height) || height < 1 || !Number.isSafeInteger(width * height * 8) || !Number.isInteger(maximum) || maximum < 1 || maximum > 4294967295) throw new Error("Invalid TXT dimensions or maximum");
       checkLimitInputPixels(width, height, options);
       // TXT derives its sample range from depth, including power-of-two maxima.
       const bitsPerSample = Math.max(1, Math.ceil(Math.log2(maximum)));
       range = 2 ** bitsPerSample - 1;
       const linearGray = space.startsWith("lineargray");
       const cmyk = space.startsWith("cmyk"), hasAlpha = space.endsWith("a"), channels = cmyk ? (hasAlpha ? 5 : 4) : space.startsWith("gray") || linearGray ? (hasAlpha ? 2 : 1) : (hasAlpha ? 4 : 3);
-      metadata = { ...(magickColorspace ? { magickColorspace } : {}), format: "txt", width, height, channels, hasAlpha, space: cmyk ? "cmyk" : channels < 3 ? "b-w" : "srgb", depth: bitsPerSample > 8 ? "ushort" : "uchar", bitsPerSample, density: 72, size, ...(space === "rgb" || space === "rgba" ? { gamma: 1 } : {}), ...(linearGray ? { gamma: 1 } : {}) };
+      metadata = { ...(magickColorspace ? { magickColorspace } : {}), format: "txt", width, height, channels, hasAlpha, space: cmyk ? "cmyk" : channels < 3 ? "b-w" : "srgb", depth: bitsPerSample > 16 ? "uint" : bitsPerSample > 8 ? "ushort" : "uchar", bitsPerSample, density: 72, size, ...(space === "rgb" || space === "rgba" ? { gamma: 1 } : {}), ...(linearGray ? { gamma: 1 } : {}) };
       pixels = 0;
       if (++index === page) { selected = metadata; yield { kind: "header", metadata }; }
       continue;
@@ -91,7 +91,7 @@ export function readTxtImage(bytes: Uint8Array, options?: SharpInputOptions, met
     if (!metadataOnly) {
       if (step.kind === "header") {
         data = new Uint8Array(step.metadata.width * step.metadata.height * 4);
-        if (step.metadata.depth === "ushort" || step.metadata.space === "cmyk") data16 = new Uint16Array(data.length);
+        if (step.metadata.depth === "ushort" || step.metadata.depth === "uint" || step.metadata.space === "cmyk") data16 = new Uint16Array(data.length);
         if (65535 % (2 ** step.metadata.bitsPerSample! - 1) !== 0) evaluateSamples = new Float64Array(data.length);
         if (step.metadata.space === "cmyk") hueSamples = new Float64Array(data.length);
       } else {
@@ -126,7 +126,7 @@ export async function readTxtFromSource(source: ImageByteSource, storage: ImageB
       if (step.kind === "header") {
         const length = step.metadata.width * step.metadata.height * 4;
         position = storage.allocate(length);
-        if (step.metadata.depth === "ushort" || step.metadata.space === "cmyk") storedData16 = { position: storage.allocate(length * 2), length };
+        if (step.metadata.depth === "ushort" || step.metadata.depth === "uint" || step.metadata.space === "cmyk") storedData16 = { position: storage.allocate(length * 2), length };
         if (65535 % (2 ** step.metadata.bitsPerSample! - 1) !== 0) storedEvaluateSamples = storage.allocate(length * 8);
         if (step.metadata.space === "cmyk") storedHueSamples = storage.allocate(length * 8);
       } else {

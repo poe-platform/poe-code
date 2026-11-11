@@ -1,3 +1,4 @@
+import { erosion } from "./erosion.js";
 import { inflate } from "./inflate.js";
 import { colorlevels } from "./colorlevels.js";
 import { colorbalance } from "./colorbalance.js";
@@ -2503,6 +2504,8 @@ async function applyVideoFilterChain(
       }
     } else if (name === "roberts") {
       current = await roberts(current, argStr, pixelFormat, budget, signal);
+    } else if (name === "erosion") {
+      current = await erosion(current, argStr, pixelFormat, budget, signal);
     } else if (name === "scharr") {
       current = await scharr(current, argStr, pixelFormat, budget, signal);
     } else if (name === "inflate") {

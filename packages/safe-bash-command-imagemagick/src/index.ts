@@ -5786,8 +5786,9 @@ function parseGravity(raw: string): GravityPosition | undefined {
       return "northwest";
     case "center":
     case "centre":
-    default:
       return "center";
+    default:
+      return undefined;
   }
 }
 

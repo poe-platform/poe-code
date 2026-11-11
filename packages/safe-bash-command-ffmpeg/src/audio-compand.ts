@@ -12,37 +12,43 @@ export async function compandAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
   warn?: (message: string) => Promise<void>
 ): Promise<Float64Array[]> {
-  const options: Record<string, string> = {
+  const defaults: Record<string, string> = {
     attacks: "0", decays: "0.8", points: "-70/-70|-60/-20|1/0", "soft-knee": "0.01", gain: "0", volume: "0", delay: "0"
   };
+  const options = { ...defaults };
   const names = Object.keys(options);
-  const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
-    const separator = option.indexOf("=");
-    const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
-    if (!key || !Object.hasOwn(options, key)) throw new CompandError(`compand: unsupported option ${key}`, "options", 8);
-    options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
-  }
   const number = (value: string, min = -Infinity, max = Infinity, parse: (value: string) => number = Number): number => {
     const parsed = parse(value);
     if (!value.trim() || !Number.isFinite(parsed)) throw new Error(`compand: invalid value ${value}`);
     if (parsed < min || parsed > max) throw new CompandError(`compand: invalid value ${value}`, "configuration");
     return parsed;
   };
-  const numericOption = (key: string, min: number, max: number): number => {
+  const ranges: Record<string, readonly [number, number]> = {
+    "soft-knee": [0.01, 900], gain: [-900, 900], volume: [-900, 0], delay: [0, 20]
+  };
+  const numericOption = (key: string): number => {
+    const [min, max] = ranges[key]!;
     let parsed: number;
     try {
-      parsed = parseFilterExpression(options[key]!, "compand", {});
+      parsed = parseFilterExpression(options[key]!, "compand", { min, max, default: Number(defaults[key]) });
     } catch (error) {
       throw new CompandError((error as Error).message, "options");
     }
     if (parsed < min || parsed > max) throw new CompandError(`compand: invalid ${key}`, "options", 222);
     return parsed;
   };
-  const knee = numericOption("soft-knee", 0.01, 900);
-  const gain = numericOption("gain", -900, 900);
-  const initial = 10 ** (numericOption("volume", -900, 0) / 20);
-  const delay = Math.floor(numericOption("delay", 0, 20) * sampleRate);
+  const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+    const separator = option.indexOf("=");
+    const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
+    if (!key || !Object.hasOwn(options, key)) throw new CompandError(`compand: unsupported option ${key}`, "options", 8);
+    options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (Object.hasOwn(ranges, key)) numericOption(key);
+  }
+  const knee = numericOption("soft-knee");
+  const gain = numericOption("gain");
+  const initial = 10 ** (numericOption("volume") / 20);
+  const delay = Math.floor(numericOption("delay") * sampleRate);
   const items = (value: string) => value.split("|").flatMap(part => part.split(" ")).filter(Boolean);
   const attackItems = items(options.attacks!);
   const decayItems = items(options.decays!);

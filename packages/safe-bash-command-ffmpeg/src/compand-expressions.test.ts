@@ -5,6 +5,21 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { createFfmpegCommand } from "./index.js";
 
 for (const [expression, literal] of [
+  ["soft-knee=default", "soft-knee=0.01"],
+  ["soft-knee=min", "soft-knee=0.01"],
+  ["soft-knee=max", "soft-knee=900"],
+  ["volume=max", "volume=0"],
+  ["volume=min", "volume=-900"],
+  ["volume=default", "volume=0"],
+  ["gain=default", "gain=0"],
+  ["gain=min", "gain=-900"],
+  ["gain=max", "gain=900"],
+  ["delay=default", "delay=0"],
+  ["delay=min", "delay=0"],
+  ["delay=max", "delay=20"],
+  ["soft-knee=default*2", "soft-knee=0.02"],
+  ["volume=max-20", "volume=-20"],
+  ["0:0:-80/-80|0/0:default:default:max:default", "0:0:-80/-80|0/0:0.01:0:0:0"],
   ["gain=3*2", "gain=6"],
   ["gain=0x6", "gain=6"],
   ["soft-knee=3*2", "soft-knee=6"],
@@ -41,6 +56,7 @@ for (const [expression, literal] of [
 for (const [option, exitCode] of [
   ["gain=0b1", 234], ["gain=0o1", 234], ["gain=", 234], ["gain=NaN", 234], ["gain=1/0", 234],
   ["gain=901", 222], ["gain=-901", 222], ["gain=450*3", 222],
+  ["soft-knee=min/2", 222], ["volume=max+1", 222], ["delay=max+1", 222],
   ["soft-knee=0b1", 234], ["soft-knee=1-1", 222], ["volume=0b0", 234], ["volume=1+1", 222],
   ["delay=0b0", 234]
 ] as const) for (const graph of [false, true]) {

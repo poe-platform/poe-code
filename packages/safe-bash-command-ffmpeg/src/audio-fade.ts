@@ -20,6 +20,7 @@ export async function fadeAudio(
   let silence = 0;
   let unity = 1;
   let enable: string | undefined;
+  const registers = new Float64Array(10);
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const options: string[] = [];
   let option = "";
@@ -37,20 +38,20 @@ export async function fadeAudio(
   if (argument && (option || !argument.endsWith(":"))) options.push(option);
   function applyOption(key: string | undefined, value: string) {
     if (key === "t" || key === "type") {
-      const number = parseFilterExpression(value, "afade", { in: 0, out: 1 });
+      const number = parseFilterExpression(value, "afade", { in: 0, out: 1 }, undefined, new Float64Array(10));
       if (number < 0 || number > 1) throw new Error("afade: invalid type");
       type = number > 0.5 ? "out" : "in";
     } else if (key === "c" || key === "curve") {
       const entries = Object.entries(curves);
       const names = Object.fromEntries(entries.map(([name], index) => [name, index - 1]));
-      const number = parseFilterExpression(value, "afade", names);
+      const number = parseFilterExpression(value, "afade", names, undefined, new Float64Array(10));
       if (number < -1 || number > entries.length - 2) throw new Error("afade: invalid curve");
       // FFmpeg integer options round to nearest, with exact halves going to even.
       const floor = Math.floor(number);
       const index = number - floor === 0.5 ? floor + Math.abs(floor % 2) : Math.round(number);
       curve = entries[index + 1]![1];
     } else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
-      const number = parseFilterExpression(value, "afade", key === "thread_type" ? { slice: 1 } : {});
+      const number = parseFilterExpression(value, "afade", key === "thread_type" ? { slice: 1 } : {}, undefined, new Float64Array(10));
       if (key === "thread_type"
         ? !Number.isInteger(number) || number > 4294967295
         : number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {
@@ -58,13 +59,14 @@ export async function fadeAudio(
       }
       // Thread scheduling and hardware frame reservations do not change PCM samples.
     } else if (key === "enable") {
-      parseFilterExpression(value, "afade enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 });
+      parseFilterExpression(value, "afade enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 }, undefined, new Float64Array(10));
+      registers.fill(0);
       enable = value;
     } else {
       const time = key === "st" || key === "start_time" || key === "d" || key === "duration";
       const number = time
         ? parseHlsDuration(value)
-        : parseFilterExpression(value, "afade", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+        : parseFilterExpression(value, "afade", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
       if (!value || !Number.isFinite(number) || number < 0) throw new Error(`afade: invalid ${key}`);
       if (key === "ss" || key === "start_sample" || key === "ns" || key === "nb_samples") {
         // FFmpeg integer options round to nearest, with exact halves going to even.
@@ -130,10 +132,13 @@ export async function fadeAudio(
     while (frames && frameIndex + 1 < frames.length && frames[frameIndex]!.end <= i) frameIndex++;
     const frame = frames?.[frameIndex];
     if (enable !== undefined && (i === 0 || i === frame?.start)) {
-      enabled = Math.abs(parseFilterExpression(enable, "afade enable", {
+      const variables = {
         n: frameIndex, t: (frame?.pts ?? startSample) / sampleRate,
         pos: frame?.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0, h: 0
-      })) >= 0.5;
+      };
+      // FFmpeg evaluates on frame consumption and again before filter_frame.
+      parseFilterExpression(enable, "afade enable", variables, undefined, registers);
+      enabled = Math.abs(parseFilterExpression(enable, "afade enable", variables, undefined, registers)) >= 0.5;
     }
     let pts = frame ? frame.pts + i - frame.start : startSample + i;
     // Native AV_NOPTS_VALUE precedes the fade: mute fade-in, preserve fade-out.

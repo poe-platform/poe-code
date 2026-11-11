@@ -6,6 +6,12 @@ import { createFfmpegCommand } from "./index.js";
 for (const [layout, speakers] of [
   ["2.1", ["FL", "FR", "LFE"]],
   ["3.0", ["FL", "FR", "FC"]],
+  ["4.0", ["FL", "FR", "FC", "BC"]],
+  ["4.1", ["FL", "FR", "FC", "LFE", "BC"]],
+  ["5.0", ["FL", "FR", "FC", "BL", "BR"]],
+  ["5.0(side)", ["FL", "FR", "FC", "SL", "SR"]],
+  ["6.1", ["FL", "FR", "FC", "LFE", "BC", "SL", "SR"]],
+  ["octagonal", ["FL", "FR", "FC", "BL", "BR", "BC", "SL", "SR"]],
   ["7.1", ["FL", "FR", "FC", "LFE", "BL", "BR", "SL", "SR"]]
 ] as const) {
   for (const [channel, speaker] of speakers.entries()) {

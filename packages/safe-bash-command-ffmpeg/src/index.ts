@@ -97,6 +97,7 @@ import { adaptiveAudio } from "./audio-anlmf.js";
 import { gateAudio } from "./audio-sidechaingate.js";
 import { smoothAudio } from "./audio-adynamicsmooth.js";
 import { listenDynamicEqualizer } from "./audio-adynamicequalizer.js";
+import { adenormAudio } from "./audio-adenorm.js";
 import { tiltAudio } from "./audio-atilt.js";
 import { crushAudio } from "./audio-acrusher.js";
 import { softClipAudio } from "./audio-asoftclip.js";
@@ -1933,7 +1934,7 @@ const audioGraphFormats = new WeakMap<MediaTrack, string>();
 // Recognize filters before graph binding can hide an unknown filter in a later chain.
 const audioGraphFilterNames = new Set([
   "acompressor", "acontrast", "acopy", "acrossfade", "acrusher", "adeclick", "adeclip",
-  "adecorrelate", "adelay", "adynamicequalizer", "adynamicsmooth", "aecho", "aemphasis", "aeval", "aexciter",
+  "adecorrelate", "adelay", "adenorm", "adynamicequalizer", "adynamicsmooth", "aecho", "aemphasis", "aeval", "aexciter",
   "afade", "afftdn", "aformat", "afreqshift", "afwtdn", "agate", "alimiter",
   "aloop", "amerge", "ametadata", "amix", "amultiply", "anlmf", "anlms",
   "anull", "anullsink", "apad", "aphasemeter", "aphaser", "aphaseshift", "apsyclip",
@@ -15217,6 +15218,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredChannelMask = 3;
                         filteredChannelNames = undefined;
                         filteredSampleFormat = "dbl";
+                      } else if (filterName === "adenorm") {
+                        if (!autoConversionFilters && filteredSampleFormat !== "dblp") throw new Error(audioConversionDisabled);
+                        stretched = await adenormAudio(stretched, trimmed, budget, context.signal);
+                        filteredSampleFormat = "dblp";
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         filteredSampleFormat = "fltp";

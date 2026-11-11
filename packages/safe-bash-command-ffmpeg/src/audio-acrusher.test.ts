@@ -41,6 +41,22 @@ for (const [filter, expected] of [
   });
 }
 
+// Native FFmpeg 7.0.2 exit statuses and the upper bits boundary PCM.
+for (const [option, exitCode, error] of [
+  ["bits=0", 222, "invalid bits"],
+  ["bits=oops", 234, "invalid or unsupported expression"],
+  ["typo=3", 8, "unsupported option typo=3"],
+  ["bits=64", 0, ""]
+] as const) for (const graph of [false, true]) {
+  it(`matches native status and stdout for acrusher=${option} through ${graph ? "filter_complex" : "af"}`, async () => {
+    const input = "e80330f8b80b60f0881390e8581bc0e02823f0d8f82a20d1c83250c9983a80c1";
+    const { result, stderr, stdout } = await run(`acrusher=${option}`, graph, 1, input);
+    assert.equal(result.exitCode, exitCode, stderr);
+    assert.equal(stderr, error ? `ffmpeg: acrusher: ${error}\n` : "");
+    assert.equal(stdout.toString("hex"), exitCode === 0 ? input : "");
+  });
+}
+
 for (const option of ["bits=0", "bits=65", "bits=", "bits=NaN", "mode=unknown", "mode=2", "aa=-1", "aa=2",
   "mix=2", "dc=0", "level_in=0", "level_out=65", "samples=2", "lfo=1", "unknown=1"]) {
   it(`rejects ${option} without replacing output`, async () => {

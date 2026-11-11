@@ -20055,6 +20055,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (err instanceof RangeError && msg.startsWith("acontrast:")) return { exitCode: 222 };
             if (msg.startsWith("atilt: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("atilt:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg.startsWith("acrusher: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("acrusher:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("aexciter: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("aexciter:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("deesser: unsupported option ")) return { exitCode: 8 };

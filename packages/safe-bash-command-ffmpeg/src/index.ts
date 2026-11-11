@@ -17184,9 +17184,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const registers = Array.from({ length: count }, () => new Float64Array(10));
                         const randomStates = Array.from({ length: count }, () => new Array<BigUint64Array>(10));
                         const variables = { PI: Math.PI, ch: 0, n: 0, t: 0, s: origRate, nb_in_channels: stretched.length, nb_out_channels: count };
+                        let sampleIndex = 0;
                         const sampleValue = (channel: number) => {
                           const index = Math.min(stretched.length - 1, Math.trunc(channel));
-                          return index < 0 ? 0 : stretched[index]![variables.n]!;
+                          return index < 0 ? 0 : stretched[index]![sampleIndex]!;
                         };
                         let frameStart = 0;
                         let framePts = 0;
@@ -17218,12 +17219,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             context.signal?.throwIfAborted();
                             budget.checkCpu();
                           }
-                          variables.n = i;
+                          sampleIndex = i;
                           variables.t = framePts / origRate + (i - frameStart) / origRate;
                           for (let c = 0; c < count; c++) {
                             variables.ch = c;
                             output[c]![i] = !enabled ? sampleValue(c) : parseFilterExpression(exprs[Math.min(c, exprs.length - 1)]!, "aeval", variables, sampleValue, registers[c], randomStates[c]);
                           }
+                          if (enabled) variables.n++;
                         }
                         stretched = output;
                         filteredChannelMask = outputMask;

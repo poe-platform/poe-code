@@ -78,3 +78,43 @@ for (const complex of [false, true]) {
     });
   }
 }
+
+for (const complex of [false, true]) {
+  for (const channels of [1, 2]) {
+    for (const [expression, enable, expected] of [
+      ["n/32768", "gte(n\\,2)", [100, 200, 300, 400, 0, 1, 2, 3]],
+      ["t*s/32768", "gte(n\\,2)", [100, 200, 300, 400, 4, 5, 6, 7]],
+      ["val(ch)", "gte(n\\,2)", [100, 200, 300, 400, 500, 600, 700, 800]],
+      ["n/32768", "mod(n\\,2)", [100, 200, 0, 1, 500, 600, 2, 3]],
+      ["t*s/32768", "mod(n\\,2)", [100, 200, 2, 3, 500, 600, 6, 7]],
+      ["val(ch)", "mod(n\\,2)", [100, 200, 300, 400, 500, 600, 700, 800]]
+    ] as const) {
+      it(`aeval keeps processed n separate from source t and val: ${expression}, enable=${enable}, ${channels} channels (${complex ? "graph" : "simple"})`, async () => {
+        const samples = [100, 200, 300, 400, 500, 600, 700, 800];
+        const volume = Volume.fromJSON({});
+        volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000,
+          channels: Array.from({ length: channels }, (_, channel) =>
+            Float64Array.from(samples, sample => (channel === 0 ? sample : -sample) / 32768)) }));
+        const filter = `asetnsamples=n=2:p=0,aeval=${expression}:c=same:enable=${enable}`;
+        let stderr = "";
+        const result = await createFfmpegCommand().execute({
+          args: ["-v", "error", "-i", "/in.wav",
+            ...(complex ? ["-filter_complex", `[0:a]${filter}[s]`, "-map", "[s]"] : ["-af", filter]),
+            "-f", "s16le", "/out.raw"],
+          cwd: "/", env: {}, signal: new AbortController().signal,
+          fs: {
+            async readFile(path: string) { return volume.readFileSync(path); },
+            async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+            async stat(path: string) { return volume.statSync(path); }
+          },
+          stdin: (async function* () {})(), stdout: { async write() {} },
+          stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+        } as never);
+        assert.equal(result.exitCode, 0, stderr);
+        const output = volume.readFileSync("/out.raw") as Buffer;
+        assert.deepEqual(Array.from({ length: output.length / 2 }, (_, i) => output.readInt16LE(i * 2)),
+          expected.flatMap(sample => channels === 1 ? [sample] : [sample, sample >= 100 ? -sample : sample]));
+      });
+    }
+  }
+}

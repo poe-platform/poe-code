@@ -803,7 +803,9 @@ With no layout option, each expression produces one output channel (up to 64),
 so `aeval=val(0)|val(1)|0` adds a silent third channel.
 Expressions support arithmetic, `exp(x)` (for example, `aeval=exp(n/4)/4`), `val(channel)`, `ch`,
 `n`, `t`, `s`, `nb_in_channels`, and `nb_out_channels`; `c=same` retains the input
-layout and repeats the last expression when needed. `aeval=abs(val(1))` rectifies negative
+layout and repeats the last expression when needed. With `enable`, sample-expression `n` counts only processed samples;
+bypassed frames do not advance it. `t` and `val(channel)` retain their source positions, while `enable` uses frame-based `n`.
+`aeval=abs(val(1))` rectifies negative
 right-channel samples; `abs(x)` also accepts constants and arithmetic expressions. `sin(x)` takes radians, and
 `PI` is available for waveforms such as `aeval=sin(PI*n/2)/2`.
 `atan2(y,x)` returns the angle in radians, including zero for `atan2(0,0)`;

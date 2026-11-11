@@ -49,7 +49,7 @@ function* xpmSteps(size: number, options?: SharpInputOptions): Generator<Step, X
     for (let j = 0; j < fields.length;) {
       const key = fields[j++]!, start = j;
       while (j < fields.length && !keys.includes(fields[j]!)) j++;
-      values.set(key, fields.slice(start, j).join(" "));
+      if (!values.has(key)) values.set(key, fields.slice(start, j).join(" "));
     }
     const color = values.get("c") ?? values.get("g") ?? values.get("g4") ?? values.get("m") ?? values.get("s");
     if (!color || symbol.length !== cpp || palette.has(symbol)) throw new Error("Invalid XPM palette");

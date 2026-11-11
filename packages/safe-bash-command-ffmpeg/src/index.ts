@@ -2335,9 +2335,9 @@ async function applyVideoFilterChain(
         if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !action || !expression ||
             !(filter === "negate" && action === "components" || filter === "tmix" ||
               filter === "tblend" && action === "all_mode" ||
-              (filter === "hflip" || filter === "vflip") && action === "enable" ||
+              (filter === "hflip" || filter === "vflip" || filter === "framestep") && action === "enable" ||
               filter === "crop" && ["w", "out_w", "h", "out_h", "x", "y"].includes(action))) {
-          throw new Error("sendcmd: expected TIME hflip[@NAME]|vflip[@NAME] enable EXPR or TIME negate[@NAME] components FLAGS or TIME tmix[@NAME] COMMAND VALUE or TIME tblend[@NAME] all_mode MODE or TIME crop[@NAME] w|out_w|h|out_h|x|y EXPR");
+          throw new Error("sendcmd: expected TIME hflip[@NAME]|vflip[@NAME]|framestep[@NAME] enable EXPR or TIME negate[@NAME] components FLAGS or TIME tmix[@NAME] COMMAND VALUE or TIME tblend[@NAME] all_mode MODE or TIME crop[@NAME] w|out_w|h|out_h|x|y EXPR");
         }
         budget.allocateMemory(64);
         scheduled.push({ time, target, action, expression });
@@ -4687,19 +4687,32 @@ async function applyVideoFilterChain(
         PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
       };
       const registers = new Float64Array(10);
-      if (named.enable !== undefined && current.length === 0) {
-        parseFilterExpression(named.enable, "framestep enable", variables, undefined, registers);
+      let enable = named.enable;
+      if (enable !== undefined && current.length === 0) {
+        parseFilterExpression(enable, "framestep enable", variables, undefined, registers);
       }
+      const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
+      const commands = videoCommands.filter(command => command.target === name || command.target === instance);
+      videoCommands = videoCommands.filter(command => command.target !== name && command.target !== instance);
+      commands.sort((a, b) => a.time - b.time);
+      let nextCommand = 0;
       current = current.filter((frame, n) => {
+        while (nextCommand < commands.length && commands[nextCommand]!.time <= frame.ptsSeconds) {
+          const command = commands[nextCommand++]!;
+          try {
+            parseFilterExpression(command.expression, "framestep enable", variables);
+            enable = command.expression;
+          } catch { /* Rejected runtime commands retain the previous enable expression. */ }
+        }
         variables.n = n;
         variables.t = frame.ptsSeconds;
         variables.w = frame.width;
         variables.h = frame.height;
         variables.pos = frame.offset ?? NaN;
-        if (named.enable !== undefined) {
+        if (enable !== undefined) {
           // FFmpeg evaluates the generic timeline both before and during frame dispatch.
-          parseFilterExpression(named.enable, "framestep enable", variables, undefined, registers);
-          if (!(Math.abs(parseFilterExpression(named.enable, "framestep enable", variables, undefined, registers)) >= 0.5)) return true;
+          parseFilterExpression(enable, "framestep enable", variables, undefined, registers);
+          if (!(Math.abs(parseFilterExpression(enable, "framestep enable", variables, undefined, registers)) >= 0.5)) return true;
         }
         return n % step === 0;
       })

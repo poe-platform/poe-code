@@ -14,6 +14,17 @@ const input = Buffer.concat([
 // Native FFmpeg counts every input frame, including frames that bypass the filter.
 for (const [filter, expected] of [
   ["null", levels],
+  ["sendcmd='0.166 framestep enable 0',framestep=2", levels],
+  ["sendcmd='0.167 framestep enable 0',framestep=2", [32, 72, 92, 112, 132, 152, 172]],
+  ["sendcmd='0.166 framestep@stride enable 1',framestep@stride=2:enable=0", [32, 72, 112, 152]],
+  ["sendcmd='0.166 framestep@other enable 0',framestep@stride=2", [32, 72, 112, 152]],
+  ["sendcmd='0.166 framestep enable 0',framestep@first=2,framestep@second=2", [32, 72, 112, 152]],
+  ["sendcmd='0.166 framestep@second enable 0',framestep@first=2,framestep@second=2", [32, 72, 112, 152]],
+  ["sendcmd='0 framestep enable 0;0.5 framestep enable 1',framestep=2", [32, 52, 72, 112, 152]],
+  ["sendcmd='0 framestep enable invalid;0.166 framestep enable 0',framestep=2", levels],
+  ["sendcmd='0 framestep enable 0;0.166 framestep enable invalid',framestep=2", levels],
+  ["sendcmd='0.166 framestep enable n/3',framestep=2", [32, 52, 72, 112, 152]],
+  ["setpts=PTS+1/TB,sendcmd='1.166 framestep enable 0',framestep=2", levels],
   ["framestep=2", [32, 72, 112, 152]],
   ["framestep=step=2:enable=0", levels],
   ["framestep=2:enable=1", [32, 72, 112, 152]],
@@ -69,3 +80,34 @@ for (const [filter, expected] of [
     }
   });
 }
+
+it("runtime disable preserves all raw frames and their original timestamps", async () => {
+  const input = Buffer.from(Array.from({ length: 16 }, (_, i) => 13 + 7 * i));
+  const volume = Volume.fromJSON({ "/in.raw": input });
+  const stdout: Uint8Array[] = [];
+  const stderr: Uint8Array[] = [];
+  const result = await createFfmpegCommand().execute({
+    args: ["-hide_banner", "-loglevel", "info", "-f", "rawvideo", "-pix_fmt", "gray",
+      "-s", "2x2", "-r", "6", "-i", "/in.raw", "-vf",
+      "sendcmd='0.166 framestep enable 0',framestep=2,showinfo",
+      "-fps_mode", "passthrough", "-pix_fmt", "gray", "-f", "rawvideo", "pipe:1"],
+    cwd: "/", env: {}, signal: new AbortController().signal,
+    fs: {
+      async readFile(path: string) { return volume.readFileSync(path); },
+      async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+      async stat(path: string) { return volume.statSync(path); }
+    },
+    stdin: (async function* () {})(),
+    stdout: { async write(bytes: Uint8Array) { stdout.push(bytes); } },
+    stderr: { async write(bytes: Uint8Array) { stderr.push(bytes); } }
+  } as never);
+  const diagnostics = Buffer.concat(stderr).toString();
+  assert.equal(result.exitCode, 0, diagnostics);
+  assert.deepEqual(Buffer.concat(stdout), input);
+  const frames = diagnostics.split("\n").filter(line => line.includes("pts:"));
+  assert.equal(frames.length, 4, diagnostics);
+  for (const [n, line] of frames.entries()) {
+    assert.equal(Number(line.split("pts:")[1]!.trim().split(" ")[0]), n, line);
+  }
+  assert.deepEqual(volume.readFileSync("/in.raw"), input);
+});

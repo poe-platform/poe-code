@@ -1577,7 +1577,7 @@ async function panAudio(
         value = pcm16
           ? value + Math.imul(channels[input]![sample]! * 32768, gains[out]![input]!)
           : double ? value + channels[input]![sample]! * gains[out]![input]!
-          : Math.fround(value + Math.fround(channels[input]![sample]! * gains[out]![input]!));
+          : Math.fround(value + Math.fround(Math.fround(channels[input]![sample]!) * gains[out]![input]!));
       }
       if (pcm16) {
         // Native PCM16 products and the rounding bias wrap before shifting.

@@ -7,6 +7,7 @@ import { createMagickCommand, runMagickCli } from "./index.js";
 for (const mode of ["map", "retained", "command"] as const) {
     it.each([
         ["20x25%", 2, 2], ["10%", 1, 1], ["2x2", 2, 2], ["2x", 2, 0],
+        ["2x3", 2, 3], ["(2x3)", 2, 3],
     ] as const)(`-frame %s resolves frame dimensions against the source raster (${mode})`, async (geometry, horizontal, vertical) => {
         const pixels = Uint8Array.from({ length: 320 }, (_, i) => i % 4 === 3 ? 255 : Math.floor(i / 4) + 1);
         const bytes = await sharp(pixels, { raw: { width: 10, height: 8, channels: 4 } }).png().toBuffer();

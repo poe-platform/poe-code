@@ -2561,7 +2561,7 @@ function hasMagickScalarModifierOffsets(raw: string): boolean {
 
 function parseMagickShaveGeometry(raw: string, image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">): MagickGeometry {
     // Rectangle geometry ends at the first comma-separated field.
-    raw = raw.split(",", 1)[0]!;
+    raw = raw.split(",", 1)[0]!.replaceAll("(", "").replaceAll(")", "");
     const geometry = parseMagickGeometry(raw.replace(":", "x").replaceAll("@", "").replaceAll("#", ""));
     // A modifier before scalar offsets leaves the native page rectangle unchanged.
     if (hasMagickScalarModifierOffsets(raw)) return { ...geometry, isPercent: false, width: image.width, height: image.virtualCanvas?.height || image.height };
@@ -2965,7 +2965,7 @@ function hasSignedMagickShaveDimensions(raw: string): boolean {
 
 function resolveMagickFrameGeometry(raw: string, image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">) {
     // Rectangle geometry ends at the first comma-separated field.
-    raw = raw.split(",", 1)[0]!;
+    raw = raw.split(",", 1)[0]!.replaceAll("(", "").replaceAll(")", "");
     const area = raw.includes("@");
     const geometry = parseMagickGeometry(raw.replaceAll("@", "").replaceAll("#", "").replace(":", "x"));
     const hasAxes = raw.toLowerCase().includes("x");
@@ -2987,7 +2987,7 @@ function resolveMagickFrameGeometry(raw: string, image: Pick<RgbaImage, "width" 
 function parseMagickBorderGeometry(raw: string): MagickGeometry {
     validateMagickTransformGeometry(raw, "-border");
     // Rectangle geometry ends at the first comma-separated field.
-    raw = raw.split(",", 1)[0]!;
+    raw = raw.split(",", 1)[0]!.replaceAll("(", "").replaceAll(")", "");
     const geometry = parseMagickGeometry(raw.replace(":", "x").replaceAll("#", ""));
     const offset = [...raw].findIndex((character, index) => (character === "+" || character === "-") && raw[index - 1]?.toLowerCase() !== "e");
     // Scalar modifiers may end the geometry, but only percent may precede offsets.

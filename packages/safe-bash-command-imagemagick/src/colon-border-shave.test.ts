@@ -8,6 +8,7 @@ for (const mode of ["map", "retained", "command"] as const) {
     for (const operation of ["-border", "-shave"]) {
         it.each([
             ["1:2", 1, 2], ["2:1", 2, 1], ["1x2", 1, 2], ["2x1", 2, 1],
+            ["2x3", 2, 3], ["(2x3)", 2, 3],
         ] as const)(`${operation} %s resolves each axis (${mode})`, async (geometry, horizontal, vertical) => {
             const pixels = Uint8Array.from({ length: 320 }, (_, i) => i % 4 === 3 ? 255 : Math.floor(i / 4) + 1);
             const bytes = await sharp(pixels, { raw: { width: 10, height: 8, channels: 4 } }).png().toBuffer();

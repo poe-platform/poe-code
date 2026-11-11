@@ -7,6 +7,12 @@ import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
 const hex = (value: number) => value.toString(16).toUpperCase().padStart(2, "0");
+export function appendEnumerationMetaSamples(line: string, planes: readonly (Uint8Array | Uint16Array)[], offset: number, maximum: number): string {
+    if (!planes.length) return line;
+    const samples = planes.map(plane => Math.round(plane[offset]! * maximum / (plane instanceof Uint16Array ? 65535 : 255)));
+    const end = line.indexOf(")");
+    return `${line.slice(0, end)},${samples.join(",")}${line.slice(end)}`;
+}
 export function pixelEnumerationLine(x: number, y: number, r: number, g: number, b: number, a: number, colorspace = "srgba", working?: Float64Array): string {
     const alpha = colorspace.endsWith("a");
     const gray = colorspace.startsWith("gray") || colorspace.startsWith("lineargray");
@@ -224,11 +230,16 @@ export async function* storedSparseColor(image: StoredRgbaImage & HueMetadata, s
 export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal, depth = image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)): AsyncGenerator<string> {
     if (image.space === "cmyk") {
         const maximum = (depth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) <= 8 ? 255 : 65535;
-        yield `# ImageMagick pixel enumeration: ${image.width},${image.height},0,${maximum},cmyk${image.hasAlpha ? "a" : ""}\n`;
+        yield `# ImageMagick pixel enumeration: ${image.width},${image.height},${image.storedMetaChannels?.length ?? 0},${maximum},cmyk${image.hasAlpha ? "a" : ""}\n`;
         const size = image.width * image.height * 4;
-        for (let start = 0; start < size; start += 16384) {
+        for (let start = 0; start < size; start += 2048) {
             await yieldTurn(signal);
-            const bytes = await storage.read(image.position + start, Math.min(16384, size - start));
+            const bytes = await storage.read(image.position + start, Math.min(2048, size - start));
+            const metaSamples: (Uint8Array | Uint16Array)[] = [];
+            for (const plane of image.storedMetaChannels ?? []) {
+                const data = await storage.read((plane.storedData16?.position ?? plane.position) + start * (plane.storedData16 ? 2 : 1), bytes.length * (plane.storedData16 ? 2 : 1));
+                metaSamples.push(plane.storedData16 ? new Uint16Array(data.slice().buffer) : data);
+            }
             const original = image.storedData16 ? await storage.read(image.storedData16.position + start * 2, bytes.length * 2) : undefined;
             const backing = original ? new Uint16Array(original.slice().buffer) : bytes;
             const scale = original ? 65535 : 255;
@@ -240,7 +251,7 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
                 const pixel = (start + offset) / 4;
                 const channels = inks?.subarray(offset, offset + 4) ?? rgbToCmyk(backing[offset]! / scale, backing[offset + 1]! / scale, backing[offset + 2]! / scale);
                 const alpha = image.hasAlpha ? samples ? samples[offset + 3]! / 255 : backing[offset + 3]! / scale : undefined;
-                yield cmykEnumerationLine(pixel % image.width, Math.floor(pixel / image.width), channels, alpha, maximum) + "\n";
+                yield appendEnumerationMetaSamples(cmykEnumerationLine(pixel % image.width, Math.floor(pixel / image.width), channels, alpha, maximum) + "\n", metaSamples, offset, maximum);
             }
         }
         return;
@@ -249,11 +260,16 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
     const srgbDepth = image.space === "srgb" && !image.magickColorspace;
     const colorspace = `${image.space === "b-w" || image.space === "grey16" ? image.gamma === 1 && image.magickColorspace !== "Gray" ? "lineargray" : "gray" : image.magickColorspace === "RGB" ? "rgb" : "srgb"}${image.hasAlpha ? "a" : ""}`;
     const gray16 = (image.space === "b-w" || image.space === "grey16") && image.storedData16 !== undefined && (depth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8;
-    yield srgbDepth ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,${depth > 8 ? 65535 : 255},srgb${image.hasAlpha ? "a" : ""}\n` : gray16 ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,${colorspace}\n` : (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,${maximum},${image.magickColorspace.toLowerCase()}${image.hasAlpha ? "a" : ""}\n` : `# ImageMagick pixel enumeration: ${image.width},${image.height},0,255,${colorspace}\n`;
+    yield srgbDepth ? `# ImageMagick pixel enumeration: ${image.width},${image.height},${image.storedMetaChannels?.length ?? 0},${depth > 8 ? 65535 : 255},srgb${image.hasAlpha ? "a" : ""}\n` : gray16 ? `# ImageMagick pixel enumeration: ${image.width},${image.height},${image.storedMetaChannels?.length ?? 0},65535,${colorspace}\n` : (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${image.width},${image.height},${image.storedMetaChannels?.length ?? 0},${maximum},${image.magickColorspace.toLowerCase()}${image.hasAlpha ? "a" : ""}\n` : `# ImageMagick pixel enumeration: ${image.width},${image.height},${image.storedMetaChannels?.length ?? 0},255,${colorspace}\n`;
     const size = image.width * image.height * 4;
-    for (let start = 0; start < size; start += 16384) {
+    for (let start = 0; start < size; start += 2048) {
         await yieldTurn(signal);
-        const bytes = await storage.read(image.position + start, Math.min(16384, size - start));
+        const bytes = await storage.read(image.position + start, Math.min(2048, size - start));
+        const metaSamples: (Uint8Array | Uint16Array)[] = [];
+        for (const plane of image.storedMetaChannels ?? []) {
+            const data = await storage.read((plane.storedData16?.position ?? plane.position) + start * (plane.storedData16 ? 2 : 1), bytes.length * (plane.storedData16 ? 2 : 1));
+            metaSamples.push(plane.storedData16 ? new Uint16Array(data.slice().buffer) : data);
+        }
         const evaluated = (srgbDepth || image.space === "b-w" || image.space === "grey16" || image.magickColorspace === "RGB") && image.storedEvaluateSamples !== undefined
             ? await storage.read(image.storedEvaluateSamples + start * 8, bytes.length * 8) : undefined;
         const working = evaluated ? new Float64Array(evaluated.slice().buffer) : undefined;
@@ -264,18 +280,18 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
         for (let offset = 0; offset < bytes.length; offset += 4) {
             const pixel = (start + offset) / 4;
             if (srgbDepth) {
-                yield srgbDepthEnumerationLine(pixel % image.width, Math.floor(pixel / image.width), (data16 ?? bytes).subarray(offset, offset + 4), image.hasAlpha, depth, working?.subarray(offset, offset + 4)) + "\n";
+                yield appendEnumerationMetaSamples(srgbDepthEnumerationLine(pixel % image.width, Math.floor(pixel / image.width), (data16 ?? bytes).subarray(offset, offset + 4), image.hasAlpha, depth, working?.subarray(offset, offset + 4)) + "\n", metaSamples, offset, depth > 8 ? 65535 : 255);
                 continue;
             }
             if ((image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab")) {
-                yield `${pixel % image.width},${Math.floor(pixel / image.width)}: ${hueTextPixel(Array.from(data16?.subarray(offset, offset + 4) ?? bytes.subarray(offset, offset + 4), value => data16 ? value : value * 257), image.hasAlpha, image.magickColorspace, hueSamples ? Array.from(hueSamples.subarray(offset, offset + 4)) : undefined, maximum)}\n`;
+                yield appendEnumerationMetaSamples(`${pixel % image.width},${Math.floor(pixel / image.width)}: ${hueTextPixel(Array.from(data16?.subarray(offset, offset + 4) ?? bytes.subarray(offset, offset + 4), value => data16 ? value : value * 257), image.hasAlpha, image.magickColorspace, hueSamples ? Array.from(hueSamples.subarray(offset, offset + 4)) : undefined, maximum)}\n`, metaSamples, offset, maximum);
                 continue;
             }
             if (gray16) {
-                yield gray16EnumerationLine(pixel % image.width, Math.floor(pixel / image.width), data16![offset]!, image.hasAlpha ? data16![offset + 3]! : undefined, colorspace, working?.subarray(offset, offset + 4)) + "\n";
+                yield appendEnumerationMetaSamples(gray16EnumerationLine(pixel % image.width, Math.floor(pixel / image.width), data16![offset]!, image.hasAlpha ? data16![offset + 3]! : undefined, colorspace, working?.subarray(offset, offset + 4)) + "\n", metaSamples, offset, 65535);
                 continue;
             }
-            yield pixelEnumerationLine(pixel % image.width, Math.floor(pixel / image.width), bytes[offset]!, bytes[offset + 1]!, bytes[offset + 2]!, bytes[offset + 3]!, colorspace, working?.subarray(offset, offset + 4)) + "\n";
+            yield appendEnumerationMetaSamples(pixelEnumerationLine(pixel % image.width, Math.floor(pixel / image.width), bytes[offset]!, bytes[offset + 1]!, bytes[offset + 2]!, bytes[offset + 3]!, colorspace, working?.subarray(offset, offset + 4)) + "\n", metaSamples, offset, 255);
         }
     }
 }

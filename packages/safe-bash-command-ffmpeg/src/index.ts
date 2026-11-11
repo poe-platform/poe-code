@@ -11790,8 +11790,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const packet = t.samples[n];
                             const count = packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                             const end = Math.min(inputLength, start + count);
-                            budget.allocateMemory(24);
-                            audioTimestamps.push({ start, end, pts: audioStartSample + start });
+                            budget.allocateMemory(32);
+                            audioTimestamps.push({ start, end, pts: audioStartSample + start, pos: packet?.offset });
                             start = end;
                           }
                         }

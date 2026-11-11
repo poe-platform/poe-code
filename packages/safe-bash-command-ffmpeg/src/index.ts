@@ -6199,6 +6199,7 @@ async function applyVideoFilterChain(
         return { ...frame, data, native: { ...native, rgba: data } };
       }, signal);
     } else if (name === "shuffleframes") {
+      if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       for (const [key, value] of Object.entries(named)) {
         if (key === "mapping" || key === "enable") continue;
         if (key !== "threads" && key !== "thread_type" && key !== "extra_hw_frames") {
@@ -6873,7 +6874,7 @@ async function applyVideoFilterChain(
     }
     // Filters that change the final frame's timing establish a new endpoint.
     const lastOutputFrame = current.at(-1);
-    if (!pending && name !== "tpad" && name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "framestep" && name !== "tile" && name !== "untile" &&
+    if (!pending && name !== "tpad" && name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "framestep" && name !== "tile" && name !== "untile" && name !== "shuffleframes" &&
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;

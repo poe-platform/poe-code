@@ -22668,7 +22668,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     ? yield* applyMagickCropToStackSteps(image, transform.geometry, transform.gravity, analysis)
                     : [yield* ("operation" in transform ? transform.operation.apply(image)
                         : (transform.kind === "resize" || transform.kind === "scale" || transform.kind === "thumbnail") ? applyMagickResizeSteps(image, transform.geometry, state.kernel, transform.kind === "thumbnail", false, transform.kind === "scale", state.resizeFilter)
-                        : transform.kind === "trim" ? trimMagickSteps(image, transform.fuzz)
+                        : transform.kind === "trim" ? trimMagickSteps(image, transform.fuzz, undefined, undefined, undefined, analysis)
                         : transform.kind === "extent" ? applyMagickExtentSteps(image, transform.geometry, transform.state, signal)
                         : transform.kind === "rotate" ? rotateImageSteps(image, transform.angle, state.background)
                         : transform.kind === "flop" ? flopImageSteps(image) : flipImageSteps(image))];
@@ -22975,7 +22975,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                             } else {
                                 let transformed = "operation" in transform
                                     ? await transformStoredMagickPixels(tile, backend, transform.operation, signal)
-                                    : transform.kind === "trim" ? await trimStoredMagick(tile, backend.storage, transform.fuzz, signal)
+                                    : transform.kind === "trim" ? await trimStoredMagick(tile, backend.storage, transform.fuzz, signal, undefined, undefined, undefined, analysis)
                                     : transform.kind === "extent" ? await applyStoredMagickExtent(tile, transform.geometry, transform.state, backend, signal)
                                     : await transformStoredImage(tile, backend.storage, transform.kind === "rotate"
                                         ? { ...transform, background: state.background } : transform, signal);

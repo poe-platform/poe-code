@@ -13004,6 +13004,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const value = valueParts.length ? valueParts.join(":") : undefined;
                   matches = matches.filter(track => "samples" in track && key === "language" &&
                     (value === undefined || track.language === value));
+                } else if (index === "u") {
+                  matches = matches.filter(track => {
+                    if (!("codecDescriptions" in track)) return false;
+                    const codec = track.codecDescriptions[0];
+                    if (!codec?.codecName || codec.codecName === "unknown" || codec.codecName === "none") return false;
+                    if (track.type === "audio") return (codec.sampleRate ?? 0) > 0 && (codec.channels ?? 0) > 0;
+                    if (track.type === "video") return (codec.width ?? track.width ?? 0) > 0 &&
+                      (codec.height ?? track.height ?? 0) > 0 && !!codec.pixFmt;
+                    return true;
+                  });
                 } else if (index !== undefined) {
                   matches = matches.filter((_, i) => i === Number(index));
                 }

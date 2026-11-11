@@ -60,7 +60,7 @@ import { compareLayerBounds, optimizePlusPixels, optimizeTransparencyPixels } fr
 import { plasmaPixelSteps } from "./plasma.js";
 import { createMagickRandom } from "./random.js";
 import { evaluateNoiseSteps } from "./noise.js";
-import { orderedDitherMetaOptions, orderedDitherPixelSteps, parseOrderedDither } from "./ordered-dither.js";
+import { listOrderedDitherMaps, orderedDitherMetaOptions, orderedDitherPixelSteps, parseOrderedDither } from "./ordered-dither.js";
 import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
 import { bilevelPixelSteps } from "./bilevel-kernel.js";
 import { autoTonalMetaPixelSteps } from "./auto-tonal-meta.js";
@@ -8161,6 +8161,9 @@ function tryHandleMagickListOption(argv: readonly string[]): ImageMagickCliResul
                     stdout: "Average\nBrightness\nLightness\nMean\nMS\nRec601Luma\nRec601Luminance\nRec709Luma\nRec709Luminance\nRMS\n",
                     stderr: ""
                 };
+            }
+            if (listType === "threshold") {
+                return { exitCode: 0, stdout: listOrderedDitherMaps(), stderr: "" };
             }
             if (listType === "autothreshold") {
                 return { exitCode: 0, stdout: "Kapur\nOTSU\nTriangle\n", stderr: "" };

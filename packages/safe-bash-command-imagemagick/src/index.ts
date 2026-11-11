@@ -2846,7 +2846,7 @@ function normalizeMagickWarpGeometry(raw: string): string {
 }
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
-    let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal", "-density", "-delay", "-loop", "-blue-shift"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
+    let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal", "-density", "-delay", "-loop", "-blue-shift", "-sharpen"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
     if (["-swirl", "-implode", "-wave", "-spread"].includes(option)) value = value.replaceAll("(", "").replaceAll(")", "");
     if (option === "-roll") value = value.replaceAll(" ", "").replaceAll("(", "").replaceAll(")", "");
     const forcedRegionResize = (option === "-liquid-rescale" || option === "-adaptive-resize") && value.includes("!");
@@ -2855,6 +2855,15 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
         if (char === "x" || char === "X" || char === ":") dimensions = true;
         if ((char.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(char)) ||
             (!dimensions && ((char === "/" && option !== "-loop") || (char === "," && !forcedRegionResize && value[0] !== "+" && value[0] !== "-")))) {
+            throw new Error(`invalid argument for option '${option}': ${raw}`);
+        }
+    }
+    if (option === "-sharpen") {
+        const normalized = [...value].filter(c => c.trim() !== "" && !"!#%()<>@\\^".includes(c)).join("");
+        const separator = [...normalized].findIndex(c => "xX:".includes(c));
+        const radius = separator < 0 ? normalized : normalized.slice(0, separator);
+        // Native validates the complete radius before the first geometry separator.
+        if (![...normalized].some(c => "0123456789".includes(c)) || (radius && !Number.isFinite(Number(radius)))) {
             throw new Error(`invalid argument for option '${option}': ${raw}`);
         }
     }
@@ -14659,6 +14668,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const raw = tokens[++i] ?? "0x1";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                validateMagickTransformGeometry(expanded, "-sharpen");
                 const geometry = parseMagickGeometry(expanded.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
                 return yield* applyMagickRasterSteps(im, sharpenPixelSteps(im, geometry), signal);
             }, undefined, true);
@@ -18778,6 +18788,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                validateMagickTransformGeometry(expanded, "-sharpen");
                 const geometry = parseMagickGeometry(expanded.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
                 return transformStoredMagickRaster(image, backend, sharpenPixelSteps(image, geometry), signal);
             }, { handlesRegion: true }));

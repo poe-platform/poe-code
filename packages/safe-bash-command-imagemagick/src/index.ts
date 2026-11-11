@@ -5201,7 +5201,7 @@ function thumbnailProperties(image: ImageMetadata & { [magickInput]?: MagickForm
         "Thumb::Image::Width": String(source.originalWidth ?? image.width),
         "Thumb::Image::Height": String(source.originalHeight ?? image.height),
         "Thumb::Document::Pages": String(pages),
-        "Thumb::URI": path.startsWith("/") ? `file://${path}` : path.includes(":") || path.startsWith(".") ? path : `./${path}`,
+        "Thumb::URI": path.startsWith("/") ? `file://${path}` : path.includes(":") ? path : `./${path}`,
         ...(source.byteLen === undefined ? {} : { "Thumb::Size": String(source.byteLen) }),
         ...(source.mtimeMs === undefined ? {} : { "Thumb::MTime": String(Math.floor(source.mtimeMs / 1000)) })
     };

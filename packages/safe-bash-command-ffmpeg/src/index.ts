@@ -16526,7 +16526,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const value = separator < 0 ? option : option.slice(separator + 1);
                           if (key === "enable") {
                             enable = value;
-                            parseFilterExpression(enable, "apad enable", { n: 0, t: 0, pos: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+                            parseFilterExpression(enable, "apad enable", { n: 0, t: 0, pos: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10), []);
                             continue;
                           }
                           if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
@@ -16913,11 +16913,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // apad forwards every input frame; the final enable state controls EOF padding.
                         let enabled = true;
                         if (enable !== undefined) {
+                          const registers = new Float64Array(10);
+                          const randomStates: BigUint64Array[] = [];
                           for (const [n, frame] of audioTimestamps.entries()) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             enabled = Math.abs(parseFilterExpression(enable, "apad enable", {
                               n, t: frame.pts / origRate, pos: frame.pos ?? NaN, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-                            })) >= 0.5;
+                            }, undefined, registers, randomStates)) >= 0.5;
                           }
                         }
                         if (!enabled || length === inputLength) continue;

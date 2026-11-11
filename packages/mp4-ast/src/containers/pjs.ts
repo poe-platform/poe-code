@@ -22,7 +22,9 @@ function parsePjs(bytes: Uint8Array): MediaDocument {
   let duration = 0;
   const samples: MediaSample[] = [];
   const seen = new Set<string>();
-  for (const line of decodeUtf8(bytes).replaceAll("\r", "\n").split("\n")) {
+  for (const line of new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes).replaceAll("\r", "\n").split("\n")) {
+    // Native PJS treats a BOM as part of the record, not as a text signature.
+    if (line.startsWith("\uFEFF")) continue;
     const cue = readLine(line);
     if (!cue) continue;
     const key = `${cue.start},${cue.end},${cue.text}`;

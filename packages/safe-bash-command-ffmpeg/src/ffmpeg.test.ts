@@ -1901,13 +1901,13 @@ describe("per-frame audio checksums", () => {
       }
     }
   });
-  it("rejects invalid framemd5 hashes without replacing output", async () => {
+  it("truncates output for invalid framemd5 hashes", async () => {
     const vfs = createTestVfs({ "/i.wav": encodeWav({ sampleRate: 8000,
       channels: [new Float64Array(1200)] }), "/frames.txt": "keep" });
     const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/i.wav",
       "-f", "framemd5", "-hash", "invalid", "/frames.txt"], vfs);
-    assert.notEqual(result.exitCode, 0);
-    assert.equal(new TextDecoder().decode(vfs.store.get("/frames.txt")), "keep");
+    assert.equal(result.exitCode, 234);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/frames.txt")), "");
   });
   it("supports explicit hashes, stereo PCM encoding, stream copy, and empty streams", async () => {
     for (const frames of [0, 515]) {
@@ -2016,11 +2016,11 @@ describe("per-stream audio checksums", () => {
         `${i},a,SHA512=${createHash("sha512").update(bytes).digest("hex")}\n`).join(""));
     });
   }
-  it("rejects unknown algorithms without replacing output", async () => {
+  it("truncates output for unknown streamhash algorithms", async () => {
     const vfs = createTestVfs({ "/i.wav": wav, "/digest.txt": "keep" });
     const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/i.wav", "-f", "streamhash", "-hash", "invalid", "/digest.txt"], vfs);
-    assert.notEqual(result.exitCode, 0);
-    assert.equal(new TextDecoder().decode(vfs.store.get("/digest.txt")), "keep");
+    assert.equal(result.exitCode, 234);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/digest.txt")), "");
   });
 });
 
@@ -2070,11 +2070,11 @@ describe("whole-output audio checksums", () => {
     assert.equal(new TextDecoder().decode(vfs.store.get("/silent.txt")), `MD5=${createHash("md5").update(new Uint8Array(8192)).digest("hex")}\n`);
     assert.equal(result.stdout, `SHA256=${createHash("sha256").update(pcm).digest("hex")}\n`);
   });
-  for (const format of ["hash", "md5"]) it(`rejects unknown ${format} algorithms without replacing a file`, async () => {
+  for (const format of ["hash", "md5"]) it(`truncates output for unknown ${format} algorithms`, async () => {
     const vfs = createTestVfs({ "/i.wav": encodeWav({ sampleRate: 8000, channels }), "/digest.txt": "keep" });
     const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/i.wav", "-f", format, "-hash", "invalid", "/digest.txt"], vfs);
-    assert.notEqual(result.exitCode, 0);
-    assert.equal(new TextDecoder().decode(vfs.store.get("/digest.txt")), "keep");
+    assert.equal(result.exitCode, 234);
+    assert.equal(new TextDecoder().decode(vfs.store.get("/digest.txt")), "");
   });
 });
 

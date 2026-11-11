@@ -22,7 +22,7 @@ function txtValues(text: string, maximum: number): number[] {
 
 type Step = { kind: "read"; position: number } | { kind: "header"; metadata: ImageMetadata } | { kind: "pixel"; offset: number; values: number[]; hueSamples?: number[] };
 function* txtSteps(size: number, page: number, options?: SharpInputOptions): Generator<Step, ImageMetadata, number | undefined> {
-  let position = 0, index = -1, metadata: ImageMetadata | undefined, selected: ImageMetadata | undefined, maximum = 0, pixels = 0;
+  let position = 0, index = -1, metadata: ImageMetadata | undefined, selected: ImageMetadata | undefined, maximum = 0, range = 0, pixels = 0;
   while (position < size) {
     let line = "";
     while (position < size) {
@@ -45,9 +45,12 @@ function* txtSteps(size: number, page: number, options?: SharpInputOptions): Gen
       if (!magickColorspace && !["srgb", "srgba", "gray", "graya", "lineargray", "lineargraya"].includes(space)) throw new Error(`Unsupported TXT colorspace: ${space}`);
       if (!Number.isSafeInteger(width) || width < 1 || !Number.isSafeInteger(height) || height < 1 || !Number.isSafeInteger(width * height * 8) || !Number.isInteger(maximum) || maximum < 1 || maximum > 65535) throw new Error("Invalid TXT dimensions or maximum");
       checkLimitInputPixels(width, height, options);
+      // TXT derives its sample range from depth, including power-of-two maxima.
+      const bitsPerSample = Math.max(1, Math.ceil(Math.log2(maximum)));
+      range = 2 ** bitsPerSample - 1;
       const linearGray = space.startsWith("lineargray");
       const cmyk = space.startsWith("cmyk"), hasAlpha = space.endsWith("a"), channels = cmyk ? (hasAlpha ? 5 : 4) : space.startsWith("gray") || linearGray ? (hasAlpha ? 2 : 1) : (hasAlpha ? 4 : 3);
-      metadata = { ...(magickColorspace ? { magickColorspace } : {}), format: "txt", width, height, channels, hasAlpha, space: cmyk ? "cmyk" : channels < 3 ? "b-w" : "srgb", depth: maximum > 255 ? "ushort" : "uchar", density: 72, size, ...(space === "rgb" || space === "rgba" ? { gamma: 1 } : {}), ...(linearGray ? { gamma: 1 } : {}) };
+      metadata = { ...(magickColorspace ? { magickColorspace } : {}), format: "txt", width, height, channels, hasAlpha, space: cmyk ? "cmyk" : channels < 3 ? "b-w" : "srgb", depth: bitsPerSample > 8 ? "ushort" : "uchar", bitsPerSample, density: 72, size, ...(space === "rgb" || space === "rgba" ? { gamma: 1 } : {}), ...(linearGray ? { gamma: 1 } : {}) };
       pixels = 0;
       if (++index === page) { selected = metadata; yield { kind: "header", metadata }; }
       continue;
@@ -55,22 +58,22 @@ function* txtSteps(size: number, page: number, options?: SharpInputOptions): Gen
     if (!metadata) throw new Error("Invalid TXT signature");
     const colon = line.indexOf(":"), open = line.indexOf("(", colon), close = line.indexOf(")", open);
     const coordinates = line.slice(0, colon).split(",").map(Number);
-    const values = txtValues(line.slice(open + 1, close), maximum);
-    if (colon < 0 || open < colon || close < open || coordinates.length !== 2 || coordinates.some(value => !Number.isInteger(value) || value < 0) || coordinates[0]! >= metadata.width || coordinates[1]! >= metadata.height || pixels >= metadata.width * metadata.height || values.length !== metadata.channels || values.some(value => !Number.isFinite(value) || value < 0 || value > maximum)) throw new Error("Invalid TXT pixel");
+    const values = txtValues(line.slice(open + 1, close), range);
+    if (colon < 0 || open < colon || close < open || coordinates.length !== 2 || coordinates.some(value => !Number.isInteger(value) || value < 0) || coordinates[0]! >= metadata.width || coordinates[1]! >= metadata.height || pixels >= metadata.width * metadata.height || values.length !== metadata.channels || values.some(value => !Number.isFinite(value) || value < 0 || value > Math.max(maximum, range))) throw new Error("Invalid TXT pixel");
     // Native TXT only re-reads the trailing srgb(...) annotation, in header units.
     const annotation = line.lastIndexOf("srgb(");
     if (annotation > close) {
       const end = line.indexOf(")", annotation);
-      const components = txtValues(line.slice(annotation + 5, end), maximum);
-      if (end < 0 || components.length !== 3 || components.some(value => !Number.isFinite(value) || value < 0 || value > maximum)) throw new Error("Invalid TXT pixel");
+      const components = txtValues(line.slice(annotation + 5, end), range);
+      if (end < 0 || components.length !== 3 || components.some(value => !Number.isFinite(value) || value < 0 || value > Math.max(maximum, range))) throw new Error("Invalid TXT pixel");
       for (let channel = 0; channel < Math.min(3, metadata.channels - Number(metadata.hasAlpha)); channel++) values[channel] = components[channel]!;
     }
     if (index === page) {
-      for (let channel = 0; channel < values.length; channel++) values[channel] = Math.trunc(values[channel]!);
-      const r = values[0]!, g = metadata.channels < 3 ? r : values[1]!, b = metadata.channels < 3 ? r : values[2]!, a = metadata.hasAlpha ? values[values.length - 1]! : maximum;
-      const hueSamples = metadata.space === "cmyk" ? values.slice(0, 4).map(value => value / maximum) : undefined;
-      const rgb = hueSamples ? hueSamples.slice(0, 3).map(value => (1 - value) * (1 - hueSamples[3]!) * maximum) : [r, g, b];
-      yield { kind: "pixel", offset: (coordinates[1]! * metadata.width + coordinates[0]!) * 4, values: [...rgb, a].map(value => Math.round(value * 65535 / maximum)), ...(hueSamples ? { hueSamples } : {}) };
+      for (let channel = 0; channel < values.length; channel++) values[channel] = Math.min(range, Math.trunc(values[channel]!));
+      const r = values[0]!, g = metadata.channels < 3 ? r : values[1]!, b = metadata.channels < 3 ? r : values[2]!, a = metadata.hasAlpha ? values[values.length - 1]! : range;
+      const hueSamples = metadata.space === "cmyk" ? values.slice(0, 4).map(value => value / range) : undefined;
+      const rgb = hueSamples ? hueSamples.slice(0, 3).map(value => (1 - value) * (1 - hueSamples[3]!) * range) : [r, g, b];
+      yield { kind: "pixel", offset: (coordinates[1]! * metadata.width + coordinates[0]!) * 4, values: [...rgb, a].map(value => Math.fround(65535 * (value / range))), ...(hueSamples ? { hueSamples } : {}) };
     }
     pixels++;
   }
@@ -81,7 +84,7 @@ function* txtSteps(size: number, page: number, options?: SharpInputOptions): Gen
 
 export function readTxtImage(bytes: Uint8Array, options?: SharpInputOptions, metadataOnly = false): RgbaImage {
   const steps = txtSteps(bytes.length, options?.page ?? 0, options);
-  let next = steps.next(), data = new Uint8Array(), data16: Uint16Array | undefined, hueSamples: Float64Array | undefined;
+  let next = steps.next(), data = new Uint8Array(), data16: Uint16Array | undefined, hueSamples: Float64Array | undefined, evaluateSamples: Float64Array | undefined;
   while (!next.done) {
     const step = next.value;
     if (step.kind === "read") { next = steps.next(bytes[step.position]); continue; }
@@ -89,27 +92,30 @@ export function readTxtImage(bytes: Uint8Array, options?: SharpInputOptions, met
       if (step.kind === "header") {
         data = new Uint8Array(step.metadata.width * step.metadata.height * 4);
         if (step.metadata.depth === "ushort" || step.metadata.space === "cmyk") data16 = new Uint16Array(data.length);
+        if (65535 % (2 ** step.metadata.bitsPerSample! - 1) !== 0) evaluateSamples = new Float64Array(data.length);
         if (step.metadata.space === "cmyk") hueSamples = new Float64Array(data.length);
       } else {
         data.set(step.values.map(value => Math.round(value / 257)), step.offset);
-        data16?.set(step.values, step.offset);
+        data16?.set(step.values.map(Math.round), step.offset);
+        evaluateSamples?.set(step.values.map(value => value / 257), step.offset);
         if (step.hueSamples) hueSamples?.set(step.hueSamples, step.offset);
       }
     }
     next = steps.next();
   }
-  return { ...next.value, data, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
+  return { ...next.value, data, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 
 export async function readTxtFromSource(source: ImageByteSource, storage: ImageByteStorage | undefined, signal: AbortSignal, options?: SharpInputOptions): Promise<StoredRgbaImage> {
   const reader = new SourceBytes(source, signal, "TXT"), steps = txtSteps(source.size, options?.page ?? 0, options);
-  let next = steps.next(), position = 0, storedData16: StoredRgbaImage["storedData16"], storedHueSamples: StoredRgbaImage["storedHueSamples"];
-  const pixels = new Uint8Array(4096), samples = new Uint16Array(4096), hues = new Float64Array(4096);
+  let next = steps.next(), position = 0, storedData16: StoredRgbaImage["storedData16"], storedHueSamples: StoredRgbaImage["storedHueSamples"], storedEvaluateSamples: StoredRgbaImage["storedEvaluateSamples"];
+  const pixels = new Uint8Array(4096), samples = new Uint16Array(4096), hues = new Float64Array(4096), working = new Float64Array(4096);
   let used = 0, offset = 0;
   async function flush(): Promise<void> {
     if (!storage || !used) return;
     await storage.write(position + offset, pixels.subarray(0, used), { signal });
     if (storedData16) await storage.write(storedData16.position + offset * 2, new Uint8Array(samples.buffer, 0, used * 2), { signal });
+    if (storedEvaluateSamples !== undefined) await storage.write(storedEvaluateSamples + offset * 8, new Uint8Array(working.buffer, 0, used * 8), { signal });
     if (storedHueSamples !== undefined) await storage.write(storedHueSamples + offset * 8, new Uint8Array(hues.buffer, 0, used * 8), { signal });
     offset += used; used = 0;
   }
@@ -121,17 +127,18 @@ export async function readTxtFromSource(source: ImageByteSource, storage: ImageB
         const length = step.metadata.width * step.metadata.height * 4;
         position = storage.allocate(length);
         if (step.metadata.depth === "ushort" || step.metadata.space === "cmyk") storedData16 = { position: storage.allocate(length * 2), length };
+        if (65535 % (2 ** step.metadata.bitsPerSample! - 1) !== 0) storedEvaluateSamples = storage.allocate(length * 8);
         if (step.metadata.space === "cmyk") storedHueSamples = storage.allocate(length * 8);
       } else {
         if (step.offset !== offset + used) await flush();
         if (!used) offset = step.offset;
         if (step.hueSamples) hues.set(step.hueSamples, used);
-        for (const value of step.values) { pixels[used] = Math.round(value / 257); samples[used++] = value; }
+        for (const value of step.values) { pixels[used] = Math.round(value / 257); working[used] = value / 257; samples[used++] = Math.round(value); }
         if (used === pixels.length) await flush();
       }
     }
     next = steps.next();
   }
   await flush();
-  return { ...next.value, position, ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples !== undefined ? { storedHueSamples } : {}) };
+  return { ...next.value, position, ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples !== undefined ? { storedHueSamples } : {}), ...(storedEvaluateSamples !== undefined ? { storedEvaluateSamples } : {}) };
 }

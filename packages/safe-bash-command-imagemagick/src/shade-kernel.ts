@@ -1,11 +1,12 @@
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
+import { createMagickRandom } from "./random.js";
 import { magickIntensity } from "./intensity.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 
 /** Directional surface normals from a 3x3 intensity neighborhood. */
-export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { magickColorspace?: string | undefined }, spec: string, argument: number, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, intensity = "rec709luma", meta = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { magickColorspace?: string | undefined }, spec: string, argument: number, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, intensity = "rec709luma", seed?: bigint, meta = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const geometry = [...spec.toLowerCase()].filter(character => character.trim() && !"()!%<>^@#".includes(character)).join("")
         .replaceAll(",", "x").replaceAll("/", "x").replaceAll(":", "x");
     const fields: string[] = [];
@@ -36,9 +37,11 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
     if (image.space === "b-w" || image.space === "grey16") mask[1] = mask[2] = mask[0]!;
     const gray = method === "white" ? 255 : method === "gray" ? 255 / 2 : 0;
     const fill = (method === "background" || method.endsWith("-tile") ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255]).map(value => value * quantum / 255);
+    const random = method === "random" ? createMagickRandom(seed) : undefined;
+    const randomPixels = new Map<number, number>();
     const blocks = new Map<number, Uint8Array | Uint16Array | Float64Array>();
     function* sample(x: number, y: number): Generator<ConvolveRequest, ArrayLike<number>, Uint8Array | undefined> {
-        const index = virtualPixelIndex(x, y, width, height, method);
+        const index = randomPixels.get((y + 1) * (width + 2) + x + 1) ?? virtualPixelIndex(x, y, width, height, method, random);
         if (index < 0) return fill;
         const start = Math.floor(index / 1024) * 1024;
         let data = blocks.get(start);
@@ -65,6 +68,16 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
         for (let i = 0; i < count; i++) {
             yield;
             const x = (start + i) % width, y = Math.floor((start + i) / width);
+            if (random && x === 0) {
+                // Native samples a three-row virtual region once per output row.
+                // Reuse border pixels across overlapping neighborhoods in that row.
+                randomPixels.clear();
+                for (let sy = y - 1; sy <= y + 1; sy++) for (let sx = -1; sx <= width; sx++) {
+                    if (sx >= 0 && sx < width && sy >= 0 && sy < height) continue;
+                    yield;
+                    randomPixels.set((sy + 1) * (width + 2) + sx + 1, virtualPixelIndex(sx, sy, width, height, method, random));
+                }
+            }
             let nx = 0, ny = 0;
             for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
                 if (dx === 0 && dy === 0) continue;

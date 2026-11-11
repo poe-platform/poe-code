@@ -14111,13 +14111,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const spec = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(spec, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                const result = yield* applyMagickRasterSteps({ ...im, isPalette: false }, shadePixelSteps(im, expanded, argumentOffset + i, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.intensity), signal);
+                const result = yield* applyMagickRasterSteps({ ...im, isPalette: false }, shadePixelSteps(im, expanded, argumentOffset + i, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.intensity, state.seed), signal);
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
                     for (const [index, plane] of im.metaChannels.entries()) {
                         const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
                         result.metaChannels.push(selected ? yield* applyMagickRasterSteps(plane,
-                            shadePixelSteps(im, expanded, argumentOffset + i, state.background, state.virtualPixel, undefined, state.intensity, true), signal, plane, [im]) : plane);
+                            shadePixelSteps(im, expanded, argumentOffset + i, state.background, state.virtualPixel, undefined, state.intensity, state.seed, true), signal, plane, [im]) : plane);
                     }
                 }
                 return result;
@@ -18266,17 +18266,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const spec = tokens[++i] ?? "", background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? { ...state.channels } : undefined, intensity = state.intensity, optionProperties = state.optionProperties, argument = i;
+            const spec = tokens[++i] ?? "", background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? { ...state.channels } : undefined, intensity = state.intensity, seed = state.seed, optionProperties = state.optionProperties, argument = i;
             const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                const result = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, shadePixelSteps(image, expanded, argument, background, virtualPixel, channels, intensity), signal);
+                const result = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, shadePixelSteps(image, expanded, argument, background, virtualPixel, channels, intensity, seed), signal);
                 if (image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries())
                         result.storedMetaChannels.push(!meta || meta.includes(index) ? await transformStoredMagickRaster(plane, backend,
-                            shadePixelSteps(image, expanded, argument, background, virtualPixel, undefined, intensity, true), signal, plane, [image]) : plane);
+                            shadePixelSteps(image, expanded, argument, background, virtualPixel, undefined, intensity, seed, true), signal, plane, [image]) : plane);
                 }
                 return result;
             });

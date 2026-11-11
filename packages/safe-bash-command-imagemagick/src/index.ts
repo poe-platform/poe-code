@@ -14075,13 +14075,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const geometry = parseMagickGeometry(normalized);
                 const channels = state.channelExplicit ? state.channels : undefined;
                 const equalization: EmbossEqualization | undefined = !channels && im.metaChannels?.length ? {} : undefined;
-                const result = yield* applyMagickRasterSteps(im, embossPixelSteps(im, geometry, channels, state.virtualPixel, state.background, equalization, im.writeMask), signal, im, im.writeMask ? [im, im.writeMask] : [im]);
+                const result = yield* applyMagickRasterSteps(im, embossPixelSteps(im, geometry, state.intensity, channels, state.virtualPixel, state.background, equalization, im.writeMask), signal, im, im.writeMask ? [im, im.writeMask] : [im]);
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
                     for (const [index, plane] of im.metaChannels.entries()) {
                         const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
                         result.metaChannels.push(selected ? yield* applyMagickRasterSteps(plane,
-                            embossPixelSteps(plane, geometry, channels ? { r: true, g: true, b: true, a: false } : undefined, state.virtualPixel, state.background, equalization), signal) : plane);
+                            embossPixelSteps(plane, geometry, state.intensity, channels ? { r: true, g: true, b: true, a: false } : undefined, state.virtualPixel, state.background, equalization), signal) : plane);
                     }
                 }
                 return result;
@@ -18202,7 +18202,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const raw = tokens[++i] ?? "", optionProperties = state.optionProperties;
-            const channels = state.channelExplicit ? { ...state.channels } : undefined, virtualPixel = state.virtualPixel, background = state.background;
+            const channels = state.channelExplicit ? { ...state.channels } : undefined, virtualPixel = state.virtualPixel, background = state.background, intensity = state.intensity;
             const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
@@ -18211,12 +18211,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 validateMagickTransformGeometry(normalized, token);
                 const geometry = parseMagickGeometry(normalized);
                 const equalization: EmbossEqualization | undefined = !channels && image.storedMetaChannels?.length ? {} : undefined;
-                const result = await transformStoredMagickRaster(image, backend, embossPixelSteps(image, geometry, channels, virtualPixel, background, equalization, image.storedWriteMask), signal, image, image.storedWriteMask ? [image, image.storedWriteMask] : [image]);
+                const result = await transformStoredMagickRaster(image, backend, embossPixelSteps(image, geometry, intensity, channels, virtualPixel, background, equalization, image.storedWriteMask), signal, image, image.storedWriteMask ? [image, image.storedWriteMask] : [image]);
                 if (image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries())
                         result.storedMetaChannels.push(!meta || meta.includes(index) ? await transformStoredMagickRaster(plane, backend,
-                            embossPixelSteps(plane, geometry, channels ? { r: true, g: true, b: true, a: false } : undefined, virtualPixel, background, equalization), signal) : plane);
+                            embossPixelSteps(plane, geometry, intensity, channels ? { r: true, g: true, b: true, a: false } : undefined, virtualPixel, background, equalization), signal) : plane);
                 }
                 return result;
             }, { maskAlpha: "unmasked" as const, handlesRegion: true }));

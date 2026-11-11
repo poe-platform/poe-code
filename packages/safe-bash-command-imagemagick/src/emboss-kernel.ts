@@ -4,6 +4,7 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import { regionContains, type Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { magickIntensity } from "./intensity.js";
 import type { HueMetadata } from "./colorspace-hue.js";
 
 export interface EmbossEqualization {
@@ -12,9 +13,11 @@ export interface EmbossEqualization {
 }
 
 /** Native emboss diagonal Gaussian convolution followed by channel-aware equalization. */
-export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined }, geometry: { width?: number; height?: number }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, equalization?: EmbossEqualization, writeMask?: Pick<RgbaImage, "width" | "height">): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space" | "gamma"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined }, geometry: { width?: number; height?: number }, intensity: string, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, equalization?: EmbossEqualization, writeMask?: Pick<RgbaImage, "width" | "height">): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
     const hue = !cmyk && !!image.magickColorspace && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
+    const linear = image.magickColorspace === "RGB" || image.magickColorspace === "scRGB"
+        || (image.space === "b-w" || image.space === "grey16") && image.gamma === 1 && image.magickColorspace !== "Gray";
     const highDepth = !!(image.data16 || image.storedData16);
     const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
     function* read(position: number, length: number): Generator<ConvolveRequest | undefined, Float64Array, Uint8Array | undefined> {
@@ -136,7 +139,7 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
                 for (let x = 0; x < count; x++) {
                     if (channels) {
                         for (let channel = 0; channel < stride; channel++) if (mask[channel]) histograms[channel]![bin(sums[x * stride + channel]!)]!++;
-                    } else histograms[0]![bin(sums[x * stride]! * 0.212656 + sums[x * stride + 1]! * 0.715158 + sums[x * stride + 2]! * 0.072186)]!++;
+                    } else histograms[0]![bin(magickIntensity(sums[x * stride]!, sums[x * stride + 1]!, sums[x * stride + 2]!, intensity, 255, linear))]!++;
                 }
             } else {
                 const values = samples!.slice();

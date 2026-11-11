@@ -25,7 +25,7 @@ import { morphologyWorkingPixelSteps } from "./morphology-working.js";
 import { builtinPattern } from "./builtin-patterns.js";
 import { gradientRadii } from "./gradient-radii.js";
 import { gradientVector } from "./gradient-vector.js";
-import { gradientCenter, gradientProjection } from "./gradient.js";
+import { gradientCenter, gradientProjection, validateGradientBoundingBox } from "./gradient.js";
 import { besselJ } from "./bessel.js";
 import { clahePixelSteps, parseClaheGeometry } from "./clahe-kernel.js";
 import { localThresholdPixelSteps, parseLocalThresholdGeometry } from "./local-threshold-kernel.js";
@@ -7507,6 +7507,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         return yield* applyMod([Object.assign(image, { [magickInput]: { filePath: baseToken.slice(baseToken.indexOf(":") + 1), inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase(), compression: "Undefined" } })]);
     }
     if (lower.startsWith("gradient:") || lower.startsWith("radial-gradient:")) {
+        validateGradientBoundingBox(state.sizeWidth, state.sizeHeight, state.gradientBoundingBox);
         const radial = lower.startsWith("radial-gradient:");
         const spec = baseToken.slice(baseToken.indexOf(":") + 1);
         const separator = spec.indexOf("-");
@@ -18707,6 +18708,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const metadata={width:state.sizeWidth,height:state.sizeHeight,format:"png" as const,channels:3 as const,depth:"ushort" as const,space:"srgb" as const,density:72,hasAlpha:false};
   image=await transformStoredMagickRaster({...metadata,position:0},backend,plasmaPixelSteps(metadata.width,metadata.height,parseColor(first||(fractal?"#808080":"white")),parseColor(last||"black"),fractal,state.seed??0n),signal);
  }else if(lower.startsWith("gradient:")||lower.startsWith("radial-gradient:")||lower.startsWith("pattern:")){
+  if (!lower.startsWith("pattern:")) validateGradientBoundingBox(state.sizeWidth, state.sizeHeight, state.gradientBoundingBox);
   const pattern=lower.startsWith("pattern:")?builtinPattern(baseToken.slice(8)):undefined;
   const width=Math.max(1,Math.round(pattern&&!state.hasSize&&lower.startsWith("pattern:")?pattern.width:state.sizeWidth)),height=Math.max(1,Math.round(pattern&&!state.hasSize&&lower.startsWith("pattern:")?pattern.height:state.sizeHeight)),position=backend.storage.allocate(width*height*4);
   const checker=!!pattern,radial=lower.startsWith("radial-gradient:");

@@ -1,3 +1,15 @@
+import type { MagickGeometry } from "./index.js";
+
+export function validateGradientBoundingBox(width: number, height: number, box?: MagickGeometry): void {
+    if (!box) return;
+    const boxWidth = box.width ?? width;
+    const boxHeight = box.height ?? (box.isPercent ? box.width : undefined) ?? height;
+    if (box.x < 0 || box.y < 0 || boxWidth <= 0 ||
+        (box.y + boxHeight - 1) * width + box.x + boxWidth > width * height) {
+        throw new Error("no images for write '-write'");
+    }
+}
+
 /** Radial gradients use half the directional endpoint as their default center. */
 export function gradientCenter(width: number, height: number, direction?: string, center?: { x: number; y?: number }, vector?: string): { x: number; y: number } {
     let x = (width - 1) / 2, y = (height - 1) / 2;

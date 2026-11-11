@@ -5,11 +5,18 @@ import { createIdentifyCommand, createMagickCommand, runIdentifyCli, runIdentify
 
 // Two concatenated P6 images, red then blue, without a separator.
 const ppm = Buffer.from("50360a3120310a3235350aff000050360a3120310a3235350a0000ff", "hex");
+const txt = Buffer.from(`# ImageMagick pixel enumeration: 2,1,0,255,srgb
+0,0: (255,0,0) #FF0000 red
+1,0: (255,0,0) #FF0000 red
+# ImageMagick pixel enumeration: 1,1,0,255,srgb
+0,0: (0,0,255) #0000FF blue
+`);
 const format = "%s/%n:%[fx:p{0,0}.r];";
 
 for (const route of ["sync", "map", "sdk", "identify", "magick"] as const) {
     for (const [name, bytes, full] of [
         ["binary PPM", ppm, "0/2:1;1/2:0;"],
+        ["TXT", txt, "0/2:1;1/2:0;"],
         ["ASCII PPM", Buffer.from("P3\n1 1\n255\n255 0 0\n\nP3\n1 1\n255\n0 0 255\n"), "0/2:1;1/2:0;"],
         ["mixed Netpbm", Buffer.concat([Buffer.from("P1\n1 1\n0\n"), ppm.subarray(ppm.length / 2)]), "0/2:1;1/2:0;"]
     ] as const) {
@@ -23,11 +30,19 @@ for (const route of ["sync", "map", "sdk", "identify", "magick"] as const) {
         });
     }
 
-    it(`describes every concatenated PPM frame (${route})`, async () => {
-        const result = await identify(["/multi.ppm"]);
+    it.each([
+        { coder: "PPM", bytes: ppm, width: 1 },
+        { coder: "TXT", bytes: txt, width: 2 }
+    ])(`describes every concatenated $coder frame (${route})`, async ({ coder, bytes, width }) => {
+        const result = await identify(["/multi.ppm"], bytes);
         expect(result).toEqual({ exitCode: 0, stderr: "", stdout:
-            "/multi.ppm[0] PPM 1x1 1x1+0+0 8-bit sRGB 28B 0.000u 0:00.000\n" +
-            "/multi.ppm[1] PPM 1x1 1x1+0+0 8-bit sRGB 28B 0.000u 0:00.000\n" });
+            `/multi.ppm[0] ${coder} ${width}x1 ${width}x1+0+0 8-bit sRGB ${bytes.length}B 0.000u 0:00.000\n` +
+            `/multi.ppm[1] ${coder} 1x1 1x1+0+0 8-bit sRGB ${bytes.length}B 0.000u 0:00.000\n` });
+    });
+
+    it(`formats each TXT frame's dimensions (${route})`, async () => {
+        expect(await identify(["-format", "%s/%n:%wx%h;", "/multi.ppm"], txt))
+            .toEqual({ exitCode: 0, stdout: "0/2:2x1;1/2:1x1;", stderr: "" });
     });
 
     it(`restarts the scene list for repeated PPM inputs (${route})`, async () => {

@@ -19,13 +19,20 @@ function* read(offset: number, length: number, end: number): Generator<Read, Uin
 }
 function view(bytes: Uint8Array): DataView { return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength); }
 
-function* psdHeader(size: number, options?: SharpInputOptions): Generator<Read, { metadata: ImageMetadata; frame: Frame; depth: number; baseChannels: number; composite: boolean }, Uint8Array> {
+function psdLength(value: DataView, offset: number, large: boolean): number {
+    const length = large ? Number(value.getBigUint64(offset)) : value.getUint32(offset);
+    if (!Number.isSafeInteger(length)) throw new Error("Invalid PSD section length");
+    return length;
+}
+
+function* psdHeader(size: number, options?: SharpInputOptions): Generator<Read, { metadata: ImageMetadata; frame: Frame; depth: number; baseChannels: number; composite: boolean; large: boolean }, Uint8Array> {
     const header = yield* read(0, 26, size), h = view(header);
-    if (!isPsdBytes(header) || h.getUint16(4) !== 1) throw new Error("Unsupported PSD version");
+    const version = h.getUint16(4), large = version === 2, lengthBytes = large ? 8 : 4, dimensionLimit = large ? 300000 : 30000;
+    if (!isPsdBytes(header) || (version !== 1 && version !== 2)) throw new Error("Unsupported PSD version");
     const channels = h.getUint16(12), height = h.getUint32(14), width = h.getUint32(18), depth = h.getUint16(22), mode = h.getUint16(24);
     const baseChannels = mode === 1 ? 1 : 3;
     if (![1, 3].includes(mode) || ![8, 16].includes(depth) || channels < baseChannels || channels > 56) throw new Error("Unsupported PSD encoding");
-    if (!width || !height || width > 30000 || height > 30000) throw new Error("Invalid PSD dimensions");
+    if (!width || !height || width > dimensionLimit || height > dimensionLimit) throw new Error("Invalid PSD dimensions");
     let offset = 26;
     const colorLength = view(yield* read(offset, 4, size)).getUint32(0);
     offset += 4 + colorLength;
@@ -44,24 +51,24 @@ function* psdHeader(size: number, options?: SharpInputOptions): Generator<Read, 
         offset += length + length % 2;
         if (offset > resourceEnd) throw new Error("Truncated PSD resources");
     }
-    const layerLength = view(yield* read(offset, 4, size)).getUint32(0), layerEnd = offset + 4 + layerLength;
+    const layerLength = psdLength(view(yield* read(offset, lengthBytes, size)), 0, large), layerEnd = offset + lengthBytes + layerLength;
     if (layerEnd > size) throw new Error("Truncated PSD layers");
-    offset += 4;
+    offset += lengthBytes;
     const frames: Frame[] = [];
     if (layerLength) {
-        const infoLength = view(yield* read(offset, 4, layerEnd)).getUint32(0), infoEnd = offset + 4 + infoLength;
+        const infoLength = psdLength(view(yield* read(offset, lengthBytes, layerEnd)), 0, large), infoEnd = offset + lengthBytes + infoLength;
         if (infoEnd > layerEnd) throw new Error("Truncated PSD layers");
-        offset += 4;
+        offset += lengthBytes;
         if (infoLength) {
             const count = Math.abs(view(yield* read(offset, 2, infoEnd)).getInt16(0)); offset += 2;
             for (let i = 0; i < count; i++) {
                 const record = view(yield* read(offset, 18, infoEnd)); offset += 18;
                 const y = record.getInt32(0), x = record.getInt32(4), layerHeight = record.getInt32(8) - y, layerWidth = record.getInt32(12) - x, channelCount = record.getUint16(16);
-                if (layerWidth <= 0 || layerHeight <= 0 || layerWidth > 30000 || layerHeight > 30000 || channelCount > 56) throw new Error("Unsupported PSD layer dimensions or channels");
+                if (layerWidth <= 0 || layerHeight <= 0 || layerWidth > dimensionLimit || layerHeight > dimensionLimit || channelCount > 56) throw new Error("Unsupported PSD layer dimensions or channels");
                 const layerChannels: Channel[] = [];
                 for (let channel = 0; channel < channelCount; channel++) {
-                    const value = view(yield* read(offset, 6, infoEnd)); offset += 6;
-                    layerChannels.push({ id: value.getInt16(0), length: value.getUint32(2), offset: 0 });
+                    const value = view(yield* read(offset, 2 + lengthBytes, infoEnd)); offset += 2 + lengthBytes;
+                    layerChannels.push({ id: value.getInt16(0), length: psdLength(value, 2, large), offset: 0 });
                 }
                 const blend = view(yield* read(offset, 16, infoEnd)); offset += 16 + blend.getUint32(12);
                 if (offset > infoEnd) throw new Error("Truncated PSD layer record");
@@ -79,30 +86,31 @@ function* psdHeader(size: number, options?: SharpInputOptions): Generator<Read, 
     checkLimitInputPixels(frame.width, frame.height, options);
     const hasAlpha = frame.channels.some(channel => channel.id === -1);
     const metadata: ImageMetadata = { format: "psd", width: frame.width, height: frame.height, channels: baseChannels === 1 ? (hasAlpha ? 2 : 1) : (hasAlpha ? 4 : 3), space: mode === 1 ? "b-w" : "srgb", depth: depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, hasAlpha, pages: frames.length + 1, size, density: resolution?.x ?? 72, ...(resolution ? { resolution } : {}), virtualCanvas: { width, height, x: frame.x, y: frame.y } };
-    return { metadata, frame, depth, baseChannels, composite: page === 0 };
+    return { metadata, frame, depth, baseChannels, composite: page === 0, large };
 }
 
 function* psdRows(header: ReturnType<typeof readPsdHeader>): Generator<Read | { row: number; data: Uint8Array; data16?: Uint16Array }, void, Uint8Array> {
     const { frame, depth, baseChannels } = header, bytesPerRow = frame.width * depth / 8;
-    const { composite } = header;
-    const planes: { channel: Channel; offset: number; lengths?: Uint16Array }[] = [];
+    const { composite, large } = header, rowLengthBytes = large ? 4 : 2;
+    const planes: { channel: Channel; offset: number; lengths?: Uint16Array | Uint32Array }[] = [];
     let compositeOffset = frame.channels[0]!.offset + 2;
     const compositeCompression = composite ? view(yield* read(frame.channels[0]!.offset, 2, frame.channels[0]!.offset + frame.channels[0]!.length)).getUint16(0) : 0;
-    if (compositeCompression === 1) compositeOffset += frame.channels.length * frame.height * 2;
+    if (compositeCompression === 1) compositeOffset += frame.channels.length * frame.height * rowLengthBytes;
     for (let index = 0; index < frame.channels.length; index++) {
         const channel = frame.channels[index]!, end = channel.offset + channel.length;
         const compression = composite ? compositeCompression : view(yield* read(channel.offset, 2, end)).getUint16(0);
         if (compression !== 0 && compression !== 1) throw new Error("Unsupported PSD compression");
         let offset = composite ? compositeOffset : channel.offset + 2;
-        let lengths: Uint16Array | undefined;
+        let lengths: Uint16Array | Uint32Array | undefined;
         if (compression === 1) {
-            const tableOffset = composite ? channel.offset + 2 + index * frame.height * 2 : offset;
-            const table = view(yield* read(tableOffset, frame.height * 2, end));
-            lengths = new Uint16Array(frame.height);
-            for (let row = 0; row < frame.height; row++) lengths[row] = table.getUint16(row * 2);
-            if (!composite) offset += frame.height * 2;
+            const tableOffset = composite ? channel.offset + 2 + index * frame.height * rowLengthBytes : offset;
+            const table = view(yield* read(tableOffset, frame.height * rowLengthBytes, end));
+            lengths = large ? new Uint32Array(frame.height) : new Uint16Array(frame.height);
+            for (let row = 0; row < frame.height; row++) lengths[row] = large ? table.getUint32(row * rowLengthBytes) : table.getUint16(row * rowLengthBytes);
+            if (!composite) offset += frame.height * rowLengthBytes;
         }
-        const length = lengths ? lengths.reduce((sum, length) => sum + length, 0) : bytesPerRow * frame.height;
+        let length = bytesPerRow * frame.height;
+        if (lengths) { length = 0; for (const rowLength of lengths) length += rowLength; }
         if (offset + length > end) throw new Error("Truncated PSD channel");
         planes.push({ channel, offset, ...(lengths ? { lengths } : {}) });
         if (composite) compositeOffset = offset + length;

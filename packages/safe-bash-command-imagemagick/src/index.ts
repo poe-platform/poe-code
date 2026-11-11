@@ -7847,6 +7847,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
       return "isobrl6";
     case "map":
       return "map";
+    case "psb":
+      return "psb";
     case "psd":
       return "psd";
     case "qoi":

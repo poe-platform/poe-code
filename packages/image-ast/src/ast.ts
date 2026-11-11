@@ -41,6 +41,7 @@ export type ImageFormat =
   | "cur"
   | "bmp"
   | "psd"
+  | "psb"
   | "miff"
   | "tiff"
   | "svg"

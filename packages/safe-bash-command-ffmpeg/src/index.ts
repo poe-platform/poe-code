@@ -2309,14 +2309,26 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const b = sources[1]!.track.decodedAudio;
         if (!a || !b) throw new Error("sidechaingate requires decoded PCM audio");
         let control = b.channelData;
+        let end = 0;
+        budget.allocateMemory(sources[1]!.track.samples.length * 8);
+        let controlEnds = sources[1]!.track.samples.map(packet => {
+          budget.checkCpu();
+          end += Math.max(0, Math.round(packet.duration * b.sampleRate / sources[1]!.track.timescale)
+            - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0));
+          return end;
+        });
         if (a.sampleRate !== b.sampleRate) {
           const length = Math.ceil(b.channelData[0]!.length * a.sampleRate / b.sampleRate);
           budget.checkSamples(length);
           budget.checkDuration(length / a.sampleRate);
           budget.allocateMemory(length * b.channels * Float32Array.BYTES_PER_ELEMENT);
-          control = await resampleAudio(b.channelData, length, b.sampleRate, a.sampleRate, budget, signal);
+          const ends = controlEnds;
+          controlEnds = [];
+          control = await resampleAudio(b.channelData, length, b.sampleRate, a.sampleRate, budget, signal,
+            undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+            { ends, outputEnds: controlEnds });
         }
-        return { track: await gateAudio(first, filters[0]!, budget, control, signal),
+        return { track: await gateAudio(first, filters[0]!, budget, control, controlEnds, signal),
           expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "sidechaincompress" || filters[0]?.startsWith("sidechaincompress=")) {

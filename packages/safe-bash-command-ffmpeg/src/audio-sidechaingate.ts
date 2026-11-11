@@ -3,7 +3,8 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function gateAudio(
-  first: MediaTrack, filter: string, budget: MediaBudgetTracker, sidechain: readonly (Float32Array | Float64Array)[], signal?: AbortSignal
+  first: MediaTrack, filter: string, budget: MediaBudgetTracker, sidechain: readonly (Float32Array | Float64Array)[],
+  controlEnds: readonly number[], signal?: AbortSignal
 ): Promise<MediaTrack> {
   const { channelData: channels, sampleRate } = first.decodedAudio!;
   const options: Record<string, number> = {
@@ -66,6 +67,11 @@ export async function gateAudio(
   const frames: MediaTrack["samples"][number][] = [];
   let envelope = 0;
   let frame = 0;
+  let programFrame = 0;
+  let programStart = 0;
+  let programEnd = 0;
+  let programPts = 0;
+  let controlFrame = 0;
   let nextFrame = 0;
   let enabled = true;
   if (enable !== undefined && length === 0) {
@@ -74,18 +80,26 @@ export async function gateAudio(
   for (let i = 0; i < length; i++) {
     if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
     if (i === nextFrame) {
-      const packet = first.samples[frame];
-      const count = packet ? Math.round(packet.duration * sampleRate / first.timescale)
-        - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0) : length - i;
-      const pts = packet ? packet.pts * sampleRate / first.timescale + (packet.skipSamples ?? 0) : i;
+      while (programEnd <= i) {
+        budget.checkCpu();
+        const packet = first.samples[programFrame++];
+        programStart = programEnd;
+        programPts = packet ? packet.pts * sampleRate / first.timescale + (packet.skipSamples ?? 0) : i;
+        programEnd += packet ? Math.max(0, Math.round(packet.duration * sampleRate / first.timescale)
+          - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : length - i;
+      }
+      while (controlFrame < controlEnds.length && controlEnds[controlFrame]! <= i) {
+        budget.checkCpu();
+        controlFrame++;
+      }
+      const pts = programPts + i - programStart;
       if (enable !== undefined) {
         enabled = Math.abs(parseFilterExpression(enable, "sidechaingate enable", {
           t: pts / sampleRate, n: frame, w: 0, h: 0
         })) >= 0.5;
       }
-      nextFrame = Math.min(length, i + Math.max(1, count));
-      // Downstream filters must receive the gate's program frames, including a
-      // final frame shortened when either input ends.
+      // Each output frame drains the shorter of the two current input frames.
+      nextFrame = Math.min(length, programEnd, controlEnds[controlFrame] ?? length);
       budget.allocateMemory(96);
       // The gate's output clock starts at zero, independent of input timestamps.
       frames.push({ data: new Uint8Array(0), size: 0, pts: i, dts: i, cts: 0,

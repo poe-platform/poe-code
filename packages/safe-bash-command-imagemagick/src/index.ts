@@ -13083,7 +13083,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const result = yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, offset.x, offset.y, state.composeArgs, signal, state.alphaFuzz);
                 composed.push({ ...base, ...result });
             }
-            stack = composed;
+            stack = [...composed, ...destinations.slice(count)];
         }
         else if (t === "-composite") {
             if (stack.length >= 2) {
@@ -14775,7 +14775,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const result = await compositeStoredMagick(base, overlay, backend, signal, offset.x, offset.y, settings.composeRaw, settings.composeArgs, false, false, false, false, settings.alphaFuzz);
                     await stack.set(n, result);
                 }
-                stack.length = count;
+                stack.length = Math.max(count, separator);
                 return stack;
             }); continue;
         }

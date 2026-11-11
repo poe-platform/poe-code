@@ -8,7 +8,27 @@ import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js"
 const input = new Uint8Array(readFileSync(new URL("./fixtures/extent-grid.png", import.meta.url)));
 
 for (const mode of ["sync", "buffered", "retained", "command"] as const) {
-    it.each(["junk", "8x7+0+0bad", "8x7"])(`validates extent %s before replacing a PNG (${mode})`, async geometry => {
+    it.each(["2", "2x+1+0", "2@+1+0", "2+1+0@", "2%+1+0", "2+1+0%", "+1+0"])(`accepts extent %s (${mode})`, async geometry => {
+        const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+        const argv = ["xc:red", "-background", "blue", "-extent", geometry, "-depth", "8", "rgb:/out"];
+        let stderr = "";
+        const argumentValues = createCommandArguments(argv);
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs: filesystem,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runMagickCliSync(argv, files)
+            : await runMagickCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        if (geometry === "2" || geometry === "2x+1+0") {
+            const output = mode === "retained" || mode === "command"
+                ? await filesystem.readFile("/out") : files.get("/out")!;
+            expect(output).toEqual(Uint8Array.from(geometry === "2" ? [255, 0, 0, 0, 0, 255] : [0, 0, 255, 0, 0, 255]));
+        }
+    });
+
+    it.each(["junk", "8x7+0+0bad", "2+1+0", "2-1-0", "7+1+1", "8x7"])(`validates extent %s before replacing a PNG (${mode})`, async geometry => {
         for (const expand of [false, true]) {
             const files = new Map([["/grid.png", input.slice()], ["/out.png", input.slice()]]);
             const filesystem = new MemoryFileSystem();

@@ -5682,6 +5682,9 @@ function magickExtentLayout(img: Pick<RgbaImage, "width" | "height" | "virtualCa
     validateMagickTransformGeometry(geomStr, "-extent");
     const geometry = geomStr.split(",", 1)[0]!.replaceAll("#", "").replaceAll("(", "").replaceAll(")", "").trimStart();
     const g = parseMagickGeometry(geometry);
+    if (g.width !== undefined && g.hasOffset && !g.isPercent && !geometry.toLowerCase().includes("x")) {
+        throw new Error(`invalid argument for option '-extent': ${geomStr}`);
+    }
     // Offset-only geometry starts with the page rectangle; x explicitly resets its width.
     const width = g.hasOffset && (geometry.startsWith("+") || geometry.startsWith("-")) ? img.virtualCanvas?.width || img.width : img.width;
     const height = g.hasOffset && g.height === undefined ? img.virtualCanvas?.height || img.height : img.height;

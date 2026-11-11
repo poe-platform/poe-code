@@ -197,8 +197,6 @@ async function admitTextOutput(context: CommandContext, destination: string | un
     await context.fs.capabilitiesFor(pathOf(context, destination), { signal: context.signal }));
 }
 
-function fold(bytes: Uint8Array): Uint8Array { return bytes.map(byte => byte >= 97 && byte <= 122 ? byte - 32 : byte); }
-
 async function emitRecords(context: CommandContext, records: ByteSource, destination?: string): Promise<void> {
   if (destination === undefined) {
     const buffered = createBufferedOutput(context.stdout, context.signal);
@@ -707,7 +705,9 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
     } catch { return false; }
   });
   // A failed setlocale(LC_ALL, "") leaves every category in the initial C locale.
-  const byteLocale = !validLocales || locales[0] === "C" || locales[0] === "POSIX";
+  const encoding = locales[0]?.split(".")[1]?.toLowerCase().split("-").join("");
+  const latin1 = validLocales && (encoding === "iso88591" || encoding === "latin1");
+  const byteLocale = !validLocales || locales[0] === "C" || locales[0] === "POSIX" || latin1;
   const advanceCharacters = (bytes: Uint8Array, offset: number, count: number) => {
     if (byteLocale) return Math.min(bytes.length, offset + count);
     for (let character = 0; character < count && offset < bytes.length; character++) {
@@ -735,7 +735,9 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
     }
     offset = advanceCharacters(bytes, offset, skipCharacters);
     const result = bytes.subarray(offset, width === Infinity ? undefined : advanceCharacters(bytes, offset, width));
-    return ignoreCase ? fold(result) : result;
+    return ignoreCase ? result.map(byte =>
+      byte >= 0x61 && byte <= 0x7a || latin1 && byte >= 0xe0 && byte <= 0xfe && byte !== 0xf7 ? byte - 0x20 : byte
+    ) : result;
   };
   const records = (async function* (): ByteSource {
     let previous: Uint8Array | undefined;

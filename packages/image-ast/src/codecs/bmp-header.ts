@@ -1,6 +1,6 @@
 import type {BmpPalette} from "./bmp-palette.js";
 import type {RgbaImage, OutputEncodeOptions} from "../ast.js";
-export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"resolution"|"hasAlpha">, options?: Pick<OutputEncodeOptions,"bmpFormat"|"bmp3Alpha"|"bmpSubtype"|"bmpCompression">, palette?: BmpPalette, rleSize?: number) {
+export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"resolution"|"hasAlpha">, options?: Pick<OutputEncodeOptions,"bmpFormat"|"bmp3Alpha"|"bmpSubtype"|"bmpCompression"|"bmpRenderingIntent">, palette?: BmpPalette, rleSize?: number) {
  const {width,height}=img;
  const version = options?.bmpFormat === "dib" ? "bmp3" : options?.bmpFormat ?? "bmp3";
  const subtype = options?.bmpSubtype;
@@ -44,7 +44,8 @@ export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"resolution"
     view.setUint32(62, 0xff, true); view.setUint32(66, 0xff000000, true);
    }
    view.setUint32(70, 0x73524742, true); // sRGB
-   view.setUint32(122, 4, true); // Perceptual rendering intent
+   const intent = options?.bmpRenderingIntent?.toLowerCase();
+   view.setUint32(122, intent === "saturation" ? 1 : intent === "relative" ? 2 : intent === "absolute" ? 8 : 4, true);
   }
  }
  if (paletteBytes) out.set(paletteBytes, 14 + dibSize);

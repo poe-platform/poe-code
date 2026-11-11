@@ -120,10 +120,6 @@ export async function crushAudio(
           budget.checkCpu();
         }
         const source = channel[i]!;
-        if (!enabled) {
-          output[c]![i] = source;
-          continue;
-        }
         const samples = options.lfo
           ? minimum + span * (Math.sin((phase * 360) * Math.PI / 180) * 0.5 + 0.5)
           : options.samples;
@@ -139,6 +135,11 @@ export async function crushAudio(
           elapsed = 0;
         }
         if (options.lfo) phase = (phase + phaseStep) % 1;
+        // Timeline bypass preserves the input while sample holds and LFO keep advancing.
+        if (!enabled) {
+          output[c]![i] = source;
+          continue;
+        }
         let sample = options.mix * held + source * (1 - options.mix) * options.level_in;
         sample *= sample > 0 ? options.dc : inverseDc;
         const y = options.mode === 1 ? scale * Math.log(Math.abs(sample)) + scale * scale : sample * coefficient;

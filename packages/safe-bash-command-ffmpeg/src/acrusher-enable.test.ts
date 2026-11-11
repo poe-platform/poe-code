@@ -42,14 +42,17 @@ for (const [filter, expected] of [
   });
 }
 
-for (const options of ["samples=3", "samples=3:lfo=1:lforate=200"]) it(`pauses ${options} during bypass and resumes on the next enabled frame`, async () => {
-  const actual = await run(`asetnsamples=n=4:p=0,acrusher=${options}:enable='not(mod(n,2))'`);
-  const active = await run(`asetnsamples=n=4:p=0,aselect='not(mod(n,2))',acrusher=${options}`);
-  for (const output of [actual, active]) assert.equal(output.result.exitCode, 0, output.stderr);
+for (const options of ["samples=3", "samples=3:lfo=1:lforange=4:lforate=200"]) for (const graph of [false, true]) it(`advances ${options} during bypass (${graph ? "graph" : "simple"})`, async () => {
+  const actual = await run(`asetnsamples=n=4:p=0,acrusher=${options}:enable='not(mod(n,2))'`, graph);
+  const active = await run(`asetnsamples=n=4:p=0,acrusher=${options}`, graph);
+  for (const output of [actual, active]) {
+    assert.equal(output.result.exitCode, 0, output.stderr);
+    assert.equal(output.stderr, "");
+  }
   const input = Buffer.from(original, "hex");
   assert.deepEqual(actual.stdout, Buffer.concat([
     active.stdout.subarray(0, 8), input.subarray(8, 16),
-    active.stdout.subarray(8, 16), input.subarray(24, 32)
+    active.stdout.subarray(16, 24), input.subarray(24, 32)
   ]));
 });
 

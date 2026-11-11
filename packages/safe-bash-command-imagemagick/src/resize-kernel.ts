@@ -465,7 +465,7 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
     }
     const sources = [a, b].map((image, index) => resizeSamples(image, width, height, false,
         kernels[index] === undefined && image.width === width && image.height === height,
-        kernels[index] ?? (image.hasAlpha || width * height > image.width * image.height ? "mitchell" : "lanczos3"), inks || highDepth, settings, inks));
+        kernels[index] ?? (image.hasAlpha || width * height > image.width * image.height ? "mitchell" : "lanczos3"), inks || highDepth, settings, inks, true));
     while (true) {
         let blended: Float64Array | undefined, position = 0;
         for (let image = 0; image < sources.length; image++) {
@@ -513,6 +513,10 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
             if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(hue.buffer) };
             blended = pixels;
         }
+        // Retain fractional HDRI samples for later operations and high-depth output.
+        const working = blended!.map(value => Math.fround(value * (highDepth ? 1 : 257)) / 257);
+        if (gray) for (let i = 0; i < working.length; i += 4) working[i + 1] = working[i + 2] = working[i]!;
+        yield { kind: "write", evaluate: true, position, data: new Uint8Array(working.buffer) };
         const rounded = blended!.map(value => {
             const quantum = Math.fround(Math.max(0, Math.min(range, value)) * (highDepth ? 1 : 257));
             return highDepth ? Math.round(quantum) : Math.floor(Math.fround(Math.fround(quantum / 257) + 0.5));

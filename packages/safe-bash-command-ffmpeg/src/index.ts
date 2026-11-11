@@ -11066,6 +11066,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     const source = await resolve(branch.input, visiting);
                     const description = source.track.codecDescriptions[0];
                     const frames = await applyVideoFilterChain(source.frames, branch.expression, budget, {
+                      frameDuration: source.frames[0]?.durationSeconds ?? 1 / source.track.timescale,
                       timescale: source.track.timescale,
                       sarWidth: description?.sarWidth ?? 1,
                       sarHeight: description?.sarHeight || 1,

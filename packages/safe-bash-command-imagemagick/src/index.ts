@@ -11498,7 +11498,7 @@ if (t === "-intent" || t === "+intent") {
                     else state.connectedRemove = ranges;
                 } else if (key === "connected-components:background-id") {
                     const id = Number(value);
-                    if (extra !== undefined || !value?.trim() || !Number.isSafeInteger(id) || id < 0) throw new Error(`Unsupported connected-components define: ${defStr}`);
+                    if (extra !== undefined || !value?.trim() || !Number.isSafeInteger(id) || id < -1) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     state.connectedBackgroundId = id;
                 } else if (key === "connected-components:area-threshold") {
                     const threshold = Number(value);

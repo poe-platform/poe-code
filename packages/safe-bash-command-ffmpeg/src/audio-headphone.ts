@@ -31,13 +31,20 @@ export async function headphoneAudio(
   if (!["time", "freq", "0", "1"].includes(options.type!)) throw new Error("headphone: invalid processing type");
   const size = Number(options.size);
   if (!Number.isInteger(size) || size < 1024 || size > 96000) throw new Error("headphone: invalid frame size");
-  if (!["stereo", "0"].includes(options.hrir!)) throw new Error("headphone: only separate stereo impulse responses are supported");
-  if (tracks.length !== mapping.length + 1) throw new Error("headphone requires one stereo impulse response per mapped source channel");
+  if (!["stereo", "multich", "0", "1"].includes(options.hrir!)) throw new Error("headphone: invalid impulse response format");
+  const multich = options.hrir === "multich" || options.hrir === "1";
+  if (tracks.length !== (multich ? 2 : mapping.length + 1)) {
+    throw new Error(multich ? "headphone requires one packed impulse response input" : "headphone requires one stereo impulse response per mapped source channel");
+  }
   const audio = tracks.map((track, index) => {
     const decoded = track.decodedAudio;
     const channels = index === 0 && mono ? 1 : 2;
     const mask = channels === 1 ? 4 : 3;
-    if (!decoded || decoded.channels !== channels || (decoded.channelMask !== undefined && decoded.channelMask !== mask)) {
+    if (multich && index > 0) {
+      if (!decoded || decoded.channels < mapping.length * 2) {
+        throw new Error("headphone requires a packed stereo impulse response pair per mapped source channel");
+      }
+    } else if (!decoded || decoded.channels !== channels || (decoded.channelMask !== undefined && decoded.channelMask !== mask)) {
       throw new Error("headphone requires a source matching the map and stereo PCM impulse responses");
     }
     return decoded;
@@ -66,7 +73,7 @@ export async function headphoneAudio(
   for (const [response, name] of mapping.entries()) {
     const input = source.channelData[name === "FR" ? 1 : 0]!;
     for (let ear = 0; ear < 2; ear++) {
-      const impulse = audio[response + 1]!.channelData[ear]!;
+      const impulse = multich ? audio[1]!.channelData[response * 2 + ear]! : audio[response + 1]!.channelData[ear]!;
       const output = channelData[ear]!;
       for (let tap = 0; tap < Math.min(impulse.length, length); tap++) {
         const coefficient = Math.fround(impulse[tap]! * gain);

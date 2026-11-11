@@ -815,8 +815,11 @@ frame count, sample rate, and timestamps, and apply native gain
 `aselect`; the last block keeps only the remaining samples.
 Use `map=FR|FL` to reverse the stereo response assignments. All inputs must be
 PCM; impulse responses are resampled to the source sample rate. Filters on the source and
-on either impulse-response branch apply independently before convolution;
-multichannel HRIR files are unsupported.
+on either impulse-response branch apply independently before convolution.
+For a packed HRIR file, use `[0:a][1:a]headphone=map=FL|FR:hrir=multich[h]`
+(or `hrir=1`): consecutive channel pairs supply the left/right response for each
+mapped source channel. The response must have at least two channels per mapped
+source channel; extra channels are ignored.
 `earwax` applies the headphone stereo filter to mono or stereo input, resampling
 other input rates to 44100 Hz and converting mono to stereo with native gain.
 Single-speaker labels such as `FL`, `FR`, `LFE`, `SL`, or `BC` use the same mono conversion.

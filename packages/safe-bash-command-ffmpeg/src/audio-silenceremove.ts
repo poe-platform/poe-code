@@ -100,7 +100,13 @@ export async function removeSilence(
     while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
       const command = commands[nextCommand++]!;
       try {
-        if (command.action === "start_mode" || command.action === "stop_mode") {
+        if (command.action === "enable") {
+          parseFilterExpression(command.expression, "silenceremove enable", {
+            n: 0, t: 0, pos: NaN, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+          }, undefined, new Float64Array(10));
+          enable = command.expression;
+          registers.fill(0);
+        } else if (command.action === "start_mode" || command.action === "stop_mode") {
           const value = parseFilterExpression(command.expression, "silenceremove", {
             any: 0, all: 1, min: 0, max: 1, default: command.action === "stop_mode" ? 1 : 0
           });

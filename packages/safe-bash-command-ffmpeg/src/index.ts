@@ -12030,36 +12030,51 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       const entries = intervals.filter(command => command.trim());
                       if (!entries.length) throw new Error("asendcmd: commands are required");
                       const scheduled = entries.flatMap(command => {
-                        const words = Array.from(command, char => char.trim() ? char : " ").join("").split(" ").filter(Boolean);
-                        const time = Number(words.shift());
-                        if (words[0] === "[enter]") words.shift();
-                        const [target, action, expression] = words;
-                        const supported = action === "enable" && ["tremolo", "vibrato"].some(name => target === name || target?.startsWith(`${name}@`))
-                          || target === "silenceremove" || target?.startsWith("silenceremove@")
-                          || action === "tempo" && (target === "atempo" || target?.startsWith("atempo@"))
-                          || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
-                          || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
-                          || ["i", "c"].includes(action!) && (target === "crystalizer" || target?.startsWith("crystalizer@"))
-                          || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
-                          || target === "stereowiden" || target?.startsWith("stereowiden@")
-                          // aphaser declines runtime commands without aborting the render.
-                          || target === "aphaser" || target?.startsWith("aphaser@")
-                          || target === "adelay" || target?.startsWith("adelay@")
-                          || target === "amix" || target?.startsWith("amix@")
-                          || action === "level" && ["afreqshift", "aphaseshift"].some(name => target === name || target?.startsWith(`${name}@`))
-                          || action === "wet" && (target === "asubboost" || target?.startsWith("asubboost@"))
-                          || ["mm", "cm", "m", "dry", "wet", "temp", "enable"].includes(action!) && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
-                          || action === "limit" && (target === "alimiter" || target?.startsWith("alimiter@"))
-                          || action === "makeup" && (target === "agate" || target?.startsWith("agate@"))
-                          || target === "atilt" || target?.startsWith("atilt@")
-                          || target === "aexciter" || target?.startsWith("aexciter@")
-                          || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
-                          || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
-                        if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !expression) {
-                          throw new Error("asendcmd: expected TIME [enter] TARGET COMMAND ARG");
+                        const actions: string[] = [];
+                        let start = 0;
+                        let depth = 0;
+                        for (let i = 0; i < command.length; i++) {
+                          if (command[i] === "(") depth++;
+                          else if (command[i] === ")") depth--;
+                          else if (command[i] === "," && depth === 0) {
+                            actions.push(command.slice(start, i));
+                            start = i + 1;
+                          }
                         }
-                        // Unmatched targets and declined actions do not invalidate the schedule.
-                        return supported ? [{ time, target, action: action!, expression }] : [];
+                        actions.push(command.slice(start));
+                        let time = NaN;
+                        return actions.flatMap((command, index) => {
+                          const words = Array.from(command, char => char.trim() ? char : " ").join("").split(" ").filter(Boolean);
+                          if (index === 0) time = Number(words.shift());
+                          if (words[0] === "[enter]") words.shift();
+                          const [target, action, expression] = words;
+                          const supported = action === "enable" && ["tremolo", "vibrato"].some(name => target === name || target?.startsWith(`${name}@`))
+                            || target === "silenceremove" || target?.startsWith("silenceremove@")
+                            || action === "tempo" && (target === "atempo" || target?.startsWith("atempo@"))
+                            || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
+                            || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
+                            || ["i", "c"].includes(action!) && (target === "crystalizer" || target?.startsWith("crystalizer@"))
+                            || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
+                            || target === "stereowiden" || target?.startsWith("stereowiden@")
+                            // aphaser declines runtime commands without aborting the render.
+                            || target === "aphaser" || target?.startsWith("aphaser@")
+                            || target === "adelay" || target?.startsWith("adelay@")
+                            || target === "amix" || target?.startsWith("amix@")
+                            || action === "level" && ["afreqshift", "aphaseshift"].some(name => target === name || target?.startsWith(`${name}@`))
+                            || action === "wet" && (target === "asubboost" || target?.startsWith("asubboost@"))
+                            || ["mm", "cm", "m", "dry", "wet", "temp", "enable"].includes(action!) && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
+                            || action === "limit" && (target === "alimiter" || target?.startsWith("alimiter@"))
+                            || action === "makeup" && (target === "agate" || target?.startsWith("agate@"))
+                            || target === "atilt" || target?.startsWith("atilt@")
+                            || target === "aexciter" || target?.startsWith("aexciter@")
+                            || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
+                            || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
+                          if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !expression) {
+                            throw new Error("asendcmd: expected TIME [enter] TARGET COMMAND ARG");
+                          }
+                          // Unmatched targets and declined actions do not invalidate the schedule.
+                          return supported ? [{ time, target, action: action!, expression }] : [];
+                        });
                       });
                       budget.allocateMemory(scheduled.length * 64);
                       scheduled.sort((a, b) => a.time - b.time);

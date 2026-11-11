@@ -6,8 +6,9 @@ import { magickIntensity } from "./intensity.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
-/** Select whole pixels from the most frequent intensity bin in each square brush. */
-export function* paintPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha"> & HueMetadata, geometry: { width?: number; height?: number }, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, intensity = "rec709luma", seed?: bigint): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+/** Select whole pixels from the most frequent intensity bin in each square brush.
+ * Metadata reads its samples from source 1, using source 0 for the color histogram. */
+export function* paintPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha"> & HueMetadata, geometry: { width?: number; height?: number }, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, intensity = "rec709luma", seed?: bigint, meta = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 0);
     if (!Number.isFinite(radius) || !Number.isFinite(sigma)) throw new Error("Paint radius or sigma exceeds limit");
     let half = radius > 1e-12 ? Math.ceil(radius) : 1;
@@ -36,6 +37,7 @@ export function* paintPixelSteps(image: Pick<RgbaImage, "width" | "height" | "sp
         ? [background.r, background.g, background.b, background.a, 0, 0]
         : [gray, gray, gray, method === "transparent" ? 0 : 255, cmyk ? gray : 0, 0]);
     fill[5] = bin(fill[0]!, fill[1]!, fill[2]!);
+    if (meta) fill.set([0, 0, 0, 255, 0]);
     const random = method === "random" ? createMagickRandom(seed) : undefined;
     const randomPixels = new Map<number, number>();
     const blocks = new Map<number, Float64Array>();
@@ -61,6 +63,13 @@ export function* paintPixelSteps(image: Pick<RgbaImage, "width" | "height" | "sp
                 samples[i * 6 + 4] = cmyk && inks ? inks[i * 4 + 3]! * 255 : 0;
                 samples[i * 6 + 5] = bin(samples[i * 6]!, samples[i * 6 + 1]!, samples[i * 6 + 2]!);
             }
+            if (meta) {
+                const working = yield { kind: "read", image: 1, evaluate: true, position: start * 4, length };
+                const bytes = working?.length ? working : yield { kind: "read", image: 1, highDepth: true, position: start * 4, length };
+                if (!bytes || bytes.length !== length * (working?.length ? 8 : 2)) throw new Error("Truncated paint metadata pixels");
+                const values = working?.length ? new Float64Array(bytes.slice().buffer) : Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257);
+                for (let i = 0; i < length / 4; i++) samples.set(values.subarray(i * 4, i * 4 + 4), i * 6);
+            }
             if (blocks.size === 32) blocks.delete(blocks.keys().next().value!);
             blocks.set(start, samples);
         }
@@ -69,7 +78,7 @@ export function* paintPixelSteps(image: Pick<RgbaImage, "width" | "height" | "sp
     const histogram = new Uint32Array(256);
     for (let start = 0; start < width * height; start += 512) {
         const count = Math.min(512, width * height - start), output = new Float64Array(count * 4);
-        const planes = hue ? new Float64Array(count * 4) : undefined;
+        const planes = hue && !meta ? new Float64Array(count * 4) : undefined;
         for (let i = 0; i < count; i++) {
             yield;
             const x = (start + i) % width, y = Math.floor((start + i) / width);

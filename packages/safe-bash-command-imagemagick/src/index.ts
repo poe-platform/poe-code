@@ -14955,7 +14955,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded.replaceAll(",", "x").replaceAll("/", "x"), "-paint");
                 const geometry = parseMagickGeometry(expanded.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
-                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, paintPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.intensity, state.seed), signal);
+                const result = yield* applyMagickRasterSteps({ ...im, isPalette: false }, paintPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.intensity, state.seed), signal);
+                if (im.metaChannels?.length) {
+                    result.metaChannels = [];
+                    for (const [index, plane] of im.metaChannels.entries()) {
+                        const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
+                        result.metaChannels.push(selected ? yield* applyMagickRasterSteps(plane,
+                            paintPixelSteps(im, geometry, state.background, state.virtualPixel, undefined, state.intensity, state.seed, true), signal, plane, [im, plane]) : plane);
+                    }
+                }
+                return result;
             });
         }
         else if (t === "-kuwahara") {
@@ -19264,12 +19273,20 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const raw = tokens[++i] ?? "", { background, virtualPixel, optionProperties, intensity, seed } = state, channels = state.channelExplicit ? state.channels : undefined;
+            const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 validateMagickTransformGeometry(expanded.replaceAll(",", "x").replaceAll("/", "x"), "-paint");
                 const geometry = parseMagickGeometry(expanded.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
-                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, paintPixelSteps(image, geometry, background, virtualPixel, channels, intensity, seed), signal);
+                const result = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, paintPixelSteps(image, geometry, background, virtualPixel, channels, intensity, seed), signal);
+                if (image.storedMetaChannels?.length) {
+                    result.storedMetaChannels = [];
+                    for (const [index, plane] of image.storedMetaChannels.entries())
+                        result.storedMetaChannels.push(!meta || meta.includes(index) ? await transformStoredMagickRaster(plane, backend,
+                            paintPixelSteps(image, geometry, background, virtualPixel, undefined, intensity, seed, true), signal, plane, [image, plane]) : plane);
+                }
+                return result;
             });
         } else if (!operandsOnly && token === "-kuwahara") {
             stackStep(async stack => {

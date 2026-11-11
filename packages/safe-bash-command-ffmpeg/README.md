@@ -417,6 +417,8 @@ It accepts `window`/`w`, `overlap`/`o`, `arorder`/`a`, `threshold`/`t`,
 `adeclip` reconstructs clipped PCM peaks using the same interpolation. It accepts
 `window`/`w`, `overlap`/`o`, `arorder`/`a`, `threshold`/`t`, `hsize`/`n`, and
 `method`/`m` (`add` or `save`), with native defaults; channels are restored independently.
+Both filters accept generic `threads`, `thread_type`, and `extra_hw_frames` settings
+without changing the PCM output.
 Both filters accept arithmetic option values and the names `min`, `max`, and
 `default`, for example `adeclick=w=20+5` and `adeclip=t=default`.
 `[0:a][1:a]join=inputs=2:channel_layout=stereo:map=1.0-FL|0.0-FR[mix]`

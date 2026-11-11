@@ -27,7 +27,7 @@ it.each([
     const bytes = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
     if (value === "not-a-colorspace") {
         expect(result.exitCode).toBe(1);
-        expect(stderr).toContain("unrecognized colorspace 'not-a-colorspace'");
+        expect(stderr).toContain("unrecognized colorspace '+combine' 'not-a-colorspace' at CLI arg 5");
         expect(bytes).toEqual(keep);
         return;
     }

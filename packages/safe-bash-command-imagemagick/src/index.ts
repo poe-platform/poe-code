@@ -11642,6 +11642,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (image && frameListOperand.includes("%")) frameListOperand = yield* formatMagickPropertyStringSteps(frameListOperand, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: source, sceneCount: source.length, optionProperties: state.optionProperties });
             if ((t === "-clone" || t === "-delete") && (frameListOperand.includes("\t") || frameListOperand.includes("\n"))) throw new Error(`invalid argument ${frameListOperand}`);
         }
+        if (t === "-fft" || t === "+fft") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
+            const image = stack[0]!;
+            analysis.warnings += `magick: delegate library support not built-in \`${(image as MagickImage)[magickInput]?.filePath ?? ""}' (FFTW) @ warning/fourier.c/ForwardFourierTransformImage/922.\n`;
+            i++;
+            continue;
+        }
         if (t === "-quiet" || t === "+quiet") { analysis.quiet = t === "-quiet"; i++; continue; }
         if (t === "-regard-warnings" || t === "+regard-warnings") { analysis.regardWarnings = t === "-regard-warnings"; i++; continue; }
         if (t === "-monitor" || t === "+monitor") { state.monitor = t === "-monitor"; i++; continue; }
@@ -14582,6 +14589,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const text = result.stdout;
                 if (input.stdout) await writeIdentifyText(input.stdout, text, signal);
                 else analysis.text += text;
+                return stack;
+            });
+            continue;
+        }
+        if (!operandsOnly && (token === "-fft" || token === "+fft")) {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                const image = (await stack.get(0))! as StoredMagickImage;
+                analysis.warnings += `magick: delegate library support not built-in \`${image[magickInput]?.filePath ?? ""}' (FFTW) @ warning/fourier.c/ForwardFourierTransformImage/922.\n`;
                 return stack;
             });
             continue;

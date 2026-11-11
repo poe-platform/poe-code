@@ -11917,6 +11917,13 @@ if (t === "-intent" || t === "+intent") {
                     const geometry = parseMagickGeometry(value);
                     // Native trim uses percentage geometry values as pixel minima on both axes.
                     state.trimMinSize = geometry.isPercent ? { width: geometry.percentX!, height: geometry.percentY! } : geometry;
+                    const separator = value.toLowerCase().indexOf("x");
+                    if (separator >= 0) {
+                        // Read the numeric prefix, preserving hexadecimal heights such as 0x3.
+                        const field = [...value.slice(separator + 1)].filter(character => character.trim() !== "").join("");
+                        const height = field.toLowerCase().startsWith("0x") ? Number.parseInt(field, 16) : Number.parseFloat(field);
+                        if (Number.isFinite(height)) state.trimMinSize.height = height;
+                    }
                 }
             }
             if (defStr.toLowerCase().startsWith("quantum:format=")) state.tiffFloatingPoint = defStr.slice("quantum:format=".length).toLowerCase() === "floating-point";

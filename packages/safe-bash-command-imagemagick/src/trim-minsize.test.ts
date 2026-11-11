@@ -133,3 +133,43 @@ for (const format of ["info", "gray"] as const) {
         else expect(output).toEqual(new Uint8Array(minimum ? [0, 0, 0, 255, 255, 255, 0, 0, 0, 0, 0, 0] : [255, 255, 255]));
     });
 }
+
+for (const mode of ["command", "buffered", "retained", "sync"] as const) {
+    it.each([
+        ["4x0x3", 4, 3, 1],
+        ["3x3,2", 3, 3, 2],
+        ["4x3x2", 4, 3, 1],
+        ["4x0", 4, 1, 1],
+        ["4x3", 4, 3, 1],
+        ["3x3", 3, 3, 2],
+        ["4x0x0x3", 4, 1, 1],
+        ["4x0,3", 4, 1, 1],
+    ] as const)(`reads native trim minimum height from extra fields in %s (${mode})`, async (size, width, height, left) => {
+        // Native ImageMagick: two red pixels at (2,1) and (3,1) on a white 5x4 canvas.
+        const pixels = Array.from({ length: 20 }, (_, index) => index === 7 || index === 8 ? [255, 0, 0] : [255, 255, 255]);
+        const input = new Uint8Array([...new TextEncoder().encode("P6\n5 4\n255\n"), ...pixels.flat()]);
+        const files = new Map([["/in.ppm", input]]);
+        const fs = new MemoryFileSystem();
+        await fs.writeFile("/in.ppm", input);
+        const argv = ["/in.ppm", "-define", `trim:minSize=${size}`, "-trim", "-write", "PNG32:/out.png", "-format", "%wx%h %g", "info:/out"];
+        const args = createCommandArguments(argv);
+        let stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runMagickCliSync(argv, files)
+            : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        if ("stderr" in result && typeof result.stderr === "string") stderr = result.stderr;
+        expect(result.exitCode, stderr).toBe(0);
+        expect(stderr).toBe("");
+        const output = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
+        expect(new TextDecoder().decode(output)).toBe(`${width}x${height} 5x4+${left}+1`);
+        const image = decodeImage(mode === "command" || mode === "retained" ? await fs.readFile("/out.png") : files.get("/out.png")!);
+        expect([image.width, image.height]).toEqual([width, height]);
+        const expected = [];
+        for (let y = 1; y < 1 + height; y++) for (let x = left; x < left + width; x++) expected.push(...pixels[y * 5 + x]!, 255);
+        expect(image.data).toEqual(new Uint8Array(expected));
+    });
+}

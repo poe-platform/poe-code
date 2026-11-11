@@ -7,9 +7,10 @@ export async function highpassAudio(
   budget: MediaBudgetTracker, signal?: AbortSignal, channelNames?: readonly string[]
 ): Promise<(Float32Array | Float64Array)[]> {
   let selected: string[] | undefined;
-  const options = { frequency: 3000, poles: 2, mix: 1 };
+  const options = { frequency: 3000, poles: 2, mix: 1, width: 0.707, width_type: 3 };
   const aliases: Record<string, keyof typeof options> = {
-    frequency: "frequency", f: "frequency", poles: "poles", p: "poles", mix: "mix", m: "mix"
+    frequency: "frequency", f: "frequency", poles: "poles", p: "poles", mix: "mix", m: "mix",
+    width: "width", w: "width", width_type: "width_type", t: "width_type"
   };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
@@ -25,19 +26,29 @@ export async function highpassAudio(
     }
     const key = Object.hasOwn(aliases, name) ? aliases[name] : undefined;
     if (!key) throw new Error(`highpass: unsupported option ${name}`);
-    const number = Number(value);
+    const widthTypes: Record<string, number> = { h: 1, o: 2, q: 3, s: 4, k: 5 };
+    const number = key === "width_type" && Object.hasOwn(widthTypes, value) ? widthTypes[value]! : Number(value);
     if (!value || !Number.isFinite(number)
       || key === "frequency" && (number < 0 || number > 999999)
       || key === "poles" && number !== 1 && number !== 2
+      || key === "width" && (number < 0 || number > 99999)
+      || key === "width_type" && (!Number.isInteger(number) || number < 1 || number > 5)
       || key === "mix" && (number < 0 || number > 1)) throw new Error(`highpass: invalid ${key}`);
     options[key] = number;
   }
   signal?.throwIfAborted();
   budget.checkCpu();
   // Native FFmpeg bypasses an out-of-band cutoff when configuring the filter.
-  if (options.mix === 0 || options.frequency === 0 || options.frequency > sampleRate / 2) return [...channels];
+  if (options.mix === 0 || options.width === 0 || options.frequency === 0 || options.frequency > sampleRate / 2) return [...channels];
   const angle = 2 * Math.PI * options.frequency / sampleRate;
-  const alpha = Math.sin(angle) / (2 * 0.707);
+  const sine = Math.sin(angle);
+  let alpha = sine / (2 * options.width);
+  switch (options.width_type) {
+    case 1: alpha = sine * options.width / (2 * options.frequency); break;
+    case 2: alpha = sine * Math.sinh(Math.LN2 / 2 * options.width * angle / sine); break;
+    case 4: alpha = sine / 2 * Math.sqrt(2 / options.width); break;
+    case 5: alpha = sine * options.width * 1000 / (2 * options.frequency); break;
+  }
   const a0 = options.poles === 1 ? 1 : 1 + alpha;
   const a1 = options.poles === 1 ? -Math.exp(-angle) : -2 * Math.cos(angle) / a0;
   const a2 = options.poles === 1 ? 0 : (1 - alpha) / a0;

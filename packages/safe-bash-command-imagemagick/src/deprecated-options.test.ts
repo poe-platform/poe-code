@@ -15,6 +15,9 @@ for (const mode of ["buffered", "sync", "retained", "command"] as const) {
         { options: ["(", "-format", "X", "+identify", ")"], exitCode: 1, error: "option deprecated, unable to execute '+identify' at CLI arg 5" },
         { options: ["+roll", "+1+1"], exitCode: 1, error: "option deprecated, unable to execute '+roll' at CLI arg 2" },
         { options: ["+chop", "1x1"], exitCode: 1, error: "option deprecated, unable to execute '+chop' at CLI arg 2" },
+        { options: ["+shave"], exitCode: 1, error: "option deprecated, unable to execute '+shave' at CLI arg 2" },
+        { options: ["+shave", "1x1+1+1"], exitCode: 1, error: "option deprecated, unable to execute '+shave' at CLI arg 2" },
+        { options: ["(", "+shave", ")"], exitCode: 1, error: "option deprecated, unable to execute '+shave' at CLI arg 3" },
         { options: ["+splice", "1x1"], exitCode: 1, error: "option deprecated, unable to execute '+splice' at CLI arg 2" },
         { options: ["-gravity", "center", "+roll", "+1+1"], exitCode: 1, error: "option deprecated, unable to execute '+roll' at CLI arg 4" },
         { options: ["-gravity", "center", "+chop", "1x1"], exitCode: 1, error: "option deprecated, unable to execute '+chop' at CLI arg 4" },
@@ -89,4 +92,21 @@ it.each([
     expect(result.exitCode).toBe(exitCode);
     expect(actualStdout).toBe(stdout);
     expect(stderr).toBe(error ? `magick: ${error}\n` : "");
+});
+
+it.each([{ operands: [] }, { operands: ["1x1+1+1"] }])("rejects +shave before formatted info output with operands $operands", async ({ operands }) => {
+    const filesystem = new MemoryFileSystem();
+    const header = new TextEncoder().encode("P6\n4 3\n255\n");
+    await filesystem.writeFile("/grid.ppm", new Uint8Array([...header, ...Array.from({ length: 36 }, (_, i) => i * 7)]));
+    const argumentValues = createCommandArguments(["grid.ppm", "+shave", ...operands, "-format", "%wx%h", "info:"]);
+    let stdout = "", stderr = "";
+    const result = await createMagickCommand().execute({
+        command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs: filesystem,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+    });
+    expect(result.exitCode).toBe(1);
+    expect(stdout).toBe("");
+    expect(stderr).toBe("magick: option deprecated, unable to execute '+shave' at CLI arg 2\n");
 });

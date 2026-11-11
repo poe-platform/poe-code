@@ -6,7 +6,8 @@ import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function declickAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
-  filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
+  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[] = []
 ): Promise<Float64Array[]> {
   const declip = filter.split("=", 1)[0] === "adeclip";
   const name = declip ? "adeclip" : "adeclick";
@@ -15,6 +16,7 @@ export async function declickAudio(
   const names = (Object.keys(options) as (keyof typeof options)[]).filter(key => key !== (declip ? "burst" : "hsize"));
   const aliases = { w: "window", o: "overlap", a: "arorder", t: "threshold", b: "burst", n: "hsize", m: "method" } as const;
   const ranges = { window: [10, 100], overlap: [50, 95], arorder: [0, 25], threshold: [1, 100], burst: [0, 10], hsize: [100, 9999], method: [0, 1] };
+  let enable: string | undefined;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   let optionPosition = 0;
   const parts = argument ? argument.split(":") : [];
@@ -26,6 +28,11 @@ export async function declickAudio(
     // only when that slot was just visited, regardless of the named key.
     if (separator < 0) optionPosition++;
     else optionPosition = optionPosition === 0 ? 1 : 0;
+    if (option === "enable") {
+      enable = part.slice(separator + 1).trim();
+      parseFilterExpression(enable, `${name} enable`, { n: 0, t: 0, pos: NaN, w: 0, h: 0 }, undefined, new Float64Array(10));
+      continue;
+    }
     const raw = (separator < 0 ? part : part.slice(separator + 1)).trim();
     if (option === "threads" || option === "thread_type" || option === "extra_hw_frames") {
       validateWeaveGenericOption(option, raw, name);
@@ -54,19 +61,43 @@ export async function declickAudio(
   const burst = Math.trunc(size * options.burst / 1000);
   const length = channels[0]?.length ?? 0;
   budget.allocateMemory(channels.length * length * 8 + size * 40 + (order + 1) * 32 + (declip ? options.hsize * 4 : 0));
+  // The native activation path consumes window-sized blocks, independently of
+  // decoder frame boundaries, and evaluates the timeline once per consumed block.
+  budget.allocateMemory(Math.ceil(length / size) + 80 + size + (channels.length - 1) * size * 8);
+  const enabled = new Uint8Array(Math.ceil(length / size));
+  const registers = new Float64Array(10);
+  let frameIndex = 0;
+  for (let start = 0, n = 0; start < length; start += size, n++) {
+    await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
+    while (frameIndex + 1 < frames.length && frames[frameIndex]!.end <= start) frameIndex++;
+    const timestamp = frames[frameIndex];
+    enabled[n] = Number(enable === undefined || Math.abs(parseFilterExpression(enable, `${name} enable`, {
+      n, t: (timestamp ? timestamp.pts + start - timestamp.start : start) / sampleRate,
+      pos: timestamp?.pos ?? NaN, w: 0, h: 0
+    }, undefined, registers)) >= 0.5);
+  }
   const window = options.method ? undefined : declickWindow(size, hop, budget);
   const histogram = new Uint32Array(declip ? options.hsize : 0);
   const output = channels.map(() => new Float64Array(length));
-  const frame = new Float64Array(size), repaired = new Float64Array(size);
+  const framesByChannel = channels.map(() => new Float64Array(size));
+  const enabledWindow = new Uint8Array(size);
+  const repaired = new Float64Array(size);
   const clicks = new Uint8Array(size), indices = new Int32Array(size);
   const correlation = new Float64Array(order + 1), coefficients = new Float64Array(order + 1);
   const prediction = new Float64Array(order + 1), next = new Float64Array(order + 1);
   let matrixCapacity = 0;
   let matrix = new Float64Array(0), solution = new Float64Array(0);
-  for (const [c, channel] of channels.entries()) {
-    frame.fill(0);
-    for (let start = 0; start < length; start += hop) {
+  let consumed = 0;
+  for (let start = 0; start < length; start += hop) {
+    // The native input buffer doubles as scratch storage for enable FIFO peeks.
+    while (consumed < Math.min(length, start - skip + size)) {
+      const count = Math.min(size, length - consumed);
+      enabledWindow.fill(enabled[Math.floor(consumed / size)]!, 0, count);
+      consumed += count;
+    }
+    for (const [c, channel] of channels.entries()) {
       await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
+      const frame = framesByChannel[c]!;
       // Native keeps the unfilled tail of its analysis buffer at end of stream.
       for (let i = 0; i < size && start - skip + i < length; i++) frame[i] = channel[start - skip + i] ?? 0;
       for (let lag = 0; lag <= order; lag++) {
@@ -156,12 +187,17 @@ export async function declickAudio(
             }
             for (let j = Math.max(0, i - order); j < i; j++) solution[i] = solution[i]! - matrix[i * count + j]! * solution[j]!;
           }
+          // Like the audio buffer, the enable FIFO peek retains its unfilled tail.
+          // It is shared across channels and has no overlap-save leading padding.
+          for (let i = 0; i < size && start + i < length; i++) {
+            enabledWindow[i] = enabled[Math.floor((start + i) / size)]!;
+          }
           for (let i = count - 1; i >= 0; i--) {
             solution[i] = solution[i]! / matrix[i * count + i]!;
             for (let j = i + 1; j < Math.min(count, i + order + 1); j++) solution[i] = solution[i]! - matrix[j * count + i]! * solution[j]!;
-            // Native pads overlap-save audio, but not its repair-enable FIFO.
-            // A first window shorter than size only enables its first length slots.
-            if (indices[i]! < length) repaired[indices[i]!] = solution[i]!;
+            if (enabledWindow[indices[i]!]) {
+              repaired[indices[i]!] = solution[i]!;
+            }
           }
         }
       }

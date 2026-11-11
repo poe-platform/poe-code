@@ -419,6 +419,8 @@ It accepts `window`/`w`, `overlap`/`o`, `arorder`/`a`, `threshold`/`t`,
 `adeclip` reconstructs clipped PCM peaks using the same interpolation. It accepts
 `window`/`w`, `overlap`/`o`, `arorder`/`a`, `threshold`/`t`, `hsize`/`n`, and
 `method`/`m` (`add` or `save`), with native defaults; channels are restored independently.
+Both filters accept timeline `enable` expressions, evaluated per window-sized input block.
+Disabled blocks retain native windowing and tail handling while skipping sample repairs.
 Numeric `method` and `hsize` values are range-checked before rounding to the nearest
 integer, with ties to even (`m=0.5` selects `add`; `m=0.6` selects `save`).
 Both filters accept generic `threads`, `thread_type`, and `extra_hw_frames` settings

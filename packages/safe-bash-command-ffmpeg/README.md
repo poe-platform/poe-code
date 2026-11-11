@@ -189,7 +189,7 @@ the final input frame’s enable state controls whether the tail drains buffered
 `NaN` and computed NaN conditions bypass the delay; `INF` and computed infinity enable it.
 `isnan` and `isinf` can test these values in enable expressions.
 `asetrate=16000` changes the sample rate without resampling PCM, changing playback speed and duration. Later filters use the new rate; `r` and `sample_rate` are accepted option names.
-`extractplanes=y`, `extractplanes=u`, and `extractplanes=v` (also `extractplanes=planes=u`) extract one retained 8-bit planar YUV plane as grayscale without changing its sample values. Chroma output uses the source plane’s subsampled dimensions. RGB/alpha extraction and multiple output planes are unsupported.
+`extractplanes=y`, `extractplanes=u`, and `extractplanes=v` (also `extractplanes=planes=u`) extract one retained 8-bit planar YUV plane as grayscale without changing its sample values. Chroma output uses the source plane’s subsampled dimensions. `extractplanes=r`, `g`, `b`, and `a` extract one 8-bit RGB or alpha component in pixel order as opaque grayscale, including color samples under transparent alpha. Multiple output planes are unsupported.
 
 `hue=s=0` desaturates 8-bit planar YUV video by preserving the original Y plane and setting U and V to neutral, including YUV420, YUV422, and YUV444 sampling. Other hue options and input pixel formats are unsupported.
 

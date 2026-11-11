@@ -31,6 +31,52 @@ for (const [plane, expected] of [["y", "101a242e"], ["u", "38424c56"], ["v", "60
   });
 }
 
+const rgba = "4080c0ff4080c0800a141e00ff002040";
+
+// Native FFmpeg 7.0.2-static, including color samples under transparent alpha.
+for (const [plane, expected] of [["r", "40400aff"], ["g", "80801400"], ["b", "c0c01e20"], ["a", "ff800040"]]) {
+  it(`extracts the original RGBA ${plane} component in pixel order`, async () => {
+    const result = await run(`extractplanes=${plane}`, rgba, "rgba");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.output.toString("hex"), expected);
+  });
+}
+
+it("preserves the RGBA-to-YUV luma extraction control", async () => {
+  const result = await run("format=yuv444p,extractplanes=y", rgba, "rgba");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.output.toString("hex"), "74742055");
+});
+
+it("infers grayscale output for a named alpha plane", async () => {
+  const result = await run("extractplanes=planes=a", rgba, "rgba", "2x2", []);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.output.toString("hex"), "ff800040");
+});
+
+it("passes extracted RGB frames to downstream filters with opaque alpha", async () => {
+  const result = await run("extractplanes=r,hflip", rgba.repeat(2), "rgba", "2x2", ["-pix_fmt", "rgba"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.output.toString("hex"), "404040ff404040ffffffffff0a0a0aff".repeat(2));
+});
+
+it("checks RGB extraction output limits before replacing the destination", async () => {
+  const result = await run("extractplanes=r", rgba, "rgba", "2x2", undefined,
+    { limits: { maxOutputBytes: 3 } });
+  assert.notEqual(result.exitCode, 0);
+  assert.match(result.stderr, /maxOutputBytes/);
+  assert.equal(result.output.toString(), "keep");
+});
+
+for (const [format, filter] of [["rgb24", "extractplanes=a"], ["yuv444p", "extractplanes=r"]]) {
+  it(`rejects unavailable RGB/alpha planes in ${format}`, async () => {
+    const result = await run(filter!, undefined, format);
+    assert.notEqual(result.exitCode, 0);
+    assert.match(result.stderr, /extractplanes/);
+    assert.equal(result.output.toString(), "keep");
+  });
+}
+
 it("keeps ordinary grayscale conversion unchanged", async () => {
   const result = await run("null");
   assert.equal(result.exitCode, 0, result.stderr);

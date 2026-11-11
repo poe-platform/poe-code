@@ -3987,20 +3987,33 @@ async function applyVideoFilterChain(
     } else if (name === "extractplanes") {
       const plane = named.planes ?? argStr;
       if (positional.length !== 1 || Object.keys(named).some(key => key !== "planes") ||
-          !["y", "u", "v"].includes(plane)) {
-        throw new Error("extractplanes: select a single YUV plane (y, u, or v)");
+          !["y", "u", "v", "r", "g", "b", "a"].includes(plane)) {
+        throw new Error("extractplanes: select a single plane (y, u, v, r, g, b, or a)");
+      }
+      const channel = ["r", "g", "b", "a"].indexOf(plane);
+      if (channel >= 0 && !(plane === "a" ? ["rgba", "bgra", "gbrap", "ya8"] :
+        ["rgba", "bgra", "rgb24", "bgr24", "gbrp", "gbrap"]).includes(pixelFormat ?? "rgba")) {
+        throw new Error("extractplanes: requested RGB/alpha plane is unavailable in this pixel format");
       }
       current = await mapWork(current, async ({ native, ...frame }) => {
-        if (!native || native.rgba !== frame.data || native.width !== frame.width || native.height !== frame.height ||
-            ![0, 4, 5, 12, 13, 14].includes(native.format)) {
-          throw new Error("extractplanes: requires retained 8-bit planar YUV input");
+        let { width, height } = frame;
+        let pixels = frame.data;
+        let offset = channel;
+        let stride = 4;
+        if (channel < 0) {
+          if (!native || native.rgba !== frame.data || native.width !== frame.width || native.height !== frame.height ||
+              ![0, 4, 5, 12, 13, 14].includes(native.format)) {
+            throw new Error("extractplanes: requires retained 8-bit planar YUV input");
+          }
+          const chromaWidth = Math.ceil(frame.width / ([5, 14].includes(native.format) ? 1 : 2));
+          const chromaHeight = Math.ceil(frame.height / ([0, 12].includes(native.format) ? 2 : 1));
+          width = plane === "y" ? frame.width : chromaWidth;
+          height = plane === "y" ? frame.height : chromaHeight;
+          offset = plane === "y" ? 0 : frame.width * frame.height +
+            (plane === "v" ? chromaWidth * chromaHeight : 0);
+          pixels = native.pixels;
+          stride = 1;
         }
-        const chromaWidth = Math.ceil(frame.width / ([5, 14].includes(native.format) ? 1 : 2));
-        const chromaHeight = Math.ceil(frame.height / ([0, 12].includes(native.format) ? 2 : 1));
-        const width = plane === "y" ? frame.width : chromaWidth;
-        const height = plane === "y" ? frame.height : chromaHeight;
-        const offset = plane === "y" ? 0 : frame.width * frame.height +
-          (plane === "v" ? chromaWidth * chromaHeight : 0);
         budget.recordFrame(width, height);
         budget.allocateMemory(width * height * 4);
         const data = new Uint8Array(width * height * 4);
@@ -4011,7 +4024,7 @@ async function applyVideoFilterChain(
             budget.checkCpu();
           }
           // Plane samples become full-range gray without luma expansion or an RGB round trip.
-          data.fill(native.pixels[offset + pixel]!, pixel * 4, pixel * 4 + 3);
+          data.fill(pixels[offset + pixel * stride]!, pixel * 4, pixel * 4 + 3);
           data[pixel * 4 + 3] = 255;
         }
         return { ...frame, width, height, data };

@@ -7555,6 +7555,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
     case "ff":
     case "farbfeld":
       return "farbfeld";
+    case "pal":
+      return "pal";
     case "mono":
       return "mono";
     case "map":
@@ -11823,6 +11825,7 @@ function* prepare16BitOutput(image: RgbaImage): Generator<void, RgbaImage, void>
 }
 
 function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: MagickState["dither"] = false, diffusionAmount = 1, pngCoder?: ReturnType<typeof inferOutputFormat>["pngCoder"], inputType?: string): Generator<void, RgbaImage, void> {
+    if (format === "pal") return yield* parseMagickPixelOperation(["-colorspace", "YCbCr"], createDefaultState(), 0)!.apply(image);
     // Explicit Palette output bypasses TGA grayscale storage, including gray palettes.
     if (format === "tga" && inputType?.toLowerCase() === "palette") image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
     // Farbfeld stores inactive alpha; MIFF stores it only for separate channels.
@@ -11881,6 +11884,7 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
 }
 
 async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFormat, backend: CompareFileSession, signal: AbortSignal, dither: MagickState["dither"] = false, diffusionAmount = 1, pngCoder?: ReturnType<typeof inferOutputFormat>["pngCoder"], inputType?: string): Promise<StoredRgbaImage> {
+    if (format === "pal") return transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "YCbCr"], createDefaultState(), 0)!, signal);
     // Explicit Palette output bypasses TGA grayscale storage, including gray palettes.
     if (format === "tga" && inputType?.toLowerCase() === "palette") image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
     // Farbfeld stores inactive alpha; MIFF stores it only for separate channels.

@@ -64,7 +64,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                 encoding = { ...encoding, outputFilename: path };
                 if (encoding.format === "pam") encoding = { ...encoding, netpbmDepth: encoding.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
                 try {
-                if ((path !== "-" || snapshot) && encoding.format !== "map" && encoding.format !== "farbfeld" && encoding.format !== "mono") {
+                if ((path !== "-" || snapshot) && encoding.format !== "map" && encoding.format !== "farbfeld" && encoding.format !== "mono" && encoding.format !== "pal") {
                     const output = resolvePath(cwd, path), info = await tryImageFile({ image, storage, ...(snapshot ? { encoded: snapshot } : {}), async close() { if (retire) { await storage.close(); await read.close(); } } }, output, { filesystem: budgetedFs, workingDirectory: cwd, signal }, { ...encoding, synthesizeExif: false, format: isRawCoder(encoding.format) ? "raw" : encoding.format });
                     if (info)
                         return;

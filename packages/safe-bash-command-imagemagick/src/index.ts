@@ -13071,9 +13071,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-layers" && layerMethod === "composite") {
             i++;
             const separator = stack.findIndex(frame => (frame as MagickImage)[magickInput]?.filePath === "null:");
-            if (separator < 0) throw new Error("missing Null Image List Separator layers Composite");
+            if (separator <= 0 || separator === stack.length - 1) throw new Error("missing Null Image List Separator layers Composite");
             const destinations = stack.slice(0, separator), sources = stack.slice(separator + 1);
-            if (!destinations.length || !sources.length) throw new Error("image sequence is required '-layers Composite'");
             const count = destinations.length === 1 ? sources.length : sources.length === 1 ? destinations.length : Math.min(destinations.length, sources.length);
             const geometry = parseMagickGeometry(state.geometry ?? "+0+0");
             const composed: RgbaImage[] = [];
@@ -14762,9 +14761,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 for (let n = 0; n < stack.length; n++) {
                     if ((await stack.get(n))![magickInput]?.filePath === "null:") { separator = n; break; }
                 }
-                if (separator < 0) throw new Error("missing Null Image List Separator layers Composite");
+                if (separator <= 0 || separator === stack.length - 1) throw new Error("missing Null Image List Separator layers Composite");
                 const sourceCount = stack.length - separator - 1;
-                if (!separator || !sourceCount) throw new Error("image sequence is required '-layers Composite'");
                 const count = separator === 1 ? sourceCount : sourceCount === 1 ? separator : Math.min(separator, sourceCount);
                 const geometry = parseMagickGeometry(settings.geometry ?? "+0+0");
                 const first = (await stack.get(0))!;

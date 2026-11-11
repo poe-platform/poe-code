@@ -2,7 +2,29 @@ import { expect, it } from "vitest";
 import { decodeImage } from "@poe-code/image-ast/portable";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts";
-import { createMagickCommand, runConvertCli } from "./index.js";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
+
+for (const mode of ["sync", "buffered", "retained", "command"]) {
+  it.each([["null:", "xc:red"], ["xc:red", "null:"], ["xc:red"]])(
+    `reports the native separator diagnostic for incomplete Composite lists (${mode}): %j`,
+    async (...inputs) => {
+      const args = [...inputs, "-layers", "Composite", "-depth", "8", "rgb:-"];
+      const filesystem = new MemoryFileSystem();
+      const files = new Map<string, Uint8Array>();
+      let stdout = "", stderr = "";
+      const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async chunk => { stdout += typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk); } },
+        stderr: { write: async chunk => { stderr += typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk); } },
+      }) : mode === "sync" ? runConvertCliSync(args, files)
+        : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+      expect(result.exitCode).toBe(1);
+      expect("stdout" in result ? result.stdout : stdout).toBe("");
+      expect("stderr" in result ? result.stderr : stderr).toContain("missing Null Image List Separator layers Composite");
+    }
+  );
+}
 
 const fixture = "R0lGODlhCQAIAPAAAP8AAAAAACH/C05FVFNDQVBFMi4wAwEDAAAh+QQABwAAACwCAAMAAwACAAACAoRfACH5BAAXAAAALAUABAACAAIAgAAA/wAAAAIChFEAOw==";
 

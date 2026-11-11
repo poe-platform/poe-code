@@ -23,14 +23,16 @@ export function* hilbertPixels(img: { width: number; height: number }): Generato
 }
 
 /** ImageMagick Riemersma diffusion: a 16-entry weighted error queue. */
-export function* riemersmaRemapSteps(image: { width: number; height: number; hueSamples?: Float64Array; storedHueSamples?: number }, paletteImage: { width: number; height: number; hasAlpha: boolean; space?: string; hueSamples?: Float64Array; storedHueSamples?: number }, highDepth: boolean, diffusionAmount: number): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
+export function* riemersmaRemapSteps(image: { width: number; height: number; hueSamples?: Float64Array; storedHueSamples?: number }, paletteImage: { width: number; height: number; hasAlpha: boolean; space?: string; hueSamples?: Float64Array; storedHueSamples?: number }, highDepth: boolean, diffusionAmount: number, cache?: Map<number, Float64Array>): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
     const hue = (image.hueSamples !== undefined || image.storedHueSamples !== undefined) && (paletteImage.hueSamples !== undefined || paletteImage.storedHueSamples !== undefined);
     const palette: Float64Array[] = [], seen = new Set<string>();
-    for (let position = 0; position < paletteImage.width * paletteImage.height * 4; position += 4096) {
+    const chunkSize = cache ? 2048 : 4096;
+    for (let position = 0; position < paletteImage.width * paletteImage.height * 4; position += chunkSize) {
         yield;
-        const length = Math.min(4096, paletteImage.width * paletteImage.height * 4 - position);
+        const length = Math.min(chunkSize, paletteImage.width * paletteImage.height * 4 - position);
         const bytes = (yield { kind: "read", hue, highDepth, image: 1, position, length })!;
-        const samples = hue ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => value * 255) : highDepth ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : Float64Array.from(bytes);
+        const evaluated = cache ? yield { kind: "read", evaluate: true, image: 1, position, length } : undefined;
+        const samples = evaluated?.length ? new Float64Array(evaluated.slice().buffer) : hue ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => value * 255) : highDepth ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : Float64Array.from(bytes);
         for (let i = 0; i < samples.length; i += 4) {
             const color = samples.slice(i, i + 4);
             // Native palette classification discards RGB at zero alpha.
@@ -49,15 +51,20 @@ export function* riemersmaRemapSteps(image: { width: number; height: number; hue
     for (const position of hilbertPixels(image)) {
         if (++work % 1024 === 0) yield;
         const bytes = (yield { kind: "read", hue, position, length: 4 })!;
-        const input = hue ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => value * 255) : bytes;
+        const evaluated = cache ? yield { kind: "read", evaluate: true, position, length: 4 } : undefined;
+        const input = evaluated?.length ? new Float64Array(evaluated.slice().buffer) : hue ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => value * 255) : bytes;
         const target = Float64Array.from(input);
         if (paletteImage.hasAlpha) for (let c = 0; c < 3; c++) target[c]! *= input[3]! / 255;
         for (let channel = 0; channel < 4; channel++) {
             for (let entry = 0; entry < 16; entry++) target[channel]! += weights[entry]! * errors[entry * 4 + channel]!;
             target[channel] = Math.max(0, Math.min(255, target[channel]!));
         }
-        let best = palette[0]!, distance = Infinity;
-        for (const color of palette) {
+        // Image-list quantization keeps its six-bit lookup cache across frames.
+        let id = 0;
+        for (let c = 0; c < 4; c++) id |= (Math.round(target[c]!) >>> 2) << (c * 6);
+        const cached = cache?.get(id);
+        let best = cached ?? palette[0]!, distance = Infinity;
+        if (!cached) for (const color of palette) {
             if (++work % 65536 === 0) yield;
             let next = 0;
             for (let c = 0; c < 4; c++) {
@@ -67,6 +74,7 @@ export function* riemersmaRemapSteps(image: { width: number; height: number; hue
             }
             if (next < distance) { best = color; distance = next; }
         }
+        cache?.set(id, best);
         errors.copyWithin(0, 4);
         for (let c = 0; c < 4; c++) {
             const alpha = paletteImage.hasAlpha && c < 3 ? best[3]! / 255 : 1;

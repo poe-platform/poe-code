@@ -5,30 +5,40 @@ import { regionContains, type Region } from "./region.js";
 import { blendMaskedPixel, type MaskChannels } from "./write-mask.js";
 
 /** Quantize packed list pixels without adding canvas padding. */
-export function* quantizeImageListSteps(images: readonly { length: number; hasAlpha: boolean }[], requested: number, grayscale = false, treeDepth = 0): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const steps = quantizePixelSteps(images.reduce((sum, image) => sum + image.length, 0), requested, grayscale, treeDepth);
+export function* quantizeImageListSteps(images: readonly { length: number; hasAlpha: boolean }[], requested: number, grayscale = false, treeDepth = 0, dither = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    // Native list quantization uses log4(colors) + 2 levels, one fewer with dithering.
+    if (!treeDepth && images.length > 1) {
+        treeDepth = 1;
+        for (let colors = requested; colors >= 1; colors = Math.floor(colors / 4)) treeDepth++;
+        if (dither) treeDepth--;
+    }
+    const steps = quantizePixelSteps(images.reduce((sum, image) => sum + image.length, 0), requested, grayscale, treeDepth, true, false, undefined, undefined, true, undefined, images);
     let next = steps.next(), image = 0, start = 0;
     while (!next.done) {
         const request = next.value;
         if (!request || request.kind !== "read") { yield request; next = steps.next(); continue; }
         if (request.position < start) { image = 0; start = 0; }
-        const data = new Uint8Array(request.length);
+        const data = new Float64Array(request.length);
         for (let offset = 0; offset < data.length;) {
             const position = request.position + offset;
             while (position >= start + images[image]!.length) start += images[image++]!.length;
             const length = Math.min(data.length - offset, start + images[image]!.length - position);
-            const bytes = yield { kind: "read", image, position: position - start, length };
-            if (!bytes || bytes.length !== length) throw new Error("Truncated quantization pixels");
-            data.set(bytes, offset);
+            const samples = yield { kind: "read", evaluate: true, image, position: position - start, length };
+            if (samples?.length) data.set(new Float64Array(samples.slice().buffer), offset);
+            else {
+                const bytes = yield { kind: "read", highDepth: true, image, position: position - start, length };
+                if (!bytes || bytes.length !== length * 2) throw new Error("Truncated quantization pixels");
+                data.set(Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257), offset);
+            }
             if (!images[image]!.hasAlpha) for (let i = offset + 3; i < offset + length; i += 4) data[i] = 255;
             offset += length;
         }
-        next = steps.next(data);
+        next = steps.next(new Uint8Array(data.buffer));
     }
 }
 
 // Sums retain RGBA and RGB multiplied by alpha, so merged bins keep exact weights.
-interface ColorBin { count: number; sums: number[]; associated: number[]; color: number[] }
+interface ColorBin { alpha?: boolean | undefined; count: number; sums: number[]; associated: number[]; color: number[] }
 interface ColorNode {
     parent?: ColorNode;
     level: number;
@@ -40,7 +50,7 @@ interface ColorNode {
 }
 
 /** A bounded histogram and error-pruned color tree shared by both raster backends. */
-export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; writeMask?: boolean; alphaActive: boolean; channels?: MaskChannels | undefined }, dither?: { width: number; height: number; method: "riemersma" | "floydsteinberg"; diffusionAmount: number }, evaluate = false, working?: "hue" | "cmyk"): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
+export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; writeMask?: boolean; alphaActive: boolean; channels?: MaskChannels | undefined }, dither?: { width: number; height: number; method: "riemersma" | "floydsteinberg"; diffusionAmount: number }, evaluate = false, working?: "hue" | "cmyk", images?: readonly { length: number; hasAlpha: boolean }[]): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
     const clamp = (value: number) => Math.max(0, Math.min(255, value));
     // Keep fractional palette means alongside byte output for later arithmetic and deeper output.
@@ -79,6 +89,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         }
         return highDepth && precision === 8 ? data.subarray(i, i + 4).join(",") : (data[i]! << 24 | data[i + 1]! << 16 | data[i + 2]! << 8 | data[i + 3]!) & mask;
     };
+    let imageIndex = 0, imageStart = 0;
     const chunkSize = evaluate ? 2048 : 4096;
     for (let position = 0; position < length; position += chunkSize) {
         yield;
@@ -89,9 +100,13 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             continue;
         }
         for (let i = 0; i < size; i += 4) {
-            const id = key(data, i);
+            while (images && position + i >= imageStart + images[imageIndex]!.length) imageStart += images[imageIndex++]!.length;
+            // An active alpha channel selects different octants even when fully opaque.
+            const alpha = images?.[imageIndex]?.hasAlpha;
+            const sampleKey = key(data, i);
+            const id = typeof sampleKey === "number" && alpha ? sampleKey + 0x100000000 : sampleKey;
             let bin = bins.get(id);
-            if (!bin) { bin = { count: 0, sums: [0, 0, 0, 0, 0, 0, 0], associated: [0, 0, 0], color: [] }; bins.set(id, bin); }
+            if (!bin) { bin = { alpha, count: 0, sums: [0, 0, 0, 0, 0, 0, 0], associated: [0, 0, 0], color: [] }; bins.set(id, bin); }
             bin.count++;
             for (let c = 0; c < 4; c++) bin.sums[c]! += clamp(data[i + c]!);
             // Native clips palette sums after alpha association, but measures
@@ -110,7 +125,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             let work = 0;
             for (const [id, bin] of bins) {
                 if (++work % 1024 === 0) yield;
-                const next = typeof id === "number" ? id & mask : key(Float64Array.from(id.split(","), Number), 0), existing = reduced.get(next);
+                const next = typeof id === "number" ? (id & mask) + (bin.alpha ? 0x100000000 : 0) : key(Float64Array.from(id.split(","), Number), 0), existing = reduced.get(next);
                 if (!existing) reduced.set(next, bin);
                 else {
                     existing.count += bin.count;
@@ -125,7 +140,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
     const palette: number[][] = [];
     let findDitherColor: ((pixel: Float64Array) => Generator<undefined, number[]>) | undefined;
     let work = 0;
-    const channels = [...bins.values()].some(bin => bin.sums[3] !== 255 * bin.count) ? 4 : 3;
+    const channels = [...bins.values()].some(bin => bin.alpha || bin.sums[3] !== 255 * bin.count) ? 4 : 3;
     if (working !== "cmyk" && bins.size <= requested && (channels === 3 || cycle !== undefined)) {
         for (const bin of bins.values()) {
             if (++work % 1024 === 0) yield;
@@ -156,7 +171,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             let node = root;
             for (let bit = 7; bit >= 0; bit--) {
                 let id = 0, distance = 0;
-                for (let c = 0; c < channels; c++) {
+                for (let c = 0; c < (bin.alpha === false ? 3 : channels); c++) {
                     const high = (Math.round(clamp(pixel[c]!)) >>> bit) & 1;
                     id |= high << c;
                     // ImageMagick's Q16 cube centers, expressed in byte units.
@@ -237,13 +252,13 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             nodeColors.set(node, color);
             palette.push(color);
         }
-        function* nearestColor(pixel: ArrayLike<number>): Generator<undefined, number[]> {
+        function* nearestColor(pixel: ArrayLike<number>, activeChannels = channels): Generator<undefined, number[]> {
             // Native assignment searches the deepest surviving cube's
             // siblings and descendants, comparing unrounded palette means.
             let cube = root;
             for (let bit = 7; bit > 0; bit--) {
                 let id = 0;
-                for (let c = 0; c < channels; c++) id |= ((Math.round(clamp(pixel[c]!)) >>> bit) & 1) << c;
+                for (let c = 0; c < activeChannels; c++) id |= ((Math.round(clamp(pixel[c]!)) >>> bit) & 1) << c;
                 const child = cube.children.get(id);
                 if (!child || child.removed) break;
                 cube = child;
@@ -251,13 +266,13 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             let closest = Infinity, node = root;
             function* search(candidate: ColorNode): Generator<undefined> {
                 if (++work % 1024 === 0) yield;
-                for (let id = 0; id < 1 << channels; id++) {
+                for (let id = 0; id < 1 << activeChannels; id++) {
                     const child = candidate.children.get(id);
                     if (child && !child.removed) yield* search(child);
                 }
                 if (!candidate.count) return;
                 let distance = 0;
-                for (let c = 0; c < channels; c++) {
+                for (let c = 0; c < activeChannels; c++) {
                     const color = c < 3 ? candidate.sums[c + 4]! / candidate.count / 255 : candidate.sums[c]! / candidate.count;
                     // Native distance associates the already associated target again.
                     const target = c < 3 ? pixel[c]! * pixel[3]! / 255 : pixel[c]!;
@@ -277,7 +292,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
                 const inks = rgbToCmyk(bin.sums[0]! / bin.count / 255, bin.sums[1]! / bin.count / 255, bin.sums[2]! / bin.count / 255);
                 for (let c = 0; c < 3; c++) pixel[c] = inks[c]! * pixel[3]!;
             }
-            bin.color = yield* nearestColor(pixel);
+            bin.color = yield* nearestColor(pixel, bin.alpha === false ? 3 : channels);
         }
     }
     function* writeWorkingPixels(position: number, data: Float64Array): Generator<ConvolveRequest, void, Uint8Array | undefined> {
@@ -380,7 +395,10 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         const pixelIndices = retainIndices ? new Uint8Array(size / 4) : undefined;
         const mask = cycle?.writeMask ? new Uint16Array((yield { kind: "read", highDepth: true, image: 1, position, length: size })!.slice().buffer) : undefined;
         for (let i = 0; i < size; i += 4) {
-            const color = bins.get(key(pixels, i))!.color;
+            if (images && position + i < imageStart) { imageIndex = 0; imageStart = 0; }
+            while (images && position + i >= imageStart + images[imageIndex]!.length) imageStart += images[imageIndex++]!.length;
+            const sampleKey = key(pixels, i);
+            const color = bins.get(typeof sampleKey === "number" && images?.[imageIndex]?.hasAlpha ? sampleKey + 0x100000000 : sampleKey)!.color;
             const index = (indices.get(color)! + shift) % palette.length;
             if (pixelIndices) pixelIndices[i / 4] = index;
             const pixel = (position + i) / 4;

@@ -11885,6 +11885,69 @@ async function prepareStoredIcoPages(stack: StoredImageStack, image: StoredRgbaI
     } } };
 }
 
+function* optimizeTransparencySteps(stack: RgbaImage[], state: MagickState, signal?: AbortSignal): Generator<void, void, void> {
+    if (stack.length > 1 && (!state.channelExplicit || state.channels.a)) {
+        const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
+        let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 0 }), virtualCanvas: { width, height, x: 0, y: 0 } };
+        for (let n = 0; n < stack.length; n++) {
+            const current = stack[n]!, previous = canvas;
+            const x = current.virtualCanvas?.x ?? 0, y = current.virtualCanvas?.y ?? 0;
+            if (n > 0) stack[n] = yield* applyMagickRasterSteps(current, optimizeTransparencyPixels(canvas, current, state.alphaFuzz, current.writeMask), signal, { ...current, hasAlpha: true }, current.writeMask ? [current, canvas, current.writeMask] : [current, canvas]);
+            // Compare later frames against the canvas left by the optimized frame.
+            canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, stack[n]!, x, y, "over"), signal, canvas, [canvas, stack[n]!]);
+            if (current.disposal === 3) canvas = previous;
+            else if (current.disposal === 2) {
+                const clear = yield* createSolidRgbaImageSteps(current.width, current.height, { r: 0, g: 0, b: 0, a: 0 });
+                canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, clear, x, y, "source", undefined, false, 0, true), signal, canvas, [canvas, clear]);
+            }
+        }
+    }
+}
+
+async function optimizeStoredTransparency(stack: StoredImageStack, backend: CompareFileSession, signal: AbortSignal, fuzz: number): Promise<StoredImageStack> {
+    if (stack.length < 2) return stack;
+    const first: StoredRgbaImage = (await stack.get(0))!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
+    let canvas = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
+    for (let n = 0; n < stack.length; n++) {
+        const current: StoredRgbaImage = (await stack.get(n))!, previous = canvas;
+        const x = current.virtualCanvas?.x ?? 0, y = current.virtualCanvas?.y ?? 0;
+        const optimized = n > 0 ? await transformStoredMagickRaster(current, backend, optimizeTransparencyPixels(canvas, current, fuzz, current.storedWriteMask), signal, { ...current, hasAlpha: true }, current.storedWriteMask ? [current, canvas, current.storedWriteMask] : [current, canvas]) : current;
+        if (n > 0) await stack.set(n, optimized);
+        canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, optimized, x, y, "over"), signal, canvas, [canvas, optimized]);
+        if (current.disposal === 3) canvas = previous;
+        else if (current.disposal === 2) {
+            const clear = await createStoredCanvas(current.width, current.height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
+            canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, clear, x, y, "source", undefined, false, 0, true), signal, canvas, [canvas, clear]);
+        }
+    }
+    return stack;
+}
+
+async function remapStoredImageList(stack: StoredImageStack, backend: CompareFileSession, signal: AbortSignal, settings: MagickState): Promise<StoredImageStack> {
+    const images: { length: number; hasAlpha: boolean }[] = [];
+    let width = 0, hasAlpha = false;
+    for (let n = 0; n < stack.length; n++) {
+        await yieldTurn(signal);
+        const image = (await stack.get(n))!;
+        images.push({ length: image.width * image.height * 4, hasAlpha: image.hasAlpha });
+        width += image.width * image.height;
+        hasAlpha ||= image.hasAlpha;
+    }
+    const colors = await transformStoredMagickRaster((await stack.get(0))!, backend,
+        quantizeImageListSteps(images, settings.colors?.count ?? 256, settings.quantizeColorspace === "gray", settings.treeDepth, settings.dither !== false), signal,
+        { width, height: 1, hasAlpha }, async index => (await stack.get(index))!);
+    const cache = new Map<number, Float64Array>();
+    for (let n = 0; n < stack.length; n++) {
+        const image = (await stack.get(n))!;
+        const result = settings.dither === "riemersma"
+            ? await transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!(image.storedData16 || colors.storedData16), settings.diffusionAmount ?? 1, cache), signal, image, [image, colors])
+            : await remapStoredImage(image, colors, backend.storage, settings.dither !== false, settings.diffusionAmount ?? 1, signal);
+        const { storedHueSamples: ignoredHue, storedEvaluateSamples: ignoredEvaluate, ...remapped } = result;
+        await stack.set(n, remapped);
+    }
+    return stack;
+}
+
 // Work backwards so every comparison sees the original full-canvas predecessor.
 // Compare the first frame with an empty canvas to trim its transparent margins.
 // Clearing/restoring frames keep their disposal-dependent encoder optimization.
@@ -13313,6 +13376,20 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         });
     }
 
+    function* remapImageListSteps(stack: RgbaImage[]): Generator<void, RgbaImage[], void> {
+        const palette = yield* applyMagickRasterSteps(stack[0]!, quantizeImageListSteps(stack.map(image => ({ length: image.data.length, hasAlpha: image.hasAlpha })), state.colors?.count ?? 256, state.quantizeColorspace === "gray", state.treeDepth, state.dither !== false), signal,
+            { width: stack.reduce((sum, image) => sum + image.width * image.height, 0), height: 1, hasAlpha: stack.some(image => image.hasAlpha) }, stack);
+        const cache = new Map<number, Float64Array>();
+        return yield* mapMagickImagesSteps(stack, function* (image) {
+            const result = state.dither === "riemersma"
+                ? yield* applyMagickRasterSteps(image, riemersmaRemapSteps(image, palette, !!(image.data16 || palette.data16), state.diffusionAmount ?? 1, cache), signal, image, [image, palette])
+                : yield* applyMagickRemapSteps(image, palette, state.dither !== false, state.diffusionAmount ?? 1, signal);
+            const { hueSamples: ignoredHue, evaluateSamples: ignoredEvaluate, ...remapped } = result;
+            return remapped;
+        });
+    }
+
+
     let cooperativeWork = 63;
     let stack: RgbaImage[] = [];
     let operandsOnly = false;
@@ -14273,22 +14350,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-layers" && layerMethod === "optimizetransparency") {
             i++;
-            if (stack.length > 1 && (!state.channelExplicit || state.channels.a)) {
-                const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
-                let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 0 }), virtualCanvas: { width, height, x: 0, y: 0 } };
-                for (let n = 0; n < stack.length; n++) {
-                    const current = stack[n]!, previous = canvas;
-                    const x = current.virtualCanvas?.x ?? 0, y = current.virtualCanvas?.y ?? 0;
-                    if (n > 0) stack[n] = yield* applyMagickRasterSteps(current, optimizeTransparencyPixels(canvas, current, state.alphaFuzz, current.writeMask), signal, { ...current, hasAlpha: true }, current.writeMask ? [current, canvas, current.writeMask] : [current, canvas]);
-                    // Compare later frames against the canvas left by the optimized frame.
-                    canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, stack[n]!, x, y, "over"), signal, canvas, [canvas, stack[n]!]);
-                    if (current.disposal === 3) canvas = previous;
-                    else if (current.disposal === 2) {
-                        const clear = yield* createSolidRgbaImageSteps(current.width, current.height, { r: 0, g: 0, b: 0, a: 0 });
-                        canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, clear, x, y, "source", undefined, false, 0, true), signal, canvas, [canvas, clear]);
-                    }
-                }
-            }
+            yield* optimizeTransparencySteps(stack, state, signal);
         }
         else if (t === "-coalesce" || (t === "-layers" && ["coalesce", "dispose", "optimize"].includes(layerMethod))) {
             const dispose = t === "-layers" && layerMethod === "dispose";
@@ -14348,7 +14410,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             } else if (optimize) {
                 stack = stack.map(frame => ({ ...frame, disposal: frame.disposal || 1 }));
             }
-            if (optimize) yield* optimizeFrameRectanglesSteps(stack, state.alphaFuzz, true);
+            if (optimize) {
+                yield* optimizeFrameRectanglesSteps(stack, state.alphaFuzz, true);
+                yield* optimizeTransparencySteps(stack, state, signal);
+                stack = yield* remapImageListSteps(stack);
+            }
         }
         else if (t === "-splice") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
@@ -14556,13 +14622,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (spec && !readMask) throw new Error(`unable to read mask '${spec}'`);
             stack = yield* mapSteps(stack, function* (image) { yield; return { ...image, readMask }; });
         }
-        else if (t === "-remap" || t === "+remap") {
+        else if (t === "+remap") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const palSpec = t === "-remap" ? tokens[++i] ?? "" : "";
-            const palImg = t === "+remap"
-                ? yield* applyMagickRasterSteps(stack[0]!, quantizeImageListSteps(stack.map(image => ({ length: image.data.length, hasAlpha: image.hasAlpha })), state.colors?.count ?? 256, state.quantizeColorspace === "gray", state.treeDepth), signal,
-                    { width: stack.reduce((sum, image) => sum + image.width * image.height, 0), height: 1, hasAlpha: stack.some(image => image.hasAlpha) }, stack)
-                : palSpec.slice(0, 4).toLowerCase() === "mpr:"
+            stack = yield* remapImageListSteps(stack);
+        }
+        else if (t === "-remap") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
+            const palSpec = tokens[++i] ?? "";
+            const palImg = palSpec.slice(0, 4).toLowerCase() === "mpr:"
                 ? registers.get(palSpec.slice(4).toLowerCase())?.[0]
                 : yield* parseInputOperandSteps(palSpec, files, state, stdinBytes, analysis);
             if (!palImg) throw new Error(`unable to open image '${palSpec}'`);
@@ -14571,21 +14638,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const sourceSpace = im.magickColorspace ?? (im.space === "cmyk" ? "CMYK" : im.space === "b-w" || im.space === "grey16" ? im.gamma === 1 ? "LinearGray" : "Gray" : "sRGB");
                 const outputSpace = ["sRGB", "RGB", "scRGB", "Adobe98", "ProPhoto", "DisplayP3", "Gray", "LinearGray"].includes(sourceSpace) ? paletteSpace : sourceSpace;
                 let palette = palImg;
-                if (t === "-remap") {
-                    if (sourceSpace !== paletteSpace) im = yield* parseMagickPixelOperation(["-colorspace", paletteSpace], state, 0, signal)!.apply(im);
-                    // The CMYK codec backing is RGB; remap compares CMY and assigns zero black.
-                    if (paletteSpace === "CMYK") {
-                        im = yield* setColorspacePixels(im, "sRGB");
-                        palette = yield* setColorspacePixels(palImg, "sRGB");
-                    }
+                if (sourceSpace !== paletteSpace) im = yield* parseMagickPixelOperation(["-colorspace", paletteSpace], state, 0, signal)!.apply(im);
+                // The CMYK codec backing is RGB; remap compares CMY and assigns zero black.
+                if (paletteSpace === "CMYK") {
+                    im = yield* setColorspacePixels(im, "sRGB");
+                    palette = yield* setColorspacePixels(palImg, "sRGB");
                 }
                 let result = state.dither === "riemersma"
                     ? yield* applyMagickRasterSteps(im, riemersmaRemapSteps(im, palette, !!(im.data16 || palette.data16), state.diffusionAmount ?? 1), signal, im, [im, palette])
                     : yield* applyMagickRemapSteps(im, palette, state.dither !== false, state.diffusionAmount ?? 1, signal);
-                if (t === "+remap") {
-                    const { hueSamples: ignoredHue, evaluateSamples: ignoredEvaluate, ...remapped } = result;
-                    return remapped;
-                }
                 // The selected palette samples replace every source working sample.
                 const { evaluateSamples: ignoredEvaluate, ...remapped } = result;
                 result = paletteSpace === "CMYK" ? yield* setColorspacePixels(remapped, paletteSpace) : remapped;
@@ -18589,29 +18650,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (state.channelExplicit && !state.channels.a) continue;
             const fuzz = state.alphaFuzz;
             stackStep(async (stack, backend) => {
-                if (stack.length < 2) return stack;
-                const first: StoredRgbaImage = (await stack.get(0))!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
-                let canvas = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
-                for (let n = 0; n < stack.length; n++) {
-                    const current: StoredRgbaImage = (await stack.get(n))!, previous = canvas;
-                    const x = current.virtualCanvas?.x ?? 0, y = current.virtualCanvas?.y ?? 0;
-                    const optimized = n > 0 ? await transformStoredMagickRaster(current, backend, optimizeTransparencyPixels(canvas, current, fuzz, current.storedWriteMask), signal, { ...current, hasAlpha: true }, current.storedWriteMask ? [current, canvas, current.storedWriteMask] : [current, canvas]) : current;
-                    if (n > 0) await stack.set(n, optimized);
-                    canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, optimized, x, y, "over"), signal, canvas, [canvas, optimized]);
-                    if (current.disposal === 3) canvas = previous;
-                    else if (current.disposal === 2) {
-                        const clear = await createStoredCanvas(current.width, current.height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
-                        canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, clear, x, y, "source", undefined, false, 0, true), signal, canvas, [canvas, clear]);
-                    }
-                }
-                return stack;
+                return optimizeStoredTransparency(stack, backend, signal, fuzz);
             });
             continue;
         }
         if (!operandsOnly && (token === "-coalesce" || (token === "-layers" && ["coalesce", "dispose", "optimize"].includes(layerMethod)))) {
             const dispose = token === "-layers" && layerMethod === "dispose";
             const optimize = token === "-layers" && layerMethod === "optimize";
-            const fuzz = state.alphaFuzz;
+            const settings = { ...state }, fuzz = state.alphaFuzz;
             if (optimize) state.optimizeLayers = true;
             if (token === "-layers") i++;
             stackStep(async (stack, backend) => {
@@ -18666,7 +18712,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         await frames.push({ ...metadata, ...(canvas.storedHueSamples === undefined ? {} : { storedHueSamples: canvas.storedHueSamples }), region: undefined, width, height, position: canvas.position, ...(canvas.storedData16 ? { storedData16: canvas.storedData16 } : {}), ...(canvas.storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples: canvas.storedEvaluateSamples }), hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 } } as StoredRgbaImage);
                     }
                 }
-                if (optimize) await optimizeStoredFrameRectangles(frames, backend, signal, fuzz, true);
+                if (optimize) {
+                    await optimizeStoredFrameRectangles(frames, backend, signal, fuzz, true);
+                    if (!settings.channelExplicit || settings.channels.a) await optimizeStoredTransparency(frames, backend, signal, fuzz);
+                    await remapStoredImageList(frames, backend, signal, settings);
+                }
                 return frames;
             });
             continue;
@@ -18893,25 +18943,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const settings = { ...state };
             stackStep(async (stack, backend) => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
-                const images: { length: number; hasAlpha: boolean }[] = [];
-                let width = 0, hasAlpha = false;
-                for (let n = 0; n < stack.length; n++) {
-                    await yieldTurn(signal);
-                    const image = (await stack.get(n))!;
-                    images.push({ length: image.width * image.height * 4, hasAlpha: image.hasAlpha });
-                    width += image.width * image.height;
-                    hasAlpha ||= image.hasAlpha;
-                }
-                const colors = await transformStoredMagickRaster((await stack.get(0))!, backend,
-                    quantizeImageListSteps(images, settings.colors?.count ?? 256, settings.quantizeColorspace === "gray", settings.treeDepth), signal,
-                    { width, height: 1, hasAlpha }, async index => (await stack.get(index))!);
-                for (let n = 0; n < stack.length; n++) {
-                    const image = (await stack.get(n))!;
-                    await stack.set(n, settings.dither === "riemersma"
-                        ? await transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!(image.storedData16 || colors.storedData16), settings.diffusionAmount ?? 1), signal, image, [image, colors])
-                        : await remapStoredImage(image, colors, backend.storage, settings.dither !== false, settings.diffusionAmount ?? 1, signal));
-                }
-                return stack;
+                return remapStoredImageList(stack, backend, signal, settings);
             });
         } else if (!operandsOnly && token === "-remap") {
             const palette = tokens[++i] ?? "", settings = { ...state };

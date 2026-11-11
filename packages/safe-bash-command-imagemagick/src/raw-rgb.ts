@@ -1,5 +1,5 @@
 // Present headerless samples as Netpbm or MIFF for both decoding paths.
-export function rawRasterInput(width: number, height: number, depth: number, endian: string, byteLength: number, layout: 1 | 2 | 3 | 4 | 5 | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro", offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none", floatingPoint = false) {
+export function rawRasterInput(width: number, height: number, depth: number, endian: string, byteLength: number, layout: 1 | 2 | 3 | 4 | 5 | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro", offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none", floatingPoint = false, extract?: { width?: number; height?: number; x: number; y: number }) {
     const channels = typeof layout === "string" ? layout.length : layout;
     const bgr = typeof layout === "string" && layout.startsWith("bgr"), sampleBytes = Math.min(depth, 16) / 8, pixelBytes = channels * sampleBytes;
     const coder = typeof layout === "string" ? layout.toUpperCase() : channels === 1 ? "GRAY" : channels === 2 ? "GRAYA" : channels === 3 ? "RGB" : channels === 4 ? "CMYK" : "CMYKA";
@@ -20,7 +20,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
         : `P${channels === 1 ? 5 : 6}\n${width} ${height}\n${depth <= 8 ? 255 : 65535}\n`);
     // Explicit Undefined uses MSB order; callers resolve an omitted -endian to LSB.
     const swap = !floatingPoint && depth === 16 && endian === "lsb";
-    return {
+    const raw = {
         size: header.length + decodedLength,
         pages: interlace === "partition" && layout !== 3 ? 1 : Math.floor((byteLength - offset) / frameLength),
         *read(position: number, size: number, page = 0): Generator<{ position: number; length: number; channel: number }, Uint8Array, Uint8Array> {
@@ -108,6 +108,37 @@ export function rawRasterInput(width: number, height: number, depth: number, end
             }
             return bytes;
         }
+    };
+    if (!extract) return raw;
+    const { width: columns, height: rows, x, y } = extract;
+    if (!columns || !rows) throw new Error("must specify image size for GRAY input");
+    const bytesPerSample = Math.ceil(Math.min(depth, 16) / 8);
+    const rasterLength = columns * rows * bytesPerSample;
+    if (!Number.isSafeInteger(rasterLength) || rasterLength > 0x7fffffff) throw new Error("GRAY image dimensions exceed resource limits");
+    const extractedHeader = new TextEncoder().encode(`P5\n${columns} ${rows}\n${depth <= 8 ? 255 : 65535}\n`);
+    return {
+        size: extractedHeader.length + rasterLength,
+        pages: raw.pages,
+        *read(position: number, size: number, page = 0): Generator<{ position: number; length: number; channel: number }, Uint8Array, Uint8Array> {
+            const bytes = new Uint8Array(size);
+            const headerLength = Math.max(0, Math.min(size, extractedHeader.length - position));
+            bytes.set(extractedHeader.subarray(position, position + headerLength));
+            // Read only intersecting scanline spans; missing samples stay black.
+            for (let cursor = headerLength; cursor < size;) {
+                const offset = position + cursor - extractedHeader.length;
+                const column = Math.floor(offset / bytesPerSample) % columns;
+                const row = Math.floor(offset / bytesPerSample / columns) + y;
+                const sourceColumn = column + x;
+                let length = Math.min(size - cursor, (columns - column) * bytesPerSample - offset % bytesPerSample);
+                if (sourceColumn < 0) length = Math.min(length, -sourceColumn * bytesPerSample - offset % bytesPerSample);
+                else if (row >= 0 && row < height && sourceColumn < width) {
+                    length = Math.min(length, (width - sourceColumn) * bytesPerSample - offset % bytesPerSample);
+                    bytes.set(yield* raw.read(header.length + (row * width + sourceColumn) * bytesPerSample + offset % bytesPerSample, length, page), cursor);
+                }
+                cursor += length;
+            }
+            return bytes;
+        },
     };
 }
 

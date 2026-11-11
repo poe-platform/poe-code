@@ -3,13 +3,14 @@ import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 import { defaultRuntime } from "@poe-code/compression";
 
 /** QOI RGB/RGBA literal opcodes preserve every sample, including transparent RGB. */
-function* qoiChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">): Generator<number | Uint8Array, void, Uint8Array> {
+function* qoiChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & { magickColorspace?: string }): Generator<number | Uint8Array, void, Uint8Array> {
   const header = new Uint8Array(14);
   header.set([113, 111, 105, 102]);
   const view = new DataView(header.buffer);
   view.setUint32(4, image.width);
   view.setUint32(8, image.height);
   header[12] = image.hasAlpha ? 4 : 3;
+  header[13] = image.magickColorspace === "RGB" ? 1 : 0;
   yield header;
   let alpha = 255;
   for (let offset = 0; offset < image.width * image.height * 4; offset += 4096) {

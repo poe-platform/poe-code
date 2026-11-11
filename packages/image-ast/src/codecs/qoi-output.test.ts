@@ -30,3 +30,18 @@ it("rejects truncated pixel storage", async () => {
   await encoded.next();
   await expect(encoded.next()).rejects.toThrow("Truncated QOI pixel storage");
 });
+
+for (const magickColorspace of [undefined, "sRGB", "RGB"]) {
+  it(`labels QOI samples using the colorspace (${magickColorspace}) in both encoders`, async () => {
+    const image = { width: 1, height: 1, data: Uint8Array.of(55, 13, 4, 255), format: "raw", space: "srgb", channels: 3, depth: "uchar", hasAlpha: false, density: 72, gamma: 1, magickColorspace } satisfies RgbaImage & { magickColorspace: string | undefined };
+    const expected = Buffer.from(`716f6966000000010000000103${magickColorspace === "RGB" ? "01" : "00"}fe370d040000000000000001`, "hex");
+    expect(encodeQoiImage(image)).toEqual(new Uint8Array(expected));
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of encodeQoiFromStorage({ ...image, position: 0 }, {
+      allocate() { throw new Error("Unexpected allocation"); },
+      async read(position, length) { return image.data.slice(position, position + length); },
+      async write() { throw new Error("Unexpected write"); },
+    }, new AbortController().signal)) chunks.push(chunk);
+    expect(Buffer.concat(chunks)).toEqual(expected);
+  });
+}

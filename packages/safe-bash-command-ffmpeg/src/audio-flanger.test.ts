@@ -110,6 +110,33 @@ for (const [expression, decimal] of [
   }
 }
 
+for (const [option, numeric] of [
+  ["threads=none", "threads=0"],
+  ["extra_hw_frames=all", "extra_hw_frames=-1"],
+  ["threads=all+1", "threads=0"],
+  ["extra_hw_frames=none", "extra_hw_frames=0"]
+]) {
+  for (const graph of [false, true]) {
+    it(`flanger ${option} matches native PCM and ${numeric} (graph=${graph})`, async () => {
+      const channels = Array.from({ length: 2 }, (_, channel) =>
+        Float64Array.from({ length: 384 }, (_, frame) =>
+          (((frame * 2 + channel) * 1371) % 60001 - 30000) / 32768));
+      const control = await run(`flanger=${numeric}`, 384, true, graph, "s16le", channels, 1000);
+      assert.equal(control.result.exitCode, 0, control.stderr);
+      assert.equal(control.stderr, "");
+      const actual = await run(`flanger=${option}`, 384, true, graph, "s16le", channels, 1000);
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      assert.equal(actual.stderr, "");
+      const pcm = actual.volume.readFileSync("/out.s16") as Buffer;
+      assert.equal(pcm.length, 1536);
+      assert.deepEqual(pcm, control.volume.readFileSync("/out.s16"));
+      // Native FFmpeg 7.0.2 stereo PCM for this fixture.
+      assert.equal(createHash("sha256").update(pcm).digest("hex"),
+        "ab3c4ea287b374fa7b782280fc1ef9627e8627566bafbd6c128f9d34d96058a1");
+    });
+  }
+}
+
 for (const graph of [false, true]) {
   for (const option of ["threads=1", "thread_type=slice", "extra_hw_frames=1",
     "threads=0:thread_type=none:extra_hw_frames=-1",
@@ -133,9 +160,11 @@ for (const graph of [false, true]) {
     });
   }
   for (const [option, status] of [
-    ["threads=-1", 222], ["threads=2147483648", 222], ["threads=", 234],
+    ["threads=-1", 222], ["threads=all", 222], ["threads=none-1", 222],
+    ["threads=2147483648", 222], ["threads=", 234],
     ["thread_type=bogus", 234], ["thread_type=0.5", 222],
-    ["extra_hw_frames=-2", 222], ["extra_hw_frames=2147483648", 222],
+    ["extra_hw_frames=-2", 222], ["extra_hw_frames=all-1", 222],
+    ["extra_hw_frames=2147483648", 222],
     ["extra_hw_frames=bogus", 234]
   ] as const) {
     it(`rejects flanger ${option} and preserves output (graph=${graph})`, async () => {

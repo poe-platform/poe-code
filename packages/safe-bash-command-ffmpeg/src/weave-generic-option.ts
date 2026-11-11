@@ -21,7 +21,7 @@ export function validateWeaveGenericOption(key: string, option: string, filter: 
   }
   const minimum = key === "extra_hw_frames" ? -1 : 0;
   const number = parseFilterExpression(option, filter, {
-    default: minimum, min: minimum, max: 2147483647,
+    default: minimum, min: minimum, max: 2147483647, none: 0, all: -1,
     PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
   });
   if (!Number.isFinite(number) || number < minimum || number > 2147483647) {

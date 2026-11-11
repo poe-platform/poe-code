@@ -169,6 +169,7 @@ import {
 } from "@poe-code/image-ast/portable";
 import {
   encodeTga,
+  encodeAlacTrack,
   matrixForRotation,
   allMediaAsts,
   cloudflareWorkerLimits,
@@ -288,6 +289,14 @@ function serializeChecksum(
           throw new Error("Video checksum output requires retained native pixels");
         }
         packets.push({ dts: frame.ptsSeconds, timescale: 1, bytes: native.pixels });
+      }
+      continue;
+    }
+    if (codec === "alac") {
+      const encodedTrack = encodeAlacTrack(track, budget);
+      for (const packet of encodedTrack.samples) {
+        budget.checkCpu();
+        packets.push({ dts: packet.dts, timescale: encodedTrack.timescale, bytes: packet.data });
       }
       continue;
     }

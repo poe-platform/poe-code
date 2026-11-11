@@ -21,10 +21,10 @@ export function encodeAlacTrack(track: MediaTrack, budget: MediaBudgetTracker): 
     writer.writeBits(channels - 1, 3); // single-channel or channel-pair element
     writer.writeBits(0, 4); // element instance
     writer.writeBits(0, 12); // unused header bits
-    writer.writeBits(1, 1); // explicit sample count
+    writer.writeBits(count < frameLength ? 1 : 0, 1); // partial frames carry their sample count
     writer.writeBits(0, 2); // no separately stored low bytes
     writer.writeBits(1, 1); // uncompressed frame
-    writer.writeBits(count, 32);
+    if (count < frameLength) writer.writeBits(count, 32);
     for (let i = start; i < start + count; i++) {
       for (let ch = 0; ch < channels; ch++) {
         const value = Math.max(-scale, Math.min(scale - 1, Math.round(channelData[ch]![i]! * scale)));
@@ -48,8 +48,8 @@ export function encodeAlacTrack(track: MediaTrack, budget: MediaBudgetTracker): 
   config.writeU8(10); // initial history
   config.writeU8(14); // maximum Rice parameter
   config.writeU8(channels);
-  config.writeU16BE(255); // maximum run
-  config.writeU32BE(frameLength * channels * bits / 8 + 8);
+  config.writeU16BE(0); // unused maximum run
+  config.writeU32BE(frameLength * channels * bits / 8 + 4);
   config.writeU32BE(sampleRate * channels * bits);
   config.writeU32BE(sampleRate);
   const entry = new BinaryWriter(64);
@@ -60,9 +60,10 @@ export function encodeAlacTrack(track: MediaTrack, budget: MediaBudgetTracker): 
   entry.writeU16BE(bits);
   entry.writeZeros(4);
   entry.writeU32BE((Math.min(65535, sampleRate) * 65536) >>> 0);
-  entry.writeBytes(makeBox("alac", config.toUint8Array()));
+  const extraData = makeBox("alac", config.toUint8Array());
+  entry.writeBytes(extraData);
   return { ...track, samples, decodedAudio: undefined, codecDescriptions: [{
     codecName: "alac", formatFourCC: "alac", sampleRate, channels, bitsPerSample: bits,
-    rawStsdEntryBytes: makeBox("alac", entry.toUint8Array())
+    extraData, rawStsdEntryBytes: makeBox("alac", entry.toUint8Array())
   }] };
 }

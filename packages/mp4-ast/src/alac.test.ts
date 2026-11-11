@@ -32,3 +32,13 @@ it("preserves 24-bit PCM and enforces encoding memory limits", () => {
   assert.equal(result.status, 0, result.stderr.toString());
   assert.deepEqual(result.stdout, input);
 });
+
+it("keeps full ALAC packets within the configuration's maximum frame size", () => {
+  const doc = rawAudioAsts().find(plugin => plugin.id === "s16le")!.parse(new Uint8Array(4097 * 4), { sampleRate: 8000, channels: 2 });
+  const parsed = parseMp4(serializeMp4(doc, { format: "mov", audioCodec: "alac" }), { decodeAudio: false });
+  const track = parsed.tracks[0]!;
+  const extra = track.codecDescriptions[0]!.extraData!;
+  const maximum = new DataView(extra.buffer, extra.byteOffset, extra.byteLength).getUint32(24);
+  assert.equal(maximum, 16388);
+  assert.deepEqual(track.samples.map(sample => [sample.duration, sample.data.length]), [[4096, maximum], [1, 12]]);
+});

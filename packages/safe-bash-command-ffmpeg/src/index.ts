@@ -1033,6 +1033,30 @@ function parseFilterChain(filterChainStr: string): string[] {
   return filters;
 }
 
+function parseAloop(argument: string) {
+  const values: Record<string, number> = { loop: 0, size: 0, start: 0, time: Infinity };
+  let optionPosition = 0;
+  for (const option of (argument ? argument.split(":") : [])) {
+    const separator = option.indexOf("=");
+    const key = separator < 0 ? ["loop", "size", "start", "time"][optionPosition] : option.slice(0, separator).trim();
+    // Named options restart shorthand, skipping the first slot only
+    // when it was the slot just visited, regardless of the named key.
+    if (separator < 0) optionPosition++;
+    else optionPosition = optionPosition === 0 ? 1 : 0;
+    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (!key || !Object.hasOwn(values, key)) throw new Error(`aloop: unsupported option ${key}`);
+    const number = key === "time" ? parseHlsDuration(value) : parseFilterExpression(value, "aloop", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+    if (!value || !Number.isFinite(number) ||
+      (key !== "time" && number > (key === "start" ? 2 ** 63 : 2147483647)) ||
+      number < (key === "start" || key === "loop" ? -1 : 0) ||
+      (key === "time" && number > (2 ** 63 - 1) / 1_000_000)) {
+      throw new Error(`aloop: invalid ${key}`);
+    }
+    values[key] = key === "time" ? number : roundToEven(number);
+  }
+  return values;
+}
+
 function parseAsetnsamples(argument: string) {
   let size = 1024;
   let pad = true;
@@ -11971,6 +11995,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const select = next?.split("=", 1)[0]!.split("@", 1)[0] === "aselect"
                           ? createAudioSelection(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "1", origRate, audioTimeBase)
                           : undefined;
+                        const loop = next?.split("=", 1)[0]!.split("@", 1)[0] === "aloop"
+                          ? parseAloop(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "")
+                          : undefined;
+                        // aloop fills its first size-limited chunk before emitting it,
+                        // even with loop=0. Upstream detectors see whole consumed frames.
+                        const initialDemand = Math.min(1024, loop?.size ?? 0);
                         const length = stretched[0]?.length ?? 0;
                         let pending = 0;
                         let pendingPts = 0;
@@ -11979,7 +12009,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let outputFrames = 0;
                         let firstPts: number | undefined;
                         let nextPts = 0;
-                        for (let start = 0, n = 0; start < length && (frameLimit === undefined || outputFrames < frameLimit); n++) {
+                        for (let start = 0, n = 0; start < length && (frameLimit === undefined || outputFrames < frameLimit ||
+                          frameLimit > 0 && measuredEnd < initialDemand); n++) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           const frame = audioTimestamps?.[n];
                           const packet = t.samples[n];
@@ -13295,27 +13326,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         t = { ...t, codecDescriptions: t.codecDescriptions.map(description => ({ ...description,
                           codecName: "pcm_s32le", bitsPerSample: 32 })) };
                       } else if (trimmed === "aloop" || trimmed.startsWith("aloop=")) {
-                        const values: Record<string, number> = { loop: 0, size: 0, start: 0, time: Infinity };
-                        const argument = trimmed.slice("aloop=".length);
-                        let optionPosition = 0;
-                        for (const option of (argument ? argument.split(":") : [])) {
-                          const separator = option.indexOf("=");
-                          const key = separator < 0 ? ["loop", "size", "start", "time"][optionPosition] : option.slice(0, separator).trim();
-                          // Named options restart shorthand, skipping the first slot only
-                          // when it was the slot just visited, regardless of the named key.
-                          if (separator < 0) optionPosition++;
-                          else optionPosition = optionPosition === 0 ? 1 : 0;
-                          const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-                          if (!key || !Object.hasOwn(values, key)) throw new Error(`aloop: unsupported option ${key}`);
-                          const number = key === "time" ? parseHlsDuration(value) : parseFilterExpression(value, "aloop", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
-                          if (!value || !Number.isFinite(number) ||
-                            (key !== "time" && number > (key === "start" ? 2 ** 63 : 2147483647)) ||
-                            number < (key === "start" || key === "loop" ? -1 : 0) ||
-                            (key === "time" && number > (2 ** 63 - 1) / 1_000_000)) {
-                            throw new Error(`aloop: invalid ${key}`);
-                          }
-                          values[key] = key === "time" ? number : roundToEven(number);
-                        }
+                        const values = parseAloop(trimmed === "aloop" ? "" : trimmed.slice("aloop=".length));
                         const { loop, size, start, time } = values;
                         if (loop === -1 && size! > 0) {
                           const inputLength = stretched[0]?.length ?? 0;

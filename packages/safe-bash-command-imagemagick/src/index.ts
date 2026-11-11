@@ -2151,10 +2151,10 @@ function* formatHistogramOutputSteps(img: RgbaImage, precision = 6): Generator<v
     return lines.join("\n") + "\n";
 }
 
-function writeGradientPixel(data: Uint8Array, samples: Uint16Array, evaluateSamples: Float64Array, offset: number, first: ReturnType<typeof parseColor>, last: ReturnType<typeof parseColor>, t: number, hueSamples?: Float64Array): void {
-    const firstAlpha = first.a * (1 - t);
+function writeGradientPixel(data: Uint8Array, samples: Uint16Array, evaluateSamples: Float64Array, offset: number, first: ReturnType<typeof parseColor>, last: ReturnType<typeof parseColor>, t: number, hueSamples?: Float64Array, outside = false): void {
+    const firstAlpha = outside ? 255 : first.a * (1 - t);
     const lastAlpha = last.a * t;
-    const alpha = firstAlpha + lastAlpha;
+    let alpha = firstAlpha + lastAlpha;
     const divisor = alpha || 1;
     if (hueSamples && first.cmyk) {
         for (let channel = 0; channel < 4; channel++) {
@@ -2185,6 +2185,8 @@ function writeGradientPixel(data: Uint8Array, samples: Uint16Array, evaluateSamp
         samples[offset] = samples[offset + 1] = samples[offset + 2]!;
         data[offset] = data[offset + 1] = data[offset + 2]!;
     }
+    // Native keeps the first stop's hidden color outside alpha-enabled gradients.
+    if (outside && (first.a < 255 || last.a < 255)) alpha = 0;
     evaluateSamples[offset + 3] = Math.fround(alpha * 257) / 257;
     samples[offset + 3] = Math.round(evaluateSamples[offset + 3]! * 257);
     data[offset + 3] = clampByteVal(samples[offset + 3]! / 257);
@@ -2232,7 +2234,7 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
                 const outside = box && (x < box.x || y < box.y || x >= box.x + (box.width ?? w) || y >= box.y + (box.height ?? h));
                 const t = outside ? 0 : vectorFactor ? vectorFactor(x, y) : radial ? Math.min(1, Math.hypot((x - cx) / axes[0], (y - cy) / axes[1])) : projection(x, y);
                 const idx = (y * w + x) * 4;
-                writeGradientPixel(data, data16, evaluateSamples, idx, c1, c2, t, hueSamples);
+                writeGradientPixel(data, data16, evaluateSamples, idx, c1, c2, t, hueSamples, outside);
             }
         }
     }
@@ -19078,7 +19080,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    for(let i=0;i<count;i++){
     const x=(start+i)%width,y=Math.floor((start+i)/width),offset=i*4;
     if(pattern){const cell=pattern.gray(x,y);bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}
-    else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:vectorFactor?vectorFactor(x,y):radial?Math.min(1,Math.hypot((x-cx)/axes[0],(y-cy)/axes[1])):projection(x,y);writeGradientPixel(bytes,samples!,evaluateSamples!,offset,a,b,t,hueSamples);}
+    else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:vectorFactor?vectorFactor(x,y):radial?Math.min(1,Math.hypot((x-cx)/axes[0],(y-cy)/axes[1])):projection(x,y);writeGradientPixel(bytes,samples!,evaluateSamples!,offset,a,b,t,hueSamples,outside);}
    }
    await backend.storage.write(position+start*4,bytes);
    if(storedData16&&samples)await backend.storage.write(storedData16.position+start*8,new Uint8Array(samples.buffer));

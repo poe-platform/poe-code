@@ -1,5 +1,12 @@
 // Present headerless samples as Netpbm or MIFF for both decoding paths.
-export function rawRasterInput(width: number, height: number, depth: number, endian: string, byteLength: number, layout: 1 | 2 | 3 | 4 | 5 | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro" | "r" | "g" | "b" | "a" | "o" | "c" | "m" | "y" | "k", offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none", floatingPoint = false, extract?: { width?: number; height?: number; x: number; y: number }, scenes?: number[][]) {
+export function rawRasterInput(width: number, height: number, depth: number, endian: string, byteLength: number, layout: 1 | 2 | 3 | 4 | 5 | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro" | "r" | "g" | "b" | "a" | "o" | "c" | "m" | "y" | "k", offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none", floatingPoint = false, extract?: { width?: number; height?: number; x: number; y: number }, scenes?: number[][], options?: Record<string, string>) {
+    let minimum = Number.parseFloat(options?.["quantum:minimum"] ?? "0") || 0;
+    const maximum = Number.parseFloat(options?.["quantum:maximum"] ?? "1") || 0;
+    // Equal nonzero endpoints mean a zero-based range ending at that value.
+    if (minimum === maximum) minimum = 0;
+    const scale = options?.["quantum:scale"] === undefined
+        ? maximum === minimum ? 0 : 65535 / (maximum - minimum)
+        : Number.parseFloat(options["quantum:scale"]) || 0;
     const channels = typeof layout === "string" ? layout.length : layout;
     const bgr = typeof layout === "string" && layout.startsWith("bgr"), sampleBytes = Math.min(depth, 16) / 8, pixelBytes = channels * sampleBytes;
     const coder = typeof layout === "string" ? layout.toUpperCase() : channels === 1 ? "GRAY" : channels === 2 ? "GRAYA" : channels === 3 ? "RGB" : channels === 4 ? "CMYK" : "CMYKA";
@@ -74,7 +81,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                             const sourceChannel = bgr && channel < 3 ? 2 - channel : channel;
                             let input = yield { channel: interlace === "partition" ? sourceChannel : 0, position: offset + page * frameLength / (interlace === "partition" ? channels : 1) + source * inputSampleBytes, length: length * inputSampleBytes / sampleBytes };
                             if (input.length !== length * inputSampleBytes / sampleBytes) throw new Error(`unexpected end-of-file in ${coder} input`);
-                            if (floatingPoint || depth === 32) input = rawSamplesTo16(input, depth, endian, floatingPoint);
+                            if (floatingPoint || depth === 32) input = rawSamplesTo16(input, depth, endian, floatingPoint, minimum, scale);
                             // Native imports .A into a color channel, leaving partition alpha zero.
                             const zero = interlace === "partition" && (bgr && channel === 0 || channel === channels - 1 && (layout === 2 || layout === 5 || typeof layout === "string" && channels === 4));
                             for (let i = 0; i < length; i++) {
@@ -99,7 +106,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                     const length = Math.min(chunkBytes, alignedEnd - cursor);
                     let input = yield { channel: 0, position: offset + page * frameLength + cursor * ratio, length: length * ratio };
                     if (input.length !== length * ratio) throw new Error(`unexpected end-of-file in ${coder} input`);
-                    if (floatingPoint || depth === 32) input = rawSamplesTo16(input, depth, endian, floatingPoint);
+                    if (floatingPoint || depth === 32) input = rawSamplesTo16(input, depth, endian, floatingPoint, minimum, scale);
                     for (let i = Math.max(start, cursor); i < Math.min(end, cursor + length); i++) {
                         const channel = Math.floor(i % pixelBytes / sampleBytes);
                         const source = bgr && channel < 3 ? i + (2 - 2 * channel) * sampleBytes : i;
@@ -177,7 +184,7 @@ export function rawPartitionPaths(path: string, format = "rgb", scene?: number):
     return [...channels].map((channel, index) => `${stem}${scene === undefined ? "" : `-${scene}`.repeat(index)}.${channel}`);
 }
 
-function rawSamplesTo16(input: Uint8Array, depth: number, endian: string, floatingPoint: boolean): Uint8Array {
+function rawSamplesTo16(input: Uint8Array, depth: number, endian: string, floatingPoint: boolean, minimum: number, scale: number): Uint8Array {
     const source = new DataView(input.buffer, input.byteOffset, input.byteLength), sampleBytes = depth / 8;
     const bytes = new Uint8Array(input.length / sampleBytes * 2), output = new DataView(bytes.buffer);
     for (let index = 0; index < input.length / sampleBytes; index++) {
@@ -187,7 +194,10 @@ function rawSamplesTo16(input: Uint8Array, depth: number, endian: string, floati
             const half = source.getUint16(index * 2, endian !== "msb"), exponent = (half >>> 10) & 31, fraction = half & 1023;
             value = exponent === 0 ? fraction * 2 ** -24 : exponent === 31 ? fraction ? NaN : Infinity : (1 + fraction / 1024) * 2 ** (exponent - 15);
             if (half & 0x8000) value = -value;
-        } else value = depth === 32 ? source.getFloat32(index * 4, endian !== "msb") : source.getFloat64(index * 8, endian !== "msb");
+        } else {
+            value = depth === 32 ? source.getFloat32(index * 4, endian !== "msb") : source.getFloat64(index * 8, endian !== "msb");
+            value = (value - minimum) * scale / 65535;
+        }
         output.setUint16(index * 2, Number.isNaN(value) ? 0 : Math.round(Math.max(0, Math.min(1, value)) * 65535));
     }
     return bytes;

@@ -27,6 +27,7 @@ import { ripemd128, ripemd256, ripemd320 } from "./ripemd.js";
 import { parseTee, selectTeeTracks } from "./tee.js";
 import { measureAstats, parseAstatsMeasurements } from "./audio-astats.js";
 import { measureReplayGain } from "./audio-replaygain.js";
+import { colorcontrast } from "./colorcontrast.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { autoConvertConcatTrack } from "./concat-auto-convert.js";
 import { filterBitstream } from "./bitstream.js";
@@ -4530,6 +4531,8 @@ async function applyVideoFilterChain(
       pixelFormat = diagnostics.pixelFormat = "gray";
     } else if (name === "colorbalance") {
       current = await colorbalance(current, argStr, budget, signal);
+    } else if (name === "colorcontrast") {
+      current = await colorcontrast(current, argStr, pixelFormat, budget, signal);
     } else if (name === "colorchannelmixer") {
       const keys = ["rr", "rg", "rb", "ra", "gr", "gg", "gb", "ga", "br", "bg", "bb", "ba", "ar", "ag", "ab", "aa"];
       const coefficients: number[] = keys.map((_, index) => index % 5 === 0 ? 1 : 0);

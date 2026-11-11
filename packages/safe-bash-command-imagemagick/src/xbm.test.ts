@@ -5,6 +5,34 @@ import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 for (const mode of ["sync", "buffered", "retained", "command"] as const) {
+  it.each(["none", "leading", "initializer"])(`matches native XBM comment acceptance (${mode}, %s)`, async comment => {
+    const input = new TextEncoder().encode(`${comment === "leading" ? "/* bitmap */\n" : ""}#define tile_width 9\n#define tile_height 2\nstatic unsigned char tile_bits[] = {\n 0x81, 0x01,${comment === "initializer" ? " /* row two */" : ""} 0x02, 0x00 };`);
+    const files = new Map([["/tile.xbm", input]]), filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/tile.xbm", input);
+    const args = ["/tile.xbm", "-depth", "8", "gray:-"];
+    let exitCode: number, stdout = "", stderr = "";
+    if (mode === "command") {
+      const arguments_ = createCommandArguments(args);
+      const result = await createMagickCommand().execute({
+        command: "magick", args: arguments_.args, argumentValues: arguments_, cwd: "/", env: {}, fs: filesystem,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write(bytes) { stdout += Buffer.from(bytes).toString("hex"); } },
+        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+      });
+      exitCode = result.exitCode;
+    } else {
+      const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+      exitCode = result.exitCode;
+      stderr = result.stderr;
+      expect(result.stdout).toBe("");
+      stdout = Buffer.from(result.stdoutBytes ?? []).toString("hex");
+    }
+    expect(exitCode).toBe(comment === "initializer" ? 1 : 0);
+    expect(stdout).toBe(comment === "initializer" ? "" : "00ffffffffffff0000ff00ffffffffffffff");
+    if (comment === "initializer") expect(stderr).toContain("improper image header");
+    else expect(stderr).toBe("");
+  });
+
   it(`reads byte-padded XBM scanlines (${mode})`, async () => {
     const input = new TextEncoder().encode(`#define icon_width 13\n#define icon_height 5\nstatic unsigned char icon_bits[] = {\n0x07, 0x00, 0x07, 0x00, 0x07, 0x00, 0x07, 0x00, 0x00, 0x10 };`);
     const files = new Map([["/icon.xbm", input]]), filesystem = new MemoryFileSystem();

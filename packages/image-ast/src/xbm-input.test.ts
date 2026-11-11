@@ -48,14 +48,18 @@ it.each([
   expect(isXbmBytes(new TextEncoder().encode(header))).toBe(false);
 });
 
-it("ignores C comment contents when reading XBM metadata and pixels", () => {
-  const bytes = new TextEncoder().encode("/* #define short { */\n# \tdefine\ttest_width 1\n#define test_height 1\nstatic char test_bits[] = { /* pixel */ 1 };");
+it("ignores leading C comment contents when reading XBM metadata and pixels", () => {
+  const bytes = new TextEncoder().encode("/* #define short { */\n# \tdefine\ttest_width 1\n#define test_height 1\nstatic char test_bits[] = { 1 };");
   expect(readImageMetadata(bytes)).toMatchObject({ format: "xbm", width: 1, height: 1 });
   expect([...decodeImage(bytes).data]).toEqual([0, 0, 0, 255]);
 });
 
-it("rejects an unterminated comment in XBM pixels", () => {
-  expect(() => decodeImage(bitmap(1, 1, "/* unfinished"))).toThrow("Unterminated XBM comment");
+it.each(["/* pixel */ 1", "/* unfinished", "1, /* row two */ 0"])("rejects comments in XBM pixels: %s", async values => {
+  const bytes = bitmap(1, values.startsWith("1,") ? 2 : 1, values);
+  expect(() => decodeImage(bytes)).toThrow("improper image header");
+  expect(() => readImageMetadata(bytes)).toThrow("improper image header");
+  const source = { size: bytes.length, async read(position: number, length: number) { return bytes.subarray(position, position + length); } };
+  await expect(readXbmFromSource(source, undefined, new AbortController().signal)).rejects.toThrow("improper image header");
 });
 
 it.each([

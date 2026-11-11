@@ -18,12 +18,14 @@ export function isXbmBytes(bytes: Uint8Array): boolean {
 type Step = { kind: "read"; position: number } | { kind: "header"; metadata: ImageMetadata } | { kind: "pixel"; value: number };
 function* xbmSteps(size: number, options?: SharpInputOptions): Generator<Step, ImageMetadata, number | undefined> {
   let position = 0, pending: string | undefined;
+  let inBitmap = false;
   function* token(): Generator<Step, string, number | undefined> {
     let value = "";
     while (position < size || pending !== undefined) {
       const char = pending ?? String.fromCharCode((yield { kind: "read", position: position++ }) ?? 0);
       pending = undefined;
       if (char === "/") {
+        if (inBitmap) throw new Error("improper image header: XBM comment inside bitmap initializer");
         if (value) { pending = char; return value; }
         const next = position < size ? yield { kind: "read" as const, position: position++ } : undefined;
         if (next !== 42) throw new Error("Invalid XBM comment");
@@ -58,7 +60,7 @@ function* xbmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
     } else if (part === "char") bitsPerValue = 8;
     else if (part === "short") bitsPerValue = 16;
     else if (part === "[" && (yield* token()) !== "]") throw new Error("Invalid XBM array declaration");
-    else if (part === "{") break;
+    else if (part === "{") { inBitmap = true; break; }
   }
   if (!name || !bitsPerValue || !Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width <= 0 || height <= 0 || !Number.isSafeInteger(width * height * 4)) throw new Error("Invalid XBM dimensions or array");
   checkLimitInputPixels(width, height, options);

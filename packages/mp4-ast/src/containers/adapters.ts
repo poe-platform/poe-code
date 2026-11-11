@@ -3048,7 +3048,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
     if (eq === rawLine.length) continue;
     let val = "";
     for (let i = eq + 1; i < rawLine.length; i++) {
-      if (rawLine[i] === "\\" && i + 1 < rawLine.length) i++;
+      if (rawLine[i] === "\\" && ++i === rawLine.length) break;
       if (rawLine[i] === "\0") break;
       val += rawLine[i];
     }

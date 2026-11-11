@@ -5175,6 +5175,7 @@ function parseGravity(raw: string): GravityPosition | undefined {
   const norm = raw.toLowerCase().replace(/[-_\s]/g, "");
   switch (norm) {
     case "none":
+    case "forget":
     case "undefined":
       return undefined;
     case "north":

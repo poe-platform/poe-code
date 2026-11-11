@@ -13858,7 +13858,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           continue;
                         }
-                        if (!["same_str", "starts_with", "ends_with"].includes(comparison)) throw new Error(`ametadata: unsupported function ${comparison}`);
+                        if (!["same_str", "starts_with", "ends_with", "less", "greater", "equal"].includes(comparison)) throw new Error(`ametadata: unsupported function ${comparison}`);
+                        const matchesValue = (value: string): boolean => {
+                          if (metadataValue === undefined) return true;
+                          if (comparison === "starts_with") return value.startsWith(metadataValue);
+                          if (comparison === "ends_with") return value.endsWith(metadataValue);
+                          if (comparison === "same_str") return value === metadataValue;
+                          // FFmpeg parses floats and treats differences below FLT_EPSILON as equal.
+                          const actual = Math.fround(Number.parseFloat(value));
+                          const expected = Math.fround(Number.parseFloat(metadataValue));
+                          const equal = Math.abs(actual - expected) < 2 ** -23;
+                          return equal || (comparison === "less" ? actual < expected
+                            : comparison === "greater" ? actual > expected : false);
+                        };
                         if (mode === "select") {
                           if (!key) throw new Error("ametadata: mode=select requires key");
                           const selected: NonNullable<typeof audioTimestamps> = [];
@@ -13874,8 +13886,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const end = Math.min(inputLength, start + count);
                             const frame = audioMetadata[n];
                             const tag = frame && Array.from(frame.tags).find(([name]) => name.toLowerCase() === lookupKey);
-                            const matches = tag && (metadataValue === undefined || (comparison === "starts_with" ? tag[1].startsWith(metadataValue)
-                              : comparison === "ends_with" ? tag[1].endsWith(metadataValue) : tag[1] === metadataValue));
+                            const matches = tag && matchesValue(tag[1]);
                             const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "ametadata enable", {
                               n, t: (timestamp?.pts ?? frame?.pts ?? audioStartSample + start) / origRate, pos: NaN, w: 0, h: 0
                             })) >= 0.5;
@@ -13924,11 +13935,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           let tags = "";
                           for (const [name, value] of frame.tags) {
                             if (lookupKey !== undefined && lookupKey !== name.toLowerCase()) continue;
-                            if (metadataValue !== undefined) {
-                              const matches = comparison === "starts_with" ? value.startsWith(metadataValue)
-                                : comparison === "ends_with" ? value.endsWith(metadataValue) : value === metadataValue;
-                              if (!matches) continue;
-                            }
+                            if (!matchesValue(value)) continue;
                             if (mode === "delete") {
                               frame.tags.delete(name);
                               continue;

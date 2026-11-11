@@ -14077,7 +14077,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 let first = stack[0]!;
                 if (dispose && !first.hasAlpha) first = { ...yield* prepareInactiveAlphaOutput(first), hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false };
                 const width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
-                const mask = dispose ? (first as MagickImage)[magickInput]?.channelMask : undefined;
+                const mask = (first as MagickImage)[magickInput]?.channelMask;
                 const channels = mask ? [mask.r, mask.g, mask.b, mask.a, mask.k === true] : undefined;
                 const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: dispose || first.hasAlpha ? 0 : 255 };
                 const { data16: ignoredData16, evaluateSamples: ignoredEvaluateSamples, hueSamples: ignoredHueSamples, ...metadata } = first;
@@ -18332,7 +18332,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let first: StoredRgbaImage = (await stack.get(0))!;
                 if (dispose && !first.hasAlpha) first = { ...await transformStoredMagickPixels(first, backend, { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal), hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false };
                 const width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
-                const mask = dispose ? (first as StoredMagickImage)[magickInput]?.channelMask : undefined;
+                const mask = (first as StoredMagickImage)[magickInput]?.channelMask;
                 const channels = mask ? [mask.r, mask.g, mask.b, mask.a, mask.k === true] : undefined;
                 const background = { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: dispose || first.hasAlpha ? 0 : 255 };
                 let canvas: StoredRgbaImage = { ...await createStoredCanvas(width, height, background, backend, signal), space: first.space, ...(first.magickColorspace ? { magickColorspace: first.magickColorspace } : {}), channels: first.channels, ...(first.gamma === undefined ? {} : { gamma: first.gamma }), hasAlpha: dispose || first.hasAlpha };

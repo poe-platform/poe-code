@@ -121,7 +121,7 @@ import { morphologyDifferencePixelSteps } from "./morphology-difference.js";
 import { hitAndMissPixelSteps, morphologyPixelSteps, type MorphologyRow } from "./morphology-kernel.js";
 import { edgePixelSteps } from "./edge-kernel.js";
 import { charcoalEdgePixelSteps, charcoalPixelSteps } from "./charcoal-kernel.js";
-import { shadePixelSteps } from "./shade-kernel.js";
+import { shadePixelSteps, shadeMetaMaskPixelSteps } from "./shade-kernel.js";
 import { embossPixelSteps, type EmbossEqualization } from "./emboss-kernel.js";
 import { convolvePixelSteps, type ConvolveKernel, type ConvolveRequest } from "./convolve-kernel.js";
 import {withCompareFiles,CompareInputFailure,type CompareFileInput,type CompareFileSession} from "./compare-file.js";
@@ -14358,8 +14358,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     result.metaChannels = [];
                     for (const [index, plane] of im.metaChannels.entries()) {
                         const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
-                        result.metaChannels.push(selected ? yield* applyMagickRasterSteps(plane,
-                            shadePixelSteps(im, expanded, argumentOffset + i, state.background, state.virtualPixel, undefined, state.intensity, state.seed, true), signal, plane, [im]) : plane);
+                        let shaded = selected ? yield* applyMagickRasterSteps(plane,
+                            shadePixelSteps(im, expanded, argumentOffset + i, state.background, state.virtualPixel, undefined, state.intensity, state.seed, true), signal, plane, [im]) : plane;
+                        if (selected && (im.region || im.writeMask)) shaded = yield* applyMagickRasterSteps(shaded,
+                            shadeMetaMaskPixelSteps(im, im.writeMask), signal, shaded,
+                            im.writeMask ? [shaded, plane, im, result, im.writeMask] : [shaded, plane, im, result]);
+                        result.metaChannels.push(shaded);
                     }
                 }
                 return result;
@@ -18638,9 +18642,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const result = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, shadePixelSteps(image, expanded, argument, background, virtualPixel, channels, intensity, seed), signal);
                 if (image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];
-                    for (const [index, plane] of image.storedMetaChannels.entries())
-                        result.storedMetaChannels.push(!meta || meta.includes(index) ? await transformStoredMagickRaster(plane, backend,
-                            shadePixelSteps(image, expanded, argument, background, virtualPixel, undefined, intensity, seed, true), signal, plane, [image]) : plane);
+                    for (const [index, plane] of image.storedMetaChannels.entries()) {
+                        const selected = !meta || meta.includes(index);
+                        let shaded = selected ? await transformStoredMagickRaster(plane, backend,
+                            shadePixelSteps(image, expanded, argument, background, virtualPixel, undefined, intensity, seed, true), signal, plane, [image]) : plane;
+                        if (selected && (image.region || image.storedWriteMask)) shaded = await transformStoredMagickRaster(shaded, backend,
+                            shadeMetaMaskPixelSteps(image, image.storedWriteMask), signal, shaded,
+                            image.storedWriteMask ? [shaded, plane, image, result, image.storedWriteMask] : [shaded, plane, image, result]);
+                        result.storedMetaChannels.push(shaded);
+                    }
                 }
                 return result;
             });

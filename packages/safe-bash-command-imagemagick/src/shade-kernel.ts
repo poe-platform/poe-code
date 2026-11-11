@@ -4,6 +4,8 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { createMagickRandom } from "./random.js";
 import { magickIntensity } from "./intensity.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
+import { regionContains, type Region } from "./region.js";
+import { blendMaskedPixel } from "./write-mask.js";
 
 /** Directional surface normals from a 3x3 intensity neighborhood. */
 export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { magickColorspace?: string | undefined }, spec: string, argument: number, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, intensity = "rec709luma", seed?: bigint, meta = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
@@ -104,5 +106,44 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
             : Uint8Array.from(data, value => Math.max(0, Math.min(255, Math.round(value))));
         yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(encoded.buffer) };
         yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(data.buffer) };
+    }
+}
+
+/** Extra planes use the parent image's original and shaded alpha during cache clipping. */
+export function* shadeMetaMaskPixelSteps(image: { width: number; height: number; hasAlpha: boolean; alphaBlend?: boolean | undefined; region?: Region | undefined }, mask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    for (let y = 0; y < image.height; y++) for (let x = 0; x < image.width; x += 512) {
+        yield;
+        const length = Math.min(512, image.width - x) * 4, position = (y * image.width + x) * 4;
+        const samples: Float64Array[] = [];
+        for (const source of [0, 1, 2, 3]) {
+            const working = yield { kind: "read", evaluate: true, image: source, position, length };
+            samples.push(working?.length ? new Float64Array(working.slice().buffer)
+                : Float64Array.from(new Uint16Array((yield { kind: "read", highDepth: true, image: source, position, length })!.slice().buffer), value => value / 257));
+        }
+        const edited = samples[0]!, original = samples[1]!;
+        let protection: Float64Array | undefined;
+        if (mask) {
+            const maskX = Math.min(x, mask.width - 1), maskLength = Math.min(length / 4, mask.width - maskX) * 4;
+            const maskPosition = (Math.min(y, mask.height - 1) * mask.width + maskX) * 4;
+            const working = yield { kind: "read", evaluate: true, image: 4, position: maskPosition, length: maskLength };
+            protection = working?.length ? new Float64Array(working.slice().buffer)
+                : Float64Array.from(new Uint16Array((yield { kind: "read", highDepth: true, image: 4, position: maskPosition, length: maskLength })!.slice().buffer), value => value / 257);
+        }
+        for (let offset = 0; offset < length; offset += 4) {
+            original[offset + 3] = samples[2]![offset + 3]!;
+            edited[offset + 3] = samples[3]![offset + 3]!;
+            if (protection) {
+                const m = Math.min(offset, protection.length - 4);
+                const intensity = (0.212656 * protection[m]! + 0.715158 * protection[m + 1]! + 0.072186 * protection[m + 2]!) / 255;
+                blendMaskedPixel(edited, original, edited, offset, intensity, 255, undefined, image.hasAlpha && image.alphaBlend !== false);
+            }
+            if (image.region) blendMaskedPixel(edited, original, edited, offset,
+                regionContains(image.region, x + offset / 4, y) ? 0 : 1, 255, undefined, image.hasAlpha && image.alphaBlend !== false);
+            // Alpha supplies blending context; the extra plane itself remains opaque.
+            edited[offset + 3] = 255;
+        }
+        yield { kind: "write", evaluate: true, position, data: new Uint8Array(edited.buffer) };
+        const bounded = Uint16Array.from(edited, value => Math.round(Math.max(0, Math.min(65535, value * 257))));
+        yield { kind: "write", highDepth: true, position, data: new Uint8Array(bounded.buffer) };
     }
 }

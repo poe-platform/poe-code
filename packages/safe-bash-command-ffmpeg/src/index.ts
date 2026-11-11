@@ -10360,14 +10360,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const layout = args[++i];
             const beforeInput = args.slice(i + 1).includes("-i");
             const channels = parseAudioChannelLayout(layout ?? "");
-            const names = channels.join("+");
-            if (beforeInput ? !["FC", "FL+FR", "FC+LFE", "FL+FR+LFE", "FL+FR+FC", "FL+FR+FC+BC", "FL+FR+BL+BR", "FL+FR+FC+BL+BR", "FL+FR+FC+LFE+BL+BR", "FL+FR+FC+LFE+SL+SR", "FL+FR+FC+LFE+BL+BR+SL+SR", "FL+FR+FC+LFE+BC", "FL+FR+FC+SL+SR", "FL+FR+FC+LFE+BC+SL+SR", "FL+FR+FC+BL+BR+BC+SL+SR"].includes(names) : layout !== "mono") {
+            const count = parseAudioChannelCount(layout ?? "");
+            if (beforeInput ? count === undefined &&
+                (!channels.every(name => Object.hasOwn(audioSpeakerMasks, name)) || new Set(channels).size !== channels.length)
+                : layout !== "mono") {
               await writeBytes(context.stderr, encodeUtf8(beforeInput
                 ? `ffmpeg: unsupported input channel layout '${layout ?? ""}'\n`
                 : "ffmpeg: only mono output channel layout is supported\n"), context.signal);
               return { exitCode: 1 };
             }
-            audioChannelOptions.push(["", channels.length]);
+            audioChannelOptions.push(["", count ?? channels.length]);
             if (beforeInput) pendingChannelLayout = layout;
           } else if (arg === "-auto_conversion_filters" || arg === "-noauto_conversion_filters") {
             autoConversionFilters = arg === "-auto_conversion_filters";
@@ -11850,8 +11852,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const rawLayout = input?.channelLayout ?? (audioCodec !== "copy" && rawChannels <= (input?.guessLayoutMax ?? Infinity)
                 ? [undefined, "mono", "stereo", "2.1", "4.0", "5.0", "5.1", "6.1", "7.1"][rawChannels] : undefined);
               if (rawLayout && plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)) {
-                const channelMask = parseAudioChannelLayout(rawLayout)
-                  .reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0);
+                const channelMask = parseAudioChannelCount(rawLayout) === undefined
+                  ? parseAudioChannelLayout(rawLayout).reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0) : 0;
                 return { ...document, tracks: document.tracks.map(track => ({ ...track,
                   codecDescriptions: track.codecDescriptions.map(codec => ({ ...codec, channelLayout: rawLayout })),
                   ...(track.decodedAudio ? { decodedAudio: { ...track.decodedAudio, channelMask } } : {})

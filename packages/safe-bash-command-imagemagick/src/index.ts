@@ -10747,8 +10747,10 @@ if (t === "-intent" || t === "+intent") {
             if (filterKey === "kmeans:seed-colors") state.kmeansSeedColors = filterValue ?? "";
             if (filterKey === "white-balance:vibrance") state.whiteBalanceVibrance = filterValue ?? "";
             if (filterKey === "sample:offset") {
-                const geometry = parseMagickGeometry((filterValue ?? "").replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
-                const x = geometry.width ?? 0;
+                const value = (filterValue ?? "").replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x");
+                const geometry = parseMagickGeometry(value);
+                // Native scalar geometry followed by signed offsets leaves both sample offsets at zero.
+                const x = geometry.hasOffset && !value.toLowerCase().includes("x") ? 0 : geometry.width ?? 0;
                 state.sampleOffset = { x: x / 100, y: (geometry.height ?? x) / 100 };
             }
             if (filterKey === "jpeg:arithmetic-coding") state.jpegArithmeticCoding = filterValue === undefined || ["true", "1", "yes", "on"].includes(filterValue.toLowerCase());

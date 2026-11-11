@@ -6,6 +6,30 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 
 for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     it.each([
+        ["75+25", "010101040404111111141414"],
+        ["75-25", "010101040404111111141414"],
+        ["75+25+10", "010101040404111111141414"],
+        ["0", "010101040404111111141414"],
+        ["75", "1313131717172b2b2b2f2f2f"],
+        ["75x25+10", "0303030707071b1b1b1f1f1f"],
+        ["75x+25", "1313131717172b2b2b2f2f2f"],
+    ])(`${mode} matches native raw pixels for sample:offset=%s`, async (offset, expected) => {
+        const input = Uint8Array.from(Array.from({ length: 48 }, (_, i) => [i + 1, i + 1, i + 1]).flat());
+        const files = new Map([["in.rgb", input]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/in.rgb", input);
+        const args = ["-size", "8x6", "-depth", "8", "rgb:in.rgb", "-define", `sample:offset=${offset}`, "-sample", "2x2!", "-depth", "8", "rgb:out"];
+        let stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode, "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toBe(0);
+        const output = mode === "command" || mode === "retained" ? await filesystem.readFile("/out") : files.get("out")!;
+        expect(Buffer.from(output).toString("hex")).toBe(expected);
+    });
+    it.each([
         ["25,75", "54545b5b6262ffff7e7e85858c8cffffa8a8afafb6b6ffffd2d2d9d9e0e0ffff"],
         ["25/75", "54545b5b6262ffff7e7e85858c8cffffa8a8afafb6b6ffffd2d2d9d9e0e0ffff"],
         ["0,100", "54545b5b6262ffff696970707777ffffa8a8afafb6b6ffffbdbdc4c4cbcbffff"],

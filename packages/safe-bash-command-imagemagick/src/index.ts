@@ -1115,7 +1115,7 @@ function* createRoseImageSteps(): Generator<void, RgbaImage, void> {
 function* applyMagickFloodfillSteps(
   img: RgbaImage,
   geomStr: string,
-  targetColor: RgbaColor | undefined,
+  targetColor: (RgbaColor & { cmyk?: readonly number[] }) | undefined,
   replacement: RgbaColor,
   fuzz: number, signal?: AbortSignal, alphaOnly = false, channels?: readonly boolean[], fillToBorder = false): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
@@ -1125,6 +1125,8 @@ function* applyMagickFloodfillSteps(
   const sx = Math.round(g.x);
   const sy = Math.round(g.y);
   if (sx < 0 || sy < 0 || sx >= w || sy >= h) return img;
+  if (img.space === "cmyk") img = yield* convertCmykPixels(img);
+  const inks = img.space === "cmyk" ? img.hueSamples : undefined;
   const out = new Uint8Array(img.data);
   const paint = [replacement.r, replacement.g, replacement.b, replacement.a];
   const data16 = img.data16 ? new Uint16Array(img.data16)
@@ -1132,13 +1134,22 @@ function* applyMagickFloodfillSteps(
   const samples = img.data16 ?? img.data;
   const scale = img.data16 ? 257 : 1;
   const seedOff = (sy * w + sx) * 4;
-  const refR = targetColor ? targetColor.r : samples[seedOff]! / scale;
-  const refG = targetColor ? targetColor.g : samples[seedOff + 1]! / scale;
-  const refB = targetColor ? targetColor.b : samples[seedOff + 2]! / scale;
+  const target = inks && targetColor?.cmyk ? targetColor.cmyk.map(value => value * 255)
+    : targetColor ? [targetColor.r, targetColor.g, targetColor.b, 0] : undefined;
+  const refR = target ? target[0]! : inks ? inks[seedOff]! * 255 : samples[seedOff]! / scale;
+  const refG = target ? target[1]! : inks ? inks[seedOff + 1]! * 255 : samples[seedOff + 1]! / scale;
+  const refB = target ? target[2]! : inks ? inks[seedOff + 2]! * 255 : samples[seedOff + 2]! / scale;
+  const refK = target ? target[3]! : inks ? inks[seedOff + 3]! * 255 : 0;
 
   const matchesRef = (pIdx: number): boolean => {
     const off = pIdx * 4;
-    return fillToBorder !== matchesAlphaFloodfill(samples[off]! / scale, samples[off + 1]! / scale, samples[off + 2]! / scale, samples[off + 3]! / scale, refR, refG, refB, (fillToBorder || !alphaOnly) && targetColor ? targetColor.a : samples[seedOff + 3]! / scale, fuzz, targetColor ? 0 : fuzz);
+    const blackMatches = !inks || (inks[off + 3]! * 255 - refK) ** 2 <= fuzz ** 2 + (targetColor ? 0 : fuzz ** 2);
+    return fillToBorder !== (blackMatches && matchesAlphaFloodfill(
+      inks ? inks[off]! * 255 : samples[off]! / scale,
+      inks ? inks[off + 1]! * 255 : samples[off + 1]! / scale,
+      inks ? inks[off + 2]! * 255 : samples[off + 2]! / scale,
+      samples[off + 3]! / scale, refR, refG, refB,
+      (fillToBorder || !alphaOnly) && targetColor ? targetColor.a : samples[seedOff + 3]! / scale, fuzz, targetColor ? 0 : fuzz));
   };
 
   const startIdx = sy * w + sx;

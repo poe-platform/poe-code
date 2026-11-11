@@ -1,3 +1,4 @@
+import { rgbToCmyk } from "./colorspace-cmyk.js";
 import { RasterBackingCache } from "./raster-backing.js";
 import type { ImageByteStorage, RgbaColor, StoredRgbaImage } from "@poe-code/image-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -8,20 +9,30 @@ export function matchesAlphaFloodfill(r: number, g: number, b: number, a: number
     return (a - refA) ** 2 + ((r - refR) ** 2 + (g - refG) ** 2 + (b - refB) ** 2) * (a / 255) * (refA / 255) / 3 <= fuzz ** 2 + referenceFuzz ** 2;
 }
 
-export async function floodfillStoredImage(image: StoredRgbaImage, storage: ImageByteStorage, seedX: number, seedY: number, target: RgbaColor | undefined, replacement: RgbaColor, fuzz: number, signal: AbortSignal, alphaOnly = false, channels?: readonly boolean[], fillToBorder = false): Promise<StoredRgbaImage> {
+export async function floodfillStoredImage(image: StoredRgbaImage, storage: ImageByteStorage, seedX: number, seedY: number, target: (RgbaColor & { cmyk?: readonly number[] }) | undefined, replacement: RgbaColor, fuzz: number, signal: AbortSignal, alphaOnly = false, channels?: readonly boolean[], fillToBorder = false): Promise<StoredRgbaImage> {
     const count = image.width * image.height, source = { position: image.storedData16?.position ?? image.position, length: count * (image.storedData16 ? 8 : 4) }, cache = new RasterBackingCache(storage, signal);
+    const inks = image.space === "cmyk" && image.storedHueSamples !== undefined ? { position: image.storedHueSamples, length: count * 32 } : undefined;
     const readPixel = async (index: number): Promise<readonly number[]> => {
+        let rgba: number[];
         if (image.storedData16) {
             const rg = await cache.uint32(source, index * 8), ba = await cache.uint32(source, index * 8 + 4);
-            return [(rg & 65535) / 257, (rg >>> 16) / 257, (ba & 65535) / 257, (ba >>> 16) / 257];
+            rgba = [(rg & 65535) / 257, (rg >>> 16) / 257, (ba & 65535) / 257, (ba >>> 16) / 257];
+        } else {
+            const pixel = await cache.uint32(source, index * 4);
+            rgba = [pixel & 255, pixel >>> 8 & 255, pixel >>> 16 & 255, pixel >>> 24];
         }
-        const pixel = await cache.uint32(source, index * 4);
-        return [pixel & 255, pixel >>> 8 & 255, pixel >>> 16 & 255, pixel >>> 24];
+        if (image.space !== "cmyk") return rgba;
+        const cmyk = inks ? [await cache.float64(inks, index * 32), await cache.float64(inks, index * 32 + 8), await cache.float64(inks, index * 32 + 16), await cache.float64(inks, index * 32 + 24)]
+            : rgbToCmyk(rgba[0]! / 255, rgba[1]! / 255, rgba[2]! / 255);
+        return [cmyk[0]! * 255, cmyk[1]! * 255, cmyk[2]! * 255, rgba[3]!, cmyk[3]! * 255];
     };
     const start = seedY * image.width + seedX, seed = await readPixel(start);
-    const r = target ? target.r : seed[0]!, g = target ? target.g : seed[1]!, b = target ? target.b : seed[2]!;
+    const targetChannels = image.space === "cmyk" && target?.cmyk ? target.cmyk.map(value => value * 255)
+        : target ? [target.r, target.g, target.b, 0] : undefined;
+    const r = targetChannels ? targetChannels[0]! : seed[0]!, g = targetChannels ? targetChannels[1]! : seed[1]!, b = targetChannels ? targetChannels[2]! : seed[2]!;
+    const k = targetChannels ? targetChannels[3]! : seed[4]!;
     const a = (fillToBorder || !alphaOnly) && target ? target.a : seed[3]!;
-    const matches = (pixel: readonly number[]) => fillToBorder !== matchesAlphaFloodfill(pixel[0]!, pixel[1]!, pixel[2]!, pixel[3]!, r, g, b, a, fuzz, target ? 0 : fuzz);
+    const matches = (pixel: readonly number[]) => fillToBorder !== ((image.space !== "cmyk" || (pixel[4]! - k) ** 2 <= fuzz ** 2 + (target ? 0 : fuzz ** 2)) && matchesAlphaFloodfill(pixel[0]!, pixel[1]!, pixel[2]!, pixel[3]!, r, g, b, a, fuzz, target ? 0 : fuzz));
     if (!matches(seed)) return replacement.a < 255 ? { ...image, hasAlpha: true } : image;
     const visited = await cache.allocate(count), stack = await cache.allocate(count * 4);
     let tail = 1;

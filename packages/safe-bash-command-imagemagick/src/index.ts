@@ -7280,7 +7280,7 @@ function* haldInputPixelSteps(width: number): Generator<ConvolveRequest | undefi
     }
 }
 
-function* selectedInputPages(pageSpec: string | undefined, totalPages: number, onInvalidIndex?: (index: number) => void, format?: ImageMetadata["format"]): Generator<number> {
+function* selectedInputPages(pageSpec: string | undefined, totalPages: number, onInvalidIndex?: (index: number) => void, format?: ImageMetadata["format"] | "rgb"): Generator<number> {
     // The native PNM reader returns a lone image without applying scene selection.
     if (totalPages === 1 && (format === "pbm" || format === "pgm" || format === "ppm" || format === "pam")) {
         yield 0;
@@ -7291,6 +7291,32 @@ function* selectedInputPages(pageSpec: string | undefined, totalPages: number, o
         return;
     }
     const indices = parseMagickIndices(pageSpec);
+    if (format === "rgb" && indices.every(range => range.every(index => index >= 0))) {
+        let first = Infinity, last = 0;
+        for (const range of indices) for (const index of range) {
+            first = Math.min(first, index);
+            last = Math.max(last, index);
+        }
+        if (first < totalPages) {
+            // RGB decodes this window before the list selector indexes it again.
+            // A lone decoded image bypasses list selection entirely.
+            const count = Math.min(last + 1, totalPages) - first;
+            if (count === 1) {
+                yield first;
+                return;
+            }
+            // Invalid lists discard the entire decoded window, including valid entries.
+            for (const [index] of indices) if (index! >= count) {
+                if (!onInvalidIndex) throw new Error(`invalid image index ${index}`);
+                onInvalidIndex(index!);
+                return;
+            }
+            for (const page of selectedInputPages(pageSpec, count)) yield first + page;
+            return;
+        }
+    }
+    // The raw RGB reader reads a single scene when all requested scenes match.
+    if (format === "rgb" && indices.every(range => range.every(index => index === indices[0]![0]))) indices.splice(1);
     // The GIF reader stops after frame zero when every requested scene is zero.
     if (format === "gif" && indices.every(range => range.every(index => index === 0))) {
         yield 0;
@@ -7544,7 +7570,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         if (!state.hasSize || (geometry?.hasOffset && geometry.width === undefined && geometry.height === undefined)) throw new Error("must specify image size for RGB input");
         const raw = rawRasterInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", partitions ? Math.min(...partitions.map(bytes => bytes!.length)) * 3 : rawBytes.length, 3, state.inputOffset, state.rawInterlace, state.tiffFloatingPoint);
         const frames: RgbaImage[] = [];
-        for (const page of selectedInputPages(pageSpec, raw.pages, onInvalidIndex)) {
+        for (const page of selectedInputPages(pageSpec, raw.pages, onInvalidIndex, "rgb")) {
             const bytes = new Uint8Array(raw.size);
             for (let position = 0; position < raw.size; position += 8192) {
                 yield;
@@ -18570,7 +18596,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const path=lower.startsWith("rgb:")?baseToken.slice(4):baseToken;
   const consume=async(sources:ImageByteSource[])=>{
    const raw=rawRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,3,state.inputOffset,state.rawInterlace, state.tiffFloatingPoint);
-   for(const page of selectedInputPages(pageSpec,raw.pages,readOptions.onInvalidIndex)){
+   for(const page of selectedInputPages(pageSpec,raw.pages,readOptions.onInvalidIndex,"rgb")){
     image=await parseStoredCompareInput(`ppm:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,inputFormat:"RGB",visit:async frame=>{
      Object.assign(frame,{[magickInput]:{...(frame as StoredMagickImage)[magickInput],sceneIdx:page}});
      await readOptions.visit?.(frame);

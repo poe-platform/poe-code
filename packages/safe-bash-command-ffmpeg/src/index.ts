@@ -10168,6 +10168,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
 
               const planeInput = !pipeBytes && filePath.endsWith(".Y") && (!explicitFormat || explicitFormat === "image2");
+              const planePixelFormat = input?.pixelFormat ?? "yuv420p";
               const literalPlane = planeInput && (input?.patternType === "none" || formatImageSequence(filePath, 0) === undefined);
               // Literal image inputs bypass numbered-pattern expansion.
               if (planeInput || pipeBytes || globPaths || (imageDemuxer && input?.patternType !== "none" && formatImageSequence(filePath, input?.startNumber ?? 0) !== undefined)) {
@@ -10219,18 +10220,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       break;
                     }
                     if (planeInput) {
-                      if (input?.pixelFormat !== undefined && input.pixelFormat !== "yuv420p") {
-                        throw new Error(`Unsupported image2 plane pixel format '${input.pixelFormat}'`);
+                      if (!["yuv420p", "yuv422p", "yuv444p"].includes(planePixelFormat)) {
+                        throw new Error(`Unsupported image2 plane pixel format '${planePixelFormat}'`);
                       }
                       const u = await readInput(`${resolved.slice(0, -1)}U`);
                       const v = await readInput(`${resolved.slice(0, -1)}V`);
                       budget.allocateMemory(imgBytes.byteLength + u.byteLength + v.byteLength);
                       const packet = concatBytes([imgBytes, u, v]);
-                      const raw = parseRawVideo(packet, input?.videoSize, "yuv420p", fps, budget);
+                      const raw = parseRawVideo(packet, input?.videoSize, planePixelFormat, fps, budget);
                       planeFrame = raw.tracks[0]?.decodedVideoFrames?.[0];
                       if (!planeFrame ||
                           imgBytes.byteLength !== planeFrame.width * planeFrame.height ||
-                          u.byteLength !== Math.ceil(planeFrame.width / 2) * Math.ceil(planeFrame.height / 2) || v.byteLength !== u.byteLength) {
+                          u.byteLength !== (planePixelFormat === "yuv444p" ? planeFrame.width : Math.ceil(planeFrame.width / 2)) *
+                            (planePixelFormat === "yuv420p" ? Math.ceil(planeFrame.height / 2) : planeFrame.height) || v.byteLength !== u.byteLength) {
                         throw new Error(`${resolved}: Invalid image2 plane sizes`);
                       }
                       imgBytes = packet;
@@ -10242,7 +10244,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       : decodeImage(imgBytes);
                     if (frames.length === 0) {
                       codecName = decoded.format === "jpeg" ? "mjpeg" : decoded.format;
-                      pixelFormat = planeFrame ? "yuv420p" : decoded.hasAlpha ? "rgba" : "rgb24";
+                      pixelFormat = planeFrame ? planePixelFormat : decoded.hasAlpha ? "rgba" : "rgb24";
                       sarWidth = decoded.resolution?.x || 1;
                       sarHeight = decoded.resolution?.y || 1;
                     }

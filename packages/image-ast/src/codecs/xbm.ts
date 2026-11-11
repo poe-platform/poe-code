@@ -48,9 +48,8 @@ export async function isXbmSource(source: ImageByteSource, signal: AbortSignal):
   return next.value;
 }
 
-type XbmMetadata = ImageMetadata & Pick<RgbaImage, "indexedColors">;
-type Step = { kind: "read"; position: number } | { kind: "header"; metadata: XbmMetadata } | { kind: "pixel"; value: number };
-function* xbmSteps(size: number, options?: SharpInputOptions): Generator<Step, XbmMetadata, number | undefined> {
+type Step = { kind: "read"; position: number } | { kind: "header"; metadata: ImageMetadata } | { kind: "pixel"; value: number };
+function* xbmSteps(size: number, options?: SharpInputOptions): Generator<Step, ImageMetadata, number | undefined> {
   let position = 0, pending: string | undefined;
   let inBitmap = false;
   function* token(lineOnly = false): Generator<Step, string, number | undefined> {
@@ -120,7 +119,7 @@ function* xbmSteps(size: number, options?: SharpInputOptions): Generator<Step, X
   }
   if (!name || !bitsPerValue || !Number.isSafeInteger(width) || !Number.isSafeInteger(height) || width <= 0 || height <= 0 || !Number.isSafeInteger(width * height * 4)) throw new Error("Invalid XBM dimensions or array");
   checkLimitInputPixels(width, height, options);
-  const metadata: XbmMetadata = { format: "xbm", width, height, channels: 3, space: "srgb", depth: "uchar", bitsPerSample: 8, isPalette: true, indexedColors: [0xffffffff, 0xff000000], hasAlpha: false, density: 72, size };
+  const metadata: ImageMetadata = { format: "xbm", width, height, channels: 1, space: "b-w", depth: "uchar", bitsPerSample: 1, hasAlpha: false, density: 72, size };
   yield { kind: "header", metadata };
   const stride = Math.ceil(width / bitsPerValue);
   for (let y = 0; y < height; y++) for (let column = 0; column < stride; column++) {

@@ -25,7 +25,7 @@ async function run(filter: string, metadata?: Record<string, string>, source = w
   return { result, fs, error: Buffer.concat(errors).toString() };
 }
 
-for (const value of ["True", "YES", "yes"]) {
+for (const value of ["True", "YES", "yes", "y", "n", "enable", "disable", "enabled", "disabled"]) {
   it(`preserves half gain on untagged WAV with replaygain_noclip=${value}`, async () => {
     const input = encodeWav({ sampleRate: 8000, channels: [Float64Array.from(
       [-32768, -29341, -1025, -5, -3, -1, 0, 1, 3, 5, 1025, 29341, 32767], sample => sample / 32768
@@ -40,8 +40,8 @@ for (const value of ["True", "YES", "yes"]) {
 }
 
 for (const [values, amplitude] of [
-  [["1", "true", "True", "TRUE", "yes", "YES", "on", "On"], 12000],
-  [["0", "false", "False", "FALSE", "no", "NO", "off", "Off"], 24000]
+  [["1", "true", "True", "TRUE", "yes", "YES", "on", "On", "y", "Y", "enable", "ENABLE", "enabled", "Enabled"], 12000],
+  [["0", "false", "False", "FALSE", "no", "NO", "off", "Off", "n", "N", "disable", "DISABLE", "disabled", "Disabled"], 24000]
 ] as const) {
   for (const value of values) {
     it(`honors replaygain_noclip=${value} on tagged audio`, async () => {

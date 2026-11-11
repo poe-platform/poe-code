@@ -161,10 +161,11 @@ for (const graph of [false, true]) {
   it(`selects speakers from the upstream channel layout (graph=${graph})`, async () => {
     const impulse = Float64Array.from({ length: 64 }, (_, i) => i === 8 ? 12000 / 32768 : 0);
     const bytes = encodeWav({ sampleRate: 8000, channels: [impulse, impulse] });
-    const { fs, result, stderr } = await run("pan=FR+FC|c0=c0|c1=c1,highpass=f=1000:c=FC", graph, bytes);
+    const { fs, result, stderr } = await run("pan=3.0|c0=c0|c1=c0|c2=c1,highpass=f=1000:c=FC", graph, bytes);
     assert.equal(result.exitCode, 0, stderr);
     const audio = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
     assert.deepEqual(audio.channelData[0], parseWav(bytes).tracks[0]!.decodedAudio!.channelData[0]);
-    assert.ok(Math.abs(audio.channelData[1]![8]! * 32768 - 6828) <= 1);
+    assert.deepEqual(audio.channelData[1], audio.channelData[0]);
+    assert.ok(Math.abs(audio.channelData[2]![8]! * 32768 - 6828) <= 1);
   });
 }

@@ -4,6 +4,8 @@ import type { HueMetadata } from "./colorspace-hue.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { RasterBackingCache } from "./raster-backing.js";
 
+export type ConnectedComponentsSort = "x" | "y" | "width" | "height" | "area";
+
 type Region = "pixels" | "labels" | "queue";
 type Request = { region: Region | "black"; index: number; value?: number };
 interface Component { diameter?: number; id: number; area: number; x: number; y: number; left: number; top: number; right: number; bottom: number; color: number[]; reportAlpha: number; perimeter?: number; angle?: number; majorAxis?: number; minorAxis?: number; eccentricity?: number; circularity?: number }
@@ -160,8 +162,10 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
  return components;
 }
 
-function* sortSteps(components: Component[], sort?: "x" | "area", order?: "increasing" | "decreasing"): Generator<undefined, Component[], unknown> {
+function* sortSteps(components: Component[], sort?: ConnectedComponentsSort, order?: "increasing" | "decreasing"): Generator<undefined, Component[], unknown> {
  const increasing = order === undefined ? sort !== undefined : order === "increasing";
+ const value = (component: Component) => sort === "x" ? component.left : sort === "y" ? component.top
+  : sort === "width" ? component.right - component.left + 1 : sort === "height" ? component.bottom - component.top + 1 : component.area;
  // Iterative merge sort keeps ordering cooperative, including checkerboards.
  let sorted = components.filter(component => component.area > 0);
  for (let span = 1; span < sorted.length; span *= 2) {
@@ -172,8 +176,8 @@ function* sortSteps(components: Component[], sort?: "x" | "area", order?: "incre
    while (left < middle || right < end) {
     if (next.length % 1024 === 0) yield;
     next.push(right === end || (left < middle && (increasing
-     ? (sort === "x" ? sorted[left]!.left <= sorted[right]!.left : sorted[left]!.area <= sorted[right]!.area)
-     : (sort === "x" ? sorted[left]!.left >= sorted[right]!.left : sorted[left]!.area >= sorted[right]!.area))) ? sorted[left++]! : sorted[right++]!);
+     ? value(sorted[left]!) <= value(sorted[right]!)
+     : value(sorted[left]!) >= value(sorted[right]!))) ? sorted[left++]! : sorted[right++]!);
    }
   }
   sorted = next;
@@ -188,7 +192,7 @@ function formatMeasurement(value: number, precision: number): string {
  return String(Number(value.toPrecision(precision)));
 }
 
-function* reportSteps(components: Component[], sort: "x" | "area" | undefined, excludeHeader: boolean, excludeIds: boolean, image: (RgbaImage | StoredRgbaImage) & HueMetadata, order?: "increasing" | "decreasing", precision = 6): Generator<void, string, void> {
+function* reportSteps(components: Component[], sort: ConnectedComponentsSort | undefined, excludeHeader: boolean, excludeIds: boolean, image: (RgbaImage | StoredRgbaImage) & HueMetadata, order?: "increasing" | "decreasing", precision = 6): Generator<void, string, void> {
  const sorted = yield* sortSteps(components, sort, order);
  let text = excludeHeader ? "" : `Objects (${excludeIds ? "" : "id: "}bounding-box centroid area mean-color${components[0]?.perimeter === undefined ? "" : " perimeter"}${components[0]?.circularity === undefined ? "" : " circularity"}${components[0]?.diameter === undefined ? "" : " diameter"}${components[0]?.majorAxis === undefined ? "" : " major-axis"}${components[0]?.minorAxis === undefined ? "" : " minor-axis"}${components[0]?.eccentricity === undefined ? "" : " eccentricity"}${components[0]?.angle === undefined ? "" : " angle"}):\n`;
  for (const c of sorted) {
@@ -210,7 +214,7 @@ function* reportSteps(components: Component[], sort: "x" | "area" | undefined, e
  return text;
 }
 
-export function* connectedComponentsSteps(image: RgbaImage & HueMetadata, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: "x" | "area", angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[], keepColors?: RgbaColor[], precision = 6): Generator<void, { image: RgbaImage; text: string }, void> {
+export function* connectedComponentsSteps(image: RgbaImage & HueMetadata, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: ConnectedComponentsSort, angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[], keepColors?: RgbaColor[], precision = 6): Generator<void, { image: RgbaImage; text: string }, void> {
  const count = image.width * image.height, labels = new Uint32Array(count), queue = new Uint32Array(count);
  const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, angleThreshold, perimeterThreshold, backgroundId, majorAxisThreshold, minorAxisThreshold, eccentricityThreshold, diameterThreshold, circularityThreshold, keepColors, image.space === "cmyk");
  let next = steps.next();
@@ -239,7 +243,7 @@ export function* connectedComponentsSteps(image: RgbaImage & HueMetadata, connec
  return { image: { ...(image.space === "cmyk" ? metadata : image), data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }
 
-export async function connectedComponentsStored(image: StoredRgbaImage & HueMetadata, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: "x" | "area", angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[], keepColors?: RgbaColor[], precision = 6): Promise<{ image: StoredRgbaImage; text: string }> {
+export async function connectedComponentsStored(image: StoredRgbaImage & HueMetadata, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold = 0, keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: ConnectedComponentsSort, angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[], keepColors?: RgbaColor[], precision = 6): Promise<{ image: StoredRgbaImage; text: string }> {
  const size = image.width * image.height * 4, cache = new RasterBackingCache(storage, signal);
  const regions = { pixels: image.storedHueSamples !== undefined ? { position: image.storedHueSamples, length: size * 8 } : image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
  const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, angleThreshold, perimeterThreshold, backgroundId, majorAxisThreshold, minorAxisThreshold, eccentricityThreshold, diameterThreshold, circularityThreshold, keepColors, image.space === "cmyk");

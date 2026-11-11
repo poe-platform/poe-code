@@ -86,7 +86,7 @@ import { gifDitherSteps } from "./gif-dither.js";
 import { quantizeImageListSteps, quantizePixelSteps } from "./quantize.js";
 import { colorOrder, UniqueColors, uniqueColorsSteps, uniqueColorsStored } from "./unique-colors.js";
 import { magickResizeCanvas } from "./resize-canvas.js";
-import { connectedComponentsSteps, connectedComponentsStored } from "./connected-components.js";
+import { connectedComponentsSteps, connectedComponentsStored, type ConnectedComponentsSort } from "./connected-components.js";
 import { parseMagickPoly, polyPixelSteps } from "./poly-kernel.js";
 import { type LookupInterpolation, type ChannelAssignment, clutPixelSteps, haldClutPixelSteps, channelFxPixelSteps, combinePixelSteps, sequenceCanvas, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
@@ -800,7 +800,7 @@ interface MagickState {
   connectedRemoveColors?: RgbaColor[];
   connectedKeepColors?: RgbaColor[];
   connectedKeepTop?: number;
-  connectedSort?: "x" | "area";
+  connectedSort?: ConnectedComponentsSort;
   connectedSortOrder?: "increasing" | "decreasing";
   connectedPerimeterThreshold?: number[];
   connectedMinorAxisThreshold?: number[];
@@ -11466,7 +11466,7 @@ if (t === "-intent" || t === "+intent") {
                     if (extra !== undefined || !["true", "false", "1", "0", "yes", "no", "on", "off"].includes(value ?? "")) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     state.connectedVerbose = ["true", "1", "yes", "on"].includes(value!);
                 } else if (key === "connected-components:sort") {
-                    if (extra !== undefined || (value !== "x" && value !== "area")) throw new Error(`Unsupported connected-components define: ${defStr}`);
+                    if (extra !== undefined || (value !== "x" && value !== "y" && value !== "width" && value !== "height" && value !== "area")) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     state.connectedSort = value;
                 } else if (key === "connected-components:sort-order") {
                     if (extra !== undefined || (value !== "increasing" && value !== "decreasing")) throw new Error(`Unsupported connected-components define: ${defStr}`);

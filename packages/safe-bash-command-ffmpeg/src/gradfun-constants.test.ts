@@ -59,10 +59,13 @@ for (const [options, numeric] of [
   });
 }
 
-for (const options of ["min-0.01:4", "max+1:4", "1.2:min-1", "1.2:max+1", "unknown:4"]) {
+for (const [options, exitCode] of [
+  ["min-0.01:4", 222], ["max+1:4", 222], ["1.2:min-1", 222],
+  ["1.2:max+1", 222], ["unknown:4", 234]
+] as const) {
   it(`rejects invalid gradfun constant expressions ${options}`, async () => {
     const result = await run(options);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, exitCode, result.stderr);
     assert.match(result.stderr, /gradfun/);
     assert.equal(result.output.length, 0);
   });

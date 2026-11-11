@@ -6443,7 +6443,7 @@ async function applyVideoFilterChain(
       const radiusOption = parseFilterExpression(options.radius ?? "16", name, { default: 16, min: 4, max: 32 });
       if (!Number.isFinite(strength) || strength < Math.fround(0.51) || strength > 64 ||
           !Number.isFinite(radiusOption) || radiusOption < 4 || radiusOption > 32) {
-        throw new Error("gradfun: strength must be 0.51..64 and radius must be 4..32");
+        throw new RangeError("gradfun: strength must be 0.51..64 and radius must be 4..32");
       }
       if (pixelFormat !== "gray" && pixelFormat !== "gray8") throw new Error("gradfun: only 8-bit grayscale video is supported");
       const radius = (roundToEven(radiusOption) + 1) & ~1;
@@ -19249,6 +19249,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (err instanceof RangeError && msg.startsWith("tmix:")) return { exitCode: 222 };
             if (msg === "tmix: invalid expression" || msg === "tmix: invalid or unsupported expression" ||
                 msg === "tmix: weights must be finite numbers") return { exitCode: 234 };
+            if (msg.startsWith("gradfun: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("gradfun:")) return { exitCode: 222 };
+            if (msg === "gradfun: invalid expression" || msg === "gradfun: invalid or unsupported expression" ||
+                msg === "gradfun: too many positional options") return { exitCode: 234 };
             if (msg.startsWith("framestep:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (err instanceof RangeError && msg.startsWith("thumbnail:")) return { exitCode: 222 };
             if (msg.startsWith("loop: unsupported option ")) return { exitCode: 8 };

@@ -104,10 +104,13 @@ for (const filter of ["null", "gradfun", "gradfun=5:32", "gradfun=5:4:enable=0"]
     assert.deepEqual(output, input);
   });
 }
-for (const options of ["strength=0.5", "strength=65", "radius=3", "radius=33", "unknown=1", "5:4:1"]) {
+for (const [options, exitCode] of [
+  ["strength=0.5", 222], ["strength=65", 222], ["radius=3", 222],
+  ["radius=33", 222], ["unknown=1", 8], ["5:4:1", 234]
+] as const) {
   it(`rejects invalid gradfun options ${options}`, async () => {
     const { result, stderr, output } = await run(`gradfun=${options}`);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, exitCode, stderr);
     assert.match(stderr, /gradfun/);
     assert.equal(output, undefined);
   });

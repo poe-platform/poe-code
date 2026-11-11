@@ -672,6 +672,7 @@ interface MagickState {
   page?: NonNullable<RgbaImage["virtualCanvas"]>;
   iconAutoResize?: number[];
   inputDepth?: number;
+  inputType?: string;
   inputOffset?: number;
   netpbmAscii?: boolean;
   bmpFormat?: "bmp2" | "bmp3" | "bmp4";
@@ -6968,6 +6969,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         for (const index of selectedInputPages(pageSpec, saved.length, onInvalidIndex)) {
             yield;
             let image: MagickImage = { ...saved[index]!, data: new Uint8Array(saved[index]!.data) };
+            if (state.inputType !== undefined) image = setMagickType(image, state.inputType);
             if (state.compression !== undefined) image = { ...image, [magickInput]: { ...image[magickInput], compression: state.compression } };
             if (state.page !== undefined) image = { ...image, virtualCanvas: state.page };
             if (state.densityGeometry !== undefined) image = applyMagickDensity(image, state.densityGeometry);
@@ -7006,6 +7008,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             }
             im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im as MagickImage)[magickInput], interpolation: state.interpolation, intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
             if (state.compression !== undefined) im = { ...im, [magickInput]: { ...im[magickInput], compression: state.compression } };
+            if (state.inputType !== undefined) im = setMagickType(im as MagickImage, state.inputType);
             if (state.qualityExplicit) im = { ...im, quality: state.quality };
             if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
             if (state.composeExplicit) im = { ...im, properties: { ...im.properties, compose: state.composeRaw } };
@@ -11429,6 +11432,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (pixelOperation.warning) analysis.warnings += pixelOperation.warning;
             if (t === "-contrast" || t === "+contrast") analysis.warnings += `magick: option has been replaced '${t}', use "${t[0]}level"\n`;
             i = pixelOperation.end;
+            if (t === "-type") state.inputType = tokens[i]!;
             const palette = t === "-type" && ["palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(tokens[i]?.toLowerCase() ?? "");
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const { evaluateSamples: ignoredEvaluate, ...bounded } = image;
@@ -14617,6 +14621,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             i = pixelOperation.end;
             const settings = { ...state };
+            if (token === "-type") state.inputType = tokens[i]!;
             const palette = token === "-type" && ["palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(tokens[i]?.toLowerCase() ?? "");
             const bilevel = token === "-monochrome" || token === "-type" && tokens[i]?.toLowerCase() === "bilevel";
             const meta = !state.channelExplicit || state.channelDefault ? undefined : state.channels.meta ?? [];
@@ -17007,6 +17012,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
      for (const index of selectedInputPages(pageSpec, saved.length, readOptions.onInvalidIndex)) {
          await yieldTurn(signal);
          let savedImage = (await saved.get(index))!;
+         if (state.inputType !== undefined) savedImage = setMagickType(savedImage as StoredMagickImage, state.inputType);
          if (state.compression !== undefined) savedImage = { ...savedImage, [magickInput]: { ...savedImage[magickInput], compression: state.compression } };
          if (state.page !== undefined) savedImage = { ...savedImage, virtualCanvas: state.page };
          if (state.densityGeometry !== undefined) savedImage = applyMagickDensity(savedImage, state.densityGeometry);
@@ -17216,6 +17222,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   }
   image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image as StoredMagickImage)[magickInput], interpolation: state.interpolation, intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
   if(state.compression!==undefined)image={...image,[magickInput]:{...image[magickInput],compression:state.compression}};
+  if(state.inputType!==undefined)image=setMagickType(image as StoredMagickImage,state.inputType);
   if(state.qualityExplicit)image={...image,quality:state.quality};
   if(state.page!==undefined)image={...image,virtualCanvas:state.page};
   if(state.composeExplicit)image={...image,properties:{...image.properties,compose:state.composeRaw}};

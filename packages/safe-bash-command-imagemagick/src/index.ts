@@ -12444,6 +12444,7 @@ if (t === "-intent" || t === "+intent") {
             const key = t === "+set" ? rawKey.slice("option:".length) : rawKey;
             state.optionProperties = { ...state.optionProperties };
             delete state.optionProperties[key];
+            if (t === "+set" && key === "size") applyMagickReadSetting(["+size"], state, 0);
             if (key === "comment") delete state.comment;
             if (key === "interpolate") delete state.interpolation;
             if (key === "dispose") delete state.disposal;
@@ -12771,6 +12772,7 @@ if (t === "-intent" || t === "+intent") {
                 state.backgroundExplicit = true;
             }
             if (k === "option:magnify:method") state.magnifyMethod = parseMagnifyMethod(v);
+            if (k === "option:size") applyMagickReadSetting(["-size", v], state, 0);
             if (k === "option:filter") applyMagickReadSetting(["-filter", v], state, 0);
             if (k === "option:fuzz") applyMagickReadSetting(["-fuzz", v], state, 0);
             if (k === "option:deskew:auto-crop") state.deskewAutoCrop = v.toLowerCase();

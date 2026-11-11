@@ -256,19 +256,22 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
           view.setUint16(pixel * 2, Math.max(0, Math.min(65535, gray)), littleEndian);
         }
         append(bytes);
-      } else if (format === "gbrap") {
+      } else if (format === "gbrp" || format === "gbrap") {
         const planeSize = frame.width * frame.height;
-        budget.checkOutputBytes(size + planeSize * 4);
-        const bytes = new Uint8Array(planeSize * 4);
+        const length = planeSize * (format === "gbrap" ? 4 : 3);
+        budget.checkOutputBytes(size + length);
+        const bytes = new Uint8Array(length);
         for (let pixel = 0; pixel < planeSize; pixel++) {
           if (pixel % 4096 === 0) budget.checkCpu();
           bytes[pixel] = frame.data[pixel * 4 + 1]!;
           bytes[planeSize + pixel] = frame.data[pixel * 4 + 2]!;
           bytes[planeSize * 2 + pixel] = frame.data[pixel * 4]!;
-          const alpha = frame.data[pixel * 4 + 3]!;
-          // swscale expands packed alpha to 14 bits before rounding back to 8.
-          bytes[planeSize * 3 + pixel] = track.codecDescriptions[0]?.pixFmt === "gbrap"
-            ? alpha : Math.min(255, Math.round(alpha * 257 / 256));
+          if (format === "gbrap") {
+            const alpha = frame.data[pixel * 4 + 3]!;
+            // swscale expands packed alpha to 14 bits before rounding back to 8.
+            bytes[planeSize * 3 + pixel] = track.codecDescriptions[0]?.pixFmt === "gbrap"
+              ? alpha : Math.min(255, Math.round(alpha * 257 / 256));
+          }
         }
         append(bytes);
       } else if (format === "rgb24" || format === "bgr24" || format === "rgba" || format === "bgra") {

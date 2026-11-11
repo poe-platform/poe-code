@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { transform } from "./audio-fft.js";
+import { parseAudioChannelLayout } from "./audio-channel-layout.js";
 
 export async function surroundAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
@@ -13,9 +14,9 @@ export async function surroundAudio(
     const key = separator < 0 ? ["chl_out", "chl_in", "level_in", "level_out", "lfe"][index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "chl_out") {
-      if (value !== "5.1") throw new Error("surround: supported output layout is 5.1");
+      if (parseAudioChannelLayout(value).join("+") !== "FL+FR+FC+LFE+BL+BR") throw new Error("surround: supported output layout is 5.1");
     } else if (key === "chl_in") {
-      if (value !== "stereo") throw new Error("surround: supported input layout is stereo");
+      if (parseAudioChannelLayout(value).join("+") !== "FL+FR") throw new Error("surround: supported input layout is stereo");
     } else if (key === "win_size") {
       size = Number(value);
       if (!Number.isInteger(size) || size < 1024 || size > 65536 || (size & (size - 1)) !== 0) {

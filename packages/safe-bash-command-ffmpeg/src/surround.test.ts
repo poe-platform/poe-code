@@ -62,7 +62,26 @@ it("disabling LFE preserves the other five channels exactly", async () => {
   a.channelData.forEach((channel, c) => assert.deepEqual(b.channelData[c], c === 3 ? channel.map(() => 0) : channel));
 });
 
-for (const filter of ["surround=win_size=0", "surround=win_size=65537", "surround=win_size=NaN", "surround=win_size=1024.5",
+for (const graph of [false, true]) {
+  it(`equivalent surround layouts preserve exact PCM (${graph ? "graph" : "simple"})`, async () => {
+    const channels = [0, 1].map(c => Float64Array.from({ length: 512 }, (_, i) =>
+      (((2 * i + c) * 13129) % 30001 - 15000) / 32768));
+    const source = Buffer.from(encodeWav({ sampleRate: 8000, channels }));
+    const canonical = await run("surround=win_size=1024:chl_in=stereo:chl_out=5.1", graph, source);
+    assert.equal(canonical.result.exitCode, 0, canonical.stderr);
+    for (const layout of ["chl_in=FL+FR", "chl_in=0x3", "chl_in=2c", "chl_in=3",
+      "chl_out=FL+FR+FC+LFE+BL+BR", "chl_out=0x3f", "chl_out=6c", "chl_out=63",
+      "chl_in=0x3:chl_out=0x3f"]) {
+      const actual = await run(`surround=win_size=1024:${layout}`, graph, source);
+      assert.equal(actual.result.exitCode, 0, `${layout}: ${actual.stderr}`);
+      assert.deepEqual(actual.output, canonical.output, layout);
+    }
+  });
+}
+
+for (const filter of ["surround=chl_in=FR+FL", "surround=chl_in=FC+LFE", "surround=chl_in=0x4",
+  "surround=chl_out=5.1(side)", "surround=chl_out=0x60f", "surround=chl_out=invalid",
+  "surround=win_size=0", "surround=win_size=65537", "surround=win_size=NaN", "surround=win_size=1024.5",
   "surround=win_size=1025", "surround=lfe=bad", "surround=chl_out=stereo", "surround=unknown=1"]) {
   it(`${filter} fails without replacing output`, async () => {
     const { result, stderr, output } = await run(filter);

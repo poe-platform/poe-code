@@ -42,7 +42,8 @@ function miffPixels(bytes: Uint8Array, channels: number, sampleBytes: number, co
 }
 
 function miffHeader(image: Pick<RgbaImage, "renderingIntent" | "chromaticity" | "properties" | "width" | "height" | "space" | "hasAlpha" | "virtualCanvas" | "resolution" | "density" | "disposal" | "loop" | "delayTicks" | "ticksPerSecond"> & { magickColorspace?: string }, depth: 8 | 16, compression: OutputEncodeOptions["miffCompression"], delay: number | undefined, loop: number | undefined): Uint8Array {
-    const { width, height, virtualCanvas: page } = image;
+    const { width, height } = image;
+    const page = image.virtualCanvas ?? { width, height, x: 0, y: 0 };
     let properties = "";
     for (const key of ["comment", "label"] as const) {
         const value = image.properties?.[key];
@@ -64,7 +65,7 @@ function miffHeader(image: Pick<RgbaImage, "renderingIntent" | "chromaticity" | 
     const ticksPerSecond = image.ticksPerSecond ?? 100;
     const delayTicks = image.delayTicks ?? (image.ticksPerSecond === undefined ? Math.floor((delay ?? 0) / 10) : Math.round((delay ?? 0) * ticksPerSecond / 1000));
     const animation = `delay=${delayTicks}\nticks-per-second=${ticksPerSecond}\niterations=${loop ?? image.loop ?? 0}\ndispose=${["Undefined", "None", "Background", "Previous"][typeof image.disposal === "number" ? image.disposal : image.disposal?.[0] ?? 0] ?? "Undefined"}\n`;
-    const geometry = page ? `page=${page.width}x${page.height}${page.x < 0 ? "" : "+"}${page.x}${page.y < 0 ? "" : "+"}${page.y}\n` : "";
+    const geometry = page.width || page.height || page.x || page.y ? `page=${page.width}x${page.height}${page.x < 0 ? "" : "+"}${page.x}${page.y < 0 ? "" : "+"}${page.y}\n` : "";
     if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0 || !Number.isSafeInteger(width * height * 4)) throw new RangeError("Invalid MIFF dimensions");
     return new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=DirectClass colors=0 matte=${image.hasAlpha ? "True" : "False"}\ncolumns=${width} rows=${height} depth=${depth}\n${geometry}${properties}${chromaticity}${animation}resolution=${x}x${y}\nunits=${units}\ncolorspace=${miffChannels(image) <= 2 ? "Gray" : image.magickColorspace === "RGB" ? "RGB" : "sRGB"}\ncompression=${compression === "zip" ? "Zip" : compression === "bzip" ? "BZip" : compression === "rle" ? "RLE" : "None"}\n\f\n:\x1a`);
 }

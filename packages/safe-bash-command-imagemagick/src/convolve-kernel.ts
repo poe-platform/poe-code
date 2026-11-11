@@ -15,8 +15,8 @@ export interface ConvolveKernel {
 export type ConvolveRequest = { readonly kind: "read"; readonly pngIndices?: boolean; readonly evaluate?: boolean; readonly hue?: boolean; readonly highDepth?: boolean; readonly image?: number; readonly position: number; readonly length: number }
     | { readonly kind: "write"; readonly pngIndices?: boolean; readonly hue?: boolean; readonly highDepth?: boolean; readonly evaluate?: boolean; readonly position: number; readonly data: Uint8Array };
 /** Alpha-aware convolution, bounded row spans, and owned output chunks. */
-export function* convolvePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & Partial<Pick<RgbaImage, "space" | "hueSamples"> & Pick<StoredRgbaImage, "storedHueSamples">>, kernel: ConvolveKernel, bias: number, region?: Region, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const { width, height } = image;
+export function* convolvePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & Partial<Pick<RgbaImage, "space" | "hueSamples" | "data16"> & Pick<StoredRgbaImage, "storedHueSamples" | "storedData16">>, kernel: ConvolveKernel, bias: number, region?: Region, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const { width, height } = image, highDepth = !!(image.data16 || image.storedData16);
     const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 127.5 : 0;
     const fill = virtualPixel === "background" || virtualPixel.endsWith("-tile")
         ? [background?.r ?? 255, background?.g ?? 255, background?.b ?? 255, background?.a ?? 255]
@@ -26,10 +26,11 @@ export function* convolvePixelSteps(image: Pick<RgbaImage, "width" | "height" | 
     if (cmyk) fill.push(gray);
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a, channels.k] : undefined;
     function* readSamples(position: number, length: number, evaluate: boolean): Generator<ConvolveRequest, Uint8Array | Float64Array, Uint8Array | undefined> {
-        const bytes = yield { kind: "read", hue, evaluate: !hue && evaluate, position, length };
-        if (!bytes || bytes.length !== length * (hue || evaluate ? 8 : 1)) throw new Error("Truncated convolution pixels");
+        const bytes = yield { kind: "read", hue, evaluate: !hue && evaluate, highDepth, position, length };
+        if (!bytes || bytes.length !== length * (hue || evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated convolution pixels");
         const samples = hue ? new Float64Array(bytes.slice().buffer).map(value => value * 255)
-            : evaluate ? new Float64Array(bytes.slice().buffer) : bytes;
+            : evaluate ? new Float64Array(bytes.slice().buffer)
+                : highDepth ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : bytes;
         if (!cmyk) return samples;
         const inkBytes = yield { kind: "read", hue: true, position, length };
         if (!inkBytes || inkBytes.length !== length * 8) throw new Error("Truncated convolution inks");
@@ -43,7 +44,7 @@ export function* convolvePixelSteps(image: Pick<RgbaImage, "width" | "height" | 
         const working = yield { kind: "read", evaluate: true, position, length: count * 4 };
         const evaluate = !!working?.length;
         const center = yield* readSamples(position, count * 4, evaluate);
-        const floating = hue || cmyk || evaluate;
+        const floating = hue || cmyk || evaluate || highDepth;
         const data = floating ? new Float64Array(center) : new Uint8Array(center), sums = new Float64Array(count * stride);
         sums.fill(bias);
         for (let ky = 0; ky < kernel.height; ky++) {

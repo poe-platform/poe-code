@@ -4,7 +4,7 @@ import type { HueMetadata } from "./colorspace-hue.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Separable à trous hat transform with native noise thresholds and reflected edges. */
-export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">> & HueMetadata & { region?: Region | undefined; hasAlpha?: boolean; alphaBlend?: boolean | undefined }, geometry: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "space" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined; hasAlpha?: boolean; alphaBlend?: boolean | undefined }, geometry: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const normalized = geometry.replaceAll("%", "").replaceAll("(", "").replaceAll(")", "")
         .replaceAll(",", "x").replaceAll("/", "x").replaceAll("X", "x");
     const fields: string[] = [];
@@ -26,15 +26,17 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
     let levels = 5;
     while (levels > 0 && 2 ** (levels - 1) >= Math.min(width, height)) levels--;
     const hue = image.hueSamples !== undefined || image.storedHueSamples !== undefined;
+    const evaluate = !hue && (image.evaluateSamples !== undefined || image.storedEvaluateSamples !== undefined);
     const cmyk = image.space === "cmyk";
     const highDepth = !!(image.data16 || image.storedData16), quantumScale = hue ? 65535 : highDepth ? 1 : 257;
     const output = new Float64Array(size * 4);
     for (let start = 0; start < size; start += 1024) {
         yield;
         const count = Math.min(1024, size - start);
-        const bytes = yield { kind: "read", hue, highDepth, position: start * 4, length: count * 4 };
-        if (!bytes || bytes.length !== count * (hue ? 32 : highDepth ? 8 : 4)) throw new Error("Truncated wavelet pixels");
-        output.set(hue ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes, start * 4);
+        const bytes = yield { kind: "read", hue, evaluate, highDepth, position: start * 4, length: count * 4 };
+        if (!bytes || bytes.length !== count * (hue || evaluate ? 32 : highDepth ? 8 : 4)) throw new Error("Truncated wavelet pixels");
+        const samples = hue || evaluate ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+        output.set(evaluate && highDepth ? samples.map(value => value * 257) : samples, start * 4);
     }
     const alpha = cmyk && image.region ? new Float64Array(size) : undefined;
     if (alpha) for (let start = 0; start < size; start += 1024) {

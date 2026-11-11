@@ -10654,8 +10654,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         // A negative offset supplies the midpoint; a positive one leaves the default.
         // Positive x offsets omit the midpoint; comma/slash signs and negative midpoints stay explicit.
         const midpointOffset = argument.includes("x+") || argument.includes("X+");
+        const unsignedMidpoint = mStr?.startsWith("-") || mStr?.startsWith("+") ? mStr.slice(1) : mStr;
         const mRaw = signedRatio ? mStr!.startsWith("-") ? parseFloat(mStr!) : 65535 / 2
-            : ratio ? 1 : !midpointOffset && mStr && mStr !== "%" ? (mStr.startsWith("0x") ? parseInt(mStr, 16) : parseFloat(mStr)) : 65535 / 2;
+            : ratio ? 1 : !midpointOffset && mStr && mStr !== "%" ? (unsignedMidpoint!.startsWith("0x") ? parseInt(mStr, 16) : parseFloat(mStr)) : 65535 / 2;
         const alpha = raw.includes("%") ? mRaw / 100 : mRaw / 65535;
         const sig = (u: number) => Math.tanh(0.5 * beta * (u - alpha));
         const s0 = sig(0);

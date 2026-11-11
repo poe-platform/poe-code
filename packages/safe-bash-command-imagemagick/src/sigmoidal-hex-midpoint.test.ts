@@ -35,6 +35,10 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
 
 for (const option of ["-sigmoidal-contrast", "+sigmoidal-contrast"]) {
     it.each([
+        ["5x-0x1000", "5x-4096"],
+        ["5x+0x1000", "5x+4096"],
+        ["5,-0x1000", "5,-4096"],
+        ["5,+0x1000", "5,+4096"],
         ["5x0x2e", "5x46", "f6c493b5d3dedc68", "5e9a1ac7320837a9"],
         ["5x0x2E", "5x46", "f6c493b5d3dedc68", "5e9a1ac7320837a9"],
         ["5,0x2e", "5x46", "f6c493b5d3dedc68", "5e9a1ac7320837a9"],
@@ -71,5 +75,30 @@ for (const option of ["-sigmoidal-contrast", "+sigmoidal-contrast"]) {
             }
         }
         if (equivalent !== undefined) expect(outputs[0]).toBe(outputs[1]);
+    });
+}
+
+for (const mode of ["command", "retained", "buffered", "sync"] as const) {
+    it.each([
+        ["5x-0x1000", "82c0f2"],
+        ["5x-4096", "82c0f2"],
+        ["5x0", "79b9f1"],
+        ["5x+0x1000", "214dbb"],
+        ["5x+4096", "214dbb"]
+    ])(`${mode}: signed midpoint %s matches native pixels`, async (geometry, expected) => {
+        // ImageMagick 7.1.2-35 Q16-HDRI with the same color and arguments.
+        const argv = ["xc:#345caa", "-sigmoidal-contrast", geometry, "-depth", "8", "rgb:out"];
+        const files = new Map<string, Uint8Array>();
+        const fs = new MemoryFileSystem();
+        const args = createCommandArguments(argv);
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} }, stderr: { async write() {} }
+        }) : mode === "sync" ? runConvertCliSync(argv, files)
+            : await runConvertCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        const output = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("out")!;
+        expect(Buffer.from(output).toString("hex")).toBe(expected);
     });
 }

@@ -5527,6 +5527,7 @@ async function applyVideoFilterChain(
       endTimeSeconds = current.at(-1)?.ptsSeconds ?? 0;
       cleanFrames = undefined;
     } else if (name === "mpdecimate") {
+      if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       current = await mpdecimate(current, argStr, budget, diagnostics, signal);
     } else if (name === "framestep") {
       if (positional.at(-1) === "") positional.pop();
@@ -6874,7 +6875,7 @@ async function applyVideoFilterChain(
     }
     // Filters that change the final frame's timing establish a new endpoint.
     const lastOutputFrame = current.at(-1);
-    if (!pending && name !== "tpad" && name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "framestep" && name !== "tile" && name !== "untile" && name !== "shuffleframes" &&
+    if (!pending && name !== "tpad" && name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "mpdecimate" && name !== "framestep" && name !== "tile" && name !== "untile" && name !== "shuffleframes" &&
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;

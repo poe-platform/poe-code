@@ -14823,7 +14823,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-median") {
             analysis.warnings += 'magick: option has been replaced \'-median\', use "-statistic Median"\n';
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const rows = magickMedianRows(tokens[++i] ?? "3");
+            const rows = magickMedianRows(parseMagickStatisticGeometry(tokens[++i] ?? "3"));
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return yield* applyMagickRasterSteps(im, morphologyPixelSteps(im, rows, "median"), signal);
             });
@@ -19104,7 +19104,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const rows = magickMedianRows(tokens[++i] ?? "3");
+            const rows = magickMedianRows(parseMagickStatisticGeometry(tokens[++i] ?? "3"));
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, morphologyPixelSteps(image, rows, "median"), signal) : undefined);
         } else if (!operandsOnly && token === "-extent") {
             let images: StoredImageStack, sceneIdx = 0;

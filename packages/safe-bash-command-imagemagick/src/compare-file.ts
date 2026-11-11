@@ -24,7 +24,7 @@ export interface CompareFileSession {
     retain(image: RgbaImage): Promise<StoredRgbaImage>;
     stage(image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions): Promise<Uint8Array | undefined>;
     publishPending(): Promise<void>;
-    publishText(image: StoredRgbaImage, path: string, chunks: AsyncIterable<Uint8Array>): Promise<void>;
+    stageText(image: StoredRgbaImage, path: string, chunks: AsyncIterable<Uint8Array>): Promise<void>;
     publish(image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions): Promise<Uint8Array | undefined>;
 }
 export class CompareInputFailure extends Error {
@@ -224,14 +224,13 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                 await stage(image, path, encoding);
             },
             publishPending,
-            async publishText(image, path, chunks) {
+            async stageText(image, path, chunks) {
                 const encoded = (async function* () {
                     let size = 0;
                     for await (const chunk of chunks) { size += chunk.length; yield chunk; }
                     return { format: "txt", width: image.width, height: image.height, channels: image.channels, premultiplied: false, size };
                 })();
                 await snapshots.stage(image, path, { format: "raw" }, encoded);
-                await publishPending();
             },
             async publish(image, path, encoding) {
                 const targetWebp = encoding.format === "webp" && encoding.lossless === false && (encoding.webpTargetSize ?? 0) > 0;

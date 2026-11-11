@@ -11803,6 +11803,23 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
                 registers.set(parseInputToken(writePath).baseToken.slice(4).toLowerCase(), saved);
             }
+            else if (writePath.toLowerCase().startsWith("info:")) {
+                const source = (stack[0] as MagickImage)[magickInput];
+                const firstScene = state.scene ?? source?.outputScene ?? source?.sceneIdx ?? 0;
+                const formatted: string[] = [];
+                for (const [idx, im] of stack.entries()) {
+                    formatted.push(state.formatStr !== undefined
+                        ? yield* formatMagickPropertyStringSteps(state.formatStr, im, () => im, {
+                            ...(im as MagickImage)[magickInput], fxStack: stack, outputFilePath: writePath.slice(5), interpolation: state.interpolation, ...(state.precision !== undefined ? { precision: state.precision } : {}), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, trimPercentBackground: state.trimPercentBackground, trimBackgroundColor: state.trimBackgroundColor, analysis, sceneIdx: idx, outputScene: firstScene + idx, sceneCount: stack.length, ...(state.qualityExplicit ? { quality: state.quality } : {}), channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr }
+                        })
+                        : `${im.width}x${im.height} ${im.magickColorspace ?? "sRGB"} 8-bit`);
+                }
+                const outText = formatted.join(state.formatStr !== undefined ? "" : "\n");
+                const result = analysis.errors || state.formatStr !== undefined || outText.endsWith("\n") ? outText : `${outText}\n`;
+                const target = writePath.slice(5);
+                if (target && target !== "-") files.set(target, new TextEncoder().encode(result));
+                else analysis.text += result;
+            }
             else if (stack.length > 0 && writePath && writePath.toLowerCase() !== "null:") {
                 const top = stack[stack.length - 1]!;
                 const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(writePath, top.format);
@@ -15744,6 +15761,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 stackStep(async () => { throw new Error(`missing argument '${token}'`); });
                 break;
             }
+            const settings = { ...state };
             const background = state.backgroundExplicit ? state.background : undefined;
             const dither = state.dither, diffusionAmount = state.diffusionAmount;
             const writeTemplate = tokens[++i] ?? "", bmpRenderingIntent = state.optionProperties?.intent, iconAutoResize = state.iconAutoResize, iconKernel = state.kernel, iconFilter = state.resizeFilter, endian = state.inputEndian, quality = state.quality, effort = state.webpMethod ?? 4, lossless = state.webpLossless ?? state.quality >= 100, webpExact = state.webpExact ?? false, smartSubsample = state.webpSmartSubsample ?? false, alphaCompression = state.webpAlphaCompression ?? 1, alphaQuality = state.webpAlphaQuality ?? 100, webpTargetSize = state.webpTargetSize, webpPass = state.webpPass, jpegExtent = state.jpegExtent, pngPreserveColormap = state.pngPreserveColormap, pngBitDepth = state.pngBitDepth, jpegRestartInterval = state.jpegRestartInterval, jpegArithmeticCoding = state.jpegArithmeticCoding, jpegProgressive = state.jpegProgressive, jpegOptimizeCoding = state.jpegOptimizeCoding, jpegDctMethod = state.jpegDctMethod, rawInterlace = state.rawInterlace, pngInterlace = state.pngInterlace, gifInterlace = state.gifInterlace, transparentColor = state.transparentColor, pngColorType = state.pngColorType, synthesizeExif = !state.strip, omitPngResolution = state.strip || state.omitPngResolution === true, samplingFactor = state.samplingFactor, bmpFormat = state.bmpFormat, bmp3Alpha = state.bmp3Alpha, bmpSubtype = state.bmpSubtype, miffCompression = state.miffCompression, tgaCompression = state.tgaCompression, bmpCompression = state.bmpCompression, tiffIntegerDepth = state.inputDepth === undefined ? undefined : state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32, tiffSigned = state.tiffSigned, tiffFloatDepth = state.tiffFloatingPoint ? (state.inputDepth ?? 32) <= 16 ? 16 : (state.inputDepth ?? 32) <= 32 ? 32 : 64 : undefined, tiffPlanar = state.tiffPlanar, tiffAlpha = state.tiffAlpha, tiffEndian = state.tiffEndian ?? (state.inputEndian === undefined ? undefined : "msb"), tiffRowsPerStrip = state.tiffRowsPerStrip, tiffTile = state.tiffTile, tiffCompression = state.tiffCompression, netpbmAscii = state.netpbmAscii ?? false, netpbmDepth = state.inputDepth, adjoin = state.adjoin, filenameLiteral = state.filenameLiteral, scene = state.scene, loop = state.loop, optimizeLayers = state.optimizeLayers;
@@ -15761,6 +15779,28 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         await saved.push({ ...frame, [magickInput]: { ...frame[magickInput], outputScene: firstScene + index } });
                     }
                     registers.set(parseInputToken(path).baseToken.slice(4).toLowerCase(), saved);
+                }
+                else if (image && path.toLowerCase().startsWith("info:")) {
+                    const target = path.slice(5);
+                    const source = (await stack.get(0))![magickInput];
+                    const firstScene = settings.scene ?? source?.outputScene ?? source?.sceneIdx ?? 0;
+                    async function* information(): AsyncGenerator<string> {
+                        let last = "";
+                        for (let index = 0; index < stack.length; index++) {
+                            await yieldTurn(signal);
+                            const frame = (await stack.get(index))!;
+                            if (index && settings.formatStr === undefined) yield "\n";
+                            const formatted = settings.formatStr !== undefined ? await formatRetainedIdentify(settings.formatStr, frame, { ...frame[magickInput], outputFilePath: target, interpolation: settings.interpolation, ...(settings.precision !== undefined ? { precision: settings.precision } : {}), fuzz: settings.alphaFuzz, trimEdges: settings.trimEdges, trimPercentBackground: settings.trimPercentBackground, trimBackgroundColor: settings.trimBackgroundColor, analysis, sceneIdx: index, outputScene: firstScene + index, sceneCount: stack.length, ...(settings.qualityExplicit ? { quality: settings.quality } : {}), channelSelection: settings.channelExplicit ? settings.channels : undefined, optionProperties: { ...settings.optionProperties, format: settings.formatStr } }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
+                            if (formatted) last = formatted.at(-1)!;
+                            yield formatted;
+                        }
+                        if (!analysis.errors && settings.formatStr === undefined && last !== "\n") yield "\n";
+                    }
+                    if (target && target !== "-") await backend.stageText(image, target, encodeText(information(), signal));
+                    else for await (const part of information()) {
+                        if (input.stdout) await writeIdentifyText(input.stdout, part, signal);
+                        else analysis.text += part;
+                    }
                 }
                 else if (image && path && path.toLowerCase() !== "null:") {
                     const output = inferOutputFormat(path, image.format);
@@ -16893,7 +16933,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const parts = info || text || ftxt ? information() : storedHistogram(image, backend.storage, signal);
                 const chunks = encodeText(parts, signal), target = sparse ? outSpec.slice(13) : info || lower.startsWith("ftxt:") ? outSpec.slice(5) : ftxt ? outSpec : lower.startsWith("txt:") ? outSpec.slice(4) : text ? outSpec : "-";
                 if (target && target !== "-") {
-                    await backend.publishText(image, target, chunks);
+                    await backend.stageText(image, target, chunks);
+                    await backend.publishPending();
                     return { exitCode: 0, stdout: "", stderr: "" };
                 }
                 let stdout = "";
@@ -19686,7 +19727,8 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 if ((!target || target === "-") && input.stdout) await writeIdentifyText(input.stdout, text, signal);
                 else stdout += text;
                 if (target && target !== "-" && pageStart + pageSize === n) {
-                    await backend.publishText(canvas, target, encodeText((async function* () { yield stdout; })(), signal));
+                    await backend.stageText(canvas, target, encodeText((async function* () { yield stdout; })(), signal));
+                    await backend.publishPending();
                     stdout = "";
                 }
                 continue;
@@ -19699,7 +19741,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             if (stdoutBytes) stdoutChunks.push(stdoutBytes);
         }
         if (adjoin) {
-            await backend.publishText((await pages.get(0))!, output.path.replaceAll("%%", "%"), (async function* () {
+            await backend.stageText((await pages.get(0))!, output.path.replaceAll("%%", "%"), (async function* () {
                 for (let page = 0; page < pages.length; page++) {
                     yield* encodeStoredImage((await pages.get(page))!, backend.storage, signal, { format: output.format, netpbmAscii: state.netpbmAscii ?? false, netpbmDepth: state.inputDepth ?? 16 });
                 }
@@ -19710,7 +19752,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             const bytes = await backend.publish(image, output.path.replaceAll("%%", "%"), { format: "gif", gifVersion: output.gifVersion, pageHeight: image.pageHeight!, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor });
             if (bytes) stdoutChunks.push(bytes);
         }
-        if (n > cols * rows) await backend.publishPending();
+        if (adjoin || n > cols * rows) await backend.publishPending();
         const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
         let offset = 0;
         for (const chunk of stdoutChunks) { stdoutBytes.set(chunk, offset); offset += chunk.length; }

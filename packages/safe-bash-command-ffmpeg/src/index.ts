@@ -3929,16 +3929,21 @@ async function applyVideoFilterChain(
       if (positional.length > 2 || Object.keys(named).some(key => key !== "n" && key !== "log")) {
         throw new Error("thumbnail: expected batch size n and log level");
       }
-      const count = Number(named.n ?? (positional[0]?.includes("=") ? 100 : positional[0] || 100));
+      const value = parseFilterExpression(named.n ?? (positional[0]?.includes("=") ? "100" : positional[0] || "100"), "thumbnail", {
+        min: 2, max: 2147483647, default: 100,
+        PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+      });
       const log = named.log ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "info";
       const levels: Record<string, number> = { quiet: -8, info: 32, verbose: 40 };
       const level = levels[log] ?? Number(log);
       if (!log || !Number.isInteger(level) || level < -2147483648 || level > 2147483647) {
         throw new Error("thumbnail: log must be quiet, info, verbose or a signed 32-bit integer");
       }
-      if (!Number.isInteger(count) || count < 1 || count > 2147483647) {
-        throw new Error("thumbnail: n must be an integer from 1 to 2147483647");
+      // AVOption integers validate the range before rounding, with ties to even.
+      if (value < 2 || value > 2147483647) {
+        throw new RangeError("thumbnail: n must be from 2 to 2147483647");
       }
+      const count = roundToEven(value);
       const selected: typeof current = [];
       for (let start = 0; start < current.length; start += count) {
         const length = Math.min(count, current.length - start);
@@ -19048,6 +19053,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "tmix: invalid expression" || msg === "tmix: invalid or unsupported expression" ||
                 msg === "tmix: weights must be finite numbers") return { exitCode: 234 };
             if (msg.startsWith("framestep:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (err instanceof RangeError && msg.startsWith("thumbnail:")) return { exitCode: 222 };
             if (msg.startsWith("loop: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("loop: invalid ") || msg === "loop: surplus positional option") {
               return { exitCode: err instanceof RangeError ? 222 : 234 };

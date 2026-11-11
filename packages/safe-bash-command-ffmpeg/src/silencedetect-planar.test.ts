@@ -31,7 +31,7 @@ for (const bits of [16, 32] as const) {
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
         assert.equal(result.exitCode, 0, stderr);
-        assert.deepEqual(stderr.trim().split("\n").filter(line => line.includes("silence_")), threshold === 2 ? [
+        assert.deepEqual(stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line).filter(line => line.includes("silence_")), threshold === 2 ? [
           "silence_start: 0", "silence_end: 0.004 | silence_duration: 0.004"
         ] : []);
         const pcm = Buffer.concat(output);

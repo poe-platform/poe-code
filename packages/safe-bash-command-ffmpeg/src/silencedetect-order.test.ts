@@ -37,12 +37,13 @@ for (const graph of [false, true]) {
         assert.equal(result.exitCode, 0, stderr);
         assert.deepEqual(volume.readFileSync("/in.raw"), input);
         assert.deepEqual(volume.readFileSync("/out.raw"), input);
-        const message = (mono: boolean, event: string) => (mono ? "channel: 0 | " : "") + event;
+        const message = (mono: boolean, event: string, index: number) =>
+          `[silencedetect${graph ? `@detector${index}` : ""} @ ${index}] ` + (mono ? "channel: 0 | " : "") + event;
         const frameEvents = events.slice(0, 3);
         const expected = frameSize === 3
-          ? frameEvents.flatMap(event => detectors.map(mono => message(mono, event)))
-          : detectors.flatMap(mono => frameEvents.map(event => message(mono, event)));
-        expected.push(...[...detectors].reverse().map(mono => message(mono, events[3]!)));
+          ? frameEvents.flatMap(event => detectors.map((mono, index) => message(mono, event, index)))
+          : detectors.flatMap((mono, index) => frameEvents.map(event => message(mono, event, index)));
+        expected.push(...detectors.map((mono, index) => message(mono, events[3]!, index)).reverse());
         assert.deepEqual(stderr.trim().split("\n").filter(line => line.includes("silence_")), expected);
       });
     }
@@ -83,7 +84,7 @@ for (const graph of [false, true]) {
       assert.equal(result.exitCode, 0, stderr);
       assert.deepEqual(volume.readFileSync("/in.wav"), input);
       assert.deepEqual(Buffer.concat(stdout), pcm);
-      assert.deepEqual(stderr.trim().split("\n"), [
+      assert.deepEqual(stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line), [
         "channel: 0 | silence_start: 0",
         "silence_start: 0.002",
         "channel: 1 | silence_start: 0.002",

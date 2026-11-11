@@ -35,7 +35,7 @@ for (const graph of [false, true]) {
       assert.equal(result.exitCode, 0, stderr);
       assert.deepEqual(Buffer.concat(stdout), pcm.subarray(seek ? 4 : 0));
       assert.deepEqual(volume.readFileSync("/in.raw"), pcm);
-      const lines = stderr.trim().split("\n");
+      const lines = stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line);
       assert.deepEqual(lines.filter(line => line.startsWith("silence_")), starts.flatMap((start, i) => [
         `silence_start: ${start}`,
         `silence_end: ${ends[i]} | silence_duration: ${durations[i]}`

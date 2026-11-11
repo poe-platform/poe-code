@@ -9494,6 +9494,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
     description: "Multimedia converter, merger, and stream processor powered by pluggable ASTs",
     async execute(context: CommandContext) {
       const budget = new MediaBudgetTracker(options.limits);
+      let silenceDetectorIndex = 0;
       const readSource = createInputReader(context, budget);
       const argsObj = getCommandArguments(context);
       const args = argsObj.args;
@@ -9814,6 +9815,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let useStreamIdsAsTrackIds = false;
         const vfFilters: string[] = [];
         let logLevel = 32;
+        let logSeverity = false;
         const afFilters: { ordinal: number | undefined; expression: string }[] = [];
         let chapterSource: number | undefined;
         let copyChapterMetadata = true;
@@ -9903,9 +9905,23 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             pendingSafe = value === "1";
           } else if (arg === "-v" || arg === "-loglevel") {
-            const value = args[++i]?.split("+").at(-1) ?? "";
+            let value = args[++i] ?? "";
+            // Flags may be set without replacing the current severity threshold.
+            let firstFlag = true;
+            while (value) {
+              const sign = value[0];
+              const start = sign === "+" || sign === "-" ? 1 : 0;
+              const flag = ["repeat", "level", "time", "datetime"].find(flag =>
+                value.startsWith(flag, start) && [undefined, "+", "-"].includes(value[start + flag.length]));
+              if (!flag) break;
+              if (firstFlag && start === 0) logSeverity = false;
+              if (flag === "level") logSeverity = sign !== "-";
+              firstFlag = false;
+              value = value.slice(start + flag.length);
+            }
+            if (value.startsWith("+")) value = value.slice(1);
             const levels: Record<string, number> = { quiet: -8, panic: 0, fatal: 8, error: 16, warning: 24, info: 32, verbose: 40, debug: 48, trace: 56 };
-            logLevel = levels[value] ?? Number(value);
+            if (value) logLevel = levels[value] ?? Number(value);
           } else if (arg === "-pix_fmt" || arg === "-pixel_format") {
             const value = args[++i];
             if (args.slice(i + 1).includes("-i")) pendingPixelFormat = value;
@@ -15094,8 +15110,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           while (text.endsWith("0")) text = text.slice(0, -1);
                           return text.endsWith(".") ? text.slice(0, -1) : text;
                         };
+                        const detector = `[${filterTarget} @ ${silenceDetectorIndex++}] `;
                         const logSilence = (frame: number, text: string): void => {
                           if (logLevel < 32) return;
+                          text = detector + (logSeverity ? "[info] " : "") + text;
                           budget.allocateMemory(64 + text.length * 2);
                           silenceEvents.push({ frame, filter: filterIndex, text });
                         };

@@ -9157,7 +9157,7 @@ describe("silencedetect", () => {
       const vfs = createTestVfs({ "/levels.wav": input });
       const result = await runCmd(createFfmpegCommand(), ["-hide_banner", "-loglevel", "info", "-i", "/levels.wav", "-af", filter, "-c:a", "pcm_s16le", "-y", "/out.wav"], vfs);
       assert.equal(result.exitCode, 0, result.stderr);
-      assert.deepEqual(result.stderr.trim().split("\n").filter(line => line.includes("silence_")), expected);
+      assert.deepEqual(result.stderr.trim().split("\n").filter(line => line.includes("silence_")).map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line), expected);
       const output = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!;
       assert.equal(output.channelData[0]!.length, 96000);
       assert.deepEqual(output.channelData, filter.startsWith("volume=0")
@@ -9165,11 +9165,11 @@ describe("silencedetect", () => {
         : parseWav(input).tracks[0]!.decodedAudio!.channelData);
     });
   }
-  for (const option of ["noise=bad", "d=-1", "mono=2", "unknown=1"]) {
+  for (const [option, status] of [["noise=bad", 234], ["d=-1", 222], ["mono=2", 234], ["unknown=1", 8]] as const) {
     it(`rejects invalid ${option} without replacing output`, async () => {
       const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] }), "/out.wav": "keep" });
       const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af", `silencedetect=${option}`, "/out.wav"], vfs);
-      assert.equal(result.exitCode, 1);
+      assert.equal(result.exitCode, status);
       assert.equal(new TextDecoder().decode(vfs.store.get("/out.wav")), "keep");
     });
   }

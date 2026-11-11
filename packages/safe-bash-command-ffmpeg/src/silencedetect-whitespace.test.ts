@@ -43,7 +43,7 @@ for (const graph of [false, true]) {
       assert.equal(result.exitCode, 0, stderr);
       assert.deepEqual(volume.readFileSync("/in.wav"), input);
       assert.deepEqual(Buffer.concat(stdout), pcm);
-      assert.deepEqual(stderr.trim().split("\n"), [
+      assert.deepEqual(stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line), [
         "channel: 0 | silence_start: 0",
         "channel: 1 | silence_start: 0.002",
         "channel: 0 | silence_end: 0.004 | silence_duration: 0.004",

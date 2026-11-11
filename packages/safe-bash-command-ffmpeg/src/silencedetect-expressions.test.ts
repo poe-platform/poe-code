@@ -33,7 +33,7 @@ for (const noise of ["n=1/25", "noise=1/25", "1/25", "n=0.02*2", "n=sqrt(0.0016)
     const { result, stderr, input, output } = await run(noise);
     assert.equal(result.exitCode, 0, stderr);
     // Native FFmpeg 7.0.2 intervals for this 8 kHz mono PCM fixture.
-    assert.deepEqual(stderr.trim().split("\n").filter(line => line.includes("silence_")), [
+    assert.deepEqual(stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line).filter(line => line.includes("silence_")), [
       "silence_start: 0.000875",
       "silence_end: 0.5 | silence_duration: 0.499125"
     ]);

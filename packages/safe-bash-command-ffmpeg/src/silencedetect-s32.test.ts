@@ -52,7 +52,7 @@ for (const format of ["s32le", "s16le"] as const) {
               "silence_start: 0",
               "silence_end: 0.000625 | silence_duration: 0.000625"
             ] : [];
-            assert.deepEqual(stderr.trim().split("\n").filter(line => line.includes("silence_")), expected);
+            assert.deepEqual(stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line).filter(line => line.includes("silence_")), expected);
           });
         }
       }

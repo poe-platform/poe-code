@@ -50,7 +50,8 @@ for (const option of ["-v", "-loglevel"]) {
         const result = await run(level ? [option, level] : [], graph);
         assert.equal(result.exitCode, 0, result.stderr);
         assert.deepEqual(result.stdout, pcm);
-        assert.equal(result.stderr, reports ? events.join("\n") + "\n" : "");
+        assert.deepEqual(result.stderr.trim().split("\n").filter(line => line.includes("silence_")),
+          reports ? events.map(line => `[silencedetect @ 0] ${line}`) : []);
       });
     }
   }
@@ -70,6 +71,6 @@ for (const level of ["warning", "error", "quiet", "info"]) {
     const result = await run(["-loglevel", level]);
     assert.equal(result.exitCode, native.status);
     assert.deepEqual(result.stdout, native.stdout);
-    assert.deepEqual(result.stderr.trim().split("\n").filter(Boolean), nativeEvents);
+    assert.deepEqual(result.stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line).filter(line => line.includes("silence_")), nativeEvents);
   });
 }

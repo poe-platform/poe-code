@@ -34,7 +34,7 @@ for (const graph of [false, true]) {
       const expected = Buffer.alloc(samples.length * 2);
       samples.forEach((sample, i) => expected.writeInt16LE(sample, i * 2));
       assert.deepEqual(Buffer.concat(output), expected);
-      const lines = stderr.trim().split("\n");
+      const lines = stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line);
       const suffix = mode === "mono" ? ".1" : "";
       assert.deepEqual(lines.filter(line => line.startsWith("lavfi.") || line === "sample=present"), mode === "control"
         ? Array<string>(4).fill("sample=present")

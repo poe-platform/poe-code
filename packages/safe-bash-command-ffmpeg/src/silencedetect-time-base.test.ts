@@ -47,7 +47,7 @@ for (const [timing, duration, events, tags] of [
           [`lavfi.silence_start${suffix}=${tags[0]}`, `lavfi.silence_end${suffix}=${tags[1]}`,
             `lavfi.silence_duration${suffix}=${tags[2]}`, `lavfi.silence_start${suffix}=${tags[3]}`]);
         const prefix = mono ? "channel: 0 | " : "";
-        assert.deepEqual(stderr.trim().split("\n").filter(line => line.includes("silence_")), [
+        assert.deepEqual(stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line).filter(line => line.includes("silence_")), [
           `silence_start: ${events[0]}`, `silence_end: ${events[1]} | silence_duration: ${events[2]}`,
           `silence_start: ${events[3]}`, `silence_end: ${events[4]} | silence_duration: ${events[5]}`
         ].map(line => prefix + line));

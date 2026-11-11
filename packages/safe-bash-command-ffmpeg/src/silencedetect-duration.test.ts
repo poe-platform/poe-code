@@ -31,7 +31,7 @@ for (const key of ["d", "duration"]) {
         assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
       } else {
         assert.equal(result.exitCode, 0, stderr);
-        assert.deepEqual(stderr.trim().split("\n").filter(line => line.includes("silence_")), [
+        assert.deepEqual(stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line).filter(line => line.includes("silence_")), [
           "silence_start: 0.000875",
           "silence_end: 0.5 | silence_duration: 0.499125"
         ]);

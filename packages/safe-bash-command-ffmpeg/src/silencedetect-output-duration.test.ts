@@ -44,7 +44,7 @@ for (const graph of [false, true]) {
         assert.equal(result.exitCode, 0, stderr);
         assert.deepEqual(Buffer.concat(stdout), output === undefined ? input.subarray(start * 2, (start + samples) * 2) : Buffer.from(output, "hex"));
         assert.deepEqual(volume.readFileSync("/in.raw"), input);
-        const lines = stderr.trim().split("\n");
+        const lines = stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line);
         assert.deepEqual(lines.filter(line => line.startsWith("silence_")), [
           "silence_start: 0.001", "silence_end: 0.004 | silence_duration: 0.003",
           ...(consumed >= 8 ? ["silence_start: 0.005", consumed === 8

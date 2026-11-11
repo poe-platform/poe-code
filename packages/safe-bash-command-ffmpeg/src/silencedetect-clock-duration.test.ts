@@ -52,7 +52,7 @@ for (const graph of [false, true]) {
         return;
       }
       assert.deepEqual(Buffer.concat(stdout), pcm);
-      assert.deepEqual(stderr.trim().split("\n"), [
+      assert.deepEqual(stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line), [
         "silence_start: 0.002",
         "silence_end: 0.004 | silence_duration: 0.002",
         "silence_start: 0.006",

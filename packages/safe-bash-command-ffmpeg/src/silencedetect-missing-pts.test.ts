@@ -32,7 +32,7 @@ for (const graph of [false, true]) {
         const times = missing ? Array<string>(4).fill("-1152921504606847")
           : ["0.000125", "0.000625", "0.00075", "0.001125"];
         const prefix = mono ? "channel: 0 | " : "";
-        const lines = stderr.trim().split("\n");
+        const lines = stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line);
         assert.deepEqual(lines.filter(line => line.startsWith(prefix + "silence_")), [
           `silence_start: ${times[0]}`,
           `silence_end: ${times[1]} | silence_duration: ${framed ? "0.000125" : "0.0005"}`,

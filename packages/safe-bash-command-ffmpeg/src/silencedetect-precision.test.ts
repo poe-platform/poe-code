@@ -36,7 +36,7 @@ for (const [pts, boundaries, durations] of [
         assert.deepEqual(volume.readFileSync("/out.raw"), input);
         assert.deepEqual(volume.readFileSync("/in.raw"), input);
         const prefix = mono ? "channel: 0 | " : "";
-        assert.deepEqual(stderr.trim().split("\n").filter(line => line.includes("silence_")), [
+        assert.deepEqual(stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line).filter(line => line.includes("silence_")), [
           `silence_start: ${boundaries[0]}`,
           `silence_end: ${boundaries[1]} | silence_duration: ${durations[0]}`,
           `silence_start: ${boundaries[2]}`,

@@ -30,7 +30,7 @@ for (const duration of ["0.57", "0", "0.0624", "0.56", "0.0625"]) {
     samples.forEach((value, index) => expectedPcm.writeInt16LE(value, index * 2));
     assert.deepEqual(Buffer.concat(chunks), expectedPcm);
     const zeroSamples = duration === "0" || duration === "0.0624";
-    assert.deepEqual(stderr.trim().split("\n").filter(line => line.includes("silence_")), [
+    assert.deepEqual(stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line).filter(line => line.includes("silence_")), [
       `silence_start: ${zeroSamples ? "0.125" : "0"}`,
       `silence_end: 1 | silence_duration: ${zeroSamples ? "0.875" : "1"}`,
       ...(duration === "0.57" ? [] : [

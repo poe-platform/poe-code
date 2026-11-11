@@ -39,7 +39,7 @@ for (const [prefix, offset, events] of [
       } as never);
       assert.equal(result.exitCode, 0, stderr);
       assert.deepEqual(Buffer.concat(stdout), pcm.subarray(offset));
-      assert.deepEqual(stderr.trim().split("\n").filter(line => line.includes("silence_")), events);
+      assert.deepEqual(stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line).filter(line => line.includes("silence_")), events);
       assert.deepEqual(volume.readFileSync("/in.wav"), Buffer.from(input));
     });
   }

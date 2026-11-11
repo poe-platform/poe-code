@@ -22,7 +22,7 @@ async function run(noise: string, duration: string, input: Buffer, graph = false
   } as never);
   assert.equal(result.exitCode, 0, stderr);
   assert.deepEqual(fs.readFileSync("/out.raw"), input);
-  return stderr.trim().split("\n").filter(line => line.includes("silence_"));
+  return stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line).filter(line => line.includes("silence_"));
 }
 
 // Captured with native FFmpeg 7.0.2 using the same s16le input and filter arguments.

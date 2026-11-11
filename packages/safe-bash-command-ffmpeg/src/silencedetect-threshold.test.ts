@@ -33,7 +33,7 @@ for (const noise of [0.03125, 0.03126, 0.04]) {
           } as never);
           assert.equal(result.exitCode, 0, stderr);
           const silent = noise === 0.04 || prefix === "volume=1," && noise > 0.03125;
-          assert.deepEqual(stderr.trim().split("\n").filter(line => line.includes("silence_")), silent ? [
+          assert.deepEqual(stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line).filter(line => line.includes("silence_")), silent ? [
             "silence_start: 0.000875",
             "silence_end: 0.5 | silence_duration: 0.499125"
           ] : []);
@@ -78,7 +78,7 @@ for (const noise of ["1.01", "2", "60dB", "1", "3"]) {
         assert.deepEqual(Buffer.concat(stdout), pcm);
         assert.deepEqual(volume.readFileSync("/in.wav"), Buffer.from(input));
         const silent = prefix !== "" || noise === "1" || noise === "3";
-        assert.deepEqual(stderr.trim().split("\n").filter(line => line.includes("silence_")), silent ? [
+        assert.deepEqual(stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line).filter(line => line.includes("silence_")), silent ? [
           "silence_start: 0",
           "silence_end: 2 | silence_duration: 2"
         ] : []);

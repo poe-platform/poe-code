@@ -41,7 +41,7 @@ for (const key of ["m", "mono", "positional"]) {
       } else {
         assert.equal(result.exitCode, 0, stderr);
         const prefix = mono ? "channel: 0 | " : "";
-        assert.deepEqual(stderr.trim().split("\n").filter(line => line.includes("silence_")), [
+        assert.deepEqual(stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line).filter(line => line.includes("silence_")), [
           `${prefix}silence_start: 0.000875`,
           `${prefix}silence_end: 0.5 | silence_duration: 0.499125`
         ]);
@@ -80,7 +80,7 @@ for (const [value, mono] of [
     } as never);
     assert.equal(result.exitCode, 0, stderr);
     const prefix = mono ? "channel: 0 | " : "";
-    assert.deepEqual(stderr.trim().split("\n").filter(line => line.includes("silence_")), [
+    assert.deepEqual(stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line).filter(line => line.includes("silence_")), [
       `${prefix}silence_start: 0`,
       `${prefix}silence_end: 1 | silence_duration: 1`,
       `${prefix}silence_start: 1.5`,
@@ -122,7 +122,7 @@ for (const key of ["m", "mono", "positional"]) {
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
       assert.equal(result.exitCode, 0, stderr);
-      assert.deepEqual(stderr.trim().split("\n").filter(line => line.includes("silence_")),
+      assert.deepEqual(stderr.trim().split("\n").map(line => line.startsWith("[silencedetect") ? line.slice(line.indexOf("] ") + 2) : line).filter(line => line.includes("silence_")),
         Number(value) === 1 ? [
           "channel: 0 | silence_start: 0",
           "channel: 1 | silence_start: 0.002",

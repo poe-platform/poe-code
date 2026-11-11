@@ -4040,6 +4040,58 @@ async function applyVideoFilterChain(
     } else if (name === "swapuv") {
       if (argStr) throw new Error("swapuv: unsupported option");
       current = await mapWork(current, frame => swapUv(frame, budget, signal), signal);
+    } else if (name === "premultiply") {
+      let planes = 15, inplace = false, enable: string | undefined, sawNamed = false;
+      for (const [index, option] of (argStr ? positional : []).entries()) {
+        const separator = option.indexOf("=");
+        const key = separator < 0 ? ["planes", "inplace"][index] : option.slice(0, separator);
+        const value = separator < 0 ? option : option.slice(separator + 1);
+        if (separator < 0 && sawNamed) throw new Error("premultiply: positional option after named option");
+        sawNamed ||= separator >= 0;
+        if (key === "inplace") inplace = parseFilterBoolean(value, "premultiply: invalid inplace");
+        else if (key === "enable") enable = value;
+        else if (key === "planes") {
+          const number = parseFilterExpression(value, "premultiply planes", {
+            min: 0, max: 15, default: 15, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+          });
+          if (!Number.isFinite(number) || number < 0 || number > 15) throw new Error("premultiply: planes must be between 0 and 15");
+          planes = roundToEven(number);
+        } else throw new Error(`premultiply: unsupported option ${key ?? option}`);
+      }
+      if (!inplace) throw new Error("premultiply: a single input requires inplace=1");
+      if (pixelFormat !== undefined && !["rgba", "bgra", "gbrap", "rgb24", "bgr24", "gbrp"].includes(pixelFormat)) {
+        throw new Error("premultiply: requires 8-bit RGB input");
+      }
+      const planar = pixelFormat === "gbrap";
+      const registers = new Float64Array(10);
+      current = await mapWork(current, async (frame, n) => {
+        let enabled = true;
+        if (enable !== undefined) {
+          const variables = { n, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN, NAN: NaN, INF: Infinity };
+          parseFilterExpression(enable, "premultiply enable", variables, undefined, registers);
+          enabled = Math.abs(parseFilterExpression(enable, "premultiply enable", variables, undefined, registers)) >= 0.5;
+        }
+        budget.allocateMemory(frame.data.byteLength);
+        const data = frame.data.slice();
+        for (let offset = 0; offset < data.length; offset += 4) {
+          if (offset % 65536 === 0) {
+            await yieldTurn(signal);
+            signal?.throwIfAborted();
+            budget.checkCpu();
+          }
+          // Packed RGBA is negotiated to GBRAP even when the timeline disables the filter.
+          const alpha = planar ? data[offset + 3]! : Math.min(255, Math.round(data[offset + 3]! * 257 / 256));
+          data[offset + 3] = alpha;
+          if (!enabled) continue;
+          // FFmpeg's 8-bit kernel rounds alpha using bit 1 before multiplying.
+          const factor = alpha + ((alpha >> 1) & 1);
+          if (planes & 4) data[offset] = (data[offset]! * factor + 128) >> 8;
+          if (planes & 1) data[offset + 1] = (data[offset + 1]! * factor + 128) >> 8;
+          if (planes & 2) data[offset + 2] = (data[offset + 2]! * factor + 128) >> 8;
+        }
+        return { ...frame, data };
+      }, signal);
+      pixelFormat = diagnostics.pixelFormat = "gbrap";
     } else if (name === "extractplanes" || name === "alphaextract") {
       if (name === "alphaextract" && argStr) throw new Error("alphaextract: unsupported option");
       const plane = name === "alphaextract" ? "a" : named.planes ?? argStr;

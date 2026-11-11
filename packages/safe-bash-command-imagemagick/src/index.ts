@@ -10356,6 +10356,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 : image.writeMask || image.region || ("storedWriteMask" in image && image.storedWriteMask) ? Uint16Array.from(out, value => value * 257) : undefined;
             const hueSamples = image.hueSamples?.slice();
             const samples = hueSamples ?? image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
+            const evaluateSamples = image.space === "cmyk" && hueSamples
+                ? image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value) : undefined;
             const range = hueSamples ? 1 : 255;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
@@ -10366,8 +10368,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     // Clamp brightness, preserving negative HDRI colors; bound only the integer views.
                     const value = Math.fround((brightness === 0 ? 0 : samples[idx + channel]! * adjusted / brightness) * (65535 / range)) / (65535 / range);
                     samples[idx + channel] = value;
-                    out[idx + channel] = clampByteVal(value * (255 / range));
-                    if (data16) data16[idx + channel] = Math.round(Math.max(0, Math.min(65535, value * (65535 / range))));
+                    // CMYK inks live separately; keep the backing pixels in RGB.
+                    const rgb = evaluateSamples ? (1 - value) * (1 - samples[idx + 3]!) * 255 : value * (255 / range);
+                    if (evaluateSamples) evaluateSamples[idx + channel] = rgb;
+                    out[idx + channel] = clampByteVal(rgb);
+                    if (data16) data16[idx + channel] = Math.round(Math.max(0, Math.min(65535, rgb * 257)));
                 }
             }
             // Indexed operations must see the adjusted colormap, including unused entries.
@@ -10386,7 +10391,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 for (let i = 0; i < bytes.length; i += 3) bytes.set(contrastColor(bytes[i]!, bytes[i + 1]!, bytes[i + 2]!), i);
                 pngPalette = { ...pngPalette, bytes };
             }
-            return { ...image, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : { evaluateSamples: samples }), ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) };
+            return { ...image, data: out, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : { evaluateSamples: samples }), ...(evaluateSamples ? { evaluateSamples } : {}), ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) };
         };
     }
     else if (token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") {

@@ -7,10 +7,11 @@ export async function highpassAudio(
   budget: MediaBudgetTracker, signal?: AbortSignal, channelNames?: readonly string[]
 ): Promise<(Float32Array | Float64Array)[]> {
   let selected: string[] | undefined;
-  const options = { frequency: 3000, poles: 2, mix: 1, width: 0.707, width_type: 3 };
+  const options = { frequency: 3000, poles: 2, mix: 1, width: 0.707, width_type: 3, blocksize: 0 };
   const aliases: Record<string, keyof typeof options> = {
     frequency: "frequency", f: "frequency", poles: "poles", p: "poles", mix: "mix", m: "mix",
-    width: "width", w: "width", width_type: "width_type", t: "width_type"
+    width: "width", w: "width", width_type: "width_type", t: "width_type",
+    blocksize: "blocksize", b: "blocksize"
   };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
@@ -32,9 +33,11 @@ export async function highpassAudio(
       || key === "frequency" && (number < 0 || number > 999999)
       || key === "poles" && number !== 1 && number !== 2
       || key === "width" && (number < 0 || number > 99999)
+      || key === "blocksize" && (number < 0 || number > 32768)
       || key === "width_type" && (!Number.isInteger(number) || number < 1 || number > 5)
       || key === "mix" && (number < 0 || number > 1)) throw new Error(`highpass: invalid ${key}`);
-    options[key] = number;
+    options[key] = key === "blocksize"
+      ? (number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number)) : number;
   }
   signal?.throwIfAborted();
   budget.checkCpu();
@@ -57,6 +60,9 @@ export async function highpassAudio(
   const b2 = options.poles === 1 ? 0 : b0;
   const output: (Float32Array | Float64Array)[] = [];
   channelNames ??= channels.length === 1 ? ["FC"] : channels.length === 2 ? ["FL", "FR"] : [];
+  const blocksize = options.blocksize;
+  budget.allocateMemory(blocksize * 2 * 8);
+  const block = new Float64Array(blocksize * 2);
   let work = 0;
   for (const [index, channel] of channels.entries()) {
     if (selected && !selected.includes(channelNames[index] ?? "")) {
@@ -66,6 +72,46 @@ export async function highpassAudio(
     budget.allocateMemory(channel.length * 8);
     const samples = new Float64Array(channel.length);
     let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    if (blocksize) {
+      block.fill(0);
+      for (let offset = 0; offset < channel.length; offset += blocksize) {
+        // Keep the previous forward-filtered block and append one block of lookahead.
+        // Only the forward history persists; each reverse pass starts at rest.
+        for (let i = 0; i < blocksize; i++) {
+          if (++work % 1024 === 0) {
+            await yieldTurn(signal);
+            signal?.throwIfAborted();
+            budget.checkCpu();
+          }
+          const input = channel[offset + i] ?? 0;
+          const filtered = b0 * input + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+          x2 = x1; x1 = input;
+          y2 = y1; y1 = filtered;
+          block[blocksize + i] = filtered * options.mix + input * (1 - options.mix);
+        }
+        let rx1 = 0, rx2 = 0, ry1 = 0, ry2 = 0;
+        const last = offset + blocksize >= channel.length;
+        for (let i = block.length - 1; i >= 0; i--) {
+          if (++work % 1024 === 0) {
+            await yieldTurn(signal);
+            signal?.throwIfAborted();
+            budget.checkCpu();
+          }
+          const input = block[i]!;
+          const filtered = b0 * input + b1 * rx1 + b2 * rx2 - a1 * ry1 - a2 * ry2;
+          rx2 = rx1; rx1 = input;
+          ry2 = ry1; ry1 = filtered;
+          const position = offset - blocksize + i;
+          // At EOF FFmpeg emits the cached second half without another pass.
+          if ((i < blocksize || last) && position >= 0 && position < channel.length) {
+            samples[position] = filtered * options.mix + input * (1 - options.mix);
+          }
+        }
+        block.copyWithin(0, blocksize);
+      }
+      output.push(samples);
+      continue;
+    }
     for (let i = 0; i < channel.length; i++) {
       if (++work % 1024 === 0) {
         await yieldTurn(signal);

@@ -5075,12 +5075,13 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
                     : mask[channel] || img.hasAlpha && channels.a ? 0 : input[channel]!;
             }
             out[3] = img.hasAlpha && channels.a ? 0 : input[3]!;
-        } else if (dither && (img.hasAlpha && target[3]! < 255 || !img.hasAlpha)) {
+        } else if (dither && (img.hasAlpha && (!channels.a || target[3]! < 255) || !img.hasAlpha)) {
             // ImageMagick searches the parent of the deepest matching RGBA
             // octree node, using associated alpha for both lookup and distance.
             if (!palette) {
                 palette = { children: [] };
-                for (let a = img.hasAlpha ? 0 : levels - 1; a < levels; a++) for (let b = 0; b < (channels.b ? levels : 1); b++) for (let g = 0; g < (channels.g ? levels : 1); g++) for (let r = 0; r < (channels.r ? levels : 1); r++) {
+                // Unselected active alpha stays zero in the native map image.
+                for (let a = img.hasAlpha ? 0 : levels - 1; a < (img.hasAlpha && !channels.a ? 1 : levels); a++) for (let b = 0; b < (channels.b ? levels : 1); b++) for (let g = 0; g < (channels.g ? levels : 1); g++) for (let r = 0; r < (channels.r ? levels : 1); r++) {
                     if (++cooperativeWork % 1024 === 0) { signal?.throwIfAborted(); yield; }
                     const color = a === 0 ? [0, 0, 0, 0] : [r * step, g * step, b * step, a * step];
                     const bytes = color.map((value, channel) => Math.round(channel === 3 ? value : value * color[3]! / 255));

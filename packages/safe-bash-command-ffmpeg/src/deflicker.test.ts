@@ -49,6 +49,22 @@ for (const graph of [false, true]) for (const [filter, hex] of [
   });
 }
 
+for (const [option, hex] of [
+  ["m=am:3", "16a1ff004890d93c86cf317ac5266fb92dadff19a0ff048ba8fa489be93a8bdc"],
+  ["size=2:gm", "1283f50052a4f64497e93789a6205e9c1d70c31080eb036fa7f94799e93a8bdc"],
+  ["size=5:m=qm", "16a1ff004890d93c86cf317ac5266fb92dadff19a0ff048ba8fa489be93a8bdc"],
+  ["size=3:m=am", "159cff0053a6fa4582ca30779f1e5a96258ef61493ff047fa7fa489ae93a8bdc"],
+  ["size=2:m=gm", "1283f50052a4f64497e93789a6205e9c1d70c31080eb036fa7f94799e93a8bdc"]
+]) {
+  it(`matches native deflicker option binding for ${option}`, async () => {
+    const input = Buffer.from("0d5eaf0051a2f34495e63788d92a7bcc1d6ebf1061b20354a5f64798e93a8bdc", "hex");
+    const result = await run(`deflicker=${option}`, input);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.output.toString("hex"), hex);
+  });
+}
+
 for (const option of ["size=1", "s=130", "m=unknown", "bypass=2", "unknown=1"]) {
   it(`rejects ${option} without replacing output`, async () => {
     const result = await run(`deflicker=${option}`);

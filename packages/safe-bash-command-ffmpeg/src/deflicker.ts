@@ -16,6 +16,8 @@ export async function deflicker(
   for (const option of (argument.endsWith(":") ? argument.slice(0, -1) : argument).split(":").filter(Boolean)) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["size", "mode", "bypass"][position++] : option.slice(0, separator);
+    // FFmpeg restarts shorthand after named options, skipping the first slot if just visited.
+    if (separator >= 0) position = position === 0 ? 1 : 0;
     const expression = separator < 0 ? option : option.slice(separator + 1);
     if (key === "bypass") { bypass = parseFilterBoolean(expression, "deflicker: invalid bypass"); continue; }
     if (key !== "size" && key !== "s" && key !== "mode" && key !== "m") throw new Error(`deflicker: unsupported option ${key}`);

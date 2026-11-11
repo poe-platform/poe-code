@@ -61,7 +61,7 @@ export function* ftxtPixels(image: Pick<RgbaImage, "width" | "space" | "hasAlpha
     }
 }
 
-export async function* storedFtxt(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal, format?: string, precision?: number, separator?: string): AsyncGenerator<string> {
+export async function* storedFtxt(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal, format?: string, precision?: number): AsyncGenerator<string> {
     const size = image.width * image.height * 4;
     for (let start = 0; start < size; start += 2048) {
         await yieldTurn(signal);
@@ -72,6 +72,6 @@ export async function* storedFtxt(image: StoredRgbaImage & HueMetadata, storage:
         const evaluateSamples = evaluated ? new Float64Array(evaluated.slice().buffer) : undefined;
         const inks = image.space === "cmyk" && image.storedHueSamples !== undefined ? await storage.read(image.storedHueSamples + start * 8, data.length * 8) : undefined;
         const hueSamples = inks ? new Float64Array(inks.slice().buffer) : undefined;
-        yield* ftxtPixels({ ...image, data, ...(hueSamples ? { hueSamples } : {}), ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) }, format, start, precision, separator);
+        yield* ftxtPixels({ ...image, data, ...(hueSamples ? { hueSamples } : {}), ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) }, format, start, precision);
     }
 }

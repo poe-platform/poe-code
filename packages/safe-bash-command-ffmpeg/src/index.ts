@@ -14226,7 +14226,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           const duration = key!.endsWith("_dur");
                           const number = duration ? parseHlsDuration(value ?? "") : parseFilterExpression(value ?? "", "apad", { min: -1, default: -1, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
-                          const samples = duration ? Math.round(number * origRate) : roundToEven(number);
+                          // Rescale integer microseconds so exact half-samples round up.
+                          const samples = duration ? Math.round(Math.round(number * 1_000_000) * origRate / 1_000_000) : roundToEven(number);
                           if (number < (duration ? -0.000001 : -1)) {
                             throw new RangeError(`apad: invalid ${key}`);
                           }

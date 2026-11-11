@@ -7,15 +7,18 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 export function parseUnsharpGeometry(raw: string): { width: number; height: number; amount: number; threshold: number } {
     const parts: string[] = [];
     let start = 0;
+    let hasSigma = false;
     for (let i = 0; i < raw.length; i++) {
-        if (raw[i] === "x" || raw[i] === "X" ||
+        const separator = raw[i] === "x" || raw[i] === "X" || raw[i] === "," || raw[i] === "/";
+        if (separator ||
             i > start && (raw[i] === "+" || raw[i] === "-") && raw[i - 1] !== "e" && raw[i - 1] !== "E") {
             parts.push(raw.slice(start, i));
-            start = raw[i] === "x" || raw[i] === "X" ? i + 1 : i;
+            start = separator ? i + 1 : i;
+            hasSigma ||= separator;
         }
     }
     parts.push(raw.slice(start));
-    if (!raw.includes("x") && !raw.includes("X")) parts.splice(1, 0, "1");
+    if (!hasSigma) parts.splice(1, 0, "1");
     const [width = 0, height = 1, amount = 1, threshold = 0.05] = parts.map(part => Number(part));
     if (![width, height, amount, threshold].every(Number.isFinite)) throw new Error("Invalid unsharp geometry");
     return { width, height, amount, threshold };

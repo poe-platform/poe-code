@@ -15,8 +15,10 @@ export function* magickFramePixels(source: Pick<RgbaImage, "width" | "height" | 
     }
     const hue = !cmyk && (!!source.hueSamples || source.storedHueSamples !== undefined);
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
+    // Bevel colors carry normalized black ink after the four raster channels.
     const shade = (factor: number, lighten: boolean) => [matte.r, matte.g, matte.b].map(value =>
-        Math.round((lighten ? value + (255 - value) * factor / 255 : value * factor / 255) * scale)).concat(Math.round(matte.a * scale));
+        Math.round((lighten ? value + (255 - value) * factor / 255 : value * factor / 255) * scale))
+        .concat(Math.round(matte.a * scale), lighten ? matteBlack + (1 - matteBlack) * factor / 255 : matteBlack * factor / 255);
     const accent = shade(80, true), highlight = shade(125, true), shadow = shade(135, false), trough = shade(110, false);
     const flat = [matte.r, matte.g, matte.b, matte.a].map(value => Math.round(value * scale));
     const interior = [border.r, border.g, border.b, border.a].map(value => Math.round(value * scale));
@@ -43,9 +45,11 @@ export function* magickFramePixels(source: Pick<RgbaImage, "width" | "height" | 
                     color = dx < edge ? shadow : dx >= innerW + 2 * inner - edge ? highlight : accent;
                 } else color = x < frameX ? shadow : x >= frameX + innerW ? highlight : interior;
             }
-            data.set(color, i * 4);
-            hueSamples?.set(color.map(value => value / maximum), i * 4);
-            inks?.set([color[0]! / maximum, color[1]! / maximum, color[2]! / maximum, color === interior ? borderBlack : matteBlack], i * 4);
+            for (let channel = 0; channel < 4; channel++) {
+                data[i * 4 + channel] = color[channel]!;
+                if (hueSamples) hueSamples[i * 4 + channel] = color[channel]! / maximum;
+            }
+            inks?.set([color[0]! / maximum, color[1]! / maximum, color[2]! / maximum, color[4] ?? (color === interior ? borderBlack : matteBlack)], i * 4);
         }
         const sy = y - frameY - insetY, first = Math.max(left, frameX + insetX), end = Math.min(left + count, frameX + insetX + source.width);
         if (compositeSource && sy >= 0 && sy < source.height && end > first) {

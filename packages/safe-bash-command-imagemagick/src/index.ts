@@ -17888,6 +17888,9 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
         else if (t === "-tile" || t === "+tile") {
             options.push("-define", `compose:tile=${t === "-tile"}`);
         }
+        else if (t === "-displace") {
+            options.push("-define", `compose:args=${argv[++i] ?? ""}`, "-compose", "Displace");
+        }
         else if (t === "-dissolve") {
             options.push("-define", `compose:args=${argv[++i] ?? "100"}`, "-compose", "Dissolve");
         }

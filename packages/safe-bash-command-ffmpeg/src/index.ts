@@ -15157,7 +15157,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           report = await measureAstats(stretched.map(channel => channel.subarray(statsStart, measuredEnd)), origRate, statsScale, rmsLength, budget, context.signal, perChannel, overall);
                         }
-                        await writeBytes(context.stderr, encodeUtf8(report), context.signal);
+                        if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "loudnorm" || trimmed.startsWith("loudnorm=")) {
                         const normalized = await normalizeLoudness(stretched, origRate,
                           trimmed === "loudnorm" ? "" : trimmed.slice("loudnorm=".length), budget, context.signal);

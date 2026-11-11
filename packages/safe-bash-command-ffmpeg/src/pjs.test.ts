@@ -35,7 +35,10 @@ for (const sync of [false, true]) {
       });
     }
     for (const [dialogue, expected] of [
-      ["First|Second", "First\nSecond"],
+      ["First|Second", "First\r\nSecond"],
+      ["|A", "\r\nA"],
+      ["A|", "A\r\n"],
+      ["A||B", "A\r\n\r\nB"],
       ["First", "First"],
       ["First, second", "First, second"]
     ]) {
@@ -60,7 +63,7 @@ for (const sync of [false, true]) {
           } as never);
           assert.equal(result.exitCode, 0, stderr);
         }
-        assert.equal((volume.readFileSync("/out.srt", "utf8") as string).replaceAll("\r\n", "\n"),
+        assert.equal(volume.readFileSync("/out.srt", "utf8"),
           `1\n00:00:01,000 --> 00:00:02,000\n${expected}\n\n`);
       });
     }
@@ -72,7 +75,7 @@ for (const sync of [false, true]) {
     for (const forced of [false, true]) {
       it(`${sync ? "sync" : "async"} ${forced ? "forced" : "detected"} ${format} input preserves subtitle timing and lines`, async () => {
         const volume = Volume.fromJSON({ [`/input.${format}`]: format === "pjs"
-          ? '12,28,"First line"\n34,50,"Last & final"\n'
+          ? '12,28,"First|line"\n34,50,"Last & final"\n'
           : "1\n00:00:01,200 --> 00:00:02,800\nFirst line\n\n2\n00:00:03,400 --> 00:00:05,000\nLast & final\n" });
         const target = "/out.vtt";
         const args = ["-v", "error", "-y", ...(forced ? ["-f", format] : []), "-i", `/input.${format}`, target];
@@ -95,7 +98,7 @@ for (const sync of [false, true]) {
           assert.equal(result.exitCode, 0, stderr);
         }
         assert.equal(volume.readFileSync(target, "utf8"),
-          "WEBVTT\n\n00:01.200 --> 00:02.800\nFirst line\n\n00:03.400 --> 00:05.000\nLast & final\n");
+          `WEBVTT\n\n00:01.200 --> 00:02.800\n${format === "pjs" ? "First\nline" : "First line"}\n\n00:03.400 --> 00:05.000\nLast & final\n`);
       });
     }
   }

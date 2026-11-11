@@ -7985,12 +7985,20 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           return { ...sample, data, size: data.byteLength };
         }
         if (codec === "microdvd" || codec === "mpl2") {
-          const text = decodeUtf8(sample.data);
+          let text = decodeUtf8(sample.data);
+          // MPL2 consumes one dialogue-prefix space before reading line styles.
+          if (codec === "mpl2" && text.startsWith(" ")) text = text.slice(1);
           const lineBreak = outputFormat === "srt" || containerCodec === "subrip" ? "\r\n" : "\n";
-          const data = encodeUtf8(codec === "microdvd" ? decodeMicrodvd(text).replaceAll("\n",
+          let data = encodeUtf8(codec === "microdvd" ? decodeMicrodvd(text).replaceAll("\n",
             outputFormat === "srt" ? "\r\n" : "\n") : text.split("|")
             .map(line => codec === "mpl2" && line.startsWith("/") ? `<i>${line.slice(1)}</i>` : line)
             .join(lineBreak).replaceAll("\\N", lineBreak));
+          if (codec === "mpl2" && (outputFormat === "webvtt" || containerCodec === "webvtt" || outputFormat === "srt" || containerCodec === "subrip")) {
+            // Text encoders discard initial ASCII spaces after style decoding.
+            let start = 0;
+            while (data[start] === 0x20) start++;
+            data = data.subarray(start);
+          }
           return { ...sample, data, size: data.byteLength };
         }
         return { ...sample, webvtt: undefined };

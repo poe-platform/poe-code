@@ -55,7 +55,7 @@ it.each(["sync", "buffered", "retained"] as const)("resets signed depth after a 
     const args = ["/in.png", "-define", "quantum:format=signed", "-depth", "16", "-write", "/signed.tif", "+define", "quantum:format", "+depth", "/out.tif"];
     expect(mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files)).toMatchObject({ exitCode: 0, stderr: "" });
     const reference = new Map([["/in.png", input]]);
-    expect(runConvertCliSync(["/in.png", "/out.tif"], reference).exitCode).toBe(0);
+    expect(runConvertCliSync(["/in.png", "+depth", "/out.tif"], reference).exitCode).toBe(0);
     const bytes = mode === "retained" ? await filesystem.readFile("/out.tif") : files.get("/out.tif")!;
     expect(bytes).toEqual(reference.get("/out.tif"));
     const signed = mode === "retained" ? await filesystem.readFile("/signed.tif") : files.get("/signed.tif")!;

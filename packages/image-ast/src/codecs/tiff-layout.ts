@@ -170,16 +170,16 @@ export function createTiffLayout(
 }
 
 /** ImageMagick associates every sample, including the alpha sample itself. */
-export function associateTiffSamples(bytes: Uint8Array, channels: number, alphaChannel = channels - 1): void {
+export function associateTiffSamples(bytes: Uint8Array | Uint16Array, channels: number, alphaChannel = channels - 1): void {
   for (let offset = 0; offset < bytes.length; offset += channels) {
-    const alpha = bytes[offset + alphaChannel]! / 255;
+    const alpha = bytes[offset + alphaChannel]! / (bytes instanceof Uint16Array ? 65535 : 255);
     for (let channel = 0; channel < channels; channel++) bytes[offset + channel] = Math.round(bytes[offset + channel]! * alpha);
   }
 }
 
 /** Extract one sample plane from a bounded chunk of packed samples. */
-export function tiffSamplePlane(bytes: Uint8Array, channels: number, plane: number): Uint8Array {
-  const output = new Uint8Array(bytes.length / channels);
+export function tiffSamplePlane(bytes: Uint8Array | Uint16Array, channels: number, plane: number): Uint8Array | Uint16Array {
+  const output = bytes instanceof Uint16Array ? new Uint16Array(bytes.length / channels) : new Uint8Array(bytes.length / channels);
   for (let i = 0; i < output.length; i++) output[i] = bytes[i * channels + plane]!;
   return output;
 }

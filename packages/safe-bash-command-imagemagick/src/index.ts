@@ -11434,7 +11434,7 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     if (format === "pgm" && image.hueSamples) image = yield* parseMagickPixelOperation(["-grayscale", "Rec709Luma"], createDefaultState(), 0)!.apply(image);
     // Convert working colorspaces first; keep ordinary sRGB luma at exporter precision.
     if ((format === "gray" || format === "graya") && (image.magickColorspace || (image.space === "b-w" || image.space === "grey16") && image.gamma === 1)) image = yield* parseMagickPixelOperation(["-colorspace", "Gray"], createDefaultState(), 0)!.apply(image);
-    if (pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff") image = yield* prepare16BitOutput(image);
+    if (pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff" || format === "tiff") image = yield* prepare16BitOutput(image);
     if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false
         || (pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && !image.hasAlpha && (image.writeMask || image.region)) {
         // Raw RGBA synchronizes the masked cache before activating stored alpha.
@@ -11489,7 +11489,7 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     if (format === "pgm" && image.storedHueSamples !== undefined) image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-grayscale", "Rec709Luma"], createDefaultState(), 0)!, signal);
     // Convert working colorspaces first; keep ordinary sRGB luma at exporter precision.
     if ((format === "gray" || format === "graya") && (image.magickColorspace || (image.space === "b-w" || image.space === "grey16") && image.gamma === 1)) image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "Gray"], createDefaultState(), 0)!, signal);
-    if ((pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff") && image.storedEvaluateSamples !== undefined) {
+    if ((pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff" || format === "tiff") && image.storedEvaluateSamples !== undefined) {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepare16BitOutput }, signal);
     }
     if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false

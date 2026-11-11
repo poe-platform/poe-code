@@ -436,34 +436,44 @@ export function encodeTiffImage(img:RgbaImage,options?:Parameters<typeof createT
  for(let index=0;index<pages.length;index++) {
   const page=pages[index]!;
   if(page.space === "cmyk" && page.hueSamples?.length !== page.width*page.height*4) throw new Error("Invalid TIFF CMYK samples");
-  const channels=createTiffLayout(page,options).channels,chunks:Uint8Array[]=[];
-  const rows=options?.tiffTile?.height ?? options?.tiffRowsPerStrip ?? page.height,columns=options?.tiffTile?.width ?? page.width,stripSizes:number[]=[];
-  for(let plane=0;plane<(options?.tiffPlanar ? channels : 1);plane++) {
+  const pageOptions={...options,...(options?.tiffIntegerDepth === undefined && options?.tiffCompression !== "jpeg" && page.space !== "cmyk" && (page.bitsPerSample === 16 || page.depth === "ushort") ? {tiffIntegerDepth:16 as const} : {})};
+  const channels=createTiffLayout(page,pageOptions).channels,chunks:Uint8Array[]=[];
+  const highDepth=page.space !== "cmyk" && !pageOptions.tiffFloatDepth && (pageOptions.tiffIntegerDepth ?? 8) > 8 && !!page.data16;
+  const rows=pageOptions.tiffTile?.height ?? pageOptions.tiffRowsPerStrip ?? page.height,columns=pageOptions.tiffTile?.width ?? page.width,stripSizes:number[]=[];
+  for(let plane=0;plane<(pageOptions.tiffPlanar ? channels : 1);plane++) {
   for(let row=0;row<page.height;row+=rows) {
   for(let left=0;left<page.width;left+=columns) {
-  const height=options?.tiffTile ? rows : Math.min(rows,page.height-row),start=chunks.length;
+  const height=pageOptions.tiffTile ? rows : Math.min(rows,page.height-row),start=chunks.length;
+  if(pageOptions.tiffCompression === "jpeg") {
   let block=page;
-  if(options?.tiffTile) {
+  if(pageOptions.tiffTile) {
    const data=new Uint8Array(columns*height*4);
    for(let y=0;y<Math.min(height,page.height-row);y++) data.set(page.data.subarray(((row+y)*page.width+left)*4,((row+y)*page.width+Math.min(left+columns,page.width))*4),y*columns*4);
    block={...page,width:columns,height,data};
   } else block={...page,height,data:page.data.subarray(row*page.width*4,(row+height)*page.width*4)};
-  if(options?.tiffCompression === "jpeg") chunks.push(encodeJpegImage({...block,space:"srgb"}, {...options,chromaSubsampling:"4:4:4"}));
+  chunks.push(encodeJpegImage({...block,space:"srgb"}, {...pageOptions,chromaSubsampling:"4:4:4"}));
+  }
   else {
-   const compressor=createTiffCompressor(options?.tiffCompression,columns*(options?.tiffPlanar ? 1 : channels)*((options?.tiffFloatDepth ?? options?.tiffIntegerDepth ?? 8)/8));
+   const compressor=createTiffCompressor(pageOptions.tiffCompression,columns*(pageOptions.tiffPlanar ? 1 : channels)*((pageOptions.tiffFloatDepth ?? pageOptions.tiffIntegerDepth ?? 8)/8));
    try {
-    for(let offset=0;offset<block.data.length;offset+=4096) {
-     const size=Math.min(4096,block.data.length-offset),raw=new Uint8Array(size/4*channels);
+    for(let offset=0;offset<columns*height*4;offset+=4096) {
+     const size=Math.min(4096,columns*height*4-offset),raw=highDepth ? new Uint16Array(size/4*channels) : new Uint8Array(size/4*channels);
      for(let src=offset,dst=0;src<offset+size;src+=4) {
-      const pixel = src / 4, x = left + pixel % columns, y = row + Math.floor(pixel / columns);
+      const pixel=src/4,x=left+pixel%columns,y=row+Math.floor(pixel/columns),at=(y*page.width+x)*4;
+      const valid=x<page.width && y<page.height;
+      const samples=highDepth ? page.data16! : page.data;
       if(page.space === "cmyk") {
-       for(let channel=0;channel<4;channel++) raw[dst++]=x<page.width && y<page.height ? Math.round(Math.max(0,Math.min(1,page.hueSamples![(y*page.width+x)*4+channel]!))*255) : 0;
-      } else {raw[dst++]=block.data[src]!;if(tiffChannels(page)>=3){raw[dst++]=block.data[src+1]!;raw[dst++]=block.data[src+2]!;}}
-      if(page.hasAlpha)raw[dst++]=block.data[src+3]!;
-      for (const meta of page.metaChannels ?? []) raw[dst++] = x < page.width && y < page.height ? meta.data[(y * page.width + x) * 4]! : 0;}
-
-     if (page.hasAlpha && options?.tiffAlpha === "associated") associateTiffSamples(raw, channels, tiffChannels(page) - 1);
-     chunks.push(...compressor.push(encodeTiffIntegerSamples(encodeTiffFloatSamples(options?.tiffPlanar ? tiffSamplePlane(raw, channels, plane) : raw, options?.tiffFloatDepth, options?.tiffEndian !== "msb"), options?.tiffFloatDepth ? undefined : options?.tiffIntegerDepth, options?.tiffEndian !== "msb")));
+       for(let channel=0;channel<4;channel++) raw[dst++]=valid ? Math.round(Math.max(0,Math.min(1,page.hueSamples![at+channel]!))*255) : 0;
+      } else {
+      raw[dst++]=valid ? samples[at]! : 0;
+      if(tiffChannels(page)>=3) {raw[dst++]=valid ? samples[at+1]! : 0;raw[dst++]=valid ? samples[at+2]! : 0;}
+      }
+      if(page.hasAlpha) raw[dst++]=valid ? samples[at+3]! : 0;
+      for(const meta of page.metaChannels ?? []) raw[dst++]=valid ? highDepth ? meta.data16?.[at] ?? meta.data[at]!*257 : meta.data[at]! : 0;
+     }
+     if (page.hasAlpha && pageOptions.tiffAlpha === "associated") associateTiffSamples(raw, channels, tiffChannels(page) - 1);
+     const samples=pageOptions.tiffPlanar ? tiffSamplePlane(raw,channels,plane) : raw;
+     chunks.push(...compressor.push(pageOptions.tiffFloatDepth ? encodeTiffFloatSamples(samples,pageOptions.tiffFloatDepth,pageOptions.tiffEndian !== "msb") : encodeTiffIntegerSamples(samples,pageOptions.tiffIntegerDepth,pageOptions.tiffEndian !== "msb")));
     }
     chunks.push(...compressor.push(new Uint8Array(),true));
    } finally {compressor.close();}
@@ -474,7 +484,7 @@ export function encodeTiffImage(img:RgbaImage,options?:Parameters<typeof createT
   }
   if(options?.tiffFillOrder === "lsb" && options.tiffCompression !== "jpeg") for(const chunk of chunks) for(let i=0;i<chunk.length;i++) chunk[i]=tiffReversedBytes[chunk[i]!]!;
   payloads.push(chunks);
-  layouts[index]=createTiffLayout(page,options,end,index+1<pages.length,stripSizes,index,pages.length);end=layouts[index]!.end;
+  layouts[index]=createTiffLayout(page,pageOptions,end,index+1<pages.length,stripSizes,index,pages.length);end=layouts[index]!.end;
  }
  const out=new Uint8Array(end);
  let offset=0;

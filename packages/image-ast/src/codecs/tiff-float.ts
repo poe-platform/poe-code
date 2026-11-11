@@ -12,11 +12,10 @@ export function readTiffFloat8(view: DataView, offset: number, bits: number, lit
 }
 
 /** Serialize normalized RGBA bytes as IEEE samples, after channel/plane selection. */
-export function encodeTiffFloatSamples(bytes: Uint8Array, bits: 16 | 32 | 64 | undefined, little: boolean): Uint8Array {
-  if (bits === undefined) return bytes;
+export function encodeTiffFloatSamples(bytes: Uint8Array | Uint16Array, bits: 16 | 32 | 64, little: boolean): Uint8Array {
   const output = new Uint8Array(bytes.length * bits / 8), view = new DataView(output.buffer);
   for (let i = 0; i < bytes.length; i++) {
-    const value = bytes[i]! / 255, offset = i * bits / 8;
+    const value = bytes[i]! / (bytes instanceof Uint16Array ? 65535 : 255), offset = i * bits / 8;
     if (bits === 32) view.setFloat32(offset, value, little);
     else if (bits === 64) view.setFloat64(offset, value, little);
     else {

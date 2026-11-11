@@ -11733,13 +11733,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           statsScale = 1;
                         } else {
                           // Echo shares its input/output format. Negotiate downstream
-                          // requirements through identity filters before rounding samples.
+                          // requirements through filters that preserve sample formats before rounding.
                           let formats: string[] | undefined;
                           for (let nextIndex = filterIndex + 1; nextIndex < audioFilters.length; nextIndex++) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             const next = audioFilters[nextIndex]!.trim();
                             const name = next.split("=", 1)[0]!.split("@", 1)[0];
-                            if (name === "anull" || name === "acopy") continue;
+                            if (["anull", "acopy", "atrim", "asetpts", "asetnsamples", "areverse", "apad"].includes(name!)) continue;
                             const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "";
                             if (name === "aformat") {
                               let requested: string[] | undefined;

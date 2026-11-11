@@ -44,16 +44,16 @@ for (const mode of ["public", "buffered", "sync", "mogrify"] as const) {
     });
 }
 
-it.each(["retained", "buffered", "sync", "mogrify"])("preserves output when expanded local-contrast geometry is invalid via %s", async mode => {
+it.each(["retained", "buffered", "sync", "mogrify"])("preserves output when expanded local-contrast geometry exceeds the radius limit via %s", async mode => {
     const files = new Map([["/i.ppm", input], ["/o.ppm", input]]), fs = new MemoryFileSystem();
     await fs.writeFile("/i.ppm", input);
     await fs.writeFile("/o.ppm", input);
-    const options = ["-set", "option:settings", "bad", "-local-contrast", "%[option:settings]"];
+    const options = ["-set", "option:settings", "100000000x50", "-local-contrast", "%[option:settings]"];
     const args = ["/i.ppm", ...options, "/o.ppm"];
     const result = mode === "sync" ? runConvertCliSync(args, files)
         : mode === "mogrify" ? await runMogrifyCli([...options, "/i.ppm"], files)
         : await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain("Invalid local contrast geometry");
+    expect(result.stderr).toContain("Local contrast radius exceeds 5000");
     expect(mode === "retained" ? await fs.readFile("/o.ppm") : files.get(mode === "mogrify" ? "/i.ppm" : "/o.ppm")).toEqual(input);
 });

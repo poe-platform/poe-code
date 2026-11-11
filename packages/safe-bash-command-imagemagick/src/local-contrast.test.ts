@@ -75,7 +75,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect(createHash("sha256").update(bytes).digest("hex")).toBe("e148e39fbcddc5ae01593acf7c49caab0a3e38c60279debd3c36a90f1321c373");
     });
 
-    it.each(["", "bogus", "12x50junk", "12x50x3", "12xInfinity", "100000000x50"])(`rejects invalid or excessive local-contrast geometry %s before output via ${mode}`, async geometry => {
+    it.each(["1e999x50", "12x1e999", "100000000x50"])(`rejects invalid or excessive local-contrast geometry %s before output via ${mode}`, async geometry => {
         const files = new Map([["input.png", input]]), filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/input.png", input);
         const args = ["input.png", "-local-contrast", geometry, "out.png"];

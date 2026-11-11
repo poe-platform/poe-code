@@ -5,11 +5,61 @@ import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
 export function parseLocalContrastGeometry(raw: string): { radius: number; strength: number } {
-    const parts = raw.replaceAll("%", "").replaceAll("(", "").replaceAll(")", "")
-        .replaceAll(",", "x").replaceAll("/", "x").split("x");
-    const radius = parts[0] ? Number(parts[0]) : 10;
-    const strength = parts[1] ? Number(parts[1]) : 12.5;
-    if (parts.length > 2 || !parts.some(part => part.trim().length) || ![radius, strength].every(Number.isFinite)) throw new Error("Invalid local contrast geometry");
+    const defaults = { radius: 10, strength: 12.5 };
+    const value = [...raw].filter(c => c.trim() !== "" && !"%!<>#^@()".includes(c)).join("");
+    // ParseGeometry drops all fields on unknown characters, including JS binary/octal prefixes.
+    if (raw.length >= 4095 || [...value].some(c => !"0123456789eExX+-,/.:".includes(c))) return defaults;
+    let position = 0;
+    function number(hex = false): number | undefined {
+        const start = position;
+        if (value[position] === "+" || value[position] === "-") position++;
+        const hexadecimal = hex && value.slice(position, position + 2).toLowerCase() === "0x";
+        if (hexadecimal) position += 2;
+        const digits = hexadecimal ? "0123456789abcdefABCDEF" : "0123456789";
+        const first = position;
+        while (position < value.length && digits.includes(value[position]!)) position++;
+        let count = position - first;
+        if (!hexadecimal && value[position] === ".") {
+            const fraction = ++position;
+            while (position < value.length && digits.includes(value[position]!)) position++;
+            count += position - fraction;
+        }
+        if (!count) { position = start; return undefined; }
+        if (!hexadecimal && (value[position] === "e" || value[position] === "E")) {
+            const exponent = position++;
+            if (value[position] === "+" || value[position] === "-") position++;
+            const first = position;
+            while (position < value.length && digits.includes(value[position]!)) position++;
+            if (position === first) position = exponent;
+        }
+        return hexadecimal ? Number.parseInt(value.slice(start, position), 16) : Number.parseFloat(value.slice(start, position));
+    }
+    let radius = number();
+    // A number followed directly by offsets is an offset itself, not a radius.
+    if (position < value.length && !"xX:,/".includes(value[position]!)) { radius = undefined; position = 0; }
+    const separator = value[position];
+    let strength: number | undefined;
+    if (separator && "xX:,/".includes(separator)) {
+        position++;
+        if (separator === "," || separator === "/" || (value[position] !== "+" && value[position] !== "-")) strength = number(true);
+    }
+    let offset: number | undefined, negative = false;
+    if (position < value.length && "+-,/:".includes(value[position]!)) {
+        if (",/:".includes(value[position]!)) position++;
+        while (value[position] === "+" || value[position] === "-") {
+            if (value[position] === "-") negative = !negative;
+            position++;
+        }
+        offset = number(true);
+    }
+    if (value.includes(":") && strength !== undefined) {
+        if (radius !== undefined) radius /= Math.abs(strength) < 1e-12 ? (strength < 0 ? -1e-12 : 1e-12) : strength;
+        strength = offset === 0 ? 2 : 1;
+    }
+    if (radius !== undefined && strength === undefined && negative && offset !== undefined) strength = -offset;
+    radius ??= defaults.radius;
+    strength ??= defaults.strength;
+    if (![radius, strength].every(Number.isFinite)) throw new Error("Invalid local contrast geometry");
     return { radius, strength };
 }
 

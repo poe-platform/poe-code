@@ -13,8 +13,8 @@ for (const route of ["sync", "map", "sdk", "identify", "magick", "info"] as cons
         { input: "/in.pgm", options: ["-ping"], expected: route === "info" ? "1x1:first\n:gray(17);2x1:second\n:gray(85);" : "1x1:first\n:gray(0);2x1:second\n:gray(0);" },
         { input: "/in.pgm[1]", options: [], expected: "2x1:second\n:gray(85);" },
         { input: "/in.pgm[0]", options: [], expected: "1x1:first\n:gray(17);" }
-    ].filter(({ options }) => route !== "info" || options.length === 0))(`reads each Netpbm frame's metadata (${route}): $input $options`, async ({ input, options, expected, format: outputFormat = format }) => {
-        const args = [...options, "-format", outputFormat, input];
+    ].filter(({ options }) => route !== "info" || options.length === 0))(`reads each Netpbm frame's metadata (${route}): $input $options`, async ({ input, options, expected }) => {
+        const args = [...options, "-format", format, input];
         const files = new Map([["/in.pgm", pgm]]);
         let result;
         if (route === "sync") result = runIdentifyCliSync(args, files);

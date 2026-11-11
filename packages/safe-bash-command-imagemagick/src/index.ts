@@ -12744,7 +12744,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             state.adjoin = true;
         }
         else if (t === "-scene") {
-            state.scene = Number(tokens[++i]);
+            const value = tokens[++i] ?? "";
+            validateMagickTransformGeometry(value, "-scene");
+            state.scene = Number.parseInt(value, 10) || 0;
             if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
             const scene = state.scene;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
@@ -16779,7 +16781,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-scene") {
-            state.scene = Number(tokens[++i]);
+            const value = tokens[++i] ?? "";
+            validateMagickTransformGeometry(value, "-scene");
+            state.scene = Number.parseInt(value, 10) || 0;
             if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
             const scene = state.scene;
             steps.push(async image => image ? { ...image, [magickInput]: { ...(image as StoredMagickImage)[magickInput], outputScene: scene } } : undefined);

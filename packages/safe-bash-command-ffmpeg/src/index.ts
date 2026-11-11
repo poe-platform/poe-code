@@ -17232,6 +17232,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (key === "enable") throw new Error("earwax: timeline is unsupported");
                           throw new Error(`earwax: unsupported option ${key}`);
                         }
+                        if (stretched.length === 2 && filteredChannelMask &&
+                            filteredChannelMask !== 3 && filteredChannelMask !== 0x60000000) {
+                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                          if (filteredChannelMask !== 12) throw new Error("earwax: unsupported input channel layout");
+                          // FC+LFE contributes only center, at the native stereo center gain.
+                          const stereo = await panAudio(`stereo|FL=${Math.SQRT1_2}*FC|FR=${Math.SQRT1_2}*FC`,
+                            stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
+                          stretched = stereo.channels;
+                          filteredChannelMask = stereo.channelMask;
+                          filteredChannelNames = undefined;
+                        }
                         if (stretched.length > 2) {
                           if (!autoConversionFilters) throw new Error(audioConversionDisabled);
                           const inputMask = filteredChannelMask || ({ 3: 0xb, 4: 0x107, 6: 0x3f }[stretched.length]);
@@ -19890,6 +19901,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (err instanceof RangeError && msg.startsWith("tremolo:")) return { exitCode: 222 };
             if (msg === "tremolo: invalid expression" || msg === "tremolo: invalid or unsupported expression") return { exitCode: 234 };
             if (msg === "earwax: timeline is unsupported") return { exitCode: 176 };
+            if (msg === "earwax: unsupported input channel layout") return { exitCode: 234 };
             if (msg.startsWith("earwax: unsupported option ")) return { exitCode: 8 };
             if (msg === "earwax: unexpected positional argument") return { exitCode: 234 };
             if (msg === "separatefields: timeline is unsupported") return { exitCode: 176 };

@@ -2067,7 +2067,7 @@ function* formatTxtEnumerationSteps(img: RgbaImage, depth?: number): Generator<v
 
 function* formatHistogramOutputSteps(img: RgbaImage, precision = 6): Generator<void, string, void> {
     const source = img.space === "cmyk" || img.space === "b-w" || img.space === "grey16";
-    const colorspace = img.space === "cmyk" ? "cmyk" : source ? img.gamma === 1 && img.magickColorspace !== "Gray" ? "lineargray" : "gray" : "srgb";
+    const colorspace = img.space === "cmyk" ? "cmyk" : source ? img.gamma === 1 && img.magickColorspace !== "Gray" ? "lineargray" : "gray" : img.magickColorspace === "RGB" ? "rgb" : "srgb";
     const floating = source || img.space === "srgb" && img.evaluateSamples !== undefined && (!img.magickColorspace || img.magickColorspace === "RGB");
     let work = 0;
     const counts = new Map<number | bigint | string, number>();
@@ -2089,7 +2089,7 @@ function* formatHistogramOutputSteps(img: RgbaImage, precision = 6): Generator<v
     })) {
         if (++work % 16384 === 0)
             yield;
-        lines.push(floating ? floatingHistogramLine(key as bigint, cnt, img.hasAlpha, (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8, colorspace, precision) : typeof key === "string" ? `  ${cnt}: ${key}` : histogramLine(key, cnt, img.hasAlpha, (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8, precision));
+        lines.push(floating ? floatingHistogramLine(key as bigint, cnt, img.hasAlpha, (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8, colorspace, precision) : typeof key === "string" ? `  ${cnt}: ${key}` : histogramLine(key, cnt, img.hasAlpha, (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8, precision, colorspace));
     }
     return lines.join("\n") + "\n";
 }

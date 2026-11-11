@@ -20,3 +20,16 @@ it("uses empty SYNC captions as end markers without displaying them", () => {
   assert.deepEqual(doc.tracks[0]!.samples.map(s => [s.pts, s.duration, new TextDecoder().decode(s.data)]),
     [[1000, 1500, "First"], [4000, 1000, "Second"]]);
 });
+
+for (const [paragraphs, caption] of [
+  ['<P Class=EN>Hello</P><P Class=PL>Cześć</P>', 'Hello\nCześć'],
+  ['<P>one</P><P>two</P>', 'one\ntwo'],
+  ['<P>one\n<P>two', 'one\ntwo'],
+  ['<P>one\ntwo', 'one two']
+]) {
+  it(`keeps SAMI paragraph boundaries within a single cue: ${paragraphs}`, () => {
+    const doc = samiAst().parse(new TextEncoder().encode(`<SAMI>\n<BODY>\n<SYNC Start=1000>${paragraphs}\n<SYNC Start=3000><P>done\n</BODY>\n</SAMI>\n`));
+    assert.deepEqual(doc.tracks[0]!.samples.map(s => [s.pts, s.duration, new TextDecoder().decode(s.data)]),
+      [[1000, 2000, caption], [3000, 0xffffffff, "done"]]);
+  });
+}

@@ -29,6 +29,7 @@ function parseSami(bytes: Uint8Array): MediaDocument {
         start = next;
         paragraph = false;
       } else if (name === "p") {
+        if (text) text = text.trimEnd() + "\n";
         paragraph = true;
       } else if (name === "br" && paragraph) {
         text = text.trimEnd() + "\n";

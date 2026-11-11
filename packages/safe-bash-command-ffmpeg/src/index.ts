@@ -12173,10 +12173,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await denoiseWavelets(stretched, origRate, trimmed, budget, context.signal);
                         continue;
                       }
-                      if (trimmed === "deesser" || trimmed.startsWith("deesser=")) {
-                        stretched = await deessAudio(stretched, origRate, trimmed, budget, context.signal);
-                        continue;
-                      }
                       if (trimmed === "anull" || trimmed === "acopy") continue;
                       if (trimmed === "aphasemeter" || trimmed.startsWith("aphasemeter=")) {
                         let video = true;
@@ -12716,7 +12712,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
-                      } else if (filterName === "aexciter" || filterName === "atilt" || filterName === "aphaseshift" || filterName === "afreqshift" || filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip" || filterName === "asubboost" || filterName === "agate") {
+                      } else if (filterName === "deesser" || filterName === "aexciter" || filterName === "atilt" || filterName === "aphaseshift" || filterName === "afreqshift" || filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip" || filterName === "asubboost" || filterName === "agate") {
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
@@ -12733,7 +12729,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
-                        if (filterName === "aexciter") {
+                        if (filterName === "deesser") {
+                          stretched = await deessAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                        } else if (filterName === "aexciter") {
                           const commands = audioCommands.filter(command => command.target === "aexciter" || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);
                           audioCommands = audioCommands.filter(command => command.target !== "aexciter" && command.target !== filterTarget);

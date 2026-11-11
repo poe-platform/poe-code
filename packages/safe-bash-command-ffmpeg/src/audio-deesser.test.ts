@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
+import { createHash } from "node:crypto";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
 import { MediaBudgetTracker, parseWav } from "@poe-code/mp4-ast";
@@ -181,8 +182,8 @@ async function run(filter: string, graph = false, channels = [mono]) {
 
 
 it("bounds memory and honors cancellation", async () => {
-  await assert.rejects(deessAudio([mono], 48000, "deesser", new MediaBudgetTracker({ maxMemoryBytes: 64 })), /maxMemoryBytes/);
-  await assert.rejects(deessAudio([mono], 48000, "deesser", new MediaBudgetTracker(), AbortSignal.abort()));
+  await assert.rejects(deessAudio([mono], 48000, "deesser", [{ start: 0, end: mono.length, pts: 0 }], new MediaBudgetTracker({ maxMemoryBytes: 64 })), /maxMemoryBytes/);
+  await assert.rejects(deessAudio([mono], 48000, "deesser", [{ start: 0, end: mono.length, pts: 0 }], new MediaBudgetTracker(), AbortSignal.abort()));
 });
 
 it("applies subsequent filters to the processed signal", async () => {
@@ -190,4 +191,43 @@ it("applies subsequent filters to the processed signal", async () => {
   assert.equal(result.exitCode, 0, stderr);
   const channel = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
   assert.ok(Math.abs(channel[1000]! * 32768 - 956) <= 1);
+});
+
+for (const graph of [false, true]) for (const mode of ["i", "o", "e"]) {
+  it(`deesser ${mode} honors frame enable and keeps state (graph=${graph})`, async () => {
+    const input = Float64Array.from({ length: 384 }, (_, i) => ((i * 7919) % 50000 - 25000) / 32768);
+    const wet = await run(`deesser=i=1:s=${mode}`, graph, [input]);
+    assert.equal(wet.result.exitCode, 0, wet.stderr);
+    const processed = parseWav(wet.fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
+    for (const [expression, enabled] of [
+      ["gte(n,2)", [false, false, true, true]],
+      ["mod(n,2)", [false, true, false, true]],
+      ["gte(t,1.004)", [false, false, true, true]],
+      ["0", [false, false, false, false]],
+      ["1", [true, true, true, true]],
+      ["gte(st(0,ld(0)+1),5)", [false, false, true, true]]
+    ] as const) {
+      const output = await run(`asetnsamples=n=96:p=0,asetpts=PTS+48000,deesser=i=1:s=${mode}:enable='${expression}'`, graph, [input]);
+      assert.equal(output.result.exitCode, 0, output.stderr);
+      const samples = parseWav(output.fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!;
+      assert.equal(samples.length, input.length);
+      if (expression === "gte(n,2)" && mode !== "i") {
+        // Native FFmpeg PCM16 output for the same four-frame fixture.
+        const pcm = Buffer.alloc(samples.length * 2);
+        samples.forEach((value, i) => pcm.writeInt16LE(Math.round(value * 32768), i * 2));
+        assert.equal(createHash("sha256").update(pcm).digest("hex"), mode === "o"
+          ? "ebf060cf789547bcdfd94b1c38c0a0b6fceac3db32e11a87db3192d88ce2cf23"
+          : "3d69cfc79535aa0b496297587a8f2a2d15194f2b8f416d2162922bd2c1e6b60c");
+      }
+      for (let i = 0; i < samples.length; i++) {
+        assert.equal(samples[i], enabled[Math.floor(i / 96)] ? processed[i] : mode === "e" ? 0 : input[i], `${expression}: sample ${i}`);
+      }
+    }
+  });
+}
+
+for (const expression of ["", "unknown", "gte(n,)"]) it(`rejects invalid deesser enable ${expression}`, async () => {
+  const output = await run(`deesser=enable='${expression}'`);
+  assert.equal(output.result.exitCode, 1);
+  assert.equal(output.fs.readFileSync("/out.wav", "utf8"), "keep");
 });

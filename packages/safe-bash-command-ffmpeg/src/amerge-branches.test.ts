@@ -54,7 +54,7 @@ for (const [graph, expected, frames] of [
 }
 
 for (const [graph, exitCode] of [
-  ["[0:a]volume=invalid[x];[x][1:a]amerge[o]", 1],
+  ["[0:a]volume=invalid[x];[x][1:a]amerge[o]", 234],
   ["[1:a]unsupported_filter[x];[0:a][x]amerge[o]", 8]
 ] as const) {
   it(`preserves output when an amerge branch filter fails: ${graph}`, async () => {

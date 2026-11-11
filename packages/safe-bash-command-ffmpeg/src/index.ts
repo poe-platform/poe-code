@@ -38,6 +38,7 @@ import { weave } from "./weave.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { separateFields } from "./separatefields.js";
 import { decimate } from "./decimate.js";
+import { mpdecimate } from "./mpdecimate.js";
 import { minterpolate } from "./minterpolate.js";
 import { meanFrameDifference } from "./select.js";
 import { sceneChangeDifference } from "./scdet.js";
@@ -5243,51 +5244,7 @@ async function applyVideoFilterChain(
       endTimeSeconds = current.at(-1)?.ptsSeconds ?? 0;
       cleanFrames = undefined;
     } else if (name === "mpdecimate") {
-      if (argStr) throw new Error("mpdecimate: custom options are unsupported");
-      const retained: typeof current = [];
-      for (const frame of current) {
-        if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-        const reference = retained.at(-1);
-        let changed = !reference || frame.width !== reference.width || frame.height !== reference.height;
-        if (reference && !changed) {
-          // Compare retained planar samples at their native dimensions. Fall back
-          // to RGB channels when filters have replaced the retained raster.
-          const native = frame.native, previous = reference.native;
-          const planar = native && previous && native.rgba === frame.data && previous.rgba === reference.data &&
-            native.width === frame.width && native.height === frame.height &&
-            previous.width === reference.width && previous.height === reference.height &&
-            native.format === previous.format && [0, 4, 5, 8, 12, 13, 14].includes(native.format);
-          const pixels = planar ? native.pixels : frame.data;
-          const referencePixels = planar ? previous.pixels : reference.data;
-          const stride = planar ? 1 : 4;
-          let planeOffset = 0;
-          for (let channel = 0; channel < (planar && native.format === 8 ? 1 : 3) && !changed; channel++) {
-            const width = planar && channel > 0 ? Math.ceil(frame.width / ([5, 14].includes(native.format) ? 1 : 2)) : frame.width;
-            const height = planar && channel > 0 ? Math.ceil(frame.height / ([0, 12].includes(native.format) ? 2 : 1)) : frame.height;
-            const lowBlockLimit = Math.floor(Math.floor(width / 16) * Math.floor(height / 16) * 0.33);
-            let lowBlocks = 0;
-            for (let y = 0; y + 8 <= height && !changed; y += 4) {
-              for (let x = 8; x + 8 <= width && !changed; x += 4) {
-                if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-                let difference = 0;
-                for (let row = y; row < y + 8; row++) {
-                  for (let column = x; column < x + 8; column++) {
-                    const offset = (row * width + column) * stride + (planar ? planeOffset : channel);
-                    difference += Math.abs(pixels[offset]! - referencePixels[offset]!);
-                  }
-                }
-                changed = difference > 768 || (difference > 320 && ++lowBlocks > lowBlockLimit);
-              }
-            }
-            planeOffset += width * height;
-          }
-        }
-        if (diagnostics.logLevel >= 48) {
-          await diagnostics.write(`[mpdecimate] ${changed ? "keep" : "drop"} pts:${Math.round(frame.ptsSeconds * timescale)} pts_time:${Number(frame.ptsSeconds.toPrecision(6))}\n`);
-        }
-        if (changed) retained.push(frame);
-      }
-      current = retained;
+      current = await mpdecimate(current, argStr, budget, diagnostics, signal);
     } else if (name === "framestep") {
       if (positional.at(-1) === "") positional.pop();
       const value = parseFilterExpression(named.step ?? (positional[0]?.includes("=") ? "1" : positional[0] || "1"), "framestep", {

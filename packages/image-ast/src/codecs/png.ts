@@ -278,6 +278,9 @@ export function encodePngImage(
     for (let i = 0; i < data.length; i += 4) palette.add(data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!);
   }
   const pngPalette = palette?.finishPng();
+  const paletteDepth = requestedColor === 3 && options?.pngBitDepth === undefined
+    ? pngPalette!.bytes.length <= 6 ? 1 : pngPalette!.bytes.length <= 12 ? 2 : pngPalette!.bytes.length <= 48 ? 4 : 8
+    : 8;
   const density = options?.density ?? img.density ?? 72;
   const resolution = options?.density === undefined ? img.resolution : undefined;
   const scale = resolution?.unit === "inch" ? 1 / 0.0254 : resolution?.unit === "cm" ? 100 : 1;
@@ -313,7 +316,7 @@ export function encodePngImage(
   if (bitDepth === 1 && !packedGray) throw new Error("1-bit PNG requires grayscale without alpha");
   const bpp = palette ? 1 : channels.length * (data16 ? 2 : 1);
   const passes = options?.pngInterlace ? ADAM7_PASSES : [[0, 0, 1, 1] as const];
-  const scanlineBytes = (w: number) => 1 + (exactPalette ? Math.ceil(w * exactPalette.depth / 8) : packedGray ? Math.ceil(w * grayDepth / 8) : w * bpp);
+  const scanlineBytes = (w: number) => 1 + (exactPalette ? Math.ceil(w * exactPalette.depth / 8) : palette ? Math.ceil(w * paletteDepth / 8) : packedGray ? Math.ceil(w * grayDepth / 8) : w * bpp);
   let activeData = data;
   const totalScanlineBytes = passes.reduce((sum, [x, y, dx, dy]) => {
     const w = Math.max(0, Math.ceil((width - x) / dx));
@@ -338,7 +341,7 @@ export function encodePngImage(
       }
     }
   }
-  const canFilterInPlace = Boolean(!packedGray && !exactPalette && !options?.pngInterlace && !data16 && options?.consumeInput && width >= 1 && activeData.length >= totalScanlineBytes);
+  const canFilterInPlace = Boolean(paletteDepth === 8 && !packedGray && !exactPalette && !options?.pngInterlace && !data16 && options?.consumeInput && width >= 1 && activeData.length >= totalScanlineBytes);
   const raw = canFilterInPlace ? activeData.subarray(0, totalScanlineBytes) : new Uint8Array(totalScanlineBytes);
   const rowScratch = canFilterInPlace ? new Uint8Array(width * 4) : undefined;
   const reverseRows = canFilterInPlace && bpp === 4;
@@ -375,6 +378,14 @@ export function encodePngImage(
         for (let x = 0; x < passWidth; x++) {
           const value = Math.round(srcRowData[rowBase + (x0 + x * dx) * 4]! * (2 ** grayDepth - 1) / 255);
           raw[dstRow + 1 + ((x * grayDepth) >> 3)]! |= value << (8 - grayDepth - x * grayDepth % 8);
+        }
+        continue;
+      }
+      if (palette && paletteDepth < 8) {
+        for (let x = 0; x < passWidth; x++) {
+          const src = rowBase + (x0 + x * dx) * 4;
+          const value = pngPalette!.indices[palette.index(srcRowData[src]!, srcRowData[src + 1]!, srcRowData[src + 2]!, srcRowData[src + 3]!)]!;
+          raw[dstRow + 1 + ((x * paletteDepth) >> 3)]! |= value << (8 - paletteDepth - x * paletteDepth % 8);
         }
         continue;
       }
@@ -447,7 +458,7 @@ export function encodePngImage(
   const ihdrView = new DataView(ihdr.buffer);
   ihdrView.setUint32(0, width, false);
   ihdrView.setUint32(4, height, false);
-  ihdr[8] = exactPalette?.depth ?? (packedGray ? grayDepth : data16 ? 16 : 8);
+  ihdr[8] = exactPalette?.depth ?? (palette ? paletteDepth : packedGray ? grayDepth : data16 ? 16 : 8);
   ihdr[9] = colorType;
   ihdr[10] = 0;
   ihdr[11] = 0;

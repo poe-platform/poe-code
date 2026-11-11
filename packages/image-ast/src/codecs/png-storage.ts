@@ -242,6 +242,9 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
     }
   }
   const pngPalette = palette?.finishPng();
+  const paletteDepth = requestedColor === 3 && options.pngBitDepth === undefined
+    ? pngPalette!.bytes.length <= 6 ? 1 : pngPalette!.bytes.length <= 12 ? 2 : pngPalette!.bytes.length <= 48 ? 4 : 8
+    : 8;
   let alpha = Boolean(image.hasAlpha || image.channels === 4 || image.channels === 2);
   if (requestedColor === 0 || requestedColor === 2 || coder === "png24" || coder === "png48" || options.forceOpaque) alpha = false;
   else if (!alpha) {
@@ -275,7 +278,7 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   const source16 = sampleBytes === 2 ? image.storedData16 : undefined;
   const sourceBytes = source16 ? 2 : 1;
   const header = new Uint8Array(13), view = new DataView(header.buffer);
-  view.setUint32(0,width); view.setUint32(4,height); header[8] = exactPalette?.depth ?? (packedGray ? grayDepth : sampleBytes * 8); header[9] = exactPalette || palette ? 3 : gray ? alpha ? 4 : 0 : alpha ? 6 : 2;
+  view.setUint32(0,width); view.setUint32(4,height); header[8] = exactPalette?.depth ?? (palette ? paletteDepth : packedGray ? grayDepth : sampleBytes * 8); header[9] = exactPalette || palette ? 3 : gray ? alpha ? 4 : 0 : alpha ? 6 : 2;
   header[12] = options.pngInterlace ? 1 : 0;
   yield new Uint8Array(PNG_SIGNATURE);
   signal.throwIfAborted(); yield makeChunk("IHDR",header);
@@ -318,7 +321,7 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
       if (!passWidth) continue;
       for (let y=y0;y<height;y+=dy) {
         signal.throwIfAborted();
-        for (const bytes of encoder.push(Uint8Array.of(exactPalette || packedGray ? 0 : 1))) {signal.throwIfAborted(); yield makeChunk("IDAT",bytes);}
+        for (const bytes of encoder.push(Uint8Array.of(exactPalette || packedGray || paletteDepth < 8 ? 0 : 1))) {signal.throwIfAborted(); yield makeChunk("IDAT",bytes);}
         const previous = new Uint8Array(channels.length * sampleBytes);
         const chunkPixels = 1024 / sampleBytes / dx;
         for (let x=0;x<passWidth;x+=chunkPixels) {
@@ -338,6 +341,15 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
             for (let i = 0; i < count; i++) {
               const value = Math.round(pixels[i * 4]! * (2 ** grayDepth - 1) / 255);
               raw[(i * grayDepth) >> 3]! |= value << (8 - grayDepth - i * grayDepth % 8);
+            }
+            for (const bytes of encoder.push(raw)) {signal.throwIfAborted(); yield makeChunk("IDAT", bytes);}
+            continue;
+          }
+          if (palette && paletteDepth < 8) {
+            const raw = new Uint8Array(Math.ceil(count * paletteDepth / 8));
+            for (let i = 0; i < count; i++) {
+              const value = pngPalette!.indices[palette.index(pixels[i * 4]!, pixels[i * 4 + 1]!, pixels[i * 4 + 2]!, pixels[i * 4 + 3]!)]!;
+              raw[(i * paletteDepth) >> 3]! |= value << (8 - paletteDepth - i * paletteDepth % 8);
             }
             for (const bytes of encoder.push(raw)) {signal.throwIfAborted(); yield makeChunk("IDAT", bytes);}
             continue;

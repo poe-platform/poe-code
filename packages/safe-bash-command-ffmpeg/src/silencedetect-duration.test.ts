@@ -26,7 +26,7 @@ for (const key of ["d", "duration"]) {
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
       if (["bad", "125badms", "-1ms", "86400001ms"].includes(duration)) {
-        assert.equal(result.exitCode, 1, stderr);
+        assert.equal(result.exitCode, ["-1ms", "86400001ms"].includes(duration) ? 222 : 234, stderr);
         assert.ok(stderr.includes("silencedetect: invalid duration"), stderr);
         assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
       } else {

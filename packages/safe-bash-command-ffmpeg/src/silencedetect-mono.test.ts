@@ -35,7 +35,7 @@ for (const key of ["m", "mono", "positional"]) {
       } as never);
       assert.deepEqual(volume.readFileSync("/in.wav"), Buffer.from(input));
       if (mono === undefined) {
-        assert.equal(result.exitCode, 1, stderr);
+        assert.equal(result.exitCode, 234, stderr);
         assert.ok(stderr.includes("silencedetect: invalid mono"), stderr);
         assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
       } else {

@@ -45,7 +45,7 @@ for (const noise of ["n=1/25", "noise=1/25", "1/25", "n=0.02*2", "n=sqrt(0.0016)
 for (const noise of ["malformed", "1/", "1/0", "0/0", "-1/25", ""]) {
   it(`silencedetect rejects n=${noise} without replacing output`, async () => {
     const { result, stderr, output } = await run(`n=${noise}`);
-    assert.equal(result.exitCode, 1, stderr);
+    assert.equal(result.exitCode, ["1/0", "-1/25"].includes(noise) ? 222 : 234, stderr);
     assert.ok(stderr.includes("silencedetect:"), stderr);
     assert.equal(output.toString(), "KEEP");
   });

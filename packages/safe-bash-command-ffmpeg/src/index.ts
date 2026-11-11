@@ -12745,10 +12745,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const value = separator < 0 ? option : option.slice(separator + 1);
                           if (key === "noise" || key === "n") {
                             noise = parseFilterExpression(value, "silencedetect", {});
-                            if (!value || !Number.isFinite(noise) || noise < 0) throw new Error("silencedetect: invalid noise");
+                            if (!value || Number.isNaN(noise)) throw new Error("silencedetect: invalid noise");
+                            if (noise < 0 || noise > Number.MAX_VALUE) throw new RangeError("silencedetect: invalid noise");
                           } else if (key === "duration" || key === "d") {
                             duration = parseHlsDuration(value);
-                            if (!value || !Number.isFinite(duration) || duration < 0 || duration > 86400) throw new Error("silencedetect: invalid duration");
+                            if (!value || !Number.isFinite(duration)) throw new Error("silencedetect: invalid duration");
+                            if (duration < 0 || duration > 86400) throw new RangeError("silencedetect: invalid duration");
                           } else if (key === "mono" || key === "m") {
                             if (!["0", "1", "true", "false", "yes", "no", "y", "n", "on", "off"].includes(value.toLowerCase())) throw new Error("silencedetect: invalid mono");
                             mono = ["1", "true", "yes", "y", "on"].includes(value.toLowerCase());
@@ -17574,6 +17576,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: msg === "separatefields: height must be even" ? 183 : 234 };
             }
             if (err instanceof AgateError) return { exitCode: err.exitCode };
+            if (msg === "silencedetect: unsupported option enable") return { exitCode: 176 };
+            if (msg.startsWith("silencedetect: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("silencedetect:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("astats: unsupported option enable=")) return { exitCode: 176 };
             if (msg.startsWith("astats: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("astats:")) return { exitCode: err instanceof RangeError ? 222 : 234 };

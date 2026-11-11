@@ -23,7 +23,7 @@ it(`computes Contrast: ${fixture.name} (${mode}, alpha=${alpha})`, async () => {
     const input = await (alpha ? image : image.removeAlpha()).png().toBuffer();
     const files = new Map([["/in.png", input]]), fs = new MemoryFileSystem();
     await fs.writeFile("/in.png", input);
-    const args = ["/in.png", "-statistic", "Contrast", fixture.geometry, "/out.png"];
+    const args = ["/in.png", "-statistic", "Contrast", fixture.geometry, "PNG64:/out.png"];
     const stderr: string[] = [];
     const result = mode === "command" ? await createConvertCommand().execute({
         command: "convert", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,

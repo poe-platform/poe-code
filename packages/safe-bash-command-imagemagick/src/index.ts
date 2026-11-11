@@ -15490,11 +15490,19 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const statType = t === "-noise" ? "NonPeak" : t === "-mode" ? "Mode" : t === "-median" ? "Median" : tokens[++i] ?? "median";
             const geom = tokens[++i] ?? "3x3";
-            stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const context = { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties };
+            // Expand list references before mapping releases the source buffers.
+            const argumentsByImage: { method: string; geometry: string }[] = [];
+            for (let listIndex = 0; listIndex < stack.length; listIndex++) {
+                const im = stack[listIndex]!;
+                const context = { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex, optionProperties: state.optionProperties };
                 const method = yield* formatMagickPropertyStringSteps(statType, im, () => im, context);
                 validateMagickStatistic(method);
                 const geometry = parseMagickStatisticGeometry(t === "-median" || t === "-mode" ? geom : yield* formatMagickPropertyStringSteps(geom, im, () => im, context));
+                argumentsByImage.push({ method, geometry });
+            }
+            let sceneIdx = 0;
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                const { method, geometry } = argumentsByImage[sceneIdx++]!;
                 const plan = magickMorphologyPlan(method, geometry, true);
                 if (state.virtualPixel === "transparent" && (!state.channelExplicit || state.channels.a)) im = { ...im, hasAlpha: true };
                 let channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k ?? true] : undefined;
@@ -19015,11 +19023,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && (token === "-statistic" || token === "-mode" || token === "-noise" || token === "-median")) {
             const argumentPosition = i + 1;
+            let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 if (token === "-median") analysis.warnings += 'magick: option has been replaced \'-median\', use "-statistic Median"\n';
                 if (token === "-noise") analysis.warnings += `magick: option has been replaced '-noise', use "-statistic NonPeak" at CLI arg ${argumentPosition}\n`;
                 if (token === "-mode") analysis.warnings += 'magick: option has been replaced \'-mode\', use "-statistic Mode"\n';
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
                 return stack;
             });
             const statType = token === "-noise" ? "NonPeak" : token === "-mode" ? "Mode" : token === "-median" ? "Median" : tokens[++i] ?? "median", geom = tokens[++i] ?? "3x3";
@@ -19028,10 +19038,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k ?? true] : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const context = { ...(image as StoredMagickImage)[magickInput], optionProperties };
-                const method = await formatRetainedIdentify(statType, image, context, async () => ({ image: image!, storage: backend.storage }), signal);
+                const context = { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties };
+                const method = await formatRetainedIdentify(statType, image, context, async () => ({ image: image!, storage: backend.storage }), signal, images);
                 validateMagickStatistic(method);
-                const geometry = parseMagickStatisticGeometry(token === "-median" || token === "-mode" ? geom : await formatRetainedIdentify(geom, image, context, async () => ({ image: image!, storage: backend.storage }), signal));
+                const geometry = parseMagickStatisticGeometry(token === "-median" || token === "-mode" ? geom : await formatRetainedIdentify(geom, image, context, async () => ({ image: image!, storage: backend.storage }), signal, images));
                 if (virtualPixel === "transparent" && (!channels || channels[3])) image = { ...image, hasAlpha: true };
                 const plan = magickMorphologyPlan(method, geometry, true);
                 let selectedChannels = !image.hasAlpha && image.inactiveAlpha && !image.alphaSeparate

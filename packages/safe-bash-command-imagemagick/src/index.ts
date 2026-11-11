@@ -4903,15 +4903,15 @@ function scaleMagickWarpPlan(plan: WarpPlan, image: Pick<RgbaImage, "width" | "h
 function parseMagickWarpOperation(tokens: readonly string[], state: MagickState, start: number, analysis: { warnings: string }) {
     const token = tokens[start]!;
     if (token === "-interpolative-resize") {
-        const geometry = tokens[start + 1] ?? "", interpolation = state.interpolation ?? "bilinear";
+        const geometry = tokens[start + 1] ?? "", interpolation = state.interpolation;
         validateMagickTransformGeometry(geometry, token);
         const background = state.background, virtualPixel = state.virtualPixel ?? "edge", seed = state.seed;
-        return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">) => {
+        return { end: start + 1, plan: (image: Pick<MagickImage, "width" | "height" | "hasAlpha" | "virtualCanvas" | typeof magickInput>) => {
             const options = magickResizeOptions(image, geometry, undefined);
             if (!options || options.width === image.width && options.height === image.height) return;
             const width = options.width!, height = options.height!;
             const plan: WarpPlan = {
-                width, height, hasAlpha: image.hasAlpha, interpolation,
+                width, height, hasAlpha: image.hasAlpha, interpolation: interpolation ?? image[magickInput]?.interpolation ?? "bilinear",
                 virtualCanvas: magickResizeCanvas(image, width, height),
                 map: (x, y) => [(x + 0.5) * image.width / width - 0.5, (y + 0.5) * image.height / height - 0.5]
             };
@@ -12030,6 +12030,15 @@ function magickResampleGeometry(image: ImageMetadata, value: string): string {
     return `${width}x${height}!`;
 }
 
+function parseMagickInterpolation(value: string): LookupInterpolation | undefined {
+    const method = value.toLowerCase();
+    if (method === "nearest" || method === "nearest-neighbor") return "nearest";
+    if (method === "average4") return "average";
+    if (method === "undefined") return "bilinear";
+    if (method === "background" || method === "blend" || method === "integer" || method === "average" || method === "average9" || method === "average16" || method === "bilinear" || method === "mesh" || method === "catrom" || method === "spline") return method;
+    return undefined;
+}
+
 function updateMagickProperty(properties: ImageMetadata["properties"], key: string, value?: string): Record<string, string> {
     if (key.toLowerCase().startsWith("property:")) key = key.slice(9);
     const normalized = key.toLowerCase();
@@ -12402,10 +12411,9 @@ if (t === "-intent" || t === "+intent") {
         }
         else if (t === "-interpolate") {
             const method = (tokens[++i] ?? "").toLowerCase();
-            if (method === "nearest" || method === "nearest-neighbor") state.interpolation = "nearest";
-            else if (method === "average4") state.interpolation = "average";
-            else if (method === "background" || method === "blend" || method === "integer" || method === "average" || method === "average9" || method === "average16" || method === "bilinear" || method === "mesh" || method === "catrom" || method === "spline") state.interpolation = method;
-            else throw new Error(`unrecognized interpolate method '${method}'`);
+            const interpolation = parseMagickInterpolation(method);
+            if (interpolation === undefined) throw new Error(`unrecognized interpolate method '${method}'`);
+            state.interpolation = interpolation;
         }
         else if (t === "+interpolate") {
             delete state.interpolation;
@@ -12436,6 +12444,8 @@ if (t === "-intent" || t === "+intent") {
             const key = t === "+set" ? rawKey.slice("option:".length) : rawKey;
             state.optionProperties = { ...state.optionProperties };
             delete state.optionProperties[key];
+            if (key === "interpolate") delete state.interpolation;
+            if (key === "dispose") delete state.disposal;
             if (key === "compose:args") state.composeArgs = undefined;
             if (key === "connected-components:verbose") delete state.connectedVerbose;
             if (key === "filter:blur" || key === "filter:support" || key === "filter:lobes" || key === "filter:b" || key === "filter:c" || key === "filter:sigma" || key === "filter:window") {
@@ -12771,6 +12781,9 @@ if (t === "-intent" || t === "+intent") {
         } else return undefined;
     if ((t === "-define" || t === "-set") && state.optionProperties?.interlace !== undefined) {
         const interlace = state.optionProperties.interlace.toLowerCase();
+    if ((t === "-define" || t === "-set") && state.optionProperties?.interpolate !== undefined) {
+        state.interpolation = parseMagickInterpolation(state.optionProperties.interpolate) ?? "bilinear";
+    }
         state.interlace = ["Undefined", "None", "Line", "Plane", "Partition", "GIF", "JPEG", "PNG"]
             .find(method => method.toLowerCase() === interlace) ?? "Unrecognized";
     }
@@ -12993,6 +13006,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (expandedKey.toLowerCase() === "type") return setMagickType(image, expanded);
                 if (expandedKey.toLowerCase() === "dispose") {
                     const disposal = parseMagickDisposal(expanded);
+                if (["interpolate", "property:interpolate"].includes(expandedKey.toLowerCase())) {
+                    const interpolation = parseMagickInterpolation(expanded);
+                    return interpolation === undefined ? image : { ...image, [magickInput]: { ...image[magickInput], interpolation } };
+                }
                     return disposal === undefined ? image : { ...image, disposal };
                 }
                 if (expandedKey.toLowerCase() === "gravity") return { ...image, placementGravity: parseGravity(expanded) };
@@ -13161,7 +13178,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             if (t === "-mattecolor") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, matteColor: state.matteColor }; });
             if (t === "-background" || (t === "-set" && tokens[setting - 1]?.toLowerCase() === "option:background")) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, backgroundColor: state.background }; });
-            if (t === "-interpolate" || t === "+interpolate") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...image[magickInput], interpolation: state.interpolation } }; });
+            if (t === "-interpolate" || t === "+interpolate" || (t === "-set" || t === "-define") && state.optionProperties?.interpolate !== undefined) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...image[magickInput], interpolation: state.interpolation } }; });
             if (t === "-interlace" || t === "+interlace" || state.interlace !== previousInterlace) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
             if (t === "-compose" || t === "+compose") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, properties: { ...image.properties, compose: state.composeRaw } }; });
             if (t === "-compress") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...image[magickInput], compression: state.compression! } }; });
@@ -16564,6 +16581,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     return disposal === undefined ? image : { ...image, disposal };
                 }
                 if (expandedKey.toLowerCase() === "gravity") return { ...image, placementGravity: parseGravity(expanded) };
+                if (["interpolate", "property:interpolate"].includes(expandedKey.toLowerCase())) {
+                    const interpolation = parseMagickInterpolation(expanded);
+                    return interpolation === undefined ? image : { ...image, [magickInput]: { ...image[magickInput], interpolation } };
+                }
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: parseInt(expanded, 10) || 0 };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickPageSetting(expanded, "set"), forceExact: false }, "set") };
@@ -16690,7 +16711,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const backgroundColor = state.background;
                 steps.push(async image => image ? { ...image, backgroundColor } : undefined);
             }
-            if (token === "-interpolate" || token === "+interpolate") {
+            if (token === "-interpolate" || token === "+interpolate" || (token === "-set" || token === "-define") && state.optionProperties?.interpolate !== undefined) {
                 const interpolation = state.interpolation;
                 steps.push(async image => image ? { ...image, [magickInput]: { ...image[magickInput], interpolation } } : undefined);
             }

@@ -6,6 +6,16 @@ import { cafAst } from "./containers/caf.js";
 // Native FFmpeg output from independently generated Python wave PCM16 samples.
 const native = Buffer.from("636166660001000064657363000000000000002040bf4000000000006c70636d00000000000000020000000100000001000000106368616e000000000000000c006400010000000000000000696e666f000000000000001900000001656e636f646572004c61766636332e312e31303100646174610000000000000016000000008000bffffeffffff00000001010140017fff", "hex");
 
+it("omits empty CAF metadata entries", () => {
+  const ast = cafAst();
+  const doc = ast.parse(native);
+  const output = ast.serialize(doc, {
+    audioCodec: "copy", metadata: { title: "", artist: "", encoder: "" }
+  });
+  assert.deepEqual(ast.parse(output).metadata, {});
+  assert.deepEqual(output.subarray(-18), new Uint8Array(native.subarray(-18)));
+});
+
 for (const flags of [0, 2]) {
   it(`preserves PCM signedness and byte order with the signed-integer flag (${flags})`, () => {
     const ast = cafAst();
@@ -75,10 +85,10 @@ it("rejects malformed CAF dimensions, chunks, encodings, and budget overruns", (
   assert.throws(() => ast.serialize(ast.parse(native), { audioCodec: "aac" }), /Unsupported CAF/);
 });
 
-it("round-trips UTF-8 and empty CAF tags, probes them, and honors metadata replacement", () => {
+it("round-trips UTF-8 CAF tags, probes them, and honors metadata replacement", () => {
   const ast = cafAst();
   const doc = ast.parse(native, { decodeAudio: false });
-  const metadata = { title: "針 🎵", artist: "", album: "Record", comment: "Note 🎵", encoder: "Lavf61.7.100" };
+  const metadata = { title: "針 🎵", artist: "Tester", album: "Record", comment: "Note 🎵", encoder: "Lavf61.7.100" };
   const bytes = ast.serialize(doc, { audioCodec: "copy", metadata });
   assert.deepEqual(ast.parse(bytes).metadata, metadata);
   assert.equal(ast.probe(bytes).format.tags?.title, metadata.title);

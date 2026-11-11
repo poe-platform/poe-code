@@ -392,7 +392,7 @@ export function cafAst(): MediaAstPlugin {
       const entries: Uint8Array[] = [];
       for (const key of ["title", "artist", "album", "comment", "encoder"] as const) {
         const value = metadata[key];
-        if (value === undefined) continue;
+        if (value === undefined || value === "") continue;
         if (value.includes("\0")) throw new Error("CAF metadata cannot contain null bytes");
         entries.push(new TextEncoder().encode(`${key}\0${value}\0`));
       }

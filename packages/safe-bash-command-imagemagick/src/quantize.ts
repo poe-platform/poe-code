@@ -286,14 +286,18 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
     // Retain byte-sized palette indices before later masked edits separate RGB from the colormap.
     const retainIndices = palette.length <= 256;
     const shift = cycle ? ((cycle.amount % palette.length) + palette.length) % palette.length : 0;
-    // An unreduced opaque palette still goes through native dither assignment.
+    // An unreduced palette still goes through native dither assignment.
     // Its six-bit cache can reuse a nearby color; later pixels diffuse that error.
     let needsDither = bins.size > requested;
-    if (dither && bins.size <= requested && channels === 3 && cycle === undefined) {
+    if (dither && bins.size <= requested && cycle === undefined) {
         const keys = new Set<number>();
         for (const color of palette) {
             if (++work % 1024 === 0) yield;
-            const id = (Math.round(color[0]!) >>> 2) | (Math.round(color[1]!) >>> 2) << 6 | (Math.round(color[2]!) >>> 2) << 12;
+            let id = 0;
+            for (let c = 0; c < channels; c++) {
+                const sample = color[c]! * (channels === 4 && c < 3 ? color[3]! / 255 : 1);
+                id |= (Math.round(sample) >>> 2) << (c * 6);
+            }
             if (keys.has(id)) { needsDither = true; break; }
             keys.add(id);
         }

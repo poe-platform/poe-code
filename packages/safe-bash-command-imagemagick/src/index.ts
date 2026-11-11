@@ -13081,7 +13081,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const base = destinations[destinations.length === 1 ? 0 : n]!, overlay = sources[sources.length === 1 ? 0 : n]!;
                 const x = offset.x + (overlay.virtualCanvas?.x ?? 0) - (base.virtualCanvas?.x ?? 0);
                 const y = offset.y + (overlay.virtualCanvas?.y ?? 0) - (base.virtualCanvas?.y ?? 0);
-                const result = yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, x, y, state.composeArgs, signal, state.alphaFuzz);
+                let result = yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, x, y, state.composeArgs, signal, state.alphaFuzz);
+                if (destinations.length === 1 && sources.length > 1) {
+                    const source = (overlay as MagickImage)[magickInput], destination = (base as MagickImage)[magickInput];
+                    const delayTicks = source?.delayTicks ?? overlay.delayTicks ?? Math.round((overlay.delay?.[source?.sceneIdx ?? 0] ?? 0) * (overlay.ticksPerSecond ?? 100) / 1000);
+                    const delays = [...base.delay ?? [0]];
+                    delays[destination?.sceneIdx ?? 0] = Math.floor(delayTicks * 1000 / (base.ticksPerSecond ?? 100));
+                    result = { ...result, delay: delays, delayTicks, [magickInput]: { ...destination, delayTicks } } as MagickImage;
+                }
                 composed.push({ ...base, ...result });
             }
             stack = [...composed, ...destinations.slice(count)];
@@ -14777,7 +14784,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const overlay = (await stack.get(separator + 1 + (sourceCount === 1 ? 0 : n)))!;
                     const x = offset.x + (overlay.virtualCanvas?.x ?? 0) - (base.virtualCanvas?.x ?? 0);
                     const y = offset.y + (overlay.virtualCanvas?.y ?? 0) - (base.virtualCanvas?.y ?? 0);
-                    const result = await compositeStoredMagick(base, overlay, backend, signal, x, y, settings.composeRaw, settings.composeArgs, false, false, false, false, settings.alphaFuzz);
+                    let result = await compositeStoredMagick(base, overlay, backend, signal, x, y, settings.composeRaw, settings.composeArgs, false, false, false, false, settings.alphaFuzz);
+                    if (separator === 1 && sourceCount > 1) {
+                        const source = overlay[magickInput], destination = base[magickInput];
+                        const delay = await overlay.storedDelay?.at(source?.sceneIdx ?? 0, { signal }) ?? overlay.delay?.[source?.sceneIdx ?? 0] ?? 0;
+                        const delayTicks = source?.delayTicks ?? overlay.delayTicks ?? Math.round(delay * (overlay.ticksPerSecond ?? 100) / 1000);
+                        const delays = [...base.delay ?? [0]];
+                        delays[destination?.sceneIdx ?? 0] = Math.floor(delayTicks * 1000 / (base.ticksPerSecond ?? 100));
+                        const frame = { ...result, delay: delays, delayTicks, [magickInput]: { ...destination, delayTicks } };
+                        delete frame.storedDelay;
+                        result = frame;
+                    }
                     await stack.set(n, result);
                 }
                 stack.length = Math.max(count, separator);

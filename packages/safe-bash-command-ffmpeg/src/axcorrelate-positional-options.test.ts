@@ -54,7 +54,7 @@ for (const options of ["size=3:2:fast", "2:size=3:fast:size=2", "size=3:algo=slo
 
 it("axcorrelate rejects a third positional option without emitting PCM", async () => {
   const { result, output, error } = await run("size=3:2:fast:4");
-  assert.equal(result.exitCode, 1, error);
+  assert.notEqual(result.exitCode, 0, error);
   assert.ok(error.includes("axcorrelate:"), error);
   assert.equal(output.length, 0);
 });

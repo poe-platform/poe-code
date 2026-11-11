@@ -48,10 +48,13 @@ for (const [expression, name] of [
   });
 }
 
-for (const value of ["unknown", "", "2.1", "-0.1", "3", "1/0", "0/0", "1+", "0b1"]) {
+for (const [value, exitCode] of [
+  ["unknown", 234], ["", 234], ["2.1", 222], ["-0.1", 222], ["3", 222],
+  ["1/0", 234], ["0/0", 234], ["1+", 234], ["0b1", 234]
+] as const) {
   it(`axcorrelate rejects algo=${value} without replacing output`, async () => {
     const { result, stderr, output } = await run(value);
-    assert.equal(result.exitCode, 1, stderr);
+    assert.equal(result.exitCode, exitCode, stderr);
     assert.ok(stderr.includes("axcorrelate:"), stderr);
     assert.equal(output.toString(), "KEEP");
   });

@@ -15,7 +15,7 @@ export async function softClipAudio(
   const options = { threshold: 1, output: 1, param: 1, oversample: 1 };
   function setOption(key: string | undefined, value: string): void {
     if (key === "enable") {
-      parseFilterExpression(value, "asoftclip enable", { n: 0, t: 0 });
+      parseFilterExpression(value, "asoftclip enable", { n: 0, t: 0, w: 0, h: 0 });
       enable = value;
     } else if (key === "type") {
       const number = parseFilterExpression(value, "asoftclip", {
@@ -109,7 +109,7 @@ export async function softClipAudio(
       } catch { /* Native asendcmd continues after a rejected command. */ }
     }
     const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "asoftclip enable", {
-      n, t: frame.pts / sampleRate
+      n, t: frame.pts / sampleRate, w: 0, h: 0
     })) >= 0.5;
     const angle = Math.PI / options.oversample;
     const cosine = Math.cos(angle);

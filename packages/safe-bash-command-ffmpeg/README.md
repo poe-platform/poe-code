@@ -514,7 +514,8 @@ frames and reports the final interval; `reset=0` measures the whole input.
 `metadata=1` attaches cumulative channel and overall measurements to each audio
 frame; read them with `astats=metadata=1,ametadata=mode=print:key=lavfi.astats.Overall.RMS_level`.
 Metadata respects `reset` and measurement masks, preserves existing frame tags,
-and is disabled by default.
+and is disabled by default. `metadata=y` and `metadata=n` are case-insensitive
+aliases for `metadata=yes` and `metadata=no`.
 `crystalizer=i=2` sharpens changes between successive samples independently per channel.
 Intensity defaults to 2 (range -10 to 10); negative values smooth the audio.
 Clipping is enabled by default; `c=0` preserves peaks for subsequent filters.

@@ -217,7 +217,7 @@ Default `scale` on decoded H.264 uses native YUV pixels before RGB conversion.
 Invalid expressions, unsupported flags, and unsupported options fail before replacing output.
 `datascope=size=320x240` renders monochrome hexadecimal RGB pixel values for each frame, preserving timing. `s` and positional size are also accepted; the default is `1280x720` (`hd720`). Other datascope options are unsupported.
 
-`untile=3x1` splits contact sheets into frames in row order, including blank cells. It preserves native YUV and 16-bit grayscale samples. It accepts `layout=3x1`, defaults to `6x5`, and requires sheet dimensions divisible by the grid. The `threads`, `thread_type`, and `extra_hw_frames` options are accepted without changing the extracted pixels.
+`untile=3x1` splits contact sheets into frames in row order, including blank cells. It preserves native YUV and 16-bit grayscale samples, and uses the native output time base for downstream PTS selection. It accepts `layout=3x1`, defaults to `6x5`, and requires sheet dimensions divisible by the grid. The `threads`, `thread_type`, and `extra_hw_frames` options are accepted without changing the extracted pixels.
 
 `tile` accepts image-size aliases such as `layout=qcif` (176×144 cells) and dimension separators such as `2/2`, as well as `2x2`. Aliases are case-sensitive.
 

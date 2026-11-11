@@ -2352,6 +2352,23 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     sinks: await Promise.all(sinks.map(label => resolve(label))) };
 }
 
+function videoTimingRatio(ratio: number): [number, number] {
+  // Link timing is stored in seconds; recover its reduced rational form.
+  let value = ratio;
+  let numerator = 1, denominator = 0, previousNumerator = 0, previousDenominator = 1;
+  while (Number.isFinite(value)) {
+    const whole = Math.floor(value);
+    const nextNumerator = whole * numerator + previousNumerator;
+    const nextDenominator = whole * denominator + previousDenominator;
+    if (nextNumerator > 2147483647 || nextDenominator > 2147483647) break;
+    [previousNumerator, numerator] = [numerator, nextNumerator];
+    [previousDenominator, denominator] = [denominator, nextDenominator];
+    if (Math.abs(numerator / denominator - ratio) <= ratio * 1e-12) break;
+    value = 1 / (value - whole);
+  }
+  return [numerator, denominator];
+}
+
 async function applyVideoFilterChain(
   frames: MediaVideoFrame[],
   filterChainStr: string,
@@ -2786,22 +2803,8 @@ async function applyVideoFilterChain(
         throw new Error("showinfo: checksum must be a boolean");
       }
       if (diagnostics.logLevel < 32) continue;
-      const [timeBase, frameRate] = [1 / timescale, frameRateKnown ? 1 / (frameDuration * frameRateScale) : 0].map(ratio => {
-        // Link timing is stored in seconds; recover its reduced rational form.
-        let value = ratio;
-        let numerator = 1, denominator = 0, previousNumerator = 0, previousDenominator = 1;
-        while (Number.isFinite(value)) {
-          const whole = Math.floor(value);
-          const nextNumerator = whole * numerator + previousNumerator;
-          const nextDenominator = whole * denominator + previousDenominator;
-          if (nextNumerator > 2147483647 || nextDenominator > 2147483647) break;
-          [previousNumerator, numerator] = [numerator, nextNumerator];
-          [previousDenominator, denominator] = [denominator, nextDenominator];
-          if (Math.abs(numerator / denominator - ratio) <= ratio * 1e-12) break;
-          value = 1 / (value - whole);
-        }
-        return `${numerator}/${denominator}`;
-      });
+      const [timeBase, frameRate] = [1 / timescale, frameRateKnown ? 1 / (frameDuration * frameRateScale) : 0]
+        .map(ratio => videoTimingRatio(ratio).join("/"));
       await diagnostics.write(`[showinfo] config in time_base: ${timeBase}, frame_rate: ${frameRate}\n` +
         "[showinfo] config out time_base: 0/0, frame_rate: 0/0\n");
       const checksumEnabled = !["0", "false", "no", "off"].includes(option ?? "");
@@ -4955,7 +4958,20 @@ async function applyVideoFilterChain(
         throw new Error("untile: invalid layout");
       }
       const count = cols * rows;
-      const durationSeconds = current[0]!.durationSeconds / count;
+      const interval = frameRateKnown ? frameDuration * frameRateScale / count : 1 / (timescale * count);
+      const [inputNumerator, inputDenominator] = videoTimingRatio(1 / timescale);
+      const [intervalNumerator, intervalDenominator] = videoTimingRatio(interval);
+      let numerator = inputNumerator, remainder = intervalNumerator;
+      while (remainder) [numerator, remainder] = [remainder, numerator % remainder];
+      let divisor = inputDenominator;
+      remainder = intervalDenominator;
+      while (remainder) [divisor, remainder] = [remainder, divisor % remainder];
+      const denominator = inputDenominator / divisor * intervalDenominator;
+      // Native untile uses the common time base, falling back to microseconds.
+      timescale = denominator < 500000 ? denominator / numerator : 1000000;
+      const durationSeconds = Math.round(interval * timescale) / timescale;
+      frameDuration = durationSeconds;
+      frameRateScale = interval / durationSeconds;
       const extracted: MediaVideoFrame[] = [];
       for (const frame of current) {
         if (frame.width % cols || frame.height % rows) {
@@ -4963,6 +4979,8 @@ async function applyVideoFilterChain(
         }
         const width = frame.width / cols;
         const height = frame.height / rows;
+        const ticks = frame.ptsSeconds * timescale;
+        const ptsSeconds = Math.sign(ticks) * Math.round(Math.abs(ticks)) / timescale;
         for (let cell = 0; cell < count; cell++) {
           budget.recordFrame(width, height);
           const x = (cell % cols) * width;
@@ -4996,7 +5014,7 @@ async function applyVideoFilterChain(
             const native = { ...source, width, height, pixels };
             const data = scaleVideoPicture({ ...frame, width, height, native }, width, height)!;
             extracted.push({ ...frame, width, height, data, native: { ...native, rgba: data },
-              ptsSeconds: frame.ptsSeconds + cell * durationSeconds, durationSeconds });
+              ptsSeconds: ptsSeconds + cell * durationSeconds, durationSeconds });
             continue;
           }
           budget.allocateMemory(width * height * 4);
@@ -5007,7 +5025,7 @@ async function applyVideoFilterChain(
             data.set(frame.data.subarray(start, start + width * 4), row * width * 4);
           }
           extracted.push({ ...frame, width, height, data,
-            ptsSeconds: frame.ptsSeconds + cell * durationSeconds, durationSeconds });
+            ptsSeconds: ptsSeconds + cell * durationSeconds, durationSeconds });
         }
       }
       current = extracted;
@@ -6275,6 +6293,8 @@ async function applyVideoFilterChain(
       current = await mapWork(current, frame => ({
         ...frame, ptsSeconds: rescale(frame.ptsSeconds), durationSeconds: rescale(frame.durationSeconds)
       }), signal);
+      // Rounding frame durations does not change the advertised frame rate.
+      if (current[0]?.durationSeconds) frameRateScale *= frameDuration / current[0].durationSeconds;
       timescale = 1 / timeBase;
     } else if (name === "setpts") {
       const inputFrameRate = frameRateKnown ? 1 / ((current[0]?.durationSeconds ?? 1 / timescale) * frameRateScale) : NaN;

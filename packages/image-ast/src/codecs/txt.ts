@@ -29,12 +29,12 @@ function* txtSteps(size: number, page: number, options?: SharpInputOptions): Gen
       const width = Number(fields[0]), height = Number(fields[1]);
       maximum = Number(fields[fields.length - 2]);
       const space = fields[fields.length - 1]!.trim().toLowerCase();
-      if (!["srgb", "srgba", "rgb", "rgba", "gray", "graya", "hsl", "hsla", "cielab", "cielaba", "lineargray", "lineargraya", "cmyk", "cmyka"].includes(space)) throw new Error(`Unsupported TXT colorspace: ${space}`);
+      if (!["srgb", "srgba", "xyz", "xyza", "rgb", "rgba", "gray", "graya", "hsl", "hsla", "cielab", "cielaba", "lineargray", "lineargraya", "cmyk", "cmyka"].includes(space)) throw new Error(`Unsupported TXT colorspace: ${space}`);
       if (!Number.isSafeInteger(width) || width < 1 || !Number.isSafeInteger(height) || height < 1 || !Number.isSafeInteger(width * height * 8) || !Number.isInteger(maximum) || maximum < 1 || maximum > 65535) throw new Error("Invalid TXT dimensions or maximum");
       checkLimitInputPixels(width, height, options);
       const linearGray = space.startsWith("lineargray");
       const cmyk = space.startsWith("cmyk"), hasAlpha = space.endsWith("a"), channels = cmyk ? (hasAlpha ? 5 : 4) : space.startsWith("gray") || linearGray ? (hasAlpha ? 2 : 1) : (hasAlpha ? 4 : 3);
-      metadata = { ...(space === "hsl" || space === "hsla" ? { magickColorspace: "HSL" } : {}), ...(space.startsWith("cielab") ? { magickColorspace: "CIELab" } : {}), format: "txt", width, height, channels, hasAlpha, space: cmyk ? "cmyk" : channels < 3 ? "b-w" : "srgb", ...(cmyk ? { magickColorspace: "CMYK" } : {}), depth: maximum > 255 ? "ushort" : "uchar", density: 72, size, ...(space === "rgb" || space === "rgba" ? { magickColorspace: "RGB", gamma: 1 } : {}), ...(linearGray ? { gamma: 1 } : {}) };
+      metadata = { ...(space.startsWith("xyz") ? { magickColorspace: "XYZ" } : {}), ...(space === "hsl" || space === "hsla" ? { magickColorspace: "HSL" } : {}), ...(space.startsWith("cielab") ? { magickColorspace: "CIELab" } : {}), format: "txt", width, height, channels, hasAlpha, space: cmyk ? "cmyk" : channels < 3 ? "b-w" : "srgb", ...(cmyk ? { magickColorspace: "CMYK" } : {}), depth: maximum > 255 ? "ushort" : "uchar", density: 72, size, ...(space === "rgb" || space === "rgba" ? { magickColorspace: "RGB", gamma: 1 } : {}), ...(linearGray ? { gamma: 1 } : {}) };
       pixels = 0;
       if (++index === page) { selected = metadata; yield { kind: "header", metadata }; }
       continue;

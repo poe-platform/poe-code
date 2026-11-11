@@ -10375,7 +10375,21 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         validateMagickTransformGeometry(value, token);
         const geometry = [...value].filter(character => character.trim() !== "" && !"()".includes(character)).join("");
         // BlueShiftImage uses a colon ratio or the leading geometry value, including a literal percent.
-        const factor = parseMagickGeometry(geometry).aspectRatio ?? Number.parseFloat(geometry);
+        let factor = Number.parseFloat(geometry);
+        // A leading sign makes 0x a hexadecimal scalar; unsigned 0x2 is geometry 0 by 2.
+        if ((geometry[0] === "+" || geometry[0] === "-") && geometry.slice(1, 3).toLowerCase() === "0x") {
+            factor = Number.parseInt(geometry, 16) || 0;
+            let end = 3;
+            while (end < geometry.length && "0123456789abcdef".includes(geometry[end]!.toLowerCase())) end++;
+            if (geometry[end] === ".") {
+                let scale = geometry[0] === "-" ? -1 : 1;
+                while (++end < geometry.length && "0123456789abcdef".includes(geometry[end]!.toLowerCase())) {
+                    scale /= 16;
+                    factor += Number.parseInt(geometry[end]!, 16) * scale;
+                }
+            }
+        }
+        factor = parseMagickGeometry(geometry).aspectRatio ?? factor;
         if (!Number.isFinite(factor)) throw new Error(`invalid argument '-blue-shift' '${value}'`);
         let regionAlpha: Float64Array | undefined;
         apply = function* (image, pixelOffset = 0, imageWidth = image.width) {

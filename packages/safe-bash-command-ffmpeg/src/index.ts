@@ -9091,7 +9091,6 @@ export function evalSyncFfmpeg(
       const sourceStart = inputStartTime(doc, budget, outPlugin?.id);
       inputStarts.push(sourceStart);
       if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = shiftTimestamps(doc, -(sourceStart ?? 0), budget);
-      doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
       doc = applyInputDisplayTransforms(doc, inp.displayTransforms);
       if (inp.subtitleCharsets?.length && subtitleCodec !== "copy") doc = recodeSubtitles(doc, inp.subtitleCharsets, inp.subtitleCharencModes);
       if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
@@ -9114,7 +9113,9 @@ export function evalSyncFfmpeg(
         doc = loopToOutputEnd(doc, outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration, budget);
       }
       if (subtitleCodec !== "copy") doc = validateSubtitleText(doc, false, inp.subtitleCharencModes);
-      loadedDocs.push(shiftTimestamps(doc, inp.timestampOffset ?? 0, budget));
+      // Input timestamp scaling includes the offset, after seeking and before filtering.
+      doc = shiftTimestamps(doc, inp.timestampOffset ?? 0, budget);
+      loadedDocs.push(scaleInputTimestamps(doc, inp.timestampScales, budget));
     }
 
     if (outputFormat === "image2pipe") return undefined;
@@ -12259,7 +12260,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const sourceStart = inputStartTime(doc, budget, outPlugin?.id);
               inputStarts.push(sourceStart);
               if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = shiftTimestamps(doc, -(sourceStart ?? 0), budget);
-              doc = scaleInputTimestamps(doc, inp.timestampScales, budget);
               doc = applyInputDisplayTransforms(doc, inp.displayTransforms);
               if (inp.guessLayoutMax !== undefined) {
                 doc = { ...doc, tracks: doc.tracks.map(track => {
@@ -12362,7 +12362,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 doc = loopToOutputEnd(doc, outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration, budget);
               }
               if (subtitleCodec !== "copy") doc = validateSubtitleText(doc, exitOnError, inp.subtitleCharencModes);
-              loadedDocs.push(shiftTimestamps(doc, inp.timestampOffset ?? 0, budget));
+              // Input timestamp scaling includes the offset, after seeking and before filtering.
+              doc = shiftTimestamps(doc, inp.timestampOffset ?? 0, budget);
+              loadedDocs.push(scaleInputTimestamps(doc, inp.timestampScales, budget));
             }
 
             synchronizeInputs(loadedDocs, inputs, inputStarts, copyTimestamps, startAtZero, budget);

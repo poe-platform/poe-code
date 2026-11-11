@@ -552,6 +552,7 @@ export function encodeImage(
     case "webp": {
       const orientation = options.orientation ?? img.orientation;
       const data = encodeWebpImage(img, {
+        ...(options.synthesizeExif === undefined ? {} : { synthesizeExif: options.synthesizeExif }),
         ...(options.effort === undefined ? {} : { effort: options.effort }),
         ...(options.alphaCompression === undefined ? {} : { alphaCompression: options.alphaCompression }),
         ...(options.smartSubsample === undefined ? {} : { smartSubsample: options.smartSubsample }),

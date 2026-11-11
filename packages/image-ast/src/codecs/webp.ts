@@ -16,7 +16,7 @@ export function readWebpMetadata(bytes:Uint8Array):ImageMetadata {
 }
 
 export function createWebpEncoder(
-  img: Pick<RgbaImage, "width" | "height" | "density" | "orientation" | "icc">,
+  img: Pick<RgbaImage, "width" | "height" | "density" | "orientation" | "icc" | "exif" | "resolution">,
   hasAlpha: boolean,
   options?: {
     readonly pageHeight?: number;
@@ -29,6 +29,7 @@ export function createWebpEncoder(
     readonly alphaCompression?: 0 | 1;
     readonly alphaQuality?: number;
   readonly smartSubsample?: boolean;
+    readonly synthesizeExif?: boolean;
     readonly density?: number;
     readonly orientation?: number;
   }
@@ -113,13 +114,15 @@ export function createWebpEncoder(
     vp8lPaddedLen = vp8lChunkLen + (vp8lChunkLen & 1);
   const effDensity = options?.density ?? img.density,
     effOrientation = options?.orientation ?? img.orientation;
-  const needExif =
+  const needExif = img.exif !== undefined || (options?.synthesizeExif !== false && (
     (effDensity !== undefined && effDensity !== 72) ||
-    (effOrientation !== undefined && effOrientation !== 1);
+    (effOrientation !== undefined && effOrientation !== 1)));
   const exifPayload = needExif
     ? buildExifApp1Segment({
+        exif: img.exif,
+        resolution: img.resolution,
         density: effDensity ?? 72,
-        orientation: effOrientation ?? 1
+        orientation: effOrientation
       }).subarray(6)
     : new Uint8Array();
   const exifPaddedLen = exifPayload.length + (exifPayload.length & 1),
@@ -203,7 +206,7 @@ export function createWebpEncoder(
 
 /** Full-canvas replacement frames keep alpha independent of the previous frame. */
 export function createWebpAnimation(
-  image: Pick<RgbaImage, "width" | "height" | "pageHeight" | "loop" | "density" | "orientation" | "icc">,
+  image: Pick<RgbaImage, "width" | "height" | "pageHeight" | "loop" | "density" | "orientation" | "icc" | "exif" | "resolution">,
   hasAlpha: boolean,
   options?: Parameters<typeof createWebpEncoder>[2]
 ) {
@@ -217,8 +220,8 @@ export function createWebpAnimation(
   const frameSize = new DataView(sample.header.buffer).getUint32(4, true) - 4;
   const density = options?.density ?? image.density ?? 72;
   const orientation = options?.orientation ?? image.orientation ?? 1;
-  const exif = density !== 72 || orientation !== 1
-    ? buildExifApp1Segment({ density, orientation }).subarray(6) : new Uint8Array();
+  const exif = image.exif !== undefined || (options?.synthesizeExif !== false && (density !== 72 || orientation !== 1))
+    ? buildExifApp1Segment({ exif: image.exif, resolution: image.resolution, density, orientation: options?.orientation ?? image.orientation }).subarray(6) : new Uint8Array();
   const tail = new Uint8Array(exif.length ? 8 + exif.length + (exif.length & 1) : 0);
   if (exif.length) {
     tail.set([69, 88, 73, 70]);

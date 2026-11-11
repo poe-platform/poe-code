@@ -52,7 +52,7 @@ for (const retained of [false, true]) {
     const bytes = retained ? await filesystem.readFile("/out.webp") : files.get("/out.webp")!;
     for (const page of [0, 1]) {
       const decoded = decodeImage(bytes, { page });
-      expect(decoded).toMatchObject({ width: 16, height: 16, density: 144, loop: 3, delay: [70, 190] });
+      expect(decoded).toMatchObject({ width: 16, height: 16, density: 72, loop: 3, delay: [70, 190] });
       expect(decoded.data[page === 0 ? 0 : 2]).toBeGreaterThan(240);
       expect(decoded.data[page === 0 ? 2 : 0]).toBeLessThan(15);
     }

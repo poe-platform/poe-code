@@ -6,7 +6,7 @@ import type { createWebpEncoder } from "./webp.js";
 
 /** Assemble encoded frames, preserving alpha, timing, ICC and EXIF in the RIFF container. */
 export function assembleLossyWebp(
-  image: Pick<RgbaImage, "width" | "height" | "density" | "orientation" | "loop" | "icc">,
+  image: Pick<RgbaImage, "width" | "height" | "density" | "orientation" | "loop" | "icc" | "exif" | "resolution">,
   frames: readonly Uint8Array[], height: number, delays: readonly number[],
   options?: Parameters<typeof createWebpEncoder>[2]
 ): Uint8Array {
@@ -21,8 +21,8 @@ export function assembleLossyWebp(
   const animated = frames.length > 1;
   const density = options?.density ?? image.density ?? 72;
   const orientation = options?.orientation ?? image.orientation ?? 1;
-  const exif = density !== 72 || orientation !== 1
-    ? buildExifApp1Segment({ density, orientation }).subarray(6) : undefined;
+  const exif = image.exif !== undefined || (options?.synthesizeExif !== false && (density !== 72 || orientation !== 1))
+    ? buildExifApp1Segment({ exif: image.exif, resolution: image.resolution, density, orientation: options?.orientation ?? image.orientation }).subarray(6) : undefined;
   let alpha = false;
   for (let index = 0; index < frames.length; index++) {
     const bytes = frames[index]!;

@@ -14,7 +14,9 @@ for (const channels of [1, 2]) {
       ["3/2", 2], ["1.5", 2], ["2.5", 2], ["3.5", 4],
       ["1+2", 3], ["3", 3], ["0x2", 2], ["0b10", null], ["0o2", null],
       ["'PI'", 3], ["'E'", 3], ["'PHI'", 2], ["'sqrt(9)'", 3],
-      ["'PI*2'", 6], ["pi", null]
+      ["'PI*2'", 6], ["pi", null],
+      ["default", 4096], ["default-4094", 2], ["min+2", 2], ["none+2", 2],
+      ["max-2147483645", 2], ["2*2", 4]
     ] as const) {
       it(`apad packet_size=${value} (${channels}ch, ${graph ? "graph" : "simple"})`, async () => {
         const volume = Volume.fromJSON({ "/in.raw": input, "/out.raw": "KEEP" });
@@ -43,7 +45,7 @@ for (const channels of [1, 2]) {
         } else {
           assert.equal(result.exitCode, 0, stderr);
           const output = volume.readFileSync("/out.raw") as Buffer;
-          assert.deepEqual(output, Buffer.concat([input, Buffer.alloc(packetSize * channels * 2)]));
+          assert.deepEqual(output, Buffer.concat([input, Buffer.alloc(Math.min(packetSize, 10) * channels * 2)]));
         }
       });
     }

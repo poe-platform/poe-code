@@ -126,6 +126,11 @@ for (const [filter, frames, padding] of [
 
 for (const [filter, succeeds] of [
   ["apad=packet_size=0:pad_len=0", true],
+  ["apad=packet_size=min:pad_len=0", true],
+  ["apad=packet_size=none:pad_len=0", true],
+  ["apad=packet_size=2*2:pad_len=0", true],
+  ["apad=packet_size=min:pad_len=1", false],
+  ["apad=packet_size=none:pad_len=1", false],
   ["apad=packet_size=0:whole_len=2", true],
   ["apad=packet_size=0:whole_dur=0", true],
   ["apad=packet_size=0:pad_dur=0", true],

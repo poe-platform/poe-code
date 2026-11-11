@@ -14025,7 +14025,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             continue;
                           }
                           if (key === "packet_size") {
-                            const number = parseFilterExpression(value, "apad packet_size", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+                            const number = parseFilterExpression(value, "apad packet_size", { default: 4096, min: 0, max: 2147483647, none: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
                             packetSize = roundToEven(number);
                             if (number < 0 || number > 2147483647) {
                               throw new Error("apad: invalid packet_size");

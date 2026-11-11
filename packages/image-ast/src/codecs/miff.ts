@@ -63,7 +63,7 @@ function miffHeader(image: Pick<RgbaImage, "renderingIntent" | "chromaticity" | 
     const y = Number((resolution ? resolution.y / scale : image.density).toPrecision(6));
     const unit = resolution?.unit ?? image.magickUnits;
     const units = unit === "inch" ? "PixelsPerInch" : unit === "cm" || unit === "meter" ? "PixelsPerCentimeter" : "Undefined";
-    const density = resolution || image.magickUnits === undefined ? `resolution=${x}x${y}\n` : "";
+    const density = resolution ? `resolution=${x}x${y}\n` : "";
     const ticksPerSecond = image.ticksPerSecond ?? 100;
     const delayTicks = image.delayTicks ?? (image.ticksPerSecond === undefined ? Math.floor((delay ?? 0) / 10) : Math.round((delay ?? 0) * ticksPerSecond / 1000));
     const animation = `delay=${delayTicks}\nticks-per-second=${ticksPerSecond}\niterations=${loop ?? image.loop ?? 0}\ndispose=${["Undefined", "None", "Background", "Previous"][typeof image.disposal === "number" ? image.disposal : image.disposal?.[0] ?? 0] ?? "Undefined"}\n`;

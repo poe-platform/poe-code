@@ -40,11 +40,37 @@ for (const [source, target, length, expected] of [
   });
 }
 
+// Native FFmpeg 7.0.2: gray8 widens directly, without RGB color conversion.
+for (const source of ["gray", "gray8"]) {
+  for (const [target, expected] of [
+    ["rgb48be", "0a000a000a000b000b000b001e001e001e001f001f001f00"],
+    ["rgba64be", "0a000a000a00ffff0b000b000b00ffff1e001e001e00ffff1f001f001f00ffff"],
+    ["rgb24", "0a0a0a0b0b0b1e1e1e1f1f1f"]
+  ] as const) {
+    it(`matches native ${source} to ${target} component precision`, async () => {
+      const result = await run("0a0b1e1f", source,
+        ["-vf", "null", "-fps_mode", "passthrough", "-pix_fmt", target, "-bitexact"], {}, "2x2");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.output.toString("hex"), expected);
+    });
+  }
+}
+
 for (const format of ["rgb48be", "rgba64be"]) {
-  for (const source of ["rgb24", format]) {
+  it(`widens all gray8 values across multiple frames to ${format}`, async () => {
+    const input = Buffer.from(Array.from({ length: 256 }, (_, value) => value));
+    const expected = Buffer.from([...input].flatMap(value =>
+      [value, 0, value, 0, value, 0, ...(format === "rgba64be" ? [255, 255] : [])]));
+    const result = await run(input.toString("hex"), "gray",
+      ["-vf", "null", "-fps_mode", "passthrough", "-pix_fmt", format, "-bitexact"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.output, expected);
+  });
+
+  for (const source of ["gray", "rgb24", format]) {
     it(`checks complete output size before replacing ${source} to ${format}`, async () => {
       const channels = format === "rgb48be" ? 6 : 8;
-      const length = 16 * (source === "rgb24" ? 3 : channels);
+      const length = 16 * (source === "gray" ? 1 : source === "rgb24" ? 3 : channels);
       const input = Buffer.from(Array.from({ length }, (_, i) => (i * 29 + 17) % 256)).toString("hex");
       const result = await run(input, source, ["-vf", "null", "-pix_fmt", format],
         { limits: { maxOutputBytes: 16 * channels - 1 } });

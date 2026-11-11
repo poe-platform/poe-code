@@ -168,9 +168,9 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
         }
         append(bytes);
       } else if (format === "rgb48be" || format === "rgba64be") {
-        const native = frame.native;
-        if (native?.format === (format === "rgb48be" ? 34 : 104) &&
-            native.rgba === frame.data && native.width === frame.width && native.height === frame.height) {
+        const native = frame.native?.rgba === frame.data && frame.native.width === frame.width && frame.native.height === frame.height
+          ? frame.native : undefined;
+        if (native?.format === (format === "rgb48be" ? 34 : 104)) {
           append(native.pixels);
           continue;
         }
@@ -181,6 +181,15 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
         const view = new DataView(bytes.buffer);
         for (let pixel = 0; pixel < frame.width * frame.height; pixel++) {
           if (pixel % 4096 === 0) budget.checkCpu();
+          const offset = pixel * channels * 2;
+          if (native?.format === 8) {
+            // swscale widens gray8 directly to the high byte of each RGB component.
+            for (let channel = 0; channel < 3; channel++) {
+              view.setUint16(offset + channel * 2, native.pixels[pixel]! << 8);
+            }
+            if (channels === 4) view.setUint16(offset + 6, 65535);
+            continue;
+          }
           const r = frame.data[pixel * 4]!;
           const g = frame.data[pixel * 4 + 1]!;
           const b = frame.data[pixel * 4 + 2]!;
@@ -189,7 +198,6 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
           const y = (((8414 * r + 16519 * g + 3208 * b + 524544) >> 9) * 8 - 8192) * 9539 + 8192;
           const u = ((-4865 * r - 9528 * g + 14392 * b + 4194560) >> 9) * 8 - 65536;
           const v = ((14392 * r - 12061 * g - 2332 * b + 4194560) >> 9) * 8 - 65536;
-          const offset = pixel * channels * 2;
           view.setUint16(offset, Math.max(0, Math.min(65535, (y + v * 13075) >> 14)));
           view.setUint16(offset + 2, Math.max(0, Math.min(65535, (y - v * 6660 - u * 3209) >> 14)));
           view.setUint16(offset + 4, Math.max(0, Math.min(65535, (y + u * 16525) >> 14)));

@@ -9,7 +9,7 @@ import { createFfmpegCommand } from "./index.js";
 for (const graph of [false, true]) {
   it(`adecorrelate matches native FFmpeg 7.0.2 PCM (graph=${graph})`, async () => {
     const expected = parseWav(readFileSync(new URL("./fixtures/adecorrelate/expected.wav", import.meta.url))).tracks[0]!.decodedAudio!;
-    for (const filter of ["adecorrelate=stages=4:seed=23", "adecorrelate=4:23"]) {
+    for (const filter of ["adecorrelate=stages=4:seed=23", "adecorrelate=4:23", "adecorrelate=stages=4:seed=23:", "adecorrelate=4:23:"]) {
       const { volume, result, stderr } = await run(filter, graph);
       assert.equal(result.exitCode, 0, stderr);
       const audio = parseWav(volume.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
@@ -23,6 +23,7 @@ for (const graph of [false, true]) {
 // Decoded PCM hashes from native FFmpeg, exercising default and boundary options.
 for (const [filter, hash] of [
   ["adecorrelate=seed=0", "72dc22868245c894c3870ebf4f92e86062199e272b547d6b7a2b10a4a69fbbb5"],
+  ["adecorrelate=seed=0:", "72dc22868245c894c3870ebf4f92e86062199e272b547d6b7a2b10a4a69fbbb5"],
   ["adecorrelate=1:4294967295", "3c6136ee62386fbcc4ba0f91b142ddaaac802563a2c2d6ab18ea58fba3da9bfa"],
   ["adecorrelate=16:42", "32502ac67dc2fd24605810c251bdeabd44d7089d19f86b5b2996841f63b3f4e1"]
 ] as const) {
@@ -37,7 +38,7 @@ for (const [filter, hash] of [
     assert.equal(createHash("sha256").update(pcm).digest("hex"), hash);
   });
 }
-for (const filter of ["adecorrelate=stages=0", "adecorrelate=stages=17", "adecorrelate=stages=1.5", "adecorrelate=seed=-2", "adecorrelate=seed=4294967296", "adecorrelate=seed=NaN", "adecorrelate=seed=", "adecorrelate=unknown=1"]) {
+for (const filter of ["adecorrelate=stages=0", "adecorrelate=stages=17", "adecorrelate=stages=1.5", "adecorrelate=seed=-2", "adecorrelate=seed=4294967296", "adecorrelate=seed=NaN", "adecorrelate=seed=", "adecorrelate=unknown=1", "adecorrelate=seed=:", "adecorrelate=seed=42::", "adecorrelate=stages=4::seed=42"]) {
   it(`${filter} preserves output on invalid options`, async () => {
     const { volume, result } = await run(filter);
     assert.notEqual(result.exitCode, 0);

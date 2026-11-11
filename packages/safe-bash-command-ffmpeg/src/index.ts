@@ -1400,7 +1400,10 @@ async function panAudio(
       const value = option.slice(separator + 1);
       if (key === "args") expression = value;
       else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
-        const number = parseFilterExpression(value, "pan", key === "thread_type" ? { slice: 1 } : {});
+        const minimum = key === "extra_hw_frames" ? -1 : 0;
+        const number = parseFilterExpression(value, "pan", key === "thread_type" ? { slice: 1, none: 0 } : {
+          default: minimum, min: minimum, max: 2147483647
+        });
         if (key === "thread_type"
           ? !Number.isInteger(number) || number < -2147483648 || number > 4294967295
           : number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {

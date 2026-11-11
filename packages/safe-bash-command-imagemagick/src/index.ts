@@ -3205,8 +3205,6 @@ function sampleFxImage(
   ch: number
 ): number {
   if (!img) return 0;
-  // ImageMagick samples red for alpha qualifiers when no alpha channel exists.
-  if (ch === 3 && !img.hasAlpha && !img.inactiveAlpha) ch = 0;
   if (!Number.isFinite(px) || !Number.isFinite(py)) return NaN;
   const method = img.virtualPixel ?? "edge";
   const pixel = virtualPixelIndex(Math.round(px), Math.round(py), img.width, img.height, method);
@@ -3816,7 +3814,9 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
         if (name === "r") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 0);
         if (name === "g") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 1);
         if (name === "b") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 2);
-        if (name === "a" || name === "alpha" || name === "opacity") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 3);
+        if (name === "a" || name === "alpha" || name === "opacity") {
+          return targetImg && !targetImg.hasAlpha && !targetImg.inactiveAlpha ? 1 : (ctx.sample ?? sampleFxImage)(targetImg, px, py, 3);
+        }
         if (name === "intensity" || name === "luma" || name === "luminance") {
           return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 4);
         }
@@ -3824,7 +3824,9 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
         if (name === "saturation") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 6);
         if (name === "lightness") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 7);
 
-        const ch = propName ? propToChannel(propName) : ctx.ch;
+        let ch = propName ? propToChannel(propName) : ctx.ch;
+        // Qualified alpha samples red when the selected image has no alpha channel.
+        if (ch === 3 && targetImg && !targetImg.hasAlpha && !targetImg.inactiveAlpha) ch = 0;
         return interpolateFxImage(ctx.sample ?? sampleFxImage, targetImg, px, py, ch, ctx.interpolation);
       };
     }

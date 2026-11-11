@@ -15316,10 +15316,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const length = stretched[0]?.length ?? 0;
                         const sampleScale = t.codecDescriptions[0]?.codecName === "pcm_u8" ? 128
                           : t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 : 2147483648;
+                        // Integer input needs no conversion for fixed precision, so it retains the filter clock.
+                        const timeBase = precision === "fixed" && ["u8", "u8p", "s16", "s16p", "s32", "s32p"].includes(panSampleFormat)
+                          ? audioTimeBase ?? 1 / origRate : 1 / origRate;
                         filteredSampleFormat = precision === "float" ? "flt" : precision === "double" ? "dbl"
                           : sampleScale === 128 ? "u8" : sampleScale === 32768 ? "s16" : "s32";
                         panSampleFormat = filteredSampleFormat;
-                        const variables: Record<string, number> = { PI: Math.PI, nan: NaN, inf: Infinity, sample_rate: origRate, nb_channels: stretched.length, tb: 1 / origRate,
+                        const variables: Record<string, number> = { PI: Math.PI, nan: NaN, inf: Infinity, sample_rate: origRate, nb_channels: stretched.length, tb: timeBase,
                           // Native volume leaves sample counters unavailable in both evaluation modes.
                           nb_samples: NaN, nb_consumed_samples: NaN, startpts: NaN, startt: NaN,
                           n: NaN, t: NaN, pts: NaN, volume: NaN };
@@ -15352,7 +15355,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             factor = evaluateGain();
                           }
                           if (evaluation === "frame" && enabled) {
-                            Object.assign(variables, { n, t: pts / origRate, pts, startpts, startt: startpts / origRate });
+                            Object.assign(variables, { n, t: pts / origRate, pts: pts / (origRate * timeBase),
+                              startpts: startpts / (origRate * timeBase), startt: startpts / origRate });
                             factor = evaluateGain();
                           }
                           // Fixed precision uses a Q8 gain; optimized x86 PCM32 rounds ties to even.

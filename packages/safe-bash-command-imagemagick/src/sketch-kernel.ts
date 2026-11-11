@@ -1,3 +1,5 @@
+import { virtualPixelIndex } from "./virtual-pixel.js";
+import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { resizeContributions, type MagickResizeKernel, type ResizeFilterSettings } from "./resize-kernel.js";
 import type { RgbaImage } from "@poe-code/image-ast/portable";
 import type { HueMetadata } from "./colorspace-hue.js";
@@ -17,7 +19,7 @@ function kernelWidth(radius: number, sigma: number): number {
 }
 
 /** ImageMagick's noise, directional blur, edge, normalize and color-dodge sketch. */
-export function* sketchPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space"> & HueMetadata & { inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined }, geometry: { width?: number; height?: number; x?: number }, seed: bigint, selection?: { r: boolean; g: boolean; b: boolean; a: boolean }, kernel?: MagickResizeKernel, settings: ResizeFilterSettings = {}): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* sketchPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space"> & HueMetadata & { virtualPixel?: VirtualPixelMethod | undefined; inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined }, geometry: { width?: number; height?: number; x?: number }, seed: bigint, selection?: { r: boolean; g: boolean; b: boolean; a: boolean }, kernel?: MagickResizeKernel, settings: ResizeFilterSettings = {}): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const selected = selection ? [selection.r, selection.g, selection.b, selection.a] : undefined;
     const cmyk = image.space === "cmyk";
     const hue = image.hueSamples !== undefined || image.storedHueSamples !== undefined;
@@ -34,6 +36,9 @@ export function* sketchPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
         if (i % 1024 === 0) yield;
         values[i] = random();
     }
+    const virtualPixel = image.virtualPixel ?? "edge";
+    const outside = virtualPixel === "white" || virtualPixel === "background" || virtualPixel.endsWith("-tile") ? 1 : virtualPixel === "gray" ? 0.5 : 0;
+    const outsideAlpha = virtualPixel === "transparent" ? 0 : 1;
     const length = kernelWidth(radius, sigma), weights = new Float64Array(length);
     let total = 0;
     for (let k = 0; k < length; k++) { weights[k] = sigma < 1e-12 ? (k === 0 ? 1 : 0) : Math.exp(-k * k / (2 * sigma * sigma)); total += weights[k]!; }
@@ -43,40 +48,55 @@ export function* sketchPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
         if (x % 256 === 0) yield;
         let sum = 0, alpha = 0;
         for (let k = 0; k < length; k++) {
-            const value = values[Math.max(0, Math.min(height - 1, y + dy[k]!)) * width + Math.max(0, Math.min(width - 1, x + dx[k]!))]!;
-            sum += weights[k]! * value * (hasAlpha ? value : 1); alpha += weights[k]! * value;
+            const index = virtualPixelIndex(x + dx[k]!, y + dy[k]!, width, height, virtualPixel);
+            const value = index < 0 ? outside : values[index]!;
+            const opacity = index < 0 ? outsideAlpha : value;
+            sum += weights[k]! * value * (hasAlpha ? opacity : 1); alpha += weights[k]! * opacity;
         }
         scratch[y * width + x] = hasAlpha ? sum / Math.max(1e-12, alpha) : sum;
         if (alphas) alphas[y * width + x] = copyAlpha ? values[y * width + x]! : alpha;
     }
     [values, scratch] = [scratch, values];
     const edgeWidth = kernelWidth(radius, 0.5), half = (edgeWidth - 1) / 2, histogram = new Uint32Array(65536);
+    const edgeSample = (x: number, y: number): number => {
+        const i = virtualPixelIndex(x, y, width, height, virtualPixel);
+        return i < 0 ? outside * (image.hasAlpha ? outsideAlpha : 1) : values[i]! * (image.hasAlpha ? alphas![i]! : 1);
+    };
+    const edgeAlpha = (x: number, y: number): number => {
+        const i = virtualPixelIndex(x, y, width, height, virtualPixel);
+        return alphas ? i < 0 ? outsideAlpha : alphas[i]! : 0;
+    };
     // Edge convolution premultiplies only active alpha; inactive alpha still
     // participates in motion blur, resize and compositing.
     for (let y = 0; y < height; y++) {
         yield;
         let sum = 0, alphaSum = 0;
         for (let k = -half; k <= half; k++) {
-            const i = y * width + Math.max(0, Math.min(width - 1, k));
-            sum += values[i]! * (image.hasAlpha ? alphas![i]! : 1);
-            alphaSum += alphas?.[i] ?? 0;
+            sum += edgeSample(k, y);
+            alphaSum += edgeAlpha(k, y);
         }
         for (let x = 0; x < width; x++) {
             if (x % 1024 === 0) yield;
             scratch[y * width + x] = sum;
             if (alphaScratch) alphaScratch[y * width + x] = alphaSum;
-            const incoming = y * width + Math.min(width - 1, x + half + 1), outgoing = y * width + Math.max(0, x - half);
-            sum += values[incoming]! * (image.hasAlpha ? alphas![incoming]! : 1) - values[outgoing]! * (image.hasAlpha ? alphas![outgoing]! : 1);
-            alphaSum += (alphas?.[incoming] ?? 0) - (alphas?.[outgoing] ?? 0);
+            sum += edgeSample(x + half + 1, y) - edgeSample(x - half, y);
+            alphaSum += edgeAlpha(x + half + 1, y) - edgeAlpha(x - half, y);
         }
     }
+    const rowSample = (x: number, y: number): number => {
+        const i = virtualPixelIndex(x, y, width, height, virtualPixel);
+        return i < 0 ? edgeWidth * outside * (image.hasAlpha ? outsideAlpha : 1) : scratch[i]!;
+    };
+    const rowAlpha = (x: number, y: number): number => {
+        const i = virtualPixelIndex(x, y, width, height, virtualPixel);
+        return alphaScratch ? i < 0 ? edgeWidth * outsideAlpha : alphaScratch[i]! : 0;
+    };
     for (let x = 0; x < width; x++) {
         yield;
         let sum = 0, alphaSum = 0;
         for (let k = -half; k <= half; k++) {
-            const i = Math.max(0, Math.min(height - 1, k)) * width + x;
-            sum += scratch[i]!;
-            alphaSum += alphaScratch?.[i] ?? 0;
+            sum += rowSample(x, k);
+            alphaSum += rowAlpha(x, k);
         }
         for (let y = 0; y < height; y++) {
             if (y % 1024 === 0) yield;
@@ -87,9 +107,8 @@ export function* sketchPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
             const bin = Math.round(Math.max(0, Math.min(1, edge)) * 65535);
             values[i] = bin; histogram[bin]!++;
             if (alphas && !copyAlpha) alphas[i] = Math.round(Math.max(0, Math.min(1, alpha)) * 65535);
-            const incoming = Math.min(height - 1, y + half + 1) * width + x, outgoing = Math.max(0, y - half) * width + x;
-            sum += scratch[incoming]! - scratch[outgoing]!;
-            alphaSum += (alphaScratch?.[incoming] ?? 0) - (alphaScratch?.[outgoing] ?? 0);
+            sum += rowSample(x, y + half + 1) - rowSample(x, y - half);
+            alphaSum += rowAlpha(x, y + half + 1) - rowAlpha(x, y - half);
         }
     }
     let low = 0, high = 65535, count = 0;

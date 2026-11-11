@@ -89,6 +89,7 @@ import { echoAudio } from "./audio-aecho.js";
 import { chorusAudio } from "./audio-chorus.js";
 import { shiftAudioPhase } from "./audio-aphaseshift.js";
 import { correlateAudio } from "./audio-axcorrelate.js";
+import { anlmfAudio } from "./audio-anlmf.js";
 import { gateAudio } from "./audio-sidechaingate.js";
 import { listenDynamicEqualizer } from "./audio-adynamicequalizer.js";
 import { tiltAudio } from "./audio-atilt.js";
@@ -1868,7 +1869,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     const filter = parseFilterChain(expression)[0]!;
     const first = filter.split("=", 1)[0]?.split("@", 1)[0];
     const inputCount = first === "amerge" ? parseAmergeInputs(filter)
-      : first === "astreamselect" ? parseAstreamselectOptions(filter).count : first === "acrossfade" ? 2 : audioConcatInputs(filter) ?? 1;
+      : first === "astreamselect" ? parseAstreamselectOptions(filter).count : (first === "acrossfade" || first === "anlmf") ? 2 : audioConcatInputs(filter) ?? 1;
     if (first === "amerge" && inputs.length > inputCount) {
       throw new Error(`amerge requires ${inputCount} inputs (inputs=${inputCount})`);
     }
@@ -1923,6 +1924,16 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         }
         const track = await headphoneAudio(sources.map(source => source.track), filters[0]!, budget, signal);
         return { track, expression: filters.slice(1).join(",") || "anull" };
+      }
+      if (filters[0] === "anlmf" || filters[0]?.startsWith("anlmf=")) {
+        if (sources.length !== 2) throw new Error("anlmf requires two inputs");
+        for (const source of sources) {
+          if (source.expression && source.expression !== "anull") {
+            source.track = await filterAudio(source.track, source.expression);
+          }
+        }
+        return { track: await anlmfAudio(sources[0]!.track, sources[1]!.track, filters[0], budget, signal),
+          expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "amultiply" || filters[0]?.startsWith("amultiply=") || filters[0]?.startsWith("amultiply@")) {
         if (filters[0].includes("=")) throw new Error("amultiply does not accept options");

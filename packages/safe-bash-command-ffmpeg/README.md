@@ -1203,6 +1203,13 @@ addresses an unnamed instance; invalid runtime gains leave the current gain unch
 
 `alimiter=limit=0.25:level=0:latency=1` limits PCM peaks with linked channels, lookahead attack, and gradual release. `latency=1` preserves sample positions and passes the shortened first frame, shifted timestamps, and drained tail frame to downstream filters; the default retains the lookahead delay. Supports `level_in`, `level_out`, `limit`, `attack`, `release`, and automatic output leveling (`level`). Timeline `enable` expressions (for example, `enable=gte(t\,0.1)`) select whole audio frames by timestamp `t` or frame number `n`; disabled frames pass through unchanged and pause the limiter state. Automatic release (`asc=1`) follows native attenuation recovery across sustained peaks and quiet intervals, with `asc_level` from 0 to 1 (default 0.5). Invalid limiter options exit with status 234 without touching the output. A valid attack shorter than one sample also exits 234 with `Attack is too small`, creating or truncating the output file.
 
+`[0:a][1:a]anlmf=order=4:out_mode=o[out]` applies a normalized least-mean-fourth
+adaptive filter to input and desired PCM signals with matching sample rates and channel layouts.
+Both upstream branches are evaluated, channels adapt independently, and output ends at the
+shorter input. Options are `order`, `mu`, `eps`, `leakage`, `out_mode` (`i` input, `d` desired,
+`o` residual, `n` input minus estimate, `e` estimate), and `precision` (`auto`, `float`, `double`).
+Named instances and downstream audio filters are supported.
+
 `[0:a][1:a]amultiply[out]` (also `amultiply@name`) multiplies corresponding PCM samples from two inputs
 resampling the second input to the first input’s sample rate and ending with the
 shorter resampled input. Mono/stereo inputs are

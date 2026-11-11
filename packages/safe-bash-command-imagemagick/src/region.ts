@@ -79,7 +79,8 @@ export function* regionPixelSteps(image: { width: number; height: number; hasAlp
     const originY = region.wrap ? ((region.y % region.wrap.height) + region.wrap.height) % region.wrap.height : region.y;
     const left = Math.max(0, Math.min(image.width, originX));
     const right = Math.max(left, Math.min(image.width, originX + region.width));
-    const wrappedRight = region.wrap ? Math.max(0, originX + region.width - image.width) : 0;
+    // Cropping retains the original wrap dimensions and clips each selected span.
+    const wrappedRight = region.wrap ? Math.max(0, Math.min(image.width, originX + region.width - region.wrap.width)) : 0;
     const selectedSpans = wrappedRight > 0
         ? [[0, wrappedRight, 0], [wrappedRight, left, 1], [left, right, 0]]
         : [[0, left, 1], [left, right, 0], [right, image.width, 1]];

@@ -519,6 +519,8 @@ attenuates the program when the control signal becomes quiet. Supports `range`,
 `level_in`, `level_sc`, and `makeup`; the control input can have a different channel count
 or sample rate. The control input is resampled to the program rate, which is preserved
 in the output; duration is limited by the shorter input after resampling.
+Numeric options accept option-specific `min`, `max`, and `default` constants in
+expressions, such as `range=max`, `threshold=default`, and `knee=min`.
 Timeline `enable` expressions, such as `enable='gte(t,0.064)'`, are evaluated at input
 audio frame boundaries (`t` is time in seconds; `n` is the frame index). Disabled
 frames pass through unchanged while the gate continues tracking the control input.

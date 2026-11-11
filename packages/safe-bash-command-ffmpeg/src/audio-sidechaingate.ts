@@ -8,10 +8,11 @@ export async function gateAudio(
   controlEnds: readonly number[], signal?: AbortSignal
 ): Promise<MediaTrack> {
   const { channelData: channels, sampleRate } = first.decodedAudio!;
-  const options: Record<string, number> = {
+  const defaults: Record<string, number> = {
     level_in: 1, mode: 0, range: 0.06125, threshold: 0.125, ratio: 2,
     attack: 20, release: 250, makeup: 1, knee: 2.828427125, detection: 1, link: 0, level_sc: 1
   };
+  const options = { ...defaults };
   const bounds: Record<string, readonly [number, number]> = {
     level_in: [0.015625, 64], range: [0, 1], threshold: [0, 1], ratio: [1, 9000],
     attack: [0.01, 9000], release: [0.01, 9000], makeup: [1, 64], knee: [1, 8], level_sc: [0.015625, 64]
@@ -40,8 +41,8 @@ export async function gateAudio(
       if (choice < 0) throw new Error(`sidechaingate: invalid ${key}`);
       options[key] = choice;
     } else {
-      const numeric = parseFilterExpression(value, "sidechaingate", {});
       const [min, max] = bounds[key]!;
+      const numeric = parseFilterExpression(value, "sidechaingate", { min, max, default: defaults[key]! });
       if (!value || !Number.isFinite(numeric) || numeric < min || numeric > max) throw new Error(`sidechaingate: invalid ${key}`);
       options[key] = numeric;
     }

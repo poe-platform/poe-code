@@ -107,3 +107,45 @@ for (const [repeated, last] of [
     assert.deepEqual(actual.output, expected.output);
   });
 }
+
+for (const [option, min, max, defaultValue] of [
+  ["level_in", 0.015625, 64, 1],
+  ["range", 0, 1, 0.06125],
+  ["threshold", 0, 1, 0.125],
+  ["ratio", 1, 9000, 2],
+  ["attack", 0.01, 9000, 20],
+  ["release", 0.01, 9000, 250],
+  ["makeup", 1, 64, 1],
+  ["knee", 1, 8, 2.828427125],
+  ["level_sc", 0.015625, 64, 1]
+] as const) {
+  for (const [expression, literal] of [
+    ["min", min], ["max", max], ["default", defaultValue],
+    ["(min+max)/2", (min + max) / 2]
+  ] as const) {
+    it(`sidechaingate resolves ${option}=${expression} to ${literal}`, async () => {
+      const expected = await run(`${option}=${literal}`);
+      assert.equal(expected.result.exitCode, 0, expected.stderr);
+      const actual = await run(`${option}=${expression}`);
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      assert.deepEqual(actual.output, expected.output);
+    });
+  }
+
+  it(`sidechaingate restores the original ${option} default after an override`, async () => {
+    const expected = await run(`${option}=${defaultValue}`);
+    assert.equal(expected.result.exitCode, 0, expected.stderr);
+    const actual = await run(`${option}=max:${option}=default`);
+    assert.equal(actual.result.exitCode, 0, actual.stderr);
+    assert.deepEqual(actual.output, expected.output);
+  });
+
+  for (const expression of ["min-1", "max+1", "default/0"]) {
+    it(`sidechaingate rejects ${option}=${expression} without replacing output`, async () => {
+      const { result, stderr, output } = await run(`${option}=${expression}:${option}=default`);
+      assert.equal(result.exitCode, 1, stderr);
+      assert.ok(stderr.includes("sidechaingate:"), stderr);
+      assert.equal(output.toString(), "KEEP");
+    });
+  }
+}

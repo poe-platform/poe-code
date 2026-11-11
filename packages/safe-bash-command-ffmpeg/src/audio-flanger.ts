@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function flangeAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -16,9 +17,13 @@ export async function flangeAudio(
   let position = 0;
   for (const option of argumentsList) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? names[position] : option.slice(0, separator).trim() as keyof typeof options;
+    const key = separator < 0 ? names[position] : option.slice(0, separator).trim() as keyof typeof options | "threads" | "thread_type" | "extra_hw_frames";
     if (separator < 0) position++;
     else position = position === 0 ? 1 : 0;
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, option.slice(separator + 1).trim(), "flanger");
+      continue;
+    }
     if (!key || !Object.hasOwn(options, key)) throw new Error(`flanger: unsupported option ${key}`);
     const value = separator < 0 ? option : option.slice(separator + 1);
     const [min, max] = ranges[key];

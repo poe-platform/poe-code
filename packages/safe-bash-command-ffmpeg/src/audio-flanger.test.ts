@@ -87,6 +87,42 @@ for (const [expression, decimal] of [
   }
 }
 
+for (const graph of [false, true]) {
+  for (const option of ["threads=1", "thread_type=slice", "extra_hw_frames=1",
+    "threads=0:thread_type=none:extra_hw_frames=-1",
+    "threads=max:thread_type=all-slice:extra_hw_frames=max",
+    "threads=default:thread_type=+slice:extra_hw_frames=min",
+    "threads=1+1:extra_hw_frames=0.5"]) {
+    it(`flanger ${option} preserves complete default PCM (graph=${graph})`, async () => {
+      const channels = [
+        Float64Array.from({ length: 16 }, (_, i) => (1000 + i * 97) / 32768),
+        Float64Array.from({ length: 16 }, (_, i) => ((i * 257) % 20001 - 10000) / 32768)
+      ];
+      const control = await run("flanger", 16, true, graph, "s16le", channels, 1000);
+      assert.equal(control.result.exitCode, 0, control.stderr);
+      const actual = await run(`flanger=${option}`, 16, true, graph, "s16le", channels, 1000);
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      const pcm = actual.volume.readFileSync("/out.s16") as Buffer;
+      assert.equal(pcm.length, 64);
+      assert.deepEqual(pcm, control.volume.readFileSync("/out.s16"));
+      assert.equal(createHash("sha256").update(pcm).digest("hex"),
+        "3ec023179765761e298eee4e944b7840182d88d5f0dd54600ccac901ccd75908");
+    });
+  }
+  for (const [option, status] of [
+    ["threads=-1", 222], ["threads=2147483648", 222], ["threads=", 234],
+    ["thread_type=bogus", 234], ["thread_type=0.5", 222],
+    ["extra_hw_frames=-2", 222], ["extra_hw_frames=2147483648", 222],
+    ["extra_hw_frames=bogus", 234]
+  ] as const) {
+    it(`rejects flanger ${option} and preserves output (graph=${graph})`, async () => {
+      const { volume, result, stderr } = await run(`flanger=${option}`, 16, true, graph);
+      assert.equal(result.exitCode, status, stderr);
+      assert.equal(volume.readFileSync("/out.s16", "utf8"), "keep");
+    });
+  }
+}
+
 it("matches native PCM for the final-separator stereo regression", async () => {
   const channels = Array.from({ length: 2 }, (_, c) =>
     Float64Array.from({ length: 8000 }, (_, i) => ((i * 997 + c * 149) % 60001 - 30000) / 32768));

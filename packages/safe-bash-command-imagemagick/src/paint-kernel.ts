@@ -1,12 +1,13 @@
 import type { RgbaColor, RgbaImage } from "@poe-code/image-ast/portable";
 import type { HueMetadata } from "./colorspace-hue.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { createMagickRandom } from "./random.js";
 import { magickIntensity } from "./intensity.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
 /** Select whole pixels from the most frequent intensity bin in each square brush. */
-export function* paintPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha"> & HueMetadata, geometry: { width?: number; height?: number }, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, intensity = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* paintPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha"> & HueMetadata, geometry: { width?: number; height?: number }, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, intensity = "rec709luma", seed?: bigint): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 0);
     if (!Number.isFinite(radius) || !Number.isFinite(sigma)) throw new Error("Paint radius or sigma exceeds limit");
     let half = radius > 1e-12 ? Math.ceil(radius) : 1;
@@ -35,9 +36,12 @@ export function* paintPixelSteps(image: Pick<RgbaImage, "width" | "height" | "sp
         ? [background.r, background.g, background.b, background.a, 0, 0]
         : [gray, gray, gray, method === "transparent" ? 0 : 255, cmyk ? gray : 0, 0]);
     fill[5] = bin(fill[0]!, fill[1]!, fill[2]!);
+    const random = method === "random" ? createMagickRandom(seed) : undefined;
+    const randomPixels = new Map<number, number>();
     const blocks = new Map<number, Float64Array>();
     function* sample(x: number, y: number): Generator<ConvolveRequest | undefined, Float64Array, Uint8Array | undefined> {
-        const pixel = virtualPixelIndex(x, y, width, height, method);
+        const pixel = randomPixels.get((y + half) * (width + 2 * half + 1) + x + half)
+            ?? virtualPixelIndex(x, y, width, height, method, random);
         if (pixel < 0) return fill;
         const start = Math.floor(pixel / 512) * 512;
         let samples = blocks.get(start);
@@ -69,6 +73,18 @@ export function* paintPixelSteps(image: Pick<RgbaImage, "width" | "height" | "sp
         for (let i = 0; i < count; i++) {
             yield;
             const x = (start + i) % width, y = Math.floor((start + i) / width);
+            if (random && x === 0) {
+                // Native samples one padded rectangle per output row, reusing
+                // random border pixels across overlapping brushes and chunks. Its
+                // extra rightmost column also advances the random sequence.
+                randomPixels.clear();
+                for (let sy = y - half; sy <= y + half; sy++) for (let sx = -half; sx <= width + half; sx++) {
+                    if (sx >= 0 && sx < width && sy >= 0 && sy < height) continue;
+                    yield;
+                    randomPixels.set((sy + half) * (width + 2 * half + 1) + sx + half,
+                        virtualPixelIndex(sx, sy, width, height, method, random));
+                }
+            }
             const center = yield* sample(x, y);
             let selected = center, maximum = 0;
             histogram.fill(0);

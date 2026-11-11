@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function gateAudio(
   first: MediaTrack, filter: string, budget: MediaBudgetTracker, sidechain: readonly (Float32Array | Float64Array)[],
@@ -22,6 +23,10 @@ export async function gateAudio(
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, value, "sidechaingate");
+      continue;
+    }
     if (key === "enable") {
       // This is a native string option; only its final value is interpreted.
       enable = value;

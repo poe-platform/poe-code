@@ -12,9 +12,18 @@ export async function exciteAudio(
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options;
-    if (!key || !Object.hasOwn(options, key)) throw new Error(`aexciter: unsupported option ${key}`);
+    const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options | "threads" | "extra_hw_frames";
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key === "threads" || key === "extra_hw_frames") {
+      const min = key === "threads" ? 0 : -1;
+      const number = parseFilterExpression(value, "aexciter", { min, max: 2147483647, default: min });
+      if (!Number.isFinite(number) || number < min || number > 2147483647) {
+        throw new RangeError(`aexciter: invalid ${key}`);
+      }
+      // Scheduling and hardware frame reservations do not change PCM samples.
+      continue;
+    }
+    if (!key || !Object.hasOwn(options, key)) throw new Error(`aexciter: unsupported option ${key}`);
     const number = key !== "listen" ? parseFilterExpression(value, "aexciter", {})
       : ["true", "yes", "on"].includes(value.toLowerCase()) ? 1
       : key === "listen" && ["false", "no", "off"].includes(value.toLowerCase()) ? 0 : Number(value);

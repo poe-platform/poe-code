@@ -4051,6 +4051,22 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
     const method = spec.toLowerCase().replace(/[-_]/g, ""), nums = args.trim().split(/[\s,]+/).filter(s => s.length > 0).map(Number);
     if (nums.some(value => !Number.isFinite(value))) throw new Error("invalid list of numbers");
     if (method === "arc") throw new Error("Unsupported distortion method: Arc");
+    if (method === "shepards") {
+        if (nums.length === 0 || nums.length % 4 !== 0) throw new Error("Shepards requires control points (4 numbers each)");
+        return result((x, y) => {
+            let dx = 0, dy = 0, total = 0;
+            for (let p = 0; p < nums.length; p += 4) {
+                // Native weights destination edge coordinates by inverse squared
+                // distance, capped at one within a pixel of each control point.
+                const px = x + 0.5 - nums[p + 2]!, py = y + 0.5 - nums[p + 3]!;
+                const weight = 1 / Math.max(1, px * px + py * py);
+                dx += (nums[p]! - nums[p + 2]!) * weight;
+                dy += (nums[p + 1]! - nums[p + 3]!) * weight;
+                total += weight;
+            }
+            return [x + dx / total, y + dy / total];
+        });
+    }
     if (method === "srt" || method === "scalerotatetranslate") {
         const pageX = img.virtualCanvas?.x ?? 0, pageY = img.virtualCanvas?.y ?? 0;
         const offsetX = token === "+distort" ? pageX : 0, offsetY = token === "+distort" ? pageY : 0;
@@ -4086,7 +4102,24 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
                 ry * (x + offsetX + 0.5) + sy * (y + offsetY + 0.5) + ty - 0.5 - offsetY]);
     }
     if (method === "affine" && (nums.length === 0 || nums.length % 4 !== 0)) throw new Error("Affine requires complete source/destination point pairs");
-    if (method === "affineprojection") {
+    if (method === "rigidaffine") {
+        if (nums.length < 8 || nums.length % 4 !== 0) throw new Error("RigidAffine requires at least 2 complete source/destination point pairs");
+        // Native fits a forward similarity transform: uniform scale, rotation and translation.
+        const matrix = Array.from({ length: 4 }, () => Array<number>(4).fill(0)), values = Array<number>(4).fill(0);
+        for (let p = 0; p < nums.length; p += 4) {
+            const rows = [[nums[p]!, -nums[p + 1]!, 1, 0], [nums[p + 1]!, nums[p]!, 0, 1]];
+            for (let axis = 0; axis < 2; axis++) {
+                const row = rows[axis]!;
+                for (let i = 0; i < 4; i++) {
+                    values[i]! += row[i]! * nums[p + 2 + axis]!;
+                    for (let j = 0; j < 4; j++) matrix[i]![j]! += row[i]! * row[j]!;
+                }
+            }
+        }
+        const [scale, rotation, tx, ty] = solveLinearSystem(matrix, values) as [number, number, number, number];
+        nums.splice(0, nums.length, scale, rotation, -rotation, scale, tx, ty);
+    }
+    if (method === "affineprojection" || method === "rigidaffine") {
         if (nums.length !== 6) throw new Error("AffineProjection needs 6 coefficient values");
         const [sx, ry, rx, sy, tx, ty] = nums as [number, number, number, number, number, number];
         const determinant = sx * sy - rx * ry;

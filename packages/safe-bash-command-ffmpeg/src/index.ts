@@ -2397,6 +2397,12 @@ async function applyVideoFilterChain(
       if (kIdx >= 0) {
         let key = part.slice(0, kIdx).trim().toLowerCase();
         if (name === "trim" && ["starti", "endi", "durationi"].includes(key)) key = key.slice(0, -1);
+        if (name === "drawbox") {
+          if (key === "width") key = "w";
+          else if (key === "height") key = "h";
+          else if (key === "color") key = "c";
+          else if (key === "thickness") key = "t";
+        }
         named[key] = part.slice(kIdx + 1).trim();
       }
     }

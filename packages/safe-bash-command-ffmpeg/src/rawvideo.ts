@@ -2,6 +2,18 @@ import { concatBytes, scaleVideoPicture, rgbaToYuv420p, yuv420pToRgba, type Medi
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { formatYuv } from "./format-yuv.js";
 
+// Ordered dither for full-range 16-to-10-bit grayscale conversion.
+const gray10Dither = [
+  [18, 34, 30, 46, 17, 33, 29, 45],
+  [50, 2, 62, 14, 49, 1, 61, 13],
+  [26, 42, 22, 38, 25, 41, 21, 37],
+  [58, 10, 54, 6, 57, 9, 53, 5],
+  [16, 32, 28, 44, 19, 35, 31, 47],
+  [48, 0, 60, 12, 51, 3, 63, 15],
+  [24, 40, 20, 36, 27, 43, 23, 39],
+  [56, 8, 52, 4, 59, 11, 55, 7]
+];
+
 export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixelFormat: string | undefined, fps: number, budget: MediaBudgetTracker, decode = true): MediaDocument {
   const dimensions = size?.split("x").map(Number) ?? [];
   const [width = 0, height = 0] = dimensions;
@@ -247,6 +259,25 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
           view.setUint16(offset + 2, Math.max(0, Math.min(65535, (y - v * 6660 - u * 3209) >> 14)), littleEndian);
           view.setUint16(offset + 4, Math.max(0, Math.min(65535, (y + u * 16525) >> 14)), littleEndian);
           if (channels === 4) view.setUint16(offset + 6, frame.data[pixel * 4 + 3]! * 257, littleEndian);
+        }
+        append(bytes);
+      } else if (format === "gray10le") {
+        const native = frame.native?.rgba === frame.data && frame.native.width === frame.width && frame.native.height === frame.height
+          ? frame.native : undefined;
+        if (!native || ![29, 30].includes(native.format)) throw new Error("gray10le output requires 16-bit grayscale input");
+        const length = frame.width * frame.height * 2;
+        budget.checkOutputBytes(size + length);
+        const bytes = new Uint8Array(length);
+        const source = new DataView(native.pixels.buffer, native.pixels.byteOffset, native.pixels.byteLength);
+        const view = new DataView(bytes.buffer);
+        for (let pixel = 0; pixel < frame.width * frame.height; pixel++) {
+          if (pixel % 4096 === 0) budget.checkCpu();
+          const sample = source.getUint16(pixel * 2, native.format === 30);
+          // Match the reference FFmpeg build's 16 slices; each restarts dithering.
+          const row = Math.floor(pixel / frame.width) % Math.ceil(frame.height / 16);
+          const dither = gray10Dither[row & 7]![(pixel % frame.width) & 7]!;
+          // Adjust full-range endpoints before reducing depth, as swscale does.
+          view.setUint16(pixel * 2, (sample - (sample >> 10) + dither) >> 6, true);
         }
         append(bytes);
       } else if (format === "gray16be" || format === "gray16le") {

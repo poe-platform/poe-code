@@ -31,7 +31,10 @@ export function* riemersmaRemapSteps(image: { width: number; height: number }, p
         const bytes = (yield { kind: "read", highDepth, image: 1, position, length })!;
         const samples = highDepth ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : Float64Array.from(bytes);
         for (let i = 0; i < samples.length; i += 4) {
-            const color = samples.slice(i, i + 4), key = color.join(",");
+            const color = samples.slice(i, i + 4);
+            // Native palette classification discards RGB at zero alpha.
+            if (paletteImage.hasAlpha && color[3] === 0) color.fill(0, 0, 3);
+            const key = color.join(",");
             if (!seen.has(key)) { seen.add(key); palette.push(color); }
         }
     }

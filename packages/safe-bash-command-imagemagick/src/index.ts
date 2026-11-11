@@ -1296,10 +1296,12 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
     for (let i = 0; i < palImg.data.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        const r = palImg.data16 ? palImg.data16[i]! / 257 : palImg.data[i]!;
-        const g = palImg.data16 ? palImg.data16[i + 1]! / 257 : palImg.data[i + 1]!;
-        const b = palImg.data16 ? palImg.data16[i + 2]! / 257 : palImg.data[i + 2]!;
         const a = palImg.data16 ? palImg.data16[i + 3]! / 257 : palImg.data[i + 3]!;
+        // Native palette classification discards RGB at zero alpha.
+        const transparent = palImg.hasAlpha && a === 0;
+        const r = transparent ? 0 : palImg.data16 ? palImg.data16[i]! / 257 : palImg.data[i]!;
+        const g = transparent ? 0 : palImg.data16 ? palImg.data16[i + 1]! / 257 : palImg.data[i + 1]!;
+        const b = transparent ? 0 : palImg.data16 ? palImg.data16[i + 2]! / 257 : palImg.data[i + 2]!;
         const key = `${r},${g},${b},${a}`;
         if (!seen.has(key)) {
             seen.add(key);
@@ -7134,7 +7136,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         return yield* applyMod([decodeImage(new TextEncoder().encode(createLabelSvg(text, state)), { density: state.density })]);
     }
     if (lower === "null:") {
-        return yield* applyMod([Object.assign(yield* createSolidRgbaImageSteps(1, 1, state.background), { [magickInput]: { filePath: "null:", compression: "Undefined" } })]);
+        return yield* applyMod([Object.assign(yield* createSolidRgbaImageSteps(1, 1, { r: 0, g: 0, b: 0, a: 0 }), { [magickInput]: { filePath: "null:", compression: "Undefined" } })]);
     }
     if (lower.startsWith("apng:")) {
         const path = baseToken.slice(5), bytes = path === "-" ? stdinBytes : files.get(path);
@@ -12301,11 +12303,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const result = state.dither === "riemersma"
                     ? yield* applyMagickRasterSteps(im, riemersmaRemapSteps(im, palette, !!(im.data16 || palette.data16), state.diffusionAmount ?? 1), signal, im, [im, palette])
                     : yield* applyMagickRemapSteps(im, palette, state.dither !== false, state.diffusionAmount ?? 1, signal);
-                if (t === "-remap" && result.space === "cmyk") {
-                    // Remap replaces RGB backing; rebuild inks instead of retaining source samples.
-                    const { hueSamples: ignoredHue, evaluateSamples: ignoredEvaluate, ...remapped } = result;
-                    return { ...yield* convertCmykPixels(remapped), isPalette: true };
-                }
                 return hueSpace ? yield* convertHuePixels({ ...result, evaluateSamples: undefined }, hueSpace) : result;
             });
         }
@@ -15808,11 +15805,6 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const result = settings.dither === "riemersma"
                     ? await transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!(image.storedData16 || colors.storedData16), settings.diffusionAmount ?? 1), signal, image, [image, colors])
                     : await remapStoredImage(image, colors, backend.storage, settings.dither !== false, settings.diffusionAmount ?? 1, signal);
-                if (result.space === "cmyk") {
-                    const { storedHueSamples: ignoredHue, storedEvaluateSamples: ignoredEvaluate, ...remapped } = result;
-                    return { ...await transformStoredMagickPixels(remapped, backend,
-                        { end: 0, highDepth: true, apply: convertCmykPixels }, signal), isPalette: true };
-                }
                 return hueSpace ? transformStoredMagickPixels(result, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, hueSpace) }, signal) : result;
             });
         } else if (!operandsOnly && (token === "-floodfill" || token === "+floodfill")) {
@@ -17452,7 +17444,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   image=await transformStoredMagickRaster({...metadata,position:0},backend,haldInputPixelSteps(metadata.width),signal);
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
   const colorStr=(baseToken.slice(baseToken.indexOf(":")+1)||"white").trim();
-  const color: ReturnType<typeof parseColor>=lower==="null:"?state.background:parseColor(colorStr,true),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
+  const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(colorStr,true),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
   const hasAlpha=color.a<255||colorStr.startsWith("#")&&[5,9,17].includes(colorStr.length)||colorStr.toLowerCase().includes("a(");
   image={...await createStoredCanvas(width,height,color,backend,signal,[color.r,color.g,color.b,color.a].some(value=>!Number.isInteger(value))),endian:"lsb",hasAlpha,...(!hasAlpha?{inactiveAlpha:false}:{}),...(lower==="null:"?{[magickInput]:{filePath:"null:",compression:"Undefined"}}:{bitsPerSample:state.inputDepth??16,[magickInput]:{filePath:baseToken.slice(baseToken.indexOf(":")+1),compression:"Undefined"}})};
   if ("space" in color && color.space) image = { ...image, space: color.space, channels: hasAlpha ? 2 : 1 };

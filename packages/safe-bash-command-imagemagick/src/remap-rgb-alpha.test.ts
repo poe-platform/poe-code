@@ -15,7 +15,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
                     depth: depth === 16 ? "ushort" : "uchar", density: 72, hasAlpha
                 }, { format: "png" }).data;
                 expect(decodeImage(input).hasAlpha).toBe(hasAlpha);
-                for (const paletteAlpha of [64, 255]) {
+                for (const paletteAlpha of [0, 64, 255]) {
                     const palette = encodeImage({ width: 1, height: 1,
                         data: Uint8Array.of(0, 0, 255, paletteAlpha),
                         format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true
@@ -37,8 +37,9 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
                     // Native ImageMagick keeps RGB opaque, but copies palette alpha for RGBA,
                     // even when every source alpha sample is fully opaque.
                     const alpha = hasAlpha ? paletteAlpha : 255;
-                    expect(Array.from(decoded.data)).toEqual([0, 0, 255, alpha]);
-                    if (depth === 16) expect(Array.from(decoded.data16!)).toEqual([0, 0, 65535, alpha * 257]);
+                    const blue = paletteAlpha === 0 ? 0 : 255;
+                    expect(Array.from(decoded.data)).toEqual([0, 0, blue, alpha]);
+                    if (depth === 16) expect(Array.from(decoded.data16!)).toEqual([0, 0, blue * 257, alpha * 257]);
                 }
             });
         }

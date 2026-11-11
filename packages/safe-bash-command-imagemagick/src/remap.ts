@@ -20,7 +20,10 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
         if (bytes.length !== length * (paletteImage.storedData16 ? 2 : 1)) throw new Error("Truncated remap palette");
         const samples = paletteImage.storedData16 ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : bytes;
         for (let i = 0; i < length; i += 4) {
-            const color = Array.from(samples.subarray(i, i + 4)), key = color.join(",");
+            const color = Array.from(samples.subarray(i, i + 4));
+            // Native palette classification discards RGB at zero alpha.
+            if (paletteImage.hasAlpha && color[3] === 0) color.fill(0, 0, 3);
+            const key = color.join(",");
             if (!seen.has(key)) { seen.add(key); palette.push(color); }
         }
     }

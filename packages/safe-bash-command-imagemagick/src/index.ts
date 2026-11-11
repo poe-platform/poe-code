@@ -12491,7 +12491,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const mask = image[magickInput]?.channelMask;
                 const settings = { ...state, channels: mask ?? createDefaultState().channels,
-                    channelExplicit: mask !== undefined, channelDefault: mask?.default ?? false };
+                    channelExplicit: mask !== undefined, channelDefault: mask?.default ?? true };
                 const pixelOperation = parseMagickPixelOperation(operationTokens, settings, 0, signal)!;
                 const { evaluateSamples: ignoredEvaluate, ...bounded } = image;
                 const input = pixelOperation.evaluate ? image : bounded;
@@ -16006,7 +16006,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const mask = image[magickInput]?.channelMask;
                 const imageSettings = { ...settings, channels: mask ?? createDefaultState().channels,
-                    channelExplicit: mask !== undefined, channelDefault: mask?.default ?? false };
+                    channelExplicit: mask !== undefined, channelDefault: mask?.default ?? true };
                 const selectedMeta = !imageSettings.channelExplicit || imageSettings.channelDefault ? undefined : imageSettings.channels.meta ?? [];
                 const operation = parseMagickPixelOperation(operationTokens, imageSettings, 0, signal)!;
                 const converted = await transformStoredMagickPixels(image, backend, operation, signal);

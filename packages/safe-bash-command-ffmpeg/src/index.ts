@@ -10616,10 +10616,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     t.type === "video" ? { ...t, samples: [], decodedVideoFrames: outFrames } : t
                   )
                 };
-              } else if ((filterComplex.includes("vstack") || filterComplex.includes("hstack") || filterComplex.includes("framepack")) && loadedDocs.length >= 2) {
+              } else if ((filterComplex.includes("vstack") || filterComplex.includes("hstack") || filterComplex.includes("xstack") || filterComplex.includes("framepack")) && loadedDocs.length >= 2) {
+                const xstack = filterComplex.includes("xstack");
                 const framepack = filterComplex.includes("framepack");
                 let vertical = filterComplex.includes("vstack");
-                const filter = framepack ? "framepack" : vertical ? "vstack" : "hstack";
+                const filter = xstack ? "xstack" : framepack ? "framepack" : vertical ? "vstack" : "hstack";
                 let remaining = filterComplex.slice(filterComplex.indexOf(filter));
                 const downstream: string[] = [];
                 let spec = "";
@@ -10661,6 +10662,28 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }
                 vfFilters.push(...downstream);
                 const options = (spec.startsWith("=") ? spec.slice(1) : "").split(":");
+                const xoptions: Record<string, string> = {};
+                if (xstack) {
+                  const keys = ["inputs", "layout", "grid", "shortest", "fill"];
+                  for (const [index, option] of options.entries()) {
+                    if (!option) continue;
+                    const equals = option.indexOf("=");
+                    const key = equals < 0 ? keys[index] : option.slice(0, equals).trim();
+                    if (!key || !keys.includes(key)) throw new Error(`xstack: unsupported option ${option}`);
+                    xoptions[key] = (equals < 0 ? option : option.slice(equals + 1)).trim();
+                  }
+                  if (xoptions.inputs !== undefined && xoptions.inputs !== "2") {
+                    throw new Error("xstack: only two direct inputs are supported");
+                  }
+                  if (xoptions.layout && xoptions.grid) throw new Error("xstack: layout and grid are mutually exclusive");
+                  if (xoptions.grid && !["1x2", "2x1"].includes(xoptions.grid)) {
+                    throw new Error("xstack: grid must contain two inputs");
+                  }
+                  if (xoptions.shortest !== undefined && !["0", "1", "true", "false", "yes", "no", "on", "off"].includes(xoptions.shortest)) {
+                    throw new Error("xstack: invalid shortest option");
+                  }
+                }
+                const fill = xstack && xoptions.fill && xoptions.fill !== "none" ? parseColorRgba(xoptions.fill) : undefined;
                 if (framepack) {
                   const option = options[0]?.trim() ?? "";
                   const layout = (option.startsWith("format=") ? option.slice(7) : option) || "sbs";
@@ -10671,7 +10694,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }
                 const inputOption = options.find(option => option.trim().startsWith("inputs="))
                   ?.split("=")[1]?.trim() ?? (options[0]?.includes("=") ? undefined : options[0]?.trim());
-                const inputCount = framepack ? 2 : Number(inputOption || 2);
+                const inputCount = framepack || xstack ? 2 : Number(inputOption || 2);
                 if (!Number.isInteger(inputCount) || inputCount < 2 || inputCount > loadedDocs.length) {
                   throw new Error(`${filter}: inputs must specify at least two available inputs`);
                 }
@@ -10747,7 +10770,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   inputs.push(frames);
                 }
                 if (pads) throw new Error(`${filter}: unsupported input labels ${pads}`);
-                const shortestOption = options.find((option) => option.trim().startsWith("shortest="))
+                const shortestOption = xstack ? xoptions.shortest : options.find((option) => option.trim().startsWith("shortest="))
                   ?.split("=")[1]?.trim() ?? options[1]?.trim();
                 const stopAtShortest = framepack || ["1", "true", "yes", "on"].includes(shortestOption ?? "0");
                 const lengths = inputs.map(frames => frames.length);
@@ -10765,23 +10788,57 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     throw new Error("framepack: inputs must have matching dimensions and frame rates");
                   }
                   const timing = inputs.find(input => input[i])![i]!;
-                  const axis = vertical ? "width" : "height";
-                  for (const [index, frame] of frames.entries()) {
-                    if (frame[axis] !== first[axis]) {
-                      throw new Error(`Input ${index} ${axis} ${frame[axis]} does not match input 0 ${axis} ${first[axis]}`);
-                    }
+                  let placements: { x: number; y: number }[];
+                  if (xstack) {
+                    const layout = xoptions.layout || (xoptions.grid === "1x2" ? "0_0|0_h0" : "0_0|w0_0");
+                    const entries = layout.split("|");
+                    if (entries.length !== frames.length) throw new Error("xstack: layout must contain two positions");
+                    placements = entries.map(entry => {
+                      const coordinates = entry.split("_");
+                      if (coordinates.length !== 2) throw new Error("xstack: each position needs x and y coordinates");
+                      const [x, y] = coordinates.map(coordinate => {
+                        let value = 0;
+                        for (const term of coordinate.split("+")) {
+                          const dimension = term[0] === "w" || term[0] === "h" ? term[0] : undefined;
+                          const digits = dimension ? term.slice(1) : term;
+                          if (!digits || ![...digits].every(char => char >= "0" && char <= "9")) {
+                            throw new Error(`xstack: invalid coordinate ${coordinate}`);
+                          }
+                          const number = Number(digits);
+                          const frame = frames[number];
+                          if (dimension && !frame) throw new Error(`xstack: unavailable input ${number}`);
+                          value += dimension ? frame![dimension === "w" ? "width" : "height"] : number;
+                        }
+                        if (!Number.isSafeInteger(value)) throw new Error("xstack: coordinate is out of range");
+                        return value;
+                      });
+                      return { x: x!, y: y! };
+                    });
+                  } else {
+                    const axis = vertical ? "width" : "height";
+                    let offset = 0;
+                    placements = frames.map((frame, index) => {
+                      if (frame[axis] !== first[axis]) {
+                        throw new Error(`Input ${index} ${axis} ${frame[axis]} does not match input 0 ${axis} ${first[axis]}`);
+                      }
+                      const position = { x: vertical ? 0 : offset, y: vertical ? offset : 0 };
+                      offset += vertical ? frame.height : frame.width;
+                      return position;
+                    });
                   }
-                  const w = vertical ? first.width : frames.reduce((sum, frame) => sum + frame.width, 0);
-                  const h = vertical ? frames.reduce((sum, frame) => sum + frame.height, 0) : first.height;
+                  const w = Math.max(...frames.map((frame, index) => placements[index]!.x + frame.width));
+                  const h = Math.max(...frames.map((frame, index) => placements[index]!.y + frame.height));
                   budget.recordFrame(w, h);
                   const outData = new Uint8Array(w * h * 4);
-                  let offset = 0;
-                  for (const frame of frames) {
+                  if (fill) {
+                    for (let pixel = 0; pixel < outData.length; pixel += 4) outData.set(fill, pixel);
+                  }
+                  for (const [index, frame] of frames.entries()) {
+                    const position = placements[index]!;
                     for (let y = 0; y < frame.height; y++) {
                       outData.set(frame.data.subarray(y * frame.width * 4, (y + 1) * frame.width * 4),
-                        (vertical ? (offset + y) * w : y * w + offset) * 4);
+                        ((position.y + y) * w + position.x) * 4);
                     }
-                    offset += vertical ? frame.height : frame.width;
                   }
                   stacked.push({
                     width: w,

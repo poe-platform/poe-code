@@ -2691,6 +2691,11 @@ function parseMagickRaiseGeometry(raw: string, option: string): MagickGeometry {
     if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
         throw new Error(`invalid argument for option '${option}': ${raw}`);
     }
+    const comma = raw.indexOf(",");
+    // A trailing field is allowed only after rectangle dimensions.
+    if (comma >= 0 && ![...raw.slice(0, comma)].some(c => "xX:".includes(c))) {
+        throw new Error(`invalid geometry: ${raw}`);
+    }
     raw = raw.split(",", 1)[0]!.replaceAll("#", "").replaceAll(":", "x");
     const geometry = parseMagickGeometry(raw);
     if (!geometry.isPercent && normalizeMagickOffsets(raw).toLowerCase().includes("x")) {

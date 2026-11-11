@@ -14764,6 +14764,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const operation = parseMagickWarpOperation(["-rotate", expanded], state, 0, analysis);
                 const { angle: deg, applies } = parseMagickRotation(expanded);
                 if (!applies(im)) return im;
+                im = { ...im, [magickInput]: { ...im[magickInput], blobSize: 0 } };
                 if (((deg % 360) + 360) % 360 >= 1e-6) im = discardDisassociatedAlpha(im);
                 const background = state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background;
                 if (operation && !im.hasAlpha && background.a < 255) {
@@ -14855,6 +14856,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 im = discardDisassociatedAlpha(im);
                 const result = yield* rotateImageSteps((yield* flipImageSteps(im)), 90, state.background);
                 return yield* preserveRegionTransformSteps(im, { ...result,
+                    [magickInput]: { ...im[magickInput], blobSize: 0 },
                     alphaSeparate: im.alphaBlend === false ? false : im.alphaSeparate,
                     ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* rotateImageSteps((yield* flipImageSteps(plane)), 90, state.background); }) } : {}),
                     ...(im.readMask ? { readMask: yield* rotateImageSteps((yield* flipImageSteps(im.readMask as RgbaImage)), 90, state.background) } : {}),
@@ -14869,6 +14871,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 im = discardDisassociatedAlpha(im);
                 const result = yield* rotateImageSteps((yield* flopImageSteps(im)), 90, state.background);
                 return yield* preserveRegionTransformSteps(im, { ...result,
+                    [magickInput]: { ...im[magickInput], blobSize: 0 },
                     alphaSeparate: im.alphaBlend === false ? false : im.alphaSeparate,
                     ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* rotateImageSteps((yield* flopImageSteps(plane)), 90, state.background); }) } : {}),
                     ...(im.readMask ? { readMask: yield* rotateImageSteps((yield* flopImageSteps(im.readMask as RgbaImage)), 90, state.background) } : {}),
@@ -18651,6 +18654,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const result = await transformStoredImage(await transformStoredImage(image, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal);
                 return preserveStoredRegionTransform(image, {
                     ...result,
+                    [magickInput]: { ...image[magickInput], blobSize: 0 },
                     alphaSeparate: image.alphaBlend === false ? false : image.alphaSeparate,
                     ...(image.storedMetaChannels ? { storedMetaChannels } : {}),
                     ...(image.readMask ? { readMask: await transformStoredImage(await transformStoredImage(image.readMask as StoredRgbaImage, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal) } : {}),
@@ -19297,6 +19301,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const operation = parseMagickWarpOperation(["-rotate", expanded], settings, 0, analysis);
                 const { angle, applies } = parseMagickRotation(expanded);
                 if (!applies(image)) return image;
+                image = { ...image, [magickInput]: { ...image[magickInput], blobSize: 0 } };
                 if (((angle % 360) + 360) % 360 >= 1e-6) image = discardDisassociatedAlpha(image);
                 const background = settings.backgroundExplicit ? settings.background : image.backgroundColor ?? settings.background;
                 if (operation && !image.hasAlpha && background.a < 255) {

@@ -14639,7 +14639,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const key = separator < 0 ? ["i", "c"][index] : option.slice(0, separator).trim();
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           if (key === "i") {
-                            intensity = Math.fround(parseFilterExpression(value, "crystalizer", {}));
+                            intensity = Math.fround(parseFilterExpression(value, "crystalizer", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }));
                             if (!Number.isFinite(intensity) || intensity < -10 || intensity > 10) {
                               throw new Error("crystalizer: i must be in the range [-10, 10]");
                             }

@@ -532,6 +532,7 @@ options, 222 for values outside the allowed range, and 234 for invalid expressio
 without emitting audio.
 `crystalizer=i=2` sharpens changes between successive samples independently per channel.
 Intensity defaults to 2 (range -10 to 10); negative values smooth the audio.
+Intensity expressions accept `PI`, `E`, and `PHI`, for example `crystalizer=i=PI/2`.
 Clipping is enabled by default; `c=0` preserves peaks for subsequent filters.
 `enable='gte(t,0.256)'` enables processing from that audio frame timestamp;
 disabled frames pass through while updating the previous-sample history.

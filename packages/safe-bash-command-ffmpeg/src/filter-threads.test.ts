@@ -5,10 +5,11 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
-for (const threads of [undefined, "1", "2"]) {
-  const option = threads === undefined ? [] : ["-filter_threads", threads];
+for (const option of [[], ["-filter_threads", "1"], ["-filter_threads", "2"],
+  ["-filter_complex_threads", "1"], ["-filter_complex_threads", "2"]]) {
+  const label = option.join(" ") || "omitted";
   for (const position of ["before input", "before output"]) {
-    it(`accepts global filter_threads=${threads ?? "omitted"} ${position} with exact trimmed PCM`, async () => {
+    it(`accepts global ${label} ${position} with exact trimmed PCM`, async () => {
       const input = Buffer.alloc(32);
       for (let i = 0; i < 16; i++) input.writeInt16LE(i + 1, i * 2);
       const volume = Volume.fromJSON({});
@@ -37,7 +38,7 @@ for (const threads of [undefined, "1", "2"]) {
     });
   }
 
-  it(`accepts global filter_threads=${threads ?? "omitted"} in synchronous execution`, () => {
+  it(`accepts global ${label} in synchronous execution`, () => {
     const samples = Float64Array.from({ length: 16 }, (_, i) => (i + 1) / 32768);
     const input = encodeWav({ sampleRate: 8000, channels: [samples] });
     const volume = Volume.fromJSON({ "/in.wav": Buffer.from(input) });

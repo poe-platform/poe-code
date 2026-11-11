@@ -10422,6 +10422,7 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
     if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
     image = yield* prepareInactiveAlphaOutput(yield* prepareHueOutput(image, format));
+    if (format === "xpm") image = yield* applyMagickRasterSteps(image, quantizePixelSteps(image.width * image.height * 4, 256, false, image.hasAlpha || dither ? 5 : 6, image.hasAlpha, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true));
     if (format === "gif" && !image.isPalette && dither) image = { ...(yield* applyMagickRasterSteps(image, gifDitherSteps(image, dither, diffusionAmount))), isPalette: true };
     if (["exr", "hdr", "pfm", "phm"].includes(format)) image = yield* prepareFloatOutput(image);
     if (format === "gif" && image.format === "gif" && !image.backgroundColor) image = { ...image, backgroundColor: { r: image.data[0]!, g: image.data[1]!, b: image.data[2]!, a: 255 } };
@@ -10455,6 +10456,7 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepareFloatOutput }, signal);
     }
     if (!image.hasAlpha) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: prepareInactiveAlphaOutput }, signal);
+    if (format === "xpm") image = await transformStoredMagickRaster(image, backend, quantizePixelSteps(image.width * image.height * 4, 256, false, image.hasAlpha || dither ? 5 : 6, image.hasAlpha, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true), signal);
     if (format === "gif" && !image.isPalette && dither) image = { ...(await transformStoredMagickRaster(image, backend, gifDitherSteps(image, dither, diffusionAmount), signal)), isPalette: true };
     if (format === "gif" && image.format === "gif" && !image.backgroundColor) {
         const pixel = await backend.storage.read(image.position, 4);

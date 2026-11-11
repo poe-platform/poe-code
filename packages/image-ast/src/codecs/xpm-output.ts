@@ -5,8 +5,9 @@ import { defaultRuntime } from "@poe-code/compression";
 const symbols = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-";
 
 /** Scan twice so the palette precedes the pixels without retaining the raster. */
-function* xpmChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">, filename = "image"): Generator<number | Uint8Array, void, Uint8Array> {
+function* xpmChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "indexedColors">, filename = "image"): Generator<number | Uint8Array, void, Uint8Array> {
   const palette = new Map<number, string>(), encoder = new TextEncoder();
+  for (const value of image.indexedColors ?? []) palette.set(image.hasAlpha && (value >>> 24) < 128 ? -1 : value & 0xffffff, "");
   const color = (data: Uint8Array, i: number): number => image.hasAlpha && data[i + 3]! < 128 ? -1 : data[i]! * 65536 + data[i + 1]! * 256 + data[i + 2]!;
   for (let offset = 0; offset < image.width * image.height * 4; offset += 4096) {
     const data = yield offset;

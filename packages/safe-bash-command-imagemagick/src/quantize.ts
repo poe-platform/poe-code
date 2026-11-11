@@ -28,7 +28,7 @@ export function* quantizeImageListSteps(images: readonly { length: number; hasAl
 }
 
 // Sums retain RGBA and RGB multiplied by alpha, so merged bins keep exact weights.
-interface ColorBin { count: number; sums: number[]; color: number[]; node?: ColorNode }
+interface ColorBin { count: number; sums: number[]; color: number[] }
 interface ColorNode {
     parent?: ColorNode;
     level: number;
@@ -110,6 +110,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
     }
     if (grayscale && requested === 2) return [0xff000000, 0xffffffff];
     const palette: number[][] = [];
+    let findDitherColor: ((pixel: Float64Array) => Generator<undefined, number[]>) | undefined;
     let work = 0;
     const channels = [...bins.values()].some(bin => bin.sums[3] !== 255 * bin.count) ? 4 : 3;
     if (working !== "cmyk" && bins.size <= requested && (channels === 3 || cycle !== undefined)) {
@@ -159,7 +160,6 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             }
             node.count += bin.count;
             for (let c = 0; c < 7; c++) node.sums[c]! += bin.sums[c]!;
-            bin.node = node;
         }
         // Traverse octants in RGB bit order so equally costly colors reduce in
         // native order, independent of where pixels appeared in the image.
@@ -224,16 +224,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             nodeColors.set(node, color);
             palette.push(color);
         }
-        for (const bin of bins.values()) {
-            if (++work % 1024 === 0) yield;
-            let node = bin.node!;
-            while (node.removed) node = node.parent!;
-            const pixel = bin.sums.slice(0, 4).map((value, c) => c < 3 ? bin.sums[c + 4]! / bin.count / 255 : value / bin.count);
-            // CMYK classification uses RGB, but assignment compares the converted inks.
-            if (working === "cmyk") {
-                const inks = rgbToCmyk(bin.sums[0]! / bin.count / 255, bin.sums[1]! / bin.count / 255, bin.sums[2]! / bin.count / 255);
-                for (let c = 0; c < 3; c++) pixel[c] = inks[c]! * pixel[3]!;
-            }
+        function* nearestColor(pixel: ArrayLike<number>): Generator<undefined, number[]> {
             // Native assignment searches the deepest surviving cube's
             // siblings and descendants, comparing unrounded palette means.
             let cube = root;
@@ -244,7 +235,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
                 if (!child || child.removed) break;
                 cube = child;
             }
-            let closest = Infinity;
+            let closest = Infinity, node = root;
             function* search(candidate: ColorNode): Generator<undefined> {
                 if (++work % 1024 === 0) yield;
                 for (let id = 0; id < 1 << channels; id++) {
@@ -262,7 +253,18 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
                 if (distance <= closest) { closest = distance; node = candidate; }
             }
             yield* search(cube.parent ?? root);
-            bin.color = nodeColors.get(node)!;
+            return nodeColors.get(node)!;
+        }
+        findDitherColor = nearestColor;
+        for (const bin of bins.values()) {
+            if (++work % 1024 === 0) yield;
+            const pixel = bin.sums.slice(0, 4).map((value, c) => c < 3 ? bin.sums[c + 4]! / bin.count / 255 : value / bin.count);
+            // CMYK classification uses RGB, but assignment compares the converted inks.
+            if (working === "cmyk") {
+                const inks = rgbToCmyk(bin.sums[0]! / bin.count / 255, bin.sums[1]! / bin.count / 255, bin.sums[2]! / bin.count / 255);
+                for (let c = 0; c < 3; c++) pixel[c] = inks[c]! * pixel[3]!;
+            }
+            bin.color = yield* nearestColor(pixel);
         }
     }
     function* writeWorkingPixels(position: number, data: Float64Array): Generator<ConvolveRequest, void, Uint8Array | undefined> {
@@ -282,21 +284,21 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
     const shift = cycle ? ((cycle.amount % palette.length) + palette.length) % palette.length : 0;
     // An unreduced opaque palette still goes through native dither assignment.
     // Its six-bit cache can reuse a nearby color; later pixels diffuse that error.
-    let cacheCollision = false;
+    let needsDither = bins.size > requested;
     if (dither && bins.size <= requested && channels === 3 && cycle === undefined) {
         const keys = new Set<number>();
         for (const color of palette) {
             if (++work % 1024 === 0) yield;
             const id = (Math.round(color[0]!) >>> 2) | (Math.round(color[1]!) >>> 2) << 6 | (Math.round(color[2]!) >>> 2) << 12;
-            if (keys.has(id)) { cacheCollision = true; break; }
+            if (keys.has(id)) { needsDither = true; break; }
             keys.add(id);
         }
     }
-    // Without a collision every input maps exactly, so diffusion stays zero.
-    if (dither && cacheCollision) {
+    // Reduced palettes and cache collisions both require error diffusion.
+    if (dither && needsDither) {
         const cache = new Map<number, number[]>(), errors = new Float64Array(64);
         const weights = Float64Array.from({ length: 16 }, (_, i) => dither.diffusionAmount * 16 ** (-1 - i / 15));
-        let row = new Float64Array(dither.method === "floydsteinberg" ? dither.width * 3 : 0), nextRow = new Float64Array(row.length);
+        let row = new Float64Array(dither.method === "floydsteinberg" ? dither.width * channels : 0), nextRow = new Float64Array(row.length);
         function* scan() {
             for (let y = 0; y < dither!.height; y++) {
                 for (let x = 0; x < dither!.width; x++) yield (y * dither!.width + (y % 2 ? dither!.width - x - 1 : x)) * 4;
@@ -311,37 +313,39 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
                 const inks = rgbToCmyk(target[0]! / 255, target[1]! / 255, target[2]! / 255);
                 for (let c = 0; c < 3; c++) target[c] = inks[c]! * 255;
             }
+            if (channels === 4) for (let c = 0; c < 3; c++) target[c]! *= target[3]! / 255;
             let id = 0;
-            for (let c = 0; c < 3; c++) {
+            for (let c = 0; c < channels; c++) {
                 if (dither.method === "riemersma") for (let i = 0; i < 16; i++) target[c]! += weights[i]! * errors[i * 4 + c]!;
-                else target[c]! += row[x * 3 + c]!;
+                else target[c]! += row[x * channels + c]!;
                 target[c] = Math.max(0, Math.min(255, target[c]!));
                 id |= (Math.round(target[c]!) >>> 2) << (c * 6);
             }
             let color = cache.get(id);
+            if (!color && findDitherColor) color = yield* findDitherColor(target);
             if (!color) {
                 let distance = Infinity;
                 for (const candidate of palette) {
                     if (++work % 1024 === 0) yield;
                     let next = 0;
-                    for (let c = 0; c < 3; c++) next += (target[c]! - candidate[c]!) ** 2;
+                    for (let c = 0; c < channels; c++) next += (target[c]! - candidate[c]!) ** 2;
                     if (next <= distance) { color = candidate; distance = next; }
                 }
-                cache.set(id, color!);
             }
+            cache.set(id, color!);
             if (dither.method === "riemersma") {
                 errors.copyWithin(0, 4);
-                for (let c = 0; c < 3; c++) errors[60 + c] = target[c]! - color![c]!;
+                for (let c = 0; c < channels; c++) errors[60 + c] = target[c]! - color![c]! * (channels === 4 && c < 3 ? color![3]! / 255 : 1);
             } else {
                 const direction = Math.floor(position / 4 / dither.width) % 2 ? -1 : 1;
-                for (let c = 0; c < 3; c++) {
-                    const error = (target[c]! - color![c]!) * dither.diffusionAmount / 16;
+                for (let c = 0; c < channels; c++) {
+                    const error = (target[c]! - color![c]! * (channels === 4 && c < 3 ? color![3]! / 255 : 1)) * dither.diffusionAmount / 16;
                     if (x + direction >= 0 && x + direction < dither.width) {
-                        row[(x + direction) * 3 + c]! += error * 7;
-                        nextRow[(x + direction) * 3 + c]! += error;
+                        row[(x + direction) * channels + c]! += error * 7;
+                        nextRow[(x + direction) * channels + c]! += error;
                     }
-                    if (x - direction >= 0 && x - direction < dither.width) nextRow[(x - direction) * 3 + c]! += error * 3;
-                    nextRow[x * 3 + c]! += error * 5;
+                    if (x - direction >= 0 && x - direction < dither.width) nextRow[(x - direction) * channels + c]! += error * 3;
+                    nextRow[x * channels + c]! += error * 5;
                 }
             }
             const data = Float64Array.from(color!);

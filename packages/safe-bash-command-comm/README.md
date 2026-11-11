@@ -13,7 +13,7 @@ const result = await shell.exec("comm --help");
 
 The module also exports `createCommCommand`, its command-list factory, and typed options and limits.
 
-Merging and order checks use `LC_ALL`, then `LC_COLLATE`, then `LANG` (ignoring empty values). C/POSIX locales use byte order; supported language locales use runtime Unicode collation. Output delimiters always retain byte equality.
+Merging and order checks use `LC_ALL`, then `LC_COLLATE`, then `LANG` (ignoring empty values). C/POSIX locales use byte order; supported language locales use runtime Unicode collation, with byte order breaking ties between distinct records. Only byte-identical records enter the common column. Output delimiters always retain byte equality.
 
 With `POSIXLY_CORRECT` set (including an empty value), options must precede the first file operand. Otherwise, options may follow operands. Use `--` to end option parsing explicitly.
 

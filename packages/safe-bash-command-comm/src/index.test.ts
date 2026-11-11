@@ -307,12 +307,51 @@ test("comm keeps delimiter equality byte based under locale collation", async ()
  assert.match(result.stderr, /multiple conflicting output delimiters/u);
 });
 
-test("comm uses locale collation for NUL records and collation-equivalent text", async () => {
+test("comm distinguishes collation-equivalent text in NUL records", async () => {
  const result = await run(["-z12", "--check-order", "/a", "/b"], { "/a": "alpha\0é\0", "/b": "e\u0301\0" }, { LC_ALL: "en_US.utf8" });
- assert.equal(result.stdout, "é\0");
+ assert.equal(result.stdout, "");
  assert.equal(result.stderr, "");
  assert.equal(result.exitCode, 0);
 });
+
+for (const [first, second] of [["e\u0301", "é"], ["a", "a\u00ad"], ["a", "a\u200b"], ["a", "\ufeffa"]]) {
+ for (const separator of ["\n", "\0"]) {
+  for (const reverse of [false, true]) {
+   test(`comm distinguishes Unicode records ${JSON.stringify([first, second])}, separator=${JSON.stringify(separator)}, reverse=${reverse}`, async () => {
+    const left = reverse ? second! : first!, right = reverse ? first! : second!;
+    const files = { "/a": left + separator, "/b": right + separator };
+    const flags = separator === "\0" ? ["-z"] : [];
+    for (const locale of ["en_US.utf8", "C"]) {
+     const env = { LC_ALL: locale };
+     for (const [options, expected] of [
+      [["-12"], ""],
+      [["-123", "--total"], `1\t1\t0\ttotal${separator}`],
+      [[], `${reverse ? "\t" : ""}${first}${separator}${reverse ? "" : "\t"}${second}${separator}`],
+     ] as const) {
+      const result = await run([...flags, ...options, "/a", "/b"], files, env);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.deepEqual(result.stdoutBytes, [...new TextEncoder().encode(expected)]);
+     }
+     const identical = await run([...flags, "-12", "/a", "/a"], files, env);
+     assert.deepEqual(identical.stdoutBytes, [...new TextEncoder().encode(left + separator)]);
+     assert.equal(identical.exitCode, 0);
+     assert.equal(identical.stderr, "");
+     for (const file of ["/a", "/b"]) {
+      const ordered = { "/a": "", "/b": "", [file]: first + separator + second + separator };
+      const sorted = await run([...flags, "--check-order", "/a", "/b"], ordered, env);
+      assert.equal(sorted.exitCode, 0, sorted.stderr);
+      assert.equal(sorted.stderr, "");
+      const disordered = { ...ordered, [file]: second + separator + first + separator };
+      const unsorted = await run([...flags, "--check-order", "/a", "/b"], disordered, env);
+      assert.equal(unsorted.exitCode, 1);
+      assert.equal(unsorted.stderr, `comm: file ${file === "/a" ? 1 : 2} is not in sorted order\n`);
+     }
+    }
+   });
+  }
+ }
+}
 
 for (const locale of ["invalid_locale", "en_US.utf8@unsupported"]) {
  test(`comm rejects unsupported collation ${locale}`, async () => {

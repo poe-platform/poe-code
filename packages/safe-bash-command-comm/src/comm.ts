@@ -12,13 +12,14 @@ function recordComparison(env: Readonly<Record<string, string>>): typeof compare
   } catch {
     fail(`unsupported collation locale '${locale}'`);
   }
-  const decoder = new TextDecoder("utf-8", { fatal: true });
+  const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
   return (left, right) => {
     let first: string | undefined, second: string | undefined;
     try { first = decoder.decode(left); } catch { /* Invalid bytes follow valid text. */ }
     try { second = decoder.decode(right); } catch { /* Preserve byte ordering for invalid text. */ }
     if (first === undefined) return second === undefined ? compare(left, right) : 1;
-    return second === undefined ? -1 : collator.compare(first, second);
+    // Runtime collation can equate distinct Unicode records; keep their byte order.
+    return second === undefined ? -1 : collator.compare(first, second) || compare(left, right);
   };
 }
 

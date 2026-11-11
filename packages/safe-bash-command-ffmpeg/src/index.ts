@@ -5039,22 +5039,34 @@ async function applyVideoFilterChain(
         const canvas = new Uint8Array(outW * outH * 4);
         const source = batch[0]?.native;
         // Keep original native samples only while they still describe the RGBA image.
-        const native = source && [0, 4, 5, 12, 13, 14, 29, 30, 49, 62, 68].includes(source.format) && batch.every(frame =>
+        const native = source && [0, 4, 5, 12, 13, 14, 29, 30, 34, 35, 49, 62, 68, 104, 105].includes(source.format) && batch.every(frame =>
           frame.native?.rgba === frame.data && frame.width === fw && frame.height === fh &&
           frame.native.width === fw && frame.native.height === fh && frame.native.format === source.format &&
           frame.native.colorspace === source.colorspace && frame.native.fullRange === source.fullRange)
           ? source : undefined;
         const hsub = native && [0, 4, 12, 13, 62].includes(native.format) ? 2 : 1;
         const vsub = native && [0, 12, 62].includes(native.format) ? 2 : 1;
-        const planes = native && [29, 30].includes(native.format) ? 1 : 3;
-        const depth = native && [29, 30, 49].includes(native.format) ? 16 : native && [62, 68].includes(native.format) ? 10 : 8;
+        const channels = native && [34, 35].includes(native.format) ? 3
+          : native && [104, 105].includes(native.format) ? 4 : 1;
+        const planes = channels > 1 || native && [29, 30].includes(native.format) ? 1 : 3;
+        const depth = channels > 1 || native && [29, 30, 49].includes(native.format) ? 16 : native && [62, 68].includes(native.format) ? 10 : 8;
         const sampleBytes = depth > 8 ? 2 : 1;
+        const pixelBytes = sampleBytes * channels;
         const chromaWidth = Math.ceil(outW / hsub);
         const chromaHeight = Math.ceil(outH / vsub);
-        const nativeSize = (outW * outH + (planes - 1) * chromaWidth * chromaHeight) * sampleBytes;
+        const nativeSize = (outW * outH + (planes - 1) * chromaWidth * chromaHeight) * pixelBytes;
         if (native) budget.allocateMemory(nativeSize + canvas.byteLength);
         const pixels = native ? new Uint8Array(nativeSize) : undefined;
-        if (pixels) {
+        if (pixels && channels > 1) {
+          const view = new DataView(pixels.buffer);
+          const littleEndian = native!.format === 35 || native!.format === 105;
+          for (let offset = 0; offset < pixels.byteLength; offset += pixelBytes) {
+            if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            for (let channel = 0; channel < channels; channel++) {
+              view.setUint16(offset + channel * 2, color[channel]! * 257, littleEndian);
+            }
+          }
+        } else if (pixels) {
           const [kr, kb] = native!.colorspace === 1 ? [0.2126, 0.0722]
             : native!.colorspace === 4 ? [0.3, 0.11] : native!.colorspace === 7 ? [0.212, 0.087]
               : [9, 10].includes(native!.colorspace) ? [0.2627, 0.0593] : [0.299, 0.114];
@@ -5098,12 +5110,12 @@ async function applyVideoFilterChain(
               const destWidth = Math.ceil(outW / sx);
               for (let y = 0; y < height; y++) {
                 if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-                const src = srcOffset + y * width * sampleBytes;
-                const dst = dstOffset + ((Math.floor(oy / sy) + y) * destWidth + Math.floor(ox / sx)) * sampleBytes;
-                pixels.set(tileFrame.native!.pixels.subarray(src, src + width * sampleBytes), dst);
+                const src = srcOffset + y * width * pixelBytes;
+                const dst = dstOffset + ((Math.floor(oy / sy) + y) * destWidth + Math.floor(ox / sx)) * pixelBytes;
+                pixels.set(tileFrame.native!.pixels.subarray(src, src + width * pixelBytes), dst);
               }
-              srcOffset += width * height * sampleBytes;
-              dstOffset += destWidth * Math.ceil(outH / sy) * sampleBytes;
+              srcOffset += width * height * pixelBytes;
+              dstOffset += destWidth * Math.ceil(outH / sy) * pixelBytes;
             }
           }
           for (let y = 0; !pixels && y < Math.min(fh, tileFrame.height); y++) {

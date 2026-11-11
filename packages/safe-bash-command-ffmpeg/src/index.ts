@@ -4732,8 +4732,36 @@ async function applyVideoFilterChain(
         .map(frame => ({ ...frame, durationSeconds: frame.durationSeconds * step }));
     } else if (name === "field") {
       if (positional.at(-1) === "") positional.pop();
-      if (positional.slice(1).some(part => !part.includes("=")) || Object.keys(named).some(key => key !== "type")) {
+      if (positional.slice(1).some(part => !part.includes("=")) ||
+          Object.keys(named).some(key => !["type", "threads", "thread_type", "extra_hw_frames"].includes(key))) {
         throw new Error("field: expected type=top or bottom");
+      }
+      // Scheduling and hardware frame reservations do not change field pixels.
+      for (const [key, option] of Object.entries(named)) {
+        if (key === "type") continue;
+        if (key === "thread_type") {
+          const flags = option.trim();
+          let position = 0;
+          do {
+            if (flags[position] === "+" || flags[position] === "-") position++;
+            const start = position;
+            if (flags[position] === "+" || flags[position] === "-") position++;
+            while (position < flags.length && flags[position] !== "+" && flags[position] !== "-") position++;
+            const bits = parseFilterExpression(flags.slice(start, position), "field", { slice: 1, none: 0, all: -1 });
+            if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
+              throw new RangeError("field: invalid thread_type");
+            }
+          } while (position < flags.length);
+          continue;
+        }
+        const minimum = key === "extra_hw_frames" ? -1 : 0;
+        const number = parseFilterExpression(option, "field", {
+          default: minimum, min: minimum, max: 2147483647,
+          PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+        });
+        if (!Number.isFinite(number) || number < minimum || number > 2147483647) {
+          throw new RangeError(`field: invalid ${key}`);
+        }
       }
       const value = parseFilterExpression(named.type ?? (positional[0]?.includes("=") ? "top" : positional[0] || "top"),
         "field", { top: 0, bottom: 1, default: 0, min: 0, max: 1, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });

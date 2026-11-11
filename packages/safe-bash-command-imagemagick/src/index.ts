@@ -9743,9 +9743,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             }
             return { ...image, isPalette: false, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(hueSamples ? { hueSamples } : { evaluateSamples: samples }) };
         };
-    } else if (token === "-blue-shift") {
-        highDepth = true;
-        const value = tokens[++i] ?? "";
+    } else if (token === "-blue-shift" || token === "+blue-shift") {
+        highDepth = evaluate = true;
+        const operand = tokens[++i];
+        if (token === "+blue-shift" && operand === undefined) throw new Error(`missing argument '${token}'`);
+        // The plus spelling consumes its operand but ignores it, using the native default.
+        const value = token === "+blue-shift" ? "1.5" : operand ?? "";
         validateMagickTransformGeometry(value, token);
         const geometry = [...value].filter(character => character.trim() !== "" && !"()".includes(character)).join("");
         // BlueShiftImage uses the leading geometry value, including a literal percent.
@@ -10351,7 +10354,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, ...(meta ? { meta } : {}), handlesWriteMask: token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors", maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-color-threshold" || token === "-blue-shift" || token === "-threshold" || token === "-contrast" || token === "+contrast" || token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+    return { end: i, apply, ...(meta ? { meta } : {}), handlesWriteMask: token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors", maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-color-threshold" || token === "-threshold" || token === "-contrast" || token === "+contrast" || token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
 }
 
 function parseChannelAssignments(expression: string): ChannelAssignment[] {
@@ -11985,7 +11988,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
-        if ((t === "-channel" || t === "+channel" || t === "-color-threshold" || t === "-blue-shift" || t === "-color-matrix" || t === "-ordered-dither" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-auto-threshold" || t === "-random-threshold" || t === "-range-threshold" || t === "-solarize" || t === "-channel-fx" || t === "-level" || t === "+level" || t === "-level-colors" || t === "+level-colors" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" || t === "-negate" || t === "+negate" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast") && !stack.length) throw new Error(`no images found for operation '${t}'`);
+        if ((t === "-channel" || t === "+channel" || t === "-color-threshold" || t === "-blue-shift" || t === "+blue-shift" || t === "-color-matrix" || t === "-ordered-dither" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-auto-threshold" || t === "-random-threshold" || t === "-range-threshold" || t === "-solarize" || t === "-channel-fx" || t === "-level" || t === "+level" || t === "-level-colors" || t === "+level-colors" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" || t === "-negate" || t === "+negate" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast") && !stack.length) throw new Error(`no images found for operation '${t}'`);
         if (t === "-page") {
             const raw = tokens[++i] ?? "";
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
@@ -15586,7 +15589,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && (token === "-color-threshold" || token === "-blue-shift" || token === "-color-matrix" || token === "-brightness-contrast" || token === "-gamma" || token === "+gamma" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-negate" || token === "+negate" || token === "-threshold" || token === "-black-threshold" || token === "-white-threshold" || token === "-auto-threshold" || token === "-random-threshold" || token === "-range-threshold")) stackStep(async stack => {
+        if (!operandsOnly && (token === "-color-threshold" || token === "-blue-shift" || token === "+blue-shift" || token === "-color-matrix" || token === "-brightness-contrast" || token === "-gamma" || token === "+gamma" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-negate" || token === "+negate" || token === "-threshold" || token === "-black-threshold" || token === "-white-threshold" || token === "-auto-threshold" || token === "-random-threshold" || token === "-range-threshold")) stackStep(async stack => {
             if (!stack.length) throw new Error(`no images found for operation '${token}'`);
             return stack;
         });
@@ -17927,7 +17930,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-units",
         "-interlace",
         "-sampling-factor",
-        "-blue-shift",
+        "-blue-shift", "+blue-shift",
         "-tint",
         "-colorize",
         "-blur",

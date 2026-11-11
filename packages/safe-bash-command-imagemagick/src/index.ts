@@ -15429,8 +15429,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-unsharp") {
             const raw = tokens[++i] ?? "0x1";
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 const geometry = parseUnsharpGeometry(expanded);
                 const result = yield* applyMagickRasterSteps(im, blurPixelSteps(im, geometry, false, state.channelExplicit ? state.channels : undefined, geometry, im.writeMask, state.background), signal, im, im.writeMask ? [im, im.writeMask] : [im]);
                 if (im.metaChannels?.length) {
@@ -19874,11 +19875,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return transformStoredMagickRaster(image, backend, sharpenPixelSteps(image, geometry, channels, image.virtualPixel ?? virtualPixel, image.backgroundColor ?? background), signal);
             }, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-unsharp") {
+            let images: StoredImageStack, sceneIdx = 0;
+            stackStep(async stack => { images = stack; return stack; });
             const raw = tokens[++i] ?? "0x1", channels = state.channelExplicit ? state.channels : undefined, optionProperties = state.optionProperties, background = state.background;
             const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 const geometry = parseUnsharpGeometry(expanded);
                 const result = await transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, false, channels, geometry, image.storedWriteMask, background), signal, image, image.storedWriteMask ? [image, image.storedWriteMask] : [image]);
                 if (image.storedMetaChannels?.length) {

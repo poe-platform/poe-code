@@ -2045,7 +2045,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
  return drainIdentifySteps(formatMagickPropertyStringSteps(format,metadata,()=>{throw new UnsupportedStoredResource("Pixel formatting requires decoded input");},context,resolve),signal);
 }
 
-function* formatTxtEnumerationSteps(img: RgbaImage, depth?: number): Generator<void, string, void> {
+function* formatTxtEnumerationSteps(img: RgbaImage, depth = img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)): Generator<void, string, void> {
     if (img.space === "cmyk") {
         const maximum = (depth ?? img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) <= 8 ? 255 : 65535;
         const lines = [`# ImageMagick pixel enumeration: ${img.width},${img.height},0,${maximum},cmyk${img.hasAlpha ? "a" : ""}`];
@@ -2061,7 +2061,7 @@ function* formatTxtEnumerationSteps(img: RgbaImage, depth?: number): Generator<v
     }
     const maximum = ["HCL", "HCLp", "HSI", "HSL", "HSB", "HSV", "HWB", "XYZ", "CIELab"].includes(img.magickColorspace ?? "") && (depth ?? img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) <= 8 ? 255 : 65535;
     const colorspace = `${img.space === "b-w" || img.space === "grey16" ? img.gamma === 1 && img.magickColorspace !== "Gray" ? "lineargray" : "gray" : img.magickColorspace === "RGB" ? "rgb" : "srgb"}${img.hasAlpha ? "a" : ""}`;
-    const srgbDepth = depth !== undefined && img.space === "srgb" && !img.magickColorspace;
+    const srgbDepth = img.space === "srgb" && !img.magickColorspace;
     const gray16 = (img.space === "b-w" || img.space === "grey16") && img.data16 !== undefined && (depth ?? img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8;
     let work = 0;
     const lines: string[] = [

@@ -7279,7 +7279,15 @@ function tryHandleMagickListOption(argv: readonly string[]): ImageMagickCliResul
     for (let i = 0; i < limit; i++) {
         const arg = argv[i]!;
         if (arg === "-list" || arg === "--list") {
-            const listType = (argv[i + 1] ?? "list").toLowerCase();
+            const category = argv[i + 1];
+            if (category === undefined) {
+                return {
+                    exitCode: 1,
+                    stdout: `Version: ${MAGICK_VERSION}\nUsage: magick [input-options] input-file [operators] output-file\n`,
+                    stderr: `magick: invalid argument for option '${arg}'\n`
+                };
+            }
+            const listType = category.toLowerCase();
             if (listType === "gravity") {
                 return {
                     exitCode: 0,

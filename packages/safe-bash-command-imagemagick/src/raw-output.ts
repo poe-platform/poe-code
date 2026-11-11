@@ -46,7 +46,7 @@ export function encodeImage(image: RawImage, options: OutputEncodeOptions): Retu
     if (options.format === "farbfeld") {
         const data = new Uint8Array(16 + image.width * image.height * 8);
         data.set(farbfeldHeader(image));
-        data.set(encodeRawPixels(image, { format: "rgba", netpbmDepth: 16, endian: "msb" }, [0, 1, 2, 3]), 16);
+        data.set(encodeRawPixels(image, { format: "farbfeld", netpbmDepth: 16, endian: "msb" }, [0, 1, 2, 3]), 16);
         return { data, format: "raw", channels: 4 };
     }
     const format = options.format;
@@ -99,7 +99,7 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
     const rowSamples = image.width * (options.rawInterlace ? 1 : channels.length);
     const rowBytes = Math.ceil(rowSamples * depth / 8);
     const data = new Uint8Array(rowBytes * image.height * (options.rawInterlace ? channels.length : 1));
-    const working = format === "gray" && (depth === 10 || depth === 12) ? image.evaluateSamples : undefined;
+    const working = format === "farbfeld" || format === "gray" && (depth === 10 || depth === 12) ? image.evaluateSamples : undefined;
     const view = new DataView(data.buffer), samples = working ?? image.data16 ?? image.data;
     const scale = !working && image.data16 ? 65535 : 255, maximum = 2 ** depth - 1;
     // Native packed BGR/BGRO below 8 bits and BGR-family Plane output use RGB order.
@@ -112,7 +112,9 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
         for (let c = 0; c < channels.length; c++) {
             const channel = channels[c]!;
             const index = format === "graya" && channel === 1 ? 3 : reverseChannels && channel < 3 ? 2 - channel : channel;
-            const value = inks
+            const value = format === "farbfeld" && index < 3 && image.hueSamples
+                ? Math.max(0, Math.min(1, image.hueSamples[pixel * 4 + index]!)) * scale
+                : inks
                 ? channel < 4 ? Math.max(0, Math.min(1, inks[channel]!)) * scale : image.hasAlpha ? samples[pixel * 4 + 3]! : scale
                 : format.startsWith("gray") && channel === 0
                 // Gray images already carry their sample in red, including masked alpha extraction.
@@ -120,7 +122,8 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
                     : 0.212656 * samples[pixel * 4]! + 0.715158 * samples[pixel * 4 + 1]! + 0.072186 * samples[pixel * 4 + 2]!
                 : format === "rgbo" && channel === 3 ? 0 : index === 3 && !image.hasAlpha ? scale : samples[pixel * 4 + index]!;
             // The 4-bit gray exporter takes the high nibble of the rounded 8-bit luma.
-            let quantum = format === "gray" && depth === 4
+            let quantum = format === "farbfeld" ? Math.round(Math.max(0, Math.min(1, value / scale)) * 65535)
+                : format === "gray" && depth === 4
                 ? Math.round(value * 255 / scale) >> 4
                 // Q16-HDRI converts grayscale luma to a float quantum before widening it.
                 : format.startsWith("gray") && channel === 0 && depth > 16
@@ -170,8 +173,7 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
     if (options.format === "pam") options = { ...options, netpbmDepth: options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
     if (options.format === "farbfeld") {
         yield farbfeldHeader(image);
-        const info = yield* encodeStoredImage(image, storage, signal, { format: "rgba", netpbmDepth: 16, endian: "msb" });
-        return { ...info!, size: info!.size + 16 };
+        options = { format: "farbfeld", netpbmDepth: 16, endian: "msb" };
     }
     if (options.format === "mono") {
         let size = 0;
@@ -183,7 +185,7 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
         for await (const chunk of encodeMapFromStorage(image, storage, signal)) { size += chunk.length; yield chunk; }
         return { format: "raw", width: image.width, height: image.height, channels: 3, premultiplied: false, size };
     }
-    if (!isRawCoder(options.format)) {
+    if (options.format !== "farbfeld" && !isRawCoder(options.format)) {
         let quality = options.quality ?? 92;
         if (options.format === "webp" && options.lossless === false && (options.webpTargetSize ?? 0) > 0) {
             const search = webpTargetQualities(options);
@@ -219,19 +221,19 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
         }
         return { ...info!, size };
     }
-    let size = 0;
-    const channels = (options.format.startsWith("gray") ? 1 : options.format.startsWith("cmyk") ? 4 : 3) + (options.format.endsWith("a") || (options.format === "rgbo" && options.rawInterlace !== "plane" && options.rawInterlace !== "partition") ? 1 : 0);
+    let size = options.format === "farbfeld" ? 16 : 0;
+    const channels = (options.format.startsWith("gray") ? 1 : options.format.startsWith("cmyk") ? 4 : 3) + (options.format === "farbfeld" || options.format.endsWith("a") || (options.format === "rgbo" && options.rawInterlace !== "plane" && options.rawInterlace !== "partition") ? 1 : 0);
     const packedChannels = Array.from({ length: channels }, (_, channel) => channel);
     const rawFrames = image.rawFrames;
     for (let plane = 0; plane < (rawFrames ? channels : 1); plane++) {
         for (let frame = 0; frame < (rawFrames?.length ?? 1); frame++) {
             if (rawFrames) image = await rawFrames.at(frame);
-            const cmyk = options.format.startsWith("cmyk") && image.space === "cmyk";
+            const workingColorspace = options.format === "farbfeld" || options.format.startsWith("cmyk") && image.space === "cmyk";
             const pixels = image.width * image.height;
             const depth = options.tiffFloatDepth ?? options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
             const packed = depth === 1 || depth === 2 || depth === 4 || depth === 10 || depth === 12;
-            const workingPosition = options.format === "gray" && (depth === 10 || depth === 12) ? image.storedEvaluateSamples : undefined;
-            const chunkPixels = cmyk || workingPosition !== undefined ? 512 : image.storedData16 ? 2048 : 4096;
+            const workingPosition = options.format === "farbfeld" || options.format === "gray" && (depth === 10 || depth === 12) ? image.storedEvaluateSamples : undefined;
+            const chunkPixels = workingColorspace || workingPosition !== undefined ? 512 : image.storedData16 ? 2048 : 4096;
             const spanPixels = options.rawInterlace === "line" ? image.width : pixels;
             // Finish each row/channel run before advancing, even when it spans several reads.
             for (let start = 0; start < pixels; start += spanPixels) {
@@ -249,7 +251,7 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
                             data16 = new Uint16Array(new Uint8Array(bytes).buffer);
                         }
                         let hueSamples: Float64Array | undefined;
-                        if (cmyk && image.storedHueSamples !== undefined) {
+                        if (workingColorspace && image.storedHueSamples !== undefined) {
                             const bytes = await storage.read(image.storedHueSamples + pixel * 32, count * 32, { signal });
                             if (bytes.length !== count * 32) throw new Error("Truncated raw ink storage");
                             hueSamples = new Float64Array(new Uint8Array(bytes).buffer);

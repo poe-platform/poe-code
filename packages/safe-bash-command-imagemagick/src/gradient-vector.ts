@@ -1,4 +1,4 @@
-import { gradientRadialProjection } from "./gradient.js";
+import { gradientLinearProjection, gradientRadialProjection } from "./gradient.js";
 
 /** ImageMagick vector placement, including its radial center and start-pixel rule. */
 export function gradientVector(width: number, height: number, value: string | undefined, radial: boolean, radii?: readonly [number, number], angle?: number): ((x: number, y: number) => number) | undefined {
@@ -6,17 +6,14 @@ export function gradientVector(width: number, height: number, value: string | un
     const coordinates = value.replaceAll(",", " ").split(" ").filter(Boolean).slice(0, 4).map(Number);
     if (coordinates.length === 0 || !coordinates.every(Number.isFinite)) return undefined;
     const [x1 = 0, y1 = 0, x2 = width - 1, y2 = height - 1] = coordinates;
-    const dx = x2 - x1, dy = y2 - y1;
-    const lengthSquared = dx * dx + dy * dy;
+    if (!radial) return gradientLinearProjection(x1, y1, x2, y2);
     const radius = Math.max(width - 1, height - 1) / 2;
-    const radialProjection = radial ? gradientRadialProjection(x2 / 2, y2 / 2, radii ?? [radius || 1e-12, radius || 1e-12], angle) : undefined;
+    const radialProjection = gradientRadialProjection(x2 / 2, y2 / 2, radii ?? [radius || 1e-12, radius || 1e-12], angle);
     const startX = Math.ceil(x1 - 0.5), startY = Math.ceil(y1 - 0.5);
     return (x, y) => {
         // Native retains the preceding offset at the rounded start pixel.
         if (x === startX && y === startY) x = Math.max(0, x - 1);
-        const t = radialProjection
-            ? radialProjection(x, y)
-            : lengthSquared === 0 ? 0 : ((x - x1) * dx + (y - y1) * dy) / lengthSquared;
+        const t = radialProjection(x, y);
         return Math.max(0, Math.min(1, t));
     };
 }

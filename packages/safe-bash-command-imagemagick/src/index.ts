@@ -2436,40 +2436,18 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
     if (!radial && extent !== undefined) direction ??= "southeast";
     const axes = gradientRadii(w, h, extent, radii);
     const vectorFactor = gradientVector(w, h, (radial && center) ? undefined : radial || angle === undefined ? vector : undefined, radial, axes, angle);
-    if (!hueSamples && !radial && direction === undefined && angle === undefined && !vectorFactor && box === undefined) {
-        const u64 = new BigUint64Array(data16.buffer);
-        const u32 = new Uint32Array(data.buffer, 0, w * h);
-        const tmp = new Uint8Array(4);
-        const samples = new Uint16Array(4);
-        const working = new Float64Array(4);
-        const tmp64 = new BigUint64Array(samples.buffer);
-        const tmp32 = new Uint32Array(tmp.buffer);
-        const steps = h === 1 ? w : h;
-        const span = h === 1 ? 1 : w;
-        for (let i = 0; i < steps; i++) {
-            const t = steps <= 1 ? 0 : i * (1 / (steps - 1));
-            writeGradientPixel(tmp, samples, working, 0, c1, c2, t);
-            for (let pixel = i * span; pixel < (i + 1) * span; pixel++) {
-                if (++work % 16384 === 0) yield;
-                evaluateSamples.set(working, pixel * 4);
-            }
-            u64.fill(tmp64[0]!, i * span, (i + 1) * span);
-            u32.fill(tmp32[0]!, i * span, (i + 1) * span);
-        }
-    } else {
-        const { x: cx, y: cy } = gradientCenter(w, h, direction, center, vector);
-        const projection = radial ? gradientRadialProjection(cx, cy, axes, angle) : gradientProjection(w, h, direction, angle);
-        for (let y = 0; y < h; y++) {
+    const { x: cx, y: cy } = gradientCenter(w, h, direction, center, vector);
+    const projection = radial ? gradientRadialProjection(cx, cy, axes, angle) : gradientProjection(w, h, direction, angle);
+    for (let y = 0; y < h; y++) {
+        if (++work % 16384 === 0)
+            yield;
+        for (let x = 0; x < w; x++) {
             if (++work % 16384 === 0)
                 yield;
-            for (let x = 0; x < w; x++) {
-                if (++work % 16384 === 0)
-                    yield;
-                const outside = box && (x < box.x || y < box.y || x >= box.x + (box.width ?? w) || y >= box.y + (box.height ?? h));
-                const t = outside ? 0 : vectorFactor ? vectorFactor(x, y) : projection(x, y);
-                const idx = (y * w + x) * 4;
-                writeGradientPixel(data, data16, evaluateSamples, idx, c1, c2, t, hueSamples, outside);
-            }
+            const outside = box && (x < box.x || y < box.y || x >= box.x + (box.width ?? w) || y >= box.y + (box.height ?? h));
+            const t = outside ? 0 : vectorFactor ? vectorFactor(x, y) : projection(x, y);
+            const idx = (y * w + x) * 4;
+            writeGradientPixel(data, data16, evaluateSamples, idx, c1, c2, t, hueSamples, outside);
         }
     }
     return {
@@ -7359,7 +7337,7 @@ function* annotatePixelSteps(img: Pick<RgbaImage, "width" | "height">, offsetStr
 }
 
 // Scan bounded pixel chunks into edge profiles, shared by buffered and stored execution.
-function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "gravity" | "virtualCanvas">[], vertical: boolean, gap: number, gravity: GravityPosition | undefined, method: VirtualPixelMethod | undefined, background: RgbaColor): Generator<{ index: number; position: number; length: number }, { width: number; height: number; virtualCanvas: NonNullable<RgbaImage["virtualCanvas"]>; offsets: { left: number; top: number }[] }, Uint8Array | Uint16Array> {
+function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "gravity" | "virtualCanvas">[], vertical: boolean, gap: number, gravity: GravityPosition | undefined, method: VirtualPixelMethod | undefined, background: RgbaColor): Generator<{ index: number; position: number; length: number }, { width: number; height: number; virtualCanvas: NonNullable<RgbaImage["virtualCanvas"]>; offsets: { left: number; top: number }[] }, Uint8Array | Uint16Array | Float64Array> {
     const cross = Math.max(...images.map(image => vertical ? image.width : image.height));
     const offsets: { left: number; top: number }[] = [];
     const edgeGap = (profile: Float64Array, line: number, empty: number): number => {
@@ -15483,7 +15461,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 yield;
                 const request = next.value;
                 const image = stack[request.index]!;
-                next = layout.next((image.data16 ?? image.data).subarray(request.position, request.position + request.length));
+                const samples = image.space !== "cmyk" && image.hueSamples ? image.hueSamples : image.evaluateSamples ?? image.data16 ?? image.data;
+                next = layout.next(samples.subarray(request.position, request.position + request.length));
             }
             const { width, height, virtualCanvas, offsets } = next.value;
             let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, background, [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value))), hasAlpha: stack.some(frame => frame.hasAlpha || frame.inactiveAlpha) || background.a < 255, ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}), space: image.space };
@@ -17564,7 +17543,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     await yieldTurn(signal);
                     const request = next.value;
                     const image = images[request.index]!;
-                    if (image.storedData16) {
+                    const working = image.space !== "cmyk" && image.storedHueSamples !== undefined ? image.storedHueSamples : image.storedEvaluateSamples;
+                    if (working !== undefined) {
+                        const bytes = await backend.storage.read(working + request.position * 8, request.length * 8);
+                        next = layout.next(new Float64Array(bytes.slice().buffer));
+                    } else if (image.storedData16) {
                         const bytes = await backend.storage.read(image.storedData16.position + request.position * 2, request.length * 2);
                         next = layout.next(new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2));
                     } else next = layout.next(await backend.storage.read(image.position + request.position, request.length));

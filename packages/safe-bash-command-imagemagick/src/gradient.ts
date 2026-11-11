@@ -38,35 +38,43 @@ export function gradientRadialProjection(cx: number, cy: number, radii: readonly
     };
 }
 
-/** Linear projection matching ImageMagick's gradient endpoints. */
-export function gradientProjection(width: number, height: number, direction?: string, angle?: number): (column: number, row: number) => number {
-    let x = 0, y = 1;
-    if (direction !== undefined) {
-        direction = direction.toLowerCase();
-        if (["center", "none", "forget", "undefined"].includes(direction)) direction = "southeast";
-        x = direction.includes("west") ? -1 : direction.includes("east") ? 1 : 0;
-        y = direction.includes("north") ? -1 : direction.includes("south") ? 1 : 0;
-        if (x && y) { x *= width - 1; y *= height - 1; }
-    } else if (height === 1) { x = 1; y = 0; }
-    if (angle !== undefined) {
-        const radians = angle * Math.PI / 180;
-        x = Math.sin(radians);
-        y = -Math.cos(radians);
-        if (Math.abs(x) < 1e-12) x = 0;
-        if (Math.abs(y) < 1e-12) y = 0;
-    }
-    const span = Math.abs(x) * (width - 1) + Math.abs(y) * (height - 1);
-    if (!span) return () => 0;
-    const lengthSquared = x * x + y * y;
-    // Round half-pixel ties down despite trigonometric floating-point noise.
-    const startX = angle === undefined ? (x < 0 ? width - 1 : 0) : Math.ceil((width - 1 - x * span / lengthSquared) / 2 - 0.5 - 1e-12);
-    const startY = angle === undefined ? (y < 0 ? height - 1 : 0) : Math.ceil((height - 1 - y * span / lengthSquared) / 2 - 0.5 - 1e-12);
-    const offset = -(Math.min(0, x) * (width - 1) + Math.min(0, y) * (height - 1)) / span;
-    x /= span;
-    y /= span;
+/** Preserve native floating-point operation order: endpoint residues are colors. */
+export function gradientLinearProjection(x1: number, y1: number, x2: number, y2: number): (column: number, row: number) => number {
+    const dx = x2 - x1, dy = y2 - y1;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    if (!length) return () => 0;
+    const reciprocal = 1 / Math.max(length, 1e-12);
+    const startX = Math.ceil(x1 - 0.5), startY = Math.ceil(y1 - 0.5);
     return (column, row) => {
         // Native retains the preceding offset at the rounded start pixel.
         if (column === startX && row === startY) column = Math.max(0, column - 1);
-        return Math.max(0, Math.min(1, offset + column * x + row * y));
+        const x = column - x1, y = row - y1;
+        const distance = Math.sqrt(x * x + y * y);
+        const gamma = 1 / Math.max(length * distance, 1e-12);
+        const offset = gamma * (dx * x + dy * y) * distance * reciprocal;
+        return Math.max(0, Math.min(1, offset));
     };
+}
+
+/** Linear projection matching ImageMagick's gradient endpoints. */
+export function gradientProjection(width: number, height: number, direction?: string, angle?: number): (column: number, row: number) => number {
+    let x1 = 0, y1 = 0, x2 = height === 1 ? width - 1 : 0, y2 = height - 1;
+    if (direction !== undefined) {
+        direction = direction.toLowerCase();
+        if (["center", "none", "forget", "undefined"].includes(direction)) direction = "southeast";
+        x1 = direction.includes("west") ? width - 1 : 0;
+        y1 = direction.includes("north") ? height - 1 : 0;
+        x2 = direction.includes("east") ? width - 1 : 0;
+        y2 = direction.includes("south") ? height - 1 : 0;
+    }
+    if (angle !== undefined) {
+        const radians = (angle - 90) * Math.PI / 180;
+        const cosine = Math.cos(radians), sine = Math.sin(radians);
+        const distance = Math.abs((width - 1) * cosine) + Math.abs((height - 1) * sine);
+        x1 = 0.5 * (width - 1 - distance * cosine);
+        y1 = 0.5 * (height - 1 - distance * sine);
+        x2 = 0.5 * (width - 1 + distance * cosine);
+        y2 = 0.5 * (height - 1 + distance * sine);
+    }
+    return gradientLinearProjection(x1, y1, x2, y2);
 }

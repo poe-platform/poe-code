@@ -19787,6 +19787,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: err instanceof CompandError ? err.exitCode : 234 };
             }
             if (msg === "asendcmd: invalid start time") return { exitCode: 234 };
+            if (msg.startsWith("amix: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("amix:")) return { exitCode: 222 };
+            if (msg === "amix: invalid normalize" || msg === "amix: invalid expression" ||
+                msg === "amix: invalid or unsupported expression") return { exitCode: 234 };
             if (msg === "channelmap: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("channelmap: unsupported option ")) return { exitCode: 8 };
             if (msg === "pan: unsupported option enable") return { exitCode: 176 };

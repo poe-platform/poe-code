@@ -46,10 +46,10 @@ for (const options of ["2", "weights=1 1", "2:longest:2:1 1", "2:shortest:0:1 1:
   });
 }
 
-for (const options of ["2::", "2::0", "inputs=", "duration=", "unknown=1:"]) {
+for (const [options, exitCode] of [["2::", 234], ["2::0", 234], ["inputs=", 234], ["duration=", 234], ["unknown=1:", 8]] as const) {
   it(`rejects malformed amix ${options} without replacing output`, async () => {
     const { result, volume } = await mix(`amix=${options}`, [12000], [-4000]);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, exitCode);
     assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
   });
 }
@@ -153,7 +153,7 @@ for (const prefix of ["normalize=", "2:longest:2:1 1:"]) {
   it(`amix ${prefix} rejects invalid booleans without replacing output`, async () => {
     for (const value of ["auto", "maybe", "2", "-1", "1.0", "0x1", "truejunk"]) {
       const { result, volume, error } = await mix(`amix=${prefix}${value}`, [8000], [-4000]);
-      assert.equal(result.exitCode, 1, value);
+      assert.equal(result.exitCode, 234, value);
       assert.ok(error.includes("amix: invalid normalize"), error);
       assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep", value);
     }
@@ -186,15 +186,15 @@ for (const [options, secondLength, length, points] of [
   });
 }
 
-for (const options of [
-  "inputs=0b10", "inputs=0o2", "inputs=1+", "inputs=0/0", "inputs=1/0", "inputs=2.6",
-  "duration=0b1", "duration=shortest+", "duration=first+0.1", "duration=-0.1",
-  "dropout_transition=0b1", "dropout_transition=1/", "dropout_transition=1/0",
-  "dropout_transition=0/0", "dropout_transition=1-2", "dropout_transition=2147483648"
-]) {
+for (const [options, exitCode] of [
+  ["inputs=0b10", 234], ["inputs=0o2", 234], ["inputs=1+", 234], ["inputs=0/0", 234], ["inputs=1/0", 234], ["inputs=2.6", 1],
+  ["duration=0b1", 234], ["duration=shortest+", 234], ["duration=first+0.1", 222], ["duration=-0.1", 222],
+  ["dropout_transition=0b1", 234], ["dropout_transition=1/", 234], ["dropout_transition=1/0", 234],
+  ["dropout_transition=0/0", 234], ["dropout_transition=1-2", 222], ["dropout_transition=2147483648", 222]
+] as const) {
   it(`rejects amix ${options} without replacing output`, async () => {
     const { result, volume, error } = await mix(`amix=${options}`, Array(2048).fill(8000), Array(2048).fill(-4000));
-    assert.equal(result.exitCode, 1, error);
+    assert.equal(result.exitCode, exitCode, error);
     assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
   });
 }

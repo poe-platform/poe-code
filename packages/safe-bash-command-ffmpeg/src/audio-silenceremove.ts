@@ -50,7 +50,10 @@ export async function removeSilence(
     } else if (key === "start_mode" || key === "stop_mode" || key === "detection" || key === "timestamp") {
       const names = key === "detection" ? ["avg", "rms", "peak", "median", "ptp", "dev"]
         : key === "timestamp" ? ["write", "copy"] : ["any", "all"];
-      const number = parseFilterExpression(value, "silenceremove", Object.fromEntries(names.map((name, i) => [name, i])));
+      const number = parseFilterExpression(value, "silenceremove", {
+        ...Object.fromEntries(names.map((name, i) => [name, i])),
+        min: 0, max: names.length - 1, default: key === "stop_mode" || key === "detection" ? 1 : 0
+      });
       if (!Number.isFinite(number) || number < 0 || number > names.length - 1) {
         throw new RangeError(`silenceremove: invalid ${key}`);
       }
@@ -61,11 +64,10 @@ export async function removeSilence(
       key === "start_silence" || key === "stop_silence" || key === "window") {
       const threshold = key.endsWith("threshold");
       const periods = key.endsWith("periods");
-      const number = threshold || periods ? parseFilterExpression(value, "silenceremove", threshold
-        ? { min: 0, max: Number.MAX_VALUE, default: 0 } : {})
-        : parseHlsDuration(value);
       const min = key === "stop_periods" ? -9000 : 0;
       const max = periods ? 9000 : key === "window" ? 100 : threshold ? Number.MAX_VALUE : 2147.483647;
+      const number = threshold || periods ? parseFilterExpression(value, "silenceremove", { min, max, default: 0 })
+        : parseHlsDuration(value);
       if (!value || Number.isNaN(number)) throw new Error(`silenceremove: invalid ${key}`);
       if (!Number.isFinite(number) || number < min || number > max) {
         throw new RangeError(`silenceremove: invalid ${key}`);

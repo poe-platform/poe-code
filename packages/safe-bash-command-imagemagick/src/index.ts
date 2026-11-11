@@ -11342,7 +11342,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         if (t === "-list" || t === "--list") {
             if (i + 1 >= tokens.length) throw new Error(`missing argument '${t}'`);
-            analysis.text += tryHandleMagickListOption(tokens.slice(i, i + 2))!.stdout;
+            const result = tryHandleMagickListOption(tokens.slice(i, i + 2))!;
+            if (result.exitCode) throw new Error(result.stderr.slice("magick: ".length).trimEnd());
+            analysis.text += result.stdout;
             i += 2;
             continue;
         }
@@ -14275,7 +14277,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const value = tokens[++i];
             stackStep(async stack => {
                 if (value === undefined) throw new Error(`missing argument '${token}'`);
-                const text = tryHandleMagickListOption([token, value])!.stdout;
+                const result = tryHandleMagickListOption([token, value])!;
+                if (result.exitCode) throw new Error(result.stderr.slice("magick: ".length).trimEnd());
+                const text = result.stdout;
                 if (input.stdout) await writeIdentifyText(input.stdout, text, signal);
                 else analysis.text += text;
                 return stack;

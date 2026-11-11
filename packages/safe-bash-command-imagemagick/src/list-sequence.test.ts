@@ -8,6 +8,7 @@ const metrics = "AE\nDPC\nDSSIM\nFuzz\nMAE\nMEPP\nMSE\nNCC\nPAE\nPDC\nPHASE\nPHA
 for (const mode of ["sync", "map", "retained", "command"] as const) {
     it.each([
         { args: ["xc:red", "-depth", "8", "-write", "rgb:pixels", "-list", "Metric", "-format", "OK", "info:"], stdout: metrics + "OK", write: true, code: 0 },
+        { args: ["xc:red", "-list", "NotAList", "info:"], stdout: "", write: false, code: 1 },
         { args: ["-madeup", "-list", "Metric"], stdout: "", write: false, code: 11 },
         { args: ["-list", "Metric"], stdout: metrics, write: false, code: 0 },
         { args: ["xc:red", "-format", "BEFORE", "-write", "info:", "-list", "Metric", "-list", "Metric", "-format", "AFTER", "info:"], stdout: "BEFORE" + metrics + metrics + "AFTER", write: false, code: 0 },
@@ -30,7 +31,7 @@ for (const mode of ["sync", "map", "retained", "command"] as const) {
             : await runMagickCli(args, mode === "map" ? files : { filesystem: fs, cwd: "/" });
         expect(result.exitCode).toBe(code);
         expect(result.stdout).toBe(expected);
-        if (code) expect(result.stderr).toContain("unrecognized option '-madeup'");
+        if (code) expect(result.stderr).toContain(code === 11 ? "unrecognized option '-madeup'" : "unrecognized list type");
         else expect(result.stderr).toBe("");
         if (write) expect(Array.from(mode === "sync" || mode === "map" ? files.get("pixels")! : await fs.readFile("/pixels"))).toEqual([255, 0, 0]);
     });

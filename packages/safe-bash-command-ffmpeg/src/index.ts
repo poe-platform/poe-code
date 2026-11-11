@@ -1,3 +1,4 @@
+import { parseAlphamergeGraph, alphamerge } from "./alphamerge.js";
 import { interpolateFrameRate } from "./framerate.js";
 import { zoompan } from "./zoompan.js";
 import { imagePipeFrameEnd } from "./image-pipe.js";
@@ -10967,6 +10968,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             let audioSinks: { track: MediaTrack; expression: string }[] = [];
             const mixCommands: { target: string; action: string; expression: string }[] = [];
             let decimateSource: { doc: MediaDocument; track: MediaTrack } | undefined;
+            const alphaInputs = filterComplex ? parseAlphamergeGraph(filterComplex, maps) : undefined;
             const decimateGraph = filterComplex ? parseDecimateGraph(filterComplex, maps) : undefined;
             const feedback = filterComplex ? parseFeedbackGraph(filterComplex, maps) : undefined;
             if (filterComplex) {
@@ -10981,6 +10983,26 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (!doc || !track) throw new Error("feedback: video input is unavailable");
                 workingDoc = { ...doc, tracks: [track] };
                 vfFilters.push("null");
+              } else if (alphaInputs) {
+                if (features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
+                if (vfFilters.length) throw new Error("alphamerge: cannot combine simple and complex video filters");
+                const selected = alphaInputs.map(({ input, ordinal }) => {
+                  const doc = loadedDocs[input];
+                  const track = doc?.tracks.filter(track => track.type === "video")[ordinal];
+                  if (!doc || !track) throw new Error(`alphamerge: video input ${input}:v:${ordinal} is unavailable`);
+                  return { doc, track };
+                });
+                const main = selected[0]!;
+                const matte = selected[1]!;
+                if (!["gray", "gray8"].includes(matte.track.codecDescriptions[0]?.pixFmt ?? "")) {
+                  throw new Error("alphamerge: expected an 8-bit grayscale matte");
+                }
+                const frames = await alphamerge(
+                  await ensureDecodedFrames(main.track, main.doc.timescale, budget, context.signal),
+                  await ensureDecodedFrames(matte.track, matte.doc.timescale, budget, context.signal), budget, context.signal);
+                workingDoc = { ...main.doc, tracks: [{ ...main.track, samples: [],
+                  codecDescriptions: main.track.codecDescriptions.map(description => ({ ...description, pixFmt: "rgba" })),
+                  decodedVideoFrames: frames }] };
               } else if (decimateGraph) {
                 if (vfFilters.length) throw new Error("decimate: cannot combine simple and complex video filters");
                 const selected = decimateGraph.inputs.map(({ input, ordinal }) => {

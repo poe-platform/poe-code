@@ -4220,6 +4220,31 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
             [sx * (x + offsetX + 0.5) + rx * (y + offsetY + 0.5) + tx - 0.5 - offsetX,
                 ry * (x + offsetX + 0.5) + sy * (y + offsetY + 0.5) + ty - 0.5 - offsetY]);
     }
+    if (method === "bilinearreverse") {
+        if (nums.length < 16) return magickWarpPlan(img, token, "Affine", args);
+        if (nums.length % 4 !== 0) throw new Error("BilinearReverse requires at least 4 CPs (complete source/destination point pairs)");
+        // Fit source coordinates to [destination x, y, x*y, 1] using every pair.
+        const matrix = Array.from({ length: 4 }, () => Array<number>(4).fill(0)), xs = Array<number>(4).fill(0), ys = Array<number>(4).fill(0);
+        for (let p = 0; p < nums.length; p += 4) {
+            const x = nums[p + 2]!, y = nums[p + 3]!, row = [x, y, x * y, 1];
+            for (let i = 0; i < 4; i++) {
+                xs[i]! += row[i]! * nums[p]!;
+                ys[i]! += row[i]! * nums[p + 1]!;
+                for (let j = 0; j < 4; j++) matrix[i]![j]! += row[i]! * row[j]!;
+            }
+        }
+        const rx = solveLinearSystem(matrix, xs), ry = solveLinearSystem(matrix, ys);
+        // Control coordinates use pixel edges; the sampler uses pixel centers.
+        return {
+            ...result((x, y) => {
+                const px = x + 0.5, py = y + 0.5;
+                return [rx[0]! * px + rx[1]! * py + rx[2]! * px * py + rx[3]! - 0.5,
+                    ry[0]! * px + ry[1]! * py + ry[2]! * px * py + ry[3]! - 0.5];
+            }),
+            derivatives: (x, y) => [rx[0]! + rx[2]! * (y + 0.5), rx[1]! + rx[2]! * (x + 0.5),
+                ry[0]! + ry[2]! * (y + 0.5), ry[1]! + ry[2]! * (x + 0.5)]
+        };
+    }
     if (method === "affine" && (nums.length === 0 || nums.length % 4 !== 0)) throw new Error("Affine requires complete source/destination point pairs");
     if (method === "rigidaffine") {
         if (nums.length < 8 || nums.length % 4 !== 0) throw new Error("RigidAffine requires at least 2 complete source/destination point pairs");

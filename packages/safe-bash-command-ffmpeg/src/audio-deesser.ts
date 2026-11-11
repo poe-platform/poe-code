@@ -64,7 +64,7 @@ export async function deessAudio(
     }
     if (key === "enable") {
       enable = value;
-      parseFilterExpression(enable, "deesser enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 }, undefined, new Float64Array(10));
+      parseFilterExpression(enable, "deesser enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 }, undefined, new Float64Array(10), []);
       continue;
     }
     if (key !== "i" && key !== "m" && key !== "f" && key !== "s") throw new Error(`deesser: unsupported option ${key}`);
@@ -86,6 +86,7 @@ export async function deessAudio(
   const iirAmount = options.f * options.f / scale;
   budget.allocateMemory(frames.length * 8 + 80);
   const registers = new Float64Array(10);
+  const randomStates: BigUint64Array[] = [];
   const enabled: boolean[] = [];
   let commandIndex = 0;
   for (const [n, frame] of frames.entries()) {
@@ -98,9 +99,10 @@ export async function deessAudio(
       const command = commands[commandIndex++]!;
       if (command.action !== "enable") continue;
       try {
-        parseFilterExpression(command.expression, "deesser enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 }, undefined, new Float64Array(10));
+        parseFilterExpression(command.expression, "deesser enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 }, undefined, new Float64Array(10), []);
         enable = command.expression;
         registers.fill(0);
+        randomStates.length = 0;
       } catch { /* Native asendcmd retains the previous expression after a rejected command. */ }
     }
     if (enable === undefined) {
@@ -109,8 +111,8 @@ export async function deessAudio(
     }
     const variables = { n, t: frame.pts / sampleRate, pos: frame.pos ?? NaN, w: 0, h: 0 };
     // FFmpeg evaluates on frame consumption and again before filter_frame.
-    parseFilterExpression(enable, "deesser enable", variables, undefined, registers);
-    enabled.push(Math.abs(parseFilterExpression(enable, "deesser enable", variables, undefined, registers)) >= 0.5);
+    parseFilterExpression(enable, "deesser enable", variables, undefined, registers, randomStates);
+    enabled.push(Math.abs(parseFilterExpression(enable, "deesser enable", variables, undefined, registers, randomStates)) >= 0.5);
   }
   let work = 0;
   for (const [c, channel] of channels.entries()) {

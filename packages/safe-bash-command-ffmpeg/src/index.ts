@@ -14893,9 +14893,43 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await multibandCompandAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "compand" || trimmed.startsWith("compand=")) {
                         filteredSampleFormat = "dblp";
-                        stretched = await compandAudio(stretched, origRate, trimmed, budget, context.signal, async message => {
+                        const companded = await compandAudio(stretched, origRate, trimmed, budget, context.signal, async message => {
                           if (logLevel >= 24) await writeBytes(context.stderr, encodeUtf8(message), context.signal);
                         });
+                        stretched = companded.channels;
+                        if (companded.delay > 0) {
+                          const previous = audioTimestamps;
+                          audioTimestamps = [];
+                          const length = stretched[0]?.length ?? 0;
+                          const firstPts = previous?.[0]?.pts ?? audioStartSample;
+                          const pts = Number.isNaN(firstPts) ? 0 : firstPts;
+                          let destination = 0;
+                          for (let start = 0, n = 0; start < length; n++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const frame = previous?.[n];
+                            const packet = t.samples[n];
+                            const count = frame ? frame.end - frame.start : packet
+                              ? Math.max(0, Math.round(packet.duration * origRate / t.timescale)
+                                - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+                            if (count === 0) continue;
+                            const end = Math.min(length, start + count);
+                            const available = Math.max(0, end - Math.max(start, companded.delay));
+                            if (available > 0) {
+                              budget.allocateMemory(32);
+                              audioTimestamps.push({ start: destination, end: destination + available, pts: pts + destination });
+                              destination += available;
+                            }
+                            start = end;
+                          }
+                          // Native drains buffered lookahead separately, in frames of at most 2048 samples.
+                          while (destination < length) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const end = Math.min(length, destination + 2048);
+                            budget.allocateMemory(32);
+                            audioTimestamps.push({ start: destination, end, pts: pts + destination });
+                            destination = end;
+                          }
+                        }
                       } else if (trimmed === "dynaudnorm" || trimmed.startsWith("dynaudnorm=")) {
                         filteredSampleFormat = "dblp";
                         const commands = audioCommands.filter(command => command.target === "dynaudnorm" || command.target === filterTarget)

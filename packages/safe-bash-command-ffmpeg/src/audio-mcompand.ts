@@ -58,7 +58,7 @@ export async function multibandCompandAudio(
     }
     const attacks = times.filter((_, i) => i % 2 === 0).join("|");
     const decays = times.filter((_, i) => i % 2 === 1).join("|");
-    const processed = await compandAudio(low, sampleRate,
+    const { channels: processed } = await compandAudio(low, sampleRate,
       `compand=${attacks}:${decays}:${points!.split(",").join("|")}:${knee}:0:${volume}`, budget, signal);
     for (let c = 0; c < channels.length; c++) {
       for (let i = 0; i < length; i++) {

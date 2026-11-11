@@ -11,7 +11,7 @@ export class CompandError extends Error {
 export async function compandAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
   warn?: (message: string) => Promise<void>
-): Promise<Float64Array[]> {
+): Promise<{ channels: Float64Array[]; delay: number }> {
   const defaults: Record<string, string> = {
     attacks: "0", decays: "0.8", points: "-70/-70|-60/-20|1/0", "soft-knee": "0.01", gain: "0", volume: "0", delay: "0"
   };
@@ -141,5 +141,5 @@ export async function compandAudio(
       output[c]![i] = channels[c]![i - silence]! * multiplier;
     }
   }
-  return output;
+  return { channels: output, delay };
 }

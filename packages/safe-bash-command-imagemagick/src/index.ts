@@ -13583,7 +13583,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             for (let index = 0; index < stack.length; index++) {
                 let source = stack[index]!;
                 if (!histogramInfo || state.formatStr && (state.formatStr.includes("%c") || state.formatStr.includes("%[comment]"))) source = { ...source, properties: { ...source.properties, comment: yield* formatHistogramOutputSteps(source) } };
-                stack[index] = yield* applyMagickRasterSteps({ ...source, space: "srgb", channels: 3 }, histogramPixelSteps(source.width * source.height, width, height), signal, { width, height, hasAlpha: false });
+                stack[index] = yield* applyMagickRasterSteps({ ...source, space: "srgb", channels: 3 }, histogramPixelSteps(source.width * source.height, width, height, state.channels), signal, { width, height, hasAlpha: false });
             }
         }
         const finalImg = stack[stack.length - 1]!;
@@ -16856,7 +16856,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     for await (const part of storedHistogram(source, backend.storage, signal)) comment += part;
                     source = { ...source, properties: { ...source.properties, comment } };
                 }
-                await stack.set(index, await transformStoredMagickRaster({ ...source, space: "srgb", channels: 3 }, backend, histogramPixelSteps(source.width * source.height, width, height), signal, { width, height, hasAlpha: false }));
+                await stack.set(index, await transformStoredMagickRaster({ ...source, space: "srgb", channels: 3 }, backend, histogramPixelSteps(source.width * source.height, width, height, state.channels), signal, { width, height, hasAlpha: false }));
             }
             image = (await stack.get(stack.length - 1))!;
         }

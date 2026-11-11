@@ -27,6 +27,13 @@ export async function freezedetect<T extends MediaVideoFrame & { filterMetadata?
       if (!Number.isFinite(minimumDuration) || minimumDuration < 0 || minimumDuration > 9223372036854.775) {
         throw new Error("freezedetect: duration must be nonnegative");
       }
+    } else if (key === "threads") {
+      const threads = parseFilterExpression(value, "freezedetect threads", {
+        default: 0, min: 0, max: 2147483647, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+      });
+      if (!Number.isFinite(threads) || threads < 0 || threads > 2147483647) {
+        throw new Error("freezedetect: invalid threads");
+      }
     } else throw new Error(`freezedetect: unsupported option ${key}`);
   }
 

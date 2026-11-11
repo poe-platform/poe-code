@@ -2157,7 +2157,11 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "amultiply" || filters[0]?.startsWith("amultiply=") || filters[0]?.startsWith("amultiply@")) {
-        if (filters[0].includes("=")) throw new Error("amultiply does not accept options");
+        if (filters[0].includes("=")) {
+          const option = filters[0].slice("amultiply=".length).split("=", 1)[0]!.trim();
+          if (option === "enable") throw new Error("amultiply: timeline is unsupported");
+          throw new Error("amultiply: unsupported option");
+        }
         if (sources.length !== 2) throw new Error("amultiply requires two inputs");
         for (const source of sources) {
           if (source.expression && source.expression !== "anull") {
@@ -20720,6 +20724,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: msg === "separatefields: height must be even" ? 183
                 : msg === "surround: unsupported transform size" ? 218 : 234 };
             }
+            if (msg === "amultiply: timeline is unsupported") return { exitCode: 176 };
+            if (msg.startsWith("amultiply: unsupported option")) return { exitCode: 8 };
             if (msg === "amerge: timeline is unsupported") return { exitCode: 176 };
             if (msg === "amerge: unsupported option") return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("amerge:")) return { exitCode: 222 };

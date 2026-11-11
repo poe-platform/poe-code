@@ -9,6 +9,12 @@ import { createFfmpegCommand } from "./index.js";
 // Native FFmpeg 7.0.2: mono PCM16 WAV, 8 kHz, samples 256..383.
 // Audio width is zero; the WAV packet starts at byte 44.
 for (const [enable, delayed] of [
+  ["h", false],
+  ["eq(h,0)", true],
+  ["PI", true],
+  ["E", true],
+  ["eq(PI,acos(-1))", true],
+  ["eq(E,exp(1))", true],
   ["isnan(w)", false],
   ["eq(w,0)", true],
   ["gte(pos,0)", true],

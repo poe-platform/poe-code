@@ -27,7 +27,7 @@ export async function compensateAudioDelay(
   }
   function setOption(name: string, raw: string): void {
     if (name === "enable") {
-      parseFilterExpression(raw, "compensationdelay enable", { n: 0, t: 0, pos: NaN, w: 0 });
+      parseFilterExpression(raw, "compensationdelay enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, PI: Math.PI, E: Math.E });
       enable = raw;
       return;
     }
@@ -58,7 +58,8 @@ export async function compensateAudioDelay(
     const speed = 1.85325 * (643.95 * Math.sqrt((values[5]! + 273.15) / 273.15)) * 100000 / 3600;
     const delay = Math.trunc((values[2]! * 100 + values[1]! + values[0]! * 0.1) * (1 / speed) * sampleRate);
     const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "compensationdelay enable", {
-      n, t: frame.pts / sampleRate, pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0
+      n, t: frame.pts / sampleRate, pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN,
+      w: 0, h: 0, PI: Math.PI, E: Math.E
     })) >= 0.5;
     for (let i = frame.start; i < frame.end; i++) {
       if (i % 1024 === 0) { budget.checkCpu(); await yieldTurn(signal); signal?.throwIfAborted(); }

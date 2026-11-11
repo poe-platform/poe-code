@@ -36,6 +36,14 @@ for (const graph of [false, true]) {
       expected(i => i >= 32 && i < 96 ? 256 + i : delayed(i, 23)));
   });
 
+  for (const enable of ["h", "PI", "E"]) {
+    it(`scheduled enable=${enable} changes bypass state (${graph ? "graph" : "simple"})`, async () => {
+      const initiallyEnabled = enable === "h";
+      assert.deepEqual(await run(`asendcmd=c='0.004 compensationdelay@d enable ${enable}',compensationdelay@d=m=1:enable=${initiallyEnabled ? 1 : 0}`, graph),
+        expected(i => (i < 32 ? initiallyEnabled : !initiallyEnabled) ? delayed(i, 23) : 256 + i));
+    });
+  }
+
   for (const [action, valid, invalid] of [
     ["wet", "1/2", "2"], ["dry", "1/2", "-1"], ["m", "1/2", "101"],
     ["cm", "100", "-1"], ["mm", "10", "11"], ["temp", "-50", "51"], ["enable", "0", "unknown"]

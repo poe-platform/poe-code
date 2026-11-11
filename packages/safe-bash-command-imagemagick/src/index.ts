@@ -20769,7 +20769,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 rowWidths[Math.floor(pageSize / cols)]! += (cols - pageSize % cols) * (fastMetaDims[pageStart + pageSize - 1]!.width + padX * 2);
             }
             const canvasW = Math.max(1, originX + (variableCells ? Math.max(0, ...rowWidths) : cols * slotW));
-            const canvasH = Math.max(1, originY + (variableCells ? rowHeights.reduce((sum, height) => sum + height, 0) : rows * slotH));
+            const canvasH = Math.max(1, originY + (variableCells ? rowHeights.reduce((sum, height) => sum + height, (rows - rowHeights.length) * padY * 2) : rows * slotH));
             let tileX = 0, tileY = 0;
                 if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
             canvas = { ...yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background), hasAlpha: state.background.a < 255 };
@@ -20936,7 +20936,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 rowWidths[Math.floor(pageSize / cols)]! += (cols - pageSize % cols) * (images[pageStart + pageSize - 1]!.width + padX * 2);
             }
             const canvasW = Math.max(1, originX + (variableCells ? Math.max(0, ...rowWidths) + (shadow ? 4 : 0) : cols * slotW + (shadow ? 4 : 0)));
-            const canvasH = Math.max(1, originY + (variableCells ? rowHeights.reduce((sum, height) => sum + height, 0) : rows * slotH));
+            const canvasH = Math.max(1, originY + (variableCells ? rowHeights.reduce((sum, height) => sum + height, (rows - rowHeights.length) * padY * 2) : rows * slotH));
             let tileX = 0, tileY = 0;
             canvas = { ...yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background), hasAlpha: state.background.a < 255 };
             if (textureImage) for (let y = 0; y < canvasH; y += textureImage.height) {
@@ -21233,7 +21233,8 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             const rowHeights = new IntegerTable(backend.storage, 128);
             let canvasWidth = cols * slotW + (shadow ? 4 : 0), canvasHeight = rows * slotH;
             if (variableCells) {
-                canvasWidth = canvasHeight = 0;
+                canvasWidth = 0;
+                canvasHeight = (rows - Math.ceil(pageSize / cols)) * padY * 2;
                 let rowWidth = 0, rowHeight = 0;
                 for (let index = 0; index < pageSize; index++) {
                     await yieldTurn(signal);

@@ -424,7 +424,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
         throw new Error(`unrecognized evaluate operator '-evaluate-sequence' '${raw}'`);
     }
     if (negate) operation = "undefined";
-    const sourceChannels = ["mean", "median", "max"].includes(operation) && inputs.some(image => image[magickInput]?.channelMask)
+    const sourceChannels = ["mean", "median", "max", "sum", "subtract", "multiply", "divide", "xor"].includes(operation) && inputs.some(image => image[magickInput]?.channelMask)
         ? inputs.map(image => {
             const mask = image[magickInput]?.channelMask;
             return mask ? [mask.r, mask.g, mask.b, mask.a, mask.k === true] : undefined;
@@ -699,7 +699,11 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 const bytes = yield* read(image, position, length);
                 for (let offset = 0; offset < length; offset++) {
                     if (image > 0 && cmyk && inputs[image]!.space !== "cmyk" && offset % stride >= 3) continue;
-                    if (operation === "max" && sourceChannels?.[image] && !sourceChannels[image]![offset % stride]) continue;
+                    if (image > 0 && sourceChannels?.[image] && !sourceChannels[image]![offset % stride]) {
+                        // Multiply normalizes once per input even when its channel is skipped.
+                        if (multiplication) values[offset]! /= 65535;
+                        continue;
+                    }
                     if (operation === "addmodulus") {
                         // Wrap at QuantumRange + 1 in native Q16 units, not at 256 bytes.
                         values[offset] = (values[offset]! + bytes[offset]! * scale) % 65536;

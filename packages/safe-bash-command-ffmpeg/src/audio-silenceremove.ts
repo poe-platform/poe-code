@@ -32,9 +32,10 @@ export async function removeSilence(
     } else token += char;
   }
   if (token || (argument && !argument.endsWith(":"))) tokens.push(token);
-  for (const [index, option] of tokens.entries()) {
+  let positionalIndex = 0;
+  for (const option of tokens) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? positional[index] : option.slice(0, separator).trim();
+    const key = separator < 0 ? positional[positionalIndex++] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
       const number = parseFilterExpression(value, "silenceremove", key === "thread_type"

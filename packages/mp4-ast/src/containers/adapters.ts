@@ -3010,7 +3010,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
-    if (!line || line.startsWith(";") || line.startsWith("#")) continue;
+    if (!line || rawLine.startsWith(";") || rawLine.startsWith("#")) continue;
     if (line === "[CHAPTER]") {
       flushChapter();
       section = "chapter";

@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 // Wavelet coefficients and denoising algorithm from FFmpeg af_afwtdn.c,
 // Copyright (c) 2020 Paul B Mahol, LGPL-2.1-or-later.
@@ -78,9 +79,13 @@ export async function denoiseWavelets(
   let positional = 0;
   for (const part of argument ? argument.split(":") : []) {
     const separator = part.indexOf("=");
-    const key = (separator < 0 ? names[positional++] : part.slice(0, separator).trim()) as keyof typeof options;
-    if (!names.includes(key)) throw new Error(`afwtdn: unsupported option ${key}`);
+    const key = (separator < 0 ? names[positional++] : part.slice(0, separator).trim()) as keyof typeof options | "threads" | "thread_type" | "extra_hw_frames";
     const raw = (separator < 0 ? part : part.slice(separator + 1)).trim();
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, raw, "afwtdn");
+      continue;
+    }
+    if (!names.includes(key)) throw new Error(`afwtdn: unsupported option ${key}`);
     const boolean = key === "profile" || key === "adaptive";
     const digits = raw.startsWith("+") || raw.startsWith("-") ? raw.slice(1) : raw;
     const booleanWords = ["true", "yes", "on", "y", "enable", "enabled", "false", "no", "off", "n", "disable", "disabled", ""];

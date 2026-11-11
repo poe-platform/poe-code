@@ -36,6 +36,11 @@ for (const graph of [false, true]) {
   for (const options of [
     "samples=512:levels=2:0.1:wavet=sym2",
     "samples=512:levels=2:wavet=sym2:sigma=0.1",
+    ...["threads=1", "thread_type=slice", "extra_hw_frames=0",
+      "threads=1:thread_type=slice:extra_hw_frames=0",
+      "threads=default:thread_type=none:extra_hw_frames=min",
+      "threads=1+1:thread_type=+slice:extra_hw_frames=2-1"
+    ].map(option => `samples=512:levels=2:wavet=sym2:sigma=0.1:${option}`),
     "samples=512:0.1:2:sym2",
     "sigma=0:0.1:levels=2:samples=512:wavet=sym2",
     "samples=512:levels=2:0.1:wavet=sym2:sigma=0"
@@ -103,4 +108,15 @@ it("honors memory limits and cancellation", async () => {
   await assert.rejects(denoiseWavelets([mono], 16000, "afwtdn", new MediaBudgetTracker({ maxMemoryBytes: 64 })), /maxMemoryBytes/);
   await assert.rejects(denoiseWavelets([mono], 16000, "afwtdn", new MediaBudgetTracker(), AbortSignal.abort()));
   await assert.rejects(denoiseWavelets([mono], 16000, "afwtdn", new MediaBudgetTracker({ maxCpuMs: -1 })), /maxCpuMs/);
+});
+
+for (const graph of [false, true]) for (const option of [
+  "threads=-1", "threads=2147483648", "threads=bogus", "threads=",
+  "thread_type=bogus", "thread_type=0.5", "thread_type=4294967296",
+  "extra_hw_frames=-2", "extra_hw_frames=2147483648", "extra_hw_frames=bogus"
+]) it(`rejects invalid afwtdn scheduling ${option} (graph=${graph})`, async () => {
+  const { fs, result, stderr } = await run(`afwtdn=${option}`, graph);
+  assert.notEqual(result.exitCode, 0);
+  assert.ok(stderr.includes("afwtdn:"), stderr);
+  assert.equal(fs.readFileSync("/out.wav", "utf8"), "KEEP");
 });

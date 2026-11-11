@@ -25,10 +25,10 @@ function parseRealtext(bytes: Uint8Array): MediaDocument {
   let end: number | undefined;
   let windowDuration = 60000;
   let text = "";
-  const flush = () => {
+  const flush = (trailingSeparator = false) => {
     const caption = text.trim();
     if (start !== undefined && caption) {
-      const data = encodeUtf8(caption);
+      const data = encodeUtf8(caption + (trailingSeparator ? " " : ""));
       const duration = end !== undefined && end > start ? end - start : windowDuration;
       samples.push({ pts: start, dts: start, cts: 0, duration,
         data, size: data.length, offset: 0, isKeyframe: true, sampleDescriptionIndex: 1 });
@@ -59,9 +59,10 @@ function parseRealtext(bytes: Uint8Array): MediaDocument {
         }
       }
     },
-    onclosetag(name) {
+    onclosetag(name, isImplied) {
       if (name === "window") {
-        flush();
+        // FFmpeg retains one separator from whitespace after the closing window.
+        flush(!isImplied && source[parser.endIndex + 1]?.trim() === "");
         start = undefined;
       }
     }

@@ -5485,6 +5485,13 @@ function createLabelSvg(text: string, state: MagickState): string {
 
 function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha"|"isPalette">,geomStr:string,kernel:ResizeKernel | undefined): (Omit<Parameters<typeof resizeImageSteps>[1], "kernel"> & { kernel: ResizeKernel }) | undefined {
     const g = parseMagickGeometry(geomStr);
+    // Native resize discards scalar dimensions when signed offsets follow.
+    // Normalize hexadecimal offsets before checking for an explicit axis separator.
+    if (g.hasOffset && g.aspectRatio === undefined
+        && !normalizeMagickOffsets([...geomStr].filter(character => character.trim() !== "").join("")).toLowerCase().includes("x")) {
+        if (g.areaLimit !== undefined) throw new Error(`negative or zero image size '${geomStr}'`);
+        return undefined;
+    }
     if (geomStr.includes(":")) {
         const dimensions = parseMagickGeometry(geomStr.replace(":", "x"));
         if (dimensions.width === 0 || dimensions.height === 0)

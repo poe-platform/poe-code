@@ -15654,6 +15654,27 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                             replayGainNoClip = ["1", "true", "yes", "on", "y", "enable", "enabled"].includes(noClip);
                           }
+                          else if (key === "thread_type") {
+                            // Scheduling flags do not affect PCM, but each set/clear term must be valid.
+                            let position = 0;
+                            do {
+                              if (value[position] === "+" || value[position] === "-") position++;
+                              const start = position;
+                              if (value[position] === "+" || value[position] === "-") position++;
+                              while (position < value.length && value[position] !== "+" && value[position] !== "-") position++;
+                              const bits = parseFilterExpression(value.slice(start, position), "volume", { slice: 1, none: 0, all: -1 });
+                              if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
+                                throw new RangeError("volume: invalid thread_type");
+                              }
+                            } while (position < value.length);
+                          }
+                          else if (key === "threads" || key === "extra_hw_frames") {
+                            const minimum = key === "threads" ? 0 : -1;
+                            const number = parseFilterExpression(value, "volume", { min: minimum, default: minimum });
+                            if (!Number.isFinite(number) || number < minimum || number > 2147483647) {
+                              throw new RangeError(`volume: invalid ${key}`);
+                            }
+                          }
                           else if (key === "enable") enable = value;
                           else throw new Error(`volume: unsupported option ${key}`);
                         }

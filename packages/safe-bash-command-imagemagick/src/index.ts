@@ -11712,7 +11712,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     }
                 }
                 const fuzz = method === "removedups"
-                    ? Math.max(previous[magickInput]?.fuzz ?? 0, current[magickInput]?.fuzz ?? 0) : state.alphaFuzz;
+                    ? Math.max(previous[magickInput]?.fuzz ?? 0, current[magickInput]?.fuzz ?? 0)
+                    : removeDups ? state.alphaFuzz : stack[0]?.[magickInput]?.fuzz ?? 0;
                 // Copy original patches even when the comparison omits their output.
                 if (canvas) canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, current, current.virtualCanvas?.x ?? 0, current.virtualCanvas?.y ?? 0, "copy", undefined, false, 0, true), signal, canvas, [canvas, current]);
                 const comparison = canvas ?? current;
@@ -15078,7 +15079,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         }
                     }
                     const frameFuzz = method === "removedups"
-                        ? Math.max(previous![magickInput]?.fuzz ?? 0, current[magickInput]?.fuzz ?? 0) : fuzz;
+                        ? Math.max(previous![magickInput]?.fuzz ?? 0, current[magickInput]?.fuzz ?? 0)
+                        : removeDups ? fuzz : first?.[magickInput]?.fuzz ?? 0;
                     // Disposal and cropped outputs do not alter the original comparison canvas.
                     const comparison = removeDups ? current : await transformStoredMagickRaster(previous!, backend,
                         composite16PixelSteps(previous!, current, current.virtualCanvas?.x ?? 0, current.virtualCanvas?.y ?? 0, "copy", undefined, false, 0, true), signal, previous!, [previous!, current]);

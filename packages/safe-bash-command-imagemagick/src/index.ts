@@ -14085,7 +14085,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const frames: RgbaImage[] = [];
                 for (const inputFrame of stack) {
                     // Native DisposeImages repeats the first input, including its timing.
-                    const frame = dispose ? first : inputFrame;
+                    const frame = dispose ? first : yield* prepareInactiveAlphaOutput(inputFrame);
                     const previous = canvas, x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
                     // Native coalesce copies the first frame, including RGB under transparent pixels.
                     canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, frame, x, y, !dispose && frames.length === 0 ? "copy" : "over", undefined, false, 0, true, undefined, true, channels), signal, canvas, [canvas, frame]);
@@ -18338,7 +18338,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let canvas: StoredRgbaImage = { ...await createStoredCanvas(width, height, background, backend, signal), space: first.space, ...(first.magickColorspace ? { magickColorspace: first.magickColorspace } : {}), channels: first.channels, ...(first.gamma === undefined ? {} : { gamma: first.gamma }), hasAlpha: dispose || first.hasAlpha };
                 const frames = new StoredImageStack(backend.storage, signal);
                 for (let index = 0; index < stack.length; index++) {
-                    const frame = dispose ? first : (await stack.get(index))!, previous = canvas, x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
+                    let frame = dispose ? first : (await stack.get(index))!;
+                    if (!frame.hasAlpha) frame = await transformStoredMagickPixels(frame, backend,
+                        { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal);
+                    const previous = canvas, x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
                     // Native coalesce copies the first frame, including RGB under transparent pixels.
                     canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, frame, x, y, !dispose && index === 0 ? "copy" : "over", undefined, false, 0, true, undefined, true, channels), signal, canvas, [canvas, frame]);
                     let disposal = 1;

@@ -21880,7 +21880,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
     let geometry = "120x120>";
     let concatenate = false;
     const transforms: MontageArguments["transforms"] = [];
-    const queuedTransforms: MontageArguments["transforms"][number] = [];
+    let queuedTransforms: MontageArguments["transforms"][number] = [];
     let pending = false;
     let title: string | undefined;
     let texture: string | undefined;
@@ -21903,6 +21903,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             transforms[index] = transforms[index]!.concat(queuedTransforms);
         }
         if (advance) queuedTransforms.length = 0;
+        else queuedTransforms = queuedTransforms.filter(transform => transform.kind !== "crop");
         pending = false;
     }
     for (let i = 0; i < argv.length; i++) {
@@ -22311,7 +22312,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             return { exitCode: 1, stdout: "", stderr: `montage: unrecognized option '${t}'\n` };
         }
         else {
-            // Filename boundaries replay pending operators without consuming them;
+            // Filename boundaries consume crops but replay other pending operators;
             // the output filename flushes the final batch exactly once.
             if (i === argv.length - 1) yield* applyTransforms(true);
             else if (pending) yield* applyTransforms(false);

@@ -19,7 +19,10 @@ it.each([
   { options: ["tile.ppm", "-flop", "-crop", "1x1"], grid: "GRYB" },
   { options: ["tile.ppm", "-crop", "1x1", "-flop"], grid: "RGBY" },
   { options: ["tile.ppm", "-gravity", "southeast", "-crop", "1x1+0+0"], grid: "Y" },
-])(`crops montage inputs via ${mode}: $options`, async ({ options, grid }) => {
+  { options: ["-size", "3x2", "xc:red", "-crop", "2x1+0+0", "xc:blue"], grid: "RRBBBWWBBB", width: 5, height: 2 },
+  { options: ["-size", "3x2", "xc:red", "xc:blue", "-crop", "2x1+0+0"], grid: "RRBB" },
+  { options: ["-size", "3x2", "(", "xc:red", "-crop", "2x1+0+0", ")", "xc:blue"], grid: "RRBBBWWBBB", width: 5, height: 2 },
+])(`crops montage inputs via ${mode}: $options`, async ({ options, grid, width = grid.length, height = 1 }) => {
   const files = new Map<string, Uint8Array>();
   const fs = new MemoryFileSystem();
   for (const [name, pixels] of [["tile.ppm", "RGBY"]] as const) {
@@ -47,7 +50,7 @@ it.each([
     output = result.stdoutBytes!;
   }
   const actual = decodeImage(output);
-  expect([actual.width, actual.height]).toEqual([grid.length, 1]);
+  expect([actual.width, actual.height]).toEqual([width, height]);
   expect(actual.data).toEqual(new Uint8Array([...grid].flatMap(pixel => [...colors[pixel]!, 255])));
 });
 

@@ -184,6 +184,7 @@ import {
   parseAdtsStream,
   scaleVideoPicture,
   decodeUtf8,
+  decodeAssText,
   decodeLatin1,
   encodeUtf8,
   serializeDashDocument,
@@ -7936,6 +7937,23 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           const data = Uint8Array.from(parts.join(""), char => char.charCodeAt(0));
           sample = { ...sample, data, size: data.byteLength, webvtt: undefined };
         }
+        if (codec === "pjs") {
+          // Native PJS decoding escapes dialogue into ASS before encoding text.
+          let text = decodeUtf8(sample.data).replaceAll("\\", "\\\\")
+            .replaceAll("{", "\\{").replaceAll("}", "\\}").replaceAll("|", "\\N");
+          if (outputFormat === "webvtt" || containerCodec === "webvtt" || outputFormat === "srt" || containerCodec === "subrip") {
+            // Native text encoders skip initial ASCII spaces in ASS dialogue.
+            let start = 0;
+            while (text[start] === " ") start++;
+            text = text.slice(start);
+          }
+          if (outputFormat !== "ass" && containerCodec !== "ass") {
+            text = decodeAssText(text);
+            if (outputFormat === "srt" || containerCodec === "subrip") text = text.trimStart().replaceAll("\n", "\r\n");
+          }
+          const data = encodeUtf8(text);
+          sample = { ...sample, data, size: data.byteLength };
+        }
         if (containerCodec === "ass") {
           // Matroska ASS packets omit timestamps and include a read-order prefix.
           if (codec === "ass" && description?.extraData) return sample;
@@ -7965,18 +7983,12 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           const data = encodeUtf8(text.replaceAll("\\n", "\n"));
           return { ...sample, data, size: data.byteLength };
         }
-        if (codec === "microdvd" || codec === "mpl2" || codec === "pjs") {
-          let text = decodeUtf8(sample.data);
-          if (codec === "pjs" && (outputFormat === "webvtt" || containerCodec === "webvtt")) {
-            // Native WebVTT's ASS dialogue parser skips initial ASCII spaces only.
-            let start = 0;
-            while (text[start] === " ") start++;
-            text = text.slice(start);
-          }
+        if (codec === "microdvd" || codec === "mpl2") {
+          const text = decodeUtf8(sample.data);
           const data = encodeUtf8(codec === "microdvd" ? decodeMicrodvd(text).replaceAll("\n",
             outputFormat === "srt" ? "\r\n" : "\n") : text.split("|")
             .map(line => codec === "mpl2" && line.startsWith("/") ? `<i>${line.slice(1)}</i>` : line)
-            .join(codec === "pjs" && (outputFormat === "srt" || containerCodec === "subrip") ? "\r\n" : "\n"));
+            .join("\n"));
           return { ...sample, data, size: data.byteLength };
         }
         return { ...sample, webvtt: undefined };

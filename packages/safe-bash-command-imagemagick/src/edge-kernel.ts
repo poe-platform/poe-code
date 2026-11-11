@@ -19,6 +19,13 @@ export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "has
         : [gray, gray, gray, virtualPixel === "transparent" ? 0 : maximum];
     if (cmyk) fill.push(0);
     function* read(position: number, length: number): Generator<ConvolveRequest | undefined, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
+        if (!cmyk && !image.hueSamples && image.storedHueSamples === undefined) {
+            const working = yield { kind: "read", evaluate: true, position, length };
+            if (working?.length) {
+                if (working.length !== length * 8) throw new Error("Truncated edge working samples");
+                return Float64Array.from(new Float64Array(working.slice().buffer), value => value * maximum / 255);
+            }
+        }
         const bytes = yield { kind: "read", hue, highDepth, position, length };
         if (!bytes || bytes.length !== length * (hue ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated edge pixels");
         if (hue) return new Float64Array(bytes.slice().buffer).map(value => value * maximum);
@@ -40,7 +47,7 @@ export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "has
         for (let ky = -half; ky <= half; ky++) {
             yield;
             const map = (x: number) => virtualPixelIndex(x, y + ky, width, height, virtualPixel);
-            const samples = cmyk || hue ? new Float64Array(length) : highDepth ? new Uint16Array(length) : new Uint8Array(length);
+            const samples = new Float64Array(length);
             for (let x = 0; x < length / stride;) {
                 yield;
                 const sx = map(first + x);
@@ -82,7 +89,9 @@ export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "has
         }
         const position = (y * width + left) * 4;
         const samples = yield* read(position, count * 4);
-        let data = cmyk || hue ? new Float64Array(samples) : highDepth ? new Uint16Array(samples) : new Uint8Array(samples);
+        let data = cmyk || hue ? new Float64Array(samples)
+            : highDepth ? Uint16Array.from(samples, value => Math.max(0, Math.min(maximum, Math.round(value))))
+                : Uint8Array.from(samples, value => Math.max(0, Math.min(maximum, Math.round(value))));
         const working = !cmyk && image.region ? Float64Array.from(samples, value => value * 255 / maximum) : undefined;
         for (let x = 0; x < count; x++) {
             const alpha = area * samples[x * stride + 3]! - sums[x * stride + 3]!;

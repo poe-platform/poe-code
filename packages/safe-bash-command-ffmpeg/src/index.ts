@@ -1540,7 +1540,8 @@ async function panAudio(
       channelMask: names.reduce((mask, name) => mask + (audioSpeakerMasks[name] ?? 0), 0)
     };
   }
-  const pcm16 = sampleFormat === "s16" || sampleFormat === "s16p";
+  const pcm8 = sampleFormat === "u8" || sampleFormat === "u8p";
+  const pcm16 = pcm8 || sampleFormat === "s16" || sampleFormat === "s16p";
   const pcm32 = sampleFormat === "s32" || sampleFormat === "s32p";
   const double = sampleFormat === "dbl" || sampleFormat === "dblp";
   let clipPcm16 = false;
@@ -1587,7 +1588,8 @@ async function panAudio(
         // Native PCM16 products and the rounding bias wrap before shifting.
         value = (value + 16384) >> 15;
         value = clipPcm16 ? Math.max(-32768, Math.min(32767, value)) : (value << 16) >> 16;
-        value /= 32768;
+        // Unsigned 8-bit pan mixes in PCM16, then discards the low eight bits.
+        value = pcm8 ? (value >> 8) / 128 : value / 32768;
       } else if (pcm32) {
         // Preserve the rounded, saturated integer result, including positive zero.
         value = Math.max(-2147483648, Math.min(2147483647, roundToEven(value * 2147483648))) / 2147483648 + 0;

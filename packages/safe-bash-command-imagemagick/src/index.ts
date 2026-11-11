@@ -147,8 +147,8 @@ import { combineMetaPixelSteps, type MetaChannels } from "./combine-meta.js";
 import { negateMetaPixelSteps } from "./negate-meta.js";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16" | "evaluateSamples">> & { position?: number; storedEvaluateSamples?: number | undefined };
-type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & CyclePalette & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; regionTransformSource?: RgbaImage | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & CyclePalette & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; storedRegionTransformSource?: StoredRgbaImage | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & CyclePalette & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; placementGravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; regionTransformSource?: RgbaImage | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & CyclePalette & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; placementGravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; storedRegionTransformSource?: StoredRgbaImage | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
 type ImageMetadata = BaseImageMetadata & HueMetadata & MetaChannels & Pick<RgbaImage, "inactiveAlpha" | "alphaBlend" | "alphaSeparate">;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
@@ -5624,6 +5624,12 @@ function parseGravity(raw: string): GravityPosition | undefined {
   }
 }
 
+function magickPlacementGravity(image: Pick<RgbaImage, "gravity" | "placementGravity">, state: MagickState): GravityPosition | undefined {
+    // -set gravity affects placement without becoming a printable image property.
+    const option = state.optionProperties?.gravity;
+    return option === undefined ? image.placementGravity ?? image.gravity ?? state.gravity : parseGravity(option);
+}
+
 function parseKernel(raw: string): ResizeKernel {
   const norm = raw.toLowerCase();
   if (norm === "bartlett" || norm === "blackman" || norm === "bohman" || norm === "cosine" || norm === "hamming" || norm === "hann" || norm === "kaiser" || norm === "parzen" || norm === "welch") return norm;
@@ -6466,7 +6472,7 @@ function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geo
     };
 }
 
-function magickExtentLayout(img: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geomStr: string, state: MagickState) {
+function magickExtentLayout(img: Pick<RgbaImage, "width" | "height" | "virtualCanvas" | "gravity" | "placementGravity">, geomStr: string, state: MagickState) {
     validateMagickTransformGeometry(geomStr, "-extent");
     const geometry = geomStr.split(",", 1)[0]!.replaceAll("#", "").replaceAll("(", "").replaceAll(")", "").trimStart();
     let g = parseMagickGeometry(geometry);
@@ -6497,7 +6503,7 @@ function magickExtentLayout(img: Pick<RgbaImage, "width" | "height" | "virtualCa
     const offset = gravityAdjustBox(img.width, img.height,
         emptyWidth ? ((img.virtualCanvas?.width ?? 0) | img.width) : targetW,
         emptyHeight ? ((img.virtualCanvas?.height ?? 0) | img.height) : targetH,
-        Math.trunc(g.x), Math.trunc(g.y), state.gravity);
+        Math.trunc(g.x), Math.trunc(g.y), magickPlacementGravity(img, state));
     const left = -offset.x;
     const top = -offset.y;
     const dstX0 = Math.max(0, left);
@@ -12973,6 +12979,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     const disposal = parseMagickDisposal(expanded);
                     return disposal === undefined ? image : { ...image, disposal };
                 }
+                if (expandedKey.toLowerCase() === "gravity") return { ...image, placementGravity: parseGravity(expanded) };
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: parseInt(expanded, 10) || 0 };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickPageSetting(expanded, "set"), forceExact: false }, "set") };
@@ -13141,7 +13148,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "-compose" || t === "+compose") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, properties: { ...image.properties, compose: state.composeRaw } }; });
             if (t === "-compress") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...image[magickInput], compression: state.compression! } }; });
             if (t === "-quality") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, quality: state.quality }; });
-            if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity }; });
+            if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity, placementGravity: undefined }; });
             if (t === "-virtual-pixel" || t === "-set" && tokens[i - 1]?.toLowerCase() === "option:virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, hasAlpha: image.hasAlpha || state.virtualPixel === "transparent" || state.virtualPixel === "background" && state.background.a < 255, virtualPixel: state.virtualPixel ?? "edge" }; });
         }
         else if (t === "-connected-components" || t === "+connected-components") {
@@ -13790,17 +13797,18 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geom = tokens[++i] ?? "0x0";
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                const gravity = magickPlacementGravity(im, state);
                 const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 validateMagickSpliceGeometry(expanded);
                 const background = state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background;
                 if (background.a >= 255) im = discardDisassociatedAlpha(im);
-                const result = yield* applyMagickSpliceSteps(im, expanded, background, state.gravity, signal, im.virtualPixel, state.seed);
-                if (im.readMask) result.readMask = yield* applyMagickSpliceSteps(im.readMask as RgbaImage, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, im.virtualPixel, state.seed);
+                const result = yield* applyMagickSpliceSteps(im, expanded, background, gravity, signal, im.virtualPixel, state.seed);
+                if (im.readMask) result.readMask = yield* applyMagickSpliceSteps(im.readMask as RgbaImage, expanded, { r: 0, g: 0, b: 0, a: 255 }, gravity, signal, im.virtualPixel, state.seed);
                 if (im.region && (result.width !== im.width || result.height !== im.height)) {
                     // Inserted bands are editable; existing protection travels with its pixels.
                     const mask = yield* applyMagickRasterSteps({ width: im.width, height: im.height, data: im.data,
                         format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, regionMaskPixelSteps(im, im.region), signal);
-                    result.writeMask = yield* applyMagickSpliceSteps(mask, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, im.virtualPixel, state.seed);
+                    result.writeMask = yield* applyMagickSpliceSteps(mask, expanded, { r: 0, g: 0, b: 0, a: 255 }, gravity, signal, im.virtualPixel, state.seed);
                     result.region = undefined;
                 }
                 return result;
@@ -13811,10 +13819,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geom = tokens[++i] ?? "0x0";
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                const gravity = magickPlacementGravity(im, state);
                 const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
                 im = discardDisassociatedAlpha(im);
-                return (yield* applyMagickChopSteps(im, expanded, state.gravity, signal, analysis));
+                return (yield* applyMagickChopSteps(im, expanded, gravity, signal, analysis));
             });
         }
         else if (t === "-copy") {
@@ -16533,6 +16542,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const disposal = parseMagickDisposal(expanded);
                     return disposal === undefined ? image : { ...image, disposal };
                 }
+                if (expandedKey.toLowerCase() === "gravity") return { ...image, placementGravity: parseGravity(expanded) };
                 if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: parseInt(expanded, 10) || 0 };
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickPageSetting(expanded, "set"), forceExact: false }, "set") };
@@ -16679,7 +16689,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }
             if (token === "-gravity" || token === "+gravity") {
                 const gravity = state.gravity;
-                steps.push(async image => image ? { ...image, gravity } : undefined);
+                steps.push(async image => image ? { ...image, gravity, placementGravity: undefined } : undefined);
             }
             if (token === "-virtual-pixel" || token === "-set" && tokens[i - 1]?.toLowerCase() === "option:virtual-pixel") {
                 const virtualPixel = state.virtualPixel, activateAlpha = virtualPixel === "transparent" || virtualPixel === "background" && state.background.a < 255;
@@ -18483,7 +18493,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const source = image;
-                const captured = { ...settings, virtualPixel: image.virtualPixel ?? "edge" };
+                const captured = { ...settings, gravity: magickPlacementGravity(image, settings), virtualPixel: image.virtualPixel ?? "edge" };
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties: captured.optionProperties }, async () => ({ image: source, storage: backend.storage }), signal, images);
                 if (token === "-splice") validateMagickSpliceGeometry(expanded);
                 else validateMagickTransformGeometry(expanded, token);

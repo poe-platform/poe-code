@@ -18606,7 +18606,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const operandLevels: MagickPixelOperation[][] = [];
     let readMask: RgbaImage | StoredRgbaImage | undefined;
     type Rotation = { rotation: string; settings: MagickState };
-    type CompareOperation = { geometry: string; gravity: GravityPosition | undefined } | "auto-orient" | Rotation | { separate: readonly number[] | undefined } | { trim: number } | { property: { key: string; value: string } } | { profile: Uint8Array; name: string };
+    type CompareOperation = { geometry: string; gravity: GravityPosition | undefined } | "auto-orient" | Rotation | { distort: NonNullable<ReturnType<typeof parseMagickWarpOperation>> } | { separate: readonly number[] | undefined } | { trim: number } | { property: { key: string; value: string } } | { profile: Uint8Array; name: string };
     const pixelOperations: MagickPixelOperation[] = [];
     const operationFlushes = new Map<number, readonly MagickPixelOperation[]>();
     let pending = false;
@@ -18873,6 +18873,18 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             catch (error) { return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` }; }
             stackSteps.push({ operand: operands.length, token: t, spec });
         }
+        else if (t === "-distort") {
+            const method = argv[i + 1], geometry = argv[i + 2];
+            if (method === undefined || geometry === undefined)
+                return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-distort'\n" };
+            if (!["srt", "scalerotatetranslate"].includes(method.toLowerCase()))
+                return { exitCode: 2, stdout: "", stderr: `compare: unsupported distortion method '${method}'\n` };
+            const distort = parseMagickWarpOperation(argv, state, i, { warnings: "" })!;
+            i = distort.end;
+            const operation = { distort };
+            if (operands.length > groupStart) for (const operations of operandOperations.slice(groupStart)) operations.push(operation);
+            else leadingOperations.push(operation);
+        }
         else if (t === "-rotate") {
             const rotation = argv[++i];
             if (rotation === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-rotate'\n" };
@@ -19119,6 +19131,20 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             if ("data" in image) trimmed = yield* trimMagickSteps(image, operation.trim);
             else yield { async run() { trimmed = await trimStoredMagick(image, backend!.storage, operation.trim, signal!); } };
             yield* acceptImage(trimmed, operations, index + 1);
+            return;
+        }
+        if (typeof operation === "object" && "distort" in operation) {
+            const plan = operation.distort.plan(image);
+            let distorted = image;
+            if (plan) {
+                // SRT uses edge virtual pixels and preserves the operand's alpha trait.
+                const metadata = { ...plan, hasAlpha: image.hasAlpha };
+                if ("data" in image) distorted = yield* applyMagickRasterSteps(image, plan.steps, signal, metadata);
+                else yield { async run() {
+                    distorted = await transformStoredMagickRaster(image, backend!, plan.steps, signal!, metadata);
+                } };
+            }
+            yield* acceptImage(distorted, operations, index + 1);
             return;
         }
         if (typeof operation === "object" && "rotation" in operation) {

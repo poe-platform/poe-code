@@ -12760,8 +12760,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const mask = filteredChannelMask ?? [0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][stretched.length] ?? 0;
                         const names = filteredChannelNames ?? Object.keys(audioSpeakerMasks)
                           .filter(name => Math.floor(mask / audioSpeakerMasks[name]!) % 2 === 1);
-                        stretched = await highpassAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal, names);
-                        if (filteredSampleFormat === "s16") filteredSampleFormat = "s16p";
+                        const highpass = await highpassAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal, names);
+                        stretched = highpass.channels;
+                        filteredSampleFormat = highpass.sampleFormat;
                         panSampleFormat = filteredSampleFormat;
                       } else if (trimmed === "asupercut" || trimmed.startsWith("asupercut=")) {
                         stretched = await cutUltrasonicAudio(stretched, origRate, trimmed, budget, context.signal);

@@ -1,11 +1,13 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 import { audioSpeakerMasks, parseAudioChannelLayout } from "./audio-channel-layout.js";
 
 export async function highpassAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   sampleFormat: string, budget: MediaBudgetTracker, signal?: AbortSignal, channelNames?: readonly string[]
-): Promise<(Float32Array | Float64Array)[]> {
+): Promise<{ channels: (Float32Array | Float64Array)[]; sampleFormat: string }> {
+  let precision = -1;
   let selected: string[] | undefined;
   const options = { frequency: 3000, poles: 2, mix: 1, width: 0.707, width_type: 3, blocksize: 0 };
   const aliases: Record<string, keyof typeof options> = {
@@ -18,6 +20,12 @@ export async function highpassAudio(
     const separator = option.indexOf("=");
     const name = separator < 0 && index === 0 ? "frequency" : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (name === "precision" || name === "r") {
+      const number = parseFilterExpression(value, "highpass", { auto: -1, s16: 0, s32: 1, f32: 2, f64: 3 });
+      if (!value || !Number.isFinite(number) || number < -1 || number > 3) throw new Error("highpass: invalid precision");
+      precision = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
+      continue;
+    }
     if (name === "c" || name === "channels") {
       selected = value === "all" ? undefined : parseAudioChannelLayout(value);
       if (selected?.some(channel => !Object.hasOwn(audioSpeakerMasks, channel))) {
@@ -39,10 +47,36 @@ export async function highpassAudio(
     options[key] = key === "blocksize"
       ? (number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number)) : number;
   }
+  const inputFormat = sampleFormat;
+  if (precision !== -1) sampleFormat = ["s16p", "s32p", "fltp", "dblp"][precision]!;
+  else if (!sampleFormat.endsWith("p")) sampleFormat += "p";
+  const single = sampleFormat === "fltp";
+  const scale = sampleFormat === "s16p" ? 32768 : sampleFormat === "s32p" ? 2147483648 : 1;
+  const convert = (value: number) => {
+    if (single) return Math.fround(value);
+    if (scale === 1) return value;
+    const scaled = value * scale;
+    const rounded = scaled % 1 === 0.5 || scaled % 1 === -0.5 ? 2 * Math.round(scaled / 2) : Math.round(scaled);
+    return Math.max(-scale, Math.min(scale - 1, rounded)) / scale;
+  };
+  signal?.throwIfAborted();
+  if (sampleFormat !== inputFormat && sampleFormat !== `${inputFormat}p` && sampleFormat !== "dblp") {
+    const converted: Float64Array[] = [];
+    for (const channel of channels) {
+      budget.allocateMemory(channel.length * 8);
+      const samples = new Float64Array(channel.length);
+      for (let i = 0; i < channel.length; i++) {
+        if (i % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+        samples[i] = convert(channel[i]!);
+      }
+      converted.push(samples);
+    }
+    channels = converted;
+  }
   signal?.throwIfAborted();
   budget.checkCpu();
   // Native FFmpeg bypasses an out-of-band cutoff when configuring the filter.
-  if (options.mix === 0 || options.width === 0 || options.frequency === 0 || options.frequency > sampleRate / 2) return [...channels];
+  if (options.mix === 0 || options.width === 0 || options.frequency === 0 || options.frequency > sampleRate / 2) return { channels: [...channels], sampleFormat };
   const angle = 2 * Math.PI * options.frequency / sampleRate;
   const sine = Math.sin(angle);
   let alpha = sine / (2 * options.width);
@@ -53,12 +87,26 @@ export async function highpassAudio(
     case 5: alpha = sine * options.width * 1000 / (2 * options.frequency); break;
   }
   const a0 = options.poles === 1 ? 1 : 1 + alpha;
-  const a1 = options.poles === 1 ? -Math.exp(-angle) : -2 * Math.cos(angle) / a0;
-  const a2 = options.poles === 1 ? 0 : (1 - alpha) / a0;
-  const b0 = options.poles === 1 ? (1 - a1) / 2 : (1 + Math.cos(angle)) / (2 * a0);
-  const b1 = options.poles === 1 ? -b0 : -2 * b0;
-  const b2 = options.poles === 1 ? 0 : b0;
-  const pcm16 = sampleFormat === "s16" || sampleFormat === "s16p";
+  let a1 = options.poles === 1 ? -Math.exp(-angle) : -2 * Math.cos(angle) / a0;
+  let a2 = options.poles === 1 ? 0 : (1 - alpha) / a0;
+  let b0 = options.poles === 1 ? (1 - a1) / 2 : (1 + Math.cos(angle)) / (2 * a0);
+  let b1 = options.poles === 1 ? -b0 : -2 * b0;
+  let b2 = options.poles === 1 ? 0 : b0;
+  if (single) {
+    a1 = Math.fround(a1); a2 = Math.fround(a2);
+    b0 = Math.fround(b0); b1 = Math.fround(b1); b2 = Math.fround(b2);
+  }
+  // Native direct-form I rounds each float operation; integer modes keep double feedback.
+  const wet = single ? Math.fround(options.mix) : options.mix;
+  const dry = single ? Math.fround(1 - wet) : 1 - wet;
+  const filterSample = (input: number, x1: number, x2: number, y1: number, y2: number) => single
+    ? Math.fround(Math.fround(Math.fround(Math.fround(Math.fround(x2 * b2) + Math.fround(x1 * b1))
+      + Math.fround(input * b0)) - Math.fround(y2 * a2)) - Math.fround(y1 * a1))
+    : x2 * b2 + x1 * b1 + input * b0 - y2 * a2 - y1 * a1;
+  const mixSample = (filtered: number, input: number) => {
+    const mixed = single ? Math.fround(Math.fround(filtered * wet) + Math.fround(input * dry)) : filtered * wet + input * dry;
+    return scale === 1 ? mixed : Math.max(-scale, Math.min(scale - 1, Math.trunc(mixed * scale))) / scale;
+  };
   const output: (Float32Array | Float64Array)[] = [];
   channelNames ??= channels.length === 1 ? ["FC"] : channels.length === 2 ? ["FL", "FR"] : [];
   const blocksize = options.blocksize;
@@ -85,10 +133,10 @@ export async function highpassAudio(
             budget.checkCpu();
           }
           const input = channel[offset + i] ?? 0;
-          const filtered = b0 * input + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+          const filtered = filterSample(input, x1, x2, y1, y2);
           x2 = x1; x1 = input;
           y2 = y1; y1 = filtered;
-          block[blocksize + i] = filtered * options.mix + input * (1 - options.mix);
+          block[blocksize + i] = mixSample(filtered, input);
         }
         let rx1 = 0, rx2 = 0, ry1 = 0, ry2 = 0;
         const last = offset + blocksize >= channel.length;
@@ -99,13 +147,13 @@ export async function highpassAudio(
             budget.checkCpu();
           }
           const input = block[i]!;
-          const filtered = b0 * input + b1 * rx1 + b2 * rx2 - a1 * ry1 - a2 * ry2;
+          const filtered = filterSample(input, rx1, rx2, ry1, ry2);
           rx2 = rx1; rx1 = input;
           ry2 = ry1; ry1 = filtered;
           const position = offset - blocksize + i;
           // At EOF FFmpeg emits the cached second half without another pass.
           if ((i < blocksize || last) && position >= 0 && position < channel.length) {
-            samples[position] = filtered * options.mix + input * (1 - options.mix);
+            samples[position] = mixSample(filtered, input);
           }
         }
         block.copyWithin(0, blocksize);
@@ -120,14 +168,12 @@ export async function highpassAudio(
         budget.checkCpu();
       }
       const input = channel[i]!;
-      const filtered = b0 * input + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2;
+      const filtered = filterSample(input, x1, x2, y1, y2);
       x2 = x1; x1 = input;
       y2 = y1; y1 = filtered;
-      const mixed = filtered * options.mix + input * (1 - options.mix);
-      // Native keeps double-precision feedback but truncates each PCM16 output.
-      samples[i] = pcm16 ? Math.max(-32768, Math.min(32767, Math.trunc(mixed * 32768))) / 32768 : mixed;
+      samples[i] = mixSample(filtered, input);
     }
     output.push(samples);
   }
-  return output;
+  return { channels: output, sampleFormat };
 }

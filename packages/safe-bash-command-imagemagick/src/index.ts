@@ -15408,8 +15408,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-sharpen") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const raw = tokens[++i] ?? "0x1";
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, "-sharpen");
                 const geometry = parseMagickGeometry(expanded.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
                 return yield* applyMagickRasterSteps(im, sharpenPixelSteps(im, geometry, state.channelExplicit ? state.channels : undefined, im.virtualPixel ?? state.virtualPixel, im.backgroundColor ?? state.background), signal);
@@ -19823,14 +19824,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return result;
             });
         } else if (!operandsOnly && token === "-sharpen") {
+            let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
                 return stack;
             });
             const raw = tokens[++i] ?? "0x1", channels = state.channelExplicit ? state.channels : undefined, optionProperties = state.optionProperties, virtualPixel = state.virtualPixel, background = state.background;
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 validateMagickTransformGeometry(expanded, "-sharpen");
                 const geometry = parseMagickGeometry(expanded.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
                 return transformStoredMagickRaster(image, backend, sharpenPixelSteps(image, geometry, channels, image.virtualPixel ?? virtualPixel, image.backgroundColor ?? background), signal);

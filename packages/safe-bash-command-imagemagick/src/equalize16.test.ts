@@ -26,8 +26,9 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         const output = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!);
         // ImageMagick 7 Q16: positive ramp starts 128,256,384,512 and ends 65535.
         // A zero sample is subtracted from the cumulative histogram instead.
+        // Native HDRI rounds rank 257/512 to float32 before export: 32896, not 32895.
         const expected = Uint16Array.from(samples, (value, i) => i % 4 === 3 || operators.length === 0 || operators.includes("R") && i % 4 !== 0
-            ? value : Math.round((Math.floor(i / 4) + (start === 0 ? 0 : 1)) * 65535 / (start === 0 ? 511 : 512)));
+            ? value : Math.round(Math.fround((Math.floor(i / 4) + (start === 0 ? 0 : 1)) * 65535 / (start === 0 ? 511 : 512))));
         expect(new Set(Array.from(output.data16 ?? []).filter((_, i) => i % 4 === 0)).size).toBe(512);
         expect(output.data16).toEqual(expected);
     });

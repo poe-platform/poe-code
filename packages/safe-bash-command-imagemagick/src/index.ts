@@ -7873,6 +7873,18 @@ function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: M
             histogram[4]![Math.round(Math.max(0, Math.min(65535, magickIntensity(Math.fround(workingSamples[i]! * 65535), Math.fround(workingSamples[i + 1]! * 65535), Math.fround(workingSamples[i + 2]! * 65535), method, 65535, linear))))]!++;
             continue;
         }
+        if (workingSamples && !cmyk) {
+            const scale = hue ? 65535 : 257;
+            for (let channel = 0; channel < 4; channel++) {
+                const bin = Math.round(Math.max(0, Math.min(65535, Math.fround(workingSamples[i + channel]! * scale))) * (histogram[channel]!.length - 1) / 65535);
+                histogram[channel]![bin]!++;
+            }
+            if (histogram[4]) {
+                const intensity = magickIntensity(Math.fround(workingSamples[i]! * scale), Math.fround(workingSamples[i + 1]! * scale), Math.fround(workingSamples[i + 2]! * scale), method, 65535, linear);
+                histogram[4][Math.round(Math.max(0, Math.min(65535, intensity)))]!++;
+            }
+            continue;
+        }
         for (let channel = 0; channel < 4; channel++) histogram[channel]![data[i + channel]!]!++;
         // Keep ImageMagick's 16-bit histogram precision for fractional luma.
         if (histogram[4]) {
@@ -7884,7 +7896,7 @@ function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: M
         }
     }
 }
-function* applyMagickLookup(image: RgbaImage, lookup: (Uint8Array | Uint16Array | Float32Array)[], paletteLookup = lookup): Generator<void, RgbaImage, void> {
+function* applyMagickLookup(image: RgbaImage, lookup: (Uint8Array | Uint16Array | Float32Array)[], paletteLookup = lookup, active?: readonly boolean[]): Generator<void, RgbaImage, void> {
     const data = new Uint8Array(image.data);
     const fractional = lookup[0] instanceof Float32Array;
     const evaluateSamples = fractional ? new Float64Array(data.length) : undefined;
@@ -7894,8 +7906,12 @@ function* applyMagickLookup(image: RgbaImage, lookup: (Uint8Array | Uint16Array 
     for (let i = 0; i < data.length; i += 4) {
         if (i && i % 65536 === 0) yield;
         for (let channel = 0; channel < 4; channel++) {
-            const value = lookup[channel]![samples[i + channel]!]!;
-            if (data16) data16[i + channel] = Math.round(value);
+            const original = image.evaluateSamples?.[i + channel];
+            const bin = active && original !== undefined
+                ? Math.round(Math.max(0, Math.min(lookup[channel]!.length - 1, Math.fround(original * 257) * (lookup[channel]!.length - 1) / 65535)))
+                : samples[i + channel]!;
+            const value = active && !active[channel] && original !== undefined ? original * 257 : lookup[channel]![bin]!;
+            if (data16) data16[i + channel] = Math.round(Math.max(0, Math.min(65535, value)));
             if (evaluateSamples) evaluateSamples[i + channel] = value / 257;
             data[i + channel] = data16 || fractional ? clampByteVal(value / 257) : value;
             if (hueSamples) hueSamples[i + channel] = value / (data16 || fractional ? 65535 : 255);
@@ -8163,13 +8179,11 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 channels: { ...channels, a: !independent || channels.a, k: !independent || settings.channels.k === true },
             }, 0)!.apply;
         }
-        // Retain HDRI stretch fractions without changing the input's output depth.
-        const stretch = token === "-normalize" || token === "-contrast-stretch";
+        // Retain HDRI lookup fractions without changing the input's output depth.
         const cmyk = image.space === "cmyk" && token === "-contrast-stretch";
         const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false), cmyk && (!independent || settings.channels.k === true)];
-        const lookup = Array.from({ length: cmyk ? 5 : 4 }, () => stretch
-            ? Float32Array.from({ length: levels }, (_, value) => value * 65535 / (levels - 1))
-            : Uint16Array.from({ length: levels }, (_, value) => value * 65535 / (levels - 1)));
+        const lookup = Array.from({ length: cmyk ? 5 : 4 }, () =>
+            Float32Array.from({ length: levels }, (_, value) => value * 65535 / (levels - 1)));
         const paletteLookup = [...lookup];
         if (token === "-normalize" || token === "-contrast-stretch") {
             const maximum = 65535;
@@ -8197,15 +8211,15 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 const bins = histogram[4] ?? histogram[channel]!, scale = histogram[4] ? 65535 / (levels - 1) : 1;
                 // Native equalization subtracts the zero bin, not the first occupied bin.
                 const black = bins[0]!;
-                if (count === black) continue;
+                if (count === black) { active[channel] = false; continue; }
                 let cumulative = 0, bin = 0;
                 for (let value = 0; value < levels; value++) {
                     for (; bin <= value * scale; bin++) cumulative += bins[bin]!;
-                    lookup[channel]![value] = Math.round((cumulative - black) / (count - black) * 65535);
+                    lookup[channel]![value] = (cumulative - black) / (count - black) * 65535;
                 }
             }
         }
-        return image => cmyk ? applyCmykLookup(image, lookup, active) : applyMagickLookup(image, lookup, paletteLookup);
+        return image => cmyk ? applyCmykLookup(image, lookup, active) : applyMagickLookup(image, lookup, paletteLookup, token === "-equalize" ? active : undefined);
     } };
 }
 
@@ -11551,7 +11565,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const cmykStretch = image.space === "cmyk" && (t === "-contrast-stretch" || t === "-linear-stretch");
                 const histogram = sums ? [] : t === "-auto-level" ? Array.from({ length: image.space === "cmyk" ? 5 : 4 }, () => new Float64Array([Infinity, -Infinity])) : Array.from({ length: cmykStretch || operation.sepiaThreshold !== undefined && image.space === "cmyk" ? 6 : analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(cmykStretch || channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.data16 ? 65536 : 256));
                 const selection = t === "-auto-gamma" ? yield* readMaskSelectionSteps(image, 0, image.data.length) : undefined;
-                yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram, state.intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, 0, state.channels, cmykStretch || operation.sepiaThreshold !== undefined || t === "-auto-level" || t === "-auto-threshold" || sums ? image.hueSamples ?? image.evaluateSamples : undefined, !!image.hueSamples, image.space === "cmyk", sums, t === "-auto-level");
+                yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram, state.intensity, image.magickColorspace === "RGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, 0, state.channels, cmykStretch || operation.sepiaThreshold !== undefined || t === "-auto-level" || t === "-auto-threshold" && image.space === "cmyk" || t === "-equalize" || sums ? image.hueSamples ?? image.evaluateSamples : undefined, !!image.hueSamples, image.space === "cmyk", sums, t === "-auto-level");
                 const metaChannels = (t === "-auto-level" || sums) && state.channelDefault ? image.metaChannels : undefined;
                 // Extra planes contribute one channel to the default shared range or mean.
                 if (metaChannels) for (const plane of metaChannels) {
@@ -14951,7 +14965,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 for (const plane of [image, ...metaChannels ?? []]) {
                     const planeSums = sums && plane !== image ? { count: 0, values: [0, 0, 0, 0, 0] } : sums;
                     const original = analysisOperation.highDepth ? plane.storedData16 : undefined;
-                    const workingPosition = cmykStretch || operation.sepiaThreshold !== undefined || token === "-auto-level" || token === "-auto-threshold" && plane.space === "cmyk" || sums ? plane.storedHueSamples ?? plane.storedEvaluateSamples : undefined;
+                    const workingPosition = cmykStretch || operation.sepiaThreshold !== undefined || token === "-auto-level" || token === "-auto-threshold" && plane.space === "cmyk" || token === "-equalize" || sums ? plane.storedHueSamples ?? plane.storedEvaluateSamples : undefined;
                     const chunkSize = workingPosition !== undefined ? 2048 : original ? 8192 : 16384;
                     for (let offset = 0; offset < size; offset += chunkSize) {
                         if (offset % 1048576 === 0) await yieldTurn(signal);
@@ -14967,7 +14981,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     if (planeSums && plane !== image) sums!.values.push(planeSums.values[0]!);
                 }
-                const transform = { end: analysisOperation.end, evaluate: cmykStretch || operation.sepiaThreshold !== undefined || token === "-auto-gamma" || token === "-auto-level" || token === "-linear-stretch", handlesWriteMask: token === "-auto-gamma" || token === "-auto-level" || token === "-linear-stretch", apply: operation.transform(histogram, image, sums) };
+                const transform = { end: analysisOperation.end, evaluate: cmykStretch || operation.sepiaThreshold !== undefined || token === "-auto-gamma" || token === "-auto-level" || token === "-linear-stretch" || token === "-equalize", handlesWriteMask: token === "-auto-gamma" || token === "-auto-level" || token === "-linear-stretch", apply: operation.transform(histogram, image, sums) };
                 const result = await transformStoredMagickPixels(image, backend, transform, signal, analysisOperation.highDepth);
                 if (metaChannels) {
                     result.storedMetaChannels = [];

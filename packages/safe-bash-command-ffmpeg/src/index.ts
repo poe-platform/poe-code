@@ -2470,10 +2470,11 @@ async function applyVideoFilterChain(
         if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !action || !expression ||
             !(filter === "negate" && action === "components" || filter === "tmix" ||
               filter === "tblend" && action === "all_mode" ||
+              filter === "deband" && ["1thr", "2thr", "3thr", "4thr"].includes(action) ||
               filter === "drawbox" && ["x", "y", "c", "color"].includes(action) ||
               (filter === "hflip" || filter === "vflip" || filter === "framestep") && action === "enable" ||
               filter === "crop" && ["w", "out_w", "h", "out_h", "x", "y"].includes(action))) {
-          throw new Error("sendcmd: expected TIME hflip[@NAME]|vflip[@NAME]|framestep[@NAME] enable EXPR or TIME negate[@NAME] components FLAGS or TIME tmix[@NAME] COMMAND VALUE or TIME tblend[@NAME] all_mode MODE or TIME crop[@NAME] w|out_w|h|out_h|x|y EXPR or TIME drawbox[@NAME] x|y|c|color VALUE");
+          throw new Error("sendcmd: expected TIME hflip[@NAME]|vflip[@NAME]|framestep[@NAME] enable EXPR or TIME negate[@NAME] components FLAGS or TIME tmix[@NAME] COMMAND VALUE or TIME tblend[@NAME] all_mode MODE or TIME crop[@NAME] w|out_w|h|out_h|x|y EXPR or TIME drawbox[@NAME] x|y|c|color VALUE or TIME deband[@NAME] 1thr|2thr|3thr|4thr VALUE");
         }
         budget.allocateMemory(64);
         scheduled.push({ time, target, action, expression });
@@ -3192,11 +3193,26 @@ async function applyVideoFilterChain(
         } else throw new Error(`deband: unsupported option ${key ?? option}`);
       }
       if (!["gray", "gray8", "yuv444p"].includes(pixelFormat ?? "")) throw new Error("deband: requires 8-bit grayscale or yuv444p input");
-      const limits = thresholds.map(threshold => Math.trunc(Math.fround(255 * threshold)));
+      const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
+      const commands = videoCommands.filter(command => command.target === name || command.target === instance);
+      videoCommands = videoCommands.filter(command => command.target !== name && command.target !== instance);
+      commands.sort((a, b) => a.time - b.time);
+      let nextCommand = 0;
       const registers = new Float64Array(10);
       const initialVariables = { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, n: 0, t: 0, w: 0, h: 0, pos: NaN, NAN: NaN, INF: Infinity };
       if (named.enable !== undefined) parseFilterExpression(named.enable, "deband enable", initialVariables, undefined, new Float64Array(10));
       current = await mapWork(current, async (frame, n) => {
+        while (nextCommand < commands.length && commands[nextCommand]!.time <= frame.ptsSeconds) {
+          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          const command = commands[nextCommand++]!;
+          try {
+            const number = parseFilterExpression(command.expression, "deband", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+            if (Number.isFinite(number) && number >= 0.00003 && number <= 0.5) thresholds[Number(command.action[0]) - 1] = Math.fround(number);
+          } catch {
+            // Rejected runtime commands preserve the active threshold.
+          }
+        }
+        const limits = thresholds.map(threshold => Math.trunc(Math.fround(255 * threshold)));
         if (named.enable !== undefined) {
           const variables = { ...initialVariables, n, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN };
           // FFmpeg evaluates the generic timeline twice per frame, using the second result.

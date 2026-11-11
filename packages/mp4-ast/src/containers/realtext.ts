@@ -43,7 +43,7 @@ function parseRealtext(bytes: Uint8Array): MediaDocument {
         start = timeMs(attributes.begin ?? "0");
         end = timeMs(attributes.end);
       } else if (name === "br") {
-        text = text.trimEnd() + "\n";
+        text += "\n";
       }
     },
     ontext(value) {

@@ -44,3 +44,22 @@ for (const sync of [false, true]) it(`preserves 16-bit grayscale precision in PH
     expect(output.readUInt16BE(11)).toBe(0x3800);
     expect(output.readUInt16BE(13)).toBe(0x0100);
 });
+
+for (const sync of [false, true]) for (const inputEndian of ["MSB", "LSB"]) for (const endian of [undefined, "LSB", "MSB"]) {
+    it(`writes PHM with input endian ${inputEndian}, output endian ${endian}, sync=${sync}`, async () => {
+        // Native ImageMagick samples: 0.125 and 0.5, with matching scale sign and byte order.
+        const input = Buffer.from(inputEndian === "LSB"
+            ? "50660a3220310a2d312e300a0000003e0000003f"
+            : "50660a3220310a312e300a3e0000003f000000", "hex");
+        const files = new Map<string, Uint8Array>([["in.pfm", input]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/in.pfm", input);
+        const args = ["in.pfm", ...(endian ? ["-endian", endian] : []), "phm:-"];
+        const result = sync ? runMagickCliSync(args, files) : await runMagickCli(args, { filesystem, cwd: "/" });
+        expect(result.stderr).toBe("");
+        expect(result.exitCode).toBe(0);
+        expect(Buffer.from(result.stdoutBytes!).toString("hex")).toBe((endian ?? inputEndian) === "LSB"
+            ? "50680a3220310a2d312e300a00300038"
+            : "50680a3220310a312e300a30003800");
+    });
+}

@@ -21,14 +21,14 @@ function pfmSamples(samples: Uint8Array | Uint16Array | Float32Array, channels: 
     const view = new DataView(output.buffer), maximum = samples instanceof Float32Array ? 1 : samples instanceof Uint16Array ? 65535 : 255;
     for (let pixel = 0; pixel < samples.length / 4; pixel++) for (let channel = 0; channel < channels; channel++) {
         const value = samples[pixel * 4 + channel]! / maximum;
-        if (format === "phm") view.setUint16((pixel * channels + channel) * 2, halfBits(value));
+        if (format === "phm") view.setUint16((pixel * channels + channel) * 2, halfBits(value), little);
         else view.setFloat32((pixel * channels + channel) * 4, value, little);
     }
     return output;
 }
 
 export function encodePfmImage(image: RgbaImage, format: "pfm" | "phm" = "pfm", endian?: string): { data: Uint8Array; format: "pfm" | "phm"; channels: 1 | 3 } {
-    const little = format === "pfm" && (endian ?? image.endian) === "lsb";
+    const little = (endian ?? image.endian) === "lsb";
     const samples = image.dataFloat ?? image.data16 ?? image.data;
     const channels = image.dataFloat && image.channels === 1 ? 1 : netpbmFormat(samples) === "ppm" ? 3 : 1;
     const header = new TextEncoder().encode(`${format === "phm" ? channels === 3 ? "PH" : "Ph" : channels === 3 ? "PF" : "Pf"}\n${image.width} ${image.height}\n${little ? "-1.0" : "1.0"}\n`);
@@ -55,7 +55,7 @@ export async function storedPfmChannels(image: StoredRgbaImage, storage: ImageBy
 }
 
 export async function* encodePfmFromStorage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal, channels: 1 | 3, format: "pfm" | "phm" = "pfm", endian?: string): AsyncGenerator<Uint8Array> {
-    const little = format === "pfm" && (endian ?? image.endian) === "lsb";
+    const little = (endian ?? image.endian) === "lsb";
     yield new TextEncoder().encode(`${format === "phm" ? channels === 3 ? "PH" : "Ph" : channels === 3 ? "PF" : "Pf"}\n${image.width} ${image.height}\n${little ? "-1.0" : "1.0"}\n`);
     const sampleBytes = image.storedDataFloat ? 4 : image.storedData16 ? 2 : 1, position = image.storedDataFloat?.position ?? image.storedData16?.position ?? image.position;
     for (let y = image.height - 1; y >= 0; y--) for (let x = 0; x < image.width; x += 512) {

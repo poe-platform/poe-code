@@ -3040,7 +3040,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
     }
     const eq = rawLine.indexOf("=");
     if (eq < 0) continue;
-    const key = rawLine.slice(0, eq).trim();
+    const key = rawLine.slice(0, eq);
     let val = "";
     for (let i = eq + 1; i < rawLine.length; i++) {
       if (rawLine[i] === "\\" && i + 1 < rawLine.length) i++;

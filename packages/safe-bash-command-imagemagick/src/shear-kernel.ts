@@ -25,12 +25,13 @@ export function shearPlan(image: Pick<RgbaImage, "width" | "height" | "hasAlpha"
         columnOffset: Math.floor((fullWidth - width) / 2) };
 }
 
-export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "space" | "storedData16" | "storedHueSamples">>, plan: ReturnType<typeof shearPlan>, background: RgbaColor, compose: string, composeArgs?: string, fuzz = 0, selected?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "space" | "storedData16" | "storedHueSamples">> & { alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined }, plan: ReturnType<typeof shearPlan>, background: RgbaColor, compose: string, composeArgs?: string, fuzz = 0, selected?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const hasAlpha = plan.hasAlpha || source.alphaSeparate === true && source.alphaBlend !== false;
     const cmyk = source.space === "cmyk";
     const hue = source.space !== "cmyk" && (!!source.hueSamples || source.storedHueSamples !== undefined);
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
     const bg = [background.r, background.g, background.b, background.a, 0].map(value => value * scale);
-    const canvas = { width: 1, height: 1, hasAlpha: plan.hasAlpha, data: Float64Array.from(bg.slice(0, 4), value => value / scale) };
+    const canvas = { width: 1, height: 1, hasAlpha, data: Float64Array.from(bg.slice(0, 4), value => value / scale) };
     const overlay = { ...canvas, data: new Float64Array(4) }, composite = new Float64Array(cmyk ? 5 : 4);
     const { name: composeMode } = magickCompositeMode(compose);
     const over = composeMode === "over" || composeMode === "srcover";
@@ -46,8 +47,8 @@ export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "d
                 const working = new Float64Array(inks.slice().buffer);
                 samples = [working[0]! * maximum, working[1]! * maximum, working[2]! * maximum, samples[3]!, working[3]! * maximum];
             }
-            // Disabled alpha leaves the stored colors fully opaque.
-            const sourceAlpha = plan.hasAlpha ? samples[3]! : maximum;
+            // Discrete alpha still contributes its stored opacity; disabled alpha is opaque.
+            const sourceAlpha = hasAlpha ? samples[3]! : maximum;
             if (over) {
                 const remaining = bg[3]! * (1 - sourceAlpha / maximum), alpha = sourceAlpha + remaining;
                 for (let c = 0; c < 3; c++) composite[c] = alpha > 0 ? (samples[c]! * sourceAlpha + bg[c]! * remaining) / alpha : 0;

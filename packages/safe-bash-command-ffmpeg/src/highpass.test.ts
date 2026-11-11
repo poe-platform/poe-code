@@ -12,6 +12,39 @@ const samples = Float64Array.from({ length: 38400 }, (_, i) =>
   (500 + tones.reduce((sum, frequency) => sum + 2000 * Math.sin(2 * Math.PI * frequency * i / rate), 0)) / 32768);
 const input = encodeWav({ sampleRate: rate, channels: [samples] });
 
+// Exact PCM16 impulse responses from native FFmpeg 7.0.2, starting at frame 8.
+for (const [options, response] of [
+  ["f=1000:p=1", [8735, -4752, -2166, -987, -450, -205, -93, -42, -19, -8, -4, -1]],
+  ["f=1000", [6828, -7218, -2253, 281, 1016, 864, 476, 160, -7, -60, -54, -31, -11, 0, 3, 3, 2]],
+  ["f=1000:m=0.5", [9414, -3609, -1126, 140, 508, 432, 238, 80, -3, -30, -27, -15, -5, 0, 1, 1, 1]],
+  ["f=1000:m=0", [12000]]
+] as const) {
+  for (const graph of [false, true]) it(`matches native PCM16 samples for ${options} (${graph ? "graph" : "simple"})`, async () => {
+    const impulse = new Float64Array(64);
+    impulse[8] = 12000 / 32768;
+    const bytes = encodeWav({ sampleRate: 8000, channels: [impulse, impulse] });
+    const { fs, result, stderr } = await run(`highpass=${options}`, graph, bytes);
+    assert.equal(result.exitCode, 0, stderr);
+    const audio = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+    const expected = Array<number>(64).fill(0);
+    expected.splice(8, response.length, ...response);
+    assert.equal(audio.sampleRate, 8000);
+    assert.deepEqual(audio.channelData.map(channel => Array.from(channel, value => value * 32768)), [expected, expected]);
+  });
+}
+
+it("retains floating-point precision after an upstream format conversion", async () => {
+  const impulse = new Float64Array(64);
+  impulse[8] = 12000 / 32768;
+  const { fs, result, stderr } = await run("volume=1:precision=double,highpass=f=1000:p=1", false,
+    encodeWav({ sampleRate: 8000, channels: [impulse, impulse] }));
+  assert.equal(result.exitCode, 0, stderr);
+  const audio = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+  for (const channel of audio.channelData) {
+    assert.deepEqual(Array.from(channel.slice(8, 11), value => value * 32768), [8736, -4753, -2167]);
+  }
+});
+
 // Native FFmpeg 7.0.2 reference amplitudes measured over the final 19200 samples.
 for (const [options, mean, amplitudes] of [
   ["f=200:p=2", 0, [80, 1998, 2000]],
@@ -93,8 +126,8 @@ it("uses the native default cutoff and accepts positional frequency", async () =
 });
 
 it("bounds memory and honors cancellation", async () => {
-  await assert.rejects(highpassAudio([samples], rate, "highpass", new MediaBudgetTracker({ maxMemoryBytes: 64 })), /maxMemoryBytes/);
-  await assert.rejects(highpassAudio([samples], rate, "highpass", new MediaBudgetTracker(), AbortSignal.abort()));
+  await assert.rejects(highpassAudio([samples], rate, "highpass", "s16", new MediaBudgetTracker({ maxMemoryBytes: 64 })), /maxMemoryBytes/);
+  await assert.rejects(highpassAudio([samples], rate, "highpass", "s16", new MediaBudgetTracker(), AbortSignal.abort()));
 });
 
 for (const graph of [false, true]) {

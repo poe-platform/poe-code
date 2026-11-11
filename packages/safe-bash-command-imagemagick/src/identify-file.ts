@@ -5,7 +5,7 @@ import { identifyStoredStatistics } from "./identify-statistics.js";
 import { identifyStoredHull } from "./identify-hull.js";
 import { identifyStoredMoments } from "./identify-moments.js";
 import { decodeFileImage } from "./image-raster.js";
-import { withImageInputs, type ImageFileInput } from "./image-input.js";
+import { withImageInputs, type ImageFileInput, type ImageInputReader } from "./image-input.js";
 import { readImageMetadataFromSource, tryPdfMetadata, computeStoredImageStats, readImageMetadata, computeImageStatsSteps, UnsupportedStoredResource, UnsupportedImageFormat, type ImageMetadata, type ImageStats, type ImageByteSource, type StoredRgbaImage, type ImageByteStorage } from "@poe-code/image-ast/portable";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { FsError } from "@poe-code/safe-fs/contracts";
@@ -36,7 +36,7 @@ export type IdentifyFileReader = (path: string, page: number | undefined, verbos
 class ReadFailure extends Error {
     constructor(readonly reason: unknown) { super("Image read failed"); }
 }
-export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal, run: (reader: IdentifyFileReader) => Promise<T>): Promise<T> {
+export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal, run: (reader: IdentifyFileReader, load: ImageInputReader) => Promise<T>): Promise<T> {
     const { filesystem: fs, cwd } = input, io = { signal };
     return withImageInputs(input, stdinBytes, signal, async (load) => {
         const read: IdentifyFileReader = async (path, page, verbose, custom, hullPrecision, momentsPrecision, statisticsPrecision, rawInput) => {
@@ -128,6 +128,6 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                 }
             }
         };
-        return run(read);
+        return run(read, load);
     });
 }

@@ -11,10 +11,10 @@ for (const codec of ["vorbis", "opus"] as const) {
       metadata: { title: "Original", artist: "Renée" } };
     const plugin = oggAst();
     const original = plugin.serialize(doc, { audioCodec: codec });
-    assert.equal(parseAudio(original).streams[0]!.tags?.TITLE, "Original");
-    assert.equal(parseAudio(original).streams[0]!.tags?.ARTIST, "Renée");
+    assert.equal(parseAudio(original).streams[0]!.tags?.title, "Original");
+    assert.equal(parseAudio(original).streams[0]!.tags?.artist, "Renée");
     const updated = plugin.serialize(doc, { audioCodec: codec, metadata: { title: "Review" } });
-    assert.equal(parseAudio(updated).streams[0]!.tags?.TITLE, "Review");
+    assert.equal(parseAudio(updated).streams[0]!.tags?.title, "Review");
     const packets = readOgg(original).packets;
     const rewritten = readOgg(updated).packets;
     assert.equal(rewritten.length, packets.length);

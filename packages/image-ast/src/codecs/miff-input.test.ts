@@ -25,7 +25,7 @@ it.each([0, 2, 256])("reads DirectClass RGB samples with colors=%s", colors => {
     expect([...decodeMiffImage(fixture(`colors=${colors}`)).data]).toEqual([18, 52, 86, 255]);
 });
 
-it.each(["compression=JPEG", "class=PseudoClass", "depth=64", "depth=8 quantum:format=floating-point", "colorspace=Lab", "profile:icc=10", "number-meta-channels=1"])("rejects unsupported layout %s", fields => {
+it.each(["compression=JPEG", "class=PseudoClass", "depth=64", "depth=8 quantum:format=floating-point", "colorspace=Lab", "profile:icc=10", "number-meta-channels=1 number-channels=3"])("rejects unsupported layout %s", fields => {
     expect(() => decodeMiffImage(fixture(fields))).toThrow("Unsupported MIFF encoding");
 });
 

@@ -32,6 +32,10 @@ export async function decodeMiffToStorage(source: ImageByteSource, storage: Imag
     const count = metadata.width * metadata.height, position = storage.allocate(count * 4), sampleBytes = metadata.bitsPerSample! / 8;
     const storedHueSamples = metadata.space === "cmyk" ? storage.allocate(count * 32) : undefined;
     const storedData16 = sampleBytes > 1 || storedHueSamples !== undefined ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;
+    const storedMetaChannels: StoredRgbaImage[] = Array.from({ length: metadata.metaChannelCount }, () => ({
+        ...metadata, metaChannelCount: 0, channels: 1, space: "b-w", magickColorspace: "Gray", hasAlpha: false,
+        position: storage.allocate(count * 4), ...(sampleBytes > 1 ? { storedData16: { position: storage.allocate(count * 8), length: count * 4 } } : {})
+    }));
     const palette = header.colors ? new Uint8Array(header.colors * 3 * sampleBytes) : undefined;
     if (palette) for (let start = 0; start < palette.length; start += 8192) {
         await defaultRuntime.yieldTurn(signal);
@@ -50,6 +54,11 @@ export async function decodeMiffToStorage(source: ImageByteSource, storage: Imag
                 await storage.write(position + pixel * 4, pixels.data, { signal });
                 if (storedHueSamples !== undefined) await storage.write(storedHueSamples + pixel * 32, new Uint8Array(pixels.hueSamples!.buffer), { signal });
                 if (storedData16) await storage.write(storedData16.position + pixel * 8, new Uint8Array(pixels.data16!.buffer), { signal });
+                for (const [index, plane] of storedMetaChannels.entries()) {
+                    const samples = miffPixels(next.value, metadata, undefined, index);
+                    await storage.write(plane.position + pixel * 4, samples.data, { signal });
+                    if (plane.storedData16) await storage.write(plane.storedData16.position + pixel * 8, new Uint8Array(samples.data16!.buffer), { signal });
+                }
                 pixel += pixels.data.length / 4;
                 next = steps.next();
             } else {
@@ -59,5 +68,5 @@ export async function decodeMiffToStorage(source: ImageByteSource, storage: Imag
             }
         }
     } finally { steps.return(header.offset); }
-    return { ...metadata, position, ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }) };
+    return { ...metadata, position, ...(storedMetaChannels.length ? { storedMetaChannels } : {}), ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }) };
 }

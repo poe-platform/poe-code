@@ -4007,7 +4007,9 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
     if (token === "-wave") {
         spec = spec.replaceAll("/", "x").replaceAll(",", "x");
         const amplitude = parseMagickGeometry(spec).aspectRatio ?? (Number.parseFloat(spec) || 0), padding = Math.abs(amplitude);
-        const wavelength = Number.parseFloat(spec.toLowerCase().split("x")[1] ?? "");
+        // A leading plus starts an offset, while a minus can specify a negative wavelength.
+        const wavelengthSpec = spec.toLowerCase().split("x")[1] ?? "";
+        const wavelength = wavelengthSpec.startsWith("+") ? NaN : Number.parseFloat(wavelengthSpec);
         const length = Number.isNaN(wavelength) ? 1 : wavelength;
         // Native uses a safe reciprocal and stores the sine displacement as a float.
         const reciprocal = Math.abs(length) >= 1e-12 ? 1 / length : (length < 0 ? -1 : 1) / 1e-12;

@@ -11968,6 +11968,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const reframe = next?.split("=", 1)[0]!.split("@", 1)[0] === "asetnsamples"
                           ? parseAsetnsamples(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "")
                           : undefined;
+                        const select = next?.split("=", 1)[0]!.split("@", 1)[0] === "aselect"
+                          ? createAudioSelection(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "1", origRate, audioTimeBase)
+                          : undefined;
                         const length = stretched[0]?.length ?? 0;
                         let pending = 0;
                         let pendingPts = 0;
@@ -12016,7 +12019,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               reframeEnabled = reframe.enabled({ start: 0, end: pending, pts: pendingPts, pos: pendingPos }, outputFrames++, origRate);
                               pending = 0;
                             }
-                          } else outputFrames++;
+                          } else if (!select || select({ start, end: measuredEnd,
+                            pts: frame?.pts ?? (packet ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start),
+                            pos: frame?.pos ?? packet?.offset })) {
+                            // Rejected frames are consumed by the detector without satisfying output demand.
+                            outputFrames++;
+                          }
                           start = measuredEnd;
                         }
                       }

@@ -7564,6 +7564,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
       return "psd";
     case "qoi":
       return "qoi";
+    case "palm":
+      return "palm";
     case "otb":
       return "otb";
     case "wbmp":

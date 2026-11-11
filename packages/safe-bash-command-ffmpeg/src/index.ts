@@ -2403,7 +2403,7 @@ async function applyVideoFilterChain(
   frames: MediaVideoFrame[],
   filterChainStr: string,
   budget: MediaBudgetTracker,
-  diagnostics: { frameDuration: number; frameRateScale?: number; frameRateKnown?: boolean; sar: number; sarWidth: number; sarHeight: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void>; writeReport: (file: string, text: string) => Promise<void> },
+  diagnostics: { frameDuration: number; endTimeSeconds?: number | undefined; frameRateScale?: number; frameRateKnown?: boolean; sar: number; sarWidth: number; sarHeight: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void>; writeReport: (file: string, text: string) => Promise<void> },
   readSubtitle: (filename: string) => Promise<Uint8Array>,
   registry: ReturnType<typeof createMediaAstRegistry>,
   signal?: AbortSignal,
@@ -2414,7 +2414,7 @@ async function applyVideoFilterChain(
 
   let pixelFormat = diagnostics.pixelFormat;
   let timescale = diagnostics.timescale;
-  let endTimeSeconds: number | undefined;
+  let endTimeSeconds = diagnostics.endTimeSeconds;
   let current: (MediaVideoFrame & { filterMetadata?: Record<string, string>; interlaced?: boolean; topFieldFirst?: boolean })[] = frames;
   if (current.length === 0) return current;
   let { width, height } = current[0]!;
@@ -12062,6 +12062,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             // Combine inputs according to `-filter_complex`, `-map`, or default mux
             let workingDoc: MediaDocument;
+            let videoEndTimeSeconds: number | undefined;
             let audioOrdinal = 0;
             let audioSinks: { track: MediaTrack; expression: string }[] = [];
             const mixCommands: { target: string; action: string; expression: string }[] = [];
@@ -12699,6 +12700,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   )
                 };
                 if (!framepack) {
+                  // Framesync reports EOF at the final synchronized PTS, independent of frame duration.
+                  videoEndTimeSeconds = stacked.at(-1)?.ptsSeconds;
                   // Preserve every input's timestamp grid when the first stream has a coarser clock.
                   const timescale = inputTracks.reduce((scale, track) =>
                     lcm(scale, Number.isInteger(track.timescale) ? track.timescale : 1_000_000), 1);
@@ -13104,6 +13107,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const decoded = await ensureDecodedFrames(t, workingDoc.timescale, budget, context.signal);
                   const diagnostics = {
                     frameDuration: decoded[0]?.durationSeconds ?? 1 / t.timescale,
+                    endTimeSeconds: videoEndTimeSeconds === undefined ? undefined : videoEndTimeSeconds - offsetTicks / t.timescale,
                     frameRateKnown: true,
                     frameRateScale: 1,
                     timescale: workingDoc.containerFormat === "image2" && decoded[0]?.durationSeconds

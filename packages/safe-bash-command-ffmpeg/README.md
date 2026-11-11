@@ -927,6 +927,8 @@ Duplicate an audio input into independently filtered outputs with
 to `[a]` and the suffix to `[b]`. Use `asegment=timestamps=0.000625[a][b]`
 to split at a timestamp in seconds (sample 5 at 8 kHz). Pipe-separated points
 create additional segments; each output can be mapped or filtered independently.
+`asegment=timestamps='00\:00\:00.001'[a][b]` accepts an escaped clock timestamp,
+equivalent to `timestamps=1ms` (sample 8 at 8 kHz).
 Its `threads`, `thread_type`, and `extra_hw_frames` scheduling options accept
 FFmpeg values without changing the split points or PCM samples.
 Audio `concat=n=2:v=0:a=1` joins connected branches in pad order, including

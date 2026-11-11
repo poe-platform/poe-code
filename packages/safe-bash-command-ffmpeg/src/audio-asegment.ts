@@ -4,8 +4,23 @@ import { validateWeaveGenericOption } from "./weave-generic-option.js";
 export function parseAudioSegment(filter: string): string[] {
   const equals = filter.indexOf("=");
   const options = new Map<string, string>();
-  const arguments_ = equals < 0 ? [] : filter.slice(equals + 1).split(":");
-  if (arguments_.at(-1) === "") arguments_.pop();
+  const argument = equals < 0 ? "" : filter.slice(equals + 1);
+  const arguments_: string[] = [];
+  let option = "";
+  let optionStart = 0;
+  let quoted = false;
+  // The graph parser has already decoded the outer layer of quoting and escaping.
+  for (let i = 0; i < argument.length; i++) {
+    const char = argument[i]!;
+    if (char === "'") quoted = !quoted;
+    else if (!quoted && char === "\\" && i + 1 < argument.length) option += argument[++i]!;
+    else if (!quoted && char === ":") {
+      arguments_.push(option);
+      option = "";
+      optionStart = i + 1;
+    } else option += char;
+  }
+  if (optionStart < argument.length) arguments_.push(option);
   for (const [index, option] of arguments_.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["timestamps", "samples"][index] : option.slice(0, separator).trim();

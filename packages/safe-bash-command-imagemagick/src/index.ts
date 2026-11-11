@@ -5098,14 +5098,20 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geo
         targetH = Math.max(1, Math.round(Math.min(srcH, srcW / g.aspectRatio)));
     }
     else if (areaLimit !== undefined) {
-        const currentArea = srcW * srcH;
-        const scale = Math.sqrt(areaLimit / Math.max(1, currentArea));
-        if (g.shrinkOnly && scale >= 1)
-            return undefined;
-        if (g.enlargeOnly && scale <= 1)
-            return undefined;
-        targetW = Math.max(1, Math.round(srcW * scale));
-        targetH = Math.max(1, Math.round(srcH * scale));
+        // Native geometry applies the area cap after the ordinary rectangle.
+        // Parse without @ so explicit zero axes remain distinct from omitted axes.
+        const rectangle = geomStr.replaceAll("@", "");
+        const dimensions = magickResizeOptions(img, rectangle, kernel);
+        targetW = dimensions?.width ?? srcW;
+        targetH = dimensions?.height ?? srcH;
+        const area = parseMagickGeometry(rectangle).width ?? 0;
+        const scale = Math.sqrt(area / Math.max(1, srcW * srcH));
+        if (srcW * scale < targetW || srcH * scale < targetH) {
+            targetW = Math.round(srcW * scale);
+            targetH = Math.round(srcH * scale);
+        }
+        if (targetW === 0 || targetH === 0)
+            throw new Error(`negative or zero image size '${geomStr}'`);
     }
     else if (g.isPercent) {
         const sx = (g.width ?? 100) / 100;

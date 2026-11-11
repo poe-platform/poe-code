@@ -54,15 +54,15 @@ export async function deflicker(
     budget.checkCpu();
     const native = frame.native;
     if (native ? native.rgba !== frame.data || native.width !== frame.width || native.height !== frame.height ||
-      ![0, 4, 5, 8, 12, 13, 14, 29, 30].includes(native.format) : pixelFormat !== "gray" && pixelFormat !== "gray8") {
-      throw new Error("deflicker: only 8-bit or 16-bit grayscale or 8-bit planar YUV input is supported");
+      ![0, 4, 5, 8, 12, 13, 14, 29, 30, 49, 68].includes(native.format) : pixelFormat !== "gray" && pixelFormat !== "gray8") {
+      throw new Error("deflicker: only 8-bit or 16-bit grayscale, 8-bit planar YUV, or 10-bit/16-bit YUV444 input is supported");
     }
-    const wide = native && [29, 30].includes(native.format);
+    const wide = native && [29, 30, 49, 68].includes(native.format);
     const view = wide ? new DataView(native.pixels.buffer, native.pixels.byteOffset, native.pixels.byteLength) : undefined;
     let sum = 0;
     for (let i = 0; i < frame.width * frame.height; i++) {
       if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-      sum += view ? view.getUint16(i * 2, native!.format === 30) : native ? native.pixels[i]! : frame.data[i * 4]!;
+      sum += view ? view.getUint16(i * 2, native!.format !== 29) : native ? native.pixels[i]! : frame.data[i * 4]!;
     }
     luminance[n] = f(f(sum) / (frame.width * frame.height));
   }
@@ -106,16 +106,16 @@ export async function deflicker(
     if (bypass) output.push({ ...frame, filterMetadata });
     else {
       const native = frame.native;
-      const wide = native && [29, 30].includes(native.format);
+      const wide = native && [29, 30, 49, 68].includes(native.format);
       const length = frame.width * frame.height;
       budget.allocateMemory((native?.pixels.length ?? length) + frame.data.length);
       const pixels = native ? new Uint8Array(native.pixels) : new Uint8Array(length);
       const view = new DataView(pixels.buffer);
       for (let i = 0; i < length; i++) {
         if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-        const value = wide ? view.getUint16(i * 2, native.format === 30) : native ? pixels[i]! : frame.data[i * 4]!;
-        const corrected = Math.max(0, Math.min(wide ? 65535 : 255, Math.trunc(f(value * factor))));
-        if (wide) view.setUint16(i * 2, corrected, native.format === 30);
+        const value = wide ? view.getUint16(i * 2, native.format !== 29) : native ? pixels[i]! : frame.data[i * 4]!;
+        const corrected = Math.max(0, Math.min(native?.format === 68 ? 1023 : wide ? 65535 : 255, Math.trunc(f(value * factor))));
+        if (wide) view.setUint16(i * 2, corrected, native.format !== 29);
         else pixels[i] = corrected;
       }
       const filtered = native ? { ...native, pixels } : {

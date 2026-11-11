@@ -30,7 +30,7 @@ export async function compandAudio(
     const [min, max] = ranges[key]!;
     let parsed: number;
     try {
-      parsed = parseFilterExpression(options[key]!, "compand", { min, max, default: Number(defaults[key]) });
+      parsed = parseFilterExpression(options[key]!, "compand", { min, max, default: Number(defaults[key]) }, undefined, new Float64Array(10));
     } catch (error) {
       throw new CompandError((error as Error).message, "options");
     }

@@ -10010,7 +10010,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const evaluateSamples = inks ? Float64Array.from(image.evaluateSamples ?? data16 ?? out, (sample, index) =>
                 index % 4 === 3 ? sample / (image.evaluateSamples || !data16 ? 1 : 257) : Math.fround(inks[index]! * 65535) / 257) : hueSamples ? Float64Array.from(hueSamples, sample => Math.fround(sample * 65535) / 257) : image.evaluateSamples?.slice();
             const samples = evaluateSamples ?? data16 ?? out, quantumScale = evaluateSamples || !data16 ? 257 : 1, maximum = evaluateSamples || !data16 ? 255 : 65535;
-            const mask = channels ? [channels.r, channels.g, channels.b, channels.a && (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false)] : undefined;
+            // Gray has one color sample; R selects all three copies in RGBA storage.
+            const gray = image.space === "b-w" || image.space === "grey16";
+            const mask = channels ? [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a && (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false)] : undefined;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 if (mask) {

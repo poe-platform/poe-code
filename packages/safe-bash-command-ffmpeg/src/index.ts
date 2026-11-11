@@ -2122,8 +2122,9 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           }
           offset += end;
         }
+        // Concat's output link uses microseconds, including across labeled nodes.
         return { track: { ...track, samples, duration: offset },
-          expression: serializeFilterChain(filters.slice(1)) || "anull" };
+          expression: serializeFilterChain(["asettb=1/1000000", ...filters.slice(1)]) };
       }
       if (filters[0] === "headphone" || filters[0]?.startsWith("headphone=")) {
         if (sources.some(source => source.expression && source.expression !== "anull")) {

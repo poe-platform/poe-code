@@ -904,7 +904,7 @@ create additional segments; each output can be mapped or filtered independently.
 Audio `concat=n=2:v=0:a=1` joins connected branches in pad order, including
 multiple branches from one input. For example,
 `-filter_complex '[0:a]asplit[a][b];[b][a]concat=n=2:v=0:a=1[out]' -map '[out]' twice.wav`
-plays the input twice; filters on each branch run before concatenation.
+plays the input twice; filters on each branch run before concatenation. Downstream audio expressions use concat’s microsecond time base: at 8 kHz, `asetpts=PTS+125` shifts timestamps by one sample. An explicit `asettb` overrides this time base.
 Packet timestamp gaps are retained, and each segment starts at the preceding
 segment's final packet end; gaps do not insert silence into PCM output.
 Consume an unused audio branch with `anullsink`, which has no output:

@@ -9668,7 +9668,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         continue;
                     const ink = cmyk && hueSamples && c !== 3;
                     const offset = idx + (c === 4 ? 3 : c), endpoint = c;
-                    const v = ink ? hueSamples[offset]! * 255 : evaluateSamples[offset]!;
+                    // Native levels read float32 Q16-HDRI samples before applying the curve.
+                    const v = Math.fround((ink ? hueSamples[offset]! * 255 : evaluateSamples[offset]!) * 257) / 257;
                     let value = levelValue(v, endpoint, protection);
                     if (protection > 0) {
                         if (c === 3) value = v;

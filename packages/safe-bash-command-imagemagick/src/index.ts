@@ -9652,17 +9652,21 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         evaluate = true;
         const raw = tokens[++i] ?? "";
         const geometry = [...raw].filter(c => c.trim() !== "" && !"%!<>#^@()".includes(c)).join("");
-        if (!Number.isFinite(Number.parseFloat(geometry)) || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@^".includes(c))) {
+        const omittedFirst = geometry[0] === "x" || geometry[0] === "X";
+        if (!Number.isFinite(Number.parseFloat(omittedFirst ? geometry.slice(1) : geometry)) || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@^".includes(c))) {
             throw new Error(`invalid argument '-range-threshold' '${raw}'`);
         }
         const points = [0, 0, 0, 0];
         let position = 0;
         for (let field = 0; field < points.length; field++) {
+            if (field === 0 && omittedFirst) continue;
             if (field > 0) {
                 const separator = geometry[position] ?? "";
                 // Only rho and sigma can be separated by x; later fields are offsets.
                 if (!separator || !(field === 1 ? "xX,/:+-" : ",/:+-").includes(separator)) break;
                 if (!"+-".includes(separator)) position++;
+                // A plus after x starts the third bound, leaving the second omitted.
+                if (field === 1 && (separator === "x" || separator === "X") && geometry[position] === "+") continue;
             }
             let sign = 1;
             while (geometry[position] === "+" || geometry[position] === "-") {
@@ -9680,6 +9684,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (!Number.isFinite(value)) throw new Error(`invalid argument '-range-threshold' '${raw}'`);
             points[field] = value;
         }
+        if (omittedFirst) points[0] = points[1]!;
         if (geometry.includes(":")) {
             points[0] = points[0]! / (Math.abs(points[1]!) < 1e-12 ? 1e-12 : points[1]!);
             points[1] = 1;

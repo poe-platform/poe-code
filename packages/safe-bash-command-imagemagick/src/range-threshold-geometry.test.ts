@@ -40,3 +40,31 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         expect(createHash("sha256").update(output.data).digest("hex")).toBe(hash);
     });
 }
+
+// ImageMagick Q16-HDRI reference bytes for a nine-pixel gray ramp.
+for (const mode of ["command", "retained", "buffered", "sync"] as const) {
+    it.each([
+        ["10x+60+90%", "0000ffffffffffffffffe8927d7d12680000"],
+        ["x30+60+90%", "000000000000ffffffffe8927d7d12680000"],
+        ["30x30+60+90%", "000000000000ffffffffe8927d7d12680000"],
+        ["10x30+60+90%", "000020a1c141ffffffffe8927d7d12680000"],
+        ["0x30+60+90%", "00006b15d62bffffffffe8927d7d12680000"],
+        ["10x-60+90%", "0000ffffffffffffffffffffffffffff0000"],
+    ])(`${mode}: omitted range fields preserve cutoff positions for %s`, async (threshold, expected) => {
+        const input = Buffer.concat([Buffer.from("P5\n9 1\n255\n"), Buffer.from([0, 32, 64, 96, 128, 160, 192, 224, 255])]);
+        const files = new Map<string, Uint8Array>([["/in.pgm", input]]);
+        const fs = new MemoryFileSystem();
+        await fs.writeFile("/in.pgm", input);
+        const argv = ["/in.pgm", "-range-threshold", threshold!, "-endian", "MSB", "-depth", "16", "gray:/out.gray"];
+        const argumentValues = createCommandArguments(argv);
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} }, stderr: { async write() {} },
+        }) : mode === "sync" ? runConvertCliSync(argv, files)
+            : await runConvertCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        const bytes = mode === "command" || mode === "retained" ? await fs.readFile("/out.gray") : files.get("/out.gray")!;
+        expect(Buffer.from(bytes).toString("hex")).toBe(expected);
+    });
+}

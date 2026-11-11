@@ -2438,7 +2438,10 @@ function parseMagickRaiseGeometry(raw: string, option: string): MagickGeometry {
 
 function parseMagickStatisticGeometry(raw: string): string {
     const value = raw.replaceAll("(", "").replaceAll(")", "").trimStart();
-    if (value.startsWith("+") || value.startsWith("-") || !Number.isFinite(Number.parseFloat(value)) || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
+    const separator = [...value].findIndex(c => !"0123456789eE+.-".includes(c));
+    const scalar = separator < 0 ? value : value.slice(0, separator);
+    // Offsets cannot immediately follow a scalar window; exponent signs remain valid.
+    if (value.startsWith("+") || value.startsWith("-") || !Number.isFinite(Number.parseFloat(value)) || !Number.isFinite(Number(scalar)) || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
         throw new Error(`invalid argument for option '-statistic': ${raw}`);
     }
     if (value.includes(":")) {

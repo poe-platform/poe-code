@@ -17910,8 +17910,21 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
             // Reset the weights without changing the selected compose operator.
             options.push("+define", "compose:args");
         }
-        else if (t !== "-" && t.startsWith("-")) {
+        else if (t === "-distort") {
+            const geometry = argv[++i];
+            if (geometry === undefined) return { exitCode: 1, stdout: "", stderr: `composite: missing argument '${t}'\n` };
+            try {
+                validateMagickTransformGeometry(geometry, t);
+            } catch (error) {
+                return { exitCode: 1, stdout: "", stderr: `composite: ${(error as Error).message}\n` };
+            }
+            options.push("-define", `compose:args=${geometry}`, "-compose", "Distort");
+        }
+        else if (["-strip", "-negate", "-monochrome", "-antialias", "-quiet", "-verbose", "-monitor", "-regard-warnings"].includes(t)) {
             options.push(t);
+        }
+        else if (t !== "-" && (t.startsWith("-") || t.startsWith("+"))) {
+            return { exitCode: 1, stdout: "", stderr: `composite: unrecognized option '${t}'\n` };
         }
         else {
             operands.push(t);
@@ -17959,7 +17972,7 @@ export async function runCompositeCli(argv: readonly string[], files: Map<string
     if (files instanceof Map) return drainSteps(runCompositeCliSteps(argv, files, stdinBytes, signal), signal);
     const active = signal ?? new AbortController().signal, parsed = await drainSteps(parseCompositeArgumentsSteps(argv), active);
     if (Array.isArray(parsed)) return runConvertCli(parsed, files, stdinBytes, active);
-    await probeImageArguments(argv, files, stdinBytes, active);
+    if (parsed.stderr === "composite: missing an image filename\n") await probeImageArguments(argv, files, stdinBytes, active);
     if (files.stderr && parsed.stderr) { await writeIdentifyText(files.stderr, parsed.stderr, active); return { ...parsed, stderr: "" }; }
     return parsed;
 }

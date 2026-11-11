@@ -7820,6 +7820,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
   const rawCoder = ext.toLowerCase();
   if (isRawCoder(rawCoder)) return rawCoder;
   switch (ext.toLowerCase()) {
+    case "dds":
+      return "dds";
     case "h":
       return "h";
     case "fits":

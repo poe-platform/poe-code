@@ -1,3 +1,4 @@
+import { isDdsBytes, readDdsMetadataFromSource } from "./dds-input.js";
 import { isWbmpBytes, readWbmpHeader } from "./wbmp-input.js";
 import { isFitsBytes, readFitsFromSource } from "./fits-input.js";
 import { isOtbBytes, readOtbHeader } from "./otb-input.js";
@@ -59,6 +60,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  const prefix=new Uint8Array(borrowed);let metadata:RetainedImageMetadata;
  if(await detectHeifFormatFromSource(source,signal))metadata=await readHeifMetadataFromSource(source,signal);
  else if(await isXbmSource(source,signal))metadata=await readXbmFromSource(source,undefined,signal,options);
+ else if(isDdsBytes(prefix))metadata=await readDdsMetadataFromSource(source,signal);
  else if(isSixelBytes(prefix))metadata=(await readSixelFromSource(source,signal,options)).metadata;
  else if(isPcxBytes(prefix))metadata=readPcxHeader(prefix,source.size).metadata;
  else if(isFitsBytes(prefix))metadata=(await readFitsFromSource(source,signal)).metadata;

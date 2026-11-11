@@ -1,3 +1,4 @@
+import { isDdsBytes, decodeDdsToStorage } from "./dds-input.js";
 import { isWbmpBytes, decodeWbmpToStorage } from "./wbmp-input.js";
 import { isFitsBytes, decodeFitsToStorage } from "./fits-input.js";
 import { isOtbBytes, decodeOtbToStorage } from "./otb-input.js";
@@ -47,6 +48,7 @@ import {decodeTiffToStorage} from "./tiff-input-storage.js";
 export async function storedImageDecoder(source:ImageByteSource,signal:AbortSignal):Promise<typeof decodePngToStorage|undefined> {
  signal.throwIfAborted();const length=Math.min(54,source.size),prefix=await source.read(0,length,{signal});signal.throwIfAborted();
  if(!(prefix instanceof Uint8Array)||prefix.length!==length)throw new Error("Truncated image source");
+ if(isDdsBytes(prefix))return decodeDdsToStorage;
  if(isSixelBytes(prefix))return decodeSixelToStorage;
  if(isPcxBytes(prefix))return decodePcxToStorage;
  if(isFitsBytes(prefix))return decodeFitsToStorage;

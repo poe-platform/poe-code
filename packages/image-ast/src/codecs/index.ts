@@ -1,4 +1,5 @@
 import { encodeSunImage } from "./sun-output.js";
+import { isDdsBytes, readDdsMetadata, decodeDdsImage } from "./dds-input.js";
 import { isWbmpBytes, readWbmpHeader, decodeWbmpImage } from "./wbmp-input.js";
 import { isOtbBytes, readOtbHeader, decodeOtbImage } from "./otb-input.js";
 import { encodeFitsImage } from "./fits-output.js";
@@ -91,6 +92,7 @@ import {
 
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
+  if (isDdsBytes(bytes)) return "dds";
   if (isSixelBytes(bytes)) return "sixel";
   if (isPcxBytes(bytes)) return "pcx";
   if (isFitsBytes(bytes)) return "fits";
@@ -209,6 +211,7 @@ export function readImageMetadata(
     case "exr": meta = readExrHeader(bytes).metadata; break;
     case "psd": meta = readPsdHeader(bytes, options).metadata; break;
     case "miff": meta = readMiffHeader(bytes, options?.page).metadata; break;
+    case "dds": meta = readDdsMetadata(bytes); break;
     case "farbfeld": meta = readFarbfeldMetadata(bytes); break;
     case "phm": meta = readPhmHeader(bytes, options?.page).metadata; break;
     case "tga":
@@ -458,6 +461,7 @@ export function decodeImage(
     case "exr": decoded = decodeExrImage(bytes, options); break;
     case "psd": decoded = decodePsdImage(bytes, options); break;
     case "miff": decoded = decodeMiffImage(bytes, options); break;
+    case "dds": decoded = decodeDdsImage(bytes, options); break;
     case "farbfeld": decoded = decodeFarbfeldImage(bytes, options); break;
     case "phm": decoded = decodePhmImage(bytes, options); break;
     case "tga":

@@ -15314,8 +15314,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const output = stretched.map(channel => precision !== "float"
                           ? new Float64Array(channel.length) : new Float32Array(channel.length));
                         const length = stretched[0]?.length ?? 0;
-                        const sampleScale = t.codecDescriptions[0]?.codecName === "pcm_u8" ? 128
-                          : t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 : 2147483648;
+                        const fixedFormat = ["u8", "u8p", "s16", "s16p", "s32", "s32p"].includes(filteredSampleFormat)
+                          ? filteredSampleFormat : inputCodec === "pcm_u8" ? "u8" : inputCodec === "pcm_s16le" ? "s16" : "s32";
+                        const sampleScale = fixedFormat === "u8" || fixedFormat === "u8p" ? 128
+                          : fixedFormat === "s16" || fixedFormat === "s16p" ? 32768 : 2147483648;
                         // Integer input needs no conversion for fixed precision, so it retains the filter clock.
                         const timeBase = precision === "fixed" && ["u8", "u8p", "s16", "s16p", "s32", "s32p"].includes(panSampleFormat)
                           ? audioTimeBase ?? 1 / origRate : 1 / origRate;

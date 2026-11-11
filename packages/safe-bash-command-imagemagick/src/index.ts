@@ -145,8 +145,8 @@ import { combineMetaPixelSteps, type MetaChannels } from "./combine-meta.js";
 import { negateMetaPixelSteps } from "./negate-meta.js";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16" | "evaluateSamples">> & { position?: number; storedEvaluateSamples?: number | undefined };
-type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; regionTransformSource?: RgbaImage | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; storedRegionTransformSource?: StoredRgbaImage | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
 type ImageMetadata = BaseImageMetadata & HueMetadata & MetaChannels & Pick<RgbaImage, "inactiveAlpha" | "alphaBlend" | "alphaSeparate">;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
@@ -5223,6 +5223,23 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
     const { data16: ignoredData16, evaluateSamples: ignoredEvaluateSamples, ...metadata } = img;
     if (next.value) { delete metadata.pngPalette; delete metadata.pngIndices; }
     return { ...metadata, ...(next.value ? { indexedColors: next.value, isPalette: true } : {}), width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data, ...(pngIndices ? { pngIndices } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
+}
+
+// Geometric copies after roll clip against the cache retained before that roll.
+function* preserveRegionTransformSteps(image: RgbaImage, result: RgbaImage, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    const source = image.region && image.regionTransformSource;
+    if (!source?.region || result.data === image.data || source.width * source.height !== result.width * result.height) return result;
+    result = yield* applyMagickRasterSteps(result, regionPixelSteps(source, source.region, !!(result.data16 || source.data16)), signal, result, [result, source]);
+    result.regionTransformSource = { ...result, regionTransformSource: undefined };
+    return result;
+}
+
+async function preserveStoredRegionTransform(image: StoredRgbaImage, result: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
+    const source = image.region && image.storedRegionTransformSource;
+    if (!source?.region || result.position === image.position || source.width * source.height !== result.width * result.height) return result;
+    result = await transformStoredMagickRaster(result, backend, regionPixelSteps(source, source.region, !!(result.storedData16 || source.storedData16)), signal, result, [result, source]);
+    result.storedRegionTransformSource = { ...result, storedRegionTransformSource: undefined };
+    return result;
 }
 
 function resolveGravityOffset(
@@ -13227,6 +13244,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, im.region, !!(result.data16 || im.data16), state.channels), signal, result, [result, im]);
                     const offsets = parseMagickRollGeometry(expanded);
                     result.region = rollRegion(im.region, im, offsets.x, offsets.y);
+                    // Native roll retains the original cache for later geometric writes.
+                    result.regionTransformSource = im.regionTransformSource ?? im;
                 }
                 if (im.readMask) {
                     const mask = im.readMask as RgbaImage;
@@ -13779,11 +13798,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     ...(im.readMask ? { readMask: yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }) } : {}),
                     ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
                 }
-                return { ...yield* rotateImageSteps(im, deg, state.background),
+                const result = yield* rotateImageSteps(im, deg, state.background);
+                return yield* preserveRegionTransformSteps(im, { ...result,
                     ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* rotateImageSteps(plane, deg, state.background); }) } : {}),
                     ...(im.readMask ? { readMask: yield* rotateImageSteps(im.readMask as BaseRgbaImage, deg) } : {}),
                     ...(im.writeMask ? { writeMask: yield* rotateImageSteps(im.writeMask, deg, state.background) } : {}),
-                    ...(im.region ? { region: rotateRegion(im.region, im, deg) } : {}), ...(im.virtualCanvas ? { virtualCanvas: magickRotateCanvas(im, deg) } : {}) };
+                    ...(im.region ? { region: rotateRegion(im.region, im, deg) } : {}), ...(im.virtualCanvas ? { virtualCanvas: magickRotateCanvas(im, deg) } : {}) }, signal);
             }));
         }
         else if (t === "-sort-pixels") {
@@ -13818,54 +13838,58 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 im = discardDisassociatedAlpha(im);
-                return { ...yield* flipImageSteps(im),
+                const result = yield* flipImageSteps(im);
+                return yield* preserveRegionTransformSteps(im, { ...result,
                     [magickInput]: { ...im[magickInput], blobSize: 0 },
                     alphaSeparate: im.alphaBlend === false ? false : im.alphaSeparate,
                     ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* flipImageSteps(plane); }) } : {}),
                     ...(im.readMask ? { readMask: yield* flipImageSteps(im.readMask as RgbaImage) } : {}),
                     ...(im.region ? { region: { ...im.region, y: im.height - im.region.y - im.region.height } } : {}),
                     ...(im.writeMask ? { writeMask: yield* flipImageSteps(im.writeMask) } : {}),
-                    virtualCanvas: magickMirrorCanvas(im, "flip") };
+                    virtualCanvas: magickMirrorCanvas(im, "flip") }, signal);
             }));
         }
         else if (t === "-flop") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 im = discardDisassociatedAlpha(im);
-                return { ...yield* flopImageSteps(im),
+                const result = yield* flopImageSteps(im);
+                return yield* preserveRegionTransformSteps(im, { ...result,
                     [magickInput]: { ...im[magickInput], blobSize: 0 },
                     alphaSeparate: im.alphaBlend === false ? false : im.alphaSeparate,
                     ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* flopImageSteps(plane); }) } : {}),
                     ...(im.readMask ? { readMask: yield* flopImageSteps(im.readMask as RgbaImage) } : {}),
                     ...(im.region ? { region: { ...im.region, x: im.width - im.region.x - im.region.width } } : {}),
                     ...(im.writeMask ? { writeMask: yield* flopImageSteps(im.writeMask) } : {}),
-                    virtualCanvas: magickMirrorCanvas(im, "flop") };
+                    virtualCanvas: magickMirrorCanvas(im, "flop") }, signal);
             }));
         }
         else if (t === "-transpose") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 im = discardDisassociatedAlpha(im);
-                return { ...yield* rotateImageSteps((yield* flipImageSteps(im)), 90, state.background),
+                const result = yield* rotateImageSteps((yield* flipImageSteps(im)), 90, state.background);
+                return yield* preserveRegionTransformSteps(im, { ...result,
                     alphaSeparate: im.alphaBlend === false ? false : im.alphaSeparate,
                     ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* rotateImageSteps((yield* flipImageSteps(plane)), 90, state.background); }) } : {}),
                     ...(im.readMask ? { readMask: yield* rotateImageSteps((yield* flipImageSteps(im.readMask as RgbaImage)), 90, state.background) } : {}),
                     ...(im.writeMask ? { writeMask: yield* rotateImageSteps((yield* flipImageSteps(im.writeMask)), 90, state.background) } : {}),
                     ...(im.region ? { region: orientRegion(im.region, { ...im, orientation: 5 }) } : {}),
-                    virtualCanvas: magickTransposeCanvas(im, false) };
+                    virtualCanvas: magickTransposeCanvas(im, false) }, signal);
             }));
         }
         else if (t === "-transverse") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 im = discardDisassociatedAlpha(im);
-                return { ...yield* rotateImageSteps((yield* flopImageSteps(im)), 90, state.background),
+                const result = yield* rotateImageSteps((yield* flopImageSteps(im)), 90, state.background);
+                return yield* preserveRegionTransformSteps(im, { ...result,
                     alphaSeparate: im.alphaBlend === false ? false : im.alphaSeparate,
                     ...(im.metaChannels ? { metaChannels: yield* mapSteps(im.metaChannels, function* (plane) { return yield* rotateImageSteps((yield* flopImageSteps(plane)), 90, state.background); }) } : {}),
                     ...(im.readMask ? { readMask: yield* rotateImageSteps((yield* flopImageSteps(im.readMask as RgbaImage)), 90, state.background) } : {}),
                     ...(im.writeMask ? { writeMask: yield* rotateImageSteps((yield* flopImageSteps(im.writeMask)), 90, state.background) } : {}),
                     ...(im.region ? { region: orientRegion(im.region, { ...im, orientation: 7 }) } : {}),
-                    virtualCanvas: magickTransposeCanvas(im, true) };
+                    virtualCanvas: magickTransposeCanvas(im, true) }, signal);
             }));
         }
         else if (t === "-auto-orient") {
@@ -17384,15 +17408,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 image = discardDisassociatedAlpha(image);
                 const storedMetaChannels = [];
                 for (const plane of image.storedMetaChannels ?? []) storedMetaChannels.push(await transformStoredImage(await transformStoredImage(plane, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal));
-                return {
-                    ...await transformStoredImage(await transformStoredImage(image, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal),
+                const result = await transformStoredImage(await transformStoredImage(image, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal);
+                return preserveStoredRegionTransform(image, {
+                    ...result,
                     alphaSeparate: image.alphaBlend === false ? false : image.alphaSeparate,
                     ...(image.storedMetaChannels ? { storedMetaChannels } : {}),
                     ...(image.readMask ? { readMask: await transformStoredImage(await transformStoredImage(image.readMask as StoredRgbaImage, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal) } : {}),
                     ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(await transformStoredImage(image.storedWriteMask, backend.storage, { kind }, signal), backend.storage, { kind: "rotate", angle: 90, background }, signal) } : {}),
                     ...(image.region ? { region: orientRegion(image.region, { ...image, orientation: kind === "flip" ? 5 : 7 }) } : {}),
                     virtualCanvas: magickTransposeCanvas(image, kind === "flop")
-                };
+                }, backend, signal);
             });
         } else if (!operandsOnly && token === "-vignette") {
             let images: StoredImageStack;
@@ -17681,6 +17706,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, image.region, !!(result.storedData16 || image.storedData16), captured.channels), signal, result, [result, image]);
                     const offsets = parseMagickRollGeometry(expanded);
                     result.region = rollRegion(image.region, image, offsets.x, offsets.y);
+                    result.storedRegionTransformSource = image.storedRegionTransformSource ?? image;
                 }
                 if (token === "-roll" && image.readMask) {
                     const mask = image.readMask as StoredRgbaImage;
@@ -17879,7 +17905,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     : { ...image.region, x: image.width - image.region.x - image.region.width };
                 if (kind === "autoOrient" && orientation !== undefined) output = { ...output, orientation };
                 const virtualCanvas = kind === "autoOrient" ? magickAutoOrientCanvas(image) : magickMirrorCanvas(image, kind);
-                return virtualCanvas ? { ...output, virtualCanvas } : output;
+                if (virtualCanvas) output = { ...output, virtualCanvas };
+                return kind === "autoOrient" ? output : preserveStoredRegionTransform(image, output, backend, signal);
             });
         } else if (!operandsOnly && token === "-deskew") {
             stackStep(async stack => {
@@ -17951,14 +17978,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 const storedMetaChannels = [];
                 for (const plane of image.storedMetaChannels ?? []) storedMetaChannels.push(await transformStoredImage(plane, backend.storage, { kind: "rotate", angle, background: settings.background }, signal));
-                return {
-                    ...await transformStoredImage(image, backend.storage, { kind: "rotate", angle, background: settings.background }, signal),
+                const result = await transformStoredImage(image, backend.storage, { kind: "rotate", angle, background: settings.background }, signal);
+                return preserveStoredRegionTransform(image, {
+                    ...result,
                     ...(image.storedMetaChannels ? { storedMetaChannels } : {}),
                     ...(image.readMask ? { readMask: await transformStoredImage(image.readMask as BaseStoredRgbaImage, backend.storage, { kind: "rotate", angle, background: settings.background }, signal) } : {}),
                     ...(image.storedWriteMask ? { storedWriteMask: await transformStoredImage(image.storedWriteMask, backend.storage, { kind: "rotate", angle, background: settings.background }, signal) } : {}),
                     ...(image.region ? { region: rotateRegion(image.region, image, angle) } : {}),
                     ...(image.virtualCanvas ? { virtualCanvas: magickRotateCanvas(image, angle) } : {})
-                };
+                }, backend, signal);
             });
         } else if (!operandsOnly && (token === "-blur" || token === "-gaussian-blur")) {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
@@ -21892,7 +21920,8 @@ function* mapSteps<T, U>(values: readonly T[], mapper: (value: T) => Generator<v
     const mapped = yield* mapper(val);
     const valData = (val as unknown as { data?: unknown })?.data;
     const mappedData = (mapped as unknown as { data?: unknown })?.data;
-    if (valData instanceof Uint8Array && mappedData instanceof Uint8Array && valData.buffer !== mappedData.buffer) {
+    const regionData = (mapped as unknown as { regionTransformSource?: RgbaImage })?.regionTransformSource?.data;
+    if (valData instanceof Uint8Array && mappedData instanceof Uint8Array && valData.buffer !== mappedData.buffer && valData.buffer !== regionData?.buffer) {
       detachRgbaBuffer(valData);
     }
     result[i] = mapped;

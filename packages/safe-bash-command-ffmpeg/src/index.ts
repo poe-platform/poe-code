@@ -3161,7 +3161,8 @@ async function applyVideoFilterChain(
         return { ...frame, width, height, data };
       }, signal);
     } else if (name === "deband") {
-      let threshold = Math.fround(0.02), range = 16, direction = Math.fround(2 * Math.PI), blur = true;
+      const thresholds = Array<number>(4).fill(Math.fround(0.02));
+      let range = 16, direction = Math.fround(2 * Math.PI), blur = true, coupling = false;
       let sawNamed = false;
       for (const [index, option] of (argStr ? positional : []).entries()) {
         const separator = option.indexOf("=");
@@ -3171,7 +3172,7 @@ async function applyVideoFilterChain(
         sawNamed ||= separator >= 0;
         if (key === "blur" || key === "b") blur = parseFilterBoolean(value, "deband: invalid blur");
         else if (key === "coupling" || key === "c") {
-          if (parseFilterBoolean(value, "deband: invalid coupling")) throw new Error("deband: plane coupling is unsupported");
+          coupling = parseFilterBoolean(value, "deband: invalid coupling");
         } else if (["1thr", "2thr", "3thr", "4thr", "range", "r", "direction", "d"].includes(key ?? "")) {
           const number = parseFilterExpression(value, "deband", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
           if (!Number.isFinite(number)) throw new Error("deband: invalid number");
@@ -3183,15 +3184,28 @@ async function applyVideoFilterChain(
             direction = Math.fround(number);
           } else {
             if (number < 0.00003 || number > 0.5) throw new Error("deband: invalid threshold");
-            if (key === "1thr") threshold = Math.fround(number);
+            thresholds[Number(key![0]) - 1] = Math.fround(number);
           }
         } else throw new Error(`deband: unsupported option ${key ?? option}`);
       }
-      if (pixelFormat !== "gray" && pixelFormat !== "gray8") throw new Error("deband: requires 8-bit grayscale input");
-      const limit = Math.trunc(Math.fround(255 * threshold));
-      current = await mapWork(current, async ({ native: _native, ...frame }) => {
-        budget.allocateMemory(frame.data.byteLength);
-        const data = new Uint8Array(frame.data);
+      if (!["gray", "gray8", "yuv444p"].includes(pixelFormat ?? "")) throw new Error("deband: requires 8-bit grayscale or yuv444p input");
+      const limits = thresholds.map(threshold => Math.trunc(Math.fround(255 * threshold)));
+      current = await mapWork(current, async (frame) => {
+        const planar = pixelFormat === "yuv444p";
+        if (planar && !(frame.native?.format === 5 && frame.native.rgba === frame.data &&
+            frame.native.width === frame.width && frame.native.height === frame.height)) {
+          budget.allocateMemory(frame.width * frame.height * 7);
+          frame = await formatYuv(frame, "yuv444p", signal);
+        }
+        const { native: sourceNative, ...outputFrame } = frame;
+        const source = planar ? sourceNative!.pixels : frame.data;
+        budget.allocateMemory(source.byteLength + (planar ? frame.data.byteLength : 0));
+        const data = new Uint8Array(source);
+        const stride = planar ? 1 : 4;
+        const planeSize = frame.width * frame.height;
+        const planeCount = planar ? 3 : 1;
+        const averages = new Uint8Array(planeCount);
+        const replacements = new Uint8Array(planeCount);
         for (let y = 0; y < frame.height; y++) {
           for (let x = 0; x < frame.width; x++) {
             const offset = (y * frame.width + x) * 4;
@@ -3209,19 +3223,36 @@ async function applyVideoFilterChain(
             const right = Math.max(0, Math.min(frame.width - 1, x + dx));
             const top = Math.max(0, Math.min(frame.height - 1, y - dy)) * frame.width;
             const bottom = Math.max(0, Math.min(frame.height - 1, y + dy)) * frame.width;
-            const a = frame.data[(top + left) * 4]!;
-            const b = frame.data[(top + right) * 4]!;
-            const c = frame.data[(bottom + left) * 4]!;
-            const d = frame.data[(bottom + right) * 4]!;
-            const average = Math.trunc((a + b + c + d) / 4);
-            const source = frame.data[offset]!;
-            const replace = blur ? Math.abs(source - average) < limit :
-              Math.abs(source - a) < limit && Math.abs(source - b) < limit &&
-              Math.abs(source - c) < limit && Math.abs(source - d) < limit;
-            if (replace) data[offset] = data[offset + 1] = data[offset + 2] = average;
+            let replaceAll = true;
+            for (let plane = 0; plane < planeCount; plane++) {
+              const base = planar ? plane * planeSize : 0;
+              const a = source[base + (top + left) * stride]!;
+              const b = source[base + (top + right) * stride]!;
+              const c = source[base + (bottom + left) * stride]!;
+              const d = source[base + (bottom + right) * stride]!;
+              const average = Math.trunc((a + b + c + d) / 4);
+              const value = source[base + (y * frame.width + x) * stride]!;
+              const limit = limits[plane]!;
+              const replace = blur ? Math.abs(value - average) < limit :
+                Math.abs(value - a) < limit && Math.abs(value - b) < limit &&
+                Math.abs(value - c) < limit && Math.abs(value - d) < limit;
+              averages[plane] = average;
+              replacements[plane] = Number(replace);
+              replaceAll &&= replace;
+            }
+            for (let plane = 0; plane < planeCount; plane++) {
+              if (!(coupling ? replaceAll : replacements[plane])) continue;
+              if (planar) data[plane * planeSize + y * frame.width + x] = averages[plane]!;
+              else data[offset] = data[offset + 1] = data[offset + 2] = averages[plane]!;
+            }
           }
         }
-        return { ...frame, data };
+        if (planar) {
+          const native = { ...sourceNative!, pixels: data };
+          const rgba = scaleVideoPicture({ ...frame, native }, frame.width, frame.height)!;
+          return { ...frame, data: rgba, native: { ...native, rgba } };
+        }
+        return { ...outputFrame, data };
       }, signal);
     } else if (name === "oscilloscope") {
       if (argStr) throw new Error("oscilloscope: options are not supported");

@@ -42,7 +42,7 @@ for (const [filter, hash, changes] of [
   });
 }
 
-for (const options of ["1thr=0", "1thr=0.6", "r=-2.5", "d=-7", "b=wrong", "c=1", "unknown=1"]) {
+for (const options of ["1thr=0", "1thr=0.6", "r=-2.5", "d=-7", "b=wrong", "c=wrong", "unknown=1"]) {
   it(`rejects invalid or unsupported deband ${options} without replacing output`, async () => {
     const result = await run(`deband=r=-3:d=-1:${options}`);
     assert.notEqual(result.exitCode, 0);

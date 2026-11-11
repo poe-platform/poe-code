@@ -1391,6 +1391,14 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
 
 type MagickImage = RgbaImage & { [magickInput]?: MagickFormatContext };
 
+function formatInlineIdentify(image: ImageMetadata & { [magickInput]?: MagickFormatContext }): string {
+    const source = image[magickInput];
+    const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
+    const depth = image.bitsPerSample ?? (image.depth === "ushort" ? 16 : image.depth === "bit" ? 1 : 8);
+    const space = image.magickColorspace ?? (image.space === "b-w" || image.space === "grey16" ? image.gamma === 1 ? "LinearGray" : "Gray" : image.space === "cmyk" ? "CMYK" : "sRGB");
+    return `${source?.filePath ?? ""} ${source?.inputFormat ?? image.format.toUpperCase()} ${image.width}x${image.height} ${page.width}x${page.height}${page.x < 0 ? "" : "+"}${page.x}${page.y < 0 ? "" : "+"}${page.y} ${depth}-bit ${space} ${source?.byteLen ?? 0}B 0.000u 0:00.000`;
+}
+
 function* readMaskSelectionSteps<Step, Resume>(image: { width: number; readMask?: ReadMask | undefined }, position: number, length: number,
   load?: (position: number, length: number) => Generator<Step, Uint8Array | Float64Array, Resume>
 ): Generator<Step, Uint8Array | undefined, Resume> {
@@ -11859,10 +11867,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return { ...output, ...("space" in plan && plan.space ? { space: plan.space, channels: plan.space === "srgb" ? 4 as const : output.channels } : {}), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) };
             });
         }
-        else if (t === "-write" || t === "+write") {
-            if (i + 1 >= tokens.length) throw new Error(`missing argument '${t}'`);
+        else if (t === "-write" || t === "+write" || t === "-identify") {
+            if (t !== "-identify" && i + 1 >= tokens.length) throw new Error(`missing argument '${t}'`);
             if (stack.length === 0) throw new Error(`no images for write '${t}'`);
-            const writeTemplate = tokens[++i] ?? "";
+            const writeTemplate = t === "-identify" ? "info:" : tokens[++i] ?? "";
             const writePath = expandFilenameProperties(writeTemplate, stack[0]!.properties);
             const jsonPath = jsonOutputPath(writePath);
             if (jsonPath !== undefined) {
@@ -11896,9 +11904,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 for (const [idx, im] of stack.entries()) {
                     formatted.push(state.formatStr !== undefined
                         ? yield* formatMagickPropertyStringSteps(state.formatStr, im, () => im, {
-                            ...(im as MagickImage)[magickInput], fxStack: stack, outputFilePath: writePath.slice(5), interpolation: state.interpolation, ...(state.precision !== undefined ? { precision: state.precision } : {}), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, trimPercentBackground: state.trimPercentBackground, trimBackgroundColor: state.trimBackgroundColor, analysis, sceneIdx: idx, outputScene: firstScene + idx, sceneCount: stack.length, ...(state.qualityExplicit ? { quality: state.quality } : {}), channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr }
+                            ...(im as MagickImage)[magickInput], fxStack: stack, ...(t === "-identify" ? {} : { outputFilePath: writePath.slice(5) }), interpolation: state.interpolation, ...(state.precision !== undefined ? { precision: state.precision } : {}), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, trimPercentBackground: state.trimPercentBackground, trimBackgroundColor: state.trimBackgroundColor, analysis, sceneIdx: idx, outputScene: firstScene + idx, sceneCount: stack.length, ...(state.qualityExplicit ? { quality: state.quality } : {}), channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr }
                         })
-                        : `${im.width}x${im.height} ${im.magickColorspace ?? "sRGB"} 8-bit`);
+                        : t === "-identify" ? formatInlineIdentify(im) : `${im.width}x${im.height} ${im.magickColorspace ?? "sRGB"} 8-bit`);
                 }
                 const outText = formatted.join(state.formatStr !== undefined ? "" : "\n");
                 const result = analysis.errors || state.formatStr !== undefined || outText.endsWith("\n") ? outText : `${outText}\n`;
@@ -15965,8 +15973,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && (token === "-write" || token === "+write")) {
-            if (i + 1 >= tokens.length) {
+        if (!operandsOnly && (token === "-write" || token === "+write" || token === "-identify")) {
+            if (token !== "-identify" && i + 1 >= tokens.length) {
                 stackStep(async () => { throw new Error(`missing argument '${token}'`); });
                 break;
             }
@@ -15974,7 +15982,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const writeState = { ...state };
             const background = state.backgroundExplicit ? state.background : undefined;
             const dither = state.dither, diffusionAmount = state.diffusionAmount;
-            const writeTemplate = tokens[++i] ?? "", bmpRenderingIntent = state.optionProperties?.intent, iconAutoResize = state.iconAutoResize, iconKernel = state.kernel, iconFilter = state.resizeFilter, endian = state.inputEndian, quality = state.quality, effort = state.webpMethod ?? 4, lossless = state.webpLossless ?? state.quality >= 100, webpExact = state.webpExact ?? false, smartSubsample = state.webpSmartSubsample ?? false, alphaCompression = state.webpAlphaCompression ?? 1, alphaQuality = state.webpAlphaQuality ?? 100, webpTargetSize = state.webpTargetSize, webpPass = state.webpPass, jpegExtent = state.jpegExtent, pngPreserveColormap = state.pngPreserveColormap, pngBitDepth = state.pngBitDepth, jpegRestartInterval = state.jpegRestartInterval, jpegArithmeticCoding = state.jpegArithmeticCoding, jpegProgressive = state.jpegProgressive, jpegOptimizeCoding = state.jpegOptimizeCoding, jpegDctMethod = state.jpegDctMethod, rawInterlace = state.rawInterlace, pngInterlace = state.pngInterlace, gifInterlace = state.gifInterlace, transparentColor = state.transparentColor, pngColorType = state.pngColorType, synthesizeExif = !state.strip, omitPngResolution = state.strip || state.omitPngResolution === true, samplingFactor = state.samplingFactor, bmpFormat = state.bmpFormat, bmp3Alpha = state.bmp3Alpha, bmpSubtype = state.bmpSubtype, miffCompression = state.miffCompression, tgaCompression = state.tgaCompression, bmpCompression = state.bmpCompression, tiffIntegerDepth = state.inputDepth === undefined ? undefined : state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32, tiffSigned = state.tiffSigned, tiffFloatDepth = state.tiffFloatingPoint ? (state.inputDepth ?? 32) <= 16 ? 16 : (state.inputDepth ?? 32) <= 32 ? 32 : 64 : undefined, tiffPlanar = state.tiffPlanar, tiffAlpha = state.tiffAlpha, tiffEndian = state.tiffEndian ?? (state.inputEndian === undefined ? undefined : "msb"), tiffRowsPerStrip = state.tiffRowsPerStrip, tiffTile = state.tiffTile, tiffCompression = state.tiffCompression, netpbmAscii = state.netpbmAscii ?? false, netpbmDepth = state.inputDepth, adjoin = state.adjoin, filenameLiteral = state.filenameLiteral, scene = state.scene, loop = state.loop, optimizeLayers = state.optimizeLayers;
+            const writeTemplate = token === "-identify" ? "info:" : tokens[++i] ?? "", bmpRenderingIntent = state.optionProperties?.intent, iconAutoResize = state.iconAutoResize, iconKernel = state.kernel, iconFilter = state.resizeFilter, endian = state.inputEndian, quality = state.quality, effort = state.webpMethod ?? 4, lossless = state.webpLossless ?? state.quality >= 100, webpExact = state.webpExact ?? false, smartSubsample = state.webpSmartSubsample ?? false, alphaCompression = state.webpAlphaCompression ?? 1, alphaQuality = state.webpAlphaQuality ?? 100, webpTargetSize = state.webpTargetSize, webpPass = state.webpPass, jpegExtent = state.jpegExtent, pngPreserveColormap = state.pngPreserveColormap, pngBitDepth = state.pngBitDepth, jpegRestartInterval = state.jpegRestartInterval, jpegArithmeticCoding = state.jpegArithmeticCoding, jpegProgressive = state.jpegProgressive, jpegOptimizeCoding = state.jpegOptimizeCoding, jpegDctMethod = state.jpegDctMethod, rawInterlace = state.rawInterlace, pngInterlace = state.pngInterlace, gifInterlace = state.gifInterlace, transparentColor = state.transparentColor, pngColorType = state.pngColorType, synthesizeExif = !state.strip, omitPngResolution = state.strip || state.omitPngResolution === true, samplingFactor = state.samplingFactor, bmpFormat = state.bmpFormat, bmp3Alpha = state.bmp3Alpha, bmpSubtype = state.bmpSubtype, miffCompression = state.miffCompression, tgaCompression = state.tgaCompression, bmpCompression = state.bmpCompression, tiffIntegerDepth = state.inputDepth === undefined ? undefined : state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32, tiffSigned = state.tiffSigned, tiffFloatDepth = state.tiffFloatingPoint ? (state.inputDepth ?? 32) <= 16 ? 16 : (state.inputDepth ?? 32) <= 32 ? 32 : 64 : undefined, tiffPlanar = state.tiffPlanar, tiffAlpha = state.tiffAlpha, tiffEndian = state.tiffEndian ?? (state.inputEndian === undefined ? undefined : "msb"), tiffRowsPerStrip = state.tiffRowsPerStrip, tiffTile = state.tiffTile, tiffCompression = state.tiffCompression, netpbmAscii = state.netpbmAscii ?? false, netpbmDepth = state.inputDepth, adjoin = state.adjoin, filenameLiteral = state.filenameLiteral, scene = state.scene, loop = state.loop, optimizeLayers = state.optimizeLayers;
             stackStep(async (stack, backend) => {
                 if (stack.length === 0) throw new Error(`no images for write '${token}'`);
                 const image = await stack.get(stack.length - 1);
@@ -16015,7 +16023,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             await yieldTurn(signal);
                             const frame = (await stack.get(index))!;
                             if (index && settings.formatStr === undefined) yield "\n";
-                            const formatted = settings.formatStr !== undefined ? await formatRetainedIdentify(settings.formatStr, frame, { ...frame[magickInput], outputFilePath: target, interpolation: settings.interpolation, ...(settings.precision !== undefined ? { precision: settings.precision } : {}), fuzz: settings.alphaFuzz, trimEdges: settings.trimEdges, trimPercentBackground: settings.trimPercentBackground, trimBackgroundColor: settings.trimBackgroundColor, analysis, sceneIdx: index, outputScene: firstScene + index, sceneCount: stack.length, ...(settings.qualityExplicit ? { quality: settings.quality } : {}), channelSelection: settings.channelExplicit ? settings.channels : undefined, optionProperties: { ...settings.optionProperties, format: settings.formatStr } }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
+                            const formatted = settings.formatStr !== undefined ? await formatRetainedIdentify(settings.formatStr, frame, { ...frame[magickInput], ...(token === "-identify" ? {} : { outputFilePath: target }), interpolation: settings.interpolation, ...(settings.precision !== undefined ? { precision: settings.precision } : {}), fuzz: settings.alphaFuzz, trimEdges: settings.trimEdges, trimPercentBackground: settings.trimPercentBackground, trimBackgroundColor: settings.trimBackgroundColor, analysis, sceneIdx: index, outputScene: firstScene + index, sceneCount: stack.length, ...(settings.qualityExplicit ? { quality: settings.quality } : {}), channelSelection: settings.channelExplicit ? settings.channels : undefined, optionProperties: { ...settings.optionProperties, format: settings.formatStr } }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : token === "-identify" ? formatInlineIdentify(frame) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
                             if (formatted) last = formatted.at(-1)!;
                             yield formatted;
                         }

@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function emphasizeAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -40,16 +41,7 @@ export async function emphasizeAudio(
     else position = position === 0 ? 1 : 0;
     const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (name === "threads" || name === "thread_type" || name === "extra_hw_frames") {
-      const minimum = name === "extra_hw_frames" ? -1 : 0;
-      const value = parseFilterExpression(raw, "aemphasis", name === "thread_type" ? { slice: 1 } : {
-        min: minimum, max: 2147483647, default: minimum
-      });
-      if (name === "thread_type"
-        ? !Number.isInteger(value) || value < -2147483648 || value > 4294967295
-        : !Number.isFinite(value) || value < minimum || value > 2147483647) {
-        throw new RangeError(`aemphasis: invalid ${name}`);
-      }
-      // Scheduling and hardware frame reservations do not change software PCM.
+      validateWeaveGenericOption(name, raw, "aemphasis");
       continue;
     }
     if (name === "enable") {

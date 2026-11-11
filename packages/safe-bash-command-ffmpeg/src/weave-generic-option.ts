@@ -10,7 +10,9 @@ export function validateWeaveGenericOption(key: string, option: string, filter: 
       const start = position;
       if (flags[position] === "+" || flags[position] === "-") position++;
       while (position < flags.length && flags[position] !== "+" && flags[position] !== "-") position++;
-      const bits = parseFilterExpression(flags.slice(start, position), filter, { slice: 1, none: 0, all: -1 });
+      const bits = parseFilterExpression(flags.slice(start, position), filter, {
+        slice: 1, default: 1, min: 0, max: 2147483647, none: 0, all: -1
+      });
       if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
         throw new RangeError(`${filter}: invalid thread_type`);
       }

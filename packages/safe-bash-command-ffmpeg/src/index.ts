@@ -132,6 +132,7 @@ import {
   cloudflareWorkerLimits,
   concatBytes,
   concatMp4,
+  lcm,
   createMediaAstRegistry,
   createSyntheticMp4,
   decodeH264Samples,
@@ -10774,20 +10775,34 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   ?.split("=")[1]?.trim() ?? options[1]?.trim();
                 const stopAtShortest = framepack || ["1", "true", "yes", "on"].includes(shortestOption ?? "0");
                 const lengths = inputs.map(frames => frames.length);
-                let count = stopAtShortest || lengths.includes(0)
-                  ? Math.min(...lengths) : Math.max(...lengths);
+                let count = Math.min(...lengths);
                 // Native framepack stops on decoder EOF before consuming the final
                 // queued left frame. Generated sources deliver EOF after their last frame.
                 if (framepack && !inputTracks[0]!.decodedVideoFrames) count = Math.max(0, Math.min(lengths[0]! - 1, lengths[1]!));
+                const frameIndices = inputs.map(() => 0);
+                let timestamp = Math.max(...inputs.map(input => input[0]?.ptsSeconds ?? Infinity));
+                const endTime = stopAtShortest ? Math.min(...inputs.map(input => {
+                  const last = input.at(-1);
+                  return last ? last.ptsSeconds + last.durationSeconds : 0;
+                })) : Infinity;
                 const stacked: MediaVideoFrame[] = [];
-                for (let i = 0; i < count; i++) {
-                  const frames = inputs.map(input => input[Math.min(i, input.length - 1)]!);
+                for (let i = 0; framepack ? i < count : Number.isFinite(timestamp) && timestamp < endTime - 1e-9; i++) {
+                  // Each input keeps its current picture until its next timestamp.
+                  const frames = inputs.map((input, index) => {
+                    if (framepack) return input[i]!;
+                    while (input[frameIndices[index]! + 1] && input[frameIndices[index]! + 1]!.ptsSeconds <= timestamp + 1e-9) {
+                      frameIndices[index]!++;
+                    }
+                    return input[frameIndices[index]!]!;
+                  });
+                  const nextTimestamp = Math.min(...inputs.map((input, index) => input[frameIndices[index]! + 1]?.ptsSeconds ?? Infinity));
                   const first = frames[0]!;
                   if (framepack && frames.some(frame => frame.width !== first.width || frame.height !== first.height ||
                       Math.abs(frame.durationSeconds - first.durationSeconds) > 1e-6)) {
                     throw new Error("framepack: inputs must have matching dimensions and frame rates");
                   }
-                  const timing = inputs.find(input => input[i])![i]!;
+                  const duration = Math.min(endTime, Number.isFinite(nextTimestamp) ? nextTimestamp
+                    : Math.max(...frames.map(frame => frame.ptsSeconds + frame.durationSeconds))) - timestamp;
                   let placements: { x: number; y: number }[];
                   if (xstack) {
                     const layout = xoptions.layout || (xoptions.grid === "1x2" ? "0_0|0_h0" : "0_0|w0_0");
@@ -10844,10 +10859,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     width: w,
                     height: h,
                     data: outData,
-                    ptsSeconds: timing.ptsSeconds,
-                    durationSeconds: timing.durationSeconds,
+                    ptsSeconds: framepack ? first.ptsSeconds : timestamp,
+                    durationSeconds: framepack ? first.durationSeconds : duration,
                     keyframe: true
                   });
+                  timestamp = nextTimestamp;
                 }
                 workingDoc = {
                   ...loadedDocs[0]!,
@@ -10864,6 +10880,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       : t
                   )
                 };
+                if (!framepack) {
+                  // Preserve every input's timestamp grid when the first stream has a coarser clock.
+                  const timescale = inputTracks.reduce((scale, track) =>
+                    lcm(scale, Number.isInteger(track.timescale) ? track.timescale : 1_000_000), 1);
+                  workingDoc = rescaleVideoTracks(workingDoc, timescale, budget);
+                }
               } else if (filterComplex.includes("overlay") && loadedDocs.length >= 2) {
                 const f0 = await ensureDecodedFrames(
                   loadedDocs[0]!.tracks.find((t) => t.type === "video")!,

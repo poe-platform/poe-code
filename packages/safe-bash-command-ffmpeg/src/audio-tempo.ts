@@ -32,7 +32,10 @@ export async function filterTempo(
   for (let i = 0; i < length; i++) {
     if (i % 16384 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
     for (const channel of channels) {
-      if (Math.abs(channel[i]!) > Math.abs(mono[i]!)) mono[i] = channel[i]!;
+      const sample = sampleFormat === "u8" ? channel[i]! * 128 + 128 : channel[i]!;
+      // Unsigned channel magnitudes saturate at 127 when choosing the dominant channel.
+      if (sampleFormat === "u8" ? Math.min(sample, 127) > Math.min(mono[i]!, 127)
+        : Math.abs(sample) > Math.abs(mono[i]!)) mono[i] = sample;
     }
   }
   const output = channels.map(() => [] as number[]);
@@ -76,18 +79,14 @@ export async function filterTempo(
       const channel = channels[c]!;
       const dst = output[c]!;
       for (let i = 0; i < overlap; i++) {
-        const a = channel[previous + hop + i] ?? 0;
-        const b = channel[current + i] ?? 0;
+        // Native u8 alignment and blending use unsigned bytes, including zero padding.
+        const a = sampleFormat === "u8" ? (channel[previous + hop + i] ?? -1) * 128 + 128 : channel[previous + hop + i] ?? 0;
+        const b = sampleFormat === "u8" ? (channel[current + i] ?? -1) * 128 + 128 : channel[current + i] ?? 0;
         // Native rounds both float products before adding, then truncates PCM16
         // toward zero rather than using the WAV encoder's rounding.
-        if (sampleFormat === "u8" && current + i >= 0) {
-          // Native blends unsigned levels, then truncates before recentering.
-          const sample = Math.fround((a * 128 + 128) * hann[hop + i]! + Math.fround((b * 128 + 128) * hann[i]!));
-          dst.push((Math.trunc(sample) - 128) / 128);
-          continue;
-        }
         const sample = current + i < 0 ? a : Math.fround(Math.fround(a * hann[hop + i]!) + Math.fround(b * hann[i]!));
-        dst.push(sampleFormat === "s16" ? Math.trunc(sample * 32768) / 32768 : sample);
+        dst.push(sampleFormat === "u8" ? Math.trunc(sample) / 128 - 1
+          : sampleFormat === "s16" ? Math.trunc(sample * 32768) / 32768 : sample);
       }
       if (final) {
         for (let i = overlap; i < count; i++) dst.push(channel[current + i] ?? 0);

@@ -17,7 +17,12 @@ export async function filterScheduledTempo(
   const mono = new Float32Array(length);
   for (let i = 0; i < length; i++) {
     if (i % 16384 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-    for (const channel of channels) if (Math.abs(channel[i]!) > Math.abs(mono[i]!)) mono[i] = channel[i]!;
+    for (const channel of channels) {
+      const sample = sampleFormat === "u8" ? channel[i]! * 128 + 128 : channel[i]!;
+      // Unsigned channel magnitudes saturate at 127 when choosing the dominant channel.
+      if (sampleFormat === "u8" ? Math.min(sample, 127) > Math.min(mono[i]!, 127)
+        : Math.abs(sample) > Math.abs(mono[i]!)) mono[i] = sample;
+    }
   }
   const output = channels.map(() => [] as number[]);
   const outputFrames: { start: number; end: number; pts: number; inputEnd: number }[] = [];
@@ -83,18 +88,14 @@ export async function filterScheduledTempo(
       for (let position = emitted; position < stop; position++) {
         const aIndex = position - previous.output;
         const bIndex = position - current.output;
-        const a = channel[previous.input + aIndex] ?? 0;
-        const b = channel[current.input + bIndex] ?? 0;
-        if (blend && sampleFormat === "u8" && current.input + position - emitted >= 0) {
-          // Native blends unsigned levels, then truncates before recentering.
-          const sample = Math.fround(Math.fround((a * 128 + 128) * hann[aIndex]!) + Math.fround((b * 128 + 128) * hann[bIndex]!));
-          dst.push((Math.trunc(sample) - 128) / 128);
-          continue;
-        }
+        // Keep the unsigned byte origin through blending, then normalize the result.
+        const a = sampleFormat === "u8" ? (channel[previous.input + aIndex] ?? -1) * 128 + 128 : channel[previous.input + aIndex] ?? 0;
+        const b = sampleFormat === "u8" ? (channel[current.input + bIndex] ?? -1) * 128 + 128 : channel[current.input + bIndex] ?? 0;
         // FFmpeg 7 rounds each float product before summing and truncating PCM16.
         const sample = !blend ? b : current.input + position - emitted < 0 ? a
           : Math.fround(Math.fround(a * hann[aIndex]!) + Math.fround(b * hann[bIndex]!));
-        dst.push(blend && sampleFormat === "s16" ? Math.trunc(sample * 32768) / 32768 : sample);
+        dst.push(sampleFormat === "u8" ? Math.trunc(sample) / 128 - 1
+          : blend && sampleFormat === "s16" ? Math.trunc(sample * 32768) / 32768 : sample);
       }
     }
     emitted = stop;

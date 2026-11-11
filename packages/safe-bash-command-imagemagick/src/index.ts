@@ -6151,8 +6151,8 @@ function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanv
                 if (left > img.width || top > img.height || left + width <= 0 || top + height <= 0) {
                     yield null;
                 } else if (left === img.width || top === img.height) {
-                    // Native tiling stops at an empty edge crop, retaining earlier tiles.
-                    yield false;
+                    // An initial empty edge crop retains the source; later ones retain earlier tiles.
+                    yield x === 0 && y === 0 ? undefined : false;
                     return;
                 } else {
                     yield { left: Math.max(0, left), top: Math.max(0, top),

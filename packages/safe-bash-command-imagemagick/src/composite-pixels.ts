@@ -72,6 +72,7 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
             const da = daByte / 255;
             if (norm === "over" || norm === "srcover") {
                 const alpha = sa + da * (1 - sa);
+                if (alpha === 0) out.fill(0, dIdx, dIdx + 4);
                 if (sa > 0) {
                     for (let channel = 0; channel < 3; channel++) {
                         out[dIdx + channel] = clampByteVal((src.data[sIdx + channel]! * sa

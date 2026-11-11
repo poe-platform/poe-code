@@ -4,16 +4,20 @@ import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js";
 
 for (const mode of ["sync", "buffered", "retained", "command"] as const)
+for (const alphaOff of [false, true])
 for (const operation of [["-coalesce"], ["-layers", "coalesce"]])
 it.each([
+    { name: "Background disposal", input: ["(", "-dispose", "Background", "-size", "2x1", "xc:red", ")", "(", "-dispose", "None", "-size", "1x1", "xc:blue", "-repage", "2x1+1+0", ")"], expected: "ff0000ff0000ffff", alphaExpected: "ff0000000000ffff" },
+    { name: "None disposal", input: ["(", "-dispose", "None", "-size", "2x1", "xc:red", ")", "(", "-dispose", "None", "-size", "1x1", "xc:blue", "-repage", "2x1+1+0", ")"], expected: "ff0000ff0000ffff", alphaExpected: "ff0000ff0000ffff" },
+    { name: "Previous disposal", input: ["(", "-dispose", "Previous", "-size", "2x1", "xc:red", ")", "(", "-dispose", "None", "-size", "1x1", "xc:blue", "-repage", "2x1+1+0", ")"], expected: "ffffffff0000ffff", alphaExpected: "ffffffff0000ffff" },
     { name: "default background", input: ["xc:none"], expected: "000000ff" },
     { name: "red background", input: ["-background", "red", "xc:none"], expected: "000000ff" },
     { name: "black background", input: ["-background", "black", "xc:none"], expected: "000000ff" },
     { name: "colored transparent pixel", input: ["xc:#12345600"], expected: "123456ff" },
     { name: "offset on a red canvas", input: ["-background", "red", "xc:#12345600", "-repage", "3x1+1+0"], expected: "ff0000ff123456ffff0000ff" },
     { name: "transparent second frame over opaque first", input: ["xc:blue", "xc:#12345600"], expected: "0000ffff0000ffff" },
-])(`${mode} ${operation.join(" ")} preserves hidden RGB: $name`, async ({ input, expected }) => {
-    const argv = ["-size", "1x1", ...input, ...operation, "-alpha", "off", "-depth", "8", "rgba:-"];
+])(`${mode} ${operation.join(" ")} alphaOff=${alphaOff} preserves hidden RGB: $name`, async ({ input, expected, alphaExpected }) => {
+    const argv = ["-size", "1x1", ...input, ...operation, ...(alphaExpected ? ["-delete", "0"] : []), ...(alphaOff || !alphaExpected ? ["-alpha", "off"] : []), "-depth", "8", "rgba:-"];
     const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
     const args = createCommandArguments(argv), chunks: Uint8Array[] = [];
     let stderr = "";
@@ -27,5 +31,5 @@ it.each([
     expect(mode === "command" ? stderr : "stderr" in result ? result.stderr : "").toBe("");
     expect(result.exitCode).toBe(0);
     const bytes = mode === "command" ? Buffer.concat(chunks) : "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : new Uint8Array();
-    expect(Buffer.from(bytes).toString("hex")).toBe(expected);
+    expect(Buffer.from(bytes).toString("hex")).toBe(!alphaOff && alphaExpected ? alphaExpected : expected);
 });

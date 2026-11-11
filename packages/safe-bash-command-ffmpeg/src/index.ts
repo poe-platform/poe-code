@@ -10752,10 +10752,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const count = parseAudioChannelCount(layout ?? "");
             if (beforeInput ? count === undefined &&
                 (!channels.every(name => Object.hasOwn(audioSpeakerMasks, name)) || new Set(channels).size !== channels.length)
-                : layout !== "mono") {
+                : layout !== "mono" && layout !== "stereo") {
               await writeBytes(context.stderr, encodeUtf8(beforeInput
                 ? `ffmpeg: unsupported input channel layout '${layout ?? ""}'\n`
-                : "ffmpeg: only mono output channel layout is supported\n"), context.signal);
+                : "ffmpeg: only mono and stereo output channel layouts are supported\n"), context.signal);
               return { exitCode: 1 };
             }
             audioChannelOptions.push(["", count ?? channels.length]);

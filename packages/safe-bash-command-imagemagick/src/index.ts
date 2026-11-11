@@ -1815,7 +1815,13 @@ function* formatMagickPropertyStringSteps<Step=never>(
       const key = property.toLowerCase();
       const propertyKey = Object.hasOwn(properties, key) ? key : Object.keys(properties).find(name => name.toLowerCase() === key);
       const optionKey = key.startsWith("option:") ? key.slice(7) : key.startsWith("artifact:") ? key.slice(9) : key;
-      if (property.length === 1 && Object.hasOwn(short, property)) {
+      if (key.startsWith("property:")) {
+        const name = Object.keys(meta.properties ?? {}).find(name => name.toLowerCase() === key.slice(9));
+        if (name !== undefined) parts.push(meta.properties![name]!);
+        else if (context.analysis && !["*", "?", "["].some(character => property.includes(character))) {
+          warnUnknownMagickProperty(token, context.analysis);
+        }
+      } else if (property.length === 1 && Object.hasOwn(short, property)) {
         parts.push(short[property]!);
       } else if (propertyKey !== undefined) {
         parts.push(properties[propertyKey]!);
@@ -11302,6 +11308,7 @@ function magickResampleGeometry(image: ImageMetadata, value: string): string {
 }
 
 function updateMagickProperty(properties: ImageMetadata["properties"], key: string, value?: string): Record<string, string> {
+    if (key.toLowerCase().startsWith("property:")) key = key.slice(9);
     const normalized = key.toLowerCase();
     // Native -set does not store these reserved names as string properties.
     if (["gravity", "intent", "interpolate"].includes(normalized)) return { ...properties };

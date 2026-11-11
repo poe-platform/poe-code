@@ -9754,7 +9754,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         // BlueShiftImage uses the leading geometry value, including a literal percent.
         const factor = Number.parseFloat(geometry);
         if (!Number.isFinite(factor)) throw new Error(`invalid argument '-blue-shift' '${value}'`);
-        apply = function* (image) {
+        let regionAlpha: Float64Array | undefined;
+        apply = function* (image, pixelOffset = 0, imageWidth = image.width) {
+            if (pixelOffset === 0) regionAlpha = image.region && image.hasAlpha ? new Float64Array(imageWidth) : undefined;
             // BlueShiftImage drops alpha channels without the blend trait.
             if (!image.hasAlpha && image.inactiveAlpha && image.alphaBlend === false) {
                 image = { ...image, inactiveAlpha: false, alphaSeparate: false,
@@ -9771,7 +9773,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 if (idx % 65536 === 0) { signal?.throwIfAborted(); yield; }
                 const r = samples[idx]!, g = samples[idx + 1]!, b = samples[idx + 2]!;
                 const minimum = Math.min(r, g, b), maximum = Math.max(r, g, b);
-                // BlueShiftImage blends twice and stores Q16-HDRI samples; black and alpha are unchanged.
+                // BlueShiftImage blends twice and stores Q16-HDRI samples.
                 for (let channel = 0; channel < 3; channel++) {
                     let sample = Math.fround(0.5 * (0.5 * (samples[idx + channel]! * scale + factor * minimum * scale) + factor * maximum * scale));
                     samples[idx + channel] = sample / scale;
@@ -9779,6 +9781,17 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     evaluateSamples[idx + channel] = sample / 257;
                     out[idx + channel] = clampByteVal(sample / 257);
                     if (data16) data16[idx + channel] = Math.round(Math.max(0, Math.min(65535, sample)));
+                }
+                // Masked native rows reuse a fresh cache buffer; blue-shift writes only RGB.
+                // Compositing restores source alpha outside the region for the next row.
+                if (regionAlpha && image.region) {
+                    const pixel = pixelOffset + idx / 4, x = pixel % imageWidth;
+                    const alpha = regionAlpha[x]!;
+                    if (!regionContains(image.region, x, Math.floor(pixel / imageWidth))) regionAlpha[x] = evaluateSamples[idx + 3]!;
+                    evaluateSamples[idx + 3] = alpha;
+                    out[idx + 3] = clampByteVal(alpha);
+                    if (data16) data16[idx + 3] = Math.round(Math.max(0, Math.min(65535, alpha * 257)));
+                    if (hueSamples && !cmyk) hueSamples[idx + 3] = alpha / 255;
                 }
             }
             return { ...image, isPalette: false, data: out, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), ...(data16 ? { data16 } : {}) };

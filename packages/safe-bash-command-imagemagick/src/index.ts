@@ -14666,9 +14666,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-bilateral-blur") {
             const raw = tokens[++i] ?? "";
-            validateMagickTransformGeometry(raw, t);
-            const geometry = parseMagickGeometry(raw);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                validateMagickTransformGeometry(expanded, t);
+                const geometry = parseMagickGeometry(expanded);
                 return yield* applyMagickRasterSteps(im, bilateralBlurPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.intensity), signal, { ...im, hasAlpha: im.hasAlpha || state.virtualPixel === "transparent" || (state.virtualPixel === "background" || state.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255 });
             });
         }
@@ -18777,10 +18778,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return transformStoredMagickRaster({ ...image, isPalette: false }, backend, meanShiftPixelSteps(image, geometry, background, virtualPixel), signal);
             });
         } else if (!operandsOnly && token === "-bilateral-blur") {
-            const raw = tokens[++i] ?? "";
-            validateMagickTransformGeometry(raw, token);
-            const geometry = parseMagickGeometry(raw), { background, virtualPixel, intensity } = state, channels = state.channelExplicit ? state.channels : undefined;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, bilateralBlurPixelSteps(image, geometry, background, virtualPixel, channels, intensity), signal, { ...image, hasAlpha: image.hasAlpha || virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255 }) : undefined);
+            const raw = tokens[++i] ?? "", { background, virtualPixel, intensity, optionProperties } = state, channels = state.channelExplicit ? state.channels : undefined;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                validateMagickTransformGeometry(expanded, token);
+                const geometry = parseMagickGeometry(expanded);
+                return transformStoredMagickRaster(image, backend, bilateralBlurPixelSteps(image, geometry, background, virtualPixel, channels, intensity), signal, { ...image, hasAlpha: image.hasAlpha || virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255 });
+            });
         } else if (!operandsOnly && token === "-kuwahara") {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);

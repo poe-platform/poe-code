@@ -1536,7 +1536,7 @@ function parseChannelSplit(spec: string): { input: string[]; selected: string[] 
 async function panAudio(
   spec: string, channels: MediaAudioData["channelData"], channelMask: number | undefined, sampleFormat: string,
   budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<{ channels: (Float32Array | Float64Array)[]; channelMask: number; channelNames: string[] }> {
+): Promise<{ channels: (Float32Array | Float64Array)[]; channelMask: number; channelNames: string[]; pureMapping: boolean }> {
   let expression = "";
   const options = spec.split(":");
   if (options.at(-1) === "") options.pop();
@@ -1760,6 +1760,7 @@ async function panAudio(
         budget.allocateMemory(source?.byteLength ?? (channels[0]?.length ?? 0) * Float32Array.BYTES_PER_ELEMENT);
         return source ? source.slice() : new Float32Array(channels[0]?.length ?? 0);
       }),
+      pureMapping,
       channelNames: names,
       channelMask: names.reduce((mask, name) => mask + (audioSpeakerMasks[name] ?? 0), 0)
     };
@@ -1821,7 +1822,7 @@ async function panAudio(
       output[out]![sample] = value;
     }
   }
-  return { channels: output, channelNames: names,
+  return { channels: output, channelNames: names, pureMapping,
     channelMask: names.reduce((mask, name) => mask + (audioSpeakerMasks[name] ?? 0), 0) };
 }
 
@@ -17650,8 +17651,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       } else if (trimmed === "pan" || trimmed.startsWith("pan=")) {
                         const panned = await panAudio(trimmed.slice(4), stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
-                        // SWR accepts custom input speaker orders when the result is mono.
-                        if (panned.channels.length > 1 && !filteredChannelMask && filteredChannelNames?.some(name => name !== "")) {
+                        // SWR accepts custom input speaker orders for weighted mixing and mono output.
+                        if (panned.pureMapping && panned.channels.length > 1 && !filteredChannelMask && filteredChannelNames?.some(name => name !== "")) {
                           throw new Error("pan: unsupported input channel layout");
                         }
                         stretched = panned.channels;

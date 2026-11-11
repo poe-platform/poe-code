@@ -31,7 +31,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
             : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
         expect(result, stderr).toMatchObject({ exitCode: 0 });
         const output = mode === "command" ? Buffer.concat(chunks)
-            : Buffer.from("stdoutBytes" in result && result.stdoutBytes ? result.stdoutBytes : "stdout" in result ? result.stdout : "");
+            : Buffer.from("stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : "stdout" in result && typeof result.stdout === "string" ? result.stdout : "");
         expect(output.toString(fixture.hex === undefined ? "utf8" : "hex")).toBe(fixture.hex ?? fixture.text);
     });
 }

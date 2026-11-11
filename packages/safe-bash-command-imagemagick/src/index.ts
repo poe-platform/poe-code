@@ -13744,7 +13744,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const colorspace = t === "-hald-clut" ? lut.magickColorspace : im.magickColorspace;
                 const cmyk = (t === "-hald-clut" ? lut : im).space === "cmyk";
                 const gray = (t === "-hald-clut" ? [lut] : [im, lut]).every(image => image.space === "b-w" || image.space === "grey16");
-                if (t === "-hald-clut" && gray) metadata.gamma = lut.gamma;
+                if (t === "-hald-clut" && gray) {
+                    delete metadata.gamma;
+                    if (lut.gamma !== undefined) metadata.gamma = lut.gamma;
+                }
                 const lookupArguments = [im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, t === "-clut" ? (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false) && (state.channels.a || !state.channelExplicit) : state.channels.a || !state.channelExplicit, state.channels.k === true || !state.channelExplicit], !!(im.data16 || lut.data16), (t === "-clut" ? im : lut)[magickInput]?.interpolation, state.backgroundExplicit ? state.background : lut.backgroundColor ?? state.background, lut.virtualPixel, im.space === "cmyk"] as const;
                 let result = yield* applyMagickRasterSteps({ ...metadata, ...(colorspace ? { magickColorspace: colorspace } : {}), space: cmyk ? "cmyk" : gray ? (t === "-hald-clut" ? lut : im).space : "srgb", channels: cmyk ? 4 : gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps(...lookupArguments, im.hasAlpha) : clutPixelSteps(...lookupArguments)), signal, { ...im, hasAlpha }, [im, lut]);
                 if (im.region) result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, im.region, !!result.data16, state.channels), signal, result, [result, im]);

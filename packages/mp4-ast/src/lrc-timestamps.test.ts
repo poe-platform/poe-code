@@ -8,7 +8,7 @@ for (const [line, expected] of [
   ["[00:01.00]one", [[1000, 4000, "one"]]],
   ["[00:03.00][00:01.00]Café", [[1000, 2000, "Café"], [3000, 2000, "Café"]]],
   ["[00:01.00][00:01.00]repeat", [[1000, 0, "repeat"], [1000, 4000, "repeat"]]],
-  ["[00:01.00][00:03.00][Chorus]", [[1000, 2000, "[Chorus]"], [3000, 2000, "[Chorus]"]]]
+  ["[00:01.00][00:03.00][Chorus]", [[1000, 2000, "Chorus]"], [3000, 2000, "Chorus]"]]]
 ] as const) {
   it(`expands adjacent LRC timestamps: ${line}`, () => {
     const doc = lrcAst().parse(new TextEncoder().encode(`${line}\r\n[00:05.00]end\r\n`));
@@ -19,3 +19,12 @@ for (const [line, expected] of [
     assert.equal(new TextDecoder().decode(samples.at(-1)!.data), "end");
   });
 }
+
+it("applies the current LRC offset to every adjacent timestamp", () => {
+  const doc = lrcAst().parse(new TextEncoder().encode(
+    "[offset:500]\n[00:01.00][00:03.00]Chorus\n[00:05.00]end\n"
+  ));
+  assert.deepEqual(doc.tracks[0]!.samples.slice(0, -1).map(sample =>
+    [sample.pts, sample.dts, sample.duration, new TextDecoder().decode(sample.data)]),
+  [[500, 500, 2000, "Chorus"], [2500, 2500, 2000, "Chorus"]]);
+});

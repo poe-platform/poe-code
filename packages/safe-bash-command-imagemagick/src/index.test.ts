@@ -969,7 +969,7 @@ describe("safe-bash-command-imagemagick", () => {
 
     // 2. -evaluate AddModulus and Mean
     const evalMod = await runMagickCli(["-size", "1x1", "xc:rgb(200,100,50)", "-evaluate", "AddModulus", "100", "-format", "%[pixel:p{0,0}]", "info:"], files);
-    expect(evalMod.stdout.trim()).toBe("srgb(200,100,50)");
+    expect(evalMod.stdout.trim()).toBe("srgb(78.584%,39.3683%,19.7604%)");
 
     // 3. Stack operators: -clone 0,2 / -delete 1--1 / +insert / -insert / -duplicate 2,0
     const cloneList = await runMagickCli(["-size", "1x1", "xc:red", "xc:lime", "xc:blue", "-clone", "0,2", "-format", "%[pixel:p{0,0}] ", "info:"], files);

@@ -15376,20 +15376,24 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           if (key !== "channel_layouts" && key !== "cl") throw new Error(`aformat: unsupported option ${key}`);
                           const layouts = value.split("|");
-                          if (layouts.some(layout => layout !== "mono" && layout !== "stereo")) {
+                          if (layouts.some(layout => !["mono", "stereo", "quad", "5.1"].includes(layout))) {
                             throw new Error(`aformat: unsupported channel layout ${value}`);
                           }
                           if (stretched.length === 1 && (filteredChannelMask === 1 || filteredChannelMask === 2)) {
                             filteredChannelMask = 4;
                             filteredChannelNames = undefined;
                           }
-                          const inputLayout = stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ? "mono"
-                            : stretched.length === 2 && (!filteredChannelMask || filteredChannelMask === 3) ? "stereo" : undefined;
-                          const inputMask = filteredChannelMask || ({ 3: 0xb, 4: 0x107, 6: 0x3f }[stretched.length]);
+                          const inputMask = filteredChannelMask || ({ 1: 4, 2: 3, 3: 0xb, 4: 0x107, 6: 0x3f }[stretched.length]);
+                          const inputLayout = inputMask === 4 ? "mono" : inputMask === 3 ? "stereo"
+                            : inputMask === 0x33 ? "quad" : inputMask === 0x3f ? "5.1" : undefined;
+                          if (inputLayout && layouts.includes(inputLayout)) continue;
+                          const stereoExpansion = inputLayout === "stereo" && (layouts[0] === "quad" || layouts[0] === "5.1");
                           const multichannelStereo = layouts[0] === "stereo" && inputMask !== undefined &&
                             [0x7, 0xb, 0x33, 0x107, 0x3f, 0x60f, 0x63f].includes(inputMask);
-                          if (!inputLayout && !multichannelStereo) throw new Error("aformat: unsupported input channel layout");
-                          if (inputLayout && layouts.includes(inputLayout)) continue;
+                          if (!stereoExpansion && !multichannelStereo &&
+                              !(inputLayout === "mono" && layouts[0] === "stereo" || inputLayout === "stereo" && layouts[0] === "mono")) {
+                            throw new Error("aformat: unsupported input channel layout");
+                          }
                           if (!autoConversionFilters) throw new Error(audioConversionDisabled);
                           // Integer rematrixing normalizes the contributing speakers; LFE is omitted.
                           const assignment = ["u8", "u8p", "s16", "s16p", "s32", "s32p", "s64", "s64p"].includes(panSampleFormat) ? "<" : "=";
@@ -15397,7 +15401,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const fourChannelGains = inputMask === 0x107 && (panSampleFormat === "s16" || panSampleFormat === "s16p")
                             ? [1, Math.SQRT1_2, 0.5].map(gain => Math.round(gain / (1.5 + Math.SQRT1_2) * 32768) / 32768)
                             : undefined;
-                          const expression = multichannelStereo && fourChannelGains
+                          const expression = stereoExpansion ? `${layouts[0]}|FL=FL|FR=FR`
+                            : multichannelStereo && fourChannelGains
                             ? `stereo|FL=${fourChannelGains[0]}*FL+${fourChannelGains[1]}*FC+${fourChannelGains[2]}*BC|FR=${fourChannelGains[0]}*FR+${fourChannelGains[1]}*FC+${fourChannelGains[2]}*BC`
                             : multichannelStereo
                             ? `stereo|FL${assignment}FL+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BL+${Math.SQRT1_2}*SL|FR${assignment}FR+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BR+${Math.SQRT1_2}*SR`

@@ -67,7 +67,8 @@ export async function enhanceDialogue(
     for (let i = 0; i <= size / 2; i++) {
       const sr = real[0]![i]! + real[1]![i]!, si = imaginary[0]![i]! + imaginary[1]![i]!;
       const dr = real[0]![i]! - real[1]![i]!, di = imaginary[0]![i]! - imaginary[1]![i]!;
-      const a = 0.5 * (1 - Math.sqrt((dr * dr + di * di) / (sr * sr + si * si + epsilon)));
+      // Round the power ratio before the square root, matching FFmpeg's sqrtf input.
+      const a = 0.5 * (1 - Math.sqrt(round((dr * dr + di * di) / (sr * sr + si * si + epsilon))));
       cr[i] = a * sr; ci[i] = a * si;
       const center = Math.hypot(cr[i]!, ci[i]!), difference = Math.hypot(dr, di);
       centerFlux += (center - previousCenter[i]!) ** 2;

@@ -103,7 +103,7 @@ for (const filter of ["volume=0,adynamicequalizer=mode=listen", "adynamicequaliz
   });
 }
 
-for (const options of ["", "mode=cutbelow", "mode=0", "mode=invalid", "mode=listen:dfrequency=1",
+for (const options of ["mode=-2", "mode=4", "mode=invalid", "mode=listen:dfrequency=1",
   "mode=listen:dfrequency=1000001", "mode=listen:dfrequency=NaN", "mode=listen:dfrequency=",
   "mode=listen:dfrequency=0b1000", "mode=listen:dfrequency=0o10",
   "mode=listen:dfrequency=1/2", "mode=listen:dfrequency=1M+1", "mode=listen:dfrequency=1/0",

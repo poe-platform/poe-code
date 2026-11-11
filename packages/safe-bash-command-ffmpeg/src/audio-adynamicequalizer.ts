@@ -15,6 +15,7 @@ export async function listenDynamicEqualizer(
   const names = [...Object.keys(ranges), "mode"];
   let positionalIndex = 0;
   let mode = 0;
+  let listenOnlyOption: string | undefined;
   let precision = 0;
   let dftype = 0;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
@@ -29,7 +30,13 @@ export async function listenDynamicEqualizer(
       }
       dftype = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
     } else if (key === "mode") {
-      mode = parseFilterExpression(value, "adynamicequalizer", { listen: -1 });
+      const number = parseFilterExpression(value, "adynamicequalizer", {
+        listen: -1, cutbelow: 0, cutabove: 1, boostbelow: 2, boostabove: 3
+      });
+      if (!Number.isFinite(number) || number < -1 || number > 3) {
+        throw new Error("adynamicequalizer: invalid mode");
+      }
+      mode = Math.abs(number % 1) === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
     } else if (key === "precision") {
       const number = parseFilterExpression(value, "adynamicequalizer", { auto: 0, float: 1, double: 2 });
       if (!Number.isFinite(number) || number < 0 || number > 2) {
@@ -37,6 +44,7 @@ export async function listenDynamicEqualizer(
       }
       precision = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
     } else if (key === "tftype" || key === "auto") {
+      listenOnlyOption = key;
       const constants = key === "tftype"
         ? { bell: 0, lowshelf: 1, highshelf: 2 }
         : { disabled: 1, off: 2, on: 3, adaptive: 4 };
@@ -52,12 +60,13 @@ export async function listenDynamicEqualizer(
       }
       // Only detection frequency and Q affect the listen signal.
       if (key === "dfrequency" || key === "dqfactor") options[key] = number;
+      else listenOnlyOption = key;
     } else {
       throw new Error(`adynamicequalizer: unsupported option ${key}`);
     }
   }
-  if (mode !== -1) {
-    throw new Error("adynamicequalizer: only mode=listen is supported");
+  if (mode !== -1 && listenOnlyOption) {
+    throw new Error(`adynamicequalizer: unsupported option ${listenOnlyOption} outside listen mode`);
   }
 
   // Native auto precision keeps double/64-bit input; other formats use float.
@@ -75,12 +84,30 @@ export async function listenDynamicEqualizer(
   const inputMix = dftype === 3 ? 1 : 0;
   const bandMix = dftype === 0 ? k : dftype === 1 ? 0 : -k;
   const lowMix = dftype === 0 ? 0 : dftype === 1 ? 1 : dftype === 2 ? -1 : -2;
+  const targetG = f(Math.tan(f(Math.PI * Math.min(1000, sampleRate * 0.5) / sampleRate)));
+  const attack = 1 - Math.exp(-1 / (0.020 * sampleRate));
+  const release = 1 - Math.exp(-1 / (0.200 * sampleRate));
+  const gainAttack = f(attack * 0.25);
+  const gainRelease = f(release * 0.25);
+  const detectAttack = f(attack);
+  const detectRelease = f(release);
+  // The native default threshold is zero (-Infinity dB), with a 50 dB range.
+  // Below modes retain unity gain; above modes reach the range once detected.
+  const rangeGain = f(2 ** f(Math.log2(10) * (mode === 1 ? -2.5 : 2.5)));
   budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * SampleArray.BYTES_PER_ELEMENT, 0));
   const output = channels.map(channel => new SampleArray(channel.length));
   let work = 0;
   for (const [c, channel] of channels.entries()) {
     let state0 = 0;
     let state1 = 0;
+    let targetState0 = 0;
+    let targetState1 = 0;
+    let detect = 0;
+    let gain = 0;
+    let targetA0 = 0;
+    let targetA1 = 0;
+    let targetA2 = 0;
+    let targetMix = 0;
     for (let i = 0; i < channel.length; i++) {
       if (work++ % 4096 === 0) {
         await yieldTurn(signal);
@@ -92,7 +119,32 @@ export async function listenDynamicEqualizer(
       const low = f(f(state1 + f(a1 * state0)) + f(a2 * delta));
       state0 = f(f(2 * band) - state0);
       state1 = f(f(2 * low) - state1);
-      output[c]![i] = f(f(f(inputMix * f(channel[i]!)) + f(bandMix * band)) + f(lowMix * low));
+      const listen = f(f(f(inputMix * f(channel[i]!)) + f(bandMix * band)) + f(lowMix * low));
+      if (mode === -1) {
+        output[c]![i] = listen;
+        continue;
+      }
+      const amplitude = Math.abs(listen);
+      const detectCoef = amplitude > detect ? detectAttack : detectRelease;
+      detect = f(f(detectCoef * amplitude) + f(f(1 - detectCoef) * detect));
+      const wantedGain = (mode === 1 || mode === 3) && detect > 0 ? rangeGain : 1;
+      const gainCoef = wantedGain > gain ? gainAttack : gainRelease;
+      const nextGain = f(f(gainCoef * wantedGain) + f(f(1 - gainCoef) * gain));
+      if (nextGain !== gain || i === 0) {
+        gain = nextGain;
+        const targetK = f(1 / gain);
+        targetA0 = f(1 / f(1 + f(targetG * f(targetG + targetK))));
+        targetA1 = f(targetG * targetA0);
+        targetA2 = f(targetG * targetA1);
+        targetMix = f(targetK * f(f(gain * gain) - 1));
+      }
+      const sample = f(channel[i]!);
+      const targetDelta = f(sample - targetState1);
+      const targetBand = f(f(targetA0 * targetState0) + f(targetA1 * targetDelta));
+      const targetLow = f(f(targetState1 + f(targetA1 * targetState0)) + f(targetA2 * targetDelta));
+      targetState0 = f(f(2 * targetBand) - targetState0);
+      targetState1 = f(f(2 * targetLow) - targetState1);
+      output[c]![i] = f(sample + f(targetMix * targetBand));
     }
   }
   return output;

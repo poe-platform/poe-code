@@ -16334,15 +16334,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           .sort((a, b) => a.sample - b.sample);
                         audioCommands = audioCommands.filter(command => command.target !== "crystalizer" && command.target !== filterTarget);
                         let nextCommand = 0;
+                        const double = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp";
+                        const ChannelArray = double ? Float64Array : Float32Array;
+                        if (!double) filteredSampleFormat = filteredSampleFormat.endsWith("p") ? "fltp" : "flt";
                         const output = stretched.map(channel => {
-                          budget.allocateMemory(channel.length * Float32Array.BYTES_PER_ELEMENT);
-                          return new Float32Array(channel.length);
+                          budget.allocateMemory(channel.length * ChannelArray.BYTES_PER_ELEMENT);
+                          return new ChannelArray(channel.length);
                         });
                         const previous = stretched.map(() => 0);
                         let frameEnd = 0;
                         let frameIndex = 0;
                         let enabled = true;
-                        let scale = Math.fround(1 / Math.fround(1 - intensity));
+                        let scale = double ? 1 / (1 - intensity) : Math.fround(1 / Math.fround(1 - intensity));
                         for (let i = 0; i < (stretched[0]?.length ?? 0); i++) {
                           if (enable !== undefined && i >= frameEnd) {
                             const packet = t.samples[frameIndex];
@@ -16365,20 +16368,24 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const command = commands[nextCommand++]!;
                             try {
                               setOption(command.action, command.expression);
-                              scale = Math.fround(1 / Math.fround(1 - intensity));
+                              scale = double ? 1 / (1 - intensity) : Math.fround(1 / Math.fround(1 - intensity));
                             } catch { /* Rejected runtime commands retain the current options. */ }
                           }
                           for (let c = 0; c < stretched.length; c++) {
-                            const current = Math.fround(stretched[c]![i]!);
+                            const current = double ? stretched[c]![i]! : Math.fround(stretched[c]![i]!);
                             // Disabled frames pass through but still seed the next frame's history.
                             if (!enabled) {
                               previous[c] = current;
                               output[c]![i] = current;
                               continue;
                             }
-                            const value = intensity < 0
-                              ? Math.fround(Math.fround(current - Math.fround(previous[c]! * intensity)) * scale)
-                              : Math.fround(current + Math.fround(Math.fround(current - previous[c]!) * intensity));
+                            const value = double
+                              ? intensity < 0
+                                ? (current - previous[c]! * intensity) * scale
+                                : current + (current - previous[c]!) * intensity
+                              : intensity < 0
+                                ? Math.fround(Math.fround(current - Math.fround(previous[c]! * intensity)) * scale)
+                                : Math.fround(current + Math.fround(Math.fround(current - previous[c]!) * intensity));
                             previous[c] = intensity < 0 ? value : current;
                             output[c]![i] = clip ? Math.max(-1, Math.min(1, value)) : value;
                           }

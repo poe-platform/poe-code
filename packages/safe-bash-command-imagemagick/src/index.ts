@@ -1922,7 +1922,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
                 parts.push(formatGrayPixel(channels, fxImage.magickColorspace ?? (fxImage.gamma === 1 ? "LinearGray" : "Gray"), context.precision));
                 continue;
               }
-              parts.push(formatRgbPixel(channels, context.precision));
+              parts.push(formatRgbPixel(channels, fxImage.magickColorspace, context.precision));
             }
           }
         } catch (error) {
@@ -1946,11 +1946,12 @@ function* formatMagickPropertyStringSteps<Step=never>(
   return parts.join("");
 }
 
-function formatRgbPixel(channels: readonly number[], precision?: number): string {
+function formatRgbPixel(channels: readonly number[], colorspace: string | undefined, precision?: number): string {
+  const name = colorspace === "RGB" ? "rgb" : "srgb";
   const rgb = channels.slice(0, 3);
   const fractional = rgb.some(value => Math.abs(value - Math.round(value)) > 1e-9);
   const color = rgb.map(value => fractional ? `${formatSignificantMetric(value * 100 / 255, precision)}%` : String(Math.round(value))).join(",");
-  return channels[3] === undefined ? `srgb(${color})` : `srgba(${color},${formatMetricNum(channels[3])})`;
+  return channels[3] === undefined ? `${name}(${color})` : `${name}a(${color},${formatMetricNum(channels[3])})`;
 }
 
 function formatGrayPixel(channels: readonly number[], colorspace: string, precision?: number): string {
@@ -2011,7 +2012,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  if(((image as StoredRgbaImage).magickColorspace === "HCL" || (image as StoredRgbaImage).magickColorspace === "HCLp" || (image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HSV" || (image as StoredRgbaImage).magickColorspace === "HSI" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "LMS" || (image as StoredRgbaImage).magickColorspace === "CAT02LMS" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "DisplayP3" || (image as StoredRgbaImage).magickColorspace === "xyY" || (image as StoredRgbaImage).magickColorspace === "ProPhoto" || (image as StoredRgbaImage).magickColorspace === "Jzazbz" || ((image as StoredRgbaImage).magickColorspace === "YPbPr" || (image as StoredRgbaImage).magickColorspace === "YCbCr") || (image as StoredRgbaImage).magickColorspace === "Rec601YCbCr" || (image as StoredRgbaImage).magickColorspace === "YCC" || (image as StoredRgbaImage).magickColorspace === "Rec709YCbCr" || (image as StoredRgbaImage).magickColorspace === "Log" || (image as StoredRgbaImage).magickColorspace === "Adobe98" || (image as StoredRgbaImage).magickColorspace === "OHTA" || (image as StoredRgbaImage).magickColorspace === "CMY" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "YIQ" || (image as StoredRgbaImage).magickColorspace === "YDbDr" || (image as StoredRgbaImage).magickColorspace === "Oklab" || (image as StoredRgbaImage).magickColorspace === "Luv" || (image as StoredRgbaImage).magickColorspace === "Oklch" || (image as StoredRgbaImage).magickColorspace === "LCH" || (image as StoredRgbaImage).magickColorspace === "LCHab" || (image as StoredRgbaImage).magickColorspace === "LCHuv" || (image as StoredRgbaImage).magickColorspace === "CIELab"))return formatHuePixel(channels, (image as StoredRgbaImage).magickColorspace as "DisplayP3" | "HCL" | "HCLp" | "HSI" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CAT02LMS" | "LMS" | "xyY" | "ProPhoto" | "Jzazbz" | "CIELab" | "YPbPr" | "YCbCr" | "YCC" | "Rec709YCbCr" | "Log" | "OHTA" | "CMY" | "YUV" | "YIQ" | "YDbDr" | "Luv" | "Oklch" | "Oklab", hasAlpha);
  if(image.space === "cmyk")return formatCmykPixel(channels,hasAlpha,context.precision);
  if(image.space === "b-w" || image.space === "grey16")return formatGrayPixel(channels, (image as StoredRgbaImage).magickColorspace ?? (image.gamma === 1 ? "LinearGray" : "Gray"), context.precision);
- return formatRgbPixel(channels, context.precision);
+ return formatRgbPixel(channels, (image as StoredRgbaImage).magickColorspace, context.precision);
 }
 
 async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string; commandName?: string; errors?: string; readError?: boolean; boundsWarning?: boolean; unknownPropertyWarning?: boolean }; optionProperties?: Record<string, string> | undefined },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal,stack?:StoredImageStack):Promise<string>{

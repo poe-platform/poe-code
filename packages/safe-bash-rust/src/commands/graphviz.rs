@@ -3630,6 +3630,37 @@ fn gv_render_graph(
     Ok(write_image_bytes(&im))
 }
 
+/// Render DOT to UTF-8 SVG bytes in memory. Defaults have the same precedence
+/// as the dot command's -G, -N and -E attributes. No shell or files are used.
+///
+/// ```
+/// use safe_bash_rust::render_dot_svg;
+/// let svg = render_dot_svg("digraph { a -> b }", &[], &[("shape", "box")], &[])?;
+/// assert!(svg.starts_with(b"<svg"));
+/// # Ok::<(), String>(())
+/// ```
+pub fn render_dot_svg(
+    source: &str,
+    graph: &[(&str, &str)],
+    node: &[(&str, &str)],
+    edge: &[(&str, &str)],
+) -> Result<Vec<u8>, String> {
+    if source.len() > 1_048_576 {
+        return Err("input byte limit exceeded".into());
+    }
+    let mut options = GvLayoutOptions::default();
+    for (attrs, values) in [(&mut options.graph, graph), (&mut options.node, node), (&mut options.edge, edge)] {
+        for &(name, value) in values {
+            attrs.insert(name, value);
+        }
+    }
+    let svg = gv_render_graph(source, "svg", "dot", &options)?;
+    if svg.len() > 16_777_216 {
+        return Err("output byte limit exceeded".into());
+    }
+    Ok(svg)
+}
+
 fn cmd_graphviz(
     name: &str,
     args: &[String],

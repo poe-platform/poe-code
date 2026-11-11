@@ -54,6 +54,7 @@ pub use agent::{
     AgentRunCommandRequest, BackgroundStatus, PoeAgentShellHost, PoeAgentShellOptions, ShellMode,
 };
 pub use backend::{BackendMode, CommandContext, CommandResult, HybridBackend, RustCommand};
+pub use commands::archive::render_dot_svg;
 pub use budget::{AllocationGuard, CancellationToken, ExecutionBudget, ShellLimits};
 #[cfg(not(target_arch = "wasm32"))]
 pub use fs::RealVfs;

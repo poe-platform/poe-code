@@ -13030,11 +13030,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         if ((t === "-modulate" || t === "-alpha" || t === "-channel" || t === "+channel" || t === "-color-threshold" || t === "-blue-shift" || t === "+blue-shift" || t === "-color-matrix" || t === "-ordered-dither" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-auto-threshold" || t === "-random-threshold" || t === "-range-threshold" || t === "-solarize" || t === "-channel-fx" || t === "-level" || t === "+level" || t === "-level-colors" || t === "+level-colors" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" || t === "-negate" || t === "+negate" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast") && !stack.length) throw new Error(`no images found for operation '${t}'`);
-        if (t === "-page") {
+        if (t === "-page" || (t === "-set" && tokens[i + 1]?.toLowerCase() === "option:page")) {
+            if (t === "-set") i++;
             const raw = tokens[++i] ?? "";
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
             const expanded = yield* formatMagickPropertyStringSteps(raw, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
             const { hasOffset, ...page } = parseMagickPageGeometry(expanded);
+            if (t === "-set") state.optionProperties = { ...state.optionProperties, page: expanded };
             state.page = page;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 yield;
@@ -16593,8 +16595,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && token === "-page") {
+        if (!operandsOnly && (token === "-page" || (token === "-set" && tokens[i + 1]?.toLowerCase() === "option:page"))) {
+            if (token === "-set") i++;
             const raw = tokens[++i] ?? "", settings = { ...state };
+            if (token === "-set") state.optionProperties = { ...state.optionProperties, page: raw };
             const page = state.page = { width: 0, height: 0, x: 0, y: 0 };
             stackStep(async (stack, backend) => {
                 const image = await stack.get(0) ?? await createStoredCanvas(1, 1, settings.background, backend, signal);

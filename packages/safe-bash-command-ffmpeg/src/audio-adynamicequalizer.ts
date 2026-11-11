@@ -4,7 +4,8 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function listenDynamicEqualizer(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  budget: MediaBudgetTracker, signal?: AbortSignal, sampleFormat = "s16"
+  budget: MediaBudgetTracker, signal?: AbortSignal, sampleFormat = "s16",
+  frames: readonly { start: number; end: number; pts: number }[] = [{ start: 0, end: channels[0]?.length ?? 0, pts: 0 }]
 ): Promise<(Float32Array | Float64Array)[]> {
   const options = { dfrequency: 1000, dqfactor: 1 };
   const ranges = {
@@ -15,6 +16,7 @@ export async function listenDynamicEqualizer(
   const names = [...Object.keys(ranges), "mode"];
   let positionalIndex = 0;
   let mode = 0;
+  let enable: string | undefined;
   let listenOnlyOption: string | undefined;
   let precision = 0;
   let dftype = 0;
@@ -23,7 +25,10 @@ export async function listenDynamicEqualizer(
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[positionalIndex++] : option.slice(0, separator).trim();
     const value = option.slice(separator + 1).trim();
-    if (key === "dftype") {
+    if (key === "enable") {
+      enable = value;
+      parseFilterExpression(enable, "adynamicequalizer enable", { n: 0, t: 0 });
+    } else if (key === "dftype") {
       const number = parseFilterExpression(value, "adynamicequalizer", { bandpass: 0, lowpass: 1, highpass: 2, peak: 3 });
       if (!Number.isFinite(number) || number < 0 || number > 3) {
         throw new Error("adynamicequalizer: invalid dftype");
@@ -108,43 +113,49 @@ export async function listenDynamicEqualizer(
     let targetA1 = 0;
     let targetA2 = 0;
     let targetMix = 0;
-    for (let i = 0; i < channel.length; i++) {
-      if (work++ % 4096 === 0) {
-        await yieldTurn(signal);
-        signal?.throwIfAborted();
-        budget.checkCpu();
+    for (const [n, frame] of frames.entries()) {
+      const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "adynamicequalizer enable", {
+        n, t: frame.pts / sampleRate
+      })) >= 0.5;
+      // Native keeps detector history running while its output is bypassed.
+      for (let i = frame.start; i < frame.end; i++) {
+        if (work++ % 4096 === 0) {
+          await yieldTurn(signal);
+          signal?.throwIfAborted();
+          budget.checkCpu();
+        }
+        const delta = f(f(channel[i]!) - state1);
+        const band = f(f(a0 * state0) + f(a1 * delta));
+        const low = f(f(state1 + f(a1 * state0)) + f(a2 * delta));
+        state0 = f(f(2 * band) - state0);
+        state1 = f(f(2 * low) - state1);
+        const listen = f(f(f(inputMix * f(channel[i]!)) + f(bandMix * band)) + f(lowMix * low));
+        if (mode === -1) {
+          output[c]![i] = enabled ? listen : channel[i]!;
+          continue;
+        }
+        const amplitude = Math.abs(listen);
+        const detectCoef = amplitude > detect ? detectAttack : detectRelease;
+        detect = f(f(detectCoef * amplitude) + f(f(1 - detectCoef) * detect));
+        const wantedGain = (mode === 1 || mode === 3) && detect > 0 ? rangeGain : 1;
+        const gainCoef = wantedGain > gain ? gainAttack : gainRelease;
+        const nextGain = f(f(gainCoef * wantedGain) + f(f(1 - gainCoef) * gain));
+        if (nextGain !== gain || i === 0) {
+          gain = nextGain;
+          const targetK = f(1 / gain);
+          targetA0 = f(1 / f(1 + f(targetG * f(targetG + targetK))));
+          targetA1 = f(targetG * targetA0);
+          targetA2 = f(targetG * targetA1);
+          targetMix = f(targetK * f(f(gain * gain) - 1));
+        }
+        const sample = f(channel[i]!);
+        const targetDelta = f(sample - targetState1);
+        const targetBand = f(f(targetA0 * targetState0) + f(targetA1 * targetDelta));
+        const targetLow = f(f(targetState1 + f(targetA1 * targetState0)) + f(targetA2 * targetDelta));
+        targetState0 = f(f(2 * targetBand) - targetState0);
+        targetState1 = f(f(2 * targetLow) - targetState1);
+        output[c]![i] = enabled ? f(sample + f(targetMix * targetBand)) : channel[i]!;
       }
-      const delta = f(f(channel[i]!) - state1);
-      const band = f(f(a0 * state0) + f(a1 * delta));
-      const low = f(f(state1 + f(a1 * state0)) + f(a2 * delta));
-      state0 = f(f(2 * band) - state0);
-      state1 = f(f(2 * low) - state1);
-      const listen = f(f(f(inputMix * f(channel[i]!)) + f(bandMix * band)) + f(lowMix * low));
-      if (mode === -1) {
-        output[c]![i] = listen;
-        continue;
-      }
-      const amplitude = Math.abs(listen);
-      const detectCoef = amplitude > detect ? detectAttack : detectRelease;
-      detect = f(f(detectCoef * amplitude) + f(f(1 - detectCoef) * detect));
-      const wantedGain = (mode === 1 || mode === 3) && detect > 0 ? rangeGain : 1;
-      const gainCoef = wantedGain > gain ? gainAttack : gainRelease;
-      const nextGain = f(f(gainCoef * wantedGain) + f(f(1 - gainCoef) * gain));
-      if (nextGain !== gain || i === 0) {
-        gain = nextGain;
-        const targetK = f(1 / gain);
-        targetA0 = f(1 / f(1 + f(targetG * f(targetG + targetK))));
-        targetA1 = f(targetG * targetA0);
-        targetA2 = f(targetG * targetA1);
-        targetMix = f(targetK * f(f(gain * gain) - 1));
-      }
-      const sample = f(channel[i]!);
-      const targetDelta = f(sample - targetState1);
-      const targetBand = f(f(targetA0 * targetState0) + f(targetA1 * targetDelta));
-      const targetLow = f(f(targetState1 + f(targetA1 * targetState0)) + f(targetA2 * targetDelta));
-      targetState0 = f(f(2 * targetBand) - targetState0);
-      targetState1 = f(f(2 * targetLow) - targetState1);
-      output[c]![i] = f(sample + f(targetMix * targetBand));
     }
   }
   return output;

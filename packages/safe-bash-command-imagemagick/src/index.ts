@@ -6277,6 +6277,8 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
             resized.metaChannels.push(yield* applyMagickResizeSteps(plane, `${width}x${height}!`, kernel, thumbnail, sample, scale, settings, sampleOffset, preserveSamples));
     }
 
+    // Sample and scale zero the native mask channel along with the resized pixels.
+    if ((sample || scale) && img.region) resized.region = { x: 0, y: 0, width, height };
     if ((sample || scale) && img.writeMask) resized = { ...resized, writeMask: { ...resized, hasAlpha: false } };
     const virtualCanvas = magickResizeCanvas(img, width, height);
     return virtualCanvas ? { ...resized, virtualCanvas } : resized;
@@ -6340,6 +6342,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: Pick<Com
             resized.storedMetaChannels.push(await resizeStoredMagickImage(plane, backend, options, signal, thumbnail, sample, scale, settings, sampleOffset, preserveSamples));
     }
 
+    if ((sample || scale) && image.region) resized.region = { x: 0, y: 0, width, height };
     if ((sample || scale) && image.storedWriteMask) {
         const { storedData16: ignoredData16, ...mask } = image.storedWriteMask;
         resized = { ...resized, storedWriteMask: { ...mask, width, height, hasAlpha: false, position: resized.position } };

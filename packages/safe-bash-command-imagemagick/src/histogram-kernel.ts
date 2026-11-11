@@ -18,7 +18,7 @@ export function* histogramPixelSteps(count: number): Generator<ConvolveRequest |
         const data = new Uint8Array(256 * 4);
         for (let x = 0; x < 256; x++) {
             for (let channel = 0; channel < 3; channel++) {
-                if (y >= Math.floor(200 - 200 * bins[x * 3 + channel]! / maximum)) data[x * 4 + channel] = 255;
+                if (y >= Math.round(200 - 200 * bins[x * 3 + channel]! / maximum)) data[x * 4 + channel] = 255;
             }
             data[x * 4 + 3] = 255;
         }

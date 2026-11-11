@@ -1,7 +1,21 @@
 import { expect, it } from "vitest";
+import { createHash } from "node:crypto";
 import sharp from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
+
+for (const retained of [false, true]) {
+    it.each(["png", "miff"])(`matches native fractional histogram bars in %s (retained=${retained})`, async format => {
+        const input = Buffer.concat([Buffer.from("P6\n4 2\n255\n"), Buffer.from("ff0000".repeat(4) + "00ff00".repeat(2) + "0000ff000000", "hex")]);
+        const files = new Map([["in.ppm", input]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/in.ppm", input);
+        const output = `out.${format}`;
+        expect(await runConvertCli(["in.ppm", `histogram:${output}`], retained ? { filesystem, cwd: "/" } : files)).toEqual({ exitCode: 0, stdout: "", stderr: "" });
+        const bytes = retained ? await filesystem.readFile(`/${output}`) : files.get(output)!;
+        const data = await sharp(bytes).removeAlpha().raw().toBuffer();
+        expect(createHash("sha256").update(data).digest("hex")).toBe("bfb0b0e973bed890479ea6ddac165d9c6eabe52b3e76b2678512b737a5530e5b");
+    });
+}
 
 it.each([false, true])("writes the native RGB histogram chart (retained=%s)", async retained => {
     const pixels = new Uint8Array([255, 0, 0, 255, 0, 0, 255, 0, 0, 0, 255, 0, 0, 255, 0, 0, 0, 255]);

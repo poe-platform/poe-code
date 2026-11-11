@@ -784,6 +784,7 @@ interface MagickState {
   modulateColorspace?: string;
   whiteBalanceVibrance?: string;
   kmeansSeedColors?: string;
+  verbose?: boolean;
   complexSnr?: number;
   resizeFilter?: ResizeFilterSettings;
   pointFilter?: boolean;
@@ -11638,6 +11639,9 @@ if (t === "-intent" || t === "+intent") {
             delete state.captionHeight;
             delete state.inputOffset;
         }
+        else if (t === "-verbose" || t === "+verbose") {
+            state.verbose = t === "-verbose";
+        }
         else if (t === "-respect-parentheses" || t === "+respect-parentheses") {
             state.respectParentheses = t === "-respect-parentheses";
         }
@@ -13954,10 +13958,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-kmeans") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const raw = tokens[++i] ?? "", seed = state.seed, seedColors = state.kmeansSeedColors?.split(";").map(color => parseColor(color, true));
+            const raw = tokens[++i] ?? "", seed = state.seed, seedColors = state.kmeansSeedColors?.split(";").map(color => ({ ...parseColor(color, true), depth: color.trim().startsWith("#") && color.trim().length > 9 ? 16 : 8 }));
+            const report = state.verbose ? (text: string) => { analysis.progress += text; } : undefined;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                const geometry = { ...parseKmeansGeometry(expanded), seed, seedColors };
+                const geometry = { ...parseKmeansGeometry(expanded), seed, seedColors, report };
                 return geometry.iterations > 0 ? yield* applyMagickRasterSteps({ ...image, isPalette: true }, kmeansPixelSteps(image, geometry), signal) : image;
             }, undefined, true);
         }
@@ -17929,11 +17934,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const raw = tokens[++i] ?? "", optionProperties = state.optionProperties, seed = state.seed, seedColors = state.kmeansSeedColors?.split(";").map(color => parseColor(color, true));
+            const raw = tokens[++i] ?? "", optionProperties = state.optionProperties, seed = state.seed, seedColors = state.kmeansSeedColors?.split(";").map(color => ({ ...parseColor(color, true), depth: color.trim().startsWith("#") && color.trim().length > 9 ? 16 : 8 }));
+            const report = state.verbose ? (text: string) => { analysis.progress += text; } : undefined;
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                const geometry = { ...parseKmeansGeometry(expanded), seed, seedColors };
+                const geometry = { ...parseKmeansGeometry(expanded), seed, seedColors, report };
                 return geometry.iterations > 0 ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, kmeansPixelSteps(image, geometry), signal) : image;
             }, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-segment") {

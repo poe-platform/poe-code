@@ -25,7 +25,7 @@ export function parseKmeansGeometry(raw: string): { colors: number; iterations: 
 }
 
 /** Quantization seeds followed by Lloyd refinement, with bounded raster reads. */
-export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space" | "hueSamples"> & { region?: Region | undefined; alphaBlend?: boolean | undefined } & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples" | "storedHueSamples">>, options: ReturnType<typeof parseKmeansGeometry> & { seedColors?: RgbaColor[] | undefined; seed?: bigint | undefined }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "depth" | "bitsPerSample" | "data16" | "evaluateSamples" | "space" | "hueSamples"> & { region?: Region | undefined; alphaBlend?: boolean | undefined } & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples" | "storedHueSamples">>, options: ReturnType<typeof parseKmeansGeometry> & { seedColors?: (RgbaColor & { depth?: number })[] | undefined; seed?: bigint | undefined; report?: ((text: string) => void) | undefined }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
     const evaluate = !hue && (!!image.evaluateSamples || image.storedEvaluateSamples !== undefined);
     const cmyk = image.space === "cmyk", channels = cmyk ? 5 : 4;
@@ -67,6 +67,7 @@ export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
         return pixels;
     }
     let palette: number[][];
+    let reportOrder: number[] | undefined;
     if (options.seedColors) {
         palette = options.seedColors.slice(0, options.colors).map(color => [color.r / 255, color.g / 255, color.b / 255, color.a / 255, ...(cmyk ? [0] : [])]);
         const random = createMagickRandom(options.seed);
@@ -97,6 +98,11 @@ export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
             } else next = seeds.next(yield request);
         }
         palette = [...colors.values()];
+        if (options.report) {
+            const indices = new Map([...colors.keys()].map((color, index) => [color, index]));
+            reportOrder = next.value.map(color => indices.get((color % 0x1000000) * 256 + Math.floor(color / 0x1000000)))
+                .filter((index): index is number => index !== undefined);
+        }
     }
     // Explicit opaque colors retain an undefined alpha trait in the native colormap.
     const alphaTraits = palette.map((_, index) => options.seedColors ? (options.seedColors[index]?.a ?? 255) < 255 : image.hasAlpha);
@@ -121,8 +127,10 @@ export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
         }
         return { index, distance };
     }
+    const counts = new Float64Array(palette.length);
     for (let iteration = 0; iteration < options.iterations; iteration++) {
-        const sums = palette.map(() => new Array<number>(channels).fill(0)), counts = new Float64Array(palette.length);
+        const sums = palette.map(() => new Array<number>(channels).fill(0));
+        counts.fill(0);
         let distortion = 0;
         assignments = palette;
         for (let position = 0; position < length; position += 2048) {
@@ -139,6 +147,20 @@ export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
         palette = sums.map((sum, index) => sum.map(value => value / (counts[index] || 1)));
         if (Math.abs(distortion - previousDistortion) <= options.tolerance) break;
         previousDistortion = distortion;
+    }
+    if (options.report && options.iterations > 0) {
+        for (const index of reportOrder ?? palette.keys()) {
+            const center = palette[index]!;
+            yield;
+            const depth = options.seedColors?.[index]?.depth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
+            const digits = depth <= 8 ? 2 : depth <= 16 ? 4 : 8, maximum = 2 ** (digits * 4) - 1;
+            const components = cmyk ? [0, 1, 2, 4] : [0, 1, 2];
+            if (!options.seedColors || alphaTraits[index]) components.push(3);
+            const hex = components.map(channel => Math.max(0, Math.min(maximum, Math.round(
+                Math.fround(center[channel]! * 65535) / 65535 * maximum
+            ))).toString(16).padStart(digits, "0").toUpperCase()).join("");
+            options.report(`#${hex} ${counts[index]}\n`);
+        }
     }
     // Use the final iteration's assignments with its newly calculated means.
     for (let position = 0; position < length; position += 2048) {

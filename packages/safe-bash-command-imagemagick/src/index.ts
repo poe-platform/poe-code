@@ -2070,14 +2070,22 @@ function* formatHistogramOutputSteps(img: RgbaImage, precision = 6): Generator<v
     const floating = source || img.space === "srgb" && img.evaluateSamples !== undefined && (!img.magickColorspace || img.magickColorspace === "RGB");
     let work = 0;
     const counts = new Map<number | bigint | string, number>();
+    const colorKeys = new Map<string, bigint>();
     for (let i = 0; i < img.data.length; i += 4) {
         if (++work % 16384 === 0)
             yield;
         const key = floating ? floatingHistogramKey(source ? sourceHistogramSamples((img.evaluateSamples ?? img.data16 ?? img.data).subarray(i, i + 4), img.space === "cmyk", img.hueSamples?.subarray(i, i + 4)) : img.evaluateSamples!.subarray(i, i + 4), img.hasAlpha) : (img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HSI" || img.magickColorspace === "HWB" || img.magickColorspace === "LMS" || img.magickColorspace === "CAT02LMS" || img.magickColorspace === "XYZ" || img.magickColorspace === "DisplayP3" || img.magickColorspace === "xyY" || img.magickColorspace === "ProPhoto" || img.magickColorspace === "Jzazbz" || (img.magickColorspace === "YPbPr" || img.magickColorspace === "YCbCr") || img.magickColorspace === "Rec601YCbCr" || img.magickColorspace === "YCC" || img.magickColorspace === "Rec709YCbCr" || img.magickColorspace === "Log" || img.magickColorspace === "Adobe98" || img.magickColorspace === "OHTA" || img.magickColorspace === "CMY" || img.magickColorspace === "YUV" || img.magickColorspace === "YIQ" || img.magickColorspace === "YDbDr" || img.magickColorspace === "Oklab" || img.magickColorspace === "Luv" || img.magickColorspace === "Oklch" || img.magickColorspace === "LCH" || img.magickColorspace === "LCHab" || img.magickColorspace === "LCHuv" || img.magickColorspace === "CIELab") ? hueTextPixel(Array.from(img.data16?.subarray(i, i + 4) ?? img.data.subarray(i, i + 4), value => img.data16 ? value : value * 257), img.hasAlpha, img.magickColorspace, (img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSI" || img.magickColorspace === "HWB" || img.magickColorspace === "LMS" || img.magickColorspace === "CAT02LMS" || img.magickColorspace === "XYZ" || img.magickColorspace === "DisplayP3" || img.magickColorspace === "xyY" || img.magickColorspace === "ProPhoto" || img.magickColorspace === "Jzazbz" || (img.magickColorspace === "YPbPr" || img.magickColorspace === "YCbCr") || img.magickColorspace === "Rec601YCbCr" || img.magickColorspace === "YCC" || img.magickColorspace === "Rec709YCbCr" || img.magickColorspace === "Log" || img.magickColorspace === "Adobe98" || img.magickColorspace === "OHTA" || img.magickColorspace === "CMY" || img.magickColorspace === "YUV" || img.magickColorspace === "YIQ" || img.magickColorspace === "YDbDr" || img.magickColorspace === "Oklab" || img.magickColorspace === "Luv" || img.magickColorspace === "Oklch" || img.magickColorspace === "LCH" || img.magickColorspace === "LCHab" || img.magickColorspace === "LCHuv" || img.magickColorspace === "CIELab") && img.hueSamples ? Array.from(img.hueSamples.subarray(i, i + 4)) : undefined) : img.data16 ? img.data16.subarray(i, i + 4).reduce((key, value) => (key << 16n) | BigInt(value), 0n) : ((img.data[i]! << 24) | (img.data[i + 1]! << 16) | (img.data[i + 2]! << 8) | img.data[i + 3]!) >>> 0;
+        if (typeof key === "string" && !colorKeys.has(key)) {
+            colorKeys.set(key, Array.from((img.data16 ?? img.data).subarray(i, i + 4)).reduce((packed, value) => (packed << 16n) | BigInt(value), 0n));
+        }
         counts.set(key, (counts.get(key) ?? 0) + 1);
     }
     const lines: string[] = [];
-    for (const [key, cnt] of [...counts.entries()].sort(([a], [b]) => typeof a !== "string" && typeof b !== "string" ? a < b ? -1 : a > b ? 1 : 0 : 0)) {
+    for (const [key, cnt] of [...counts.entries()].sort(([a], [b]) => {
+        const left = typeof a === "string" ? colorKeys.get(a)! : a;
+        const right = typeof b === "string" ? colorKeys.get(b)! : b;
+        return left < right ? -1 : left > right ? 1 : 0;
+    })) {
         if (++work % 16384 === 0)
             yield;
         lines.push(floating ? floatingHistogramLine(key as bigint, cnt, img.hasAlpha, (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8, colorspace, precision) : typeof key === "string" ? `  ${cnt}: ${key}` : histogramLine(key, cnt, img.hasAlpha, (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8, precision));

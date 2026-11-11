@@ -244,7 +244,7 @@ export async function* storedHistogram(image: StoredRgbaImage & HueMetadata, sto
         return;
     }
     const hue = ["HCL", "HCLp", "HSI", "HSL", "HSB", "HSV", "HWB", "DisplayP3", "XYZ", "CAT02LMS", "LMS", "xyY", "ProPhoto", "YPbPr", "YCbCr", "Rec601YCbCr", "YCC", "Rec709YCbCr", "Log", "OHTA", "CMY", "YUV", "YIQ", "YDbDr", "Luv", "Oklch", "LCH", "LCHab", "LCHuv", "CIELab"].includes(image.magickColorspace ?? "");
-    const counts = new IntegerTable(storage, 512), order = hue ? new IntegerTable(storage, 128) : undefined, size = image.width * image.height * 4;
+    const counts = new IntegerTable(storage, 512), size = image.width * image.height * 4;
     const sampleOffsets = (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") && image.storedHueSamples !== undefined ? new IntegerTable(storage, 128) : undefined;
     let unique = 0;
     for (let start = 0; start < size; start += 16384) {
@@ -255,8 +255,7 @@ export async function* storedHistogram(image: StoredRgbaImage & HueMetadata, sto
         for (let offset = 0; offset < bytes.length; offset += 4) {
             const key = (data16 || hue) ? Array.from(data16?.subarray(offset, offset + 4) ?? bytes.subarray(offset, offset + 4), value => BigInt(data16 ? value : value * 257)).reduce((key, value) => (key << 16n) | value, 0n) : BigInt(((bytes[offset]! << 24) | (bytes[offset + 1]! << 16) | (bytes[offset + 2]! << 8) | bytes[offset + 3]!) >>> 0), count = await counts.get(key);
             if (count === undefined) {
-                if (sampleOffsets) await sampleOffsets.set(BigInt(unique), BigInt(start + offset));
-                if (order) await order.set(BigInt(unique), key);
+                if (sampleOffsets) await sampleOffsets.set(key, BigInt(start + offset));
                 unique++;
             }
             await counts.set(key, (count ?? 0n) + 1n);
@@ -271,12 +270,12 @@ export async function* storedHistogram(image: StoredRgbaImage & HueMetadata, sto
         if (!unique) yield "\n";
         return;
     }
-    for (let index = 0; index < unique; index++) {
-        if (index % 128 === 0) await yieldTurn(signal);
-        const key = (await order!.get(BigInt(index)))!;
-        const samples = sampleOffsets ? await storage.read(image.storedHueSamples! + Number(await sampleOffsets.get(BigInt(index))) * 8, 32) : undefined;
+    let index = 0;
+    for await (const [key, count] of counts.entries()) {
+        if (index++ % 128 === 0) await yieldTurn(signal);
+        const samples = sampleOffsets ? await storage.read(image.storedHueSamples! + Number(await sampleOffsets.get(key)) * 8, 32) : undefined;
         const hueSamples = samples ? Array.from(new Float64Array(samples.buffer.slice(samples.byteOffset, samples.byteOffset + samples.byteLength))) : undefined;
-        yield (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") ? `  ${Number(await counts.get(key))}: ${hueTextPixel([48n, 32n, 16n, 0n].map(shift => Number((key >> shift) & 65535n)), image.hasAlpha, image.magickColorspace, hueSamples)}\n` : histogramLine(Number(key), Number(await counts.get(key)), image.hasAlpha, false, precision) + "\n";
+        yield (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") ? `  ${Number(count)}: ${hueTextPixel([48n, 32n, 16n, 0n].map(shift => Number((key >> shift) & 65535n)), image.hasAlpha, image.magickColorspace, hueSamples)}\n` : histogramLine(Number(key), Number(count), image.hasAlpha, false, precision) + "\n";
     }
     if (!unique) yield "\n";
 }

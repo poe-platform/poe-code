@@ -2,6 +2,7 @@ import { scaleVideoPicture, type MediaBudgetTracker, type MediaVideoFrame } from
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 import { parseFilterBoolean } from "./filter-boolean.js";
+import { deflickerCubeRoot, deflickerPower } from "./deflicker-math.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 type DeflickerFrame = MediaVideoFrame & { filterMetadata?: Record<string, string> };
@@ -86,14 +87,14 @@ export async function deflicker(
       else if (mode === 2) mean = f(mean + f(1 / value));
       else if (mode === 3) mean = f(mean + f(value * value));
       else if (mode === 4) mean = f(mean + f(f(value * value) * value));
-      else if (mode === 5) mean = f(mean + f(Math.pow(value, size)));
+      else if (mode === 5) mean = f(mean + deflickerPower(value, size));
     }
     if (mode === 0) mean = f(mean / size);
     else if (mode === 1) mean = f(Math.pow(mean, f(1 / size)));
     else if (mode === 2) mean = f(size / mean);
     else if (mode === 3) mean = f(Math.sqrt(f(mean / size)));
-    else if (mode === 4) mean = f(Math.cbrt(f(mean / size)));
-    else if (mode === 5) mean = f(Math.pow(f(mean / size), f(1 / size)));
+    else if (mode === 4) mean = deflickerCubeRoot(f(mean / size));
+    else if (mode === 5) mean = deflickerPower(f(mean / size), f(1 / size));
     else mean = window[order[size >> 1]!]!;
     const factor = f(mean / window[0]!);
     const filterMetadata = { ...frame.filterMetadata,

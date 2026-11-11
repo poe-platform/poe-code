@@ -133,3 +133,121 @@ it("honors memory limits and cancellation", async () => {
   controller.abort();
   await assert.rejects(pending, { name: "AbortError" });
 });
+
+// FFmpeg 7.0.2-static references: rounding must match all six metadata decimals.
+for (const { mode, pixels, metadata } of [
+  {
+    mode: "cm",
+    pixels: "17a7ff0053a6fa4688d2327ca920609f289aff169aff0485a7fa489ae93a8bdc",
+    metadata: [
+      "lavfi.deflicker.luminance=70.500000",
+      "lavfi.deflicker.new_luminance=125.293777",
+      "lavfi.deflicker.relative_change=0.777217",
+      "lavfi.deflicker.luminance=138.500000",
+      "lavfi.deflicker.new_luminance=142.574814",
+      "lavfi.deflicker.relative_change=0.029421",
+      "lavfi.deflicker.luminance=142.500000",
+      "lavfi.deflicker.new_luminance=130.615585",
+      "lavfi.deflicker.relative_change=-0.083399",
+      "lavfi.deflicker.luminance=146.500000",
+      "lavfi.deflicker.new_luminance=114.747620",
+      "lavfi.deflicker.relative_change=-0.216740",
+      "lavfi.deflicker.luminance=86.500000",
+      "lavfi.deflicker.new_luminance=121.420692",
+      "lavfi.deflicker.relative_change=0.403707",
+      "lavfi.deflicker.luminance=90.500000",
+      "lavfi.deflicker.new_luminance=144.300278",
+      "lavfi.deflicker.relative_change=0.594478",
+      "lavfi.deflicker.luminance=158.500000",
+      "lavfi.deflicker.new_luminance=161.188660",
+      "lavfi.deflicker.relative_change=0.016963",
+      "lavfi.deflicker.luminance=162.500000",
+      "lavfi.deflicker.new_luminance=162.500000",
+      "lavfi.deflicker.relative_change=0.000000"
+    ]
+  },
+  {
+    mode: "pm",
+    pixels: "17a7ff0053a6fa4688d2327ca920609f289aff169aff0485a7fa489ae93a8bdc",
+    metadata: [
+      "lavfi.deflicker.luminance=70.500000",
+      "lavfi.deflicker.new_luminance=125.293800",
+      "lavfi.deflicker.relative_change=0.777217",
+      "lavfi.deflicker.luminance=138.500000",
+      "lavfi.deflicker.new_luminance=142.574844",
+      "lavfi.deflicker.relative_change=0.029421",
+      "lavfi.deflicker.luminance=142.500000",
+      "lavfi.deflicker.new_luminance=130.615601",
+      "lavfi.deflicker.relative_change=-0.083399",
+      "lavfi.deflicker.luminance=146.500000",
+      "lavfi.deflicker.new_luminance=114.747643",
+      "lavfi.deflicker.relative_change=-0.216740",
+      "lavfi.deflicker.luminance=86.500000",
+      "lavfi.deflicker.new_luminance=121.420700",
+      "lavfi.deflicker.relative_change=0.403708",
+      "lavfi.deflicker.luminance=90.500000",
+      "lavfi.deflicker.new_luminance=144.300308",
+      "lavfi.deflicker.relative_change=0.594478",
+      "lavfi.deflicker.luminance=158.500000",
+      "lavfi.deflicker.new_luminance=161.188690",
+      "lavfi.deflicker.relative_change=0.016963",
+      "lavfi.deflicker.luminance=162.500000",
+      "lavfi.deflicker.new_luminance=162.500046",
+      "lavfi.deflicker.relative_change=0.000000"
+    ]
+  },
+  {
+    mode: "am",
+    pixels: "159cff0053a6fa4582ca30779f1e5a96258ef61493ff047fa7fa489ae93a8bdc",
+    metadata: [
+      "lavfi.deflicker.luminance=70.500000",
+      "lavfi.deflicker.new_luminance=117.166664",
+      "lavfi.deflicker.relative_change=0.661939",
+      "lavfi.deflicker.luminance=138.500000",
+      "lavfi.deflicker.new_luminance=142.500000",
+      "lavfi.deflicker.relative_change=0.028881",
+      "lavfi.deflicker.luminance=142.500000",
+      "lavfi.deflicker.new_luminance=125.166664",
+      "lavfi.deflicker.relative_change=-0.121637",
+      "lavfi.deflicker.luminance=146.500000",
+      "lavfi.deflicker.new_luminance=107.833336",
+      "lavfi.deflicker.relative_change=-0.263936",
+      "lavfi.deflicker.luminance=86.500000",
+      "lavfi.deflicker.new_luminance=111.833328",
+      "lavfi.deflicker.relative_change=0.292871",
+      "lavfi.deflicker.luminance=90.500000",
+      "lavfi.deflicker.new_luminance=137.166672",
+      "lavfi.deflicker.relative_change=0.515654",
+      "lavfi.deflicker.luminance=158.500000",
+      "lavfi.deflicker.new_luminance=161.166687",
+      "lavfi.deflicker.relative_change=0.016824",
+      "lavfi.deflicker.luminance=162.500000",
+      "lavfi.deflicker.new_luminance=162.500000",
+      "lavfi.deflicker.relative_change=0.000000"
+    ]
+  }
+]) for (const bypass of [false, true]) {
+  it(`matches native ${mode} luminance metadata (bypass=${bypass})`, async () => {
+    const input = Buffer.from("0d5eaf0051a2f34495e63788d92a7bcc1d6ebf1061b20354a5f64798e93a8bdc", "hex");
+    const result = await run(`deflicker=s=3:m=${mode}:bypass=${Number(bypass)},metadata=print`, input);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.output.toString("hex"), bypass ? input.toString("hex") : pixels);
+    assert.deepEqual(result.stderr.split("\n").filter(line => line.startsWith("lavfi.deflicker.")), metadata);
+  });
+}
+
+for (const [mode, size, expected] of [
+  ["cm", 2, ["114.562218", "140.528458", "144.527679", "123.763100", "88.545174", "133.167694", "160.524918", "162.500000"]],
+  ["cm", 5, ["124.686012", "126.339867", "131.648315", "136.817825", "140.785843", "152.106979", "161.715759", "162.500000"]],
+  ["pm", 2, ["109.891983", "140.514236", "144.513840", "120.300667", "88.522598", "129.059097", "160.512466", "162.500000"]],
+  ["pm", 5, ["129.738602", "130.344131", "136.528900", "142.299988", "146.513580", "154.910019", "161.731201", "162.500015"]]
+] as const) {
+  it(`matches native ${mode} luminance with window size ${size}`, async () => {
+    const input = Buffer.from("0d5eaf0051a2f34495e63788d92a7bcc1d6ebf1061b20354a5f64798e93a8bdc", "hex");
+    const result = await run(`deflicker=s=${size}:m=${mode}:bypass=1,metadata=print`, input);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.output, input);
+    assert.deepEqual(result.stderr.split("\n").filter(line => line.startsWith("lavfi.deflicker.new_luminance=")),
+      expected.map(value => `lavfi.deflicker.new_luminance=${value}`));
+  });
+}

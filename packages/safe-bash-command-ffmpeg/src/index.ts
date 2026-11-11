@@ -16128,18 +16128,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           sawNamed ||= separator >= 0;
                           const value = option.slice(separator + 1).trim();
                           if (key === "level_in" || key === "level_out" || key === "mlev" || key === "slev") {
-                            const level = parseFilterExpression(value, "stereotools", {});
+                            const level = parseFilterExpression(value, "stereotools", { min: 0.015625, max: 64, default: 1 });
                             if (!Number.isFinite(level) || level < 0.015625 || level > 64) {
                               throw new Error(`stereotools: ${key} must be in the range [0.015625, 64]`);
                             }
                             levels[key] = level;
                           } else if (key === "sclevel") {
-                            sclevel = parseFilterExpression(value, "stereotools", {});
+                            sclevel = parseFilterExpression(value, "stereotools", { min: 1, max: 100, default: 1 });
                             if (!Number.isFinite(sclevel) || sclevel < 1 || sclevel > 100) {
                               throw new Error("stereotools: sclevel must be in the range [1, 100]");
                             }
                           } else if (key === "mpan" || key === "sbal" || key === "balance_in" || key === "balance_out") {
-                            const valueNumber = parseFilterExpression(value, "stereotools", {});
+                            const valueNumber = parseFilterExpression(value, "stereotools", { min: -1, max: 1, default: 0 });
                             if (!Number.isFinite(valueNumber) || valueNumber < -1 || valueNumber > 1) {
                               throw new Error(`stereotools: ${key} must be in the range [-1, 1]`);
                             }
@@ -16152,17 +16152,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                             balanceModes[key] = balanceMode;
                           } else if (key === "base") {
-                            base = parseFilterExpression(value, "stereotools", {});
+                            base = parseFilterExpression(value, "stereotools", { min: -1, max: 1, default: 0 });
                             if (!Number.isFinite(base) || base < -1 || base > 1) {
                               throw new Error("stereotools: base must be in the range [-1, 1]");
                             }
                           } else if (key === "phase") {
-                            phase = parseFilterExpression(value, "stereotools", {});
+                            phase = parseFilterExpression(value, "stereotools", { min: 0, max: 360, default: 0 });
                             if (!Number.isFinite(phase) || phase < 0 || phase > 360) {
                               throw new Error("stereotools: phase must be in the range [0, 360]");
                             }
                           } else if (key === "delay") {
-                            delay = parseFilterExpression(value, "stereotools", {});
+                            delay = parseFilterExpression(value, "stereotools", { min: -20, max: 20, default: 0 });
                             if (!Number.isFinite(delay) || delay < -20 || delay > 20) {
                               throw new Error("stereotools: delay must be in the range [-20, 20]");
                             }

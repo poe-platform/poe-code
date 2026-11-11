@@ -2345,6 +2345,9 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const track = await joinAudio(sources.map(source => source.track), filters, budget, signal);
         return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
+      if (sources.length > 1) {
+        throw new Error(`More input link labels specified for filter '${first.split("=", 1)[0]}' than it has inputs: ${sources.length} > 1`);
+      }
       if (sources.length !== 1) throw new Error("Audio filter requires one input");
       const source = sources[0]!;
       return { track: source.track, expression: [source.expression, node.expression]
@@ -19614,6 +19617,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (msg.startsWith("asendcmd: Cannot read file '")) return { exitCode: 254 };
             if (msg === "asendcmd: Only one of the filename or commands options must be specified.") return { exitCode: 234 };
+            if (msg.startsWith("More input link labels specified for filter ")) return { exitCode: 234 };
             if (msg.startsWith("Unsupported audio filter:")) return { exitCode: 8 };
             if (msg.startsWith("aemphasis: unsupported ")) return { exitCode: 8 };
             if (msg.startsWith("aemphasis:")) return { exitCode: err instanceof RangeError ? 222 : 234 };

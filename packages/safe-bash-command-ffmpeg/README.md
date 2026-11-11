@@ -633,6 +633,9 @@ with status 222, invalid expressions with 234, unsupported transform sizes with
 218, and unknown options with 8.
 Use `surround=chl_out=stereo` to retain two output channels with the same
 frequency-domain processing of the front speakers.
+`level_in` and `level_out` accept expressions from 0 to 10 (default 1).
+As in FFmpeg 7.0.2, per-channel defaults override these global levels, so they
+leave the audio unchanged, including when set to zero.
 Other layouts and surround options are rejected.
 
 `stereotools` supports stereo channel mute (`mutel`, `muter`), phase inversion

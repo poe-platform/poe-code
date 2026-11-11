@@ -21,6 +21,12 @@ export async function surroundAudio(
       outputChannels = layout === "FL+FR" ? 2 : 6;
     } else if (key === "chl_in") {
       if (parseAudioChannelLayout(value).join("+") !== "FL+FR") throw new Error("surround: supported input layout is stereo");
+    } else if (key === "level_in" || key === "level_out") {
+      const number = parseFilterExpression(value, "surround", { min: 0, max: 10, default: 1 });
+      if (!Number.isFinite(number) || number < 0 || number > 10) {
+        throw new RangeError(`surround: ${key} must be between 0 and 10`);
+      }
+      // FFmpeg 7.0.2 overwrites these global levels with per-channel defaults.
     } else if (key === "win_size") {
       const number = parseFilterExpression(value, "surround", { min: 1024, max: 65536, default: 4096 });
       if (!Number.isFinite(number) || number < 1024 || number > 65536) {

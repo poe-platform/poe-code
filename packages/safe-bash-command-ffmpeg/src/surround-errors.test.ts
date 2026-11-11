@@ -8,7 +8,16 @@ import { createFfmpegCommand } from "./index.js";
 // FFmpeg 7.0.2: ERANGE, EINVAL, ENOSYS, and AVERROR_OPTION_NOT_FOUND.
 for (const [option, exitCode] of [
   ["win_size=1023", 222], ["win_size=foo", 234],
-  ["win_size=1025", 218], ["unknown=1", 8], ["win_size=1024", 0]
+  ["win_size=1025", 218], ["unknown=1", 8], ["win_size=1024", 0],
+  ["win_size=1024:level_in=0", 0], ["win_size=1024:level_in=0.5", 0],
+  ["win_size=1024:level_out=0", 0], ["win_size=1024:level_out=0.25", 0],
+  ["win_size=1024:level_in=10:level_out=10", 0],
+  ["win_size=1024:level_in=min:level_out=max", 0],
+  ["win_size=1024:level_in=default:level_out=1/4", 0],
+  ["5.1:stereo:0.5:0.25:1:win_size=1024", 0],
+  ["level_in=-0.1", 222], ["level_in=10.1", 222],
+  ["level_out=-0.1", 222], ["level_out=10.1", 222],
+  ["level_in=foo", 234], ["level_out=foo", 234]
 ] as const) for (const graph of [false, true]) for (const output of ["pipe:1", "/out.pcm"]) {
   it(`surround=${option} matches native status and PCM (graph=${graph}, ${output})`, async () => {
     const fs = Volume.fromJSON({ "/out.pcm": "keep" });

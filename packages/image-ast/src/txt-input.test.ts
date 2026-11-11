@@ -44,3 +44,20 @@ it("honors cancellation and rejects truncated source reads", async () => {
   await expect(readTxtFromSource(source, undefined, controller.signal)).rejects.toThrow("cancelled");
   await expect(readTxtFromSource({ ...source, async read() { return new Uint8Array(); } }, undefined, new AbortController().signal)).rejects.toThrow("Truncated TXT source");
 });
+
+it("retains native HSL samples and colorspace independently for each TXT page", async () => {
+  // ImageMagick 7.1.2-35: magick xc:'#208040' -colorspace HSL -depth 16 txt:-
+  const hsl = `# ImageMagick pixel enumeration: 1,1,0,65535,hsl
+0,0: (25486,39321,20560)  #638E99995050  hsl(140,60%,31.3725%)
+`;
+  const sequence = new TextEncoder().encode(hsl + text);
+  expect(decodeImage(sequence)).toMatchObject({
+    magickColorspace: "HSL", depth: "ushort", hasAlpha: false, pages: 2,
+    data16: Uint16Array.of(25486,39321,20560,65535)
+  });
+  const source = { size: sequence.length, async read(position: number, length: number) { return sequence.subarray(position, position + length); } };
+  expect(await readTxtFromSource(source, undefined, new AbortController().signal)).toMatchObject({ magickColorspace: "HSL", pages: 2 });
+  const second = decodeImage(sequence, { page: 1 });
+  expect(second).not.toHaveProperty("magickColorspace");
+  expect(second.data).toEqual(Uint8Array.of(30,40,50,128));
+});

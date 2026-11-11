@@ -8,6 +8,9 @@ for (const sync of [false, true]) {
     for (const format of ["webvtt", "srt", "ass"]) {
       for (const [dialogue, expected, expectedAss] of [
         ["A{z}B", "A\\{z\\}B", "A\\{z\\}B"],
+        ["|A{z}", "\nA\\{z\\}", "\\NA\\{z\\}"],
+        ["\tA{z}", "\tA\\{z\\}", "\tA\\{z\\}"],
+        ["  A{z}", "A\\{z\\}", "  A\\{z\\}"],
         ["A\\TB", "A\\\\TB", "A\\\\TB"],
         ["A\\nB", "A\\\nB", "A\\\\nB"],
         ["A\\NB", "A\\\nB", "A\\\\NB"],

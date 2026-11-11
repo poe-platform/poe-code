@@ -11247,8 +11247,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   vertical = layout === "tab" || layout === "4";
                 }
                 const inputOption = options.find(option => option.trim().startsWith("inputs="))
-                  ?.split("=")[1]?.trim() ?? (options[0]?.includes("=") ? undefined : options[0]?.trim());
-                const inputCount = framepack ? 2 : xstack ? gridInputs || Number(xoptions.inputs ?? 2) : Number(inputOption || 2);
+                  ?.split("=")[1]?.trim() ?? (options[0]?.includes("=") ? undefined : options[0]?.trim() || undefined);
+                const inputValue = framepack ? 2 : parseFilterExpression(
+                  (xstack ? xoptions.inputs : inputOption) ?? "2", filter, { default: 2, min: 2, max: 2147483647 });
+                if (inputValue < 2 || inputValue > 2147483647) {
+                  throw new Error(`${filter}: inputs must specify at least two available inputs`);
+                }
+                const inputCount = xstack && gridInputs ? gridInputs : roundToEven(inputValue);
                 if (!Number.isInteger(inputCount) || inputCount < 2) {
                   throw new Error(`${filter}: inputs must specify at least two available inputs`);
                 }

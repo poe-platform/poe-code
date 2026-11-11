@@ -518,6 +518,8 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
         const working = blended!.map(value => Math.fround(value * (highDepth ? 1 : 257)) / 257);
         if (gray) for (let i = 0; i < working.length; i += 4) working[i + 1] = working[i + 2] = working[i]!;
         yield { kind: "write", evaluate: true, position, data: new Uint8Array(working.buffer) };
+        if (a.space !== "cmyk" && a.magickColorspace && a.magickColorspace !== "RGB" && a.magickColorspace !== "scRGB" && a.magickColorspace !== "Gray")
+            yield { kind: "write", hue: true, position, data: new Uint8Array(working.map(value => value / 255).buffer) };
         const rounded = blended!.map(value => {
             const quantum = Math.fround(Math.max(0, Math.min(range, value)) * (highDepth ? 1 : 257));
             return highDepth ? Math.round(quantum) : Math.floor(Math.fround(Math.fround(quantum / 257) + 0.5));

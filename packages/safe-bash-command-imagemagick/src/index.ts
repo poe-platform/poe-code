@@ -5067,7 +5067,8 @@ function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtual
         throw new Error(`invalid argument for option '-shadow': ${geometry}`);
     }
     // The general geometry parser supplies zero for missing offsets; shadow defaults each to four.
-    const pad = Math.floor(sigma * 2 + 0.5), x = g.hasOffset ? Math.round(g.x) : 4, y = g.hasYOffset ? Math.round(g.y) : 4;
+    // Native shadow offsets round half-pixels toward the lower integer.
+    const pad = Math.floor(sigma * 2 + 0.5), x = g.hasOffset ? Math.ceil(g.x - 0.5) : 4, y = g.hasYOffset ? Math.ceil(g.y - 0.5) : 4;
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
     // Match PNG unsigned page dimensions, including underflow; never use them as raster dimensions.
     return { width: image.width + pad * 2, height: image.height + pad * 2, hasAlpha: true, offsetX: pad, offsetY: pad, opacity, sigma,

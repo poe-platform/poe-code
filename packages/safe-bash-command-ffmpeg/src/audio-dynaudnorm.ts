@@ -10,10 +10,11 @@ export async function normalizeAudio(
   let size = 31;
   let peak = 0.95;
   let maxGain = 10;
+  let targetRms = 0;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? ["f", "g", "p", "m"][index] : option.slice(0, separator).trim();
+    const key = separator < 0 ? ["f", "g", "p", "m", "r"][index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     const number = parseFilterExpression(value, "dynaudnorm", {});
     // AVOption integers round to nearest, with halfway values going to even.
@@ -30,6 +31,9 @@ export async function normalizeAudio(
     } else if (key === "m" || key === "maxgain") {
       if (number < 1 || number > 100) throw new Error("dynaudnorm: invalid maxgain");
       maxGain = number;
+    } else if (key === "r" || key === "targetrms") {
+      if (number < 0 || number > 1) throw new Error("dynaudnorm: invalid targetrms");
+      targetRms = number;
     } else throw new Error(`dynaudnorm: unsupported option ${key}`);
   }
   if (size % 2 === 0) {
@@ -119,17 +123,23 @@ export async function normalizeAudio(
   for (let start = 0; start < length; start += frameSize) {
     if (smoothed.length) await amplify();
     let magnitude = Number.EPSILON;
+    let squares = 0;
+    const end = Math.min(length, start + frameSize);
     for (const channel of channels) {
-      for (let i = start; i < Math.min(length, start + frameSize); i++) {
+      for (let i = start; i < end; i++) {
         if (++work % 4096 === 0) {
           await yieldTurn(signal);
           signal?.throwIfAborted();
           budget.checkCpu();
         }
         magnitude = Math.max(magnitude, Math.abs(channel[i]!));
+        if (targetRms > Number.EPSILON) squares += channel[i]! * channel[i]!;
       }
     }
-    append(bound(peak / magnitude));
+    const rmsGain = targetRms > Number.EPSILON
+      ? targetRms / Math.max(Number.EPSILON, Math.sqrt(squares / ((end - start) * channels.length)))
+      : Infinity;
+    append(bound(Math.min(peak / magnitude, rmsGain)));
   }
   // At EOF FFmpeg extends the pending gain history, then feeds peak-level
   // padding frames while draining audio. Padding never appears in the output.

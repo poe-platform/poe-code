@@ -39,7 +39,7 @@ export function isStoredOutputFormat(format:ImageFormat):boolean {
 /** Shared bounded encoder and exact final output information. */
 export async function* encodeStoredImage(image:StoredRgbaImage,backing:ImageByteStorage,signal:AbortSignal,encoding:OutputEncodeOptions):AsyncGenerator<Uint8Array,OutputInfo|undefined> {
  const requested=imageOutputFormat(image.format,encoding.format);
- if (image.storedNetpbmPages?.length && ["pnm","ppm","pgm","pbm","pam"].includes(requested)) {
+ if (image.storedNetpbmPages?.length && ["pnm","ppm","pgm","pbm","pam","pfm","phm"].includes(requested)) {
   let info: OutputInfo | undefined, size = 0;
   for (let index = 0; index < image.storedNetpbmPages.length; index++) {
    signal.throwIfAborted();

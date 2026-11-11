@@ -12113,6 +12113,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 : (registry.findById(segmentFormat) ?? registry.findByFormatName(segmentFormat))
               : undefined;
             const audioOutputPlugin = outputFormat === "segment" ? segmentPlugin : outPlugin;
+            const defaultAudioCodec = audioCodec;
             const outputAudioFormat = sampleFormat ?? pcmSampleFormat(audioCodec ??
               (audioOutputPlugin?.supportedAudioCodecs.includes(`pcm_${audioOutputPlugin.id}`)
                 ? `pcm_${audioOutputPlugin.id}` : ["wav", "w64", "null"].includes(outputFormat ?? audioOutputPlugin?.id ?? "") ? "pcm_s16le" : undefined));
@@ -13642,7 +13643,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               afFilters.push(...audioSinks.map((sink, index) => ({ ordinal: audioCount + index, expression: sink.expression })));
               workingDoc = { ...workingDoc, tracks: [...workingDoc.tracks, ...audioSinks.map(sink => sink.track)] };
             }
-            const defaultAudioCodec = audioCodec;
             // A graph branch runs the same filters without final output conversion or cuts.
             async function filterAudio(t: MediaTrack, expression?: string, index?: number): Promise<MediaTrack> {
                   let work = 0;

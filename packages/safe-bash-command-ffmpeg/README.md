@@ -68,7 +68,7 @@ The `subtitles` filter supports `force_style` overrides for `PrimaryColour`
 (ASS `&HAABBGGRR`, with inverted alpha) and `Alignment` (libass SSA alignment
 bits). For example, `subtitles=captions.srt:force_style='PrimaryColour=&H000000FF,Alignment=8'`
 burns red captions at the left-center of the frame. Other style fields are not implemented.
-`pad` preserves source YUV planes, including subsampled and 10/16-bit samples, and fills borders in the source colorspace. Color options (including `pad` fills) accept FFmpeg’s 140 case-insensitive named colors, including `tomato`, `LightSteelBlue`, and `LightGrey`, with optional `@alpha`. Unsupported names such as `grey` and `LightGray` fail before replacing output.
+`pad` preserves source YUV planes, including subsampled and 10/16-bit samples, and fills borders in the source colorspace. Its `threads`, `thread_type`, and `extra_hw_frames` options are validated and accepted without changing software-rendered pixels; unknown options still fail. Color options (including `pad` fills) accept FFmpeg’s 140 case-insensitive named colors, including `tomato`, `LightSteelBlue`, and `LightGrey`, with optional `@alpha`. Unsupported names such as `grey` and `LightGray` fail before replacing output.
 
 The `lavfi` color source uses FFmpeg 7's limited-range BT.601 RGB samples: red
 becomes `(253, 0, 0)` in PNG output; existing RGB PNG inputs retain their samples.

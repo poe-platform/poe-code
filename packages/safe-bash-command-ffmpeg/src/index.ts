@@ -3168,6 +3168,17 @@ async function applyVideoFilterChain(
       // A trailing separator ends the option list; interior empty values remain invalid.
       if (positional.at(-1) === "") positional.pop();
       for (const key of Object.keys(named)) {
+        if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+          const value = parseFilterExpression(named[key]!, "pad: generic option",
+            key === "thread_type" ? { slice: 1 } : {});
+          if (key === "thread_type"
+            ? !Number.isInteger(value) || value < -2147483648 || value > 4294967295
+            : value < (key === "extra_hw_frames" ? -1 : 0) || value > 2147483647) {
+            throw new RangeError(`pad: generic option ${key} is out of range`);
+          }
+          // Scheduling and hardware frame reservations do not change software pad pixels.
+          continue;
+        }
         if (!["w", "width", "h", "height", "x", "y", "color", "eval", "aspect"].includes(key)) {
           throw new Error(`pad: unsupported option ${key}`);
         }
@@ -17201,6 +17212,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("atilt:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("asubboost: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("asubboost: invalid ")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg.startsWith("pad: generic option")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("pad: unsupported option ")) return { exitCode: 8 };
             if (msg === "pad: eval must be init or frame" || msg.startsWith("pad: Invalid color")) return { exitCode: 234 };
             if (msg.startsWith("apad: unsupported option ")) return { exitCode: 8 };

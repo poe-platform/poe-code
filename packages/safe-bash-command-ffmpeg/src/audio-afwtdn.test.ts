@@ -95,11 +95,14 @@ for (const reference of references) it(`matches native ${reference.input}: ${ref
   assert.equal(createHash("sha256").update(pcm).digest("hex"), reference.sha256);
 });
 
-for (const option of ["sigma=-1", "sigma=1.1", "sigma=NaN", "levels=0", "levels=13",
-  "wavet=unknown", "wavet=7", "percent=101", "profile=2", "profile=1.0", "adaptive=-1", "samples=511", "samples=65537", "softness=-1", "unknown=1"])
+for (const [option, exitCode] of [
+  ["sigma=-1", 222], ["sigma=1.1", 222], ["sigma=NaN", 234], ["levels=0", 222], ["levels=13", 222],
+  ["wavet=unknown", 234], ["wavet=7", 222], ["percent=101", 222], ["profile=2", 234], ["profile=1.0", 234],
+  ["adaptive=-1", 234], ["samples=511", 222], ["samples=65537", 222], ["softness=-1", 222], ["unknown=1", 8]
+] as const)
   it(`rejects ${option} without replacing output`, async () => {
     const { fs, result, stderr } = await run(`afwtdn=${option}`);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, exitCode);
     assert.ok(stderr.includes("afwtdn:"), stderr);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "KEEP");
   });

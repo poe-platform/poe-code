@@ -96,8 +96,10 @@ export async function denoiseWavelets(
       : boolean && ["false", "no", "off", "n", "disable", "disabled", ""].includes(raw.toLowerCase()) ? 0
       : parseFilterExpression(raw, "afwtdn", key === "wavet" ? Object.fromEntries(waveletNames.map((name, i) => [name, i])) : {});
     const [min, max] = ranges[key];
-    if ((!raw && !boolean) || !Number.isFinite(value) || value < min! || value > max!) {
-      throw new Error(`afwtdn: invalid ${key}`);
+    if ((!raw && !boolean) || !Number.isFinite(value)) throw new Error(`afwtdn: invalid ${key}`);
+    if (value < min! || value > max!) {
+      if (boolean) throw new Error(`afwtdn: invalid ${key}`);
+      throw new RangeError(`afwtdn: invalid ${key}`);
     }
     const floor = Math.floor(value);
     options[key] = ["levels", "wavet", "samples"].includes(key)

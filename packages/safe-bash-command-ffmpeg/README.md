@@ -1160,6 +1160,8 @@ Native H.264 inputs decode with CAVLC/CABAC and reference-frame support. H.264 `
 automatically mixing mono input to stereo with a gain of 1/√2 per side,
 retaining the input frame count and sample rate. Center extraction follows native
 single-precision FFT rounding, including nearly cancelling left/right samples.
+Double PCM input retains double precision through mixing and center extraction,
+using FFmpeg 7’s double RDFT ordering and analysis constants.
 Left and right are delayed by
 three quarters of the analysis window (1536 samples at 44100 Hz). It accepts
 `original` (0–1), `enhance` (0–3), and `voice` (2–32), with defaults `1:1:2`.

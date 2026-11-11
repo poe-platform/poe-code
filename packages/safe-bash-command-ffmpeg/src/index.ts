@@ -16270,6 +16270,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           frame.pts = tempoStartPts + Math.round(frame.start / samplesPerTick) * samplesPerTick;
                         }
                       } else if (trimmed === "dialoguenhance" || trimmed.startsWith("dialoguenhance=")) {
+                        const double = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp";
                         const values = [1, 1, 2];
                         let enable: string | undefined;
                         const names = ["original", "enhance", "voice"];
@@ -16289,12 +16290,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) {
                           const stereo = await panAudio(`stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`,
-                            stretched, filteredChannelMask, "flt", budget, context.signal);
+                            stretched, filteredChannelMask, double ? "dbl" : "flt", budget, context.signal);
                           stretched = stereo.channels;
                         }
                         const commands = audioCommands.filter(command => command.target === "dialoguenhance" || command.target === filterTarget)
                           .sort((a, b) => a.sample - b.sample);
-                        const dialogue = await enhanceDialogue(stretched, origRate, values[0]!, values[1]!, values[2]!, budget, context.signal, commands);
+                        const dialogue = await enhanceDialogue(stretched, origRate, values[0]!, values[1]!, values[2]!, budget, context.signal, commands, double);
                         stretched = dialogue.channels;
                         const length = stretched[0]?.length ?? 0;
                         budget.allocateMemory(Math.ceil(length / dialogue.frameSize) * 24);
@@ -16316,7 +16317,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         filteredChannelMask = 7;
                         filteredChannelNames = undefined;
-                        filteredSampleFormat = "fltp";
+                        filteredSampleFormat = double ? "dblp" : "fltp";
                       } else if (trimmed === "crystalizer" || trimmed.startsWith("crystalizer=")) {
                         let intensity = 2;
                         let clip = true;

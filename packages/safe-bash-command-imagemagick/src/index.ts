@@ -14945,8 +14945,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-paint") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const raw = tokens[++i] ?? "";
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded.replaceAll(",", "x").replaceAll("/", "x"), "-paint");
                 const geometry = parseMagickGeometry(expanded.replaceAll(",", "x").replaceAll("/", "x"));
                 return yield* applyMagickRasterSteps({ ...im, isPalette: false }, paintPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.intensity), signal);
@@ -19229,14 +19230,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return transformStoredMagickRaster(image, backend, bilateralBlurPixelSteps(image, geometry, background, virtualPixel, channels, intensity), signal, { ...image, hasAlpha: image.hasAlpha || virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255 });
             });
         } else if (!operandsOnly && token === "-paint") {
+            let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
                 return stack;
             });
             const raw = tokens[++i] ?? "", { background, virtualPixel, optionProperties, intensity } = state, channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 validateMagickTransformGeometry(expanded.replaceAll(",", "x").replaceAll("/", "x"), "-paint");
                 const geometry = parseMagickGeometry(expanded.replaceAll(",", "x").replaceAll("/", "x"));
                 return transformStoredMagickRaster({ ...image, isPalette: false }, backend, paintPixelSteps(image, geometry, background, virtualPixel, channels, intensity), signal);

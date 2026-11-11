@@ -1,3 +1,4 @@
+import { bilateral } from "./bilateral.js";
 import { gblur } from "./gblur.js";
 import { median } from "./median.js";
 import { parseAlphamergeGraph, alphamerge } from "./alphamerge.js";
@@ -5683,6 +5684,9 @@ async function applyVideoFilterChain(
       current = output;
     } else if (name === "gblur") {
       current = await gblur(current, argStr, pixelFormat, budget, signal);
+      if (pixelFormat === "rgba" || pixelFormat === "bgra") pixelFormat = diagnostics.pixelFormat = "gbrap";
+    } else if (name === "bilateral") {
+      current = await bilateral(current, argStr, pixelFormat, budget, signal);
       if (pixelFormat === "rgba" || pixelFormat === "bgra") pixelFormat = diagnostics.pixelFormat = "gbrap";
     } else if (name === "tmix") {
       const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();

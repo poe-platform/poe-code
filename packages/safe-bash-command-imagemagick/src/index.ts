@@ -14647,8 +14647,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-edge") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const argument = tokens[++i] ?? "";
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(argument, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(argument, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, "-edge");
                 const radius = Number.parseFloat(expanded.replaceAll("(", "").replaceAll(")", ""));
                 if (!Number.isFinite(radius)) throw new Error(`invalid argument for option '-edge': ${expanded}`);
@@ -19187,8 +19188,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return transformStoredMagickRaster(image, backend, sketchPixelSteps({ ...image, virtualPixel }, geometry, seed, channels, kernel, filter), signal);
             });
         } else if (!operandsOnly && token === "-edge") {
+            let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
                 return stack;
             });
             const argument = tokens[++i] ?? "", optionProperties = state.optionProperties, seed = state.seed;
@@ -19196,7 +19199,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const metaChannels = !state.channelExplicit || state.channelDefault ? "all" : state.channels.meta ?? [];
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 validateMagickTransformGeometry(expanded, "-edge");
                 const radius = Number.parseFloat(expanded.replaceAll("(", "").replaceAll(")", ""));
                 if (!Number.isFinite(radius)) throw new Error(`invalid argument for option '-edge': ${expanded}`);

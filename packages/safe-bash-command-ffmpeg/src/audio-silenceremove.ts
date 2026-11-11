@@ -84,11 +84,13 @@ export async function removeSilence(
   }
 
   let output = [...channels];
-  budget.allocateMemory(frames.length * 17);
+  budget.allocateMemory(frames.length * 19);
   const startThresholds = new Float64Array(frames.length);
   let startThreshold = options.start_threshold;
   let stopThresholds = new Float64Array(frames.length);
   let stopThreshold = options.stop_threshold;
+  let startModes = new Uint8Array(frames.length);
+  let stopModes = new Uint8Array(frames.length);
   let nextCommand = 0;
   let enabledFrames = new Uint8Array(frames.length);
   // Validation must not advance the per-filter timeline registers.
@@ -98,15 +100,25 @@ export async function removeSilence(
     while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
       const command = commands[nextCommand++]!;
       try {
-        const value = parseFilterExpression(command.expression, "silenceremove", { min: 0, max: Number.MAX_VALUE, default: 0 });
-        if (Number.isFinite(value) && value >= 0) {
-          if (command.action === "start_threshold") startThreshold = value;
-          else if (command.action === "stop_threshold") stopThreshold = value;
+        if (command.action === "start_mode" || command.action === "stop_mode") {
+          const value = parseFilterExpression(command.expression, "silenceremove", {
+            any: 0, all: 1, min: 0, max: 1, default: command.action === "stop_mode" ? 1 : 0
+          });
+          // Native validates before rounding integer options, with ties to even.
+          if (Number.isFinite(value) && value >= 0 && value <= 1) options[command.action] = value > 0.5 ? "all" : "any";
+        } else if (command.action === "start_threshold" || command.action === "stop_threshold") {
+          const value = parseFilterExpression(command.expression, "silenceremove", { min: 0, max: Number.MAX_VALUE, default: 0 });
+          if (Number.isFinite(value) && value >= 0) {
+            if (command.action === "start_threshold") startThreshold = value;
+            else stopThreshold = value;
+          }
         }
-      } catch { /* Native keeps the previous threshold when a runtime command is rejected. */ }
+      } catch { /* Native keeps the previous option when a runtime command is rejected. */ }
     }
     startThresholds[n] = startThreshold;
     stopThresholds[n] = stopThreshold;
+    startModes[n] = Number(options.start_mode === "all");
+    stopModes[n] = Number(options.stop_mode === "all");
     enabledFrames[n] = Number(enable === undefined || Math.abs(parseFilterExpression(enable, "silenceremove enable", {
       n, t: frame.pts / sampleRate,
       pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0, h: 0,
@@ -122,7 +134,6 @@ export async function removeSilence(
     if (!periods) continue;
     const length = output[0]?.length ?? 0;
     const duration = Math.round(options[`${phase}_duration`] * sampleRate);
-    const mode = options[`${phase}_mode`];
     budget.allocateMemory(output.length * (8 + (options.detection === "dev" ? 8 : 0) + (trackPeaks ? length * 4 : 0)));
     const sums = new Float64Array(output.length);
     const squares = options.detection === "dev" ? new Float64Array(output.length) : undefined;
@@ -153,7 +164,8 @@ export async function removeSilence(
       const threshold = phase === "start" ? startThresholds[frameIndex]! : stopThresholds[frameIndex]!;
       const enabled = enabledFrames[frameIndex] !== 0;
       let keep = !enabled;
-      let matches = mode === "all";
+      const all = (phase === "start" ? startModes : stopModes)[frameIndex] !== 0;
+      let matches = all;
       for (let c = 0; c < output.length && !(phase === "start" && found >= periods); c++) {
         const channel = output[c]!;
         const value = peakToPeak ? channel[i]! : Math.abs(channel[i]!);
@@ -214,7 +226,7 @@ export async function removeSilence(
           if (options.detection === "rms") level = Math.sqrt(level);
         }
         const match = phase === "start" ? level > threshold : level <= threshold;
-        matches = mode === "any" ? matches || match : matches && match;
+        matches = all ? matches && match : matches || match;
       }
       if (phase === "start") {
         // FFmpeg counts qualifying samples cumulatively and opens after duration, not at it.
@@ -260,9 +272,11 @@ export async function removeSilence(
     }
     output = trimmed.map(c => c.subarray(0, written));
     const outputFrames: typeof frames = [];
-    budget.allocateMemory(frames.length * 9);
+    budget.allocateMemory(frames.length * 11);
     const retainedThresholds = new Float64Array(frames.length);
     const retainedEnabled = new Uint8Array(frames.length);
+    const retainedStartModes = new Uint8Array(frames.length);
+    const retainedStopModes = new Uint8Array(frames.length);
     let offset = 0;
     for (let n = 0; n < frames.length; n++) {
       if (n % 4096 === 0) { await yieldTurn(signal); budget.checkCpu(); }
@@ -273,12 +287,16 @@ export async function removeSilence(
       budget.allocateMemory(24);
       retainedThresholds[outputFrames.length] = stopThresholds[n]!;
       retainedEnabled[outputFrames.length] = enabledFrames[n]!;
+      retainedStartModes[outputFrames.length] = startModes[n]!;
+      retainedStopModes[outputFrames.length] = stopModes[n]!;
       outputFrames.push({ start: offset, end: offset + count, pts: frame.pts });
       offset += count;
     }
     frames = outputFrames;
     enabledFrames = retainedEnabled;
     stopThresholds = retainedThresholds;
+    startModes = retainedStartModes;
+    stopModes = retainedStopModes;
   }
   if (options.timestamp === "write" && (options.start_periods || options.stop_periods)) {
     for (const [index, frame] of frames.entries()) {

@@ -998,7 +998,8 @@ Negative stop periods remove repeated silent sections.
 Timed commands such as `asendcmd=c='0.003 silenceremove@trim stop_threshold 0.5',silenceremove@trim=stop_periods=-1:window=0`
 update the stop threshold at the receiving audio frame, preserving earlier output and detector history.
 Timed `start_threshold` commands likewise update the threshold used to trim leading silence.
-Invalid runtime thresholds leave the previous threshold active. Commands for non-runtime options such as `stop_duration`
+Timed `start_mode` and `stop_mode` commands also switch between `any` and `all` at audio frame boundaries.
+Invalid runtime values leave the previous setting active. Commands for non-runtime options such as `stop_duration`
 leave the audio settings unchanged; processing and later valid commands continue.
 Invalid options return native exit codes: `8` for unknown keys, `234` for malformed
 values, and `222` for out-of-range values, without creating or replacing output.

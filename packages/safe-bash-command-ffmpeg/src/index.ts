@@ -3078,8 +3078,11 @@ async function applyVideoFilterChain(
           const key = command.action === "out_w" ? "w" : command.action === "out_h" ? "h" : command.action;
           const previous = crop[key];
           crop[key] = command.expression;
-          try { configureCrop(); } catch {
+          try { configureCrop(); } catch (error) {
             // Rejected commands retain the active dimensions and coordinate expressions.
+            if (diagnostics.logLevel >= 16) {
+              await diagnostics.write(`[${instance}] ${(error as Error).message}\n`);
+            }
             if (previous === undefined) delete crop[key];
             else crop[key] = previous;
           }

@@ -22595,7 +22595,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     rowHeight = 0;
                     if (row > 0) tileY += rowHeights[row - 1]!;
                 }
-                const cellX = originX + (variableCells ? tileX : col * slotW) + padX;
+                const cellX = (row === 0 ? originX : 0) + (variableCells ? tileX : col * slotW) + padX;
                 const cellY = originY + (variableCells ? tileY : row * slotH) + padY;
                 // Offset-only geometry aligns against the tallest tile seen in this row.
                 rowHeight = Math.max(rowHeight, effH);
@@ -22770,7 +22770,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     detachRgbaBuffer(im.data);
                     continue;
                 }
-                const cellX = originX + (variableCells ? tileX : col * slotW) + padX;
+                const cellX = (row === 0 ? originX : 0) + (variableCells ? tileX : col * slotW) + padX;
                 const cellY = originY + (variableCells ? tileY : row * slotH) + padY;
                 if (frame) {
                     const previous = im;
@@ -23089,18 +23089,18 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 if (frame) {
                     image = await transformStoredMagickRaster(image, backend, magickFramePixels(image, maxThumbW + frame.width * 2, maxThumbH + frame.height * 2, state.borderColor, frame.outer || frame.inner ? matte : state.background, frame.width, frame.height, frame.outer, frame.inner), signal, { width: maxThumbW + frame.width * 2, height: maxThumbH + frame.height * 2, hasAlpha: true });
                     if (!shadow) {
-                        canvas = await compositeStoredMagick(canvas, image, backend, signal, originX + col * slotW + padX, originY + row * slotH + padY, state.composeRaw, undefined, false, true, false, false, 0, true);
+                        canvas = await compositeStoredMagick(canvas, image, backend, signal, (row === 0 ? originX : 0) + col * slotW + padX, originY + row * slotH + padY, state.composeRaw, undefined, false, true, false, false, 0, true);
                         continue;
                     }
                     let shadowImage = await transformStoredMagickRaster(image, backend, montageShadowPixels(image), signal, { width: image.width + 20, height: image.height + 20, hasAlpha: true });
                     shadowImage = await compositeStoredMagick(shadowImage, image, backend, signal, 0, 0, "over", undefined, false, true);
-                    canvas = await compositeStoredMagick(canvas, shadowImage, backend, signal, originX + col * slotW + padX, originY + row * slotH + padY, state.composeRaw, undefined, false, true, false, false, 0, true);
+                    canvas = await compositeStoredMagick(canvas, shadowImage, backend, signal, (row === 0 ? originX : 0) + col * slotW + padX, originY + row * slotH + padY, state.composeRaw, undefined, false, true, false, false, 0, true);
                     continue;
                 }
                 const width = fast ? Number(await sources.get(BigInt((pageStart + index) * 5 + 2))) : image.width, height = fast ? Number(await sources.get(BigInt((pageStart + index) * 5 + 3))) : image.height;
                 const offset = resolveGravityOffset(variableCells ? 0 : maxThumbW - width, (variableCells ? rowHeight : maxThumbH) - height, state.gravity);
                 // Concatenate offsets bordered tiles without enlarging the canvas.
-                const x = originX + (variableCells ? tileX : col * slotW) + (concatenate ? borderW : 0) + padX + offset.left, y = originY + (variableCells ? tileY : row * slotH) + (concatenate ? borderW : 0) + padY + offset.top;
+                const x = (row === 0 ? originX : 0) + (variableCells ? tileX : col * slotW) + (concatenate ? borderW : 0) + padX + offset.left, y = originY + (variableCells ? tileY : row * slotH) + (concatenate ? borderW : 0) + padY + offset.top;
                 tileX += width + padX * 2;
                 if (!anyTransparent) for (let start = 0; start < image.width * image.height * 4; start += 16384) {
                     await yieldTurn(signal);

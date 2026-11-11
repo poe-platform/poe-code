@@ -14396,7 +14396,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const im = stack[0]!;
                 const channelMask = im[magickInput]?.channelMask;
                 const channels = channelMask ?? createDefaultState().channels;
-                const hasAlpha = im.hasAlpha || t === "-hald-clut";
+                const mask = [channels.r, channels.g, channels.b, t === "-clut" ? (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false) && (channels.a || channelMask === undefined) : channels.a || channelMask === undefined, channels.k === true || channelMask === undefined];
+                const hasAlpha = im.hasAlpha || t === "-hald-clut" || lut.hasAlpha && mask[3] === true;
                 const { magickColorspace: ignoredColorspace, ...metadata } = im;
                 if (t === "-hald-clut") delete metadata.hueSamples;
                 const colorspace = t === "-hald-clut" ? lut.magickColorspace : im.magickColorspace;
@@ -14406,7 +14407,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     delete metadata.gamma;
                     if (lut.gamma !== undefined) metadata.gamma = lut.gamma;
                 }
-                const lookupArguments = [im.width * im.height * 4, lut, [channels.r, channels.g, channels.b, t === "-clut" ? (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false) && (channels.a || channelMask === undefined) : channels.a || channelMask === undefined, channels.k === true || channelMask === undefined], !!(im.data16 || lut.data16), (t === "-clut" ? im : lut)[magickInput]?.interpolation, state.backgroundExplicit ? state.background : lut.backgroundColor ?? state.background, lut.virtualPixel, im.space === "cmyk"] as const;
+                const lookupArguments = [im.width * im.height * 4, lut, mask, !!(im.data16 || lut.data16), (t === "-clut" ? im : lut)[magickInput]?.interpolation, state.backgroundExplicit ? state.background : lut.backgroundColor ?? state.background, lut.virtualPixel, im.space === "cmyk"] as const;
                 let result = yield* applyMagickRasterSteps({ ...metadata, ...(colorspace ? { magickColorspace: colorspace } : {}), space: cmyk ? "cmyk" : gray ? (t === "-hald-clut" ? lut : im).space : "srgb", channels: cmyk ? 4 : gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps(...lookupArguments, im.hasAlpha) : clutPixelSteps(...lookupArguments)), signal, { ...im, hasAlpha }, [im, lut]);
                 if (im.region) result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, im.region, !!result.data16, channels), signal, result, [result, im]);
                 if (im.writeMask) result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, im.writeMask, !!result.data16, false, channels), signal, result, [result, im, im.writeMask]);
@@ -16834,7 +16835,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const channelMask = image[magickInput]?.channelMask;
                     const channels = channelMask ?? createDefaultState().channels;
                     const mask = [channels.r, channels.g, channels.b, token === "-clut" ? (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false) && (channels.a || channelMask === undefined) : channels.a || channelMask === undefined, channels.k === true || channelMask === undefined];
-                    const hasAlpha = image.hasAlpha || token === "-hald-clut";
+                    const hasAlpha = image.hasAlpha || token === "-hald-clut" || lut.hasAlpha && mask[3] === true;
                     const { magickColorspace: ignoredColorspace, ...metadata } = image;
                     if (token === "-hald-clut") delete metadata.storedHueSamples;
                     const colorspace = token === "-hald-clut" ? lut.magickColorspace : image.magickColorspace;

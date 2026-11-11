@@ -2285,7 +2285,8 @@ function parseMagickShaveGeometry(raw: string, image: Pick<RgbaImage, "width" | 
     let height = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? (hasDimensions ? 0 : image.virtualCanvas?.height || image.height)));
     // ParsePageGeometry applies the area to the requested border dimensions,
     // then copies the resolved width to an omitted height in scalar geometry.
-    const area = geometry.width ?? 0;
+    // ParseGeometry leaves the area at zero when a scalar is followed by offsets.
+    const area = !hasDimensions && geometry.hasOffset ? 0 : geometry.width ?? 0;
     if (width * height > area) {
         const scale = Math.sqrt(area / (width * height));
         width = Math.round(width * scale);

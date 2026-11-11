@@ -20,7 +20,10 @@ export async function correlateAudio(
   let algo = "best";
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   let positional = 0;
-  for (const option of argument ? argument.split(":") : []) {
+  const options = argument ? argument.split(":") : [];
+  if (options.at(-1) === "") options.pop();
+  for (const option of options) {
+    if (option === "") throw new Error("axcorrelate: empty option");
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["size", "algo"][positional++] : option.slice(0, separator);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();

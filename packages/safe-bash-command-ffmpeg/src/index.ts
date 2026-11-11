@@ -17894,7 +17894,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           });
                           origRate = 44100;
                         }
-                        if (origRate === 44100 && stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) {
+                        if (origRate === 44100 && stretched.length === 1) {
                           const stereo = await panAudio(`stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`,
                             stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
                           stretched = stereo.channels;

@@ -789,6 +789,7 @@ Use `map=FR|FL` to reverse the response assignments. All three inputs must be st
 PCM at the same sample rate; multichannel HRIR files and preceding filters are unsupported.
 `earwax` applies the headphone stereo filter to mono or stereo input, resampling
 other input rates to 44100 Hz and converting mono to stereo with native gain.
+Single-speaker labels such as `FL`, `FR`, `LFE`, `SL`, or `BC` use the same mono conversion.
 Two-channel `FC+LFE` input mixes center into both stereo channels and omits LFE;
 `stereo` and `downmix` preserve their channel pairing. Unsupported two-channel
 speaker layouts such as `FL+FC` or reversed `FR+FL` return exit status `234` without audio.

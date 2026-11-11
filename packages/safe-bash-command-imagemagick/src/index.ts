@@ -10113,7 +10113,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const alpha = (percentages[3] ?? 0) / 100;
         const blend = [red, green, blue, black];
         const fill = state.fill.cmyk?.map(component => component * 255) ?? [state.fill.r, state.fill.g, state.fill.b, 0];
-        const mask = [state.channels.r, state.channels.g, state.channels.b, state.channels.k];
+        const mask = [state.channels.r, state.channels.g, state.channels.b, !state.channelExplicit || state.channels.k];
         apply = function* (image) {
             const cmyk = image.space === "cmyk";
             if (cmyk) image = yield* convertCmykPixels(image);

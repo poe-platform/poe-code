@@ -4536,6 +4536,55 @@ async function applyVideoFilterChain(
       current = await colorcontrast(current, argStr, pixelFormat, budget, signal);
     } else if (name === "colorcorrect") {
       current = await colorcorrect(current, argStr, budget, signal);
+    } else if (name === "colortemperature") {
+      const options = { temperature: 6500, mix: 1, pl: 0 };
+      for (const [index, option] of (argStr ? positional : []).entries()) {
+        const separator = option.indexOf("=");
+        const key = separator < 0 ? ["temperature", "mix", "pl"][index] : option.slice(0, separator).trim();
+        if (key === "enable") continue;
+        if (key !== "temperature" && key !== "mix" && key !== "pl") throw new Error(`colortemperature: unsupported option ${key}`);
+        const text = (separator < 0 ? option : option.slice(separator + 1)).trim();
+        const min = key === "temperature" ? 1000 : 0;
+        const max = key === "temperature" ? 40000 : 1;
+        const value = parseFilterExpression(text, "colortemperature", { min, max, default: options[key] });
+        if (!text || !Number.isFinite(value) || value < min || value > max) throw new RangeError(`colortemperature: invalid ${key}`);
+        options[key] = Math.fround(value);
+      }
+      // Native uses single-precision Kelvin coefficients and truncates output samples.
+      const f = Math.fround;
+      const kelvin = f(options.temperature / 100);
+      const saturate = (value: number) => Math.max(0, Math.min(1, value));
+      const red = kelvin <= 66 ? 1 : saturate(f(f(1.292936186062745) * f(Math.pow(f(kelvin - 60), f(-0.1332047592)))));
+      const green = kelvin <= 66 ? saturate(f(f(f(0.3900815787690196) * f(Math.log(kelvin))) - f(0.6318414437886275))) :
+        saturate(f(f(1.1298908608952942) * f(Math.pow(f(kelvin - 60), f(-0.0755148492)))));
+      const blue = kelvin >= 66 ? 1 : kelvin <= 19 ? 0 :
+        saturate(f(f(f(0.543206789110196) * f(Math.log(f(kelvin - 10)))) - f(1.19625408914)));
+      const lerp = (a: number, b: number, amount: number) => f(a + f(f(b - a) * amount));
+      current = await mapWork(current, async (frame, n) => {
+        if (named.enable !== undefined && !(Math.abs(parseFilterExpression(named.enable, "colortemperature enable", {
+          n, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN
+        })) >= 0.5)) return frame;
+        budget.allocateMemory(frame.data.byteLength);
+        const data = new Uint8Array(frame.data.length);
+        for (let offset = 0; offset < data.length; offset += 4) {
+          if (offset % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          const r = frame.data[offset]!;
+          const g = frame.data[offset + 1]!;
+          const b = frame.data[offset + 2]!;
+          const nr = lerp(r, f(r * red), options.mix);
+          const ng = lerp(g, f(g * green), options.mix);
+          const nb = lerp(b, f(b * blue), options.mix);
+          const lightness = f(f(Math.max(r, g, b) + Math.min(r, g, b) + 2 ** -23) /
+            f(f(Math.max(nr, ng, nb) + Math.min(nr, ng, nb)) + 2 ** -23));
+          data[offset] = Math.max(0, Math.min(255, Math.trunc(lerp(nr, f(nr * lightness), options.pl))));
+          data[offset + 1] = Math.max(0, Math.min(255, Math.trunc(lerp(ng, f(ng * lightness), options.pl))));
+          data[offset + 2] = Math.max(0, Math.min(255, Math.trunc(lerp(nb, f(nb * lightness), options.pl))));
+          data[offset + 3] = frame.data[offset + 3]!;
+        }
+        const filtered = { ...frame, data };
+        delete filtered.native;
+        return filtered;
+      }, signal);
     } else if (name === "vibrance") {
       const keys = ["intensity", "rbal", "gbal", "bbal", "rlum", "glum", "blum", "alternate"];
       const defaults = [0, 1, 1, 1, 0.072186, 0.715158, 0.212656, 0];

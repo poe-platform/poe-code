@@ -68,6 +68,17 @@ export async function freezedetect<T extends MediaVideoFrame & { filterMetadata?
           : pixels[offset]! - before[offset]!);
         count++;
       }
+      if (!native && (pixelFormat === undefined || pixelFormat === "rgba" || pixelFormat === "bgra") && frame.width * 4 < 32) {
+        // FFmpeg 7's AVX2 SAD also reads a 32-byte block when the aligned row
+        // width is zero. Packed RGBA rows are contiguous, then zero-padded.
+        for (let y = 0; y < frame.height; y++) {
+          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          for (let x = 0; x < 32; x++) {
+            const offset = y * frame.width * 4 + x;
+            difference += Math.abs((pixels[offset] ?? 0) - (before[offset] ?? 0));
+          }
+        }
+      }
       frozen = difference / count / 2 ** depth <= noise;
       const elapsed = Number.isFinite(frame.ptsSeconds) && Number.isFinite(reference.ptsSeconds) && frame.ptsSeconds >= reference.ptsSeconds
         ? frame.ptsSeconds - reference.ptsSeconds : (index - referenceIndex) * frames[0]!.durationSeconds;

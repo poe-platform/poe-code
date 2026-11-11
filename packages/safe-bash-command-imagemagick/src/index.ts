@@ -17882,7 +17882,7 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
         if (++cooperativeWork % 64 === 0)
             yield;
         const t = argv[i]!;
-        if (t === "-gravity" || t === "-geometry" || t === "-compose" || t === "-background" || t === "-quality" || t === "-define" || t === "-resize" || t === "-rotate" || t === "-fuzz") {
+        if (t === "-gravity" || t === "-geometry" || t === "-compose" || t === "-background" || t === "-quality" || t === "-define" || t === "-resize" || t === "-rotate" || t === "-fuzz" || t === "-depth" || t === "-endian" || t === "-interlace" || t === "-colorspace") {
             options.push(t, argv[++i] ?? "");
         }
         else if (t === "-tile" || t === "+tile") {

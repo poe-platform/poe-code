@@ -21,6 +21,10 @@ for (const [expression, literal] of [
   ["volume=max-20", "volume=-20"],
   ["0:0:-80/-80|0/0:default:default:max:default", "0:0:-80/-80|0/0:0.01:0:0:0"],
   ["gain=3*2", "gain=6"],
+  ["gain=900:gain=0", "gain=0"],
+  ["soft-knee=900:soft-knee=6", "soft-knee=6"],
+  ["volume=-900:volume=-20", "volume=-20"],
+  ["delay=20:delay=0", "delay=0"],
   ["gain=0x6", "gain=6"],
   ["soft-knee=3*2", "soft-knee=6"],
   ["volume=-10*2", "volume=-20"],
@@ -58,7 +62,12 @@ for (const [option, exitCode] of [
   ["gain=901", 222], ["gain=-901", 222], ["gain=450*3", 222],
   ["soft-knee=min/2", 222], ["volume=max+1", 222], ["delay=max+1", 222],
   ["soft-knee=0b1", 234], ["soft-knee=1-1", 222], ["volume=0b0", 234], ["volume=1+1", 222],
-  ["delay=0b0", 234]
+  ["delay=0b0", 234],
+  ["gain=901:gain=0", 222], ["gain=0b1:gain=0", 234],
+  ["soft-knee=0:soft-knee=1", 222], ["soft-knee=bad:soft-knee=1", 234],
+  ["volume=1:volume=0", 222], ["volume=bad:volume=0", 234],
+  ["delay=21:delay=0", 222], ["delay=bad:delay=0", 234],
+  ["0:0.8:-70/-70|-60/-20|1/0:0.01:901:gain=0", 222]
 ] as const) for (const graph of [false, true]) {
   it(`compand=${option} preserves existing raw output on failure (${graph ? "graph" : "simple"})`, async () => {
     const fs = Volume.fromJSON({ "/out.pcm": "sentinel" });

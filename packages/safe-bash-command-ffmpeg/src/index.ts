@@ -13507,6 +13507,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "aloop" || trimmed.startsWith("aloop=")) {
                         const values = parseAloop(trimmed === "aloop" ? "" : trimmed.slice("aloop=".length));
                         const { loop, size, start, time } = values;
+                        const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
+                        // aloop advances its clock by each frame's duration rounded to link ticks.
+                        const durationPts = (samples: number) => Math.round(samples / samplesPerTick) * samplesPerTick;
                         if (loop === -1 && size! > 0) {
                           const inputLength = stretched[0]?.length ?? 0;
                           const prefix: AudioFilterFrame[] = [];
@@ -13536,13 +13539,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : inputLength;
                             }
                             const inputPts = (frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + frameStart))
-                              + consumed - frameStart;
+                              + durationPts(consumed - frameStart);
                             let pts = replayPts;
                             if ((loopStart >= 0 && ignored + count > loopStart) ||
                               (start === -1 && inputPts >= Math.round(time! * origRate))) {
                               if (loopStart < 0) loopStart = consumed;
                               const drain = regionLength === 0 ? Math.max(0, loopStart - ignored) : 0;
-                              if (regionLength === 0) replayPts = inputPts + drain;
+                              if (regionLength === 0) replayPts = inputPts + durationPts(drain);
                               budget.allocateMemory(16);
                               regions.push({ start: consumed + drain, end: consumed + count });
                               regionLength += count - drain;
@@ -13553,13 +13556,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             budget.allocateMemory(24);
                             prefix.push({ start: consumed, end: consumed + count, pts,
                               pos: audioTimestamps ? frame?.pos : packet?.offset });
-                            replayPts += count;
+                            replayPts += durationPts(count);
                             consumed += count;
                           }
                           if (regionLength === 0) {
                             audioTimestamps = prefix;
                             continue;
                           }
+                          const replayTimestamp = (offset: number) => replayPts
+                            + Math.floor(offset / regionLength) * (Math.floor(regionLength / 1024) * durationPts(1024)
+                              + durationPts(regionLength % 1024))
+                            + Math.floor((offset % regionLength) / 1024) * durationPts(1024);
                           const firstPts = prefix[0]?.pts ?? audioStartSample;
                           const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
                           let length = endSeconds === undefined ? Infinity
@@ -13569,7 +13576,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (duration !== undefined) {
                             let rate = origRate;
                             const clocks: ReturnType<typeof createAudioTimestampTransform>[] = [];
-                            let changedClock = false;
+                            let changedClock = samplesPerTick !== 1;
                             let supported = true;
                             for (const item of audioFilters.slice(filterIndex + 1)) {
                               const separator = item.indexOf("=");
@@ -13598,7 +13605,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 const source = prefix[n];
                                 const frame = source ? { ...source } : { start: length,
                                   end: length + Math.min(1024, regionLength - (length - consumed) % regionLength),
-                                  pts: replayPts + length - consumed };
+                                  pts: replayTimestamp(length - consumed) };
                                 for (const clock of clocks) frame.pts = clock(frame);
                                 if (!Number.isFinite(frame.pts)) throw new Error("aloop: cannot bound a non-finite output timestamp");
                                 endPts ??= Math.max(frame.pts, outputSs === undefined ? -Infinity : Math.round(outputSs * rate))
@@ -13650,7 +13657,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                   required = Math.min(length, start + Math.min(1024, regionLength - (start - consumed) % regionLength));
                                   budget.checkDuration(required / origRate);
                                   budget.checkSamples(required);
-                                  yield { start, end: required, pts: replayPts + start - consumed };
+                                  yield { start, end: required, pts: replayTimestamp(start - consumed) };
                                 }
                               })();
                               for (const filter of downstream) {
@@ -13675,7 +13682,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                       const range = trim(current);
                                       if (range === null) return;
                                       if (range === undefined) continue;
-                                      const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
                                       yield { start: emitted, end: emitted + range.end - range.start,
                                         pts: frame.pts + Math.round(range.start / samplesPerTick) * samplesPerTick };
                                       emitted += range.end - range.start;
@@ -13731,7 +13737,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             const end = Math.min(length, start + Math.min(1024, regionLength - (start - consumed) % regionLength));
                             budget.allocateMemory(24);
-                            audioTimestamps.push({ start, end, pts: replayPts + start - consumed });
+                            audioTimestamps.push({ start, end, pts: replayTimestamp(start - consumed) });
                             start = end;
                           }
                           stretched = await mapWork(stretched, async channel => {
@@ -13763,7 +13769,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (size! > 0 && loop! > 0 && Number.isFinite(time)) {
                             // Native aloop checks time at the start of each consumed chunk,
                             // combining upstream frames into at most min(size, 1024) samples.
-                            const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
                             const timePts = Math.round(time! * origRate / samplesPerTick);
                             for (let offset = 0, frameIndex = 0; offset < inputLength; offset += Math.min(size!, 1024)) {
                               if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -13821,7 +13826,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             ? Math.max(1, Math.round(t.samples[0].duration * origRate / t.timescale)) : 1024);
                           let collected = 0;
                           let regionIndex = 0;
-                          let nextPts: number | undefined;
+                          let nextPts = 0;
                           // Native requests size-limited groups while filling the cache
                           // (also with loop=0), then resumes the remaining input frames.
                           for (let offset = 0; offset < inputLength;) {
@@ -13839,18 +13844,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const count = loop === 0 || offset < regionEnd ? Math.min(1024, size! - collected) : frameEnd - offset;
                             const end = Math.min(inputLength, offset + count);
                             let pts = (frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + frameStart))
-                              + offset - frameStart;
-                            if (loop! > 0 && loopStart > 0 && offset < regionEnd) {
+                              + durationPts(offset - frameStart);
+                            if (loop! > 0 && offset < regionEnd) {
                               const region = regions[regionIndex];
                               if (region && region.start < end) {
                                 // The first cached frame advances the replay clock by its drained prefix.
-                                if (collected === 0) nextPts = pts + region.start - offset;
+                                if (collected === 0) nextPts = pts + durationPts(region.start - offset);
                               } else {
                                 // Ignored chunks use the replay clock, so input frames can overlap.
-                                pts = nextPts ?? 0;
+                                pts = nextPts;
                               }
-                              nextPts = (nextPts ?? 0) + end - offset;
+                            } else {
+                              pts = nextPts;
                             }
+                            nextPts += durationPts(end - offset);
                             const pos = previous ? frame?.pos : packet?.offset;
                             const tags = previousMetadata[frameIndex]?.tags;
                             if (tags) budget.allocateMemory(tags.size * 64);
@@ -13868,13 +13875,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 }
                               }
                               if (prefixEnd === regionEnd) {
-                                // After replay, advance by emitted samples rather than input PTS gaps.
-                                if (loop! > 0) nextPts ??= pts + prefixEnd - offset;
                                 for (let repeat = 0; repeat < loop!; repeat++) {
                                   for (let sample = 0; sample < regionLength; sample += 1024) {
                                     if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                                     const start = regionEnd + regionLength * repeat + sample;
-                                    const repeatPts = (nextPts ?? pts + prefixEnd - offset) + repeat * regionLength + sample;
+                                    const repeatPts = nextPts;
+                                    nextPts += durationPts(Math.min(1024, regionLength - sample));
                                     budget.allocateMemory(88);
                                     audioTimestamps.push({ start, end: start + Math.min(1024, regionLength - sample), pts: repeatPts });
                                     // FIFO replay allocates fresh frames without input tags.
@@ -13885,8 +13891,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                             if (end > regionEnd) {
                               const tailStart = Math.max(offset, regionEnd);
-                              const tailPts = (nextPts === undefined ? pts + tailStart - offset
-                                : nextPts + tailStart - regionEnd) + repeatedLength;
+                              const tailPts = pts + durationPts(tailStart - offset);
                               budget.allocateMemory(88);
                               audioTimestamps.push({ start: tailStart + repeatedLength, end: end + repeatedLength, pts: tailPts, pos });
                               audioMetadata.push({ pts: tailPts, tags: new Map(tags) });
@@ -16394,9 +16399,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                         // Duration trims each frame on its own timeline; overlapping frames can both survive.
                         if (frame.pts >= endPts) break;
-                        const from = frame.start + (outputSs === undefined ? 0 : Math.max(0, seek - frame.pts));
+                        const from = frame.start + (outputSs === undefined ? 0 : Math.max(0, Math.round(seek - frame.pts)));
                         // Resampler startup/flush can produce fewer samples than the scaled frame bounds.
-                        const to = Math.min(stretched[0]?.length ?? 0, frame.end, frame.start + endPts - frame.pts);
+                        const to = Math.min(stretched[0]?.length ?? 0, frame.end, frame.start + Math.round(endPts - frame.pts));
                         if (to <= from) continue;
                         ranges.push({ start: from, end: to });
                         frames.push({ start: length, end: length + to - from, pts: frame.pts + from - frame.start - seek });

@@ -605,7 +605,7 @@ export function encodeImage(
       return { data, format: "pam", channels: (img.space === "b-w" || img.space === "grey16" ? 1 : img.space === "cmyk" ? 4 : 3) + (img.hasAlpha ? 1 : 0) };
     }
     case "ppm": {
-      const data = encodePpm(img, options.netpbmDepth, options.netpbmAscii);
+      const data = encodePpm(img, options.netpbmDepth, requested !== "pnm" && options.netpbmAscii);
       return { data, format: "ppm", channels: 3 };
     }
     case "pgm": {

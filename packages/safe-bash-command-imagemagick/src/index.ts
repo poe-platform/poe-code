@@ -7232,12 +7232,12 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
     const svgElements: string[] = [];
     let fill = state.fill;
     let tile = state.tile !== undefined;
-    let stroke = rgbaToCss(state.stroke);
+    let stroke = state.stroke;
     let strokeWidth = state.strokeWidth;
     let fillOpacity: number | undefined;
     let strokeOpacity: number | undefined;
     let affine: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0];
-    const contexts: { fill: RgbaColor; tile: boolean; stroke: string; strokeWidth: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
+    const contexts: { fill: RgbaColor; tile: boolean; stroke: RgbaColor; strokeWidth: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
     const tokens = yield* magickDrawTokensSteps(drawCmd);
     let i = 0;
     const num = () => {
@@ -7249,9 +7249,9 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         if (++cooperativeWork % 65536 === 0)
             yield;
         const cmd = tokens[i++]!.toLowerCase();
-        const fillColor = { ...fill }, strokeColor = { ...parseColor(stroke) };
+        const fillColor = { ...fill }, strokeColor = { ...stroke };
         if (fillOpacity !== undefined && fill.a !== 0) fillColor.a = fillOpacity * 255;
-        if (strokeOpacity !== undefined && stroke !== "none") strokeColor.a = strokeOpacity * 255;
+        if (strokeOpacity !== undefined && stroke.a !== 0) strokeColor.a = strokeOpacity * 255;
         const paintFill = rgbaToCss(fillColor), paintStroke = rgbaToCss(strokeColor);
         if (svgElements.length > 0 && (["line", "circle"].includes(cmd) ||
             ((fillOpacity !== undefined || strokeOpacity !== undefined) && ["point", "rectangle"].includes(cmd)))) {
@@ -7289,7 +7289,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             tile = false;
         }
         else if (cmd === "stroke") {
-            stroke = rgbaToCss(parseColor(tokens[i++] ?? "#000000"));
+            stroke = parseColor(tokens[i++] ?? "#000000", true);
         }
         else if (cmd === "fill-opacity" || cmd === "stroke-opacity") {
             const raw = tokens[i++];
@@ -12772,7 +12772,7 @@ if (t === "-intent" || t === "+intent") {
             state.antialias = t === "-antialias";
         }
         else if (t === "-stroke" || t === "+stroke") {
-            state.stroke = parseColor(t === "+stroke" ? "none" : tokens[++i] ?? "#000000");
+            state.stroke = parseColor(t === "+stroke" ? "none" : tokens[++i] ?? "#000000", true);
         }
         else if (t === "-strokewidth") {
             state.strokeWidth = Math.max(0, Number(tokens[++i] ?? 1));

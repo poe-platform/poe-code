@@ -13714,7 +13714,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (t === "-remap" && result.space === "cmyk") {
                     // Remap replaces RGB backing; rebuild inks instead of retaining source samples.
                     const { hueSamples: ignoredHue, evaluateSamples: ignoredEvaluate, ...remapped } = result;
-                    return { ...yield* convertCmykPixels(remapped), isPalette: true };
+                    // Native CMYK palettes leave the remapped black channel at zero.
+                    return { ...yield* (palette.space === "cmyk"
+                        ? applyMagickEvaluateSteps(remapped, "set", "0", { r: false, g: false, b: false, a: false, k: true }, undefined, signal)
+                        : convertCmykPixels(remapped)), isPalette: true };
                 }
                 return hueSpace ? yield* convertHuePixels({ ...result, evaluateSamples: undefined }, hueSpace) : result;
             });
@@ -17680,7 +17683,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (result.space === "cmyk") {
                     const { storedHueSamples: ignoredHue, storedEvaluateSamples: ignoredEvaluate, ...remapped } = result;
                     return { ...await transformStoredMagickPixels(remapped, backend,
-                        { end: 0, highDepth: true, apply: convertCmykPixels }, signal), isPalette: true };
+                        { end: 0, highDepth: true, apply: colors.space === "cmyk"
+                            ? frame => applyMagickEvaluateSteps(frame, "set", "0", { r: false, g: false, b: false, a: false, k: true }, undefined, signal)
+                            : convertCmykPixels }, signal), isPalette: true };
                 }
                 return hueSpace ? transformStoredMagickPixels(result, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, hueSpace) }, signal) : result;
             });

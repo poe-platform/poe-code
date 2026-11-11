@@ -39,3 +39,34 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         });
     }
 }
+
+// ImageMagick 7.1.2-35 Q16-HDRI clears black ink when the palette is CMYK too.
+for (const mode of ["command", "retained", "buffered", "sync"] as const) {
+    for (const [palette, original, remapped, rgb] of [
+        ["#be429a", "00a63041ff", "00a63000ff", "ff59cfff"],
+        ["#ff0099", "00ff6600ff", "00ff6600ff", "ff0099ff"]
+    ] as const) {
+        it.each(["none", "FloydSteinberg", "Riemersma"])(`${mode}: remaps CMYK palette ${palette} with %s dithering`, async dither => {
+            const files = new Map<string, Uint8Array>();
+            const filesystem = new MemoryFileSystem();
+            const argv = ["(", `xc:${palette}`, "-colorspace", "CMYK", "-write", "mpr:p",
+                "-depth", "8", "-write", "cmyka:/palette", "+delete", ")",
+                "xc:#34a05c", "-colorspace", "CMYK", "-depth", "8", "-write", "cmyka:/source",
+                ...(dither === "none" ? ["+dither"] : ["-dither", dither]), "-remap", "mpr:p",
+                "-format", "%[colorspace]", "-write", "info:/space", "-write", "cmyka:/inks",
+                "-colorspace", "sRGB", "rgba:/out"];
+            const argumentValues = createCommandArguments(argv);
+            const result = mode === "command" ? await createMagickCommand().execute({
+                command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs: filesystem,
+                signal: new AbortController().signal, stdin: (async function* () {})(),
+                stdout: { async write() {} }, stderr: { async write() {} }
+            }) : mode === "sync" ? runConvertCliSync(argv, files)
+                : await runConvertCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
+            expect(result.exitCode).toBe(0);
+            for (const [path, expected] of [["/palette", original], ["/source", "ac006c5fff"], ["/space", "CMYK"], ["/inks", remapped], ["/out", rgb]] as const) {
+                const bytes = mode === "command" || mode === "retained" ? await filesystem.readFile(path) : files.get(path)!;
+                expect(Buffer.from(bytes).toString(path === "/space" ? "utf8" : "hex"), path).toBe(expected);
+            }
+        });
+    }
+}

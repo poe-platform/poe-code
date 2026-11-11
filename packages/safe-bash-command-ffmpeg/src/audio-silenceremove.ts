@@ -73,7 +73,9 @@ export async function removeSilence(
       const periods = key.endsWith("periods");
       const min = key === "stop_periods" ? -9000 : 0;
       const max = periods ? 9000 : key === "window" ? 100 : threshold ? Number.MAX_VALUE : 2147.483647;
-      const number = threshold || periods ? parseFilterExpression(value, "silenceremove", { min, max, default: 0, none: 0, all: -1 })
+      // Numeric options use fresh expression state, separate from the timeline.
+      const number = threshold || periods ? parseFilterExpression(value, "silenceremove", { min, max, default: 0, none: 0, all: -1 },
+        undefined, new Float64Array(10), [])
         : parseHlsDuration(value);
       if (!value || Number.isNaN(number)) throw new Error(`silenceremove: invalid ${key}`);
       if (!Number.isFinite(number) || number < min || number > max) {
@@ -121,7 +123,8 @@ export async function removeSilence(
           // Native validates before rounding integer options, with ties to even.
           if (Number.isFinite(value) && value >= 0 && value <= 1) options[command.action] = value > 0.5 ? "all" : "any";
         } else if (command.action === "start_threshold" || command.action === "stop_threshold") {
-          const value = parseFilterExpression(command.expression, "silenceremove", { min: 0, max: Number.MAX_VALUE, default: 0, none: 0, all: -1 });
+          const value = parseFilterExpression(command.expression, "silenceremove", { min: 0, max: Number.MAX_VALUE, default: 0, none: 0, all: -1 },
+            undefined, new Float64Array(10), []);
           if (Number.isFinite(value) && value >= 0) {
             if (command.action === "start_threshold") startThreshold = value;
             else stopThreshold = value;

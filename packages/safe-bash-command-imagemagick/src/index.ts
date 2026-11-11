@@ -14192,7 +14192,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 // Rotate 90, wave, rotate -90: sample the same bend directly.
                 const amplitude = picture.width * 0.01, height = picture.height;
                 const bend: WarpPlan = { width: picture.width + Math.trunc(2 * amplitude), height, hasAlpha: true, channels, interpolation: state.interpolation ?? "bilinear",
-                    map: (x, y) => [x - Math.fround(amplitude * (1 + Math.sin(Math.PI * (height - 1 - y) / height))), y] };
+                    // Native WaveImage subtracts its float sine map before converting to double.
+                    map: (x, y) => [Math.fround(x - Math.fround(amplitude * (1 + Math.sin(Math.PI * (height - 1 - y) / height)))), y] };
                 picture = yield* applyMagickRasterSteps(picture, warpPixelSteps(picture, bend, transparent, "background"), signal, bend);
                 const layout = magickShadowLayout(picture, `80x2+${Math.trunc(border / 3)}+${Math.trunc(border / 3)}`);
                 let result = yield* applyMagickRasterSteps(picture, shadowPixelSteps(picture, layout, state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background, channels?.[3] ?? true), signal, layout);
@@ -18406,7 +18407,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (virtualCanvas) picture = { ...picture, virtualCanvas };
                 const amplitude = picture.width * 0.01, height = picture.height;
                 const bend: WarpPlan = { width: picture.width + Math.trunc(2 * amplitude), height, hasAlpha: true, channels, interpolation: settings.interpolation ?? "bilinear",
-                    map: (x, y) => [x - Math.fround(amplitude * (1 + Math.sin(Math.PI * (height - 1 - y) / height))), y] };
+                    // Native WaveImage subtracts its float sine map before converting to double.
+                    map: (x, y) => [Math.fround(x - Math.fround(amplitude * (1 + Math.sin(Math.PI * (height - 1 - y) / height)))), y] };
                 picture = await transformStoredMagickRaster(picture, backend, warpPixelSteps(picture, bend, transparent, "background"), signal, bend);
                 const layout = magickShadowLayout(picture, `80x2+${Math.trunc(border / 3)}+${Math.trunc(border / 3)}`);
                 let result = await transformStoredMagickRaster(picture, backend, shadowPixelSteps(picture, layout, settings.backgroundExplicit ? settings.background : image.backgroundColor ?? settings.background, channels?.[3] ?? true), signal, layout);

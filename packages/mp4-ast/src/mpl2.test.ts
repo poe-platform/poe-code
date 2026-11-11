@@ -46,7 +46,7 @@ it("reads MPL2 decisecond packets with CRLF and ignores malformed timing", () =>
   assert.equal(doc.durationSeconds, 5);
   assert.equal(doc.tracks[0]!.timescale, 10);
   assert.deepEqual(doc.tracks[0]!.samples.map(sample => [sample.pts, sample.duration, new TextDecoder().decode(sample.data)]),
-    [[12, 16, "First|second"], [34, 16, "Last"]]);
+    [[5, 7, "Reversed"], [12, 16, "First|second"], [34, 16, "Last"]]);
   assert.equal(plugin.probe(bytes).streams[0]!.codec_name, "mpl2");
 });
 

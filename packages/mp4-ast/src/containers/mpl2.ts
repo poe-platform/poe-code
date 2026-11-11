@@ -2,26 +2,26 @@ import { bytesEqual, decodeUtf8, encodeUtf8 } from "../binary.js";
 import { buildProbeResultFromDoc } from "../mp4.js";
 import type { MediaAstPlugin, MediaDocument, MediaSample } from "../types.js";
 
-function readLine(line: string): { start: number; end: number; text: string } | undefined {
+function readLine(line: string): { start: number; end: number | undefined; text: string } | undefined {
   if (!line.startsWith("[")) return undefined;
   const first = line.indexOf("]");
   if (first < 2 || line[first + 1] !== "[") return undefined;
   const second = line.indexOf("]", first + 2);
-  if (second < first + 3) return undefined;
+  if (second < first + 2) return undefined;
   let startIndex = 1;
   let endIndex = first + 2;
   while (startIndex < first && " \t\v\f".includes(line[startIndex]!)) startIndex++;
   while (endIndex < second && " \t\v\f".includes(line[endIndex]!)) endIndex++;
-  if (startIndex === first || endIndex === second) return undefined;
+  if (startIndex === first || (endIndex === second && second !== first + 2)) return undefined;
   const startText = line.slice(startIndex, first);
   const endText = line.slice(endIndex, second);
-  for (const text of [startText, endText]) {
+  for (const text of endText ? [startText, endText] : [startText]) {
     const digits = text.startsWith("+") || text.startsWith("-") ? text.slice(1) : text;
     if (!digits || ![...digits].every(c => c >= "0" && c <= "9")) return undefined;
   }
   const start = Number(startText);
-  const end = Number(endText);
-  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || end < start) return undefined;
+  const end = endText ? Number(endText) : undefined;
+  if (!Number.isSafeInteger(start) || (end !== undefined && !Number.isSafeInteger(end))) return undefined;
   return { start, end, text: line.slice(second + 1) };
 }
 
@@ -34,11 +34,16 @@ function parseMpl2(bytes: Uint8Array): MediaDocument {
     if (!cue) continue;
     const data = encodeUtf8(cue.text);
     samples.push({ pts: cue.start, dts: cue.start, cts: 0,
-      duration: cue.end - cue.start, data, size: data.length, offset: 0,
+      duration: cue.end === undefined || cue.end < cue.start ? -1 : cue.end - cue.start, data, size: data.length, offset: 0,
       isKeyframe: true, sampleDescriptionIndex: 1 });
-    duration = Math.max(duration, cue.end);
   }
   samples.sort((a, b) => a.pts - b.pts);
+  samples = samples.map((sample, index) => {
+    const next = samples[index + 1];
+    const resolved = sample.duration < 0 && next ? { ...sample, duration: next.pts - sample.pts } : sample;
+    duration = Math.max(duration, resolved.pts + resolved.duration);
+    return resolved;
+  });
   samples = samples.filter((sample, index) => {
     const previous = samples[index - 1];
     return !previous || sample.pts !== previous.pts || sample.duration !== previous.duration

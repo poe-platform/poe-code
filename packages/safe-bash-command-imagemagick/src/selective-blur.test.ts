@@ -87,6 +87,38 @@ it.each(fixtures)(`matches native $args (${mode})`, async ({ args: operation, ex
     expect(Buffer.from(output)).toEqual(Buffer.from(expected, "hex"));
 });
 
+// Raw CMYK8 outputs from ImageMagick 7.1.2-35 Q16-HDRI.
+for (const mode of ["command", "buffered", "retained", "sync"] as const)
+it.each([
+    { operation: [], expected: "000000af0000006f" },
+    { alpha: true, operation: ["-selective-blur", "1x1+100%"], expected: "00000098920000007cae" },
+    { alpha: true, operation: ["-channel", "K", "-selective-blur", "1x1+100%"], expected: "00000098800000007cc0" },
+    { operation: ["-selective-blur", "1x1+0"], expected: "000000af0000006f" },
+    { operation: ["-selective-blur", "1x1+100%"], expected: "0000009d00000081" },
+    { operation: ["-channel", "K", "-selective-blur", "1x1+100%"], expected: "0000009d00000081" },
+    { operation: ["-channel", "C", "-selective-blur", "1x1+100%"], expected: "000000af0000006f" }
+])(`filters CMYK black independently of alpha (${mode}): $operation`, async ({ operation, expected, alpha }) => {
+    const args = [alpha ? "xc:#50505080" : "xc:#505050", alpha ? "xc:#909090c0" : "xc:#909090", "+append", "-colorspace", "CMYK", ...operation, "-depth", "8", alpha ? "cmyka:-" : "cmyk:-"];
+    if (mode === "command") {
+        const chunks: Uint8Array[] = [], errors: Uint8Array[] = [];
+        const result = await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: new MemoryFileSystem(),
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { write: async chunk => { chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk); } },
+            stderr: { write: async chunk => { errors.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk); } }
+        });
+        expect(result.exitCode).toBe(0);
+        expect(Buffer.concat(errors).toString()).toBe("");
+        expect(Buffer.concat(chunks)).toEqual(Buffer.from(expected, "hex"));
+        return;
+    }
+    const result = mode === "sync" ? runMagickCliSync(args, new Map())
+        : await runMagickCli(args, mode === "retained" ? { filesystem: new MemoryFileSystem(), cwd: "/" } : new Map());
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe("");
+    expect(Buffer.from(result.stdoutBytes ?? [])).toEqual(Buffer.from(expected, "hex"));
+});
+
 for (const retained of [false, true])
 it(`applies selective blur through mogrify (retained=${retained})`, async () => {
     const fs = new MemoryFileSystem(), files = new Map([["/image.ppm", input]]);

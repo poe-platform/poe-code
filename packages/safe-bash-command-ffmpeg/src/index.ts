@@ -30,6 +30,7 @@ import { weave } from "./weave.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { separateFields } from "./separatefields.js";
 import { decimate } from "./decimate.js";
+import { minterpolate } from "./minterpolate.js";
 import { meanFrameDifference } from "./select.js";
 import { sceneChangeDifference } from "./scdet.js";
 import { parseDecimateGraph } from "./decimate-graph.js";
@@ -4116,6 +4117,39 @@ async function applyVideoFilterChain(
           }, signal);
         }
       }
+    } else if (name === "minterpolate") {
+      const options: Record<string, string> = {};
+      for (const [index, part] of (argStr ? positional : []).entries()) {
+        if (!part && index === positional.length - 1) continue;
+        const separator = part.indexOf("=");
+        const key = separator < 0 ? ["fps", "mi_mode"][index] : part.slice(0, separator).trim();
+        if (!key || !["fps", "mi_mode", "scd", "scd_threshold"].includes(key)) {
+          throw new Error(`minterpolate: unsupported option ${key ?? part}`);
+        }
+        options[key] = (separator < 0 ? part : part.slice(separator + 1)).trim();
+      }
+      const targetFps = parseFrameRate(options.fps ?? "60");
+      if (targetFps === undefined || targetFps > 2147483647) throw new Error("minterpolate: invalid frame rate");
+      const mode = parseFilterExpression(options.mi_mode ?? "mci", "minterpolate", { dup: 0, blend: 1, mci: 2 });
+      if (mode < 0 || mode > 2 || roundToEven(mode) === 2) throw new Error("minterpolate: supported mi_mode values are dup and blend");
+      const scd = parseFilterExpression(options.scd ?? "fdiff", "minterpolate", { none: 0, fdiff: 1 });
+      const threshold = parseFilterExpression(options.scd_threshold ?? "10", "minterpolate", {});
+      if (scd < 0 || scd > 1 || threshold < 0 || threshold > 100) throw new Error("minterpolate: invalid scene detection options");
+      if (pixelFormat !== "gray" && pixelFormat !== "gray8") throw new Error("minterpolate: only 8-bit grayscale video is supported");
+      current = await minterpolate(current, targetFps, roundToEven(mode), roundToEven(scd) === 1, threshold, timescale, budget, signal);
+      timescale = targetFps;
+      frameDuration = 1 / targetFps;
+      frameRateKnown = true;
+      frameRateScale = 1;
+    } else if (name === "framerate") {
+      const interpolated = await interpolateFrameRate(current, argStr, timescale, pixelFormat, budget, signal);
+      current = interpolated.frames;
+      timescale = interpolated.timescale;
+      frameDuration = current[0]?.durationSeconds || 1 / timescale;
+      frameRateScale = 1 / (interpolated.frameRate * frameDuration);
+      frameRateKnown = true;
+      if (pixelFormat === "gray" || pixelFormat === "gray8") pixelFormat = "yuvj444p";
+      diagnostics.pixelFormat = pixelFormat;
     } else if (name === "fps") {
       const options: Record<string, string> = {};
       const keys = ["fps", "start_time", "round", "eof_action"];

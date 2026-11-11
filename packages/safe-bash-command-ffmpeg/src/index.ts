@@ -4100,7 +4100,7 @@ async function applyVideoFilterChain(
     } else if (name === "unsharp") {
       current = await unsharp(current, argStr, pixelFormat, budget, signal);
     } else if (name === "negate") {
-      if (positional.length > 2 || Object.keys(named).some(key =>
+      if (positional.filter(value => !value.includes("=")).length > 2 || Object.keys(named).some(key =>
         !["components", "negate_alpha", "enable", "threads", "thread_type", "extra_hw_frames"].includes(key))) {
         throw new Error("negate: unknown option");
       }

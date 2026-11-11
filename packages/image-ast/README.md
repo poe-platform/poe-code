@@ -12,6 +12,7 @@ dispose each instance after its last operation, including after writable complet
 Readable output uses the same retained encoders as file output and follows reader
 demand. When an `info` listener needs the exact size before the first chunk, encoded
 output is retained in caller backing until consumed. Cancellation awaits cleanup.
+FITS output writes 8-bit or 16-bit grayscale and RGB primary images with bottom-up planes and 2880-byte block padding; alpha is omitted.
 Explicit buffer methods still materialize their results. File paths require an explicit
 `filesystem` with asynchronous `readFile` and `writeFile` methods (such as safe-fs)
 and an asynchronous output method; byte inputs also

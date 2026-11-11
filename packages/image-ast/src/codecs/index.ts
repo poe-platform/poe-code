@@ -1,3 +1,4 @@
+import { encodeFitsImage } from "./fits-output.js";
 import { isFitsBytes, readFitsHeader, decodeFitsImage } from "./fits-input.js";
 import { encodeSixelImage } from "./sixel-output.js";
 import { isSixelBytes, readSixelMetadata, decodeSixelImage } from "./sixel-input.js";
@@ -511,6 +512,7 @@ export function encodeImage(
   const fmt = requested === "pnm" ? netpbmFormat(img.data16 ?? img.data) : requested;
 
   switch (fmt) {
+    case "fits": return encodeFitsImage(img);
     case "sixel": return { data: encodeSixelImage(img), format: "sixel", channels: 3 };
     case "psd": return { data: encodePsdImage(img), format: "psd", channels: img.hasAlpha ? 4 : 3 };
     case "hdr": return { data: encodeHdrImage(img), format: "hdr", channels: 3 };

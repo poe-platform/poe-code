@@ -3761,6 +3761,39 @@ async function applyVideoFilterChain(
     } else if (name === "swapuv") {
       if (argStr) throw new Error("swapuv: unsupported option");
       current = await mapWork(current, frame => swapUv(frame, budget, signal), signal);
+    } else if (name === "extractplanes") {
+      const plane = named.planes ?? argStr;
+      if (positional.length !== 1 || Object.keys(named).some(key => key !== "planes") ||
+          !["y", "u", "v"].includes(plane)) {
+        throw new Error("extractplanes: select a single YUV plane (y, u, or v)");
+      }
+      current = await mapWork(current, async ({ native, ...frame }) => {
+        if (!native || native.rgba !== frame.data || native.width !== frame.width || native.height !== frame.height ||
+            ![0, 4, 5, 12, 13, 14].includes(native.format)) {
+          throw new Error("extractplanes: requires retained 8-bit planar YUV input");
+        }
+        const chromaWidth = Math.ceil(frame.width / ([5, 14].includes(native.format) ? 1 : 2));
+        const chromaHeight = Math.ceil(frame.height / ([0, 12].includes(native.format) ? 2 : 1));
+        const width = plane === "y" ? frame.width : chromaWidth;
+        const height = plane === "y" ? frame.height : chromaHeight;
+        const offset = plane === "y" ? 0 : frame.width * frame.height +
+          (plane === "v" ? chromaWidth * chromaHeight : 0);
+        budget.recordFrame(width, height);
+        budget.allocateMemory(width * height * 4);
+        const data = new Uint8Array(width * height * 4);
+        for (let pixel = 0; pixel < width * height; pixel++) {
+          if (pixel % 4096 === 0) {
+            await yieldTurn(signal);
+            signal?.throwIfAborted();
+            budget.checkCpu();
+          }
+          // Plane samples become full-range gray without luma expansion or an RGB round trip.
+          data.fill(native.pixels[offset + pixel]!, pixel * 4, pixel * 4 + 3);
+          data[pixel * 4 + 3] = 255;
+        }
+        return { ...frame, width, height, data };
+      }, signal);
+      pixelFormat = diagnostics.pixelFormat = "gray";
     } else if (name === "format") {
       let formats: string[] | undefined;
       for (const [index, part] of (argStr ? positional : []).entries()) {

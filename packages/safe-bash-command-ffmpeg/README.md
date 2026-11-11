@@ -498,6 +498,8 @@ channel layouts, and filter options are rejected.
 and the native peak-level histogram on stderr, measuring audio after preceding
 filters. It converts audio to signed 16-bit PCM with nearest-even rounding and
 clipping; subsequent filters and output receive those converted samples.
+Generic `threads`, `thread_type`, and `extra_hw_frames` options are accepted and
+validated without changing the samples or measurements.
 The histogram includes empty bins between
 the peak and the bin reaching the loudest 0.1% of samples; inputs shorter than
 1000 samples have no histogram.

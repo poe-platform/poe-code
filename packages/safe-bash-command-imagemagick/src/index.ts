@@ -474,11 +474,12 @@ export function parseMagickGeometry(raw: string): MagickGeometry {
   // Rectangle geometry preserves the first two offsets and ignores later ones.
   const offsetMatch = offsetStart < 0 ? null : /^([+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)(?:([+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)(?:[+-]\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)*)?$/.exec(trailingOffsetSign ? `${s.slice(offsetStart)}0` : s.slice(offsetStart));
   if (offsetMatch) {
+    // A bare second sign has no Y value; the synthetic zero only permits parsing.
+    hasYOffset = offsetMatch[2] !== undefined && offsetStart + offsetMatch[1]!.length + 1 < s.length;
     s = s.slice(0, offsetStart);
     x = Number(offsetMatch[1]!);
     y = offsetMatch[2] !== undefined ? Number(offsetMatch[2]!) : 0;
     hasOffset = true;
-    hasYOffset = offsetMatch[2] !== undefined;
   }
 
   while (s.length > 0) {

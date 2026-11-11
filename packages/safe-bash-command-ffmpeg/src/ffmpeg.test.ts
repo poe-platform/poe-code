@@ -9006,7 +9006,9 @@ describe("volumedetect", () => {
       const result = await runCmd(createFfmpegCommand(), ["-hide_banner", "-nostats", "-v", "info",
         "-i", "/in.wav", "-af", filter, "-f", "f32le", "-"], vfs);
       assert.equal(result.exitCode, 0, result.stderr);
-      assert.equal(result.stderr, "n_samples: 0\nn_samples: 2400\nmean_volume: -12.0 dB\nmax_volume: -6.0 dB\nhistogram_6db: 600\n");
+      const prefix = filter.includes("@") ? "[volumedetect@meter] " : "";
+      assert.equal(result.stderr, ["n_samples: 0", "n_samples: 2400", "mean_volume: -12.0 dB", "max_volume: -6.0 dB", "histogram_6db: 600"]
+        .map(line => `${prefix}${line}\n`).join(""));
       const expected = new Uint8Array(9600);
       const view = new DataView(expected.buffer);
       samples.forEach((sample, i) => view.setFloat32(i * 4, sample, true));
@@ -9018,7 +9020,7 @@ describe("volumedetect", () => {
       const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] }) });
       const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", filter, "-f", "f32le", "-"], vfs);
       assert.equal(result.exitCode, 8);
-      assert.ok(result.stderr.includes("Unsupported audio filter:"), result.stderr);
+      assert.ok(result.stderr.includes("volumedetect: unsupported option unknown"), result.stderr);
       assert.equal(result.stdoutBytes.length, 0);
     });
   }

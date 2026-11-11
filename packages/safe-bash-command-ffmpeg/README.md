@@ -502,7 +502,8 @@ Generic `threads`, `thread_type`, and `extra_hw_frames` options are accepted and
 validated without changing the samples or measurements.
 The histogram includes empty bins between
 the peak and the bin reaching the loudest 0.1% of samples; inputs shorter than
-1000 samples have no histogram.
+1000 samples have no histogram. Named instances such as `volumedetect@after` prefix
+every measurement and histogram line with `[volumedetect@after]`.
 `astats` (also `astats=` or `astats=metadata=0:reset=0`) reports per-channel and overall PCM
 statistics on stderr without changing samples: DC offset, signed extrema, sample
 differences, peak/RMS levels, flat factor, peak counts, noise floor, entropy and

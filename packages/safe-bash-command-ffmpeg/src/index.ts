@@ -11937,8 +11937,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     if (logLevel >= 32) {
                       // Native tears down a probe graph before processing audio frames.
                       for (const item of audioFilters) {
-                        if (item.trim().split("=", 1)[0]!.split("@", 1)[0] === "volumedetect") {
-                          await writeBytes(context.stderr, encodeUtf8("n_samples: 0\n"), context.signal);
+                        const target = item.trim().split("=", 1)[0]!;
+                        if (target.split("@", 1)[0] === "volumedetect") {
+                          const prefix = target.includes("@") ? `[${target}] ` : "";
+                          await writeBytes(context.stderr, encodeUtf8(`${prefix}n_samples: 0\n`), context.signal);
                         }
                       }
                     }
@@ -13121,17 +13123,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         filteredSampleFormat = filteredSampleFormat === "s16p" ? "s16p" : "s16";
                         panSampleFormat = filteredSampleFormat;
-                        let report = `n_samples: ${count}\n`;
+                        const prefix = filterTarget.includes("@") ? `[${filterTarget}] ` : "";
+                        let report = `${prefix}n_samples: ${count}\n`;
                         if (count > 0) {
                           const meanSquare = Math.round(sumSquares / count);
                           const meanDb = meanSquare === 0 ? -91 : 10 * Math.log10(meanSquare / (32768 * 32768));
                           const peakDb = peak === 0 ? -91 : 10 * Math.log10(peak * peak / (32768 * 32768));
-                          report += `mean_volume: ${meanDb.toFixed(1)} dB\nmax_volume: ${peakDb.toFixed(1)} dB\n`;
+                          report += `${prefix}mean_volume: ${meanDb.toFixed(1)} dB\n${prefix}max_volume: ${peakDb.toFixed(1)} dB\n`;
                           let db = 0;
                           while (db < histogram.length && histogram[db] === 0) db++;
                           // Native FFmpeg includes the bin that reaches the loudest 0.1% of samples.
                           for (let sum = 0; db < histogram.length && sum < Math.floor(count / 1000); db++) {
-                            report += `histogram_${db}db: ${histogram[db]}\n`;
+                            report += `${prefix}histogram_${db}db: ${histogram[db]}\n`;
                             sum += histogram[db]!;
                           }
                         }

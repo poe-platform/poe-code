@@ -23,9 +23,9 @@ for (const filter of ["volumedetect", "volumedetect,ashowinfo", "ashowinfo,volum
     } as never);
     assert.equal(result.exitCode, 0, stderr);
     assert.deepEqual(fs.readFileSync("/out.raw"), input);
-    const detectors = filter.includes("@second") ? 2 : 1;
-    assert.equal(stderr, "n_samples: 0\n".repeat(detectors)
+    const prefixes = filter.includes("@second") ? ["[volumedetect@first] ", "[volumedetect@second] "] : [""];
+    assert.equal(stderr, prefixes.map(prefix => `${prefix}n_samples: 0\n`).join("")
       + (filter.includes("ashowinfo") ? "[ashowinfo] n:0 pts:0 pts_time:0 fmt:s16 channels:1 chlayout:mono rate:8000 nb_samples:8 checksum:0603007F plane_checksums: [ 0603007F ]\n" : "")
-      + "n_samples: 8\nmean_volume: -13.8 dB\nmax_volume: -6.0 dB\n".repeat(detectors));
+      + prefixes.map(prefix => `${prefix}n_samples: 8\n${prefix}mean_volume: -13.8 dB\n${prefix}max_volume: -6.0 dB\n`).join(""));
   });
 }

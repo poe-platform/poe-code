@@ -18800,7 +18800,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             if (value.trim() === "" || !Number.isFinite(Number(value))) {
                 return { exitCode: 2, stdout: "", stderr: `compare: invalid argument for option '${t}': ${rawThreshold}\n` };
             }
-            const threshold = Number(value) / (rawThreshold.endsWith("%") ? 100 : 1);
+            // Native compare accepts a percent suffix without scaling the threshold.
+            const threshold = Number(value);
             if (t === "-similarity-threshold") similarityThreshold = threshold;
             else dissimilarityThreshold = threshold;
         }

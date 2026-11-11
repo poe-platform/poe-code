@@ -3756,7 +3756,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
       if (!color && !isStatistic && !isVariable && ![
         "i", "j", "w", "h", "n", "t", "quantumrange", "maxrgb", "quantumscale", "epsilon", "phi", "pi", "e",
         "u", "v", "s", "p", "page", "resolution", "printsize", "quality", "depth", "z", "extent",
-        "k", "r", "g", "b", "a", "alpha", "opacity", "intensity", "luma", "luminance", "hue", "saturation", "lightness"
+        "k", "r", "g", "b", "a", "intensity", "luma", "luminance", "hue", "saturation", "lightness"
       ].includes(name)) throw new FxExpressionError(`Expected operand at '${tok.val}'`);
       return (ctx) => {
         if (isVariable && !propName && !coordX) {
@@ -3815,7 +3815,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
         if (name === "r") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 0);
         if (name === "g") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 1);
         if (name === "b") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 2);
-        if (name === "a" || name === "alpha" || name === "opacity") {
+        if (name === "a") {
           return targetImg && !targetImg.hasAlpha && !targetImg.inactiveAlpha ? 1 : (ctx.sample ?? sampleFxImage)(targetImg, px, py, 3);
         }
         if (name === "intensity" || name === "luma" || name === "luminance") {

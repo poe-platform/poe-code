@@ -2053,13 +2053,14 @@ function writeGradientPixel(data: Uint8Array, samples: Uint16Array, evaluateSamp
             data[offset + channel] = clampByteVal(value * 255);
         }
     } else {
-        evaluateSamples[offset] = (first.r * firstAlpha + last.r * lastAlpha) / divisor;
+        // Q16-HDRI stores float32 quantum samples before output-depth rounding.
+        evaluateSamples[offset] = Math.fround((first.r * firstAlpha + last.r * lastAlpha) / divisor * 257) / 257;
         samples[offset] = Math.round(evaluateSamples[offset]! * 257);
         data[offset] = clampByteVal(samples[offset]! / 257);
-        evaluateSamples[offset + 1] = (first.g * firstAlpha + last.g * lastAlpha) / divisor;
+        evaluateSamples[offset + 1] = Math.fround((first.g * firstAlpha + last.g * lastAlpha) / divisor * 257) / 257;
         samples[offset + 1] = Math.round(evaluateSamples[offset + 1]! * 257);
         data[offset + 1] = clampByteVal(samples[offset + 1]! / 257);
-        evaluateSamples[offset + 2] = (first.b * firstAlpha + last.b * lastAlpha) / divisor;
+        evaluateSamples[offset + 2] = Math.fround((first.b * firstAlpha + last.b * lastAlpha) / divisor * 257) / 257;
         samples[offset + 2] = Math.round(evaluateSamples[offset + 2]! * 257);
         data[offset + 2] = clampByteVal(samples[offset + 2]! / 257);
     }

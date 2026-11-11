@@ -16795,13 +16795,17 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
             // Mogrify writes snapshots after all operations for the current input.
             const before = [...readSettings], after = [...opTokens, ...writeTokens];
             const directory = outDir, format = outFormatExt;
-            plans.push({ target: t, identify, verbose, regardWarnings, args(target) {
+            const { baseToken } = parseInputToken(t);
+            const colon = baseToken.indexOf(":");
+            const prefix = colon > 0 && extToImageFormat(baseToken.slice(0, colon)) ? baseToken.slice(0, colon + 1) : "";
+            const suffix = t.slice(baseToken.length);
+            plans.push({ target: baseToken.slice(prefix.length), identify, verbose, regardWarnings, args(target) {
                 const baseName = target.slice(target.lastIndexOf("/") + 1);
                 const dot = baseName.lastIndexOf(".");
                 const stem = dot < 0 || dot === baseName.length - 1 ? baseName : baseName.slice(0, dot);
                 const destDir = directory ? (directory.endsWith("/") ? directory : directory + "/") : target.slice(0, target.lastIndexOf("/") + 1);
                 const destPath = format ? `${destDir}${stem}.${format}` : directory ? `${destDir}${baseName}` : target;
-                return [...before, target, ...after, destPath];
+                return [...before, prefix + target + suffix, ...after, destPath];
             } });
         }
     }

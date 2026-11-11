@@ -5681,7 +5681,11 @@ function magickCropArea(img:Pick<RgbaImage,"width"|"height"|"virtualCanvas">,geo
 function magickExtentLayout(img: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geomStr: string, state: MagickState) {
     validateMagickTransformGeometry(geomStr, "-extent");
     const geometry = geomStr.split(",", 1)[0]!.replaceAll("#", "").replaceAll("(", "").replaceAll(")", "").trimStart();
-    const g = parseMagickGeometry(geometry);
+    let g = parseMagickGeometry(geometry);
+    if (g.areaLimit !== undefined && g.hasOffset && !geometry.startsWith("+") && !geometry.startsWith("-")) {
+        // Native scalar @ geometry with offsets keeps the page-sized rectangle and discards offsets.
+        g = parseMagickGeometry(`${img.virtualCanvas?.width || img.width}x${img.virtualCanvas?.height || img.height}`);
+    }
     if (g.width !== undefined && g.hasOffset && !g.isPercent && !geometry.toLowerCase().includes("x")) {
         throw new Error(`invalid argument for option '-extent': ${geomStr}`);
     }

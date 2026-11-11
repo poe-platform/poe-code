@@ -2283,16 +2283,18 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
     }
 
     if (track.type === "subtitle") {
-      // FFmpeg 7 selects whole subtitle packets by their start timestamp and
-      // preserves their timestamps, including cues extending past the end.
+      // Select whole subtitle packets, including cues extending past the end.
+      // Input seeks rebase timestamps unless -copyts preserves the timeline.
+      const offset = options.inputSeek && options.resetTimestamps !== false
+        ? Math.round(startSec * track.timescale) : 0;
       const samples: MediaSample[] = [];
       let duration = 0;
       for (const sample of track.samples) {
         if (++work % 256 === 0) yield;
         const seconds = sample.pts / track.timescale;
         if (seconds < startSec || seconds >= endSec) continue;
-        samples.push(sample);
-        duration = Math.max(duration, sample.pts + sample.duration);
+        samples.push(offset === 0 ? sample : { ...sample, pts: sample.pts - offset, dts: sample.dts - offset });
+        duration = Math.max(duration, sample.pts - offset + sample.duration);
       }
       slicedTracks.push({ ...track, samples, duration, declaredSampleCount: undefined });
       continue;

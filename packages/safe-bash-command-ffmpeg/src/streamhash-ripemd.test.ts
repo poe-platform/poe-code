@@ -44,9 +44,9 @@ for (const [algorithm, expected] of [
             stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
           } as never);
           if (expected === undefined) {
-            assert.notEqual(result.exitCode, 0);
+            assert.equal(result.exitCode, 234);
             assert.ok(stderr.includes("Unknown hash algorithm 'unknown'"), stderr);
-            assert.equal(volume.readFileSync("/digest.txt", "utf8"), "keep");
+            assert.equal(volume.readFileSync("/digest.txt", "utf8"), target === "-" ? "keep" : "");
             assert.equal(stdout, "");
           } else {
             assert.equal(result.exitCode, 0, stderr);

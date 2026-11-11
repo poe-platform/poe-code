@@ -17528,6 +17528,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             rethrowRuntimeError(context, err);
             const msg = err instanceof Error ? err.message : String(err);
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
+            if (checksumOutput && msg.startsWith("Unknown hash algorithm '")) {
+              for (const destination of protocolTargets) {
+                await writeMediaOutput(context, destination, new Uint8Array(0), budget);
+              }
+              await writeBytes(context.stderr,
+                encodeUtf8("Could not write header (incorrect codec parameters ?): Invalid argument\n"), context.signal);
+              return { exitCode: 234 };
+            }
             if (msg.startsWith("Unsupported audio filter:")) return { exitCode: 8 };
             if (msg.startsWith("Unknown input format:")) return { exitCode: 234 };
             if (msg === audioConversionDisabled) return { exitCode: 234 };

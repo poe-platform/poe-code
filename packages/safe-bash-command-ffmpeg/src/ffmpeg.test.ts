@@ -1929,11 +1929,11 @@ describe("per-frame audio checksums", () => {
       }
     }
   });
-  it("rejects an unknown frame hash without replacing output", async () => {
+  it("truncates output when an unknown frame hash fails to write the header", async () => {
     const vfs = createTestVfs({ "/i.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(512)] }), "/frames.txt": "keep" });
     const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/i.wav", "-f", "framehash", "-hash", "invalid", "/frames.txt"], vfs);
     assert.notEqual(result.exitCode, 0);
-    assert.equal(new TextDecoder().decode(vfs.store.get("/frames.txt")), "keep");
+    assert.equal(new TextDecoder().decode(vfs.store.get("/frames.txt")), "");
   });
   for (const format of ["framemd5", "framehash", "framecrc"]) {
     for (const target of ["-", "/frames.txt"]) {

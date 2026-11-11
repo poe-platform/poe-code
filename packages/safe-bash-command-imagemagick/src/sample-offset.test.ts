@@ -11,6 +11,10 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         ["0,100", "54545b5b6262ffff696970707777ffffa8a8afafb6b6ffffbdbdc4c4cbcbffff"],
         ["1/2", "000007070e0effff2a2a31313838ffff54545b5b6262ffff7e7e85858c8cffff"],
         ["25x75", "54545b5b6262ffff7e7e85858c8cffffa8a8afafb6b6ffffd2d2d9d9e0e0ffff"],
+        ["(25x75)", "54545b5b6262ffff7e7e85858c8cffffa8a8afafb6b6ffffd2d2d9d9e0e0ffff"],
+        ["(25)x(75)", "54545b5b6262ffff7e7e85858c8cffffa8a8afafb6b6ffffd2d2d9d9e0e0ffff"],
+        ["(25),75", "54545b5b6262ffff7e7e85858c8cffffa8a8afafb6b6ffffd2d2d9d9e0e0ffff"],
+        ["25/(75)", "54545b5b6262ffff7e7e85858c8cffffa8a8afafb6b6ffffd2d2d9d9e0e0ffff"],
         ["0x100", "54545b5b6262ffff696970707777ffffa8a8afafb6b6ffffbdbdc4c4cbcbffff"],
         ["1x2", "000007070e0effff2a2a31313838ffff54545b5b6262ffff7e7e85858c8cffff"],
     ])(`${mode} matches native PNG64 pixels for sample:offset=%s`, async (offset, expected) => {

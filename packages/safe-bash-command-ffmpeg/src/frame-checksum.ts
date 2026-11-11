@@ -262,8 +262,9 @@ export function serializeFrameChecksum(
     const payload = track.type !== "audio" || decodedAudioPackets || encodedAudio ? new Uint8Array() : rawAudio!.serialize({ ...doc, tracks: [track] }, { audioCodec, budget });
     let audioPackets = track.samples;
     if (!copy && track.decodedAudio && codec?.codecName.startsWith("pcm_") &&
-        audioPackets.every(packet => packet.data.length > 0)) {
-      // PCM frame sizes are exact; container timestamps may be rounded to milliseconds.
+        track.timescale < rate && audioPackets.every(packet => packet.data.length > 0)) {
+      // Recover PCM sizes only for clocks too coarse to represent individual samples.
+      // Sample-accurate durations may reflect cuts while packet bytes retain the input.
       const stride = (codec.bitsPerSample ?? 0) / 8 * (codec.channels ?? 0);
       if (stride > 0) {
         let end = Math.round((audioPackets[0]?.pts ?? 0) * rate / track.timescale);

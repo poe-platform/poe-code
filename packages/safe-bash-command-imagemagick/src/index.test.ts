@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import sharp from "@poe-code/image-ast";
+import sharp, { decodeImage } from "@poe-code/image-ast";
 import {
   runCompareCli,
   runConvertCli,
@@ -75,14 +75,14 @@ describe("safe-bash-command-imagemagick", () => {
     expect(meta.height).toBe(30);
 
     const labelRes = await runConvertCli(
-      ["-size", "100x24", "-background", "#000000", "-fill", "#ffffff", "label:POE", "/label.png"],
+      ["-size", "100x24", "-pointsize", "18", "-background", "#000000", "-fill", "#ffffff", "label:POE", "/label.png"],
       files
     );
     expect(labelRes.exitCode).toBe(0);
     const labelMeta = await sharp(files.get("/label.png")!).metadata();
     expect(labelMeta.width).toBe(100);
     expect(labelMeta.height).toBe(24);
-    const labelRaw = await sharp(files.get("/label.png")!).raw().toBuffer();
+    const labelRaw = decodeImage(files.get("/label.png")!).data;
     let whitePixels = 0;
     for (let i = 0; i < labelRaw.length; i += 4) {
       if (labelRaw[i]! > 200 && labelRaw[i + 1]! > 200 && labelRaw[i + 2]! > 200) whitePixels++;
@@ -504,7 +504,7 @@ describe("safe-bash-command-imagemagick", () => {
 
     // 1. gradient: and radial-gradient: and pattern:checkerboard
     await runMagickCli(["-size", "40x20", "gradient:#ff0000-#0000ff", "/grad.png"], files);
-    const gradRaw = await sharp(files.get("/grad.png")!).raw().toBuffer();
+    const gradRaw = decodeImage(files.get("/grad.png")!).data;
     // Top row is red, bottom row is blue
     expect(gradRaw[0]).toBeGreaterThan(240);
     expect(gradRaw[2]).toBeLessThan(15);
@@ -745,7 +745,7 @@ describe("safe-bash-command-imagemagick", () => {
       ],
       files
     );
-    const remapRaw = await sharp(files.get("/remapped.png")!).raw().toBuffer();
+    const remapRaw = decodeImage(files.get("/remapped.png")!).data;
     // Every pixel in /remapped.png must be grayscale (R === G === B) because /palette.png is pure grayscale
     expect(remapRaw[0]).toBe(remapRaw[1]);
     expect(remapRaw[1]).toBe(remapRaw[2]);

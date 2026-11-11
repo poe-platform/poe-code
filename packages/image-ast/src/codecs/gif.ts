@@ -302,7 +302,9 @@ export function encodeGifImage(img:RgbaImage,options:GifOptions={}):Uint8Array {
    resetFrames = (disposal === 2 || disposal === 3) && (!rectangle || (rectangle.x === 0 && rectangle.y === 0 && rectangle.width === layout.width && rectangle.height === layout.frameHeight));
  }
  let headerImage = img;
- if (resetFrames) {
+ // An initial Previous frame restores the GIF background, including before a pause.
+ const firstDisposal = typeof img.disposal === "number" ? img.disposal : img.disposal?.[0];
+ if (resetFrames || (options.optimizeFrames && firstDisposal === 3)) {
    for (let i = 0; i < layout.framePixels; i++) if (data[i * 4 + 3]! >= 128) {
      headerImage = { ...img, backgroundColor: { r: data[i * 4]!, g: data[i * 4 + 1]!, b: data[i * 4 + 2]!, a: 255 } }; break;
    }

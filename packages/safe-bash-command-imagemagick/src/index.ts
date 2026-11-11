@@ -11113,6 +11113,7 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
         if ((n > 0 && (current.width !== previous.width || current.height !== previous.height)) ||
             (typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
             (typeof previous.disposal === "number" ? previous.disposal : 0) > 1) continue;
+        let transparent = current.hasAlpha;
         const bounds = compareLayerBounds(previous, current, fuzz, "compareany");
         let next = bounds.next();
         while (!next.done) {
@@ -11120,10 +11121,12 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
             else {
                 const { image, position, length, hue } = next.value;
                 const source = image ? current : previous;
-                next = bounds.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length));
+                const data = hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length);
+                if (image && !hue && transparent) transparent = data!.every((value, index) => index % 4 !== 3 || value === 0);
+                next = bounds.next(data);
             }
         }
-        let area = next.value;
+        let area = transparent ? undefined : next.value;
         // Restoring the preceding canvas can replace a return frame with a pause.
         const restored = n > 1 ? stack[n - 2] : undefined;
         if (area && area.width * area.height > 1 && restored && !restored.hasAlpha &&
@@ -11150,7 +11153,8 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
             const background = optimize ? { r: 0, g: 0, b: 0 } : current.backgroundColor ?? { r: 255, g: 255, b: 255 };
             const pause = yield* createSolidRgbaImageSteps(1, 1, { ...background, a: 0 }, !!current.data16);
             const { data16: ignoredData16, evaluateSamples: ignoredEvaluateSamples, ...metadata } = current;
-            stack[n] = { ...metadata, width: 1, height: 1, data: pause.data,
+            if (n > 0 && transparent && next.value && !optimize) stack[n - 1] = { ...previous, disposal: 3 };
+            stack[n] = { ...metadata, ...(n === stack.length - 1 && transparent && next.value && !optimize ? { disposal: 3 } : {}), width: 1, height: 1, data: pause.data,
                 ...(pause.data16 ? { data16: pause.data16 } : {}), hasAlpha: true,
                 virtualCanvas: { ...magickCropCanvas(current, 0, 0), x: -1, y: -1 } };
         } else if (n > 0 && (area.width !== current.width || area.height !== current.height)) {
@@ -11166,6 +11170,7 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
         if ((n > 0 && (current.width !== previous.width || current.height !== previous.height)) ||
             (typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
             (typeof previous.disposal === "number" ? previous.disposal : 0) > 1) continue;
+        let transparent = current.hasAlpha;
         const bounds = compareLayerBounds(previous, current, fuzz, "compareany");
         let next = bounds.next();
         while (!next.done) {
@@ -11176,10 +11181,11 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
                 const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
                     ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
                     : await backend.storage.read(source.position + position, length);
+                if (image && !hue && transparent) transparent = data!.every((value, index) => index % 4 !== 3 || value === 0);
                 next = bounds.next(data);
             }
         }
-        let area = next.value;
+        let area = transparent ? undefined : next.value;
         // Restoring the preceding canvas can replace a return frame with a pause.
         const restored = n > 1 ? await stack.get(n - 2) : undefined;
         if (area && area.width * area.height > 1 && restored && !restored.hasAlpha &&
@@ -11208,7 +11214,8 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
             const background = optimize ? { r: 0, g: 0, b: 0 } : current.backgroundColor ?? { r: 255, g: 255, b: 255 };
             const pause = await createStoredCanvas(1, 1, { ...background, a: 0 }, backend, signal, !!current.storedData16);
             const { storedData16: ignoredData16, storedEvaluateSamples: ignoredEvaluateSamples, ...metadata } = current;
-            await stack.set(n, { ...metadata, width: 1, height: 1, position: pause.position,
+            if (n > 0 && transparent && next.value && !optimize) await stack.set(n - 1, { ...previous, disposal: 3 });
+            await stack.set(n, { ...metadata, ...(n === stack.length - 1 && transparent && next.value && !optimize ? { disposal: 3 } : {}), width: 1, height: 1, position: pause.position,
                 ...(pause.storedData16 ? { storedData16: pause.storedData16 } : {}), hasAlpha: true,
                 virtualCanvas: { ...magickCropCanvas(current, 0, 0), x: -1, y: -1 } });
         } else if (n > 0 && (area.width !== current.width || area.height !== current.height)) {
@@ -13125,6 +13132,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         current = yield* applyMagickRasterSteps(current, optimizePlusPixels(current, state.alphaFuzz), signal, current, [current, previous]);
                         stack[n] = current;
                     }
+                    let transparent = current.hasAlpha;
                     const clearing = compareLayerBounds(previous, current, 0, "compareclear");
                     let clear = clearing.next();
                     while (!clear.done) {
@@ -13132,8 +13140,19 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         else {
                             const { image, position, length, hue } = clear.value;
                             const source = image ? current : previous;
-                            clear = clearing.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length));
+                            const data = hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length);
+                            if (image && !hue && transparent) transparent = data!.every((value, index) => index % 4 !== 3 || value === 0);
+                            clear = clearing.next(data);
                         }
+                    }
+                    if (clear.value && transparent) {
+                        // A fully transparent replacement restores the prior canvas and pauses.
+                        const prior = frames[frames.length - 1]!;
+                        frames[frames.length - 1] = { ...prior, disposal: 3 };
+                        const { data16: ignoredData16, evaluateSamples: ignoredEvaluateSamples, ...metadata } = current;
+                        frames.push({ ...metadata, ...yield* createSolidRgbaImageSteps(1, 1, { r: 255, g: 255, b: 255, a: 0 }, !!current.data16),
+                            disposal: n === stack.length - 1 ? 3 : 1, virtualCanvas: { ...magickCropCanvas(current, 0, 0), x: -1, y: -1 } });
+                        continue;
                     }
                     if (clear.value) {
                         // Keep the previous display, then clear only the pixels the next frame erases.
@@ -16975,6 +16994,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     if (optimizePlus) {
                         if (fuzz > 0) current = await transformStoredMagickRaster(current, backend, optimizePlusPixels(current, fuzz), signal, current, [current, previous!]);
+                        let transparent = current.hasAlpha;
                         const clearing = compareLayerBounds(previous!, current, 0, "compareclear");
                         let clear = clearing.next();
                         while (!clear.done) {
@@ -16985,8 +17005,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                                 const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
                                     ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
                                     : await backend.storage.read(source.position + position, length);
+                                if (image && !hue && transparent) transparent = data!.every((value, index) => index % 4 !== 3 || value === 0);
                                 clear = clearing.next(data);
                             }
+                        }
+                        if (clear.value && transparent) {
+                            const prior = (await frames.get(frames.length - 1))!;
+                            await frames.set(frames.length - 1, { ...prior, disposal: 3 });
+                            const { storedData16: ignoredData16, storedEvaluateSamples: ignoredEvaluateSamples, ...metadata } = current;
+                            await frames.push({ ...metadata, ...await createStoredCanvas(1, 1, { r: 255, g: 255, b: 255, a: 0 }, backend, signal, !!current.storedData16),
+                                disposal: n === stack.length - 1 ? 3 : 1, virtualCanvas: { ...magickCropCanvas(current, 0, 0), x: -1, y: -1 } });
+                            previous = current;
+                            continue;
                         }
                         if (clear.value) {
                             const prior = (await frames.get(frames.length - 1))!;

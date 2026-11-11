@@ -44,7 +44,9 @@ export async function* encodeGifFromStorage(
     resetFrames = (disposal === 2 || disposal === 3) && (!rectangle || (rectangle.x === 0 && rectangle.y === 0 && rectangle.width === layout.width && rectangle.height === layout.frameHeight));
   }
   let headerImage = image;
-  if (resetFrames) {
+  // An initial Previous frame restores the GIF background, including before a pause.
+  const firstDisposal = await image.storedDisposal?.at(0, { signal }) ?? (typeof image.disposal === "number" ? image.disposal : image.disposal?.[0]);
+  if (resetFrames || (options.optimizeFrames && firstDisposal === 3)) {
     for (let i = 0; i < layout.framePixels; i++) {
       const p = await pixels.pixel(i);
       if (p >>> 24 >= 128) {

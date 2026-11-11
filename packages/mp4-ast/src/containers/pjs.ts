@@ -21,9 +21,14 @@ function parsePjs(bytes: Uint8Array): MediaDocument {
   const timescale = 10;
   let duration = 0;
   const samples: MediaSample[] = [];
+<<<<<<< HEAD
   const seen = new Set<string>();
   for (const line of decodeUtf8(bytes).split("\n")) {
     const cue = readLine(line.endsWith("\r") ? line.slice(0, -1) : line);
+=======
+  for (const line of decodeUtf8(bytes).replaceAll("\r", "\n").split("\n")) {
+    const cue = readLine(line);
+>>>>>>> b5bd2b5ebc (fix: split CR-delimited PJS subtitle records)
     if (!cue) continue;
     const key = `${cue.start},${cue.end},${cue.text}`;
     if (seen.has(key)) continue;
@@ -47,7 +52,7 @@ export function pjsAst(): MediaAstPlugin {
     extensions: ["pjs"], mimeTypes: [], canDemux: true, canMux: false,
     supportedVideoCodecs: [], supportedAudioCodecs: [],
     detect(bytes) {
-      return readLine(decodeUtf8(bytes.subarray(0, 4096)).split("\n")[0] ?? "") !== undefined;
+      return readLine(decodeUtf8(bytes.subarray(0, 4096)).replaceAll("\r", "\n").split("\n")[0] ?? "") !== undefined;
     },
     parse: parsePjs,
     serialize() {

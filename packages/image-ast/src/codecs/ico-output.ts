@@ -3,7 +3,7 @@ import type { RgbaImage } from "../ast.js";
 import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 
 function payloadSize(image: Pick<RgbaImage, "width" | "height">, depth = 32): number {
-    if (!Number.isInteger(image.width) || !Number.isInteger(image.height) || image.width < 1 || image.height < 1 || image.width > 256 || image.height > 256) throw new Error("ICO dimensions must be between 1 and 256");
+    if (!Number.isInteger(image.width) || !Number.isInteger(image.height) || image.width < 1 || image.height < 1 || image.width > 512 || image.height > 512) throw new Error("ICO dimensions must be between 1 and 512");
     return 40 + (depth <= 8 ? 4 * 2 ** depth : 0) + Math.ceil(image.width * depth / 32) * 4 * image.height + Math.ceil(image.width / 32) * 4 * image.height;
 }
 function directory(count: number): Uint8Array {

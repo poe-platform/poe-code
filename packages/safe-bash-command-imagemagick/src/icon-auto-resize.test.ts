@@ -40,7 +40,7 @@ it.each(["sync", "buffered", "retained"] as const)("writes requested ICO sizes f
 });
 
 it.each(["sync", "buffered", "retained"] as const)("rejects out-of-range icon lists without creating or replacing the destination (%s)", async mode => {
-    for (const sizes of ["1", "2", "3", "8", "15", "16,15", "15,16", "257"]) {
+    for (const sizes of ["1", "2", "3", "8", "15", "16,15", "15,16", "513"]) {
         for (const original of [undefined, Uint8Array.of(1, 2, 3)]) {
             const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
             if (original) { files.set("out.ico", original); await fs.writeFile("/out.ico", original); }

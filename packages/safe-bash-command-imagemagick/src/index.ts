@@ -11048,7 +11048,7 @@ if (t === "-intent" || t === "+intent") {
             if (defStr.toLowerCase() === "icon:auto-resize" || defStr.toLowerCase().startsWith("icon:auto-resize=")) {
                 const value = defStr.slice("icon:auto-resize".length + 1);
                 const sizes = value ? value.split(",").map(Number) : [256, 192, 128, 96, 64, 48, 40, 32, 24, 16];
-                if (sizes.length > 65535 || sizes.some(size => !Number.isInteger(size) || size < 16 || size > 256)) throw new Error("Invalid icon:auto-resize dimensions (expected integers from 16 to 256)");
+                if (sizes.length > 65535 || sizes.some(size => !Number.isInteger(size) || size < 16 || size > 512)) throw new Error("Invalid icon:auto-resize dimensions (expected integers from 16 to 512)");
                 state.iconAutoResize = sizes;
             }
             if (defStr.toLowerCase().startsWith("bmp:subtype=")) {

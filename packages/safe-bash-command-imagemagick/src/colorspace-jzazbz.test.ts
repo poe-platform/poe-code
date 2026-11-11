@@ -5,7 +5,7 @@ import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 // ImageMagick 7.1.2-35 Q16-HDRI reference bytes for red, muted green and blue.
-const cases = [
+const cases: Array<{ input?: string; space: string; args: string[]; hex: string | undefined; png?: boolean }> = [
     { input: "xc:#80562360", space: "Jzazbz", args: ["-colorspace", "sRGB", "-depth", "8", "rgba:/out"], hex: "80562360" },
     { input: "xc:#80562360", space: "Jzazbz", args: ["PNG32:/out"], hex: "80562360", png: true },
     { input: "xc:black", space: "Jzazbz", args: ["-colorspace", "sRGB", "-depth", "8", "rgb:/out"], hex: "000000" },

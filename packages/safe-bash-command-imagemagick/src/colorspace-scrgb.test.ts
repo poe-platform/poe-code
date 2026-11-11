@@ -26,7 +26,7 @@ it.each([
         stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
     }) : mode === "sync" ? runMagickCliSync(argv, files)
         : await runConvertCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
-    expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(0);
+    expect(result.exitCode, "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toBe(0);
     expect("stderr" in result ? result.stderr : stderr).toBe("");
     const output = mode === "command" || mode === "retained" ? await fs.readFile("/out.raw") : files.get("/out.raw")!;
     expect(Buffer.from(output).toString("hex")).toBe(expected);

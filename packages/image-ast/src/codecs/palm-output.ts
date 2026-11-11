@@ -5,7 +5,7 @@ import { defaultRuntime } from "@poe-code/compression";
 type Samples = Uint8Array | Uint16Array;
 
 /** Uncompressed Palm bitmap, with word-aligned rows and MSB-first samples. */
-function* palmChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">, highDepth: boolean): Generator<number | Uint8Array, void, Samples> {
+function* palmChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">, highDepth: boolean, hasNext: boolean): Generator<number | Uint8Array, void, Samples> {
   const { width, height } = image, maximum = highDepth ? 65535 : 255;
   if (!Number.isInteger(width) || width < 1 || width > 65535 || !Number.isInteger(height) || height < 1 || height > 65535) throw new RangeError("Invalid PALM dimensions");
   const colors = new Map<string, number[]>();
@@ -39,6 +39,12 @@ function* palmChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">, hi
       offset += 4;
     }
   }
+  const size = header.length + rowBytes * height, padding = hasNext ? (4 - size % 4) % 4 : 0;
+  if (hasNext) {
+    const nextOffset = (size + padding) / 4;
+    if (nextOffset > 65535) throw new RangeError("PALM next bitmap offset exceeds 16 bits");
+    view.setUint16(10, nextOffset);
+  }
   yield header;
   for (let y = 0; y < height; y++) for (let x = 0; x < width; x += 512) {
     const data = yield (y * width + x) * 4, count = data.length / 4;
@@ -56,18 +62,23 @@ function* palmChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha">, hi
     }
     yield bytes;
   }
+  if (padding) yield new Uint8Array(padding);
 }
 
 export function encodePalmImage(image: RgbaImage): Uint8Array {
-  const samples = image.data16 ?? image.data;
-  if (samples.length !== image.width * image.height * 4) throw new Error("Invalid PALM pixels");
-  const steps = palmChunks(image, !!image.data16), chunks: Uint8Array[] = [];
-  let step = steps.next(), size = 0;
-  while (!step.done) {
-    if (typeof step.value === "number") {
-      const length = Math.min(512, image.width - step.value / 4 % image.width) * 4;
-      step = steps.next(samples.subarray(step.value, step.value + length));
-    } else { chunks.push(step.value); size += step.value.length; step = steps.next(); }
+  const pages = image.palmPages ?? [image], chunks: Uint8Array[] = [];
+  let size = 0;
+  for (const [index, page] of pages.entries()) {
+    const samples = page.data16 ?? page.data;
+    if (samples.length !== page.width * page.height * 4) throw new Error("Invalid PALM pixels");
+    const steps = palmChunks(page, !!page.data16, index + 1 < pages.length);
+    let step = steps.next();
+    while (!step.done) {
+      if (typeof step.value === "number") {
+        const length = Math.min(512, page.width - step.value / 4 % page.width) * 4;
+        step = steps.next(samples.subarray(step.value, step.value + length));
+      } else { chunks.push(step.value); size += step.value.length; step = steps.next(); }
+    }
   }
   const bytes = new Uint8Array(size);
   let offset = 0;
@@ -77,17 +88,22 @@ export function encodePalmImage(image: RgbaImage): Uint8Array {
 
 export async function* encodePalmFromStorage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal): AsyncGenerator<Uint8Array> {
   signal.throwIfAborted();
-  const steps = palmChunks(image, !!image.storedData16), sampleBytes = image.storedData16 ? 2 : 1;
-  let step = steps.next();
-  while (!step.done) {
-    await defaultRuntime.yieldTurn(signal);
+  const count = image.storedPalmPages?.length ?? 1;
+  for (let index = 0; index < count; index++) {
     signal.throwIfAborted();
-    if (typeof step.value === "number") {
-      const length = Math.min(512, image.width - step.value / 4 % image.width) * 4 * sampleBytes;
-      const bytes = await storage.read((image.storedData16?.position ?? image.position) + step.value * sampleBytes, length, { signal });
+    const page = image.storedPalmPages ? await image.storedPalmPages.at(index) : image;
+    const steps = palmChunks(page, !!page.storedData16, index + 1 < count), sampleBytes = page.storedData16 ? 2 : 1;
+    let step = steps.next();
+    while (!step.done) {
+      await defaultRuntime.yieldTurn(signal);
       signal.throwIfAborted();
-      if (bytes.length !== length) throw new Error("Truncated PALM pixel storage");
-      step = steps.next(image.storedData16 ? new Uint16Array(bytes.slice().buffer) : bytes);
-    } else { yield step.value; step = steps.next(); }
+      if (typeof step.value === "number") {
+        const length = Math.min(512, page.width - step.value / 4 % page.width) * 4 * sampleBytes;
+        const bytes = await storage.read((page.storedData16?.position ?? page.position) + step.value * sampleBytes, length, { signal });
+        signal.throwIfAborted();
+        if (bytes.length !== length) throw new Error("Truncated PALM pixel storage");
+        step = steps.next(page.storedData16 ? new Uint16Array(bytes.slice().buffer) : bytes);
+      } else { yield step.value; step = steps.next(); }
+    }
   }
 }

@@ -72,3 +72,25 @@ it("rejects unrepresentable dimensions, truncated pixels, and cancellation", asy
   await expect(encodePalmFromStorage(source, storage, controller.signal).next()).rejects.toThrow("cancelled");
   expect(storage.read).not.toHaveBeenCalled();
 });
+
+it("links differently sized bitmap records, padding only before the next record", async () => {
+  const pages = [image(2, 1, new Uint8Array(8)), image(16, 2, new Uint8Array(128)), image(1, 1, new Uint8Array(4))];
+  const expected = Buffer.from("00020001000240000100000500ff000000000000" + "00100002000240000100000500ff000000000000" + "00010001000240000100000000ff00000000", "hex");
+  expect(encodeImage({ ...pages[0]!, palmPages: pages }, { format: "palm" }).data).toEqual(new Uint8Array(expected));
+  const storage = { allocate: vi.fn(), write: vi.fn(), read: vi.fn(async (_position: number, length: number) => new Uint8Array(length)) };
+  const at = vi.fn(async (index: number) => ({ ...pages[index]!, position: 0 }));
+  const chunks: Uint8Array[] = [];
+  for await (const bytes of encodePalmFromStorage({ ...pages[0]!, position: 0, storedPalmPages: { length: pages.length, at } }, storage, new AbortController().signal)) chunks.push(bytes);
+  expect(Buffer.concat(chunks)).toEqual(expected);
+  expect(at.mock.calls).toEqual([[0], [1], [2]]);
+  expect(storage.allocate).not.toHaveBeenCalled();
+  expect(storage.write).not.toHaveBeenCalled();
+});
+
+it("rejects a next-record offset that cannot fit in the Palm header", async () => {
+  const page = image(65535, 32, new Uint8Array(65535 * 32 * 4));
+  expect(() => encodeImage({ ...page, palmPages: [page, page] }, { format: "palm" })).toThrow("PALM next bitmap offset exceeds 16 bits");
+  const storage = { allocate: vi.fn(), write: vi.fn(), read: vi.fn(async (_position: number, length: number) => new Uint8Array(length)) };
+  const output = encodePalmFromStorage({ ...page, position: 0, storedPalmPages: { length: 2, async at() { return { ...page, position: 0 }; } } }, storage, new AbortController().signal);
+  await expect(output.next()).rejects.toThrow("PALM next bitmap offset exceeds 16 bits");
+});

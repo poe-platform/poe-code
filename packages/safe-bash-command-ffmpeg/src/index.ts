@@ -12857,6 +12857,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const report = await measureReplayGain(stretched, origRate, budget, context.signal);
                         if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "volumedetect" || trimmed === "volumedetect=") {
+                        // Reverse consumes its entire input before emitting a frame.
+                        const reverse = audioFilters.slice(filterIndex + 1)
+                          .some(filter => filter.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse");
+                        const frameLimit = reverse && maxAudioFrames !== 0 ? undefined : maxAudioFrames;
                         // Demand includes the complete frame where a downstream trim discovers EOF.
                         const next = audioFilters[filterIndex + 1]?.trim();
                         const trim = next?.split("=", 1)[0]!.split("@", 1)[0] === "atrim"
@@ -12867,7 +12871,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let outputFrames = 0;
                         let firstPts: number | undefined;
                         let nextPts = 0;
-                        for (let start = 0, n = 0; start < length && (maxAudioFrames === undefined || outputFrames < maxAudioFrames); n++) {
+                        for (let start = 0, n = 0; start < length && (frameLimit === undefined || outputFrames < frameLimit); n++) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           const frame = audioTimestamps?.[n];
                           const packet = t.samples[n];

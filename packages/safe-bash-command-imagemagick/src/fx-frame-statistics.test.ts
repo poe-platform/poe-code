@@ -15,7 +15,8 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
             stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
         }) : mode === "sync" ? runConvertCliSync(argv, files)
             : await runConvertCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
-        expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(0);
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        expect(result.exitCode).toBe(0);
         return { stdout: "stdout" in result ? result.stdout : stdout,
             output: mode === "command" || mode === "retained" ? await fs.readFile("/out.rgb").catch(() => undefined) : files.get("/out.rgb") };
     }

@@ -5035,17 +5035,19 @@ async function applyVideoFilterChain(
         }
       }
       const start = named.start;
+      // Compare integer input ticks, including duration sums, to avoid fractional boundary drift.
+      const trimTimescale = timescale;
       // FFmpeg rescales duration options to input ticks, rounding ties away from zero.
       const roundTime = (value: string) => {
-        const ticks = parseHlsDuration(value) * timescale;
-        return Math.sign(ticks) * Math.floor(Math.abs(ticks) + 0.5) / timescale;
+        const ticks = parseHlsDuration(value) * trimTimescale;
+        return Math.sign(ticks) * Math.floor(Math.abs(ticks) + 0.5);
       };
       const st = Math.min(start === undefined ? Infinity : roundTime(start),
-        named.start_pts === undefined ? Infinity : Number(named.start_pts) / timescale);
+        named.start_pts === undefined ? Infinity : Number(named.start_pts));
       const startFrame = named.start_frame === undefined ? undefined : Number(named.start_frame);
       const endFrame = named.end_frame === undefined ? undefined : Number(named.end_frame);
       const end = Math.max(named.end === undefined ? -Infinity : roundTime(named.end),
-        named.end_pts === undefined ? -Infinity : Number(named.end_pts) / timescale);
+        named.end_pts === undefined ? -Infinity : Number(named.end_pts));
       const duration = named.duration === undefined ? undefined : parseHlsDuration(named.duration);
       const dur = named.duration === undefined ? undefined : roundTime(named.duration);
       for (const [option, raw, value] of [["start", start, st], ["end", named.end, end], ["duration", named.duration, dur]] as const) {
@@ -5059,14 +5061,15 @@ async function applyVideoFilterChain(
       const trimmed = (async function* () {
         let index = 0;
         for await (const f of input) {
+          const pts = Math.round(f.ptsSeconds * trimTimescale);
           const afterStart = startFrame === undefined
-            ? st === Infinity || f.ptsSeconds >= st
-            : index >= startFrame || f.ptsSeconds >= st;
-          if (afterStart) firstPts ??= f.ptsSeconds;
+            ? st === Infinity || pts >= st
+            : index >= startFrame || pts >= st;
+          if (afterStart) firstPts ??= pts;
           const finalEnd = dur !== undefined && duration !== 0 && firstPts !== undefined ? Math.max(end, firstPts + dur) : end;
           const beforeEnd = endFrame === undefined
-            ? finalEnd === -Infinity || f.ptsSeconds < finalEnd
-            : index < endFrame || (Number.isFinite(finalEnd) && f.ptsSeconds < finalEnd);
+            ? finalEnd === -Infinity || pts < finalEnd
+            : index < endFrame || (Number.isFinite(finalEnd) && pts < finalEnd);
           index++;
           if (!beforeEnd) {
             endTimeSeconds = Math.min(endTimeSeconds ?? Infinity, f.ptsSeconds);

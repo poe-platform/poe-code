@@ -14,7 +14,7 @@ export interface WarpPlan {
     derivatives?(x: number, y: number): readonly [number, number, number, number];
     map(x: number, y: number): readonly [x: number, y: number, copy?: boolean];
 }
-export type VirtualPixelMethod = "edge" | "dither" | "background" | "transparent" | "black" | "white" | "gray" | "tile" | "mirror" | "horizontal-tile" | "vertical-tile" | "checker-tile" | "horizontal-tile-edge" | "vertical-tile-edge";
+export type VirtualPixelMethod = "random" | "edge" | "dither" | "background" | "transparent" | "black" | "white" | "gray" | "tile" | "mirror" | "horizontal-tile" | "vertical-tile" | "checker-tile" | "horizontal-tile-edge" | "vertical-tile-edge";
 
 // ImageMagick's default radial Robidoux filter, indexed by squared distance.
 const robidoux = Float64Array.from({ length: 1024 }, (_, i) => {

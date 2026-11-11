@@ -4,13 +4,18 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 const ditherOffsets = [0, 48, 12, 60, 3, 51, 15, 63];
 
 /** Return a source pixel index, or -1 for a constant virtual pixel. */
-export function virtualPixelIndex(x: number, y: number, width: number, height: number, method: VirtualPixelMethod | undefined): number {
+export function virtualPixelIndex(x: number, y: number, width: number, height: number, method: VirtualPixelMethod | undefined, random: () => number = Math.random): number {
     if (x >= 0 && y >= 0 && x < width && y < height) return y * width + x;
     const wrap = (value: number, size: number) => ((value % size) + size) % size;
     switch (method) {
         case "dither":
             x = Math.max(0, Math.min(width - 1, x + ditherOffsets[x & 7]! - 32));
             y = Math.max(0, Math.min(height - 1, y + ditherOffsets[y & 7]! - 32));
+            break;
+        case "random":
+            // Native x86_64 evaluates the Y argument before X.
+            y = Math.min(height - 1, Math.floor(height * random()));
+            x = Math.min(width - 1, Math.floor(width * random()));
             break;
         case "edge":
             x = Math.max(0, Math.min(width - 1, x)); y = Math.max(0, Math.min(height - 1, y));

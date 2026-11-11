@@ -2385,7 +2385,7 @@ function validateMagickSpliceGeometry(raw: string): void {
     }
 }
 
-function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor, gravity: GravityPosition = "northwest", signal?: AbortSignal, virtualPixel: VirtualPixelMethod = "edge"): Generator<void, RgbaImage, void> {
+function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor, gravity: GravityPosition = "northwest", signal?: AbortSignal, virtualPixel: VirtualPixelMethod = "edge", seed?: bigint): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
     const g = resolveMagickSpliceGeometry(geomStr, img);
     const sw = g.width, sh = g.height;
@@ -2415,6 +2415,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     const evaluateSamples = img.evaluateSamples ? new Float64Array(out.length) : undefined;
     const hueSamples = img.hueSamples ? new Float64Array(out.length) : undefined;
     const virtualBackground = bg;
+    const random = virtualPixel === "random" ? createMagickRandom(seed) : undefined;
     if (img.space === "cmyk") {
         // Native CMYK canvas fills convert linear RGB background values to inks.
         const rgb = [bg.r, bg.g, bg.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
@@ -2445,7 +2446,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
             else {
                 const origX = x < sx ? x : x - spliceWidth;
                 const origY = y < sy ? y : y - sh;
-                const srcIdx = virtualPixelIndex(origX, origY, img.width, img.height, virtualPixel) * 4;
+                const srcIdx = virtualPixelIndex(origX, origY, img.width, img.height, virtualPixel, random) * 4;
                 if (srcIdx < 0) {
                     const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 0x8000 / 257 : 0;
                     const color = virtualPixel === "background" || virtualPixel.endsWith("-tile")
@@ -2469,15 +2470,23 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
                 if (hueSamples) hueSamples.set(img.hueSamples!.subarray(srcIdx, srcIdx + 4), dstIdx);
             }
         }
+        // Native fetches a full output-width source row, including samples hidden by the inserted columns.
+        if (random && (y < sy || y >= sy + sh)) {
+            const sourceY = y < sy ? y : y - sh;
+            for (let x = outW - Math.min(spliceWidth, outW - sx); x < outW; x++) {
+                if (++cooperativeWork % 65536 === 0) yield;
+                virtualPixelIndex(x, sourceY, img.width, img.height, virtualPixel, random);
+            }
+        }
     }
     if (img.metaChannels?.length) {
         const metaChannels: BaseRgbaImage[] = [];
         // Constant white/gray virtual pixels have zero extra-channel samples.
         const metaVirtualPixel = virtualPixel === "white" || virtualPixel === "gray" ? "black" : virtualPixel;
-        for (const plane of img.metaChannels) metaChannels.push(yield* applyMagickSpliceSteps(plane, geomStr, { r: 0, g: 0, b: 0, a: 255 }, gravity, signal, metaVirtualPixel));
+        for (const plane of img.metaChannels) metaChannels.push(yield* applyMagickSpliceSteps(plane, geomStr, { r: 0, g: 0, b: 0, a: 255 }, gravity, signal, metaVirtualPixel, seed));
         img = { ...img, metaChannels };
     }
-    if (img.writeMask) img = { ...img, writeMask: yield* applyMagickSpliceSteps(img.writeMask, geomStr, { r: 0, g: 0, b: 0, a: 255 }, gravity, signal, virtualPixel) };
+    if (img.writeMask) img = { ...img, writeMask: yield* applyMagickSpliceSteps(img.writeMask, geomStr, { r: 0, g: 0, b: 0, a: 255 }, gravity, signal, virtualPixel, seed) };
     return { ...img, width: outW, height: outH, data: out, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
 }
 
@@ -10845,7 +10854,7 @@ if (t === "-intent" || t === "+intent") {
             else if (method === "horizontaltileedge") method = "horizontal-tile-edge";
             else if (method === "verticaltileedge") method = "vertical-tile-edge";
             else if (method === "none") method = "transparent";
-            if (method !== "edge" && method !== "dither" && method !== "background" && method !== "transparent" && method !== "black" && method !== "white" && method !== "gray" && method !== "tile" && method !== "mirror" && method !== "horizontal-tile" && method !== "vertical-tile" && method !== "checker-tile" && method !== "horizontal-tile-edge" && method !== "vertical-tile-edge") throw new Error(`Unsupported virtual-pixel method: ${method}`);
+            if (method !== "random" && method !== "edge" && method !== "dither" && method !== "background" && method !== "transparent" && method !== "black" && method !== "white" && method !== "gray" && method !== "tile" && method !== "mirror" && method !== "horizontal-tile" && method !== "vertical-tile" && method !== "checker-tile" && method !== "horizontal-tile-edge" && method !== "vertical-tile-edge") throw new Error(`Unsupported virtual-pixel method: ${method}`);
             state.virtualPixel = method;
         }
         else if (t === "+virtual-pixel") {
@@ -12183,13 +12192,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const expanded = yield* formatMagickPropertyStringSteps(geom, { ...im, properties: { ...state.optionProperties, ...im.properties } }, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++ });
                 validateMagickSpliceGeometry(expanded);
                 im = discardDisassociatedAlpha(im);
-                const result = yield* applyMagickSpliceSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, state.gravity, signal, im.virtualPixel);
-                if (im.readMask) result.readMask = yield* applyMagickSpliceSteps(im.readMask as RgbaImage, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, im.virtualPixel);
+                const result = yield* applyMagickSpliceSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, state.gravity, signal, im.virtualPixel, state.seed);
+                if (im.readMask) result.readMask = yield* applyMagickSpliceSteps(im.readMask as RgbaImage, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, im.virtualPixel, state.seed);
                 if (im.region && (result.width !== im.width || result.height !== im.height)) {
                     // Inserted bands are editable; existing protection travels with its pixels.
                     const mask = yield* applyMagickRasterSteps({ width: im.width, height: im.height, data: im.data,
                         format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, regionMaskPixelSteps(im, im.region), signal);
-                    result.writeMask = yield* applyMagickSpliceSteps(mask, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, im.virtualPixel);
+                    result.writeMask = yield* applyMagickSpliceSteps(mask, expanded, { r: 0, g: 0, b: 0, a: 255 }, state.gravity, signal, im.virtualPixel, state.seed);
                     result.region = undefined;
                 }
                 return result;
@@ -13922,8 +13931,13 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
             await backend.storage.write(storedData16.position + offset * 2, new Uint8Array(samples.buffer));
         }
     }
+    // Replaying the seed keeps every retained channel plane on the same coordinates.
+    let seed = state.seed;
+    if (state.virtualPixel === "random" && (seed === undefined || BigInt.asUintN(64, seed) === 0xffffffffffffffffn))
+        seed = crypto.getRandomValues(new BigUint64Array(1))[0]!;
     let work = 0;
     for (const plane of [{ source: image.position, target: position, stride: 4 }, ...(storedPngIndices ? [{ source: image.storedPngIndices!.position, target: storedPngIndices.position, stride: 1 }] : []), ...(storedData16 ? [{ source: image.storedData16!.position, target: storedData16.position, stride: 8 }] : []), ...(storedEvaluateSamples === undefined ? [] : [{ source: image.storedEvaluateSamples!, target: storedEvaluateSamples, stride: 32 }]), ...(storedHueSamples === undefined ? [] : [{ source: image.storedHueSamples!, target: storedHueSamples, stride: 32 }])]) {
+        const random = state.virtualPixel === "random" ? createMagickRandom(seed) : undefined;
         if (token === "-splice" && (image.region || image.storedWriteMask)) {
             // Keep horizontal insertions colored, including their intersections with columns.
             const start = xs[0]!.length, end = Math.min(width, xs[1]!.target);
@@ -13951,7 +13965,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
                     const extended = new Uint8Array(length);
                     extended.set(bytes);
                     for (let i = sourceLength; i < length; i += plane.stride) {
-                        const index = virtualPixelIndex(sourceX + i / plane.stride, y.source + row, w, h, state.virtualPixel ?? "edge");
+                        const index = virtualPixelIndex(sourceX + i / plane.stride, y.source + row, w, h, state.virtualPixel ?? "edge", random);
                         if (index >= 0) extended.set(await backend.storage.read(plane.source + index * plane.stride, plane.stride), i);
                         else {
                             const method = state.virtualPixel;
@@ -13970,6 +13984,12 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
                     bytes = extended;
                 }
                 await backend.storage.write(plane.target + ((y.target + row) * width + x.target + offset) * plane.stride, bytes);
+            }
+            if (random && x === xs[1]) {
+                for (let column = x.source + x.length; column < width; column++) {
+                    if (work++ % 4096 === 0) await yieldTurn(signal);
+                    virtualPixelIndex(column, y.source + row, w, h, state.virtualPixel, random);
+                }
             }
         }
     }

@@ -2847,7 +2847,7 @@ function normalizeMagickWarpGeometry(raw: string): string {
 }
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
-    let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal", "-density", "-delay", "-loop"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
+    let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal", "-density", "-delay", "-loop", "-blue-shift"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
     if (["-swirl", "-implode", "-wave", "-spread"].includes(option)) value = value.replaceAll("(", "").replaceAll(")", "");
     if (option === "-roll") value = value.replaceAll(" ", "").replaceAll("(", "").replaceAll(")", "");
     const forcedRegionResize = (option === "-liquid-rescale" || option === "-adaptive-resize") && value.includes("!");

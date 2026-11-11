@@ -20921,6 +20921,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 msg === "afade: invalid expression" || msg === "afade: invalid or unsupported expression") {
               return { exitCode: 234 };
             }
+            if (msg.startsWith("swapuv: unsupported option ")) return { exitCode: 8 };
             if (msg === "hflip: unsupported option" || msg === "vflip: unsupported option") return { exitCode: 8 };
             if (msg === "hflip: missing option name" || msg === "vflip: missing option name" ||
                 msg.startsWith("hflip enable:") || msg.startsWith("vflip enable:")) return { exitCode: 234 };

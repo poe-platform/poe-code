@@ -4008,7 +4008,7 @@ async function applyVideoFilterChain(
         if (key !== "pix_fmts") throw new Error(`format: unsupported option ${part}`);
         const values = (separator < 0 ? part : part.slice(separator + 1)).trim().split("|");
         for (const value of values) {
-          if (!["monob", "pal8", "rgba", "bgra", "rgb24", "bgr24", "gbrp", "gbrap", "gray", "gray8", "ya8", "rgba64be", "rgb48be", "gray16be", "yuv420p", "yuv422p", "yuv444p"].includes(value)) {
+          if (!["monob", "pal8", "rgba", "bgra", "rgb24", "bgr24", "gbrp", "gbrap", "gray", "gray8", "ya8", "rgba64be", "rgb48be", "gray16be", "yuv420p", "yuv422p", "yuv444p", "yuva444p"].includes(value)) {
             throw new Error(`format: unsupported pixel format ${value}`);
           }
         }
@@ -4018,7 +4018,7 @@ async function applyVideoFilterChain(
         const previousPixelFormat = pixelFormat;
         pixelFormat = formats.includes(pixelFormat ?? "rgba") ? pixelFormat ?? "rgba" : formats[0]!;
         diagnostics.pixelFormat = pixelFormat;
-        if (pixelFormat === "yuv420p" || pixelFormat === "yuv422p" || pixelFormat === "yuv444p") {
+        if (pixelFormat === "yuv420p" || pixelFormat === "yuv422p" || pixelFormat === "yuv444p" || pixelFormat === "yuva444p") {
           const target = pixelFormat;
           current = await mapWork(current, async frame => {
             budget.checkCpu();

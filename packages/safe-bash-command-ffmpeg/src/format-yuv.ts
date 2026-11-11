@@ -4,20 +4,21 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 
 /** Convert to limited-range BT.601 planes before subsequent filters see RGBA. */
 export async function formatYuv(
-  frame: MediaVideoFrame, format: "yuv420p10le" | "yuv420p" | "yuv422p" | "yuv444p", signal?: AbortSignal
+  frame: MediaVideoFrame, format: "yuv420p10le" | "yuv420p" | "yuv422p" | "yuv444p" | "yuva444p", signal?: AbortSignal
 ): Promise<MediaVideoFrame> {
   const { width, height, data } = frame;
+  const alpha = format === "yuva444p";
   const tenBit = format === "yuv420p10le";
-  const nativeFormat = tenBit ? 62 : format === "yuv420p" ? 0 : format === "yuv422p" ? 4 : 5;
+  const nativeFormat = alpha ? 79 : tenBit ? 62 : format === "yuv420p" ? 0 : format === "yuv422p" ? 4 : 5;
   if (frame.native?.format === nativeFormat && frame.native.rgba === data &&
       frame.native.width === width && frame.native.height === height) return frame;
-  const hsub = format === "yuv444p" ? 1 : 2;
+  const hsub = (format === "yuv444p" || alpha) ? 1 : 2;
   const vsub = tenBit || format === "yuv420p" ? 2 : 1;
   const chromaWidth = Math.ceil(width / hsub);
   const chromaHeight = Math.ceil(height / vsub);
   const lumaSize = width * height;
   const chromaSize = chromaWidth * chromaHeight;
-  const pixels = new Uint8Array((lumaSize + chromaSize * 2) * (tenBit ? 2 : 1));
+  const pixels = new Uint8Array((lumaSize * (alpha ? 2 : 1) + chromaSize * 2) * (tenBit ? 2 : 1));
   const view10 = tenBit ? new DataView(pixels.buffer) : undefined;
   const source = frame.native;
   if (source && ((source.format === 4 && format === "yuv444p") || (source.format === 5 && format === "yuv422p")) &&
@@ -97,6 +98,10 @@ export async function formatYuv(
     signal?.throwIfAborted();
     for (let x = 0; x < width; x++) {
       const offset = (y * width + x) * 4;
+      if (alpha) {
+        // swscale expands packed alpha to 14 bits before rounding to 8.
+        pixels[lumaSize * 3 + y * width + x] = Math.min(255, Math.round(data[offset + 3]! * 257 / 256));
+      }
       // swscale rounds RGB luma to 14 bits before rounding to an 8-bit plane.
       const luma = (8414 * data[offset]! + 16519 * data[offset + 1]! +
         3208 * data[offset + 2]! + (16 << 15) + 256) >> 9;

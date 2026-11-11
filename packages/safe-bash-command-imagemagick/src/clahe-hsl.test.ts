@@ -38,10 +38,10 @@ for (const retained of [false, true]) for (const fixture of fixtures) {
     it(`preserves native CLAHE pixels through HSL at ${fixture.width}x${fixture.height}, depth ${fixture.depth} (retained=${retained})`, async () => {
         const bytes = Buffer.from(fixture.input, "base64"), files = new Map([["input.png", bytes]]), fs = new MemoryFileSystem();
         await fs.writeFile("/input.png", bytes);
-        const { options, hash } = fixture.cases[0]!;
+        const { options } = fixture.cases[0]!;
         const result = await runConvertCli(["input.png", "-colorspace", "HSL", ...options, "-colorspace", "sRGB", "-depth", String(fixture.depth), "-endian", "MSB", "rgba:out"], retained ? { filesystem: fs, cwd: "/" } : files);
         expect(result.exitCode, result.stderr).toBe(0);
         const output = retained ? await fs.readFile("/out") : files.get("out")!;
-        expect(createHash("sha256").update(output).digest("hex")).toBe(hash);
+        expect(createHash("sha256").update(output).digest("hex")).toBe(fixture.hslHash);
     });
 }

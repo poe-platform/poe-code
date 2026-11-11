@@ -14983,12 +14983,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const geometry = parseClaheGeometry(expanded);
                 const linearSpace = im.magickColorspace === "RGB" || im.magickColorspace === "scRGB" ? im.magickColorspace
                     : (im.space === "b-w" || im.space === "grey16") && im.gamma === 1 && im.magickColorspace !== "Gray" ? "LinearGray" : undefined;
-                const hsl = im.magickColorspace === "HSL";
+                const colorspace = im.magickColorspace;
+                const hue = colorspace === "HSL" || colorspace === "HSV" || colorspace === "DisplayP3" || colorspace === "LCH" || colorspace === "XYZ";
                 const rgb = linearSpace ? yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(im)
-                    : hsl ? yield* convertHuePixels(im, "sRGB") : im;
+                    : hue ? yield* convertHuePixels(im, "sRGB") : im;
                 const result = yield* applyMagickRasterSteps({ ...rgb, isPalette: false }, clahePixelSteps(rgb, geometry, state.background, state.virtualPixel), signal);
                 return linearSpace ? yield* parseMagickPixelOperation(["-colorspace", linearSpace], state, 0, signal)!.apply(result)
-                    : hsl ? yield* convertHuePixels(result, "HSL") : result;
+                    : hue ? yield* convertHuePixels(result, colorspace) : result;
             });
         }
         else if (t === "-lat") {
@@ -19337,12 +19338,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const geometry = parseClaheGeometry(expanded);
                 const linearSpace = image.magickColorspace === "RGB" || image.magickColorspace === "scRGB" ? image.magickColorspace
                     : (image.space === "b-w" || image.space === "grey16") && image.gamma === 1 && image.magickColorspace !== "Gray" ? "LinearGray" : undefined;
-                const hsl = image.magickColorspace === "HSL";
+                const colorspace = image.magickColorspace;
+                const hue = colorspace === "HSL" || colorspace === "HSV" || colorspace === "DisplayP3" || colorspace === "LCH" || colorspace === "XYZ";
                 const rgb = linearSpace ? await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal)
-                    : hsl ? await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal) : image;
+                    : hue ? await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal) : image;
                 const result = await transformStoredMagickRaster({ ...rgb, isPalette: false }, backend, clahePixelSteps(rgb, geometry, background, virtualPixel), signal);
                 return linearSpace ? transformStoredMagickPixels(result, backend, parseMagickPixelOperation(["-colorspace", linearSpace], state, 0, signal)!, signal)
-                    : hsl ? transformStoredMagickPixels(result, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "HSL") }, signal) : result;
+                    : hue ? transformStoredMagickPixels(result, backend, { end: 0, highDepth: true, evaluate: true, apply: frame => convertHuePixels(frame, colorspace) }, signal) : result;
             });
         } else if (!operandsOnly && token === "-lat") {
             let images: StoredImageStack, sceneIdx = 0;

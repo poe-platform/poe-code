@@ -157,7 +157,8 @@
         ],
         "hash": "b0f4ee1bd0c6c81093d3e96718f0ac28db3734a06b8dcc971e9fceecf9acaf59"
       }
-    ]
+    ],
+    "hslHash": "b0f4ee1bd0c6c81093d3e96718f0ac28db3734a06b8dcc971e9fceecf9acaf59"
   },
   {
     "width": 13,
@@ -317,7 +318,8 @@
         ],
         "hash": "7cc668b1aeb56e434d5496027bbb56ee71cce9553b685a8f277bd0b9334cdd0f"
       }
-    ]
+    ],
+    "hslHash": "a1f5b4b1af5289ed3741ab131b5e0326d266da2dd953fdde8fc3ec8e6da36946"
   },
   {
     "width": 1031,
@@ -332,6 +334,7 @@
         ],
         "hash": "ba8332aba7f2d33b35779f2dd64561cf8d2113690f4628594c8fedca33c2e50b"
       }
-    ]
+    ],
+    "hslHash": "ba8332aba7f2d33b35779f2dd64561cf8d2113690f4628594c8fedca33c2e50b"
   }
 ]

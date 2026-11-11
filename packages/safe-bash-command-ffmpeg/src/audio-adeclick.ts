@@ -16,11 +16,16 @@ export async function declickAudio(
   const aliases = { w: "window", o: "overlap", a: "arorder", t: "threshold", b: "burst", n: "hsize", m: "method" } as const;
   const ranges = { window: [10, 100], overlap: [50, 95], arorder: [0, 25], threshold: [1, 100], burst: [0, 10], hsize: [100, 9999], method: [0, 1] };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  let optionPosition = 0;
   const parts = argument ? argument.split(":") : [];
   if (argument.endsWith(":")) parts.pop();
-  for (const [i, part] of parts.entries()) {
+  for (const part of parts) {
     const separator = part.indexOf("=");
-    const option = separator < 0 ? names[i] : part.slice(0, separator).trim();
+    const option = separator < 0 ? names[optionPosition] : part.slice(0, separator).trim();
+    // FFmpeg restarts shorthand after named options, skipping the first slot
+    // only when that slot was just visited, regardless of the named key.
+    if (separator < 0) optionPosition++;
+    else optionPosition = optionPosition === 0 ? 1 : 0;
     const raw = (separator < 0 ? part : part.slice(separator + 1)).trim();
     if (option === "threads" || option === "thread_type" || option === "extra_hw_frames") {
       validateWeaveGenericOption(option, raw, name);

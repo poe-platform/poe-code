@@ -2981,7 +2981,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   let curStart = 0;
   let curEnd: number | undefined;
   let missingEndChapter: Mp4Chapter | undefined;
-  let chapterTags = new Map<string, string>();
+  let chapterTags = new Map<string, [string, string]>();
   let curTitle = "";
   let chapterHeader: "timebase" | "start" | "end" | "tags" = "timebase";
 
@@ -3001,7 +3001,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       startTimeSeconds: curStart * factor,
       endTimeSeconds: (curEnd ?? curStart) * factor,
       title: curTitle,
-      tags: Object.fromEntries(chapterTags)
+      tags: Object.fromEntries(chapterTags.values())
     };
     chapters.push(chapter);
     missingEndChapter = curEnd === undefined ? chapter : undefined;
@@ -3071,7 +3071,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
         if (key === "END") curEnd = parseInt(val, 10) || 0;
         continue;
       }
-      chapterTags.set(key, val);
+      chapterTags.set(key.toLowerCase(), [key, val]);
       if (key.toUpperCase() === "TITLE") curTitle = val;
     } else if (section === "global") {
       const normalizedKey = key.toLowerCase();

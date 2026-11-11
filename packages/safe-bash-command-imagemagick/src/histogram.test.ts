@@ -2,7 +2,33 @@ import { expect, it } from "vitest";
 import { createHash } from "node:crypto";
 import sharp from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli } from "./index.js";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli } from "./index.js";
+
+for (const mode of ["buffered", "retained", "public"]) {
+    it.each([
+        { inputs: ["xc:red", "xc:blue"], options: [], output: "histogram:info:", expected: "0/0/1;1/0/1;" },
+        { inputs: ["xc:red", "xc:blue"], options: ["-scene", "4"], output: "histogram:info:", expected: "4/0/1;5/0/1;" },
+        { inputs: ["xc:red", "xc:blue"], options: [], output: "info:", expected: "0/0/2;1/1/2;" },
+        { inputs: ["xc:red"], options: [], output: "histogram:info:", expected: "0/0/1;" }
+    ])(`formats individual histogram plot positions: $output $options $inputs (${mode})`, async ({ inputs, options, output, expected }) => {
+        const args = [...inputs, ...options, "-format", "%s/%p/%n;", output];
+        const filesystem = new MemoryFileSystem();
+        if (mode === "public") {
+            const argumentValues = createCommandArguments(args);
+            let stdout = "", stderr = "";
+            const result = await createMagickCommand().execute({
+                command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs: filesystem,
+                signal: new AbortController().signal, stdin: (async function* () {})(),
+                stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+                stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+            });
+            expect({ exitCode: result.exitCode, stdout, stderr }).toEqual({ exitCode: 0, stdout: expected, stderr: "" });
+        } else {
+            expect(await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : new Map())).toEqual({ exitCode: 0, stdout: expected, stderr: "" });
+        }
+    });
+}
 
 for (const retained of [false, true]) {
     it.each(["png", "miff"])(`matches native fractional histogram bars in %s (retained=${retained})`, async format => {

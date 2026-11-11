@@ -41,7 +41,7 @@ for (const retained of [false, true]) {
         if (expected === "comment") {
             const comment = await runConvertCli(["xc:red", "-format", "%c", "histogram:info:-"], input);
             expect(comment.stdout).toContain("1:");
-            expect(comment.stdout).toContain("#FF0000");
+            expect(comment.stdout).toContain("#FFFF00000000");
             expected = (format === "%c" ? "" : "256x200:") + comment.stdout;
         }
         const args = ["xc:red", ...(format === undefined ? [] : ["-format", format])];

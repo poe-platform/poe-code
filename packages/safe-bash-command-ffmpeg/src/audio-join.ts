@@ -43,11 +43,12 @@ export async function joinAudio(
   const outputCount = parseAudioChannelCount(layout);
   const outputNames: (string | number)[] = outputCount === undefined
     ? parseAudioChannelLayout(layout) : Array.from({ length: outputCount }, (_, index) => index);
-  if (outputCount === undefined && (outputNames.some(name => typeof name !== "string" || !speakers.includes(name)) || new Set(outputNames).size !== outputNames.length)) {
+  if (outputCount === undefined && outputNames.some(name => typeof name !== "string" || !speakers.includes(name))) {
     throw new Error(`join: unsupported channel layout ${layout}`);
   }
-  // The mask identifies speakers; channelData retains the requested interleaving order.
-  const outputMask = outputNames.reduce<number>((mask, name) => mask + (typeof name === "string" ? audioSpeakerMasks[name]! : 0), 0);
+  // A mask cannot represent repeated speakers; channelLayout retains every output slot.
+  const outputMask = new Set(outputNames).size === outputNames.length
+    ? outputNames.reduce<number>((mask, name) => mask + (typeof name === "string" ? audioSpeakerMasks[name]! : 0), 0) : 0;
   const audio = tracks.map(track => {
     if (!track.decodedAudio) throw new Error("join requires decoded PCM audio");
     return track.decodedAudio;
@@ -98,11 +99,12 @@ export async function joinAudio(
     return speakers.filter(name => Math.floor(mask / audioSpeakerMasks[name]!) % 2 === 1);
   });
   const used = audio.map(() => new Set<number>());
-  const selected = new Map<string | number, Float32Array | Float64Array>();
+  const selected = outputNames.map((): Float32Array | Float64Array | undefined => undefined);
   for (const mapping of map ? map.split("|") : []) {
     const [source, output, ...extra] = mapping.split("-");
     const indices = source!.split(".");
-    if (extra.length || !outputNames.includes(output ?? "") || selected.has(output!) ||
+    const outputIndex = outputNames.indexOf(output ?? "");
+    if (extra.length || outputIndex < 0 || selected[outputIndex] ||
         indices.length !== 2 || !indices[0] || !indices[1]) {
       throw new Error("join: invalid channel map");
     }
@@ -117,26 +119,26 @@ export async function joinAudio(
     }
     const channel = input.channelData[channelIndex];
     if (!channel) throw new Error("join: invalid input channel");
-    selected.set(output!, channel);
+    selected[outputIndex] = channel;
     used[inputIndex.index]!.add(channelIndex);
   }
   // Reserve matching speakers before filling any gaps with unused channels.
   for (const matchSpeaker of [true, false]) {
-    for (const name of outputNames) {
-      if (selected.has(name)) continue;
+    for (const [outputIndex, name] of outputNames.entries()) {
+      if (selected[outputIndex]) continue;
       for (const [inputIndex, input] of audio.entries()) {
         const channelIndex = matchSpeaker
           ? (typeof name === "string" ? inputNames[inputIndex]!.indexOf(name) : -1)
           : input.channelData.findIndex((_, index) => !used[inputIndex]!.has(index));
         const channel = input.channelData[channelIndex];
         if (!channel || used[inputIndex]!.has(channelIndex)) continue;
-        selected.set(name, channel);
+        selected[outputIndex] = channel;
         used[inputIndex]!.add(channelIndex);
         break;
       }
     }
   }
-  if (selected.size !== outputNames.length) throw new Error("join: not enough unused input channels");
+  if (selected.some(channel => !channel)) throw new Error("join: not enough unused input channels");
   const length = Math.min(...audio.map(input => input.channelData[0]!.length));
   budget.checkSamples(length);
   budget.checkDuration(length / sampleRate);
@@ -146,8 +148,8 @@ export async function joinAudio(
     await yieldTurn(signal);
     signal?.throwIfAborted();
     budget.checkCpu();
-    for (const [index, name] of outputNames.entries()) {
-      const source = selected.get(name)!;
+    for (let index = 0; index < selected.length; index++) {
+      const source = selected[index]!;
       const end = Math.min(start + 4096, length);
       channelData[index]!.set(source.subarray(start, end), start);
     }
@@ -218,10 +220,11 @@ function validChannelLayout(layout: string): boolean {
   const suffix = layout.endsWith(" channels") ? " channels" : layout.slice(-1);
   if (["c", "C", " channels"].includes(suffix)) {
     const count = layout.slice(0, -suffix.length);
-    if (!count || [...count].some(char => char < "0" || char > "9")) return false;
-    const channels = Number(count);
-    return suffix === "c" ? [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 24].includes(channels)
-      : channels > 0 && channels <= 2147483647;
+    if (count && [...count].every(char => char >= "0" && char <= "9")) {
+      const channels = Number(count);
+      return suffix === "c" ? [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 24].includes(channels)
+        : channels > 0 && channels <= 2147483647;
+    }
   }
   const start = layout.indexOf(" channels (");
   if (start >= 0) {

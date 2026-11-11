@@ -17,7 +17,7 @@ for (const [options, expected] of [
   ["channel_layout=0 channels (FL+FR)", undefined],
   ["channel_layout=2 channels (FL+FR", undefined],
   ["channel_layout=2 channels (FL+BOGUS)", undefined],
-  ["channel_layout=2 channels (FL+FL)", undefined],
+  ["channel_layout=2 channels (FL+FL)", [10, 100, 20, 200, 30, 300]],
   ["channel_layout=2 channels (FL+FR))", undefined],
   ["channel_layout=3 channels (FL+FR):channel_layout=stereo", undefined]
 ] as const) {

@@ -11356,9 +11356,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         if (t === "-quiet" || t === "+quiet") { analysis.quiet = t === "-quiet"; i++; continue; }
         if (t === "-regard-warnings" || t === "+regard-warnings") { analysis.regardWarnings = t === "-regard-warnings"; i++; continue; }
+        if (t === "-monitor" || t === "+monitor") { state.monitor = t === "-monitor"; i++; continue; }
         if (t === "(") {
             let depth = 1;
-        if (t === "-monitor" || t === "+monitor") { state.monitor = t === "-monitor"; i++; continue; }
             let j = i + 1;
             while (j < tokens.length && depth > 0) {
                 if (++cooperativeWork % 65536 === 0)
@@ -12720,11 +12720,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     return (yield* applyMagickResizeSteps(im, expanded, k, t === "-thumbnail", t === "-sample", t === "-scale", state.resizeFilter, magickSampleOffset(im, state.optionProperties?.["sample:offset"]), false, stack.length, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined));
                 });
                 stack[sceneIdx] = image!;
+                if (state.monitor && t === "-resize") analysis.progress += `resize image[${(im as MagickImage)[magickInput]?.filePath ?? ""}]: 100% complete\n`;
             }
         }
         else if (t === "-crop") {
             const geom = tokens[++i] ?? "100%";
-                if (state.monitor && t === "-resize") analysis.progress += `resize image[${(im as MagickImage)[magickInput]?.filePath ?? ""}]: 100% complete\n`;
             const nextStack: RgbaImage[] = [];
             for (const im of stack) {
                 if (++cooperativeWork % 65536 === 0)
@@ -16566,6 +16566,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 images = stack;
                 return stack;
             });
+            const monitor = state.monitor;
             const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail", settings = state.resizeFilter;
             const optionProperties = state.optionProperties, channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined;
             steps.push(async (image, backend) => {
@@ -16584,7 +16585,6 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-sort-pixels") {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
-            const monitor = state.monitor;
                 return stack;
             });
             const intensity = state.intensity;

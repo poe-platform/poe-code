@@ -28,6 +28,7 @@ export type ImageFormat =
   | "ico"
   | "cur"
   | "bmp"
+  | "psd"
   | "miff"
   | "tiff"
   | "svg"

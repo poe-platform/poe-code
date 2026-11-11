@@ -1,3 +1,4 @@
+import { isPsdBytes, readPsdFromSource } from "./psd-input.js";
 import { isXwdBytes, readXwdHeader } from "./xwd-input.js";
 import { isQoiBytes, readQoiMetadata } from "./qoi-input.js";
 import { isMiffBytes } from "./miff-input.js";
@@ -53,6 +54,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  else if(isXbmBytes(prefix))metadata=await readXbmFromSource(source,undefined,signal,options);
  else if(isXwdBytes(prefix))metadata=readXwdHeader(prefix,source.size).metadata;
  else if(isQoiBytes(prefix))metadata={...readQoiMetadata(prefix),size:source.size};
+ else if(isPsdBytes(prefix))metadata=(await readPsdFromSource(source,signal,options)).metadata;
  else if(isMiffBytes(prefix))metadata=(await readMiffFromSource(source,signal,options?.page)).metadata;
  else if(isXpmBytes(prefix))metadata=await readXpmFromSource(source,undefined,signal,options);
  else if(isTxtBytes(prefix))metadata=await readTxtFromSource(source,undefined,signal,options);

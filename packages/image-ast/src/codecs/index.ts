@@ -1,3 +1,4 @@
+import { isPsdBytes, readPsdHeader, decodePsdImage } from "./psd-input.js";
 import { isXwdBytes, readXwdHeader, decodeXwdImage } from "./xwd-input.js";
 import { isQoiBytes, readQoiMetadata, decodeQoiImage } from "./qoi-input.js";
 import { encodeQoiImage } from "./qoi-output.js";
@@ -77,6 +78,7 @@ import {
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isXwdBytes(bytes)) return "xwd";
   if (isQoiBytes(bytes)) return "qoi";
+  if (isPsdBytes(bytes)) return "psd";
   if (isMiffBytes(bytes)) return "miff";
   if (isExrBytes(bytes)) return "exr";
   if (isRadianceBytes(bytes)) return "hdr";
@@ -180,6 +182,7 @@ export function readImageMetadata(
     case "qoi": meta = readQoiMetadata(bytes); break;
     case "hdr": meta = readRadianceHeader(bytes).metadata; break;
     case "exr": meta = readExrHeader(bytes).metadata; break;
+    case "psd": meta = readPsdHeader(bytes, options).metadata; break;
     case "miff": meta = readMiffHeader(bytes, options?.page).metadata; break;
     case "phm": meta = readPhmHeader(bytes).metadata; break;
     case "tga":
@@ -422,6 +425,7 @@ export function decodeImage(
     case "qoi": decoded = decodeQoiImage(bytes, options); break;
     case "hdr": decoded = decodeRadianceImage(bytes, options); break;
     case "exr": decoded = decodeExrImage(bytes, options); break;
+    case "psd": decoded = decodePsdImage(bytes, options); break;
     case "miff": decoded = decodeMiffImage(bytes, options); break;
     case "phm": decoded = decodePhmImage(bytes, options); break;
     case "tga":

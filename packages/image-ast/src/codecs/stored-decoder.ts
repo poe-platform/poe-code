@@ -1,3 +1,4 @@
+import { isPsdBytes, decodePsdToStorage } from "./psd-input.js";
 import { isXwdBytes, decodeXwdToStorage } from "./xwd-input.js";
 import { isQoiBytes, decodeQoiToStorage } from "./qoi-input.js";
 import { isMiffBytes } from "./miff-input.js";
@@ -42,6 +43,7 @@ export async function storedImageDecoder(source:ImageByteSource,signal:AbortSign
  if(!(prefix instanceof Uint8Array)||prefix.length!==length)throw new Error("Truncated image source");
  if(isXwdBytes(prefix))return decodeXwdToStorage;
  if(isQoiBytes(prefix))return decodeQoiToStorage;
+ if(isPsdBytes(prefix))return decodePsdToStorage;
  if(isMiffBytes(prefix))return decodeMiffToStorage;
  if(isExrBytes(prefix))return decodeExrToStorage;
  if(isRadianceBytes(prefix))return decodeRadianceToStorage;

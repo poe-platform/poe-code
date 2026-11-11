@@ -2,9 +2,15 @@ import type { RgbaImage } from "../ast.js";
 import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 import { defaultRuntime } from "@poe-code/compression";
 
-function* xbmChunks(image: Pick<RgbaImage, "width" | "height">): Generator<number | Uint8Array, void, Uint8Array> {
+function* xbmChunks(image: Pick<RgbaImage, "width" | "height">, filename = "image"): Generator<number | Uint8Array, void, Uint8Array> {
   const encoder = new TextEncoder();
-  yield encoder.encode(`#define image_width ${image.width}\n#define image_height ${image.height}\nstatic unsigned char image_bits[] = {\n`);
+  const basename = filename.slice(filename.lastIndexOf("/") + 1);
+  const dot = basename.lastIndexOf(".");
+  const stem = dot > 0 ? basename.slice(0, dot) : basename;
+  const name = Array.from(encoder.encode(stem), (byte, index) =>
+    (byte >= 65 && byte <= 90) || (byte >= 97 && byte <= 122) || (index > 0 && byte >= 48 && byte <= 57)
+      ? String.fromCharCode(byte) : "_").join("") || "_";
+  yield encoder.encode(`#define ${name}_width ${image.width}\n#define ${name}_height ${image.height}\nstatic unsigned char ${name}_bits[] = {\n`);
   let byte = 0, bit = 0, first = true;
   for (let offset = 0; offset < image.width * image.height * 4; offset += 4096) {
     const data = yield offset;
@@ -22,8 +28,8 @@ function* xbmChunks(image: Pick<RgbaImage, "width" | "height">): Generator<numbe
   yield encoder.encode(" };\n");
 }
 
-export function encodeXbmImage(image: RgbaImage): Uint8Array {
-  const chunks: Uint8Array[] = [], steps = xbmChunks(image);
+export function encodeXbmImage(image: RgbaImage, filename?: string): Uint8Array {
+  const chunks: Uint8Array[] = [], steps = xbmChunks(image, filename);
   let step = steps.next(), size = 0;
   while (!step.done) {
     if (typeof step.value === "number") step = steps.next(image.data.subarray(step.value, step.value + 4096));
@@ -35,8 +41,8 @@ export function encodeXbmImage(image: RgbaImage): Uint8Array {
   return bytes;
 }
 
-export async function* encodeXbmFromStorage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal): AsyncGenerator<Uint8Array> {
-  const steps = xbmChunks(image);
+export async function* encodeXbmFromStorage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal, filename?: string): AsyncGenerator<Uint8Array> {
+  const steps = xbmChunks(image, filename);
   let step = steps.next();
   while (!step.done) {
     await defaultRuntime.yieldTurn(signal);

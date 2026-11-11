@@ -1524,7 +1524,8 @@ function parseChannelSplit(spec: string): { input: string[]; selected: string[] 
   if (!["FC", "FL+FR", "FL+FR+LFE", "FL+FR+FC", "FL+FR+BL+BR", "FL+FR+FC+LFE+BL+BR",
     "FL+FR+FC+LFE+SL+SR", "FL+FR+FC+LFE+BL+BR+SL+SR", "FL+FR+FC+BC", "FL+FR+FC+LFE+BC",
     "FL+FR+FC+BL+BR", "FL+FR+FC+SL+SR", "FL+FR+FC+LFE+BC+SL+SR",
-    "FL+FR+FC+BL+BR+BC+SL+SR"].includes([...input].sort((a, b) => audioSpeakerMasks[a]! - audioSpeakerMasks[b]!).join("+"))) {
+    "FL+FR+FC+BL+BR+BC+SL+SR", "FL+FR+BC", "FL+FR+FC+BL+BR+BC",
+    "FL+FR+FC+LFE+BL+BR+FLC+FRC"].includes([...input].sort((a, b) => audioSpeakerMasks[a]! - audioSpeakerMasks[b]!).join("+"))) {
     throw new Error(`channelsplit: unsupported channel layout ${layout}`);
   }
   const selected = channels === "all" ? input : parseAudioChannelLayout(channels);

@@ -6,11 +6,14 @@ import { createFfmpegCommand } from "./index.js";
 for (const [layout, speakers] of [
   ["2.1", ["FL", "FR", "LFE"]],
   ["3.0", ["FL", "FR", "FC"]],
+  ["3.0(back)", ["FL", "FR", "BC"]],
   ["4.0", ["FL", "FR", "FC", "BC"]],
   ["4.1", ["FL", "FR", "FC", "LFE", "BC"]],
   ["5.0", ["FL", "FR", "FC", "BL", "BR"]],
   ["5.0(side)", ["FL", "FR", "FC", "SL", "SR"]],
   ["6.1", ["FL", "FR", "FC", "LFE", "BC", "SL", "SR"]],
+  ["hexagonal", ["FL", "FR", "FC", "BL", "BR", "BC"]],
+  ["7.1(wide)", ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC"]],
   ["octagonal", ["FL", "FR", "FC", "BL", "BR", "BC", "SL", "SR"]],
   ["7.1", ["FL", "FR", "FC", "LFE", "BL", "BR", "SL", "SR"]]
 ] as const) {
@@ -18,10 +21,11 @@ for (const [layout, speakers] of [
     for (const graph of [false, true]) {
       it(`extracts matching ${layout}:${speaker} (${graph ? "graph" : "simple"})`, async () => {
         const volume = Volume.fromJSON({});
-        const input = Buffer.alloc(3 * speakers.length * 2);
-        for (let frame = 0; frame < 3; frame++) {
+        const input = Buffer.alloc(2 * speakers.length * 2);
+        for (let frame = 0; frame < 2; frame++) {
           for (let index = 0; index < speakers.length; index++) {
-            input.writeInt16LE(1000 * (index + 1) + frame, (frame * speakers.length + index) * 2);
+            input.writeInt16LE(frame === 0 ? 1000 * (index + 1) : 1 - 1000 * (index + 1),
+              (frame * speakers.length + index) * 2);
           }
         }
         const output: Buffer[] = [];
@@ -43,8 +47,10 @@ for (const [layout, speakers] of [
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
         assert.equal(result.exitCode, 0, stderr);
-        const expected = Buffer.alloc(6);
-        for (let frame = 0; frame < 3; frame++) expected.writeInt16LE(1000 * (channel + 1) + frame, frame * 2);
+        assert.equal(stderr, "");
+        const expected = Buffer.alloc(4);
+        expected.writeInt16LE(1000 * (channel + 1), 0);
+        expected.writeInt16LE(1 - 1000 * (channel + 1), 2);
         assert.deepEqual(Buffer.concat(output), expected);
       });
     }

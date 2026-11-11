@@ -986,8 +986,9 @@ named speaker extraction: `-af channelsplit=mono:FC`,
 `-af channelsplit=5.1:FC`, or `-af channelsplit=5.1:LFE`.
 Matching quad and side-surround inputs support `channelsplit=quad:BL` and
 `channelsplit=0x60f:SL`; equivalent masks and speaker lists are accepted.
-Matching `4.0`, `4.1`, `5.0`, `5.0(side)`, `6.1`, and `octagonal` inputs also
-support named speakers, for example `channelsplit=4.0:BC` or `channelsplit=6.1:BC`.
+Matching `3.0(back)`, `4.0`, `4.1`, `5.0`, `5.0(side)`, `6.1`, `hexagonal`,
+`7.1(wide)`, and `octagonal` inputs also support named speakers, for example
+`channelsplit=hexagonal:BC` or `channelsplit=7.1(wide):FRC`.
 The selected speaker is retained in the output channel layout.
 `channelsplit` accepts `threads`, `thread_type`, and `extra_hw_frames`, for example
 `channelsplit=stereo:FL:threads=1`; these settings leave PCM samples unchanged.

@@ -7075,7 +7075,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
     const first = stack[0]! as MagickImage;
     canvas = { ...canvas, depth: first.depth, ...(first.bitsPerSample === undefined ? {} : { bitsPerSample: first.bitsPerSample }) };
     canvas.readMask = first.readMask;
-    canvas.writeMask = first.writeMask;
+    canvas.writeMask = first.writeMask || first.region ? yield* createSolidRgbaImageSteps(totalW, totalH, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
     canvas[magickInput] = { ...first[magickInput], sceneIdx: 0, sceneCount: 1 };
     canvas.gravity = first.gravity;
     if (first.metaChannels?.length) {
@@ -16349,7 +16349,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 if (append) {
                     const first = (await stack.get(0))! as StoredRgbaImage, scene = first[magickInput]?.sceneIdx ?? 0;
-                    result = { ...result, readMask: first.readMask, storedWriteMask: first.storedWriteMask } as StoredRgbaImage;
+                    result = { ...result, readMask: first.readMask, storedWriteMask: first.storedWriteMask || first.region
+                        ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined } as StoredRgbaImage;
                     result[magickInput] = { ...first[magickInput], sceneIdx: 0, sceneCount: 1 };
                     result.gravity = first.gravity;
                     if (first.storedMetaChannels?.length) {

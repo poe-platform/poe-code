@@ -230,6 +230,8 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
         };
     }
     if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
+    // Bounds outside the raster leave the original image and virtual page intact.
+    if (next.value && next.value.width > 0 && next.value.height > 0) return image;
     // ImageMagick represents an empty trim with one transparent background pixel.
     const { data16: ignored, evaluateSamples: ignoredSamples, hueSamples: ignoredHue, ...metadata } = image;
     return { ...metadata, width: 1, height: 1, data: emptyTrimPixel(image, emptyBackground), channels: 4, hasAlpha: true,
@@ -274,6 +276,8 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
         };
     }
     if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
+    // Bounds outside the raster leave the original image and virtual page intact.
+    if (next.value && next.value.width > 0 && next.value.height > 0) return image;
     const emptyPosition = storage.allocate(4);
     await storage.write(emptyPosition, emptyTrimPixel(image, emptyBackground), { signal });
     const { storedData16: ignored, storedEvaluateSamples: ignoredSamples, storedHueSamples: ignoredHue, ...metadata } = image;

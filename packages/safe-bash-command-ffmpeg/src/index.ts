@@ -14166,7 +14166,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       }
                       if (filterName === "surround") {
                         if (filteredChannelMask && filteredChannelMask !== 3) throw new Error("surround: stereo input required");
-                        stretched = await surroundAudio(stretched, origRate, trimmed, budget, context.signal);
+                        const surround = await surroundAudio(stretched, origRate, trimmed, budget, context.signal);
+                        stretched = surround.channels;
+                        const length = stretched[0]?.length ?? 0;
+                        budget.allocateMemory(Math.ceil(length / surround.frameSize) * 32);
+                        const previous = audioTimestamps;
+                        audioTimestamps = [];
+                        let frameIndex = 0;
+                        for (let start = 0; start < length; start += surround.frameSize) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          while (previous && frameIndex + 1 < previous.length && previous[frameIndex]!.end <= start) frameIndex++;
+                          const frame = previous?.[frameIndex];
+                          audioTimestamps.push({ start, end: Math.min(length, start + surround.frameSize),
+                            pts: frame ? frame.pts + start - frame.start : audioStartSample + start, pos: frame?.pos });
+                        }
                         filteredChannelMask = stretched.length === 2 ? 3 : 0x3f;
                         filteredChannelNames = undefined;
                         continue;

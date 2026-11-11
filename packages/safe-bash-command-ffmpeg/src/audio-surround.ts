@@ -7,7 +7,7 @@ import { parseAudioChannelLayout } from "./audio-channel-layout.js";
 export async function surroundAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
   filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<Float32Array[]> {
+): Promise<{ channels: Float32Array[]; frameSize: number }> {
   let size = 4096, lfe = true;
   let outputChannels = 6;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
@@ -100,5 +100,5 @@ export async function surroundAudio(
       output[c]!.set(buffer.subarray(0, Math.min(hop, length - start)), start);
     }
   }
-  return output;
+  return { channels: output, frameSize: hop };
 }

@@ -140,6 +140,49 @@ it("preserves a partial final window and supports a following channelmap", async
   });
 });
 
+// FFmpeg 7.0.2 emits hop-sized frames (win_size / 2), including a short final frame.
+for (const graph of [false, true]) for (const prefix of ["", "asetnsamples=n=100:p=0,"]) {
+  it(`surround keeps all 513 samples in its first output frame (${graph ? "graph" : "simple"}, ${prefix || "input frames"})`, async () => {
+    const channels = Array.from({ length: 2 }, (_, c) => Float64Array.from({ length: 513 },
+      (_, i) => (((2 * i + c) * 13129) % 30001 - 15000) / 32768));
+    const source = Buffer.from(encodeWav({ sampleRate: 8000, channels }));
+    const { result, stderr, output } = await run(`${prefix}surround,aselect='eq(n,0)'`, graph, source);
+    assert.equal(result.exitCode, 0, stderr);
+    const audio = parseWav(output).tracks[0]!.decodedAudio!;
+    assert.equal(audio.channels, 6);
+    assert.equal(audio.channelData[0]!.length, 513);
+    const pcm = Buffer.alloc(513 * 6 * 2);
+    for (let i = 0; i < 513; i++) for (let c = 0; c < 6; c++) {
+      pcm.writeInt16LE(Math.round(audio.channelData[c]![i]! * 32768), (i * 6 + c) * 2);
+    }
+    assert.equal(createHash("sha256").update(pcm).digest("hex"),
+      "cf742433bf7457fca33f03e9bb23df07ca56601d9dda4688fa42be067e9acc26");
+  });
+}
+
+for (const [filter, size] of [["surround", 2048], ["surround=win_size=1024", 512]] as const) {
+  it(`${filter} exposes each output frame and its timestamp after input reframing`, async () => {
+    const length = size * 2 + 277;
+    const channels = parseWav(input).tracks[0]!.decodedAudio!.channelData
+      .map(channel => Float64Array.from(channel.subarray(0, length)));
+    const source = Buffer.from(encodeWav({ sampleRate: 16000, channels }));
+    const control = await run(filter, false, source);
+    assert.equal(control.result.exitCode, 0, control.stderr);
+    const expected = parseWav(control.output).tracks[0]!.decodedAudio!;
+    for (let n = 0; n < 4; n++) {
+      const { result, stderr, output } = await run(
+        `asetnsamples=n=100:p=0,asetpts=PTS+16000,${filter},aselect='eq(n,${n})*eq(pts,${16000 + n * size})'`,
+        false, source);
+      assert.equal(result.exitCode, 0, stderr);
+      const audio = parseWav(output).tracks[0]!.decodedAudio!;
+      assert.equal(audio.channelData[0]!.length, Math.max(0, Math.min(size, length - n * size)));
+      audio.channelData.forEach((channel, c) => {
+        assert.deepEqual(channel, expected.channelData[c]!.subarray(n * size, Math.min(length, (n + 1) * size)));
+      });
+    }
+  });
+}
+
 it("bounds surround workspace and honors cancellation", async () => {
   const channels = [new Float32Array(32), new Float32Array(32)];
   await assert.rejects(surroundAudio(channels, 16000, "surround",

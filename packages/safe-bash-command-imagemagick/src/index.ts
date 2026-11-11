@@ -2109,8 +2109,27 @@ function* formatMagickPropertyStringSteps<Step=never>(
           if (fn.needsStatistics && (!context.ping || key.startsWith("fx:"))) pixels ??= yield* magickPixelPropertiesSteps(img ??= getImage(), undefined, statistics, false, undefined, context.channelSelection, context.precision);
           // Ping expressions use metadata; FX statistics can still request full pixel reads.
           const ctx: FxEvalContext = { ...(context.ping ? { sample: () => 0 } : {}), interpolation: context.interpolation, statistics: context.ping && !key.startsWith("fx:") ? {} : statistics, sceneCount: context.sceneCount, frameIndex: context.listIndex ?? context.sceneIdx, stack: context.fxStack ?? [{ ...fxImage, [magickInput]: { ...fxImage[magickInput], ...context } }], x: 0, y: 0, w: fxImage.width, h: fxImage.height, ch: 0, vars: new Map() };
+          const frameStatistics = new Map<number, Record<string, number>>();
+          ctx.frameStatistics = (index) => {
+            const result = frameStatistics.get(index);
+            if (!result) throw new FxStatisticsDemand(index);
+            return result;
+          };
+          function* evaluate(evalContext: FxEvalContext): Generator<void, number, void> {
+            while (true) {
+              try { return fn(evalContext); }
+              catch (error) {
+                if (!(error instanceof FxStatisticsDemand)) throw error;
+                const target = "get" in ctx.stack ? ctx.stack.get(error.image)! : ctx.stack[error.image]!;
+                const result: Record<string, number> = {};
+                yield* magickPixelPropertiesSteps(target as RgbaImage, undefined, result, false, undefined, context.channelSelection, context.precision);
+                frameStatistics.set(error.image, result);
+                evalContext.vars.clear();
+              }
+            }
+          }
           if (key.startsWith("fx:")) {
-            parts.push(formatSignificantMetric(fn(ctx), context.precision));
+            parts.push(formatSignificantMetric(yield* evaluate(ctx), context.precision));
           } else {
             const channels: number[] = [];
             const hexMaximum = (fxImage.bitsPerSample ?? (fxImage.depth === "ushort" ? 16 : 8)) > 8 ? 65535 : 255;
@@ -2118,10 +2137,10 @@ function* formatMagickPropertyStringSteps<Step=never>(
             for (const ch of fxImage.space === "cmyk" ? (hasAlpha ? [0, 1, 2, 8, 3] : [0, 1, 2, 8]) : (hasAlpha ? [0, 1, 2, 3] : [0, 1, 2])) {
               ctx.vars.clear();
               if (key.startsWith("hex:")) {
-                channels.push(Math.max(0, Math.min(hexMaximum, Math.round(fn({ ...ctx, ch }) * hexMaximum))));
+                channels.push(Math.max(0, Math.min(hexMaximum, Math.round((yield* evaluate({ ...ctx, ch })) * hexMaximum))));
                 continue;
               }
-              channels.push((ch === 3 || fxImage.space === "cmyk" || fxImage.magickColorspace === "HCL" || fxImage.magickColorspace === "HCLp" || fxImage.magickColorspace === "HSL" || fxImage.magickColorspace === "HSB" || fxImage.magickColorspace === "HSV" || fxImage.magickColorspace === "HSI" || fxImage.magickColorspace === "HWB" || fxImage.magickColorspace === "LMS" || fxImage.magickColorspace === "CAT02LMS" || fxImage.magickColorspace === "XYZ" || fxImage.magickColorspace === "DisplayP3" || fxImage.magickColorspace === "xyY" || fxImage.magickColorspace === "ProPhoto" || fxImage.magickColorspace === "Jzazbz" || (fxImage.magickColorspace === "YPbPr" || fxImage.magickColorspace === "YCbCr") || fxImage.magickColorspace === "Rec601YCbCr" || fxImage.magickColorspace === "YCC" || fxImage.magickColorspace === "Rec709YCbCr" || fxImage.magickColorspace === "Log" || fxImage.magickColorspace === "Adobe98" || fxImage.magickColorspace === "OHTA" || fxImage.magickColorspace === "CMY" || fxImage.magickColorspace === "YUV" || fxImage.magickColorspace === "YIQ" || fxImage.magickColorspace === "YDbDr" || fxImage.magickColorspace === "Oklab" || fxImage.magickColorspace === "Luv" || fxImage.magickColorspace === "Oklch" || fxImage.magickColorspace === "LCH" || fxImage.magickColorspace === "LCHab" || fxImage.magickColorspace === "LCHuv" || fxImage.magickColorspace === "CIELab") && key.startsWith("pixel:") ? fn({ ...ctx, ch }) : fn({ ...ctx, ch }) * 255);
+              channels.push((ch === 3 || fxImage.space === "cmyk" || fxImage.magickColorspace === "HCL" || fxImage.magickColorspace === "HCLp" || fxImage.magickColorspace === "HSL" || fxImage.magickColorspace === "HSB" || fxImage.magickColorspace === "HSV" || fxImage.magickColorspace === "HSI" || fxImage.magickColorspace === "HWB" || fxImage.magickColorspace === "LMS" || fxImage.magickColorspace === "CAT02LMS" || fxImage.magickColorspace === "XYZ" || fxImage.magickColorspace === "DisplayP3" || fxImage.magickColorspace === "xyY" || fxImage.magickColorspace === "ProPhoto" || fxImage.magickColorspace === "Jzazbz" || (fxImage.magickColorspace === "YPbPr" || fxImage.magickColorspace === "YCbCr") || fxImage.magickColorspace === "Rec601YCbCr" || fxImage.magickColorspace === "YCC" || fxImage.magickColorspace === "Rec709YCbCr" || fxImage.magickColorspace === "Log" || fxImage.magickColorspace === "Adobe98" || fxImage.magickColorspace === "OHTA" || fxImage.magickColorspace === "CMY" || fxImage.magickColorspace === "YUV" || fxImage.magickColorspace === "YIQ" || fxImage.magickColorspace === "YDbDr" || fxImage.magickColorspace === "Oklab" || fxImage.magickColorspace === "Luv" || fxImage.magickColorspace === "Oklch" || fxImage.magickColorspace === "LCH" || fxImage.magickColorspace === "LCHab" || fxImage.magickColorspace === "LCHuv" || fxImage.magickColorspace === "CIELab") && key.startsWith("pixel:") ? (yield* evaluate({ ...ctx, ch })) : (yield* evaluate({ ...ctx, ch })) * 255);
             }
             if (key.startsWith("hex:")) {
               parts.push(channels.map(value => value.toString(16).toUpperCase().padStart(hexMaximum === 65535 ? 4 : 2, "0")).join(""));
@@ -2184,8 +2203,9 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
   if (!frame) { demanded = index; throw new FxFrameDemand(); }
   return frame;
  }, indexOf(target) { for (const [index, frame] of frames) if (frame === target) return index; return 0; } };
+ const frameStatistics = new Map<number, Record<string, number>>();
  const statistics=fn.needsStatistics?yield*getStatistics():undefined;
- const fxContext:FxEvalContext={interpolation:context.interpolation,statistics,sceneCount:context.sceneCount,frameIndex:context.listIndex??context.sceneIdx,stack:source,x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
+ const fxContext:FxEvalContext={frameStatistics(index) { const result = frameStatistics.get(index); if (!result) throw new FxStatisticsDemand(index); return result; },interpolation:context.interpolation,statistics,sceneCount:context.sceneCount,frameIndex:context.listIndex??context.sceneIdx,stack:source,x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
   if(context.ping || !target)return 0;
   if(!Number.isFinite(x) || !Number.isFinite(y))return NaN;
   const pixel=virtualPixelIndex(Math.round(x),Math.round(y),target.width,target.height,target.virtualPixel ?? "edge");
@@ -2209,6 +2229,13 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
    try{value=fn({...fxContext,ch});break;}
    catch(error){
     if (error instanceof FxFrameDemand) { yield { async run() { frames.set(demanded, (await stack!.get(demanded))!); } }; continue; }
+    if (error instanceof FxStatisticsDemand) {
+     const target = source.get(error.image) as StoredRgbaImage;
+     const result: Record<string, number> = {};
+     yield* magickPixelPropertiesSteps(target, (position, length) => loadIdentifyPixels({ image: target, storage }, signal, position, length), result, false, undefined, context.channelSelection, context.precision);
+     frameStatistics.set(error.image, result);
+     continue;
+    }
     if(!(error instanceof FxPixelDemand))throw error;
     const target = source.get(error.image) as StoredRgbaImage;
     yield {async run(){const data=await storage.read(target.position+error.position,4,signal?{signal}:undefined);const hue = target.storedHueSamples; const evaluateBytes = target.storedEvaluateSamples === undefined ? undefined : await storage.read(target.storedEvaluateSamples+error.position*8,32,signal?{signal}:undefined); const floatBytes = hue === undefined ? undefined : await storage.read(hue+error.position*8,32,signal?{signal}:undefined); const original=target.storedData16 ? await storage.read(target.storedData16.position+error.position*2,8,signal?{signal}:undefined) : undefined; samples.set(`${error.image}:${error.position}`,{data:new Uint8Array(data),...(evaluateBytes?{evaluateSamples:new Float64Array(evaluateBytes.slice().buffer)}:{}),...(floatBytes?{hueSamples:new Float64Array(floatBytes.buffer.slice(floatBytes.byteOffset,floatBytes.byteOffset+32))}:{}),...(original?{data16:new Uint16Array(original.buffer.slice(original.byteOffset,original.byteOffset+8))}:{})});}};
@@ -3638,7 +3665,9 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: read
 type FxImage = Omit<MagickImage,"data"|"data16"> & Partial<Pick<RgbaImage,"data"|"data16">>;
 interface FxStack { readonly length: number; get(index: number): FxImage | undefined; indexOf(image: FxImage): number; reset?(): void }
 class FxFrameDemand {}
+class FxStatisticsDemand { constructor(readonly image: number) {} }
 interface FxEvalContext {
+  frameStatistics?: (index: number) => Readonly<Record<string, number>>;
   readonly frameIndex?: number | undefined;
   readonly sceneCount?: number | undefined;
   readonly statistics?: Readonly<Record<string, number>> | undefined;
@@ -4067,12 +4096,8 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
     }
     if (tok.type === "id") {
       next();
-      let name = tok.val.toLowerCase();
+      const name = tok.val.toLowerCase();
       const statisticNames = ["mean", "standard_deviation", "minima", "maxima", "median", "skewness", "kurtosis"];
-      if (name === "u" && peek()?.val === "." && statisticNames.includes(tokens[pos + 1]?.val.toLowerCase() ?? "")) {
-        next();
-        name = next()!.val.toLowerCase();
-      }
       if (peek()?.val === "(") {
         next();
         const args: Array<(ctx: FxEvalContext) => number> = [];
@@ -4215,6 +4240,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
       let coordX: ((ctx: FxEvalContext) => number) | undefined;
       let coordY: ((ctx: FxEvalContext) => number) | undefined;
       let propName: string | undefined;
+      let frameStatistic: string | undefined;
       let pageProperty = name === "page";
       let relative = false;
 
@@ -4244,6 +4270,9 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
           expectToken(relative ? "]" : "}");
         } else if (sub === "page" && (name === "u" || name === "v" || name === "s")) {
           pageProperty = true;
+        } else if (["u", "v", "s"].includes(name) && statisticNames.includes(sub)) {
+          frameStatistic = sub;
+          requireStatistics();
         } else {
           propName = sub;
         }
@@ -4287,6 +4316,10 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
         }
         if (name === "t" || propName === "t") return targetIdx;
         const targetImg = "get" in ctx.stack ? ctx.stack.get(targetIdx) ?? ctx.stack.get(0) : ctx.stack[targetIdx] ?? ctx.stack[0];
+        if (frameStatistic) {
+          const statistics = ctx.frameStatistics?.(targetIdx) ?? ctx.statistics;
+          return statistics?.[propName ? `${frameStatistic}.${propToChannel(propName)}` : frameStatistic] ?? 0;
+        }
         if (name === "extent" || propName === "extent") return targetImg?.[magickInput]?.byteLen ?? 0;
         if (pageProperty) {
           if (propName === "width") return targetImg?.virtualCanvas?.width ?? targetImg?.width ?? ctx.w;
@@ -4353,10 +4386,12 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
         if (!bytes || bytes.length !== length * 2) throw new Error("Truncated expression pixels");
         return Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257);
     }
-    const statistics: Record<string, number> | undefined = evaluate.needsStatistics ? {} : undefined;
-    if (statistics) {
+    const frameStatistics = new Map<number, Record<string, number>>();
+    function* computeStatistics(index: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+        const base = stack.get(index)!;
+        const statistics: Record<string, number> = {};
         yield* magickPixelPropertiesSteps<ConvolveRequest, Uint8Array | undefined>(base, function*(position, length) {
-            const evaluateSamples = yield* readSamples(position, length);
+            const evaluateSamples = yield* readSamples(position, length, index);
             return { data: Uint8Array.from(evaluateSamples, value => Math.max(0, Math.min(255, Math.round(value)))), evaluateSamples };
         }, statistics, false, function*(position, length): Generator<ConvolveRequest, Uint8Array, Uint8Array | undefined> {
             return (yield { kind: "read", image: stack.length, position, length })!;
@@ -4375,7 +4410,10 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
                 else statistics[name]! += value / selected;
             }
         }
+        frameStatistics.set(index, statistics);
     }
+    if (evaluate.needsStatistics) yield* computeStatistics(0);
+    const statistics = frameStatistics.get(0);
     const samples = new Map<string, Float64Array>(), vars = new Map<string, number>();
     const samplePixel: typeof sampleFxImage = (target, x, y, channel) => {
         if (!target) return 0;
@@ -4408,13 +4446,18 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
             for (let ch = 0; ch < 4; ch++) {
                 if (!mask[ch]) continue;
                 // ImageMagick convert evaluates statistics as zero in the red output channel.
-                const context: FxEvalContext = { statistics: statistics && ch === 0 ? {} : statistics, stack, x: (start + i) % base.width, y: Math.floor((start + i) / base.width), w: base.width, h: base.height, ch, vars, sample: samplePixel, interpolation };
+                const context: FxEvalContext = { frameStatistics(index) {
+                    const result = frameStatistics.get(index);
+                    if (!result) throw new FxStatisticsDemand(index);
+                    return result;
+                }, statistics: statistics && ch === 0 ? {} : statistics, stack, x: (start + i) % base.width, y: Math.floor((start + i) / base.width), w: base.width, h: base.height, ch, vars, sample: samplePixel, interpolation };
                 // Replaying local assignments is deterministic; retain only this pixel's demanded samples.
                 while (true) {
                     vars.clear();
                     try { data[offset + ch] = evaluate(context) * 255; break; }
                     catch (error) {
                         if (error instanceof FxFrameDemand) { yield; continue; }
+                        if (error instanceof FxStatisticsDemand) { yield* computeStatistics(error.image); continue; }
                         if (!(error instanceof FxPixelDemand)) throw error;
                         samples.set(error.image + ":" + error.position, yield* readSamples(error.position, 4, error.image));
                     }
@@ -13224,9 +13267,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         if (setting === undefined && (((t === "-function" || t === "-evaluate") && tokens[i + 2]?.includes("%")) || t === "-solarize" || t === "-threshold" || t === "-range-threshold" || ((t === "-black-threshold" || t === "-white-threshold") && tokens[i + 1]?.includes("%")) || ((t === "-color-threshold" || t === "-blue-shift" || t === "-colorize" || t === "-random-threshold") && tokens[i + 1]?.includes("%[")) || ((t === "-modulate" || t === "-posterize" || t === "-ordered-dither") && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%")) || ((t === "-level-colors" || t === "+level-colors") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
             const operationName = t === "-function" || t === "-evaluate" ? tokens[++i]! : undefined;
             const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-threshold" ? "" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" || t === "-tint" ? "" : "1");
+            const fxStack = stack.slice();
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const expanded = yield* formatMagickPropertyStringSteps(t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" ? value.trimEnd() : value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, ...(t === "-black-threshold" || t === "-white-threshold" ? { analysis } : {}), optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" ? value.trimEnd() : value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack, sceneCount: fxStack.length, listIndex: sceneIdx++, ...(t === "-black-threshold" || t === "-white-threshold" ? { analysis } : {}), optionProperties: state.optionProperties });
                 const operationTokens = operationName === undefined ? [t, expanded] : [t, operationName, expanded];
                 const mask = image[magickInput]?.channelMask;
                 const imageSettings = t === "-evaluate" ? { ...state, channels: mask ?? createDefaultState().channels,
@@ -13261,6 +13305,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         result.metaChannels.push(output);
                     }
                 }
+                fxStack[sceneIdx - 1] = result;
                 return result;
             });
             i++;

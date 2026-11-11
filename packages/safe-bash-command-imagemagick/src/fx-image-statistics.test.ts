@@ -48,6 +48,6 @@ for (const retained of [false, true]) {
     const result = await runMagickCli([path, "-fx", "u.mean", "/result.png"], retained ? { filesystem: fs, cwd: "/" } : files);
     expect(result.exitCode).toBe(0);
     expect(Array.from(decodeImage(retained ? await fs.readFile("/result.png") : files.get("/result.png")!).data))
-      .toEqual([0, 96, 96, 255, 0, 96, 96, 255]);
+      .toEqual([96, 96, 96, 255, 96, 96, 96, 255]);
   });
 }

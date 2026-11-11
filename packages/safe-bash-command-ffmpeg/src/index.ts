@@ -20374,6 +20374,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "acontrast: unknown option") return { exitCode: 8 };
             if (msg === "acontrast: invalid expression" || msg === "acontrast: invalid or unsupported expression") return { exitCode: 234 };
             if (err instanceof RangeError && msg.startsWith("acontrast:")) return { exitCode: 222 };
+            if (msg.startsWith("asoftclip: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("asoftclip:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("atilt: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("atilt:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("acrusher: unsupported option ")) return { exitCode: 8 };

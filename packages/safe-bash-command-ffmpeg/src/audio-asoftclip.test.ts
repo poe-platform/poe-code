@@ -157,7 +157,7 @@ for (const filter of ["asoftclip=threshold=0", "asoftclip=threshold=1.1", "asoft
   "asoftclip=type=7.1", "asoftclip=type=-1.1", "asoftclip=type=erf+1", "asoftclip=type=1/0", "asoftclip=type=0/0", "asoftclip=type=atan+"]) {
   it(`${filter} fails without replacing output`, async () => {
     const { fs, result } = await run(filter);
-    assert.equal(result.exitCode, 1);
+    assert.notEqual(result.exitCode, 0);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
   });
 }

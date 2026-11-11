@@ -91,7 +91,7 @@ for (const [samples, expected] of [
 }
 
 for (const option of ["bits=0", "bits=65", "bits=", "bits=NaN", "mode=unknown", "mode=2", "aa=-1", "aa=2",
-  "mix=2", "dc=0", "level_in=0", "level_out=65", "samples=0", "samples=251", "samples=NaN", "lfo=1", "unknown=1"]) {
+  "mix=2", "dc=0", "level_in=0", "level_out=65", "samples=0", "samples=251", "samples=NaN", "lfo=2", "unknown=1"]) {
   it(`rejects ${option} without replacing output`, async () => {
     const { volume, result, stderr, stdout } = await run(`acrusher=${option}`, false, 1, undefined, "/out.pcm");
     assert.notEqual(result.exitCode, 0);
@@ -103,8 +103,8 @@ for (const option of ["bits=0", "bits=65", "bits=", "bits=NaN", "mode=unknown", 
 
 it("accounts for output memory and honors cancellation", async () => {
   const channels = [new Float64Array(32)];
-  await assert.rejects(crushAudio(channels, "acrusher=mode=log", new MediaBudgetTracker({ maxMemoryBytes: 128 })), /maxMemoryBytes/);
-  await assert.rejects(crushAudio(channels, "acrusher=mode=log", new MediaBudgetTracker(), AbortSignal.abort()));
+  await assert.rejects(crushAudio(channels, 1000, "acrusher=mode=log", new MediaBudgetTracker({ maxMemoryBytes: 128 })), /maxMemoryBytes/);
+  await assert.rejects(crushAudio(channels, 1000, "acrusher=mode=log", new MediaBudgetTracker(), AbortSignal.abort()));
 });
 
 async function run(filter: string, graph = false, channels = 1, input = "0000cd0fc1d38d63", output = "pipe:1") {

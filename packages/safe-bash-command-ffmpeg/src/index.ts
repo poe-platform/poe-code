@@ -14577,7 +14577,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         statsScale = 1;
                       } else if (filterName === "acrusher") {
                         if (!autoConversionFilters && filteredSampleFormat !== "dbl") throw new Error(audioConversionDisabled);
-                        stretched = await crushAudio(stretched, trimmed, budget, context.signal);
+                        stretched = await crushAudio(stretched, origRate, trimmed, budget, context.signal);
                         filteredSampleFormat = "dbl";
                         statsScale = 1;
                       } else if (trimmed === "adynamicequalizer" || trimmed.startsWith("adynamicequalizer=")) {

@@ -1,15 +1,18 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterBoolean } from "./filter-boolean.js";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function crushAudio(
-  channels: readonly (Float32Array | Float64Array)[], filter: string,
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
-  const defaults = { level_in: 1, level_out: 1, bits: 8, mix: 0.5, mode: 0, dc: 1, aa: 0.5, samples: 1 };
+  const defaults = { level_in: 1, level_out: 1, bits: 8, mix: 0.5, mode: 0, dc: 1, aa: 0.5,
+    samples: 1, lfo: 0, lforange: 20, lforate: 0.3 };
   const options = { ...defaults };
   const ranges = { level_in: [0.015625, 64], level_out: [0.015625, 64], bits: [1, 64],
-    mix: [0, 1], mode: [0, 1], dc: [0.25, 4], aa: [0, 1], samples: [1, 250] };
+    mix: [0, 1], mode: [0, 1], dc: [0.25, 4], aa: [0, 1],
+    samples: [1, 250], lfo: [0, 1], lforange: [1, 250], lforate: [0.01, 200] };
   const names = Object.keys(options) as (keyof typeof options)[];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const parts = argument ? argument.split(":") : [];
@@ -21,6 +24,10 @@ export async function crushAudio(
     if (separator < 0) position++;
     else position = position === 0 ? 1 : 0;
     if (!key || !Object.hasOwn(options, key)) throw new Error(`acrusher: unsupported option ${option}`);
+    if (key === "lfo") {
+      options.lfo = parseFilterBoolean(option.slice(separator + 1).trim(), "acrusher: invalid lfo") ? 1 : 0;
+      continue;
+    }
     const [min, max] = ranges[key];
     const value = parseFilterExpression(option.slice(separator + 1).trim(), "acrusher", {
       PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, min: min!, max: max!, default: defaults[key],
@@ -34,12 +41,25 @@ export async function crushAudio(
   const scale = Math.sqrt(coefficient / 2);
   const plateau = (1 - options.aa) / 2;
   const inverseDc = 1 / options.dc;
-  const holdSamples = Math.round(options.samples);
+  const radius = options.lforange / 2;
+  let minimum = Math.max(options.samples - radius, 1);
+  let maximum = Math.min(options.samples + radius, 250);
+  // Shift the modulation window inward at either sample-reduction limit.
+  const under = options.samples - radius - minimum;
+  const over = options.samples + radius - maximum;
+  maximum -= under;
+  minimum -= over;
+  const span = maximum - minimum;
+  const phaseStep = options.lforate * (1 / sampleRate);
   budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * 8, 0));
   const output = channels.map(channel => new Float64Array(channel.length));
   let work = 0;
   for (const [c, channel] of channels.entries()) {
+    let phase = 0;
     let held = 0;
+    let elapsed = 0;
+    let target = 0;
+    let real = 0;
     for (let i = 0; i < channel.length; i++) {
       if (work++ % 4096 === 0) {
         await yieldTurn(signal);
@@ -47,8 +67,20 @@ export async function crushAudio(
         budget.checkCpu();
       }
       const source = channel[i]!;
-      // The first capture occurs after a full hold interval, independently per channel.
-      if ((i + 1) % holdSamples === 0) held = source * options.level_in;
+      const samples = options.lfo
+        ? minimum + span * (Math.sin((phase * 360) * Math.PI / 180) * 0.5 + 0.5)
+        : options.samples;
+      const rounded = Math.round(samples);
+      if (++elapsed >= rounded) {
+        target += samples;
+        real += rounded;
+        if (target + samples >= real + 1) {
+          held = source * options.level_in;
+          target = real = 0;
+        }
+        elapsed = 0;
+      }
+      if (options.lfo) phase = (phase + phaseStep) % 1;
       let sample = options.mix * held + source * (1 - options.mix) * options.level_in;
       sample *= sample > 0 ? options.dc : inverseDc;
       const y = options.mode === 1 ? scale * Math.log(Math.abs(sample)) + scale * scale : sample * coefficient;

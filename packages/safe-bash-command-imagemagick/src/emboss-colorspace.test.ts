@@ -5,6 +5,14 @@ import { createConvertCommand, createMagickCommand, runMagickCli, runMagickCliSy
 
 // ImageMagick 7.1.2-35 Q16-HDRI, raw RGBA8.
 const cases = [
+    ...["Gray", "LinearGray"].flatMap(space => ["R", "G", "B", "RGB", "A"].map(channel => ({
+        space, emboss: true, channel,
+        hex: space === "Gray"
+            ? channel === "R" || channel === "RGB" ? "00000080ffffffa0808080f0"
+                : channel === "A" ? "54545455888888aa929292ff" : "54545480888888a0929292f0"
+            : channel === "R" || channel === "RGB" ? "00000080bcbcbca0fffffff0"
+                : channel === "A" ? "606060558f8f8faaa6a6a6ff" : "606060808f8f8fa0a6a6a6f0",
+    }))),
     { space: "HSL", emboss: false, channel: undefined, hex: "305060ff507080ff908050ff" },
     { space: "HSL", emboss: true, channel: undefined, hex: "000000ffffffffffffffffff" },
     { space: "HSL", emboss: true, channel: "R", hex: "306060ff805050ff905050ff" },
@@ -17,8 +25,9 @@ const cases = [
 for (const mode of ["magick", "convert", "buffered", "retained", "sync"] as const)
 it.each(cases)(`${mode}: preserves $space emboss=$emboss channel=$channel through sRGB conversion`, async ({ space, emboss, channel, hex }) => {
     const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
-    const args = ["xc:#305060", "xc:#507080", "xc:#908050", "+append", "-colorspace", space,
-        ...(channel ? ["-channel", channel] : []), ...(emboss ? ["-emboss", "1x1"] : []),
+    const gray = space === "Gray" || space === "LinearGray";
+    const args = [...(gray ? ["xc:#a2403980", "xc:#4094dfa0", "xc:#15c037f0"] : ["xc:#305060", "xc:#507080", "xc:#908050"]), "+append", "-colorspace", space,
+        ...(channel ? ["-channel", channel] : []), ...(emboss ? ["-emboss", gray ? "2x1" : "1x1"] : []),
         "+channel", "-colorspace", "sRGB", "-depth", "8", mode === "magick" || mode === "convert" ? "rgba:-" : "rgba:/out.raw"];
     let stdout = "", stderr = "";
     const result = mode === "magick" || mode === "convert" ? { ...await (mode === "magick" ? createMagickCommand() : createConvertCommand()).execute({

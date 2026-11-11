@@ -57,6 +57,8 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
         ? [background.r, background.g, background.b, background.a]
         : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
     if (cmyk) fill.push(0);
+    // Gray's three backing samples represent the single red/gray channel.
+    if (channels && (image.space === "b-w" || image.space === "grey16")) channels = { ...channels, g: channels.r, b: channels.r };
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha, channels.k] : [true, true, true, image.hasAlpha, true];
     const histograms = equalization?.histogram ? [equalization.histogram] : Array.from({ length: channels ? stride : 1 }, () => new Float64Array(65536));
     const lookups = equalization?.lookup ? [equalization.lookup] : histograms.map(() => new Float64Array(65536));

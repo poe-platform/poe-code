@@ -38,13 +38,13 @@ export async function fadeAudio(
   if (argument && (option || !argument.endsWith(":"))) options.push(option);
   function applyOption(key: string | undefined, value: string) {
     if (key === "t" || key === "type") {
-      const number = parseFilterExpression(value, "afade", { in: 0, out: 1 }, undefined, new Float64Array(10));
+      const number = parseFilterExpression(value, "afade", { in: 0, out: 1, min: 0, max: 1, default: 0, none: 0, all: -1 }, undefined, new Float64Array(10));
       if (number < 0 || number > 1) throw new Error("afade: invalid type");
       type = number > 0.5 ? "out" : "in";
     } else if (key === "c" || key === "curve") {
       const entries = Object.entries(curves);
       const names = Object.fromEntries(entries.map(([name], index) => [name, index - 1]));
-      const number = parseFilterExpression(value, "afade", names, undefined, new Float64Array(10));
+      const number = parseFilterExpression(value, "afade", { ...names, min: -1, max: entries.length - 2, default: 0, none: 0, all: -1 }, undefined, new Float64Array(10));
       if (number < -1 || number > entries.length - 2) throw new Error("afade: invalid curve");
       // FFmpeg integer options round to nearest, with exact halves going to even.
       const floor = Math.floor(number);
@@ -66,7 +66,13 @@ export async function fadeAudio(
       const time = key === "st" || key === "start_time" || key === "d" || key === "duration";
       const number = time
         ? parseHlsDuration(value)
-        : parseFilterExpression(value, "afade", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
+        : parseFilterExpression(value, "afade", {
+          PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+          min: key === "ns" || key === "nb_samples" ? 1 : 0,
+          max: key === "silence" || key === "unity" ? 1 : Number(maxSamples),
+          default: key === "ns" || key === "nb_samples" ? 44100 : key === "unity" ? 1 : 0,
+          none: 0, all: -1
+        }, undefined, new Float64Array(10));
       if (!value || !Number.isFinite(number) || number < 0) throw new Error(`afade: invalid ${key}`);
       if (key === "ss" || key === "start_sample" || key === "ns" || key === "nb_samples") {
         // FFmpeg integer options round to nearest, with exact halves going to even.

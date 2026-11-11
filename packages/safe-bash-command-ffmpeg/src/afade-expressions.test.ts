@@ -71,6 +71,7 @@ for (const graph of [false, true]) {
     "unity=2", "unity=3/2", "silence=-1/4", "silence=2/1", "ns=0", "ns=1-1",
     "ns=0.9", "ss=-1/4", "ns=18446744073709551616", "ss=18446744073709551616",
     "unity=1/0", "silence=0/0", "ns=1/0", "ss=0/0", "ns=2+", "unity=",
+    "ns=none", "unity=all", "ns=max+max", "ss=max:ns=4", "c=max+1", "d=default",
     "ns=unknown", "st=1/2", "start_time=PI", "d=1/2", "duration=PI"
   ]) {
     it(`afade rejects ${option} without replacing output (${graph ? "graph" : "simple"})`, async () => {
@@ -121,6 +122,35 @@ for (const graph of [false, true]) {
         assert.equal(result.output.length, 6346);
         assert.equal(createHash("sha256").update(result.output).digest("hex"), hash);
       }
+    });
+  }
+}
+
+// Native FFmpeg PCM16 output for eight samples of 16000 at 8 kHz.
+for (const graph of [false, true]) {
+  for (const [options, hex] of [
+    ["ns=4:c=max", "000057019f0f882d803e803e803e803e"],
+    ["ns=4:curve=max", "000057019f0f882d803e803e803e803e"],
+    ["ns=4:c=min", "803e803e803e803e803e803e803e803e"],
+    ["ns=4:c=all", "803e803e803e803e803e803e803e803e"],
+    ["ns=4:c=default", "0000a00f401fe02e803e803e803e803e"],
+    ["ns=4:c=none", "0000a00f401fe02e803e803e803e803e"],
+    ["ns=4:unity=default:silence=default", "0000a00f401fe02e803e803e803e803e"],
+    ["ns=4:unity=max:silence=min:ss=default:t=default", "0000a00f401fe02e803e803e803e803e"],
+    ["ns=4:unity=min", "00000000000000000000000000000000"],
+    ["ns=4:silence=max", "803e803e803e803e803e803e803e803e"],
+    ["ns=4:t=max", "803ee02e401fa00f0000000000000000"],
+    ["ns=4:type=min:start_sample=none", "0000a00f401fe02e803e803e803e803e"],
+    ["nb_samples=default", "00000000000001000100010002000200"],
+    ["ns=min", "0000803e803e803e803e803e803e803e"],
+    ["ns=max", "00000000000000000000000000000000"],
+    ["ns=4:curve=max-22:unity=default/2", "0000d007a00f7017401f401f401f401f"],
+    ["default:min:min+3:0:0:none:min:max", "0000a00f401fe02e803e803e803e803e"]
+  ]) {
+    it(`afade resolves numeric constants ${options} (${graph ? "graph" : "simple"})`, async () => {
+      const result = await run(options!, graph, new Float64Array(8).fill(16000 / 32768));
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.output.toString("hex"), hex);
     });
   }
 }

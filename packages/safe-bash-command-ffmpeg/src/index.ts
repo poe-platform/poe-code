@@ -8002,7 +8002,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
             ? description.codecName === "ass" && description.extraData ? description.extraData : assAst().serialize({ ...doc, tracks: [] })
             : undefined
         })) : track.codecDescriptions.map(description =>
-          outputFormat === "srt" && (description.codecName === "microdvd" || description.codecName === "pjs")
+          outputFormat === "srt" && (description.codecName === "microdvd" || description.codecName === "pjs" || description.codecName === "mpl2")
             ? { ...description, codecName: "subrip" } : description)
       };
     })

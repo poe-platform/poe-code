@@ -14752,7 +14752,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-despeckle") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const result = yield* applyMagickRasterSteps(im, despecklePixelSteps(im, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k ?? false] : undefined), signal);
+                let result = { ...yield* applyMagickRasterSteps(im, despecklePixelSteps(im, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k ?? false] : undefined), signal), isPalette: false };
+                // Despeckle's direct-color output drops alpha without a blend trait.
+                if (!result.hasAlpha && result.alphaBlend === false) {
+                    result = { ...result, inactiveAlpha: false, alphaSeparate: false,
+                        channels: result.channels === 4 ? 3 : result.channels === 2 ? 1 : result.channels };
+                }
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
                     for (const [index, plane] of im.metaChannels.entries()) {
@@ -18983,7 +18988,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const metaChannels = !state.channelExplicit || state.channelDefault ? "all" : state.channels.meta ?? [];
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const result = await transformStoredMagickRaster(image, backend, despecklePixelSteps(image, channels), signal);
+                let result = { ...await transformStoredMagickRaster(image, backend, despecklePixelSteps(image, channels), signal), isPalette: false };
+                // Despeckle's direct-color output drops alpha without a blend trait.
+                if (!result.hasAlpha && result.alphaBlend === false) {
+                    result = { ...result, inactiveAlpha: false, alphaSeparate: false,
+                        channels: result.channels === 4 ? 3 : result.channels === 2 ? 1 : result.channels };
+                }
                 if (image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries()) {

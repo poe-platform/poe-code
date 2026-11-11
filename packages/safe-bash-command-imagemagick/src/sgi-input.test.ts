@@ -23,8 +23,9 @@ for (const mode of ["sync", "buffered", "stored", "command"] as const) {
           : await runConvertCli(args, mode === "stored" ? { filesystem: fs, cwd: "/" } : files);
         expect("stderr" in result ? result.stderr : stderr).toBe("");
         expect(result.exitCode).toBe(0);
-        const output = mode === "command" ? Buffer.concat(chunks) : "stdoutBytes" in result ? result.stdoutBytes : undefined;
-        expect(Buffer.from(output!).toString("hex")).toBe(fixture.rgb);
+        const output = mode === "command" ? Buffer.concat(chunks) : "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : undefined;
+        if (!(output instanceof Uint8Array)) throw new Error("Expected binary stdout");
+        expect(Buffer.from(output).toString("hex")).toBe(fixture.rgb);
         const infoArgs = [prefix + path, "-format", "%n %w %h", "info:"];
         const info = mode === "sync" ? runConvertCliSync(infoArgs, files)
           : await runConvertCli(infoArgs, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });

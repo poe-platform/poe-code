@@ -1794,6 +1794,7 @@ function audioConcatInputs(filter: string): number | undefined {
 
 // Delay tails are execution metadata, not part of the media container.
 const audioDelayTails = new WeakMap<MediaTrack, Set<string>>();
+const audioGraphFormats = new WeakMap<MediaTrack, string>();
 
 // Resolve audio graph inputs and transitions before the PCM filter evaluator runs.
 async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string) => Promise<MediaTrack>, mixCommands: { target: string; action: string; expression: string }[], budget: MediaBudgetTracker, signal?: AbortSignal, outputSampleFormat?: string) {
@@ -2233,7 +2234,11 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         for (let index = mixCommands.length - 1; index >= 0; index--) {
           if (mixCommands[index]!.target === "amix" || mixCommands[index]!.target === target) mixCommands.splice(index, 1);
         }
-        const track = await mixAudio(sources.map(source => source.track), filters[0]!, budget, signal, commands);
+        // A compatible floating input fixes amix precision before the output format.
+        const format = [...sources.map(source => audioGraphFormats.get(source.track)
+          ?? pcmSampleFormat(source.track.codecDescriptions[0]?.codecName)), outputSampleFormat]
+          .find(format => format !== undefined && ["flt", "fltp", "dbl", "dblp"].includes(format)) ?? "flt";
+        const track = await mixAudio(sources.map(source => source.track), filters[0]!, budget, signal, commands, format);
         return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "acrossfade" || filters[0]?.startsWith("acrossfade=")) {
@@ -18206,6 +18211,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         channelLayout: filteredChannelNames?.join("+") })),
                       decodedAudio: { ...audio, sampleRate: origRate, channels: stretched.length,
                         channelMask: filteredChannelMask, channelData: stretched } };
+                    audioGraphFormats.set(result, filteredSampleFormat);
                     if (delayTails.size) audioDelayTails.set(result, delayTails);
                     return result;
                   }

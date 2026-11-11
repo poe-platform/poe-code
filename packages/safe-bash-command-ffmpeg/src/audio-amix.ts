@@ -7,7 +7,7 @@ import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function mixAudio(
   tracks: MediaTrack[], filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
-  commands: readonly { action: string; expression: string }[] = []
+  commands: readonly { action: string; expression: string }[] = [], sampleFormat = "flt"
 ): Promise<MediaTrack> {
   const inputs = tracks.map(track => {
     if (!track.decodedAudio) throw new Error("amix requires decoded PCM audio");
@@ -81,8 +81,10 @@ export async function mixAudio(
   const length = duration === "first" ? lengths[0]! : duration === "shortest" ? Math.min(...lengths) : Math.max(...lengths);
   budget.checkSamples(length);
   budget.checkDuration(length / a.sampleRate);
-  budget.allocateMemory(length * a.channels * 4);
-  const channelData = a.channelData.map(() => new Float32Array(length));
+  const double = sampleFormat === "dbl" || sampleFormat === "dblp";
+  const SampleArray = double ? Float64Array : Float32Array;
+  budget.allocateMemory(length * a.channels * SampleArray.BYTES_PER_ELEMENT);
+  const channelData = a.channelData.map(() => new SampleArray(length));
   const frames: MediaSample[] = [];
   const totalWeight = weights.reduce((sum, weight) => sum + Math.abs(weight), 0);
   const scales = weights.map(weight => totalWeight / Math.abs(weight));
@@ -154,7 +156,9 @@ export async function mixAudio(
               }
             }
           }
-          mixed = Math.fround(mixed + Math.fround(value * gains[input]!));
+          // Gains remain native floats; double samples must not round at each operation.
+          mixed = double ? mixed + value * gains[input]!
+            : Math.fround(mixed + Math.fround(Math.fround(value) * gains[input]!));
         }
         channelData[channel]![sample] = mixed;
       }
@@ -166,6 +170,8 @@ export async function mixAudio(
     start = end;
   }
   return { ...tracks[0]!, timescale: a.sampleRate, duration: length, samples: frames, editList: undefined,
+    codecDescriptions: tracks[0]!.codecDescriptions.map(description => ({ ...description,
+      codecName: double ? "pcm_f64le" : "pcm_f32le", bitsPerSample: double ? 64 : 32 })),
     decodedAudio: { ...a, channelData } };
 }
 

@@ -301,10 +301,11 @@ it("bounds reads, writes and cooperative work across raster chunks", () => {
         if (!request) { pauses++; next = steps.next(); }
         else if (request.kind === "read") {
             expect(request.length).toBeLessThanOrEqual(4096);
-            next = steps.next(pixels.subarray(request.position, request.position + request.length));
+            next = steps.next(request.evaluate ? undefined : pixels.subarray(request.position, request.position + request.length));
         } else {
-            expect(request.data.length).toBeLessThanOrEqual(4096);
-            output.set(request.data, request.position);
+            expect(request.data.length).toBeLessThanOrEqual(4096 * (request.evaluate ? 8 : 1));
+            const samples = request.evaluate ? new Float64Array(request.data.slice().buffer) : request.data;
+            output.set(Uint8Array.from(samples, value => Math.round(value)), request.position);
             next = steps.next();
         }
     }

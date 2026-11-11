@@ -35,9 +35,15 @@ export function* bilateralBlurPixelSteps(image: Pick<RgbaImage, "width" | "heigh
         let data = blocks.get(start);
         if (!data) {
             const length = Math.min(1024, width * height - start) * 4;
-            const bytes = yield { kind: "read", hue, highDepth, position: start * 4, length };
-            if (!bytes || bytes.length !== length * (hue ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated bilateral blur pixels");
-            data = hue ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, length) : bytes;
+            const working = hue ? undefined : yield { kind: "read", evaluate: true, position: start * 4, length };
+            if (working?.length) {
+                if (working.length !== length * 8) throw new Error("Truncated bilateral blur pixels");
+                data = Float64Array.from(new Float64Array(working.slice().buffer), value => value * quantum / 255);
+            } else {
+                const bytes = yield { kind: "read", hue, highDepth, position: start * 4, length };
+                if (!bytes || bytes.length !== length * (hue ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated bilateral blur pixels");
+                data = hue ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, length) : bytes;
+            }
             if (cmyk) {
                 // CMYK's fourth working sample is black; opacity lives in the RGBA backing.
                 const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
@@ -59,7 +65,7 @@ export function* bilateralBlurPixelSteps(image: Pick<RgbaImage, "width" | "heigh
     for (let start = 0; start < width * height; start += 1024) {
         const count = Math.min(1024, width * height - start), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
         const working = hue ? new Float64Array(count * 4) : undefined;
-        const rgba = hue ? new Float64Array(count * 4) : undefined;
+        const rgba = new Float64Array(count * 4);
         for (let i = 0; i < count; i++) {
             yield;
             const x = (start + i) % width, y = Math.floor((start + i) / width), center = yield* sample(x, y), centerLuma = luma(center);
@@ -79,18 +85,18 @@ export function* bilateralBlurPixelSteps(image: Pick<RgbaImage, "width" | "heigh
                 const value = mask[c] ? sums[c]! / Math.max(divisor, 1e-12) : center[c]!;
                 filtered[c] = Math.fround(value * 65535 / quantum) / 65535;
             }
-            if (working && rgba) {
+            if (working) {
                 working.set(filtered.slice(0, 4), i * 4);
                 for (let c = 0; c < 3; c++) rgba[i * 4 + c] = (cmyk ? (1 - filtered[c]!) * (1 - filtered[3]!) : filtered[c]!) * 255;
                 rgba[i * 4 + 3] = filtered[alpha]! * 255;
-            }
+            } else for (let c = 0; c < 4; c++) rgba[i * 4 + c] = filtered[c]! * 255;
             for (let c = 0; c < 4; c++) {
-                const value = rgba ? rgba[i * 4 + c]! / 255 : filtered[c]!;
+                const value = rgba[i * 4 + c]! / 255;
                 data[i * 4 + c] = Math.max(0, Math.min(highDepth ? 65535 : 255, Math.round(value * (highDepth ? 65535 : 255))));
             }
         }
         yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer, data.byteOffset, data.byteLength) };
         if (working) yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(working.buffer) };
-        if (rgba) yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(rgba.buffer) };
+        yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(rgba.buffer) };
     }
 }

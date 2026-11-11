@@ -37,17 +37,17 @@ export async function mixAudio(
     const key = separator < 0 ? ["inputs", "duration", "dropout_transition", "weights", "normalize"][index] : option.slice(0, separator);
     const value = separator < 0 ? option : option.slice(separator + 1);
     if (key === "inputs") {
-      const numeric = parseFilterExpression(value, "amix", {});
+      const numeric = parseFilterExpression(value, "amix", { min: 1, max: 32767, default: 2 });
       if (numeric < 1 || numeric > 32767) throw new RangeError("amix: invalid inputs");
       // Native integer options round to nearest, with halfway values going to even.
       count = numeric % 1 === 0.5 ? 2 * Math.round(numeric / 2) : Math.round(numeric);
     } else if (key === "duration") {
-      const numeric = parseFilterExpression(value, "amix", { longest: 0, shortest: 1, first: 2, max: 2, default: 0 });
+      const numeric = parseFilterExpression(value, "amix", { longest: 0, shortest: 1, first: 2, min: 0, max: 2, default: 0 });
       if (numeric < 0 || numeric > 2) throw new RangeError("amix: invalid duration");
       const rounded = numeric % 1 === 0.5 ? 2 * Math.round(numeric / 2) : Math.round(numeric);
       duration = ["longest", "shortest", "first"][rounded]!;
     } else if (key === "dropout_transition") {
-      transition = parseFilterExpression(value, "amix", {});
+      transition = parseFilterExpression(value, "amix", { min: 0, max: 2147483647, default: 2 });
       if (transition < 0 || transition > 2147483647) throw new RangeError("amix: invalid dropout transition");
       transition = Math.fround(transition);
     } else if (key === "normalize") {

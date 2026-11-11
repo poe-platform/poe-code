@@ -194,9 +194,9 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
     else if (token === "Cmono") { pixFmt = "gray"; format = 8; }
     else if (token === "C422") { pixFmt = "yuv422p"; format = 4; }
     else if (token === "C444") { pixFmt = "yuv444p"; format = 5; }
-    else if (token === "C444p10" || token === "C444p16") {
+    else if (["C420p10", "C420p12", "C422p10", "C444p10", "C444p12", "C444p16"].includes(token)) {
       pixFmt = `yuv${token.slice(1)}le`;
-      format = token === "C444p10" ? 68 : 49;
+      format = ({ C420p10: 62, C420p12: 123, C422p10: 64, C444p10: 68, C444p12: 131, C444p16: 49 } as Record<string, number>)[token]!;
       sampleBytes = 2;
     }
     else if (token === "XCOLORRANGE=FULL") colorRange = "pc";
@@ -223,8 +223,8 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
 
   const fps = fpsNum / Math.max(1, fpsDen);
   const ySize = width * height;
-  const horizontalShift = [5, 49, 68].includes(format) ? 0 : 1;
-  const verticalShift = format === 0 ? 1 : 0;
+  const horizontalShift = pixFmt.startsWith("yuv444p") ? 0 : 1;
+  const verticalShift = pixFmt.startsWith("yuv420p") ? 1 : 0;
   const uvWidth = Math.ceil(width / (1 << horizontalShift));
   const uvHeight = Math.ceil(height / (1 << verticalShift));
   const uvSize = format === 8 ? 0 : uvWidth * uvHeight;

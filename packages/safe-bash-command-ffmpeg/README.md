@@ -1326,7 +1326,7 @@ Named instances and downstream audio filters are supported.
 
 `[0:a][1:a]amultiply[out]` (also `amultiply@name`) multiplies corresponding PCM samples from two inputs
 resampling the second input to the first input’s sample rate and ending with the
-shorter resampled input. Mono/stereo inputs are
+shorter resampled input. Mono paired with stereo, 3.0, or quad is
 remixed to the first input’s layout with equal-power gains before multiplication;
 other layouts must match.
 Single-input filters on either branch run before multiplication, for example

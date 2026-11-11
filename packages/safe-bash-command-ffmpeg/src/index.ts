@@ -2166,10 +2166,18 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         if (!a || !b) throw new Error("amultiply requires decoded PCM audio");
         const layoutA = a.channelMask || (a.channels === 1 ? 4 : a.channels === 2 ? 3 : undefined);
         const layoutB = b.channelMask || (b.channels === 1 ? 4 : b.channels === 2 ? 3 : undefined);
-        const remix = a.channels !== b.channels &&
-          (layoutA === 4 && layoutB === 3 || layoutA === 3 && layoutB === 4);
-        if (!remix && (a.channels !== b.channels || layoutA !== layoutB)) {
-          throw new Error("amultiply requires matching layouts or mono/stereo inputs");
+        // Floating PCM uses unnormalized equal-power downmix coefficients.
+        const monoGains = new Map([
+          [3, [Math.SQRT1_2, Math.SQRT1_2]],
+          [7, [Math.SQRT1_2, Math.SQRT1_2, 1]],
+          [0x33, [Math.SQRT1_2, Math.SQRT1_2, 0.5, 0.5]]
+        ]);
+        const downmix = layoutA === 4 ? monoGains.get(layoutB!) : undefined;
+        const upmix = layoutB === 4 ? layoutA === 7 ? [0, 0, 1]
+          : layoutA === 0x33 ? [Math.SQRT1_2, Math.SQRT1_2, 0, 0]
+            : layoutA === 3 ? [Math.SQRT1_2, Math.SQRT1_2] : undefined : undefined;
+        if (!downmix && !upmix && (a.channels !== b.channels || layoutA !== layoutB)) {
+          throw new Error("amultiply requires matching layouts or mono paired with stereo, 3.0, or quad");
         }
         // Split outputs share their inputs array. Reversal drains the shared
         // source, queuing the other branch before multiplication starts. Frames
@@ -2227,9 +2235,9 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
               signal?.throwIfAborted();
               budget.checkCpu();
             }
-            // amultiply negotiates floating PCM, so rematrix at equal power without PCM16 normalization.
-            const gain = remix ? (b.channels === 1 ? multiplier[0]![sample]!
-              : multiplier[0]![sample]! + multiplier[1]![sample]!) * Math.SQRT1_2 : multiplier[channel]![sample]!;
+            const gain = downmix
+              ? downmix.reduce((sum, coefficient, input) => sum + coefficient * multiplier[input]![sample]!, 0)
+              : upmix ? upmix[channel]! * multiplier[0]![sample]! : multiplier[channel]![sample]!;
             channelData[channel]![sample] = a.channelData[channel]![sample]! * gain;
           }
         }

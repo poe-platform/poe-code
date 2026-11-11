@@ -8,8 +8,9 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 const hex = (value: number) => value.toString(16).toUpperCase().padStart(2, "0");
 export function pixelEnumerationLine(x: number, y: number, r: number, g: number, b: number, a: number, colorspace = "srgba", working?: Float64Array): string {
     const alpha = colorspace.endsWith("a");
-    const samples = colorspace.startsWith("gray") ? String(r) : `${r},${g},${b}`;
-    const channels = working && (colorspace.startsWith("gray") || colorspace === "rgb" || colorspace === "rgba") ? working.subarray(0, colorspace.startsWith("gray") ? 1 : 3) : undefined;
+    const gray = colorspace.startsWith("gray") || colorspace.startsWith("lineargray");
+    const samples = gray ? String(r) : `${r},${g},${b}`;
+    const channels = working && (gray || colorspace === "rgb" || colorspace === "rgba") ? working.subarray(0, gray ? 1 : 3) : undefined;
     const fractional = channels?.some(value => Math.abs(value - Math.round(value)) > 1e-9);
     const description = fractional ? Array.from(channels!, value => `${Number((value * 100 / 255).toPrecision(6))}%`).join(",") : samples;
     const name = colorspace === "srgba" && a === 255 ? histogramColorNames[(r << 16) | (g << 8) | b] : undefined;
@@ -35,11 +36,11 @@ export function cmykEnumerationLine(x: number, y: number, inks: ArrayLike<number
     const values = samples.map((value, channel) => Number((value * (channel === 4 ? 1 : 255)).toPrecision(6)));
     return `${x},${y}: (${channels.join(",")})  #${color}  cmyk${alpha === undefined ? "" : "a"}(${values.join(",")})`;
 }
-export function gray16EnumerationLine(x: number, y: number, gray: number, alpha: number | undefined, working?: Float64Array): string {
+export function gray16EnumerationLine(x: number, y: number, gray: number, alpha: number | undefined, colorspace: string, working?: Float64Array): string {
     const sample = working?.[0] ?? gray / 257;
     const value = Math.abs(sample - Math.round(sample)) <= 1e-9 ? String(Math.round(sample)) : `${Number((sample * 100 / 255).toPrecision(6))}%`;
     const color = hex(gray).padStart(4, "0").repeat(3);
-    return `${x},${y}: (${gray}${alpha === undefined ? "" : `,${alpha}`})  #${color}${alpha === undefined ? "" : hex(alpha).padStart(4, "0")}  gray${alpha === undefined ? "" : "a"}(${value}${alpha === undefined ? "" : `,${Number((working ? working[3]! / 255 : alpha / 65535).toPrecision(6))}`})`;
+    return `${x},${y}: (${gray}${alpha === undefined ? "" : `,${alpha}`})  #${color}${alpha === undefined ? "" : hex(alpha).padStart(4, "0")}  ${colorspace}(${value}${alpha === undefined ? "" : `,${Number((working ? working[3]! / 255 : alpha / 65535).toPrecision(6))}`})`;
 }
 export function histogramLine(key: number | bigint, count: number, hasAlpha: boolean): string {
     if (typeof key === "bigint") {
@@ -164,14 +165,14 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
     }
     const maximum = ["HCL", "HCLp", "HSI", "HSL", "HSB", "HSV", "HWB", "XYZ", "CIELab"].includes(image.magickColorspace ?? "") && (depth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) <= 8 ? 255 : 65535;
     const srgbDepth = depth !== undefined && image.space === "srgb" && !image.magickColorspace;
-    const colorspace = `${image.space === "b-w" || image.space === "grey16" ? "gray" : image.magickColorspace === "RGB" ? "rgb" : "srgb"}${image.hasAlpha ? "a" : ""}`;
+    const colorspace = `${image.space === "b-w" || image.space === "grey16" ? image.gamma === 1 && image.magickColorspace !== "Gray" ? "lineargray" : "gray" : image.magickColorspace === "RGB" ? "rgb" : "srgb"}${image.hasAlpha ? "a" : ""}`;
     const gray16 = (image.space === "b-w" || image.space === "grey16") && image.storedData16 !== undefined && (depth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8;
-    yield srgbDepth ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,${depth > 8 ? 65535 : 255},srgb${image.hasAlpha ? "a" : ""}\n` : gray16 ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,gray${image.hasAlpha ? "a" : ""}\n` : (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,${maximum},${image.magickColorspace.toLowerCase()}${image.hasAlpha ? "a" : ""}\n` : `# ImageMagick pixel enumeration: ${image.width},${image.height},0,255,${colorspace}\n`;
+    yield srgbDepth ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,${depth > 8 ? 65535 : 255},srgb${image.hasAlpha ? "a" : ""}\n` : gray16 ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,65535,${colorspace}\n` : (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") ? `# ImageMagick pixel enumeration: ${image.width},${image.height},0,${maximum},${image.magickColorspace.toLowerCase()}${image.hasAlpha ? "a" : ""}\n` : `# ImageMagick pixel enumeration: ${image.width},${image.height},0,255,${colorspace}\n`;
     const size = image.width * image.height * 4;
     for (let start = 0; start < size; start += 16384) {
         await yieldTurn(signal);
         const bytes = await storage.read(image.position + start, Math.min(16384, size - start));
-        const evaluated = (colorspace.startsWith("gray") || image.magickColorspace === "RGB") && image.storedEvaluateSamples !== undefined
+        const evaluated = (image.space === "b-w" || image.space === "grey16" || image.magickColorspace === "RGB") && image.storedEvaluateSamples !== undefined
             ? await storage.read(image.storedEvaluateSamples + start * 8, bytes.length * 8) : undefined;
         const working = evaluated ? new Float64Array(evaluated.slice().buffer) : undefined;
         const original = (srgbDepth || gray16 || image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") && image.storedData16 ? await storage.read(image.storedData16.position + start * 2, bytes.length * 2) : undefined;
@@ -189,7 +190,7 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
                 continue;
             }
             if (gray16) {
-                yield gray16EnumerationLine(pixel % image.width, Math.floor(pixel / image.width), data16![offset]!, image.hasAlpha ? data16![offset + 3]! : undefined, working?.subarray(offset, offset + 4)) + "\n";
+                yield gray16EnumerationLine(pixel % image.width, Math.floor(pixel / image.width), data16![offset]!, image.hasAlpha ? data16![offset + 3]! : undefined, colorspace, working?.subarray(offset, offset + 4)) + "\n";
                 continue;
             }
             yield pixelEnumerationLine(pixel % image.width, Math.floor(pixel / image.width), bytes[offset]!, bytes[offset + 1]!, bytes[offset + 2]!, bytes[offset + 3]!, colorspace, working?.subarray(offset, offset + 4)) + "\n";

@@ -6623,7 +6623,7 @@ export function evalSyncFfmpeg(
       }
       else if (arg === "-vsync" || arg === "-fps_mode" || arg.startsWith("-fps_mode:")) return undefined;
       else if (arg === "-crf") return undefined;
-      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-pix_fmt" || arg === "-tag:a") i++;
+      else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-filter_threads" || arg === "-pix_fmt" || arg === "-tag:a") i++;
       else if (arg === "-bf") {
         const value = args[++i];
         maxBFrames = value?.trim() ? Number(value) : NaN;
@@ -7993,7 +7993,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid CRF: expected a number from 0 to 51\n"), context.signal);
               return { exitCode: 1 };
             }
-          } else if (arg === "-threads" || arg === "-tag:a") {
+          } else if (arg === "-threads" || arg === "-filter_threads" || arg === "-tag:a") {
             i++;
           } else if (arg === "-bf") {
             const value = args[++i];

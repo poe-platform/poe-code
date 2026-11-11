@@ -139,7 +139,9 @@ export async function declickAudio(
           for (let i = count - 1; i >= 0; i--) {
             solution[i] = solution[i]! / matrix[i * count + i]!;
             for (let j = i + 1; j < Math.min(count, i + order + 1); j++) solution[i] = solution[i]! - matrix[j * count + i]! * solution[j]!;
-            repaired[indices[i]!] = solution[i]!;
+            // Native pads overlap-save audio, but not its repair-enable FIFO.
+            // A first window shorter than size only enables its first length slots.
+            if (indices[i]! < length) repaired[indices[i]!] = solution[i]!;
           }
         }
       }

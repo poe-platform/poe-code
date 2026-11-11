@@ -4,7 +4,7 @@ export function decodeMicrodvd(text: string): string {
   let opened: string[] = [];
   let result = "";
   const tags = () => {
-    const style = directives.get("y")?.value ?? "";
+    const style = (directives.get("Y")?.value ?? "") + (directives.get("y")?.value ?? "");
     const output = ["i", "b", "u", "s"].filter(tag => style.includes(tag)).map(tag => `<${tag}>`);
     const color = directives.get("c")?.value;
     if (color) output.push(`<font color="#${color}">`);
@@ -32,7 +32,8 @@ export function decodeMicrodvd(text: string): string {
       const end = line.indexOf("}", position + 3);
       if (end < 0) break;
       const name = line[position + 1]!;
-      const key = name.toLowerCase();
+      // Persistent and line-local emphasis have independent lifetimes.
+      const key = name === "Y" ? name : name.toLowerCase();
       let value = line.slice(position + 3, end);
       if (name === "H") {
         position = end + 1;
@@ -46,7 +47,7 @@ export function decodeMicrodvd(text: string): string {
         position = end + 1;
         continue;
       }
-      if (!["y", "c", "f", "s"].includes(key)) break;
+      if (!["Y", "y", "c", "f", "s"].includes(key)) break;
       if (key === "c") {
         const hex = value.startsWith("$") ? value.slice(1) : value;
         if (!hex.length || hex.length > 6 || !Array.from(hex.toLowerCase()).every(char => "0123456789abcdef".includes(char))) break;
@@ -54,7 +55,7 @@ export function decodeMicrodvd(text: string): string {
         value = bgr.slice(4, 6) + bgr.slice(2, 4) + bgr.slice(0, 2);
       }
       if (key === "s" && (!value.length || !Array.from(value).every(char => char >= "0" && char <= "9"))) break;
-      if (key === "y") value = (directives.get(key)?.value ?? "") + value;
+      if (key === "y" || key === "Y") value = (directives.get(key)?.value ?? "") + value;
       directives.set(key, { value, persistent: name === name.toUpperCase() });
       position = end + 1;
     }

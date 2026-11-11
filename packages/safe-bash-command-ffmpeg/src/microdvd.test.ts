@@ -14,6 +14,11 @@ const cues = [
   ["{H:1250}{y:i}Hello", "<i>Hello</i>"],
   ["{y:i}First|second", "<i>First</i>\nsecond"],
   ["{Y:i}First|second", "<i>First\nsecond</i>"],
+  ["{Y:i}a|{y:b}b|c", "<i>a\n<b>b</b>\nc</i>"],
+  ["{Y:i}a|b|c", "<i>a\nb\nc</i>"],
+  ["{Y:i}{y:b}a|b|c", "<i><b>a</b>\nb\nc</i>"],
+  ["{y:b}{Y:i}a|b|c", "<i><b>a</b>\nb\nc</i>"],
+  ["{Y:i}a|{y:b}b|{y:u}c|d", "<i>a\n<b>b</b>\n<u>c</u>\nd</i>"],
   ['{f:Arial}{s:20}{c:$0000ff}Red|second', '<font color="#ff0000"><font face="Arial"><font size="20">Red</font></font></font>\nsecond'],
   ["{y:b}First", "<b>First</b>"],
   ["First|second", "First\nsecond"],
@@ -49,6 +54,7 @@ for (const sync of [false, true]) for (const format of ["microdvd", "srt", "webv
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
         assert.equal(result.exitCode, 0, stderr);
+        assert.equal(stderr, "");
       }
       assert.equal(volume.readFileSync(output, "utf8"), copy ? `{25}{50}${text}\n`
         : format === "webvtt" ? `WEBVTT\n\n00:01.000 --> 00:02.000\n${expected}\n`

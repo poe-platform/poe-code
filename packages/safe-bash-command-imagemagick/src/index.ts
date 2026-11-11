@@ -13076,6 +13076,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         const left = Math.max(0, priorInput.virtualCanvas?.x ?? 0), top = Math.max(0, priorInput.virtualCanvas?.y ?? 0);
                         const right = Math.min(width, (priorInput.virtualCanvas?.x ?? 0) + priorInput.width), bottom = Math.min(height, (priorInput.virtualCanvas?.y ?? 0) + priorInput.height);
                         for (let row = top; row < bottom && disposal === 1; row++) {
+                            // Native requests a cache row even when horizontal clipping empties it.
+                            if (right <= left) throw new Error(right === left ? "no pixels defined in cache" : "width or height exceeds limit");
                             for (let column = left; column < right; column++) {
                                 if ((column - left) % 4096 === 0) yield;
                                 const alpha = (row * width + column) * 4 + 3;
@@ -16895,6 +16897,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         const left = Math.max(0, priorInput.virtualCanvas?.x ?? 0), top = Math.max(0, priorInput.virtualCanvas?.y ?? 0);
                         const right = Math.min(width, (priorInput.virtualCanvas?.x ?? 0) + priorInput.width), bottom = Math.min(height, (priorInput.virtualCanvas?.y ?? 0) + priorInput.height);
                         for (let row = top; row < bottom && disposal === 1; row++) {
+                            // Native requests a cache row even when horizontal clipping empties it.
+                            if (right <= left) throw new Error(right === left ? "no pixels defined in cache" : "width or height exceeds limit");
                             for (let column = left; column < right && disposal === 1; column += 4096) {
                                 await yieldTurn(signal);
                                 const offset = (row * width + column) * 4, length = Math.min(4096, right - column) * 4;

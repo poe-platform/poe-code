@@ -7062,6 +7062,10 @@ export function evalSyncFfmpeg(
         if (layout !== "mono" && layout !== "stereo") return undefined;
         audioChannelOptions.push(["", layout === "mono" ? 1 : 2]);
       }
+      else if (arg === "-stats_period") {
+        const period = parseHlsDuration(args[++i] ?? "");
+        if (!Number.isFinite(period) || period <= 0 || period > 9_223_372_036_854.775) return undefined;
+      }
       else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats" || arg === "-nostats") continue;
       else if (arg === "-f") {
         const val = args[++i];
@@ -8313,6 +8317,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             overwrite = arg === "-y";
           } else if (arg === "-progress") {
             progressTarget = args[++i];
+          } else if (arg === "-stats_period") {
+            const value = args[++i];
+            if (value !== undefined) {
+              const period = parseHlsDuration(value);
+              if (!Number.isFinite(period) || Math.abs(period) > 9_223_372_036_854.775) {
+                await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid duration for option stats_period: ${value}\n`), context.signal);
+                return { exitCode: 234 };
+              }
+              if (period <= 0) {
+                await writeBytes(context.stderr, encodeUtf8("ffmpeg: stats_period must be positive.\n"), context.signal);
+                return { exitCode: 234 };
+              }
+            }
           } else if (arg === "-abort_on") {
             const value = args[++i];
             let mask = 0;

@@ -12480,6 +12480,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (pixelOperation) {
+            const operationTokens = tokens.slice(i, pixelOperation.end + 1);
             const metaOperation = t === "-evaluate" || t === "-clamp" ? parseMagickPixelOperation(tokens,
                 { ...state, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, i, signal) : undefined;
             if (pixelOperation.warning) analysis.warnings += pixelOperation.warning;
@@ -12488,6 +12489,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "-type") state.inputType = tokens[i]!;
             const palette = t === "-type" && ["palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(tokens[i]?.toLowerCase() ?? "");
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                const mask = image[magickInput]?.channelMask;
+                const settings = { ...state, channels: mask ?? createDefaultState().channels,
+                    channelExplicit: mask !== undefined, channelDefault: mask?.default ?? false };
+                const pixelOperation = parseMagickPixelOperation(operationTokens, settings, 0, signal)!;
                 const { evaluateSamples: ignoredEvaluate, ...bounded } = image;
                 const input = pixelOperation.evaluate ? image : bounded;
                 const { data16: ignored, ...pixels } = input;
@@ -12495,7 +12500,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (metaOperation && image.metaChannels?.length) {
                     converted.metaChannels = [];
                     for (const [index, plane] of image.metaChannels.entries()) {
-                        const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
+                        const selected = !settings.channelExplicit || settings.channelDefault || settings.channels.meta?.includes(index);
                         converted.metaChannels.push(selected ? yield* metaOperation.apply(plane) : plane);
                     }
                 }
@@ -14197,7 +14202,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             Object.assign(canvas, {
                 depth: image.depth, ...(image.bitsPerSample === undefined ? {} : { bitsPerSample: image.bitsPerSample }),
                 icc: image.icc, exif: image.exif,
-                [magickInput]: { filePath: source?.filePath, originalWidth: source?.originalWidth, originalHeight: source?.originalHeight, delayTicks: source?.delayTicks },
+                [magickInput]: { filePath: source?.filePath, originalWidth: source?.originalWidth, originalHeight: source?.originalHeight, delayTicks: source?.delayTicks, channelMask: mask },
                 delay: [image.delay?.[scene] ?? 0], delayTicks: image.delayTicks, ticksPerSecond: image.ticksPerSecond,
                 disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene],
             });
@@ -15975,12 +15980,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         const pixelOperation = operandsOnly ? undefined : parseMagickPixelOperation(tokens, state, i, signal);
         if (pixelOperation) {
-            const selectedMeta = !state.channelExplicit || state.channelDefault ? undefined : state.channels.meta ?? [];
+            const operationTokens = tokens.slice(i, pixelOperation.end + 1);
             const metaOperation = token === "-evaluate" || token === "-clamp" ? parseMagickPixelOperation(tokens,
                 { ...state, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, i, signal) : undefined;
             const functionMetaOperation = token === "-function" ? parseMagickPixelOperation(tokens,
                 { ...state, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, i, signal) : undefined;
-            const functionMetaSelection = !state.channelExplicit || state.channelDefault ? undefined : state.channels.meta ?? [];
             if (pixelOperation.warning) stackStep(async stack => {
                 analysis.warnings += pixelOperation.warning!;
                 return stack;
@@ -15997,14 +16001,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-type") state.inputType = tokens[i]!;
             const palette = token === "-type" && ["palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(tokens[i]?.toLowerCase() ?? "");
             const bilevel = token === "-monochrome" || token === "-type" && tokens[i]?.toLowerCase() === "bilevel";
-            const meta = !state.channelExplicit || state.channelDefault ? undefined : state.channels.meta ?? [];
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession): Promise<StoredRgbaImage | undefined> => {
                 if (!image) return;
-                const converted = await transformStoredMagickPixels(image, backend, pixelOperation, signal);
+                const mask = image[magickInput]?.channelMask;
+                const imageSettings = { ...settings, channels: mask ?? createDefaultState().channels,
+                    channelExplicit: mask !== undefined, channelDefault: mask?.default ?? false };
+                const selectedMeta = !imageSettings.channelExplicit || imageSettings.channelDefault ? undefined : imageSettings.channels.meta ?? [];
+                const operation = parseMagickPixelOperation(operationTokens, imageSettings, 0, signal)!;
+                const converted = await transformStoredMagickPixels(image, backend, operation, signal);
                 if ((token === "-negate" || token === "+negate") && image.storedMetaChannels?.length) {
                     converted.storedMetaChannels = [...image.storedMetaChannels];
                     for (const [index, plane] of image.storedMetaChannels.entries()) {
-                        if (meta && !meta.includes(index)) continue;
+                        if (selectedMeta && !selectedMeta.includes(index)) continue;
                         converted.storedMetaChannels[index] = await transformStoredMagickRaster(plane, backend,
                             negateMetaPixelSteps(image, token === "+negate", image.storedWriteMask), signal, plane, image.storedWriteMask ? [plane, image, image.storedWriteMask] : [plane, image]);
                     }
@@ -16019,12 +16027,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (functionMetaOperation && image.storedMetaChannels?.length) {
                     converted.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries()) {
-                        converted.storedMetaChannels.push(!functionMetaSelection || functionMetaSelection.includes(index)
+                        converted.storedMetaChannels.push(!selectedMeta || selectedMeta.includes(index)
                             ? await transformStoredMagickPixels(plane, backend, functionMetaOperation, signal)
                             : plane);
                     }
                 }
-                if (token === "-white-threshold") await whiteThresholdStoredMetaChannels(image, converted, backend, settings, signal);
+                if (token === "-white-threshold") await whiteThresholdStoredMetaChannels(image, converted, backend, imageSettings, signal);
                 if (bilevel) {
                     const source = converted.storedData16 ? { ...converted, position: converted.storedData16.position } : converted;
                     return transformStoredMagickRaster(converted, backend, bilevelPixelSteps(converted.width * converted.height, !!converted.storedData16), signal, converted, [source]);
@@ -16180,7 +16188,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 Object.assign(canvas, {
                     depth: image.depth, ...(image.bitsPerSample === undefined ? {} : { bitsPerSample: image.bitsPerSample }),
                     icc: image.icc, exif: image.exif,
-                    [magickInput]: { filePath: source?.filePath, originalWidth: source?.originalWidth, originalHeight: source?.originalHeight, delayTicks: source?.delayTicks },
+                    [magickInput]: { filePath: source?.filePath, originalWidth: source?.originalWidth, originalHeight: source?.originalHeight, delayTicks: source?.delayTicks, channelMask: mask },
                     delay: [await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] ?? 0], delayTicks: image.delayTicks, ticksPerSecond: image.ticksPerSecond,
                     disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene],
                 });

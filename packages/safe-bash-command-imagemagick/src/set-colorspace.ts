@@ -3,9 +3,10 @@ import type { HueMetadata } from "./colorspace-hue.js";
 
 export function* setColorspacePixels(image: RgbaImage & HueMetadata, value: string): Generator<void, RgbaImage & HueMetadata, void> {
     const name = value.toLowerCase() === "lab" ? "cielab" : value.toLowerCase();
-    const target = (["sRGB", "RGB", "CMYK", "HCL", "HCLp", "HSI", "HSL", "HSB", "HSV", "HWB", "DisplayP3", "XYZ", "CAT02LMS", "LMS", "xyY", "ProPhoto", "Jzazbz", "CIELab", "YPbPr", "YCbCr", "Rec601YCbCr", "YCC", "Rec709YCbCr", "Log", "Adobe98", "OHTA", "CMY", "YUV", "YIQ", "YDbDr", "Luv", "Oklab", "Oklch", "LCH", "LCHab", "LCHuv", "LinearGray"] as const)
+    const target = (["sRGB", "RGB", "CMYK", "HCL", "HCLp", "HSI", "HSL", "HSB", "HSV", "HWB", "DisplayP3", "XYZ", "CAT02LMS", "LMS", "xyY", "ProPhoto", "Jzazbz", "CIELab", "YPbPr", "YCbCr", "Rec601YCbCr", "YCC", "Rec709YCbCr", "Log", "Adobe98", "OHTA", "CMY", "YUV", "YIQ", "YDbDr", "Luv", "Oklab", "Oklch", "LCH", "LCHab", "LCHuv", "Gray", "LinearGray"] as const)
         .find(space => space.toLowerCase() === name);
     if (!target) return image;
+    const gray = target === "Gray" || target === "LinearGray";
     const source = image.magickColorspace ?? (image.space === "cmyk" ? "CMYK" : image.space === "srgb" ? "sRGB" : undefined);
     if (target === source) return image;
 
@@ -15,12 +16,12 @@ export function* setColorspacePixels(image: RgbaImage & HueMetadata, value: stri
     const alpha = image.evaluateSamples ?? image.data16 ?? image.data;
     const alphaRange = image.evaluateSamples ? 255 : image.data16 ? 65535 : 255;
     const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
-    const hueSamples = target === "RGB" || target === "sRGB" || target === "LinearGray" ? undefined : new Float64Array(data.length);
+    const hueSamples = target === "RGB" || target === "sRGB" || gray ? undefined : new Float64Array(data.length);
     const evaluateSamples = hueSamples && target !== "CMYK" ? undefined : new Float64Array(data.length);
     for (let offset = 0; offset < data.length; offset += 4) {
         if (offset % 65536 === 0) yield;
         for (let channel = 0; channel < 4; channel++) {
-            let sample = channel === 3 ? alpha[offset + channel]! / alphaRange : input[offset + (target === "LinearGray" ? 0 : channel)]! / range;
+            let sample = channel === 3 ? alpha[offset + channel]! / alphaRange : input[offset + (gray ? 0 : channel)]! / range;
             // CMYK stores ink samples separately from its RGBA codec backing.
             // Declaring CMYK adds a zero black channel; alpha remains independent.
             if (hueSamples) hueSamples[offset + channel] = target === "CMYK" && channel === 3 ? 0 : sample;
@@ -31,8 +32,8 @@ export function* setColorspacePixels(image: RgbaImage & HueMetadata, value: stri
         }
     }
     return {
-        ...metadata, data, data16, space: target === "CMYK" ? "cmyk" : target === "LinearGray" ? "b-w" : "srgb",
-        channels: target === "CMYK" ? 4 : target === "LinearGray" ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3,
+        ...metadata, data, data16, space: target === "CMYK" ? "cmyk" : gray ? "b-w" : "srgb",
+        channels: target === "CMYK" ? 4 : gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3,
         gamma: target === "RGB" || target === "LinearGray" ? 1 : 1 / 2.2,
         ...(target === "sRGB" || target === "CMYK" || target === "LinearGray" ? {} : { magickColorspace: target }),
         ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}),

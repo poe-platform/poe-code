@@ -45,6 +45,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         ["Oklab", "Oklab", "0031ff60"],
         ["Oklch", "Oklch", "e4003e60"],
         ["LinearGray", "LinearGray", "bcbcbc60"],
+        ["Gray", "Gray", "80808060"],
         ["Lab", "CIELab", "00eaff60"],
         ["sRGB", "sRGB", "80562360"],
     ])(`${mode}: declares %s without converting samples`, async (space, label, rgba) => {

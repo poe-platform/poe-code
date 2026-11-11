@@ -4,7 +4,8 @@ import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
 const samples = [101, -901, 202, -802, 303, -703];
-// PCM and failure status for the reported cases were checked against FFmpeg 7.0.2.
+// PCM and invalid-layout statuses were checked against FFmpeg 7.0.2.
+// Oversized layouts are rejected earlier at the local 64-channel bound.
 for (const [filter, exitCode, expected] of [
   ["channelmap=0|1:0C", 1, undefined],
   ["channelmap=0|1:2147483647C", 1, undefined],
@@ -12,10 +13,10 @@ for (const [filter, exitCode, expected] of [
   ["channelmap=0|1:2C,channelmap=", 1, undefined],
   ["channelmap=0-:2C", 1, undefined],
   ["channelmap=0|1:2C,channelmap=c0", 1, undefined],
-  ["pan=|c0=c0", 1, undefined],
-  ["pan=+|c0=c0", 1, undefined],
-  ["pan=0C|c0=c0", 1, undefined],
-  ["pan=2147483647C|c0=c0", 1, undefined],
+  ["pan=|c0=c0", 234, undefined],
+  ["pan=+|c0=c0", 234, undefined],
+  ["pan=0C|c0=c0", 234, undefined],
+  ["pan=2147483647C|c0=c0", 234, undefined],
   ["pan=2C|FL=c0", 234, undefined],
   ["pan=2C|=c0", 234, undefined],
   ["channelmap=FR|FL:2C", 0, [-901, 101, -802, 202, -703, 303]],

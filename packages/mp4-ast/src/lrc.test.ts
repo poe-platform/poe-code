@@ -9,7 +9,7 @@ it("detects lyrics without an extension and sorts cues while skipping metadata a
   assert.equal(plugin?.id, "lrc");
   const doc = plugin!.parse(bytes);
   assert.deepEqual(doc.tracks[0]!.samples.map(s => [s.pts, s.duration, new TextDecoder().decode(s.data)]),
-    [[1240, 2160, "First"], [3400, 0, "Café & final"]]);
+    [[1240, 2160, "First"], [3400, 4294967295, "Café & final"]]);
   assert.equal(lrcAst().detect(new TextEncoder().encode("[ar:Artist]\n[00:no]Invalid\n")), false);
 });
 

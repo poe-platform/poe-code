@@ -27,7 +27,8 @@ function parseLrc(bytes: Uint8Array): MediaDocument {
   }
   samples.sort((a, b) => a.pts - b.pts);
   const timed = samples.map((sample, i) => ({ ...sample,
-    duration: (samples[i + 1]?.pts ?? sample.pts) - sample.pts }));
+    // FFmpeg uses UINT32_MAX milliseconds for a subtitle with no known end.
+    duration: samples[i + 1] ? samples[i + 1]!.pts - sample.pts : 0xffffffff }));
   const duration = samples.at(-1)?.pts ?? 0;
   return { containerFormat: "lrc", timescale: 1000, duration, durationSeconds: duration / 1000,
     tracks: [{ id: 1, type: "subtitle", handlerType: "sbtl", timescale: 1000, duration,

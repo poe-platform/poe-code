@@ -58,11 +58,13 @@ function miffPixels(bytes: Uint8Array, channels: number, sampleBytes: number, co
     return encoded.subarray(0, length);
 }
 
-function miffHeader(image: Pick<RgbaImage, "montage" | "renderingIntent" | "chromaticity" | "properties" | "width" | "height" | "space" | "hasAlpha" | "virtualCanvas" | "resolution" | "magickUnits" | "density" | "disposal" | "loop" | "delayTicks" | "ticksPerSecond"> & { magickColorspace?: string }, depth: 8 | 16 | 32, compression: OutputEncodeOptions["miffCompression"], delay: number | undefined, loop: number | undefined, metaCount: number, colors = 0): Uint8Array {
+function miffHeader(image: Pick<RgbaImage, "orientation" | "montage" | "renderingIntent" | "chromaticity" | "properties" | "width" | "height" | "space" | "hasAlpha" | "virtualCanvas" | "resolution" | "magickUnits" | "density" | "disposal" | "loop" | "delayTicks" | "ticksPerSecond"> & { magickColorspace?: string }, depth: 8 | 16 | 32, compression: OutputEncodeOptions["miffCompression"], delay: number | undefined, loop: number | undefined, metaCount: number, colors = 0): Uint8Array {
     const { width, height } = image;
     const page = image.virtualCanvas ?? { width, height, x: 0, y: 0 };
     let properties = image.montage ? `montage=${image.montage.geometry}\n` : "";
-    for (const key of ["comment", "label", "compression"] as const) {
+    const orientation = [undefined, "TopLeft", "TopRight", "BottomRight", "BottomLeft", "LeftTop", "RightTop", "RightBottom", "LeftBottom"][image.orientation ?? 0];
+    if (orientation) properties += `orientation=${orientation}\n`;
+    for (const key of ["comment", "label", "compression", "orientation"] as const) {
         const value = image.properties?.[key];
         if (value !== undefined) properties += `${key}={${value.replaceAll("\\", "\\\\").replaceAll("{", "\\{").replaceAll("}", "\\}")}}\n`;
     }

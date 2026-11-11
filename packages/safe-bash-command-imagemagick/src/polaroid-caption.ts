@@ -1,8 +1,15 @@
+import { rgbToCmyk } from "./colorspace-cmyk.js";
 import { borderPixels } from "./border.js";
 import type { renderFontCaption } from "./font/caption.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 export function* polaroidPixels(image: Parameters<typeof borderPixels>[0], border: number, color: Parameters<typeof borderPixels>[3], caption?: ReturnType<typeof renderFontCaption>): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    if (image.space === "cmyk" && !color.cmyk) {
+        // Polaroid fills a canvas: native conforms its sRGB border through linear RGB.
+        const rgb = [color.r, color.g, color.b].map(value => value / 255)
+            .map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+        color = { ...color, cmyk: rgbToCmyk(rgb[0]!, rgb[1]!, rgb[2]!) };
+    }
     yield* borderPixels(image, border, border, color, true, border + (caption?.height ?? 0));
     if (!caption) return;
     const width = image.width + 2 * border, top = image.height + Math.floor(3 * border / 2);

@@ -26,7 +26,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
                 stderr: { async write(chunk) { stderr += typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk); } }
             }) : mode === "sync" ? runConvertCliSync(argv, files)
                 : await runConvertCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
-            expect(result.exitCode, stderr).toBe(0);
+            expect(result.exitCode, "stderr" in result ? String(result.stderr) : stderr).toBe(0);
             expect("stderr" in result ? result.stderr : stderr).toBe("");
             const output = mode === "command" || mode === "retained" ? await fs.readFile("/out.raw") : files.get("out.raw")!;
             expect(Buffer.from(output).toString("hex"), dither.join(" ")).toBe(rgba);

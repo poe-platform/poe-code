@@ -166,7 +166,7 @@ export function rawAudioAsts(): MediaAstPlugin[] {
             else view.setFloat64(offset, value, littleEndian);
             continue;
           }
-          const scale = 2 ** ((bits === 24 ? 32 : bits === 8 && codec !== "u8" ? 16 : bits) - 1);
+          const scale = 2 ** ((bits === 24 ? 32 : companded ? 16 : bits) - 1);
           // FFmpeg's float-to-integer conversion maps non-finite samples to
           // zero for PCM16 and INT32_MIN for PCM32 (including PCM24 narrowing).
           const nativeInteger = !companded && (bits === 16 || bits === 32);
@@ -184,7 +184,7 @@ export function rawAudioAsts(): MediaAstPlugin[] {
             (codec.startsWith("u") && bits > 8 ? scale : 0);
           if (companded) {
             bytes[offset] = (codec === "mulaw" ? mulawTable : alawTable)[(sample & 65535) >> 2]!;
-          } else if (bits === 8) view.setUint8(offset, codec === "u8" ? sample + 128 : sample >> 8);
+          } else if (bits === 8) view.setUint8(offset, codec === "u8" ? sample + 128 : sample);
           else if (bits === 16) view.setInt16(offset, sample, littleEndian);
           else if (bits === 24) {
             const packed = sample >> 8;

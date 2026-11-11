@@ -14575,18 +14575,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredChannelNames = undefined;
                         filteredSampleFormat = "dbl";
                         statsScale = 1;
-                      } else if (filterName === "acrusher") {
-                        if (!autoConversionFilters && filteredSampleFormat !== "dbl") throw new Error(audioConversionDisabled);
-                        stretched = await crushAudio(stretched, origRate, trimmed, budget, context.signal);
-                        filteredSampleFormat = "dbl";
-                        statsScale = 1;
                       } else if (trimmed === "adynamicequalizer" || trimmed.startsWith("adynamicequalizer=")) {
                         stretched = await listenDynamicEqualizer(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
-                      } else if (filterName === "aemphasis" || filterName === "deesser" || filterName === "aexciter" || filterName === "atilt" || filterName === "aphaseshift" || filterName === "afreqshift" || filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip" || filterName === "asubboost" || filterName === "agate") {
+                      } else if (filterName === "acrusher" || filterName === "aemphasis" || filterName === "deesser" || filterName === "aexciter" || filterName === "atilt" || filterName === "aphaseshift" || filterName === "afreqshift" || filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip" || filterName === "asubboost" || filterName === "agate") {
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
@@ -14603,7 +14598,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
-                        if (filterName === "aemphasis") {
+                        if (filterName === "acrusher") {
+                          if (!autoConversionFilters && filteredSampleFormat !== "dbl") throw new Error(audioConversionDisabled);
+                          stretched = await crushAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                          filteredSampleFormat = "dbl";
+                          statsScale = 1;
+                        } else if (filterName === "aemphasis") {
                           const commands = audioCommands.filter(command => command.target === "aemphasis" || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);
                           audioCommands = audioCommands.filter(command => command.target !== "aemphasis" && command.target !== filterTarget);

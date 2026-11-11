@@ -103,8 +103,8 @@ for (const option of ["bits=0", "bits=65", "bits=", "bits=NaN", "mode=unknown", 
 
 it("accounts for output memory and honors cancellation", async () => {
   const channels = [new Float64Array(32)];
-  await assert.rejects(crushAudio(channels, 1000, "acrusher=mode=log", new MediaBudgetTracker({ maxMemoryBytes: 128 })), /maxMemoryBytes/);
-  await assert.rejects(crushAudio(channels, 1000, "acrusher=mode=log", new MediaBudgetTracker(), AbortSignal.abort()));
+  await assert.rejects(crushAudio(channels, 1000, "acrusher=mode=log", [{ start: 0, end: 32, pts: 0 }], new MediaBudgetTracker({ maxMemoryBytes: 128 })), /maxMemoryBytes/);
+  await assert.rejects(crushAudio(channels, 1000, "acrusher=mode=log", [{ start: 0, end: 32, pts: 0 }], new MediaBudgetTracker(), AbortSignal.abort()));
 });
 
 async function run(filter: string, graph = false, channels = 1, input = "0000cd0fc1d38d63", output = "pipe:1") {

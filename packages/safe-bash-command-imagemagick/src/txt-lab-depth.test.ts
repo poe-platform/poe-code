@@ -26,7 +26,7 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
                 });
                 expect(result.exitCode, stderr).toBe(0);
                 const text = output === "txt:-"
-                    ? "stdout" in result ? result.stdout : stdout
+                    ? "stdout" in result && typeof result.stdout === "string" ? result.stdout : stdout
                     : new TextDecoder().decode(mode === "command" || mode === "retained" ? await fs.readFile("/out.txt") : files.get("/out.txt"));
                 const highDepth = (depth ?? sourceDepth) > 8;
                 const lines = text.split("\n");

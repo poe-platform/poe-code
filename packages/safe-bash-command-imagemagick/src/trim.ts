@@ -38,7 +38,7 @@ function matchesTrimColor(pixel: TrimColor, reference: TrimColor, fuzz: number, 
 
 // Percentage trimming peels the least occupied edge first (west wins ties).
 // Census values for the opposite edge stay unchanged until its length changes.
-function* percentTrimBounds(width: number, height: number, hasAlpha: boolean, fuzz: number, scale: number, percent: number, hue: boolean, background?: RgbaColor, cmyk = false): Generator<Read | undefined, Area | undefined, TrimPixels | undefined> {
+function* percentTrimBounds(width: number, height: number, hasAlpha: boolean, fuzz: number, scale: number, percent: number, hue: boolean, background?: RgbaColor, cmyk = false): Generator<Read | undefined, Area, TrimPixels | undefined> {
     const corners: TrimColor[] = [];
     for (const pixel of [0, width - 1, (height - 1) * width, width * height - 1]) {
         if (background) { corners.push(background); continue; }
@@ -73,7 +73,7 @@ function* percentTrimBounds(width: number, height: number, hasAlpha: boolean, fu
         else if (edge === 1) right--;
         else if (edge === 2) top++;
         else bottom--;
-        if (left > right || top > bottom) return;
+        if (left > right || top > bottom) break;
         for (let candidate = 0; candidate < 4; candidate++) {
             if (candidate !== edge && (candidate < 2) === (edge < 2)) continue;
             occupancy[candidate] = yield* census(candidate, candidate === 1 ? 1 : candidate === 3 ? 2 : 0);
@@ -158,7 +158,7 @@ export function* formatTrimBoundsSteps<Step = never>(
             next = steps.next({ samples: chunk.evaluateSamples ?? chunk.data16 ?? chunk.data, inks: chunk.hueSamples });
         }
     }
-    if (!next.value && analysis && !analysis.boundsWarning) {
+    if ((!next.value || next.value.width === 0 || next.value.height === 0) && analysis && !analysis.boundsWarning) {
         analysis.warnings += "magick: geometry does not contain image\n";
         analysis.boundsWarning = true;
     }
@@ -193,7 +193,7 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
         if (!next.value) { yield; next = steps.next(); }
         else { const { position, length } = next.value; next = steps.next({ samples: pixels.subarray(position, position + length), inks: image.hueSamples?.subarray(position, position + length) }); }
     }
-    if (next.value && next.value.left < image.width && next.value.top < image.height) {
+    if (next.value && next.value.width > 0 && next.value.height > 0 && next.value.left < image.width && next.value.top < image.height) {
         const area = cropTrimBounds(next.value, image.width, image.height, minSize);
         image = discardDisassociatedAlpha(image);
         let cropped: RgbaImage = yield* extractImageSteps(image, area);
@@ -258,7 +258,7 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
                 inks: inkBytes ? new Float64Array(new Uint8Array(inkBytes).buffer) : undefined });
         }
     }
-    if (next.value && next.value.left < image.width && next.value.top < image.height) {
+    if (next.value && next.value.width > 0 && next.value.height > 0 && next.value.left < image.width && next.value.top < image.height) {
         const area = cropTrimBounds(next.value, image.width, image.height, minSize);
         image = discardDisassociatedAlpha(image);
         const cropped: StoredRgbaImage = await transformStoredImage(image, storage, { kind: "extract", ...area }, signal);

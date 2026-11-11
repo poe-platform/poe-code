@@ -3089,10 +3089,14 @@ function clampByteVal(n: number): number {
   return Math.max(0, Math.min(255, Math.round(n)));
 }
 
-function* applyMagickOpaqueSteps(img: RgbaImage, target: ReturnType<typeof parseColor>, replacement: RgbaColor, fuzz: number, invert: boolean, channels: MagickState["channels"], signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickOpaqueSteps(img: RgbaImage, target: ReturnType<typeof parseColor>, replacement: ReturnType<typeof parseColor>, fuzz: number, invert: boolean, channels: MagickState["channels"], signal?: AbortSignal): Generator<void, RgbaImage, void> {
     const cmyk = img.space === "cmyk";
     if (cmyk) img = yield* convertCmykPixels(img);
     const inks = cmyk ? target.cmyk ?? opaqueTargetCmyk(target.r / 255, target.g / 255, target.b / 255) : undefined;
+    const hueSamples = cmyk ? img.hueSamples!.slice() : undefined;
+    const paintInks = cmyk ? replacement.cmyk ?? rgbToCmyk(replacement.r / 255, replacement.g / 255, replacement.b / 255) : undefined;
+    const inkMask = [channels.r, channels.g, channels.b, channels.k ?? true];
+    const evaluateSamples = cmyk ? img.evaluateSamples?.slice() ?? Float64Array.from(img.data16 ?? img.data, value => img.data16 ? value / 257 : value) : undefined;
     let cooperativeWork = 0;
     const out = new Uint8Array(img.data);
     const data16 = img.data16 ? new Uint16Array(img.data16) : undefined;
@@ -3123,18 +3127,31 @@ function* applyMagickOpaqueSteps(img: RgbaImage, target: ReturnType<typeof parse
         const matched = distance <= (fuzz * scale) ** 2;
         if (invert ? !matched : matched) {
             for (let channel = 0; channel < 4; channel++) {
-                if (!mask[channel]) continue;
+                if (!mask[channel] || cmyk && channel < 3) continue;
                 // Grayscale RGB channels share one sample; the last selected write wins.
                 const start = gray && channel < 3 ? 0 : channel;
                 const end = gray && channel < 3 ? 3 : channel + 1;
                 for (let output = start; output < end; output++) {
                     out[i + output] = Math.round(paint[channel]!);
                     if (data16) data16[i + output] = Math.round(paint[channel]! * 257);
+                    if (evaluateSamples) evaluateSamples[i + output] = paint[channel]!;
+                }
+            }
+            if (hueSamples && paintInks) {
+                for (let channel = 0; channel < 4; channel++) {
+                    if (inkMask[channel]) hueSamples[i + channel] = paintInks[channel]!;
+                }
+                // Keep the RGB backing in sync with the selected CMYK ink writes.
+                for (let channel = 0; channel < 3; channel++) {
+                    const value = Math.fround((1 - hueSamples[i + channel]!) * (1 - hueSamples[i + 3]!) * 65535);
+                    out[i + channel] = clampByteVal(value / 257);
+                    if (data16) data16[i + channel] = Math.round(Math.max(0, Math.min(65535, value)));
+                    evaluateSamples![i + channel] = value / 257;
                 }
             }
         }
     }
-    return { ...img, data: out, ...(data16 ? { data16 } : {}), hasAlpha: img.hasAlpha || channels.a && replacement.a < 255 };
+    return { ...img, ...(hueSamples ? { hueSamples, evaluateSamples } : {}), data: out, ...(data16 ? { data16 } : {}), hasAlpha: img.hasAlpha || channels.a && replacement.a < 255 };
 }
 
 function* applyMagickTransparentSteps(img: RgbaImage, target: ReturnType<typeof parseColor>, fuzz: number, invert: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {

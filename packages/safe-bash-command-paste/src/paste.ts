@@ -16,15 +16,29 @@ function delimiters(bytes: Uint8Array, locale: string): readonly Uint8Array[] {
     if (bytes[offset] === 92) {
       const escaped = bytes[++offset];
       if (escaped === undefined) {
-        // GNU quotes the entire list only when it contains a colon, quote, or nonprintable byte.
-        const quoted = bytes.some(byte => byte === 34 || byte === 58 || byte < 32 || byte >= 127);
+        // GNU quotes the entire list only for colons, quotes, or nonprintable characters.
+        let quoted = bytes.includes(34) || bytes.includes(58);
         const escapes: Record<number, string> = { 7: "\\a", 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r", 34: '\\"', 92: "\\\\" };
         let list = "";
-        for (const byte of bytes) {
-          list += quoted ? escapes[byte] ?? (byte < 32 || byte >= 127 ? `\\${byte.toString(8).padStart(3, "0")}` : String.fromCharCode(byte))
-            : String.fromCharCode(byte);
+        for (let index = 0; index < bytes.length; index++) {
+          const byte = bytes[index]!;
+          if (decoder?.encoding === "utf-8" && byte >= 0xc2 && byte <= 0xf4) {
+            const width = byte < 0xe0 ? 2 : byte < 0xf0 ? 3 : 4;
+            try {
+              const text = decoder.decode(bytes.subarray(index, index + width));
+              if (!/[\p{Cc}\p{Cn}\p{Zl}\p{Zp}]/u.test(text)) {
+                list += text;
+                index += width - 1;
+                continue;
+              }
+            } catch { /* Invalid UTF-8 retains bytewise octal escapes. */ }
+          }
+          const nonprintable = byte < 32 || byte >= 127;
+          quoted ||= nonprintable;
+          list += escapes[byte] ?? (nonprintable ? `\\${byte.toString(8).padStart(3, "0")}` : String.fromCharCode(byte));
         }
-        throw new PublicDiagnostic(`delimiter list ends with an unescaped backslash: ${quoted ? `"${list}"` : list}`);
+        const value = quoted ? `"${list}"` : new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes);
+        throw new PublicDiagnostic(`delimiter list ends with an unescaped backslash: ${value}`);
       }
       if (escaped === 48) { result.push(empty); offset++; continue; }
       if (escapes[escaped] !== undefined) { result.push(Uint8Array.of(escapes[escaped]!)); offset++; continue; }

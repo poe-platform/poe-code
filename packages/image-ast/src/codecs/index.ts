@@ -1,3 +1,4 @@
+import { isSixelBytes, readSixelMetadata, decodeSixelImage } from "./sixel-input.js";
 import { isPsdBytes, readPsdHeader, decodePsdImage } from "./psd-input.js";
 import { isPcxBytes, readPcxHeader, decodePcxImage } from "./pcx-input.js";
 import { encodePsdImage } from "./psd-output.js";
@@ -79,6 +80,7 @@ import {
 
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
+  if (isSixelBytes(bytes)) return "sixel";
   if (isPcxBytes(bytes)) return "pcx";
   if (isXwdBytes(bytes)) return "xwd";
   if (isQoiBytes(bytes)) return "qoi";
@@ -182,6 +184,7 @@ export function readImageMetadata(
   const fmt = detectImageFormat(bytes);
   let meta: ImageMetadata;
   switch (fmt) {
+    case "sixel": meta = readSixelMetadata(bytes, options); break;
     case "pcx": meta = readPcxHeader(bytes).metadata; break;
     case "xwd": meta = readXwdHeader(bytes).metadata; break;
     case "qoi": meta = readQoiMetadata(bytes); break;
@@ -426,6 +429,7 @@ export function decodeImage(
   const meta = readImageMetadata(bytes, options);
   let decoded: RgbaImage;
   switch (meta.format) {
+    case "sixel": decoded = decodeSixelImage(bytes, options); break;
     case "pcx": decoded = decodePcxImage(bytes, options); break;
     case "xwd": decoded = decodeXwdImage(bytes, options); break;
     case "qoi": decoded = decodeQoiImage(bytes, options); break;

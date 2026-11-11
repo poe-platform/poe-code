@@ -1,3 +1,4 @@
+import { isSixelBytes, readSixelFromSource } from "./sixel-input.js";
 import { bmpProfileRange } from "./bmp-profile.js";
 import { isPsdBytes, readPsdFromSource } from "./psd-input.js";
 import { isPcxBytes, readPcxHeader } from "./pcx-input.js";
@@ -54,6 +55,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  const prefix=new Uint8Array(borrowed);let metadata:RetainedImageMetadata;
  if(await detectHeifFormatFromSource(source,signal))metadata=await readHeifMetadataFromSource(source,signal);
  else if(isXbmBytes(prefix))metadata=await readXbmFromSource(source,undefined,signal,options);
+ else if(isSixelBytes(prefix))metadata=(await readSixelFromSource(source,signal,options)).metadata;
  else if(isPcxBytes(prefix))metadata=readPcxHeader(prefix,source.size).metadata;
  else if(isXwdBytes(prefix))metadata=readXwdHeader(prefix,source.size).metadata;
  else if(isQoiBytes(prefix))metadata={...readQoiMetadata(prefix),size:source.size};

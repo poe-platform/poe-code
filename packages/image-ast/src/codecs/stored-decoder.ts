@@ -1,3 +1,4 @@
+import { isSixelBytes, decodeSixelToStorage } from "./sixel-input.js";
 import { isPsdBytes, decodePsdToStorage } from "./psd-input.js";
 import { isPcxBytes, decodePcxToStorage } from "./pcx-input.js";
 import { isXwdBytes, decodeXwdToStorage } from "./xwd-input.js";
@@ -42,6 +43,7 @@ import {decodeTiffToStorage} from "./tiff-input-storage.js";
 export async function storedImageDecoder(source:ImageByteSource,signal:AbortSignal):Promise<typeof decodePngToStorage|undefined> {
  signal.throwIfAborted();const length=Math.min(54,source.size),prefix=await source.read(0,length,{signal});signal.throwIfAborted();
  if(!(prefix instanceof Uint8Array)||prefix.length!==length)throw new Error("Truncated image source");
+ if(isSixelBytes(prefix))return decodeSixelToStorage;
  if(isPcxBytes(prefix))return decodePcxToStorage;
  if(isXwdBytes(prefix))return decodeXwdToStorage;
  if(isQoiBytes(prefix))return decodeQoiToStorage;

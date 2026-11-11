@@ -7306,7 +7306,19 @@ function tryHandleMagickListOption(argv: readonly string[]): ImageMagickCliResul
                     stderr: ""
                 };
             }
-            if (listType === "font" || listType === "type") {
+            if (listType === "type") {
+                return {
+                    exitCode: 0,
+                    stdout: [
+                        "Bilevel", "ColorSeparation", "ColorSeparationAlpha", "ColorSeparationMatte",
+                        "Grayscale", "GrayscaleAlpha", "GrayscaleMatte", "Optimize", "Palette",
+                        "PaletteBilevelAlpha", "PaletteBilevelMatte", "PaletteAlpha", "PaletteMatte",
+                        "TrueColorAlpha", "TrueColorMatte", "TrueColor"
+                    ].join("\n") + "\n",
+                    stderr: ""
+                };
+            }
+            if (listType === "font") {
                 return {
                     exitCode: 0,
                     stdout: [

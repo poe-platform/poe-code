@@ -24,7 +24,9 @@ export function readTgaMetadata(bytes: Uint8Array): ImageMetadata {
   if (!isTgaBytes(bytes)) throw new Error("Unsupported TGA header");
   const hasAlpha = bytes[1] === 1 ? bytes[7] === 32 : bytes[16] === 32 || (bytes[16] === 16 && (bytes[17]! & 15) === 1);
   const grayscale = bytes[2] === 3 || bytes[2] === 11;
-  return { format: "tga", width: bytes[12]! + bytes[13]! * 256, height: bytes[14]! + bytes[15]! * 256,
+  const width = bytes[12]! + bytes[13]! * 256, height = bytes[14]! + bytes[15]! * 256;
+  const x = bytes[8]! + bytes[9]! * 256, y = bytes[10]! + bytes[11]! * 256;
+  return { format: "tga", width, height, ...(x || y ? { virtualCanvas: { width, height, x, y } } : {}),
     channels: grayscale ? 1 : hasAlpha ? 4 : 3, hasAlpha, depth: "uchar", space: grayscale ? "b-w" : "srgb", density: 72, orientation: 1, size: bytes.length };
 }
 

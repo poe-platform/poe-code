@@ -41,14 +41,14 @@ for (const [options, control] of [
   });
 }
 
-for (const options of [
-  "type=hard:output=2:unknown", "type=hard:output=2:7.1",
-  "type=hard:output=2:-1.1", "type=hard:output=2:NaN",
-  "type=hard:output=2:1/0", "output=2:hard:1:1:1:1:1"
-]) {
+for (const [options, status] of [
+  ["type=hard:output=2:unknown", 234], ["type=hard:output=2:7.1", 222],
+  ["type=hard:output=2:-1.1", 222], ["type=hard:output=2:NaN", 234],
+  ["type=hard:output=2:1/0", 234], ["output=2:hard:1:1:1:1:1", 8]
+] as const) {
   it(`rejects invalid asoftclip=${options} without emitting PCM`, async () => {
     const actual = await run(options);
-    assert.equal(actual.result.exitCode, 1);
+    assert.equal(actual.result.exitCode, status);
     assert.equal(actual.pcm.length, 0);
   });
 }

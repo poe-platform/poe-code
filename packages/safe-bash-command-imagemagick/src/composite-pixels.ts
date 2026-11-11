@@ -82,6 +82,11 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                 }
                 continue;
             }
+            if (norm === "displace" || norm === "distort") {
+                // The map alpha masks destination opacity, including fully transparent maps.
+                out[dIdx + 3] = clampByteVal((dst.hasAlpha ? daByte : 255) * (src.hasAlpha ? sa : 1));
+                continue;
+            }
             if (norm === "stereo") {
                 out[dIdx] = sr;
                 out[dIdx + 3] = clampByteVal((saByte + daByte) / 2);

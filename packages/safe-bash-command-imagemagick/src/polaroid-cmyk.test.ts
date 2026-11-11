@@ -26,7 +26,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
             stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
         }) : mode === "sync" ? runMagickCliSync(argv, files)
             : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
-        expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(0);
+        expect(result.exitCode, "stderr" in result ? String(result.stderr) : stderr).toBe(0);
         const output = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
         expect(output.length).toBe(length);
         expect(Buffer.from(output.subarray(0, pixel.length / 2)).toString("hex")).toBe(pixel);

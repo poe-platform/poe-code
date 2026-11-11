@@ -7,7 +7,7 @@ import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js"
 // Native ImageMagick 7.1.2-35 Q16-HDRI: geometry and complete 8-bit RGBA output.
 const defaults = "c373566d15ca487b1ed4de45f62e9356fd168ca26c61534c4a82450e1f7540a8";
 for (const mode of ["command", "buffered", "retained", "sync"] as const) {
-    it.each([
+    it.each<{ options: string[]; hash: string; empty?: boolean; angle?: string; geometry?: string; size?: number }>([
         ...["R", "G", "B", "RGB"].map(channel => ({ options: ["-channel", channel], empty: true, hash: "df3f619804a92fdb4057192dc43dd748ea778adc52bc498ce80524c014b81119" })),
         { options: ["-channel", "A"], hash: "bd415ed894e70f6f43f5106baa36b2295bdf999da8e93d10722167be12c23a4b" },
         { options: ["-channel", "RA"], hash: "1e4ad1d893c8a97e722de3bd5f63bcfade673516a527e3e6319a6403b887eb76" },

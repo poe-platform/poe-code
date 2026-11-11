@@ -57,8 +57,41 @@ for (const [option, exitCode, error] of [
   });
 }
 
+// Native FFmpeg 7.0.2 PCM16 for alternating signs, including the initial silent hold.
+for (const [filter, expected] of [
+  ["acrusher=samples=3", "fb010afca70b05fe980f7ee8fb01ace4262305fe1c272ed1fb0143cda93a05fe"],
+  ["acrusher=1:1:8:0.5:lin:1:0.5:3", "fb010afca70b05fe980f7ee8fb01ace4262305fe1c272ed1fb0143cda93a05fe"],
+  ["acrusher=samples=2.5", "fb010afca70b05fe980f7ee8fb01ace4262305fe1c272ed1fb0143cda93a05fe"],
+  ["acrusher=samples=1", "f60328f8a70b68f08e137ee8541bd0e02623e4d8052b2ed1bd324dc9a93a7ec1"],
+  ["acrusher", "f60328f8a70b68f08e137ee8541bd0e02623e4d8052b2ed1bd324dc9a93a7ec1"]
+] as const) for (const frameFilter of ["", "asetnsamples=n=4:p=0,"]) for (const graph of [false, true]) {
+  it(`preserves sample holds for ${frameFilter}${filter} through ${graph ? "filter_complex" : "af"}`, async () => {
+    const input = Buffer.alloc(32);
+    for (let i = 0; i < 16; i++) input.writeInt16LE((i + 1) * 1000 * (i % 2 === 0 ? 1 : -1), i * 2);
+    const { result, stderr, stdout } = await run(frameFilter + filter, graph, 1, input.toString("hex"));
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal(stderr, "");
+    assert.equal(stdout.toString("hex"), expected);
+  });
+}
+
+for (const [samples, expected] of [
+  [3, [0, 0, 0, 0, 5000, -6000, 5000, -6000, 5000, -6000, 11000, -12000, 11000, -12000, 11000, -12000]],
+  [2.49, [0, 0, 3000, -4000, 3000, -4000, 7000, -8000, 7000, -8000, 11000, -12000, 11000, -12000, 15000, -16000]],
+  [250, Array<number>(16).fill(0)]
+] as const) {
+  it(`holds stereo channels independently with samples=${samples} and input/output gain`, async () => {
+    const { result, stderr, stdout } = await run(
+      `asetnsamples=n=4:p=0,acrusher=samples=${samples}:mix=1:level_in=2:level_out=0.5`, false, 2,
+      "e80330f8b80b60f0881390e8581bc0e02823f0d8f82a20d1c83250c9983a80c1");
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal(stderr, "");
+    assert.deepEqual(Array.from({ length: stdout.length / 2 }, (_, i) => stdout.readInt16LE(i * 2)), expected);
+  });
+}
+
 for (const option of ["bits=0", "bits=65", "bits=", "bits=NaN", "mode=unknown", "mode=2", "aa=-1", "aa=2",
-  "mix=2", "dc=0", "level_in=0", "level_out=65", "samples=2", "lfo=1", "unknown=1"]) {
+  "mix=2", "dc=0", "level_in=0", "level_out=65", "samples=0", "samples=251", "samples=NaN", "lfo=1", "unknown=1"]) {
   it(`rejects ${option} without replacing output`, async () => {
     const { volume, result, stderr, stdout } = await run(`acrusher=${option}`, false, 1, undefined, "/out.pcm");
     assert.notEqual(result.exitCode, 0);
@@ -79,7 +112,7 @@ async function run(filter: string, graph = false, channels = 1, input = "0000cd0
   const chunks: Buffer[] = [];
   let stderr = "";
   const result = await createFfmpegCommand().execute({
-    args: ["-y", "-v", "error", "-f", "s16le", "-ar", "1000", "-ac", String(channels), "-i", "/in.pcm",
+    args: ["-y", "-v", "error", "-f", "s16le", "-ar", "8000", "-ac", String(channels), "-i", "/in.pcm",
       ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
       "-f", "s16le", output],
     cwd: "/", env: {}, signal: new AbortController().signal,

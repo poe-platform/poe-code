@@ -6,10 +6,10 @@ export async function crushAudio(
   channels: readonly (Float32Array | Float64Array)[], filter: string,
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
-  const defaults = { level_in: 1, level_out: 1, bits: 8, mix: 0.5, mode: 0, dc: 1, aa: 0.5 };
+  const defaults = { level_in: 1, level_out: 1, bits: 8, mix: 0.5, mode: 0, dc: 1, aa: 0.5, samples: 1 };
   const options = { ...defaults };
   const ranges = { level_in: [0.015625, 64], level_out: [0.015625, 64], bits: [1, 64],
-    mix: [0, 1], mode: [0, 1], dc: [0.25, 4], aa: [0, 1] };
+    mix: [0, 1], mode: [0, 1], dc: [0.25, 4], aa: [0, 1], samples: [1, 250] };
   const names = Object.keys(options) as (keyof typeof options)[];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const parts = argument ? argument.split(":") : [];
@@ -34,10 +34,12 @@ export async function crushAudio(
   const scale = Math.sqrt(coefficient / 2);
   const plateau = (1 - options.aa) / 2;
   const inverseDc = 1 / options.dc;
+  const holdSamples = Math.round(options.samples);
   budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * 8, 0));
   const output = channels.map(channel => new Float64Array(channel.length));
   let work = 0;
   for (const [c, channel] of channels.entries()) {
+    let held = 0;
     for (let i = 0; i < channel.length; i++) {
       if (work++ % 4096 === 0) {
         await yieldTurn(signal);
@@ -45,8 +47,9 @@ export async function crushAudio(
         budget.checkCpu();
       }
       const source = channel[i]!;
-      // With sample reduction at its default of one, the held sample is current.
-      let sample = options.mix * (source * options.level_in) + source * (1 - options.mix) * options.level_in;
+      // The first capture occurs after a full hold interval, independently per channel.
+      if ((i + 1) % holdSamples === 0) held = source * options.level_in;
+      let sample = options.mix * held + source * (1 - options.mix) * options.level_in;
       sample *= sample > 0 ? options.dc : inverseDc;
       const y = options.mode === 1 ? scale * Math.log(Math.abs(sample)) + scale * scale : sample * coefficient;
       // FFmpeg rounds a float coordinate with ties away from zero.

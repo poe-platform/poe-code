@@ -3,6 +3,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { resampleAudio } from "./audio-resample.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { parseFilterBoolean } from "./filter-boolean.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function mixAudio(
   tracks: MediaTrack[], filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
@@ -52,6 +53,8 @@ export async function mixAudio(
       normalize = parseFilterBoolean(value, "amix: invalid normalize");
     } else if (key === "weights") {
       weights = parseWeights(value, tracks.length);
+    } else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, value, "amix");
     } else throw new Error(`amix: unsupported option ${key}`);
   }
   if (count !== inputs.length) throw new Error("amix: inputs must match the number of connected inputs");

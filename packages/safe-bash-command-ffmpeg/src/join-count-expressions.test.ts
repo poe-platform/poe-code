@@ -26,7 +26,7 @@ async function run(filters: string[], inputs: number[][][], rates: number[] = []
   return { result, stderr, bytes: volume.readFileSync("/out.wav") as Buffer };
 }
 
-for (const count of ["2", "1+1", "02", "2.5", "1.5", "1.9", "2.49"]) {
+for (const count of ["2", "1+1", "02", "2.5", "1.5", "1.9", "2.49", "min+1"]) {
   it(`evaluates join inputs=${count} with native integer rounding`, async () => {
     const { result, stderr, bytes } = await run([
       "-filter_complex", `[0:a][1:a]join=inputs=${count}:map=0.0-FL|1.0-FR[o]`, "-map", "[o]"
@@ -57,7 +57,21 @@ for (const options of ["inputs=default", "default:stereo", "inputs=default+0.5",
   });
 }
 
-for (const count of ["", "0", "-1", "0.9", "32767.1", "NaN", "Infinity", "1/0", "0/0", "1+", "3.5", "2.51", "1", "3", "default-2", "default+1", "DEFAULT", "defaultfoo"]) {
+for (const options of ["inputs=min", "min:stereo", "inputs=min+0", "inputs=1", "inputs=default-1"]) {
+  it(`resolves join's minimum input count: ${options}`, async () => {
+    const channels = [[10, 20, 30, 40, 50], [100, 200, 300, 400, 500]];
+    const { result, stderr, bytes } = await run([
+      "-filter_complex", `[0:a]join=${options}[o]`, "-map", "[o]"
+    ], [channels]);
+    assert.equal(result.exitCode, 0, stderr);
+    const audio = parseWav(bytes).tracks[0]!.decodedAudio!;
+    assert.equal(audio.sampleRate, 8000);
+    assert.equal(audio.channels, 2);
+    assert.deepEqual(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)), channels);
+  });
+}
+
+for (const count of ["", "0", "-1", "0.9", "32767.1", "NaN", "Infinity", "1/0", "0/0", "1+", "3.5", "2.51", "1", "3", "default-2", "default+1", "DEFAULT", "defaultfoo", "min", "min-1", "min-0.1", "MIN", "minimum"]) {
   it(`rejects invalid or mismatched join inputs=${count} without replacing output`, async () => {
     const { result, bytes } = await run([
       "-filter_complex", `[0:a][1:a]join=inputs=${count}:map=0.0-FL|1.0-FR[o]`, "-map", "[o]"

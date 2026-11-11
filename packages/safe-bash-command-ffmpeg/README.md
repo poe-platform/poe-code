@@ -377,7 +377,8 @@ It accepts `window`/`w`, `overlap`/`o`, `arorder`/`a`, `threshold`/`t`,
 routes the second input's first channel to left and the first input's first channel
 to right, resampling inputs to the first input’s sample rate before routing channels
 and stopping at the shortest resampled input. Join accepts the declared `inputs`
-count (default 2) of decoded PCM inputs. Output layouts include
+count (default 2) of decoded PCM inputs. Input-count expressions accept `default` (2)
+and `min` (1); `[0:a]join=inputs=min[mix]` routes a single stereo input. Output layouts include
 mono, stereo, `3.0`, quad, `5.1`, `downmix` (`DL+DR`), explicit speaker lists
 such as `WL+WR`, and numeric speaker masks such as `0x3`.
 Input maps accept numeric indices or speaker names, such as

@@ -9325,7 +9325,7 @@ export function evalSyncFfmpeg(
     workingDoc = applyDisplayAspects(workingDoc, displayAspects);
     workingDoc = applyOutputColors(workingDoc, outputColors);
     workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
-    workingDoc = avoidNegativeTimestamps(workingDoc, avoidNegativeTs === "auto" && outPlugin?.id === "srt" ? "make_non_negative" : avoidNegativeTs, budget);
+    workingDoc = avoidNegativeTimestamps(workingDoc, avoidNegativeTs === "auto" && (outPlugin?.id === "srt" || outPlugin?.id === "webvtt") ? "make_non_negative" : avoidNegativeTs, budget);
     if (isNullMux) return "";
     if (inputs.some(inp => isStdin(inp.path)) && !inBytes) return undefined;
     if (!writeFileSync || !outputTarget || outputTarget.endsWith("/") || outputTarget.endsWith("/.") || outputTarget.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outputTarget)) return undefined;
@@ -19509,7 +19509,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             workingDoc = applyOutputColors(workingDoc, outputColors);
             const progressTracks = workingDoc.tracks;
             workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
-            workingDoc = avoidNegativeTimestamps(workingDoc, avoidNegativeTs === "auto" && outPlugin?.id === "srt" ? "make_non_negative" : avoidNegativeTs, budget);
+            workingDoc = avoidNegativeTimestamps(workingDoc, avoidNegativeTs === "auto" && (outPlugin?.id === "srt" || outPlugin?.id === "webvtt") ? "make_non_negative" : avoidNegativeTs, budget);
             let outputHasFrames = false;
             for (const [streamIndex, track] of workingDoc.tracks.entries()) {
               const hasFrames = track.type === "video" && videoCodec === "copy" ? track.samples.length > 0

@@ -15248,9 +15248,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               throw new RangeError("dcshift: expected shift between -1 and 1");
                             }
                           } else if (key === "limitergain") {
-                            limitergain = Number(value);
-                            if (!value || !Number.isFinite(limitergain) || limitergain < 0 || limitergain > 1) {
-                              throw new Error("dcshift: expected limitergain between 0 and 1");
+                            limitergain = parseFilterExpression(value, "dcshift", {
+                              PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+                              default: 0, min: 0, max: 1, none: 0, all: -1
+                            });
+                            if (limitergain < 0 || limitergain > 1) {
+                              throw new RangeError("dcshift: expected limitergain between 0 and 1");
                             }
                           } else throw new Error(`dcshift: unsupported option ${key}`);
                         }

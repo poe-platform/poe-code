@@ -5,7 +5,7 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 
 // ImageMagick 7.1.2-35 Q16-HDRI rejects these plus forms before reading their geometry.
 for (const mode of ["buffered", "sync", "retained", "command"] as const) {
-    for (const [option, geometry] of [["+swirl", "1.5"], ["+implode", "1.5"], ["+wave", "2x4"]] as const) {
+    for (const [option, geometry] of [["+swirl", "1.5"], ["+implode", "1.5"], ["+wave", "2x4"], ["+spread", "2"]] as const) {
         it.each([
             { before: [], after: [geometry], position: 2 },
             { before: ["-repage", "13x9+2+3"], after: [geometry], position: 4 },

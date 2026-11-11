@@ -29,6 +29,7 @@ import { applyOutputColors, parseOutputColorOption, type OutputColorOption } fro
 import { surroundAudio } from "./audio-surround.js";
 import { virtualBassAudio } from "./audio-virtualbass.js";
 import { denoiseFft } from "./audio-afftdn.js";
+import { filterFft } from "./audio-afftfilt.js";
 import { denoiseWavelets } from "./audio-afwtdn.js";
 import { ripemd128, ripemd256, ripemd320 } from "./ripemd.js";
 import { parseTee, selectTeeTracks } from "./tee.js";
@@ -1935,7 +1936,7 @@ const audioGraphFormats = new WeakMap<MediaTrack, string>();
 const audioGraphFilterNames = new Set([
   "acompressor", "acontrast", "acopy", "acrossfade", "acrusher", "adeclick", "adeclip",
   "adecorrelate", "adelay", "adenorm", "adynamicequalizer", "adynamicsmooth", "aecho", "aemphasis", "aeval", "aexciter",
-  "afade", "afftdn", "aformat", "afreqshift", "afwtdn", "agate", "alimiter",
+  "afade", "afftdn", "afftfilt", "aformat", "afreqshift", "afwtdn", "agate", "alimiter",
   "aloop", "amerge", "ametadata", "amix", "amultiply", "anlmf", "anlms",
   "anull", "anullsink", "apad", "aphasemeter", "aphaser", "aphaseshift", "apsyclip",
   "apulsator", "arealtime", "aresample", "areverse", "asegment", "aselect", "asendcmd",
@@ -13978,7 +13979,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let audioTimestamps: { start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined }[] | undefined;
                   // Silence events and frame tags retain input PTS, including after seeking and reframing.
                   if (!sink && (index === undefined || hasFrameTags || t.samples.some(sample => "exactPts" in sample) || outputCut || (index !== undefined && (audioSegment || frameChecksumOutput)) || (filter && parseFilterChain(filter.expression)
-                    .some(item => ["areverse", "silencedetect", "adeclick", "adeclip", "afwtdn", "afftdn"].includes(item.trim().split("=", 1)[0]!.split("@", 1)[0]!))))) {
+                    .some(item => ["areverse", "silencedetect", "adeclick", "adeclip", "afwtdn", "afftdn", "afftfilt"].includes(item.trim().split("=", 1)[0]!.split("@", 1)[0]!))))) {
                     if (index !== undefined && audioSegment) segmentAudioPackets = [];
                     audioTimestamps = [];
                     const length = stretched[0]?.length ?? 0;
@@ -14618,6 +14619,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         filteredChannelMask = stretched.length === 2 ? 3 : 0x3f;
                         filteredChannelNames = undefined;
+                        continue;
+                      }
+                      if (filterName === "afftfilt") {
+                        if (!autoConversionFilters && filteredSampleFormat !== "fltp") throw new Error(audioConversionDisabled);
+                        const filtered = await filterFft(stretched, origRate, trimmed,
+                          audioTimestamps ?? [{ start: 0, end: stretched[0]?.length ?? 0, pts: audioStartSample }], budget, context.signal);
+                        stretched = filtered.channels;
+                        audioTimestamps = filtered.frames;
+                        filteredSampleFormat = panSampleFormat = "fltp";
                         continue;
                       }
                       if (filterName === "afftdn") {
@@ -21219,6 +21229,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("adeclick: invalid ") || msg.startsWith("adeclip: invalid ")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("deesser: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("deesser:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg.startsWith("afftfilt: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("afftfilt:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("afftdn: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("afftdn:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("afwtdn: unsupported option ")) return { exitCode: 8 };

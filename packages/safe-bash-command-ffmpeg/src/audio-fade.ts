@@ -79,7 +79,7 @@ export async function fadeAudio(
           max: key === "silence" || key === "unity" ? 1 : Number(maxSamples),
           default: key === "ns" || key === "nb_samples" ? 44100 : key === "unity" ? 1 : 0,
           none: 0, all: -1
-        }, undefined, new Float64Array(10));
+        }, undefined, new Float64Array(10), gain ? [] : undefined);
       if (gain && (number < 0 || number > 1)) throw new RangeError(`afade: ${key}: must be in [0,1]`);
       if (!value || !Number.isFinite(number) || number < 0) throw new Error(`afade: invalid ${key}`);
       if (key === "ss" || key === "start_sample" || key === "ns" || key === "nb_samples") {

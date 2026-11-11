@@ -8,7 +8,8 @@ export async function emphasizeAudio(
   commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<Float64Array[]> {
   const names = ["level_in", "level_out", "mode", "type"];
-  const values = [1, 1, 0, 4];
+  const defaults = [1, 1, 0, 4];
+  const values = [...defaults];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const options = argument ? argument.split(":") : [];
   if (options.at(-1) === "") options.pop();
@@ -38,8 +39,11 @@ export async function emphasizeAudio(
     if (key < 0) throw new Error(`aemphasis: unsupported option ${name}`);
     const constants: Record<string, number> = key === 2 ? { reproduction: 0, production: 1 }
       : key === 3 ? { col: 0, emi: 1, bsi: 2, riaa: 3, cd: 4, "50fm": 5, "75fm": 6, "50kf": 7, "75kf": 8 } : {};
-    const value = Object.hasOwn(constants, raw) ? constants[raw]! : parseFilterExpression(raw, "aemphasis", constants);
-    if (!Number.isFinite(value) || value < 0 || value > [64, 64, 1, 8][key]!) {
+    const maximum = [64, 64, 1, 8][key]!;
+    const value = Object.hasOwn(constants, raw) ? constants[raw]! : parseFilterExpression(raw, "aemphasis", {
+      ...constants, min: 0, max: maximum, default: defaults[key]!
+    });
+    if (!Number.isFinite(value) || value < 0 || value > maximum) {
       throw new RangeError(`aemphasis: invalid ${name}`);
     }
     // Native integer options round exact halves to even.

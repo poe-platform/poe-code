@@ -9,6 +9,11 @@ for (let i = 0; i < 48; i++) input16.writeUInt16BE((i * 7919 + 211) % 65536, i *
 // ImageMagick 7.1.2-35 Q16-HDRI, identical PPM input and complete raw RGB output.
 for (const mode of ["command", "buffered", "retained", "sync"] as const) {
     it.each([
+        // Native Q16-HDRI Gray output: R selects gray; G and B are absent.
+        { gray: true, options: ["-channel", "R", "-paint", "1", "+channel"], expected: "575757575757c1c1c1" },
+        { gray: true, options: ["-channel", "G", "-paint", "1", "+channel"], expected: "5757578a8a8ac1c1c1" },
+        { gray: true, options: ["-channel", "B", "-paint", "1", "+channel"], expected: "5757578a8a8ac1c1c1" },
+        { gray: true, options: ["-paint", "1"], expected: "575757575757c1c1c1" },
         { options: [], expected: "13385d82a7ccf1163b6085aacff4193e6388" },
         { options: ["-paint", "1"], expected: "13385d13385df1163b6085aa6085aa3e6388" },
         { options: ["-paint", "2x0.5"], expected: "13385d13385df1163b6085aa6085aa3e6388" },
@@ -25,8 +30,8 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
         { options: ["-channel", "RGB", "-paint", "1"], highDepth: true, expected: "00d31fc23eb15da000d31fc23eb1d95c7c8f9b7eba6d5518740792f6b1e5d0d400d31fc23eb14c9000d31fc23eb1c84c7c8f9b7eba6d4408740792f6b1e5bfc4deb3fda21c913b80deb3fda21c91b73c5a6f795e984d32f851e770d68fc5aeb4" },
         { options: ["-paint", "1", "-paint", "2"], highDepth: true, expected: "00d31fc23eb15da000d31fc23eb15da000d31fc23eb15da0740792f6b1e5d0d400d31fc23eb15da000d31fc23eb15da000d31fc23eb15da0740792f6b1e5d0d4deb3fda21c913b80deb3fda21c913b80deb3fda21c913b8051e770d68fc5aeb4" },
         { options: ["-intensity", "brightness", "-paint", "1"], highDepth: true, expected: "00d31fc23eb15da000d31fc23eb15da062f781e6a0d5bfc462f781e6a0d5bfc400d31fc23eb15da000d31fc23eb15da062f781e6a0d5bfc462f781e6a0d5bfc4deb3fda21c913b80deb3fda21c913b805a6f795e984db73c51e770d68fc5aeb4" },
-    ])(`renders oil painting $options (${mode})`, async ({ options, expected, highDepth }) => {
-        const args = [...(highDepth ? ["-size", "4x3", "-depth", "16", "rgba:in.ppm"] : ["in.ppm"]), ...options, "-depth", highDepth ? "16" : "8", highDepth ? "rgba:-" : "rgb:-"];
+    ])(`renders oil painting $options (${mode})`, async ({ options, expected, highDepth, gray }) => {
+        const args = [...(gray ? ["xc:#505860", "xc:#789080", "xc:#d0c0a0", "+append", "-colorspace", "Gray", "-seed", "3", "-virtual-pixel", "edge"] : highDepth ? ["-size", "4x3", "-depth", "16", "rgba:in.ppm"] : ["in.ppm"]), ...options, "-depth", highDepth ? "16" : "8", highDepth ? "rgba:-" : "rgb:-"];
         const fs = new MemoryFileSystem();
         await fs.writeFile("/in.ppm", highDepth ? input16 : input);
         const files = new Map([["in.ppm", highDepth ? input16 : input]]);

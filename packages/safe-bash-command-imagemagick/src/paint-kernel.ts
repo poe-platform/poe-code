@@ -24,6 +24,8 @@ export function* paintPixelSteps(image: Pick<RgbaImage, "width" | "height" | "sp
     const { width, height } = image, cmyk = image.space === "cmyk";
     const hue = !!image.hueSamples || image.storedHueSamples !== undefined;
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha, channels.k] : [true, true, true, image.hasAlpha, true];
+    // Gray's RGB backing samples share the single red/gray channel selection.
+    if (image.space === "b-w" || image.space === "grey16") mask[1] = mask[2] = mask[0];
     const linear = intensity === "rec601luminance" || intensity === "rec709luminance"
         ? !!image.magickColorspace && image.magickColorspace !== "Gray" || cmyk
         : image.magickColorspace === "RGB" || image.magickColorspace === "scRGB";
@@ -31,7 +33,7 @@ export function* paintPixelSteps(image: Pick<RgbaImage, "width" | "height" | "sp
     const gray = method === "white" ? 255 : method === "gray" ? 127.5 : 0;
     const fill = Float64Array.from(method === "background" || method.endsWith("-tile")
         ? [background.r, background.g, background.b, background.a, 0, 0]
-        : [gray, gray, gray, method === "transparent" ? 0 : 255, cmyk ? gray : 0, 0]);
+        : [gray, gray, gray, method === "transparent" ? 0 : 255, 0, 0]);
     fill[5] = bin(fill[0]!, fill[1]!, fill[2]!);
     const blocks = new Map<number, Float64Array>();
     function* sample(x: number, y: number): Generator<ConvolveRequest | undefined, Float64Array, Uint8Array | undefined> {

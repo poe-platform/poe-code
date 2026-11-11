@@ -1,9 +1,10 @@
+import { encodeFlacChecksumTrack } from "./flac-checksum.js";
 import { murmur3 } from "./murmur3.js";
 import { ripemd128, ripemd256, ripemd320 } from "./ripemd.js";
 import { md5, sha1, ripemd160 } from "@noble/hashes/legacy.js";
 import { sha224, sha256, sha384, sha512, sha512_224, sha512_256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
-import { encodeAlacTrack, demuxVorbisTrack, decodeAacFrames, decodeVorbisFrames, encodeUtf8, concatBytes, rgbaToYuv420p, type MediaTrack, type MediaVideoFrame, type MediaDocument, type MediaAstPlugin, type MediaBudgetTracker } from "@poe-code/mp4-ast";
+import { encodeAlacTrack, demuxVorbisTrack, decodeAacFrames, decodeVorbisFrames, encodeUtf8, concatBytes, rgbaToYuv420p, type SerializeMediaOptions, type MediaTrack, type MediaVideoFrame, type MediaDocument, type MediaAstPlugin, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 export const crc32Table = Uint32Array.from({ length: 256 }, (_, value) => {
   for (let bit = 0; bit < 8; bit++) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
@@ -74,12 +75,21 @@ export function serializeFrameChecksum(
   bitexact = false,
   copyTimestamps = false,
   encoderTimeBases: ReadonlyMap<number, number> = new Map(),
-  audioCodecs: ReadonlyMap<number, string> = new Map()
+  audioCodecs: ReadonlyMap<number, string> = new Map(),
+  encoder?: MediaAstPlugin,
+  encoderOptions?: SerializeMediaOptions
 ): Uint8Array {
+  const flacStreamInfo = new Map<number, Uint8Array>();
   doc = { ...doc, tracks: doc.tracks.map((track, index) => {
     const audioCodec = audioCodecs.get(index) ?? defaultAudioCodec;
     if (track.type !== "audio") return track;
     if (audioCodec === "alac") return encodeAlacTrack(track, budget);
+    if (audioCodec === "flac") {
+      if (!encoder?.canMux) throw new Error("FLAC audio AST is not registered");
+      const encoded = encodeFlacChecksumTrack(doc, track, encoder, encoderOptions, budget);
+      flacStreamInfo.set(index, encoded.streamInfo);
+      return encoded.track;
+    }
     return audioCodec === "copy" && track.codecDescriptions[0]?.codecName === "vorbis" &&
       !track.codecDescriptions[0].extraData ? demuxVorbisTrack(track) : track;
   }) };
@@ -123,7 +133,7 @@ export function serializeFrameChecksum(
   for (const [index, track] of doc.tracks.entries()) {
     const audioCodec = audioCodecs.get(index) ?? defaultAudioCodec;
     if ((track.type === "video" ? videoCodec : track.type === "subtitle" ? subtitleCodec : audioCodec) !== "copy" &&
-        !(track.type === "audio" && audioCodec === "alac")) continue;
+        !(track.type === "audio" && (audioCodec === "alac" || audioCodec === "flac"))) continue;
     const codec = track.codecDescriptions[0];
     let extra = codec?.extraData;
     // The FLAC AST retains the file metadata for remuxing; codec extradata is STREAMINFO only.
@@ -198,7 +208,7 @@ export function serializeFrameChecksum(
         }
       }
     }
-    if (track.type === "audio" && audioCodec !== "alac" && !rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
+    if (track.type === "audio" && audioCodec !== "alac" && audioCodec !== "flac" && !rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
     const decodedAudioPackets: Pick<MediaTrack["samples"][number], "dts" | "pts" | "duration" | "data">[] | undefined =
       track.type === "audio" && !copy && (!track.decodedAudio ||
         codec?.codecName === "aac" && track.samples.some(sample => sample.data.length > 0)) &&
@@ -248,7 +258,7 @@ export function serializeFrameChecksum(
     }
     const [num, den] = video && !copy ? videoTimeBase(track) : [1, track.timescale];
     const rate = video ? den / num : copy ? track.timescale : track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale;
-    const encodedAudio = track.type === "audio" && (audioCodec === "alac" || audioCodec === "adpcm_ima_wav");
+    const encodedAudio = track.type === "audio" && (audioCodec === "alac" || audioCodec === "adpcm_ima_wav" || audioCodec === "flac");
     const payload = track.type !== "audio" || decodedAudioPackets || encodedAudio ? new Uint8Array() : rawAudio!.serialize({ ...doc, tracks: [track] }, { audioCodec, budget });
     let audioPackets = track.samples;
     if (!copy && track.decodedAudio && codec?.codecName.startsWith("pcm_") &&
@@ -309,6 +319,11 @@ export function serializeFrameChecksum(
       offset += size;
       const digest = checksum(bytes);
       let annotations = "";
+      const streamInfo = flacStreamInfo.get(index);
+      if (streamInfo && packet === track.samples.at(-1) && (format === "framecrc" || formatVersion > 1)) {
+        annotations = `, S=1, ${String(streamInfo.length).padStart(8)}`;
+        if (format !== "framecrc") annotations += `, ${checksum(streamInfo)}`;
+      }
       if (format === "framecrc" && copiedAudio && "data" in packet) {
         const discard = codec?.codecName === "aac" && packet.pts + packet.duration <= mediaStart;
         if (discard) annotations += ", F=0x5";

@@ -288,6 +288,7 @@ in milliseconds without changing payload sizes or hashes. Stream selectors such 
 `framemd5` and `framehash` report copied streams’ codec extradata sizes and the selected
 digest before the stream headers, including ALAC configuration. `framecrc` uses Adler-32
 for these headers. PCM output has no extradata header.
+With `-c:a flac`, frame checksums report encoded FLAC packets, initial STREAMINFO, and a final empty packet carrying updated 34-byte STREAMINFO. Version 2 hashes that side data; `framecrc` reports its size. Packet hashes reflect this encoder’s compression choices and can differ from native FFmpeg.
 For audio, these formats retain PCM packet boundaries after filtering, including the
 short final packet, and checksum each packet separately. IMA WAV ADPCM `framehash`, `framemd5`, and `framecrc` report each compressed packet, with encoder timestamps, the unpadded sample duration, and the selected block size and trellis settings. MP3 inputs are decoded before
 filtering, preserving encoder-delay and end-padding trimming in the checksum packets.

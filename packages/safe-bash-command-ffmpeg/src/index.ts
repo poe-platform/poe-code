@@ -20257,14 +20257,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 return { ...track, samples };
               }) };
             }
+            const checksumEncoderOptions = { blockSize, trellis, compressionLevel, sampleFormat, frameSize, lpcType, channelMode, lpcPasses,
+              lpcCoeffPrecision, multiDimQuant, minPredictionOrder, maxPredictionOrder, predictionOrderMethod,
+              minPartitionOrder, maxPartitionOrder, exactRiceParameters };
             const serializedBytes = checksumOutput
               ? (frameChecksumOutput
-                ? serializeFrameChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec, subtitleCodec, bitexact, copyTimestamps && !startAtZero, encoderTimeBases, audioCodecs)
+                ? serializeFrameChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec, subtitleCodec, bitexact, copyTimestamps && !startAtZero, encoderTimeBases, audioCodecs, registry.findByFormatName("flac"), checksumEncoderOptions)
                 : serializeChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "md5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget,
-                  registry,
-                  { blockSize, trellis, compressionLevel, sampleFormat, frameSize, lpcType, channelMode, lpcPasses,
-                    lpcCoeffPrecision, multiDimQuant, minPredictionOrder, maxPredictionOrder, predictionOrderMethod,
-                    minPartitionOrder, maxPartitionOrder, exactRiceParameters }, audioCodecs))
+                  registry, checksumEncoderOptions, audioCodecs))
               : serializeLimitedWav(workingDoc, outPlugin!, {
               seekable: !isStdout(outputTarget) && !outputTarget.startsWith("md5:"),
               live,

@@ -66,8 +66,10 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
     throw new Error("Truncated PPM raster");
   }
   if (magic === "P7" && bytes.length - hdr.dataOffset < width * height * channels * (maxval > 255 ? 2 : 1)) throw new Error("Truncated PAM raster");
-  // Native byte-depth binary rasters use the stored byte, even below maxval 255.
-  const sampleMax = (magic === "P5" || magic === "P6" || magic === "P7") && maxval >= 128 && maxval <= 255 ? 255 : maxval;
+  // Native 8/16-bit binary rasters use stored values across their full-depth MAXVAL range.
+  const sampleMax = magic === "P5" || magic === "P6" || magic === "P7"
+    ? maxval >= 32768 && maxval <= 65535 ? 65535 : maxval >= 128 && maxval <= 255 ? 255 : maxval
+    : maxval;
   const rgba = new Uint8Array(width * height * 4);
   const evaluateSamples = cmyk || 65535 % sampleMax !== 0 ? new Float64Array(rgba.length) : undefined;
   const hueSamples = cmyk ? new Float64Array(rgba.length) : undefined;

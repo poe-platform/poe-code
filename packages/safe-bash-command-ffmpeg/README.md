@@ -820,6 +820,9 @@ For a packed HRIR file, use `[0:a][1:a]headphone=map=FL|FR:hrir=multich[h]`
 (or `hrir=1`): consecutive channel pairs supply the left/right response for each
 mapped source channel. The response must have at least two channels per mapped
 source channel; extra channels are ignored.
+Invalid `headphone` options preserve the destination and return Linux FFmpeg exit
+statuses: `176` for unsupported `enable`, `8` for unknown options, `222` for
+out-of-range `gain` or `lfe`, and `234` for malformed gain values.
 `earwax` applies the headphone stereo filter to mono or stereo input, resampling
 other input rates to 44100 Hz and converting mono to stereo with native gain.
 Single-speaker labels such as `FL`, `FR`, `LFE`, `SL`, or `BC` use the same mono conversion.

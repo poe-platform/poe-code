@@ -20897,6 +20897,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("acrossfade: unsupported option ") && msg !== "acrossfade: unsupported option undefined") return { exitCode: 8 };
             if (msg === "acrossfade: invalid sample count" || msg === "acrossfade: invalid curve") return { exitCode: 222 };
             if (msg === "acrossfade: invalid expression" || msg === "acrossfade: invalid or unsupported expression" || msg === "acrossfade: invalid overlap") return { exitCode: 234 };
+            if (msg === "headphone: unsupported option enable") return { exitCode: 176 };
+            if (msg.startsWith("headphone: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("headphone: gain must be between ") || msg.startsWith("headphone: lfe must be between ")) {
+              return { exitCode: err instanceof RangeError ? 222 : 234 };
+            }
             if (msg === "haas: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("haas: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("haas:")) return { exitCode: 222 };

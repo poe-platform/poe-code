@@ -24,8 +24,11 @@ export async function headphoneAudio(
   }
   for (const key of ["gain", "lfe"]) {
     const value = Number(options[key]);
-    if (!options[key]?.trim() || !Number.isFinite(value) || value < -20 || value > 40) {
+    if (!options[key]?.trim() || !Number.isFinite(value)) {
       throw new Error(`headphone: ${key} must be between -20 and 40 dB`);
+    }
+    if (value < -20 || value > 40) {
+      throw new RangeError(`headphone: ${key} must be between -20 and 40 dB`);
     }
   }
   if (!["time", "freq", "0", "1"].includes(options.type!)) throw new Error("headphone: invalid processing type");

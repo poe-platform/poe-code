@@ -4820,6 +4820,7 @@ async function applyVideoFilterChain(
       }, signal);
     } else if (name === "weave") {
       current = await weave(current, argStr, budget, signal);
+      timescale /= 2;
     } else if (name === "setfield") {
       if (positional.at(-1) === "") positional.pop();
       if (positional.slice(1).some(part => !part.includes("=")) || Object.keys(named).some(key => key !== "mode")) {

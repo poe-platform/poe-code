@@ -102,9 +102,10 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
     const working = format === "farbfeld" || format === "gray" && (depth === 10 || depth === 12) ? image.evaluateSamples : undefined;
     const view = new DataView(data.buffer), samples = working ?? image.data16 ?? image.data;
     const scale = !working && image.data16 ? 65535 : 255, maximum = 2 ** depth - 1;
-    // Native packed BGR/BGRO below 8 bits and BGR-family Plane output use RGB order.
+    // Native packed BGR/BGRO use RGB order below 8 bits and at 10/12 bits;
+    // packed BGRA does so only at 10 bits. Plane output always uses RGB order.
     const reverseChannels = format.startsWith("bgr") && options.rawInterlace !== "plane"
-        && !(depth < 8 && !options.rawInterlace && (format === "bgr" || format === "bgro"));
+        && !(!options.rawInterlace && (depth === 10 || (depth < 8 || depth === 12) && (format === "bgr" || format === "bgro")));
     for (let pixel = 0; pixel < pixels; pixel++) {
         const inks = format.startsWith("cmyk") ? image.space === "cmyk" && image.hueSamples
             ? image.hueSamples.subarray(pixel * 4, pixel * 4 + 4)

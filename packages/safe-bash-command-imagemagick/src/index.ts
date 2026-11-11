@@ -11870,6 +11870,12 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     if (isRawCoder(format) && writeMask && image.data !== working.data) {
         image = yield* applyMagickRasterSteps(image, writeMaskPixelSteps(image, writeMask, !!image.data16, false, undefined, working.hasAlpha && working.alphaBlend !== false), undefined, image, working.writeMask ? [image, working, working.writeMask] : [image, working]);
     }
+    if ((format === "cmyk" || format === "cmyka") && image.space !== "cmyk" && (image.writeMask || image.region)) {
+        // Implicit ink conversion uses the same protected channels as -colorspace CMYK.
+        const original = image, mask = image.writeMask ?? image.region!;
+        image = yield* convertCmykPixels(image);
+        image = yield* applyMagickRasterSteps(image, writeMaskPixelSteps(image, mask, true, false, undefined, original.hasAlpha && original.alphaBlend !== false), undefined, image, original.writeMask ? [image, original, original.writeMask] : [image, original]);
+    }
     image = yield* prepareInactiveAlphaOutput(image);
     if (format === "png" && image.data16 && (!pngCoder || pngCoder === "png00")) {
         let gray = true, hasAlpha = false, highDepth = false;
@@ -11947,6 +11953,11 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     }
     if ((["exr", "hdr", "pfm", "phm"].includes(format) || format === "miff" && image.bitsPerSample === 32) && (image.storedEvaluateSamples !== undefined || (format === "pfm" || format === "phm") && image.storedHueSamples !== undefined)) {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: frame => prepareFloatOutput(frame, format) }, signal);
+    }
+    if ((format === "cmyk" || format === "cmyka") && image.space !== "cmyk" && (image.storedWriteMask || image.region)) {
+        const original = image, mask = image.storedWriteMask ?? image.region!;
+        image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: convertCmykPixels }, signal);
+        image = await transformStoredMagickRaster(image, backend, writeMaskPixelSteps(image, mask, true, false, undefined, original.hasAlpha && original.alphaBlend !== false), signal, image, original.storedWriteMask ? [image, original, original.storedWriteMask] : [image, original]);
     }
     if (!image.hasAlpha) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: prepareInactiveAlphaOutput }, signal);
     if (format === "png" && image.storedData16 && (!pngCoder || pngCoder === "png00")) {

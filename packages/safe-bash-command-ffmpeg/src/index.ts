@@ -20017,6 +20017,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if ((overwrite && msg === "aecho: delay is too small") ||
                 msg === "aphaser: delay is too small" ||
                 msg.startsWith("channelsplit: unsupported input channel order ") ||
+                msg === "channelsplit: matching input channel layout required" ||
                 msg === "Padded dimensions cannot be smaller than input dimensions" ||
                 msg === "separatefields: height must be even" ||
                 msg === "negate: Requested components not available" || msg.startsWith("fps: frame rate:") ||

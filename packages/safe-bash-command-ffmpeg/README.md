@@ -866,6 +866,8 @@ Matching custom channel orders support named extraction, for example
 `channels=all` emits speakers in the custom layout’s order.
 Custom input channel orders such as `FR+FL` cannot be converted to stereo;
 `channelsplit` exits with status 234 and leaves an empty output file.
+Input layouts `FL+LFE`, `FL+FC`, and `BL+BR` also fail stereo negotiation with
+status 234 and no PCM output.
 Stereo input is expanded to 2.1, quad, 5.1, or 5.1(side) before selecting an output
 channel: front left/right keep their samples, while center, LFE, rear, and side
 channels contain silence.

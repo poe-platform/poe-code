@@ -3178,8 +3178,8 @@ async function applyVideoFilterChain(
           const number = parseFilterExpression(value, "deband", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
           if (!Number.isFinite(number)) throw new Error("deband: invalid number");
           if (key === "range" || key === "r") {
-            if (!Number.isInteger(number) || number < -2147483647 || number > 2147483647) throw new Error("deband: invalid range");
-            range = number;
+            if (number < -2147483647 || number > 2147483647) throw new Error("deband: invalid range");
+            range = roundToEven(number);
           } else if (key === "direction" || key === "d") {
             if (Math.abs(number) > 2 * Math.PI) throw new Error("deband: invalid direction");
             direction = Math.fround(number);

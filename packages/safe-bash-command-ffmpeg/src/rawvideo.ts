@@ -26,7 +26,8 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
   const yuv10 = pixelFormat === "yuv420p10le";
   const yuv16 = pixelFormat === "yuv420p16le" || pixelFormat === "yuv444p10le" || pixelFormat === "yuv444p16le";
   const yuva = pixelFormat === "yuva420p";
-  const yuv = yuva || yuv10 || yuv16 || pixelFormat === "nv12" || pixelFormat === "yuv420p" || pixelFormat === "yuv422p" || pixelFormat === "yuv444p";
+  const semiplanar = pixelFormat === "nv12" || pixelFormat === "nv21";
+  const yuv = yuva || yuv10 || yuv16 || semiplanar || pixelFormat === "yuv420p" || pixelFormat === "yuv422p" || pixelFormat === "yuv444p";
   const rgb16Format = pixelFormat === "rgb48be" ? 34 : pixelFormat === "rgb48le" ? 35
     : pixelFormat === "rgba64be" ? 104 : pixelFormat === "rgba64le" ? 105 : undefined;
   const rgb16 = rgb16Format !== undefined;
@@ -49,14 +50,15 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     if (!decode || data.length !== frameBytes) continue;
     budget.recordFrame(width, height);
     budget.allocateMemory(width * height * 4);
-    if (pixelFormat === "nv12") {
+    if (semiplanar) {
       budget.allocateMemory(frameBytes);
       const planar = new Uint8Array(frameBytes);
       planar.set(data.subarray(0, ySize));
+      const uOffset = pixelFormat === "nv21" ? 1 : 0;
       for (let chroma = 0; chroma < chromaSize; chroma++) {
         if (chroma % 4096 === 0) budget.checkCpu();
-        planar[ySize + chroma] = data[ySize + chroma * 2]!;
-        planar[ySize + chromaSize + chroma] = data[ySize + chroma * 2 + 1]!;
+        planar[ySize + chroma] = data[ySize + chroma * 2 + uOffset]!;
+        planar[ySize + chromaSize + chroma] = data[ySize + chroma * 2 + 1 - uOffset]!;
       }
       data = planar;
     }
@@ -78,7 +80,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
         format: yuva ? 33 : rgb16Format ?? (yuv10 ? 62 : pixelFormat === "yuv444p10le" ? 68 : pixelFormat === "yuv420p16le" ? 45 : 49), colorspace: 5, fullRange: rgb16 ? 1 : 0 } }, width, height)!
       : yuv
       ? yuv420pToRgba(data.subarray(0, ySize), data.subarray(ySize, ySize + chromaSize), data.subarray(ySize + chromaSize, ySize + chromaSize * 2), width, height,
-        pixelFormat === "yuv444p" ? 0 : 1, (yuva || pixelFormat === "yuv420p" || pixelFormat === "nv12") ? 1 : 0)
+        pixelFormat === "yuv444p" ? 0 : 1, (yuva || pixelFormat === "yuv420p" || semiplanar) ? 1 : 0)
       : pixelFormat === "rgba" ? new Uint8Array(data) : new Uint8Array(width * height * 4);
     if (yuva) {
       for (let pixel = 0; pixel < ySize; pixel++) {

@@ -55,9 +55,9 @@ for (const filter of ["afreqshift=250", "aphaseshift=0.5"]) {
       Float32Array.from({ length: 128 }, (_, i) => Math.cos(i))];
     const baseline = await shiftAudioPhase(channels, 8000, filter, "fltp", [{ start: 0, end: 128, pts: 0 }], new MediaBudgetTracker());
     const actual = await shiftAudioPhase(channels, 8000, filter, "fltp", [{ start: 0, end: 128, pts: 0 }], new MediaBudgetTracker(), undefined, [
-      { sample: 16, expression: "0" }, { sample: 32, expression: "0.5" },
-      { sample: 48, expression: "2" }, { sample: 56, expression: "invalid" },
-      { sample: 64, expression: "1" }
+      { sample: 16, action: "level", expression: "0" }, { sample: 32, action: "level", expression: "0.5" },
+      { sample: 48, action: "level", expression: "2" }, { sample: 56, action: "level", expression: "invalid" },
+      { sample: 64, action: "level", expression: "1" }
     ]);
     actual.forEach((channel, c) => channel.forEach((sample, i) => {
       const level = i < 16 || i >= 64 ? 1 : i < 32 ? 0 : 0.5;

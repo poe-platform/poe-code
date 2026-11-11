@@ -6,7 +6,7 @@ export async function shiftAudioPhase(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   format: string, frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
   budget: MediaBudgetTracker, signal?: AbortSignal,
-  commands: readonly { sample: number; expression: string }[] = []
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<Float64Array[]> {
   const frequencyShift = filter.split("=", 1)[0] === "afreqshift";
   const name = frequencyShift ? "afreqshift" : "aphaseshift";
@@ -65,13 +65,13 @@ export async function shiftAudioPhase(
     const x = Math.sqrt((1 - w2 * k) * (1 - w2 / k)) / (1 + w2);
     coefficients[Math.floor(stage / 2) + (stage % 2) * options.order] = round((1 - x) / (1 + x));
   }
-  const angle = round(options.shift * Math.PI);
-  let cosine = round(Math.cos(angle)), sine = round(Math.sin(angle));
-  const shift = round(options.shift), step = round(1 / sampleRate);
+  const step = round(1 / sampleRate);
   const output: Float64Array[] = [];
   let work = 0;
   for (const channel of channels) {
-    let level = round(options.level), nextCommand = 0;
+    let level = round(options.level), shift = round(options.shift), nextCommand = 0;
+    const angle = round(options.shift * Math.PI);
+    let cosine = round(Math.cos(angle)), sine = round(Math.sin(angle));
     const samples = new Float64Array(length);
     const previousInput = new Float64Array(stages), olderInput = new Float64Array(stages);
     const previousOutput = new Float64Array(stages), olderOutput = new Float64Array(stages);
@@ -95,8 +95,15 @@ export async function shiftAudioPhase(
           const command = commands[nextCommand++]!;
           try {
             const value = parseFilterExpression(command.expression, name, {});
-            if (Number.isFinite(value) && value >= 0 && value <= 1) level = round(value);
-          } catch { /* Native ignores rejected runtime commands and keeps the previous level. */ }
+            if (!Number.isFinite(value)) continue;
+            if (command.action === "level" && value >= 0 && value <= 1) level = round(value);
+            if (command.action === "shift" && Math.abs(value) <= (frequencyShift ? 2147483647 : 1)) {
+              shift = round(value);
+              const angle = round(value * Math.PI);
+              cosine = round(Math.cos(angle));
+              sine = round(Math.sin(angle));
+            }
+          } catch { /* Native ignores rejected runtime commands and keeps the previous setting. */ }
         }
         let inPhase = 0;
         let value = round(channel[frame]!);

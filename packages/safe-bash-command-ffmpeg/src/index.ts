@@ -13760,7 +13760,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || target === "aphaser" || target?.startsWith("aphaser@")
                             || target === "adelay" || target?.startsWith("adelay@")
                             || target === "amix" || target?.startsWith("amix@")
-                            || action === "level" && ["afreqshift", "aphaseshift"].some(name => target === name || target?.startsWith(`${name}@`))
+                            || ["level", "shift"].includes(action!) && ["afreqshift", "aphaseshift"].some(name => target === name || target?.startsWith(`${name}@`))
                             || action === "wet" && (target === "asubboost" || target?.startsWith("asubboost@"))
                             || ["mm", "cm", "m", "dry", "wet", "temp", "enable"].includes(action!) && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
                             || ["p", "peak"].includes(action!) && (target === "dynaudnorm" || target?.startsWith("dynaudnorm@"))

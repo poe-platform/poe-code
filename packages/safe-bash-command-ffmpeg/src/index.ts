@@ -45,6 +45,7 @@ import { authorTimecode } from "./timecode.js";
 import { parseRawVideo, serializeRawVideo, synchronizeRawVideoFrames } from "./rawvideo.js";
 import { formatYuv } from "./format-yuv.js";
 import { swapUv } from "./swapuv.js";
+import { swapRect } from "./swaprect.js";
 import { colorcorrect } from "./colorcorrect.js";
 import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
@@ -4816,6 +4817,17 @@ async function applyVideoFilterChain(
         return { ...f, data };
       }, signal);
       pixelFormat = diagnostics.pixelFormat = "gbrap";
+    } else if (name === "swaprect") {
+      const keys = ["w", "h", "x1", "y1", "x2", "y2"];
+      const expressions = ["w/2", "h/2", "w/2", "h/2", "0", "0"];
+      if (positional.at(-1) === "") positional.pop();
+      for (const [index, option] of positional.entries()) {
+        const separator = option.indexOf("=");
+        const key = separator < 0 ? index : keys.indexOf(option.slice(0, separator).trim());
+        if (key < 0 || key >= keys.length) throw new Error("swaprect: unsupported option");
+        expressions[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
+      }
+      current = await mapWork(current, (frame, n) => swapRect(frame, expressions, n, diagnostics.sar || 1, budget, signal), signal);
     } else if (name === "swapuv") {
       if (positional.at(-1) === "") positional.pop();
       for (const option of argStr ? positional : []) {

@@ -13,6 +13,16 @@ for (const graph of [false, true]) {
       ["d=86401", 222],
       ["m=bad", 234],
       ["foo=1", 8],
+      ["threads=-1", 222],
+      ["threads=2147483648", 222],
+      ["threads=bad", 234],
+      ["threads=", 234],
+      ["thread_type=bad", 234],
+      ["thread_type=0.5", 222],
+      ["thread_type=4294967296", 222],
+      ["extra_hw_frames=-2", 222],
+      ["extra_hw_frames=2147483648", 222],
+      ["extra_hw_frames=bad", 234],
       ["n=0.1:d=0.00025:enable=1", 176],
       ["n=0.1:d=0.00025:m=1", 0]
     ] as const) {

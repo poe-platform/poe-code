@@ -13906,7 +13906,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (!value || !Number.isFinite(duration)) throw new Error("silencedetect: invalid duration");
                             if (duration < 0 || duration > 86400) throw new RangeError("silencedetect: invalid duration");
                           } else if (key === "mono" || key === "m") {
+                            if (!value) throw new Error("silencedetect: invalid mono");
                             mono = parseFilterBoolean(value, "silencedetect: invalid mono");
+                          } else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+                            validateWeaveGenericOption(key, value, "silencedetect");
                           } else throw new Error(`silencedetect: unsupported option ${key}`);
                         }
                         // Native s16 detection truncates and wraps noise to signed 16-bit PCM.

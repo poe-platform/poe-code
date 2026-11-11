@@ -679,6 +679,8 @@ without a speaker mask is treated as 7.1.
 `crossfeed=strength=0.5` applies frequency-dependent headphone crossfeed to stereo audio.
 Downstream `ashowinfo` reports packed double (`dbl`) frames before output encoding.
 Mono input is converted to stereo at √½ gain per channel before crossfeed is applied.
+For center/LFE input, only center contributes to both stereo channels at √½ gain.
+Reversed stereo and rear-only speaker pairs are rejected.
 Strength and range default to 0.2 and 0.5 (0–1); slope defaults to 0.5 (0.01–1).
 `level_in` and `level_out` default to 0.9 and 1 (0–1).
 `asendcmd=c='0.064 crossfeed@x level_out 0',crossfeed@x` changes output gain

@@ -17276,8 +17276,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredChannelMask = panned.channelMask;
                         filteredChannelNames = panned.channelNames;
                       } else if (trimmed === "crossfeed" || trimmed.startsWith("crossfeed=")) {
+                        if (!filteredChannelMask && filteredChannelNames?.some(name => name !== "") ||
+                            stretched.length === 2 && filteredChannelMask &&
+                            ![3, 12, 0x60000000].includes(filteredChannelMask)) {
+                          throw new Error("crossfeed: unsupported input channel layout");
+                        }
                         filteredSampleFormat = "dbl";
-                        if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) {
+                        if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ||
+                            stretched.length === 2 && filteredChannelMask === 12) {
+                          // FC contributes equally to stereo; LFE does not contribute.
                           const stereo = await panAudio(`stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`,
                             stretched, filteredChannelMask, "flt", budget, context.signal);
                           stretched = stereo.channels;
@@ -20038,6 +20045,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 msg === "stereotools: unsupported input channel layout" ||
                 msg.startsWith("channelsplit: unsupported input channel order ") ||
                 msg === "channelsplit: matching input channel layout required" ||
+                msg === "crossfeed: unsupported input channel layout" ||
                 msg === "Padded dimensions cannot be smaller than input dimensions" ||
                 msg === "separatefields: height must be even" ||
                 msg === "negate: Requested components not available" || msg.startsWith("fps: frame rate:") ||

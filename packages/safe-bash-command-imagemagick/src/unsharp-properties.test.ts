@@ -24,7 +24,7 @@ it.each([
         stdout: { async write() {} }, stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } }
     }) : mode === "sync" ? runMagickCliSync(argv, files)
         : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
-    const diagnostic = "stderr" in result ? result.stderr : stderr;
+    const diagnostic = "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr;
     expect(result.exitCode, diagnostic).toBe(expected === undefined ? 1 : 0);
     const bytes = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
     if (expected === undefined) {

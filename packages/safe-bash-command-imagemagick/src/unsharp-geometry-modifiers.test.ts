@@ -22,13 +22,13 @@ it.each([
         : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
     if (geometry.includes("bad")) {
         expect(result.exitCode).toBe(1);
-        expect("stderr" in result ? result.stderr : stderr).toContain("Invalid unsharp geometry");
+        expect("stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toContain("Invalid unsharp geometry");
         if (mode === "command" || mode === "retained") await expect(fs.readFile("/out")).rejects.toThrow();
         else expect(files.has("/out")).toBe(false);
         return;
     }
-    expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(0);
-    expect("stderr" in result ? result.stderr : stderr).toBe("");
+    expect(result.exitCode, "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toBe(0);
+    expect("stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toBe("");
     const bytes = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
     expect(Buffer.from(bytes).toString("hex")).toBe("4d3d5effa38392ff");
 });

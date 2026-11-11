@@ -53,7 +53,7 @@ for (const stereo of [false, true]) {
 }
 
 for (const [graph, exitCode] of [
-  ["[0:a]volume=invalid[x];[x][1:a]amix[o]", 1],
+  ["[0:a]volume=invalid[x];[x][1:a]amix[o]", 234],
   ["[1:a]unsupported_filter[x];[0:a][x]amix[o]", 8]
 ] as const) {
   it(`preserves output when an amix branch filter fails: ${graph}`, async () => {

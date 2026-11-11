@@ -27,12 +27,8 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
             stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
         }) : mode === "sync" ? runMagickCliSync(argv, files)
             : await runMagickCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
-        if ("stdout" in result) {
-            stdout = result.stdout;
-            stderr = result.stderr;
-        }
-        expect(result.exitCode, stderr).toBe(0);
-        expect(stderr).toBe("");
-        expect(stdout).toBe(`3x2 ${page} 0.401569`);
+        expect(result.exitCode).toBe(0);
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        expect("stdout" in result ? result.stdout : stdout).toBe(`3x2 ${page} 0.401569`);
     });
 }

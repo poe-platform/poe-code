@@ -281,7 +281,12 @@ export async function synchronizeRawVideoFrames(
         if (statistics) statistics.duplicates++;
       }
       budget.allocateMemory(128);
-      output.push({ ...source, ptsSeconds: nextPts / rate, durationSeconds: 1 / rate });
+      const duration = source.durationSeconds * rate;
+      const lower = Math.floor(duration);
+      // VFR retains packet duration, rounded to encoder ticks with exact halves to even.
+      const durationTicks = mode === "cfr" ? 1
+        : duration - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(duration);
+      output.push({ ...source, ptsSeconds: nextPts / rate, durationSeconds: durationTicks / rate });
     }
   }
   return output;

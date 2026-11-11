@@ -11703,6 +11703,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     filtered = filtered.filter(frame => frame.ptsSeconds >= start && frame.ptsSeconds < end)
                       .map(frame => ({ ...frame, ptsSeconds: frame.ptsSeconds - start }));
                   }
+                  if (encoderTimeBaseModes.get(index) === "filter") encoderTimeBases.set(index, 1 / diagnostics.timescale);
+                  const rawTimeBase = outputFormat === "rawvideo" && diagnostics.frameRateKnown
+                    ? encoderTimeBases.get(index) ?? (filtered[0]?.durationSeconds || diagnostics.frameDuration) * diagnostics.frameRateScale
+                    : undefined;
                   if (outputFormat === "rawvideo" && ["auto", "-1", "cfr", "1", "vfr", "2"].includes(videoSync)) {
                     const statistics = { duplicates: 0 };
                     const rate = outputFps ?? (diagnostics.frameRateKnown
@@ -11712,7 +11716,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     progressDuplicates += statistics.duplicates;
                     diagnostics.frameRateScale = 1;
                   }
-                  if (encoderTimeBaseModes.get(index) === "filter") encoderTimeBases.set(index, 1 / diagnostics.timescale);
                   const first = filtered[0];
                   const filteredTimescale = Math.max(t.timescale, diagnostics.timescale);
                   return {
@@ -11734,11 +11737,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       sarHeight: diagnostics.sarHeight
                     })),
                     samples: [],
-                    // Rawvideo retains zero durations cleared by setpts; other encoders need a cadence.
                     decodedVideoFrames: filtered.map(frame => ({ ...frame,
-                      durationSeconds: (outputFormat === "rawvideo" ? frame.durationSeconds
-                        : frame.durationSeconds || diagnostics.frameDuration) * diagnostics.frameRateScale,
-                      ptsSeconds: frame.ptsSeconds + offsetTicks / t.timescale }))
+                      // Rawvideo packets use encoder ticks; durations use ties-to-even rounding.
+                      durationSeconds: rawTimeBase !== undefined
+                        ? roundToEven(frame.durationSeconds / rawTimeBase) * rawTimeBase
+                        : (outputFormat === "rawvideo" ? frame.durationSeconds
+                          : frame.durationSeconds || diagnostics.frameDuration) * diagnostics.frameRateScale,
+                      ptsSeconds: (rawTimeBase !== undefined
+                        ? Math.round(frame.ptsSeconds / rawTimeBase) * rawTimeBase
+                        : frame.ptsSeconds) + offsetTicks / t.timescale }))
                   };
                 }, context.signal)
               };

@@ -89,6 +89,16 @@ function* xpmSteps(size: number, options?: SharpInputOptions): Generator<Step, X
         }
         rgba = rgba.map(value => Math.round(value * 65535));
         highDepth ||= rgba.some(value => value % 257 !== 0);
+      } else if (name === "hsl" || name === "hsla") {
+        const components = words(color.slice(open + 1, -1).replaceAll(",", " "));
+        if (!color.endsWith(")") || components.length < 3 || components.length > 4) throw new Error("Invalid XPM color");
+        const { r, g, b } = parseColor(`hsl(${components.slice(0, 3).join(",")})`);
+        // Native HSL ignores alpha; HSLA scales percentages by 255/100 before clamping.
+        const alpha = name === "hsla" ? components[3] ?? "1" : "1", percent = alpha.endsWith("%");
+        const value = Number(percent ? alpha.slice(0, -1) : alpha);
+        if (!Number.isFinite(value)) throw new Error("Invalid XPM color");
+        rgba = [r * 257, g * 257, b * 257, Math.round(Math.max(0, Math.min(1, value * (percent ? 255 / 100 : 1))) * 65535)];
+        highDepth ||= rgba[3]! % 257 !== 0;
       } else {
         const { r, g, b, a } = parseColor(color); rgba = [r, g, b, a].map(value => value * 257);
       }

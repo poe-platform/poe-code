@@ -10,12 +10,13 @@ import { encodeYuvImage, encodeYuvFromStorage } from "./yuv-output.js";
 import { encodeSvgImage, encodeSvgFromStorage } from "./svg-output.js";
 import { encodeSgiImage, encodeSgiFromStorage } from "./sgi-output.js";
 import { encodeBrfImage, encodeBrfFromStorage } from "./brf-output.js";
+import { encodeDdsImage, encodeDdsFromStorage } from "./dds-output.js";
 
 export type RawImage = RgbaImage & { rawFrames?: readonly RgbaImage[] };
 export type StoredRawImage = StoredRgbaImage & { rawFrames?: { length: number; at(index: number): Promise<StoredRgbaImage> } };
 
 export type RawCoder = "rgb" | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro" | "gray" | "graya" | "cmyk" | "cmyka" | "ycbcr" | "ycbcra";
-export type ImageFormat = "sgi" | "isobrl" | "isobrl6" | RasterFormat | RawCoder | "map" | "farbfeld" | "mono" | "pal" | "mpc" | "h" | "yuv" | "brf";
+export type ImageFormat = "sgi" | "isobrl" | "isobrl6" | RasterFormat | RawCoder | "map" | "farbfeld" | "mono" | "pal" | "mpc" | "h" | "yuv" | "brf" | "dds";
 export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | "partition" | undefined; rawDefines?: Readonly<Record<string, string>> | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
 
 /** Search complete output sizes, including alpha and container overhead. */
@@ -86,6 +87,7 @@ export function encodeImage(image: RawImage, options: OutputEncodeOptions): Retu
         for (const frame of frames) { data.set(frame, offset); offset += frame.length; }
         return { data, format: "raw", channels: image.hasAlpha ? 4 : 3 };
     }
+    if (format === "dds") return { data: encodeDdsImage(image), format: "raw", channels: image.hasAlpha ? 4 : 3 };
     if (format === "brf") return { data: encodeBrfImage(image), format: "raw", channels: 1 };
     if (format === "isobrl" || format === "isobrl6") return { data: encodeIsobrlImage(image, format === "isobrl6" ? 3 : 4), format: "raw", channels: 1 };
     if (format === "yuv") return { data: encodeYuvImage(image, options), format: "raw", channels: 3 };
@@ -285,6 +287,11 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
             const frame = image.rawFrames ? await image.rawFrames.at(index) : image;
             for await (const chunk of encodeSgiFromStorage(frame, storage, signal)) { size += chunk.length; yield chunk; }
         }
+        return { format: "raw", width: image.width, height: image.height, channels: image.hasAlpha ? 4 : 3, premultiplied: false, size };
+    }
+    if (options.format === "dds") {
+        let size = 0;
+        for await (const chunk of encodeDdsFromStorage(image, storage, signal)) { size += chunk.length; yield chunk; }
         return { format: "raw", width: image.width, height: image.height, channels: image.hasAlpha ? 4 : 3, premultiplied: false, size };
     }
     if (options.format === "brf") {

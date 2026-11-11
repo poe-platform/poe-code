@@ -1261,7 +1261,7 @@ function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows
     else if (name === "square" && (argument === undefined || Number.isFinite(argument))) {
         // Only RGB, black, alpha and the constant column affect a color matrix.
         // Larger all-ones kernels have the same effect as a 6x6 matrix.
-        const size = Math.min(6, Math.max(3, Math.floor(2 * Math.abs(argument ?? 1) + 1)));
+        const size = Math.min(6, Math.max(3, Math.floor(2 * (argument ?? 1) + 1)));
         named = new Array<number>(size * size).fill(1);
     }
     const afterColon = spec.includes(":") ? spec.slice(spec.indexOf(":") + 1) : spec;

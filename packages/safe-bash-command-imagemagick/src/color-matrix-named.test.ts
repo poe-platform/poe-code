@@ -6,6 +6,30 @@ import { createMagickCommand } from "./index.js";
 
 const pixels = [200, 21, 62, 128, 15, 99, 51, 255, 0, 0, 0, 200];
 
+// Native Square radii at or below one use a 3x3 kernel, preserving alpha.
+it.each([
+    { radius: -3, expected: "60606080" },
+    { radius: -2, expected: "60606080" },
+    { radius: -1, expected: "60606080" },
+    { radius: 0, expected: "60606080" },
+    { radius: 1, expected: "60606080" },
+    { radius: 2, expected: "e0e0e0e0" },
+    { radius: 3, expected: "ffffffff" }
+])("magick matches native Square:$radius RGBA bytes", async ({ radius, expected }) => {
+    const args = createCommandArguments(["xc:#10203080", "-color-matrix", `Square:${radius}`, "-depth", "8", "rgba:-"]);
+    const chunks: Uint8Array[] = [];
+    let stderr = "";
+    const result = await createMagickCommand().execute({
+        command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs: new MemoryFileSystem(),
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write(bytes) { chunks.push(bytes); } },
+        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+    });
+    expect(result.exitCode).toBe(0);
+    expect(stderr).toBe("");
+    expect(Buffer.concat(chunks).toString("hex")).toBe(expected);
+});
+
 // Reference samples decoded from native ImageMagick's PNG32 output.
 it.each([
     { kernel: "Sobel", expected: [138, 255, 138, 128, 0, 0, 0, 255, 0, 0, 0, 200] },

@@ -1725,6 +1725,10 @@ function parseAmergeInputs(filter: string): number {
     const separator = option.indexOf("=");
     const key = separator < 0 ? (index === 0 ? "inputs" : undefined) : option.slice(0, separator).trim();
     if (key === "enable") throw new Error("amerge: timeline is unsupported");
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, option.slice(separator + 1), "amerge");
+      continue;
+    }
     if (key !== "inputs") throw new Error("amerge: unsupported option");
     const value = parseFilterExpression(separator < 0 ? option : option.slice(separator + 1),
       "amerge", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2, min: 1, max: 64, default: 2 });

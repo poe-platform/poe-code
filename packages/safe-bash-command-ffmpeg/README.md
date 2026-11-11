@@ -1226,7 +1226,9 @@ where reversal buffers the other input.
 `amerge` input counts accept numeric expressions such as `1+1` and round to the
 nearest integer with ties to even (`1.5` and `2.5` both select two inputs).
 Repeated assignments use the last value, but every assignment must be valid
-and within 1–64 before rounding. Invalid options preserve existing output.
+and within 1–64 before rounding. Generic `threads`, `thread_type`, and
+`extra_hw_frames` options are accepted without changing PCM samples.
+Invalid options preserve existing output.
 
 `amerge=inputs=N` merges 1–64 inputs into at most 64 output channels, resampling
 to the first input’s sample rate and ending with the shortest input. Omitted

@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { decodeImage, readImageMetadata } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli } from "./index.js";
+import { runConvertCliSync, runConvertCli } from "./index.js";
 
 // ImageMagick/libwebp: two 8x8 lossless frames, red then blue, 70/190 ms, loop 3.
 const input = new Uint8Array(Buffer.from("UklGRoQAAABXRUJQVlA4WAoAAAACAAAABwAABwAAQU5JTQYAAAD/////AwBBTk1GKAAAAAAAAAAAAAcAAAcAAEYAAAJWUDhMDwAAAC8HwAEABxD9j/4HIqL/AQBBTk1GKAAAAAAAAAAAAAcAAAcAAL4AAABWUDhMDwAAAC8HwAEABxDR//4HIqL/AQA=", "base64"));
@@ -39,4 +39,25 @@ it("exposes WebP animation metadata and rejects invalid frame selection and boun
   const mismatch = input.slice();
   mismatch[58] = 6; // ANMF claims width 7, while the nested VP8L image is 8 wide.
   expect(() => decodeImage(mismatch)).toThrow("frame dimensions");
+});
+
+for (const mode of ["sync", "buffered", "retained"] as const)
+for (const scene of [undefined, 5])
+for (const write of [false, true])
+it(`numbers reversed WebP frames from zero: ${mode}, scene=${scene}, write=${write}`, async () => {
+  const files = new Map([["/two.webp", input]]);
+  const filesystem = new MemoryFileSystem();
+  await filesystem.writeFile("/two.webp", input);
+  const backend = mode === "retained" ? { filesystem, cwd: "/" } : files;
+  const args = ["/two.webp", "-reverse", ...(scene === undefined ? [] : ["-scene", String(scene)])];
+  const run = (args: string[]) => mode === "sync" ? runConvertCliSync(args, files) : runConvertCli(args, backend);
+  const start = scene ?? 0;
+  expect(await run([...args, "-format", "%s:%T;", "info:"])).toMatchObject({ exitCode: 0, stdout: `${start}:19;${start + 1}:7;` });
+  expect(await run([...args, ...(write ? ["-write", "/frame-%d.png", "null:"] : ["/frame-%d.png"])])).toMatchObject({ exitCode: 0 });
+  expect(mode === "retained" ? (await filesystem.readdir("/")).map(entry => entry.name).sort() : [...files.keys()].map(path => path.slice(1)).sort()).toEqual([`frame-${start}.png`, `frame-${start + 1}.png`, "two.webp"]);
+  for (const [index, color] of [[0, [0, 0, 255, 255]], [1, [255, 0, 0, 255]]] as const) {
+    const path = `/frame-${start + index}.png`;
+    const bytes = mode === "retained" ? await filesystem.readFile(path) : files.get(path)!;
+    expect([...decodeImage(bytes).data.slice(0, 4)]).toEqual(color);
+  }
 });

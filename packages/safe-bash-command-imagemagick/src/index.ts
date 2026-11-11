@@ -8414,7 +8414,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     const working = hueSamples && channel < 4;
                     const offset = idx + (cmyk && channel === 4 ? 3 : channel);
                     const sample = working ? hueSamples[offset]! : evaluateSamples[offset]! / 255;
-                    const value = (sample === 0 && exponent < 0 ? 1 : Math.pow(sample, exponent)) * 65535;
+                    // Native signed power extends fractional exponents below zero.
+                    const value = (sample === 0 && exponent < 0 ? 1
+                        : sample < 0 && !Number.isInteger(exponent) ? -Math.pow(-sample, exponent)
+                        : Math.pow(sample, exponent)) * 65535;
                     // Keep HDRI quantum precision until output, including samples below one byte.
                     if (working) hueSamples[offset] = Math.fround(value) / 65535;
                     if (!cmyk || !working) {

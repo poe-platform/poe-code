@@ -14776,7 +14776,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const g = parseMagickGeometry(tokens[++i] ?? "0x1");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const writeMask = t === "-blur" ? im.writeMask : undefined;
-                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, blurPixelSteps(im, g, t === "-gaussian-blur", state.channelExplicit ? state.channels : undefined, undefined, writeMask), signal, im, writeMask ? [im, writeMask] : [im]);
+                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, blurPixelSteps(im, g, t === "-gaussian-blur", state.channelExplicit ? state.channels : undefined, undefined, writeMask, im.backgroundColor ?? state.background), signal, im, writeMask ? [im, writeMask] : [im]);
             }, undefined, t === "-blur");
         }
         else if (t === "-selective-blur") {
@@ -14939,7 +14939,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const geometry = parseMagickGeometry(expanded);
                 if (Math.abs(geometry.height ?? 1) < 1e-12) return im;
                 const edges = yield* applyMagickRasterSteps(im, adaptiveEdgePixelSteps(im, geometry.width ?? 0), signal);
-                const blurred = yield* applyMagickRasterSteps(edges, blurPixelSteps(edges, geometry, false), signal);
+                const blurred = yield* applyMagickRasterSteps(edges, blurPixelSteps({ ...edges, virtualPixel: "edge" }, geometry, false), signal);
                 return yield* applyMagickRasterSteps(im, adaptivePixelSteps(im, geometry, t === "-adaptive-sharpen"), signal, im, [im, blurred]);
             });
         }
@@ -18981,11 +18981,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             i++;
         } else if (!operandsOnly && (token === "-blur" || token === "-gaussian-blur")) {
-            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
+            const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined, background = state.background;
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return undefined;
                 const writeMask = token === "-blur" ? image.storedWriteMask : undefined;
-                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels, undefined, writeMask), signal, image, writeMask ? [image, writeMask] : [image]);
+                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels, undefined, writeMask, image.backgroundColor ?? background), signal, image, writeMask ? [image, writeMask] : [image]);
             }, { handlesRegion: token === "-blur" }));
         } else if (!operandsOnly && token === "-selective-blur") {
             stackStep(async stack => {
@@ -19191,7 +19191,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const geometry = parseMagickGeometry(expanded);
                 if (Math.abs(geometry.height ?? 1) < 1e-12) return image;
                 const edges = await transformStoredMagickRaster(image, backend, adaptiveEdgePixelSteps(image, geometry.width ?? 0), signal);
-                const blurred = await transformStoredMagickRaster(edges, backend, blurPixelSteps(edges, geometry, false), signal);
+                const blurred = await transformStoredMagickRaster(edges, backend, blurPixelSteps({ ...edges, virtualPixel: "edge" }, geometry, false), signal);
                 return transformStoredMagickRaster(image, backend, adaptivePixelSteps(image, geometry, token === "-adaptive-sharpen"), signal, image, [image, blurred]);
             });
         } else if (!operandsOnly && token === "-sharpen") {

@@ -28,7 +28,7 @@ export function parseUnsharpGeometry(raw: string): { width: number; height: numb
 /** Native sampled Gaussian or rank-three blur, with bounded row caching. */
 export function* blurPixelSteps(image: Pick<RgbaImage, "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples">> & { width: number; height: number; virtualPixel?: VirtualPixelMethod | undefined; region?: Region | undefined; evaluateSamples?: Float64Array | undefined; storedEvaluateSamples?: number | undefined }, geometry: { width?: number; height?: number }, gaussian: boolean, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, unsharp?: { amount: number; threshold: number }, writeMask?: { width: number; height: number }, background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
-    const virtualPixel = unsharp ? image.virtualPixel ?? "edge" : "edge";
+    const virtualPixel = image.virtualPixel ?? "edge";
     // Filter active working samples; CMYK needs black in addition to color and alpha.
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
     const hue = !cmyk && (!!image.hueSamples || image.storedHueSamples !== undefined);

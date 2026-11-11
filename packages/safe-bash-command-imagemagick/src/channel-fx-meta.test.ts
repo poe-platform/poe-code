@@ -23,7 +23,14 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
         { input: ["xc:#336699", "xc:#abcdef"], expression: "|red=>meta0", output: ["-channel", "Meta0", "-separate", "+channel", "-depth", "8", "gray:-"], expected: "ab" },
         { input: ["xc:#336699", "-channel-fx", "red=>meta0"], expression: "green=>meta1", output: ["-channel", "Meta0,Meta1", "-separate", "+channel", "-depth", "8", "gray:-"], expected: "3366" },
         { input: ["-size", "513x1", "xc:#336699"], expression: "red=>meta0", output: ["-channel", "Meta0", "-separate", "+channel", "-depth", "8", "gray:-"], expected: "33".repeat(513) },
-        { input: ["xc:#336699"], expression: "red=>Bogus", output: ["gray:-"], error: true },
+        { input: ["xc:#234567"], expression: "red=>meta1", output: ["-format", "%[channels]", "info:"], error: "missing image channel 'meta1'" },
+        { input: ["xc:#234567"], expression: "red=>11", output: ["info:"], error: "missing image channel 'meta1'" },
+        { input: ["xc:#234567"], expression: "red=>meta1,green=>meta0", output: ["info:"], error: "missing image channel 'meta1'" },
+        { input: ["xc:#234567"], expression: "red=>meta0,green=>meta2", output: ["info:"], error: "missing image channel 'meta2'" },
+        { input: ["xc:#234567", "-channel-fx", "red=>meta0"], expression: "green=>meta2", output: ["info:"], error: "missing image channel 'meta2'" },
+        { input: ["xc:#234567"], expression: "red=>meta0,green=>meta1", output: ["-format", "%[channels]", "info:"], text: "srgb  5.2" },
+        { input: ["xc:#234567"], expression: "red=>meta0,green=>meta0,blue=>meta1", output: ["-channel", "Meta0,Meta1", "-separate", "+channel", "-depth", "8", "gray:-"], expected: "4567" },
+        { input: ["xc:#336699"], expression: "red=>Bogus", output: ["gray:-"], error: "unsupported channel-fx assignment" },
     ])(`${mode}: $expression $output`, async ({ input, expression, output, expected, text, error }) => {
         const fs = new MemoryFileSystem();
         const argv = [...input, "-channel-fx", expression, ...output];
@@ -45,7 +52,7 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
         const bytes = Buffer.from(result.stdoutBytes ?? result.stdout);
         expect(result.exitCode, stderr).toBe(error ? 1 : 0);
         if (error) {
-            expect(stderr).toContain("unsupported channel-fx assignment");
+            expect(stderr).toContain(error);
             expect(bytes.length).toBe(0);
         } else {
             expect(stderr).toBe("");

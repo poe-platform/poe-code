@@ -13839,7 +13839,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     const sources = [base, ...stack.slice(1)];
                     const hasAlpha = base.hasAlpha || assignments.some(assignment => "activateAlpha" in assignment && assignment.activateAlpha);
                     let output = yield* applyMagickRasterSteps({ ...base, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: base.space === "cmyk" ? 4 : hasAlpha ? 4 : 3 }, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.data16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources);
-                    const count = assignments.reduce((count, assignment) => Math.max(count, assignment.target - 4), base.metaChannels?.length ?? 0);
+                    const count = assignments.reduce((count, assignment) => {
+                        if (assignment.target > count + 5) throw new Error(`missing image channel 'meta${assignment.target - 5}'`);
+                        return Math.max(count, assignment.target - 4);
+                    }, base.metaChannels?.length ?? 0);
                     if (count) {
                         output.metaChannels = [...(base.metaChannels ?? [])];
                         for (let channel = 0; channel < count; channel++) {
@@ -15082,7 +15085,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     for (let source = 1; source <= Math.min(lastSource, stack.length - 1); source++) sources.push((await stack.get(source))!);
                     const hasAlpha = base.hasAlpha || assignments.some(assignment => "activateAlpha" in assignment && assignment.activateAlpha);
                     let output = await transformStoredMagickRaster({ ...base, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: base.space === "cmyk" ? 4 : hasAlpha ? 4 : 3 }, backend, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.storedData16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources);
-                    const count = assignments.reduce((count, assignment) => Math.max(count, assignment.target - 4), base.storedMetaChannels?.length ?? 0);
+                    const count = assignments.reduce((count, assignment) => {
+                        if (assignment.target > count + 5) throw new Error(`missing image channel 'meta${assignment.target - 5}'`);
+                        return Math.max(count, assignment.target - 4);
+                    }, base.storedMetaChannels?.length ?? 0);
                     if (count) {
                         output.storedMetaChannels = [...(base.storedMetaChannels ?? [])];
                         for (let channel = 0; channel < count; channel++) {

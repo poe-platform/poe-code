@@ -75,15 +75,18 @@ for (const [value, mode] of [[0.5, "i"], [0.6, "o"], [1.4, "o"], [1.5, "e"], [1.
   }
 }
 
-for (const option of ["i=-1", "m=1.1", "f=NaN", "i=", "s=3", "s=-0.1", "s=2.1", "s=NaN", "s=Infinity", "s=", "unknown=1"]) it(`rejects ${option} without overwriting output`, async () => {
+for (const [option, exitCode] of [
+  ["i=-1", 222], ["m=1.1", 222], ["f=NaN", 234], ["i=", 234], ["s=3", 222],
+  ["s=-0.1", 222], ["s=2.1", 222], ["s=NaN", 234], ["s=Infinity", 234], ["s=", 234], ["unknown=1", 8]
+] as const) it(`rejects ${option} without overwriting output`, async () => {
   const { fs, result } = await run(`deesser=${option}`);
-  assert.equal(result.exitCode, 1);
+  assert.equal(result.exitCode, exitCode);
   assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
 });
 
 for (const option of ["i=1::s=e", "i=1:s=e::", "i=1:s=:"]) it(`rejects empty options in ${option} without overwriting output`, async () => {
   const { fs, result } = await run(`deesser=${option}`);
-  assert.equal(result.exitCode, 1);
+  assert.equal(result.exitCode, 234);
   assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
 });
 
@@ -108,15 +111,15 @@ for (const graph of [false, true]) {
   });
 
   it(`deesser rejects invalid scheduling options without overwriting output (graph=${graph})`, async () => {
-    for (const option of [
-      "threads=-1", "threads=-0.1", "threads=2147483648", "threads=", "threads=bogus",
-      "threads=NaN", "threads=1/0", "threads=bogus:threads=1",
-      "extra_hw_frames=-2", "extra_hw_frames=-1.1", "extra_hw_frames=2147483648",
-      "extra_hw_frames=", "extra_hw_frames=bogus", "extra_hw_frames=NaN",
-      "extra_hw_frames=1/0", "threads=1:unknown=1"
-    ]) {
+    for (const [option, exitCode] of [
+      ["threads=-1", 222], ["threads=-0.1", 222], ["threads=2147483648", 222], ["threads=", 234], ["threads=bogus", 234],
+      ["threads=NaN", 234], ["threads=1/0", 234], ["threads=bogus:threads=1", 234],
+      ["extra_hw_frames=-2", 222], ["extra_hw_frames=-1.1", 222], ["extra_hw_frames=2147483648", 222],
+      ["extra_hw_frames=", 234], ["extra_hw_frames=bogus", 234], ["extra_hw_frames=NaN", 234],
+      ["extra_hw_frames=1/0", 234], ["threads=1:unknown=1", 8]
+    ] as const) {
       const actual = await run(`deesser=${option}`, graph, [mono.slice(0, 384)]);
-      assert.equal(actual.result.exitCode, 1, option);
+      assert.equal(actual.result.exitCode, exitCode, option);
       assert.ok(actual.stderr.includes("deesser:"), actual.stderr);
       assert.equal(actual.fs.readFileSync("/out.wav", "utf8"), "keep", option);
     }

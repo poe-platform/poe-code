@@ -17962,6 +17962,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("atilt:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("aexciter: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("aexciter:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg.startsWith("deesser: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("deesser:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("asubboost: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("asubboost: invalid ")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("pad: generic option")) return { exitCode: err instanceof RangeError ? 222 : 234 };

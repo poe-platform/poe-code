@@ -43,6 +43,13 @@ for (const [action, value, hash] of [
 }
 
 for (const graph of [false, true]) {
+  for (const [on, off] of [["y", "n"], ["enabled", "disabled"]]) {
+    it(`updates aexciter listen with ${on}/${off} (${graph ? "graph" : "simple"})`, async () => {
+      const expected = await run("asetnsamples=96:0,asendcmd=c='0.002 aexciter listen 1;0.006 aexciter listen 0',aexciter", graph);
+      const actual = await run(`asetnsamples=96:0,asendcmd=c='0.002 aexciter listen ${on};0.006 aexciter listen ${off}',aexciter`, graph);
+      assert.deepEqual(actual, expected);
+    });
+  }
   for (const [time, start] of [[0.003, 192], [0.004, 192], [0.005, 288]]) {
     it(`mutes at sample ${start} for time ${time} (${graph ? "graph" : "simple"})`, async () => {
       const baseline = await run("asetnsamples=96:0,aexciter", graph);

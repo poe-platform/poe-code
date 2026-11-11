@@ -75,8 +75,8 @@ for (const [expression, literal] of [
 for (const graph of [false, true]) {
   for (const positional of [false, true]) {
     for (const [canonical, values] of [
-      ["true", ["TRUE", "YeS", "ON", "1"]],
-      ["false", ["FALSE", "nO", "OfF", "0"]]
+      ["true", ["TRUE", "YeS", "ON", "1", "y", "enabled"]],
+      ["false", ["FALSE", "nO", "OfF", "0", "n", "disabled"]]
     ] as const) {
       it(`accepts case-insensitive listen=${canonical} (${graph ? "graph" : "simple"}, ${positional ? "positional" : "named"})`, async () => {
         const expected = await run(`aexciter=listen=${canonical}`, graph, true);

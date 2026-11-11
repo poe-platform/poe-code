@@ -1445,7 +1445,9 @@ APNG output (`out.apng` or `-f apng`) writes all video frames into one animation
 
 `aexciter` enhances high-frequency harmonics in decoded PCM. It supports `level_in`,
 `level_out`, `amount`, `drive`, `blend`, `freq`, `ceil`, and `listen`, including
-positional options and use in audio filter chains. Numeric options accept expressions
+positional options and use in audio filter chains. `listen` accepts case-insensitive
+`y`/`n` and `enabled`/`disabled`, as well as `1`/`0`, `true`/`false`, `yes`/`no`,
+and `on`/`off`, including in runtime commands. Numeric options accept expressions
 with per-option `min`, `max`, and `default` constants, such as `amount=default` or
 `drive=max`, including in runtime commands. `default` always restores the declared
 default value. `enable` selects whole audio

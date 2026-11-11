@@ -16,8 +16,8 @@ export async function exciteAudio(
   const setOption = (key: keyof typeof options, value: string) => {
     const [min, max] = ranges[key];
     const number = key !== "listen" ? parseFilterExpression(value, "aexciter", { min, max, default: defaults[key] })
-      : ["true", "yes", "on"].includes(value.toLowerCase()) ? 1
-      : key === "listen" && ["false", "no", "off"].includes(value.toLowerCase()) ? 0 : Number(value);
+      : ["true", "yes", "on", "y", "enabled"].includes(value.toLowerCase()) ? 1
+      : key === "listen" && ["false", "no", "off", "n", "disabled"].includes(value.toLowerCase()) ? 0 : Number(value);
     if (!value || !Number.isFinite(number) || key === "listen" && !Number.isInteger(number)) {
       throw new Error(`aexciter: invalid ${key}`);
     }

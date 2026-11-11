@@ -155,7 +155,7 @@ export function encodePpm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = f
   const cmyk = pam && img.space === "cmyk" && img.hueSamples !== undefined;
   const channels = pam ? (cmyk ? 4 : gray ? 1 : 3) + (img.hasAlpha ? 1 : 0) : 3;
   if (!Number.isInteger(depth) || depth < 1 || depth > 16) throw new RangeError("Invalid Netpbm depth");
-  const maximum = 2 ** depth - 1;
+  const maximum = ascii ? (depth <= 8 ? 255 : 65535) : 2 ** depth - 1;
   const text: string[] = [];
   const comment = netpbmComment(img.properties?.comment);
   const header = pam ? `P7\n${comment}WIDTH ${img.width}\nHEIGHT ${img.height}\nDEPTH ${channels}\nMAXVAL ${maximum}\nTUPLTYPE ${cmyk ? "CMYK" : gray ? "GRAYSCALE" : "RGB"}${img.hasAlpha ? "_ALPHA" : ""}\nENDHDR\n` : `${ascii ? "P3" : "P6"}\n${comment}${img.width} ${img.height}\n${maximum}\n`;
@@ -176,7 +176,7 @@ export function encodePpm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = f
 
 export function encodePgm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = false): Uint8Array {
   if (!Number.isInteger(depth) || depth < 1 || depth > 16) throw new RangeError("Invalid Netpbm depth");
-  const maximum = 2 ** depth - 1;
+  const maximum = ascii ? (depth <= 8 ? 255 : 65535) : 2 ** depth - 1;
   const text: string[] = [];
   const comment = netpbmComment(img.properties?.comment);
   const header = `${ascii ? "P2" : "P5"}\n${comment}${img.width} ${img.height}\n${maximum}\n`;

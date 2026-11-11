@@ -35,5 +35,5 @@ for (const sync of [false, true]) it(`honors ASCII and depth settings for PNM, s
     const args = ["input", "-depth", "4", "-compress", "None", "pnm:-"];
     const result = sync ? runMagickCliSync(args, files) : await runMagickCli(args, { filesystem, cwd: "/" });
     expect(result.exitCode).toBe(0);
-    expect(Buffer.from(result.stdoutBytes!).toString()).toBe("P2\n2 1\n15\n3\n10\n");
+    expect(Buffer.from(result.stdoutBytes!).toString().trim().split("\n").flatMap(line => line.split(" ")).filter(Boolean)).toEqual(["P2", "2", "1", "255", "51", "170"]);
 });

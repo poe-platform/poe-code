@@ -85,8 +85,8 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
  signal.throwIfAborted();
  if(format!=="pam"&&format!=="ppm"&&format!=="pgm"&&format!=="pbm") throw new Error(`Unsupported Netpbm output format: ${format}`);
  if(!Number.isInteger(depth)||depth<1||depth>16) throw new RangeError("Invalid Netpbm depth");
- const maximum=2**depth-1;
  if(format==="pam") ascii=false;
+ const maximum=ascii?(depth<=8?255:65535):2**depth-1;
  const gray=format==="pam"&&(image.space==="b-w"||image.space==="grey16");
  const cmyk=format==="pam"&&image.space==="cmyk";
  const channels=format==="pam"?(gray?1:cmyk?4:3)+(image.hasAlpha?1:0):format==="ppm"?3:1;

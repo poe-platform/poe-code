@@ -45,6 +45,9 @@ export function* writeMaskPixelSteps(image: { width: number; height: number; spa
                     const source = intensity > 0.5 ? edited : original;
                     for (let channel = 0; channel < 4; channel++) output[i * 4 + channel] = source[i * 4 + channel]!;
                 } else blendMaskedPixel(output, original, edited, i * 4, intensity, 255, channels, alphaActive);
+                if (image.space === "b-w" || image.space === "grey16") {
+                    output[i * 4 + 1] = output[i * 4 + 2] = output[i * 4]!;
+                }
                 if (editedInks && originalInks) {
                     const offset = i * 4;
                     const sourceAlpha = intensity * (alphaActive ? original[offset + 3]! / 255 : 1);

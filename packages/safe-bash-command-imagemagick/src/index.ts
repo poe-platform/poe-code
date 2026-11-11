@@ -14266,7 +14266,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const g = parseMagickRaiseGeometry(expanded, t);
                 const bw = Math.max(0, Math.round(g.isPercent ? image.width * (g.percentX ?? 100) / 100 : g.width ?? 4));
                 const bh = Math.max(0, Math.round(g.isPercent ? image.height * (g.percentY ?? 100) / 100 : g.height ?? bw));
-                return yield* applyMagickRasterSteps(image, raisePixelSteps(image, bw, bh, raised, [state.channels.r, state.channels.g, state.channels.b, image.hasAlpha && (state.channels.a || !state.channelExplicit), state.channels.k === true || !state.channelExplicit]), signal);
+                const output = yield* applyMagickRasterSteps(image, raisePixelSteps(image, bw, bh, raised, [state.channels.r, state.channels.g, state.channels.b, image.hasAlpha && (state.channels.a || !state.channelExplicit), state.channels.k === true || !state.channelExplicit]), signal);
+                if (image.metaChannels) {
+                    output.metaChannels = [];
+                    for (const [index, plane] of image.metaChannels.entries()) {
+                        const selected = !state.channelExplicit || state.channelDefault || !!state.channels.meta?.includes(index);
+                        output.metaChannels.push(selected ? yield* applyMagickRasterSteps(plane,
+                            raisePixelSteps(plane, bw, bh, raised, [true, true, true, false]), signal) : plane);
+                    }
+                }
+                return output;
             });
         }
         else if (t === "-frame") {
@@ -17779,13 +17788,23 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const geometry = tokens[++i] ?? "", raised = token === "-raise", channels = { ...state.channels, a: state.channels.a || !state.channelExplicit, k: state.channels.k === true || !state.channelExplicit }, optionProperties = state.optionProperties;
+            const defaultChannels = !state.channelExplicit || state.channelDefault;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 const g = parseMagickRaiseGeometry(expanded, token);
                 const bw = Math.max(0, Math.round(g.isPercent ? image.width * (g.percentX ?? 100) / 100 : g.width ?? 4));
                 const bh = Math.max(0, Math.round(g.isPercent ? image.height * (g.percentY ?? 100) / 100 : g.height ?? bw));
-                return transformStoredMagickRaster(image, backend, raisePixelSteps(image, bw, bh, raised, [channels.r, channels.g, channels.b, image.hasAlpha && channels.a, channels.k === true]), signal);
+                const output = await transformStoredMagickRaster(image, backend, raisePixelSteps(image, bw, bh, raised, [channels.r, channels.g, channels.b, image.hasAlpha && channels.a, channels.k === true]), signal);
+                if (image.storedMetaChannels) {
+                    output.storedMetaChannels = [];
+                    for (const [index, plane] of image.storedMetaChannels.entries()) {
+                        const selected = defaultChannels || !!channels.meta?.includes(index);
+                        output.storedMetaChannels.push(selected ? await transformStoredMagickRaster(plane, backend,
+                            raisePixelSteps(plane, bw, bh, raised, [true, true, true, false]), signal) : plane);
+                    }
+                }
+                return output;
             });
         } else if (!operandsOnly && (token === "-transpose" || token === "-transverse")) {
             stackStep(async stack => {

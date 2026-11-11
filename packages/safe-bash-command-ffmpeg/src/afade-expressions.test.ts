@@ -129,6 +129,18 @@ for (const graph of [false, true]) {
 // Native FFmpeg PCM16 output for eight samples of 16000 at 8 kHz.
 for (const graph of [false, true]) {
   for (const [options, hex] of [
+    ["ns=4:t=PI/4", "803ee02e401fa00f0000000000000000"],
+    ["ns=4:t=E/3", "803ee02e401fa00f0000000000000000"],
+    ["ns=4:t=PHI/2", "803ee02e401fa00f0000000000000000"],
+    ["ns=4:type=PI/4", "803ee02e401fa00f0000000000000000"],
+    ["ns=4:type=E/3", "803ee02e401fa00f0000000000000000"],
+    ["ns=4:type=PHI/2", "803ee02e401fa00f0000000000000000"],
+    ["ns=4:c=PI/4", "0000ea17312cbe39803e803e803e803e"],
+    ["ns=4:c=E/3", "0000ea17312cbe39803e803e803e803e"],
+    ["ns=4:c=PHI/2", "0000ea17312cbe39803e803e803e803e"],
+    ["ns=4:curve=PI/4", "0000ea17312cbe39803e803e803e803e"],
+    ["ns=4:curve=E/3", "0000ea17312cbe39803e803e803e803e"],
+    ["ns=4:curve=PHI/2", "0000ea17312cbe39803e803e803e803e"],
     ["ns=4:c=max", "000057019f0f882d803e803e803e803e"],
     ["ns=4:curve=max", "000057019f0f882d803e803e803e803e"],
     ["ns=4:c=min", "803e803e803e803e803e803e803e803e"],

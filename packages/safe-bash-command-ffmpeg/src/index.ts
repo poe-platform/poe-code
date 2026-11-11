@@ -12862,7 +12862,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           .some(filter => filter.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse");
                         const frameLimit = reverse && maxAudioFrames !== 0 ? undefined : maxAudioFrames;
                         // Demand includes the complete frame where a downstream trim discovers EOF.
-                        const next = audioFilters[filterIndex + 1]?.trim();
+                        let nextIndex = filterIndex + 1;
+                        while (nextIndex < audioFilters.length) {
+                          const name = audioFilters[nextIndex]!.trim().split("=", 1)[0]!.split("@", 1)[0];
+                          // These filters preserve sample counts, timestamps, and frame boundaries.
+                          if (!["anull", "acopy", "volume"].includes(name!)) break;
+                          nextIndex++;
+                        }
+                        const next = audioFilters[nextIndex]?.trim();
                         const trim = next?.split("=", 1)[0]!.split("@", 1)[0] === "atrim"
                           ? parseAtrim(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "", origRate)
                           : undefined;

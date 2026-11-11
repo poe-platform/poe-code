@@ -7,7 +7,17 @@ import { createFfmpegCommand } from "./index.js";
 for (const [filter, frames, samples, measured] of [
   ["volumedetect", "1", 512, 512],
   ["volumedetect,atrim=end_sample=10", undefined, 10, 1024],
+  ["volumedetect,anull,atrim=end_sample=10", undefined, 10, 1024],
+  ["volumedetect,acopy,atrim=end_sample=10", undefined, 10, 1024],
+  ["volumedetect,volume=1,atrim=end_sample=10", undefined, 10, 1024],
+  ["volumedetect,anull,volume@pass=1,anull,atrim@end=end_sample=10", undefined, 10, 1024],
+  ["volumedetect,anull,atrim=end_sample=512", undefined, 512, 1024],
+  ["volumedetect,volume=1,atrim=end_sample=10", "1", 10, 512],
+  ["asetnsamples=256:0,volumedetect,anull,atrim=end_sample=10", undefined, 10, 512],
   ["volumedetect", undefined, 2400, 2400],
+  ["volumedetect,anull", undefined, 2400, 2400],
+  ["volumedetect,volume=1", undefined, 2400, 2400],
+  ["volumedetect,anull,asetpts=PTS-2400,atrim=end=0.00125", undefined, 2400, 2400],
   ["atrim=end_sample=10,volumedetect", undefined, 10, 10],
   ["asetnsamples=256:0,volumedetect,atrim=end_sample=10", undefined, 10, 512],
   ["volumedetect,atrim=end_sample=512", undefined, 512, 1024]

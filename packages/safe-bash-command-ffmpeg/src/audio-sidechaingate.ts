@@ -37,9 +37,10 @@ export async function gateAudio(
     if (key === "mode" || key === "detection" || key === "link") {
       const choices = key === "mode" ? ["downward", "upward"]
         : key === "detection" ? ["peak", "rms"] : ["average", "maximum"];
-      const choice = value === "0" || value === "1" ? Number(value) : choices.indexOf(value);
-      if (choice < 0) throw new Error(`sidechaingate: invalid ${key}`);
-      options[key] = choice;
+      const choice = parseFilterExpression(value, "sidechaingate", { [choices[0]!]: 0, [choices[1]!]: 1 });
+      if (!Number.isFinite(choice) || choice < 0 || choice > 1) throw new Error(`sidechaingate: invalid ${key}`);
+      // These integer options span 0..1; native rounding sends the 0.5 tie to zero.
+      options[key] = choice > 0.5 ? 1 : 0;
     } else {
       const [min, max] = bounds[key]!;
       const numeric = parseFilterExpression(value, "sidechaingate", { min, max, default: defaults[key]! });

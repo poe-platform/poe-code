@@ -39,7 +39,20 @@ for (const [option, expression, literal] of [
   ["release", "1k/2", "500"],
   ["makeup", "sqrt(4)", "2"],
   ["knee", "2^2", "4"],
-  ["level_sc", "1/2", "0.5"]
+  ["level_sc", "1/2", "0.5"],
+  ["mode", "1-1", "downward"],
+  ["mode", "downward+1", "upward"],
+  ["mode", "upward/2", "downward"],
+  ["detection", "0.75", "rms"],
+  ["detection", "peak+1", "rms"],
+  ["detection", "rms/2", "peak"],
+  ["link", "average+1", "maximum"],
+  ["link", "maximum-1", "average"],
+  ["link", "maximum/2", "average"],
+  ...["mode", "detection", "link"].flatMap(option => [
+    [option, "0.25", "0"], [option, "0.5", "0"], [option, "0.50001", "1"],
+    [option, "sqrt(1)", "1"]
+  ])
 ]) {
   it(`sidechaingate evaluates ${option}=${expression} like ${literal}`, async () => {
     const decimal = await run(`${option}=${literal}`);
@@ -59,7 +72,10 @@ for (const [option, expression, literal] of [
 }
 
 for (const option of ["level_in=0b1", "range=0b1", "level_sc=0o1", "level_sc=1/0",
-  "level_sc=0/0", "level_sc=1/", "level_sc=65/1", "level_sc=1/128", "level_sc=unknown"])
+  "level_sc=0/0", "level_sc=1/", "level_sc=65/1", "level_sc=1/128", "level_sc=unknown",
+  ...["mode", "detection", "link"].flatMap(option =>
+    ["", "-0.1", "1.1", "1/0", "0/0", "unknown", "1/"].map(value => `${option}=${value}`)),
+  "mode=rms", "detection=maximum", "link=upward"])
   it(`sidechaingate rejects ${option} without replacing output`, async () => {
     const { result, stderr, output } = await run(option);
     assert.equal(result.exitCode, 1, stderr);
@@ -73,7 +89,8 @@ for (const option of [
   "attack=0:attack=20", "release=9001:release=250", "makeup=0:makeup=1",
   "knee=9:knee=2", "level_sc=0:level_sc=1", "threshold=NaN:threshold=0.125",
   "attack=:attack=20", "mode=no:mode=downward", "detection=bad:detection=rms",
-  "link=2:link=average", "0:level_in=1", "1:no:mode=downward"
+  "link=2:link=average", "0:level_in=1", "1:no:mode=downward",
+  "mode=1.1:mode=0", "detection=-0.1:detection=1", "link=average+2:link=0"
 ]) {
   it(`sidechaingate validates overridden options in ${option} without replacing output`, async () => {
     const { result, stderr, output } = await run(option);
@@ -97,7 +114,11 @@ for (const [repeated, last] of [
   ["detection=rms:detection=0", "detection=peak"],
   ["link=average:link=1", "link=maximum"],
   ["2:level_in=1/2", "level_in=0.5"],
-  ["1:upward:mode=downward", "mode=downward"]
+  ["1:upward:mode=downward", "mode=downward"],
+  ["mode=upward:mode=1-1", "mode=downward"],
+  ["detection=peak:detection=0.75", "detection=rms"],
+  ["link=average:link=average+1", "link=maximum"],
+  ["1:downward+1", "mode=upward"]
 ] as const) {
   it(`sidechaingate uses the last valid value in ${repeated}`, async () => {
     const expected = await run(last);

@@ -525,7 +525,10 @@ Timeline `enable` expressions, such as `enable='gte(t,0.064)'`, are evaluated at
 audio frame boundaries (`t` is time in seconds; `n` is the frame index). Disabled
 frames pass through unchanged while the gate continues tracking the control input.
 Numeric options accept expressions such as `level_sc=1/2`, `attack=2+3`, and
-`makeup=sqrt(4)`. Invalid or out-of-range values fail without replacing output.
+`makeup=sqrt(4)`. The `mode`, `detection`, and `link` options also accept expressions
+with their named choices, such as `mode=1-1`, `detection=0.75`, and
+`link=average+1`; values must be within 0–1 before rounding to the nearest integer
+(ties round to even). Invalid or out-of-range values fail without replacing output.
 Filters after the gate retain program frame lengths and timestamps, including a partial final frame. Upstream filters run independently on each input:
 `[1:a]volume=0.5[key];[0:a][key]sidechaingate[out]` halves the control signal,
 while `[0:a]volume=0.5[program];[program][1:a]sidechaingate[out]` halves the program.

@@ -1,3 +1,4 @@
+import { interpolateFrameRate } from "./framerate.js";
 import { zoompan } from "./zoompan.js";
 import { imagePipeFrameEnd } from "./image-pipe.js";
 import { parseAudioSegment } from "./audio-asegment.js";
@@ -18295,6 +18296,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "decimate: unsupported option") return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("decimate:")) return { exitCode: 222 };
             if (msg === "decimate: invalid expression" || msg === "decimate: invalid or unsupported expression") return { exitCode: 234 };
+            if (msg.startsWith("framerate:")) {
+              if (msg === "framerate: timeline is unsupported") return { exitCode: 176 };
+              if (msg.startsWith("framerate: unsupported option ")) return { exitCode: 8 };
+              return { exitCode: err instanceof RangeError ? 222 : 234 };
+            }
             if (msg === "fps: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("fps: unsupported option ")) return { exitCode: 8 };
             if (msg === "fps: invalid round value" || msg === "fps: invalid eof_action value" ||

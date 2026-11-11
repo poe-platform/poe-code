@@ -14440,7 +14440,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     if (composed !== base) detachRgbaBuffer(base.data);
                     if (composed !== overlay) detachRgbaBuffer(overlay.data);
                 }
-                stack = [composed, ...stack.slice(mask ? 3 : 2)];
+                stack = [composed];
             } else {
                 throw new Error("image sequence is required '-composite'");
             }
@@ -16373,7 +16373,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         result = await compositeStoredMagick(result, mask!, backend, signal, 0, 0, "CopyAlpha");
                         result = await compositeStoredMagick(base, result, backend, signal, 0, 0, "Over");
                     }
-                    await stack.remove(mask ? [1, 2] : [1]); await stack.set(0, result); return stack;
+                    stack.length = 0; await stack.push(result); return stack;
                 }
                 const append = token.endsWith("append"), vertical = token === "-append";
                 if (append && stack.length === 1) {

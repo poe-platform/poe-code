@@ -79,7 +79,10 @@ export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, 
                 if (channels && !channels[channel] || (channel === 3 ? !input.hasAlpha || gray : channel >= colorSlots)) continue;
                 // Native GrayAlpha stores alpha in slot 1; our samples are expanded RGBA.
                 const source = gray && input.hasAlpha && channel === 1 ? offset + 2 : offset;
-                values[offset]! += terms[image * 2]! * (samples[source]! / range) ** terms[image * 2 + 1]!;
+                const value = terms[image * 2]! * (samples[source]! / range) ** terms[image * 2 + 1]!;
+                values[offset]! += value;
+                // Non-CMYK color slots contribute directly to C/M/Y; they have no black ink.
+                if (inks && input.space !== "cmyk" && channel < 3) inks[offset]! += value;
             }
         }
         for (let offset = 0; offset < length; offset++) values[offset] = offset % 4 === 3 && !hasAlpha ? 255 : values[offset]! * 255;

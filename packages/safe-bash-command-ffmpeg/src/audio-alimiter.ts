@@ -14,7 +14,8 @@ export async function limitAudio(
   frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[] = [{ start: 0, end: channels[0]?.length ?? 0, pts: 0 }],
   commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<{ channels: Float64Array[]; frames: { start: number; end: number; pts: number; pos?: number | undefined }[] }> {
-  const options = { level_in: 1, level_out: 1, limit: 1, attack: 5, release: 50, asc: 0, asc_level: 0.5, level: 1, latency: 0 };
+  const defaults = { level_in: 1, level_out: 1, limit: 1, attack: 5, release: 50, asc: 0, asc_level: 0.5, level: 1, latency: 0 };
+  const options = { ...defaults };
   const ranges = { level_in: [0.015625, 64], level_out: [0.015625, 64], limit: [0.0625, 1], attack: [0.1, 80], release: [1, 8000], asc: [0, 1], asc_level: [0, 1], level: [0, 1], latency: [0, 1] };
   const names = Object.keys(options) as (keyof typeof options)[];
   let enable: string | undefined;
@@ -41,11 +42,13 @@ export async function limitAudio(
       if (!key) throw new Error(`alimiter: unsupported option ${key}`);
       if (!Object.hasOwn(options, key)) throw new AlimiterError(`alimiter: unsupported option ${key}`, "options", 8);
       const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+      const [min, max] = ranges[key];
       const boolean = key === "asc" || key === "level" || key === "latency";
-      const number = !boolean ? parseFilterExpression(value, "alimiter", {}, undefined, new Float64Array(10))
+      const number = !boolean ? parseFilterExpression(value, "alimiter", {
+        default: defaults[key], min: min!, max: max!, none: 0, all: -1
+      }, undefined, new Float64Array(10))
         : ["1", "true", "yes", "y", "on"].includes(value.toLowerCase()) ? 1
         : ["0", "false", "no", "n", "off"].includes(value.toLowerCase()) ? 0 : NaN;
-      const [min, max] = ranges[key];
       if (!value || !Number.isFinite(number)) {
         throw new Error(`alimiter: invalid or unsupported ${key}`);
       }
@@ -104,7 +107,9 @@ export async function limitAudio(
           parseFilterExpression(command.expression, "alimiter enable", { t: 0, n: 0, w: 0, h: 0, pos: NaN });
           enable = command.expression;
         } else if (command.action === "limit") {
-          const value = parseFilterExpression(command.expression, "alimiter", {});
+          const value = parseFilterExpression(command.expression, "alimiter", {
+            default: defaults.limit, min: ranges.limit[0]!, max: ranges.limit[1]!, none: 0, all: -1
+          });
           if (Number.isFinite(value) && value >= ranges.limit[0]! && value <= ranges.limit[1]!) limit = value;
         }
       } catch { /* Native asendcmd continues after a rejected command. */ }

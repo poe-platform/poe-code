@@ -2957,6 +2957,16 @@ export function webvttAst(): MediaAstPlugin {
 
 // --- 10. FFmetadata (;FFMETADATA1) AST ---
 
+function setFfmetadataTag(tags: [string, string][], key: string, value: string): void {
+  const index = tags.findIndex(([name]) => name.toLowerCase() === key.toLowerCase());
+  if (index >= 0) {
+    // AVDictionary fills the removed slot with its last entry before appending.
+    tags[index] = tags[tags.length - 1]!;
+    tags.pop();
+  }
+  tags.push([key, value]);
+}
+
 export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   const decoded = decodeUtf8(bytes);
   const text = decoded.startsWith("\uFEFF") ? decoded.slice(1) : decoded;
@@ -2973,6 +2983,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   const tags: Record<string, string> = {};
   const custom = new Map<string, [string, string]>();
   const keySpellings: Record<string, string> = {};
+  const globalTags: [string, string][] = [];
   const chapters: Mp4Chapter[] = [];
   const tracks: MediaTrack[] = [];
 
@@ -2982,7 +2993,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   let curStart = 0;
   let curEnd: number | undefined;
   let missingEndChapter: Mp4Chapter | undefined;
-  let chapterTags = new Map<string, [string, string]>();
+  let chapterTags: [string, string][] = [];
   let curTitle = "";
   let chapterHeader: "timebase" | "start" | "end" | "tags" = "timebase";
 
@@ -3002,7 +3013,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       startTimeSeconds: curStart * factor,
       endTimeSeconds: (curEnd ?? curStart) * factor,
       title: curTitle,
-      tags: Object.fromEntries(chapterTags.values())
+      tags: Object.fromEntries(chapterTags)
     };
     chapters.push(chapter);
     missingEndChapter = curEnd === undefined ? chapter : undefined;
@@ -3018,7 +3029,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       tbDen = 1_000_000_000;
       curStart = 0;
       curEnd = undefined;
-      chapterTags = new Map();
+      chapterTags = [];
       curTitle = "";
       chapterHeader = "timebase";
       continue;
@@ -3077,20 +3088,22 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
         if (key === "END") curEnd = parseInt(val, 10) || 0;
         continue;
       }
-      chapterTags.set(key.toLowerCase(), [key, val]);
+      setFfmetadataTag(chapterTags, key, val);
       if (key.toUpperCase() === "TITLE") curTitle = val;
     } else if (section === "global") {
-      const normalizedKey = key.toLowerCase();
-      if (["title", "artist", "album", "date", "comment", "genre", "encoder"].includes(normalizedKey)) {
-        tags[normalizedKey] = val;
-        if (key !== normalizedKey) keySpellings[normalizedKey] = key;
-        else delete keySpellings[normalizedKey];
-      } else {
-        custom.set(normalizedKey, [key, val]);
-      }
+      setFfmetadataTag(globalTags, key, val);
     }
   }
   flushChapter();
+  for (const [key, val] of globalTags) {
+    const normalizedKey = key.toLowerCase();
+    if (["title", "artist", "album", "date", "comment", "genre", "encoder"].includes(normalizedKey)) {
+      tags[normalizedKey] = val;
+      if (key !== normalizedKey) keySpellings[normalizedKey] = key;
+    } else {
+      custom.set(normalizedKey, [key, val]);
+    }
+  }
 
   return {
     containerFormat: "ffmetadata",
@@ -3099,6 +3112,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
     durationSeconds: chapters[chapters.length - 1]?.endTimeSeconds ?? 0,
     tracks,
     metadata: {
+      ...(globalTags.length > 0 ? { keyOrder: globalTags.map(([key]) => key) } : {}),
       ...(Object.keys(keySpellings).length > 0 ? { keySpellings } : {}),
       title: tags.title,
       artist: tags.artist,
@@ -3126,17 +3140,16 @@ function escapeFfmetadata(value: string): string {
 export function serializeFfmetadata(doc: MediaDocument): Uint8Array {
   const lines: string[] = [";FFMETADATA1"];
   const m = doc.metadata;
-  if (m.title !== undefined) lines.push(`${m.keySpellings?.title ?? "title"}=${escapeFfmetadata(m.title)}`);
-  if (m.artist !== undefined) lines.push(`${m.keySpellings?.artist ?? "artist"}=${escapeFfmetadata(m.artist)}`);
-  if (m.album !== undefined) lines.push(`${m.keySpellings?.album ?? "album"}=${escapeFfmetadata(m.album)}`);
-  if (m.date !== undefined) lines.push(`${m.keySpellings?.date ?? "date"}=${escapeFfmetadata(m.date)}`);
-  if (m.comment !== undefined) lines.push(`${m.keySpellings?.comment ?? "comment"}=${escapeFfmetadata(m.comment)}`);
-  if (m.copyright !== undefined) lines.push(`${m.keySpellings?.copyright ?? "copyright"}=${escapeFfmetadata(m.copyright)}`);
-  if (m.genre !== undefined) lines.push(`${m.keySpellings?.genre ?? "genre"}=${escapeFfmetadata(m.genre)}`);
-  if (m.trackNumber !== undefined) lines.push(`${m.keySpellings?.track ?? "track"}=${escapeFfmetadata(m.trackNumber)}`);
-  if (m.encoder !== undefined) lines.push(`${m.keySpellings?.encoder ?? "encoder"}=${escapeFfmetadata(m.encoder)}`);
-  for (const [key, value] of Object.entries(m.custom ?? {})) {
-    lines.push(`${escapeFfmetadata(key)}=${escapeFfmetadata(value)}`);
+  const tags = new Map<string, string>();
+  for (const field of ["title", "artist", "album", "date", "comment", "copyright", "genre", "trackNumber", "encoder"] as const) {
+    const key = field === "trackNumber" ? "track" : field;
+    const value = m[field];
+    if (value !== undefined) tags.set(m.keySpellings?.[key] ?? key, value);
+  }
+  for (const [key, value] of Object.entries(m.custom ?? {})) tags.set(key, value);
+  for (const key of new Set([...(m.keyOrder ?? []), ...tags.keys()])) {
+    const value = tags.get(key);
+    if (value !== undefined) lines.push(`${escapeFfmetadata(key)}=${escapeFfmetadata(value)}`);
   }
 
   if (doc.chapters && doc.chapters.length > 0) {

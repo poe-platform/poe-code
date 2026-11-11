@@ -7241,7 +7241,8 @@ function applyChapterMetadata(
 
 function orderFfmetadataReplacements(tags: Mp4MetadataTags, source: Mp4MetadataTags, metadata: Record<string, string>): Mp4MetadataTags {
   const custom = { ...tags.custom };
-  const ordered = { ...tags, custom };
+  const ordered = { ...tags, custom,
+    keyOrder: tags.keyOrder?.filter(key => !Object.hasOwn(metadata, key.toLowerCase()) && key.toLowerCase() !== "encoder") };
   for (const [key, value] of Object.entries(metadata)) {
     if (key === "encoder") continue;
     const field = (["title", "artist", "album", "date", "comment", "copyright", "genre"] as const).find(field => field === key);

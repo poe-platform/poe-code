@@ -427,6 +427,8 @@ export interface MediaTrack {
 }
 
 export interface Mp4MetadataTags {
+  /** Global FFmetadata tag names in dictionary order, including integer-like custom keys. */
+  readonly keyOrder?: readonly string[] | undefined;
   /** Original spellings of recognized FFmetadata keys, indexed by normalized metadata field. */
   readonly keySpellings?: Readonly<Record<string, string>> | undefined;
   readonly title?: string | undefined;

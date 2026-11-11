@@ -7295,7 +7295,13 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         return images;
     }
     let work = 0;
-    const {baseToken,pageSpec,inlineGeom=extract}=parseInputToken(token);
+    const {baseToken,pageSpec,inlineGeom:inputGeometry}=parseInputToken(token);
+    let inlineGeom=inputGeometry ?? extract;
+    const generatedGeometry = inlineGeom && ["xc:", "canvas:", "gradient:", "radial-gradient:"].some(prefix => baseToken.toLowerCase().startsWith(prefix)) ? parseMagickGeometry(inlineGeom) : undefined;
+    if (generatedGeometry?.width && generatedGeometry.height) {
+        state = { ...state, sizeWidth: generatedGeometry.width, sizeHeight: generatedGeometry.height };
+        inlineGeom = undefined;
+    }
     function* applyMod(imgs: RgbaImage[]): Generator<void, RgbaImage[], void> {
         return yield* mapSteps(imgs, function* (im) {
             // ImageMagick activates the decoder's opaque alpha for RGB EXR input.
@@ -17935,7 +17941,13 @@ async function applyStoredInlineReadModifier(image: StoredRgbaImage, inlineGeom:
 }
 
 async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{onInvalidIndex?:((index:number)=>void)|undefined;analysis?:{warnings:string}|undefined;registers?:ReadonlyMap<string, StoredImageStack>|undefined;source?:ImageByteSource|null|undefined;lastPage?:boolean;maxDecodeDimension?:number;extract?:string;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
- const {baseToken,pageSpec,inlineGeom=readOptions.extract}=parseInputToken(token),lower=baseToken.toLowerCase();let image:StoredRgbaImage|undefined;
+ const {baseToken,pageSpec,inlineGeom:inputGeometry}=parseInputToken(token),lower=baseToken.toLowerCase();let image:StoredRgbaImage|undefined;
+ let inlineGeom=inputGeometry ?? readOptions.extract;
+ const generatedGeometry = inlineGeom && ["xc:", "canvas:", "gradient:", "radial-gradient:"].some(prefix => lower.startsWith(prefix)) ? parseMagickGeometry(inlineGeom) : undefined;
+ if (generatedGeometry?.width && generatedGeometry.height) {
+  state = { ...state, sizeWidth: generatedGeometry.width, sizeHeight: generatedGeometry.height };
+  inlineGeom = undefined;
+ }
  if (token.slice(0, 4).toLowerCase() === "mpr:") {
      const saved = readOptions.registers?.get(baseToken.slice(4).toLowerCase());
      if (!saved) throw new Error(`unable to open image '${token}'`);

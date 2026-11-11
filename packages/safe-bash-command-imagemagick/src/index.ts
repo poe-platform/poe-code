@@ -12640,6 +12640,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return (yield* applyMagickFloodfillSteps(im, expanded, targetColor, state.fill, state.alphaFuzz, signal, false, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, t === "+floodfill"));
             });
         }
+        else if (t === "-ift" || t === "+ift") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
+            if (stack.length < 2) throw new Error(`image sequence is required '${t}'`);
+            // Fourier delegates are unavailable; native replaces the list with no images.
+            analysis.warnings += `magick: delegate library support not built-in \`${(stack[0] as MagickImage)[magickInput]?.filePath ?? ""}' (FFTW)\n`;
+            stack = [];
+        }
         else if (t === "-complex") {
             const argument = tokens[++i], image = stack[0];
             const expanded = image && argument !== undefined ? yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties }) : argument;
@@ -14716,6 +14723,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: channels.length === 1, apply: image => selectMagickChannels(image, channels) }, signal));
                 }
                 return result;
+            });
+            continue;
+        }
+        if (!operandsOnly && (token === "-ift" || token === "+ift")) {
+            stackStep(async (stack, backend) => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                if (stack.length < 2) throw new Error(`image sequence is required '${token}'`);
+                const image = (await stack.get(0))!;
+                analysis.warnings += `magick: delegate library support not built-in \`${image[magickInput]?.filePath ?? ""}' (FFTW)\n`;
+                return new StoredImageStack(backend.storage, signal, stack);
             });
             continue;
         }

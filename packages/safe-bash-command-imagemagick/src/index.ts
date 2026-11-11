@@ -14684,7 +14684,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-despeckle") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const result = yield* applyMagickRasterSteps(im, despecklePixelSteps(im, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined), signal);
+                const result = yield* applyMagickRasterSteps(im, despecklePixelSteps(im, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k ?? false] : undefined), signal);
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
                     for (const [index, plane] of im.metaChannels.entries()) {
@@ -18884,7 +18884,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
+            const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k ?? false] : undefined;
             const metaChannels = !state.channelExplicit || state.channelDefault ? "all" : state.channels.meta ?? [];
             steps.push(async (image, backend) => {
                 if (!image) return;

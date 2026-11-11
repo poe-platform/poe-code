@@ -261,20 +261,24 @@ function serializeChecksum(
   audioCodec: string | undefined,
   rawAudio: MediaAstPlugin | undefined,
   budget: MediaBudgetTracker,
-  encoder?: MediaAstPlugin,
-  encoderOptions?: SerializeMediaOptions
+  registry: ReturnType<typeof createMediaAstRegistry>,
+  encoderOptions?: SerializeMediaOptions,
+  audioCodecs: ReadonlyMap<number, string> = new Map()
 ): Uint8Array {
   if (format === "streamhash") {
     return concatBytes(doc.tracks.map((track, index) => concatBytes([
       encodeUtf8(`${index},${track.type === "video" ? "v" : "a"},`),
-      serializeChecksum({ ...doc, tracks: [track] }, "hash", algorithm, audioCodec, rawAudio, budget, encoder, encoderOptions)
+      serializeChecksum({ ...doc, tracks: [track] }, "hash", algorithm, audioCodecs.get(index) ?? audioCodec, rawAudio, budget, registry, encoderOptions)
     ])));
   }
   if (!doc.tracks.length || doc.tracks.some(track => track.type !== "audio" && track.type !== "video")) {
     throw new Error("Checksum output requires audio or video streams");
   }
   const packets: { dts: number; timescale: number; bytes: Uint8Array }[] = [];
-  for (const track of doc.tracks) {
+  for (const [index, track] of doc.tracks.entries()) {
+    const codec = audioCodecs.get(index) ?? audioCodec;
+    const encoder = codec === "flac" ? registry.findByFormatName("flac")
+      : codec === "adpcm_ima_wav" ? registry.findByFormatName("wav") : undefined;
     if (track.type === "video") {
       if (!track.decodedVideoFrames) throw new Error("Video checksum output requires decoded frames");
       for (const frame of track.decodedVideoFrames) {
@@ -290,7 +294,7 @@ function serializeChecksum(
     if (encoder) {
       // Reuse the container's encoder, then demux without decoding: only packet
       // payloads belong in the checksum, never headers or reconstructed PCM.
-      const encoded = encoder.serialize({ ...doc, tracks: [track] }, { ...encoderOptions, audioCodec, budget });
+      const encoded = encoder.serialize({ ...doc, tracks: [track] }, { ...encoderOptions, audioCodec: codec, budget });
       const encodedTrack = encoder.parse(encoded, { decodeAudio: false, budget }).tracks.find(t => t.type === "audio")!;
       for (const packet of encodedTrack.samples) {
         budget.checkCpu();
@@ -299,7 +303,7 @@ function serializeChecksum(
       continue;
     }
     if (!rawAudio?.canMux) throw new Error("Raw audio AST is not registered");
-    const payload = rawAudio.serialize({ ...doc, tracks: [track] }, { audioCodec, budget });
+    const payload = rawAudio.serialize({ ...doc, tracks: [track] }, { audioCodec: codec, budget });
     if (doc.tracks.length === 1 || !track.samples.length) {
       packets.push({ dts: 0, timescale: track.timescale, bytes: payload });
       continue;
@@ -311,7 +315,7 @@ function serializeChecksum(
     for (const packet of track.samples) {
       budget.checkCpu();
       const duration = Math.round(packet.duration * rate / track.timescale);
-      const size = audioCodec === "copy" ? packet.data.length : Math.min(payload.length - offset, Math.round(duration * bytesPerFrame));
+      const size = codec === "copy" ? packet.data.length : Math.min(payload.length - offset, Math.round(duration * bytesPerFrame));
       packets.push({ dts: packet.dts, timescale: track.timescale, bytes: payload.subarray(offset, offset + size) });
       offset += size;
     }
@@ -9631,6 +9635,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let crf: number | undefined;
         let rawPixelFormat: string | undefined;
         let audioCodec: string | undefined;
+        const indexedAudioCodecs = new Map<number, string>();
         let audioBitrate: number | undefined;
         let videoBitrate: number | undefined;
         let subtitleCodec: string | undefined;
@@ -10877,6 +10882,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const val = args[++i];
             videoCodec = val;
             audioCodec = val;
+            indexedAudioCodecs.clear();
             subtitleCodec = val;
           } else if (arg === "-force_key_frames") {
             forceKeyFrames = (args[++i] ?? "").split(",").map(parseHlsDuration);
@@ -10891,7 +10897,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-c:a" || arg === "-acodec" || arg === "-codec:a") {
             const value = args[++i];
             if (args.slice(i + 1).includes("-i")) pendingAudioDecoder = value;
-            else audioCodec = value;
+            else {
+              audioCodec = value;
+              indexedAudioCodecs.clear();
+            }
+          } else if (arg.startsWith("-c:a:") || arg.startsWith("-codec:a:")) {
+            const ordinal = arg.slice(arg.startsWith("-c:a:") ? "-c:a:".length : "-codec:a:".length);
+            const value = args[++i];
+            if (!ordinal || !Array.from(ordinal).every(char => char >= "0" && char <= "9") ||
+                !Number.isSafeInteger(Number(ordinal)) || !value) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid audio codec option '${arg}'\n`), context.signal);
+              return { exitCode: 1 };
+            }
+            indexedAudioCodecs.set(Number(ordinal), value);
           } else if (arg === "-c:s" || arg === "-scodec" || arg === "-codec:s") {
             subtitleCodec = args[++i];
           } else if (arg === "-an") {
@@ -11516,6 +11534,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const frameHashOutput = outputFormat === "framemd5" || outputFormat === "framehash";
         const frameChecksumOutput = frameHashOutput || outputFormat === "framecrc";
         const checksumOutput = frameChecksumOutput || outputFormat === "streamhash" || outputFormat === "hash" || outputFormat === "md5" || outputFormat === "crc";
+        if (indexedAudioCodecs.size && !checksumOutput) {
+          await writeBytes(context.stderr, encodeUtf8("ffmpeg: Indexed audio encoders currently require checksum output\n"), context.signal);
+          return { exitCode: 1 };
+        }
         const target = outputTarget;
         const protocolTargets = target.startsWith("tee:") ? target.slice(4).split("|") : [target];
         const progressOutputIndex = outputs.length;
@@ -13259,7 +13281,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: Output file does not contain any stream.\n"), context.signal);
               return { exitCode: 234 };
             }
-            validateAudioEncoder(audioCodec, workingDoc, astPlugins);
+            const audioCodecs = new Map<number, string>();
+            let codecOrdinal = 0;
+            for (const [index, track] of workingDoc.tracks.entries()) {
+              if (track.type !== "audio") continue;
+              const codec = indexedAudioCodecs.get(codecOrdinal++) ?? audioCodec;
+              if (codec !== undefined) audioCodecs.set(index, codec);
+              validateAudioEncoder(codec, { ...workingDoc, tracks: [track] }, astPlugins);
+            }
             if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
               outPlugin?.id, subtitleCodec);
 
@@ -13555,12 +13584,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               afFilters.push(...audioSinks.map((sink, index) => ({ ordinal: audioCount + index, expression: sink.expression })));
               workingDoc = { ...workingDoc, tracks: [...workingDoc.tracks, ...audioSinks.map(sink => sink.track)] };
             }
+            const defaultAudioCodec = audioCodec;
             // A graph branch runs the same filters without final output conversion or cuts.
             async function filterAudio(t: MediaTrack, expression?: string, index?: number): Promise<MediaTrack> {
                   let work = 0;
                   const maxAudioFrames = index === undefined ? undefined : streamFrameLimits[index];
                   if (t.type !== "audio") return t;
                   const ordinal = index === undefined ? undefined : audioOrdinal++;
+                  const audioCodec = ordinal === undefined ? defaultAudioCodec : indexedAudioCodecs.get(ordinal) ?? defaultAudioCodec;
                   const sink = index !== undefined && index >= workingDoc.tracks.length - audioSinks.length;
                   let audioChannels = index === undefined ? undefined : audioChannelsForStream(audioChannelOptions, index, ordinal!);
                   if (audioChannels !== undefined && audioChannels <= 0) audioChannels = undefined;
@@ -20159,12 +20190,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             const serializedBytes = checksumOutput
               ? (frameChecksumOutput
-                ? serializeFrameChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec, subtitleCodec, bitexact, copyTimestamps && !startAtZero, encoderTimeBases)
+                ? serializeFrameChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec, subtitleCodec, bitexact, copyTimestamps && !startAtZero, encoderTimeBases, audioCodecs)
                 : serializeChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "md5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget,
-                  audioCodec === "flac" ? registry.findByFormatName("flac") : audioCodec === "adpcm_ima_wav" ? registry.findByFormatName("wav") : undefined,
+                  registry,
                   { blockSize, trellis, compressionLevel, sampleFormat, frameSize, lpcType, channelMode, lpcPasses,
                     lpcCoeffPrecision, multiDimQuant, minPredictionOrder, maxPredictionOrder, predictionOrderMethod,
-                    minPartitionOrder, maxPartitionOrder, exactRiceParameters }))
+                    minPartitionOrder, maxPartitionOrder, exactRiceParameters }, audioCodecs))
               : serializeLimitedWav(workingDoc, outPlugin!, {
               seekable: !isStdout(outputTarget) && !outputTarget.startsWith("md5:"),
               live,

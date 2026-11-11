@@ -65,7 +65,7 @@ export function serializeFrameChecksum(
   doc: MediaDocument,
   format: string,
   algorithm: string,
-  audioCodec: string | undefined,
+  defaultAudioCodec: string | undefined,
   rawAudio: MediaAstPlugin | undefined,
   budget: MediaBudgetTracker,
   formatVersion = 2,
@@ -73,13 +73,13 @@ export function serializeFrameChecksum(
   subtitleCodec?: string,
   bitexact = false,
   copyTimestamps = false,
-  encoderTimeBases: ReadonlyMap<number, number> = new Map()
+  encoderTimeBases: ReadonlyMap<number, number> = new Map(),
+  audioCodecs: ReadonlyMap<number, string> = new Map()
 ): Uint8Array {
-  if (audioCodec === "copy") {
-    doc = { ...doc, tracks: doc.tracks.map(track => track.type === "audio" &&
-      track.codecDescriptions[0]?.codecName === "vorbis" && !track.codecDescriptions[0].extraData
-      ? demuxVorbisTrack(track) : track) };
-  }
+  doc = { ...doc, tracks: doc.tracks.map((track, index) =>
+    (audioCodecs.get(index) ?? defaultAudioCodec) === "copy" && track.type === "audio" &&
+    track.codecDescriptions[0]?.codecName === "vorbis" && !track.codecDescriptions[0].extraData
+    ? demuxVorbisTrack(track) : track) };
   const name = algorithm.toLowerCase();
   const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512, ripemd128, ripemd160, ripemd256, ripemd320, "sha512/224": sha512_224, "sha512/256": sha512_256 };
   if (format !== "framecrc" && name !== "crc32" && name !== "adler32" && name !== "murmur3" && !Object.hasOwn(hashes, name)) throw new Error(`Unknown hash algorithm '${algorithm}'`);
@@ -108,6 +108,7 @@ export function serializeFrameChecksum(
     }
   }
   const clocks = doc.tracks.map((track, index): [number, number] => {
+    const audioCodec = audioCodecs.get(index) ?? defaultAudioCodec;
     const copy = (track.type === "video" ? videoCodec : track.type === "subtitle" ? subtitleCodec : audioCodec) === "copy";
     if (copy) return [1, track.timescale];
     const selected = encoderTimeBases.get(index);
@@ -117,6 +118,7 @@ export function serializeFrameChecksum(
   });
   const lines = format === "framecrc" ? [] : ["#format: frame checksums", `#version: ${formatVersion}`, `#hash: ${name === "adler32" || name === "murmur3" ? name : name.toUpperCase()}`];
   for (const [index, track] of doc.tracks.entries()) {
+    const audioCodec = audioCodecs.get(index) ?? defaultAudioCodec;
     if ((track.type === "video" ? videoCodec : track.type === "subtitle" ? subtitleCodec : audioCodec) !== "copy") continue;
     const codec = track.codecDescriptions[0];
     let extra = codec?.extraData;
@@ -129,6 +131,7 @@ export function serializeFrameChecksum(
   }
   if (format === "framecrc" && !bitexact) lines.push("#software: Lavf61.7.100");
   for (const [index, track] of doc.tracks.entries()) {
+    const audioCodec = audioCodecs.get(index) ?? defaultAudioCodec;
     if (track.type === "video") {
       if (videoCodec && videoCodec !== "rawvideo" && videoCodec !== "copy") throw new Error(`Unsupported frame checksum video codec '${videoCodec}'`);
       const [num, den] = clocks[index]!;
@@ -169,6 +172,7 @@ export function serializeFrameChecksum(
   if (format !== "framecrc") lines.push("#stream#, dts,        pts, duration,     size, hash");
   const rows: { dts: number; rate: number; line: string }[] = [];
   for (const [index, track] of doc.tracks.entries()) {
+    const audioCodec = audioCodecs.get(index) ?? defaultAudioCodec;
     const video = track.type === "video";
     const copy = (video ? videoCodec : track.type === "subtitle" ? subtitleCodec : audioCodec) === "copy";
     const copiedAudio = copy && track.type === "audio";

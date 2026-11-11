@@ -309,6 +309,7 @@ Multiple mapped streams contribute packets in timestamp order to one digest, wit
 output stream order breaking timestamp ties.
 Use `-map 0:a -map 1:a -f streamhash -` for a separate digest per mapped audio
 stream, in output order, labeled `0,a,SHA256=...`, `1,a,SHA256=...`, and so on.
+Use `-c:a:0 pcm_u8 -c:a:1 pcm_s16be` to select separate encoders for mapped audio checksum streams. `-codec:a:N` is also accepted; the last matching codec option wins.
 With `-c:a adpcm_ima_wav` or `-c:a flac`, stream hashes cover the encoder's compressed packets, excluding container headers, and honor the codec's encoding options.
 Video with retained native pixel planes (including YUV420 Y4M input) is also supported: checksums cover frame pixels without container headers, and `streamhash` labels video streams with `v`.
 Hash selection supports RIPEMD128, RIPEMD160, RIPEMD256, RIPEMD320, CRC32, MD5, SHA160, SHA224, SHA256, SHA384, SHA512,

@@ -13619,6 +13619,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
                 const apply = operation.transform(histogram, image, sums);
                 const result = yield* apply(image);
+                if (t === "-auto-threshold" && ["true", "yes", "1", "on"].includes(state.optionProperties?.["auto-threshold:verbose"]?.toLowerCase() ?? ""))
+                    analysis.text += result.properties!["auto-threshold:threshold"] + "\n";
                 if (metaChannels) {
                     result.metaChannels = [];
                     for (const plane of metaChannels) result.metaChannels.push(image.region || image.writeMask
@@ -17807,6 +17809,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 const transform = { end: analysisOperation.end, evaluate: cmykHistogram || operation.sepiaThreshold !== undefined || token === "-auto-gamma" || token === "-auto-level" || token === "-linear-stretch" || token === "-equalize", handlesWriteMask: token === "-auto-gamma" || token === "-auto-level" || token === "-linear-stretch", apply: operation.transform(histogram, image, sums) };
                 const result = await transformStoredMagickPixels(image, backend, transform, signal, analysisOperation.highDepth);
+                if (token === "-auto-threshold" && ["true", "yes", "1", "on"].includes(settings.optionProperties?.["auto-threshold:verbose"]?.toLowerCase() ?? "")) {
+                    const text = result.properties!["auto-threshold:threshold"] + "\n";
+                    if (input.stdout) await writeIdentifyText(input.stdout, text, signal);
+                    else analysis.text += text;
+                }
                 if (metaChannels) {
                     result.storedMetaChannels = [];
                     for (const plane of metaChannels) result.storedMetaChannels.push(image.region || image.storedWriteMask

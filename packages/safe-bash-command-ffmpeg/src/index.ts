@@ -16327,14 +16327,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           "base", "delay", "sclevel", "phase", "bmode_in", "bmode_out"];
                         const options = argument ? argument.split(":") : [];
                         if (options.at(-1) === "") options.pop();
-                        let sawNamed = false;
-                        for (const [index, option] of options.entries()) {
+                        let position = 0;
+                        for (const option of options) {
                           const separator = option.indexOf("=");
-                          const key = separator < 0 ? positionalKeys[index] : option.slice(0, separator).trim();
-                          if (separator < 0 && (sawNamed || key === undefined)) {
-                            throw new Error("stereotools: unsupported positional option");
-                          }
-                          sawNamed ||= separator >= 0;
+                          const key = separator < 0 ? positionalKeys[position] : option.slice(0, separator).trim();
+                          if (key === undefined) throw new Error("stereotools: unsupported positional option");
+                          // Named options restart shorthand, skipping level_in only if it was just visited.
+                          if (separator < 0) position++;
+                          else position = position === 0 ? 1 : 0;
                           const value = option.slice(separator + 1).trim();
                           if (applyMixOption(key!, value)) continue;
                           if (key === "sclevel") {

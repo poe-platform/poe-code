@@ -8,6 +8,17 @@ import { createFfmpegCommand } from "./index.js";
 const left = [4096, 8192, -2000, 0];
 const right = [1024, -4096, 3000, 1000];
 for (const [positional, named] of [
+  ["level_out=0.5:1", "level_out=1"],
+  ["mode=lr>rl:1", "mode=lr>rl"],
+  ["level_in=1:1", "level_in=1:level_out=1"],
+  ["muter=1:1:", "muter=1"],
+  ["level_in=2:0.5", "level_in=2:level_out=0.5"],
+  ["2:mode=lr>rl:0.5", "mode=lr>rl:level_in=0.5"],
+  ["mode=lr>rl:0.5:0", "mode=lr>rl:level_out=0.5:balance_in=0"],
+  ["level_out=0.5:level_in=2:1", "level_in=1:level_out=0.5"],
+  ["mode=lr>rl:1:level_out=0.5:1", "mode=lr>rl:level_out=0.5:level_in=1"],
+  ["mode=lr>rl:1:1", "mode=lr>rl:balance_in=1"],
+  ["mode=lr>rl:1:1:1", "mode=lr>rl:balance_in=1:balance_out=1"],
   ["1:1:0:0:0:0:1", "muter=1"],
   ["1:1:0:0:0:0:1:", "muter=1"],
   ["1:1:muter=1:", "muter=1"],
@@ -49,6 +60,8 @@ for (const [positional, named] of [
         results.push(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)));
       }
       assert.deepEqual(results[0], results[1]);
+      if (named === "level_out=1") assert.deepEqual(results[0], [left, right]);
+      if (named === "mode=lr>rl") assert.deepEqual(results[0], [right, left]);
       if (named === "muter=1") assert.deepEqual(results[0], [left, [0, 0, 0, 0]]);
     });
   }
@@ -57,10 +70,10 @@ for (const [positional, named] of [
 for (const expression of [
   "1:1:0:0:0:0:2",
   "65",
-  "level_in=1:1",
+  "level_in=1:65",
   "muter=1::",
   "muter=1::phasel=1",
-  "muter=1:1:",
+  "muter=1:65:",
   "mode=:",
   "unknown=1:",
   "1:1:0:0:0:0:0:0:0:0:1:0:1:0:0:0:1:0:0:0:0"

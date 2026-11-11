@@ -582,7 +582,10 @@ such as `stereotools@x` select one instance; invalid updates keep the previous
 setting. For example, `asendcmd=c='1 stereotools@x level_out 0.5',stereotools@x`
 halves output gain starting with the first frame at or after one second.
 Positional arguments follow FFmpeg option order: `stereotools=1:1:0:0:0:0:1`
-is equivalent to `stereotools=muter=1`. Named arguments may follow positional ones.
+is equivalent to `stereotools=muter=1`. Named and positional arguments can be mixed:
+`stereotools=level_out=0.5:1` restores unity output, and `stereotools=mode=lr>rl:1`
+keeps the channel swap. Each named argument restarts positional binding at `level_in`,
+or at `level_out` if the current position was `level_in`.
 A single trailing `:` is accepted, so `stereotools=muter=1:` also mutes the right channel.
 `stereotools=phase=90` maps `(L, R)` to `(-R, L)`. Rotation follows mute,
 polarity, delay, and width, and precedes output balance and gain.

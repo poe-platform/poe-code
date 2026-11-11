@@ -8,8 +8,9 @@ export function isXpmBytes(bytes: Uint8Array): boolean {
   return new TextDecoder().decode(bytes.subarray(0, 9)) === "/* XPM */";
 }
 
-type Step = { kind: "read"; position: number } | { kind: "header"; metadata: ImageMetadata } | { kind: "pixel"; values: number[] };
-function* xpmSteps(size: number, options?: SharpInputOptions): Generator<Step, ImageMetadata, number | undefined> {
+type XpmMetadata = ImageMetadata & Pick<RgbaImage, "indexedColors">;
+type Step = { kind: "read"; position: number } | { kind: "header"; metadata: XpmMetadata } | { kind: "pixel"; values: number[]; index: number };
+function* xpmSteps(size: number, options?: SharpInputOptions): Generator<Step, XpmMetadata, number | undefined> {
   let position = 9;
   function* string(limit: number): Generator<Step, string, number | undefined> {
     let comment = false, previous = 0;
@@ -39,7 +40,7 @@ function* xpmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
   if (![width, height, colors, cpp].every(value => value !== undefined && Number.isSafeInteger(value) && value > 0) || !width || !height || !colors || !cpp || colors > 65536 || cpp > 8 || !Number.isSafeInteger(width * height * 4) || width * height * cpp > size) throw new Error("Invalid XPM header");
   checkLimitInputPixels(width, height, options);
   if (options?.page) throw new Error("XPM page is out of range");
-  const palette = new Map<string, number[]>();
+  const palette = new Map<string, { values: number[]; index: number }>();
   let hasAlpha = false, highDepth = false;
   for (let i = 0; i < colors; i++) {
     const line = yield* string(4096), symbol = line.slice(0, cpp), fields = words(line.slice(cpp));
@@ -86,17 +87,17 @@ function* xpmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
       const rgb = XPM_COLORS[name]!;
       rgba = [rgb >>> 16, (rgb >>> 8) & 255, rgb & 255, 255].map(value => value * 257);
     }
-    palette.set(symbol, rgba);
+    palette.set(symbol, { values: rgba, index: i });
   }
-  const metadata: ImageMetadata = { format: "xpm", width, height, channels: hasAlpha ? 4 : 3, hasAlpha, space: "srgb", depth: highDepth ? "ushort" : "uchar", density: 72, size };
+  const metadata: XpmMetadata = { format: "xpm", width, height, channels: hasAlpha ? 4 : 3, hasAlpha, space: "srgb", depth: highDepth ? "ushort" : "uchar", density: 72, size, ...(!hasAlpha ? { isPalette: true, indexedColors: Array.from(palette.values(), ({ values: [r, g, b, a] }) => Math.round(a! / 257) * 16777216 + Math.round(r! / 257) * 65536 + Math.round(g! / 257) * 256 + Math.round(b! / 257)) } : {}) };
   yield { kind: "header", metadata };
   for (let y = 0; y < height; y++) {
     const row = yield* string(width * cpp);
     if (row.length !== width * cpp) throw new Error("Invalid XPM row length");
     for (let x = 0; x < width; x++) {
-      const values = palette.get(row.slice(x * cpp, (x + 1) * cpp));
-      if (!values) throw new Error("Unknown XPM pixel symbol");
-      yield { kind: "pixel", values };
+      const entry = palette.get(row.slice(x * cpp, (x + 1) * cpp));
+      if (!entry) throw new Error("Unknown XPM pixel symbol");
+      yield { kind: "pixel", ...entry };
     }
   }
   return metadata;
@@ -105,33 +106,37 @@ function* xpmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
 export function readXpmImage(bytes: Uint8Array, options?: SharpInputOptions, metadataOnly = false): RgbaImage {
   const steps = xpmSteps(bytes.length, options);
   let next = steps.next(), data = new Uint8Array(), offset = 0;
-  let data16: Uint16Array | undefined;
+  let data16: Uint16Array | undefined, pngIndices: Uint8Array | undefined;
   while (!next.done) {
     const step = next.value;
     if (step.kind === "read") { next = steps.next(bytes[step.position]); continue; }
     if (!metadataOnly) {
       if (step.kind === "header") {
         data = new Uint8Array(step.metadata.width * step.metadata.height * 4);
+        if (step.metadata.indexedColors && step.metadata.indexedColors.length <= 256) pngIndices = new Uint8Array(data.length / 4);
         if (step.metadata.depth === "ushort") data16 = new Uint16Array(data.length);
       } else {
+        if (pngIndices) pngIndices[offset / 4] = step.index;
         for (const value of step.values) data[offset++] = Math.round(value / 257);
         data16?.set(step.values, offset - 4);
       }
     }
     next = steps.next();
   }
-  return { ...next.value, data, ...(data16 ? { data16 } : {}) };
+  return { ...next.value, data, ...(pngIndices ? { pngIndices } : {}), ...(data16 ? { data16 } : {}) };
 }
 
 export async function readXpmFromSource(source: ImageByteSource, storage: ImageByteStorage | undefined, signal: AbortSignal, options?: SharpInputOptions): Promise<StoredRgbaImage> {
   const reader = new SourceBytes(source, signal, "XPM"), steps = xpmSteps(source.size, options);
   let next = steps.next(), position = 0, offset = 0, used = 0;
-  const pixels = new Uint8Array(2048);
+  const pixels = new Uint8Array(2048), indices = new Uint8Array(512);
+  let storedPngIndices: StoredRgbaImage["storedPngIndices"];
   let samples16: Uint16Array | undefined, storedData16: StoredRgbaImage["storedData16"];
   async function flush() {
     if (!storage || !used) return;
     await storage.write(position + offset, pixels.subarray(0, used), { signal });
     if (storedData16 && samples16) await storage.write(storedData16.position + offset * 2, new Uint8Array(samples16.buffer, 0, used * 2), { signal });
+    if (storedPngIndices) await storage.write(storedPngIndices.position + offset / 4, indices.subarray(0, used / 4), { signal });
     offset += used; used = 0;
   }
   while (!next.done) {
@@ -145,7 +150,9 @@ export async function readXpmFromSource(source: ImageByteSource, storage: ImageB
           storedData16 = { position: storage.allocate(length * 2), length };
           samples16 = new Uint16Array(pixels.length);
         }
+        if (step.metadata.indexedColors && step.metadata.indexedColors.length <= 256) storedPngIndices = { position: storage.allocate(length / 4), width: step.metadata.width, height: step.metadata.height };
       } else {
+        indices[used / 4] = step.index;
         for (const value of step.values) pixels[used++] = Math.round(value / 257);
         samples16?.set(step.values, used - 4);
         if (used === pixels.length) await flush();
@@ -154,5 +161,5 @@ export async function readXpmFromSource(source: ImageByteSource, storage: ImageB
     next = steps.next();
   }
   await flush();
-  return { ...next.value, position, ...(storedData16 ? { storedData16 } : {}) };
+  return { ...next.value, position, ...(storedPngIndices ? { storedPngIndices } : {}), ...(storedData16 ? { storedData16 } : {}) };
 }

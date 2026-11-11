@@ -1,3 +1,4 @@
+import { dilation } from "./dilation.js";
 import { erosion } from "./erosion.js";
 import { inflate } from "./inflate.js";
 import { colorlevels } from "./colorlevels.js";
@@ -5977,6 +5978,8 @@ async function applyVideoFilterChain(
       const filtered = await edgedetect(current, argStr, pixelFormat, budget, signal);
       current = filtered.frames;
       pixelFormat = diagnostics.pixelFormat = filtered.pixelFormat;
+    } else if (name === "dilation") {
+      current = await dilation(current, argStr, pixelFormat, budget, signal);
     } else if (name === "bilateral") {
       current = await bilateral(current, argStr, pixelFormat, budget, signal);
       if (pixelFormat === "rgba" || pixelFormat === "bgra") pixelFormat = diagnostics.pixelFormat = "gbrap";

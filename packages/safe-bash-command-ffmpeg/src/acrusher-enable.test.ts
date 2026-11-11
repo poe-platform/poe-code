@@ -22,6 +22,15 @@ for (const [filter, expected] of [
   ["acrusher=enable=-0.5", crushed],
   ["acrusher=enable=0/0", original],
   ["acrusher=enable=1/0", crushed],
+  ["acrusher=enable=NAN", original],
+  ["acrusher=enable=nan", original],
+  ["acrusher=enable=NaN", original],
+  ["acrusher=enable=inf", crushed],
+  ["acrusher=enable=INF", crushed],
+  ["acrusher=enable=-inf", crushed],
+  ["acrusher=enable=Infinity", crushed],
+  ["acrusher=enable=isnan(nan)", crushed],
+  ["acrusher=enable=isinf(inf)", crushed],
   ["asetnsamples=n=4:p=0,asetpts=NAN,acrusher=enable='isnan(t)'", crushed],
   ["asetnsamples=n=4:p=0,acrusher=enable='gt(st(0,ld(0)+1),4)'", lastHalf]
 ] as const) for (const graph of [false, true]) {
@@ -44,7 +53,7 @@ for (const options of ["samples=3", "samples=3:lfo=1:lforate=200"]) it(`pauses $
   ]));
 });
 
-for (const enable of ["", "unknown", "gte(t,)"]) {
+for (const enable of ["", "unknown", "nanx", "infinite", "gte(t,)"]) {
   it(`rejects invalid acrusher enable=${enable} without replacing output`, async () => {
     const { volume, result, stderr, stdout } = await run(`acrusher=enable='${enable}'`, false, "/out.pcm");
     assert.notEqual(result.exitCode, 0);

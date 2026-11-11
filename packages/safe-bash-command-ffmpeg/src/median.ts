@@ -36,6 +36,7 @@ export async function median(
   }
 
   const output: MediaVideoFrame[] = [];
+  const registers = new Float64Array(10);
   let work = 0;
   for (const [n, frame] of frames.entries()) {
     signal?.throwIfAborted();
@@ -47,9 +48,16 @@ export async function median(
     if (native ? ![0, 4, 5, 8, 12, 13, 14, 29, 30].includes(native.format) : !gray) {
       throw new Error("median: only 8-bit or 16-bit grayscale or 8-bit planar YUV input is supported");
     }
-    if (!(values.planes & (gray ? 1 : 7)) || enable !== undefined && !(Math.abs(parseFilterExpression(enable, "median enable", {
-      n, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN
-    })) >= 0.5)) {
+    if (enable !== undefined) {
+      const variables = { n, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN };
+      // FFmpeg's generic timeline evaluates the predicate twice per frame.
+      parseFilterExpression(enable, "median enable", variables, undefined, registers);
+      if (!(Math.abs(parseFilterExpression(enable, "median enable", variables, undefined, registers)) >= 0.5)) {
+        output.push(frame);
+        continue;
+      }
+    }
+    if (!(values.planes & (gray ? 1 : 7))) {
       output.push(frame);
       continue;
     }

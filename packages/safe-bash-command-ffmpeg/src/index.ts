@@ -4,6 +4,7 @@ import { hqdn3d } from "./hqdn3d.js";
 import { unsharp } from "./unsharp.js";
 import { bilateral } from "./bilateral.js";
 import { gblur } from "./gblur.js";
+import { roberts } from "./roberts.js";
 import { median } from "./median.js";
 import { parseAlphamergeGraph, alphamerge } from "./alphamerge.js";
 import { interpolateFrameRate } from "./framerate.js";
@@ -2491,6 +2492,8 @@ async function applyVideoFilterChain(
           videoCommands.push({ ...scheduled[next++]!, time: frame.ptsSeconds });
         }
       }
+    } else if (name === "roberts") {
+      current = await roberts(current, argStr, pixelFormat, budget, signal);
     } else if (name === "median") {
       current = await median(current, argStr, pixelFormat, budget, signal);
     } else if (name === "blackdetect") {

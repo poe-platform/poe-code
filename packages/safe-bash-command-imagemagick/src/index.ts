@@ -1256,6 +1256,8 @@ function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows
     const name = (separator < 0 ? spec : spec.slice(0, separator)).trim().toLowerCase();
     const argument = separator < 0 || spec.slice(separator + 1).trim() === "" ? undefined : Number(spec.slice(separator + 1));
     let named: number[] | undefined;
+    let namedCols: number | undefined;
+    let namedRows: number | undefined;
     if (name === "unity") named = [argument ?? 1];
     else if (name === "sobel" && (argument === undefined || Number.isFinite(argument))) {
         named = [1, 0, -1, 2, 0, -2, 1, 0, -1];
@@ -1272,6 +1274,78 @@ function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows
         // Larger all-ones kernels have the same effect as a 6x6 matrix.
         const size = Math.min(6, Math.max(3, Math.floor(2 * (argument ?? 1) + 1)));
         named = new Array<number>(size * size).fill(1);
+    }
+    else if (name === "laplacian" && (argument === undefined || Number.isFinite(argument))) {
+        const kernels: Record<number, number[]> = {
+            0: [-1, -1, -1, -1, 8, -1, -1, -1, -1],
+            1: [0, -1, 0, -1, 4, -1, 0, -1, 0],
+            2: [-2, 1, -2, 1, 4, 1, -2, 1, -2],
+            3: [1, -2, 1, -2, 4, -2, 1, -2, 1],
+            5: [-4, -1, 0, -1, -4, -1, 2, 3, 2, -1, 0, 3, 4, 3, 0, -1, 2, 3, 2, -1, -4, -1, 0, -1, -4],
+            7: [-10, -5, -2, -1, -2, -5, -10, -5, 0, 3, 4, 3, 0, -5, -2, 3, 6, 7, 6, 3, -2, -1, 4, 7, 8, 7, 4, -1, -2, 3, 6, 7, 6, 3, -2, -5, 0, 3, 4, 3, 0, -5, -10, -5, -2, -1, -2, -5, -10],
+            15: [0, 0, -1, 0, 0, 0, -1, -2, -1, 0, -1, -2, 16, -2, -1, 0, -1, -2, -1, 0, 0, 0, -1, 0, 0],
+            19: [0, -1, -1, -2, -2, -2, -1, -1, 0, -1, -2, -4, -5, -5, -5, -4, -2, -1, -1, -4, -5, -3, 0, -3, -5, -4, -1, -2, -5, -3, 12, 24, 12, -3, -5, -2, -2, -5, 0, 24, 40, 24, 0, -5, -2, -2, -5, -3, 12, 24, 12, -3, -5, -2, -1, -4, -5, -3, 0, -3, -5, -4, -1, -1, -2, -4, -5, -5, -5, -4, -2, -1, 0, -1, -1, -2, -2, -2, -1, -1, 0],
+        };
+        named = kernels[Math.trunc(argument ?? 0)] ?? kernels[0]!;
+    }
+    else if (["gaussian", "blur", "diamond", "disk", "octagon", "rectangle"].includes(name)) {
+        const geometry = parseMagickGeometry(separator < 0 ? "" : spec.slice(separator + 1));
+        const radius = geometry.width ?? 0;
+        const sigma = Math.abs(geometry.height ?? 0);
+        if (![radius, sigma].every(Number.isFinite) || Math.abs(radius) >= 5000 || sigma >= 5000)
+            throw new Error("Invalid color matrix: kernel radius exceeds 5000");
+        let width: number, height: number;
+        let weights: number[] | undefined;
+        if (name === "gaussian" || name === "blur") {
+            let half = radius >= 1 ? Math.floor(radius) : radius > 0 ? Math.ceil(radius) : 1;
+            if (radius <= 0 && sigma > 1e-12) {
+                let sum = 1 + 2 * Math.exp(-1 / (2 * sigma * sigma));
+                for (half = 2; half < 5000; half++) {
+                    const edge = Math.exp(-half * half / (2 * sigma * sigma));
+                    sum += 2 * edge;
+                    if (edge / (name === "gaussian" ? sum * sum : sum) < 1 / 65535) { half--; break; }
+                }
+                if (half >= 5000) throw new Error("Invalid color matrix: kernel radius exceeds 5000");
+            }
+            width = half * 2 + 1;
+            height = name === "blur" ? 1 : width;
+            weights = [];
+            let total = 0;
+            for (let x = -half; x <= half; x++) {
+                let weight = sigma <= 1e-12 ? Number(x === 0) : 0;
+                if (sigma > 1e-12) for (let sub = name === "blur" ? -1 : 0; sub <= (name === "blur" ? 1 : 0); sub++)
+                    weight += Math.exp(-((x + sub / 3) ** 2) / (2 * sigma * sigma));
+                weights.push(weight);
+                total += weight;
+            }
+            weights = weights.map(weight => weight / total);
+        } else if (name === "rectangle") {
+            width = Math.trunc(geometry.width ?? geometry.height ?? 0);
+            if (width < 1) width = 3;
+            height = Math.trunc(geometry.height ?? 0);
+            if (height < 1) height = width;
+            if (geometry.x < 0 || geometry.x >= width || geometry.y < 0 || geometry.y >= height)
+                throw new Error("Invalid color matrix: origin must be within the dimensions");
+        } else {
+            const half = name === "disk" ? radius < 0.4 ? 4 : Math.floor(radius)
+                : radius < 1 ? name === "octagon" ? 2 : 1 : Math.floor(radius);
+            width = height = half * 2 + 1;
+        }
+        // Color matrices read at most six columns and five rows, regardless of
+        // the spatial kernel's size. Keep its original center when cropping.
+        namedCols = Math.min(6, width);
+        namedRows = Math.min(5, height);
+        named = [];
+        const half = (width - 1) / 2;
+        const scale = geometry.height ?? 1;
+        for (let y = 0; y < namedRows; y++) for (let x = 0; x < namedCols; x++) {
+            const dx = x - half, dy = y - half;
+            const inside = name === "diamond" ? Math.abs(dx) + Math.abs(dy) <= half
+                : name === "octagon" ? Math.abs(dx) + Math.abs(dy) <= half + Math.floor(half / 2)
+                : name === "disk" ? dx * dx + dy * dy <= (radius < 0.4 ? 18 : Math.trunc(radius * radius)) : true;
+            named.push(weights ? weights[x]! * (name === "gaussian" ? weights[y]! : 1)
+                : name === "rectangle" ? 1 : inside ? scale : NaN);
+        }
     }
     const afterColon = spec.includes(":") ? spec.slice(spec.indexOf(":") + 1) : spec;
     if (!named && afterColon.trimEnd().endsWith(","))
@@ -1290,11 +1364,11 @@ function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows
             if ((!spec.includes(":") && index === 0) || s.toLowerCase() === "nan" || s === "-") return NaN;
             return 0;
         });
-    if (!spec.includes(":") && !Number.isFinite(m[0]))
+    if (!named && !spec.includes(":") && !Number.isFinite(m[0]))
         throw new Error("Invalid color matrix: expected a numeric first coefficient");
     const geometry = !named && spec.includes(":") ? parseMagickGeometry(spec.slice(0, spec.indexOf(":"))) : undefined;
-    const cols = geometry ? geometry.width ?? 0 : Math.sqrt(m.length);
-    const rows = geometry ? geometry.height ?? cols : cols;
+    const cols = namedCols ?? (geometry ? geometry.width ?? 0 : Math.sqrt(m.length));
+    const rows = namedRows ?? (geometry ? geometry.height ?? cols : cols);
     if (cols <= 0 || rows <= 0 || !Number.isInteger(cols) || !Number.isInteger(rows) || cols * rows !== m.length)
         throw new Error("Invalid color matrix: coefficient count must match the dimensions or be a nonzero square");
     if (geometry && (geometry.x < 0 || geometry.x >= cols || geometry.y < 0 || geometry.y >= rows))

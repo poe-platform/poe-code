@@ -1409,7 +1409,7 @@ function parseChannelSplit(spec: string): { input: string[]; selected: string[] 
   if (!["FC", "FL+FR", "FL+FR+LFE", "FL+FR+FC", "FL+FR+BL+BR", "FL+FR+FC+LFE+BL+BR",
     "FL+FR+FC+LFE+SL+SR", "FL+FR+FC+LFE+BL+BR+SL+SR", "FL+FR+FC+BC", "FL+FR+FC+LFE+BC",
     "FL+FR+FC+BL+BR", "FL+FR+FC+SL+SR", "FL+FR+FC+LFE+BC+SL+SR",
-    "FL+FR+FC+BL+BR+BC+SL+SR"].includes(input.join("+"))) {
+    "FL+FR+FC+BL+BR+BC+SL+SR"].includes([...input].sort((a, b) => audioSpeakerMasks[a]! - audioSpeakerMasks[b]!).join("+"))) {
     throw new Error(`channelsplit: unsupported channel layout ${layout}`);
   }
   const selected = channels === "all" ? input : parseAudioChannelLayout(channels);
@@ -16260,9 +16260,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "channelsplit" || trimmed.startsWith("channelsplit=")) {
                         const { input, selected } = parseChannelSplit(trimmed);
                         if (selected.length !== 1) throw new Error("channelsplit: simple audio filters require exactly one output");
-                        if (!filteredChannelMask && filteredChannelNames?.some(name => name !== "")) {
+                        const matchingOrder = input.every((name, index) => name === filteredChannelNames?.[index]);
+                        const customOrder = input.some((name, index) => index > 0 &&
+                          audioSpeakerMasks[name]! < audioSpeakerMasks[input[index - 1]!]!);
+                        if (!matchingOrder && !filteredChannelMask && filteredChannelNames?.some(name => name !== "")) {
                           throw new Error(`channelsplit: unsupported input channel order ${filteredChannelNames.join("+")}`);
                         }
+                        if (customOrder && !matchingOrder) throw new Error("channelsplit: matching input channel layout required");
                         const mask = input.reduce((value, speaker) => value + audioSpeakerMasks[speaker]!, 0);
                         const quad = stretched.length === 4 && filteredChannelMask === 0x33;
                         if (mask === 3 && (stretched.length === 1 || quad || stretched.length === 6)) {

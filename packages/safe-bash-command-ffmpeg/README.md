@@ -776,6 +776,9 @@ Split stereo PCM into distinct mono files with
 Mono and 5.1 input are remixed to stereo before selecting a stereo output channel.
 Stereo and 5.1 input are remixed to mono for `channelsplit=mono:FC`; the 5.1 mix
 uses normalized speaker weights and excludes LFE.
+Matching custom channel orders support named extraction, for example
+`join=channel_layout=FR+FL:map=0.0-FR|1.0-FL,channelsplit=FR+FL:FR`.
+`channels=all` emits speakers in the custom layout’s order.
 Custom input channel orders such as `FR+FL` cannot be converted to stereo;
 `channelsplit` exits with status 234 and leaves an empty output file.
 Stereo input is expanded to 2.1, quad, 5.1, or 5.1(side) before selecting an output

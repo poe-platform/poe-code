@@ -478,6 +478,8 @@ such as `2*4` in the range 2–131072 (default 256), rounded to the nearest samp
 with halfway values rounded to even (`2.5` becomes `2`, `3.5` becomes `4`).
 `algo` accepts `slow`, `fast` (assumes zero means), or `best`
 (default), or numeric expressions in 0–2 rounded to the nearest integer (ties to even).
+Both options accept `min`, `max`, and `default` in expressions: `size` uses
+2, 131072, and 256; `algo` uses 0 (`slow`), 2 (`best`), and 2 (`best`).
 If the first input has at most `size` samples, no audio is emitted;
 a short second input still produces audio when the first exceeds `size`. Windows
 look forward and use silence past the packets received when either input ends. Filters can follow axcorrelate and receive its output frame boundaries and timestamps, including the tail;

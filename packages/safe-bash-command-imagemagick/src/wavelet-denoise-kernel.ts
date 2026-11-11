@@ -4,11 +4,22 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Separable à trous hat transform with native noise thresholds and reflected edges. */
 export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">> & { region?: Region | undefined; hasAlpha?: boolean; alphaBlend?: boolean | undefined }, geometry: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const [thresholdText = "", softnessText = "0", ...extra] = geometry.replaceAll("%", "").split("x");
+    const normalized = geometry.replaceAll("%", "").replaceAll("(", "").replaceAll(")", "")
+        .replaceAll(",", "x").replaceAll("/", "x").replaceAll("X", "x");
+    const fields: string[] = [];
+    let start = 0;
+    for (let i = 1; i < normalized.length; i++) {
+        if ("+-".includes(normalized[i]!) && !"eEx".includes(normalized[i - 1]!)) {
+            fields.push(normalized.slice(start, i));
+            start = i;
+        }
+    }
+    fields.push(normalized.slice(start));
+    const [thresholdText = "", softnessText = "0", ...extra] = fields[0]!.split("x");
     const scale = geometry.includes("%") ? 65535 / 100 : 1;
     const threshold = Number(thresholdText) * scale;
     const softness = Number(softnessText) * scale;
-    if (!thresholdText.trim() || !Array.from(thresholdText.trim()).every(char => "0123456789.eE+-".includes(char)) || extra.length || !Number.isFinite(threshold) || !Number.isFinite(softness)) throw new Error("Invalid wavelet denoise geometry");
+    if (!thresholdText.trim() || !Array.from(thresholdText.trim()).every(char => "0123456789.eE+-".includes(char)) || extra.length || fields.slice(1).some(field => !Number.isFinite(Number(field))) || !Number.isFinite(threshold) || !Number.isFinite(softness)) throw new Error("Invalid wavelet denoise geometry");
     const { width, height } = image, size = width * height;
     const noise = [0.8002, 0.2735, 0.1202, 0.0585, 0.0291];
     let levels = 5;

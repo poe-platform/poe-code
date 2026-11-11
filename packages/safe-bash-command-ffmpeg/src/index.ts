@@ -12476,6 +12476,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             .sort((a, b) => a.sample - b.sample);
                           stretched = await compensateAudioDelay(stretched, origRate, trimmed, audioTimestamps, commands, budget, context.signal);
                         } else if (filterName === "afade") {
+                          if (filteredSampleFormat === "u8" || filteredSampleFormat === "u8p") {
+                            if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                            // Native afade negotiates signed PCM before processing unsigned input.
+                            const format = filteredSampleFormat === "u8p" ? "s16p" : "s16";
+                            stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
+                            filteredSampleFormat = panSampleFormat = format;
+                          }
                           const commands = audioCommands.filter(command => command.target === "afade" || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);
                           audioCommands = audioCommands.filter(command => command.target !== "afade" && command.target !== filterTarget);

@@ -10592,9 +10592,14 @@ function applyMagickUnits<T extends ImageMetadata & { magickUnits?: MagickState[
     if (!image.resolution) return { ...image, magickUnits: unit };
     const sourceUnit = image.resolution.unit === "meter" ? "cm" : image.resolution.unit;
     const scale = (image.resolution.unit === "meter" ? 100 : 1)
-        * (sourceUnit === "inch" && unit === "cm" ? 2.54 : sourceUnit === "cm" && unit === "inch" ? 1 / 2.54 : 1);
-    const x = image.resolution.x / scale;
-    const y = image.resolution.y / scale;
+        * (sourceUnit === "inch" && unit === "cm" ? 2.54 : 1);
+    let x = image.resolution.x / scale;
+    let y = image.resolution.y / scale;
+    if (sourceUnit === "cm" && unit === "inch") {
+        // ImageMagick rounds converted densities before calculating resample dimensions.
+        x = Math.floor(100 * 2.54 * x + 0.5) / 100;
+        y = Math.floor(100 * 2.54 * y + 0.5) / 100;
+    }
     return { ...image, density: x * (unit === "cm" ? 2.54 : 1), resolution: { x, y, unit } };
 }
 

@@ -65,6 +65,9 @@ export function orientRegion(region: Region, image: { width: number; height: num
 export function* regionPixelSteps(image: { width: number; height: number; hasAlpha: boolean; alphaBlend?: boolean | undefined; space?: string }, region: Region, highDepth = false, channels?: MaskChannels & { k?: boolean }, replaceAlpha = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     // Gray's single intensity channel occupies all three RGB storage slots.
     if (channels && (image.space === "b-w" || image.space === "grey16")) channels = { ...channels, g: channels.r, b: channels.r };
+    // Either source can supply normalized colors; every output span must fill that plane.
+    const hue = image.space !== "cmyk" && ((yield { kind: "read", hue: true, position: 0, length: 4 })?.length
+        || (yield { kind: "read", hue: true, image: 1, position: 0, length: 4 })?.length);
     const left = Math.max(0, Math.min(image.width, region.x));
     const right = Math.max(left, Math.min(image.width, region.x + region.width));
     const wrappedRight = region.wrap ? Math.max(0, region.x + region.width - image.width) : 0;
@@ -118,7 +121,7 @@ export function* regionPixelSteps(image: { width: number; height: number; hasAlp
                     for (let offset = 0; offset < output.length; offset += 4) for (let channel = 0; channel < 3; channel++)
                         output[offset + channel] = (1 - inks[offset + channel]!) * (1 - inks[offset + 3]!) * 255;
                 }
-                if (colors?.length) yield { kind: "write", hue: true, position, data: new Uint8Array(Float64Array.from(output, value => value / 255).buffer) };
+                if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(Float64Array.from(output, value => value / 255).buffer) };
                 yield { kind: "write", evaluate: true, position, data: new Uint8Array(output.buffer) };
                 const bounded = highDepth ? Uint16Array.from(output, value => Math.round(Math.max(0, Math.min(65535, value * 257))))
                     : Uint8Array.from(output, value => Math.round(Math.max(0, Math.min(255, value))));

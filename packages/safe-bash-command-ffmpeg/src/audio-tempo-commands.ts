@@ -7,7 +7,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function filterScheduledTempo(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, sampleFormat: string,
   tempo: number, commands: readonly { sample: number; expression: string }[],
-  frames: readonly { start: number; end: number; pts: number }[], budget: MediaBudgetTracker, signal?: AbortSignal
+  frames: readonly { start: number; end: number; pts: number }[], budget: MediaBudgetTracker, signal?: AbortSignal, frameLimit?: number
 ): Promise<{ channels: readonly (Float32Array | Float64Array)[]; frames: { start: number; end: number; pts: number; inputEnd: number }[] }> {
   // Unblended samples retain the input format's precision.
   const SampleArray = sampleFormat === "dbl" || sampleFormat === "dblp" ? Float64Array : Float32Array;
@@ -33,6 +33,7 @@ export async function filterScheduledTempo(
   let current = { input: -hop, output: -hop, count: 0 };
   let fragments = 0;
   let consumed = 0;
+  let inputEnd = 0;
   let emitted = 0;
   let destinationEnd = 0;
   let originInput = 0;
@@ -43,7 +44,7 @@ export async function filterScheduledTempo(
   const pushFrame = () => {
     if (emitted > frameStart) {
       budget.allocateMemory(32);
-      outputFrames.push({ start: frameStart, end: emitted, pts: (frames[0]?.pts ?? 0) + frameStart, inputEnd: consumed });
+      outputFrames.push({ start: frameStart, end: emitted, pts: (frames[0]?.pts ?? 0) + frameStart, inputEnd });
       frameStart = emitted;
     }
     destinationEnd = emitted;
@@ -102,7 +103,9 @@ export async function filterScheduledTempo(
     }
     emitted = stop;
   };
-  for (const frame of frames) {
+  input: for (const frame of frames) {
+    // The upstream filter has processed this entire frame, even while part of it is buffered.
+    inputEnd = frame.end;
     while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
       const command = commands[nextCommand++]!;
       try {
@@ -133,12 +136,15 @@ export async function filterScheduledTempo(
         if (emitted < end) break;
         advance();
       }
-      if (destinationEnd === emitted) pushFrame();
+      if (destinationEnd === emitted) {
+        pushFrame();
+        if (outputFrames.length === frameLimit) break input;
+      }
     }
   }
   // At EOF a partially loaded fragment is aligned again before the final
   // overlap. Once it reaches the input tail, copy its remaining samples.
-  while (fragments) {
+  while (fragments && outputFrames.length !== frameLimit) {
     await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
     if (consumed === current.input + current.count && emitted === current.output + current.count) break;
     if (destinationEnd === emitted) destinationEnd = emitted + window * 3;

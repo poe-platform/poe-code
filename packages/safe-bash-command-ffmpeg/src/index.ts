@@ -14564,8 +14564,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           : undefined;
                         // aloop fills its first size-limited chunk before emitting it,
                         // even with loop=0. Upstream detectors see whole consumed frames.
-                        const initialDemand = Math.min(1024, loop?.size ?? 0);
+                        let initialDemand = Math.min(1024, loop?.size ?? 0);
                         const length = stretched[0]?.length ?? 0;
+                        if (filterName === "silencedetect" && frameLimit !== undefined && frameLimit > 0 && audioTimestamps &&
+                          next?.split("=", 1)[0]!.split("@", 1)[0] === "atempo") {
+                          // Tempo may load several fragments before filling an output frame.
+                          // Use its scheduler's actual demand, then measure whole input frames.
+                          const target = next.split("=", 1)[0]!;
+                          const tempo = parseTempo(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "");
+                          const commands = audioCommands.filter(command => command.target === "atempo" || command.target === target)
+                            .sort((a, b) => a.sample - b.sample);
+                          const result = await filterScheduledTempo(stretched, origRate, panSampleFormat, tempo,
+                            commands, audioTimestamps, budget, context.signal, frameLimit);
+                          initialDemand = result.frames.length < frameLimit ? length : result.frames[frameLimit - 1]!.inputEnd;
+                        }
                         let pending = 0;
                         let pendingPts = 0;
                         let pendingPos: number | undefined;

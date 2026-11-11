@@ -14723,7 +14723,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geometry, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 const angle = parseMagickRotationalBlurAngle(expanded);
-                return yield* applyMagickRasterSteps(im, rotationalBlurPixelSteps(im, angle, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
+                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, rotationalBlurPixelSteps(im, angle, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
             }, undefined, true);
         }
         else if (t === "-adaptive-sharpen" || t === "-adaptive-blur") {
@@ -18878,7 +18878,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 const angle = parseMagickRotationalBlurAngle(expanded);
-                return transformStoredMagickRaster(image, backend, rotationalBlurPixelSteps(image, angle, background, virtualPixel, channels), signal);
+                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, rotationalBlurPixelSteps(image, angle, background, virtualPixel, channels), signal);
             }, { handlesRegion: true }));
         } else if (!operandsOnly && (token === "-adaptive-sharpen" || token === "-adaptive-blur")) {
             stackStep(async stack => {

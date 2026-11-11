@@ -2370,19 +2370,38 @@ async function applyVideoFilterChain(
   let frameDuration = current[0]!.durationSeconds;
   let videoCommands: { time: number; target: string; action: string; expression: string }[] = [];
 
-  for (const [filterIndex, filterSpec] of parseFilterChain(filterChainStr).entries()) {
+  const materializePending = async (limit?: typeof output): Promise<void> => {
+    if (!pending) return;
+    if (!pendingBounded && !Number.isFinite(limit?.frames) && !Number.isFinite(limit?.end)) {
+      throw new Error("loop: infinite replay requires a finite output frame/time limit or downstream trim");
+    }
+    current = [];
+    if (limit?.frames !== 0 && (limit?.end === undefined || limit.end > (limit.start ?? 0))) {
+      let emitted = 0;
+      for await (const frame of pending) {
+        if (limit?.end !== undefined && frame.ptsSeconds >= limit.end) break;
+        current.push(frame);
+        if (frame.ptsSeconds >= (limit?.start ?? -Infinity) && ++emitted === limit?.frames) break;
+      }
+    }
+    pending = undefined;
+  };
+
+  const filters = parseFilterChain(filterChainStr);
+  for (const [filterIndex, filterSpec] of filters.entries()) {
     if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
     budget.checkCpu();
     diagnostics.timescale = timescale;
     const eqIdx = filterSpec.indexOf("=");
     const name = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).split("@", 1)[0]!.trim().toLowerCase();
-    // Keep replay lazy through filters that can discard frames or stop the source.
-    if (pending && !["select", "trim", "null"].includes(name)) {
+    // A final pixel conversion preserves frame counts and timestamps, so output limits can stop replay first.
+    if (pending && name === "format" && filterIndex === filters.length - 1) {
+      await materializePending(output);
+    } else if (pending && !["select", "trim", "null"].includes(name)) {
+      // Keep replay lazy through filters that can discard frames or stop the source.
       if (!pendingBounded) throw new Error("loop: infinite replay requires a downstream trim before buffered filters");
-      current = [];
-      for await (const frame of pending) current.push(frame);
-      pending = undefined;
+      await materializePending();
     }
     frameDuration = current[0]?.durationSeconds || frameDuration;
     if (current[0]) ({ width, height } = current[0]);
@@ -6184,20 +6203,7 @@ async function applyVideoFilterChain(
     }
   }
 
-  if (pending) {
-    if (!pendingBounded && !Number.isFinite(output?.frames) && !Number.isFinite(output?.end)) {
-      throw new Error("loop: infinite replay requires a finite output frame/time limit or downstream trim");
-    }
-    current = [];
-    if (output?.frames !== 0 && (output?.end === undefined || output.end > (output.start ?? 0))) {
-      let emitted = 0;
-      for await (const frame of pending) {
-        if (output?.end !== undefined && frame.ptsSeconds >= output.end) break;
-        current.push(frame);
-        if (frame.ptsSeconds >= (output?.start ?? -Infinity) && ++emitted === output?.frames) break;
-      }
-    }
-  }
+  await materializePending(output);
 
   diagnostics.timescale = timescale;
   diagnostics.frameDuration = frameDuration;

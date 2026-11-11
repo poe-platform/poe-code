@@ -27,9 +27,9 @@ function tgaHeader(image: Pick<RgbaImage, "width" | "height" | "orientation" | "
 }
 
 /** Pack a bounded span in grayscale or BGR(A) order; packets never cross a row. */
-function tgaSpan(data: Uint8Array, stride: 1 | 3 | 4, rle: boolean, palette?: ReadonlyMap<number, number>): Uint8Array {
+function tgaSpan(data: Uint8Array, stride: 1 | 3 | 4, rle: boolean, palette?: ReadonlyMap<number, number>, packed = false): Uint8Array {
   const count = data.length / 4;
-  const output = new Uint8Array(count * (palette ? 1 : stride) + (rle ? count : 0));
+  const output = new Uint8Array(count * (palette ? 1 : packed ? 2 : stride) + (rle ? count : 0));
   let offset = 0;
   const same = (a: number, b: number): boolean => {
     for (let channel = 0; channel < stride; channel++) if (data[a * 4 + channel] !== data[b * 4 + channel]) return false;
@@ -40,6 +40,13 @@ function tgaSpan(data: Uint8Array, stride: 1 | 3 | 4, rle: boolean, palette?: Re
       const offsetIn = index * 4;
       const color = (data[offsetIn]! * 65536 + data[offsetIn + 1]! * 256 + data[offsetIn + 2]!) * 256 + (stride === 4 ? data[offsetIn + 3]! : 255);
       output[offset++] = palette.get(color)!;
+      return;
+    }
+    if (packed) {
+      const value = (data[index * 4]! >> 3) << 10 | (data[index * 4 + 1]! >> 3) << 5 | data[index * 4 + 2]! >> 3
+        | (stride === 4 && data[index * 4 + 3]! >= 128 ? 0x8000 : 0);
+      output[offset++] = value & 255;
+      output[offset++] = value >> 8;
       return;
     }
     if (stride !== 1) {
@@ -69,6 +76,11 @@ function tgaSpan(data: Uint8Array, stride: 1 | 3 | 4, rle: boolean, palette?: Re
 /** Scan palette sources before emitting the header, retaining at most 256 colors. */
 function* tgaChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "channels" | "isPalette" | "orientation" | "properties" | "virtualCanvas">, options: OutputEncodeOptions): Generator<number | Uint8Array, void, Uint8Array> {
   const channels = tgaChannels(image), rle = options.tgaCompression === "rle", header = tgaHeader(image, channels, rle);
+  const packed = options.tgaDepth === 5 && channels !== 1;
+  if (packed) {
+    header[16] = 16;
+    header[17] = (header[17]! & 0xf0) | (channels === 4 ? 1 : 0);
+  }
   let palette = image.isPalette && channels !== 1 ? new Map<number, number>() : undefined;
   for (let offset = 0; palette && offset < image.width * image.height * 4; offset += Math.min(1024, image.width - offset / 4 % image.width) * 4) {
     const data = yield offset;
@@ -84,24 +96,23 @@ function* tgaChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "sp
     header[1] = 1;
     header[2] = rle ? 9 : 1;
     new DataView(header.buffer).setUint16(5, palette.size, true);
-    header[7] = channels * 8;
+    header[7] = packed ? 16 : channels * 8;
     header[16] = 8;
     header[17] = header[17]! & 0xf0;
   }
   yield header;
   if (palette) {
-    const colors = new Uint8Array(palette.size * channels);
+    const colors = new Uint8Array(palette.size * 4);
     for (const [color, index] of palette) {
-      colors.set([color >>> 8 & 255, color >>> 16 & 255, color >>> 24], index * channels);
-      if (channels === 4) colors[index * channels + 3] = color & 255;
+      colors.set([color >>> 24, color >>> 16 & 255, color >>> 8 & 255, color & 255], index * 4);
     }
-    yield colors;
+    yield tgaSpan(colors, channels, false, undefined, packed);
   }
   for (let y = 0; y < image.height; y++) {
     for (let x = 0; x < image.width; x += 1024) {
       const start = (y * image.width + x) * 4;
       const data = yield start;
-      yield tgaSpan(data.subarray(0, Math.min(1024, image.width - x) * 4), channels, rle, palette);
+      yield tgaSpan(data.subarray(0, Math.min(1024, image.width - x) * 4), channels, rle, palette, packed);
     }
   }
 }

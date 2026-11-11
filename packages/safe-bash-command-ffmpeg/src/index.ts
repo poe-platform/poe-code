@@ -13631,7 +13631,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       const stereoExpansion = inputLayout === "stereo" && (layouts[0] === "quad" || layouts[0] === "5.1");
                       const multichannelStereo = layouts[0] === "stereo" && inputMask !== undefined &&
                         [0x7, 0xb, 0x33, 0x107, 0x3f, 0x60f, 0x63f].includes(inputMask);
-                      if (!stereoExpansion && !multichannelStereo &&
+                      const twoChannelStereo = layouts[0] === "stereo" && (inputMask === 0xc || inputMask === 0x60000000);
+                      if (!stereoExpansion && !multichannelStereo && !twoChannelStereo &&
                           !(inputLayout === "mono" && layouts[0] === "stereo" || inputLayout === "stereo" && layouts[0] === "mono")) {
                         throw new Error(`${filterName}: unsupported input channel layout`);
                       }
@@ -13642,7 +13643,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       const fourChannelGains = inputMask === 0x107 && (panSampleFormat === "s16" || panSampleFormat === "s16p")
                         ? [1, Math.SQRT1_2, 0.5].map(gain => Math.round(gain / (1.5 + Math.SQRT1_2) * 32768) / 32768)
                         : undefined;
-                      const expression = stereoExpansion ? `${layouts[0]}|FL=FL|FR=FR`
+                      const expression = twoChannelStereo
+                        ? inputMask === 0xc ? `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0` : "stereo|c0=c0|c1=c1"
+                        : stereoExpansion ? `${layouts[0]}|FL=FL|FR=FR`
                         : multichannelStereo && fourChannelGains
                         ? `stereo|FL=${fourChannelGains[0]}*FL+${fourChannelGains[1]}*FC+${fourChannelGains[2]}*BC|FR=${fourChannelGains[0]}*FR+${fourChannelGains[1]}*FC+${fourChannelGains[2]}*BC`
                         : multichannelStereo

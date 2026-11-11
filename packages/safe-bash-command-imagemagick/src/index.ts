@@ -120,6 +120,7 @@ import { convolvePixelSteps, type ConvolveKernel, type ConvolveRequest } from ".
 import {withCompareFiles,CompareInputFailure,type CompareFileInput,type CompareFileSession} from "./compare-file.js";
 export type {CompareFileInput} from "./compare-file.js";
 export interface ConvertFileInput extends CompareFileInput { readonly stderr?: ByteSink; }
+import { compareOperatorPixelSteps } from "./compare-operator.js";
 import {compareImageSteps,formatMetricNum,formatSignificantMetric} from "./compare-kernel.js";
 import {withIdentifyFiles,type IdentifyFileInput,type IdentifyFileReader,type IdentifyInspection,type IdentifyRaster} from "./identify-file.js";
 export type {IdentifyFileInput} from "./identify-file.js";
@@ -14384,6 +14385,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             stack = [...composed, ...destinations.slice(count)];
         }
+        else if (t === "-compare") {
+            if (!stack.length) throw new Error("no images found for operation '-compare'");
+            if (stack.length < 2) throw new Error("image sequence is required '-compare'");
+            const first = stack[0]!, second = stack[1]!;
+            const dimensions = { width: Math.max(first.width, second.width), height: Math.max(first.height, second.height), hasAlpha: false };
+            const result = yield* applyMagickRasterSteps(first, compareOperatorPixelSteps(first, second, state.alphaFuzz), signal, dimensions, [first, second, (first.readMask as RgbaImage | undefined) ?? first, (second.readMask as RgbaImage | undefined) ?? second]);
+            delete result.hueSamples;
+            delete result.magickColorspace;
+            stack = [{ ...result, space: "srgb", channels: 3, isPalette: false, inactiveAlpha: false, readMask: undefined, writeMask: undefined, region: undefined }];
+        }
         else if (t === "-stereo") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "");
             if (stack.length < 2) throw new Error("image sequence is required '-stereo'");
@@ -16337,6 +16348,23 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 stack.length = Math.max(count, separator);
                 return stack;
             }); continue;
+        }
+        if (!operandsOnly && token === "-compare") {
+            const { alphaFuzz: fuzz } = state;
+            stackStep(async (stack, backend) => {
+                if (!stack.length) throw new Error("no images found for operation '-compare'");
+                if (stack.length < 2) throw new Error("image sequence is required '-compare'");
+                const first: StoredRgbaImage = (await stack.get(0))!, second: StoredRgbaImage = (await stack.get(1))!;
+                const dimensions = { width: Math.max(first.width, second.width), height: Math.max(first.height, second.height), hasAlpha: false };
+                const image = await transformStoredMagickRaster(first, backend, compareOperatorPixelSteps(first, second, fuzz), signal, dimensions, [first, second, (first.readMask as StoredRgbaImage | undefined) ?? first, (second.readMask as StoredRgbaImage | undefined) ?? second]);
+                const result = new StoredImageStack(backend.storage, signal, stack);
+                delete image.magickColorspace;
+                delete image.storedHueSamples;
+                const difference: StoredRgbaImage = { ...image, space: "srgb", channels: 3, isPalette: false, inactiveAlpha: false, readMask: undefined, storedWriteMask: undefined, region: undefined };
+                await result.push(difference);
+                return result;
+            });
+            continue;
         }
         if (!operandsOnly && token === "-stereo") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "");

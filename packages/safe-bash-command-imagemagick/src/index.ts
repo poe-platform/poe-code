@@ -12444,6 +12444,7 @@ if (t === "-intent" || t === "+intent") {
             const key = t === "+set" ? rawKey.slice("option:".length) : rawKey;
             state.optionProperties = { ...state.optionProperties };
             delete state.optionProperties[key];
+            if (key === "comment") delete state.comment;
             if (key === "interpolate") delete state.interpolation;
             if (key === "dispose") delete state.disposal;
             if (key === "compose:args") state.composeArgs = undefined;
@@ -12749,6 +12750,7 @@ if (t === "-intent" || t === "+intent") {
             const k = (tokens[++i] ?? "").toLowerCase();
             const v = tokens[++i] ?? "";
             if (k.startsWith("option:")) state.optionProperties = { ...state.optionProperties, [k.slice("option:".length)]: v };
+            if (k === "option:comment") state.comment = v;
             if (k === "option:delay") state.delay = { value: v };
             if (k === "option:virtual-pixel") {
                 const method = parseMagickVirtualPixel(v);

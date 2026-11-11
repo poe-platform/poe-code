@@ -13248,7 +13248,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     return yield* applyMagickRasterSteps(converted, bilevelPixelSteps(converted.width * converted.height, !!converted.data16), signal, converted, [source]);
                 }
                 if (!palette) return converted;
-                const output = yield* applyMagickRasterSteps(converted, quantizePixelSteps(converted.data.length, 256, false, 0, true, !!converted.data16 && !converted.evaluateSamples, undefined, undefined, !!converted.evaluateSamples), signal);
+                const output = yield* applyMagickRasterSteps(converted, quantizePixelSteps(converted.data.length, 256, false, 0, true, !!converted.data16 && !converted.evaluateSamples, undefined, state.dither ? { width: converted.width, height: converted.height, method: state.dither, diffusionAmount: state.diffusionAmount ?? 1 } : undefined, !!converted.evaluateSamples), signal);
                 if (!output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
                 const { magickColorspace: ignoredSpace, ...gray } = output;
                 return { ...gray, space: "b-w", channels: output.hasAlpha ? 2 : 1 };
@@ -16940,7 +16940,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     return transformStoredMagickRaster(converted, backend, bilevelPixelSteps(converted.width * converted.height, !!converted.storedData16), signal, converted, [source]);
                 }
                 if (!palette) return converted;
-                const output = await transformStoredMagickRaster(converted, backend, quantizePixelSteps(image.width * image.height * 4, 256, false, 0, true, !!converted.storedData16 && converted.storedEvaluateSamples === undefined, undefined, undefined, converted.storedEvaluateSamples !== undefined), signal);
+                const output = await transformStoredMagickRaster(converted, backend, quantizePixelSteps(image.width * image.height * 4, 256, false, 0, true, !!converted.storedData16 && converted.storedEvaluateSamples === undefined, undefined, settings.dither ? { width: converted.width, height: converted.height, method: settings.dither, diffusionAmount: settings.diffusionAmount ?? 1 } : undefined, converted.storedEvaluateSamples !== undefined), signal);
                 if (!output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
                 const { magickColorspace: ignoredSpace, ...gray } = output;
                 return { ...gray, space: "b-w", channels: output.hasAlpha ? 2 : 1 };

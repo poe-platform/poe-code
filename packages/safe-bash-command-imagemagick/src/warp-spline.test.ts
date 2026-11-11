@@ -9,6 +9,7 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 const opaque = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAkAAAAHCAIAAABV+fA3AAAAX0lEQVR4nH2LsQmAMBQFo9icO1i/8tfuEGfIDtkhO2SH7JAdMo2tRRQiiHDFwXGTc8WO/ZNF7MKLIHzHKF16Cw/JbllFG79oRxSnKGITbR6bSCKLIurrM86nZVGN/PddRtsqDADym3wAAAAASUVORK5CYII=", "base64");
 const translucent = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAkAAAAHCAYAAADam2dgAAAAb0lEQVR4nI2MsQmAMBREo9icC1xlfeWvLdwgmcEdskN2yA7ZITs4ja1NCKIgFsfdweMNzhVnYd2+MgkrBU9hb+0p+M1Q+m/Qfkui9T1TOPgwRVqIFE4KhcJC4eD4hIREITeovk2G8wZlCpWG/M90AT6gMPRY2FjQAAAAAElFTkSuQmCC", "base64");
 const fixtures = [
+    { input: opaque, args: ["-interpolate", "spline", "-kuwahara", "2x1"], height: 7, hash: "c9b739d56f7a1ffea86bf723c1b4e3b7a5c2df14384bbbeca31d48c5583f8ffe" },
     { input: opaque, args: ["-interpolate", "spline", "-swirl", "105"], height: 7, hash: "c9c279c59e4931f75c4885c839ef20dd834a51a6c22f17c194bfc04d6453035a" },
     { input: translucent, args: ["-interpolate", "spline", "-implode", "1.25"], height: 7, hash: "068619193d14cfe20678b91d78b161835461087deb43ec3e256d8e112cb464f2" },
     { input: opaque, args: ["-interpolate", "spline", "-wave", "2x8"], height: 11, hash: "89e576184f877548d92f71119da778159f91d54afa0725176506fd8083e882ff" },

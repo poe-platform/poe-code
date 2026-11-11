@@ -11,6 +11,8 @@ const alpha = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAkAAAAHCAYAAADam2dgAAAAb0lEQ
 // ImageMagick 7.1.2-35 Q16-HDRI, PNG32 output decoded as row-major RGBA8.
 for (const mode of ["command", "convert", "retained", "buffered", "sync"] as const) {
     it.each([
+        ["average9", input, "-kuwahara", "1x1", 7, "dcda6f4148aa4b06e16354057ed45967b8d08c052043c68d4c971d07953f2023"],
+        ["average16", input, "-kuwahara", "1x1", 7, "c699e00927cb3dfa005fba9e812a53ae34fb9c1367763cd1b63a835cbecb0a51"],
         ["average", input, "-swirl", "105", 7, "967ee1a7560648149e5bc0613f7854fd1467cbce6350bb70d6359cface3ecff9"],
         ["average4", input, "-swirl", "105", 7, "967ee1a7560648149e5bc0613f7854fd1467cbce6350bb70d6359cface3ecff9"],
         ["average9", input, "-swirl", "105", 7, "31c340d143ec28a0f3ffe7e3f91b83c3db8c2af13b2cd7889ce4a962057169be"],

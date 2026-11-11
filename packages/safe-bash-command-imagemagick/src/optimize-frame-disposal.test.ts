@@ -9,8 +9,8 @@ for (const mode of ["buffered", "retained", "command", "sync"]) {
     { options: ["-layers", "OptimizeFrame"], disposal: "None" },
     { options: ["-layers", "Optimize"], disposal: "None" },
     { options: ["-coalesce", "-layers", "OptimizeFrame"], disposal: "None" },
-  ])(`reports native inline frame disposal (${mode}, $options)`, async ({ options, disposal }) => {
-    const args = ["xc:red", "xc:blue", ...options, "-format", "%wx%h %g %D;", "info:-"];
+  ].flatMap(test => [undefined, "Background", "Previous"].map(inputDisposal => ({ ...test, inputDisposal }))))(`reports native inline frame disposal (${mode}, $options, $inputDisposal)`, async ({ options, disposal, inputDisposal }) => {
+    const args = ["xc:red", "(", ...(inputDisposal ? ["-dispose", inputDisposal] : []), "xc:blue", ")", ...options, "-format", "%wx%h %g %D;", "info:-"];
     const filesystem = new MemoryFileSystem();
     let stdout = "", stderr = "";
     const result = mode === "command" ? await createMagickCommand().execute({
@@ -21,7 +21,7 @@ for (const mode of ["buffered", "retained", "command", "sync"]) {
     }) : mode === "sync" ? runConvertCliSync(args, new Map()) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : new Map());
     expect(result.exitCode).toBe(0);
     expect("stderr" in result ? result.stderr : stderr).toBe("");
-    expect("stdout" in result ? result.stdout : stdout).toBe(`1x1 1x1+0+0 ${disposal};1x1 1x1+0+0 ${disposal};`);
+    expect("stdout" in result ? result.stdout : stdout).toBe(`1x1 1x1+0+0 ${disposal};1x1 1x1+0+0 ${options.length ? disposal : inputDisposal ?? disposal};`);
   });
 }
 

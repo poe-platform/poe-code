@@ -1581,7 +1581,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       statistics["kurtosis.3"] = 0;
     }
   }
-  const suffix = img.hasAlpha ? "Alpha" : "";
+  const suffix = img.hasAlpha || img.inactiveAlpha && img.alphaBlend !== false ? "Alpha" : "";
   const type = img.space === "cmyk" ? `ColorSeparation${suffix}`
     : (img as MagickImage)[magickInput]?.imageType ?? (gray ? (bilevel ? "Bilevel" : `Grayscale${suffix}`)
     : `${colors.size <= 256 ? "Palette" : "TrueColor"}${suffix}`);

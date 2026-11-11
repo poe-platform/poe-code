@@ -13517,8 +13517,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               : stretched.length === 8
                                 ? `stereo|c0=c0+${Math.SQRT1_2}*c2+${Math.SQRT1_2}*c4+${Math.SQRT1_2}*c6|c1=c1+${Math.SQRT1_2}*c2+${Math.SQRT1_2}*c5+${Math.SQRT1_2}*c7`
                                 : `stereo|c0=c0+${Math.SQRT1_2}*c2+${Math.SQRT1_2}*c4|c1=c1+${Math.SQRT1_2}*c2+${Math.SQRT1_2}*c5`;
-                        const stereo = await panAudio(expression, stretched, filteredChannelMask, "flt", budget, context.signal);
-                        stretched = stereo.channels;
+                        // Mono double input is remixed before the stereo filter's float conversion.
+                        const mixSampleFormat = stretched.length === 1 && ["dbl", "dblp"].includes(filteredSampleFormat) ? "dbl" : "flt";
+                        const stereo = await panAudio(expression, stretched, filteredChannelMask, mixSampleFormat, budget, context.signal);
+                        stretched = mixSampleFormat === "dbl" && filterName !== "stereotools"
+                          ? await convertAudioSampleFormat(stereo.channels, mixSampleFormat, "flt", budget, context.signal)
+                          : stereo.channels;
                         filteredChannelMask = stereo.channelMask;
                         filteredChannelNames = undefined;
                       }
@@ -16566,6 +16570,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // These filters require doubles; negotiate before rematrixing unconstrained aformat input.
                         if ((nextFilter === "haas" || nextFilter === "apulsator" || nextFilter === "stereotools") && !hasSampleFormat) options.unshift("sample_fmts=dbl");
                         const inputSampleFormat = filteredSampleFormat;
+                        const doubleMono = stretched.length === 1 && ["dbl", "dblp"].includes(inputSampleFormat);
                         const parsed = options.map((option, index) => {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["sample_fmts", "sample_rates", "channel_layouts"][index] : option.slice(0, separator).trim();
@@ -16598,7 +16603,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const format = formats.includes(filteredSampleFormat) ? filteredSampleFormat
                               : formats.reduce((best, candidate) => score(best) < score(candidate) ? best : candidate);
                             if (!autoConversionFilters && format !== filteredSampleFormat) throw new Error(audioConversionDisabled);
-                            stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
+                            // SWR retains double input precision through a simultaneous float remix.
+                            if (!doubleMono || !["dbl", "dblp"].includes(filteredSampleFormat) || !["flt", "fltp"].includes(format)) {
+                              stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
+                            }
                             filteredSampleFormat = panSampleFormat = format;
                             continue;
                           }
@@ -16638,11 +16646,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             : `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`;
                           // swresample mixes <=32-bit input in float even when the destination is double.
                           const mixSampleFormat = (panSampleFormat === "dbl" || panSampleFormat === "dblp") &&
-                            !["dbl", "dblp", "s64", "s64p"].includes(inputSampleFormat) ? "flt" : panSampleFormat;
+                            !["dbl", "dblp", "s64", "s64p"].includes(inputSampleFormat) ? "flt"
+                            : doubleMono && ["flt", "fltp"].includes(panSampleFormat) ? "dbl"
+                            : panSampleFormat;
                           const mixed = await panAudio(expression, stretched, filteredChannelMask, mixSampleFormat, budget, context.signal);
                           stretched = mixed.channels;
                           filteredChannelMask = mixed.channelMask;
                           filteredChannelNames = undefined;
+                        }
+                        if (doubleMono && ["flt", "fltp"].includes(filteredSampleFormat)) {
+                          stretched = await convertAudioSampleFormat(stretched, inputSampleFormat, filteredSampleFormat, budget, context.signal);
                         }
                       } else if (trimmed === "pan" || trimmed.startsWith("pan=")) {
                         // SWR accepts native and count-only layouts, but not custom speaker orders.

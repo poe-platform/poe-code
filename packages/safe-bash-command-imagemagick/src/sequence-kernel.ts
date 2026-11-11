@@ -194,7 +194,7 @@ export function* haldClutPixelSteps(size: number, lut: Pick<RgbaImage, "width" |
     }
 }
 
-export function* interpolatePixelSteps(size: number, fraction: number, blendAlpha = true, channels?: readonly boolean[], highDepth = false, gray = false): Steps {
+export function* interpolatePixelSteps(size: number, fraction: number, blendAlpha = true, channels?: readonly boolean[], highDepth = false, gray = false, clearAlpha = false): Steps {
     const range = highDepth ? 65535 : 255;
     // Float64 working planes must fit the 16 KiB storage read limit.
     for (let position = 0; position < size; position += 2048) {
@@ -213,6 +213,7 @@ export function* interpolatePixelSteps(size: number, fraction: number, blendAlph
             : otherSamples?.length ? new Float64Array(otherBytes.slice().buffer).map(value => highDepth ? value * 257 : value)
             : highDepth ? new Uint16Array(otherBytes.slice().buffer) : otherBytes;
         for (let offset = 0; offset < length; offset++) {
+            if (offset % 4 === 3 && clearAlpha) { data[offset] = 0; continue; }
             if (offset % 4 === 3 && !blendAlpha) continue;
             if (gray && (offset % 4 === 1 || offset % 4 === 2)) {
                 data[offset] = data[offset - offset % 4]!;

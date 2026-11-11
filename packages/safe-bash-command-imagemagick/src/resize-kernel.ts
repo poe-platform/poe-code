@@ -456,12 +456,14 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
     // Undefined alpha stays with the first image; Discrete alpha updates while deactivated alpha copies.
     const blendAlpha = !!(a.hasAlpha || a.inactiveAlpha) && !!(b.hasAlpha || b.inactiveAlpha), blendBlack = a.space === "cmyk" && b.space === "cmyk";
     if (!a.hasAlpha && a.inactiveAlpha && !(a.alphaSeparate && a.alphaBlend)) channels = [channels?.[0] ?? true, channels?.[1] ?? true, channels?.[2] ?? true, false, channels?.[4] ?? true];
+    // Disassociated alpha is undefined in the generated frame's pixel cache.
+    const clearAlpha = !a.hasAlpha && a.alphaSeparate === true && a.alphaBlend === false;
     // A grayscale first frame has one color channel, shared by R, G and B.
     const gray = a.space === "b-w" || a.space === "grey16";
     const inks = a.space === "cmyk" || b.space === "cmyk", stride = inks ? 5 : 4;
     // Default and Point sampling leave unchanged dimensions unfiltered.
     if (!inks && kernels.every(kernel => kernel === undefined || kernel === "nearest") && a.width === width && a.height === height && b.width === width && b.height === height) {
-        yield* interpolatePixelSteps(width * height * 4, fraction, blendAlpha, channels, highDepth, gray);
+        yield* interpolatePixelSteps(width * height * 4, fraction, blendAlpha, channels, highDepth, gray, clearAlpha);
         return;
     }
     const sources = [a, b].map((image, index) => resizeSamples(image, width, height, false,
@@ -498,6 +500,7 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
                 else blended[i]! += samples.data[i]! * fraction;
             }
         }
+        if (clearAlpha) for (let i = 3; i < blended!.length; i += stride) blended![i] = 0;
         const range = highDepth ? 65535 : 255;
         if (inks) {
             const count = blended!.length / stride, pixels = new Float64Array(count * 4), hue = a.space === "cmyk" ? new Float64Array(count * 4) : undefined;

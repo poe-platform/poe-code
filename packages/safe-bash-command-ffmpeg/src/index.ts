@@ -14772,6 +14772,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioMetadata = [];
                         const copies: { start: number; end: number; output: number }[] = [];
                         let frameIndex = 0;
+                        let packetStart = 0;
                         let packetEnd = t.samples[0] ? Math.round(t.samples[0].duration * origRate / t.timescale) : 1024;
                         // Regrouping cannot supply a frame immediately if it needs more input.
                         if (reframe.size > (previous?.[0]?.end ?? Math.min(length, packetEnd))) {
@@ -14783,6 +14784,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           while (previous && frameIndex + 1 < previous.length && previous[frameIndex]!.end <= start) frameIndex++;
                           while (!previous && packetEnd <= start) {
+                            packetStart = packetEnd;
                             frameIndex++;
                             const packet = t.samples[frameIndex];
                             packetEnd += packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
@@ -14798,9 +14800,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           // Consumption uses the preceding enable result. The first frame is
                           // always grouped; bypass then consumes the remaining input packet.
                           const end = Math.min(length, enabled ? start + reframe.size : frame?.end ?? packetEnd);
+                          const packet = t.samples[frameIndex];
                           const output = { start: padded, end: padded + end - start,
-                            pos: previous ? frame?.pos : t.samples[frameIndex]?.offset,
-                            pts: frame ? frame.pts : audioStartSample + start };
+                            pos: previous ? frame?.pos : packet?.offset,
+                            pts: frame ? frame.pts : packet
+                              ? packet.pts * origRate / t.timescale + start - packetStart : audioStartSample + start };
                           enabled = reframe.enabled(output, audioTimestamps.length, origRate);
                           if (enabled && reframe.pad) output.end = Math.max(output.end, padded + reframe.size);
                           budget.checkSamples(output.end);

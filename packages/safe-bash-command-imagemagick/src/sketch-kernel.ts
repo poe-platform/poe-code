@@ -118,9 +118,12 @@ export function* sketchPixelSteps(image: { width: number; height: number; hasAlp
     for (let y = 0; y < image.height; y++) for (let left = 0; left < image.width; left += 1024) {
         yield;
         const count = Math.min(1024, image.width - left), position = (y * image.width + left) * 4;
-        const bytes = yield { kind: "read", position, length: count * 4 };
-        if (!bytes || bytes.length !== count * 4) throw new Error("Truncated sketch pixels");
-        const data = new Uint8Array(bytes);
+        const evaluate = yield { kind: "read", evaluate: true, position, length: count * 4 };
+        const bytes = evaluate?.length ? evaluate : yield { kind: "read", highDepth: true, position, length: count * 4 };
+        if (!bytes || bytes.length !== count * 4 * (evaluate?.length ? 8 : 2)) throw new Error("Truncated sketch pixels");
+        const originalSamples = evaluate?.length ? new Float64Array(bytes.slice().buffer)
+            : Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257);
+        const data = new Float64Array(originalSamples);
         for (let x = 0; x < count; x++) {
             const horizontal = resizeContributions(left + x, width, image.width, blur, false, kernel, 0, settings);
             let sum = 0, weight = 0, alpha = 0;
@@ -133,21 +136,24 @@ export function* sketchPixelSteps(image: { width: number; height: number; hasAlp
             const sourceColor = sum / (Math.abs(alpha) < 1e-12 ? (alpha < 0 ? -1e-12 : 1e-12) : alpha);
             const dodge = alpha > 0 ? Math.max(0, Math.min(1, sourceColor)) : 0;
             const sourceAlpha = copyAlpha ? alphaScratch![y * width + Math.min(width - 1, (left + x) * 2 + 1)]! : alpha / weight;
-            const originalAlpha = hasAlpha ? bytes[x * 4 + 3]! / 255 : 1;
+            const originalAlpha = hasAlpha ? originalSamples[x * 4 + 3]! / 255 : 1;
             const dodgeAlpha = Math.max(0, Math.min(1, sourceAlpha + originalAlpha - sourceAlpha * originalAlpha));
             // Sketch's final Blend adds the original when it has an alpha channel.
             const blendAlpha = image.hasAlpha ? originalAlpha : 0;
             const outputAlpha = Math.max(0, Math.min(1, blendAlpha + (copyAlpha ? originalAlpha : dodgeAlpha)));
             for (let channel = 0; channel < 3; channel++) {
                 if (selected && !selected[channel]) continue;
-                const original = bytes[x * 4 + channel]! / 255;
+                const original = originalSamples[x * 4 + channel]! / 255;
                 const color = dodge >= 1 ? 1 : Math.min(1, original / Math.max(1e-12, 1 - dodge));
                 const premultiplied = sourceAlpha * originalAlpha * color + sourceAlpha * (1 - originalAlpha) * sourceColor + originalAlpha * (1 - sourceAlpha) * original;
                 const dodgeColor = Math.max(0, Math.min(1, premultiplied / Math.max(1e-12, dodgeAlpha)));
-                data[x * 4 + channel] = Math.round(255 * Math.max(0, Math.min(1, (blendAlpha * original + (copyAlpha ? originalAlpha : dodgeAlpha) * dodgeColor) / Math.max(1e-12, outputAlpha))));
+                const value = Math.max(0, Math.min(1, (blendAlpha * original + (copyAlpha ? originalAlpha : dodgeAlpha) * dodgeColor) / Math.max(1e-12, outputAlpha)));
+                data[x * 4 + channel] = Math.fround(65535 * value) / 257;
             }
-            if (!copyAlpha && (!selected || selected[3])) data[x * 4 + 3] = Math.round(255 * outputAlpha);
+            if (!copyAlpha && (!selected || selected[3])) data[x * 4 + 3] = 255 * outputAlpha;
         }
-        yield { kind: "write", position, data };
+        yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
+        const bounded = Uint8Array.from(data, value => Math.round(Math.max(0, Math.min(255, value))));
+        yield { kind: "write", position, data: bounded };
     }
 }

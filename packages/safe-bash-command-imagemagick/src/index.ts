@@ -14314,10 +14314,37 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (image.readMask) result.readMask = yield* createSolidRgbaImageSteps(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 });
                 result = { ...yield* flopImageSteps(result), virtualCanvas: magickMirrorCanvas({ ...result, virtualCanvas: layout.virtualCanvas }, "flop") };
                 result = yield* applyMagickRasterSteps(result, composite16PixelSteps(result, picture, Math.trunc(-0.01 * picture.width / 2), 0, "Over", undefined, false, 0, true, undefined, result.space === "cmyk", channels), signal, result, [result, picture]);
+                if (image.metaChannels?.length) {
+                    result.metaChannels = [];
+                    for (const plane of image.metaChannels) {
+                        const black = { r: 0, g: 0, b: 0, a: 255 };
+                        let framed = { ...yield* createSolidRgbaImageSteps(image.width + 2 * border, height, black, true), space: plane.space, channels: plane.channels, hasAlpha: false };
+                        framed = yield* applyMagickRasterSteps(framed,
+                            composite16PixelSteps(framed, plane, border, border, "Over", undefined, false, 0, true, [framed, image]),
+                            signal, framed, [framed, plane, framed, image]);
+                        framed = yield* applyMagickRasterSteps(framed,
+                            warpPixelSteps(framed, { ...bend, channels: undefined, hasAlpha: false }, black, "background"), signal,
+                            { ...bend, hasAlpha: false });
+                        const canvas = { ...yield* createSolidRgbaImageSteps(result.width, result.height, black, true), space: plane.space, channels: plane.channels, hasAlpha: false };
+                        result.metaChannels.push(yield* applyMagickRasterSteps(canvas,
+                            composite16PixelSteps(canvas, framed, Math.trunc(-0.01 * picture.width / 2), 0, "Over", undefined, false, 0, true, [result, picture]),
+                            signal, canvas, [canvas, framed, result, picture]));
+                    }
+                }
                 const operation = parseMagickWarpOperation(["-rotate", String(angle)], { ...state, background: transparent, backgroundExplicit: true }, 0, analysis);
                 const plan = operation?.plan(result);
+                const metaPlanes = result.metaChannels;
                 result = plan ? { ...yield* applyMagickRasterSteps(result, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) }
                     : { ...yield* rotateImageSteps(result, angle, transparent), virtualCanvas: magickRotateCanvas(result, angle) };
+                if (metaPlanes) {
+                    result.metaChannels = [];
+                    for (const plane of metaPlanes) {
+                        const metaPlan = operation?.plan(plane);
+                        result.metaChannels.push({ ...metaPlan
+                            ? yield* applyMagickRasterSteps(plane, metaPlan.steps, signal, metaPlan)
+                            : yield* rotateImageSteps(plane, angle, transparent), hasAlpha: false });
+                    }
+                }
                 // Geometry creates a fresh mask channel; the input-sized plane is stale.
                 if (masked) result.writeMask = yield* createSolidRgbaImageSteps(result.width, result.height, { r: 0, g: 0, b: 0, a: 255 });
                 return yield* trimMagickSteps(result, state.alphaFuzz, undefined, undefined, undefined, analysis, undefined, transparent);
@@ -15274,7 +15301,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (channels.length === 0 && metaPlanes.length === 0) channels.push(null);
                 for (const channel of channels)
                     nextStack.push((yield* separateMagickChannelSteps(im, channel, !state.channelExplicit || state.channels.r)));
-                for (const plane of metaPlanes) nextStack.push({ ...plane, ...(im.virtualCanvas ? { virtualCanvas: im.virtualCanvas } : {}) });
+                for (const plane of metaPlanes) nextStack.push({ ...plane, metaChannels: im.metaChannels, ...(im.virtualCanvas ? { virtualCanvas: im.virtualCanvas } : {}) });
             }
             stack = nextStack;
         }
@@ -16660,7 +16687,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         for (const channel of channels) {
                             await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, handlesWriteMask: true, apply: (image, offset, width) => separateMagickChannelSteps(image, channel, !settings.channelExplicit || settings.channels.r, offset, width) }, signal));
                         }
-                        for (const plane of metaPlanes) await result.push({ ...plane, ...(image.virtualCanvas ? { virtualCanvas: image.virtualCanvas } : {}) });
+                        for (const plane of metaPlanes) await result.push({ ...plane, storedMetaChannels: image.storedMetaChannels, ...(image.virtualCanvas ? { virtualCanvas: image.virtualCanvas } : {}) });
                     }
                     return result;
                 } else if (token === "-combine" || token === "+combine") {
@@ -18640,10 +18667,37 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (image.readMask) result.readMask = await createStoredCanvas(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 result = { ...await transformStoredImage(result, backend.storage, { kind: "flop" }, signal), virtualCanvas: magickMirrorCanvas({ ...result, virtualCanvas: layout.virtualCanvas }, "flop") };
                 result = await transformStoredMagickRaster(result, backend, composite16PixelSteps(result, picture, Math.trunc(-0.01 * picture.width / 2), 0, "Over", undefined, false, 0, true, undefined, result.space === "cmyk", channels), signal, result, [result, picture]);
+                if (image.storedMetaChannels?.length) {
+                    result.storedMetaChannels = [];
+                    for (const plane of image.storedMetaChannels) {
+                        const black = { r: 0, g: 0, b: 0, a: 255 };
+                        let framed = { ...await createStoredCanvas(image.width + 2 * border, height, black, backend, signal, true), space: plane.space, channels: plane.channels, hasAlpha: false };
+                        framed = await transformStoredMagickRaster(framed, backend,
+                            composite16PixelSteps(framed, plane, border, border, "Over", undefined, false, 0, true, [framed, image]),
+                            signal, framed, [framed, plane, framed, image]);
+                        framed = await transformStoredMagickRaster(framed, backend,
+                            warpPixelSteps(framed, { ...bend, channels: undefined, hasAlpha: false }, black, "background"), signal,
+                            { ...bend, hasAlpha: false });
+                        const canvas = { ...await createStoredCanvas(result.width, result.height, black, backend, signal, true), space: plane.space, channels: plane.channels, hasAlpha: false };
+                        result.storedMetaChannels.push(await transformStoredMagickRaster(canvas, backend,
+                            composite16PixelSteps(canvas, framed, Math.trunc(-0.01 * picture.width / 2), 0, "Over", undefined, false, 0, true, [result, picture]),
+                            signal, canvas, [canvas, framed, result, picture]));
+                    }
+                }
                 const operation = parseMagickWarpOperation(["-rotate", String(angle)], { ...settings, background: transparent, backgroundExplicit: true }, 0, analysis);
                 const plan = operation?.plan(result);
+                const metaPlanes = result.storedMetaChannels;
                 result = plan ? { ...await transformStoredMagickRaster(result, backend, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) }
                     : { ...await transformStoredImage(result, backend.storage, { kind: "rotate", angle, background: transparent }, signal), virtualCanvas: magickRotateCanvas(result, angle) };
+                if (metaPlanes) {
+                    result.storedMetaChannels = [];
+                    for (const plane of metaPlanes) {
+                        const metaPlan = operation?.plan(plane);
+                        result.storedMetaChannels.push({ ...metaPlan
+                            ? await transformStoredMagickRaster(plane, backend, metaPlan.steps, signal, metaPlan)
+                            : await transformStoredImage(plane, backend.storage, { kind: "rotate", angle, background: transparent }, signal), hasAlpha: false });
+                    }
+                }
                 // Geometry creates a fresh mask channel; the input-sized plane is stale.
                 if (masked) result.storedWriteMask = await createStoredCanvas(result.width, result.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 return trimStoredMagick(result, backend.storage, settings.alphaFuzz, signal, undefined, undefined, undefined, analysis, undefined, transparent);

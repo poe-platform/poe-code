@@ -2386,7 +2386,8 @@ export function image2Ast(): MediaAstPlugin {
                 codecName,
                 width,
                 height,
-                pixFmt: tga ? (bytes[16] === 32 ? "bgra" : "bgr24") : pixFmt
+                pixFmt: tga ? (bytes[16] === 32 ? "bgra" : "bgr24") : pixFmt,
+                colorTransfer: codecName === "qoi" && bytes[13] === 1 ? "linear" : undefined
               }
             ],
             samples: [

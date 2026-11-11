@@ -28,9 +28,6 @@ export async function surroundAudio(
       }
       // Integer AVOptions validate the range before rounding, with ties to even.
       size = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
-      if ((size & (size - 1)) !== 0) {
-        throw new Error("surround: win_size must be a power of two between 1024 and 65536");
-      }
     } else if (key === "lfe") {
       const boolean = value.toLowerCase();
       if (["1", "true", "yes", "on", "y", "enabled"].includes(boolean)) lfe = true;
@@ -38,11 +35,14 @@ export async function surroundAudio(
       else throw new Error("surround: invalid lfe");
     } else throw new Error(`surround: unsupported option ${key}`);
   }
+  if (size % 4 !== 0) throw new Error("surround: unsupported transform size");
   if (channels.length !== 2) throw new Error("surround: stereo input required");
   const length = channels[0]!.length, hop = size / 2;
+  const scratchLength = (size & (size - 1)) === 0 ? 0 : 4 * 2 ** Math.ceil(Math.log2(2 * size - 1));
   // Output and overlap planes for each channel, two complex input transforms,
   // one complex inverse workspace, and the analysis/synthesis window.
-  budget.allocateMemory(length * outputChannels * 4 + size * (outputChannels * 4 + 6 * 8 + 4));
+  budget.allocateMemory(length * outputChannels * 4 + size * (outputChannels * 4 + 6 * 8 + 4) + scratchLength * 8);
+  const scratch = scratchLength ? new Float64Array(scratchLength) : undefined;
   const output = Array.from({ length: outputChannels }, () => new Float32Array(length));
   const overlap = Array.from({ length: outputChannels }, () => new Float32Array(size));
   const real = channels.map(() => new Float64Array(size));
@@ -60,7 +60,7 @@ export async function surroundAudio(
     for (let c = 0; c < 2; c++) {
       for (let i = 0; i < size; i++) real[c]![i] = f(f(channels[c]![start - hop + i] ?? 0) * window[i]!);
       imaginary[c]!.fill(0);
-      transform(real[c]!, imaginary[c]!);
+      transform(real[c]!, imaginary[c]!, false, scratch);
     }
     for (let c = 0; c < outputChannels; c++) {
       for (let n = 0; n <= hop; n++) {
@@ -93,7 +93,7 @@ export async function surroundAudio(
           outImaginary[size - n] = -outImaginary[n]!;
         }
       }
-      transform(outReal, outImaginary, true);
+      transform(outReal, outImaginary, true, scratch);
       const buffer = overlap[c]!;
       buffer.copyWithin(0, hop); buffer.fill(0, hop);
       for (let i = 0; i < size; i++) buffer[i] = f(buffer[i]! + f(f(f(outReal[i]!) * window[i]!) * gain));

@@ -20150,6 +20150,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "negate: invalid expression" || msg === "negate: invalid or unsupported expression") return { exitCode: 234 };
             if ((overwrite && msg === "aecho: delay is too small") ||
                 msg === "aphaser: delay is too small" ||
+                msg === "surround: unsupported transform size" ||
                 msg === "extrastereo: unsupported input channel layout" ||
                 msg === "stereotools: unsupported input channel layout" ||
                 msg.startsWith("channelsplit: unsupported input channel order ") ||
@@ -20168,7 +20169,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (!imageOutput && outputFormat !== "null" && !isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {
                 await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
               }
-              return { exitCode: msg === "separatefields: height must be even" ? 183 : 234 };
+              return { exitCode: msg === "separatefields: height must be even" ? 183
+                : msg === "surround: unsupported transform size" ? 218 : 234 };
             }
             if (msg === "amerge: timeline is unsupported") return { exitCode: 176 };
             if (msg === "amerge: unsupported option") return { exitCode: 8 };

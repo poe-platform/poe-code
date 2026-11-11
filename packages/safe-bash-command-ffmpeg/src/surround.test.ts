@@ -32,6 +32,7 @@ async function run(filter: string, graph = false, source = input) {
 for (const [filter, fixture, lfe] of [
   ["surround", "default", true],
   ["surround=chl_out=5.1:win_size=1024", "1024", true],
+  ["surround=win_size=1536", "1536", true],
   ["surround=win_size=1024.5", "1024", true],
   ["surround=win_size=min", "1024", true],
   ["surround=win_size=512*2", "1024", true],
@@ -103,9 +104,9 @@ for (const graph of [false, true]) {
 for (const filter of ["surround=chl_in=FR+FL", "surround=chl_in=FC+LFE", "surround=chl_in=0x4",
   "surround=chl_out=5.1(side)", "surround=chl_out=0x60f", "surround=chl_out=invalid",
   "surround=win_size=0", "surround=win_size=65537", "surround=win_size=NaN",
-  "surround=win_size=1023.9", "surround=win_size=65536.1", "surround=win_size=1024.6",
+  "surround=win_size=1023.9", "surround=win_size=65536.1",
   "surround=win_size=1/0", "surround=win_size=bad", "surround=win_size=",
-  "surround=win_size=1025", "surround=lfe=bad", "surround=chl_out=mono", "surround=unknown=1"]) {
+  "surround=lfe=bad", "surround=chl_out=mono", "surround=unknown=1"]) {
   it(`${filter} fails without replacing output`, async () => {
     const { result, stderr, output } = await run(filter);
     assert.equal(result.exitCode, 1);
@@ -215,3 +216,51 @@ for (const graph of [false, true]) for (const filter of [
       "84845d9e718a5f0a723c1ebd2d81f5db96aebdfcf6df001ebf72b247176d8129");
   });
 }
+
+// FFmpeg 7.0.2 raw PCM references for 512 stereo frames at 8 kHz.
+for (const [size, hash] of [
+  [1024, "550746aadb7678511bce97d51278657234b327196c68034b132807ede73503d7"],
+  [1536, "e9065ddd9d5bae799b3f5f84daaf0aa31edd1c01b71ec41c5cf566a1385ae4d6"]
+] as const) it(`renders the native ${size}-sample surround window`, async () => {
+  const channels = [0, 1].map(c => Float64Array.from({ length: 512 }, (_, i) =>
+    (((i * 2 + c) * 13129) % 30001 - 15000) / 32768));
+  const { result, stderr, output } = await run(`surround=win_size=${size}`, false,
+    Buffer.from(encodeWav({ sampleRate: 8000, channels })));
+  assert.equal(result.exitCode, 0, stderr);
+  const audio = parseWav(output).tracks[0]!.decodedAudio!;
+  assert.equal(audio.channels, 6);
+  assert.equal(audio.channelData[0]!.length, 512);
+  const pcm = Buffer.alloc(512 * 6 * 2);
+  for (let i = 0; i < 512; i++) for (let c = 0; c < 6; c++) {
+    pcm.writeInt16LE(audio.channelData[c]![i]! * 32768, (i * 6 + c) * 2);
+  }
+  if (size === 1024) assert.equal(createHash("sha256").update(pcm).digest("hex"), hash);
+  else {
+    const expected = readFileSync(new URL("./fixtures/surround-1536-short.pcm", import.meta.url));
+    assert.equal(createHash("sha256").update(expected).digest("hex"), hash);
+    const differences = Array.from({ length: pcm.length / 2 }, (_, i) =>
+      Math.abs(pcm.readInt16LE(i * 2) - expected.readInt16LE(i * 2)));
+    // Native single-precision FFT roundoff can change PCM by one quantization step.
+    assert.ok(differences.every(value => value <= 1));
+  }
+});
+
+for (const size of [1025, 1026, 1024.6]) for (const graph of [false, true]) {
+  it(`rejects unsupported surround window ${size} with native status (graph=${graph})`, async () => {
+    const { result, stderr, output } = await run(`surround=win_size=${size}`, graph);
+    assert.equal(result.exitCode, 218, stderr);
+    assert.ok(stderr.includes("surround"), stderr);
+    assert.equal(output.length, 0);
+  });
+}
+
+it("accounts for non-power-of-two FFT scratch before allocating it", async () => {
+  const channels = [new Float32Array(32), new Float32Array(32)];
+  const baseBytes = 32 * 6 * 4 + 1536 * (6 * 4 + 6 * 8 + 4);
+  await assert.rejects(surroundAudio(channels, 8000, "surround=win_size=1536",
+    new MediaBudgetTracker({ maxMemoryBytes: baseBytes })), /maxMemoryBytes/);
+  await surroundAudio(channels, 8000, "surround=win_size=1536",
+    new MediaBudgetTracker({ maxMemoryBytes: baseBytes + 4 * 4096 * 8 }));
+  await assert.rejects(surroundAudio(channels, 8000, "surround=win_size=1536",
+    new MediaBudgetTracker(), AbortSignal.abort()));
+});

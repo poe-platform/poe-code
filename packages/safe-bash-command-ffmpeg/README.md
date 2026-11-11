@@ -624,7 +624,8 @@ Width expressions accept `E`, `PI`, and `PHI`, for example `extrastereo=m=PI/2`.
 windowed frequency transform, retaining the sample rate and frame count.
 `surround=chl_out=5.1:win_size=1024:lfe=0` silences only LFE. `lfe` also accepts
 case-insensitive `n`/`disabled` for off and `y`/`enabled` for on. The default
-window is 4096 samples; powers of two from 1024 to 65536 are supported.
+window is 4096 samples; multiples of four from 1024 to 65536 are supported,
+including `surround=win_size=1536`. Other transform sizes fail with status 218.
 `win_size` accepts expressions such as `512*2` and constants `min`, `max`, and
 `default`. Values are checked against that range, then rounded to the nearest
 integer (ties to even) before selecting the transform size.

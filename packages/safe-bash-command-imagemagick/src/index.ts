@@ -750,7 +750,6 @@ interface MagickState {
   kmeansSeedColors?: string;
   complexSnr?: number;
   resizeFilter?: ResizeFilterSettings;
-  sampleOffset?: { x: number; y: number };
   pointFilter?: boolean;
   compose: BlendMode;
   composeRaw: string;
@@ -10346,6 +10345,16 @@ function applyMagickDensity<T extends ImageMetadata & { magickUnits?: MagickStat
         resolution: { x: x * scale, y: y * scale, unit } };
 }
 
+function magickSampleOffset(image: ImageMetadata, option?: string): { x: number; y: number } | undefined {
+    const offset = image.properties?.["artifact:sample:offset"] ?? option;
+    if (offset === undefined) return;
+    const value = offset.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x");
+    const geometry = parseMagickGeometry(value);
+    // Native scalar geometry followed by signed offsets leaves both sample offsets at zero.
+    const x = geometry.hasOffset && !value.toLowerCase().includes("x") ? 0 : geometry.width ?? 0;
+    return { x: x / 100, y: (geometry.height ?? x) / 100 };
+}
+
 function magickTrimSettings(state: MagickState, properties: ImageMetadata["properties"]): MagickState {
     let settings = state;
     for (const [key, value] of Object.entries(properties ?? {})) {
@@ -10650,7 +10659,6 @@ if (t === "-intent" || t === "+intent") {
                 delete state.resizeFilter[key.slice(7) as keyof ResizeFilterSettings];
             }
             if (key === "distort:scale") delete state.distortScale;
-            if (key === "sample:offset") delete state.sampleOffset;
             if (key === "jpeg:arithmetic-coding") delete state.jpegArithmeticCoding;
             if (key === "jpeg:restart-interval") delete state.jpegRestartInterval;
             if (key === "jpeg:dct-method") delete state.jpegDctMethod;
@@ -10746,13 +10754,6 @@ if (t === "-intent" || t === "+intent") {
             }
             if (filterKey === "kmeans:seed-colors") state.kmeansSeedColors = filterValue ?? "";
             if (filterKey === "white-balance:vibrance") state.whiteBalanceVibrance = filterValue ?? "";
-            if (filterKey === "sample:offset") {
-                const value = (filterValue ?? "").replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x");
-                const geometry = parseMagickGeometry(value);
-                // Native scalar geometry followed by signed offsets leaves both sample offsets at zero.
-                const x = geometry.hasOffset && !value.toLowerCase().includes("x") ? 0 : geometry.width ?? 0;
-                state.sampleOffset = { x: x / 100, y: (geometry.height ?? x) / 100 };
-            }
             if (filterKey === "jpeg:arithmetic-coding") state.jpegArithmeticCoding = filterValue === undefined || ["true", "1", "yes", "on"].includes(filterValue.toLowerCase());
             if (filterKey === "jpeg:restart-interval") {
                 const interval = Number(filterValue);
@@ -12260,7 +12261,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
-                return (yield* applyMagickResizeSteps(im, expanded, k, t === "-thumbnail", t === "-sample", t === "-scale", state.resizeFilter, state.sampleOffset, false, stack.length, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined));
+                return (yield* applyMagickResizeSteps(im, expanded, k, t === "-thumbnail", t === "-sample", t === "-scale", state.resizeFilter, magickSampleOffset(im, state.optionProperties?.["sample:offset"]), false, stack.length, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined));
             }));
         }
         else if (t === "-crop") {
@@ -15819,14 +15820,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 thumbnailPages = stack.length;
                 return stack;
             });
-            const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail", settings = state.resizeFilter, sampleOffset = state.sampleOffset;
+            const geometry = tokens[++i] ?? "100%", kernel = token === "-sample" ? "nearest" : state.kernel, thumbnail = token === "-thumbnail", settings = state.resizeFilter;
             const optionProperties = state.optionProperties, channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 validateMagickTransformGeometry(expanded, token);
                 const options = magickResizeOptions(image, expanded, kernel ?? (thumbnail ? "lanczossharp" : undefined));
-                return resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, sampleOffset, false, thumbnailPages, channels);
+                return resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, magickSampleOffset(image, optionProperties?.["sample:offset"]), false, thumbnailPages, channels);
             });
         } else if (!operandsOnly && token === "-sort-pixels") {
             stackStep(async stack => {

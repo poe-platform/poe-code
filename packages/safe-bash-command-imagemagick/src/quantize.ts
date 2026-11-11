@@ -83,6 +83,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         yield;
         const size = Math.min(chunkSize, length - position), data = yield* readPixels(position, size);
         if (grayscale && requested === 2) {
+            yield { kind: "write", pngIndices: true, position: position / 4, data: Uint8Array.from({ length: size / 4 }, (_, i) => data[i * 4]! / 255) };
             yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) : Uint8Array.from(data) };
             continue;
         }
@@ -281,7 +282,9 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         }
     }
     const assigned = new Float64Array(4), clipped = new Float64Array(4);
-    const indices = cycle ? new Map(palette.map((color, index) => [color, index])) : undefined;
+    const indices = new Map(palette.map((color, index) => [color, index]));
+    // Retain byte-sized palette indices before later masked edits separate RGB from the colormap.
+    const retainIndices = palette.length <= 256;
     const shift = cycle ? ((cycle.amount % palette.length) + palette.length) % palette.length : 0;
     // An unreduced opaque palette still goes through native dither assignment.
     // Its six-bit cache can reuse a nearby color; later pixels diffuse that error.
@@ -350,6 +353,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
                 }
             }
             const data = Float64Array.from(color!);
+            if (retainIndices) yield { kind: "write", pngIndices: true, position: position / 4, data: Uint8Array.of(indices.get(color!)!) };
             yield* writeWorkingPixels(position, data);
             if (evaluate) yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
             yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) : Uint8Array.from(data, Math.round) };
@@ -358,9 +362,12 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         yield;
         const size = Math.min(chunkSize, length - position), pixels = yield* readPixels(position, size);
         const data = new Float64Array(size);
+        const pixelIndices = retainIndices ? new Uint8Array(size / 4) : undefined;
         const mask = cycle?.writeMask ? new Uint16Array((yield { kind: "read", highDepth: true, image: 1, position, length: size })!.slice().buffer) : undefined;
         for (let i = 0; i < size; i += 4) {
             const color = bins.get(key(pixels, i))!.color;
+            const index = (indices.get(color)! + shift) % palette.length;
+            if (pixelIndices) pixelIndices[i / 4] = index;
             const pixel = (position + i) / 4;
             const protection = mask ? (0.212656 * mask[i]! + 0.715158 * mask[i + 1]! + 0.072186 * mask[i + 2]!) / 65535
                 : cycle?.region && !regionContains(cycle.region, pixel % cycle.width, Math.floor(pixel / cycle.width)) ? 1 : 0;
@@ -371,12 +378,13 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
                 for (let channel = 0; channel < 4; channel++) clipped[channel] = pixels[i + channel]!;
                 blendMaskedPixel(clipped, clipped, assigned, 0, protection, 255, cycle.channels, cycle.alphaActive);
                 blendMaskedPixel(clipped, clipped, assigned, 0, protection, 255, cycle.channels, cycle.alphaActive);
-                assigned.set(palette[(indices!.get(color)! + shift) % palette.length]!);
+                assigned.set(palette[index]!);
                 blendMaskedPixel(clipped, clipped, assigned, 0, protection, 255, cycle.channels, false);
                 data.set(clipped, i);
-            } else data.set(cycle ? palette[(indices!.get(color)! + shift) % palette.length]! : color, i);
+            } else data.set(cycle ? palette[index]! : color, i);
             if (cycle) data[i + 3] = 255;
         }
+        if (pixelIndices) yield { kind: "write", pngIndices: true, position: position / 4, data: pixelIndices };
         yield* writeWorkingPixels(position, data);
         if (!highDepth || cycle?.region || cycle?.writeMask) yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
         yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) : Uint8Array.from(data, Math.round) };

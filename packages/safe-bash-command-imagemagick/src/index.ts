@@ -11340,6 +11340,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
+        if (t === "-list" || t === "--list") {
+            if (i + 1 >= tokens.length) throw new Error(`missing argument '${t}'`);
+            analysis.text += tryHandleMagickListOption(tokens.slice(i, i + 2))!.stdout;
+            i += 2;
+            continue;
+        }
         if (t === "-set" && tokens[i + 1]?.toLowerCase().startsWith("option:") && tokens[i + 2]?.includes("%") && stack[0]) {
             const image = stack[0];
             const value = yield* formatMagickPropertyStringSteps(tokens[i + 2]!, image, () => image,
@@ -13690,7 +13696,7 @@ function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     return combineConvertOutput(result, analysis);
 }
 function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = createConvertAnalysis()): Generator<void, ImageMagickCliResult, void> {
-    const listRes = tryHandleMagickListOption(argv);
+    const listRes = argv.length === 2 && (argv[0] === "-list" || argv[0] === "--list") ? tryHandleMagickListOption(argv) : undefined;
     if (listRes) return listRes;
     const optionArgs = argv.slice(0, argv.indexOf("--") < 0 ? argv.length : argv.indexOf("--"));
     if (argv.length === 0 || optionArgs.includes("--help") || optionArgs.includes("-help") || optionArgs.includes("-h")) {
@@ -14238,7 +14244,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
     if (!input.filesystem.capabilities || !input.filesystem.open || !input.filesystem.removeFileConditional) return;
     const outSpec = argv.at(-1) ?? "";
     const optionArgs = argv.slice(0, argv.indexOf("--") < 0 ? argv.length : argv.indexOf("--"));
-    if (!outSpec || tryHandleMagickListOption(argv) || optionArgs.some(token => ["--help", "-help", "-h", "--version", "-version"].includes(token))) {
+    if (!outSpec || argv.length === 2 && (argv[0] === "-list" || argv[0] === "--list") || optionArgs.some(token => ["--help", "-help", "-h", "--version", "-version"].includes(token))) {
         await probeImageArguments(argv, input, stdinBytes, signal);
         return drainSteps(runConvertCliSteps(argv, new Map(), stdinBytes, signal), signal);
     }
@@ -14265,6 +14271,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         }
         if (token === "") continue;
+        if (!operandsOnly && (token === "-list" || token === "--list")) {
+            const value = tokens[++i];
+            stackStep(async stack => {
+                if (value === undefined) throw new Error(`missing argument '${token}'`);
+                const text = tryHandleMagickListOption([token, value])!.stdout;
+                if (input.stdout) await writeIdentifyText(input.stdout, text, signal);
+                else analysis.text += text;
+                return stack;
+            });
+            continue;
+        }
         if (!operandsOnly && (token === "-quiet" || token === "+quiet")) {
             stackStep(async stack => { analysis.quiet = token === "-quiet"; return stack; });
             continue;

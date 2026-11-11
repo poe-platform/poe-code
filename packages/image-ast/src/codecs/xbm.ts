@@ -12,18 +12,23 @@ export function isXbmBytes(bytes: Uint8Array): boolean {
   }
   if (!header.startsWith("#")) return false;
   header = header.slice(1).trimStart();
-  return header.startsWith("define") && header.length > 6 && header.charAt(6).trim() === "";
+  return ["define", "include", "ifndef"].some(directive =>
+    header.startsWith(directive) && header.length > directive.length && header.charAt(directive.length).trim() === "");
 }
 
 type Step = { kind: "read"; position: number } | { kind: "header"; metadata: ImageMetadata } | { kind: "pixel"; value: number };
 function* xbmSteps(size: number, options?: SharpInputOptions): Generator<Step, ImageMetadata, number | undefined> {
   let position = 0, pending: string | undefined;
   let inBitmap = false;
-  function* token(): Generator<Step, string, number | undefined> {
+  function* token(lineOnly = false): Generator<Step, string, number | undefined> {
     let value = "";
     while (position < size || pending !== undefined) {
       const char = pending ?? String.fromCharCode((yield { kind: "read", position: position++ }) ?? 0);
       pending = undefined;
+      if (lineOnly && (char === "\n" || char === "\r")) {
+        pending = char;
+        return value;
+      }
       if (char === "/") {
         if (inBitmap) throw new Error("improper image header: XBM comment inside bitmap initializer");
         if (value) { pending = char; return value; }
@@ -53,10 +58,17 @@ function* xbmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
     const part = yield* token();
     if (!part) throw new Error("Invalid XBM header");
     if (part === "#") {
-      if ((yield* token()) !== "define") throw new Error("Invalid XBM define");
-      const key = yield* token(), value = Number(yield* token());
-      if (key.endsWith("_width")) { width = value; name = key.slice(0, -6); }
-      else if (key.endsWith("_height")) height = value;
+      if ((yield* token(true)) === "define") {
+        const key = yield* token(true);
+        if (key.endsWith("_width")) { width = Number(yield* token(true)); name = key.slice(0, -6); }
+        else if (key.endsWith("_height")) height = Number(yield* token(true));
+      }
+      // Preprocessor lines are header text, never includes or executable directives.
+      while (position < size || pending !== undefined) {
+        const char = pending ?? String.fromCharCode((yield { kind: "read", position: position++ }) ?? 0);
+        pending = undefined;
+        if (char === "\n" || char === "\r") break;
+      }
     } else if (part === "char") bitsPerValue = 8;
     else if (part === "short") bitsPerValue = 16;
     else if (part === "[" && (yield* token()) !== "]") throw new Error("Invalid XBM array declaration");

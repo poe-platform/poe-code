@@ -1,8 +1,21 @@
 import { expect, it } from "vitest";
 import { decodeImage, readImageMetadata } from "./codecs/index.js";
 import { isXbmBytes, readXbmFromSource } from "./codecs/xbm.js";
+import { readImageMetadataFromSource } from "./codecs/metadata-source.js";
 
 const bitmap = (width: number, height: number, values: string) => new TextEncoder().encode(`#define test_width ${width}\n#define test_height ${height}\nstatic char test_bits[] = { ${values} };`);
+
+it.each(["\n", "\r\n"])("treats includes and guards as inert header lines with %j newlines", async newline => {
+  const bytes = new TextEncoder().encode([
+    '#include "missing/char{.h"', "#ifndef TILE_ICON", "#define TILE_ICON",
+    "#define test_width 1", "#define test_height 1", "static char test_bits[] = { 1 };", "#endif"
+  ].join(newline));
+  const metadata = { format: "xbm", width: 1, height: 1 };
+  expect(readImageMetadata(bytes)).toMatchObject(metadata);
+  expect([...decodeImage(bytes).data]).toEqual([0, 0, 0, 255]);
+  const source = { size: bytes.length, async read(position: number, length: number) { return bytes.subarray(position, position + length); } };
+  await expect(readImageMetadataFromSource(source, new AbortController().signal)).resolves.toMatchObject(metadata);
+});
 
 it.each([1, 7, 8, 9, 16, 17])("ignores set padding bits for width %s", width => {
   const stride = Math.ceil(width / 8);
@@ -42,6 +55,8 @@ it.each([
   "/* XPM */\nstatic char *icon[] = {",
   "/* ordinary C */\nstatic char data[] = { 1 };",
   "#defineSomething 1",
+  "#includeSomething 1",
+  "#ifndefSomething 1",
   "/* unterminated #define test_width 8",
   "/* comment */\n#define"
 ])("does not admit unrelated or incomplete headers: %s", header => {

@@ -10243,7 +10243,18 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             else if (raw[index] === ")") nesting--;
             else if (raw[index] === "-" && nesting === 0) { separator = index; break; }
         }
-        const endpoints = separator < 0 ? undefined : [parseColor(raw.slice(0, separator), true), parseColor(raw.slice(separator + 1), true)];
+        const endpoints = separator < 0 ? undefined : [{ r: 0, g: 0, b: 0, a: 255 }, { r: 0, g: 0, b: 0, a: 255 }];
+        if (endpoints) {
+            const values = [raw.slice(0, separator), raw.slice(separator + 1)];
+            for (const [index, value] of values.entries()) {
+                try {
+                    endpoints[index] = parseColor(value, true);
+                } catch {
+                    warning = `magick: unrecognized color \`${value}'\n`;
+                    break;
+                }
+            }
+        }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
         const selected = [channels.r, channels.g, channels.b, channels.a];
         const bounds = endpoints?.map(color => [color.r, color.g, color.b, color.a]);

@@ -2183,8 +2183,8 @@ function writeGradientPixel(data: Uint8Array, samples: Uint16Array, evaluateSamp
         samples[offset] = samples[offset + 1] = samples[offset + 2]!;
         data[offset] = data[offset + 1] = data[offset + 2]!;
     }
-    evaluateSamples[offset + 3] = alpha;
-    samples[offset + 3] = Math.round(alpha * 257);
+    evaluateSamples[offset + 3] = Math.fround(alpha * 257) / 257;
+    samples[offset + 3] = Math.round(evaluateSamples[offset + 3]! * 257);
     data[offset + 3] = clampByteVal(samples[offset + 3]! / 257);
 }
 function* createGradientImageSteps(width: number, height: number, c1: ReturnType<typeof parseColor>, c2: ReturnType<typeof parseColor>, radial: boolean, direction?: string, angle?: number, vector?: string, box?: MagickGeometry, center?: { x: number; y?: number }, radii?: string, extent?: string): Generator<void, RgbaImage, void> {

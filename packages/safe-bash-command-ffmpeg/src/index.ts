@@ -4720,9 +4720,12 @@ async function applyVideoFilterChain(
       const outputOffset = startTime === undefined ? 0 : roundTimestamp(startTime * targetFps);
       const last = current[current.length - 1]!;
       const endTime = endTimeSeconds ?? last.ptsSeconds + last.durationSeconds;
-      const endTimestamp = roundToEven(eofValue) === 1
-        ? roundTimestamp(endTime * targetFps, true)
-        : roundTimestamp(endTime * targetFps);
+      // Native fps buffers two frames and only receives EOF after advancing to the last.
+      // Frames emitted before that point remain even if EOF carries an earlier timestamp.
+      const endTimestamp = Math.max(outputOffset + roundTimestamp((last.ptsSeconds - inputOffset) * targetFps),
+        roundToEven(eofValue) === 1
+          ? roundTimestamp(endTime * targetFps, true)
+          : roundTimestamp(endTime * targetFps));
       const firstTimestamp = startTime === undefined ? roundTimestamp(current[0]!.ptsSeconds * targetFps) : outputOffset;
       const resampled: MediaVideoFrame[] = [];
       let srcIdx = 0;
@@ -4961,6 +4964,7 @@ async function applyVideoFilterChain(
           cols <= 0 || rows <= 0 || cols * rows > 4294967295) {
         throw new Error("untile: invalid layout");
       }
+      const endTicks = (endTimeSeconds ?? (lastInputFrame ? lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds : 0)) * timescale;
       const count = cols * rows;
       const interval = frameRateKnown ? frameDuration * frameRateScale / count : 1 / (timescale * count);
       const [inputNumerator, inputDenominator] = videoTimingRatio(1 / timescale);
@@ -4973,6 +4977,8 @@ async function applyVideoFilterChain(
       const denominator = inputDenominator / divisor * intervalDenominator;
       // Native untile uses the common time base, falling back to microseconds.
       timescale = denominator < 500000 ? denominator / numerator : 1000000;
+      // Native untile forwards the input EOF ticks unchanged in its output time base.
+      endTimeSeconds = endTicks / timescale;
       const durationSeconds = Math.round(interval * timescale) / timescale;
       frameDuration = durationSeconds;
       frameRateScale = interval / durationSeconds;
@@ -6572,7 +6578,7 @@ async function applyVideoFilterChain(
     }
     // Filters that change the final frame's timing establish a new endpoint.
     const lastOutputFrame = current.at(-1);
-    if (!pending && name !== "tpad" && name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "framestep" && name !== "tile" &&
+    if (!pending && name !== "tpad" && name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "framestep" && name !== "tile" && name !== "untile" &&
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;

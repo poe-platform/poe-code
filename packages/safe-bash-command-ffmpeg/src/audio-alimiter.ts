@@ -18,9 +18,11 @@ export async function limitAudio(
   const names = Object.keys(options) as (keyof typeof options)[];
   let enable: string | undefined;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  const parts = argument ? argument.split(":") : [];
+  if (argument.endsWith(":")) parts.pop();
   try {
     let optionPosition = 0;
-    for (const option of argument ? argument.split(":") : []) {
+    for (const option of parts) {
       const separator = option.indexOf("=");
       const key = separator < 0 ? names[optionPosition] : option.slice(0, separator).trim() as keyof typeof options | "enable";
       // FFmpeg 7 restarts shorthand after named options, skipping the first slot

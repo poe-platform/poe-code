@@ -13755,7 +13755,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "wet" && (target === "asubboost" || target?.startsWith("asubboost@"))
                             || ["mm", "cm", "m", "dry", "wet", "temp", "enable"].includes(action!) && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
                             || action === "limit" && (target === "alimiter" || target?.startsWith("alimiter@"))
-                            || action === "makeup" && (target === "agate" || target?.startsWith("agate@"))
+                            || action === "makeup" && ["agate", "acompressor"].some(name => target === name || target?.startsWith(`${name}@`))
                             || target === "atilt" || target?.startsWith("atilt@")
                             || target === "aexciter" || target?.startsWith("aexciter@")
                             || target === "acrusher" || target?.startsWith("acrusher@")
@@ -14850,7 +14850,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         statsScale = 1;
                       } else if (trimmed === "acompressor" || trimmed.startsWith("acompressor=")) {
-                        stretched = await compressAudio(stretched, origRate, trimmed, budget, context.signal);
+                        const commands = audioCommands.filter(command => command.target === "acompressor" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        audioCommands = audioCommands.filter(command => command.target !== "acompressor" && command.target !== filterTarget);
+                        stretched = await compressAudio(stretched, origRate, trimmed, budget, context.signal, undefined, commands);
                         statsScale = 1;
                       } else if (trimmed === "mcompand" || trimmed.startsWith("mcompand=")) {
                         stretched = await multibandCompandAudio(stretched, origRate, trimmed, budget, context.signal);

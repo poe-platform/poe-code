@@ -4,7 +4,8 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function compressAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
-  sidechain?: readonly (Float32Array | Float64Array)[]
+  sidechain?: readonly (Float32Array | Float64Array)[],
+  commands: readonly { sample: number; expression: string }[] = []
 ): Promise<Float64Array[]> {
   const name = sidechain ? "sidechaincompress" : "acompressor";
   const options: Record<string, string | number> = {
@@ -48,7 +49,7 @@ export async function compressAudio(
   const reduction = 1 - 1 / Number(options.ratio);
   const attack = Math.min(1, 4000 / (Number(options.attack) * sampleRate));
   const release = Math.min(1, 4000 / (Number(options.release) * sampleRate));
-  const makeup = Number(options.makeup);
+  let makeup = Number(options.makeup);
   const width = Math.log(Number(options.knee));
   const maximum = options.link === "maximum";
   const rms = options.detection === "rms";
@@ -63,8 +64,16 @@ export async function compressAudio(
   budget.allocateMemory(length * channels.length * 8);
   const output = channels.map(() => new Float64Array(length));
   let envelope = 0;
+  let nextCommand = 0;
   for (let i = 0; i < length; i++) {
     if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+    while (nextCommand < commands.length && commands[nextCommand]!.sample <= i) {
+      const command = commands[nextCommand++]!;
+      try {
+        const value = parseFilterExpression(command.expression, name, {});
+        if (Number.isFinite(value) && value >= 1 && value <= 64) makeup = value;
+      } catch { /* Native asendcmd continues after a rejected command. */ }
+    }
     let detected = 0;
     for (const channel of detector) {
       const value = Math.abs(channel[i]! * detectorLevel);

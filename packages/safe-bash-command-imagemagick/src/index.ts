@@ -4674,7 +4674,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             // Identity shear must retain fractional and over-range working samples.
             if (plan.tx === 0 && plan.ty === 0) return;
             const virtualCanvas = {
-                width: plan.width, height: plan.height, x: image.virtualCanvas?.x ?? 0, y: image.virtualCanvas?.y ?? 0
+                width: 0, height: 0, x: image.virtualCanvas?.x ?? 0, y: image.virtualCanvas?.y ?? 0
             };
             return { ...plan, virtualCanvas, steps: shearPixelSteps(image, plan, backgroundExplicit ? background : image.backgroundColor ?? background, compose, composeArgs, fuzz, channels) };
         }
@@ -14383,6 +14383,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else {
             if (t === "+swirl" || t === "+implode" || t === "+wave" || t === "-mask" || t === "+mask" || t === "+auto-orient" || t === "+transpose" || t === "+transverse" || t === "+color-threshold" || t === "+roll" || t === "+chop" || t === "+splice" || t === "+shave" || t === "+shade" || t === "+range-threshold" || t === "+print" || t === "+wavelet-denoise" || t === "+local-contrast" || t === "+identify") throw new Error(`option deprecated, unable to execute '${t}' at CLI arg ${argumentOffset + i + 1}`);
             if (t === "+flip" || t === "+flop" || t === "+auto-level" || t === "+auto-gamma" || t === "+normalize" || t === "+color-matrix" || t === "+colors" || t === "+solarize" || t === "+separate" || t === "+unique-colors" || t === "+sort-pixels" || t === "+reverse") throw new Error(`option deprecated, unable to execute '${t}'`);
+            if (t === "-layers") throw new Error(`UnrecognizedLayerMethod '-layers' '${tokens[i + 1] ?? ""}'`);
             if ((t.startsWith("-") && t !== "-" && t !== "--list") || t.startsWith("+")) throw new UnrecognizedConvertOptionError(`unrecognized option '${t}'`);
             const bytes = t.startsWith("@") ? files.get(t.slice(1)) : undefined;
             for (const inputName of bytes ? yield* montageInputNames(bytes) : [t]) {
@@ -17993,6 +17994,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 stackStep(async () => {
                     if (token === "+swirl" || token === "+implode" || token === "+wave" || token === "-mask" || token === "+mask" || token === "+auto-orient" || token === "+transpose" || token === "+transverse" || token === "+color-threshold" || token === "+roll" || token === "+chop" || token === "+splice" || token === "+shave" || token === "+shade" || token === "+range-threshold" || token === "+print" || token === "+wavelet-denoise" || token === "+local-contrast" || token === "+identify") throw new Error(`option deprecated, unable to execute '${token}' at CLI arg ${i + 1}`);
                     if (token === "+flip" || token === "+flop" || token === "+auto-level" || token === "+auto-gamma" || token === "+normalize" || token === "+color-matrix" || token === "+colors" || token === "+solarize" || token === "+separate" || token === "+unique-colors" || token === "+sort-pixels" || token === "+reverse") throw new Error(`option deprecated, unable to execute '${token}'`);
+                    if (token === "-layers") throw new Error(`UnrecognizedLayerMethod '-layers' '${tokens[i + 1] ?? ""}'`);
                     throw new UnrecognizedConvertOptionError(`unrecognized option '${token}'`);
                 });
                 break;

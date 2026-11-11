@@ -29,3 +29,28 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
         expect((await runMagickCli(["identify", "-format", "%wx%h %g", "/output.png"], new Map([["/output.png", output]]))).stdout).toBe(geometry);
     });
 }
+
+// Live page dimensions differ from the dimensions assigned when reopening a PNG.
+for (const mode of ["command", "buffered", "retained", "sync"] as const) {
+    it.each([
+        { page: ["-repage", "9x8+3-2"], angle: "15x0", reset: [], expected: "4x2 0x0+3-2 0,0,+3,-2" },
+        { page: [], angle: "15x0", reset: [], expected: "4x2 0x0+0+0 0,0,+0,+0" },
+        { page: ["-repage", "9x8+3-2"], angle: "0x0", reset: [], expected: "3x2 9x8+3-2 9,8,+3,-2" },
+        { page: ["-repage", "9x8+3-2"], angle: "15x0", reset: ["+repage"], expected: "4x2 0x0+0+0 0,0,+0,+0" },
+    ])(`reports live shear page dimensions: $expected (${mode})`, async ({ page, angle, reset, expected }) => {
+        const input = Buffer.concat([Buffer.from("P6\n3 2\n255\n"), Buffer.from(Array.from({ length: 18 }, (_, i) => (i + 1) * 10))]);
+        const files = new Map([["/input.ppm", input]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.ppm", input);
+        const args = ["/input.ppm", ...page, "-shear", angle, ...reset, "-format", "%wx%h %g %W,%H,%X,%Y", "info:"];
+        let stdout = "", stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runMagickCliSync(args, files) : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        expect("stdout" in result ? result.stdout : stdout).toBe(expected);
+    });
+}

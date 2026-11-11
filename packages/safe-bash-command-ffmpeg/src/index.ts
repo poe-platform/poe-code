@@ -5039,15 +5039,15 @@ async function applyVideoFilterChain(
         const canvas = new Uint8Array(outW * outH * 4);
         const source = batch[0]?.native;
         // Keep original native samples only while they still describe the RGBA image.
-        const native = source && [0, 4, 5, 12, 13, 14, 29, 30, 49, 68].includes(source.format) && batch.every(frame =>
+        const native = source && [0, 4, 5, 12, 13, 14, 29, 30, 49, 62, 68].includes(source.format) && batch.every(frame =>
           frame.native?.rgba === frame.data && frame.width === fw && frame.height === fh &&
           frame.native.width === fw && frame.native.height === fh && frame.native.format === source.format &&
           frame.native.colorspace === source.colorspace && frame.native.fullRange === source.fullRange)
           ? source : undefined;
-        const hsub = native && [0, 4, 12, 13].includes(native.format) ? 2 : 1;
-        const vsub = native && [0, 12].includes(native.format) ? 2 : 1;
+        const hsub = native && [0, 4, 12, 13, 62].includes(native.format) ? 2 : 1;
+        const vsub = native && [0, 12, 62].includes(native.format) ? 2 : 1;
         const planes = native && [29, 30].includes(native.format) ? 1 : 3;
-        const depth = native && [29, 30, 49].includes(native.format) ? 16 : native?.format === 68 ? 10 : 8;
+        const depth = native && [29, 30, 49].includes(native.format) ? 16 : native && [62, 68].includes(native.format) ? 10 : 8;
         const sampleBytes = depth > 8 ? 2 : 1;
         const chromaWidth = Math.ceil(outW / hsub);
         const chromaHeight = Math.ceil(outH / vsub);

@@ -121,3 +121,16 @@ it("retains YUV samples in overlapping sheets with initial and final blank cells
     [0, 1].flatMap(() => sheet.flatMap(frame => [frame[plane]!, frame[plane]!]))));
   assert.deepEqual(output, Buffer.from(expected));
 });
+
+// Native Linux FFmpeg 7.0.2: tile fill uses the full 10-bit sample range,
+// while occupied cells retain their original limited-range YUV samples.
+for (const [filter, hex] of [
+  ["tile=2x1", "400040004000400040004000400040000002020200020202"],
+  ["tile=2x1:color=red", "4000400047014701400040004701470100026a010002c303"],
+  ["tile=1x1", "400040004000400000020002"]
+] as const) {
+  it(`matches native 10-bit YUV420 tile fill with ${filter}`, async () => {
+    const input = Buffer.from("400040004000400000020002", "hex");
+    assert.deepEqual(await run(input, filter, "yuv420p10le"), Buffer.from(hex, "hex"));
+  });
+}

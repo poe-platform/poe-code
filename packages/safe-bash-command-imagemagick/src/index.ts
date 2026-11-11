@@ -14395,6 +14395,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             delete result.magickColorspace;
             stack = [{ ...result, space: "srgb", channels: 3, isPalette: false, inactiveAlpha: false, readMask: undefined, writeMask: undefined, region: undefined }];
         }
+        else if ((t === "-stereo" || t === "-stegano") && !analysis.composite) {
+            throw new UnrecognizedConvertOptionError(`unrecognized option '${t}'`);
+        }
         else if (t === "-stereo") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "");
             if (stack.length < 2) throw new Error("image sequence is required '-stereo'");
@@ -14544,10 +14547,10 @@ async function writeStoredJsonOutput(stack: StoredImageStack, path: string, inpu
 
 class UnrecognizedConvertOptionError extends Error {}
 
-function createConvertAnalysis() {
+function createConvertAnalysis(composite = false) {
     let warnings = "";
     return {
-        text: "", errors: "", progress: "", bytes: [] as Uint8Array[], quiet: false, regardWarnings: false, boundsWarning: false, unknownPropertyWarning: false,
+        composite, text: "", errors: "", progress: "", bytes: [] as Uint8Array[], quiet: false, regardWarnings: false, boundsWarning: false, unknownPropertyWarning: false,
         get warnings() { return warnings; },
         set warnings(value: string) { if (!this.quiet) warnings = value; }
     };
@@ -14594,18 +14597,18 @@ function* benchmarkConvert(argv: readonly string[]): Generator<readonly string[]
     return combineConvertOutput({ exitCode: result.exitCode, stdout: "", stderr: `  Performance[1]: ${iterations}i ${(iterations / seconds).toFixed(3)}ips ${seconds.toFixed(6)}s\n` }, analysis);
 }
 
-function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
+function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal, composite = false): Generator<void, ImageMagickCliResult, void> {
     if (argv[0] === "-bench") {
         const benchmark = benchmarkConvert(argv);
         let next = benchmark.next();
         while (!next.done) {
             signal?.throwIfAborted();
             yield;
-            next = benchmark.next(yield* runConvertCliSteps(next.value, files, stdinBytes, signal));
+            next = benchmark.next(yield* runConvertCliSteps(next.value, files, stdinBytes, signal, composite));
         }
         return next.value;
     }
-    const analysis = createConvertAnalysis();
+    const analysis = createConvertAnalysis(composite);
     const result = yield* runConvertCliResultSteps(argv, files, stdinBytes, signal, analysis);
     return combineConvertOutput(result, analysis);
 }
@@ -15156,8 +15159,8 @@ function applyMagickProfile<T extends { readonly icc?: Uint8Array; readonly exif
     return image;
 }
 
-async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult | undefined> {
-    const analysis = createConvertAnalysis();
+async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal, composite = false): Promise<ImageMagickCliResult | undefined> {
+    const analysis = createConvertAnalysis(composite);
     try {
         const result = await tryConvertFilesResult(argv, input, stdinBytes, signal, analysis);
         return result ? combineConvertOutput(result, analysis) : undefined;
@@ -15173,7 +15176,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
     const optionArgs = argv.slice(0, argv.indexOf("--") < 0 ? argv.length : argv.indexOf("--"));
     if (!outSpec || argv.length <= 2 && argv[0] === "-list" || optionArgs.some(token => ["--help", "-help", "-h", "--version", "-version"].includes(token))) {
         await probeImageArguments(argv, input, stdinBytes, signal);
-        return drainSteps(runConvertCliSteps(argv, new Map(), stdinBytes, signal), signal);
+        return drainSteps(runConvertCliSteps(argv, new Map(), stdinBytes, signal, analysis.composite), signal);
     }
     await yieldTurn(signal);
     let state = createDefaultState();
@@ -16364,6 +16367,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 await result.push(difference);
                 return result;
             });
+            continue;
+        }
+        if (!operandsOnly && (token === "-stereo" || token === "-stegano") && !analysis.composite) {
+            stackStep(async () => { throw new UnrecognizedConvertOptionError(`unrecognized option '${token}'`); });
             continue;
         }
         if (!operandsOnly && token === "-stereo") {
@@ -18815,7 +18822,7 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
 }
 function* runCompositeCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     const parsed = yield* parseCompositeArgumentsSteps(argv);
-    return Array.isArray(parsed) ? yield* runConvertCliSteps(parsed, files, stdinBytes, signal) : parsed;
+    return Array.isArray(parsed) ? yield* runConvertCliSteps(parsed, files, stdinBytes, signal, true) : parsed;
 }
 async function probeImageArguments(argv: readonly string[], files: ConvertFileInput, stdinBytes: Uint8Array | undefined, active: AbortSignal): Promise<void> {
     // Preserve input admission and read failures before the legacy missing-operand diagnostic.
@@ -18842,7 +18849,12 @@ async function probeImageArguments(argv: readonly string[], files: ConvertFileIn
 export async function runCompositeCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {
     if (files instanceof Map) return drainSteps(runCompositeCliSteps(argv, files, stdinBytes, signal), signal);
     const active = signal ?? new AbortController().signal, parsed = await drainSteps(parseCompositeArgumentsSteps(argv), active);
-    if (Array.isArray(parsed)) return runConvertCli(parsed, files, stdinBytes, active);
+    if (Array.isArray(parsed)) {
+        const result = await tryConvertFiles(parsed, files, stdinBytes, active, true);
+        if (!result) return runBufferedImageFiles(argv, files, runCompositeCli, stdinBytes, active);
+        if (files.stderr && result.stderr) { await writeIdentifyText(files.stderr, result.stderr, active); return { ...result, stderr: "" }; }
+        return result;
+    }
     if (parsed.stderr === "composite: missing an image filename\n") await probeImageArguments(argv, files, stdinBytes, active);
     if (files.stderr && parsed.stderr) { await writeIdentifyText(files.stderr, parsed.stderr, active); return { ...parsed, stderr: "" }; }
     return parsed;

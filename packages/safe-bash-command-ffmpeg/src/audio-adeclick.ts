@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 import { declickWindow } from "./audio-declick-window.js";
 
 export async function declickAudio(
@@ -8,7 +9,8 @@ export async function declickAudio(
 ): Promise<Float64Array[]> {
   const declip = filter.split("=", 1)[0] === "adeclip";
   const name = declip ? "adeclip" : "adeclick";
-  const options = { window: 55, overlap: 75, arorder: declip ? 8 : 2, threshold: declip ? 10 : 2, burst: 2, hsize: 1000, method: 0 };
+  const defaults = { window: 55, overlap: 75, arorder: declip ? 8 : 2, threshold: declip ? 10 : 2, burst: 2, hsize: 1000, method: 0 };
+  const options = { ...defaults };
   const names = (Object.keys(options) as (keyof typeof options)[]).filter(key => key !== (declip ? "burst" : "hsize"));
   const aliases = { w: "window", o: "overlap", a: "arorder", t: "threshold", b: "burst", n: "hsize", m: "method" } as const;
   const ranges = { window: [10, 100], overlap: [50, 95], arorder: [0, 25], threshold: [1, 100], burst: [0, 10], hsize: [100, 9999], method: [0, 1] };
@@ -19,9 +21,12 @@ export async function declickAudio(
     const key = (aliases[option as keyof typeof aliases] ?? option) as keyof typeof options;
     if (!names.includes(key)) throw new Error(`${name}: unsupported option ${option}`);
     const raw = (separator < 0 ? part : part.slice(separator + 1)).trim();
-    const value = key === "method" && ["add", "a"].includes(raw) ? 0
-      : key === "method" && ["save", "s"].includes(raw) ? 1 : Number(raw);
     const [min, max] = ranges[key];
+    const value = parseFilterExpression(raw, name, {
+      min: min!, max: max!, default: defaults[key],
+      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+      ...(key === "method" ? { add: 0, a: 0, save: 1, s: 1 } : {})
+    });
     if (!raw || !Number.isFinite(value) || ((key === "method" || key === "hsize") && !Number.isInteger(value))) {
       throw new Error(`${name}: invalid ${key}`);
     }

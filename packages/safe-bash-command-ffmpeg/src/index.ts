@@ -14644,10 +14644,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               throw new RangeError("crystalizer: i must be in the range [-10, 10]");
                             }
                           } else if (key === "c") {
-                            if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(value)) {
-                              throw new Error("crystalizer: invalid clipping option");
-                            }
-                            clip = ["1", "true", "yes", "on"].includes(value);
+                            clip = parseFilterBoolean(value, "crystalizer: invalid clipping option");
                           } else if (key === "enable") enable = value;
                           else throw new Error(`crystalizer: unsupported option ${key}`);
                         }

@@ -13259,6 +13259,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-shade") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const spec = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 return yield* applyMagickRasterSteps(im, shadePixelSteps(im, spec, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.intensity), signal);
@@ -17163,6 +17164,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 steps.push(async (image, backend) => image ? morphStoredMagickImage(image, backend, plan, signal, channels, undefined, background) : undefined);
             }
         } else if (!operandsOnly && token === "-shade") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const spec = tokens[++i] ?? "", background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? { ...state.channels } : undefined, intensity = state.intensity;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, shadePixelSteps(image, spec, background, virtualPixel, channels, intensity), signal) : undefined);
         } else if (!operandsOnly && token === "-emboss") {

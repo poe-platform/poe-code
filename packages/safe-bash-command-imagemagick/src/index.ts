@@ -8184,13 +8184,13 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             const { x: offsetX, y: offsetY } = state.tileOffset ?? { x: 0, y: 0 };
             for (let y = 0; y < tiled.height; y++) {
                 for (let x = 0; x < tiled.width; x++) {
-                    const sx = x - offsetX, sy = y - offsetY;
-                    if (sx < 0 || sy < 0 || sx >= tiled.width || sy >= tiled.height) continue;
-                    const source = ((sy % pattern.height) * pattern.width + sx % pattern.width) * 4;
+                    const sx = x + (pattern.hasAlpha ? -offsetX : offsetX), sy = y + (pattern.hasAlpha ? -offsetY : offsetY);
+                    if (pattern.hasAlpha && (sx < 0 || sy < 0 || sx >= tiled.width || sy >= tiled.height)) continue;
+                    const source = (((sy % pattern.height + pattern.height) % pattern.height) * pattern.width + (sx % pattern.width + pattern.width) % pattern.width) * 4;
                     tiled.data.set(pattern.data.subarray(source, source + 4), (y * tiled.width + x) * 4);
                 }
             }
-            return { ...tiled, hasAlpha: pattern.hasAlpha || offsetX !== 0 || offsetY !== 0 };
+            return { ...tiled, hasAlpha: pattern.hasAlpha };
         })));
     }
     if (lower.startsWith("mvg:")) {
@@ -21121,17 +21121,17 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    if(start%262144===0)await yieldTurn(signal);
    const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4);
    for(let offset=0;offset<count;){
-    const x=(start+offset)%width,y=Math.floor((start+offset)/width),sx=x-offsetX,sy=y-offsetY;
-    if(sx<0||sy<0||sx>=width||sy>=height){offset+=Math.min(count-offset,width-x,sx<0?-sx:width-x);continue;}
-    const px=sx%pattern.width,py=sy%pattern.height,blockX=Math.floor(px/4096)*4096;
+    const x=(start+offset)%width,y=Math.floor((start+offset)/width),sx=x+(pattern.hasAlpha?-offsetX:offsetX),sy=y+(pattern.hasAlpha?-offsetY:offsetY);
+    if(pattern.hasAlpha&&(sx<0||sy<0||sx>=width||sy>=height)){offset+=Math.min(count-offset,width-x,sx<0?-sx:width-x);continue;}
+    const px=(sx%pattern.width+pattern.width)%pattern.width,py=(sy%pattern.height+pattern.height)%pattern.height,blockX=Math.floor(px/4096)*4096;
     const sourcePosition=pattern.position+(py*pattern.width+blockX)*4;
     if(cachedPosition!==sourcePosition){cached=await backend.storage.read(sourcePosition,Math.min(4096,pattern.width-blockX)*4);cachedPosition=sourcePosition;}
-    const sourceOffset=px-blockX,take=Math.min(count-offset,width-x,width-sx,pattern.width-px,cached.length/4-sourceOffset);
+    const sourceOffset=px-blockX,take=Math.min(count-offset,width-x,pattern.hasAlpha?width-sx:width-x,pattern.width-px,cached.length/4-sourceOffset);
     bytes.set(cached.subarray(sourceOffset*4,(sourceOffset+take)*4),offset*4);offset+=take;
    }
    await backend.storage.write(position+start*4,bytes);
   }
-  return {position,width,height,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:pattern.hasAlpha||offsetX!==0||offsetY!==0};
+  return {position,width,height,format:"png",channels:4,depth:"uchar",space:"srgb",density:72,hasAlpha:pattern.hasAlpha};
 
  }
  async function finish(image:StoredRgbaImage):Promise<StoredRgbaImage>{

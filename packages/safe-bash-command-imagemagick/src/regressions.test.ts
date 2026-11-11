@@ -20,14 +20,14 @@ it("tiles input pixels to the requested canvas dimensions", async () => {
   const files = new Map([["pattern.png", pattern]]);
   expect((await runConvertCli(["-size", "5x3", "tile:pattern.png", "out.png"], files)).exitCode).toBe(0);
   expect(await sharp(files.get("out.png")!).metadata()).toMatchObject({ width: 5, height: 3 });
-  const pixels = await sharp(files.get("out.png")!).raw().toBuffer();
+  const pixels = await sharp(files.get("out.png")!).ensureAlpha().raw().toBuffer();
   for (let y = 0; y < 3; y++) for (let x = 0; x < 5; x++) expect([...pixels.slice((y * 5 + x) * 4, (y * 5 + x + 1) * 4)]).toEqual(x % 2 === 0 ? [255, 0, 0, 255] : [0, 0, 255, 255]);
 });
 
 it("returns comparison status and emits metrics only on stderr", async () => {
   const files = new Map<string, Uint8Array>();
-  await runConvertCli(["-size", "2x2", "xc:red", "a.png"], files);
-  await runConvertCli(["-size", "2x2", "xc:blue", "b.png"], files);
+  await runConvertCli(["-size", "2x2", "xc:red", "-define", "png:color-type=6", "a.png"], files);
+  await runConvertCli(["-size", "2x2", "xc:blue", "-define", "png:color-type=6", "b.png"], files);
   for (const output of ["null:", "diff.png", "png:-"]) {
     const different = await runCompareCli(["-metric", "AE", "a.png", "b.png", output], files);
     expect(different.exitCode).toBe(1);

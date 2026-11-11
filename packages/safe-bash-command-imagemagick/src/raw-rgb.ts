@@ -1,5 +1,5 @@
 // Present headerless samples as Netpbm or MIFF for both decoding paths.
-export function rawRasterInput(width: number, height: number, depth: number, endian: string, byteLength: number, layout: 1 | 2 | 3 | 4 | 5 | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro", offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none", floatingPoint = false, extract?: { width?: number; height?: number; x: number; y: number }) {
+export function rawRasterInput(width: number, height: number, depth: number, endian: string, byteLength: number, layout: 1 | 2 | 3 | 4 | 5 | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro", offset = 0, interlace: "none" | "plane" | "line" | "partition" = "none", floatingPoint = false, extract?: { width?: number; height?: number; x: number; y: number }, scenes?: number[][]) {
     const channels = typeof layout === "string" ? layout.length : layout;
     const bgr = typeof layout === "string" && layout.startsWith("bgr"), sampleBytes = Math.min(depth, 16) / 8, pixelBytes = channels * sampleBytes;
     const coder = typeof layout === "string" ? layout.toUpperCase() : channels === 1 ? "GRAY" : channels === 2 ? "GRAYA" : channels === 3 ? "RGB" : channels === 4 ? "CMYK" : "CMYKA";
@@ -11,8 +11,9 @@ export function rawRasterInput(width: number, height: number, depth: number, end
     // Native GRAYA Line reads gray, alpha and two unused channel spans per row.
     const frameLength = rowLength * height * (channels / rowChannels) * (interlace === "line" && layout === 2 ? 2 : 1), decodedLength = rowSamples * height * Math.ceil(Math.min(depth, 16) / 8);
     if (!Number.isSafeInteger(decodedLength) || !Number.isSafeInteger(frameLength) || frameLength > byteLength - offset || !Number.isSafeInteger(offset) || offset < 0) throw new Error(`unexpected end-of-file in ${coder} input`);
-    // A complete packed scanline starts another frame; a shorter tail is ignored.
-    if (interlace === "none" && (byteLength - offset) % frameLength >= frameLength / height) throw new Error(`unexpected end-of-file in ${coder} input`);
+    // Ignore an incomplete trailing frame only when every requested scene precedes it.
+    if (interlace === "none" && (byteLength - offset) % frameLength >= rowLength &&
+        (!scenes || scenes.some(range => range.some(page => page < 0 || page >= Math.floor((byteLength - offset) / frameLength))))) throw new Error(`unexpected end-of-file in ${coder} input`);
     const header = new TextEncoder().encode(typeof layout !== "string" && channels >= 4
         ? `id=ImageMagick class=DirectClass colorspace=CMYK matte=${channels === 5 ? "True" : "False"} columns=${width} rows=${height} depth=${Math.max(8, Math.min(16, depth))}\n:\x1a`
         : channels === 2 || channels === 4

@@ -1,3 +1,4 @@
+import type { RgbaColor } from "@poe-code/image-ast/portable";
 import { regionContains, type Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
@@ -20,10 +21,28 @@ export function parseUnsharpGeometry(raw: string): { width: number; height: numb
 }
 
 /** Native sampled Gaussian or rank-three blur, with bounded row caching. */
-export function* blurPixelSteps(image: { width: number; height: number; virtualPixel?: VirtualPixelMethod | undefined; region?: Region | undefined; evaluateSamples?: Float64Array | undefined; storedEvaluateSamples?: number | undefined }, geometry: { width?: number; height?: number }, gaussian: boolean, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, unsharp?: { amount: number; threshold: number }, writeMask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* blurPixelSteps(image: { width: number; height: number; virtualPixel?: VirtualPixelMethod | undefined; region?: Region | undefined; evaluateSamples?: Float64Array | undefined; storedEvaluateSamples?: number | undefined }, geometry: { width?: number; height?: number }, gaussian: boolean, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, unsharp?: { amount: number; threshold: number }, writeMask?: { width: number; height: number }, background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
-    const virtualPixel = unsharp && image.virtualPixel === "mirror" ? "mirror" : "edge";
+    const virtualPixel = unsharp ? image.virtualPixel ?? "edge" : "edge";
     const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
+    const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 127.5 : 0;
+    const fill = (virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
+        ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
+    const blocks = new Map<number, Uint8Array | Float64Array>();
+    function* sample(index: number): Generator<ConvolveRequest, ArrayLike<number>, Uint8Array | undefined> {
+        if (index < 0) return fill;
+        const start = Math.floor(index / 1024) * 1024;
+        let data = blocks.get(start);
+        if (!data) {
+            const length = Math.min(1024, width * height - start) * 4;
+            const bytes = yield { kind: "read", evaluate, position: start * 4, length };
+            if (!bytes || bytes.length !== length * (evaluate ? 8 : 1)) throw new Error("Truncated blur pixels");
+            data = evaluate ? new Float64Array(bytes.slice().buffer) : bytes;
+            if (blocks.size >= 16) blocks.delete(blocks.keys().next().value!);
+            blocks.set(start, data);
+        }
+        return data.subarray((index - start) * 4, (index - start) * 4 + 4);
+    }
     const region = !gaussian ? image.region : undefined;
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
     let half = 0;
@@ -56,6 +75,13 @@ export function* blurPixelSteps(image: { width: number; height: number; virtualP
             for (let ky = -half; ky <= half; ky++) {
                 yield;
                 const sy = virtualPixelIndex(0, y + ky, 1, height, virtualPixel);
+                if (sy < 0) {
+                    for (let x = 0; x < count; x++) {
+                        for (let c = 0; c < 3; c++) sums[x * 4 + c]! += fill[c]! * fill[3]! / 255 * weights[ky + half]!;
+                        sums[x * 4 + 3]! += fill[3]! / 255 * weights[ky + half]!;
+                    }
+                    continue;
+                }
                 let row = rows.get(sy);
                 if (!row) {
                     const first = Math.max(0, left - half), last = Math.min(width - 1, left + count - 1 + half), length = (last - first + 1) * 4;
@@ -70,9 +96,12 @@ export function* blurPixelSteps(image: { width: number; height: number; virtualP
                     for (let x = 0; x < count; x++) {
                         if (x % 32 === 0) yield;
                         for (let k = -half; k <= half; k++) {
-                            const offset = (virtualPixelIndex(left + x + k, 0, width, 1, virtualPixel) - first) * 4;
-                            const alpha = samples[offset + 3]! / 255, weight = weights[k + half]!;
-                            for (let c = 0; c < 3; c++) row[x * 4 + c]! += samples[offset + c]! * alpha * weight;
+                            const index = virtualPixelIndex(left + x + k, sy, width, height, virtualPixel);
+                            const offset = (index - sy * width - first) * 4;
+                            const pixel = index >= 0 && offset >= 0 && offset + 4 <= samples.length
+                                ? samples.subarray(offset, offset + 4) : yield* sample(index);
+                            const alpha = pixel[3]! / 255, weight = weights[k + half]!;
+                            for (let c = 0; c < 3; c++) row[x * 4 + c]! += pixel[c]! * alpha * weight;
                             row[x * 4 + 3]! += alpha * weight;
                         }
                         const maskOffset = Math.min(x, maskCount - 1) * 4;

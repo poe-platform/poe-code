@@ -60,7 +60,7 @@ it.each([
     expect(Array.from(decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!).data)).toEqual(expected);
 });
 
-it("keeps unsharp filesystem I/O bounded across row chunks", async () => {
+it.each(["edge", "tile", "mirror"])("keeps unsharp filesystem I/O bounded across row chunks (%s)", async method => {
     const input = await sharp(Uint8Array.from({ length: 1031 * 3 * 4 }, (_, i) => i % 4 === 3 ? 255 : i * 37 % 256), {
         raw: { width: 1031, height: 3, channels: 4 }
     }).png().toBuffer();
@@ -71,7 +71,7 @@ it("keeps unsharp filesystem I/O bounded across row chunks", async () => {
         const value = Reflect.get(target, key, target);
         return typeof value === "function" ? value.bind(target) : value;
     } });
-    const args = ["input.png", "-unsharp", "0x1+2+0.05", "out.png"];
+    const args = ["input.png", "-virtual-pixel", method, "-unsharp", "0x1+2+0.05", "out.png"];
     expect((await runConvertCli(args, files)).exitCode).toBe(0);
     expect((await runConvertCli(args, { filesystem, cwd: "/" })).exitCode).toBe(0);
     expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));

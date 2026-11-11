@@ -14660,7 +14660,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-unsharp") {
             const geometry = parseUnsharpGeometry(tokens[++i] ?? "0x1");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return yield* applyMagickRasterSteps(im, blurPixelSteps(im, geometry, false, state.channelExplicit ? state.channels : undefined, geometry, im.writeMask), signal, im, im.writeMask ? [im, im.writeMask] : [im]);
+                return yield* applyMagickRasterSteps(im, blurPixelSteps(im, geometry, false, state.channelExplicit ? state.channels : undefined, geometry, im.writeMask, state.background), signal, im, im.writeMask ? [im, im.writeMask] : [im]);
             });
         }
         else if (t === "-despeckle") {
@@ -18755,8 +18755,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1");
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => image ? transformStoredMagickRaster(image, backend, sharpenPixelSteps(image, geometry), signal) : undefined, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-unsharp") {
-            const geometry = parseUnsharpGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, false, channels, geometry, image.storedWriteMask), signal, image, image.storedWriteMask ? [image, image.storedWriteMask] : [image]) : undefined);
+            const geometry = parseUnsharpGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined, background = state.background;
+            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, blurPixelSteps(image, geometry, false, channels, geometry, image.storedWriteMask, background), signal, image, image.storedWriteMask ? [image, image.storedWriteMask] : [image]) : undefined);
         } else if (!operandsOnly && token === "-crop") {
             const geometry = tokens[++i] ?? "100%", gravity = state.gravity, optionProperties = state.optionProperties, background = state.background;
             stackStep(async (stack, backend) => {

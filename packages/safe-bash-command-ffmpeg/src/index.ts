@@ -4978,7 +4978,11 @@ async function applyVideoFilterChain(
       frameRateScale = interval / durationSeconds;
       const extracted: MediaVideoFrame[] = [];
       for (const frame of current) {
-        if (frame.width % cols || frame.height % rows) {
+        const source = frame.native?.rgba === frame.data && frame.native.width === frame.width && frame.native.height === frame.height
+          ? frame.native : undefined;
+        const hsub = source && [0, 4, 12, 13, 62].includes(source.format) ? 2 : 1;
+        const vsub = source && [0, 12, 62].includes(source.format) ? 2 : 1;
+        if (frame.width % (cols * hsub) || frame.height % (rows * vsub)) {
           throw new Error("untile: input dimensions must be multiples of the layout");
         }
         const width = frame.width / cols;
@@ -4989,11 +4993,8 @@ async function applyVideoFilterChain(
           budget.recordFrame(width, height);
           const x = (cell % cols) * width;
           const y = Math.floor(cell / cols) * height;
-          const source = frame.native;
-          if (source?.rgba === frame.data && source.width === frame.width && source.height === frame.height &&
+          if (source &&
               [0, 4, 5, 12, 13, 14, 29, 30, 49, 62, 68].includes(source.format)) {
-            const hsub = [0, 4, 12, 13, 62].includes(source.format) ? 2 : 1;
-            const vsub = [0, 12, 62].includes(source.format) ? 2 : 1;
             const sampleBytes = [29, 30, 49, 62, 68].includes(source.format) ? 2 : 1;
             const chromaPlanes = [29, 30].includes(source.format) ? 0 : 2;
             const size = (width * height + chromaPlanes * Math.ceil(width / hsub) * Math.ceil(height / vsub)) * sampleBytes;

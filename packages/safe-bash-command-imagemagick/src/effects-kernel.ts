@@ -262,7 +262,8 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                 const back = (name === "plus" ? 1 : 1 - foreground) * background.a / 255;
                 const alpha = sourceAtop ? background.a / 255 : destinationAtop ? foreground
                     : name === "clear" ? 0 : sourceIn || destinationIn ? foreground * background.a / 255
-                    : sourceOut ? foreground * (1 - background.a / 255) : destinationOut ? back : Math.min(1, foreground + back);
+                    : sourceOut ? foreground * (1 - background.a / 255) : destinationOut ? back
+                    : name === "xor" ? foreground * (1 - background.a / 255) + back : Math.min(1, foreground + back);
                 for (let channel = 0; channel < (inks ? 4 : 3); channel++) {
                     const color = backgroundInks ? backgroundInks[channel]! * 255 : channel === 0 ? background.r : channel === 1 ? background.g : background.b;
                     const selected = !channels || (channel === 0 ? channels.r : channel === 1 ? channels.g : channel === 2 ? channels.b : channels.k);
@@ -331,6 +332,8 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                         : name === "plus" ? round(Math.min(255 * pixelScale, sourceColor * foreground + color * pixelScale * back))
                         // Destination-over keeps the background above the masked image.
                         : name === "dstover" ? alpha === 0 ? 0 : round((color * pixelScale * background.a / 255 + sourceColor * foreground * (1 - background.a / 255)) / alpha)
+                        // Xor retains only nonoverlapping coverage, with premultiplied colors.
+                        : name === "xor" ? round(sourceColor * foreground * (1 - background.a / 255) + color * pixelScale * back)
                         : alpha === 0 ? 0 : round((sourceColor * foreground + color * pixelScale * back) / alpha);
                 }
                 if (inks) for (let channel = 0; channel < 3; channel++)

@@ -38,6 +38,7 @@ import { modulateRgb } from "./modulate.js";
 import { cyclePixelSteps } from "./cycle.js";
 import { magnifyPixelSteps, parseMagnifyMethod, type MagnifyMethod } from "./magnify-kernel.js";
 import { ftxtInput } from "./ftxt-input.js";
+import { cubeInput } from "./cube-input.js";
 import { ftxtPixels, storedFtxt } from "./ftxt.js";
 import { decodeApngSteps, readApng } from "./apng-input.js";
 import { signatureSteps } from "./signature.js";
@@ -7123,6 +7124,22 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             }
             return { ...tiled, hasAlpha: pattern.hasAlpha || offsetX !== 0 || offsetY !== 0 };
         })));
+    }
+    if (lower.startsWith("cube:")) {
+        const path = baseToken.slice(5), input = path === "-" ? stdinBytes : files.get(path);
+        if (!input) return undefined;
+        const steps = cubeInput(input.length);
+        let next = steps.next(), written = 0, table = new Uint8Array(), bytes = new Uint8Array();
+        while (!next.done) {
+            yield;
+            const request = next.value;
+            if (request instanceof Uint8Array) { bytes.set(request, written); written += request.length; }
+            else if (request.kind === "allocate") { table = new Uint8Array(request.tableSize); bytes = new Uint8Array(request.imageSize); }
+            else if (request.kind === "write") table.set(request.data, request.position);
+            else { next = steps.next((request.table ? table : input).subarray(request.position, request.position + request.length)); continue; }
+            next = steps.next(new Uint8Array());
+        }
+        return yield* applyMod([Object.assign(decodeImage(bytes), { [magickInput]: { filePath: path, byteLen: input.length } })]);
     }
     if (lower.startsWith("hald:")) {
         const metadata = haldInputMetadata(baseToken);
@@ -17352,6 +17369,22 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   }
   const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{onInvalidIndex:readOptions.onInvalidIndex,analysis:readOptions.analysis,registers:readOptions.registers,source:readOptions.source,lastPage:readOptions.lastPage===true});if(!pattern)return;
   image=await tile(pattern);
+ }else if(lower.startsWith("cube:")){
+  const consume=async(source:ImageByteSource)=>{
+   const steps=cubeInput(source.size);
+   let next=steps.next(),table=0,position=0,size=0,written=0;
+   while(!next.done){
+    await yieldTurn(signal);
+    const request=next.value;
+    if(request instanceof Uint8Array){await backend.storage.write(position+written,request);written+=request.length;}
+    else if(request.kind==="allocate"){table=backend.storage.allocate(request.tableSize);size=request.imageSize;position=backend.storage.allocate(size);}
+    else if(request.kind==="write")await backend.storage.write(table+request.position,request.data);
+    else{next=steps.next(request.table?await backend.storage.read(table+request.position,request.length):await source.read(request.position,request.length,{signal}));continue;}
+    next=steps.next(new Uint8Array());
+   }
+   return parseStoredCompareInput(`miff:${token.slice(5)}`,state,backend,signal,{...readOptions,source:{size,async read(offset,length){return backend.storage.read(position+offset,length);}}});
+  };
+  return readOptions.source===null?undefined:readOptions.source?consume(readOptions.source):backend.read(baseToken.slice(5),consume);
  }else if(lower.startsWith("ftxt:")){
   if(!state.hasSize)throw new Error("must specify image size for FTXT input");
   const consume=async(source:ImageByteSource)=>{

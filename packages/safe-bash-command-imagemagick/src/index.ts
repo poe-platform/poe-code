@@ -5196,12 +5196,17 @@ function thumbnailProperties(image: ImageMetadata & { [magickInput]?: MagickForm
     const source = image[magickInput];
     if (!source?.filePath) return image.properties;
     const path = source.filePath;
+    const uriPath = Array.from(new TextEncoder().encode(path), byte => {
+        const char = String.fromCharCode(byte);
+        return "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~/".includes(char)
+            ? char : `%${byte.toString(16).toUpperCase().padStart(2, "0")}`;
+    }).join("");
     return {
         ...image.properties,
         "Thumb::Image::Width": String(source.originalWidth ?? image.width),
         "Thumb::Image::Height": String(source.originalHeight ?? image.height),
         "Thumb::Document::Pages": String(pages),
-        "Thumb::URI": path.startsWith("/") ? `file://${path}` : path.includes(":") ? path : `./${path}`,
+        "Thumb::URI": path.startsWith("/") ? `file://${uriPath}` : path.includes(":") ? uriPath : `./${uriPath}`,
         ...(source.byteLen === undefined ? {} : { "Thumb::Size": String(source.byteLen) }),
         ...(source.mtimeMs === undefined ? {} : { "Thumb::MTime": String(Math.floor(source.mtimeMs / 1000)) })
     };

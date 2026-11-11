@@ -635,6 +635,13 @@ function parseDelay(value: string, ticksPerSecond = 100, current?: number): { mi
   }
   fields.push(geometry.slice(start));
   const parts = fields[0]!.split("x");
+  if (fields[0]!.includes(":")) {
+    const ratio = fields[0]!.split(":");
+    if (ratio.length === 2 && ratio.every(part => part.trim() && Number.isFinite(Number(part)))) {
+      // ImageMagick ratio geometry divides rho by sigma and sets sigma to one.
+      parts.splice(0, parts.length, String(Number(ratio[0]) / Number(ratio[1])), "1");
+    }
+  }
   if (!geometry.trim() || fields.length > 3 || parts.length > 2 ||
       [...parts, ...fields.slice(1)].some(part => !Number.isFinite(Number(part)))) return { milliseconds: NaN, ticksPerSecond, delayTicks: 0 };
   const [delay, ticks] = parts;

@@ -7876,6 +7876,20 @@ function tryHandleMagickListOption(argv: readonly string[]): ImageMagickCliResul
                 };
             }
             const listType = category.toLowerCase();
+            if (listType === "colorspace") {
+                return {
+                    exitCode: 0,
+                    stdout: [
+                        "Adobe98", "CAT02LMS", "CIELab", "CMY", "CMYK", "DisplayP3", "Gray",
+                        "HCL", "HCLp", "HSB", "HSI", "HSL", "HSV", "HWB", "Jzazbz", "Lab",
+                        "LCH", "LCHab", "LCHuv", "LinearGray", "LMS", "Log", "Luv", "OHTA",
+                        "Oklab", "Oklch", "ProPhoto", "Rec601YCbCr", "Rec709YCbCr", "RGB",
+                        "scRGB", "sRGB", "Transparent", "xyY", "XYZ", "YCbCr", "YDbDr",
+                        "YCC", "YIQ", "YPbPr", "YUV"
+                    ].join("\n") + "\n",
+                    stderr: ""
+                };
+            }
             if (listType === "gravity") {
                 return {
                     exitCode: 0,

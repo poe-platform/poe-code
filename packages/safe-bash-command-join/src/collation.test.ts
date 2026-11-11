@@ -22,6 +22,9 @@ async function run(args: ShellValue[], files: Record<string, string | Uint8Array
 
 for (const env of [
  { LC_ALL: "en_US.UTF-8", LC_COLLATE: "C" },
+ { LC_ALL: "en_US.utf8" },
+ { LC_ALL: "en_US.UTF8" },
+ { LC_ALL: "en_US.utf-8" },
  { LC_COLLATE: "en_US.UTF-8", LANG: "C" },
  { LC_ALL: "", LC_COLLATE: "", LANG: "en_US.UTF-8" },
 ]) {
@@ -132,6 +135,13 @@ for (const locale of ["C.UTF8", "C.utf-8"]) {
 
 for (const env of [
  { LC_ALL: "definitely_invalid" },
+ { LC_ALL: "en_US.NO_SUCH_CODESET" },
+ { LC_ALL: "en_US.utf8.NO_SUCH_CODESET" },
+ { LC_ALL: "en_US." },
+ { LANG: "en_US.NO_SUCH_CODESET" },
+ { LC_ALL: "", LC_COLLATE: "en_US.NO_SUCH_CODESET", LC_CTYPE: "C.UTF-8" },
+ { LC_COLLATE: "en_US.UTF-8", LC_CTYPE: "en_US.NO_SUCH_CODESET" },
+ { LANG: "en_US.UTF-8", LC_MESSAGES: "en_US.NO_SUCH_CODESET" },
  { LC_ALL: "unknown_X.utf8" },
  { LANG: "unknown_X.utf8" },
  { LC_ALL: "", LC_COLLATE: "unknown_X.utf8", LC_CTYPE: "C.UTF-8" },
@@ -140,6 +150,11 @@ for (const env of [
  { LANG: "en_US.UTF-8", LC_MESSAGES: "unknown_X.utf8" },
 ]) {
  test(`join falls back to C when locale initialization fails: ${JSON.stringify(env)}`, async () => {
+  const unpaired = await run(["-a1", "-a2", "/a", "/b"], { "/a": "a x\n", "/b": "B y\n" }, env);
+  assert.equal(unpaired.exitCode, 0, unpaired.stderr);
+  assert.equal(unpaired.stdout.toString(), "B y\na x\n");
+  assert.equal(unpaired.stderr, "");
+
   const joined = await run(["/a", "/b"], { "/a": "a L\n", "/b": "a R\n" }, env);
   assert.equal(joined.exitCode, 0, joined.stderr);
   assert.equal(joined.stdout.toString(), "a L R\n");
@@ -168,7 +183,7 @@ for (const env of [
 
 test("join ignores unavailable locales overridden by LC_ALL", async () => {
  const result = await run(["/a", "/b"], { "/a": "a\u2003L\n", "/b": "a\u2003R\n" }, {
-  LC_ALL: "C.UTF-8", LANG: "unknown_X.utf8", LC_COLLATE: "definitely_invalid", LC_CTYPE: "unknown_X.utf8",
+  LC_ALL: "C.UTF-8", LANG: "unknown_X.utf8", LC_COLLATE: "en_US.NO_SUCH_CODESET", LC_CTYPE: "unknown_X.utf8",
  });
  assert.equal(result.exitCode, 0, result.stderr);
  assert.equal(result.stdout.toString(), "a L R\n");

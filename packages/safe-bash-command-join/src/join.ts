@@ -234,6 +234,8 @@ function localeSettings(env: Readonly<Record<string, string>>): { utf8: boolean;
   try {
     for (const locale of new Set(locales)) {
       if (byteLocales.includes(locale)) continue;
+      const codesetOffset = locale.indexOf(".");
+      if (codesetOffset !== -1) new TextDecoder(locale.slice(codesetOffset + 1));
       const language = locale.split(".")[0]!.split("_").join("-");
       if (locale.includes("@") || !Intl.Collator.supportedLocalesOf([language]).length) throw new RangeError();
     }

@@ -11,6 +11,7 @@ import { isXwdBytes, readXwdHeader, decodeXwdImage } from "./xwd-input.js";
 import { isQoiBytes, readQoiMetadata, decodeQoiImage } from "./qoi-input.js";
 import { encodeQoiImage } from "./qoi-output.js";
 import { isMiffBytes, readMiffHeader, decodeMiffImage } from "./miff-input.js";
+import { encodeOtbImage } from "./otb-output.js";
 import { encodeXbmImage } from "./xbm-output.js";
 import { isXbmBytes, readXbmImage } from "./xbm.js";
 import { encodePcxImage } from "./pcx-output.js";
@@ -526,6 +527,7 @@ export function encodeImage(
     case "hdr": return { data: encodeHdrImage(img), format: "hdr", channels: 3 };
     case "exr": return { data: encodeExrImage(img), format: "exr", channels: img.hasAlpha ? 4 : 3 };
     case "qoi": return { data: encodeQoiImage(img), format: "qoi", channels: img.hasAlpha ? 4 : 3 };
+    case "otb": return { data: encodeOtbImage(img), format: "otb", channels: 1 };
     case "xbm": return { data: encodeXbmImage(img, options.outputFilename), format: "xbm", channels: 1 };
     case "xwd": return { data: encodeXwdImage(img), format: "xwd", channels: 3 };
     case "pcx": return { data: encodePcxImage(img, options), format: "pcx", channels: 3 };

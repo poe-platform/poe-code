@@ -6767,6 +6767,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
       return "psd";
     case "qoi":
       return "qoi";
+    case "otb":
+      return "otb";
     case "xbm":
       return "xbm";
     case "xpm":
@@ -10431,7 +10433,7 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
         const scene = (image as MagickImage)[magickInput]?.sceneIdx ?? 0;
         return { ...image, delay: [image.delay?.[scene] ?? image.delay?.[0] ?? 0], disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene] ?? 0 };
     }
-    if (format !== "pbm" && format !== "xbm") return image;
+    if (format !== "otb" && format !== "pbm" && format !== "xbm") return image;
     const source = image.data16 ? { ...image, data: new Uint8Array(image.data16.buffer, image.data16.byteOffset, image.data16.byteLength) } : image;
     return yield* applyMagickRasterSteps({ ...image, space: "b-w", channels: 1, hasAlpha: false }, bilevelPixelSteps(image.width * image.height, !!image.data16), undefined, { ...image, hasAlpha: false }, [source]);
 }
@@ -10470,7 +10472,7 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
         delete frame.storedDelay;
         return frame;
     }
-    if (format !== "pbm" && format !== "xbm") return image;
+    if (format !== "otb" && format !== "pbm" && format !== "xbm") return image;
     const source = image.storedData16 ? { ...image, position: image.storedData16.position } : image;
     return transformStoredMagickRaster({ ...image, space: "b-w", channels: 1, hasAlpha: false }, backend, bilevelPixelSteps(image.width * image.height, !!image.storedData16), signal, { ...image, hasAlpha: false }, [source]);
 }

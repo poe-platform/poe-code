@@ -9081,6 +9081,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     if (idx % 4 !== 3) value = linearize
                         ? value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
                         : value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055;
+                    // Q16-HDRI stores converted linear channels as float32 quantum values.
+                    if (linearize && idx % 4 !== 3) value = Math.fround(value * 65535) / 65535;
                     evaluateSamples[idx] = value * 255;
                     data[idx] = clampByteVal(value * 255);
                     data16[idx] = Math.round(Math.max(0, Math.min(1, value)) * 65535);

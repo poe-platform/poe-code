@@ -114,7 +114,7 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "ha
                 const alpha = virtualPixel?.endsWith("-tile") && !source.hasAlpha ? 255 : background.a;
                 return (virtualPixel === "background" || virtualPixel?.endsWith("-tile"))
                     ? [background.r * scale, background.g * scale, background.b * scale, alpha * scale, 0]
-                    : [gray * scale, gray * scale, gray * scale, virtualPixel === "transparent" ? 0 : maximum, 0];
+                    : [gray * scale, gray * scale, gray * scale, virtualPixel === "transparent" ? 0 : maximum, gray * scale];
             }
         }
         const position = (y * width + x) * 4;

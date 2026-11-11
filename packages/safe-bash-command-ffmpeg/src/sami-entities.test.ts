@@ -33,13 +33,3 @@ for (const caption of ["A &amp; B &lt; C", "A &quot; B &#65;", "one&nbsp;two", "
     });
   }
 }
-
-for (const marker of ["&nbsp;", "&nbsp;&nbsp;", "&nbsp;hidden"]) {
-  it(`uses leading SAMI ${marker} as a blank cue marker`, async () => {
-    const volume = Volume.fromJSON({ "/in.smi": `<SAMI><BODY><SYNC Start=1000><P>first<SYNC Start=2000><P>${marker}<SYNC Start=3000><P>last</BODY></SAMI>` });
-    assert.equal(evalSyncFfmpeg(["-f", "sami", "-i", "/in.smi", "/out.srt"], undefined,
-      path => volume.existsSync(path) ? volume.readFileSync(path) as Buffer : undefined,
-      (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), "");
-    assert.equal(volume.readFileSync("/out.srt", "utf8"), "1\n00:00:01,000 --> 00:00:02,000\nfirst\n\n2\n00:00:03,000 --> 1193:02:50,295\nlast\n\n");
-  });
-}

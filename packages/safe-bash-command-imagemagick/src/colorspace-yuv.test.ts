@@ -12,8 +12,8 @@ for (const mode of ["buffered", "sync", "command"] as const) {
         for (const [spaces, expected] of [
             [["YUV"], "YUV yuv(76.2039,90.015,284.325)"],
             [["YUV", "YUV"], "YUV yuv(76.2039,90.015,284.325)"],
-            [["YUV", "sRGB"], "sRGB srgb(255,0,0)"],
-            [["YUV", "RGB", "sRGB"], "sRGB srgb(255,0,0)"],
+            [["YUV", "sRGB"], "sRGB srgb(99.9839%,-0.0161%,-0.0161%)"],
+            [["YUV", "RGB", "sRGB"], "sRGB srgb(99.9839%,-0.0161%,-0.0161%)"],
         ] as const) {
             const args = ["/in.png", ...spaces.flatMap(space => ["-colorspace", space]), "-format", "%[colorspace] %[pixel:p{0,0}]", "info:"];
             let stdout = "";

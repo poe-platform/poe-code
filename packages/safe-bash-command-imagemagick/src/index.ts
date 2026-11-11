@@ -14483,7 +14483,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             // Retain the working colorspace when the combined planes fit its channels.
             if (!cmyk) {
                 delete result.hueSamples;
-                if (rIm.space === "cmyk" || sources.length === 4 && (!rIm.hasAlpha || rIm.alphaBlend === false) || rIm.space === "b-w" || rIm.space === "grey16") delete result.magickColorspace;
+                if (!gray && (rIm.space === "cmyk" || sources.length === 4 && (!rIm.hasAlpha || rIm.alphaBlend === false) || rIm.space === "b-w" || rIm.space === "grey16")) delete result.magickColorspace;
             }
             if (colorspace !== undefined && !cmyk && !gray) {
                 delete result.magickColorspace;
@@ -15839,7 +15839,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     // Retain the working colorspace when the combined planes fit its channels.
                     if (!cmyk) {
                         delete result.storedHueSamples;
-                        if (base.space === "cmyk" || sources.length === 4 && (!base.hasAlpha || base.alphaBlend === false) || base.space === "b-w" || base.space === "grey16") delete result.magickColorspace;
+                        if (!gray && (base.space === "cmyk" || sources.length === 4 && (!base.hasAlpha || base.alphaBlend === false) || base.space === "b-w" || base.space === "grey16")) delete result.magickColorspace;
                     }
                     if (colorspace !== undefined && !cmyk && !gray) {
                         delete result.magickColorspace;

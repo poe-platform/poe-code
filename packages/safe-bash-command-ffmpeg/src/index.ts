@@ -14007,11 +14007,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         "aloop", "aresample", "apad", "adelay", "atempo", "aformat", "pan",
                         "channelmap", "channelsplit", "asettb", "asetpts", "aselect", "atrim", "areverse", "earwax"
                       ].includes(filterName)) panSampleFormat = "flt";
-                      if (filterName === "stereotools" && !filteredChannelMask && filteredChannelNames?.some(name => name !== "")) {
+                      if (filterName === "stereotools" &&
+                        (!filteredChannelMask && filteredChannelNames?.some(name => name !== "") || filteredChannelMask === 0x30)) {
                         throw new Error("stereotools: unsupported input channel layout");
                       }
                       if (["extrastereo", "stereotools", "stereowiden"].includes(filterName) &&
-                        (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ||
+                        (filterName === "stereotools" && filteredChannelMask === 0xc ||
+                          stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ||
                           !filteredChannelMask && [3, 4, 6, 8].includes(stretched.length) ||
                           stretched.length === 3 && filteredChannelMask === 0xb ||
                           stretched.length === 4 && filteredChannelMask === 0x107 ||
@@ -14019,7 +14021,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           stretched.length === 8 && filteredChannelMask === 0x63f)) {
                         // Floating-point stereo negotiation keeps front gain and omits LFE.
                         // Unspecified 3/4/6/8-channel layouts default to 2.1/4.0/5.1/7.1.
-                        const expression = stretched.length === 1
+                        const expression = stretched.length === 1 || filteredChannelMask === 0xc
                           ? `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`
                           : stretched.length === 3 ? "stereo|c0=c0|c1=c1"
                             : stretched.length === 4
@@ -20026,6 +20028,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "negate: invalid expression" || msg === "negate: invalid or unsupported expression") return { exitCode: 234 };
             if ((overwrite && msg === "aecho: delay is too small") ||
                 msg === "aphaser: delay is too small" ||
+                msg === "stereotools: unsupported input channel layout" ||
                 msg.startsWith("channelsplit: unsupported input channel order ") ||
                 msg === "channelsplit: matching input channel layout required" ||
                 msg === "Padded dimensions cannot be smaller than input dimensions" ||

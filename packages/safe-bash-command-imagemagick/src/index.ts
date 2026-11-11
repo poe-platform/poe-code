@@ -6772,14 +6772,14 @@ function pngOutputColorType(value: string | undefined, format: ImageFormat, anal
     return undefined;
 }
 
-function inferOutputFormat(spec: string, fallback: ImageFormat = "png"): { format: ImageFormat; path: string; tiffBig?: boolean; gifVersion?: "87a"; bmpFormat?: "bmp2" | "bmp3"; pngCoder?: "png00" | "png8" | "png24" | "png32" | "png48" | "png64" } {
+function inferOutputFormat(spec: string, fallback: ImageFormat = "png"): { format: ImageFormat; path: string; tiffBig?: boolean; gifVersion?: "87a"; bmpFormat?: "bmp2" | "bmp3" | "dib"; pngCoder?: "png00" | "png8" | "png24" | "png32" | "png48" | "png64" } {
   const prefixMatch = /^([a-zA-Z0-9]+):(.*)$/.exec(spec);
   if (prefixMatch) {
     const prefix = prefixMatch[1]!.toLowerCase();
     const rest = prefixMatch[2]!;
     const fmt = ["r", "g", "b", "a", "k", "c", "m", "y", "o"].includes(prefix) ? "gray" : prefix === "tiff64" ? "tiff" : extToImageFormat(prefix);
     if (fmt) {
-      return { format: fmt, path: rest, ...(prefix === "tiff64" ? { tiffBig: true } : {}), ...(prefix === "gif87" ? { gifVersion: "87a" as const } : {}), ...(prefix === "bmp2" || prefix === "bmp3" ? { bmpFormat: prefix } : {}), ...(["png00", "png8", "png24", "png32", "png48", "png64"].includes(prefix) ? { pngCoder: prefix as "png00" | "png8" | "png24" | "png32" | "png48" | "png64" } : {}) };
+      return { format: fmt, path: rest, ...(prefix === "tiff64" ? { tiffBig: true } : {}), ...(prefix === "gif87" ? { gifVersion: "87a" as const } : {}), ...(prefix === "bmp2" || prefix === "bmp3" || prefix === "dib" ? { bmpFormat: prefix } : {}), ...(["png00", "png8", "png24", "png32", "png48", "png64"].includes(prefix) ? { pngCoder: prefix as "png00" | "png8" | "png24" | "png32" | "png48" | "png64" } : {}) };
     }
   }
   const dotIdx = spec.lastIndexOf(".");
@@ -6836,6 +6836,7 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
     case "gif87":
     case "gif":
       return "gif";
+    case "dib":
     case "bmp2":
     case "bmp3":
     case "bmp":

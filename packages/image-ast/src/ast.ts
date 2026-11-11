@@ -511,7 +511,7 @@ export type ImageAstNode =
 
 export interface OutputEncodeOptions {
   readonly endian?: string | undefined;
-  readonly bmpFormat?: "bmp2" | "bmp3" | "bmp4";
+  readonly bmpFormat?: "bmp2" | "bmp3" | "bmp4" | "dib";
   /** Preserve existing EXIF only when false; PNG stores standalone orientation in orNT. */
   readonly synthesizeExif?: boolean;
   readonly pngColorType?: 0 | 2 | 3 | 4 | 6 | undefined;

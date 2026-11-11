@@ -2,7 +2,7 @@ import type {BmpPalette} from "./bmp-palette.js";
 import type {RgbaImage, OutputEncodeOptions} from "../ast.js";
 export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"resolution"|"hasAlpha">, options?: Pick<OutputEncodeOptions,"bmpFormat"|"bmp3Alpha"|"bmpSubtype"|"bmpCompression">, palette?: BmpPalette, rleSize?: number) {
  const {width,height}=img;
- const version = options?.bmpFormat ?? "bmp3";
+ const version = options?.bmpFormat === "dib" ? "bmp3" : options?.bmpFormat ?? "bmp3";
  const subtype = options?.bmpSubtype;
  const masks = version === "bmp2" || !subtype || subtype.startsWith("ARGB") !== Boolean(img.hasAlpha) ? undefined : {
   RGB565: [0xf800,0x07e0,0x001f,0], RGB555: [0x7c00,0x03e0,0x001f,0],
@@ -48,7 +48,7 @@ export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"resolution"
   }
  }
  if (paletteBytes) out.set(paletteBytes, 14 + dibSize);
- return {data:out,rowStride,pixelSize,bytesPerPixel,bitDepth,masks};
+ return {data:options?.bmpFormat === "dib" ? out.subarray(14) : out,rowStride,pixelSize,bytesPerPixel,bitDepth,masks};
 }
 
 /** BI_BITFIELDS masks follow the 40-byte header or occupy the same slots in extended headers. */

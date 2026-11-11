@@ -95,6 +95,18 @@ for (const depth of [10, 16]) {
   });
 }
 
+// Native FFmpeg 7.0.2 copies the 10-bit plane words without an RGB conversion.
+for (const [filter, hex] of [
+  ["null", "410059005f01a502ff0100028a011302b40268030102fe01"],
+  ["tile=2x1", "410059008a0113025f01a502b4026803ff0101020002fe01"],
+  ["tile=1x2", "410059005f01a5028a011302b4026803ff0101020002fe01"]
+] as const) {
+  it(`preserves subsampled 10-bit YUV plane words with ${filter}`, async () => {
+    const input = Buffer.from("410059005f01a502ff0100028a011302b40268030102fe01", "hex");
+    assert.deepEqual(await run(input, filter, "yuv420p10le"), Buffer.from(hex, "hex"));
+  });
+}
+
 it("renders tiled native planes for downstream RGB filters", async () => {
   const input = Buffer.concat([Buffer.from("YUV4MPEG2 W2 H2 F5:1 Ip A1:1 C444\nFRAME\n"),
     Buffer.from([50, 30, 212].flatMap(v => Array<number>(4).fill(v)))]);

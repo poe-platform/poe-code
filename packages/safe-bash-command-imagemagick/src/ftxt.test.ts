@@ -9,6 +9,9 @@ const rgb = Uint8Array.from([...new TextEncoder().encode("P6\n2 1\n255\n"), 10, 
 const gray = new TextEncoder().encode("P2\n3 1\n65535\n4660 4661 65535\n");
 for (const mode of ["sync", "buffered", "retained", "command"] as const) {
     it.each([
+        { input: rgb, options: ["-define", "ftxt:format=A\\tB\\rC\\qD\\n"], target: "ftxt:-", expected: "ABCD\nABCD\n" },
+        { input: rgb, options: ["-define", "ftxt:format=A\\tB\\rC\\qD\\n"], target: "ftxt:/out.dat", expected: "ABCD\nABCD\n" },
+        { input: rgb, options: ["-define", "ftxt:format=ABCD\\n"], target: "ftxt:-", expected: "ABCD\nABCD\n" },
         { input: rgb, options: ["-colorspace", "Gray", "-precision", "3"], target: "ftxt:-", expected: "0,0:4.78e+03\n1,0:2.75e+04\n" },
         { input: rgb, options: ["-colorspace", "Gray", "-precision", "12"], target: "ftxt:/out.dat", expected: "0,0:4778.9921875\n1,0:27547.984375\n" },
         { input: rgb, options: ["-colorspace", "Gray"], target: "ftxt:-", expected: "0,0:4778.99\n1,0:27548\n" },

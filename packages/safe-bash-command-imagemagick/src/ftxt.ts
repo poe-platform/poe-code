@@ -17,9 +17,7 @@ export function* ftxtPixels(image: Pick<RgbaImage, "width" | "space" | "hasAlpha
             // Q16-HDRI stores fractional quantum samples as single-precision floats.
             else if (escape === "c") row += channels.map(channel => formatSignificantMetric(image.evaluateSamples ? Math.fround(image.evaluateSamples[offset + channel]! * 257) : image.data16?.[offset + channel] ?? image.data[offset + channel]! * 257, precision)).join(",");
             else if (escape === "n") row += "\n";
-            else if (escape === "r") row += "\r";
-            else if (escape === "t") row += "\t";
-            else row += escape ?? "";
+            else if (escape === "\\") row += escape;
         }
         yield row;
     }

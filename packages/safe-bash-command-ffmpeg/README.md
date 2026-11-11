@@ -616,7 +616,11 @@ channels, negative values narrow the image, and positive values widen it.
 Width applies after mute, phase inversion and delay, before output balance/gain.
 Both filters support timeline expressions such as `enable=n` (bypass the first
 audio frame) and `enable=0` (bypass all frames). `n` counts audio frames and `t`
-is the frame timestamp in seconds. Other stereotools options are rejected.
+is the frame timestamp in seconds. `stereotools` also accepts generic `threads`
+(0–2147483647), `thread_type` (such as `slice`), and `extra_hw_frames`
+(-1–2147483647) options. They are validated without changing the processed audio;
+for example, `stereotools=mutel=1:threads=1` still mutes only the left channel.
+Other stereotools options are rejected.
 Both filters accept case-insensitive Boolean
 words (`true`/`false`, `yes`/`no`, `on`/`off`, `y`/`n`, `enable`/`disable`,
 `enabled`/`disabled`) and decimal 0/1 values, such as `phasel=True` or `c=OFF`.

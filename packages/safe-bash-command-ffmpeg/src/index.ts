@@ -16375,6 +16375,27 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (!Number.isFinite(delay) || delay < -20 || delay > 20) {
                               throw new Error("stereotools: delay must be in the range [-20, 20]");
                             }
+                          } else if (key === "thread_type") {
+                            // Scheduling flags do not affect PCM, but each set/clear term must be valid.
+                            let position = 0;
+                            do {
+                              if (value[position] === "+" || value[position] === "-") position++;
+                              const start = position;
+                              if (value[position] === "+" || value[position] === "-") position++;
+                              while (position < value.length && value[position] !== "+" && value[position] !== "-") position++;
+                              const bits = parseFilterExpression(value.slice(start, position), "stereotools", { slice: 1, none: 0, all: -1 });
+                              if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
+                                throw new RangeError("stereotools: invalid thread_type");
+                              }
+                            } while (position < value.length);
+                          } else if (key === "threads" || key === "extra_hw_frames") {
+                            const minimum = key === "extra_hw_frames" ? -1 : 0;
+                            const number = parseFilterExpression(value, "stereotools",
+                              { default: minimum, min: minimum, max: 2147483647 });
+                            if (!Number.isFinite(number) || number < minimum || number > 2147483647) {
+                              throw new RangeError(`stereotools: invalid ${key}`);
+                            }
+                            // Scheduling and hardware options do not change the rendered PCM.
                           } else if (key === "enable") enable = value;
                           else {
                             throw new Error(`stereotools: unsupported option ${key}`);

@@ -11851,7 +11851,8 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
             hasAlpha ||= image.data16[offset + 3] !== 65535;
             highDepth ||= image.data16[offset]! % 257 !== 0;
         }
-        image = { ...image, depth: gray && highDepth ? "ushort" : image.depth, hasAlpha, channels: gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3 };
+        // Working grayscale precision must not promote an 8-bit source to 16-bit PNG.
+        image = { ...image, depth: gray && highDepth && (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 ? "ushort" : image.depth, hasAlpha, channels: gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3 };
     }
     if (format === "map" && (!image.isPalette || !image.indexedColors?.length && !image.pngPalette || (image.indexedColors?.length ?? 0) > 256)) image = yield* applyMagickRasterSteps(image, quantizePixelSteps(image.width * image.height * 4, 256, false, 0, image.hasAlpha, false, undefined, { width: image.width, height: image.height, method: "riemersma", diffusionAmount: 1 }, true));
     if (format === "xpm" && !(image.isPalette && !image.hasAlpha && image.indexedColors?.length && image.pngIndices)) image = yield* applyMagickRasterSteps(image, quantizePixelSteps(image.width * image.height * 4, 256, false, image.hasAlpha || dither ? 5 : 6, image.hasAlpha, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true));
@@ -11919,7 +11920,8 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
                 highDepth ||= samples[index]! % 257 !== 0;
             }
         }
-        image = { ...image, depth: gray && highDepth ? "ushort" : image.depth, hasAlpha, channels: gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3 };
+        // Working grayscale precision must not promote an 8-bit source to 16-bit PNG.
+        image = { ...image, depth: gray && highDepth && (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 ? "ushort" : image.depth, hasAlpha, channels: gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3 };
     }
     if (format === "map" && (!image.isPalette || !image.indexedColors?.length && !image.pngPalette || (image.indexedColors?.length ?? 0) > 256)) image = await transformStoredMagickRaster(image, backend, quantizePixelSteps(image.width * image.height * 4, 256, false, 0, image.hasAlpha, false, undefined, { width: image.width, height: image.height, method: "riemersma", diffusionAmount: 1 }, true), signal);
     if (format === "xpm" && !(image.isPalette && !image.hasAlpha && image.indexedColors?.length && image.storedPngIndices)) image = await transformStoredMagickRaster(image, backend, quantizePixelSteps(image.width * image.height * 4, 256, false, image.hasAlpha || dither ? 5 : 6, image.hasAlpha, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true), signal);

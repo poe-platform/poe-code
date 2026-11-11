@@ -158,7 +158,9 @@ export async function emphasizeAudio(
       while (commandIndex < commands.length && commands[commandIndex]!.sample <= sample) {
         const command = commands[commandIndex++]!;
         try {
-          const value = parseFilterExpression(command.expression, "aemphasis", {});
+          const value = parseFilterExpression(command.expression, "aemphasis", {
+            min: 0, max: 64, default: 1, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+          });
           if (!Number.isFinite(value) || value < 0 || value > 64) continue;
           if (command.action === "level_in") levelIn = value;
           else if (command.action === "level_out") levelOut = value;

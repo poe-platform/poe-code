@@ -191,7 +191,7 @@ for (const prefix of ["", "-t", "-it"]) {
    const value = shellValueFromBytes(Uint8Array.from([...new TextEncoder().encode(prefix), ...delimiter]));
    const result = await run([...(prefix ? [value] : ["-t", value]), "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
    assert.equal(result.exitCode, 1);
-   assert.ok(result.stderr.includes("join delimiter must be one byte in the C locale"), result.stderr);
+   assert.ok(result.stderr.startsWith("join: multi-character tab "), result.stderr);
    assert.deepEqual(result.stdoutBytes, []);
   });
  }
@@ -200,7 +200,7 @@ for (const prefix of ["", "-t", "-it"]) {
 test("join rejects distinct delimiter bytes that decode identically", async () => {
  const result = await run(["-t", shellValueFromBytes(Uint8Array.of(0xfe)), "-t", shellValueFromBytes(Uint8Array.of(0xff)), "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
  assert.equal(result.exitCode, 1);
- assert.ok(result.stderr.includes("incompatible field delimiters"), result.stderr);
+ assert.equal(result.stderr, "join: incompatible tabs\n");
  assert.deepEqual(result.stdoutBytes, []);
 });
 
@@ -244,7 +244,7 @@ for (const prefix of ["", "-e", "-ie"]) {
     : ["-e", shellValueFromBytes(Uint8Array.of(0xff))];
    const result = await run([...first, "-e", shellValueFromBytes(other), "-o", "1.3", "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
    assert.equal(result.exitCode, 1);
-   assert.equal(result.stderr, "join: EINVAL: conflicting empty-field replacement strings\n");
+   assert.equal(result.stderr, "join: conflicting empty-field replacement strings\n");
    assert.deepEqual(result.stdoutBytes, []);
   });
  }
@@ -307,7 +307,7 @@ for (const [first, second, compatible] of [
    const result = await run(["-j", first, flag, second, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
    assert.equal(result.exitCode, compatible ? 0 : 1, result.stderr);
    assert.equal(result.stdout, compatible ? " k A k B\n" : "");
-   assert.equal(result.stderr, compatible ? "" : `join: EINVAL: incompatible join fields ${BigInt(first) - 1n}, ${BigInt(second) - 1n}\n`);
+   assert.equal(result.stderr, compatible ? "" : `join: incompatible join fields ${BigInt(first) - 1n}, ${BigInt(second) - 1n}\n`);
   }
  });
 }
@@ -579,6 +579,34 @@ for (const whitespace of ["\n", "\v", "\f", "\r"]) {
   const result = await run(["-o", `1.${whitespace}2`, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" }, { LC_ALL: "C" });
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "A\n");
+  assert.equal(result.stderr, "");
+ });
+}
+
+for (const [args, diagnostic] of [
+ [["-t", "ab"], "multi-character tab 'ab'"],
+ [["-t", ":", "-t", ","], "incompatible tabs"],
+ [["-1", "1", "-1", "2"], "incompatible join fields 0, 1"],
+ [["-2", "1", "-j", "2"], "incompatible join fields 0, 1"],
+ [["-e", "x", "-e", "y"], "conflicting empty-field replacement strings"],
+] satisfies [string[], string][]) {
+ test(`join reports conflicting settings before missing operands: ${args.join(" ")}`, async () => {
+  const result = await run(args, {}, { LC_ALL: "C" });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, `join: ${diagnostic}\n`);
+ });
+}
+
+for (const args of [
+ ["-e", "x", "-e", "x"],
+ ["-1", "1", "-1", "1", "-2", "1", "-j", "1"],
+ ["-t", " ", "-t", " "],
+]) {
+ test(`join preserves matching repeated settings: ${args.join(" ")}`, async () => {
+  const result = await run([...args, "left", "right"], { "/left": "a 1\n", "/right": "a 2\n" }, { LC_ALL: "C" });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "a 1 2\n");
   assert.equal(result.stderr, "");
  });
 }

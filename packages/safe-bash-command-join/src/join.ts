@@ -55,7 +55,7 @@ function parse(context: CommandContext, budget: Budget, utf8: boolean): Options 
   let nextFieldCandidate: "1" | "2" | "o" | undefined;
   const setField = (fileIndex: 0 | 1, field: bigint): void => {
     const existing = explicitFields[fileIndex];
-    if (existing !== undefined && existing !== field) fail(`incompatible join fields ${existing}, ${field}`);
+    if (existing !== undefined && existing !== field) { throw new PublicDiagnostic(`incompatible join fields ${existing}, ${field}`); }
     explicitFields[fileIndex] = field;
     // Keep exact identity above; indices beyond JS array lengths are always absent.
     options.fields[fileIndex] = Number(field);
@@ -72,7 +72,7 @@ function parse(context: CommandContext, budget: Budget, utf8: boolean): Options 
       if (flag === "v") options.paired = false;
     } else if (flag === "e") {
       const bytes = rawValue ?? encode(value);
-      if (replacementSet && compare(options.replacement, bytes) !== 0) fail("conflicting empty-field replacement strings");
+      if (replacementSet && compare(options.replacement, bytes) !== 0) { throw new PublicDiagnostic("conflicting empty-field replacement strings"); }
       replacementSet = true;
       options.replacement = bytes;
     }
@@ -82,11 +82,10 @@ function parse(context: CommandContext, budget: Budget, utf8: boolean): Options 
       // GNU uses LF and the empty delimiter for whole-record matching, even with -z.
       // Retain the literal delimiter above for output.
       if (bytes.length === 1 && bytes[0] === 10) bytes = empty;
-      if (delimiterChoice !== undefined && compare(delimiterChoice, bytes) !== 0) fail("incompatible field delimiters");
+      if (delimiterChoice !== undefined && compare(delimiterChoice, bytes) !== 0) { throw new PublicDiagnostic("incompatible tabs"); }
       delimiterChoice = bytes;
-      if (bytes.length > 1) {
-        if (!utf8) fail("join delimiter must be one byte in the C locale");
-        if (bytes.length > 4 || Array.from(value).length !== 1 || compare(encode(value), bytes) !== 0) fail("join delimiter must be one character");
+      if (bytes.length > 1 && (!utf8 || bytes.length > 4 || Array.from(value).length !== 1 || compare(encode(value), bytes) !== 0)) {
+        throw new PublicDiagnostic(`multi-character tab '${value}'`);
       }
       options.whole = bytes.length === 0;
     } else if (flag === "o") {

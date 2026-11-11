@@ -59,7 +59,7 @@ function* txtSteps(size: number, page: number, options?: SharpInputOptions): Gen
     const colon = line.indexOf(":"), open = line.indexOf("(", colon), close = line.indexOf(")", open);
     const coordinates = line.slice(0, colon).split(",").map(Number);
     const values = txtValues(line.slice(open + 1, close), range);
-    if (colon < 0 || open < colon || close < open || coordinates.length !== 2 || coordinates.some(value => !Number.isInteger(value) || value < 0) || coordinates[0]! >= metadata.width || coordinates[1]! >= metadata.height || pixels >= metadata.width * metadata.height || values.length !== metadata.channels || values.some(value => !Number.isFinite(value) || value < 0 || value > Math.max(maximum, range))) throw new Error("Invalid TXT pixel");
+    if (colon < 0 || open < colon || close < open || coordinates.length !== 2 || coordinates.some(value => !Number.isInteger(value) || value < 0) || coordinates[0]! >= metadata.width || coordinates[1]! >= metadata.height || pixels >= metadata.width * metadata.height || values.length !== metadata.channels || values.some(value => !Number.isFinite(value) || value < 0)) throw new Error("Invalid TXT pixel");
     // Native TXT only re-reads the trailing srgb(...) annotation, in header units.
     const annotation = line.lastIndexOf("srgb(");
     if (annotation > close) {

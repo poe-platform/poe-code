@@ -24,6 +24,6 @@ it.each([false, true])("preserves CMYK samples, alpha, and precision across stor
   expect(new Float64Array(memory.slice(stored.storedHueSamples!, stored.storedHueSamples! + count * 32).buffer)).toEqual(decoded.hueSamples);
 });
 
-it.each(["1,2,3", "1,2,3,4,5", "1,2,3,256"])("rejects invalid CMYK tuples: %s", tuple => {
+it.each(["1,2,3", "1,2,3,4,5", "1,2,3,Infinity"])("rejects invalid CMYK tuples: %s", tuple => {
   expect(() => decodeImage(new TextEncoder().encode(`# ImageMagick pixel enumeration: 1,1,0,255,cmyk\n0,0: (${tuple})\n`))).toThrow("Invalid TXT pixel");
 });

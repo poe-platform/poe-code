@@ -31,7 +31,8 @@ it("reports TXT metadata and selects pages with distinct dimensions", () => {
 it.each([
   text.replace("1,1,0,255", "0,1,0,255"),
   text.replace("1,1,0,255", "1,1,0,0"),
-  text.replace("30,40,50,128", "30,40,50,256"),
+  text.replace("30,40,50,128", "30,40,50,Infinity"),
+  text.replace("30,40,50,128", "-1,40,50,128"),
   text.replace("0,0:", "1,0:"),
   text.replace("0,0:", "-1,0:"),
   text.replace("0,0:", "0,1:"),
@@ -42,6 +43,10 @@ it.each([
   text.replace("srgba\n", "unknown\n")
 ])("rejects malformed TXT input", text => {
   expect(() => decodeImage(new TextEncoder().encode(text))).toThrow();
+});
+it("clamps above-range TXT color and alpha channels", () => {
+  const input = new TextEncoder().encode(text.replace("0,255,srgba", "0,256,srgba").replace("30,40,50,128", "256,40,50,256"));
+  expect(decodeImage(input).data).toEqual(Uint8Array.of(255,40,50,255));
 });
 it("honors cancellation and rejects truncated source reads", async () => {
   const controller = new AbortController(); controller.abort(new Error("cancelled"));

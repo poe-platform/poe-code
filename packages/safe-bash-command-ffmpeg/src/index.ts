@@ -5711,8 +5711,22 @@ async function applyVideoFilterChain(
     } else if (name === "tpad") {
       const keys = ["start", "stop", "start_mode", "stop_mode", "start_duration", "stop_duration", "color"];
       const options: Record<string, string> = {};
-      const parts = argStr ? positional.slice() : [];
-      if (parts.at(-1) === "") parts.pop();
+      const parts: string[] = [];
+      let part = "";
+      let partStart = 0;
+      let quoted = false;
+      // Decode option escaping after parseFilterChain decoded the graph layer.
+      for (let i = 0; i < argStr.length; i++) {
+        const char = argStr[i]!;
+        if (char === "'") quoted = !quoted;
+        else if (!quoted && char === "\\" && i + 1 < argStr.length) part += argStr[++i]!;
+        else if (!quoted && char === ":") {
+          parts.push(part);
+          part = "";
+          partStart = i + 1;
+        } else part += char;
+      }
+      if (partStart < argStr.length) parts.push(part);
       for (const [index, part] of parts.entries()) {
         const separator = part.indexOf("=");
         const key = separator < 0 ? keys[index] : part.slice(0, separator).trim();

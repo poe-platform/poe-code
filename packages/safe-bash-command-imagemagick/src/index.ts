@@ -14732,6 +14732,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geometry, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 const angle = parseMagickRotationalBlurAngle(expanded);
+                im = discardDisassociatedAlpha(im);
                 const result = yield* applyMagickRasterSteps({ ...im, isPalette: false }, rotationalBlurPixelSteps(im, angle, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.seed), signal);
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
@@ -18905,7 +18906,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 const angle = parseMagickRotationalBlurAngle(expanded);
-                const result = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, rotationalBlurPixelSteps(image, angle, background, virtualPixel, channels, seed), signal);
+                const source = discardDisassociatedAlpha(image);
+                const result = await transformStoredMagickRaster({ ...source, isPalette: false }, backend, rotationalBlurPixelSteps(source, angle, background, virtualPixel, channels, seed), signal);
                 if (image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries())

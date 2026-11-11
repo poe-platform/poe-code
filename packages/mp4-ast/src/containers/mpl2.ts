@@ -21,8 +21,8 @@ function parseMpl2(bytes: Uint8Array): MediaDocument {
   const timescale = 10;
   let duration = 0;
   const samples: MediaSample[] = [];
-  for (const line of decodeUtf8(bytes).split("\n")) {
-    const cue = readLine(line.endsWith("\r") ? line.slice(0, -1) : line);
+  for (const line of decodeUtf8(bytes).replaceAll("\r", "\n").split("\n")) {
+    const cue = readLine(line);
     if (!cue) continue;
     const data = encodeUtf8(cue.text);
     samples.push({ pts: cue.start, dts: cue.start, cts: 0,

@@ -2,6 +2,18 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { allMediaAsts, createMediaAstRegistry, mpl2Ast } from "./index.js";
 
+for (const endings of [["\r", "\r"], ["\r\n", "\r\n"], ["\n", "\n"], ["\r", "\n"], ["\r", ""]]) {
+  it(`reads separate MPL2 records with ${JSON.stringify(endings)} endings`, () => {
+    const bytes = new TextEncoder().encode(`[10][20]Alpha${endings[0]}[30][40]Beta${endings[1]}`);
+    const plugin = mpl2Ast();
+    assert.equal(plugin.detect(bytes), true);
+    const doc = plugin.parse(bytes);
+    assert.equal(doc.durationSeconds, 4);
+    assert.deepEqual(doc.tracks[0]!.samples.map(sample => [sample.pts, sample.duration, new TextDecoder().decode(sample.data)]),
+      [[10, 10, "Alpha"], [30, 10, "Beta"]]);
+  });
+}
+
 it("reads MPL2 decisecond packets with CRLF and ignores malformed timing", () => {
   const bytes = new TextEncoder().encode("[12][28]First|second\r\n[34][50]Last\r\n[5][4]Reversed\n[][8]Empty\n[1e2][200]Invalid\n[9007199254740992][9007199254740993]Overflow\n");
   const plugin = createMediaAstRegistry(allMediaAsts()).findById("mpl2")!;

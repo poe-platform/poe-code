@@ -4,10 +4,10 @@ import { Volume } from "memfs";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 for (const sync of [false, true]) {
-  for (const format of ["mpl2", "srt"]) {
-    it(`${sync ? "sync" : "async"} explicit ${format} input preserves subtitle timing and lines`, async () => {
+  for (const [format, ending] of [["mpl2", "\n"], ["mpl2", "\r"], ["mpl2", "\r\n"], ["srt", "\n"]] as const) {
+    it(`${sync ? "sync" : "async"} explicit ${format} input with ${JSON.stringify(ending)} preserves subtitle timing and lines`, async () => {
       const volume = Volume.fromJSON({ "/input.txt": format === "mpl2"
-        ? "[12][28]First line|continuation\n[34][50]Last & final\n"
+        ? `[12][28]First line|continuation${ending}[34][50]Last & final${ending}`
         : "1\n00:00:01,200 --> 00:00:02,800\nFirst line\ncontinuation\n\n2\n00:00:03,400 --> 00:00:05,000\nLast & final\n" });
       const target = "/out.vtt";
       const args = ["-v", "error", "-y", "-f", format, "-i", "/input.txt", target];

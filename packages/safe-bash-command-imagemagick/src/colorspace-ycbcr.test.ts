@@ -12,8 +12,8 @@ for (const mode of ["buffered", "sync", "command"] as const) {
         for (const [spaces, expected] of [
             [["YCbCr"], "YCbCr ycbcr(76.2039,84.4721,255)"],
             [["YCbCr", "YCbCr"], "YCbCr ycbcr(76.2039,84.4721,255)"],
-            [["YCbCr", "sRGB"], "sRGB srgb(255,0,0)"],
-            [["YCbCr", "RGB", "sRGB"], "sRGB srgb(255,0,0)"],
+            [["YCbCr", "sRGB"], "sRGB srgb(99.9839%,-0.0160994%,-0.0161011%)"],
+            [["YCbCr", "RGB", "sRGB"], "sRGB srgb(99.9839%,-0.0160994%,-0.0161011%)"],
         ] as const) {
             const args = ["/in.png", ...spaces.flatMap(space => ["-colorspace", space]), "-format", "%[colorspace] %[pixel:p{0,0}]", "info:"];
             let stdout = "";

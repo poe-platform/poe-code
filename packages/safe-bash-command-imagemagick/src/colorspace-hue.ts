@@ -187,8 +187,9 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
             r += m; g += m; b += m;
         }
         for (const [channel, sample] of [r, g, b, input[offset + 3]! / range].entries()) {
-            // Q16-HDRI stores xyY, Oklch, Oklab, Lab and HSL conversions as float quantum samples.
-            const value = lch || sourceLch || target === "xyY" || image.magickColorspace === "xyY" || target === "Oklch" || image.magickColorspace === "Oklch" || target === "Oklab" || image.magickColorspace === "Oklab" || target === "CIELab" || image.magickColorspace === "CIELab" || target === "HSL" || image.magickColorspace === "HSL"
+            // Q16-HDRI stores these conversions as float quantum samples; YCbCr
+            // neutral chroma must round to exactly half-range before palette classification.
+            const value = lch || sourceLch || target === "xyY" || image.magickColorspace === "xyY" || target === "Oklch" || image.magickColorspace === "Oklch" || target === "Oklab" || image.magickColorspace === "Oklab" || target === "CIELab" || image.magickColorspace === "CIELab" || target === "HSL" || image.magickColorspace === "HSL" || target === "YCbCr" || image.magickColorspace === "YCbCr"
                 ? Math.fround(sample * 65535) / 65535 : sample;
             if (hueSamples) hueSamples[offset + channel] = value;
             if (evaluateSamples) evaluateSamples[offset + channel] = value * 255;

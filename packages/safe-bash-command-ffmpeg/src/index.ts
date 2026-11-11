@@ -16979,7 +16979,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             ? `stereo|FL=${fourChannelGains[0]}*FL+${fourChannelGains[1]}*FC+${fourChannelGains[2]}*BC|FR=${fourChannelGains[0]}*FR+${fourChannelGains[1]}*FC+${fourChannelGains[2]}*BC`
                             : multichannelStereo
                             ? `stereo|FL${assignment}FL+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BL+${Math.SQRT1_2}*SL|FR${assignment}FR+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BR+${Math.SQRT1_2}*SR`
-                            : layouts[0] === "mono" ? "mono|c0=0.5*c0+0.5*c1"
+                            : layouts[0] === "mono" ? `mono|c0${assignment}${Math.SQRT1_2}*c0+${Math.SQRT1_2}*c1`
                             : `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`;
                           // swresample mixes <=32-bit input in float even when the destination is double.
                           const mixSampleFormat = (panSampleFormat === "dbl" || panSampleFormat === "dblp") &&
@@ -18240,6 +18240,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (!segmentAudioPackets && !frameChecksumOutput && !filter && audioRate === undefined && audioChannels === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") {
                     return { ...t, duration: (stretched[0]?.length ?? 0) * t.timescale / origRate,
                       samples: [], decodedAudio: { ...audio, channelData: stretched } };
+                  }
+
+                  const outputAudioPlugin = outputFormat === "segment" ? segmentPlugin : outPlugin;
+                  const outputPcmFormat = sampleFormat ?? pcmSampleFormat(audioCodec ?? `pcm_${outputAudioPlugin?.id}`);
+                  if (audioChannels === 1 && stretched.length === 2 && (!filteredChannelMask || filteredChannelMask === 3) &&
+                      outputPcmFormat && ["flt", "fltp", "dbl", "dblp"].includes(outputPcmFormat)) {
+                    // Floating output retains equal-power gain unless normalization is requested.
+                    const gain = Math.min(Math.SQRT1_2, (matrixMaxval || Infinity) / 2);
+                    const mixFormat = ["dbl", "dblp", "s64", "s64p"].includes(filteredSampleFormat) ? "dbl" : "flt";
+                    const mixed = await panAudio(`mono|c0=${gain}*c0+${gain}*c1`,
+                      stretched, filteredChannelMask, mixFormat, budget, context.signal);
+                    stretched = mixed.channels;
+                    filteredChannelMask = mixed.channelMask;
+                    filteredChannelNames = undefined;
+                    filteredSampleFormat = mixFormat;
                   }
 
                   const origCh = stretched.length;

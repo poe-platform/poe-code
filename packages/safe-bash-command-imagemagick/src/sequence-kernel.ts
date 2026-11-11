@@ -387,25 +387,26 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
 }
 
 /** Native sequence reduction clones the first frame with the widest channel layout. */
-export function sequenceCanvas<T extends Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette"> & { alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined }>(inputs: readonly T[]): T {
+export function sequenceCanvas<T extends Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette"> & { inactiveAlpha?: boolean | undefined; alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined }>(inputs: readonly T[]): T {
     let canvas = inputs[0]!, maximum = 0;
     for (const image of inputs) {
-        const hasAlpha = image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false;
+        const hasAlpha = image.hasAlpha || image.inactiveAlpha && (image.alphaBlend !== false || image.alphaSeparate);
         const gray = image.space === "b-w" || image.space === "grey16";
         const indexed = image.isPalette || gray && !hasAlpha && image.format === "png" && image.depth === "uchar";
-        const count = (gray ? 1 : image.space === "cmyk" ? 4 : 3) + Number(hasAlpha) + Number(!!indexed);
+        const count = (gray ? 1 : image.space === "cmyk" ? 4 : 3) + Number(!!hasAlpha) + Number(!!indexed);
         if (count > maximum) { canvas = image; maximum = count; }
     }
     return canvas;
 }
 
 /** Median ranks selected channel sums, retaining stable input order for equal sums. */
-export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette"> & { magickColorspace?: string; alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined; [magickInput]?: MagickFormatContext })[], raw: string, channels?: readonly boolean[], highDepth = false, seed = 0n, width = size / 4): Steps {
+export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette"> & { inactiveAlpha?: boolean | undefined; alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined; magickColorspace?: string; [magickInput]?: MagickFormatContext })[], raw: string, channels?: readonly boolean[], highDepth = false, seed = 0n, width = size / 4): Steps {
     const canvas = sequenceCanvas(inputs), cmyk = canvas.space === "cmyk", stride = cmyk ? 5 : 4;
     size = size / 4 * stride;
     // Discrete alpha is editable even though it does not enable transparency.
     const alpha = inputs.map(image => image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false);
-    const frames = inputs.length, hasAlpha = alpha.some(Boolean);
+    const inactiveAlpha = !canvas.hasAlpha && canvas.inactiveAlpha && (canvas.alphaSeparate ? canvas.alphaBlend === false : canvas.alphaBlend !== false);
+    const frames = inputs.length, hasAlpha = !inactiveAlpha && alpha.some(Boolean);
     const hue = !!canvas.magickColorspace && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "scRGB" && canvas.magickColorspace !== "Gray" && !cmyk;
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     // ParseCommandOption with list=false reads one token; a pipe takes precedence over a comma.
@@ -465,14 +466,14 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
         const sourceMask = sourceChannels?.[image];
         const maskedMedian = operation === "median" && channels?.some(selected => !selected);
         const graySlots = gray && ["mean", "sum", "max"].includes(operation);
-        if ((!hasAlpha || alpha[image]) && !graySlots && !maskedMedian && !sourceMask) return bytes;
+        if (!inactiveAlpha && (!hasAlpha || alpha[image]) && !graySlots && !maskedMedian && !sourceMask) return bytes;
         const data = bytes.slice();
         for (let offset = 0; offset < length; offset++) {
             const channel = offset % stride;
             // Mask candidates before ranking so unused samples cannot choose the median.
             if (sourceMask && !sourceMask[channel] && (channel !== 3 || hasAlpha)) data[offset] = 0;
             if (maskedMedian && !channels![channel] && (channel !== 3 || hasAlpha)) data[offset] = 0;
-            if (channel === 3 ? hasAlpha && (!alpha[image] || graySlots) : graySlots && channel >= colorSlots) data[offset] = 0;
+            if (channel === 3 ? inactiveAlpha || hasAlpha && (!alpha[image] || graySlots) : graySlots && channel >= colorSlots) data[offset] = 0;
         }
         return data;
     }
@@ -480,6 +481,9 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
     const range = highDepth ? 65535 : 255, scale = highDepth ? 1 : 257;
     const clamp = (value: number) => Math.max(0, Math.min(range, Math.round(value)));
     function* write(position: number, values: Uint8Array | Uint16Array | Float64Array, evaluate = false): Steps {
+        // Deactivated canvas alpha exists but is not updated by sequence reduction.
+        if (inactiveAlpha)
+            for (let offset = 3; offset < values.length; offset += stride) values[offset] = 0;
         // Unselected native channels are zero in both working and encoded output.
         if (channels) for (let offset = 0; offset < values.length; offset++) {
             if (!channels[offset % stride] && (offset % stride !== 3 || hasAlpha)) values[offset] = 0;

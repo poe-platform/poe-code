@@ -1260,12 +1260,12 @@ function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | 
         return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h, !!im.data16, im.virtualPixel, state.background), signal, { ...im, width: w, height: h });
     }));
     const virtualCanvas = magickResizeCanvas(base, w, h);
-    const discreteAlpha = typeof opRaw === "string" && base.inactiveAlpha === true && base.alphaSeparate === true && base.alphaBlend !== false;
+    const inactiveAlpha = typeof opRaw === "string" && base.inactiveAlpha === true && (base.alphaBlend !== false || base.alphaSeparate === true);
     // Native sequence output retains the mask channel, with zero protection.
     const writeMask = normalized.some(image => image.writeMask || image.region) ? yield* createSolidRgbaImageSteps(w, h, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
     const readMask = normalized.some(image => image.readMask)
         ? yield* createSolidRgbaImageSteps(w, h, { r: 0, g: 0, b: 0, a: 255 }) : base.readMask;
-    const result = { ...yield* applyMagickRasterSteps(base, (typeof opRaw === "string" ? evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16), state.seed ?? 0n, w) : polyPixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16))), signal, { ...base, width: w, height: h, hasAlpha: !discreteAlpha && normalized.some(image => image.hasAlpha) }, normalized), isPalette: false, inactiveAlpha: discreteAlpha, region: undefined, writeMask, readMask, ...(virtualCanvas ? { virtualCanvas } : {}) };
+    const result = { ...yield* applyMagickRasterSteps(base, (typeof opRaw === "string" ? evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16), state.seed ?? 0n, w) : polyPixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16))), signal, { ...base, width: w, height: h, hasAlpha: !inactiveAlpha && normalized.some(image => image.hasAlpha) }, normalized), isPalette: false, inactiveAlpha, region: undefined, writeMask, readMask, ...(virtualCanvas ? { virtualCanvas } : {}) };
     if (base.metaChannels?.length) {
         result.metaChannels = [];
         for (let channel = 0; channel < base.metaChannels.length; channel++) {
@@ -16911,10 +16911,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     const first = (await stack.get(frames.indexOf(sequenceCanvas(frames))))!;
                     const base: StoredRgbaImage = first.space !== "cmyk" && frames.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
-                    const discreteAlpha = !terms && base.inactiveAlpha === true && base.alphaSeparate === true && base.alphaBlend !== false;
+                    const inactiveAlpha = !terms && base.inactiveAlpha === true && (base.alphaBlend !== false || base.alphaSeparate === true);
                     // Keep the native mask channel while resetting its protection.
                     const storedWriteMask = frames.some(image => image.storedWriteMask || image.region) ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
-                    const result = await transformStoredMagickRaster({ ...base, isPalette: false, inactiveAlpha: discreteAlpha }, backend, (terms ? polyPixelSteps(base.width * base.height * 4, frames, terms, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a, settings.channels.k === true] : undefined, highDepth) : evaluateSequencePixelSteps(base.width * base.height * 4, frames, operation, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a, settings.channels.k === true] : undefined, highDepth, settings.seed ?? 0n, base.width)), signal, { ...base, hasAlpha: !discreteAlpha && frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);
+                    const result = await transformStoredMagickRaster({ ...base, isPalette: false, inactiveAlpha }, backend, (terms ? polyPixelSteps(base.width * base.height * 4, frames, terms, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a, settings.channels.k === true] : undefined, highDepth) : evaluateSequencePixelSteps(base.width * base.height * 4, frames, operation, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a, settings.channels.k === true] : undefined, highDepth, settings.seed ?? 0n, base.width)), signal, { ...base, hasAlpha: !inactiveAlpha && frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);
                     if (base.storedMetaChannels?.length) {
                         result.storedMetaChannels = [];
                         for (let channel = 0; channel < base.storedMetaChannels.length; channel++) {

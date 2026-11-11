@@ -7839,8 +7839,6 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
       return "mono";
     case "brf":
       return "brf";
-    case "dds":
-      return "dds";
     case "isobrl":
       return "isobrl";
     case "isobrl6":

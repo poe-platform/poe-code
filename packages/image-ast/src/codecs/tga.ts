@@ -8,7 +8,7 @@ export function isTgaBytes(bytes: Uint8Array): boolean {
   return bytes.length >= 18 && bytes[1] === 0 && (grayscale || bytes[2] === 2 || bytes[2] === 10)
     && bytes.subarray(3, 8).every(byte => byte === 0)
     && (grayscale ? bytes[16] === 8 : bytes[16] === 16 || bytes[16] === 24 || bytes[16] === 32) && (bytes[17]! & 0xc0) === 0
-    && (bytes[16] === 16 ? (bytes[17]! & 15) <= 1 : (bytes[17]! & 15) === (bytes[16] === 32 ? 8 : 0))
+    && (bytes[16] === 16 ? (bytes[17]! & 15) <= 1 : ((bytes[17]! & 15) === 0 || (bytes[16] === 32 && (bytes[17]! & 15) === 8)))
     && (bytes[12]! + bytes[13]! * 256) > 0 && (bytes[14]! + bytes[15]! * 256) > 0;
 }
 

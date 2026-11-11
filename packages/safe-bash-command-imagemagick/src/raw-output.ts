@@ -9,7 +9,7 @@ export type StoredRawImage = StoredRgbaImage & { rawFrames?: { length: number; a
 
 export type RawCoder = "rgb" | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro" | "gray" | "graya" | "cmyk" | "cmyka";
 export type ImageFormat = RasterFormat | RawCoder | "map" | "farbfeld" | "mono";
-export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | "partition" | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
+export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | "partition" | undefined; rawDefines?: Readonly<Record<string, string>> | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
 
 /** Search complete output sizes, including alpha and container overhead. */
 function* webpTargetQualities(options: OutputEncodeOptions): Generator<number, number, number> {
@@ -97,6 +97,13 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
     const requestedDepth = options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
     const depth = options.tiffFloatDepth ?? (requestedDepth === 32 || requestedDepth === 64 || requestedDepth === 1 || requestedDepth === 2 || requestedDepth === 4 || requestedDepth >= 8 && requestedDepth <= 16 ? requestedDepth : requestedDepth > 8 ? 16 : 8);
     const cmykToRgb = depth < 16 && image.space === "cmyk" && (format === "rgb" || format === "rgba" || format === "rgbo");
+    const defines = options.rawDefines;
+    let minimum = Number.parseFloat(defines?.["quantum:minimum"] ?? "0") || 0;
+    const maximumFloat = Number.parseFloat(defines?.["quantum:maximum"] ?? "1") || 0;
+    let quantumScale = minimum === maximumFloat ? minimum === 0 ? 0 : 65535 / minimum : 65535 / (maximumFloat - minimum);
+    if (minimum === maximumFloat) minimum = 0;
+    if (defines?.["quantum:scale"] !== undefined) quantumScale = Number.parseFloat(defines["quantum:scale"]) || 0;
+    const inverseScale = Math.abs(quantumScale) >= 1e-12 ? 1 / quantumScale : 1;
     const pixels = image.width * image.height;
     const rowSamples = image.width * (options.rawInterlace ? 1 : channels.length);
     const rowBytes = Math.ceil(rowSamples * depth / 8);
@@ -155,7 +162,7 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
                 // ImageMagick scales Q16 samples by the reciprocal quantum range.
                 const sampleQuantum = value * (65535 / scale);
                 // Computed gray and rescaled inks pass through Q16-HDRI float storage before export.
-                const normalized = (format.startsWith("gray") && channel === 0 || inks && channel < 4 ? Math.fround(sampleQuantum) : sampleQuantum) * (1 / 65535);
+                const normalized = (format.startsWith("gray") && channel === 0 || inks && channel < 4 ? Math.fround(sampleQuantum) : sampleQuantum) * (depth === 16 ? 1 / 65535 : inverseScale) + (depth === 16 ? 0 : minimum);
                 if (depth === 64) view.setFloat64(offset, normalized, little);
                 else if (depth === 32) view.setFloat32(offset, normalized, little);
                 else {

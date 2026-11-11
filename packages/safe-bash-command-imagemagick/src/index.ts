@@ -1691,8 +1691,13 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     }
     // Copy retains alpha samples without enabling transparency.
     opaque &&= img.alphaBlend === false || a === range;
-    gray &&= r === g && g === b;
-    bilevel &&= (r === 0 || r === range) && (g === 0 || g === range) && (b === 0 || b === range);
+    // Classify working samples before output clipping loses HDRI color differences.
+    const working = chunk.hueSamples ?? chunk.evaluateSamples ?? samples;
+    const workingRange = chunk.hueSamples ? 1 : chunk.evaluateSamples ? 255 : range;
+    gray &&= working[i] === working[i + 1] && working[i + 1] === working[i + 2];
+    bilevel &&= (working[i] === 0 || working[i] === workingRange)
+      && (working[i + 1] === 0 || working[i + 1] === workingRange)
+      && (working[i + 2] === 0 || working[i + 2] === workingRange);
     // Only palette classification needs distinct colors; stop growing at 257.
     if (colors.size <= 256) {
       colors.add(`${r},${g},${b},${a}`);

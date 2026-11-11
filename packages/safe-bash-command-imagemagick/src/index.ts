@@ -14260,7 +14260,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const operands = stack.slice(0, !polar && stack.length >= 4 ? 4 : 2);
             const grayOnly = operands.some(image => image.space === "b-w" || image.space === "grey16");
             // Polar conversion uses the first pair, but all four alpha states gate arithmetic.
-            const alpha = stack.slice(0, stack.length >= 4 ? 4 : 2).every(image => image.hasAlpha);
+            // Discrete and Deactivate retain an alpha channel for the other output.
+            const alpha = stack.slice(0, stack.length >= 4 ? 4 : 2).every(image => image.hasAlpha || image.inactiveAlpha && image.alphaBlend !== false);
             for (let part = 0; part < 2; part++) {
                 const base = stack[part]!;
                 const inputs: RgbaImage[] = [];
@@ -16743,8 +16744,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const result = new StoredImageStack(backend.storage, signal, stack);
                 let grayOnly = false, alpha = true;
                 for (let index = 0; index < (stack.length >= 4 ? 4 : 2); index++) {
-                    const image = (await stack.get(index))!;
-                    alpha &&= !!image.hasAlpha;
+                    const image: StoredRgbaImage = (await stack.get(index))!;
+                    alpha &&= !!(image.hasAlpha || image.inactiveAlpha && image.alphaBlend !== false);
                     if (!polar || index < 2) grayOnly ||= image.space === "b-w" || image.space === "grey16";
                 }
                 for (let part = 0; part < 2; part++) {

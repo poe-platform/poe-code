@@ -2772,7 +2772,9 @@ export function serializeSubtitleDocument(
   }
 
   if (format === "ttml") {
-    lines.push('<?xml version="1.0" encoding="UTF-8"?>', '<tt xmlns="http://www.w3.org/ns/ttml"><body><div>');
+    const language = (subTrack?.language ?? "")
+      .replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    lines.push('<?xml version="1.0" encoding="UTF-8"?>', `<tt xmlns="http://www.w3.org/ns/ttml" xml:lang="${language}"><body><div>`);
   }
 
   let cueIndex = 1;

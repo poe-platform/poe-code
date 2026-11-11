@@ -7708,6 +7708,11 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
     ...doc,
     tracks: doc.tracks.map(track => {
       if (track.type !== "subtitle") return track;
+      // Text subtitle inputs use "und" internally for absent language metadata.
+      // Clear that placeholder before output stream metadata is applied.
+      if (outputFormat === "ttml" && (doc.containerFormat === "webvtt" || doc.containerFormat === "srt") && track.language === "und") {
+        track = { ...track, language: "" };
+      }
       const samples = track.samples.map((sample, index) => {
         const description = track.codecDescriptions[sample.sampleDescriptionIndex - 1];
         const codec = description?.codecName;

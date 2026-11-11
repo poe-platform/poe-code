@@ -11986,6 +11986,56 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       // These filters retain their input sample format. Other DSP filters
                       // negotiate floating-point audio before a subsequent pan mixer.
                       const filterName = trimmed.split("=", 1)[0]!;
+                      if (filterName === "highpass" || filterName === "aecho") {
+                        // These planar filters share their input/output format. Negotiate downstream
+                        // requirements through filters that preserve sample formats before rounding.
+                        // A compatible planar input fixes highpass precision before downstream conversion.
+                        let formats: string[] | undefined = filterName === "highpass" && filteredSampleFormat.endsWith("p")
+                          ? [filteredSampleFormat] : undefined;
+                        for (let nextIndex = filterIndex + 1; nextIndex < audioFilters.length; nextIndex++) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          const next = audioFilters[nextIndex]!.trim();
+                          const name = next.split("=", 1)[0]!.split("@", 1)[0];
+                          if (["anull", "acopy", "atrim", "asetpts", "asetnsamples", "areverse", "apad",
+                            "asetrate", "adelay", "aecho", "aphaser"].includes(name!)) continue;
+                          const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "";
+                          if (name === "aformat") {
+                            let requested: string[] | undefined;
+                            for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                              const separator = option.indexOf("=");
+                              const key = separator < 0 ? ["sample_fmts", "sample_rates", "channel_layouts"][index] : option.slice(0, separator).trim();
+                              if (key === "sample_fmts" || key === "f") requested = (separator < 0 ? option : option.slice(separator + 1)).trim().split("|");
+                            }
+                            if (!requested) continue;
+                            const compatible = (formats ?? ["s16p", "s32p", "fltp", "dblp"]).filter(format => requested.includes(format));
+                            // Disjoint formats require a converter after this filter.
+                            if (compatible.length === 0) break;
+                            formats = compatible;
+                            continue;
+                          }
+                          if (name === "vibrato" || name === "compensationdelay") {
+                            if (!formats || formats.includes("dblp")) formats = ["dblp"];
+                          } else if (name === "volume") {
+                            let precision = "float";
+                            for (const [index, option] of argument.split(":").entries()) {
+                              const separator = option.indexOf("=");
+                              const key = separator < 0 ? ["volume", "precision"][index] : option.slice(0, separator).trim();
+                              if (key === "precision") precision = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                            }
+                            const mode = parseFilterExpression(precision, "volume", { fixed: 0, float: 1, double: 2 });
+                            if (!Number.isFinite(mode) || mode < 0 || mode > 2) throw new Error("volume: invalid precision");
+                            const requested = roundToEven(mode) === 1 ? ["fltp"]
+                              : roundToEven(mode) === 2 ? ["dblp"] : ["s16p", "s32p"];
+                            const compatible = (formats ?? ["s16p", "s32p", "fltp", "dblp"]).filter(format => requested.includes(format));
+                            if (compatible.length > 0) formats = compatible;
+                          }
+                          break;
+                        }
+                        if (formats) {
+                          const planar = filteredSampleFormat.endsWith("p") ? filteredSampleFormat : `${filteredSampleFormat}p`;
+                          filteredSampleFormat = formats.includes(planar) ? planar : formats[0]!;
+                        }
+                      }
                       if (!["anull", "acopy", "ametadata", "arealtime", "asendcmd", "asetrate",
                         "asetnsamples", "ashowinfo", "afade", "silencedetect", "astats", "volume",
                         "aloop", "aresample", "apad", "adelay", "atempo", "aformat", "pan",
@@ -12582,50 +12632,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredSampleFormat = "fltp";
                           statsScale = 1;
                         } else {
-                          // Echo shares its input/output format. Negotiate downstream
-                          // requirements through filters that preserve sample formats before rounding.
-                          let formats: string[] | undefined;
-                          for (let nextIndex = filterIndex + 1; nextIndex < audioFilters.length; nextIndex++) {
-                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            const next = audioFilters[nextIndex]!.trim();
-                            const name = next.split("=", 1)[0]!.split("@", 1)[0];
-                            if (["anull", "acopy", "atrim", "asetpts", "asetnsamples", "areverse", "apad",
-                              "asetrate", "adelay", "aecho", "aphaser"].includes(name!)) continue;
-                            const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "";
-                            if (name === "aformat") {
-                              let requested: string[] | undefined;
-                              for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
-                                const separator = option.indexOf("=");
-                                const key = separator < 0 ? ["sample_fmts", "sample_rates", "channel_layouts"][index] : option.slice(0, separator).trim();
-                                if (key === "sample_fmts" || key === "f") requested = (separator < 0 ? option : option.slice(separator + 1)).trim().split("|");
-                              }
-                              if (!requested) continue;
-                              const compatible = (formats ?? ["s16p", "s32p", "fltp", "dblp"]).filter(format => requested.includes(format));
-                              // Disjoint formats require a converter after echo.
-                              if (compatible.length === 0) break;
-                              formats = compatible;
-                              continue;
-                            }
-                            if (name === "vibrato" || name === "compensationdelay") {
-                              if (!formats || formats.includes("dblp")) formats = ["dblp"];
-                            } else if (name === "volume") {
-                              let precision = "float";
-                              for (const [index, option] of argument.split(":").entries()) {
-                                const separator = option.indexOf("=");
-                                const key = separator < 0 ? ["volume", "precision"][index] : option.slice(0, separator).trim();
-                                if (key === "precision") precision = (separator < 0 ? option : option.slice(separator + 1)).trim();
-                              }
-                              const requested = precision === "float" || precision === "1" ? ["fltp"]
-                                : precision === "double" || precision === "2" ? ["dblp"] : ["s16p", "s32p"];
-                              const compatible = (formats ?? ["s16p", "s32p", "fltp", "dblp"]).filter(format => requested.includes(format));
-                              if (compatible.length > 0) formats = compatible;
-                            }
-                            break;
-                          }
-                          if (formats) {
-                            const planar = filteredSampleFormat.endsWith("p") ? filteredSampleFormat : `${filteredSampleFormat}p`;
-                            filteredSampleFormat = formats.includes(planar) ? planar : formats[0]!;
-                          }
                           if (filteredSampleFormat === "u8" || filteredSampleFormat === "u8p") filteredSampleFormat = "s16";
                           // Echo supports planar formats for both input and drained frames.
                           if (!filteredSampleFormat.endsWith("p")) filteredSampleFormat += "p";

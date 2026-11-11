@@ -17,7 +17,8 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
         }) : mode === "sync" ? runConvertCliSync(argv, files)
             : await runConvertCli(argv, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
         expect(result.exitCode).toBe(0);
-        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        expect("stderr" in result ? result.stderr : stderr).toBe(argv.includes("-deconstruct")
+            ? `magick: option has been replaced '-deconstruct', use "-layers CompareAny" at CLI arg ${argv.indexOf("-deconstruct") + 1}\n` : "");
         if (argv.at(-1) === "rgba:-") {
             const bytes = "stdoutBytes" in result ? result.stdoutBytes : Buffer.concat(stdout);
             expect(bytes).toBeInstanceOf(Uint8Array);

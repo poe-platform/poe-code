@@ -34,7 +34,8 @@ it.each([
         }) : mode === "sync" ? runMagickCliSync(argv, files)
             : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
         expect(result.exitCode).toBe(0);
-        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        expect("stderr" in result ? result.stderr : stderr).toBe(argv.includes("-deconstruct")
+            ? `magick: option has been replaced '-deconstruct', use "-layers CompareAny" at CLI arg ${argv.indexOf("-deconstruct") + 1}\n` : "");
         if (output === "geometry") {
             const text = "stdout" in result ? result.stdout : Buffer.concat(chunks).toString();
             expect(text).toBe("2x1+0+0;" + geometry);

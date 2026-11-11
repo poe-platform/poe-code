@@ -12807,6 +12807,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             else if (stack.length) analysis.warnings += "magick: animation only contains zero time delays\n";
         }
         else if (t === "-deconstruct" || (t === "-layers" && ["compareany", "compareoverlay", "compareclear", "removedups", "optimizeplus"].includes(layerMethod))) {
+            if (t === "-deconstruct") analysis.warnings += `magick: option has been replaced '-deconstruct', use "-layers CompareAny" at CLI arg ${i + 1}\n`;
             const method = t === "-layers" ? layerMethod : "compareany";
             const optimizePlus = t === "-layers" && layerMethod === "optimizeplus";
             const removeDups = optimizePlus || (t === "-layers" && layerMethod === "removedups");
@@ -16561,6 +16562,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-deconstruct" || (token === "-layers" && ["compareany", "compareoverlay", "compareclear", "removedups", "optimizeplus"].includes(layerMethod)))) {
+            const argumentPosition = i + 1;
             const method = token === "-layers" ? layerMethod : "compareany";
             const optimizePlus = token === "-layers" && layerMethod === "optimizeplus";
             const removeDups = optimizePlus || (token === "-layers" && layerMethod === "removedups");
@@ -16568,6 +16570,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-layers") i++;
             const fuzz = state.alphaFuzz;
             stackStep(async (stack, backend) => {
+                if (token === "-deconstruct") analysis.warnings += `magick: option has been replaced '-deconstruct', use "-layers CompareAny" at CLI arg ${argumentPosition}\n`;
                 if (optimizePlus) {
                     const first = await stack.get(0);
                     for (let n = 0; n < stack.length; n++) {

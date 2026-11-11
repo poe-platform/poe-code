@@ -1,3 +1,4 @@
+import { deflate } from "./deflate.js";
 import { dilation } from "./dilation.js";
 import { erosion } from "./erosion.js";
 import { inflate } from "./inflate.js";
@@ -2507,6 +2508,8 @@ async function applyVideoFilterChain(
       current = await roberts(current, argStr, pixelFormat, budget, signal);
     } else if (name === "erosion") {
       current = await erosion(current, argStr, pixelFormat, budget, signal);
+    } else if (name === "deflate") {
+      current = await deflate(current, argStr, pixelFormat, budget, signal);
     } else if (name === "scharr") {
       current = await scharr(current, argStr, pixelFormat, budget, signal);
     } else if (name === "inflate") {

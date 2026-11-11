@@ -15,7 +15,7 @@ export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "has
     const half = radius > 0 ? Math.ceil(radius) : 2;
     if (!Number.isFinite(half) || half > 5000) throw new Error("Edge radius exceeds 5000");
     const { width, height } = image, area = (2 * half + 1) ** 2;
-    const gray = virtualPixel === "white" ? maximum : virtualPixel === "gray" ? 128 * (maximum / 255) : 0;
+    const gray = virtualPixel === "white" ? maximum : virtualPixel === "gray" ? maximum / 2 : 0;
     const fill = (virtualPixel === "background" || virtualPixel.endsWith("-tile")) && background
         ? [background.r, background.g, background.b, background.a].map(value => value * (maximum / 255))
         : [gray, gray, gray, virtualPixel === "transparent" ? 0 : maximum];

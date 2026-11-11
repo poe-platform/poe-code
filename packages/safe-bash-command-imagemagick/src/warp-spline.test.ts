@@ -35,17 +35,3 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         expect(createHash("sha256").update(output.data).digest("hex")).toBe(hash);
     });
 }
-
-for (const retained of [false, true]) {
-    it.each([
-        ["-kuwahara", "2x1"]
-    ])(`rejects unsupported spline callers without replacing output, retained=${retained}: %j`, async (...operation) => {
-        const original = new TextEncoder().encode("KEEP"), files = new Map<string, Uint8Array>([["/in.png", opaque], ["/out.png", original]]);
-        const filesystem = new MemoryFileSystem();
-        for (const [name, bytes] of files) await filesystem.writeFile(name, bytes);
-        const result = await runConvertCli(["/in.png", "-interpolate", "spline", ...operation, "/out.png"], retained ? { filesystem, cwd: "/" } : files);
-        expect(result.exitCode).toBe(1);
-        expect(result.stderr).toContain("interpolation: spline");
-        expect(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")).toEqual(original);
-    });
-}

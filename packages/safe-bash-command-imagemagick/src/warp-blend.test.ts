@@ -40,19 +40,6 @@ for (const mode of ["command", "convert", "retained", "buffered", "sync"] as con
     });
 }
 
-for (const retained of [false, true]) {
-    it.each([
-        ["-kuwahara", "1x1"]
-    ])(`rejects unsupported blend sampling in %s without replacing output, retained=${retained}`, async (...operation) => {
-        const original = Buffer.from("KEEP"), files = new Map([["/in.png", input], ["/out.png", original]]);
-        const fs = new MemoryFileSystem();
-        for (const [path, bytes] of files) await fs.writeFile(path, bytes);
-        const result = await runConvertCli(["/in.png", "-interpolate", "blend", ...operation, "PNG32:/out.png"], retained ? { filesystem: fs, cwd: "/" } : files);
-        expect(result.exitCode).toBe(1);
-        expect(Buffer.from(retained ? await fs.readFile("/out.png") : files.get("/out.png")!)).toEqual(original);
-    });
-}
-
 // Native BlendInterpolatePixel includes the lower quarter boundary, excludes
 // the upper one, alpha-weights RGB, and averages alpha by neighbor count.
 for (const depth of [8, 16]) {

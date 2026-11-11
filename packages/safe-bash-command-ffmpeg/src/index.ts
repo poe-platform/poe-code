@@ -13569,6 +13569,50 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       }
                     }
+                    const applyAudioChannelLayouts = async (value: string, inputSampleFormat: string, filterName: "aformat" | "aresample") => {
+                      const layouts = value.split("|");
+                      if (layouts.some(layout => !["mono", "stereo", "quad", "5.1"].includes(layout))) {
+                        throw new Error(`${filterName}: unsupported channel layout ${value}`);
+                      }
+                      if (stretched.length === 1 && (filteredChannelMask === 1 || filteredChannelMask === 2)) {
+                        filteredChannelMask = 4;
+                        filteredChannelNames = undefined;
+                      }
+                      const inputMask = filteredChannelMask || ({ 1: 4, 2: 3, 3: 0xb, 4: 0x107, 6: 0x3f, 8: 0x63f }[stretched.length]);
+                      const inputLayout = inputMask === 4 ? "mono" : inputMask === 3 ? "stereo"
+                        : inputMask === 0x33 ? "quad" : inputMask === 0x3f ? "5.1" : undefined;
+                      if (inputLayout && layouts.includes(inputLayout)) return;
+                      const stereoExpansion = inputLayout === "stereo" && (layouts[0] === "quad" || layouts[0] === "5.1");
+                      const multichannelStereo = layouts[0] === "stereo" && inputMask !== undefined &&
+                        [0x7, 0xb, 0x33, 0x107, 0x3f, 0x60f, 0x63f].includes(inputMask);
+                      if (!stereoExpansion && !multichannelStereo &&
+                          !(inputLayout === "mono" && layouts[0] === "stereo" || inputLayout === "stereo" && layouts[0] === "mono")) {
+                        throw new Error(`${filterName}: unsupported input channel layout`);
+                      }
+                      if (filterName === "aformat" && !autoConversionFilters) throw new Error(audioConversionDisabled);
+                      // Integer rematrixing normalizes the contributing speakers; LFE is omitted.
+                      const assignment = ["u8", "u8p", "s16", "s16p", "s32", "s32p", "s64", "s64p"].includes(panSampleFormat) ? "<" : "=";
+                      // Native's 4.0 PCM16 mixer rounds each Q15 coefficient independently.
+                      const fourChannelGains = inputMask === 0x107 && (panSampleFormat === "s16" || panSampleFormat === "s16p")
+                        ? [1, Math.SQRT1_2, 0.5].map(gain => Math.round(gain / (1.5 + Math.SQRT1_2) * 32768) / 32768)
+                        : undefined;
+                      const expression = stereoExpansion ? `${layouts[0]}|FL=FL|FR=FR`
+                        : multichannelStereo && fourChannelGains
+                        ? `stereo|FL=${fourChannelGains[0]}*FL+${fourChannelGains[1]}*FC+${fourChannelGains[2]}*BC|FR=${fourChannelGains[0]}*FR+${fourChannelGains[1]}*FC+${fourChannelGains[2]}*BC`
+                        : multichannelStereo
+                        ? `stereo|FL${assignment}FL+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BL+${Math.SQRT1_2}*SL|FR${assignment}FR+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BR+${Math.SQRT1_2}*SR`
+                        : layouts[0] === "mono" ? `mono|c0${assignment}${Math.SQRT1_2}*c0+${Math.SQRT1_2}*c1`
+                        : `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`;
+                      // swresample mixes <=32-bit input in float even when the destination is double.
+                      const mixSampleFormat = (panSampleFormat === "dbl" || panSampleFormat === "dblp") &&
+                        !["dbl", "dblp", "s64", "s64p"].includes(inputSampleFormat) ? "flt"
+                        : stretched.length === 1 && ["dbl", "dblp"].includes(inputSampleFormat) && ["flt", "fltp"].includes(panSampleFormat) ? "dbl"
+                        : panSampleFormat;
+                      const mixed = await panAudio(expression, stretched, filteredChannelMask, mixSampleFormat, budget, context.signal);
+                      stretched = mixed.channels;
+                      filteredChannelMask = mixed.channelMask;
+                      filteredChannelNames = undefined;
+                    };
                     const applyAudioSampleRates = async (value: string, filterIndex: number) => {
                       let targetRate = origRate;
                       let bestDifference = Infinity;
@@ -15637,6 +15681,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let discard = 0;
                         let firstPts: number | undefined;
                         let format: string | undefined;
+                        let layout: string | undefined;
                         let internalFormat: "fltp" | "dblp" | undefined;
                         let cutoff: number | undefined;
                         let window: "cubic" | "kaiser" | "blackman_nuttall" = "kaiser";
@@ -15698,6 +15743,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               throw new Error(`aresample: unsupported sample format ${raw ?? ""}`);
                             }
                             format = raw;
+                            continue;
+                          }
+                          if (key === "ochl" || key === "out_chlayout") {
+                            if (extra !== undefined || !["mono", "stereo", "quad", "5.1"].includes(raw ?? "")) {
+                              throw new Error(`aresample: unsupported channel layout ${raw ?? ""}`);
+                            }
+                            layout = raw;
+                            rate ??= 0;
                             continue;
                           }
                           if (key === "tsf" || key === "internal_sample_fmt") {
@@ -15776,6 +15829,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           audioStartSample = firstPts;
                           audioTimestamps = undefined;
+                        }
+                        if (layout !== undefined) {
+                          const inputSampleFormat = filteredSampleFormat;
+                          if (format !== undefined) {
+                            stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
+                            filteredSampleFormat = panSampleFormat = format;
+                          }
+                          await applyAudioChannelLayouts(layout, inputSampleFormat, "aresample");
                         }
                         if (cutoff !== undefined || rate !== undefined || format !== undefined || internalFormat !== undefined) {
                           const targetRate = rate || (index === undefined ? undefined : audioRate) || origRate;
@@ -16957,48 +17018,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             continue;
                           }
                           if (key !== "channel_layouts" && key !== "cl") throw new Error(`aformat: unsupported option ${key}`);
-                          const layouts = value.split("|");
-                          if (layouts.some(layout => !["mono", "stereo", "quad", "5.1"].includes(layout))) {
-                            throw new Error(`aformat: unsupported channel layout ${value}`);
-                          }
-                          if (stretched.length === 1 && (filteredChannelMask === 1 || filteredChannelMask === 2)) {
-                            filteredChannelMask = 4;
-                            filteredChannelNames = undefined;
-                          }
-                          const inputMask = filteredChannelMask || ({ 1: 4, 2: 3, 3: 0xb, 4: 0x107, 6: 0x3f, 8: 0x63f }[stretched.length]);
-                          const inputLayout = inputMask === 4 ? "mono" : inputMask === 3 ? "stereo"
-                            : inputMask === 0x33 ? "quad" : inputMask === 0x3f ? "5.1" : undefined;
-                          if (inputLayout && layouts.includes(inputLayout)) continue;
-                          const stereoExpansion = inputLayout === "stereo" && (layouts[0] === "quad" || layouts[0] === "5.1");
-                          const multichannelStereo = layouts[0] === "stereo" && inputMask !== undefined &&
-                            [0x7, 0xb, 0x33, 0x107, 0x3f, 0x60f, 0x63f].includes(inputMask);
-                          if (!stereoExpansion && !multichannelStereo &&
-                              !(inputLayout === "mono" && layouts[0] === "stereo" || inputLayout === "stereo" && layouts[0] === "mono")) {
-                            throw new Error("aformat: unsupported input channel layout");
-                          }
-                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
-                          // Integer rematrixing normalizes the contributing speakers; LFE is omitted.
-                          const assignment = ["u8", "u8p", "s16", "s16p", "s32", "s32p", "s64", "s64p"].includes(panSampleFormat) ? "<" : "=";
-                          // Native's 4.0 PCM16 mixer rounds each Q15 coefficient independently.
-                          const fourChannelGains = inputMask === 0x107 && (panSampleFormat === "s16" || panSampleFormat === "s16p")
-                            ? [1, Math.SQRT1_2, 0.5].map(gain => Math.round(gain / (1.5 + Math.SQRT1_2) * 32768) / 32768)
-                            : undefined;
-                          const expression = stereoExpansion ? `${layouts[0]}|FL=FL|FR=FR`
-                            : multichannelStereo && fourChannelGains
-                            ? `stereo|FL=${fourChannelGains[0]}*FL+${fourChannelGains[1]}*FC+${fourChannelGains[2]}*BC|FR=${fourChannelGains[0]}*FR+${fourChannelGains[1]}*FC+${fourChannelGains[2]}*BC`
-                            : multichannelStereo
-                            ? `stereo|FL${assignment}FL+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BL+${Math.SQRT1_2}*SL|FR${assignment}FR+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BR+${Math.SQRT1_2}*SR`
-                            : layouts[0] === "mono" ? `mono|c0${assignment}${Math.SQRT1_2}*c0+${Math.SQRT1_2}*c1`
-                            : `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`;
-                          // swresample mixes <=32-bit input in float even when the destination is double.
-                          const mixSampleFormat = (panSampleFormat === "dbl" || panSampleFormat === "dblp") &&
-                            !["dbl", "dblp", "s64", "s64p"].includes(inputSampleFormat) ? "flt"
-                            : doubleMono && ["flt", "fltp"].includes(panSampleFormat) ? "dbl"
-                            : panSampleFormat;
-                          const mixed = await panAudio(expression, stretched, filteredChannelMask, mixSampleFormat, budget, context.signal);
-                          stretched = mixed.channels;
-                          filteredChannelMask = mixed.channelMask;
-                          filteredChannelNames = undefined;
+                          await applyAudioChannelLayouts(value, inputSampleFormat, "aformat");
                         }
                         if (doubleMono && ["flt", "fltp"].includes(filteredSampleFormat)) {
                           stretched = await convertAudioSampleFormat(stretched, inputSampleFormat, filteredSampleFormat, budget, context.signal);

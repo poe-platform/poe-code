@@ -9,7 +9,20 @@ export async function freezedetect<T extends MediaVideoFrame & { filterMetadata?
 ): Promise<T[]> {
   let noise = 0.001;
   let minimumDuration = 2;
-  const options = argument ? argument.split(":") : [];
+  const options: string[] = [];
+  let option = "";
+  let quoted = false;
+  // The filter-chain parser already decoded the graph's escaping layer.
+  for (let i = 0; i < argument.length; i++) {
+    const char = argument[i]!;
+    if (char === "'") quoted = !quoted;
+    else if (!quoted && char === "\\" && i + 1 < argument.length) option += argument[++i]!;
+    else if (!quoted && char === ":") {
+      options.push(option);
+      option = "";
+    } else option += char;
+  }
+  if (argument) options.push(option);
   if (options.at(-1) === "") options.pop();
   for (const [index, option] of options.entries()) {
     const separator = option.indexOf("=");

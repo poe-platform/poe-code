@@ -32,14 +32,14 @@ export interface IdentifyRaster {
     readonly image: StoredRgbaImage;
     readonly storage: ImageByteStorage;
 }
-export type IdentifyFileReader = (path: string, page: number | undefined, verbose: boolean, custom?: (metadata: ImageMetadata, size: number, pixels: () => Promise<IdentifyRaster>) => Promise<string>, hullPrecision?: number, momentsPrecision?: number, statisticsPrecision?: number, rawInput?: (size: number) => ReturnType<typeof rawRasterInput>) => Promise<IdentifyInspection | undefined>;
+export type IdentifyFileReader = (path: string, page: number | undefined, verbose: boolean, custom?: (metadata: ImageMetadata, size: number, pixels: () => Promise<IdentifyRaster>) => Promise<string>, hullPrecision?: number, momentsPrecision?: number, statisticsPrecision?: number, rawInput?: (size: number) => ReturnType<typeof rawRasterInput>, transform?: (image: StoredRgbaImage, storage: PagedStorage) => Promise<StoredRgbaImage>) => Promise<IdentifyInspection | undefined>;
 class ReadFailure extends Error {
     constructor(readonly reason: unknown) { super("Image read failed"); }
 }
 export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal, run: (reader: IdentifyFileReader, load: ImageInputReader) => Promise<T>): Promise<T> {
     const { filesystem: fs, cwd } = input, io = { signal };
     return withImageInputs(input, stdinBytes, signal, async (load) => {
-        const read: IdentifyFileReader = async (path, page, verbose, custom, hullPrecision, momentsPrecision, statisticsPrecision, rawInput) => {
+        const read: IdentifyFileReader = async (path, page, verbose, custom, hullPrecision, momentsPrecision, statisticsPrecision, rawInput, transform) => {
             const storage = new PagedStorage({ fs, cwd: cwd, env: {}, signal });
             let failed = true;
             try {
@@ -78,9 +78,11 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                                         throw error;
                                     metadata = pdf;
                                 }
+                                const transformed = transform ? await transform(await decodeFileImage(checked, storage, fs, cwd, signal, options), storage) : undefined;
+                                if (transformed) metadata = { ...transformed, format: metadata.format, ...(metadata.pages === undefined ? {} : { pages: metadata.pages }) };
                                 if (custom)
-                                    return { metadata, size, formatted: await custom(metadata, size, async () => ({ image: await decodeFileImage(checked, storage, fs, cwd, signal, options), storage })) };
-                                const image = verbose ? await decodeFileImage(checked, storage, fs, cwd, signal, options) : undefined;
+                                    return { metadata, size, formatted: await custom(metadata, size, async () => ({ image: transformed ?? await decodeFileImage(checked, storage, fs, cwd, signal, options), storage })) };
+                                const image = verbose ? transformed ?? await decodeFileImage(checked, storage, fs, cwd, signal, options) : undefined;
                                 const statistics = image ? await identifyStoredStatistics(image, storage, statisticsPrecision ?? 6, signal) : undefined;
                                 const stats = image ? await computeStoredImageStats(image, storage, signal) : undefined;
                                 let histogram: string | undefined;
@@ -102,7 +104,7 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                             signal.throwIfAborted();
                             bytes.set(await checked.read(position, Math.min(16384, source.size - position), io), position);
                         }
-                        const metadata = readImageMetadata(bytes, options), stats = verbose ? await drainCooperativeSteps(computeImageStatsSteps(decodeImage(bytes, options)), signal) : undefined;
+                        const metadata = readImageMetadata(bytes, options), stats = verbose && !transform ? await drainCooperativeSteps(computeImageStatsSteps(decodeImage(bytes, options)), signal) : undefined;
                         return { metadata, size, bytes, ...(stats ? { stats } : {}) };
                     }
                     catch (error) {

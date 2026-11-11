@@ -155,6 +155,8 @@ Async `runIdentifyCli(args, { filesystem, cwd, stdin, stdout, stderr })` uses th
 
 `identify -size WxH -depth 8|16 -endian MSB|LSB` applies raw read settings to subsequent inputs, including `rgb:-` stdin.
 
+`identify` accepts bracketed read geometry: `image.png[100x100]` resizes and `image.png[100x100+10+20]` crops before reporting dimensions or statistics. Numeric selectors such as `movie.gif[1]` select frames.
+
 `identify +format` restores the default description for subsequent images; earlier images keep their format. Nested image properties expand before formatted FX arithmetic, so `identify -format '%[fx:%[width]*2]' image.png` prints twice the image width.
 
 Custom defines such as `-define demo:key=amber` are available as `%[demo:key]`, `%[option:demo:key]`, and `%[artifact:demo:key]`. Image properties set with `-set demo:key amber` are available only through `%[demo:key]` and take precedence over a define of the same name. Unknown properties such as `%a`, `%?`, and `%[missing_demo_property]` expand to an empty string and report an `unknown image property` warning. When multiple inputs use the same unknown property, identify warns once per invocation and still formats every image. Conversion with `-regard-warnings` exits with status 1 for these warnings, including when `-quiet` suppresses the diagnostic. Identify also exits with status 1 when `-regard-warnings` is present, while preserving formatted output from every input. Identify accepts `+regard-warnings`; it does not cancel an earlier `-regard-warnings`.

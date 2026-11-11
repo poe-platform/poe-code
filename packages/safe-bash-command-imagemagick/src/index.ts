@@ -5602,7 +5602,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     return virtualCanvas ? { ...resized, virtualCanvas } : resized;
 }
 
-async function resizeStoredMagickImage(image: StoredRgbaImage, backend: CompareFileSession, options: ReturnType<typeof magickResizeOptions>, signal: AbortSignal, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false, thumbnailPages?: number, channels?: readonly boolean[]): Promise<StoredRgbaImage> {
+async function resizeStoredMagickImage(image: StoredRgbaImage, backend: Pick<CompareFileSession, "storage">, options: ReturnType<typeof magickResizeOptions>, signal: AbortSignal, thumbnail = false, sample = false, scale = false, settings?: ResizeFilterSettings, sampleOffset?: { x: number; y: number }, preserveSamples = false, thumbnailPages?: number, channels?: readonly boolean[]): Promise<StoredRgbaImage> {
     if (thumbnail) {
         const { virtualCanvas: ignoredCanvas, xmp: ignoredXmp, ...reset } = image;
         image = { ...reset, bitsPerSample: 8, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, properties: updateMagickProperty(thumbnailProperties(reset, thumbnailPages), "comment") };
@@ -6220,7 +6220,7 @@ function extentSamplesOverBackground(samples: Uint16Array, background: RgbaColor
     }
 }
 
-async function createStoredCanvas(width: number, height: number, color: RgbaColor, backend: CompareFileSession, signal: AbortSignal, highDepth = false): Promise<StoredRgbaImage> {
+async function createStoredCanvas(width: number, height: number, color: RgbaColor, backend: Pick<CompareFileSession, "storage">, signal: AbortSignal, highDepth = false): Promise<StoredRgbaImage> {
     const image: StoredRgbaImage = { ...await decodeImageToStorage({ size: 0, async read() { return new Uint8Array(); } }, backend.storage, signal, { create: { width, height, channels: 4, background: { r: color.r, g: color.g, b: color.b, alpha: color.a / 255 } } }), format: "png" };
     if (highDepth) {
         const storedData16 = { position: backend.storage.allocate(width * height * 8), length: width * height * 4 };
@@ -7753,7 +7753,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     let locateLimit = 0;
     let optionError = "";
     const readState = createDefaultState();
-    const targets: { path: string; originalInput: string; sceneCount?: number; outputScene?: number; listIndex: number; readState: MagickState; customFormat: string | undefined; density: string | undefined; channelSelection: MagickFormatContext["channelSelection"] }[] = [];
+    const targets: { path: string; originalInput: string; sceneCount?: number; inlineGeom?: string | undefined; outputScene?: number; listIndex: number; readState: MagickState; customFormat: string | undefined; density: string | undefined; channelSelection: MagickFormatContext["channelSelection"] }[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
@@ -7896,7 +7896,16 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         let inPath = target.path;
         yield;
         const bracketMatch = /^(.*)\[(\d+)\]$/.exec(inPath);
-        let baseInPath = bracketMatch ? bracketMatch[1]! : inPath;
+        let parsed: ReturnType<typeof parseInputToken>;
+        try { parsed = parseInputToken(inPath); }
+        catch (err) {
+            errParts.push(`identify: improper image header '${inPath}': ${(err as Error).message}\n`);
+            exitCode = 1;
+            yield* flush();
+            continue;
+        }
+        let baseInPath = parsed.baseToken;
+        const inlineGeom = target.inlineGeom ?? parsed.inlineGeom;
         const colon = baseInPath.indexOf(":");
         const requestedCoder = colon > 0 ? extToImageFormat(baseInPath.slice(0, colon)) : undefined;
         const validateCoder = (metadata: ImageMetadata) => {
@@ -7916,11 +7925,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         const inlineInput = baseInPath.toLowerCase().startsWith("xc:") || baseInPath.toLowerCase().startsWith("canvas:");
         if (target.sceneCount === undefined && (!bracketMatch || !rawCoder && !inlineInput)) {
             try {
-                const parsed = parseInputToken(inPath);
                 if (parsed.pageSpec !== undefined) {
-                    baseInPath = parsed.baseToken;
-                    const colon = baseInPath.indexOf(":");
-                    if (colon > 0 && extToImageFormat(baseInPath.slice(0, colon))) baseInPath = baseInPath.slice(colon + 1);
                     let inspection: IdentifyInspection | undefined;
                     if (reader) yield { async run() { inspection = await reader(baseInPath, undefined, false); } };
                     const bytes = baseInPath === "-" ? stdinBytes : files.get(baseInPath);
@@ -7977,7 +7982,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 rawCoder === "rgb" ? 3 : rawCoder === "gray" ? 1 : rawCoder === "graya" ? 2 : rawCoder === "cmyk" ? 4 : rawCoder === "cmyka" ? 5 : rawCoder, readState.inputOffset);
         } : undefined;
         let inspected:IdentifyInspection|undefined;
-        if(reader && !inlineImage)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,density === undefined ? metadata : applyMagickDensity(metadata, density),{filePath:baseInPath,originalInput:target.originalInput,byteLen:size,sceneIdx:pageIdx??0,outputScene:target.outputScene??pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis,channelSelection,optionProperties:{format:customFormat!}},density === undefined ? pixels : async () => { const raster = await pixels(); return { ...raster, image: applyMagickDensity(raster.image, density) }; },signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision,rawInput);}};
+        if(reader && !inlineImage)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,density === undefined ? metadata : applyMagickDensity(metadata, density),{filePath:baseInPath,originalInput:target.originalInput,byteLen:size,sceneIdx:pageIdx??0,outputScene:target.outputScene??pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis,channelSelection,optionProperties:{format:customFormat!}},density === undefined ? pixels : async () => { const raster = await pixels(); return { ...raster, image: applyMagickDensity(raster.image, density) }; },signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision,rawInput,inlineGeom === undefined ? undefined : (image, storage) => applyStoredInlineReadModifier(image, inlineGeom, baseInPath, readState, { storage }, signal ?? new AbortController().signal, false, analysis));}};
         let bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
         const byteLength = bytes?.byteLength;
         if (!bytes&&!inspected&&!inlineImage) {
@@ -7998,15 +8003,19 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             }
             const inputOptions = { coalesce: false, ...(pageIdx !== undefined && !rawInput ? { page: pageIdx } : {}) };
             if(inspected&&"error" in inspected)throw inspected.error;
+            const size = inlineImage ? 0 : inspected?.size??byteLength!;
             let meta = inlineImage??inspected?.metadata??readImageMetadata(bytes!, inputOptions);
+            if (inlineGeom !== undefined && (!inspected || inspected.bytes)) {
+                inlineImage = yield* applyInlineReadModifierSteps(inlineImage ?? decodeImage(inspected?.bytes ?? bytes!, inputOptions), inlineGeom, baseInPath, readState.kernel, readState.resizeFilter, false, analysis);
+                meta = inlineImage = { ...inlineImage, format: meta.format, ...(meta.pages === undefined ? {} : { pages: meta.pages }) };
+            }
             if (meta.format === "gif" && pageIdx !== undefined && pageIdx >= (meta.pages ?? 1)) throw new Error(`invalid image index ${pageIdx}`);
             if (density !== undefined) meta = applyMagickDensity(meta, density);
-            const size = inlineImage ? 0 : inspected?.size??byteLength!;
             validateCoder(meta);
             if (pageIdx === undefined && (meta.format === "tiff" || meta.format === "gif") && (meta.pages ?? 1) > 1) {
                 for (let page = 1; page < meta.pages!; page++) {
                     yield;
-                    targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, originalInput: target.originalInput, sceneCount: meta.pages!, listIndex: page, readState, customFormat, channelSelection, density });
+                    targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, originalInput: target.originalInput, sceneCount: meta.pages!, inlineGeom, listIndex: page, readState, customFormat, channelSelection, density });
                 }
                 inPath = `${baseInPath}[0]`;
             }
@@ -14340,7 +14349,7 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
         storeMagickOutput(files, formatAdjoinedOutputPath(outPath, stack.length, state.scene ?? 0, state.filenameLiteral), encoded, format, state);
         return { exitCode: 0, stdout: "", stderr: "" };
 }
-async function transformStoredMagickRaster(image: StoredRgbaImage, backend: CompareFileSession, steps: Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined>, signal: AbortSignal, dimensions: Pick<StoredRgbaImage, "width" | "height" | "hasAlpha"> = image, sources: readonly StoredRgbaImage[] | ((index: number) => Promise<StoredRgbaImage>) = [image], checkpoint?: () => Promise<void>): Promise<StoredRgbaImage> {
+async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Pick<CompareFileSession, "storage">, steps: Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined>, signal: AbortSignal, dimensions: Pick<StoredRgbaImage, "width" | "height" | "hasAlpha"> = image, sources: readonly StoredRgbaImage[] | ((index: number) => Promise<StoredRgbaImage>) = [image], checkpoint?: () => Promise<void>): Promise<StoredRgbaImage> {
     const position = backend.storage.allocate(dimensions.width * dimensions.height * 4), cache = new Map<string, Uint8Array>();
     let storedHueSamples: number | undefined;
     let storedEvaluateSamples: number | undefined;
@@ -18266,7 +18275,7 @@ export function runCompositeCliSync(argv: readonly string[], files: Map<string, 
 }
 
 
-async function applyStoredInlineReadModifier(image: StoredRgbaImage, inlineGeom: string, filename: string, state: MagickState, backend: CompareFileSession, signal: AbortSignal, preserveSamples = false, analysis?: { warnings: string }): Promise<StoredRgbaImage> {
+async function applyStoredInlineReadModifier(image: StoredRgbaImage, inlineGeom: string, filename: string, state: MagickState, backend: Pick<CompareFileSession, "storage">, signal: AbortSignal, preserveSamples = false, analysis?: { warnings: string }): Promise<StoredRgbaImage> {
     const geometry = parseMagickGeometry(inlineGeom);
     if (geometry.hasOffset) {
         if (geometry.width === undefined && geometry.height === undefined) return image;

@@ -14769,7 +14769,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-blur" || t === "-gaussian-blur") {
             const g = parseMagickGeometry(tokens[++i] ?? "0x1");
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, blurPixelSteps(im, g, t === "-gaussian-blur", state.channelExplicit ? state.channels : undefined), signal);
+                const writeMask = t === "-blur" ? im.writeMask : undefined;
+                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, blurPixelSteps(im, g, t === "-gaussian-blur", state.channelExplicit ? state.channels : undefined, undefined, writeMask), signal, im, writeMask ? [im, writeMask] : [im]);
             }, undefined, t === "-blur");
         }
         else if (t === "-selective-blur") {
@@ -18969,7 +18970,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             i++;
         } else if (!operandsOnly && (token === "-blur" || token === "-gaussian-blur")) {
             const geometry = parseMagickGeometry(tokens[++i] ?? "0x1"), channels = state.channelExplicit ? state.channels : undefined;
-            steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => image ? transformStoredMagickRaster({ ...image, isPalette: false }, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels), signal) : undefined, { handlesRegion: token === "-blur" }));
+            steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
+                if (!image) return undefined;
+                const writeMask = token === "-blur" ? image.storedWriteMask : undefined;
+                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, blurPixelSteps(image, geometry, token === "-gaussian-blur", channels, undefined, writeMask), signal, image, writeMask ? [image, writeMask] : [image]);
+            }, { handlesRegion: token === "-blur" }));
         } else if (!operandsOnly && token === "-selective-blur") {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);

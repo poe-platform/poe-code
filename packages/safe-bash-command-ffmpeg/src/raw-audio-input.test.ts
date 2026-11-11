@@ -83,9 +83,17 @@ for (const sync of [false, true]) {
           ...(placement === "input" ? ["-t", "0.25"] : []), "-i", "/in.raw",
           ...(placement === "output" ? ["-t", "0.25"] : []), "-c:a", codec, "-f", "s16le", "/out.raw"];
         if (sync) {
-          assert.equal(evalSyncFfmpeg(args, undefined,
+          const result = evalSyncFfmpeg(args, undefined,
             path => volume.readFileSync(path) as Buffer,
-            (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), "");
+            (path, bytes) => { volume.writeFileSync(path, bytes); return true; });
+          if (codec !== "copy" && placement === "output") {
+            // Decoded output trimming delegates to the asynchronous command.
+            assert.equal(result, undefined);
+            assert.equal(volume.existsSync("/out.raw"), false);
+            assert.deepEqual(volume.readFileSync("/in.raw"), input);
+            return;
+          }
+          assert.equal(result, "");
         } else {
           let stderr = "";
           const result = await createFfmpegCommand().execute({

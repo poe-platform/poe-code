@@ -13,7 +13,7 @@ import {tiffYCbCrToRgb} from "./tiff-ycbcr.js";
 import {readTiffFloat8} from "./tiff-float.js";
 import {createTiffCompressor} from "./tiff-compression.js";
 import {tiffSamplePlane,associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
-import {createBmpHeader,readBmpMasks,bmpMaskedChannel,packBmpPixel} from "./bmp-header.js";
+import {createBmpHeader,readBmpHeader,readBmpMasks,bmpMaskedChannel,packBmpPixel} from "./bmp-header.js";
 import {netpbmComment,parseNetpbmSequence} from "./netpbm-header.js";
 import { transformBytes } from "@poe-code/compression";
 import type { ImageMetadata, RgbaImage } from "../ast.js";
@@ -28,7 +28,8 @@ export function isNetpbmBytes(bytes: Uint8Array): boolean {
 }
 
 export function isBmpBytes(bytes: Uint8Array): boolean {
-  return bytes.length >= 26 && bytes[0] === 0x42 && bytes[1] === 0x4d;
+  return (bytes.length >= 26 && bytes[0] === 0x42 && bytes[1] === 0x4d)
+    || (bytes.length >= 4 && [12, 40, 52, 56, 64, 108, 124].includes(new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(0, true)));
 }
 
 export function isTiffBytes(bytes: Uint8Array): boolean {
@@ -226,26 +227,23 @@ export function readBmpMetadata(bytes: Uint8Array): ImageMetadata {
 }
 
 export function readBmpHeaderMetadata(bytes: Uint8Array): ImageMetadata {
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  if (bytes.byteLength < 18) throw new Error("Truncated BMP DIB header");
-  const dibHeaderSize = view.getUint32(14, true);
-  if (![12, 40, 52, 56, 64, 108, 124].includes(dibHeaderSize)) throw new Error("Invalid BMP DIB header size");
-  if (bytes.byteLength < 14 + dibHeaderSize) throw new Error("Truncated BMP DIB header");
+  const { view } = readBmpHeader(bytes);
+  const dibHeaderSize = view.getUint32(0, true);
   const core = dibHeaderSize === 12;
-  if (view.getUint16(core ? 22 : 26, true) !== 1) throw new Error("Invalid BMP plane count: expected 1");
-  const width = core ? view.getUint16(18, true) : Math.abs(view.getInt32(18, true));
-  const height = core ? view.getUint16(20, true) : Math.abs(view.getInt32(22, true));
-  const bpp = view.getUint16(core ? 24 : 28, true);
-  const compression = core ? 0 : view.getUint32(30, true);
+  if (view.getUint16(core ? 8 : 12, true) !== 1) throw new Error("Invalid BMP plane count: expected 1");
+  const width = core ? view.getUint16(4, true) : Math.abs(view.getInt32(4, true));
+  const height = core ? view.getUint16(6, true) : Math.abs(view.getInt32(8, true));
+  const bpp = view.getUint16(core ? 10 : 14, true);
+  const compression = core ? 0 : view.getUint32(16, true);
   if (compression > 5) throw new Error("Unsupported BMP compression");
   if ((compression === 1 && bpp !== 8) || (compression === 2 && bpp !== 4) || (compression === 3 && bpp !== 16 && bpp !== 32)) throw new Error("Invalid BMP compression bit depth");
   if (![1, 4, 8, 16, 24, 32].includes(bpp)) throw new Error("Unsupported BMP bits per pixel");
-  if (!core && [1, 4, 8].includes(bpp) && view.getUint32(46, true) > 2 ** bpp) throw new Error("Invalid BMP palette count");
-  const ppmX = core ? 0 : view.getInt32(38, true);
-  const ppmY = core ? 0 : view.getInt32(42, true);
-  const renderingIntent = dibHeaderSize === 124 ? ({ 1: "Saturation", 2: "Relative", 4: "Perceptual", 8: "Absolute" } as Record<number, string>)[view.getUint32(122, true)] : undefined;
+  if (!core && [1, 4, 8].includes(bpp) && view.getUint32(32, true) > 2 ** bpp) throw new Error("Invalid BMP palette count");
+  const ppmX = core ? 0 : view.getInt32(24, true);
+  const ppmY = core ? 0 : view.getInt32(28, true);
+  const renderingIntent = dibHeaderSize === 124 ? ({ 1: "Saturation", 2: "Relative", 4: "Perceptual", 8: "Absolute" } as Record<number, string>)[view.getUint32(108, true)] : undefined;
   const density = ppmX > 0 ? Math.max(1, Math.round(ppmX * 0.0254)) : 72;
-  const hasAlpha = (bpp === 32 && (core || view.getUint32(30, true) !== 3)) || ((bpp === 16 || bpp === 32) && !core && view.getUint32(30, true) === 3 && view.getUint32(14, true) >= 56 && view.byteLength >= 70 && view.getUint32(66, true) !== 0);
+  const hasAlpha = (bpp === 32 && (core || view.getUint32(16, true) !== 3)) || ((bpp === 16 || bpp === 32) && !core && view.getUint32(16, true) === 3 && view.getUint32(0, true) >= 56 && view.byteLength >= 56 && view.getUint32(52, true) !== 0);
   return {
     format: "bmp",
     ...(renderingIntent ? { renderingIntent } : {}),
@@ -263,28 +261,28 @@ export function readBmpHeaderMetadata(bytes: Uint8Array): ImageMetadata {
 
 export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
   const meta = readBmpMetadata(bytes);
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  if (view.getUint32(2, true) !== bytes.byteLength) throw new Error("Invalid BMP file size");
-  let dataOffset = view.getUint32(10, true);
-  const dibHeaderSize = view.getUint32(14, true);
-  const compression = dibHeaderSize >= 40 ? view.getUint32(30, true) : 0;
+  const { view, fileHeader, dataOffset: pixelOffset } = readBmpHeader(bytes);
+  if (fileHeader && new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(2, true) !== bytes.byteLength) throw new Error("Invalid BMP file size");
+  let dataOffset = pixelOffset;
+  const dibHeaderSize = view.getUint32(0, true);
+  const compression = dibHeaderSize >= 40 ? view.getUint32(16, true) : 0;
   if (compression === 4 || compression === 5) {
-    if (dataOffset < 14 + dibHeaderSize || dataOffset >= bytes.length) throw new Error("Invalid BMP payload offset");
+    if (dataOffset < fileHeader + dibHeaderSize || dataOffset >= bytes.length) throw new Error("Invalid BMP payload offset");
     const image = (compression === 4 ? decodeJpegImage : decodePngImage)(bytes.subarray(dataOffset));
     return { ...image, ...(meta.renderingIntent ? { renderingIntent: meta.renderingIntent } : {}), ...(meta.icc ? { icc: meta.icc } : {}), format: "bmp", density: meta.density, ...(meta.resolution ? { resolution: meta.resolution } : {}) };
   }
   if (dataOffset < dibHeaderSize || dataOffset >= bytes.length) throw new Error("Invalid BMP pixel offset");
   // ImageMagick tolerates offsets into the DIB, but never seeks back into it.
-  dataOffset = Math.max(dataOffset, 14 + dibHeaderSize);
-  const topDown = dibHeaderSize !== 12 && view.getInt32(22, true) < 0;
-  const bpp = view.getUint16(dibHeaderSize === 12 ? 24 : 28, true);
+  dataOffset = Math.max(dataOffset, fileHeader + dibHeaderSize);
+  const topDown = dibHeaderSize !== 12 && view.getInt32(8, true) < 0;
+  const bpp = view.getUint16(dibHeaderSize === 12 ? 10 : 14, true);
   const rowStride = Math.floor((meta.width * bpp + 31) / 32) * 4;
   if (compression !== 1 && compression !== 2 && rowStride * meta.height > bytes.length - dataOffset) throw new Error("Truncated BMP rows");
-  const bitfieldMasks = readBmpMasks(view);
+  const bitfieldMasks = readBmpMasks(view, pixelOffset - fileHeader);
   const rgba = new Uint8Array(meta.width * meta.height * 4);
-  const paletteOffset = 14 + dibHeaderSize;
+  const paletteOffset = fileHeader + dibHeaderSize;
   const paletteStep = dibHeaderSize === 12 ? 3 : 4;
-  const paletteSize = bpp <= 8 ? Math.min(1 << bpp, (dibHeaderSize >= 40 ? view.getUint32(46, true) : 0) || 1 << bpp) : 0;
+  const paletteSize = bpp <= 8 ? Math.min(1 << bpp, (dibHeaderSize >= 40 ? view.getUint32(32, true) : 0) || 1 << bpp) : 0;
 
   if (compression === 1 || compression === 2) {
     const decoder = new BmpRle(meta.width, meta.height, bpp, topDown);
@@ -304,7 +302,7 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
   }
 
   // Legacy BI_RGB writers leave the reserved fourth byte zero in every pixel.
-  let opaqueReserved = bpp === 32 && dibHeaderSize >= 40 && view.getUint32(30, true) === 0;
+  let opaqueReserved = bpp === 32 && dibHeaderSize >= 40 && view.getUint32(16, true) === 0;
   if (opaqueReserved) {
     for (let offset = dataOffset + 3; offset < dataOffset + rowStride * meta.height; offset += 4) {
       if ((bytes[offset] ?? 255) !== 0) { opaqueReserved = false; break; }
@@ -337,7 +335,7 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
         const bytesPerPixel = bpp >>> 3;
         const srcIdx = rowStart + x * bytesPerPixel;
         if (bitfieldMasks) {
-          const pixel = bpp === 16 ? (bytes[srcIdx] ?? 0) | ((bytes[srcIdx + 1] ?? 0) << 8) : view.getUint32(srcIdx, true);
+          const pixel = bpp === 16 ? (bytes[srcIdx] ?? 0) | ((bytes[srcIdx + 1] ?? 0) << 8) : view.getUint32(srcIdx - fileHeader, true);
           for (let c = 0; c < 4; c++) rgba[dstIdx + c] = bmpMaskedChannel(pixel, bitfieldMasks[c]!);
           continue;
         }

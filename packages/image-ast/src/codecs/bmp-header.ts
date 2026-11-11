@@ -57,15 +57,31 @@ export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"resolution"
  return {data:options?.bmpFormat === "dib" ? out.subarray(14) : out,rowStride,pixelSize,bytesPerPixel,bitDepth,masks,icc};
 }
 
+/** Read the shared bitmap header, with or without the 14-byte BMP file header. */
+export function readBmpHeader(bytes: Uint8Array) {
+ const fileHeader = bytes[0] === 66 && bytes[1] === 77 ? 14 : 0;
+ if (bytes.length < fileHeader + 4) throw new Error("Truncated BMP DIB header");
+ const view = new DataView(bytes.buffer, bytes.byteOffset + fileHeader, bytes.byteLength - fileHeader);
+ const size = view.getUint32(0, true);
+ if (![12, 40, 52, 56, 64, 108, 124].includes(size)) throw new Error("Invalid BMP DIB header size");
+ if (view.byteLength < size) throw new Error("Truncated BMP DIB header");
+ const bpp = view.getUint16(size === 12 ? 10 : 14, true);
+ const colors = (size === 12 ? 0 : view.getUint32(32, true)) || (bpp <= 8 ? 2 ** bpp : 0);
+ const masks = size === 40 && view.getUint32(16, true) === 3 ? 12 : 0;
+ const dataOffset = fileHeader ? new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(10, true)
+  : size + masks + colors * (size === 12 ? 3 : 4);
+ return { view, fileHeader, dataOffset };
+}
+
 /** BI_BITFIELDS masks follow the 40-byte header or occupy the same slots in extended headers. */
-export function readBmpMasks(view: DataView): number[] | undefined {
- const dibSize = view.getUint32(14, true);
+export function readBmpMasks(view: DataView, dataOffset: number): number[] | undefined {
+ const dibSize = view.getUint32(0, true);
  if (dibSize < 40) return;
- const bpp = view.getUint16(28, true), compression = view.getUint32(30, true);
+ const bpp = view.getUint16(14, true), compression = view.getUint32(16, true);
  if (bpp === 16 && compression === 0) return [0x7c00, 0x03e0, 0x001f, 0];
  if ((bpp !== 16 && bpp !== 32) || compression !== 3) return;
- if (view.byteLength < 66 || view.getUint32(10, true) < 66) throw new Error("Truncated BMP channel masks");
- return [view.getUint32(54, true), view.getUint32(58, true), view.getUint32(62, true), dibSize >= 56 ? view.getUint32(66, true) : 0];
+ if (view.byteLength < 52 || dataOffset < 52) throw new Error("Truncated BMP channel masks");
+ return [view.getUint32(40, true), view.getUint32(44, true), view.getUint32(48, true), dibSize >= 56 ? view.getUint32(52, true) : 0];
 }
 
 export function bmpMaskedChannel(pixel: number, mask: number): number {

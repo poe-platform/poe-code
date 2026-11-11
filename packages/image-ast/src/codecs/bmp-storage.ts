@@ -7,8 +7,8 @@ import {BmpRle,bmpRlePacketSize} from "./bmp-rle.js";
 import type {SharpInputOptions} from "../ast.js";
 import {checkLimitInputPixels} from "../limits.js";
 import type {ImageByteSource,ImageByteStorage,StoredRgbaImage} from "./png-storage.js";
-import {readBmpHeaderMetadata} from "./netpbm.js";
-import {createBmpHeader,readBmpMasks,bmpMaskedChannel,packBmpPixel} from "./bmp-header.js";
+import {isBmpBytes,readBmpHeaderMetadata} from "./netpbm.js";
+import {createBmpHeader,readBmpHeader,readBmpMasks,bmpMaskedChannel,packBmpPixel} from "./bmp-header.js";
 import {SourceBytes} from "./storage-source.js";
 import {Pixels,Output} from "../ops/storage-raster.js";
 
@@ -17,23 +17,23 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
  signal.throwIfAborted();
  const reader=new SourceBytes(source,signal,"BMP"),header=new Uint8Array(Math.min(138,source.size));
  for(let i=0;i<header.length;i++) header[i]=(await reader.at(i))!;
- if(header[0]!==66||header[1]!==77) throw new Error("Invalid BMP signature");
+ if(!isBmpBytes(header)) throw new Error("Invalid BMP signature");
  let metadata=readBmpHeaderMetadata(header);
- const view=new DataView(header.buffer),{width,height}=metadata;
- if(view.getUint32(2,true)!==source.size) throw new Error("Invalid BMP file size");
+ const {view,fileHeader,dataOffset:pixelOffset}=readBmpHeader(header),{width,height}=metadata;
+ if(fileHeader&&new DataView(header.buffer).getUint32(2,true)!==source.size) throw new Error("Invalid BMP file size");
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)) throw new RangeError("Invalid BMP dimensions");
  checkLimitInputPixels(width,height,options);
- const profile=bmpProfileRange(view,source.size);
+ const profile=bmpProfileRange(new DataView(header.buffer),source.size);
  if(profile) {
   const icc=new Uint8Array(profile.length);
   for(let i=0;i<profile.length;i++) icc[i]=(await reader.at(profile.offset+i))!;
   metadata={...metadata,icc};
  }
- let dataOffset=view.getUint32(10,true);
- const dibHeaderSize=view.getUint32(14,true),topDown=dibHeaderSize!==12&&view.getInt32(22,true)<0,bpp=view.getUint16(dibHeaderSize===12?24:28,true),rowStride=Math.floor((width*bpp+31)/32)*4;
- const compression=dibHeaderSize>=40?view.getUint32(30,true):0;
+ let dataOffset=pixelOffset;
+ const dibHeaderSize=view.getUint32(0,true),topDown=dibHeaderSize!==12&&view.getInt32(8,true)<0,bpp=view.getUint16(dibHeaderSize===12?10:14,true),rowStride=Math.floor((width*bpp+31)/32)*4;
+ const compression=dibHeaderSize>=40?view.getUint32(16,true):0;
  if(compression===4||compression===5) {
-  if(dataOffset<14+dibHeaderSize||dataOffset>=source.size) throw new Error("Invalid BMP payload offset");
+  if(dataOffset<fileHeader+dibHeaderSize||dataOffset>=source.size) throw new Error("Invalid BMP payload offset");
   const payload:ImageByteSource={size:source.size-dataOffset,async read(position,length) {
    signal.throwIfAborted();
    if(position<0||length<0||position+length>source.size-dataOffset) throw new Error("Invalid BMP payload range");
@@ -44,11 +44,11 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
  }
  if(dataOffset<dibHeaderSize||dataOffset>=source.size) throw new Error("Invalid BMP pixel offset");
  // ImageMagick tolerates offsets into the DIB, but never seeks back into it.
- dataOffset=Math.max(dataOffset,14+dibHeaderSize);
+ dataOffset=Math.max(dataOffset,fileHeader+dibHeaderSize);
  if(compression!==1&&compression!==2&&rowStride*height>source.size-dataOffset) throw new Error("Truncated BMP rows");
- const bitfieldMasks=readBmpMasks(view);
- const paletteSize=bpp<=8?Math.min(1<<bpp,(dibHeaderSize>=40?view.getUint32(46,true):0)||1<<bpp):0;
- const palette=new Uint8Array(paletteSize*3),paletteOffset=14+dibHeaderSize,paletteStep=dibHeaderSize===12?3:4;
+ const bitfieldMasks=readBmpMasks(view,pixelOffset-fileHeader);
+ const paletteSize=bpp<=8?Math.min(1<<bpp,(dibHeaderSize>=40?view.getUint32(32,true):0)||1<<bpp):0;
+ const palette=new Uint8Array(paletteSize*3),paletteOffset=fileHeader+dibHeaderSize,paletteStep=dibHeaderSize===12?3:4;
  for(let i=0;i<palette.length/3;i++) for(let c=0;c<3;c++) palette[i*3+c]=await reader.at(paletteOffset+i*paletteStep+c)??0;
  const {size:ignoredSize,...raster}=metadata;
  const output=new Output({...raster,position:0},width,height,storage,signal);
@@ -80,7 +80,7 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
   return image;
  }
  // Scan through the bounded source cache; keep meaningful alpha, including zero samples.
- let opaqueReserved=bpp===32&&dibHeaderSize>=40&&view.getUint32(30,true)===0;
+ let opaqueReserved=bpp===32&&dibHeaderSize>=40&&view.getUint32(16,true)===0;
  if(opaqueReserved) {
   for(let offset=dataOffset+3;offset<dataOffset+rowStride*height;offset+=4) {
    if((await reader.at(offset)??255)!==0){opaqueReserved=false;break;}

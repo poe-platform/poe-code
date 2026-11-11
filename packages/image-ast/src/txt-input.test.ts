@@ -32,7 +32,6 @@ it.each([
   text.replace("1,1,0,255", "0,1,0,255"),
   text.replace("1,1,0,255", "1,1,0,0"),
   text.replace("30,40,50,128", "30,40,50,Infinity"),
-  text.replace("30,40,50,128", "-1,40,50,128"),
   text.replace("0,0:", "1,0:"),
   text.replace("0,0:", "-1,0:"),
   text.replace("0,0:", "0,1:"),

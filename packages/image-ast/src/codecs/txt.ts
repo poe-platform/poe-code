@@ -8,8 +8,8 @@ export function isTxtBytes(bytes: Uint8Array): boolean {
   return bytes.length >= signature.length && [...signature].every((char, index) => bytes[index] === char.charCodeAt(0));
 }
 
-function txtValues(text: string, maximum: number): number[] {
-  return text.split(",").map(value => {
+function txtValues(tokens: string[], maximum: number): number[] {
+  return tokens.map(value => {
     const token = value.trim(), percent = token.endsWith("%");
     const number = (percent ? token.slice(0, -1) : token).trim();
     if (number === "") return NaN;
@@ -58,13 +58,19 @@ function* txtSteps(size: number, page: number, options?: SharpInputOptions): Gen
     if (!metadata) throw new Error("Invalid TXT signature");
     const colon = line.indexOf(":"), open = line.indexOf("(", colon), close = line.indexOf(")", open);
     const coordinates = line.slice(0, colon).split(",").map(Number);
-    const values = txtValues(line.slice(open + 1, close), range);
+    const tokens = line.slice(open + 1, close).split(",");
+    // Native TXT skips explicitly signed tuple components and zero-fills the tail.
+    const values = txtValues(tokens.filter(value => {
+      const first = value.trim()[0];
+      return first !== "+" && first !== "-";
+    }), range);
+    while (values.length < tokens.length) values.push(0);
     if (colon < 0 || open < colon || close < open || coordinates.length !== 2 || coordinates.some(value => !Number.isInteger(value) || value < 0) || coordinates[0]! >= metadata.width || coordinates[1]! >= metadata.height || pixels >= metadata.width * metadata.height || values.length !== metadata.channels || values.some(value => !Number.isFinite(value) || value < 0)) throw new Error("Invalid TXT pixel");
     // Native TXT only re-reads the trailing srgb(...) annotation, in header units.
     const annotation = line.lastIndexOf("srgb(");
     if (annotation > close) {
       const end = line.indexOf(")", annotation);
-      const components = txtValues(line.slice(annotation + 5, end), range);
+      const components = txtValues(line.slice(annotation + 5, end).split(","), range);
       if (end < 0 || components.length !== 3 || components.some(value => !Number.isFinite(value) || value < 0 || value > Math.max(maximum, range))) throw new Error("Invalid TXT pixel");
       for (let channel = 0; channel < Math.min(3, metadata.channels - Number(metadata.hasAlpha)); channel++) values[channel] = components[channel]!;
     }

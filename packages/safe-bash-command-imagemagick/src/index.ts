@@ -11966,7 +11966,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 i++;
                 continue;
             }
-            if (writePath.toLowerCase().startsWith("histogram:")) {
+            if (writePath.toLowerCase().startsWith("histogram:") || writePath.toLowerCase().startsWith("sparse-color:")) {
                 const result = yield* writeConvertOutputSteps([...stack], state, writeTemplate, files, signal, analysis);
                 analysis.text += result.stdout;
                 if (result.stdoutBytes) analysis.bytes.push(result.stdoutBytes);
@@ -13919,17 +13919,26 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
             return { exitCode: 0, stdout: "", stderr: "" };
         }
         if (outLower.startsWith("sparse-color:") || outLower.startsWith("txt:") || (outLower.endsWith(".txt") && !outSpec.includes(":"))) {
+            const sparse = outLower.startsWith("sparse-color:");
+            const target = sparse ? outSpec.slice(13) : outLower.startsWith("txt:") ? outSpec.slice(4) : outSpec;
+            const separate = sparse && target && target !== "-" && (hasSceneOutputPattern(target, state.filenameLiteral) || (stack.length > 1 && !state.adjoin));
+            const source = (stack[0] as MagickImage)[magickInput];
+            const firstScene = state.scene ?? source?.outputScene ?? source?.sceneIdx ?? 0;
             let txt = "";
-            for (const frame of stack) {
-                if (outLower.startsWith("sparse-color:")) {
+            for (const [index, frame] of stack.entries()) {
+                if (sparse) {
                     const data = frame.data16 ?? frame.data;
                     for (let start = 0; start < data.length; start += 16384) {
                         yield;
                         for (const point of sparseColorPoints(frame, data.subarray(start, start + 16384), start / 4, state.precision)) txt += point;
                     }
                 } else txt += yield* formatTxtEnumerationSteps(frame, state.inputDepth);
+                if (separate) {
+                    files.set(formatSceneOutputPath(target, firstScene + index, state.filenameLiteral, frame.properties), new TextEncoder().encode(txt));
+                    txt = "";
+                }
             }
-            const target = outLower.startsWith("sparse-color:") ? outSpec.slice(13) : outLower.startsWith("txt:") ? outSpec.slice(4) : outSpec;
+            if (separate) return { exitCode: 0, stdout: "", stderr: "" };
             if (!target || target === "-") {
                 return { exitCode: 0, stdout: txt, stderr: "" };
             }
@@ -16080,7 +16089,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     analysis.text += result.stdout;
                     return stack;
                 }
-                if (path.toLowerCase().startsWith("histogram:")) {
+                if (path.toLowerCase().startsWith("histogram:") || path.toLowerCase().startsWith("sparse-color:")) {
                     const images = new StoredImageStack(backend.storage, signal, stack);
                     for (let index = 0; index < stack.length; index++) await images.push((await stack.get(index))!);
                     const result = await writeStoredConvertOutput(images, writeState, writeTemplate, input, backend, signal, analysis, true);
@@ -17280,7 +17289,14 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
                 const parts = info || text || ftxt ? information() : storedHistogram(image, backend.storage, signal);
                 const chunks = encodeText(parts, signal), target = sparse ? outSpec.slice(13) : info || lower.startsWith("ftxt:") ? outSpec.slice(5) : ftxt ? outSpec : lower.startsWith("txt:") ? outSpec.slice(4) : text ? outSpec : "-";
                 if (target && target !== "-") {
-                    await backend.stageText(image, target, chunks);
+                    if (sparse && (hasSceneOutputPattern(target, state.filenameLiteral) || (stack.length > 1 && !state.adjoin))) {
+                        const source = (await stack.get(0))![magickInput];
+                        const firstScene = state.scene ?? source?.outputScene ?? source?.sceneIdx ?? 0;
+                        for (let index = 0; index < stack.length; index++) {
+                            const frame = (await stack.get(index))!;
+                            await backend.stageText(frame, formatSceneOutputPath(target, firstScene + index, state.filenameLiteral, frame.properties), encodeText(storedSparseColor(frame, backend.storage, signal, state.precision), signal));
+                        }
+                    } else await backend.stageText(image, target, chunks);
                     if (!intermediate) await backend.publishPending();
                     return { exitCode: 0, stdout: "", stderr: "" };
                 }

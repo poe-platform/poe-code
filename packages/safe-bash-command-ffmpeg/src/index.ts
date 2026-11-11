@@ -13737,7 +13737,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const evaluate = words[0] === "[expr]";
                           if (words[0] === "[enter]" || leave || evaluate) words.shift();
                           const [target, action, expression] = words;
-                          const supported = action === "enable" && ["tremolo", "vibrato"].some(name => target === name || target?.startsWith(`${name}@`))
+                          const supported = action === "enable" && ["tremolo", "vibrato", "dcshift"].some(name => target === name || target?.startsWith(`${name}@`))
                             || target === "silenceremove" || target?.startsWith("silenceremove@")
                             || action === "tempo" && (target === "atempo" || target?.startsWith("atempo@"))
                             || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
@@ -15455,6 +15455,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                           } else throw new Error(`dcshift: unsupported option ${key}`);
                         }
+                        const commands = audioCommands.filter(command =>
+                          (command.target === "dcshift" || command.target === filterTarget) && command.action === "enable")
+                          .sort((a, b) => a.sample - b.sample);
+                        audioCommands = audioCommands.filter(command => command.target !== "dcshift" && command.target !== filterTarget);
+                        let nextCommand = 0;
                         const threshold = 2147483647 * (1 - (Math.abs(shift) - limitergain));
                         // Native dcshift negotiates signed PCM32 and truncates the shifted sum.
                         // Keep all 32 bits so integer encoders can discard low bits when narrowing.
@@ -15467,7 +15472,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const count = timestamp ? timestamp.end - timestamp.start
                             : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                           const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
-                          const end = enable === undefined ? length : Math.min(length, start + count);
+                          const end = enable === undefined && commands.length === 0 ? length : Math.min(length, start + count);
+                          while (nextCommand < commands.length && commands[nextCommand]!.sample <= start) {
+                            const command = commands[nextCommand++]!;
+                            try {
+                              parseFilterExpression(command.expression, "dcshift enable", {
+                                n: 0, t: 0, pos: NaN, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+                              });
+                              enable = command.expression;
+                            } catch { /* Native retains the previous expression after a rejected command. */ }
+                          }
                           const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "dcshift enable", {
                             n, t: pts / origRate, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
                           })) >= 0.5;

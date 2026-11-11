@@ -12043,13 +12043,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         actions.push(command.slice(start));
                         let time = NaN;
+                        let end = Infinity;
                         return actions.flatMap((command, index) => {
                           const words = Array.from(command, char => char.trim() ? char : " ").join("").split(" ").filter(Boolean);
                           if (index === 0) {
-                            time = parseHlsDuration((words.shift() ?? "").replaceAll("\\:", ":"));
+                            const interval = (words.shift() ?? "").replaceAll("\\:", ":");
+                            const separator = interval.indexOf("-", 1);
+                            time = parseHlsDuration(separator < 0 ? interval : interval.slice(0, separator));
+                            end = separator < 0 ? Infinity : parseHlsDuration(interval.slice(separator + 1));
                             if (!Number.isFinite(time) || time < 0) throw new Error("asendcmd: invalid start time");
+                            if (separator >= 0 && (!Number.isFinite(end) || end < time)) throw new Error("asendcmd: invalid end time");
                           }
-                          if (words[0] === "[enter]") words.shift();
+                          const leave = words[0] === "[leave]";
+                          if (words[0] === "[enter]" || leave) words.shift();
                           const [target, action, expression] = words;
                           const supported = action === "enable" && ["tremolo", "vibrato"].some(name => target === name || target?.startsWith(`${name}@`))
                             || target === "silenceremove" || target?.startsWith("silenceremove@")
@@ -12076,10 +12082,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             throw new Error("asendcmd: expected TIME [enter] TARGET COMMAND ARG");
                           }
                           // Unmatched targets and declined actions do not invalidate the schedule.
-                          return supported ? [{ time, target, action: action!, expression }] : [];
+                          return supported ? [{ time, end, leave, active: false, target, action: action!, expression }] : [];
                         });
                       });
-                      budget.allocateMemory(scheduled.length * 64);
+                      budget.allocateMemory(scheduled.length * 96);
                       scheduled.sort((a, b) => a.time - b.time);
                       return [{ sender, scheduled: scheduled.map(command => ({ ...command,
                         receiver: audioFilters.findIndex(item => {
@@ -12117,9 +12123,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const pending = scheduled.filter(command => sender === filterIndex
                           ? command.receiver >= sender || command.receiver < 0
                           : sender > filterIndex && command.receiver === filterIndex);
-                        let next = 0;
                         const length = stretched[0]?.length ?? 0;
-                        for (let start = 0, n = 0; start < length && next < pending.length; n++) {
+                        for (let start = 0, n = 0; start < length && pending.length > 0; n++) {
                           budget.checkCpu();
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           const packet = t.samples[n];
@@ -12129,8 +12134,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
                           // FFmpeg rounds frame PTS to microseconds before dispatching commands.
                           const seconds = Math.sign(pts) * Math.round(Math.abs(pts) * 1_000_000 / origRate) / 1_000_000;
-                          while (next < pending.length && pending[next]!.time <= seconds) {
-                            const command = pending[next++]!;
+                          if (Number.isFinite(pts)) for (const command of pending) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const active = command.time <= seconds && seconds < command.end;
+                            if (active === command.active) continue;
+                            command.active = active;
+                            if (command.leave === active) continue;
+                            // Dispatch only on an observed transition into or out of the interval.
+                            budget.allocateMemory(64);
                             if (command.target === "amix" || command.target.startsWith("amix@")) mixCommands.push(command);
                             // A downstream sender sees this frame after the receiver has processed it.
                             else audioCommands.push({ sample: sender > filterIndex ? Math.min(length, start + count) : start,

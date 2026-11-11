@@ -9729,8 +9729,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         else if (mode === "activate") {
             evaluate = true;
             apply = function* (im) {
-                // A canvas without an alpha channel gains zero samples when activated.
-                if (!im.hasAlpha && im.inactiveAlpha === false && im.alphaBlend !== true) {
+                // Canvases and PPM inputs without stored alpha gain zero samples when activated.
+                if (!im.hasAlpha && (im.inactiveAlpha === false || im.inactiveAlpha === undefined && im.format === "ppm") && im.alphaBlend !== true) {
                     const data = new Uint8Array(im.data), data16 = im.data16?.slice(), evaluateSamples = im.evaluateSamples?.slice();
                     // CMYK's fourth working sample is black ink, not alpha.
                     const hueSamples = im.space === "cmyk" ? undefined : im.hueSamples?.slice();

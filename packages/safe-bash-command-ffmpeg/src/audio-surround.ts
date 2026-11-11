@@ -9,13 +9,16 @@ export async function surroundAudio(
   filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float32Array[]> {
   let size = 4096, lfe = true;
+  let outputChannels = 6;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["chl_out", "chl_in", "level_in", "level_out", "lfe"][index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "chl_out") {
-      if (parseAudioChannelLayout(value).join("+") !== "FL+FR+FC+LFE+BL+BR") throw new Error("surround: supported output layout is 5.1");
+      const layout = parseAudioChannelLayout(value).join("+");
+      if (layout !== "FL+FR" && layout !== "FL+FR+FC+LFE+BL+BR") throw new Error("surround: supported output layouts are stereo and 5.1");
+      outputChannels = layout === "FL+FR" ? 2 : 6;
     } else if (key === "chl_in") {
       if (parseAudioChannelLayout(value).join("+") !== "FL+FR") throw new Error("surround: supported input layout is stereo");
     } else if (key === "win_size") {
@@ -37,11 +40,11 @@ export async function surroundAudio(
   }
   if (channels.length !== 2) throw new Error("surround: stereo input required");
   const length = channels[0]!.length, hop = size / 2;
-  // Six output planes, six overlap planes, two complex input transforms,
+  // Output and overlap planes for each channel, two complex input transforms,
   // one complex inverse workspace, and the analysis/synthesis window.
-  budget.allocateMemory(length * 6 * 4 + size * (6 * 4 + 6 * 8 + 4));
-  const output = Array.from({ length: 6 }, () => new Float32Array(length));
-  const overlap = Array.from({ length: 6 }, () => new Float32Array(size));
+  budget.allocateMemory(length * outputChannels * 4 + size * (outputChannels * 4 + 6 * 8 + 4));
+  const output = Array.from({ length: outputChannels }, () => new Float32Array(length));
+  const overlap = Array.from({ length: outputChannels }, () => new Float32Array(size));
   const real = channels.map(() => new Float64Array(size));
   const imaginary = channels.map(() => new Float64Array(size));
   const outReal = new Float64Array(size), outImaginary = new Float64Array(size);
@@ -59,7 +62,7 @@ export async function surroundAudio(
       imaginary[c]!.fill(0);
       transform(real[c]!, imaginary[c]!);
     }
-    for (let c = 0; c < 6; c++) {
+    for (let c = 0; c < outputChannels; c++) {
       for (let n = 0; n <= hop; n++) {
         const lr = f(real[0]![n]!), li = f(imaginary[0]![n]!);
         const rr = f(real[1]![n]!), ri = f(imaginary[1]![n]!);

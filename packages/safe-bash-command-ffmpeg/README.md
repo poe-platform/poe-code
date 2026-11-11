@@ -627,6 +627,8 @@ window is 4096 samples; powers of two from 1024 to 65536 are supported.
 `win_size` accepts expressions such as `512*2` and constants `min`, `max`, and
 `default`. Values are checked against that range, then rounded to the nearest
 integer (ties to even) before selecting the transform size.
+Use `surround=chl_out=stereo` to retain two output channels with the same
+frequency-domain processing of the front speakers.
 Other layouts and surround options are rejected.
 
 `stereotools` supports stereo channel mute (`mutel`, `muter`), phase inversion

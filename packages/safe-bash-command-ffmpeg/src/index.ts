@@ -14167,7 +14167,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (filterName === "surround") {
                         if (filteredChannelMask && filteredChannelMask !== 3) throw new Error("surround: stereo input required");
                         stretched = await surroundAudio(stretched, origRate, trimmed, budget, context.signal);
-                        filteredChannelMask = 0x3f;
+                        filteredChannelMask = stretched.length === 2 ? 3 : 0x3f;
                         filteredChannelNames = undefined;
                         continue;
                       }

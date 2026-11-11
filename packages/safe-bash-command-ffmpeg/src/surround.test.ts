@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { Volume } from "memfs";
@@ -104,7 +105,7 @@ for (const filter of ["surround=chl_in=FR+FL", "surround=chl_in=FC+LFE", "surrou
   "surround=win_size=0", "surround=win_size=65537", "surround=win_size=NaN",
   "surround=win_size=1023.9", "surround=win_size=65536.1", "surround=win_size=1024.6",
   "surround=win_size=1/0", "surround=win_size=bad", "surround=win_size=",
-  "surround=win_size=1025", "surround=lfe=bad", "surround=chl_out=stereo", "surround=unknown=1"]) {
+  "surround=win_size=1025", "surround=lfe=bad", "surround=chl_out=mono", "surround=unknown=1"]) {
   it(`${filter} fails without replacing output`, async () => {
     const { result, stderr, output } = await run(filter);
     assert.equal(result.exitCode, 1);
@@ -146,3 +147,28 @@ it("bounds surround workspace and honors cancellation", async () => {
   await assert.rejects(surroundAudio(channels, 16000, "surround",
     new MediaBudgetTracker(), AbortSignal.abort()));
 });
+
+for (const graph of [false, true]) for (const filter of [
+  "surround=win_size=1024:chl_out=stereo",
+  "surround=stereo:win_size=1024:lfe=0,channelmap=map=FL|FR:channel_layout=stereo",
+  "surround=chl_out=0x3:win_size=1024"
+]) {
+  it(`${filter} renders native stereo PCM (${graph ? "graph" : "simple"})`, async () => {
+    const channels = [0, 1].map(c => Float64Array.from({ length: 512 }, (_, i) =>
+      (((i * 2 + c) * 13129) % 30001 - 15000) / 32768));
+    const source = Buffer.from(encodeWav({ sampleRate: 8000, channels }));
+    const { result, stderr, output } = await run(filter, graph, source);
+    assert.equal(result.exitCode, 0, stderr);
+    const audio = parseWav(output).tracks[0]!.decodedAudio!;
+    assert.equal(audio.channels, 2);
+    assert.equal(audio.sampleRate, 8000);
+    assert.equal(audio.channelData[0]!.length, 512);
+    const pcm = Buffer.alloc(2048);
+    for (let i = 0; i < 512; i++) for (let c = 0; c < 2; c++) {
+      pcm.writeInt16LE(Math.round(audio.channelData[c]![i]! * 32768), (i * 2 + c) * 2);
+    }
+    // Native FFmpeg 7.0.2, including the filter's processing rather than anull.
+    assert.equal(createHash("sha256").update(pcm).digest("hex"),
+      "84845d9e718a5f0a723c1ebd2d81f5db96aebdfcf6df001ebf72b247176d8129");
+  });
+}

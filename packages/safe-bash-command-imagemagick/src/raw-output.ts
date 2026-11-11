@@ -135,7 +135,8 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
     const rowSamples = image.width * (options.rawInterlace ? 1 : channels.length);
     const rowBytes = Math.ceil(rowSamples * depth / 8);
     const data = new Uint8Array(rowBytes * image.height * (options.rawInterlace ? channels.length : 1));
-    const working = format === "farbfeld" || format === "gray" && (depth === 10 || depth === 12) ? image.evaluateSamples : undefined;
+    // Floating exports use fractional Q16-HDRI samples without an integer rounding step.
+    const working = options.tiffFloatDepth || format === "farbfeld" || format === "gray" && (depth === 10 || depth === 12) ? image.evaluateSamples : undefined;
     const view = new DataView(data.buffer), samples = working ?? image.data16 ?? image.data;
     const scale = !working && image.data16 ? 65535 : 255, maximum = 2 ** depth - 1;
     // Native packed BGR/BGRO use RGB order below 8 bits and at 10/12 bits;
@@ -318,7 +319,7 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
             const pixels = image.width * image.height;
             const depth = options.tiffFloatDepth ?? options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
             const packed = depth === 1 || depth === 2 || depth === 4 || depth > 8 && depth < 16;
-            const workingPosition = options.format.startsWith("cmyk") || options.format === "farbfeld" || options.format === "gray" && (depth === 10 || depth === 12) ? image.storedEvaluateSamples : undefined;
+            const workingPosition = options.tiffFloatDepth || options.format.startsWith("cmyk") || options.format === "farbfeld" || options.format === "gray" && (depth === 10 || depth === 12) ? image.storedEvaluateSamples : undefined;
             const chunkPixels = workingColorspace || workingPosition !== undefined ? 512 : image.storedData16 ? 2048 : 4096;
             const spanPixels = options.rawInterlace === "line" ? image.width : pixels;
             // Finish each row/channel run before advancing, even when it spans several reads.

@@ -8041,7 +8041,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 }
                 im = { ...image, evaluateSamples };
             }
-            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im.format === "pgm" ? { imageType: "Grayscale" as const } : {}), ...(im as MagickImage)[magickInput], blackPointCompensation: state.blackPointCompensation, interpolation: state.interpolation, intensity: state.intensity, fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
+            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im.format === "ppm" ? { compression: "Undefined" } : {}), ...(im.format === "pgm" ? { imageType: "Grayscale" as const } : {}), ...(im as MagickImage)[magickInput], blackPointCompensation: state.blackPointCompensation, interpolation: state.interpolation, intensity: state.intensity, fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
             if (state.compression !== undefined) im = { ...im, [magickInput]: { ...im[magickInput], compression: state.compression } };
             if (state.inputType !== undefined) im = setMagickType(im as MagickImage, state.inputType);
             if (state.qualityExplicit) im = { ...im, quality: state.quality };
@@ -20955,7 +20955,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    }
    image = { ...metadata, storedEvaluateSamples };
   }
-  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image.format === "pgm" ? { imageType: "Grayscale" as const } : {}), ...(image as StoredMagickImage)[magickInput], blackPointCompensation: state.blackPointCompensation, interpolation: state.interpolation, intensity: state.intensity, fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
+  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image.format === "ppm" ? { compression: "Undefined" } : {}), ...(image.format === "pgm" ? { imageType: "Grayscale" as const } : {}), ...(image as StoredMagickImage)[magickInput], blackPointCompensation: state.blackPointCompensation, interpolation: state.interpolation, intensity: state.intensity, fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
   if(state.compression!==undefined)image={...image,[magickInput]:{...image[magickInput],compression:state.compression}};
   if(state.inputType!==undefined)image=setMagickType(image as StoredMagickImage,state.inputType);
   if(state.qualityExplicit)image={...image,quality:state.quality};

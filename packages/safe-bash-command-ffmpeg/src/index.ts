@@ -13878,7 +13878,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let duration = 2;
                         let mono = false;
                         const argument = trimmed.slice("silencedetect=".length);
-                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                        const options = argument ? argument.split(":") : [];
+                        if (options.at(-1) === "") options.pop();
+                        for (const [index, option] of options.entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["noise", "duration", "mono"][index] : option.slice(0, separator);
                           const value = separator < 0 ? option : option.slice(separator + 1);

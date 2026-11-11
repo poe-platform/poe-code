@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function compressAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
@@ -27,8 +28,12 @@ export async function compressAudio(
   for (const [index, option] of parts.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
-    if (!key || !Object.hasOwn(options, key)) throw new Error(`${name}: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, value, name);
+      continue;
+    }
+    if (!key || !Object.hasOwn(options, key)) throw new Error(`${name}: unsupported option ${key}`);
     const range = ranges[key];
     if (range) {
       const numeric = parseFilterExpression(value, name, {});

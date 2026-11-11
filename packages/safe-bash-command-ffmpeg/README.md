@@ -465,6 +465,8 @@ rounding to the nearest integer; the `0.5` tie selects 0.
 `acompressor=threshold=0.1:ratio=4:attack=1:release=20` compresses changing PCM levels
 with attack and release in milliseconds. It supports soft knees, peak/RMS detection,
 average/maximum channel linking, upward/downward modes, input gain, makeup and wet/dry mix.
+Both compressor filters accept `threads`, `thread_type`, and `extra_hw_frames`
+without changing PCM samples.
 Both `acompressor` and `sidechaincompress` accept numeric expressions such as
 `threshold=1/4` and `ratio=2*2`, including positional options. Invalid expressions
 and out-of-range results fail without replacing existing output.

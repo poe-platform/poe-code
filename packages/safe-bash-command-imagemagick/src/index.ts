@@ -12245,13 +12245,6 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
         if (source.writeMask) image = yield* applyMagickRasterSteps(image, writeMaskPixelSteps(image, source.writeMask, !!image.data16, false, undefined, source.hasAlpha && source.alphaBlend !== false), undefined, image, [image, source, source.writeMask]);
     }
     if (pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff" || format === "mpc" || format === "tiff") image = yield* prepare16BitOutput(image);
-    if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false
-        || (pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && !image.hasAlpha && (image.writeMask || image.region)) {
-        // Raw RGBA reinitializes implicit alpha; PNG retains shear's inactive samples.
-        // Disassociated alpha retains its explicitly stored samples in either coder.
-        if (format === "rgba" && image.hasAlpha && image.writeMask) image = yield* applyMagickRasterSteps(image, writeMaskPixelSteps(image, image.writeMask, !!image.data16), undefined, image, [image, image, image.writeMask]);
-        image = { ...yield* applyMagickRasterSteps(image, pngAlphaPixelSteps(format === "rgba" && image.alphaBlend === undefined ? { ...image, inactiveAlpha: false } : image, image.writeMask, !!image.data16), undefined, { ...image, hasAlpha: true }, image.writeMask ? [image, image.writeMask] : [image]), channels: 4 };
-    }
     if (format === "png" && image.virtualCanvas?.width === 0 && image.virtualCanvas.height === 0) image = { ...image, virtualCanvas: { ...image.virtualCanvas, width: image.width, height: image.height } };
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
     // Raw RGB converts CMYK through the write mask, preserving protected ink samples.
@@ -12265,6 +12258,14 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     const writeMask = working.writeMask ?? working.region;
     if (isRawCoder(format) && writeMask && image.data !== working.data) {
         image = yield* applyMagickRasterSteps(image, writeMaskPixelSteps(image, writeMask, !!image.data16, false, undefined, working.hasAlpha && working.alphaBlend !== false), undefined, image, working.writeMask ? [image, working, working.writeMask] : [image, working]);
+    }
+    // Initialize output alpha after colorspace conversion so retained hue samples cannot overwrite it.
+    if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false
+        || (pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && !image.hasAlpha && (image.writeMask || image.region)) {
+        // Raw RGBA reinitializes implicit alpha; PNG retains shear's inactive samples.
+        // Disassociated alpha retains its explicitly stored samples in either coder.
+        if (format === "rgba" && image.hasAlpha && image.writeMask) image = yield* applyMagickRasterSteps(image, writeMaskPixelSteps(image, image.writeMask, !!image.data16), undefined, image, [image, image, image.writeMask]);
+        image = { ...yield* applyMagickRasterSteps(image, pngAlphaPixelSteps(format === "rgba" && image.alphaBlend === undefined ? { ...image, inactiveAlpha: false } : image, image.writeMask, !!image.data16), undefined, { ...image, hasAlpha: true }, image.writeMask ? [image, image.writeMask] : [image]), channels: 4 };
     }
     if ((format === "cmyk" || format === "cmyka") && image.space !== "cmyk" && (image.writeMask || image.region)) {
         // Implicit ink conversion uses the same protected channels as -colorspace CMYK.
@@ -12326,11 +12327,6 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     if ((pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff" || format === "mpc" || format === "tiff") && image.storedEvaluateSamples !== undefined) {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepare16BitOutput }, signal);
     }
-    if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false
-        || (pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && !image.hasAlpha && (image.storedWriteMask || image.region)) {
-        if (format === "rgba" && image.hasAlpha && image.storedWriteMask) image = await transformStoredMagickRaster(image, backend, writeMaskPixelSteps(image, image.storedWriteMask, !!image.storedData16), signal, image, [image, image, image.storedWriteMask]);
-        image = { ...await transformStoredMagickRaster(image, backend, pngAlphaPixelSteps(format === "rgba" && image.alphaBlend === undefined ? { ...image, inactiveAlpha: false } : image, image.storedWriteMask, !!image.storedData16), signal, { ...image, hasAlpha: true }, image.storedWriteMask ? [image, image.storedWriteMask] : [image]), channels: 4 };
-    }
     if (format === "png" && image.virtualCanvas?.width === 0 && image.virtualCanvas.height === 0) image = { ...image, virtualCanvas: { ...image.virtualCanvas, width: image.width, height: image.height } };
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
     // Match the buffered raw RGB conversion without materializing the stored image.
@@ -12346,6 +12342,12 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
         if (isRawCoder(format) && writeMask && image.position !== working.position) {
             image = await transformStoredMagickRaster(image, backend, writeMaskPixelSteps(image, writeMask, !!image.storedData16, false, undefined, working.hasAlpha && working.alphaBlend !== false), signal, image, working.storedWriteMask ? [image, working, working.storedWriteMask] : [image, working]);
         }
+    }
+    // Initialize output alpha after colorspace conversion so retained hue samples cannot overwrite it.
+    if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false
+        || (pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && !image.hasAlpha && (image.storedWriteMask || image.region)) {
+        if (format === "rgba" && image.hasAlpha && image.storedWriteMask) image = await transformStoredMagickRaster(image, backend, writeMaskPixelSteps(image, image.storedWriteMask, !!image.storedData16), signal, image, [image, image, image.storedWriteMask]);
+        image = { ...await transformStoredMagickRaster(image, backend, pngAlphaPixelSteps(format === "rgba" && image.alphaBlend === undefined ? { ...image, inactiveAlpha: false } : image, image.storedWriteMask, !!image.storedData16), signal, { ...image, hasAlpha: true }, image.storedWriteMask ? [image, image.storedWriteMask] : [image]), channels: 4 };
     }
     if ((["exr", "hdr", "pfm", "phm"].includes(format) || format === "miff" && image.bitsPerSample === 32) && (image.storedEvaluateSamples !== undefined || (format === "pfm" || format === "phm") && image.storedHueSamples !== undefined)) {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: frame => prepareFloatOutput(frame, format) }, signal);

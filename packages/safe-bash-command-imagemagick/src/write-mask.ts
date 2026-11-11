@@ -6,7 +6,7 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 export interface MaskChannels { r: boolean; g: boolean; b: boolean }
 
 /** Blend edited pixels with their originals; white protects and black permits writes. */
-export function* writeMaskPixelSteps(image: { width: number; height: number; space?: string }, mask: { width: number; height: number }, highDepth = false, alphaSet = false, channels?: MaskChannels & { k?: boolean }, alphaActive = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* writeMaskPixelSteps(image: { width: number; height: number; space?: string }, mask: { width: number; height: number } | Region, highDepth = false, alphaSet = false, channels?: MaskChannels & { k?: boolean }, alphaActive = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     // Gray's single intensity channel occupies all three RGB storage slots.
     if (channels && (image.space === "b-w" || image.space === "grey16")) channels = { ...channels, g: channels.r, b: channels.r };
     for (let y = 0; y < image.height; y++) {
@@ -43,13 +43,14 @@ export function* writeMaskPixelSteps(image: { width: number; height: number; spa
             const selectedInks = channels ? [channels.r, channels.g, channels.b, channels.k !== false] : undefined;
             const maskX = Math.min(x, mask.width - 1), maskCount = Math.min(count, mask.width - maskX);
             const maskPosition = (Math.min(y, mask.height - 1) * mask.width + maskX) * 4;
-            const workingMask = yield { kind: "read", evaluate: true, image: 2, position: maskPosition, length: maskCount * 4 };
-            const pixels = workingMask?.length ? new Float64Array(workingMask.slice().buffer)
+            const workingMask = "x" in mask ? undefined : yield { kind: "read", evaluate: true, image: 2, position: maskPosition, length: maskCount * 4 };
+            const pixels = "x" in mask ? undefined : workingMask?.length ? new Float64Array(workingMask.slice().buffer)
                 : Float64Array.from(new Uint16Array((yield { kind: "read", highDepth: true, image: 2, position: maskPosition, length: maskCount * 4 })!.slice().buffer), value => value / 257);
             const output = new Float64Array(count * 4);
             for (let i = 0; i < count; i++) {
                 const m = Math.min(i, maskCount - 1) * 4;
-                const intensity = (0.212656 * pixels[m]! + 0.715158 * pixels[m + 1]! + 0.072186 * pixels[m + 2]!) / 255;
+                const intensity = "x" in mask ? regionContains(mask, x + i, y) ? 0 : 1
+                    : (0.212656 * pixels![m]! + 0.715158 * pixels![m + 1]! + 0.072186 * pixels![m + 2]!) / 255;
                 if (alphaSet) {
                     const source = intensity > 0.5 ? edited : original;
                     for (let channel = 0; channel < 4; channel++) output[i * 4 + channel] = source[i * 4 + channel]!;

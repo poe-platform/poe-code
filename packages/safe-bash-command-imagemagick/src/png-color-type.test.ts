@@ -92,3 +92,55 @@ for (const retained of [false, true]) {
     expect(Array.from(decodeImage(result.stdoutBytes!).data)).toEqual([0, 0, 0, 255, 255, 255, 255, 255]);
   });
 }
+
+for (const retained of [false, true]) {
+  for (const write of [false, true]) {
+    for (const regardWarnings of [false, true]) {
+      it.each([0, 4])(`warns on grayscale fallback %s, retained=${retained}, write=${write}, regard=${regardWarnings}`, async color => {
+        const fs = new MemoryFileSystem();
+        const files = new Map<string, Uint8Array>();
+        const result = await runConvertCli(["xc:red", ...(regardWarnings ? ["-regard-warnings"] : []), "-define", `png:color-type=${color}`, ...(write ? ["-write", "/output.png", "null:"] : ["/output.png"])], retained ? { filesystem: fs, cwd: "/" } : files);
+        expect(result.stderr).toContain("Cannot write image with defined png:bit-depth or png:color-type");
+        expect(result.exitCode).toBe(regardWarnings ? 1 : 0);
+        const bytes = retained ? await fs.readFile("/output.png") : files.get("/output.png")!;
+        expect(Array.from(bytes.slice(24, 26))).toEqual([8, color === 0 ? 2 : 6]);
+        expect(Array.from(decodeImage(bytes).data)).toEqual([255, 0, 0, 255]);
+      });
+    }
+  }
+}
+
+for (const input of ["xc:red", "xc:gray50"]) {
+  it.each([0, 4])(`public command reports grayscale fallback %s for ${input}`, async color => {
+    const output: Uint8Array[] = [], errors: Uint8Array[] = [];
+    const result = await createMagickCommand().execute({
+      command: "magick", args: createCommandArguments([input, "-regard-warnings", "-define", `png:color-type=${color}`, "png:-"]).args,
+      cwd: "/", env: {}, fs: new MemoryFileSystem(), stdin: (async function* () {})(), signal: new AbortController().signal,
+      stdout: { async write(bytes) { output.push(bytes); } }, stderr: { async write(bytes) { errors.push(bytes); } }
+    });
+    const fallback = input === "xc:red";
+    expect(result.exitCode).toBe(fallback ? 1 : 0);
+    expect(Buffer.concat(errors).toString()).toBe(fallback ? "magick: Cannot write image with defined png:bit-depth or png:color-type\n" : "");
+    const bytes = Buffer.concat(output);
+    expect(Array.from(bytes.slice(24, 26))).toEqual([8, fallback ? color === 0 ? 2 : 6 : color]);
+    expect(Array.from(decodeImage(bytes).data)).toEqual(fallback ? [255, 0, 0, 255] : [127, 127, 127, 255]);
+  });
+}
+
+for (const retained of [false, true]) {
+  it(`warns for each split PNG frame, retained=${retained}`, async () => {
+    const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
+    const result = await runConvertCli(["xc:red", "xc:gray50", "-regard-warnings", "-define", "png:color-type=0", "/output-%d.png"], retained ? { filesystem: fs, cwd: "/" } : files);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toBe("magick: Cannot write image with defined png:bit-depth or png:color-type\n");
+    for (const [path, color] of [["/output-0.png", 2], ["/output-1.png", 0]] as const) {
+      expect((retained ? await fs.readFile(path) : files.get(path)!)[25]).toBe(color);
+    }
+  });
+  it("does not warn when an explicit PNG coder overrides the color type", async () => {
+    const result = await runConvertCli(["xc:red", "-regard-warnings", "-define", "png:color-type=0", "png24:-"], retained ? { filesystem: new MemoryFileSystem(), cwd: "/" } : new Map());
+    expect(result.exitCode).toBe(0);
+    expect(result.stderr).toBe("");
+    expect(result.stdoutBytes![25]).toBe(2);
+  });
+}

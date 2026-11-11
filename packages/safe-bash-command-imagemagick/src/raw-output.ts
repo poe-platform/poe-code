@@ -41,6 +41,7 @@ function farbfeldHeader(image: Pick<RgbaImage, "width" | "height">): Uint8Array 
 }
 
 export function encodeImage(image: RawImage, options: OutputEncodeOptions): ReturnType<typeof encodeRaster> {
+    if (options.format === "jpeg" && image.quality) options = { ...options, quality: image.quality, chromaSubsampling: image.quality < 90 ? "4:2:0" : "4:4:4" };
     if (options.format === "png" && (image.resolution?.x === 0 || image.resolution?.y === 0)) options = { ...options, omitPngResolution: true };
     if (options.format === "pam") options = { ...options, netpbmDepth: options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
     if (options.format === "farbfeld") {
@@ -178,6 +179,7 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
 }
 
 export async function* encodeStoredImage(image: StoredRawImage, storage: ImageByteStorage, signal: AbortSignal, options: OutputEncodeOptions): ReturnType<typeof encodeStoredRaster> {
+    if (options.format === "jpeg" && image.quality) options = { ...options, quality: image.quality, chromaSubsampling: image.quality < 90 ? "4:2:0" : "4:4:4" };
     if (options.format === "png" && (image.resolution?.x === 0 || image.resolution?.y === 0)) options = { ...options, omitPngResolution: true };
     if (options.format === "pam") options = { ...options, netpbmDepth: options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
     if (options.format === "farbfeld") {

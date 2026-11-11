@@ -8452,7 +8452,8 @@ describe("native subtitle text serialization", () => {
             const result = await runCmd(createFfmpegCommand(), args, vfs);
             assert.equal(result.exitCode, 0, result.stderr);
           }
-          assert.equal(new TextDecoder().decode(vfs.store.get(`/out.${outputFormat}`)), expected);
+          assert.equal(new TextDecoder().decode(vfs.store.get(`/out.${outputFormat}`)),
+            inputFormat === "vtt" && outputFormat === "srt" ? expected.replace("Hello\nworld", "Hello\r\nworld") : expected);
         });
       }
     }

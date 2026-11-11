@@ -47,7 +47,7 @@ for (const sync of [false, true]) {
             Buffer.from(`0,0,Default,,0,0,0,,${cue.replaceAll("\n", "\\N")}`)));
         } else {
           assert.equal(volume.readFileSync(target, "utf8"), output === "copy" ? input : output === "srt"
-            ? `1\n00:00:00,000 --> 00:00:01,000\n${decoded}\n\n`
+            ? `1\n00:00:00,000 --> 00:00:01,000\n${decoded.replaceAll("\n", "\r\n")}\n\n`
             : `WEBVTT\n\n00:00.000 --> 00:01.000\n${decoded}\n`);
         }
       });

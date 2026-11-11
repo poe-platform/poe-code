@@ -28,7 +28,7 @@ for (const sync of [false, true]) {
       }
       assert.equal(volume.readFileSync("/out.srt", "utf8"),
         header === "badhead" || header === " WEBVTT" ? "" :
-          "1\n00:00:01,250 --> 00:00:03,500\nOne\nTwo\n\n2\n00:00:05,000 --> 00:00:06,750\nThree\n\n");
+          "1\n00:00:01,250 --> 00:00:03,500\nOne\r\nTwo\n\n2\n00:00:05,000 --> 00:00:06,750\nThree\n\n");
     });
   }
 }

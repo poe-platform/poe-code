@@ -207,7 +207,7 @@ export function readImageMetadata(
     case "psd": meta = readPsdHeader(bytes, options).metadata; break;
     case "miff": meta = readMiffHeader(bytes, options?.page).metadata; break;
     case "farbfeld": meta = readFarbfeldMetadata(bytes); break;
-    case "phm": meta = readPhmHeader(bytes).metadata; break;
+    case "phm": meta = readPhmHeader(bytes, options?.page).metadata; break;
     case "tga":
       meta = readTgaMetadata(bytes);
       break;
@@ -241,7 +241,7 @@ export function readImageMetadata(
     case "gif":
       meta = readGifMetadata(bytes, options);
       break;
-    case "pfm": meta = readPfmHeader(bytes).metadata; break;
+    case "pfm": meta = readPfmHeader(bytes, options?.page).metadata; break;
     case "pam":
     case "ppm":
     case "pgm":

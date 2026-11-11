@@ -94,10 +94,10 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
   }
  }
  else if(isExrBytes(prefix))metadata=(await readExrFromSource(source,signal)).metadata;
- else if(isPfmBytes(prefix)) { metadata=(await readPfmFromSource(source,signal)).metadata; }
+ else if(isPfmBytes(prefix)) { metadata=(await readPfmFromSource(source,signal,options?.page)).metadata; }
  else if(isRadianceBytes(prefix)) { metadata=(await readRadianceFromSource(source,signal)).metadata; }
  else if(isFarbfeldBytes(prefix))metadata=readFarbfeldMetadata(prefix,source.size);
- else if(isPhmBytes(prefix)) { metadata=(await readPhmFromSource(source,signal)).metadata; }
+ else if(isPhmBytes(prefix)) { metadata=(await readPhmFromSource(source,signal,options?.page)).metadata; }
  else if(isNetpbmBytes(prefix)) {
   const reader=new SourceBytes(source,signal,"Netpbm"),steps=netpbmSequenceSteps(source.size,options?.page);let next=steps.next();
   while(!next.done)next=steps.next(await reader.at(next.value));

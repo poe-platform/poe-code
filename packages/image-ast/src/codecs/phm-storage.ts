@@ -3,16 +3,17 @@ import type { SharpInputOptions } from "../ast.js";
 import { checkLimitInputPixels } from "../limits.js";
 import type { ImageByteSource, ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 import { SourceBytes } from "./storage-source.js";
+import { floatmapSequenceSteps } from "./floatmap-sequence.js";
 import { phmHeader, phmPixels } from "./phm.js";
 
-export async function readPhmFromSource(source: ImageByteSource, signal: AbortSignal) {
-    const reader = new SourceBytes(source, signal, "PHM"), steps = phmHeader(source.size); let next = steps.next();
+export async function readPhmFromSource(source: ImageByteSource, signal: AbortSignal, page?: number) {
+    const reader = new SourceBytes(source, signal, "PHM"), steps = floatmapSequenceSteps(source.size, phmHeader, page); let next = steps.next();
     while (!next.done) next = steps.next(await reader.at(next.value));
     return next.value;
 }
 
 export async function decodePhmToStorage(source: ImageByteSource, storage: ImageByteStorage, signal: AbortSignal, options?: SharpInputOptions): Promise<StoredRgbaImage> {
-    const { metadata, offset, little, scale } = await readPhmFromSource(source, signal), { width, height, channels } = metadata;
+    const { metadata, offset, little, scale } = await readPhmFromSource(source, signal, options?.page ?? 0), { width, height, channels } = metadata;
     checkLimitInputPixels(width, height, options);
     const length = width * height * 4, position = storage.allocate(length), storedData16 = { position: storage.allocate(length * 2), length }, storedDataFloat = { position: storage.allocate(length * 4), length };
     for (let y = 0; y < height; y++) for (let x = 0; x < width; x += 1024) {

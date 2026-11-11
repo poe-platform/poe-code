@@ -1,11 +1,12 @@
-import type { ImageMetadata, RgbaImage, SharpInputOptions } from "../ast.js";
+import type { RgbaImage, SharpInputOptions } from "../ast.js";
 import { checkLimitInputPixels } from "../limits.js";
+import { floatmapSequenceSteps, type FloatmapHeader } from "./floatmap-sequence.js";
 
 export function isPhmBytes(bytes: Uint8Array): boolean {
     return bytes[0] === 80 && (bytes[1] === 72 || bytes[1] === 104) && (bytes[2] === 10 || bytes[2] === 13 || bytes[2] === 32 || bytes[2] === 9);
 }
 
-export function* phmHeader(size: number): Generator<number, { metadata: ImageMetadata; offset: number; little: boolean; scale: number }, number | undefined> {
+export function* phmHeader(size: number): Generator<number, FloatmapHeader, number | undefined> {
     let offset = 0, comment = "";
     function* token(): Generator<number, string, number | undefined> {
         let value = "", byte = yield offset++;
@@ -38,8 +39,8 @@ export function* phmHeader(size: number): Generator<number, { metadata: ImageMet
     return { metadata: { format: "phm", width, height, channels, depth: "float", space: channels === 1 ? "b-w" : "srgb", hasAlpha: false, density: 72, bitsPerSample: 16, size, ...(comment ? { properties: { comment } } : {}) }, offset, little: scale < 0, scale: Math.abs(scale) };
 }
 
-export function readPhmHeader(bytes: Uint8Array) {
-    const steps = phmHeader(bytes.length); let next = steps.next();
+export function readPhmHeader(bytes: Uint8Array, page?: number) {
+    const steps = floatmapSequenceSteps(bytes.length, phmHeader, page); let next = steps.next();
     while (!next.done) next = steps.next(bytes[next.value]);
     return next.value;
 }
@@ -64,7 +65,7 @@ export function phmPixels(bytes: Uint8Array, channels: number, little: boolean, 
 }
 
 export function decodePhmImage(bytes: Uint8Array, options?: SharpInputOptions): RgbaImage {
-    const { metadata, offset, little, scale } = readPhmHeader(bytes), { width, height, channels } = metadata;
+    const { metadata, offset, little, scale } = readPhmHeader(bytes, options?.page ?? 0), { width, height, channels } = metadata;
     checkLimitInputPixels(width, height, options);
     const data = new Uint8Array(width * height * 4), data16 = new Uint16Array(data.length), dataFloat = new Float32Array(data.length);
     for (let y = 0; y < height; y++) {

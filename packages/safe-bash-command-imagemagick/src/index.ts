@@ -8133,7 +8133,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             if (meta.format === "gif" && pageIdx !== undefined && pageIdx >= (meta.pages ?? 1)) throw new Error(`invalid image index ${pageIdx}`);
             if (density !== undefined) meta = applyMagickDensity(meta, density);
             validateCoder(meta);
-            if (pageIdx === undefined && ["tiff", "gif", "pnm", "ppm", "pgm", "pbm", "pam", "txt"].includes(meta.format) && (meta.pages ?? 1) > 1) {
+            if (pageIdx === undefined && ["tiff", "gif", "pnm", "ppm", "pgm", "pbm", "pam", "pfm", "phm", "txt"].includes(meta.format) && (meta.pages ?? 1) > 1) {
                 for (let page = 1; page < meta.pages!; page++) {
                     yield;
                     targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, originalInput: target.originalInput, sceneCount: meta.pages!, inlineGeom, listIndex: page, ping, readState, customFormat, channelSelection, density });

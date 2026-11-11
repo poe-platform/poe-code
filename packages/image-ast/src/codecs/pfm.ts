@@ -1,11 +1,12 @@
-import type { ImageMetadata, RgbaImage, SharpInputOptions } from "../ast.js";
+import type { RgbaImage, SharpInputOptions } from "../ast.js";
 import { checkLimitInputPixels } from "../limits.js";
+import { floatmapSequenceSteps, type FloatmapHeader } from "./floatmap-sequence.js";
 
 export function isPfmBytes(bytes: Uint8Array): boolean {
     return bytes[0] === 80 && (bytes[1] === 70 || bytes[1] === 102) && (bytes[2] === 10 || bytes[2] === 13 || bytes[2] === 32 || bytes[2] === 9);
 }
 
-export function* pfmHeader(size: number): Generator<number, { metadata: ImageMetadata; offset: number; little: boolean; scale: number }, number | undefined> {
+export function* pfmHeader(size: number): Generator<number, FloatmapHeader, number | undefined> {
     let offset = 0, comment = "";
     function* token(): Generator<number, string, number | undefined> {
         let value = "", byte = yield offset++;
@@ -38,8 +39,8 @@ export function* pfmHeader(size: number): Generator<number, { metadata: ImageMet
     return { metadata: { format: "pfm", endian: scale < 0 ? "lsb" : "msb", width, height, channels, depth: "float", space: channels === 1 ? "b-w" : "srgb", hasAlpha: false, density: 72, bitsPerSample: 32, size, ...(comment ? { properties: { comment } } : {}) }, offset, little: scale < 0, scale: Math.abs(scale) };
 }
 
-export function readPfmHeader(bytes: Uint8Array) {
-    const steps = pfmHeader(bytes.length); let next = steps.next();
+export function readPfmHeader(bytes: Uint8Array, page?: number) {
+    const steps = floatmapSequenceSteps(bytes.length, pfmHeader, page); let next = steps.next();
     while (!next.done) next = steps.next(bytes[next.value]);
     return next.value;
 }
@@ -58,7 +59,7 @@ export function pfmPixels(bytes: Uint8Array, channels: number, little: boolean, 
 }
 
 export function decodePfmImage(bytes: Uint8Array, options?: SharpInputOptions): RgbaImage {
-    const { metadata, offset, little, scale } = readPfmHeader(bytes), { width, height, channels } = metadata;
+    const { metadata, offset, little, scale } = readPfmHeader(bytes, options?.page ?? 0), { width, height, channels } = metadata;
     checkLimitInputPixels(width, height, options);
     const data = new Uint8Array(width * height * 4), data16 = new Uint16Array(data.length), dataFloat = new Float32Array(data.length);
     for (let y = 0; y < height; y++) {

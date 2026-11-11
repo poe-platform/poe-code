@@ -17919,13 +17919,21 @@ export function runMogrifyCliSync(argv: readonly string[], files: Map<string, Ui
 function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void, string[] | ImageMagickCliResult, void> {
     let cooperativeWork = 63;
     const options: string[] = [];
-    const operands: string[] = [];
+    const operands: string[][] = [];
+    let groupDepth = 0;
     let stegano: number | undefined;
     let stereo: string | undefined;
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
         const t = argv[i]!;
+        if (t === "(" || groupDepth > 0) {
+            if (groupDepth === 0) operands.push([]);
+            operands[operands.length - 1]!.push(t);
+            if (t === "(") groupDepth++;
+            else if (t === ")") groupDepth--;
+            continue;
+        }
         if (t === "-gravity" || t === "-geometry" || t === "-compose" || t === "-background" || t === "-quality" || t === "-define" || t === "-resize" || t === "-rotate" || t === "-fuzz" || t === "-depth" || t === "-endian" || t === "-interlace" || t === "-colorspace") {
             options.push(t, argv[++i] ?? "");
         }
@@ -17983,7 +17991,7 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
             return { exitCode: 1, stdout: "", stderr: `composite: unrecognized option '${t}'\n` };
         }
         else {
-            operands.push(t);
+            operands.push([t]);
         }
     }
     if (operands.length < 3) {
@@ -17996,7 +18004,8 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
     const overlay = operands[0]!;
     const base = operands[1]!;
     const out = operands[operands.length - 1]!;
-    return [base, overlay, ...operands.slice(2, -1), ...options, ...(stegano !== undefined ? ["-stegano", String(stegano)] : stereo !== undefined ? ["-stereo", stereo] : ["-composite"]), out];
+    // Convert expects the destination first; move complete groups with their edits.
+    return [...base, ...overlay, ...operands.slice(2, -1).flat(), ...options, ...(stegano !== undefined ? ["-stegano", String(stegano)] : stereo !== undefined ? ["-stereo", stereo] : ["-composite"]), ...out];
 }
 function* runCompositeCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     const parsed = yield* parseCompositeArgumentsSteps(argv);

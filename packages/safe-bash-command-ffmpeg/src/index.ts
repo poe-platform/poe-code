@@ -4833,9 +4833,18 @@ async function applyVideoFilterChain(
           }, signal);
         }
         if (pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "ya8" || pixelFormat === "gray16be") {
+          const dither = [
+            [36, 68, 60, 92, 34, 66, 58, 90], [100, 4, 124, 28, 98, 2, 122, 26],
+            [52, 84, 44, 76, 50, 82, 42, 74], [116, 20, 108, 12, 114, 18, 106, 10],
+            [32, 64, 56, 88, 38, 70, 62, 94], [96, 0, 120, 24, 102, 6, 126, 30],
+            [48, 80, 40, 72, 54, 86, 46, 78], [112, 16, 104, 8, 118, 22, 110, 14]
+          ];
           current = await mapWork(current, async ({ native, ...f }) => {
             const planar = native?.rgba === f.data && native.width === f.width && native.height === f.height &&
               [0, 4, 5, 12, 13, 14].includes(native.format) ? native : undefined;
+            const luma10 = native?.rgba === f.data && native.width === f.width && native.height === f.height &&
+              native.format === 62 && (pixelFormat === "gray" || pixelFormat === "gray8")
+              ? new DataView(native.pixels.buffer, native.pixels.byteOffset, native.pixels.byteLength) : undefined;
             const data = f.data.slice();
             const pixels = pixelFormat === "gray" || pixelFormat === "gray8"
               ? new Uint8Array(f.width * f.height) : undefined;
@@ -4847,7 +4856,13 @@ async function applyVideoFilterChain(
               }
               // Expand planar luma directly: RGB conversion can clip colored pixels.
               // RGB sources use full-range BT.601 luminance.
-              const gray = planar
+              // swscale uses 15-bit intermediate luma, range expansion, then ordered dithering.
+              const luma = luma10 ? luma10.getUint16(i / 2, true) * 32 : 0;
+              const gray = luma10
+                ? Math.max(0, Math.min(255, ((native!.fullRange ? luma :
+                  (Math.min(luma, 30189) * 19077 - 39057361) >> 14) +
+                  dither[Math.floor(i / 4 / f.width) & 7]![i / 4 % f.width & 7]!) >> 7))
+                : planar
                 ? planar.fullRange || [12, 13, 14].includes(planar.format) ? planar.pixels[i / 4]!
                   : Math.max(0, Math.min(255, Math.round((planar.pixels[i / 4]! - 16) * 255 / 219)))
                 : Math.round(0.299 * data[i]! + 0.587 * data[i + 1]! + 0.114 * data[i + 2]!);
@@ -5332,7 +5347,7 @@ async function applyVideoFilterChain(
         const canvas = new Uint8Array(outW * outH * 4);
         const source = batch[0]?.native;
         // Keep original native samples only while they still describe the RGBA image.
-        const native = source && [0, 4, 5, 12, 13, 14, 29, 30, 34, 35, 49, 62, 68, 104, 105].includes(source.format) && batch.every(frame =>
+        const native = source && [0, 4, 5, 8, 12, 13, 14, 29, 30, 34, 35, 49, 62, 68, 104, 105].includes(source.format) && batch.every(frame =>
           frame.native?.rgba === frame.data && frame.width === fw && frame.height === fh &&
           frame.native.width === fw && frame.native.height === fh && frame.native.format === source.format &&
           frame.native.colorspace === source.colorspace && frame.native.fullRange === source.fullRange)
@@ -5341,7 +5356,7 @@ async function applyVideoFilterChain(
         const vsub = native && [0, 12, 62].includes(native.format) ? 2 : 1;
         const channels = native && [34, 35].includes(native.format) ? 3
           : native && [104, 105].includes(native.format) ? 4 : 1;
-        const planes = channels > 1 || native && [29, 30].includes(native.format) ? 1 : 3;
+        const planes = channels > 1 || native && [8, 29, 30].includes(native.format) ? 1 : 3;
         const depth = channels > 1 || native && [29, 30, 49].includes(native.format) ? 16 : native && [62, 68].includes(native.format) ? 10 : 8;
         const sampleBytes = depth > 8 ? 2 : 1;
         const pixelBytes = sampleBytes * channels;

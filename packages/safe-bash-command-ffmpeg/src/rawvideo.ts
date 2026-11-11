@@ -103,12 +103,13 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
     const format = pixelFormat ?? track.codecDescriptions[0]?.pixFmt ?? "yuv420p";
     for (const frame of track.decodedVideoFrames ?? []) {
       budget.checkCpu();
-      if (format === "yuv422p" || format === "yuv444p" || format === "yuv444p10le" || format === "yuv444p16le") {
-        const shift = format === "yuv444p10le" ? 2 : format === "yuv444p16le" ? 8 : 0;
-        const chromaWidth = format === "yuv422p" ? Math.ceil(frame.width / 2) : frame.width;
-        budget.checkOutputBytes(size + (frame.width + 2 * chromaWidth) * frame.height * (shift ? 2 : 1));
+      if (format === "yuv422p" || format === "yuv444p" || format === "yuv444p10le" || format === "yuv444p16le" || format === "yuv420p16le") {
+        const shift = format === "yuv444p10le" ? 2 : format === "yuv444p16le" || format === "yuv420p16le" ? 8 : 0;
+        const chromaWidth = format === "yuv422p" || format === "yuv420p16le" ? Math.ceil(frame.width / 2) : frame.width;
+        const chromaSize = chromaWidth * (format === "yuv420p16le" ? Math.ceil(frame.height / 2) : frame.height);
+        budget.checkOutputBytes(size + (frame.width * frame.height + 2 * chromaSize) * (shift ? 2 : 1));
         const native = frame.native;
-        if (shift && native?.format === (shift === 2 ? 68 : 49) && native.rgba === frame.data &&
+        if (shift && native?.format === (shift === 2 ? 68 : format === "yuv420p16le" ? 45 : 49) && native.rgba === frame.data &&
             native.width === frame.width && native.height === frame.height) {
           append(native.pixels);
           continue;
@@ -116,7 +117,7 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
         if (shift && native?.format === 8 && native.rgba === frame.data &&
             native.width === frame.width && native.height === frame.height) {
           const lumaSize = frame.width * frame.height;
-          const bytes = new Uint8Array(lumaSize * 6);
+          const bytes = new Uint8Array((lumaSize + 2 * chromaSize) * 2);
           const view = new DataView(bytes.buffer);
           for (let index = 0; index < lumaSize; index++) {
             if (index % 4096 === 0) budget.checkCpu();
@@ -127,13 +128,15 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
               ? (((gray * 128 * 14071 + 33561947) >> 14) + 16) >> 5
               : (((gray * 2048 * 3517 + 134247788) >> 12) + 4) >> 3;
             view.setUint16(index * 2, luma, true);
+          }
+          for (let index = 0; index < chromaSize * 2; index++) {
+            if (index % 4096 === 0) budget.checkCpu();
             view.setUint16((lumaSize + index) * 2, 128 << shift, true);
-            view.setUint16((lumaSize * 2 + index) * 2, 128 << shift, true);
           }
           append(bytes);
           continue;
         }
-        const converted = await formatYuv(frame, format === "yuv422p" ? "yuv422p" : "yuv444p", signal);
+        const converted = await formatYuv(frame, format === "yuv420p16le" ? "yuv420p" : format === "yuv422p" ? "yuv422p" : "yuv444p", signal);
         const pixels = converted.native!.pixels;
         if (shift) {
           const bytes = new Uint8Array(pixels.length * 2);

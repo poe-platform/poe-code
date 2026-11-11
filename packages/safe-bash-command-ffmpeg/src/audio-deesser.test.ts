@@ -208,6 +208,10 @@ for (const graph of [false, true]) for (const mode of ["i", "o", "e"]) {
       ["gte(t,1.004)", [false, false, true, true]],
       ["0", [false, false, false, false]],
       ["1", [true, true, true, true]],
+      ["not(w)", [true, true, true, true]],
+      ["not(h)", [true, true, true, true]],
+      ["isnan(w)", [false, false, false, false]],
+      ["isnan(h)", [false, false, false, false]],
       ["gte(st(0,ld(0)+1),5)", [false, false, true, true]]
     ] as const) {
       const output = await run(`asetnsamples=n=96:p=0,asetpts=PTS+48000,deesser=i=1:s=${mode}:enable='${expression}'`, graph, [input]);

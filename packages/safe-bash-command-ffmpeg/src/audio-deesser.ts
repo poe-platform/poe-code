@@ -47,7 +47,7 @@ export async function deessAudio(
     }
     if (key === "enable") {
       enable = value;
-      parseFilterExpression(enable, "deesser enable", { n: 0, t: 0, pos: NaN }, undefined, new Float64Array(10));
+      parseFilterExpression(enable, "deesser enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 }, undefined, new Float64Array(10));
       continue;
     }
     if (key !== "i" && key !== "m" && key !== "f" && key !== "s") throw new Error(`deesser: unsupported option ${key}`);
@@ -80,7 +80,7 @@ export async function deessAudio(
       enabled.push(true);
       continue;
     }
-    const variables = { n, t: frame.pts / sampleRate, pos: frame.pos ?? NaN };
+    const variables = { n, t: frame.pts / sampleRate, pos: frame.pos ?? NaN, w: 0, h: 0 };
     // FFmpeg evaluates on frame consumption and again before filter_frame.
     parseFilterExpression(enable, "deesser enable", variables, undefined, registers);
     enabled.push(Math.abs(parseFilterExpression(enable, "deesser enable", variables, undefined, registers)) >= 0.5);

@@ -9909,7 +9909,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     if (hueSamples && (ink || !cmyk)) hueSamples[offset] = Math.fround(value * 257) / 65535;
                     if (!ink) {
                         evaluateSamples[offset] = Math.fround(value * 257) / 257;
-                        out[offset] = clampByteVal(value);
+                        out[offset] = clampByteVal(Math.min(255, value));
                         if (data16) data16[offset] = Math.max(0, Math.min(65535, Math.round(value * 257)));
                     }
                 }

@@ -202,7 +202,7 @@ export function* sparseColorPoints(image: Pick<RgbaImage, "width" | "space" | "h
         if (image.space === "cmyk") {
             const inks = hueSamples?.subarray(offset, offset + 4) ?? rgbToCmyk(data[offset]! / maximum, data[offset + 1]! / maximum, data[offset + 2]! / maximum);
             color = formatCmykPixel([...inks, alpha], image.hasAlpha, precision);
-        } else if (space && space !== "RGB" && space !== "Gray") {
+        } else if (space && space !== "RGB" && space !== "scRGB" && space !== "Gray") {
             const channels = hueSamples ? Array.from(hueSamples.subarray(offset, offset + 4))
                 : Array.from(data.subarray(offset, offset + 4), value => value / maximum);
             color = formatHuePixel(channels, space, image.hasAlpha, precision);
@@ -212,7 +212,7 @@ export function* sparseColorPoints(image: Pick<RgbaImage, "width" | "space" | "h
             const percent = channels.some(value => Math.abs(value - Math.round(value)) > 1e-9);
             const samples = channels.map(value => percent ? `${Number((value * 100 / 255).toPrecision(precision))}%` : String(Math.round(value)));
             if (image.hasAlpha) samples.push("1");
-            const name = gray ? image.gamma === 1 && space !== "Gray" ? "lineargray" : "gray" : space === "RGB" ? "rgb" : "srgb";
+            const name = gray ? image.gamma === 1 && space !== "Gray" ? "lineargray" : "gray" : space === "RGB" ? "rgb" : space === "scRGB" ? "scrgb" : "srgb";
             color = `${name}${image.hasAlpha ? "a" : ""}(${samples.join(",")})`;
         }
         yield `${pixel % image.width},${Math.floor(pixel / image.width)},${color} `;

@@ -9060,6 +9060,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 ...(imageType === undefined ? {} : { inputType: imageType }),
                 imageType: imageType === "bilevel" ? "Bilevel" : imageType === "grayscale" ? "Grayscale" : imageType === "grayscalealpha" ? "GrayscaleAlpha" : undefined
             } };
+            // A declared scRGB image has linear RGB samples; conversion uses the RGB path.
+            if (image.magickColorspace === "scRGB") image = { ...image, magickColorspace: "RGB" };
             if (space === "srgb" && (image.space === "b-w" || image.space === "grey16" || image.magickColorspace === "RGB")) image = { ...image, isPalette: false };
             const linearGray = (image.space === "b-w" || image.space === "grey16") && image.gamma === 1 && image.magickColorspace !== "Gray";
             if (token === "-colorspace" && image.magickColorspace === "Gray" && (space === "gray" || space === "grey")) return image;

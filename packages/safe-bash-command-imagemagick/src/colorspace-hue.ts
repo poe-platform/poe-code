@@ -6,7 +6,7 @@ import { formatMetricNum } from "./compare-kernel.js";
 const yccMap = Float32Array.from({ length: 1389 }, (_, index) => Math.round(Math.fround(index / 1388) * 1e6) / 1e6);
 
 export interface HueMetadata {
-    magickColorspace?: "HCL" | "HCLp" | "HSI" | "HSL" | "HSB" | "HSV" | "HWB" | "DisplayP3" | "XYZ" | "CAT02LMS" | "LMS" | "xyY" | "ProPhoto" | "Jzazbz" | "CIELab" | "YPbPr" | "YCbCr" | "Rec601YCbCr" | "YCC" | "Rec709YCbCr" | "Log" | "Adobe98" | "OHTA" | "CMY" | "YUV" | "YIQ" | "YDbDr" | "Luv" | "LCH" | "LCHab" | "LCHuv" | "Oklab" | "Oklch" | "RGB" | "Gray";
+    magickColorspace?: "HCL" | "HCLp" | "HSI" | "HSL" | "HSB" | "HSV" | "HWB" | "DisplayP3" | "XYZ" | "CAT02LMS" | "LMS" | "xyY" | "ProPhoto" | "Jzazbz" | "CIELab" | "YPbPr" | "YCbCr" | "Rec601YCbCr" | "YCC" | "Rec709YCbCr" | "Log" | "Adobe98" | "OHTA" | "CMY" | "YUV" | "YIQ" | "YDbDr" | "Luv" | "LCH" | "LCHab" | "LCHuv" | "Oklab" | "Oklch" | "RGB" | "scRGB" | "Gray";
     // Preserve native HDRI precision for expressions; codecs use the integer planes.
     hueSamples?: Float64Array;
     storedHueSamples?: number;

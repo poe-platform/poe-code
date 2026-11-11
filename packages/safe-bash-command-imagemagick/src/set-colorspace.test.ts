@@ -8,6 +8,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     for (const [width, alpha] of [[1, "ff"], [513, "80"]] as const) {
         it.each([
             { operation: ["-set", "colorspace", "RGB"], expected: "898989ff" },
+            { operation: ["-set", "colorspace", "scRGB"], expected: "898989ff" },
             { operation: ["-set", "colorspace", "HSL"], expected: "405030ff" },
             { operation: ["-set", "colorspace", "CMYK"], expected: "bfbfbfff" },
             { operation: ["-set", "colorspace", "Lab"], expected: "0091c2ff" },
@@ -48,13 +49,18 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         ["Gray", "Gray", "80808060"],
         ["Lab", "CIELab", "00eaff60"],
         ["sRGB", "sRGB", "80562360"],
-    ])(`${mode}: declares %s without converting samples`, async (space, label, rgba) => {
+        ["scRGB", "scRGB", "bc9d6860"],
+        ["ScRgB", "scRGB", "bc9d6860"],
+        ["scRGB", "scRGB", "4b7d9dff", "#123456"],
+        ["RGB", "RGB", "4b7d9dff", "#123456"],
+        ["sRGB", "sRGB", "123456ff", "#123456"],
+    ])(`${mode}: declares %s without converting samples`, async (space, label, rgba, color = "#80562360") => {
         for (const output of ["info", "rgba"] as const) {
             const fs = new MemoryFileSystem();
             const sentinel = new TextEncoder().encode("KEEP");
             await fs.writeFile("/out", sentinel);
             const files = new Map<string, Uint8Array>([["out", sentinel]]);
-            const args = ["xc:#80562360", "-set", "colorspace", space,
+            const args = [`xc:${color}`, "-set", "colorspace", space,
                 ...(output === "info" ? ["-format", "%[colorspace]", "info:out"]
                     : ["-colorspace", "sRGB", "-depth", "8", "rgba:out"])];
             let stderr = "";
@@ -72,3 +78,8 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         }
     });
 }
+
+it("formats declared scRGB samples as sparse color points", () => {
+    expect(runMagickCliSync(["xc:#123456", "-set", "colorspace", "scRGB", "sparse-color:-"], new Map()))
+        .toEqual({ exitCode: 0, stdout: "0,0,scrgb(18,52,86) ", stderr: "" });
+});

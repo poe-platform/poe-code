@@ -4,7 +4,7 @@ import {runConvertCli, runMagickCliSync} from "./index.js";
 
 const input = Buffer.from("50360a3220310a3235350aff00000000ff", "hex");
 
-for (const depth of [4, 8, 10, 16]) for (const format of ["pgm", "ppm"]) {
+for (const depth of [4, 8, 10, 16, 17, 24, 32]) for (const format of ["pgm", "ppm"]) {
   it.each(["buffered", "retained", "sync"] as const)(`writes native plain ${format} samples at depth ${depth} through %s conversion`, async execution => {
     const files = new Map<string, Uint8Array>([["in.pnm", input]]);
     const filesystem = new MemoryFileSystem();

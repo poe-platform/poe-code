@@ -6,18 +6,18 @@ import {encodePpm, encodePgm, encodePbm} from "./netpbm.js";
 import {encodeNetpbmFromStorage} from "./netpbm-storage.js";
 
 it.each(["ppm", "pgm"] as const)("writes exact big-endian %s samples in both output paths", async format => {
-  for (const depth of [undefined, 1, 4, 8, 10, 16]) for (const highDepth of [true, false]) for (const width of [2, 1026]) {
+  for (const depth of [undefined, 1, 4, 8, 9, 10, 16, 17, 24, 32]) for (const highDepth of [true, false]) for (const width of [2, 1026]) {
     const data16 = Uint16Array.from({length: width * 4}, (_, i) => [0x1234, 0x4567, 0x89ab, 65535, 0xcdef, 0x1379, 0x2468, 65535][i % 8]!);
     const data = Uint8Array.from(data16, value => Math.round(value / 257));
     const image: RgbaImage = {width, height: 1, data, ...(highDepth ? {data16} : {}), format: "png", depth: highDepth ? "ushort" : "uchar", space: "srgb", channels: 3, density: 72, hasAlpha: false};
     const samples = highDepth ? data16 : data;
     const values = Array.from({length: width}, (_, pixel) => format === "ppm" ? Array.from(samples.subarray(pixel * 4, pixel * 4 + 3)) : [.212656 * samples[pixel*4]! + .715158 * samples[pixel*4+1]! + .072186 * samples[pixel*4+2]!]).flat();
     const maximum = 2 ** (depth ?? (highDepth ? 16 : 8)) - 1;
-    const wide = maximum > 255;
-    const raster = Buffer.alloc(values.length * (wide ? 2 : 1));
+    const sampleBytes = maximum > 65535 ? 4 : maximum > 255 ? 2 : 1;
+    const raster = Buffer.alloc(values.length * sampleBytes);
     values.forEach((value, i) => {
       const scaled = Math.round(value * maximum / (highDepth ? 65535 : 255));
-      if (wide) raster.writeUInt16BE(scaled, i * 2); else raster.writeUInt8(scaled, i);
+      raster.writeUIntBE(scaled, i * sampleBytes, sampleBytes);
     });
     const expected = Buffer.concat([Buffer.from(`${format === "ppm" ? "P6" : "P5"}\n${width} 1\n${maximum}\n`), raster]);
     expect(Buffer.from(format === "ppm" ? encodePpm(image, depth) : encodePgm(image, depth))).toEqual(expected);

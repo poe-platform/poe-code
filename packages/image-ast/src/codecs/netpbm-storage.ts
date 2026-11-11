@@ -90,7 +90,7 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
 export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:ImageByteStorage,signal:AbortSignal,format:"ppm"|"pgm"|"pbm"|"pam",depth=Math.min(16,image.bitsPerSample??(image.storedData16?16:8)),ascii=false):AsyncGenerator<Uint8Array> {
  signal.throwIfAborted();
  if(format!=="pam"&&format!=="ppm"&&format!=="pgm"&&format!=="pbm") throw new Error(`Unsupported Netpbm output format: ${format}`);
- if(!Number.isInteger(depth)||depth<1||depth>16) throw new RangeError("Invalid Netpbm depth");
+ if(!Number.isInteger(depth)||depth<1||depth>32) throw new RangeError("Invalid Netpbm depth");
  if(format==="pam") ascii=false;
  const maximum=ascii?(depth<=8?255:65535):2**depth-1;
  const gray=format==="pam"&&(image.space==="b-w"||image.space==="grey16");
@@ -111,10 +111,10 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
    const inks=new Float64Array(new Uint8Array(bytes).buffer);
    const alpha= image.storedData16 ? await storage.read(image.storedData16.position+offset*8,count*8,{signal}) : await storage.read(position+offset*4,count*4,{signal});
    const samples=image.storedData16?new Uint16Array(new Uint8Array(alpha).buffer):alpha;
-   const out=new Uint8Array(count*channels*(depth>8?2:1));let dst=0;
+   const out=new Uint8Array(count*channels*(depth>16?4:depth>8?2:1));let dst=0;
    for(let i=0;i<count;i++)for(let channel=0;channel<channels;channel++) {
     const value=Math.round(maximum*(channel<4?inks[i*4+channel]!:samples[i*4+3]!/(image.storedData16?65535:255)));
-    if(depth>8)out[dst++]=value>>>8;out[dst++]=value&255;
+    if(depth>16){out[dst++]=value>>>24;out[dst++]=value>>>16;}if(depth>8)out[dst++]=value>>>8;out[dst++]=value&255;
    }
    yield out;
   }
@@ -130,12 +130,12 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
    const bytes=await storage.read(samples.position+offset*8,length,{signal});
    signal.throwIfAborted();
    if(bytes.length!==length) throw new Error("Truncated Netpbm sample storage");
-   const data=new Uint16Array(new Uint8Array(bytes).buffer),out=new Uint8Array(ascii?0:pixels*channels*(depth>8?2:1));let dst=0;const text:string[]=[];
+   const data=new Uint16Array(new Uint8Array(bytes).buffer),out=new Uint8Array(ascii?0:pixels*channels*(depth>16?4:depth>8?2:1));let dst=0;const text:string[]=[];
    for(let i=0;i<pixels;i++) {
     const r=data[i*4]!,g=data[i*4+1]!,b=data[i*4+2]!;
     const peak=Math.max(r,g,b),inks=cmyk?[peak===0?0:(1-r/peak)*65535,peak===0?0:(1-g/peak)*65535,peak===0?0:(1-b/peak)*65535,65535-peak]:[];
     if(cmyk&&image.hasAlpha) inks.push(data[i*4+3]!);
-    for(const value of cmyk?inks:format==="pam"?(gray?(image.hasAlpha?[r,data[i*4+3]!]:[r]):(image.hasAlpha?[r,g,b,data[i*4+3]!]:[r,g,b])):format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {const scaled=Math.round(value*maximum/65535);if(ascii){text.push(layout.sample(scaled));continue;}if(depth>8)out[dst++]=scaled>>>8;out[dst++]=scaled&255;}
+    for(const value of cmyk?inks:format==="pam"?(gray?(image.hasAlpha?[r,data[i*4+3]!]:[r]):(image.hasAlpha?[r,g,b,data[i*4+3]!]:[r,g,b])):format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {const scaled=Math.round(value*maximum/65535);if(ascii){text.push(layout.sample(scaled));continue;}if(depth>16){out[dst++]=scaled>>>24;out[dst++]=scaled>>>16;}if(depth>8)out[dst++]=scaled>>>8;out[dst++]=scaled&255;}
    }
    yield ascii?new TextEncoder().encode(text.join("")):out;
   }
@@ -156,6 +156,7 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
       for(const byte of new TextEncoder().encode(layout.sample(scaled))) {buffer[used++]=byte;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}
       continue;
      }
+     if(depth>16) {buffer[used++]=scaled>>>24;buffer[used++]=scaled>>>16;}
      if(depth>8) {buffer[used++]=scaled>>>8;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}
      buffer[used++]=scaled&255;
      if(used===buffer.length){yield new Uint8Array(buffer);used=0;}

@@ -162,20 +162,21 @@ export function encodePpm(img: RgbaImage, depth = Math.min(16, img.bitsPerSample
   const gray = pam && (img.space === "b-w" || img.space === "grey16");
   const cmyk = pam && img.space === "cmyk" && img.hueSamples !== undefined;
   const channels = pam ? (cmyk ? 4 : gray ? 1 : 3) + (img.hasAlpha ? 1 : 0) : 3;
-  if (!Number.isInteger(depth) || depth < 1 || depth > 16) throw new RangeError("Invalid Netpbm depth");
+  if (!Number.isInteger(depth) || depth < 1 || depth > 32) throw new RangeError("Invalid Netpbm depth");
   const maximum = ascii ? (depth <= 8 ? 255 : 65535) : 2 ** depth - 1;
   const text: string[] = [];
   const layout = new NetpbmAscii(img.width, img.height, 3);
   const comment = netpbmComment(img.properties?.comment);
   const header = pam ? `P7\n${comment}WIDTH ${img.width}\nHEIGHT ${img.height}\nDEPTH ${channels}\nMAXVAL ${maximum}\nTUPLTYPE ${cmyk ? "CMYK" : gray ? "GRAYSCALE" : "RGB"}${img.hasAlpha ? "_ALPHA" : ""}\nENDHDR\n` : `${ascii ? "P3" : "P6"}\n${comment}${img.width} ${img.height}\n${maximum}\n`;
   const headerBytes = new TextEncoder().encode(header);
-  const out = new Uint8Array(ascii ? 0 : headerBytes.length + img.width * img.height * channels * (depth > 8 ? 2 : 1));
+  const out = new Uint8Array(ascii ? 0 : headerBytes.length + img.width * img.height * channels * (depth > 16 ? 4 : depth > 8 ? 2 : 1));
   if (!ascii) out.set(headerBytes, 0);
   let dst = headerBytes.length;
   for (let i = 0; i < img.width * img.height; i++) {
     for (let channel = 0; channel < channels; channel++) {
       const value = Math.round(cmyk && channel < 4 ? img.hueSamples![i * 4 + channel]! * maximum : (img.data16 ?? img.data)[i * 4 + (channel === 4 || (gray && channel === 1) ? 3 : channel)]! * maximum / (img.data16 ? 65535 : 255));
       if (ascii) { text.push(layout.sample(value)); continue; }
+      if (depth > 16) { out[dst++] = value >>> 24; out[dst++] = value >>> 16; }
       if (depth > 8) out[dst++] = value >>> 8;
       out[dst++] = value & 255;
     }
@@ -184,14 +185,14 @@ export function encodePpm(img: RgbaImage, depth = Math.min(16, img.bitsPerSample
 }
 
 export function encodePgm(img: RgbaImage, depth = Math.min(16, img.bitsPerSample ?? (img.data16 ? 16 : 8)), ascii = false): Uint8Array {
-  if (!Number.isInteger(depth) || depth < 1 || depth > 16) throw new RangeError("Invalid Netpbm depth");
+  if (!Number.isInteger(depth) || depth < 1 || depth > 32) throw new RangeError("Invalid Netpbm depth");
   const maximum = ascii ? (depth <= 8 ? 255 : 65535) : 2 ** depth - 1;
   const text: string[] = [];
   const layout = new NetpbmAscii(img.width, img.height, 1);
   const comment = netpbmComment(img.properties?.comment);
   const header = `${ascii ? "P2" : "P5"}\n${comment}${img.width} ${img.height}\n${maximum}\n`;
   const headerBytes = new TextEncoder().encode(header);
-  const out = new Uint8Array(ascii ? 0 : headerBytes.length + img.width * img.height * (depth > 8 ? 2 : 1));
+  const out = new Uint8Array(ascii ? 0 : headerBytes.length + img.width * img.height * (depth > 16 ? 4 : depth > 8 ? 2 : 1));
   if (!ascii) out.set(headerBytes, 0);
   let dst = headerBytes.length;
   for (let i = 0; i < img.width * img.height; i++) {
@@ -201,6 +202,7 @@ export function encodePgm(img: RgbaImage, depth = Math.min(16, img.bitsPerSample
     const b = samples[i * 4 + 2]!;
     const value = Math.round((0.212656 * r + 0.715158 * g + 0.072186 * b) * maximum / (img.data16 ? 65535 : 255));
     if (ascii) { text.push(layout.sample(value)); continue; }
+    if (depth > 16) { out[dst++] = value >>> 24; out[dst++] = value >>> 16; }
     if (depth > 8) out[dst++] = value >>> 8;
     out[dst++] = value & 255;
   }

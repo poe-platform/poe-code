@@ -1,5 +1,6 @@
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { createMagickRandom } from "./random.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
@@ -13,7 +14,7 @@ export function parseLocalContrastGeometry(raw: string): { radius: number; stren
 }
 
 /** Native luminance mask: separable weighted passes, float intermediates, channel gain. */
-export function* localContrastPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples" | "storedEvaluateSamples">>, geometry: ReturnType<typeof parseLocalContrastGeometry>, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* localContrastPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples" | "storedEvaluateSamples">>, geometry: ReturnType<typeof parseLocalContrastGeometry>, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, seed?: bigint): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, size = width * height;
     const hue = !!image.hueSamples || image.storedHueSamples !== undefined, cmyk = image.space === "cmyk";
     const evaluate = !hue && (!!image.evaluateSamples || image.storedEvaluateSamples !== undefined);
@@ -32,13 +33,14 @@ export function* localContrastPixelSteps(image: Pick<RgbaImage, "width" | "heigh
     const fill = virtualPixel === "background" || virtualPixel.endsWith("-tile") ? background : { r: gray, g: gray, b: gray };
     const backgroundLuma = Math.fround((fill.r * 0.212656 + fill.g * 0.715158 + fill.b * 0.072186) * 257);
     const totalWeight = Math.fround((radius + 1) ** 2);
+    const random = virtualPixel === "random" ? createMagickRandom(seed) : undefined;
     let work = 0;
     if (geometry.strength !== 0 && radius > 0) for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
         let sum = 0;
         // LocalContrastImage omits the final two taps of the triangular window.
         for (let k = 0; k < radius * 2 - 1; k++) {
             if (work++ % 1024 === 0) yield;
-            const index = virtualPixelIndex(x, y + k - radius, width, height, virtualPixel);
+            const index = virtualPixelIndex(x, y + k - radius, width, height, virtualPixel, random);
             sum += (k < radius ? k + 1 : radius * 2 + 1 - k) * (index < 0 ? backgroundLuma : luma[index]!);
         }
         vertical[y * width + x] = sum / totalWeight;

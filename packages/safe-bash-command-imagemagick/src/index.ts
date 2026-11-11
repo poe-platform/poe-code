@@ -11866,8 +11866,9 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     }
     const working = image;
     image = yield* prepareHueOutput(image, format);
-    if (isRawCoder(format) && working.writeMask && image.data !== working.data) {
-        image = yield* applyMagickRasterSteps(image, writeMaskPixelSteps(image, working.writeMask, !!image.data16, false, undefined, working.hasAlpha && working.alphaBlend !== false), undefined, image, [image, working, working.writeMask]);
+    const writeMask = working.writeMask ?? working.region;
+    if (isRawCoder(format) && writeMask && image.data !== working.data) {
+        image = yield* applyMagickRasterSteps(image, writeMaskPixelSteps(image, writeMask, !!image.data16, false, undefined, working.hasAlpha && working.alphaBlend !== false), undefined, image, working.writeMask ? [image, working, working.writeMask] : [image, working]);
     }
     image = yield* prepareInactiveAlphaOutput(image);
     if (format === "png" && image.data16 && (!pngCoder || pngCoder === "png00")) {
@@ -11939,8 +11940,9 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     if (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") {
         const working = image;
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: frame => prepareHueOutput(frame, format) }, signal);
-        if (isRawCoder(format) && working.storedWriteMask && image.position !== working.position) {
-            image = await transformStoredMagickRaster(image, backend, writeMaskPixelSteps(image, working.storedWriteMask, !!image.storedData16, false, undefined, working.hasAlpha && working.alphaBlend !== false), signal, image, [image, working, working.storedWriteMask]);
+        const writeMask = working.storedWriteMask ?? working.region;
+        if (isRawCoder(format) && writeMask && image.position !== working.position) {
+            image = await transformStoredMagickRaster(image, backend, writeMaskPixelSteps(image, writeMask, !!image.storedData16, false, undefined, working.hasAlpha && working.alphaBlend !== false), signal, image, working.storedWriteMask ? [image, working, working.storedWriteMask] : [image, working]);
         }
     }
     if ((["exr", "hdr", "pfm", "phm"].includes(format) || format === "miff" && image.bitsPerSample === 32) && (image.storedEvaluateSamples !== undefined || (format === "pfm" || format === "phm") && image.storedHueSamples !== undefined)) {

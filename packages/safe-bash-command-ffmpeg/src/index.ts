@@ -6334,9 +6334,9 @@ async function applyVideoFilterChain(
         // Native packed-RGB drawbox blends with single-precision arithmetic.
         const alpha = Math.fround(col[3] / 255);
         const inverseAlpha = Math.fround(1 - alpha);
-        if (named.enable !== undefined && Math.abs(parseFilterExpression(named.enable, `${name} enable`, {
-          n, t: f.ptsSeconds, w: f.width, h: f.height
-        })) < 0.5) return f;
+        if (named.enable !== undefined && !(Math.abs(parseFilterExpression(named.enable, `${name} enable`, {
+          n, t: f.ptsSeconds, w: f.width, h: f.height, pos: f.offset ?? NaN
+        })) >= 0.5)) return f;
         // Decoded frames carry no detection bounding-box side data.
         if (boxSource === "side_data_detection_bboxes") return f;
         const width = Math.trunc(variables.w);

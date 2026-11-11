@@ -46,3 +46,39 @@ it.each([
   expect(actual.data).toEqual(Uint8Array.from(Array.from({ length: width * width }, (_, index) =>
     [...rgb.subarray(index * 3, index * 3 + 3), 255]).flat()));
 });
+
+for (const mode of ["sync", "buffered", "retained", "magick", "montage"] as const)
+it.each([
+  { inputs: ["(", "xc:red", "-thumbnail", "2x1!", ")", "xc:blue"], rows: ["RRBBB", "..BBB"] },
+  { inputs: ["xc:red", "(", "xc:blue", "-thumbnail", "2x1!", ")"], rows: ["RRRBB", "RRR.."] },
+  { inputs: ["xc:red", "xc:blue", "-thumbnail", "2x1!"], rows: ["RRBB"] }
+])(`scopes montage thumbnails to the image group via ${mode}: $inputs`, async ({ inputs, rows }) => {
+  const files = new Map<string, Uint8Array>();
+  const fs = new MemoryFileSystem();
+  const args = ["-size", "3x2", ...inputs, "-tile", "2x1", "-geometry", "+0+0", "-depth", "8", "ppm:-"];
+  let output: Uint8Array;
+  if (mode === "magick" || mode === "montage") {
+    const argumentValues = createCommandArguments(mode === "magick" ? ["montage", ...args] : args);
+    const stdout: Uint8Array[] = [];
+    const stderr: unknown[] = [];
+    const context: CommandContext = {
+      command: mode, args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+      signal: new AbortController().signal, stdin: (async function* () {})(),
+      stdout: { async write(chunk) { stdout.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk); } },
+      stderr: { async write(chunk) { stderr.push(chunk); } }, registerCleanup() {}
+    };
+    const command = mode === "magick" ? createMagickCommand() : createMontageCommand();
+    expect((await command.execute(context)).exitCode).toBe(0);
+    expect(stderr).toEqual([]);
+    output = Buffer.concat(stdout);
+  } else {
+    const result = mode === "sync" ? runMontageCliSync(args, files)
+      : await runMontageCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+    expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+    output = result.stdoutBytes!;
+  }
+  const actual = decodeImage(output);
+  expect([actual.width, actual.height]).toEqual([rows[0]!.length, rows.length]);
+  const colors: Record<string, number[]> = { R: [255, 0, 0, 255], B: [0, 0, 255, 255], ".": [255, 255, 255, 255] };
+  expect(Array.from(actual.data)).toEqual([...rows.join("")].flatMap(pixel => colors[pixel]!));
+});

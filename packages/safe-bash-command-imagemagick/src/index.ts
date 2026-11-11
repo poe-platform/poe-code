@@ -382,6 +382,20 @@ function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly
     const a = parseAlphaByte(parts[3]);
     return { r, g, b, a };
   }
+  const hslMatch = /^hsla?\(\s*([+-]?[\d.]+)\s*,\s*([\d.]+)%?\s*,\s*([\d.]+)%?(?:\s*,\s*([\d.]+))?\s*\)$/i.exec(s);
+  if (precise && hslMatch) {
+    const hue = (((Number(hslMatch[1]) % 360) + 360) % 360) / 60;
+    const saturation = Math.max(0, Math.min(100, Number(hslMatch[2]))) / 100;
+    const lightness = Math.max(0, Math.min(100, Number(hslMatch[3]))) / 100;
+    const chroma = (1 - Math.abs(2 * lightness - 1)) * saturation;
+    const x = chroma * (1 - Math.abs(hue % 2 - 1)), m = lightness - chroma / 2;
+    const [r, g, b] = hue < 1 ? [chroma, x, 0] : hue < 2 ? [x, chroma, 0]
+      : hue < 3 ? [0, chroma, x] : hue < 4 ? [0, x, chroma]
+      : hue < 5 ? [x, 0, chroma] : [chroma, 0, x];
+    const alpha = hslMatch[4] === undefined ? 1 : Number(hslMatch[4]);
+    return { r: (r + m) * 255, g: (g + m) * 255, b: (b + m) * 255,
+      a: Math.max(0, Math.min(255, alpha <= 1 ? alpha * 255 : alpha)) };
+  }
   return baseParseColor(s);
 }
 

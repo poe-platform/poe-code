@@ -19913,6 +19913,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "amerge: unsupported option") return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("amerge:")) return { exitCode: 222 };
             if (msg === "amerge: invalid expression" || msg === "amerge: invalid or unsupported expression") return { exitCode: 234 };
+            if (msg === "axcorrelate: unsupported option enable") return { exitCode: 176 };
+            if (msg.startsWith("axcorrelate: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("axcorrelate:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (err instanceof AgateError) return { exitCode: err.exitCode };
             if (msg === "silencedetect: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("silencedetect: unsupported option ")) return { exitCode: 8 };

@@ -30,13 +30,13 @@ export async function correlateAudio(
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "size") {
       size = parseFilterExpression(value, "axcorrelate", {});
-      if (size < 2 || size > 131072) throw new Error("axcorrelate: invalid size");
+      if (size < 2 || size > 131072) throw new RangeError("axcorrelate: invalid size");
       // Native integer options round to nearest, with halfway values going to even.
       const floor = Math.floor(size);
       size = size - floor === 0.5 ? floor + floor % 2 : Math.round(size);
     } else if (key === "algo") {
       const numeric = parseFilterExpression(value, "axcorrelate", { slow: 0, fast: 1, best: 2 });
-      if (numeric < 0 || numeric > 2) throw new Error("axcorrelate: invalid algo");
+      if (numeric < 0 || numeric > 2) throw new RangeError("axcorrelate: invalid algo");
       // Native integer options round ties to even after validating the range.
       const rounded = numeric % 1 === 0.5 ? 2 * Math.round(numeric / 2) : Math.round(numeric);
       algo = ["slow", "fast", "best"][rounded]!;

@@ -75,6 +75,34 @@ for (const [source, format, hash] of [
   });
 }
 
+// Full-buffer reference hashes from native FFmpeg 7.0.2 for the stereo regression.
+for (const [source, downstream, working, hash] of [
+  ["u8", "anull", "dbl", "b5e438cf01f11e8253fa4c8e2b6206a0e57518c39344a44c69ec82ad17429e3a"],
+  ["u8", "anull,acopy", "dbl", "b5e438cf01f11e8253fa4c8e2b6206a0e57518c39344a44c69ec82ad17429e3a"],
+  ["s64", "aformat=sample_fmts=s32", "s32", "e55f1f43fa730334ae67f1f36048abbc7ccc5dc16b60bd9aa52226a922d28818"],
+  ["s64", "anull,aformat=f=s32,acopy", "s32", "e55f1f43fa730334ae67f1f36048abbc7ccc5dc16b60bd9aa52226a922d28818"]
+] as const) {
+  for (const graph of [false, true]) {
+    it(`aphaser negotiates ${source} through ${downstream} (graph=${graph})`, async () => {
+      const input = encodeWav({ sampleRate: 1000, channels: [
+        Float64Array.from({ length: 16 }, (_, i) => ((i * 97) % 30001 - 15000) / 32768),
+        Float64Array.from({ length: 16 }, (_, i) => ((i * 257) % 20001 - 10000) / 32768)
+      ] }, { bitsPerSample: 16 });
+      const outputs: Buffer[] = [];
+      for (const explicit of [false, true]) {
+        const filter = `aformat=sample_fmts=${source},${explicit ? `aformat=sample_fmts=${working},` : ""}aphaser,${downstream}`;
+        const { volume, result, stderr } = await run(input, filter, "f64le", graph);
+        assert.equal(result.exitCode, 0, stderr);
+        const output = volume.readFileSync("/out.raw") as Buffer;
+        assert.equal(output.length, 256);
+        assert.equal(createHash("sha256").update(output).digest("hex"), hash);
+        outputs.push(output);
+      }
+      assert.deepEqual(outputs[0], outputs[1]);
+    });
+  }
+}
+
 async function run(input: Uint8Array, filter: string, format: string, graph: boolean) {
   const volume = new Volume();
   volume.writeFileSync("/in.wav", input);

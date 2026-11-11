@@ -14721,9 +14721,37 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const plugin = outputFormat === "segment" ? segmentPlugin : outPlugin;
                           const codec = audioCodec ?? (plugin?.supportedAudioCodecs.includes(`pcm_${plugin.id}`)
                             ? `pcm_${plugin.id}` : ["wav", "w64", "null"].includes(outputFormat ?? plugin?.id ?? "") ? "pcm_s16le" : undefined);
-                          const target = filterIndex === audioFilters.length - 1 ? sampleFormat ?? pcmSampleFormat(codec) : undefined;
-                          const format = target && ["s16", "s16p", "s32", "s32p", "flt", "fltp", "dbl", "dblp"].includes(target)
-                            ? target : (filteredSampleFormat.startsWith("u8") ? "s16" : "dbl") + (filteredSampleFormat.endsWith("p") ? "p" : "");
+                          let formats = ["s16", "s16p", "s32", "s32p", "flt", "fltp", "dbl", "dblp"];
+                          let reachesOutput = true;
+                          for (let nextIndex = filterIndex + 1; nextIndex < audioFilters.length; nextIndex++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const next = audioFilters[nextIndex]!.trim();
+                            const name = next.split("=", 1)[0]!.split("@", 1)[0];
+                            if (["anull", "acopy", "atrim", "asetpts", "asetnsamples", "areverse", "apad",
+                              "asetrate", "aphaser", "afade"].includes(name!)) continue;
+                            if (name === "aformat") {
+                              const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "";
+                              let requested: string[] | undefined;
+                              for (const [index, option] of argument.split(":").entries()) {
+                                const separator = option.indexOf("=");
+                                const key = separator < 0 ? ["sample_fmts", "sample_rates", "channel_layouts"][index] : option.slice(0, separator).trim();
+                                if (key === "sample_fmts" || key === "f") requested = (separator < 0 ? option : option.slice(separator + 1)).trim().split("|");
+                              }
+                              if (!requested) continue;
+                              const compatible = formats.filter(format => requested.includes(format));
+                              if (compatible.length > 0) {
+                                formats = compatible;
+                                continue;
+                              }
+                            }
+                            // A converter or another DSP filter ends shared-format negotiation.
+                            reachesOutput = false;
+                            break;
+                          }
+                          const target = reachesOutput ? sampleFormat ?? pcmSampleFormat(codec) : undefined;
+                          const preferred = (filteredSampleFormat.startsWith("u8") ? "s16" : "dbl") + (filteredSampleFormat.endsWith("p") ? "p" : "");
+                          const format = target && formats.includes(target) ? target
+                            : formats.includes(preferred) ? preferred : formats[0]!;
                           stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
                           filteredSampleFormat = format;
                         }

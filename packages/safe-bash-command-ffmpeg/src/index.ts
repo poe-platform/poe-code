@@ -11968,7 +11968,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     itemDoc = { ...itemDoc, tracks };
                   }
                   startTimesSeconds.push(nextStartSeconds);
-                  nextStartSeconds += segment.duration ?? itemDoc.durationSeconds;
+                  nextStartSeconds += segment.duration ?? (segment.outpoint !== undefined ? segmentDuration : itemDoc.durationSeconds);
                   concatDocs.push(itemDoc);
                 }
                 if (streamIds.length && !concatDocs.some(doc => doc.tracks.length)) {

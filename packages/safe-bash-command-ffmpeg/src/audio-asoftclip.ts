@@ -44,9 +44,10 @@ export async function softClipAudio(
     }
   }
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  let positional = 0;
+  for (const option of (argument ? argument.split(":") : [])) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? ["type", "threshold", "output", "param", "oversample"][index] : option.slice(0, separator).trim();
+    const key = separator < 0 ? ["type", "threshold", "output", "param", "oversample"][positional++] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     setOption(key, value);
   }

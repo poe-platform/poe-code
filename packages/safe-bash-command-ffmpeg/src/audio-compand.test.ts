@@ -41,7 +41,7 @@ for (const [filter, indices, expected] of [
 
 for (const [filter, exitCode, output] of [
   ["compand=points=bad", 234, ""], ["compand=points=0/0|-20/-30", 234, ""],
-  ["compand=points=-70/|-60/-20|1/0", 1, "keep"], ["compand=points=/-70|-60/-20|1/0", 1, "keep"],
+  ["compand=points=-70/|-60/-20|1/0", 234, ""], ["compand=points=/-70|-60/-20|1/0", 1, "keep"],
   ["compand=points=-70abc/-70|-60/-20|1/0", 1, "keep"],
   ["compand=attacks=-1", 234, ""], ["compand=attacks=-1s", 234, ""],
   ["compand=decays=NaN", 1, "keep"], ["compand=decays=seconds", 1, "keep"],

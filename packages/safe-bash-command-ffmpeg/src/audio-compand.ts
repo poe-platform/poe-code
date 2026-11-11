@@ -79,8 +79,8 @@ export async function compandAudio(
     throw new CompandError("compand: attacks and decays must have matching channel counts", "configuration");
   }
   const points = options.points!.split("|").flatMap(part => part.split(" ")).map(value => {
-    const pair = value.split("/");
-    if (pair.length !== 2) throw new CompandError("compand: expected input/output points", "configuration");
+    const pair = value.split("/", 2);
+    if (pair.length !== 2 || !pair[1]) throw new CompandError("compand: expected input/output points", "configuration");
     const x = number(pair[0]!);
     return { x, y: number(pair[1]!, -Infinity, Infinity, Number.parseFloat) - x };
   });

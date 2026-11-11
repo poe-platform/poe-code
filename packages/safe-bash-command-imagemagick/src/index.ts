@@ -11165,7 +11165,12 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     if (format === "png" && image.virtualCanvas?.width === 0 && image.virtualCanvas.height === 0) image = { ...image, virtualCanvas: { ...image.virtualCanvas, width: image.width, height: image.height } };
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
     if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
-    image = yield* prepareInactiveAlphaOutput(yield* prepareHueOutput(image, format));
+    const working = image;
+    image = yield* prepareHueOutput(image, format);
+    if (isRawCoder(format) && working.writeMask && image.data !== working.data) {
+        image = yield* applyMagickRasterSteps(image, writeMaskPixelSteps(image, working.writeMask, !!image.data16, false, undefined, working.hasAlpha && working.alphaBlend !== false), undefined, image, [image, working, working.writeMask]);
+    }
+    image = yield* prepareInactiveAlphaOutput(image);
     if (format === "map" && (!image.isPalette || !image.indexedColors?.length && !image.pngPalette || (image.indexedColors?.length ?? 0) > 256)) image = yield* applyMagickRasterSteps(image, quantizePixelSteps(image.width * image.height * 4, 256, false, 0, image.hasAlpha, false, undefined, { width: image.width, height: image.height, method: "riemersma", diffusionAmount: 1 }, true));
     if (format === "xpm" && !(image.isPalette && !image.hasAlpha && image.indexedColors?.length && image.pngIndices)) image = yield* applyMagickRasterSteps(image, quantizePixelSteps(image.width * image.height * 4, 256, false, image.hasAlpha || dither ? 5 : 6, image.hasAlpha, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true));
     if (format === "gif" && !image.isPalette && dither) image = { ...(yield* applyMagickRasterSteps(image, gifDitherSteps(image, dither, diffusionAmount))), isPalette: true };
@@ -11197,7 +11202,11 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
     if (image.space === "cmyk" && format === "tiff") throw new Error("unsupported colorspace 'CMYK' for TIFF output");
     if (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") {
+        const working = image;
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => prepareHueOutput(frame, format) }, signal);
+        if (isRawCoder(format) && working.storedWriteMask && image.position !== working.position) {
+            image = await transformStoredMagickRaster(image, backend, writeMaskPixelSteps(image, working.storedWriteMask, !!image.storedData16, false, undefined, working.hasAlpha && working.alphaBlend !== false), signal, image, [image, working, working.storedWriteMask]);
+        }
     }
     if ((["exr", "hdr", "pfm", "phm"].includes(format) || format === "miff" && image.bitsPerSample === 32) && image.storedEvaluateSamples !== undefined) {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepareFloatOutput }, signal);

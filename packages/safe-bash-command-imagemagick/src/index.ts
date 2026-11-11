@@ -39,7 +39,7 @@ import { hilbertPixels, riemersmaRemapSteps } from "./riemersma.js";
 import { fillCmykPixels, convertCmykPixels, copyCmykChannelsToRgb, applyCmykLookup, formatCmykPixel, rgbToCmyk } from "./colorspace-cmyk.js";
 import { tintCmykPixels } from "./tint-cmyk.js";
 import { modulateRgb } from "./modulate.js";
-import { cyclePixelSteps } from "./cycle.js";
+import { cyclePixelSteps, type CyclePalette } from "./cycle.js";
 import { magnifyPixelSteps, parseMagnifyMethod, type MagnifyMethod } from "./magnify-kernel.js";
 import { ftxtInput } from "./ftxt-input.js";
 import { cubeInput } from "./cube-input.js";
@@ -145,8 +145,8 @@ import { combineMetaPixelSteps, type MetaChannels } from "./combine-meta.js";
 import { negateMetaPixelSteps } from "./negate-meta.js";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16" | "evaluateSamples">> & { position?: number; storedEvaluateSamples?: number | undefined };
-type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; regionTransformSource?: RgbaImage | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; storedRegionTransformSource?: StoredRgbaImage | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & CyclePalette & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; regionTransformSource?: RgbaImage | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & CyclePalette & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; storedRegionTransformSource?: StoredRgbaImage | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
 type ImageMetadata = BaseImageMetadata & HueMetadata & MetaChannels & Pick<RgbaImage, "inactiveAlpha" | "alphaBlend" | "alphaSeparate">;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
@@ -4941,7 +4941,7 @@ function parsePosterizeLevels(value: string): number {
     return levels;
 }
 
-function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">, levelsRaw: number, dither: MagickState["dither"], diffusionAmount: number, channels: MagickState["channels"], signal?: AbortSignal, reducePalette = true, depthDither = false): Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined> {
+function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">, levelsRaw: number, dither: MagickState["dither"], diffusionAmount: number, channels: MagickState["channels"], signal?: AbortSignal, reducePalette = true, depthDither = false, colormap?: number[][]): Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined> {
     let cooperativeWork = 0;
     const levels = Math.max(2, Math.trunc(levelsRaw));
     const step = 255 / (levels - 1);
@@ -5168,6 +5168,17 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
             yield { kind: "write", highDepth: true, position: i, data: new Uint8Array(samples.buffer) };
         } else yield { kind: "write", position: i, data: out };
     }
+    if (palette && colormap) {
+        const pending = [palette];
+        while (pending.length) {
+            if (++cooperativeWork % 1024 === 0) { signal?.throwIfAborted(); yield; }
+            const node = pending.pop()!;
+            for (let child = node.children.length - 1; child >= 0; child--) {
+                if (node.children[child]) pending.push(node.children[child]!);
+            }
+            if (node.color) colormap.push(node.color);
+        }
+    }
 }
 
 function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined>, signal?: AbortSignal, dimensions: Pick<RgbaImage, "width" | "height" | "hasAlpha"> = img, sources: readonly RgbaImage[] = [img]): Generator<void, RgbaImage, void> {
@@ -5222,7 +5233,7 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
     }
     // Raster steps replace the pixels; original depth and arithmetic samples are stale.
     const { data16: ignoredData16, evaluateSamples: ignoredEvaluateSamples, ...metadata } = img;
-    if (next.value) { delete metadata.pngPalette; delete metadata.pngIndices; }
+    if (next.value) { delete metadata.pngPalette; delete metadata.pngIndices; delete metadata.indexedColorSamples; }
     return { ...metadata, ...(next.value ? { indexedColors: next.value, isPalette: true } : {}), width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, data, ...(pngIndices ? { pngIndices } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
 }
 
@@ -9590,7 +9601,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = function* (image) {
             const working = image.hueSamples !== undefined || image.magickColorspace === "RGB" && (!state.dither || levels < 2 || Math.trunc(levels) > 16);
-            let output = yield* applyMagickRasterSteps({ ...image, isPalette: true }, posterizePixelSteps(image, levels, state.dither, state.diffusionAmount ?? 1, channels, signal, !working), signal);
+            // Posterize replaces the colormap, including unused input PNG entries.
+            const colormap: number[][] = [];
+            const { pngPalette: ignoredPalette, pngIndices: ignoredIndices, indexedColors: ignoredIndexedColors, indexedColorSamples: ignoredSamples, ...unindexed } = image;
+            let output = yield* applyMagickRasterSteps({ ...unindexed, isPalette: true }, posterizePixelSteps(image, levels, state.dither, state.diffusionAmount ?? 1, channels, signal, !working, false, colormap), signal);
+            if (colormap.length) output = { ...output, indexedColorSamples: colormap, indexedColors: colormap.map(color => Math.round(color[3]!) * 16777216 + Math.round(color[0]!) * 65536 + Math.round(color[1]!) * 256 + Math.round(color[2]!)) };
             if (state.dither && levels >= 2 && Math.trunc(levels) <= 16 && image.writeMask) {
                 // Native clips both the dither write and the subsequent palette sync.
                 const clipped = yield* applyMagickRasterSteps(output, writeMaskPixelSteps(output, image.writeMask, true, false, state.channels, image.hasAlpha && image.alphaBlend !== false), signal, output, [output, image, image.writeMask]);
@@ -14992,7 +15007,7 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Pick
         }
     }
     const { storedData16: ignoredData16, storedEvaluateSamples: ignoredEvaluateSamples, ...metadata } = image;
-    if (next.value) { delete metadata.pngPalette; delete metadata.storedPngIndices; }
+    if (next.value) { delete metadata.pngPalette; delete metadata.storedPngIndices; delete metadata.indexedColorSamples; }
     return { ...metadata, ...(next.value ? { indexedColors: next.value, isPalette: true } : {}), width: dimensions.width, height: dimensions.height, hasAlpha: dimensions.hasAlpha, position, ...(storedPngIndices ? { storedPngIndices } : {}), ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }) };
 }
 
@@ -16129,7 +16144,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const expandedLevels = levels ?? parsePosterizeLevels(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal));
                 const working = image.storedHueSamples !== undefined || image.magickColorspace === "RGB" && (!dither || expandedLevels < 2 || Math.trunc(expandedLevels) > 16);
-                let output = await transformStoredMagickRaster({ ...image, isPalette: true }, backend, posterizePixelSteps(image, expandedLevels, dither, diffusionAmount, channels, signal, !working), signal);
+                // Posterize replaces the colormap, including unused input PNG entries.
+                const colormap: number[][] = [];
+                const { pngPalette: ignoredPalette, storedPngIndices: ignoredIndices, indexedColors: ignoredIndexedColors, indexedColorSamples: ignoredSamples, ...unindexed } = image;
+                let output = await transformStoredMagickRaster({ ...unindexed, isPalette: true }, backend, posterizePixelSteps(image, expandedLevels, dither, diffusionAmount, channels, signal, !working, false, colormap), signal);
+                if (colormap.length) output = { ...output, indexedColorSamples: colormap, indexedColors: colormap.map(color => Math.round(color[3]!) * 16777216 + Math.round(color[0]!) * 65536 + Math.round(color[1]!) * 256 + Math.round(color[2]!)) };
                 if (dither && expandedLevels >= 2 && Math.trunc(expandedLevels) <= 16 && image.storedWriteMask) {
                     // Native clips both the dither write and the subsequent palette sync.
                     const clipped = await transformStoredMagickRaster(output, backend, writeMaskPixelSteps(output, image.storedWriteMask, true, false, channels, image.hasAlpha && image.alphaBlend !== false), signal, output, [output, image, image.storedWriteMask]);

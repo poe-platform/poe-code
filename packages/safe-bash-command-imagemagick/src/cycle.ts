@@ -4,8 +4,11 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { Region } from "./region.js";
 import type { MaskChannels } from "./write-mask.js";
 
+/** Fractional RGBA colormap samples, including colors absent from the raster. */
+export interface CyclePalette { indexedColorSamples?: readonly (readonly number[])[] }
+
 /** Rotate palette colors using bounded chunks in either raster backend. */
-export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "indexedColors" | "pngPalette" | "depth" | "hasAlpha" | "isPalette"> & { inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined }, amount: number, channels?: MaskChannels, writeMask = false): Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined> {
+export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "indexedColors" | "pngPalette" | "depth" | "hasAlpha" | "isPalette"> & CyclePalette & { inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined }, amount: number, channels?: MaskChannels, writeMask = false): Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined> {
     if (!Number.isSafeInteger(amount)) throw new Error("cycle requires an integer");
     const palette = image.isPalette !== false && image.indexedColors ? [...image.indexedColors] : [];
     const png = image.isPalette !== false ? image.pngPalette?.bytes : undefined;
@@ -34,6 +37,7 @@ export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "in
         const source = yield { kind: "read", position, length: size };
         if (!source || source.length !== size) throw new Error("Truncated cycle pixels");
         const data = source.slice();
+        const evaluated = image.indexedColorSamples ? new Float64Array(size) : undefined;
         const data16 = highDepth ? new Uint16Array(size) : undefined;
         const original = yield { kind: "read", pngIndices: true, position: position / 4, length: size / 4 };
         const rotated = original?.length === size / 4 ? new Uint8Array(size / 4) : undefined;
@@ -47,9 +51,16 @@ export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "in
             if (rotated) rotated[i / 4] = target;
             if (data16) data16.set(samples[target]!, i);
             const color = palette[target]!;
+            if (evaluated) {
+                const samples = image.indexedColorSamples![target];
+                // Other operators may have replaced or adjusted this palette entry.
+                const packed = samples && Math.round(samples[3]!) * 16777216 + Math.round(samples[0]!) * 65536 + Math.round(samples[1]!) * 256 + Math.round(samples[2]!);
+                evaluated.set(samples && packed === color ? samples : [color >>> 16 & 255, color >>> 8 & 255, color & 255, color >>> 24], i);
+            }
             data[i] = color >>> 16; data[i + 1] = color >>> 8; data[i + 2] = color; data[i + 3] = color >>> 24;
         }
         yield { kind: "write", highDepth, position, data: data16 ? new Uint8Array(data16.buffer) : data };
+        if (evaluated) yield { kind: "write", evaluate: true, position, data: new Uint8Array(evaluated.buffer) };
         if (rotated) yield { kind: "write", pngIndices: true, position: position / 4, data: rotated };
     }
 }

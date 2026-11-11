@@ -3,7 +3,7 @@ import type { HueMetadata } from "./colorspace-hue.js";
 
 export function* setColorspacePixels(image: RgbaImage & HueMetadata, value: string): Generator<void, RgbaImage & HueMetadata, void> {
     const name = value.toLowerCase() === "lab" ? "cielab" : value.toLowerCase();
-    const target = (["sRGB", "RGB", "CMYK", "HCL", "HCLp", "HSL", "HSB", "HSV", "HWB", "XYZ", "xyY", "CIELab", "YCbCr", "Rec601YCbCr", "YCC", "Rec709YCbCr", "Log", "OHTA", "CMY", "YUV", "YIQ", "Luv", "Oklab", "Oklch", "LCH", "LCHab", "LCHuv", "LinearGray"] as const)
+    const target = (["sRGB", "RGB", "CMYK", "HCL", "HCLp", "HSL", "HSB", "HSV", "HWB", "XYZ", "xyY", "Jzazbz", "CIELab", "YCbCr", "Rec601YCbCr", "YCC", "Rec709YCbCr", "Log", "OHTA", "CMY", "YUV", "YIQ", "Luv", "Oklab", "Oklch", "LCH", "LCHab", "LCHuv", "LinearGray"] as const)
         .find(space => space.toLowerCase() === name);
     if (!target) return image;
     const source = image.magickColorspace ?? (image.space === "cmyk" ? "CMYK" : image.space === "srgb" ? "sRGB" : undefined);

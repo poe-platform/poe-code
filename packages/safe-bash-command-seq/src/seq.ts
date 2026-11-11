@@ -271,13 +271,13 @@ export function createSeqWithSettings(limits: StreamFormatLimits): CommandDefini
       return;
     }
     const firstText = (first.negativeZero ? "-" : "") + fixed(current, scale, precision);
-    // LAST bounds the sequence; discarded fractional digits must not widen it.
+    // LAST bounds the sequence; hexadecimal LAST and discarded fractional digits must not widen it.
     let width = 0;
     if (equalWidth) {
       const discarded = scale - precision;
       const finishDigits = (finish < 0n ? -finish : finish).toString().length;
       const widthFinish = discarded >= finishDigits ? 0n : finish / 10n ** BigInt(discarded);
-      width = Math.max(firstText.length, ((last.negativeZero ? "-" : "") + fixed(widthFinish, precision, precision)).length, first.width + (precision ? precision + 1 : 0), last.width + (precision ? precision + 1 : 0));
+      width = Math.max(firstText.length, last.width === 0 ? 0 : ((last.negativeZero ? "-" : "") + fixed(widthFinish, precision, precision)).length, first.width + (precision ? precision + 1 : 0), last.width + (precision ? precision + 1 : 0));
     }
     const canBatch = limits.maxOutputBytes === Infinity && limits.maxChunkBytes >= 16384 && limits.maxSteps === Infinity;
     let batch = "";

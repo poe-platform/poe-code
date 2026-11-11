@@ -27,9 +27,9 @@ for (const mode of ["sync", "map", "filesystem", "command"]) for (const rle of [
       if (info) expect("stdout" in result ? result.stdout : Buffer.concat(stdout).toString()).toBe("PseudoClass sRGB ");
       else {
         const output = mode === "filesystem" || mode === "command" ? await filesystem.readFile("/out.tga") : files.get("/out.tga")!;
-        expect([...output.subarray(0, 3)]).toEqual([0, 1, 1]);
+        expect([...output.subarray(0, 3)]).toEqual([0, 1, rle ? 9 : 1]);
         expect([...output.subarray(5, 8)]).toEqual([2, 0, 24]);
-        expect(Buffer.from(output.subarray(18)).toString("hex")).toBe("1e140a826e5a0001");
+        expect(Buffer.from(output.subarray(18)).toString("hex")).toBe(rle ? "1e140a826e5a010001" : "1e140a826e5a0001");
         expect([...decodeImage(output).data]).toEqual([10, 20, 30, 255, 90, 110, 130, 255]);
       }
     });

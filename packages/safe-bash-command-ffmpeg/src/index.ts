@@ -1187,7 +1187,7 @@ function parseAtrim(argument: string, origRate: number) {
       max: 2 ** 63,
       default: pts ? -(2 ** 63) : key === "start_sample" ? -1 : 2 ** 63,
       none: 0
-    }, undefined, new Float64Array(10)) : parseHlsDuration(value);
+    }, undefined, new Float64Array(10), []) : parseHlsDuration(value);
     const boundary = samples || pts ? roundToEven(number)
       : Math.sign(number) * Math.round(Math.round(Math.abs(number) * 1_000_000) * origRate / 1_000_000);
     // Native int64 options use doubles, including INT64_MAX rounded to 2^63.

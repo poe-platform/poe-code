@@ -3,6 +3,7 @@ import type { HueMetadata } from "./colorspace-hue.js";
 import { morphologyWorkingPixelSteps } from "./morphology-working.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
+import { createMagickRandom } from "./random.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 export type MorphologyRow = number | readonly number[];
@@ -48,7 +49,7 @@ export function* hitAndMissPixelSteps(image: { width: number; height: number }, 
 }
 
 /** Sliding channel histograms; rows gives (width - 1) / 2 at each vertical offset; half-integers allow even windows. Arrays specify sparse horizontal offsets. */
-export function* morphologyPixelSteps(image: HueMetadata & Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<RgbaImage, "hasAlpha" | "space"> & Pick<StoredRgbaImage, "storedData16">>, rows: readonly MorphologyRow[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak" | "gradient", channels?: readonly boolean[], virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* morphologyPixelSteps(image: HueMetadata & Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<RgbaImage, "hasAlpha" | "space"> & Pick<StoredRgbaImage, "storedData16">>, rows: readonly MorphologyRow[], mode: "min" | "max" | "median" | "mean" | "mode" | "rms" | "standarddeviation" | "contrast" | "nonpeak" | "gradient", channels?: readonly boolean[], virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, seed?: bigint): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk", channelCount = cmyk ? 5 : 4;
     const { width, height } = image, highDepth = cmyk || virtualPixel === "gray" || !!(image.data16 || image.storedData16);
     const retainHue = !cmyk && image.magickColorspace !== undefined && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
@@ -77,11 +78,29 @@ export function* morphologyPixelSteps(image: HueMetadata & Pick<RgbaImage, "widt
     if (cmyk) fill.push(Math.round(gray * scale));
     const ry = Math.floor(rows.length / 2);
     const samples = rows.reduce<number>((total, radius) => total + (typeof radius === "number" ? radius * 2 + 1 : radius.length), 0);
+    const random = virtualPixel === "random" ? createMagickRandom(seed) : undefined;
+    const randomPixels = random ? rows.map(() => new Map<number, number>()) : undefined;
     const inkPages = new Map<number, Float64Array>();
     const rank = Math.floor(samples / 2), sums = new Float64Array(channelCount), squaredSums = new Float64Array(channelCount);
     let work = 0;
     for (let y = 0; y < height; y++) {
         yield;
+        if (random && randomPixels) {
+            // Native fetches a padded strip once per output row, including one
+            // unused final column. Sliding removals must reuse those samples.
+            for (let row = 0; row < rows.length; row++) {
+                const pixels = randomPixels[row]!;
+                pixels.clear();
+                const radius = rows[row]!;
+                if (typeof radius !== "number") continue;
+                const sy = y + row - ry;
+                for (let sx = -Math.ceil(radius); sx <= width + Math.floor(radius); sx++) {
+                    if (++work % 4096 === 0) yield;
+                    if (sx >= 0 && sx < width && sy >= 0 && sy < height) continue;
+                    pixels.set(sx, virtualPixelIndex(sx, sy, width, height, virtualPixel, random));
+                }
+            }
+        }
         histogram.fill(0);
         groups?.fill(0);
         sums.fill(0);
@@ -118,7 +137,7 @@ export function* morphologyPixelSteps(image: HueMetadata & Pick<RgbaImage, "widt
                         for (let sample = 0; sample < count; sample++) {
                             const column = typeof offsets === "number" ? first + sample : x + offsets[sample]! - (phase === 0 && x > 0 ? 1 : 0);
                             if (++work % 4096 === 0) yield;
-                            const pixel = virtualPixelIndex(column, y + row - ry, width, height, virtualPixel);
+                            const pixel = randomPixels?.[row]!.get(column) ?? virtualPixelIndex(column, y + row - ry, width, height, virtualPixel, random);
                             const bytes = pixel < 0 ? undefined : yield { kind: "read", hue: working, highDepth, position: pixel * 4, length: 4 };
                             if (pixel >= 0 && (!bytes || bytes.length !== (working ? 32 : highDepth ? 8 : 4))) throw new Error("Truncated morphology pixels");
                             let values: ArrayLike<number> = bytes ? working ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => value * maximumSample) : highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes : fill;

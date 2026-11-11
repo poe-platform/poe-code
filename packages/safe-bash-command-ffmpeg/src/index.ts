@@ -12045,6 +12045,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               concatInputSeek = false;
               let doc = await loadSingleDocument(inp.path, inp.format, inp.fps, inp);
               if (!dumpedInputs.has(inp)) {
+                if (logLevel >= 24 && (inp.guessLayoutMax ?? Infinity) >= 1) {
+                  for (const track of doc.tracks) {
+                    const codec = track.codecDescriptions[0];
+                    const fmt = codec?.rawWavFormatBytes;
+                    if (track.type !== "audio" || codec?.channels !== 1 || !fmt ||
+                        !codec.codecName?.startsWith("pcm_")) continue;
+                    const view = new DataView(fmt.buffer, fmt.byteOffset, fmt.byteLength);
+                    if (fmt.length >= 24 && view.getUint16(0, true) === 0xfffe && view.getUint32(20, true)) continue;
+                    await writeBytes(context.stderr, encodeUtf8("ffmpeg: Guessed Channel Layout: mono\n"), context.signal);
+                  }
+                }
                 for (const [specifier, filename] of inp.dumpAttachments ?? []) {
                   const [selector, ordinal] = specifier.split(":");
                   const type = selector === "v" ? "video" : selector === "a" ? "audio"

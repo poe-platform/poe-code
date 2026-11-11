@@ -1,3 +1,4 @@
+import { inflate } from "./inflate.js";
 import { colorlevels } from "./colorlevels.js";
 import { colorbalance } from "./colorbalance.js";
 import { edgedetect } from "./edgedetect.js";
@@ -2504,6 +2505,8 @@ async function applyVideoFilterChain(
       current = await roberts(current, argStr, pixelFormat, budget, signal);
     } else if (name === "scharr") {
       current = await scharr(current, argStr, pixelFormat, budget, signal);
+    } else if (name === "inflate") {
+      current = await inflate(current, argStr, pixelFormat, budget, signal);
     } else if (name === "kirsch") {
       current = await kirsch(current, argStr, pixelFormat, budget, signal);
     } else if (name === "median") {

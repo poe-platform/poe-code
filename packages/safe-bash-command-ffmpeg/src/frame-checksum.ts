@@ -244,7 +244,8 @@ export function serializeFrameChecksum(
     }
     const [num, den] = video && !copy ? videoTimeBase(track) : [1, track.timescale];
     const rate = video ? den / num : copy ? track.timescale : track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale;
-    const payload = track.type !== "audio" || decodedAudioPackets ? new Uint8Array() : rawAudio!.serialize({ ...doc, tracks: [track] }, { audioCodec, budget });
+    const encodedAudio = track.type === "audio" && audioCodec === "adpcm_ima_wav";
+    const payload = track.type !== "audio" || decodedAudioPackets || encodedAudio ? new Uint8Array() : rawAudio!.serialize({ ...doc, tracks: [track] }, { audioCodec, budget });
     let audioPackets = track.samples;
     if (!copy && track.decodedAudio && codec?.codecName.startsWith("pcm_") &&
         audioPackets.every(packet => packet.data.length > 0)) {
@@ -299,7 +300,7 @@ export function serializeFrameChecksum(
       const durationTicks = Math.round(packet.duration * clockRate / track.timescale);
       const duration = "frame" in packet ? Math.max(1, durationTicks) : durationTicks;
       const bytes = "frame" in packet ? videoBytes(packet.frame, track.codecDescriptions[0]?.pixFmt ?? "rgba", budget)
-        : track.type !== "audio" || decodedAudioPackets ? packet.data : payload.subarray(offset, offset + (copy ? packet.data.length : Math.min(payload.length - offset, Math.round(sampleCount * bytesPerFrame))));
+        : track.type !== "audio" || decodedAudioPackets || encodedAudio ? packet.data : payload.subarray(offset, offset + (copy ? packet.data.length : Math.min(payload.length - offset, Math.round(sampleCount * bytesPerFrame))));
       const size = bytes.length;
       offset += size;
       const digest = checksum(bytes);

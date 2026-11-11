@@ -289,7 +289,7 @@ in milliseconds without changing payload sizes or hashes. Stream selectors such 
 digest before the stream headers, including ALAC configuration. `framecrc` uses Adler-32
 for these headers. PCM output has no extradata header.
 For audio, these formats retain PCM packet boundaries after filtering, including the
-short final packet, and checksum each packet separately. MP3 inputs are decoded before
+short final packet, and checksum each packet separately. IMA WAV ADPCM `framehash`, `framemd5`, and `framecrc` report each compressed packet, with encoder timestamps, the unpadded sample duration, and the selected block size and trellis settings. MP3 inputs are decoded before
 filtering, preserving encoder-delay and end-padding trimming in the checksum packets.
 `framecrc` includes a `#software` header by default; `-bitexact` or `-fflags +bitexact` omits it without changing packet rows.
 For AAC decoded to PCM, audio rows follow decoder frames, skipping priming and

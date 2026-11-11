@@ -20224,6 +20224,30 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (repeats) await writeBytes(context.stderr, encodeUtf8(`    Last message repeated ${repeats} times\n`), context.signal);
               }
             }
+            if (frameChecksumOutput && (audioCodec === "adpcm_ima_wav" || [...audioCodecs.values()].includes("adpcm_ima_wav"))) {
+              const encoder = registry.findByFormatName("wav")!;
+              workingDoc = { ...workingDoc, tracks: workingDoc.tracks.map((source, index) => {
+                const codec = audioCodecs.get(index) ?? audioCodec;
+                if (source.type !== "audio" || codec !== "adpcm_ima_wav") return source;
+                const bytes = encoder.serialize({ ...workingDoc, tracks: [source] }, { audioCodec: codec, blockSize, trellis, budget });
+                budget.allocateMemory(bytes.length);
+                const track = encoder.parse(bytes, { decodeAudio: false, budget }).tracks.find(track => track.type === "audio")!;
+                const frames = source.decodedAudio!.channelData[0]!.length;
+                const scale = track.timescale / source.timescale;
+                let sourceIndex = 0, sourceStart = 0;
+                const samples = track.samples.map(packet => {
+                  budget.checkCpu();
+                  while (sourceIndex + 1 < source.samples.length &&
+                      sourceStart + source.samples[sourceIndex]!.duration * scale <= packet.pts) {
+                    sourceStart += source.samples[sourceIndex++]!.duration * scale;
+                  }
+                  const pts = (source.samples[sourceIndex]?.pts ?? 0) * scale + packet.pts - sourceStart;
+                  // WAV stores padded blocks; encoder packet durations exclude padding.
+                  return { ...packet, dts: pts, pts, duration: Math.min(packet.duration, frames - packet.pts) };
+                });
+                return { ...track, samples };
+              }) };
+            }
             const serializedBytes = checksumOutput
               ? (frameChecksumOutput
                 ? serializeFrameChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec, subtitleCodec, bitexact, copyTimestamps && !startAtZero, encoderTimeBases, audioCodecs)

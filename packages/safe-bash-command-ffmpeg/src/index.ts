@@ -12121,6 +12121,59 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       }
                     }
+                    const applyAudioSampleRates = async (value: string, filterIndex: number) => {
+                      let targetRate = origRate;
+                      let bestDifference = Infinity;
+                      // The sink's rate participates in negotiation until a downstream
+                      // filter introduces a separate rate constraint or conversion.
+                      let preferredRate = audioRate;
+                      for (let nextIndex = filterIndex + 1; preferredRate !== undefined && nextIndex < audioFilters.length; nextIndex++) {
+                        if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                        const next = audioFilters[nextIndex]!.trim();
+                        const name = next.split("=", 1)[0]!.split("@", 1)[0];
+                        if (name === "aresample" || name === "asetrate") preferredRate = undefined;
+                        if (name !== "aformat") continue;
+                        const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "";
+                        for (const [index, option] of argument.split(":").entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 ? ["sample_fmts", "sample_rates", "channel_layouts"][index] : option.slice(0, separator).trim();
+                          if (key === "sample_rates" || key === "r") {
+                            const rates = (separator < 0 ? option : option.slice(separator + 1)).split("|").map(Number);
+                            if (!rates.includes(preferredRate!)) preferredRate = undefined;
+                          }
+                        }
+                      }
+                      for (const raw of value ? value.split("|") : []) {
+                        const rate = Number(raw);
+                        if (!Number.isInteger(rate) || rate < 1 || rate > 2147483647) {
+                          throw new Error("aformat: invalid sample rate");
+                        }
+                        const difference = rate === preferredRate ? -1 : Math.abs(rate - origRate);
+                        if (difference < bestDifference) {
+                          targetRate = rate;
+                          bestDifference = difference;
+                        }
+                      }
+                      if (targetRate !== origRate) {
+                        if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                        const length = Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate);
+                        if (!Number.isSafeInteger(length)) throw new Error("aformat: output sample count is too large");
+                        budget.checkDuration(length / targetRate);
+                        budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
+                        stretched = await resampleAudio(stretched, length, origRate, targetRate, budget, context.signal);
+                        // aformat constrains the resampler output as well as its input.
+                        stretched = await convertAudioSampleFormat(stretched, "flt", filteredSampleFormat, budget, context.signal);
+                        audioStartSample = Math.round(audioStartSample * targetRate / origRate);
+                        for (const frame of audioTimestamps ?? []) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          frame.start = Math.round(frame.start * targetRate / origRate);
+                          frame.end = Math.round(frame.end * targetRate / origRate);
+                          delete frame.exactPts;
+                          frame.pts = Math.round(frame.pts * targetRate / origRate);
+                        }
+                        origRate = targetRate;
+                      }
+                    };
                     const silenceEvents: { frame: number; filter: number; text: string }[] = [];
                     for (const [filterIndex, item] of audioFilters.entries()) {
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -12135,6 +12188,27 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       // These filters retain their input sample format. Other DSP filters
                       // negotiate floating-point audio before a subsequent pan mixer.
                       const filterName = trimmed.split("=", 1)[0]!;
+                      if (filterName === "adelay" && !filteredSampleFormat.endsWith("p")) {
+                        // The converter required for packed input also resolves downstream rate
+                        // constraints before sample-based delays. Explicit resamplers are a boundary.
+                        for (let nextIndex = filterIndex + 1; nextIndex < audioFilters.length; nextIndex++) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          const next = audioFilters[nextIndex]!.trim();
+                          const name = next.split("=", 1)[0]!.split("@", 1)[0];
+                          if (["anull", "acopy", "adelay"].includes(name!)) continue;
+                          if (name !== "aformat") break;
+                          const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "";
+                          let rates: string | undefined;
+                          for (const [index, option] of argument.split(":").entries()) {
+                            const separator = option.indexOf("=");
+                            const key = separator < 0 ? ["sample_fmts", "sample_rates", "channel_layouts"][index] : option.slice(0, separator).trim();
+                            if (key === "sample_rates" || key === "r") rates = (separator < 0 ? option : option.slice(separator + 1)).trim();
+                          }
+                          if (rates === undefined) continue;
+                          await applyAudioSampleRates(rates, nextIndex);
+                          break;
+                        }
+                      }
                       for (const { sender, scheduled } of commandSenders) {
                         const pending = scheduled.filter(command => sender === filterIndex
                           ? command.receiver >= sender || command.receiver < 0
@@ -15268,57 +15342,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         for (const { key, value } of parsed) {
                           if (!value) throw new Error(`aformat: unsupported empty value for ${key}`);
                           if (key === "sample_rates" || key === "r") {
-                            let targetRate = origRate;
-                            let bestDifference = Infinity;
-                            // The sink's rate participates in negotiation until a downstream
-                            // filter introduces a separate rate constraint or conversion.
-                            let preferredRate = audioRate;
-                            for (let nextIndex = filterIndex + 1; preferredRate !== undefined && nextIndex < audioFilters.length; nextIndex++) {
-                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                              const next = audioFilters[nextIndex]!.trim();
-                              const name = next.split("=", 1)[0]!.split("@", 1)[0];
-                              if (name === "aresample" || name === "asetrate") preferredRate = undefined;
-                              if (name !== "aformat") continue;
-                              const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "";
-                              for (const [index, option] of argument.split(":").entries()) {
-                                const separator = option.indexOf("=");
-                                const key = separator < 0 ? ["sample_fmts", "sample_rates", "channel_layouts"][index] : option.slice(0, separator).trim();
-                                if (key === "sample_rates" || key === "r") {
-                                  const rates = (separator < 0 ? option : option.slice(separator + 1)).split("|").map(Number);
-                                  if (!rates.includes(preferredRate!)) preferredRate = undefined;
-                                }
-                              }
-                            }
-                            for (const raw of value ? value.split("|") : []) {
-                              const rate = Number(raw);
-                              if (!Number.isInteger(rate) || rate < 1 || rate > 2147483647) {
-                                throw new Error("aformat: invalid sample rate");
-                              }
-                              const difference = rate === preferredRate ? -1 : Math.abs(rate - origRate);
-                              if (difference < bestDifference) {
-                                targetRate = rate;
-                                bestDifference = difference;
-                              }
-                            }
-                            if (targetRate !== origRate) {
-                              if (!autoConversionFilters) throw new Error(audioConversionDisabled);
-                              const length = Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate);
-                              if (!Number.isSafeInteger(length)) throw new Error("aformat: output sample count is too large");
-                              budget.checkDuration(length / targetRate);
-                              budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
-                              stretched = await resampleAudio(stretched, length, origRate, targetRate, budget, context.signal);
-                              // aformat constrains the resampler output as well as its input.
-                              stretched = await convertAudioSampleFormat(stretched, "flt", filteredSampleFormat, budget, context.signal);
-                              audioStartSample = Math.round(audioStartSample * targetRate / origRate);
-                              for (const frame of audioTimestamps ?? []) {
-                                if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                                frame.start = Math.round(frame.start * targetRate / origRate);
-                                frame.end = Math.round(frame.end * targetRate / origRate);
-                                delete frame.exactPts;
-                                frame.pts = Math.round(frame.pts * targetRate / origRate);
-                              }
-                              origRate = targetRate;
-                            }
+                            await applyAudioSampleRates(value, filterIndex);
                             continue;
                           }
                           if (key === "sample_fmts" || key === "f") {

@@ -6133,15 +6133,11 @@ async function applyVideoFilterChain(
       if (boxSource !== undefined && boxSource !== "side_data_detection_bboxes") {
         throw new Error("drawbox: unsupported box source");
       }
-      const replaceOption = named.replace ?? values[6] ?? "0";
-      if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(replaceOption)) {
-        throw new Error(`${name}: invalid replace boolean`);
-      }
+      const replace = parseFilterBoolean(named.replace ?? values[6] ?? "0", `${name}: invalid replace boolean`);
       const color = named.color ?? named.c ?? values[4] ?? "black";
       let invert = color === "invert";
       let col = parseColorRgba(invert ? "black" : color);
       const thicknessOption = named.t ?? named.thickness ?? values[5] ?? (grid ? "1" : "3");
-      const replace = ["1", "true", "yes", "on"].includes(replaceOption);
       const sar = diagnostics.sar || 1;
       const geometry = (frameWidth: number, frameHeight: number, hsub: number, vsub: number) => {
         const variables = {

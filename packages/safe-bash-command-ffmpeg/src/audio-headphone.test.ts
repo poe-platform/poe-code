@@ -75,7 +75,9 @@ for (const options of [
   });
 }
 
-for (const options of ["map=FL|FL", "map=FL", "map=FC|FR", "map=FL|FR:type=bad",
+for (const options of ["map=FL|FR:threads=-1", "map=FL|FR:threads=2147483648",
+  "map=FL|FR:thread_type=bad", "map=FL|FR:extra_hw_frames=-2",
+  "map=FL|FL", "map=FL", "map=FC|FR", "map=FL|FR:type=bad",
   "map=FL|FR:gain=", "map=FL|FR:gain=:", "FL|FR::type=time",
   "map=FL|FR:gain=NaN", "map=FL|FR:gain=41", "map=FL|FR:size=1", "map=FL|FR:hrir=multich", "map=FL|FR:unknown=1"]) {
   it(`headphone rejects ${options} without replacing output`, async () => {

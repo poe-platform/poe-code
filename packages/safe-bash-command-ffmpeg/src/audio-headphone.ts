@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { splitRadix } from "./audio-dialogue-fft.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { resampleAudio } from "./audio-resample.js";
 
 export async function headphoneAudio(
@@ -13,6 +14,10 @@ export async function headphoneAudio(
   for (const [index, option] of values.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["map", "gain", "lfe", "type", "size", "hrir"][index] : option.slice(0, separator);
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, option.slice(separator + 1), "headphone");
+      continue;
+    }
     if (!key || !["map", "gain", "lfe", "type", "size", "hrir"].includes(key)) {
       throw new Error(`headphone: unsupported option ${key}`);
     }

@@ -35,6 +35,14 @@ async function render(graph: string, prefilteredInput?: number) {
 }
 
 // Native FFmpeg 7.0.2, stereo signed 16-bit WAV inputs at 8000 Hz.
+for (const option of ["threads=1", "thread_type=slice", "extra_hw_frames=0",
+  "threads=1:thread_type=slice:extra_hw_frames=0"]) {
+  it(`headphone preserves native PCM with ${option}`, async () => {
+    assert.equal(await render(`[0:a][1:a][2:a]headphone=map=FL|FR:${option}[o]`),
+      "ea0300000904f5012305ff024a05170371052e0398054503be055d03e50574030c068b033306a2035a06ba038106d103");
+  });
+}
+
 for (const [graph, expected] of [
   ["[0:a]volume=0.5[p];[p][1:a][2:a]headphone=map=FL|FR:type=time[o]",
     "f50100000502fb0092028001a5028b01b8029701cc02a301df02ae01f302ba010603c6011a03d1012d03dd014003e901"],

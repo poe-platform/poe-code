@@ -5,11 +5,13 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 for (const sync of [false, true]) {
-  for (const denominator of [0, -1000, 1000]) {
-    it(`handles chapter time base 1/${denominator} without overwriting output on failure (${sync ? "sync" : "async"})`, async () => {
+  for (const denominator of [0, -1000, 1000, 10, undefined, ""]) {
+    const timebase = denominator === undefined ? "1" : `1/${denominator}`;
+    const invalid = typeof denominator === "number" && denominator <= 0;
+    it(`handles chapter time base ${timebase} without overwriting output on failure (${sync ? "sync" : "async"})`, async () => {
       const volume = Volume.fromJSON({
         "/audio.wav": Buffer.from(encodeWav({ sampleRate: 8000, channels: [new Float64Array(16)] })),
-        "/in.ffmeta": `;FFMETADATA1\n[CHAPTER]\nTIMEBASE=1/${denominator}\nSTART=100\nEND=500\ntitle=Chapter\n`,
+        "/in.ffmeta": `;FFMETADATA1\n[CHAPTER]\nTIMEBASE=${timebase}\nSTART=100\nEND=500\ntitle=Chapter\n`,
         "/out.ffmeta": "keep"
       });
       const args = ["-v", "error", "-y", "-i", "/audio.wav", "-f", "ffmetadata", "-i", "/in.ffmeta",
@@ -18,7 +20,7 @@ for (const sync of [false, true]) {
         const result = evalSyncFfmpeg(args, undefined,
           path => volume.readFileSync(path) as Buffer,
           (path, bytes) => { volume.writeFileSync(path, bytes); return true; });
-        assert.equal(result, denominator <= 0 ? undefined : "");
+        assert.equal(result, invalid ? undefined : "");
       } else {
         let stderr = "";
         const result = await createFfmpegCommand().execute({
@@ -31,12 +33,12 @@ for (const sync of [false, true]) {
           stdin: (async function* () {})(), stdout: { async write() {} },
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
-        assert.equal(result.exitCode, denominator <= 0 ? 1 : 0, stderr);
-        if (denominator <= 0) assert.ok(stderr.includes("FFmetadata chapter TIMEBASE denominator must be positive"), stderr);
+        assert.equal(result.exitCode, invalid ? 1 : 0, stderr);
+        if (invalid) assert.ok(stderr.includes("FFmetadata chapter TIMEBASE denominator must be positive"), stderr);
       }
       const output = volume.readFileSync("/out.ffmeta", "utf8") as string;
-      if (denominator <= 0) assert.equal(output, "keep");
-      else assert.ok(output.includes(`TIMEBASE=1/1000\nSTART=100\nEND=500\n`), output);
+      if (invalid) assert.equal(output, "keep");
+      else assert.ok(output.includes(`TIMEBASE=1/${denominator || 1_000_000_000}\nSTART=100\nEND=500\n`), output);
     });
   }
 }

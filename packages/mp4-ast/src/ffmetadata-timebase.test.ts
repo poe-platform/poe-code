@@ -19,3 +19,17 @@ for (const denominator of [0, -1000, 1000]) {
     }
   });
 }
+
+for (const timebase of ["1", "1/", "1/10"]) {
+  it(`preserves chapter timing with TIMEBASE=${timebase}`, () => {
+    const denominator = timebase === "1/10" ? 10 : 1_000_000_000;
+    const input = `;FFMETADATA1\n[CHAPTER]\nTIMEBASE=${timebase}\nSTART=10\nEND=20\ntitle=One\n`;
+    const document = parseFfmetadata(new TextEncoder().encode(input));
+    const chapter = document.chapters![0]!;
+    assert.deepEqual(chapter.timeBase, { numerator: 1, denominator });
+    assert.equal(chapter.startTimeSeconds, 10 / denominator);
+    assert.equal(chapter.endTimeSeconds, 20 / denominator);
+    assert.equal(new TextDecoder().decode(serializeFfmetadata(document)),
+      `;FFMETADATA1\n[CHAPTER]\nTIMEBASE=1/${denominator}\nSTART=10\nEND=20\ntitle=One\n`);
+  });
+}

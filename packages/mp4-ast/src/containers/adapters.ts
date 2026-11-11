@@ -3059,9 +3059,9 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
         if (key === "TIMEBASE") {
           const [n, d] = val.split("/");
           tbNum = parseInt(n ?? "1", 10) || 1;
-          tbDen = parseInt(d ?? "1000", 10);
+          tbDen = parseInt(d ?? "", 10);
           if (tbDen <= 0) throw new Error("FFmetadata chapter TIMEBASE denominator must be positive");
-          tbDen = tbDen || 1000;
+          tbDen = tbDen || 1_000_000_000;
           continue;
         }
       }

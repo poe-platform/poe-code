@@ -15130,7 +15130,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 delay: [image.delay?.[scene] ?? 0], delayTicks: image.delayTicks, ticksPerSecond: image.ticksPerSecond,
                 disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene],
             });
-            stack = [{ ...canvas, ...(image.orientation === undefined ? {} : { orientation: image.orientation }), gravity: image.gravity, virtualCanvas, density: image.density, ...(image.gamma !== undefined ? { gamma: image.gamma } : {}), ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) }];
+            stack = [{ ...canvas, ...(image.orientation === undefined ? {} : { orientation: image.orientation }), gravity: image.gravity, virtualCanvas, density: image.density, ...(image.magickUnits !== undefined ? { magickUnits: image.magickUnits } : {}), ...(image.gamma !== undefined ? { gamma: image.gamma } : {}), ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) }];
         }
         else if (t === "-append" || t === "+append") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
@@ -17182,7 +17182,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (images[0]!.readMask) canvas.readMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 if (images[0]!.storedWriteMask) canvas.storedWriteMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 stack.length = 0;
-                await stack.push({ ...canvas, ...(image.orientation === undefined ? {} : { orientation: image.orientation }), virtualCanvas, density: image.density, ...(image.gamma !== undefined ? { gamma: image.gamma } : {}), ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) });
+                await stack.push({ ...canvas, ...(image.orientation === undefined ? {} : { orientation: image.orientation }), virtualCanvas, density: image.density, ...(image.magickUnits !== undefined ? { magickUnits: image.magickUnits } : {}), ...(image.gamma !== undefined ? { gamma: image.gamma } : {}), ...(image.resolution ? { resolution: image.resolution } : {}), ...(image.properties ? { properties: image.properties } : {}) });
                 return stack;
             });
             continue;

@@ -89,6 +89,7 @@ export interface RgbaImage {
   readonly renderingIntent?: string;
   readonly chromaticity?: NonNullable<ImageMetadata["chromaticity"]>;
   readonly density: number;
+  readonly magickUnits?: "inch" | "cm" | "unknown";
   readonly resolution?: NonNullable<ImageMetadata["resolution"]>;
   readonly hasAlpha: boolean;
   readonly isPremultiplied?: boolean;
@@ -138,6 +139,7 @@ export interface ImageMetadata {
   readonly renderingIntent?: string;
   readonly chromaticity?: Readonly<Partial<Record<"red-primary" | "green-primary" | "blue-primary" | "white-point", readonly [number, number]>>>;
   readonly density: number;
+  readonly magickUnits?: "inch" | "cm" | "unknown";
   readonly hasAlpha: boolean;
   readonly compression?: "hevc" | "av1";
   readonly resolution?: { readonly x: number; readonly y: number; readonly unit: "meter" | "inch" | "cm" | "unknown" };

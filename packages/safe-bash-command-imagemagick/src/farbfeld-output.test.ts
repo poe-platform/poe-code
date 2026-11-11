@@ -24,7 +24,7 @@ for (const mode of ["buffered", "sync", "command"] as const) {
                 expect(result.exitCode).toBe(0);
                 expect("stderr" in result ? result.stderr : stderr).toBe("");
                 const path = target.slice(target.indexOf(":") + 1);
-                const bytes = path === "-" ? mode === "command" ? Buffer.concat(stdout) : "stdoutBytes" in result ? result.stdoutBytes : undefined
+                const bytes = path === "-" ? mode === "command" ? Buffer.concat(stdout) : "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : undefined
                     : mode === "command" ? await fs.readFile(path) : files.get(path);
                 expect(bytes).toBeDefined();
                 expect(Buffer.from(bytes!).toString("hex")).toBe(expected);

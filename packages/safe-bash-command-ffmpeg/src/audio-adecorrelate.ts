@@ -2,7 +2,7 @@ import { md5 } from "@noble/hashes/legacy.js";
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
-import { audioExp2 } from "./audio-gate-math.js";
+import { audioExp2, audioTan } from "./audio-gate-math.js";
 
 export async function decorrelateAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -60,7 +60,7 @@ export async function decorrelateAudio(
       const outputHistory = new Float64Array(length);
       const lowGain = -60 / (0.1 * sampleRate) * delay;
       const highGain = -60 / (0.008 * sampleRate) * delay;
-      const t = Math.tan(Math.PI * 1100 / sampleRate);
+      const t = audioTan(Math.PI * 1100 / sampleRate);
       // Match FFmpeg's ff_exp10 coefficient calculation before filtering doubles.
       const high = audioExp2(Math.log2(10) * (highGain / 20));
       const ratio = audioExp2(Math.log2(10) * ((lowGain - highGain) / 20));

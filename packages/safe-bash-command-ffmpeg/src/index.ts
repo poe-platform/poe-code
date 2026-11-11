@@ -15111,6 +15111,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await cutUltrasonicAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "adecorrelate" || trimmed.startsWith("adecorrelate=")) {
                         stretched = await decorrelateAudio(stretched, origRate, trimmed, budget, context.signal);
+                        filteredSampleFormat = "dblp";
                       } else if (filterName === "flanger") {
                         stretched = await flangeAudio(stretched, origRate, trimmed, budget, context.signal);
                         filteredSampleFormat = "dblp";

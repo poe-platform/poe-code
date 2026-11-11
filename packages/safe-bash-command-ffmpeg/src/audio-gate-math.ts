@@ -63,6 +63,27 @@ export function audioExp2(value: number): number {
   return expSeries(multiply([value - exponent, 0], ln2), exponent);
 }
 
+// Filter coefficients need the low component that Math.tan can round away.
+export function audioTan(value: number): number {
+  const periods = Math.round(value / Math.PI);
+  const x = add([value, 0], multiply([-periods, 0], [Math.PI, 1.2246467991473532e-16]));
+  const negativeSquare = multiply(multiply(x, x), [-1, 0]);
+  let sine = x;
+  let cosine: Pair = [1, 0];
+  let sineTerm = sine;
+  let cosineTerm = cosine;
+  // Reduction bounds x to [-pi/2, pi/2].
+  for (let i = 1; i <= 24; i++) {
+    sineTerm = divide(multiply(sineTerm, negativeSquare), 2 * i * (2 * i + 1));
+    cosineTerm = divide(multiply(cosineTerm, negativeSquare), (2 * i - 1) * 2 * i);
+    sine = add(sine, sineTerm);
+    cosine = add(cosine, cosineTerm);
+  }
+  const quotient = divide(sine, cosine[0]);
+  const result = add(quotient, divide(multiply(quotient, [-cosine[1], 0]), cosine[0]));
+  return result[0] + result[1];
+}
+
 function expSeries(reduced: Pair, exponent: number): number {
   let term: Pair = [1, 0];
   let sum: Pair = [1, 0];

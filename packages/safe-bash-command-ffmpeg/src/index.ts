@@ -14745,6 +14745,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const removed = await removeSilence(stretched, origRate, trimmed, audioTimestamps, budget, context.signal, commands);
                           stretched = removed.channels;
                           audioTimestamps = removed.frames;
+                          audioMetadata = removed.frameSources.map((source, n) => {
+                            budget.allocateMemory(64);
+                            return { pts: removed.frames[n]!.pts,
+                              tags: source === undefined ? new Map<string, string>() : audioMetadata[source]?.tags ?? new Map<string, string>() };
+                          });
                         } else if (filterName === "asubboost") {
                           const commands = audioCommands.filter(command => command.target === "asubboost" || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);

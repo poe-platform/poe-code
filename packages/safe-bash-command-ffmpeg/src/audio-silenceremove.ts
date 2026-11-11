@@ -8,7 +8,7 @@ export async function removeSilence(
   frames: { start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined }[],
   budget: MediaBudgetTracker, signal?: AbortSignal,
   commands: readonly { sample: number; action: string; expression: string }[] = []
-): Promise<{ channels: (Float32Array | Float64Array)[]; frames: typeof frames }> {
+): Promise<{ channels: (Float32Array | Float64Array)[]; frames: typeof frames; frameSources: (number | undefined)[] }> {
   let enable: string | undefined;
   const options = {
     start_periods: 0, start_duration: 0, start_threshold: 0, start_silence: 0, start_mode: "any",
@@ -87,6 +87,8 @@ export async function removeSilence(
   }
 
   let output = [...channels];
+  budget.allocateMemory(frames.length * 8);
+  let frameSources: (number | undefined)[] = frames.map((_, index) => index);
   budget.allocateMemory(frames.length * 19);
   const startThresholds = new Float64Array(frames.length);
   let startThreshold = options.start_threshold;
@@ -285,6 +287,8 @@ export async function removeSilence(
     }
     output = trimmed.map(c => c.subarray(0, written));
     const outputFrames: typeof frames = [];
+    budget.allocateMemory(frames.length * 8);
+    const outputSources: typeof frameSources = [];
     budget.allocateMemory(frames.length * 11);
     const retainedThresholds = new Float64Array(frames.length);
     const retainedEnabled = new Uint8Array(frames.length);
@@ -302,11 +306,13 @@ export async function removeSilence(
       retainedEnabled[outputFrames.length] = enabledFrames[n]!;
       retainedStartModes[outputFrames.length] = startModes[n]!;
       retainedStopModes[outputFrames.length] = stopModes[n]!;
+      outputSources.push(n >= firstForwardedFrame ? frameSources[n] : undefined);
       outputFrames.push({ start: offset, end: offset + count, pts: frame.pts, exactPts: frame.exactPts,
         pos: n >= firstForwardedFrame ? frame.pos : undefined });
       offset += count;
     }
     frames = outputFrames;
+    frameSources = outputSources;
     enabledFrames = retainedEnabled;
     stopThresholds = retainedThresholds;
     startModes = retainedStartModes;
@@ -327,5 +333,5 @@ export async function removeSilence(
       }
     }
   }
-  return { channels: output, frames };
+  return { channels: output, frames, frameSources };
 }

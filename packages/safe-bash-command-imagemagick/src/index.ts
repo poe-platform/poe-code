@@ -77,6 +77,7 @@ import { kmeansPixelSteps, parseKmeansGeometry } from "./kmeans.js";
 import { motionBlurPixelSteps } from "./motion-blur-kernel.js";
 import { rotationalBlurPixelSteps } from "./rotational-blur-kernel.js";
 import { bilateralBlurPixelSteps } from "./bilateral-blur-kernel.js";
+import { paintPixelSteps } from "./paint-kernel.js";
 import { kuwaharaPixelSteps } from "./kuwahara-kernel.js";
 import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
 import { selectiveBlurPixelSteps } from "./selective-blur-kernel.js";
@@ -2868,10 +2869,13 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
             throw new Error(`invalid argument for option '${option}': ${raw}`);
         }
     }
+    if (option === "-paint" && ![...value].some(character => "0123456789".includes(character))) {
+        throw new Error(`invalid argument for option '${option}': ${raw}`);
+    }
     // Chop and shave accept a lone minus and warn without changing the image.
     if (value === "-" && (option === "-chop" || option === "-shave")) return;
     if (![...value].some(c => "0123456789xX!#%.-:<>@^".includes(c)) || value === "-") throw new Error(`invalid argument for option '${option}': ${raw}`);
-    if (["-resize", "-scale", "-sample", "-thumbnail", "-adaptive-resize", "-delay", "-loop"].includes(option)
+    if (["-resize", "-scale", "-sample", "-thumbnail", "-adaptive-resize", "-delay", "-loop", "-paint"].includes(option)
         && !dimensions && ![...value].some(character => "!#%<>@^".includes(character))) {
         const geometry = parseMagickGeometry(value);
         if (geometry.width !== undefined && geometry.hasOffset) {
@@ -14674,6 +14678,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return yield* applyMagickRasterSteps(im, bilateralBlurPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.intensity), signal, { ...im, hasAlpha: im.hasAlpha || state.virtualPixel === "transparent" || (state.virtualPixel === "background" || state.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255 });
             });
         }
+        else if (t === "-paint") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
+            const raw = tokens[++i] ?? "";
+            stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                validateMagickTransformGeometry(expanded.replaceAll(",", "x").replaceAll("/", "x"), "-paint");
+                const geometry = parseMagickGeometry(expanded.replaceAll(",", "x").replaceAll("/", "x"));
+                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, paintPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.intensity), signal);
+            });
+        }
         else if (t === "-kuwahara") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const raw = tokens[++i] ?? "";
@@ -15241,7 +15255,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else {
-            if (t === "+bilateral-blur" || t === "+sketch" || t === "+charcoal" || t === "+swirl" || t === "+implode" || t === "+wave" || t === "-mask" || t === "+mask" || t === "+auto-orient" || t === "+transpose" || t === "+transverse" || t === "+color-threshold" || t === "+roll" || t === "+chop" || t === "+splice" || t === "+shave" || t === "+shade" || t === "+range-threshold" || t === "+print" || t === "+wavelet-denoise" || t === "+local-contrast" || t === "+identify") throw new Error(`option deprecated, unable to execute '${t}' at CLI arg ${argumentOffset + i + 1}`);
+            if (t === "+bilateral-blur" || t === "+sketch" || t === "+charcoal" || t === "+paint" || t === "+swirl" || t === "+implode" || t === "+wave" || t === "-mask" || t === "+mask" || t === "+auto-orient" || t === "+transpose" || t === "+transverse" || t === "+color-threshold" || t === "+roll" || t === "+chop" || t === "+splice" || t === "+shave" || t === "+shade" || t === "+range-threshold" || t === "+print" || t === "+wavelet-denoise" || t === "+local-contrast" || t === "+identify") throw new Error(`option deprecated, unable to execute '${t}' at CLI arg ${argumentOffset + i + 1}`);
             if (t === "+flip" || t === "+flop" || t === "+auto-level" || t === "+auto-gamma" || t === "+normalize" || t === "+color-matrix" || t === "+colors" || t === "+solarize" || t === "+separate" || t === "+unique-colors" || t === "+sort-pixels" || t === "+reverse") throw new Error(`option deprecated, unable to execute '${t}'`);
             if (t === "-layers") throw new Error(`UnrecognizedLayerMethod '-layers' '${tokens[i + 1] ?? ""}'`);
             if ((t.startsWith("-") && t !== "-" && t !== "--list") || t.startsWith("+")) throw new UnrecognizedConvertOptionError(`unrecognized option '${t}'`);
@@ -18791,6 +18805,19 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const geometry = parseMagickGeometry(expanded);
                 return transformStoredMagickRaster(image, backend, bilateralBlurPixelSteps(image, geometry, background, virtualPixel, channels, intensity), signal, { ...image, hasAlpha: image.hasAlpha || virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255 });
             });
+        } else if (!operandsOnly && token === "-paint") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
+            const raw = tokens[++i] ?? "", { background, virtualPixel, optionProperties, intensity } = state, channels = state.channelExplicit ? state.channels : undefined;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                validateMagickTransformGeometry(expanded.replaceAll(",", "x").replaceAll("/", "x"), "-paint");
+                const geometry = parseMagickGeometry(expanded.replaceAll(",", "x").replaceAll("/", "x"));
+                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, paintPixelSteps(image, geometry, background, virtualPixel, channels, intensity), signal);
+            });
         } else if (!operandsOnly && token === "-kuwahara") {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
@@ -19043,7 +19070,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (!operandsOnly && ((token.startsWith("-") && token !== "-" && token !== "--list") || token.startsWith("+"))) {
                 // Execute preceding writes before reporting the option error.
                 stackStep(async () => {
-                    if (token === "+bilateral-blur" || token === "+sketch" || token === "+charcoal" || token === "+swirl" || token === "+implode" || token === "+wave" || token === "-mask" || token === "+mask" || token === "+auto-orient" || token === "+transpose" || token === "+transverse" || token === "+color-threshold" || token === "+roll" || token === "+chop" || token === "+splice" || token === "+shave" || token === "+shade" || token === "+range-threshold" || token === "+print" || token === "+wavelet-denoise" || token === "+local-contrast" || token === "+identify") throw new Error(`option deprecated, unable to execute '${token}' at CLI arg ${i + 1}`);
+                    if (token === "+bilateral-blur" || token === "+sketch" || token === "+charcoal" || token === "+paint" || token === "+swirl" || token === "+implode" || token === "+wave" || token === "-mask" || token === "+mask" || token === "+auto-orient" || token === "+transpose" || token === "+transverse" || token === "+color-threshold" || token === "+roll" || token === "+chop" || token === "+splice" || token === "+shave" || token === "+shade" || token === "+range-threshold" || token === "+print" || token === "+wavelet-denoise" || token === "+local-contrast" || token === "+identify") throw new Error(`option deprecated, unable to execute '${token}' at CLI arg ${i + 1}`);
                     if (token === "+flip" || token === "+flop" || token === "+auto-level" || token === "+auto-gamma" || token === "+normalize" || token === "+color-matrix" || token === "+colors" || token === "+solarize" || token === "+separate" || token === "+unique-colors" || token === "+sort-pixels" || token === "+reverse") throw new Error(`option deprecated, unable to execute '${token}'`);
                     if (token === "-layers") throw new Error(`UnrecognizedLayerMethod '-layers' '${tokens[i + 1] ?? ""}'`);
                     throw new UnrecognizedConvertOptionError(`unrecognized option '${token}'`);
@@ -19409,7 +19436,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-hough-lines",
         "-emboss",
         "-shade",
-        "-charcoal",
+        "-charcoal", "-paint",
         "-region", "-write-mask", "-clip-mask", "-sketch", "-attenuate", "-seed", "-quantize", "-treedepth", "-virtual-pixel", "-orient", "-profile", "+profile",
         "-scene", "-delay", "-loop", "-transparent-color", "-dispose", "-morph", "-repage", "-raise", "+raise",
         "-clone", "-insert", "-swap", "-delete", "-smush", "+smush", "-layers", "-recolor",

@@ -2929,7 +2929,7 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
             throw new Error(`invalid argument for option '${option}': ${raw}`);
         }
     }
-    if (["-chop", "-shave", "-swirl", "-implode", "-wave", "-blue-shift"].includes(option) && !dimensions) {
+    if (["-chop", "-shave", "-swirl", "-implode", "-wave", "-spread", "-blue-shift"].includes(option) && !dimensions) {
         const geometry = parseMagickGeometry(value.replaceAll("#", ""));
         if (geometry.width !== undefined && geometry.hasOffset
             && !((option === "-chop" || option === "-shave") && hasMagickScalarModifierOffsets(value))) {

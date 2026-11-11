@@ -17934,6 +17934,7 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
     const options: string[] = [];
     const swaps: number[][] = [];
     const operands: string[][] = [];
+    const writes: string[][] = [];
     const operations: string[] = [];
     const operandOperations: string[][] = [];
     let groupDepth = 0;
@@ -17971,6 +17972,11 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
         }
         else if (t === "-stereo") {
             stereo = argv[++i] ?? "";
+        }
+        else if (t === "-write") {
+            const path = argv[++i];
+            if (path === undefined) return { exitCode: 1, stdout: "", stderr: "composite: missing argument '-write'\n" };
+            (writes[operands.length] ??= []).push(t, path);
         }
         else if (t === "-stegano") {
             const value = argv[++i];
@@ -18053,8 +18059,12 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
     const overlay = operands[0]!;
     const base = operands[1]!;
     const out = operands[operands.length - 1]!;
-    // Convert expects the destination first; move complete groups with their edits.
-    return [...base, ...overlay, ...operands.slice(2, -1).flat(), ...options, ...trailingOperations, ...(stegano !== undefined ? ["-stegano", String(stegano)] : stereo !== undefined ? ["-stereo", stereo] : ["-composite"]), ...out];
+    // Intermediate writes see the input list in command-line order, before composition.
+    const inputs = writes.length ? [
+        ...operands.slice(0, -1).flatMap((operand, index) => [...(writes[index] ?? []), ...operand]),
+        ...(writes[operands.length - 1] ?? []), "-swap", "0,1"
+    ] : [...base, ...overlay, ...operands.slice(2, -1).flat()];
+    return [...inputs, ...options, ...trailingOperations, ...(stegano !== undefined ? ["-stegano", String(stegano)] : stereo !== undefined ? ["-stereo", stereo] : ["-composite"]), ...out];
 }
 function* runCompositeCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     const parsed = yield* parseCompositeArgumentsSteps(argv);

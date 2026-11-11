@@ -50,6 +50,34 @@ export function parseAudioSegment(filter: string): string[] {
     const bounds: string[] = [];
     if (index > 0) bounds.push(`start${suffix}=${points[index - 1]}`);
     if (index < points.length) bounds.push(`end${suffix}=${points[index]}`);
-    return `atrim=${bounds.join(":")}`;
+    return `${timestamps ? "asegment" : "atrim"}=${bounds.join(":")}`;
   });
+}
+
+export function createAudioSegmentTrim(start: number, end: number, samplesPerTick: number) {
+  const points = start === Infinity ? [end] : [start, end];
+  const selected = points.length - 1;
+  let segment = 0;
+  return (frame: { start: number; end: number; pts: number }) => {
+    let from: number | undefined;
+    let to = 0;
+    const count = frame.end - frame.start;
+    // Match native consumption: cap each frame by the remaining sample count,
+    // then advance on its timestamp. Neither clock can rewind the segment.
+    for (let offset = 0; offset < count;) {
+      while (segment < points.length && points[segment]! <= frame.start + offset) segment++;
+      if (segment >= points.length) break;
+      const remaining = points[segment]! - frame.start - offset;
+      const limit = Math.round(remaining / samplesPerTick);
+      const consumed = limit > 0 && limit <= 2147483647 ? Math.min(count - offset, limit) : count - offset;
+      const pts = Math.round(frame.pts / samplesPerTick) + Math.round(offset / samplesPerTick);
+      while (segment < points.length && pts >= points[segment]!) segment++;
+      if (segment === selected) {
+        from ??= offset;
+        to = offset + consumed;
+      }
+      offset += consumed;
+    }
+    return from !== undefined ? { start: from, end: to } : segment >= points.length ? null : undefined;
+  };
 }

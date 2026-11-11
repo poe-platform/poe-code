@@ -19,7 +19,7 @@ import { parseAlphamergeGraph, alphamerge } from "./alphamerge.js";
 import { interpolateFrameRate } from "./framerate.js";
 import { zoompan } from "./zoompan.js";
 import { imagePipeFrameEnd } from "./image-pipe.js";
-import { parseAudioSegment } from "./audio-asegment.js";
+import { createAudioSegmentTrim, parseAudioSegment } from "./audio-asegment.js";
 import { createAudioTimestampTransform } from "./audio-clock.js";
 import { audioSpeakerMasks, parseAudioChannelCount, parseAudioChannelLayout } from "./audio-channel-layout.js";
 import { ffmpegColors } from "./ffmpeg-colors.js";
@@ -18969,8 +18969,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           delete frame.exactPts;
                           frame.pts = transform(frame);
                         }
-                      } else if (trimmed === "atrim" || trimmed.startsWith("atrim=")) {
-                        const trim = createAudioTrim(trimmed.slice("atrim=".length), origRate);
+                      } else if (trimmed === "atrim" || trimmed.startsWith("atrim=") || filterName === "asegment") {
+                        const argument = trimmed.includes("=") ? trimmed.slice(trimmed.indexOf("=") + 1) : "";
+                        const timeBase = audioTimeBase ?? 1 / origRate;
+                        const bounds = filterName === "asegment" ? parseAtrim(argument, 1 / timeBase) : undefined;
+                        const trim = bounds
+                          ? createAudioSegmentTrim(bounds.startPts, bounds.endPts === -Infinity ? Infinity : bounds.endPts, origRate * timeBase)
+                          : createAudioTrim(argument, origRate);
                         const length = stretched[0]?.length ?? 0;
                         const ranges: { start: number; end: number }[] = [];
                         const retained: NonNullable<typeof audioTimestamps> = [];

@@ -11809,7 +11809,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         canvas = { ...canvas, hasAlpha: true };
                         canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, clear, x, y, "copyalpha", undefined, false, 0, true), signal, canvas, [canvas, clear]);
                     }
-                    if (dispose) frames.push({ ...first, width, height, data: canvas.data, ...(canvas.data16 ? { data16: canvas.data16 } : {}), ...(canvas.evaluateSamples ? { evaluateSamples: canvas.evaluateSamples } : {}), hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 } });
+                    if (dispose) frames.push({ ...first, region: undefined, width, height, data: canvas.data, ...(canvas.data16 ? { data16: canvas.data16 } : {}), ...(canvas.evaluateSamples ? { evaluateSamples: canvas.evaluateSamples } : {}), hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 } });
                 }
                 stack = frames;
             } else if (optimize) {
@@ -15191,7 +15191,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         canvas = { ...canvas, hasAlpha: true };
                         canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, clear, x, y, "copyalpha", undefined, false, 0, true), signal, canvas, [canvas, clear]);
                     }
-                    if (dispose) await frames.push({ ...first, width, height, position: canvas.position, ...(canvas.storedData16 ? { storedData16: canvas.storedData16 } : {}), ...(canvas.storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples: canvas.storedEvaluateSamples }), hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 } });
+                    if (dispose) await frames.push({ ...first, region: undefined, width, height, position: canvas.position, ...(canvas.storedData16 ? { storedData16: canvas.storedData16 } : {}), ...(canvas.storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples: canvas.storedEvaluateSamples }), hasAlpha: canvas.hasAlpha, virtualCanvas: { width, height, x: 0, y: 0 } } as StoredRgbaImage);
                 }
                 if (optimize) await optimizeStoredFrameRectangles(frames, backend, signal, fuzz, true);
                 return frames;

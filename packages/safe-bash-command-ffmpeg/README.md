@@ -845,7 +845,8 @@ stereo channels with the same equal-power gains as a mono input.
 `aformat=channel_layouts=mono` (or `aformat=cl=mono`) downmixes stereo by
 averaging left and right samples, or preserves mono input. `stereo` preserves
 stereo input or converts mono with equal-power gains. It also downmixes 2.1,
-4.0 and 5.1 input to stereo, including raw PCM with `-ac 3`, `-ac 4` or `-ac 6`.
+4.0, 5.1 and 7.1 input to stereo, including raw PCM with `-ac 3`, `-ac 4`, `-ac 6` or `-ac 8`.
+Eight-channel WAV input without a speaker mask uses the default 7.1 layout.
 Center and surround speakers contribute to the mix; LFE is omitted.
 On stereo input, `quad` and `5.1` keep the left/right samples in the front
 speakers and fill the remaining speakers with silence. Lists such as

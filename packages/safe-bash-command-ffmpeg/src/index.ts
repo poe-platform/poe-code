@@ -15613,7 +15613,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             filteredChannelMask = 4;
                             filteredChannelNames = undefined;
                           }
-                          const inputMask = filteredChannelMask || ({ 1: 4, 2: 3, 3: 0xb, 4: 0x107, 6: 0x3f }[stretched.length]);
+                          const inputMask = filteredChannelMask || ({ 1: 4, 2: 3, 3: 0xb, 4: 0x107, 6: 0x3f, 8: 0x63f }[stretched.length]);
                           const inputLayout = inputMask === 4 ? "mono" : inputMask === 3 ? "stereo"
                             : inputMask === 0x33 ? "quad" : inputMask === 0x3f ? "5.1" : undefined;
                           if (inputLayout && layouts.includes(inputLayout)) continue;

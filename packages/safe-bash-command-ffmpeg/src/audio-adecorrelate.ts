@@ -7,9 +7,11 @@ import { audioExp2, audioTan } from "./audio-gate-math.js";
 
 export async function decorrelateAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
+  frames: readonly { start: number; end: number; pts: number }[],
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
   const options = { stages: 6, seed: -1 };
+  let enable: string | undefined;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const entries = argument ? argument.split(":") : [];
   if (argument.endsWith(":")) entries.pop();
@@ -18,6 +20,11 @@ export async function decorrelateAudio(
     const key = separator < 0 ? ["stages", "seed"][index] : option.slice(0, separator).trim();
     if (key === "threads") {
       validateWeaveGenericOption(key, option.slice(separator + 1).trim(), "adecorrelate");
+      continue;
+    }
+    if (key === "enable") {
+      enable = option.slice(separator + 1).trim();
+      parseFilterExpression(enable, "adecorrelate enable", { n: 0, t: 0 }, undefined, new Float64Array(10), []);
       continue;
     }
     if (key !== "stages" && key !== "seed") throw new Error(`adecorrelate: unsupported option ${key}: Option not found`);
@@ -34,6 +41,25 @@ export async function decorrelateAudio(
     // Integer AVOptions validate before rounding to nearest, with ties to even.
     const rounded = Math.round(number);
     options[key] = number === rounded - 0.5 && rounded % 2 !== 0 ? rounded - 1 : rounded;
+  }
+  // Evaluate once for all channels and stages, retaining expression state across frames.
+  budget.allocateMemory(frames.length + 80);
+  const enabled = new Uint8Array(frames.length);
+  const registers = new Float64Array(10);
+  const randomStates: BigUint64Array[] = [];
+  for (const [n, frame] of frames.entries()) {
+    if (n % 1024 === 0) {
+      budget.checkCpu();
+      await yieldTurn(signal);
+      signal?.throwIfAborted();
+    }
+    if (enable === undefined) enabled[n] = 1;
+    else {
+      const variables = { n, t: frame.pts / sampleRate };
+      // Generic timelines evaluate on consumption and again before filter_frame.
+      parseFilterExpression(enable, "adecorrelate enable", variables, undefined, registers, randomStates);
+      enabled[n] = Number(Math.abs(parseFilterExpression(enable, "adecorrelate enable", variables, undefined, registers, randomStates)) >= 0.5);
+    }
   }
   const seed = options.seed === -1 ? Math.floor(Math.random() * 0x100000000) : options.seed;
   // FFmpeg's additive lagged Fibonacci generator uses MD5 to expand the seed.
@@ -72,21 +98,25 @@ export async function decorrelateAudio(
       const b0 = (ratio * t - root) / (t + root) * high;
       const b1 = (ratio * t + root) / (t + root) * high;
       let position = 0;
-      for (let i = 0; i < samples.length; i++) {
-        if (++work % 1024 === 0) {
-          budget.checkCpu();
-          await yieldTurn(signal);
-          signal?.throwIfAborted();
+      for (const [n, frame] of frames.entries()) {
+        // Bypassed frames keep their input and freeze every stage's delay history.
+        if (!enabled[n]) continue;
+        for (let i = frame.start; i < frame.end; i++) {
+          if (++work % 1024 === 0) {
+            budget.checkCpu();
+            await yieldTurn(signal);
+            signal?.throwIfAborted();
+          }
+          const previous = (position || length) - 1;
+          const next = (position + 1) % length;
+          const x = samples[i]!;
+          const y = b1 * x + b0 * inputHistory[previous]! + a1 * inputHistory[next]! + inputHistory[position]!
+            - a1 * outputHistory[previous]! - b0 * outputHistory[next]! - b1 * outputHistory[position]!;
+          inputHistory[position] = x;
+          outputHistory[position] = y;
+          samples[i] = y;
+          position = next;
         }
-        const previous = (position || length) - 1;
-        const next = (position + 1) % length;
-        const x = samples[i]!;
-        const y = b1 * x + b0 * inputHistory[previous]! + a1 * inputHistory[next]! + inputHistory[position]!
-          - a1 * outputHistory[previous]! - b0 * outputHistory[next]! - b1 * outputHistory[position]!;
-        inputHistory[position] = x;
-        outputHistory[position] = y;
-        samples[i] = y;
-        position = next;
       }
     }
     output.push(samples);

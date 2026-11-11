@@ -1456,7 +1456,9 @@ frames using `n` (frame number) or `t` (timestamp in seconds), for example
 unchanged while filter history continues updating. Scheduled commands can replace
 `enable`, for example `asendcmd=c='0.001 aexciter enable 0',aexciter=listen=1`
 switches to dry audio at the first frame at or after 0.001 seconds. Invalid runtime
-expressions preserve the previous expression. A trailing option separator is
+expressions preserve the previous expression. Timeline expressions also support
+repeatable `random(0)` and `randomi(0,0,1)` gates, with independent state for each
+filter instance and fresh run. A trailing option separator is
 accepted: `aexciter=amount=2:` produces the same audio as `aexciter=amount=2`. `threads` (0–2147483647) and
 `extra_hw_frames` (-1–2147483647) accept numeric expressions without changing PCM output.
 `thread_type` accepts flags such as `slice`, `none`, or `all-slice`, and numeric

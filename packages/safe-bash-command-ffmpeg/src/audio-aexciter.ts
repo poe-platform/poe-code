@@ -40,7 +40,7 @@ export async function exciteAudio(
     }
     if (key === "enable") {
       enable = value;
-      parseFilterExpression(enable, "aexciter enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
+      parseFilterExpression(enable, "aexciter enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10), []);
       continue;
     }
     if (!key || !Object.hasOwn(options, key)) throw new Error(`aexciter: unsupported option ${key}`);
@@ -51,7 +51,9 @@ export async function exciteAudio(
   const history = channels.map(() => new Float64Array(14));
   let work = 0;
   let nextCommand = 0;
+  // Validation must not advance the per-filter random sequence.
   const registers = new Float64Array(10);
+  const randomStates: BigUint64Array[] = [];
   for (const [n, frame] of frames.entries()) {
     while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
       const command = commands[nextCommand++]!;
@@ -59,9 +61,10 @@ export async function exciteAudio(
         if (command.action === "enable") {
           parseFilterExpression(command.expression, "aexciter enable", {
             n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2
-          }, undefined, new Float64Array(10));
+          }, undefined, new Float64Array(10), []);
           enable = command.expression;
           registers.fill(0);
+          randomStates.length = 0;
         } else if (Object.hasOwn(options, command.action)) {
           setOption(command.action as keyof typeof options, command.expression);
         }
@@ -71,8 +74,8 @@ export async function exciteAudio(
     if (enable !== undefined) {
       const variables = { n, t: frame.pts / sampleRate, pos: frame.pos ?? NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 };
       // FFmpeg evaluates on frame consumption and again before filter_frame.
-      parseFilterExpression(enable, "aexciter enable", variables, undefined, registers);
-      enabled = Math.abs(parseFilterExpression(enable, "aexciter enable", variables, undefined, registers)) >= 0.5;
+      parseFilterExpression(enable, "aexciter enable", variables, undefined, registers, randomStates);
+      enabled = Math.abs(parseFilterExpression(enable, "aexciter enable", variables, undefined, registers, randomStates)) >= 0.5;
     }
     // Native exciter transfer curve, with its near-zero suppression and DC blocker.
     const root = (value: number) => Math.abs(value) > 1e-8 ? Math.sqrt(Math.abs(value)) : 0;

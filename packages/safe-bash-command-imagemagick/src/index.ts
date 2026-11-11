@@ -2549,6 +2549,12 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
     return { ...img, alphaSeparate: img.alphaBlend === false ? false : img.alphaSeparate, ...(img.region ? { region: chopRegion(img.region, cx0, cy0, cx1, cy1) } : {}), width: outW, height: outH, data: out, ...(pngIndices ? { pngIndices } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
 }
 
+function normalizeMagickWarpGeometry(raw: string): string {
+    const value = [...raw].filter(character => character.trim() !== "" && character !== "(" && character !== ")").join("");
+    // A colon anywhere makes the first two geometry fields a ratio; later fields are ignored.
+    return value.includes(":") ? value.replaceAll("X", ":").replaceAll("x", ":").replaceAll("/", ":").replaceAll(",", ":").split(":").slice(0, 2).join(":") : value;
+}
+
 function validateMagickTransformGeometry(raw: string, option: string): void {
     let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal", "-density"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
     if (["-swirl", "-implode", "-wave", "-spread"].includes(option)) value = value.replaceAll("(", "").replaceAll(")", "");
@@ -2574,7 +2580,7 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
     if (option === "-swirl" || option === "-implode" || option === "-wave" || option === "-spread") {
         // Native warp amplitudes retain their magnitude when a ratio has no denominator.
         if (option !== "-spread" && value.endsWith(":")) value = value.slice(0, -1);
-        const geometry = parseMagickGeometry(value.replaceAll("#", ""));
+        const geometry = parseMagickGeometry((option === "-spread" ? value : normalizeMagickWarpGeometry(value)).replaceAll("#", ""));
         // A single signed magnitude parses as an offset; two offsets supply no magnitude.
         const magnitude = geometry.aspectRatio ?? geometry.width ?? (geometry.areaLimit !== undefined || geometry.hasOffset && !geometry.hasYOffset ? Number.parseFloat(value) : undefined);
         if (!Number.isFinite(magnitude) && (option !== "-wave" || !Number.isFinite(geometry.height))) {
@@ -3967,7 +3973,7 @@ function solveLinearSystem(A: number[][], b: number[]): number[] {
 
 function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">, token: string, spec: string, args = "0"): WarpPlan | undefined {
     if (token === "-swirl" || token === "-implode" || token === "-wave")
-        spec = [...spec].filter(character => character.trim() !== "").join("").replaceAll("(", "").replaceAll(")", "");
+        spec = normalizeMagickWarpGeometry(spec);
     const w = img.width, h = img.height, cx = (w - 1) / 2, cy = (h - 1) / 2;
     const result = (map: WarpPlan["map"], width = w, height = h, hasAlpha = true): WarpPlan => ({ width, height, hasAlpha, map });
     const bestFit = (plan: WarpPlan, forward: WarpPlan["map"]): WarpPlan => {

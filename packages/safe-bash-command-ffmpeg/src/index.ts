@@ -8783,6 +8783,9 @@ export function evalSyncFfmpeg(
       if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
       const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
         ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
+      if (!copyTimestamps && startSeconds !== undefined && doc.chapters) {
+        doc = { ...doc, chapters: outputChapters(doc.chapters, startSeconds) };
+      }
       if (audioCodec !== "copy" && !stripAudio) doc = decodeAacInput(doc);
       if (audioCodec === "copy" && (startSeconds !== undefined || outputSs !== undefined) &&
           doc.tracks.some(track => track.codecDescriptions[0]?.codecName === `pcm_${doc.containerFormat}`)) return undefined;
@@ -11889,6 +11892,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
               const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
                 ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
+              if (!copyTimestamps && startSeconds !== undefined && doc.chapters) {
+                doc = { ...doc, chapters: outputChapters(doc.chapters, startSeconds) };
+              }
               if (audioCodec !== "copy" && !stripAudio) doc = decodeAacInput(doc);
               if (inp.streamLoop && inp.streamLoop > 0) {
                 const copies = Array.from({ length: inp.streamLoop + 1 }, () => doc);

@@ -14718,8 +14718,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const metaChannels: BaseRgbaImage[] = [];
                 for (const plane of im.metaChannels ?? []) metaChannels.push(yield* applyMagickRasterSteps(plane,
                     borderPixels(plane, fw, fh, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16), signal, { width, height, hasAlpha: false }));
-                const canvas = { ...yield* applyMagickRasterSteps(im, magickFramePixels(im, width, height, state.borderColor, im.matteColor ?? state.matteColor, fw, fh, g.x, g.y, state.composeRaw.toLowerCase() === "over", [state.channels.r, state.channels.g, state.channels.b]), signal,
-                    { width, height, hasAlpha: im.hasAlpha || (im.matteColor ?? state.matteColor).a < 255 || state.borderColor.a < 255 }), region: undefined, writeMask, readMask, metaChannels, virtualCanvas: magickBorderCanvas(im, fw, fh) };
+                // Frame composites retained alpha without activating it; Off permits a new matte alpha channel.
+                const canvas = { ...yield* applyMagickRasterSteps(im, magickFramePixels({ ...im, hasAlpha: im.hasAlpha || im.inactiveAlpha === true && im.alphaBlend !== false }, width, height, state.borderColor, im.matteColor ?? state.matteColor, fw, fh, g.x, g.y, state.composeRaw.toLowerCase() === "over", [state.channels.r, state.channels.g, state.channels.b]), signal,
+                    { width, height, hasAlpha: im.hasAlpha || !im.inactiveAlpha && ((im.matteColor ?? state.matteColor).a < 255 || state.borderColor.a < 255) }), alphaBlend: !im.hasAlpha && !im.inactiveAlpha ? true : im.alphaBlend, region: undefined, writeMask, readMask, metaChannels, virtualCanvas: magickBorderCanvas(im, fw, fh) };
                 stack[sceneIdx] = state.composeRaw.toLowerCase() === "over" ? canvas
                     : yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, fw, fh, state.composeArgs, signal, state.alphaFuzz, true);
             }
@@ -19332,8 +19333,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const storedMetaChannels: BaseStoredRgbaImage[] = [];
                 for (const plane of image.storedMetaChannels ?? []) storedMetaChannels.push(await transformStoredMagickRaster(plane, backend,
                     borderPixels(plane, left, top, { r: 0, g: 0, b: 0, a: 255 }, !!plane.storedData16), signal, { width, height, hasAlpha: false }));
-                const canvas = { ...await transformStoredMagickRaster(image, backend, magickFramePixels(image, width, height, borderColor, image.matteColor ?? matteColor, left, top, geometry.x, geometry.y, composeRaw.toLowerCase() === "over", [channels.r, channels.g, channels.b]), signal,
-                    { width, height, hasAlpha: image.hasAlpha || (image.matteColor ?? matteColor).a < 255 || borderColor.a < 255 }), region: undefined, storedWriteMask, readMask, storedMetaChannels, virtualCanvas: magickBorderCanvas(image, left, top) };
+                // Frame composites retained alpha without activating it; Off permits a new matte alpha channel.
+                const canvas = { ...await transformStoredMagickRaster(image, backend, magickFramePixels({ ...image, hasAlpha: image.hasAlpha || image.inactiveAlpha === true && image.alphaBlend !== false }, width, height, borderColor, image.matteColor ?? matteColor, left, top, geometry.x, geometry.y, composeRaw.toLowerCase() === "over", [channels.r, channels.g, channels.b]), signal,
+                    { width, height, hasAlpha: image.hasAlpha || !image.inactiveAlpha && ((image.matteColor ?? matteColor).a < 255 || borderColor.a < 255) }), alphaBlend: !image.hasAlpha && !image.inactiveAlpha ? true : image.alphaBlend, region: undefined, storedWriteMask, readMask, storedMetaChannels, virtualCanvas: magickBorderCanvas(image, left, top) };
                 if (composeRaw.toLowerCase() === "over") return canvas;
                 return compositeStoredMagick(canvas, image, backend, signal, left, top, composeRaw, composeArgs, false, true, false, false, alphaFuzz, true);
             });

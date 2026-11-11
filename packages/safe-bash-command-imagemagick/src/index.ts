@@ -6807,6 +6807,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
       return "xbm";
     case "xpm":
       return "xpm";
+    case "sixel":
+      return "sixel";
     case "xwd":
       return "xwd";
     case "pcx":

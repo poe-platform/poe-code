@@ -635,7 +635,9 @@ twice per frame using the second result, matching FFmpeg.
 (0–2147483647), `thread_type` (such as `slice`), and `extra_hw_frames`
 (-1–2147483647) options. They are validated without changing the processed audio;
 for example, `stereotools=mutel=1:threads=1` still mutes only the left channel.
-Other stereotools options are rejected.
+Other stereotools options are rejected. Invalid options return native Linux FFmpeg
+exit statuses: 8 for unknown options, 222 for out-of-range values, and 234 for
+invalid arguments. These failures emit no PCM and preserve existing output files.
 Both filters accept case-insensitive Boolean
 words (`true`/`false`, `yes`/`no`, `on`/`off`, `y`/`n`, `enable`/`disable`,
 `enabled`/`disabled`) and decimal 0/1 values, such as `phasel=True` or `c=OFF`.

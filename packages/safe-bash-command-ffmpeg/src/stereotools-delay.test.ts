@@ -44,7 +44,7 @@ for (const [rate, filter, expected] of cases) {
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
       if (!expected) {
-        assert.equal(result.exitCode, 1);
+        assert.notEqual(result.exitCode, 0);
         assert.ok(stderr.includes("stereotools"), stderr);
         assert.equal(volume.readFileSync("/out.raw", "utf8"), "keep");
         return;

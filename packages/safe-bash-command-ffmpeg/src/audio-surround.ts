@@ -10,6 +10,7 @@ export async function surroundAudio(
 ): Promise<{ channels: Float32Array[]; frameSize: number }> {
   let size = 4096, lfe = true;
   let outputChannels = 6;
+  const outputLevels = { fl_out: 1, fr_out: 1, fc_out: 1, lfe_out: 1, bl_out: 1, br_out: 1 };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
@@ -27,6 +28,12 @@ export async function surroundAudio(
         throw new RangeError(`surround: ${key} must be between 0 and 10`);
       }
       // FFmpeg 7.0.2 overwrites these global levels with per-channel defaults.
+    } else if (key !== undefined && Object.hasOwn(outputLevels, key)) {
+      const number = parseFilterExpression(value, "surround", { min: 0, max: 10, default: 1 });
+      if (!Number.isFinite(number) || number < 0 || number > 10) {
+        throw new RangeError(`surround: ${key} must be between 0 and 10`);
+      }
+      outputLevels[key as keyof typeof outputLevels] = Math.fround(number);
     } else if (key === "win_size") {
       const number = parseFilterExpression(value, "surround", { min: 1024, max: 65536, default: 4096 });
       if (!Number.isFinite(number) || number < 1024 || number > 65536) {
@@ -60,6 +67,7 @@ export async function surroundAudio(
   let max = 0;
   for (let i = 0; i < hop; i++) max = Math.max(max, f(window[i]! + window[i + hop]!));
   const gain = f(1 / f(max * f(Math.sqrt(size))));
+  const gains = Object.values(outputLevels).map(level => f(level * gain));
   const low = f(128 * size / sampleRate), high = f(256 * size / sampleRate);
   for (let start = 0; start < length; start += hop) {
     await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
@@ -102,7 +110,7 @@ export async function surroundAudio(
       transform(outReal, outImaginary, true, scratch);
       const buffer = overlap[c]!;
       buffer.copyWithin(0, hop); buffer.fill(0, hop);
-      for (let i = 0; i < size; i++) buffer[i] = f(buffer[i]! + f(f(f(outReal[i]!) * window[i]!) * gain));
+      for (let i = 0; i < size; i++) buffer[i] = f(buffer[i]! + f(f(f(outReal[i]!) * window[i]!) * gains[c]!));
       output[c]!.set(buffer.subarray(0, Math.min(hop, length - start)), start);
     }
   }

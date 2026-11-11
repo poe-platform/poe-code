@@ -74,6 +74,51 @@ for (const [value, size] of [
   });
 }
 
+for (const [speaker, option] of ["fl_out", "fr_out", "fc_out", "lfe_out", "bl_out", "br_out"].entries()) {
+  for (const graph of [false, true]) for (const level of [0, 0.5, 1, 2]) {
+    it(`surround ${option}=${level} changes only speaker ${speaker} (graph=${graph})`, async () => {
+      const control = await run("surround=win_size=1024", graph);
+      const actual = await run(`surround=win_size=1024:${option}=${level}`, graph);
+      assert.equal(control.result.exitCode, 0, control.stderr);
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      const baseline = parseWav(control.output).tracks[0]!.decodedAudio!;
+      const audio = parseWav(actual.output).tracks[0]!.decodedAudio!;
+      const native = parseWav(readFileSync(new URL("./fixtures/surround-1024.wav", import.meta.url))).tracks[0]!.decodedAudio!;
+      assert.equal(audio.channels, 6);
+      assert.equal(audio.channelMask, 0x3f);
+      audio.channelData.forEach((channel, c) => {
+        assert.equal(channel.length, native.channelData[c]!.length);
+        if (c !== speaker || level === 1) assert.deepEqual(channel, baseline.channelData[c]);
+        if (c === speaker && level === 0) assert.ok(channel.every(sample => sample === 0));
+        channel.forEach((sample, i) => {
+          const expected = native.channelData[c]![i]! * (c === speaker ? level : 1);
+          assert.ok(Math.abs(sample - expected) * 32768 <= 2,
+            `speaker ${c}, sample ${i}: ${sample}, expected ${expected}`);
+        });
+      });
+    });
+  }
+}
+
+for (const option of ["fl_out", "fr_out", "fc_out", "lfe_out", "bl_out", "br_out"]) {
+  it(`surround ${option} accepts expressions and AVOption constants`, async () => {
+    for (const [value, level] of [["min", 0], ["max", 10], ["default", 1], ["1/2", 0.5]] as const) {
+      const actual = await run(`surround=win_size=1024:${option}=${value}`);
+      const expected = await run(`surround=win_size=1024:${option}=${level}`);
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      assert.equal(expected.result.exitCode, 0, expected.stderr);
+      assert.deepEqual(actual.output, expected.output);
+    }
+  });
+  for (const [value, exitCode] of [["-0.1", 222], ["10.1", 222], ["bad", 234]] as const) {
+    it(`surround rejects ${option}=${value} without replacing output`, async () => {
+      const { result, output } = await run(`surround=${option}=${value}`);
+      assert.equal(result.exitCode, exitCode);
+      assert.equal(output.toString(), "keep");
+    });
+  }
+}
+
 it("disabling LFE preserves the other five channels exactly", async () => {
   const on = await run("surround=win_size=1024");
   const off = await run("surround=win_size=1024:lfe=0");

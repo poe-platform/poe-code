@@ -633,6 +633,9 @@ with status 222, invalid expressions with 234, unsupported transform sizes with
 218, and unknown options with 8.
 Use `surround=chl_out=stereo` to retain two output channels with the same
 frequency-domain processing of the front speakers.
+Set `fl_out`, `fr_out`, `fc_out`, `lfe_out`, `bl_out`, or `br_out` to adjust
+only that speaker's output level (0–10, default 1); zero silences the speaker.
+These levels accept expressions and the constants `min`, `max`, and `default`.
 `level_in` and `level_out` accept expressions from 0 to 10 (default 1).
 As in FFmpeg 7.0.2, per-channel defaults override these global levels, so they
 leave the audio unchanged, including when set to zero.

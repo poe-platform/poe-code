@@ -14068,7 +14068,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else {
-            if (t === "+roll" || t === "+chop" || t === "+splice" || t === "+print" || t === "+identify") throw new Error(`option deprecated, unable to execute '${t}' at CLI arg ${argumentOffset + i + 1}`);
+            if (t === "+color-threshold" || t === "+roll" || t === "+chop" || t === "+splice" || t === "+print" || t === "+identify") throw new Error(`option deprecated, unable to execute '${t}' at CLI arg ${argumentOffset + i + 1}`);
             if (t === "+flip" || t === "+flop" || t === "+auto-level" || t === "+auto-gamma" || t === "+normalize" || t === "+color-matrix" || t === "+colors" || t === "+solarize" || t === "+separate" || t === "+unique-colors" || t === "+sort-pixels" || t === "+reverse") throw new Error(`option deprecated, unable to execute '${t}'`);
             if ((t.startsWith("-") && t !== "-" && t !== "--list") || t.startsWith("+")) throw new UnrecognizedConvertOptionError(`unrecognized option '${t}'`);
             const bytes = t.startsWith("@") ? files.get(t.slice(1)) : undefined;
@@ -17600,7 +17600,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (!operandsOnly && ((token.startsWith("-") && token !== "-" && token !== "--list") || token.startsWith("+"))) {
                 // Execute preceding writes before reporting the option error.
                 stackStep(async () => {
-                    if (token === "+roll" || token === "+chop" || token === "+splice" || token === "+print" || token === "+identify") throw new Error(`option deprecated, unable to execute '${token}' at CLI arg ${i + 1}`);
+                    if (token === "+color-threshold" || token === "+roll" || token === "+chop" || token === "+splice" || token === "+print" || token === "+identify") throw new Error(`option deprecated, unable to execute '${token}' at CLI arg ${i + 1}`);
                     if (token === "+flip" || token === "+flop" || token === "+auto-level" || token === "+auto-gamma" || token === "+normalize" || token === "+color-matrix" || token === "+colors" || token === "+solarize" || token === "+separate" || token === "+unique-colors" || token === "+sort-pixels" || token === "+reverse") throw new Error(`option deprecated, unable to execute '${token}'`);
                     throw new UnrecognizedConvertOptionError(`unrecognized option '${token}'`);
                 });

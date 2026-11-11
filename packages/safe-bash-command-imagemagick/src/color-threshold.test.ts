@@ -4,6 +4,21 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runMagickCli, runMagickCliSync, runMogrifyCli } from "./index.js";
 
+it.each(["+color-threshold", "-color-threshold"])("matches native gray stdout for %s", async option => {
+    const args = createCommandArguments(["xc:red", option, "red-red", "-depth", "8", "gray:-"]).args;
+    const stdout: number[] = [];
+    let stderr = "";
+    const result = await createMagickCommand().execute({
+        command: "magick", args, cwd: "/", env: {}, fs: new MemoryFileSystem(),
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write(bytes) { stdout.push(...bytes); } },
+        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+    });
+    expect(result.exitCode).toBe(option === "+color-threshold" ? 1 : 0);
+    expect(stdout).toEqual(option === "+color-threshold" ? [] : [255]);
+    expect(stderr).toBe(option === "+color-threshold" ? "magick: option deprecated, unable to execute '+color-threshold' at CLI arg 2\n" : "");
+});
+
 const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAgAAAABCAYAAADjAO9DAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAD/AP8A/6C9p5MAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMDhUMDI6MTM6NTgrMDA6MDCOEYmoAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTA4VDAyOjEzOjU4KzAwOjAw/0wxFAAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0wOFQwMjoxMzo1OCswMDowMKhZEMsAAAAkSURBVAjXBcEBEQAgEAMg1sSmf0YzkTaYkNIUqRHBrEU49+0PiOIIYgiOdHkAAAAASUVORK5CYII=", "base64");
 // Native ImageMagick 7.1.2-35 Q16-HDRI, decoded PNG32 RGBA output.
 for (const mode of ["buffered", "sync", "retained", "command", "mogrify"] as const) {

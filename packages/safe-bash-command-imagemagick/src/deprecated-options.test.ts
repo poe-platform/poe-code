@@ -6,6 +6,9 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 // ImageMagick 7.1.2-35 Q16-HDRI: deprecated options fail with 1, unknown options with 11.
 for (const mode of ["buffered", "sync", "retained", "command"] as const) {
     it.each([
+        { options: ["+color-threshold", "red-red"], exitCode: 1, error: "option deprecated, unable to execute '+color-threshold' at CLI arg 2" },
+        { options: ["(", "+color-threshold", "red-red", ")"], exitCode: 1, error: "option deprecated, unable to execute '+color-threshold' at CLI arg 3" },
+        { options: ["-color-threshold", "red-red"], exitCode: 0, error: "", pixels: [255, 255, 255, 255] },
         { options: ["+print", "hello"], exitCode: 1, error: "option deprecated, unable to execute '+print' at CLI arg 2" },
         { options: ["-format", "X", "+identify"], exitCode: 1, error: "option deprecated, unable to execute '+identify' at CLI arg 4" },
         { options: ["(", "+print", "hello", ")"], exitCode: 1, error: "option deprecated, unable to execute '+print' at CLI arg 3" },

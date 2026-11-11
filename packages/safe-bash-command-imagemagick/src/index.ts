@@ -4368,8 +4368,15 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
 }
 
 function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">, token: string, spec: string, args = "0"): WarpPlan | undefined {
-    if (token === "-swirl" || token === "-implode" || token === "-wave")
+    if (token === "-swirl" || token === "-implode" || token === "-wave") {
         spec = normalizeMagickWarpGeometry(spec);
+        // Only signed leading hex is a magnitude; unsigned 0x starts with zero amplitude.
+        if ((spec[0] === "+" || spec[0] === "-") && spec.slice(1, 3).toLowerCase() === "0x") {
+            let end = 3;
+            while (end < spec.length && "0123456789abcdef".includes(spec[end]!.toLowerCase())) end++;
+            if (end > 3) spec = String(Number.parseInt(spec.slice(0, end), 16)) + spec.slice(end);
+        }
+    }
     const w = img.width, h = img.height, cx = (w - 1) / 2, cy = (h - 1) / 2;
     const result = (map: WarpPlan["map"], width = w, height = h, hasAlpha = true): WarpPlan => ({ width, height, hasAlpha, map });
     const bestFit = (plan: WarpPlan, forward: WarpPlan["map"]): WarpPlan => {

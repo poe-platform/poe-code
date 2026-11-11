@@ -164,6 +164,7 @@ export async function removeSilence(
     budget.allocateMemory(frames.length * 4);
     const counts = new Uint32Array(frames.length);
     let frameIndex = 0;
+    let firstForwardedFrame = frames.length;
     for (let i = 0; i < length; i++) {
       if (i % 4096 === 0) {
         await yieldTurn(signal);
@@ -243,6 +244,8 @@ export async function removeSilence(
         if (found < periods && matches) count++;
         if (count > duration) {
           count = 0;
+          // Native forwards subsequent frames only after a single start period, without stop removal.
+          if (periods === 1 && options.stop_periods === 0) firstForwardedFrame = frameIndex + 1;
           if (++found >= periods && enabled) {
             const retained = Math.min(retention, i + 1);
             if (retained > 0) {
@@ -294,12 +297,13 @@ export async function removeSilence(
       const count = counts[n]!;
       if (!count) continue;
       // Each surviving input frame keeps its PTS, even when its leading samples were removed.
-      budget.allocateMemory(frame.exactPts === undefined ? 24 : 48);
+      budget.allocateMemory(frame.exactPts === undefined ? 32 : 56);
       retainedThresholds[outputFrames.length] = stopThresholds[n]!;
       retainedEnabled[outputFrames.length] = enabledFrames[n]!;
       retainedStartModes[outputFrames.length] = startModes[n]!;
       retainedStopModes[outputFrames.length] = stopModes[n]!;
-      outputFrames.push({ start: offset, end: offset + count, pts: frame.pts, exactPts: frame.exactPts });
+      outputFrames.push({ start: offset, end: offset + count, pts: frame.pts, exactPts: frame.exactPts,
+        pos: n >= firstForwardedFrame ? frame.pos : undefined });
       offset += count;
     }
     frames = outputFrames;

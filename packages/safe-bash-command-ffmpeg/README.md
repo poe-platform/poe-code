@@ -787,7 +787,8 @@ support named speakers, for example `channelsplit=4.0:BC` or `channelsplit=6.1:B
 The selected speaker is retained in the output channel layout.
 `channelsplit` accepts `threads`, `thread_type`, and `extra_hw_frames`, for example
 `channelsplit=stereo:FL:threads=1`; these settings leave PCM samples unchanged.
-`pan` supports mono, stereo, quad and 5.1 output, numbered channels and named channels from the
+`pan` supports FFmpeg standard output layouts, including `3.0(back)`, `3.1`, `5.1.2`,
+`7.1.4`, and `22.2`, with native speaker order, numbered channels and named channels from the
 input layout. Numbered input and output channels accept signed and spaced decimal indices
 (`c+1`, `c-0`, `c 1`); negative indices remain invalid. Unmasked PCM WAV uses FFmpeg’s default speaker order: mono, stereo,
 2.1, 4.0, 5.0, 5.1, 6.1 or 7.1 for one through eight channels. Four channels use

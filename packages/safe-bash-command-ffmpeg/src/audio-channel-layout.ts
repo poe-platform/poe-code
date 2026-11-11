@@ -33,6 +33,30 @@ export function parseAudioChannelLayout(layout: string): string[] {
   if (layout === "6.1" || layout === "7c") return ["FL", "FR", "FC", "LFE", "BC", "SL", "SR"];
   if (layout === "octagonal") return ["FL", "FR", "FC", "BL", "BR", "BC", "SL", "SR"];
   if (layout === "7.1" || layout === "8c") return ["FL", "FR", "FC", "LFE", "BL", "BR", "SL", "SR"];
+  if (layout === "3.0(back)") return ["FL", "FR", "BC"];
+  if (layout === "3.1") return ["FL", "FR", "FC", "LFE"];
+  if (layout === "3.1.2") return ["FL", "FR", "FC", "LFE", "TFL", "TFR"];
+  if (layout === "quad(side)") return ["FL", "FR", "SL", "SR"];
+  if (layout === "5.1.2") return ["FL", "FR", "FC", "LFE", "BL", "BR", "TFL", "TFR"];
+  if (layout === "5.1.4") return ["FL", "FR", "FC", "LFE", "BL", "BR", "TFL", "TFR", "TBL", "TBR"];
+  if (layout === "6.0") return ["FL", "FR", "FC", "BC", "SL", "SR"];
+  if (layout === "6.0(front)") return ["FL", "FR", "FLC", "FRC", "SL", "SR"];
+  if (layout === "hexagonal") return ["FL", "FR", "FC", "BL", "BR", "BC"];
+  if (layout === "6.1(back)") return ["FL", "FR", "FC", "LFE", "BL", "BR", "BC"];
+  if (layout === "6.1(front)") return ["FL", "FR", "LFE", "FLC", "FRC", "SL", "SR"];
+  if (layout === "7.0") return ["FL", "FR", "FC", "BL", "BR", "SL", "SR"];
+  if (layout === "7.0(front)") return ["FL", "FR", "FC", "FLC", "FRC", "SL", "SR"];
+  if (layout === "7.1(wide)") return ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC"];
+  if (layout === "7.1(wide-side)") return ["FL", "FR", "FC", "LFE", "FLC", "FRC", "SL", "SR"];
+  if (layout === "7.1.2") return ["FL", "FR", "FC", "LFE", "BL", "BR", "SL", "SR", "TFL", "TFR"];
+  if (layout === "7.1.4") return ["FL", "FR", "FC", "LFE", "BL", "BR", "SL", "SR", "TFL", "TFR", "TBL", "TBR"];
+  if (layout === "7.2.3") return ["FL", "FR", "FC", "LFE", "BL", "BR", "SL", "SR", "TFL", "TFR", "TBC", "LFE2"];
+  if (layout === "9.1.4") return ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "SL", "SR", "TFL", "TFR", "TBL", "TBR"];
+  if (layout === "cube") return ["FL", "FR", "BL", "BR", "TFL", "TFR", "TBL", "TBR"];
+  if (layout === "hexadecagonal") return ["FL", "FR", "FC", "BL", "BR", "BC", "SL", "SR",
+    "TFL", "TFC", "TFR", "TBL", "TBC", "TBR", "WL", "WR"];
+  if (layout === "22.2") return ["FL", "FR", "FC", "LFE", "BL", "BR", "FLC", "FRC", "BC", "SL", "SR", "TC",
+    "TFL", "TFC", "TFR", "TBL", "TBC", "TBR", "LFE2", "TSL", "TSR", "BFC", "BFL", "BFR"];
   const hexadecimal = layout.toLowerCase().startsWith("0x") || layout.startsWith("0X");
   const digits = hexadecimal ? layout.slice(2) : layout;
   const alphabet = hexadecimal ? "0123456789abcdefABCDEF" : "0123456789";

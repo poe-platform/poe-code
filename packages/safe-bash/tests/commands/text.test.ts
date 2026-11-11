@@ -535,7 +535,7 @@ test("uniq -uD retains original records across reused input buffers", async () =
 test("uniq rejects invalid group methods and incompatible selections", async () => {
   for (const args of [["--all-repeated=append"], ["--group=none"], ["--group="], ["-cD"], ["--group", "-d"], ["--group", "-u"], ["--group", "-c"], ["--group", "-D"]]) {
     const result = await run("uniq", args, { stdin: "a\na\n" });
-    assert.equal(result.exitCode, 2, args.join(" "));
+    assert.equal(result.exitCode, 1, args.join(" "));
     assert.equal(result.stdout, "");
   }
 });
@@ -558,7 +558,7 @@ test("uniq refuses aliased output before opening a writer", async () => {
     const result = await run("uniq", [source!, destination!], { fs });
     assert.equal(Buffer.from(await fs.readFile("/work/input")).toString(), contents, `${source} -> ${destination}`);
     assert.equal(writes, 0);
-    assert.equal(result.exitCode, 2);
+    assert.equal(result.exitCode, 1);
     assert.equal(result.stderr, "uniq: input and output must be different files\n");
   }
 });
@@ -608,7 +608,7 @@ test("uniq uses provider entry comparison when stat identity is unavailable", as
     };
     const result = await run("uniq", ["input", "output"], { fs });
     assert.equal(compared, true);
-    assert.equal(result.exitCode, comparison === "same" ? 2 : 0, result.stderr);
+    assert.equal(result.exitCode, comparison === "same" ? 1 : 0, result.stderr);
     assert.equal(Buffer.from(await fs.readFile("/work/output")).toString(), comparison === "same" ? "old\n" : "x\ny\n");
   }
 });

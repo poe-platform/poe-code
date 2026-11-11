@@ -2445,7 +2445,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
                 buffered ||= audioDelayTails.get(sources[inputIndex]!.track)?.has(filter) ?? false;
                 return true;
               }
-              if (inputIndex === 0 && name === "areverse") {
+              if (inputIndex === 0 && (name === "areverse" || name === "asetnsamples")) {
+                // Draining buffered or regrouped frames also ends the other split output.
                 buffered = true;
                 return true;
               }

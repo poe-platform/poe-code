@@ -1075,7 +1075,10 @@ function parseFilterChain(filterChainStr: string): string[] {
 function parseAloop(argument: string) {
   const values: Record<string, number> = { loop: 0, size: 0, start: 0, time: Infinity };
   let optionPosition = 0;
-  for (const option of (argument ? argument.split(":") : [])) {
+  const options = argument.split(":");
+  if (options.at(-1) === "") options.pop();
+  for (const option of options) {
+    if (!option.trim()) throw new Error("aloop: invalid expression");
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["loop", "size", "start", "time"][optionPosition] : option.slice(0, separator).trim();
     // Named options restart shorthand, skipping the first slot only

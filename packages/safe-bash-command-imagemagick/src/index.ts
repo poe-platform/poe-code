@@ -11642,6 +11642,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expandedAmount = amount ?? parseMagickCycleAmount(yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties }));
+                if (image.isPalette === false && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "Gray") image = yield* convertHuePixels(image, "sRGB");
                 const output = yield* applyMagickRasterSteps(image, cyclePixelSteps(image, expandedAmount, state.channels, !!image.writeMask), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha }, image.writeMask ? [image, image.writeMask] : [image]);
                 // Direct images are clipped during palette conversion inside the cycle kernel.
                 if (image.region && !output.hasAlpha && !(image.isPalette !== false && (image.indexedColors?.length || image.pngPalette?.bytes.length))) output.region = { ...image.region };
@@ -14838,9 +14839,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const amount = value.includes("%") ? undefined : parseMagickCycleAmount(value);
             let images: StoredImageStack, sceneIdx = 0;
             if (amount === undefined) stackStep(async stack => { images = stack; return stack; });
-            steps.push(async (image, backend) => {
-                if (!image) return;
+            steps.push(async (source, backend) => {
+                if (!source) return;
+                let image = source;
                 const expandedAmount = amount ?? parseMagickCycleAmount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images));
+                if (image.isPalette === false && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "Gray") image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
                 const output = await transformStoredMagickRaster(image, backend, cyclePixelSteps(image, expandedAmount, cycleChannels, !!image.storedWriteMask), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha }, image.storedWriteMask ? [image, image.storedWriteMask] : [image]);
                 if (image.region && !output.hasAlpha && !(image.isPalette !== false && (image.indexedColors?.length || image.pngPalette?.bytes.length))) output.region = { ...image.region };
                 if (image.storedWriteMask && !output.hasAlpha && !(image.isPalette !== false && (image.indexedColors?.length || image.pngPalette?.bytes.length))) output.storedWriteMask = { ...image.storedWriteMask };

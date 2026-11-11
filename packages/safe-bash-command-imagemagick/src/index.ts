@@ -10351,8 +10351,8 @@ function magickSampleOffset(image: ImageMetadata, option?: string): { x: number;
     const value = offset.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x");
     const geometry = parseMagickGeometry(value);
     // Native scalar geometry followed by signed offsets leaves both sample offsets at zero.
-    const x = geometry.hasOffset && !value.toLowerCase().includes("x") ? 0 : geometry.width ?? 0;
-    return { x: x / 100, y: (geometry.height ?? x) / 100 };
+    const x = geometry.hasOffset && !value.toLowerCase().includes("x") ? 0 : geometry.aspectRatio ?? geometry.width ?? 0;
+    return { x: x / 100, y: (geometry.aspectRatio !== undefined ? 1 : geometry.height ?? x) / 100 };
 }
 
 function magickTrimSettings(state: MagickState, properties: ImageMetadata["properties"]): MagickState {

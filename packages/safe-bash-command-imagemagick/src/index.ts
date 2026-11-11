@@ -46,6 +46,7 @@ import { chopRegion, orientRegion, rotateRegion, rollRegion, regionContains, reg
 import { clearWriteMaskPixelSteps, statisticWriteMaskPixelSteps, writeMaskExtentSteps, writeMaskPixelSteps } from "./write-mask.js";
 import { pngAlphaPixelSteps } from "./png-alpha.js";
 import { matchesMagickGlob, mogrifyTargets, mogrifyFileTargets } from "./mogrify-glob.js";
+import { mapRasterInput } from "./map-input.js";
 import { rawRasterInput, rawPartitionPaths } from "./raw-rgb.js";
 import { encodeImage, encodeStoredImage, isRawCoder, type ImageFormat, type RawImage, type StoredRawImage } from "./raw-output.js";
 import { deskewAngleSteps, storedDeskewAngle, deskewPlan, deskewBackground } from "./deskew.js";
@@ -7175,16 +7176,16 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         }
         return yield* applyMod(selected);
     }
-    const packedCoder = (["gray", "graya", "cmyk", "cmyka", "rgba", "rgbo", "bgr", "bgra", "bgro"] as const).find(coder => lower.startsWith(`${coder}:`) || (!lower.includes(":") && lower.endsWith(`.${coder}`)));
+    const packedCoder = (["map", "gray", "graya", "cmyk", "cmyka", "rgba", "rgbo", "bgr", "bgra", "bgro"] as const).find(coder => lower.startsWith(`${coder}:`) || (!lower.includes(":") && lower.endsWith(`.${coder}`)));
     if (packedCoder) {
         if (!state.hasSize) throw new Error(`must specify image size for ${packedCoder.toUpperCase()} input`);
         const path = lower.startsWith(`${packedCoder}:`) ? baseToken.slice(packedCoder.length + 1) : baseToken;
-        const partition = state.rawInterlace === "partition" && path !== "-";
+        const partition = packedCoder !== "map" && state.rawInterlace === "partition" && path !== "-";
         const sources = partition
             ? rawPartitionPaths(path, packedCoder.replace("o", "a")).map(path => files.get(path))
             : [path === "-" ? stdinBytes : files.get(path)];
         if (sources.some(source => !source)) return undefined;
-        const raw = rawRasterInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", Math.min(...sources.map(source => source!.length)) * sources.length, packedCoder === "gray" ? 1 : packedCoder === "graya" ? 2 : packedCoder === "cmyk" ? 4 : packedCoder === "cmyka" ? 5 : packedCoder, state.inputOffset, partition ? "partition" : (packedCoder === "gray" || packedCoder === "graya") && state.rawInterlace === "line" ? "line" : (packedCoder.startsWith("cmyk") || packedCoder.startsWith("rgb") || packedCoder.startsWith("bgr")) && (state.rawInterlace === "line" || state.rawInterlace === "plane") ? state.rawInterlace : packedCoder === "graya" && state.rawInterlace === "plane" ? "plane" : undefined, packedCoder === "gray" && state.tiffFloatingPoint);
+        const raw = packedCoder === "map" ? mapRasterInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, sources[0]!.length, state.inputOffset) : rawRasterInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", Math.min(...sources.map(source => source!.length)) * sources.length, packedCoder === "gray" ? 1 : packedCoder === "graya" ? 2 : packedCoder === "cmyk" ? 4 : packedCoder === "cmyka" ? 5 : packedCoder, state.inputOffset, partition ? "partition" : (packedCoder === "gray" || packedCoder === "graya") && state.rawInterlace === "line" ? "line" : (packedCoder.startsWith("cmyk") || packedCoder.startsWith("rgb") || packedCoder.startsWith("bgr")) && (state.rawInterlace === "line" || state.rawInterlace === "plane") ? state.rawInterlace : packedCoder === "graya" && state.rawInterlace === "plane" ? "plane" : undefined, packedCoder === "gray" && state.tiffFloatingPoint);
         const frames: RgbaImage[] = [];
         for (const page of selectedInputPages(pageSpec, raw.pages, onInvalidIndex)) {
             const bytes = new Uint8Array(raw.size);
@@ -17338,7 +17339,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
      }
      return image;
  }
- const packedCoder=(["gray","graya","cmyk","cmyka","rgba","rgbo","bgr","bgra","bgro"] as const).find(coder=>lower.startsWith(`${coder}:`)||(!lower.includes(":")&&lower.endsWith(`.${coder}`)));
+ const packedCoder=(["map","gray","graya","cmyk","cmyka","rgba","rgbo","bgr","bgra","bgro"] as const).find(coder=>lower.startsWith(`${coder}:`)||(!lower.includes(":")&&lower.endsWith(`.${coder}`)));
  if(lower.startsWith("tile:")){
   if(!state.hasSize)throw new Error("must specify image size for TILE input");
   if(readOptions.visit){
@@ -17366,9 +17367,9 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }else if(packedCoder){
   if(!state.hasSize)throw new Error(`must specify image size for ${packedCoder.toUpperCase()} input`);
   const path=lower.startsWith(`${packedCoder}:`)?baseToken.slice(packedCoder.length+1):baseToken;
-  const partition=state.rawInterlace==="partition"&&path!=="-";
+  const partition=packedCoder!=="map"&&state.rawInterlace==="partition"&&path!=="-";
   const consume=async(sources:ImageByteSource[])=>{
-   const raw=rawRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,packedCoder==="gray"?1:packedCoder==="graya"?2:packedCoder==="cmyk"?4:packedCoder==="cmyka"?5:packedCoder,state.inputOffset, partition ? "partition" : (packedCoder === "gray" || packedCoder === "graya") && state.rawInterlace === "line" ? "line" : (packedCoder.startsWith("cmyk") || packedCoder.startsWith("rgb") || packedCoder.startsWith("bgr")) && (state.rawInterlace === "line" || state.rawInterlace === "plane") ? state.rawInterlace : packedCoder === "graya" && state.rawInterlace === "plane" ? "plane" : undefined, packedCoder === "gray" && state.tiffFloatingPoint);
+   const raw=packedCoder==="map"?mapRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,sources[0]!.size,state.inputOffset):rawRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,packedCoder==="gray"?1:packedCoder==="graya"?2:packedCoder==="cmyk"?4:packedCoder==="cmyka"?5:packedCoder,state.inputOffset, partition ? "partition" : (packedCoder === "gray" || packedCoder === "graya") && state.rawInterlace === "line" ? "line" : (packedCoder.startsWith("cmyk") || packedCoder.startsWith("rgb") || packedCoder.startsWith("bgr")) && (state.rawInterlace === "line" || state.rawInterlace === "plane") ? state.rawInterlace : packedCoder === "graya" && state.rawInterlace === "plane" ? "plane" : undefined, packedCoder === "gray" && state.tiffFloatingPoint);
    for(const page of selectedInputPages(pageSpec,raw.pages,readOptions.onInvalidIndex)){
     image=await parseStoredCompareInput(`${packedCoder==="gray"?"pgm":packedCoder==="graya"?"pam":"miff"}:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
      const steps=raw.read(position,length,page);let next=steps.next();

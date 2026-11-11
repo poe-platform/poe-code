@@ -22,7 +22,7 @@ export async function decimate(
       const size = frame.width * frame.height;
       let native = frame.native;
       if (!native || native.rgba !== frame.data || native.width !== frame.width || native.height !== frame.height ||
-          ![0, 4, 5, 12, 13, 14].includes(native.format)) {
+          ![0, 4, 5, 8, 12, 13, 14].includes(native.format)) {
         budget.allocateMemory(size * 3);
         const pixels = new Uint8Array(size * 3);
         for (let p = 0; p < size; p++) {
@@ -45,7 +45,7 @@ export async function decimate(
         const vs = [0, 12].includes(native.format) ? 2 : 1;
         let offset = 0;
         total = 0;
-        for (let plane = 0; plane < (chroma ? 3 : 1); plane++) {
+        for (let plane = 0; plane < (chroma && native.format !== 8 ? 3 : 1); plane++) {
           const sx = plane ? hs : 1, sy = plane ? vs : 1;
           const width = Math.ceil(frame.width / sx), height = Math.ceil(frame.height / sy);
           for (let y = 0; y < height; y++) {

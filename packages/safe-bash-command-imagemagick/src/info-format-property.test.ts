@@ -12,7 +12,7 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
       { format: "%[format]", expected: "%[format]" },
       { format: "%m|%[format]|%w\\n", expected: "PPM|%m|%[format]|%w\\n|3\n" },
       { format: "", expected: "" },
-      { format: undefined, expected: "3x2 sRGB 8-bit\n" }
+      { format: undefined, expected: "tile.ppm PPM 3x2 3x2+0+0 8-bit sRGB 67B 0.000u 0:00.000\n" }
     ])(`expands the active INFO template literally (${mode}, ${target}): $format`, async ({ format, expected }) => {
       const fs = new MemoryFileSystem();
       await fs.writeFile("/tile.ppm", bytes);

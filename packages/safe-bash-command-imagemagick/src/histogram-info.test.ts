@@ -33,7 +33,7 @@ for (const retained of [false, true]) {
         ["%wx%h", "256x200"],
         ["", ""],
         ["%wx%h:%c", "comment"],
-        [undefined, "256x200 sRGB 8-bit\n"],
+        [undefined, "xc:red XC 256x200 16-bit sRGB 0.000u 0:00.000\n"],
         ["%c", "comment"],
     ])(`formats histogram INFO (retained=${retained}, format=%s)`, async (format, expected) => {
         const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();

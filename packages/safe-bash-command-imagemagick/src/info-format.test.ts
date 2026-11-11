@@ -9,7 +9,7 @@ for (const mode of ["map", "sync", "retained", "command"] as const) {
       { format: "%w", expected: "32" },
       { format: "%w\\n", expected: "3\n2\n" },
       { format: "", expected: "" },
-      { format: undefined, expected: "3x2 sRGB 8-bit\n2x1 sRGB 8-bit\n" }
+      { format: undefined, expected: "/tile.ppm[0] PPM 3x2 3x2+0+0 8-bit sRGB 67B 0.000u 0:00.000\n/solid.ppm[1] PPM 2x1 2x1+0+0 8-bit sRGB 32B 0.000u 0:00.000\n" }
     ])(`${mode} ${target} preserves INFO format bytes ($format)`, async ({ format, expected }) => {
       const files = new Map<string, Uint8Array>([
         ["/tile.ppm", new TextEncoder().encode("P3\n3 2\n255\n255 0 0  0 255 0  0 0 255\n0 0 0  255 255 255  128 64 32\n")],

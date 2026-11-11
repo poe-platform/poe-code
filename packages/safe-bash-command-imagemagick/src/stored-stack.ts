@@ -13,6 +13,7 @@ export interface MagickFormatContext {
     blackPointCompensation?: boolean | undefined;
     exifTextProperties?: Record<string, string>;
     filePath?: string;
+    summaryFilename?: string;
     inputFormat?: string;
     inputType?: string;
     outputFilePath?: string;

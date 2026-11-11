@@ -1642,12 +1642,16 @@ async function hasIncreasingStoredScenes(stack: StoredImageStack, signal: AbortS
     return true;
 }
 
-function formatInlineIdentify(image: ImageMetadata & { [magickInput]?: MagickFormatContext }): string {
+function formatInlineIdentify(image: ImageMetadata & { [magickInput]?: MagickFormatContext }, scene?: number, sceneCount = 1): string {
     const source = image[magickInput];
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
     const depth = image.bitsPerSample ?? (image.depth === "ushort" ? 16 : image.depth === "bit" ? 1 : 8);
     const space = image.magickColorspace ?? (image.space === "b-w" || image.space === "grey16" ? image.gamma === 1 ? "LinearGray" : "Gray" : image.space === "cmyk" ? "CMYK" : "sRGB");
-    return `${source?.filePath ?? ""} ${source?.inputFormat ?? image.format.toUpperCase()} ${image.width}x${image.height} ${page.width}x${page.height}${page.x < 0 ? "" : "+"}${page.x}${page.y < 0 ? "" : "+"}${page.y} ${depth}-bit ${space} ${source?.byteLen ?? 0}B 0.000u 0:00.000`;
+    const filename = scene === undefined ? source?.filePath ?? "" : source?.summaryFilename ?? source?.filePath ?? "";
+    const suffix = scene !== undefined && (sceneCount > 1 || scene > 0) ? `[${scene}]` : "";
+    const geometry = page.width || page.height || page.x || page.y ? ` ${page.width}x${page.height}${page.x < 0 ? "" : "+"}${page.x}${page.y < 0 ? "" : "+"}${page.y}` : "";
+    const size = source?.byteLen ? ` ${source.byteLen}B` : "";
+    return `${filename}${suffix} ${source?.inputFormat ?? image.format.toUpperCase()} ${image.width}x${image.height}${geometry} ${depth}-bit ${space}${size} 0.000u 0:00.000`;
 }
 
 function* readMaskSelectionSteps<Step, Resume>(image: { width: number; readMask?: ReadMask | undefined }, position: number, length: number,
@@ -8137,7 +8141,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 }
                 im = { ...image, evaluateSamples };
             }
-            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im.format === "ppm" ? { compression: "Undefined" } : {}), ...(im.format === "pgm" ? { imageType: "Grayscale" as const } : {}), ...(im as MagickImage)[magickInput], blackPointCompensation: state.blackPointCompensation, interpolation: state.interpolation, intensity: state.intensity, fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
+            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { summaryFilename: token, originalWidth: im.width, originalHeight: im.height, ...(im.format === "ppm" ? { compression: "Undefined" } : {}), ...(im.format === "pgm" ? { imageType: "Grayscale" as const } : {}), ...(im as MagickImage)[magickInput], blackPointCompensation: state.blackPointCompensation, interpolation: state.interpolation, intensity: state.intensity, fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
             if (state.compression !== undefined) im = { ...im, [magickInput]: { ...im[magickInput], compression: state.compression } };
             if (state.inputType !== undefined) im = setMagickType(im as MagickImage, state.inputType);
             if (state.qualityExplicit) im = { ...im, quality: state.quality };
@@ -13832,7 +13836,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         ? yield* formatMagickPropertyStringSteps(state.formatStr, im, () => im, {
                             ...(im as MagickImage)[magickInput], fxStack: stack, ...(t === "-identify" ? {} : { outputFilePath: idx === 0 ? writePath.slice(5) : writePath }), interpolation: state.interpolation, ...(state.precision !== undefined ? { precision: state.precision } : {}), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, trimPercentBackground: state.trimPercentBackground, trimBackgroundColor: state.trimBackgroundColor, analysis, sceneIdx: idx, outputScene: preserveScenes ? (im as MagickImage)[magickInput]?.outputScene ?? (im as MagickImage)[magickInput]?.sceneIdx ?? 0 : firstScene + idx, sceneCount: stack.length, ...(state.qualityExplicit ? { quality: state.quality } : {}), channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr }
                         })
-                        : t === "-identify" ? formatInlineIdentify(im) : `${im.width}x${im.height} ${im.magickColorspace ?? "sRGB"} 8-bit`);
+                        : formatInlineIdentify(im, t === "-identify" ? undefined : firstScene + idx, stack.length));
                 }
                 const outText = formatted.join(state.formatStr !== undefined ? "" : "\n");
                 const result = analysis.errors || state.formatStr !== undefined || outText.endsWith("\n") ? outText : `${outText}\n`;
@@ -13910,6 +13914,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-format") {
             state.formatStr = tokens[++i] ?? "";
+        }
+        else if (t === "+format") {
+            state.formatStr = undefined;
         }
         else if (t === "-print") {
             // Unlike info:, -print expands once for the current image list.
@@ -16147,7 +16154,7 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
                     ? yield* formatMagickPropertyStringSteps(state.formatStr, im, () => im, {
                         ...(im as MagickImage)[magickInput], fxStack: stack, outputFilePath: idx === 0 || histogramInfo ? outSpec.slice(5) : outSpec, interpolation: state.interpolation, ...(state.precision !== undefined ? { precision: state.precision } : {}), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, trimPercentBackground: state.trimPercentBackground, trimBackgroundColor: state.trimBackgroundColor, analysis, sceneIdx: idx, outputScene: preserveScenes ? (im as MagickImage)[magickInput]?.outputScene ?? (im as MagickImage)[magickInput]?.sceneIdx ?? 0 : firstScene + idx, sceneCount: histogramInfo ? 1 : stack.length, ...(histogramInfo ? { listIndex: 0 } : {}), ...(state.qualityExplicit ? { quality: state.quality } : {}), channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr }
                     })
-                    : `${im.width}x${im.height} ${im.magickColorspace ?? "sRGB"} 8-bit`);
+                    : formatInlineIdentify(im, firstScene + idx, stack.length));
             }
             const outText = formatted.join(state.formatStr !== undefined ? "" : "\n");
             const result = analysis.errors || state.formatStr !== undefined || outText.endsWith("\n") ? outText : `${outText}\n`;
@@ -18145,6 +18152,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }); continue;
         }
         if (!operandsOnly && token === "-format") { state.formatStr = tokens[++i] ?? ""; continue; }
+        if (!operandsOnly && token === "+format") { state.formatStr = undefined; continue; }
         if (!operandsOnly && token === "-print") {
             const format = tokens[++i], settings = { ...state };
             if (format === undefined) throw new Error("missing argument '-print'");
@@ -18652,7 +18660,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             await yieldTurn(signal);
                             const frame = (await stack.get(index))!;
                             if (index && settings.formatStr === undefined) yield "\n";
-                            const formatted = settings.formatStr !== undefined ? await formatRetainedIdentify(settings.formatStr, frame, { ...frame[magickInput], ...(token === "-identify" ? {} : { outputFilePath: index === 0 ? target : path }), interpolation: settings.interpolation, ...(settings.precision !== undefined ? { precision: settings.precision } : {}), fuzz: settings.alphaFuzz, trimEdges: settings.trimEdges, trimPercentBackground: settings.trimPercentBackground, trimBackgroundColor: settings.trimBackgroundColor, analysis, sceneIdx: index, outputScene: preserveScenes ? frame[magickInput]?.outputScene ?? frame[magickInput]?.sceneIdx ?? 0 : firstScene + index, sceneCount: stack.length, ...(settings.qualityExplicit ? { quality: settings.quality } : {}), channelSelection: settings.channelExplicit ? settings.channels : undefined, optionProperties: { ...settings.optionProperties, format: settings.formatStr } }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : token === "-identify" ? formatInlineIdentify(frame) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
+                            const formatted = settings.formatStr !== undefined ? await formatRetainedIdentify(settings.formatStr, frame, { ...frame[magickInput], ...(token === "-identify" ? {} : { outputFilePath: index === 0 ? target : path }), interpolation: settings.interpolation, ...(settings.precision !== undefined ? { precision: settings.precision } : {}), fuzz: settings.alphaFuzz, trimEdges: settings.trimEdges, trimPercentBackground: settings.trimPercentBackground, trimBackgroundColor: settings.trimBackgroundColor, analysis, sceneIdx: index, outputScene: preserveScenes ? frame[magickInput]?.outputScene ?? frame[magickInput]?.sceneIdx ?? 0 : firstScene + index, sceneCount: stack.length, ...(settings.qualityExplicit ? { quality: settings.quality } : {}), channelSelection: settings.channelExplicit ? settings.channels : undefined, optionProperties: { ...settings.optionProperties, format: settings.formatStr } }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : formatInlineIdentify(frame, token === "-identify" ? undefined : firstScene + index, stack.length);
                             if (formatted) last = formatted.at(-1)!;
                             yield formatted;
                         }
@@ -20174,7 +20182,7 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
                     if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal, state.inputDepth); continue; }
                     if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal, state.precision); continue; }
                     if (index && state.formatStr === undefined) yield "\n";
-                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], outputFilePath: index === 0 || histogramInfo ? outSpec.slice(5) : outSpec, interpolation: state.interpolation, ...(state.precision !== undefined ? { precision: state.precision } : {}), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, trimPercentBackground: state.trimPercentBackground, trimBackgroundColor: state.trimBackgroundColor, analysis, sceneIdx: index, outputScene: preserveScenes ? frame[magickInput]?.outputScene ?? frame[magickInput]?.sceneIdx ?? 0 : firstScene + index, sceneCount: histogramInfo ? 1 : stack.length, ...(histogramInfo ? { listIndex: 0 } : {}), ...(state.qualityExplicit ? { quality: state.quality } : {}), channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr } }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : `${frame.width}x${frame.height} ${(frame as StoredRgbaImage).magickColorspace ?? "sRGB"} 8-bit`;
+                    const formatted = state.formatStr !== undefined ? await formatRetainedIdentify(state.formatStr, frame, { ...frame[magickInput], outputFilePath: index === 0 || histogramInfo ? outSpec.slice(5) : outSpec, interpolation: state.interpolation, ...(state.precision !== undefined ? { precision: state.precision } : {}), fuzz: state.alphaFuzz, trimEdges: state.trimEdges, trimPercentBackground: state.trimPercentBackground, trimBackgroundColor: state.trimBackgroundColor, analysis, sceneIdx: index, outputScene: preserveScenes ? frame[magickInput]?.outputScene ?? frame[magickInput]?.sceneIdx ?? 0 : firstScene + index, sceneCount: histogramInfo ? 1 : stack.length, ...(histogramInfo ? { listIndex: 0 } : {}), ...(state.qualityExplicit ? { quality: state.quality } : {}), channelSelection: state.channelExplicit ? state.channels : undefined, optionProperties: { ...state.optionProperties, format: state.formatStr } }, async () => ({ image: frame, storage: backend.storage }), signal, stack) : formatInlineIdentify(frame, firstScene + index, stack.length);
                     if (formatted) last = formatted.at(-1)!;
                     yield formatted;
                 }
@@ -21085,7 +21093,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    }
    image = { ...metadata, storedEvaluateSamples };
   }
-  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image.format === "ppm" ? { compression: "Undefined" } : {}), ...(image.format === "pgm" ? { imageType: "Grayscale" as const } : {}), ...(image as StoredMagickImage)[magickInput], blackPointCompensation: state.blackPointCompensation, interpolation: state.interpolation, intensity: state.intensity, fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
+  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { summaryFilename: token, originalWidth: image.width, originalHeight: image.height, ...(image.format === "ppm" ? { compression: "Undefined" } : {}), ...(image.format === "pgm" ? { imageType: "Grayscale" as const } : {}), ...(image as StoredMagickImage)[magickInput], blackPointCompensation: state.blackPointCompensation, interpolation: state.interpolation, intensity: state.intensity, fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
   if(state.compression!==undefined)image={...image,[magickInput]:{...image[magickInput],compression:state.compression}};
   if(state.inputType!==undefined)image=setMagickType(image as StoredMagickImage,state.inputType);
   if(state.qualityExplicit)image={...image,quality:state.quality};

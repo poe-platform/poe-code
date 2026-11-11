@@ -67,7 +67,21 @@ export async function softClipAudio(
         clipped = Math.sign(sample) * (2 / Math.sqrt(Math.PI) * Math.exp(-x * x) * sum);
         break;
       }
-      default: clipped = round(Math.tanh(round(sample * param)));
+      default: {
+        const x = round(sample * param);
+        if (format === "dblp") {
+          clipped = Math.tanh(x);
+          break;
+        }
+        // tanhf rounds expm1 and each arithmetic step to float precision.
+        // Rounding the double-precision tanh result can differ by one float ULP.
+        const magnitude = Math.abs(x);
+        const exponential = round(Math.expm1(magnitude < 1 ? -2 * magnitude : 2 * magnitude));
+        clipped = Math.sign(x) * (magnitude < 1
+          ? round(-exponential / round(exponential + 2))
+          : round(1 - round(2 / round(exponential + 2))));
+        break;
+      }
     }
     return round(round(clipped) * gain);
   }

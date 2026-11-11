@@ -2036,7 +2036,7 @@ function* formatHistogramOutputSteps(img: RgbaImage): Generator<void, string, vo
     return lines.join("\n") + "\n";
 }
 
-function writeGradientPixel(data: Uint8Array, samples: Uint16Array, offset: number, first: ReturnType<typeof parseColor>, last: ReturnType<typeof parseColor>, t: number, hueSamples?: Float64Array): void {
+function writeGradientPixel(data: Uint8Array, samples: Uint16Array, evaluateSamples: Float64Array, offset: number, first: ReturnType<typeof parseColor>, last: ReturnType<typeof parseColor>, t: number, hueSamples?: Float64Array): void {
     const firstAlpha = first.a * (1 - t);
     const lastAlpha = last.a * t;
     const alpha = firstAlpha + lastAlpha;
@@ -2048,22 +2048,28 @@ function writeGradientPixel(data: Uint8Array, samples: Uint16Array, offset: numb
         }
         for (let channel = 0; channel < 3; channel++) {
             const value = (1 - hueSamples[offset + channel]!) * (1 - hueSamples[offset + 3]!);
+            evaluateSamples[offset + channel] = value * 255;
             samples[offset + channel] = Math.round(value * 65535);
             data[offset + channel] = clampByteVal(value * 255);
         }
     } else {
-        samples[offset] = Math.round((first.r * firstAlpha + last.r * lastAlpha) / divisor * 257);
+        evaluateSamples[offset] = (first.r * firstAlpha + last.r * lastAlpha) / divisor;
+        samples[offset] = Math.round(evaluateSamples[offset]! * 257);
         data[offset] = clampByteVal(samples[offset]! / 257);
-        samples[offset + 1] = Math.round((first.g * firstAlpha + last.g * lastAlpha) / divisor * 257);
+        evaluateSamples[offset + 1] = (first.g * firstAlpha + last.g * lastAlpha) / divisor;
+        samples[offset + 1] = Math.round(evaluateSamples[offset + 1]! * 257);
         data[offset + 1] = clampByteVal(samples[offset + 1]! / 257);
-        samples[offset + 2] = Math.round((first.b * firstAlpha + last.b * lastAlpha) / divisor * 257);
+        evaluateSamples[offset + 2] = (first.b * firstAlpha + last.b * lastAlpha) / divisor;
+        samples[offset + 2] = Math.round(evaluateSamples[offset + 2]! * 257);
         data[offset + 2] = clampByteVal(samples[offset + 2]! / 257);
     }
     if (first.space) {
         // Native Gray channels share one sample; the final blue write wins.
+        evaluateSamples[offset] = evaluateSamples[offset + 1] = evaluateSamples[offset + 2]!;
         samples[offset] = samples[offset + 1] = samples[offset + 2]!;
         data[offset] = data[offset + 1] = data[offset + 2]!;
     }
+    evaluateSamples[offset + 3] = alpha;
     samples[offset + 3] = Math.round(alpha * 257);
     data[offset + 3] = clampByteVal(samples[offset + 3]! / 257);
 }
@@ -2073,6 +2079,7 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
     const h = Math.max(1, Math.round(height));
     const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
     const data16 = new Uint16Array(w * h * 4);
+    const evaluateSamples = new Float64Array(w * h * 4);
     const hueSamples = c1.cmyk ? new Float64Array(w * h * 4) : undefined;
     if (!radial && extent !== undefined) direction ??= "southeast";
     const axes = gradientRadii(w, h, extent, radii);
@@ -2082,13 +2089,18 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
         const u32 = new Uint32Array(data.buffer, 0, w * h);
         const tmp = new Uint8Array(4);
         const samples = new Uint16Array(4);
+        const working = new Float64Array(4);
         const tmp64 = new BigUint64Array(samples.buffer);
         const tmp32 = new Uint32Array(tmp.buffer);
         const steps = h === 1 ? w : h;
         const span = h === 1 ? 1 : w;
         for (let i = 0; i < steps; i++) {
             const t = steps <= 1 ? 0 : i * (1 / (steps - 1));
-            writeGradientPixel(tmp, samples, 0, c1, c2, t);
+            writeGradientPixel(tmp, samples, working, 0, c1, c2, t);
+            for (let pixel = i * span; pixel < (i + 1) * span; pixel++) {
+                if (++work % 16384 === 0) yield;
+                evaluateSamples.set(working, pixel * 4);
+            }
             u64.fill(tmp64[0]!, i * span, (i + 1) * span);
             u32.fill(tmp32[0]!, i * span, (i + 1) * span);
         }
@@ -2104,7 +2116,7 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
                 const outside = box && (x < box.x || y < box.y || x >= box.x + (box.width ?? w) || y >= box.y + (box.height ?? h));
                 const t = outside ? 0 : vectorFactor ? vectorFactor(x, y) : radial ? Math.min(1, Math.hypot((x - cx) / axes[0], (y - cy) / axes[1])) : projection(x, y);
                 const idx = (y * w + x) * 4;
-                writeGradientPixel(data, data16, idx, c1, c2, t, hueSamples);
+                writeGradientPixel(data, data16, evaluateSamples, idx, c1, c2, t, hueSamples);
             }
         }
     }
@@ -2119,7 +2131,8 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
         ...(hueSamples ? { hueSamples } : {}),
         hasAlpha: c1.a < 255 || c2.a < 255,
         data,
-        data16
+        data16,
+        evaluateSamples
     };
 }
 
@@ -16971,6 +16984,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const width=Math.max(1,Math.round(pattern&&!state.hasSize&&lower.startsWith("pattern:")?pattern.width:state.sizeWidth)),height=Math.max(1,Math.round(pattern&&!state.hasSize&&lower.startsWith("pattern:")?pattern.height:state.sizeHeight)),position=backend.storage.allocate(width*height*4);
   const checker=!!pattern,radial=lower.startsWith("radial-gradient:");
   const storedData16=checker?undefined:{position:backend.storage.allocate(width*height*8),length:width*height*4};
+  const storedEvaluateSamples=checker?undefined:backend.storage.allocate(width*height*32);
   const spec=baseToken.slice(baseToken.indexOf(":")+1),separator=spec.indexOf("-"),first=separator<0?spec:spec.slice(0,separator),last=separator<0?"":spec.slice(separator+1),a=parseColor(checker?"white":first||"#ffffff",true),b=parseColor(checker||separator<0?"#000000":last||"#ffffff",true);
   const storedHueSamples=a.cmyk?backend.storage.allocate(width*height*32):undefined;
   const {x:cx,y:cy}=state.gradientCenter??gradientCenter(width,height,state.gradientDirection),axes=gradientRadii(width,height,state.gradientExtent,state.gradientRadii),box=state.gradientBoundingBox;
@@ -16978,17 +16992,18 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const vectorFactor=gradientVector(width,height,(radial&&state.gradientCenter)?undefined:radial||state.gradientAngle===undefined?state.gradientVector:undefined,radial,axes);
   for(let start=0;start<width*height;start+=4096){
    if(start%262144===0)await yieldTurn(signal);
-   const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4),samples=checker?undefined:new Uint16Array(count*4),hueSamples=a.cmyk?new Float64Array(count*4):undefined;
+   const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4),samples=checker?undefined:new Uint16Array(count*4),evaluateSamples=checker?undefined:new Float64Array(count*4),hueSamples=a.cmyk?new Float64Array(count*4):undefined;
    for(let i=0;i<count;i++){
     const x=(start+i)%width,y=Math.floor((start+i)/width),offset=i*4;
     if(pattern){const cell=pattern.gray(x,y);bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}
-    else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:vectorFactor?vectorFactor(x,y):radial?Math.min(1,Math.hypot((x-cx)/axes[0],(y-cy)/axes[1])):projection(x,y);writeGradientPixel(bytes,samples!,offset,a,b,t,hueSamples);}
+    else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:vectorFactor?vectorFactor(x,y):radial?Math.min(1,Math.hypot((x-cx)/axes[0],(y-cy)/axes[1])):projection(x,y);writeGradientPixel(bytes,samples!,evaluateSamples!,offset,a,b,t,hueSamples);}
    }
    await backend.storage.write(position+start*4,bytes);
    if(storedData16&&samples)await backend.storage.write(storedData16.position+start*8,new Uint8Array(samples.buffer));
+   if(storedEvaluateSamples!==undefined&&evaluateSamples)await backend.storage.write(storedEvaluateSamples+start*32,new Uint8Array(evaluateSamples.buffer));
    if(storedHueSamples!==undefined&&hueSamples)await backend.storage.write(storedHueSamples+start*32,new Uint8Array(hueSamples.buffer));
   }
-  image={position,width,height,...(storedData16?{storedData16}:{}),...(storedHueSamples===undefined?{}:{storedHueSamples}),format:"png",channels:a.space?(a.a<255||b.a<255?2:1):4,depth:checker?"uchar":"ushort",space:a.cmyk?"cmyk":a.space??"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
+  image={position,width,height,...(storedData16?{storedData16}:{}),...(storedEvaluateSamples===undefined?{}:{storedEvaluateSamples}),...(storedHueSamples===undefined?{}:{storedHueSamples}),format:"png",channels:a.space?(a.a<255||b.a<255?2:1):4,depth:checker?"uchar":"ushort",space:a.cmyk?"cmyk":a.space??"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
   if (!checker) image = Object.assign(image, { [magickInput]: { filePath: first } });
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
   image=await decodeStoredMagickSvg(createLabelSvg(baseToken.slice(baseToken.indexOf(":")+1),state),state.density,backend,signal);

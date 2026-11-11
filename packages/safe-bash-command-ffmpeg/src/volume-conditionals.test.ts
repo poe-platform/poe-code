@@ -26,7 +26,7 @@ for (const [expression, expected] of [
 for (const expression of ["if(n)", "ifnot(n)", "if(n,0.5,1,2)", "ifnot(n,0.5,1,2)", "if(n,)", "ifnot(n,)", "if(n,0.5,)", "ifnot(n,0.5,)", "if(n,unknown)", "ifnot(n,unknown)"]) {
   it(`rejects ${expression} without overwriting output`, async () => {
     const { result, fs } = await run(expression);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, 234);
     assert.equal(fs.readFileSync("/out.raw", "utf8"), "keep");
   });
 }

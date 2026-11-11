@@ -12,7 +12,7 @@ async function run(filter: string, format = "framecrc", graph = false, samples =
   const volume = Volume.fromJSON({ "/in.raw": input, "/out.raw": "KEEP" });
   let error = "";
   const result = await createFfmpegCommand().execute({
-    args: ["-y", "-v", "error", "-f", "s16le", "-ar", "1000", "-ac", "1", "-i", "/in.raw",
+    args: ["-y", "-v", "info", "-f", "s16le", "-ar", "1000", "-ac", "1", "-i", "/in.raw",
       ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
       "-f", format, "/out.raw"],
     cwd: "/", env: {}, signal: new AbortController().signal,
@@ -97,5 +97,38 @@ for (const timestamp of ["copy", "write"]) {
     const { result, error, output } = await run(`asetnsamples=n=5:p=0,asetpts=2*PTS,silenceremove=timestamp=${timestamp}`);
     assert.equal(result.exitCode, 0, error);
     assert.deepEqual(rows(output).map(row => [Number(row[2]), Number(row[3])]), [[0, 5], [10, 5], [20, 5], [30, 5], [40, 5]]);
+  });
+}
+
+// Native FFmpeg 7.0.2 advances its int64 NOPTS sentinel after the first output frame.
+for (const graph of [false, true]) {
+  const samples = [0, 0, 2300, 6400, 0, 0, 0, -4200, 5100, 0, 0, 0, 8200, 0, 0, 0];
+  const trimmed = "fc08001900000000000098efec130000000000000820000000000000";
+  const remove = "silenceremove=start_periods=1:window=0";
+  for (const [filter, expected] of [
+    [`asetpts=NAN,${remove}:timestamp=write,aselect='isnan(pts)'`, "fc080019"],
+    [`asetpts=NAN,${remove}:timestamp=copy,aselect='isnan(pts)'`, trimmed],
+    ["asetpts=NAN,silenceremove,aselect='isnan(pts)'", `00000000${trimmed}`],
+    [`${remove}:timestamp=write,aselect='isnan(pts)'`, ""],
+    [`asetpts=NAN,${remove}:timestamp=write,aselect='lt(pts,0)'`, trimmed.slice(8)]
+  ]) {
+    it(`matches native PCM after missing timestamps: ${filter} (graph=${graph})`, async () => {
+      const { result, error, output } = await run(`asetnsamples=n=4:p=0,${filter}`, "s16le", graph, samples);
+      assert.equal(result.exitCode, 0, error);
+      assert.equal(output.toString("hex"), expected);
+    });
+  }
+
+  it(`advances missing timestamps from the native sentinel without resetting to zero (graph=${graph})`, async () => {
+    const { result, error, output } = await run(
+      `asetnsamples=n=4:p=0,asetpts=NAN,${remove}:timestamp=write,ashowinfo`, "s16le", graph, samples);
+    assert.equal(result.exitCode, 0, error);
+    assert.equal(output.toString("hex"), trimmed);
+    const frames = error.split("\n").filter(line => line.startsWith("[ashowinfo]"));
+    assert.deepEqual(frames.map(line => [line.split(" pts:")[1]!.split(" ")[0],
+      line.split(" nb_samples:")[1]!.split(" ")[0]]), [
+      ["NOPTS", "2"], ["-9223372036854775806", "4"],
+      ["-9223372036854775802", "4"], ["-9223372036854775798", "4"]
+    ]);
   });
 }

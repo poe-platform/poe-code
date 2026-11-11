@@ -5,7 +5,7 @@ import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
 
 export async function removeSilence(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  frames: { start: number; end: number; pts: number; pos?: number | undefined }[],
+  frames: { start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined }[],
   budget: MediaBudgetTracker, signal?: AbortSignal,
   commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<{ channels: (Float32Array | Float64Array)[]; frames: typeof frames }> {
@@ -135,6 +135,7 @@ export async function removeSilence(
     }, undefined, registers)) >= 0.5);
   }
   const firstPts = frames[0]?.pts ?? 0;
+  const firstExactPts = frames[0]?.exactPts ?? (Number.isNaN(firstPts) ? -(2n ** 63n) : undefined);
   const window = Math.max(1, Math.round(options.window * sampleRate));
   const peakToPeak = options.detection === "ptp";
   const trackPeaks = options.detection === "peak" || peakToPeak;
@@ -293,12 +294,12 @@ export async function removeSilence(
       const count = counts[n]!;
       if (!count) continue;
       // Each surviving input frame keeps its PTS, even when its leading samples were removed.
-      budget.allocateMemory(24);
+      budget.allocateMemory(frame.exactPts === undefined ? 24 : 48);
       retainedThresholds[outputFrames.length] = stopThresholds[n]!;
       retainedEnabled[outputFrames.length] = enabledFrames[n]!;
       retainedStartModes[outputFrames.length] = startModes[n]!;
       retainedStopModes[outputFrames.length] = stopModes[n]!;
-      outputFrames.push({ start: offset, end: offset + count, pts: frame.pts });
+      outputFrames.push({ start: offset, end: offset + count, pts: frame.pts, exactPts: frame.exactPts });
       offset += count;
     }
     frames = outputFrames;
@@ -310,7 +311,16 @@ export async function removeSilence(
   if (options.timestamp === "write" && (options.start_periods || options.stop_periods)) {
     for (const [index, frame] of frames.entries()) {
       if (index % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-      frame.pts = firstPts + frame.start;
+      // Native advances the int64 NOPTS sentinel after the first emitted frame.
+      // Keep exact ticks for diagnostics; expressions use their double value.
+      if (firstExactPts !== undefined && (index > 0 || !Number.isNaN(firstPts))) {
+        if (frame.exactPts === undefined) budget.allocateMemory(24);
+        frame.exactPts = firstExactPts + BigInt(frame.start);
+        frame.pts = Number(frame.exactPts);
+      } else {
+        delete frame.exactPts;
+        frame.pts = firstPts + frame.start;
+      }
     }
   }
   return { channels: output, frames };

@@ -1122,6 +1122,8 @@ values, and `222` for out-of-range values, without creating or replacing output.
 A single trailing option separator is accepted, for example `silenceremove=start_periods=1:window=0:`.
 Shortened frames stay separate for downstream filters, frame limits, and checksums;
 `timestamp=write` (or `0`, the default) writes a continuous output timeline.
+With missing input timestamps, only the first emitted frame remains untimed; later
+frames advance from FFmpeg’s negative timestamp sentinel.
 `timestamp=copy` (or `1`) preserves each surviving input frame’s timestamp, including
 gaps and frames shortened by leading removal.
 Timeline `enable` expressions select whole input frames by timestamp `t` or frame

@@ -14522,8 +14522,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const channels = state.channelExplicit ? state.channels : undefined;
             const { virtualPixel, background, optionProperties } = state;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const kernel = parseMagickConvolveKernel(spec, true, false, im.properties?.["artifact:convolve:scale"] ?? optionProperties?.["convolve:scale"]);
-                return kernel.weights.length ? yield* applyMagickRasterSteps(im, convolvePixelSteps(im, kernel, bias, undefined, channels, virtualPixel, background), signal) : im;
+                for (const part of spec.split(";")) {
+                    const kernel = parseMagickConvolveKernel(part, true, false, im.properties?.["artifact:convolve:scale"] ?? optionProperties?.["convolve:scale"]);
+                    if (kernel.weights.length) im = yield* applyMagickRasterSteps(im, convolvePixelSteps(im, kernel, bias, undefined, channels, virtualPixel, background), signal);
+                }
+                return im;
             });
         }
         else if (t === "-read-mask" || t === "+read-mask") {
@@ -15574,9 +15577,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const { iterations } = parseMagickMorphologyMethod(method);
                 const { optionProperties } = state;
                 stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                    const kernel = parseMagickConvolveKernel(kernelSpec, false, method.split(":")[0] === "convolve", im.properties?.["artifact:convolve:scale"] ?? optionProperties?.["convolve:scale"]);
-                    for (let pass = 0; kernel.weights.length && pass < iterations; pass++)
-                        im = yield* applyMagickRasterSteps(im, convolvePixelSteps(im, kernel, 0), signal);
+                    for (const part of kernelSpec.split(";")) {
+                        const kernel = parseMagickConvolveKernel(part, false, method.split(":")[0] === "convolve", im.properties?.["artifact:convolve:scale"] ?? optionProperties?.["convolve:scale"]);
+                        for (let pass = 0; kernel.weights.length && pass < iterations; pass++)
+                            im = yield* applyMagickRasterSteps(im, convolvePixelSteps(im, kernel, 0), signal);
+                    }
                     return im;
                 });
             }
@@ -19200,9 +19205,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const { iterations } = parseMagickMorphologyMethod(method);
                 const { optionProperties } = state;
                 steps.push(async (image, backend) => {
-                    const kernel = parseMagickConvolveKernel(spec, false, method.split(":")[0] === "convolve", image?.properties?.["artifact:convolve:scale"] ?? optionProperties?.["convolve:scale"]);
-                    for (let pass = 0; image && kernel.weights.length && pass < iterations; pass++)
-                        image = await transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal);
+                    for (const part of spec.split(";")) {
+                        const kernel = parseMagickConvolveKernel(part, false, method.split(":")[0] === "convolve", image?.properties?.["artifact:convolve:scale"] ?? optionProperties?.["convolve:scale"]);
+                        for (let pass = 0; image && kernel.weights.length && pass < iterations; pass++)
+                            image = await transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal);
+                    }
                     return image;
                 });
             } else {
@@ -19347,8 +19354,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const { virtualPixel, background, optionProperties } = state;
             steps.push(async (image, backend) => {
                 if (!image) return image;
-                const kernel = parseMagickConvolveKernel(spec, true, false, image.properties?.["artifact:convolve:scale"] ?? optionProperties?.["convolve:scale"]);
-                return kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, bias, undefined, channels, virtualPixel, background), signal) : image;
+                for (const part of spec.split(";")) {
+                    const kernel = parseMagickConvolveKernel(part, true, false, image.properties?.["artifact:convolve:scale"] ?? optionProperties?.["convolve:scale"]);
+                    if (kernel.weights.length) image = await transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, bias, undefined, channels, virtualPixel, background), signal);
+                }
+                return image;
             });
         } else if (!operandsOnly && token === "-copy") {
             stackStep(async stack => {

@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { splitRadix } from "./audio-dialogue-fft.js";
 import { resampleAudio } from "./audio-resample.js";
 
 export async function headphoneAudio(
@@ -15,26 +16,27 @@ export async function headphoneAudio(
     if (!key || !["map", "gain", "lfe", "type", "size", "hrir"].includes(key)) {
       throw new Error(`headphone: unsupported option ${key}`);
     }
-    options[key] = separator < 0 ? option : option.slice(separator + 1);
+    const value = separator < 0 ? option : option.slice(separator + 1);
+    if (key === "gain" || key === "lfe") {
+      const gain = Number(value);
+      if (!value.trim() || !Number.isFinite(gain) || gain < -20 || gain > 40) {
+        throw new Error(`headphone: ${key} must be between -20 and 40 dB`);
+      }
+    }
+    if (key === "type" && !["time", "freq", "0", "1"].includes(value)) throw new Error("headphone: invalid processing type");
+    if (key === "size") {
+      const size = Number(value);
+      if (!Number.isInteger(size) || size < 1024 || size > 96000) throw new Error("headphone: invalid frame size");
+    }
+    if (key === "hrir" && !["stereo", "multich", "0", "1"].includes(value)) throw new Error("headphone: invalid impulse response format");
+    options[key] = value;
   }
   const mapping = options.map?.split("|");
   const mono = mapping?.length === 1 && mapping[0] === "FC";
   if (!mapping || (!mono && (mapping.length !== 2 || new Set(mapping).size !== 2 || mapping.some(name => !["FL", "FR"].includes(name))))) {
     throw new Error("headphone: map must assign FC or FL and FR");
   }
-  for (const key of ["gain", "lfe"]) {
-    const value = Number(options[key]);
-    if (!options[key]?.trim() || !Number.isFinite(value)) {
-      throw new Error(`headphone: ${key} must be between -20 and 40 dB`);
-    }
-    if (value < -20 || value > 40) {
-      throw new RangeError(`headphone: ${key} must be between -20 and 40 dB`);
-    }
-  }
-  if (!["time", "freq", "0", "1"].includes(options.type!)) throw new Error("headphone: invalid processing type");
   const size = Number(options.size);
-  if (!Number.isInteger(size) || size < 1024 || size > 96000) throw new Error("headphone: invalid frame size");
-  if (!["stereo", "multich", "0", "1"].includes(options.hrir!)) throw new Error("headphone: invalid impulse response format");
   const multich = options.hrir === "multich" || options.hrir === "1";
   if (tracks.length !== (multich ? 2 : mapping.length + 1)) {
     throw new Error(multich ? "headphone requires one packed impulse response input" : "headphone requires one stereo impulse response per mapped source channel");
@@ -71,22 +73,81 @@ export async function headphoneAudio(
   const channelData = [new Float32Array(length), new Float32Array(length)];
   // FFmpeg attenuates by 3 dB per source channel before applying the HRIR.
   const gain = Math.fround(Math.exp((Number(options.gain) - 3 * source.channels) / 20 * Math.LN10));
-  // Both processing modes implement the same causal convolution; keep only the source duration.
+  const irLength = Math.max(...audio.slice(1).map(input => input.channelData[0]!.length));
+  const responses = mapping.map((name, response) => ({
+    input: source.channelData[name === "FR" ? 1 : 0]!,
+    impulse: [0, 1].map(ear => multich ? audio[1]!.channelData[response * 2 + ear]!
+      : audio[response + 1]!.channelData[ear]!)
+  }));
   let work = 0;
-  for (const [response, name] of mapping.entries()) {
-    const input = source.channelData[name === "FR" ? 1 : 0]!;
-    for (let ear = 0; ear < 2; ear++) {
-      const impulse = multich ? audio[1]!.channelData[response * 2 + ear]! : audio[response + 1]!.channelData[ear]!;
-      const output = channelData[ear]!;
-      for (let tap = 0; tap < Math.min(impulse.length, length); tap++) {
-        const coefficient = Math.fround(impulse[tap]! * gain);
-        for (let sample = 0; sample < length - tap; sample++) {
-          if (work++ % 4096 === 0) {
-            await yieldTurn(signal);
-            signal?.throwIfAborted();
-            budget.checkCpu();
+  const f = Math.fround;
+  if (options.type === "time" || options.type === "0") {
+    budget.allocateMemory((irLength + 32) * 4);
+    const coefficients = new Float32Array(irLength);
+    const lanes = new Float32Array(32);
+    for (const { input, impulse } of responses) {
+      for (let ear = 0; ear < 2; ear++) {
+        const ir = impulse[ear]!;
+        coefficients.fill(0);
+        for (let tap = 0; tap < ir.length; tap++) coefficients[tap] = f(ir[ir.length - tap - 1]!) * gain;
+        const output = channelData[ear]!;
+        for (let sample = 0; sample < length; sample++) {
+          lanes.fill(0);
+          // Native scalarproduct_float uses 32 fused accumulation lanes on x86.
+          for (let tap = Math.max(0, irLength - 1 - sample); tap < ir.length; tap++) {
+            if (work++ % 4096 === 0) {
+              await yieldTurn(signal);
+              signal?.throwIfAborted();
+              budget.checkCpu();
+            }
+            const lane = tap % 32;
+            lanes[lane] = f(input[sample - irLength + 1 + tap]!) * coefficients[tap]! + lanes[lane]!;
           }
-          output[sample + tap] = output[sample + tap]! + Math.fround(input[sample]! * coefficient);
+          for (const stride of [16, 8, 4, 2, 1]) {
+            for (let lane = 0; lane < stride; lane++) lanes[lane] = lanes[lane]! + lanes[lane + stride]!;
+          }
+          output[sample] = output[sample]! + lanes[0]!;
+        }
+      }
+    }
+  } else {
+    // Native uses a complex FFT strictly larger than the block plus HRIR.
+    const fftSize = 2 ** (Math.floor(Math.log2(irLength + size)) + 1);
+    budget.allocateMemory((responses.length * 2 + 3) * fftSize * 2 * 8 + (fftSize / 2 + 1) * 4);
+    const cosine = Float32Array.from({ length: fftSize / 2 + 1 }, (_, i) =>
+      i === fftSize / 2 ? 0 : Math.cos(Math.PI * i / fftSize));
+    const input = new Float64Array(fftSize * 2);
+    const spectrum = new Float64Array(fftSize * 2);
+    const accumulator = new Float64Array(fftSize * 2);
+    const hrtf = responses.map(({ impulse }) => impulse.map(ir => {
+      input.fill(0);
+      for (let tap = 0; tap < ir.length; tap++) input[2 * tap] = f(f(ir[tap]!) * gain);
+      const response = new Float64Array(fftSize * 2);
+      splitRadix(input, response, cosine, 0, 1, fftSize, 0);
+      return response;
+    }));
+    for (let start = 0; start < length; start += size) {
+      const count = Math.min(size, length - start);
+      for (let ear = 0; ear < 2; ear++) {
+        accumulator.fill(0);
+        for (let channel = 0; channel < responses.length; channel++) {
+          await yieldTurn(signal);
+          signal?.throwIfAborted();
+          budget.checkCpu();
+          input.fill(0);
+          for (let sample = 0; sample < count; sample++) input[2 * sample] = f(responses[channel]!.input[start + sample]!);
+          splitRadix(input, spectrum, cosine, 0, 1, fftSize, 0);
+          const response = hrtf[channel]![ear]!;
+          for (let bin = 0; bin < fftSize * 2; bin += 2) {
+            const re = spectrum[bin]!, im = spectrum[bin + 1]!;
+            accumulator[bin] = f(accumulator[bin]! + f(f(re * response[bin]!) - f(im * response[bin + 1]!)));
+            accumulator[bin + 1] = f(accumulator[bin + 1]! + f(f(re * response[bin + 1]!) + f(im * response[bin]!)));
+          }
+        }
+        splitRadix(accumulator, spectrum, cosine, 0, -1, fftSize, 0);
+        const output = channelData[ear]!;
+        for (let sample = 0; sample < Math.min(count + irLength - 1, length - start); sample++) {
+          output[start + sample] = output[start + sample]! + f(spectrum[2 * sample]! / fftSize);
         }
       }
     }

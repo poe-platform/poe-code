@@ -84,3 +84,27 @@ for (const options of ["map=FL|FL", "map=FL", "map=FC|FR", "map=FL|FR:type=bad",
     assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
   });
 }
+
+for (const [invalid, valid, diagnostic] of [
+  ["gain=41:gain=0", "gain=6:gain=0", "gain must be between"],
+  ["lfe=-21:lfe=0", "lfe=6:lfe=0", "lfe must be between"],
+  ["type=bad:type=time", "type=freq:type=time", "invalid processing type"],
+  ["size=1:size=1024", "size=2048:size=1024", "invalid frame size"],
+  ["hrir=bad:hrir=stereo", "hrir=0:hrir=stereo", "impulse response"],
+  ["41:gain=0", "6:gain=0", "gain must be between"]
+] as const) {
+  it(`headphone rejects an invalid earlier assignment ${invalid}`, async () => {
+    const { result, volume, error } = await render(`headphone=map=FL|FR:${invalid}`);
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(error.includes(diagnostic), error);
+    assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
+  });
+
+  it(`headphone accepts valid repetitions ${valid} and uses the last value`, async () => {
+    const actual = await render(`headphone=map=FL|FR:${valid}`);
+    const expected = await render("headphone=map=FL|FR:type=time");
+    assert.equal(actual.result.exitCode, 0, actual.error);
+    assert.equal(expected.result.exitCode, 0, expected.error);
+    assert.deepEqual(actual.volume.readFileSync("/out.wav"), expected.volume.readFileSync("/out.wav"));
+  });
+}

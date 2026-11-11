@@ -4635,7 +4635,10 @@ async function applyVideoFilterChain(
         throw new RangeError("framestep: step must be an integer from 1 to 2147483647");
       }
       const step = roundToEven(value);
-      const variables = { n: 0, t: NaN, w: NaN, h: NaN, pos: NaN, NAN: NaN, INF: Infinity };
+      const variables = {
+        n: 0, t: NaN, w: NaN, h: NaN, pos: NaN, NAN: NaN, INF: Infinity,
+        PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+      };
       if (named.enable !== undefined && current.length === 0) {
         parseFilterExpression(named.enable, "framestep enable", variables);
       }

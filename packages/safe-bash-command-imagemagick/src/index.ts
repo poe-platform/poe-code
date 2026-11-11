@@ -9410,13 +9410,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 if (idx % 65536 === 0) yield;
                 // Native ContrastImage changes HSV brightness, preserving hue, saturation and alpha.
                 const brightness = Math.max(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!) / range;
-                const adjusted = brightness + sign * 0.5 * (0.5 * (Math.sin(Math.PI * (brightness - 0.5)) + 1) - brightness);
+                const adjusted = Math.max(0, Math.min(1, brightness + sign * 0.5 * (0.5 * (Math.sin(Math.PI * (brightness - 0.5)) + 1) - brightness)));
                 for (let channel = 0; channel < 3; channel++) {
-                    // Keep native Q16-HDRI fractions between operations; round only the encoding views.
-                    const value = Math.fround(Math.max(0, Math.min(range, brightness === 0 ? 0 : samples[idx + channel]! * adjusted / brightness)) * (65535 / range)) / (65535 / range);
+                    // Clamp brightness, preserving negative HDRI colors; bound only the integer views.
+                    const value = Math.fround((brightness === 0 ? 0 : samples[idx + channel]! * adjusted / brightness) * (65535 / range)) / (65535 / range);
                     samples[idx + channel] = value;
                     out[idx + channel] = clampByteVal(value * (255 / range));
-                    if (data16) data16[idx + channel] = Math.round(value * (65535 / range));
+                    if (data16) data16[idx + channel] = Math.round(Math.max(0, Math.min(65535, value * (65535 / range))));
                 }
             }
             // Indexed operations must see the adjusted colormap, including unused entries.

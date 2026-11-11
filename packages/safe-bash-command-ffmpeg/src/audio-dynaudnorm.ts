@@ -4,8 +4,11 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function normalizeAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker,
-  signal: AbortSignal | undefined, warn: (message: string) => Promise<void>
+  signal: AbortSignal | undefined, warn: (message: string) => Promise<void>,
+  frames?: readonly { start: number; end: number; pts: number; pos?: number | undefined }[], startSample = 0
 ): Promise<{ channels: Float64Array[]; frameSize: number }> {
+  let enable: string | undefined;
+  const variables = { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 };
   let milliseconds = 500;
   let size = 31;
   let peak = 0.95;
@@ -16,6 +19,11 @@ export async function normalizeAudio(
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["f", "g", "p", "m", "r"][index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key === "enable") {
+      enable = value;
+      parseFilterExpression(enable, "dynaudnorm enable", variables, undefined, new Float64Array(10), []);
+      continue;
+    }
     const number = parseFilterExpression(value, "dynaudnorm", {});
     // AVOption integers round to nearest, with halfway values going to even.
     const rounded = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
@@ -102,10 +110,23 @@ export async function normalizeAudio(
   };
   let written = 0;
   let work = 0;
+  const registers = new Float64Array(10);
+  const randomStates: BigUint64Array[] = [];
+  let frameIndex = 0;
   const amplify = async () => {
     const gain = smoothed.shift()!;
     const end = Math.min(length, written + frameSize);
     const start = written;
+    let enabled = true;
+    if (enable !== undefined) {
+      while (frames && frameIndex + 1 < frames.length && frames[frameIndex]!.end <= start) frameIndex++;
+      const frame = frames?.[frameIndex];
+      variables.n = start / frameSize;
+      variables.t = (frame ? frame.pts + start - frame.start : startSample + start) / sampleRate;
+      variables.pos = frame?.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN;
+      // The native activate path evaluates once per consumed normalization frame.
+      enabled = Math.abs(parseFilterExpression(enable, "dynaudnorm enable", variables, undefined, registers, randomStates)) >= 0.5;
+    }
     for (; written < end; written++) {
       const fraction = (written - start + 1) / (end - start);
       const factor = previous * (1 - fraction) + gain * fraction;
@@ -115,7 +136,7 @@ export async function normalizeAudio(
           signal?.throwIfAborted();
           budget.checkCpu();
         }
-        output[c]![written] = channels[c]![written]! * factor;
+        output[c]![written] = channels[c]![written]! * (enabled ? factor : 1);
       }
     }
     previous = gain;

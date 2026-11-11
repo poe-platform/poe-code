@@ -14896,7 +14896,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredSampleFormat = "dblp";
                         const normalized = await normalizeAudio(stretched, origRate, trimmed, budget, context.signal, async message => {
                           if (logLevel >= 24) await writeBytes(context.stderr, encodeUtf8(message), context.signal);
-                        });
+                        }, audioTimestamps, audioStartSample);
                         stretched = normalized.channels;
                         const length = stretched[0]?.length ?? 0;
                         budget.allocateMemory(Math.ceil(length / normalized.frameSize) * 24);

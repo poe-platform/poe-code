@@ -3,6 +3,30 @@ import { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
 
+for (const retained of [false, true]) {
+  for (const write of [false, true]) {
+    it.each([
+      { page: [], origin: [0, 0, 0, 0] },
+      { page: ["-repage", "7x6+2+3"], origin: [2, 0, 3, 0] },
+      { page: ["-repage", "700x800+258+515"], origin: [2, 1, 3, 2] },
+      { page: ["-repage", "7x6+2+3", "+repage"], origin: [0, 0, 0, 0] }
+    ])(`writes page offsets $page (retained=${retained}, write=${write})`, async ({ page, origin }) => {
+      const input = Buffer.concat([Buffer.from("P6\n2 1\n255\n"), Buffer.from([10, 20, 30, 90, 110, 130])]);
+      const files = new Map<string, Uint8Array>([["/in.ppm", input]]);
+      const filesystem = new MemoryFileSystem();
+      await filesystem.writeFile("/in.ppm", input);
+      const result = await runConvertCli(["/in.ppm", ...page, "-orient", "BottomRight",
+        ...(write ? ["-write", "tga:/out.tga", "/final.png"] : ["/out.tga"])],
+      retained ? { filesystem, cwd: "/" } : files);
+      expect(result).toMatchObject({ exitCode: 0 });
+      const output = retained ? await filesystem.readFile("/out.tga") : files.get("/out.tga")!;
+      expect([...output.subarray(8, 12)]).toEqual(origin);
+      expect([...output.subarray(12, 18)]).toEqual([2, 0, 1, 0, 24, 0x10]);
+      expect([...output.subarray(18, 24)]).toEqual([30, 20, 10, 130, 110, 90]);
+    });
+  }
+}
+
 // ImageMagick 7.1.2-35 writes samples in input order and sets the TGA origin.
 // BottomRight's decoded RGB control is the exact raster from the native repro.
 const origins = [

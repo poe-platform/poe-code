@@ -6,7 +6,7 @@ export function tgaChannels(image: Pick<RgbaImage, "hasAlpha" | "space" | "chann
   return image.hasAlpha ? 4 : image.space === "b-w" || image.space === "grey16" || image.channels === 1 || image.channels === 2 ? 1 : 3;
 }
 
-function tgaHeader(image: Pick<RgbaImage, "width" | "height" | "orientation" | "properties">, channels: 1 | 3 | 4, rle: boolean): Uint8Array {
+function tgaHeader(image: Pick<RgbaImage, "width" | "height" | "orientation" | "properties" | "virtualCanvas">, channels: 1 | 3 | 4, rle: boolean): Uint8Array {
   if (![image.width, image.height].every(value => Number.isInteger(value) && value > 0 && value <= 65535)) throw new RangeError("Invalid TGA dimensions");
   // Keep a surrogate pair at the byte limit intact before UTF-8 truncation.
   const comment = (image.properties?.comment ?? "").slice(0, 256).split("\0", 1)[0];
@@ -15,6 +15,8 @@ function tgaHeader(image: Pick<RgbaImage, "width" | "height" | "orientation" | "
   header[0] = id.length;
   header.set(id, 18);
   header[2] = (channels === 1 ? 3 : 2) + (rle ? 8 : 0);
+  view.setUint16(8, image.virtualCanvas?.x ?? 0, true);
+  view.setUint16(10, image.virtualCanvas?.y ?? 0, true);
   view.setUint16(12, image.width, true);
   view.setUint16(14, image.height, true);
   header[16] = channels * 8;
@@ -65,7 +67,7 @@ function tgaSpan(data: Uint8Array, stride: 1 | 3 | 4, rle: boolean, palette?: Re
 }
 
 /** Scan palette sources before emitting the header, retaining at most 256 colors. */
-function* tgaChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "channels" | "isPalette" | "orientation" | "properties">, options: OutputEncodeOptions): Generator<number | Uint8Array, void, Uint8Array> {
+function* tgaChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "channels" | "isPalette" | "orientation" | "properties" | "virtualCanvas">, options: OutputEncodeOptions): Generator<number | Uint8Array, void, Uint8Array> {
   const channels = tgaChannels(image), rle = options.tgaCompression === "rle", header = tgaHeader(image, channels, rle);
   let palette = image.isPalette && channels !== 1 ? new Map<number, number>() : undefined;
   for (let offset = 0; palette && offset < image.width * image.height * 4; offset += Math.min(1024, image.width - offset / 4 % image.width) * 4) {

@@ -3794,6 +3794,30 @@ async function applyVideoFilterChain(
         return { ...frame, width, height, data };
       }, signal);
       pixelFormat = diagnostics.pixelFormat = "gray";
+    } else if (name === "hue") {
+      if (positional.length !== 1 || Object.keys(named).length !== 1 || named.s === undefined ||
+          parseFilterExpression(named.s, "hue saturation", {}) !== 0) {
+        throw new Error("hue: only s=0 desaturation is supported");
+      }
+      current = await mapWork(current, async f => {
+        const source = f.native;
+        if (!source || source.rgba !== f.data || source.width !== f.width || source.height !== f.height ||
+            ![0, 4, 5, 12, 13, 14].includes(source.format)) {
+          throw new Error("hue: s=0 requires 8-bit planar YUV input");
+        }
+        budget.allocateMemory(source.pixels.byteLength + f.data.byteLength);
+        const pixels = source.pixels.slice();
+        // Preserve Y exactly, including values outside the nominal video range.
+        for (let offset = f.width * f.height; offset < pixels.length; offset += 65536) {
+          await yieldTurn(signal);
+          signal?.throwIfAborted();
+          budget.checkCpu();
+          pixels.fill(128, offset, Math.min(offset + 65536, pixels.length));
+        }
+        const native = { ...source, pixels };
+        const data = scaleVideoPicture({ ...f, native }, f.width, f.height)!;
+        return { ...f, data, native: { ...native, rgba: data } };
+      }, signal);
     } else if (name === "format") {
       let formats: string[] | undefined;
       for (const [index, part] of (argStr ? positional : []).entries()) {

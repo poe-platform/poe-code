@@ -1,3 +1,4 @@
+import { createIccConversion } from "./icc-conversion.js";
 import { readIccDescription } from "./icc-description.js";
 import { readExifTextProperties } from "./exif-text.js";
 import { discardDisassociatedAlpha } from "./alpha-state.js";
@@ -11675,7 +11676,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!name) throw new Error(`missing argument '${t}'`);
             const profile = t === "-profile" ? files.get(name) : undefined;
             if (t === "-profile" && !profile) throw new Error(`unable to open profile '${name}'`);
-            stack = stack.map(image => applyMagickProfile(image, name, profile));
+            stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                const tagged = applyMagickProfile(image, name, profile);
+                return image.icc && profile ? yield* createIccConversion(image.icc, profile)(image) : tagged;
+            });
         }
         else if (t === "-strip") {
             state.strip = true;
@@ -13830,7 +13834,6 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
 function applyMagickProfile<T extends { readonly icc?: Uint8Array; readonly exif?: Uint8Array; readonly xmp?: Uint8Array }>(image: T, name: string, profile?: Uint8Array): T {
     if (profile) {
         if (profile.length < 128 || String.fromCharCode(...profile.subarray(36, 40)) !== "acsp") throw new Error(`invalid ICC profile '${name}'`);
-        if (image.icc && (image.icc.length !== profile.length || image.icc.some((byte, index) => byte !== profile[index]))) throw new Error("ICC color conversion is unsupported");
         return { ...image, icc: profile };
     }
     if (["xmp", "*"].includes(name.toLowerCase())) {
@@ -15487,7 +15490,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     return bytes;
                 }) : undefined;
                 if (token === "-profile" && !profile) throw new Error(`unable to open profile '${name}'`);
-                for (let index = 0; index < stack.length; index++) await stack.set(index, applyMagickProfile((await stack.get(index))!, name, profile));
+                for (let index = 0; index < stack.length; index++) {
+                    const image = (await stack.get(index))!;
+                    const tagged = applyMagickProfile(image, name, profile);
+                    await stack.set(index, image.icc && profile ? await transformStoredMagickPixels(image, backend, {
+                        end: 0, highDepth: true, evaluate: true, apply: createIccConversion(image.icc, profile)
+                    }, signal) : tagged);
+                }
                 return stack;
             });
             continue;
@@ -17886,7 +17895,15 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             return;
         }
         if (typeof operation === "object" && "profile" in operation) {
-            yield* acceptImage(applyMagickProfile(image, operation.name, operation.profile), operations, index + 1);
+            let converted = applyMagickProfile(image, operation.name, operation.profile);
+            if (image.icc && operation.profile) {
+                const apply = createIccConversion(image.icc, operation.profile);
+                if ("data" in image) converted = yield* apply(image);
+                else yield { async run() {
+                    converted = await transformStoredMagickPixels(image, backend!, { end: 0, highDepth: true, evaluate: true, apply }, signal!);
+                } };
+            }
+            yield* acceptImage(converted, operations, index + 1);
             return;
         }
         if (typeof operation === "object" && "trim" in operation) {

@@ -14723,7 +14723,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geometry, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 const angle = parseMagickRotationalBlurAngle(expanded);
-                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, rotationalBlurPixelSteps(im, angle, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.seed), signal);
+                const result = yield* applyMagickRasterSteps({ ...im, isPalette: false }, rotationalBlurPixelSteps(im, angle, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.seed), signal);
+                if (im.metaChannels?.length) {
+                    result.metaChannels = [];
+                    for (const [index, plane] of im.metaChannels.entries()) {
+                        const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
+                        result.metaChannels.push(selected ? yield* applyMagickRasterSteps(plane,
+                            rotationalBlurPixelSteps({ ...plane, region: im.region }, angle, { r: 0, g: 0, b: 0, a: 255 }, state.virtualPixel), signal) : plane);
+                    }
+                }
+                return result;
             }, undefined, true);
         }
         else if (t === "-adaptive-sharpen" || t === "-adaptive-blur") {
@@ -18874,11 +18883,19 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const geometry = tokens[++i] ?? "", background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined, optionProperties = state.optionProperties, seed = state.seed;
+            const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 const angle = parseMagickRotationalBlurAngle(expanded);
-                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, rotationalBlurPixelSteps(image, angle, background, virtualPixel, channels, seed), signal);
+                const result = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, rotationalBlurPixelSteps(image, angle, background, virtualPixel, channels, seed), signal);
+                if (image.storedMetaChannels?.length) {
+                    result.storedMetaChannels = [];
+                    for (const [index, plane] of image.storedMetaChannels.entries())
+                        result.storedMetaChannels.push(!meta || meta.includes(index) ? await transformStoredMagickRaster(plane, backend,
+                            rotationalBlurPixelSteps({ ...plane, region: image.region }, angle, { r: 0, g: 0, b: 0, a: 255 }, virtualPixel), signal) : plane);
+                }
+                return result;
             }, { handlesRegion: true }));
         } else if (!operandsOnly && (token === "-adaptive-sharpen" || token === "-adaptive-blur")) {
             stackStep(async stack => {

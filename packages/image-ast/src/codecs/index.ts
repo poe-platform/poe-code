@@ -1,3 +1,4 @@
+import { isFitsBytes, readFitsHeader, decodeFitsImage } from "./fits-input.js";
 import { encodeSixelImage } from "./sixel-output.js";
 import { isSixelBytes, readSixelMetadata, decodeSixelImage } from "./sixel-input.js";
 import { isPsdBytes, readPsdHeader, decodePsdImage } from "./psd-input.js";
@@ -83,6 +84,7 @@ import {
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isSixelBytes(bytes)) return "sixel";
   if (isPcxBytes(bytes)) return "pcx";
+  if (isFitsBytes(bytes)) return "fits";
   if (isXwdBytes(bytes)) return "xwd";
   if (isQoiBytes(bytes)) return "qoi";
   if (isPsdBytes(bytes)) return "psd";
@@ -188,6 +190,7 @@ export function readImageMetadata(
     case "sixel": meta = readSixelMetadata(bytes, options); break;
     case "pcx": meta = readPcxHeader(bytes).metadata; break;
     case "xwd": meta = readXwdHeader(bytes).metadata; break;
+    case "fits": meta = readFitsHeader(bytes).metadata; break;
     case "qoi": meta = readQoiMetadata(bytes); break;
     case "hdr": meta = readRadianceHeader(bytes).metadata; break;
     case "exr": meta = readExrHeader(bytes).metadata; break;
@@ -434,6 +437,7 @@ export function decodeImage(
     case "pcx": decoded = decodePcxImage(bytes, options); break;
     case "xwd": decoded = decodeXwdImage(bytes, options); break;
     case "qoi": decoded = decodeQoiImage(bytes, options); break;
+    case "fits": decoded = decodeFitsImage(bytes, options); break;
     case "hdr": decoded = decodeRadianceImage(bytes, options); break;
     case "exr": decoded = decodeExrImage(bytes, options); break;
     case "psd": decoded = decodePsdImage(bytes, options); break;

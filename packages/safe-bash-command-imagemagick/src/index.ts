@@ -6810,6 +6810,9 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
   const rawCoder = ext.toLowerCase();
   if (isRawCoder(rawCoder)) return rawCoder;
   switch (ext.toLowerCase()) {
+    case "ff":
+    case "farbfeld":
+      return "farbfeld";
     case "map":
       return "map";
     case "psd":

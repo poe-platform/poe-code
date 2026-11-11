@@ -7,7 +7,7 @@ export type RawImage = RgbaImage & { rawFrames?: readonly RgbaImage[] };
 export type StoredRawImage = StoredRgbaImage & { rawFrames?: { length: number; at(index: number): Promise<StoredRgbaImage> } };
 
 export type RawCoder = "rgb" | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro" | "gray" | "graya" | "cmyk" | "cmyka";
-export type ImageFormat = RasterFormat | RawCoder | "map";
+export type ImageFormat = RasterFormat | RawCoder | "map" | "farbfeld";
 export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | "partition" | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
 
 /** Search complete output sizes, including alpha and container overhead. */
@@ -30,9 +30,24 @@ export function isRawCoder(format: string | undefined): format is RawCoder {
     return format === "rgbo" || format === "bgro" || format === "rgb" || format === "rgba" || format === "bgr" || format === "bgra" || format === "gray" || format === "graya" || format === "cmyk" || format === "cmyka";
 }
 
+function farbfeldHeader(image: Pick<RgbaImage, "width" | "height">): Uint8Array {
+    const header = new Uint8Array(16);
+    header.set(new TextEncoder().encode("farbfeld"));
+    const view = new DataView(header.buffer);
+    view.setUint32(8, image.width);
+    view.setUint32(12, image.height);
+    return header;
+}
+
 export function encodeImage(image: RawImage, options: OutputEncodeOptions): ReturnType<typeof encodeRaster> {
     if (options.format === "png" && (image.resolution?.x === 0 || image.resolution?.y === 0)) options = { ...options, omitPngResolution: true };
     if (options.format === "pam") options = { ...options, netpbmDepth: options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
+    if (options.format === "farbfeld") {
+        const data = new Uint8Array(16 + image.width * image.height * 8);
+        data.set(farbfeldHeader(image));
+        data.set(encodeRawPixels(image, { format: "rgba", netpbmDepth: 16, endian: "msb" }, [0, 1, 2, 3]), 16);
+        return { data, format: "raw", channels: 4 };
+    }
     const format = options.format;
     if (format === "map") return { data: encodeMapImage(image), format: "raw", channels: 3 };
     if (!isRawCoder(format)) {
@@ -151,6 +166,11 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
 export async function* encodeStoredImage(image: StoredRawImage, storage: ImageByteStorage, signal: AbortSignal, options: OutputEncodeOptions): ReturnType<typeof encodeStoredRaster> {
     if (options.format === "png" && (image.resolution?.x === 0 || image.resolution?.y === 0)) options = { ...options, omitPngResolution: true };
     if (options.format === "pam") options = { ...options, netpbmDepth: options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
+    if (options.format === "farbfeld") {
+        yield farbfeldHeader(image);
+        const info = yield* encodeStoredImage(image, storage, signal, { format: "rgba", netpbmDepth: 16, endian: "msb" });
+        return { ...info!, size: info!.size + 16 };
+    }
     if (options.format === "map") {
         let size = 0;
         for await (const chunk of encodeMapFromStorage(image, storage, signal)) { size += chunk.length; yield chunk; }

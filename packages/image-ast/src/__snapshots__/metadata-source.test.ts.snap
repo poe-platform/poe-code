@@ -10,6 +10,7 @@ exports[`preserves PNG metadata 1/0/false 1`] = `
   "format": "png",
   "hasAlpha": false,
   "height": 19,
+  "isPalette": true,
   "isProgressive": true,
   "orientation": 6,
   "resolution": {
@@ -36,6 +37,7 @@ exports[`preserves PNG metadata 1/0/true 1`] = `
   "format": "png",
   "hasAlpha": false,
   "height": 19,
+  "isPalette": true,
   "isProgressive": true,
   "orientation": 6,
   "resolution": {
@@ -257,6 +259,7 @@ exports[`preserves PNG metadata 2/0/false 1`] = `
   "format": "png",
   "hasAlpha": false,
   "height": 19,
+  "isPalette": true,
   "isProgressive": false,
   "orientation": 6,
   "resolution": {
@@ -283,6 +286,7 @@ exports[`preserves PNG metadata 2/0/true 1`] = `
   "format": "png",
   "hasAlpha": false,
   "height": 19,
+  "isPalette": true,
   "isProgressive": false,
   "orientation": 6,
   "resolution": {
@@ -504,6 +508,7 @@ exports[`preserves PNG metadata 4/0/false 1`] = `
   "format": "png",
   "hasAlpha": false,
   "height": 19,
+  "isPalette": true,
   "isProgressive": false,
   "orientation": 6,
   "resolution": {
@@ -530,6 +535,7 @@ exports[`preserves PNG metadata 4/0/true 1`] = `
   "format": "png",
   "hasAlpha": false,
   "height": 19,
+  "isPalette": true,
   "isProgressive": false,
   "orientation": 6,
   "resolution": {
@@ -751,6 +757,7 @@ exports[`preserves PNG metadata 8/0/false 1`] = `
   "format": "png",
   "hasAlpha": false,
   "height": 19,
+  "isPalette": true,
   "isProgressive": false,
   "orientation": 6,
   "resolution": {
@@ -777,6 +784,7 @@ exports[`preserves PNG metadata 8/0/true 1`] = `
   "format": "png",
   "hasAlpha": false,
   "height": 19,
+  "isPalette": true,
   "isProgressive": false,
   "orientation": 6,
   "resolution": {

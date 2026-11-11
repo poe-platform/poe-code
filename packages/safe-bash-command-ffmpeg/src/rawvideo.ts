@@ -25,7 +25,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
   const gray16 = gray10 || pixelFormat === "gray16be" || pixelFormat === "gray16le";
   const yuv10 = pixelFormat === "yuv420p10le";
   const yuv16 = pixelFormat === "yuv420p16le" || pixelFormat === "yuv444p10le" || pixelFormat === "yuv444p16le";
-  const yuva = pixelFormat === "yuva420p";
+  const yuva = pixelFormat === "yuva420p" || pixelFormat === "yuva444p";
   const semiplanar = pixelFormat === "nv12" || pixelFormat === "nv21";
   const yuv = yuva || yuv10 || yuv16 || semiplanar || pixelFormat === "yuv420p" || pixelFormat === "yuv422p" || pixelFormat === "yuv444p";
   const rgb16Format = pixelFormat === "rgb48be" ? 34 : pixelFormat === "rgb48le" ? 35
@@ -33,7 +33,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
   const rgb16 = rgb16Format !== undefined;
   if (!rgb16 && !gray && pixelFormat !== "gbrp" && pixelFormat !== "gbrap" && pixelFormat !== "bgra" && pixelFormat !== "rgb24" && pixelFormat !== "rgba" && !gray16 && !yuv && pixelFormat !== "ya8") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
   const ySize = width * height;
-  const chromaSize = (yuv16 && pixelFormat !== "yuv420p16le") || pixelFormat === "yuv444p" ? ySize : Math.ceil(width / 2) * (pixelFormat === "yuv422p" ? height : Math.ceil(height / 2));
+  const chromaSize = (yuv16 && pixelFormat !== "yuv420p16le") || pixelFormat === "yuv444p" || pixelFormat === "yuva444p" ? ySize : Math.ceil(width / 2) * (pixelFormat === "yuv422p" ? height : Math.ceil(height / 2));
   const frameBytes = rgb16 ? ySize * (rgb16Format === 104 || rgb16Format === 105 ? 8 : 6) : pixelFormat === "bgra" || pixelFormat === "rgba" || pixelFormat === "gbrap" ? ySize * 4 : yuv ? (ySize * (yuva ? 2 : 1) + chromaSize * 2) * (yuv10 || yuv16 ? 2 : 1) : ySize * (gray ? 1 : gray16 || pixelFormat === "ya8" ? 2 : 3);
   if (!Number.isSafeInteger(frameBytes)) throw new Error("Invalid rawvideo frame size");
   const count = Math.ceil(bytes.length / frameBytes);
@@ -74,10 +74,10 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
         output.setUint16(pixel * 2, (value << 6) | (value >> 4), true);
       }
     }
-    // Odd-width YUVA uses swscale; even widths use the unscaled YUV conversion below.
-    const rgba = rgb16 || yuv10 || yuv16 || (yuva && width % 2 !== 0)
+    // YUVA444 and odd-width YUVA420 use swscale; even-width YUVA420 uses the unscaled conversion.
+    const rgba = rgb16 || yuv10 || yuv16 || (yuva && (pixelFormat === "yuva444p" || width % 2 !== 0))
       ? scaleVideoPicture({ data, width, height, native: { rgba: data, pixels: data, width, height,
-        format: yuva ? 33 : rgb16Format ?? (yuv10 ? 62 : pixelFormat === "yuv444p10le" ? 68 : pixelFormat === "yuv420p16le" ? 45 : 49), colorspace: 5, fullRange: rgb16 ? 1 : 0 } }, width, height)!
+        format: yuva ? (pixelFormat === "yuva444p" ? 79 : 33) : rgb16Format ?? (yuv10 ? 62 : pixelFormat === "yuv444p10le" ? 68 : pixelFormat === "yuv420p16le" ? 45 : 49), colorspace: 5, fullRange: rgb16 ? 1 : 0 } }, width, height)!
       : yuv
       ? yuv420pToRgba(data.subarray(0, ySize), data.subarray(ySize, ySize + chromaSize), data.subarray(ySize + chromaSize, ySize + chromaSize * 2), width, height,
         pixelFormat === "yuv444p" ? 0 : 1, (yuva || pixelFormat === "yuv420p" || semiplanar) ? 1 : 0)
@@ -114,7 +114,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     }
     frames.push({ width, height, data: rgba, offset: index * frameBytes,
       ...(rgb16 || yuv || gray16 || gray ? { native: { rgba, pixels: data, width, height,
-        format: yuva ? 33 : yuv10 ? 62 : yuv16 ? (pixelFormat === "yuv444p10le" ? 68 : pixelFormat === "yuv420p16le" ? 45 : 49) : rgb16Format ?? (gray ? 8 : gray16 ? (gray10 || pixelFormat === "gray16le" ? 30 : 29) : pixelFormat === "yuv444p" ? 5 : pixelFormat === "yuv422p" ? 4 : 0), colorspace: 5, fullRange: rgb16 || gray16 || gray ? 1 : 0 } } : {}),
+        format: yuva ? (pixelFormat === "yuva444p" ? 79 : 33) : yuv10 ? 62 : yuv16 ? (pixelFormat === "yuv444p10le" ? 68 : pixelFormat === "yuv420p16le" ? 45 : 49) : rgb16Format ?? (gray ? 8 : gray16 ? (gray10 || pixelFormat === "gray16le" ? 30 : 29) : pixelFormat === "yuv444p" ? 5 : pixelFormat === "yuv422p" ? 4 : 0), colorspace: 5, fullRange: rgb16 || gray16 || gray ? 1 : 0 } } : {}),
       ptsSeconds: index / timescale,
       durationSeconds: 1 / timescale, keyframe: true, pictureType: 1 });
   }

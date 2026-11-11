@@ -1,9 +1,10 @@
 import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import { regionContains, type Region } from "./region.js";
+import type { HueMetadata } from "./colorspace-hue.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Separable à trous hat transform with native noise thresholds and reflected edges. */
-export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">> & { region?: Region | undefined; hasAlpha?: boolean; alphaBlend?: boolean | undefined }, geometry: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">> & HueMetadata & { region?: Region | undefined; hasAlpha?: boolean; alphaBlend?: boolean | undefined }, geometry: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const normalized = geometry.replaceAll("%", "").replaceAll("(", "").replaceAll(")", "")
         .replaceAll(",", "x").replaceAll("/", "x").replaceAll("X", "x");
     const fields: string[] = [];
@@ -24,14 +25,24 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
     const noise = [0.8002, 0.2735, 0.1202, 0.0585, 0.0291];
     let levels = 5;
     while (levels > 0 && 2 ** (levels - 1) >= Math.min(width, height)) levels--;
-    const highDepth = !!(image.data16 || image.storedData16), quantumScale = highDepth ? 1 : 257;
+    const hue = image.hueSamples !== undefined || image.storedHueSamples !== undefined;
+    const cmyk = image.space === "cmyk";
+    const highDepth = !!(image.data16 || image.storedData16), quantumScale = hue ? 65535 : highDepth ? 1 : 257;
     const output = new Float64Array(size * 4);
     for (let start = 0; start < size; start += 1024) {
         yield;
         const count = Math.min(1024, size - start);
+        const bytes = yield { kind: "read", hue, highDepth, position: start * 4, length: count * 4 };
+        if (!bytes || bytes.length !== count * (hue ? 32 : highDepth ? 8 : 4)) throw new Error("Truncated wavelet pixels");
+        output.set(hue ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes, start * 4);
+    }
+    const alpha = cmyk && image.region ? new Float64Array(size) : undefined;
+    if (alpha) for (let start = 0; start < size; start += 1024) {
+        const count = Math.min(1024, size - start);
         const bytes = yield { kind: "read", highDepth, position: start * 4, length: count * 4 };
-        if (!bytes || bytes.length !== count * (highDepth ? 8 : 4)) throw new Error("Truncated wavelet pixels");
-        output.set(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes, start * 4);
+        if (!bytes) throw new Error("Truncated wavelet alpha");
+        const samples = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+        for (let i = 0; i < count; i++) alpha[start + i] = samples[i * 4 + 3]! / (highDepth ? 65535 : 255);
     }
     const masked = image.region ? Float64Array.from(output) : undefined;
     if ((threshold !== 0 || masked) && levels > 0) {
@@ -81,10 +92,10 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
                     if (!regionContains(region, x, y)) {
                         // Native synchronizes the write mask after each RGB channel,
                         // compositing every color against the preceding channel's result.
-                        const alpha = image.hasAlpha || image.alphaBlend !== false ? output[i * 4 + 3]! / (highDepth ? 65535 : 255) : 1;
+                        const opacity = image.hasAlpha || image.alphaBlend !== false ? alpha?.[i] ?? output[i * 4 + 3]! / (hue ? 1 : highDepth ? 65535 : 255) : 1;
                         for (let color = 0; color < 3; color++) {
                             const original = masked[i * 4 + color]!;
-                            masked[i * 4 + color] = original * alpha + (color === channel ? value : original) * alpha * (1 - alpha);
+                            masked[i * 4 + color] = original * opacity + (color === channel ? value : original) * opacity * (1 - opacity);
                         }
                     } else masked[i * 4 + channel] = value;
                 } else output[i * 4 + channel] = value;
@@ -99,11 +110,29 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
     for (let position = 0; position < output.length; position += 4096) {
         yield;
         const samples = output.slice(position, position + 4096);
-        // Keep calculated precision without changing the source image depth.
-        const working = Float64Array.from(samples, value => value / (highDepth ? 257 : 1));
-        yield { kind: "write", evaluate: true, position, data: new Uint8Array(working.buffer) };
-        const bounded = highDepth ? Uint16Array.from(samples, value => Math.max(0, Math.min(65535, Math.round(value))))
-            : Uint8Array.from(samples, value => Math.max(0, Math.min(255, Math.round(value))));
-        yield { kind: "write", highDepth, position, data: new Uint8Array(bounded.buffer) };
+        if (hue) {
+            yield { kind: "write", hue: true, position, data: new Uint8Array(samples.buffer) };
+            const rgba = Float64Array.from(samples, value => value * 255);
+            if (cmyk) {
+                const bytes = yield { kind: "read", position, length: samples.length, highDepth };
+                if (!bytes) throw new Error("Truncated wavelet pixels");
+                const original = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+                for (let i = 0; i < samples.length; i += 4) {
+                    for (let channel = 0; channel < 3; channel++) rgba[i + channel] = (1 - samples[i + channel]!) * (1 - samples[i + 3]!) * 255;
+                    rgba[i + 3] = original[i + 3]! / (highDepth ? 257 : 1);
+                }
+                yield { kind: "write", evaluate: true, position, data: new Uint8Array(rgba.buffer) };
+            }
+            const bounded = highDepth ? Uint16Array.from(rgba, value => Math.max(0, Math.min(65535, Math.round(value * 257))))
+                : Uint8Array.from(rgba, value => Math.max(0, Math.min(255, Math.round(value))));
+            yield { kind: "write", highDepth, position, data: new Uint8Array(bounded.buffer) };
+        } else {
+            // Keep calculated precision without changing the source image depth.
+            const working = Float64Array.from(samples, value => value / (highDepth ? 257 : 1));
+            yield { kind: "write", evaluate: true, position, data: new Uint8Array(working.buffer) };
+            const bounded = highDepth ? Uint16Array.from(samples, value => Math.max(0, Math.min(65535, Math.round(value))))
+                : Uint8Array.from(samples, value => Math.max(0, Math.min(255, Math.round(value))));
+            yield { kind: "write", highDepth, position, data: new Uint8Array(bounded.buffer) };
+        }
     }
 }

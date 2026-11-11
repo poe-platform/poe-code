@@ -1,3 +1,4 @@
+import type { rawRasterInput } from "./raw-rgb.js";
 import { decodeMagickImage as decodeImage } from "./image-raster.js";
 import { storedHistogram } from "./text-output.js";
 import { identifyStoredStatistics } from "./identify-statistics.js";
@@ -31,19 +32,20 @@ export interface IdentifyRaster {
     readonly image: StoredRgbaImage;
     readonly storage: ImageByteStorage;
 }
-export type IdentifyFileReader = (path: string, page: number | undefined, verbose: boolean, custom?: (metadata: ImageMetadata, size: number, pixels: () => Promise<IdentifyRaster>) => Promise<string>, hullPrecision?: number, momentsPrecision?: number, statisticsPrecision?: number) => Promise<IdentifyInspection | undefined>;
+export type IdentifyFileReader = (path: string, page: number | undefined, verbose: boolean, custom?: (metadata: ImageMetadata, size: number, pixels: () => Promise<IdentifyRaster>) => Promise<string>, hullPrecision?: number, momentsPrecision?: number, statisticsPrecision?: number, rawInput?: (size: number) => ReturnType<typeof rawRasterInput>) => Promise<IdentifyInspection | undefined>;
 class ReadFailure extends Error {
     constructor(readonly reason: unknown) { super("Image read failed"); }
 }
 export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal, run: (reader: IdentifyFileReader) => Promise<T>): Promise<T> {
     const { filesystem: fs, cwd } = input, io = { signal };
     return withImageInputs(input, stdinBytes, signal, async (load) => {
-        const read: IdentifyFileReader = async (path, page, verbose, custom, hullPrecision, momentsPrecision, statisticsPrecision) => {
+        const read: IdentifyFileReader = async (path, page, verbose, custom, hullPrecision, momentsPrecision, statisticsPrecision, rawInput) => {
             const storage = new PagedStorage({ fs, cwd: cwd, env: {}, signal });
             let failed = true;
             try {
                 const inspect = async (source: ImageByteSource): Promise<IdentifyInspection> => {
-                    const options = page === undefined ? {} : { page }, checked: ImageByteSource = { size: source.size, async read(position, length, options) {
+                    const size = source.size;
+                    const options = page === undefined || rawInput ? {} : { page }, checked: ImageByteSource = { get size() { return source.size; }, async read(position, length, options) {
                             try {
                                 return await source.read(position, length, options);
                             }
@@ -52,6 +54,15 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                             }
                         } };
                     try {
+                        if (rawInput) {
+                            const original = source, raw = rawInput(size);
+                            source = { size: raw.size, async read(position, length) {
+                                const steps = raw.read(position, length, page ?? 0);
+                                let next = steps.next();
+                                while (!next.done) next = steps.next(await original.read(next.value.position, next.value.length, io));
+                                return next.value;
+                            } };
+                        }
                         {
                             try {
                                 let metadata: ImageMetadata;
@@ -68,7 +79,7 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                                     metadata = pdf;
                                 }
                                 if (custom)
-                                    return { metadata, size: source.size, formatted: await custom(metadata, source.size, async () => ({ image: await decodeFileImage(checked, storage, fs, cwd, signal, options), storage })) };
+                                    return { metadata, size, formatted: await custom(metadata, size, async () => ({ image: await decodeFileImage(checked, storage, fs, cwd, signal, options), storage })) };
                                 const image = verbose ? await decodeFileImage(checked, storage, fs, cwd, signal, options) : undefined;
                                 const statistics = image ? await identifyStoredStatistics(image, storage, statisticsPrecision ?? 6, signal) : undefined;
                                 const stats = image ? await computeStoredImageStats(image, storage, signal) : undefined;
@@ -79,7 +90,7 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                                 }
                                 const hull = image && hullPrecision !== undefined ? await identifyStoredHull(image, storage, hullPrecision, signal) : undefined;
                                 const moments = image && momentsPrecision !== undefined ? await identifyStoredMoments(image, storage, momentsPrecision, signal) : undefined;
-                                return { metadata, size: source.size, ...(statistics === undefined ? {} : { statistics }), ...(histogram === undefined ? {} : { histogram }), ...(stats ? { stats } : {}), ...(moments === undefined ? {} : { moments }), ...(hull === undefined ? {} : { hull }) };
+                                return { metadata, size, ...(statistics === undefined ? {} : { statistics }), ...(histogram === undefined ? {} : { histogram }), ...(stats ? { stats } : {}), ...(moments === undefined ? {} : { moments }), ...(hull === undefined ? {} : { hull }) };
                             }
                             catch (error) {
                                 if (!(error instanceof UnsupportedStoredResource) || error instanceof UnsupportedImageFormat)
@@ -92,7 +103,7 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                             bytes.set(await checked.read(position, Math.min(16384, source.size - position), io), position);
                         }
                         const metadata = readImageMetadata(bytes, options), stats = verbose ? await drainCooperativeSteps(computeImageStatsSteps(decodeImage(bytes, options)), signal) : undefined;
-                        return { metadata, size: source.size, bytes, ...(stats ? { stats } : {}) };
+                        return { metadata, size, bytes, ...(stats ? { stats } : {}) };
                     }
                     catch (error) {
                         signal.throwIfAborted();

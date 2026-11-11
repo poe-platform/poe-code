@@ -7746,7 +7746,8 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     let locateMaximum = false;
     let locateLimit = 0;
     let optionError = "";
-    const targets: { path: string; originalInput: string; sceneCount?: number; listIndex: number; customFormat: string | undefined; density: string | undefined; channelSelection: MagickFormatContext["channelSelection"] }[] = [];
+    const readState = createDefaultState();
+    const targets: { path: string; originalInput: string; sceneCount?: number; listIndex: number; readState: MagickState; customFormat: string | undefined; density: string | undefined; channelSelection: MagickFormatContext["channelSelection"] }[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
@@ -7810,6 +7811,17 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         else if (a === "+channel") {
             channelSelection = undefined;
         }
+        else if (["-size", "+size", "-depth", "+depth", "-endian", "+endian"].includes(a)) {
+            if (a.startsWith("-") && argv[i + 1] === undefined) {
+                optionError = `identify: missing an argument for option '${a}'\n`;
+                break;
+            }
+            try { i = applyMagickReadSetting(argv, readState, i)!; }
+            catch (error) {
+                optionError = `identify: ${(error as Error).message}\n`;
+                break;
+            }
+        }
         else if (a === "-density") {
             const value = argv[++i];
             if (value === undefined) {
@@ -7834,7 +7846,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             precision = requested < 1 ? 6 : Math.min(100, Math.trunc(requested));
         }
         else if (a === "-" || (!a.startsWith("-") && !a.startsWith("+"))) {
-            targets.push({ path: a, originalInput: a, listIndex: 0, customFormat, channelSelection, density });
+            targets.push({ path: a, originalInput: a, listIndex: 0, readState: { ...readState }, customFormat, channelSelection, density });
         }
         else {
             optionError = `identify: unrecognized option '${a}'\n`;
@@ -7863,7 +7875,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     const analysis = { warnings: "", errors: "" };
     for (let targetIndex = 0; targetIndex < targets.length; targetIndex++) {
         const target = targets[targetIndex]!;
-        const { customFormat, channelSelection, density } = target;
+        const { customFormat, channelSelection, density, readState } = target;
         let inPath = target.path;
         yield;
         const bracketMatch = /^(.*)\[(\d+)\]$/.exec(inPath);
@@ -7871,7 +7883,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         const colon = baseInPath.indexOf(":");
         const requestedCoder = colon > 0 ? extToImageFormat(baseInPath.slice(0, colon)) : undefined;
         const validateCoder = (metadata: ImageMetadata) => {
-            if (!requestedCoder) return;
+            if (!requestedCoder || isRawCoder(requestedCoder) && readState.hasSize) return;
             if (isRawCoder(requestedCoder) || requestedCoder === "mono" || requestedCoder === "map") {
                 if (metadata.format === "raw") return;
                 throw new Error("must specify image size");
@@ -7903,7 +7915,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                         let offset = 0;
                         for (const page of selectedInputPages(parsed.pageSpec, metadata.pages ?? 1)) {
                             yield;
-                            targets.splice(targetIndex + ++offset, 0, { path: `${parsed.baseToken}[${page}]`, originalInput: target.originalInput, listIndex: offset - 1, customFormat, channelSelection, density });
+                            targets.splice(targetIndex + ++offset, 0, { path: `${parsed.baseToken}[${page}]`, originalInput: target.originalInput, listIndex: offset - 1, readState, customFormat, channelSelection, density });
                         }
                         for (let index = 1; index <= offset; index++) targets[targetIndex + index]!.sceneCount = offset;
                     }
@@ -7926,7 +7938,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         try {
             const lower = baseInPath.toLowerCase();
             inlineImage = lower.startsWith("xc:") || lower.startsWith("canvas:")
-                ? yield* parseInputOperandSteps(baseInPath, files, createDefaultState(), stdinBytes, analysis)
+                ? yield* parseInputOperandSteps(baseInPath, files, readState, stdinBytes, analysis)
                 : undefined;
         }
         catch (err) {
@@ -7935,9 +7947,17 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             yield* flush();
             continue;
         }
+        const rawCoder = (["rgb", "rgba", "rgbo", "bgr", "bgra", "bgro", "gray", "graya", "cmyk", "cmyka"] as const)
+            .find(rawCoder => inPath.toLowerCase().startsWith(`${rawCoder}:`) || (!inPath.includes(":") && baseInPath.toLowerCase().endsWith(`.${rawCoder}`)));
+        const rawInput = rawCoder ? (size: number) => {
+            if (!readState.hasSize) throw new Error(`must specify image size for ${rawCoder.toUpperCase()} input`);
+            return rawRasterInput(readState.sizeWidth, readState.sizeHeight, readState.inputDepth ?? 16, readState.inputEndian ?? "lsb", size,
+                rawCoder === "rgb" ? 3 : rawCoder === "gray" ? 1 : rawCoder === "graya" ? 2 : rawCoder === "cmyk" ? 4 : rawCoder === "cmyka" ? 5 : rawCoder, readState.inputOffset);
+        } : undefined;
         let inspected:IdentifyInspection|undefined;
-        if(reader && !inlineImage)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,density === undefined ? metadata : applyMagickDensity(metadata, density),{filePath:baseInPath,originalInput:target.originalInput,byteLen:size,sceneIdx:pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis,channelSelection,optionProperties:{format:customFormat!}},density === undefined ? pixels : async () => { const raster = await pixels(); return { ...raster, image: applyMagickDensity(raster.image, density) }; },signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision);}};
-        const bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
+        if(reader && !inlineImage)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,density === undefined ? metadata : applyMagickDensity(metadata, density),{filePath:baseInPath,originalInput:target.originalInput,byteLen:size,sceneIdx:pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis,channelSelection,optionProperties:{format:customFormat!}},density === undefined ? pixels : async () => { const raster = await pixels(); return { ...raster, image: applyMagickDensity(raster.image, density) }; },signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision,rawInput);}};
+        let bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
+        const byteLength = bytes?.byteLength;
         if (!bytes&&!inspected&&!inlineImage) {
             errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
             exitCode = 1;
@@ -7945,16 +7965,25 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             continue;
         }
         try {
-            const inputOptions = pageIdx !== undefined ? { page: pageIdx } : undefined;
+            if (rawInput && bytes && !inspected) {
+                const source = bytes, raw = rawInput(source.length), steps = raw.read(0, raw.size, pageIdx ?? 0);
+                let next = steps.next();
+                while (!next.done) {
+                    yield;
+                    next = steps.next(source.subarray(next.value.position, next.value.position + next.value.length));
+                }
+                bytes = next.value;
+            }
+            const inputOptions = pageIdx !== undefined && !rawInput ? { page: pageIdx } : undefined;
             if(inspected&&"error" in inspected)throw inspected.error;
             let meta = inlineImage??inspected?.metadata??readImageMetadata(bytes!, inputOptions);
             if (density !== undefined) meta = applyMagickDensity(meta, density);
-            const size = inlineImage ? 0 : inspected?.size??bytes!.byteLength;
+            const size = inlineImage ? 0 : inspected?.size??byteLength!;
             validateCoder(meta);
             if (pageIdx === undefined && (meta.format === "tiff" || meta.format === "gif") && (meta.pages ?? 1) > 1) {
                 for (let page = 1; page < meta.pages!; page++) {
                     yield;
-                    targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, originalInput: target.originalInput, sceneCount: meta.pages!, listIndex: page, customFormat, channelSelection, density });
+                    targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, originalInput: target.originalInput, sceneCount: meta.pages!, listIndex: page, readState, customFormat, channelSelection, density });
                 }
                 inPath = `${baseInPath}[0]`;
             }

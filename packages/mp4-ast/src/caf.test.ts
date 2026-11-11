@@ -53,6 +53,7 @@ it("reads native CAF metadata chunks and unknown data size without decoding for 
   assert.equal(probe.streams[0]!.codec_name, "pcm_s16be");
   assert.equal(probe.streams[0]!.sample_rate, "8000");
   assert.equal(probe.streams[0]!.channels, 1);
+  assert.equal(probe.format.tags?.encoder, "Lavf63.1.101");
 });
 
 it("rejects malformed CAF dimensions, chunks, encodings, and budget overruns", () => {
@@ -77,7 +78,7 @@ it("rejects malformed CAF dimensions, chunks, encodings, and budget overruns", (
 it("round-trips UTF-8 and empty CAF tags, probes them, and honors metadata replacement", () => {
   const ast = cafAst();
   const doc = ast.parse(native, { decodeAudio: false });
-  const metadata = { title: "針 🎵", artist: "" };
+  const metadata = { title: "針 🎵", artist: "", encoder: "Lavf61.7.100" };
   const bytes = ast.serialize(doc, { audioCodec: "copy", metadata });
   assert.deepEqual(ast.parse(bytes).metadata, metadata);
   assert.equal(ast.probe(bytes).format.tags?.title, metadata.title);

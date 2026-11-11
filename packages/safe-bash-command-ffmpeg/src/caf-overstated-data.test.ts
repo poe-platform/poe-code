@@ -13,9 +13,10 @@ for (const mode of ["decode", "copy", "probe"] as const) {
     it(`recovers an overstated CAF data chunk for ${mode} (${sync ? "sync" : "async"})`, async () => {
       const volume = Volume.fromJSON({});
       volume.writeFileSync("/in.caf", input);
+      // Bitexact keeps the metadata-free fixture offsets stable.
       const args = mode === "probe"
         ? ["-v", "error", "-show_packets", "-show_entries", "packet=pos,size,duration:stream=codec_name,sample_rate,channels,duration_ts", "-of", "json", "/in.caf"]
-        : ["-v", "error", "-y", "-i", "/in.caf", "-c:a", mode === "copy" ? "copy" : "pcm_s16le", "-f", mode === "copy" ? "caf" : "s16le", "/out.raw"];
+        : ["-v", "error", "-y", "-i", "/in.caf", "-fflags", "+bitexact", "-c:a", mode === "copy" ? "copy" : "pcm_s16le", "-f", mode === "copy" ? "caf" : "s16le", "/out.raw"];
       let stdout = "", stderr = "";
       if (sync) {
         assert.equal(evalSyncFfmpeg(args, undefined,

@@ -40,7 +40,11 @@ for (const direction of ["encode", "decode"]) {
         assert.equal(output.readUInt32BE(32), 0);
         assert.equal(output.readUInt32BE(44), 1);
         assert.equal(output.readUInt32BE(48), 16);
-        assert.deepEqual(output.subarray(68), caf.subarray(caf.length - 18));
+        let offset = 8;
+        while (output.toString("ascii", offset, offset + 4) !== "data") {
+          offset += 12 + Number(output.readBigInt64BE(offset + 4));
+        }
+        assert.deepEqual(output.subarray(offset + 16), caf.subarray(caf.length - 18));
       } else assert.deepEqual(output, wav.subarray(44));
     });
   }

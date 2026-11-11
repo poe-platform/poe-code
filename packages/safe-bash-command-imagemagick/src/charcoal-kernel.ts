@@ -9,21 +9,26 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 /** Feed the active color planes to the edge filter, retaining alpha from RGBA. */
 export function* charcoalEdgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">>, radius: number, channels: { r: boolean; g: boolean; b: boolean; a: boolean } | undefined, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const hue = !!image.hueSamples || image.storedHueSamples !== undefined;
-    // This adapter already projects the active color planes into RGB slots.
-    const steps = edgePixelSteps({ ...image, space: "srgb" }, radius, channels, virtualPixel, background);
+    // Project the active color planes into floating RGB slots so edge detection
+    // does not round HSL/Lab samples to the encoded depth before convolution.
+    const steps = edgePixelSteps({ ...image, space: "srgb", magickColorspace: "RGB" }, radius, channels, virtualPixel, background);
     let next = steps.next();
     while (!next.done) {
         const request = next.value;
-        if (request?.kind === "read" && hue) {
-            const bytes = yield { ...request, hue: true };
+        if (request?.kind === "read" && request.hue && hue) {
+            const bytes = yield request;
             if (!bytes || bytes.length !== request.length * 8) throw new Error("Truncated charcoal color planes");
             const planes = new Float64Array(bytes.slice().buffer);
-            const rgba = yield request;
+            const rgba = yield { ...request, hue: false };
             if (!rgba) throw new Error("Truncated charcoal alpha");
             const maximum = request.highDepth ? 65535 : 255;
-            const samples = request.highDepth ? new Uint16Array(rgba.slice().buffer) : rgba.slice();
-            for (let i = 0; i < samples.length; i++) if (i % 4 !== 3) samples[i] = Math.round(planes[i]! * maximum);
-            next = steps.next(new Uint8Array(samples.buffer));
+            const samples = request.highDepth ? new Uint16Array(rgba.slice().buffer) : rgba;
+            for (let i = 3; i < planes.length; i += 4) planes[i] = samples[i]! / maximum;
+            next = steps.next(new Uint8Array(planes.buffer));
+        } else if (request?.kind === "write" && request.hue && hue) {
+            const values = Float64Array.from(new Float64Array(request.data.slice().buffer), value => value * 255);
+            yield { kind: "write", evaluate: true, position: request.position, data: new Uint8Array(values.buffer) };
+            next = steps.next();
         } else next = steps.next(yield request);
     }
 }

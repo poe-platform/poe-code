@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
-import { createMagickCommand, runConvertCliSync } from "./index.js";
+import { createMagickCommand, runConvertCliSync, runMagickCli } from "./index.js";
 
 // ImageMagick 7.1.2-31 Q16-HDRI; RGB samples (17 + pixel * [37, 91, 53]) % 256.
 const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAUAAAAECAIAAADJUWIXAAAAIGNIUk0AAHomAACAhAAA+gAAAIDoAAB1MAAA6mAAADqYAAAXcJy6UTwAAAAGYktHRAD/AP8A/6C9p5MAAAAldEVYdGRhdGU6Y3JlYXRlADIwMjYtMTEtMTBUMDM6MTY6MTErMDA6MDBQyYRMAAAAJXRFWHRkYXRlOm1vZGlmeQAyMDI2LTExLTEwVDAzOjE2OjExKzAwOjAwIZQ88AAAACh0RVh0ZGF0ZTp0aW1lc3RhbXAAMjAyNi0xMS0xMFQwMzoxNjoxMSswMDowMHaBHS8AAAA5SURBVAjXYxQUFFSNNoUjlp3HOVWjOVWVOO8d57wXzcmy8zjnveOcO6M5VZU4VY9D+BBJJc6dxzkBSL0U0lBczXkAAAAASUVORK5CYII=", "base64");
@@ -46,5 +46,28 @@ for (const mode of ["public", "sync"]) {
         expect(result.exitCode).toBe(0);
         const output = decodeImage(mode === "public" ? await fs.readFile("/out.png") : files.get("/out.png")!);
         expect(output.data).toEqual(decodeImage(input).data);
+    });
+}
+
+// ImageMagick 7.1.2-35 Q16-HDRI, identical PPM input and raw gray8 output.
+for (const mode of ["public", "retained", "buffered", "sync"] as const) {
+    it.each([["sRGB", "c0258a"], ["HSL", "b1c612"], ["Lab", "ea8e23"]] as const)(`matches three-pixel %s charcoal samples and metadata (${mode})`, async (space, expected) => {
+        const input = Buffer.concat([Buffer.from("P6\n3 1\n255\n"), Buffer.from("13385d82a7ccf1163b", "hex")]);
+        const fs = new MemoryFileSystem();
+        await fs.writeFile("/in.ppm", input);
+        const files = new Map([["/in.ppm", new Uint8Array(input)]]);
+        const args = ["/in.ppm", "-colorspace", space, "-charcoal", "1x1", "-depth", "8", "-write", "gray:/out", "-format", "%[colorspace]|%[channels]", "info:"];
+        const argumentValues = createCommandArguments(args);
+        let stdout = "", stderr = "";
+        const result = mode === "public" ? await createMagickCommand().execute({
+            command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+        }) : mode === "sync" ? runConvertCliSync(args, files)
+            : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        expect({ stdout, stderr, ...result }).toMatchObject({ exitCode: 0, stdout: "Gray|gray  1.0", stderr: "" });
+        const output = mode === "public" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
+        expect(Buffer.from(output).toString("hex")).toBe(expected);
     });
 }

@@ -16,8 +16,8 @@ export async function exciteAudio(
     if (!key || !Object.hasOwn(options, key)) throw new Error(`aexciter: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     const number = key !== "listen" ? parseFilterExpression(value, "aexciter", {})
-      : ["true", "yes", "on"].includes(value) ? 1
-      : key === "listen" && ["false", "no", "off"].includes(value) ? 0 : Number(value);
+      : ["true", "yes", "on"].includes(value.toLowerCase()) ? 1
+      : key === "listen" && ["false", "no", "off"].includes(value.toLowerCase()) ? 0 : Number(value);
     const [min, max] = ranges[key];
     if (!value || !Number.isFinite(number) || number < min! || number > max! || key === "listen" && !Number.isInteger(number)) {
       throw new Error(`aexciter: invalid ${key}`);

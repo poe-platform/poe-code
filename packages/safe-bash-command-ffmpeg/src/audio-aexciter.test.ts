@@ -59,7 +59,29 @@ for (const [expression, literal] of [
   }
 }
 
-for (const filter of ["aexciter=amount=1+", "aexciter=amount=1/0", "aexciter=amount=32+33", "aexciter=freq=2000-1", "aexciter=listen=1+0", "aexciter=amount=-1", "aexciter=drive=0", "aexciter=blend=11", "aexciter=freq=1999", "aexciter=ceil=20001", "aexciter=listen=2", "aexciter=level_in=NaN", "aexciter=unknown=1"]) {
+for (const graph of [false, true]) {
+  for (const positional of [false, true]) {
+    for (const [canonical, values] of [
+      ["true", ["TRUE", "YeS", "ON", "1"]],
+      ["false", ["FALSE", "nO", "OfF", "0"]]
+    ] as const) {
+      it(`accepts case-insensitive listen=${canonical} (${graph ? "graph" : "simple"}, ${positional ? "positional" : "named"})`, async () => {
+        const expected = await run(`aexciter=listen=${canonical}`, graph, true);
+        assert.equal(expected.result.exitCode, 0, expected.stderr);
+        assert.equal(expected.stderr, "");
+        for (const value of values) {
+          const filter = positional ? `aexciter=1:1:1:8.5:0:7500:9999:${value}` : `aexciter=listen=${value}`;
+          const actual = await run(filter, graph, true);
+          assert.equal(actual.result.exitCode, 0, `${filter}: ${actual.stderr}`);
+          assert.equal(actual.stderr, "");
+          assert.deepEqual(actual.volume.readFileSync("/out.wav"), expected.volume.readFileSync("/out.wav"), filter);
+        }
+      });
+    }
+  }
+}
+
+for (const filter of ["aexciter=amount=1+", "aexciter=amount=1/0", "aexciter=amount=32+33", "aexciter=freq=2000-1", "aexciter=listen=1+0", "aexciter=amount=-1", "aexciter=drive=0", "aexciter=blend=11", "aexciter=freq=1999", "aexciter=ceil=20001", "aexciter=listen=2", "aexciter=listen=TrUeish", "aexciter=level_in=NaN", "aexciter=unknown=1"]) {
   it(`${filter} rejects invalid options without replacing output`, async () => {
     const { volume, result } = await run(filter);
     assert.notEqual(result.exitCode, 0);

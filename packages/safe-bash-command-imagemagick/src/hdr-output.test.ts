@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli, runConvertCliSync } from "./index.js";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
 // Independent Radiance reader, including planar RLE and legacy interleaved pixels.
 function readRgbe(bytes: Uint8Array) {
@@ -46,4 +47,39 @@ for (const mode of ["sync", "buffered", "retained"]) for (const destination of [
         const output = destination === "hdr:-" ? result.stdoutBytes! : mode === "retained" ? await filesystem.readFile("/" + path) : files.get(path)!;
         expect(readRgbe(output)).toEqual(readRgbe(native));
     });
+}
+
+// Native ImageMagick keeps the first frame unless separate output is requested.
+for (const mode of ["sync", "buffered", "retained", "command"]) for (const write of [false, true]) {
+    for (const [width, height, colors, pixels] of [
+        [1, 1, ["red", "blue"], [[1, 0, 0], [0, 0, 1]]],
+        [16, 2, ["black", "white"], [[0, 0, 0], [1, 1, 1]]]
+    ] as const) for (const split of ["default", "+adjoin", "pattern"]) {
+        it(`writes the requested HDR frames (${mode}, write=${write}, ${width}x${height}, ${split})`, async () => {
+            const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+            const destination = split === "pattern" ? "HDR:out-%d.bin" : "out.hdr";
+            const argv = ["-size", `${width}x${height}`, ...colors.map(color => `xc:${color}`), "-depth", "8",
+                ...(split === "+adjoin" ? ["+adjoin"] : []),
+                ...(write ? ["-write", destination, "null:"] : [destination])];
+            const args = createCommandArguments(argv);
+            let stdout = "", stderr = "";
+            const result = mode === "command" ? await createMagickCommand().execute({
+                command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs: filesystem,
+                signal: new AbortController().signal, stdin: (async function* () {})(),
+                stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+                stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+            }) : mode === "sync" ? runConvertCliSync(argv, files)
+                : await runConvertCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
+            expect(result).toMatchObject({ exitCode: 0, ...(mode === "command" ? {} : { stdout: "", stderr: "" }) });
+            expect(stdout).toBe("");
+            expect(stderr).toBe("");
+            const paths = split === "default" ? ["out.hdr"] : split === "pattern" ? ["out-0.bin", "out-1.bin"] : ["out-0.hdr", "out-1.hdr"];
+            const names = mode === "command" || mode === "retained" ? (await filesystem.readdir("/")).map(entry => entry.name) : [...files.keys()];
+            expect(names.sort()).toEqual(paths);
+            for (const [index, path] of paths.entries()) {
+                const bytes = mode === "command" || mode === "retained" ? await filesystem.readFile("/" + path) : files.get(path)!;
+                expect(readRgbe(bytes)).toEqual({ width, height, pixels: Array.from({ length: width * height }, () => pixels[index]!).flat() });
+            }
+        });
+    }
 }

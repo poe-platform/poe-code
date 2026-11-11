@@ -3,7 +3,7 @@ import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
 import { MediaBudgetTracker, parseWav } from "@poe-code/mp4-ast";
-import { highpassAudio } from "./audio-highpass.js";
+import { passAudio } from "./audio-pass.js";
 import { createFfmpegCommand } from "./index.js";
 
 // Decoded PCM16 reference samples from native FFmpeg 7.0.2, at 8 kHz.
@@ -38,9 +38,9 @@ for (const [length, impulse, options, expected] of [
 }
 
 it("accounts for reverse-filter scratch memory and cancellation", async () => {
-  await assert.rejects(highpassAudio([new Float64Array(1)], 8000, "highpass=f=1000:b=32768", "s16",
+  await assert.rejects(passAudio([new Float64Array(1)], 8000, "highpass=f=1000:b=32768", "s16",
     new MediaBudgetTracker({ maxMemoryBytes: 1024 })), /maxMemoryBytes/);
-  await assert.rejects(highpassAudio([new Float64Array(1)], 8000, "highpass=b=8", "s16",
+  await assert.rejects(passAudio([new Float64Array(1)], 8000, "highpass=b=8", "s16",
     new MediaBudgetTracker(), AbortSignal.abort()));
 });
 

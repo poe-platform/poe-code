@@ -3,13 +3,15 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 import { audioSpeakerMasks, parseAudioChannelLayout } from "./audio-channel-layout.js";
 
-export async function highpassAudio(
+export async function passAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   sampleFormat: string, budget: MediaBudgetTracker, signal?: AbortSignal, channelNames?: readonly string[]
 ): Promise<{ channels: (Float32Array | Float64Array)[]; sampleFormat: string }> {
+  const name = filter.split("=", 1)[0]!.split("@", 1)[0]!;
+  const lowpass = name === "lowpass";
   let precision = -1;
   let selected: string[] | undefined;
-  const options = { frequency: 3000, poles: 2, mix: 1, width: 0.707, width_type: 3, blocksize: 0 };
+  const options = { frequency: lowpass ? 500 : 3000, poles: 2, mix: 1, width: 0.707, width_type: 3, blocksize: 0 };
   const aliases: Record<string, keyof typeof options> = {
     frequency: "frequency", f: "frequency", poles: "poles", p: "poles", mix: "mix", m: "mix",
     width: "width", w: "width", width_type: "width_type", t: "width_type",
@@ -18,23 +20,23 @@ export async function highpassAudio(
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
-    const name = separator < 0 && index === 0 ? "frequency" : option.slice(0, separator).trim();
+    const optionName = separator < 0 && index === 0 ? "frequency" : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    if (name === "precision" || name === "r") {
-      const number = parseFilterExpression(value, "highpass", { auto: -1, s16: 0, s32: 1, f32: 2, f64: 3 });
-      if (!value || !Number.isFinite(number) || number < -1 || number > 3) throw new Error("highpass: invalid precision");
+    if (optionName === "precision" || optionName === "r") {
+      const number = parseFilterExpression(value, name, { auto: -1, s16: 0, s32: 1, f32: 2, f64: 3 });
+      if (!value || !Number.isFinite(number) || number < -1 || number > 3) throw new Error(`${name}: invalid precision`);
       precision = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
       continue;
     }
-    if (name === "c" || name === "channels") {
+    if (optionName === "c" || optionName === "channels") {
       selected = value === "all" ? undefined : parseAudioChannelLayout(value);
       if (selected?.some(channel => !Object.hasOwn(audioSpeakerMasks, channel))) {
-        throw new Error("highpass: invalid channels");
+        throw new Error(`${name}: invalid channels`);
       }
       continue;
     }
-    const key = Object.hasOwn(aliases, name) ? aliases[name] : undefined;
-    if (!key) throw new Error(`highpass: unsupported option ${name}`);
+    const key = Object.hasOwn(aliases, optionName) ? aliases[optionName] : undefined;
+    if (!key) throw new Error(`${name}: unsupported option ${optionName}`);
     const widthTypes: Record<string, number> = { h: 1, o: 2, q: 3, s: 4, k: 5 };
     const number = key === "width_type" && Object.hasOwn(widthTypes, value) ? widthTypes[value]! : Number(value);
     if (!value || !Number.isFinite(number)
@@ -43,7 +45,7 @@ export async function highpassAudio(
       || key === "width" && (number < 0 || number > 99999)
       || key === "blocksize" && (number < 0 || number > 32768)
       || key === "width_type" && (!Number.isInteger(number) || number < 1 || number > 5)
-      || key === "mix" && (number < 0 || number > 1)) throw new Error(`highpass: invalid ${key}`);
+      || key === "mix" && (number < 0 || number > 1)) throw new Error(`${name}: invalid ${key}`);
     options[key] = key === "blocksize"
       ? (number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number)) : number;
   }
@@ -89,8 +91,10 @@ export async function highpassAudio(
   const a0 = options.poles === 1 ? 1 : 1 + alpha;
   let a1 = options.poles === 1 ? -Math.exp(-angle) : -2 * Math.cos(angle) / a0;
   let a2 = options.poles === 1 ? 0 : (1 - alpha) / a0;
-  let b0 = options.poles === 1 ? (1 - a1) / 2 : (1 + Math.cos(angle)) / (2 * a0);
-  let b1 = options.poles === 1 ? -b0 : -2 * b0;
+  let b0 = options.poles === 1
+    ? lowpass ? 1 + a1 : (1 - a1) / 2
+    : (1 + (lowpass ? -Math.cos(angle) : Math.cos(angle))) / (2 * a0);
+  let b1 = options.poles === 1 ? lowpass ? 0 : -b0 : (lowpass ? 2 : -2) * b0;
   let b2 = options.poles === 1 ? 0 : b0;
   if (single) {
     a1 = Math.fround(a1); a2 = Math.fround(a2);

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
-import { highpassAudio } from "./audio-highpass.js";
+import { passAudio } from "./audio-pass.js";
 import { MediaBudgetTracker, parseWav } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
@@ -126,8 +126,8 @@ it("uses the native default cutoff and accepts positional frequency", async () =
 });
 
 it("bounds memory and honors cancellation", async () => {
-  await assert.rejects(highpassAudio([samples], rate, "highpass", "s16", new MediaBudgetTracker({ maxMemoryBytes: 64 })), /maxMemoryBytes/);
-  await assert.rejects(highpassAudio([samples], rate, "highpass", "s16", new MediaBudgetTracker(), AbortSignal.abort()));
+  await assert.rejects(passAudio([samples], rate, "highpass", "s16", new MediaBudgetTracker({ maxMemoryBytes: 64 })), /maxMemoryBytes/);
+  await assert.rejects(passAudio([samples], rate, "highpass", "s16", new MediaBudgetTracker(), AbortSignal.abort()));
 });
 
 for (const graph of [false, true]) {

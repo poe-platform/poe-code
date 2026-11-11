@@ -65,7 +65,7 @@ import { sceneChangeDifference } from "./scdet.js";
 import { parseDecimateGraph } from "./decimate-graph.js";
 import { cutSubAudio } from "./audio-asubcut.js";
 import { boostSubAudio } from "./audio-asubboost.js";
-import { highpassAudio } from "./audio-highpass.js";
+import { passAudio } from "./audio-pass.js";
 import { cutUltrasonicAudio } from "./audio-asupercut.js";
 import { exciteAudio } from "./audio-aexciter.js";
 import { psychoacousticClip } from "./audio-apsyclip.js";
@@ -13621,11 +13621,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       }
 
-                      if (filterName === "highpass" || filterName === "aecho") {
+                      if (filterName === "highpass" || filterName === "lowpass" || filterName === "aecho") {
                         // These planar filters share their input/output format. Negotiate downstream
                         // requirements through filters that preserve sample formats before rounding.
-                        // A compatible planar input fixes highpass precision before downstream conversion.
-                        let formats: string[] | undefined = filterName === "highpass" && filteredSampleFormat.endsWith("p")
+                        // A compatible planar input fixes highpass/lowpass precision before downstream conversion.
+                        let formats: string[] | undefined = (filterName === "highpass" || filterName === "lowpass") && filteredSampleFormat.endsWith("p")
                           ? [filteredSampleFormat] : undefined;
                         for (let nextIndex = filterIndex + 1; nextIndex < audioFilters.length; nextIndex++) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -14248,13 +14248,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       } else if (trimmed === "asubcut" || trimmed.startsWith("asubcut=")) {
                         stretched = await cutSubAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
-                      } else if (trimmed === "highpass" || trimmed.startsWith("highpass=")) {
+                      } else if (filterName === "highpass" || filterName === "lowpass") {
                         const mask = filteredChannelMask ?? [0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][stretched.length] ?? 0;
                         const names = filteredChannelNames ?? Object.keys(audioSpeakerMasks)
                           .filter(name => Math.floor(mask / audioSpeakerMasks[name]!) % 2 === 1);
-                        const highpass = await highpassAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal, names);
-                        stretched = highpass.channels;
-                        filteredSampleFormat = highpass.sampleFormat;
+                        const filtered = await passAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal, names);
+                        stretched = filtered.channels;
+                        filteredSampleFormat = filtered.sampleFormat;
                         panSampleFormat = filteredSampleFormat;
                       } else if (trimmed === "asupercut" || trimmed.startsWith("asupercut=")) {
                         stretched = await cutUltrasonicAudio(stretched, origRate, trimmed, budget, context.signal);

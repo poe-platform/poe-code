@@ -9741,10 +9741,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const brightness = (geometry.width ?? 100) / 100, saturation = (geometry.height ?? 100) / 100, hueShift = ((geometry.hasOffset ? geometry.x : 100) - 100) * 3 / 100;
         const colorspace = state.modulateColorspace ?? "hsl";
         apply = function* (image) {
-            // Native modulation treats HSL/HSB/HSV working channels as sRGB samples.
-            if (image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV") {
-                const { magickColorspace: ignoredSpace, hueSamples: ignoredHue, ...metadata } = image;
-                image = { ...metadata, space: "srgb" };
+            // Native modulation relabels these working channels as sRGB, without conversion.
+            if (image.space === "cmyk") image = yield* convertCmykPixels(image);
+            let workingSamples: Float64Array | undefined;
+            if (image.space === "cmyk" || image.magickColorspace === "HSI" || image.magickColorspace === "CIELab" || image.magickColorspace === "Oklch" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV") {
+                workingSamples = image.hueSamples;
+                const { magickColorspace: ignoredSpace, hueSamples: ignoredHue, storedHueSamples: ignoredStoredHue, ...metadata } = image;
+                image = { ...metadata, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
             }
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
@@ -9753,7 +9756,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const quantum = data16 ? 65535 : 255;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) { signal?.throwIfAborted(); yield; }
-                const r = evaluateSamples[idx]! / 255, g = evaluateSamples[idx + 1]! / 255, b = evaluateSamples[idx + 2]! / 255;
+                const r = workingSamples?.[idx] ?? evaluateSamples[idx]! / 255;
+                const g = workingSamples?.[idx + 1] ?? evaluateSamples[idx + 1]! / 255;
+                const b = workingSamples?.[idx + 2] ?? evaluateSamples[idx + 2]! / 255;
                 const rgb = modulateRgb(r, g, b, brightness, saturation, hueShift % 6, colorspace);
                 for (let channel = 0; channel < 3; channel++) {
                     // Q16-HDRI stores float samples before rounding to output depth.

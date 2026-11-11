@@ -2894,6 +2894,15 @@ function normalizeMagickWarpGeometry(raw: string): string {
     return value.includes(":") ? value.replaceAll("X", ":").replaceAll("x", ":").replaceAll("/", ":").replaceAll(",", ":").split(":").slice(0, 2).join(":") : value;
 }
 
+function parseMagickSpreadGeometry(raw: string): MagickGeometry {
+    const geometry = parseMagickGeometry(raw);
+    if (!raw.includes(":")) return geometry;
+    const dimensions = parseMagickGeometry(raw.replace(":", "x"));
+    // ParseGeometry uses PerceptibleReciprocal: an explicit zero divides by epsilon.
+    return dimensions.height === 0 && dimensions.width !== undefined
+        ? { ...geometry, aspectRatio: dimensions.width * 1e12 } : geometry;
+}
+
 function validateMagickTransformGeometry(raw: string, option: string): void {
     let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal", "-density", "-delay", "-loop", "-blue-shift", "-sharpen", "-bilateral-blur", "-adaptive-sharpen", "-adaptive-blur"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
     if (["-swirl", "-implode", "-wave", "-spread"].includes(option)) value = value.replaceAll("(", "").replaceAll(")", "");
@@ -2939,7 +2948,7 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
     if (option === "-swirl" || option === "-implode" || option === "-wave" || option === "-spread") {
         // Native warp amplitudes retain their magnitude when a ratio has no denominator.
         if (value.endsWith(":")) value = value.slice(0, -1);
-        const geometry = parseMagickGeometry((option === "-spread" ? value : normalizeMagickWarpGeometry(value)).replaceAll("#", ""));
+        const geometry = option === "-spread" ? parseMagickSpreadGeometry(value.replaceAll("#", "")) : parseMagickGeometry(normalizeMagickWarpGeometry(value).replaceAll("#", ""));
         // A single signed magnitude parses as an offset; two offsets supply no magnitude.
         const magnitude = geometry.aspectRatio ?? geometry.width ?? (geometry.areaLimit !== undefined || geometry.hasOffset && !geometry.hasYOffset ? Number.parseFloat(value) : undefined);
         if (!Number.isFinite(magnitude) && (option !== "-wave" || !Number.isFinite(geometry.height))) {
@@ -5020,7 +5029,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
         if (["-wave", "-swirl", "-implode", "-spread"].includes(token)) validateMagickTransformGeometry(geometry, token);
         if (token === "-spread") {
             geometry = [...geometry].filter(character => character.trim() !== "" && character !== "(" && character !== ")").join("");
-            const radius = parseMagickGeometry(geometry).aspectRatio ?? Number.parseFloat(geometry);
+            const radius = parseMagickSpreadGeometry(geometry).aspectRatio ?? Number.parseFloat(geometry);
             // Native's automatic kernel width for sigma=0.5 is five, including radius zero.
             const width = radius > 1e-12 ? 2 * Math.ceil(radius) + 1 : 5;
             if (!Number.isSafeInteger(width)) throw new Error("Spread radius exceeds limit");

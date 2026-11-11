@@ -36,7 +36,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
 }
 
 for (const mode of ["retained", "sync"] as const) {
-    it.each(["", "bad", "NaN", "Infinity", "1e100"])(`${mode}: rejects invalid spread radius %s without replacing output`, async radius => {
+    it.each(["", "bad", "NaN", "Infinity", "1e100", "1e100:0"])(`${mode}: rejects invalid spread radius %s without replacing output`, async radius => {
         const keep = Buffer.from("KEEP"), files = new Map([["/in.png", input], ["/out.png", keep]]);
         const filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/in.png", input);

@@ -1916,10 +1916,6 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
   if(!Number.isFinite(position))return NaN;
   const index = source.indexOf(target);
   const data=samples.get(`${index}:${position}`);if(!data)throw new FxPixelDemand(position,index);
-  // ImageMagick discards hidden PNG colors only when alpha is exactly zero.
-  if(target.format === "png" && target.hasAlpha && (data.data16 ?? data.data)[3] === 0){
-   data.data.fill(0,0,3);data.data16?.fill(0,0,3);data.evaluateSamples?.fill(0,0,3);
-  }
   return sampleFxImage({...target,width:1,height:1,...data},0,0,ch);
  }};
  // The expression language has no loops or external effects. Replay after a
@@ -3271,7 +3267,9 @@ function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefin
   const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
   if (interpolation === "integer") return sample(img, left, top, ch);
   if (interpolation === "nearest") return sample(img, Math.floor(x + 0.5), Math.floor(y + 0.5), ch);
-  if (interpolation !== "average" && dx === 0 && dy === 0) return sample(img, x, y, ch);
+  if (interpolation !== "average" && dx === 0 && dy === 0) {
+    return img.hasAlpha && ch !== 3 && sample(img, x, y, 3) === 0 ? 0 : sample(img, x, y, ch);
+  }
   if (ch >= 4 && ch <= 7) {
     return sampleFxPixel([0, 1, 2].map(channel => interpolateFxImage(sample, img, x, y, channel, interpolation)), 0, ch, 1);
   }
@@ -3865,6 +3863,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
         let ch = propName ? propToChannel(propName) : ctx.ch;
         // Qualified alpha samples red when the selected image has no alpha channel.
         if (ch === 3 && targetImg && !targetImg.hasAlpha && !targetImg.inactiveAlpha) ch = 0;
+        if (!coordX && name !== "p") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, ch);
         return interpolateFxImage(ctx.sample ?? sampleFxImage, targetImg, px, py, ch, ctx.interpolation);
       };
     }

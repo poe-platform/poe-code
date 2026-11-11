@@ -6,20 +6,26 @@ import { createMagickCommand, runMagickCli, runConvertCliSync } from "./index.js
 
 for (const mode of ["buffered", "retained", "command", "sync"] as const)
 for (const write of [false, true])
-for (const [pattern, names, single = false] of [
+for (const [pattern, names, single = false, split = false] of [
     ["frame%%d.gif", ["frame%d.gif"]],
     ["frame%%.gif", ["frame%.gif"]],
     ["frame%%%%d.gif", ["frame%%d.gif"]],
     ["frame%%.png", ["frame%.png"], true],
     ["frame%%d.png", ["frame%d.png"], true],
-    ["frame%%.png", ["frame%-0.png", "frame%-1.png"]],
+    ["frame%%.png", ["frame%.png"]],
+    ["frame%%d.png", ["frame%d.png"]],
+    ["frame%%.png", ["frame%.png"], false, true],
+    ["frame%%d.png", ["frame%d.png"], false, true],
+    ["frame%%%%d.png", ["frame%%d.png"], false, true],
+    ["frame%%-%02d.png", ["frame%-00.png", "frame%-01.png"], false, true],
+    ["frame.png", ["frame-0.png", "frame-1.png"], false, true],
     ["frame%%%02d.gif", ["frame%00.gif", "frame%01.gif"]],
     ["frame%02d.gif", ["frame00.gif", "frame01.gif"]],
 ] as const)
-it(`unescapes literal percent without splitting joined output: ${mode}, write=${write}, ${pattern}`, async () => {
+it(`expands percent destinations: ${mode}, write=${write}, split=${split}, single=${single}, ${pattern}`, async () => {
     const filesystem = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
     const output = pattern;
-    const args = ["-size", "1x1", "xc:red", ...(single ? [] : ["xc:blue"]), ...(write ? ["-write", output, "null:"] : [output])];
+    const args = ["-size", "1x1", "xc:red", ...(single ? [] : ["xc:blue"]), ...(split ? ["+adjoin"] : []), ...(write ? ["-write", output, "null:"] : [output])];
     if (mode === "command") {
         const command = createMagickCommand(), arguments_ = createCommandArguments(args);
         const sink = { async write() {} };
@@ -33,7 +39,8 @@ it(`unescapes literal percent without splitting joined output: ${mode}, write=${
     for (const [index, name] of names.entries()) {
         const image = decodeImage((mode === "buffered" || mode === "sync") ? files.get(name)! : await filesystem.readFile(`/${name}`));
         expect([image.width, image.height]).toEqual([1, 1]);
-        const expected = index === 0 ? [255, 0, 0, 255] : [0, 0, 255, 255];
+        const overwritten = pattern.endsWith(".png") && !single && names.length === 1;
+        const expected = index === 0 && !overwritten ? [255, 0, 0, 255] : [0, 0, 255, 255];
         expect([...image.data]).toEqual(expected);
         if (pattern.endsWith(".gif")) {
             const bytes = (mode === "buffered" || mode === "sync") ? files.get(name)! : await filesystem.readFile(`/${name}`);

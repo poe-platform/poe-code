@@ -9,6 +9,7 @@ for (const write of [false, true])
 for (const [pattern, names, single = false] of [
     ["frame%d.png", ["frame%d.png"], true],
     ["frame%d.png", ["frame%d-0.png", "frame%d-1.png"]],
+    ["frame%%.png", ["frame%%-0.png", "frame%%-1.png"]],
     ["frame%d.gif", ["frame%d-0.gif"]],
     ["frame%02d.gif", ["frame%02d-0.gif"]],
 ] as const)

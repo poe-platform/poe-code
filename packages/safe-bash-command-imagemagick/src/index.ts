@@ -2959,11 +2959,12 @@ function formatAdjoinedOutputPath(path: string, count: number, scene: number, li
 }
 
 function formatSceneOutputPath(pattern: string, index: number, literal = false, properties?: ImageMetadata["properties"]): string {
-  let path = "", hasScene = false;
+  let path = "", expanded = false;
   for (let cursor = 0; cursor < pattern.length; cursor++) {
     if (!literal && pattern[cursor] === "%") {
       if (pattern[cursor + 1] === "%") {
         path += "%";
+        expanded = true;
         cursor++;
         continue;
       }
@@ -2973,7 +2974,7 @@ function formatSceneOutputPath(pattern: string, index: number, literal = false, 
           const key = pattern.slice(cursor + 2, end).toLowerCase();
           const value = key.startsWith("filename:") ? properties?.[key] : undefined;
           path += value ?? pattern.slice(cursor + 1, end + 1);
-          hasScene = true;
+          expanded = true;
           cursor = end;
           continue;
         }
@@ -2985,14 +2986,14 @@ function formatSceneOutputPath(pattern: string, index: number, literal = false, 
         const number = index.toString(pattern[end] === "o" ? 8 : pattern[end] === "x" ? 16 : 10);
         const zeroPad = pattern[cursor + 1] === "0";
         path += index < 0 && zeroPad ? `-${number.slice(1).padStart(width - 1, "0")}` : number.padStart(width, zeroPad ? "0" : " ");
-        hasScene = true;
+        expanded = true;
         cursor = end;
         continue;
       }
     }
     path += pattern[cursor];
   }
-  if (hasScene) return path;
+  if (expanded) return path;
   const dot = path.lastIndexOf(".");
   if (dot > 0) {
     return `${path.slice(0, dot)}-${index}${path.slice(dot)}`;

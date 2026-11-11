@@ -5,6 +5,10 @@ import { parseFilterBoolean } from "./filter-boolean.js";
 
 type DeflickerFrame = MediaVideoFrame & { filterMetadata?: Record<string, string> };
 
+function formatMeasurement(value: number): string {
+  return Number.isNaN(value) ? "-nan" : value === Infinity ? "inf" : value.toFixed(6);
+}
+
 export async function deflicker(
   frames: DeflickerFrame[], argument: string, pixelFormat: string | undefined,
   budget: MediaBudgetTracker, signal?: AbortSignal
@@ -86,8 +90,8 @@ export async function deflicker(
     const factor = f(mean / window[0]!);
     const filterMetadata = { ...frame.filterMetadata,
       "lavfi.deflicker.luminance": window[0]!.toFixed(6),
-      "lavfi.deflicker.new_luminance": f(window[0]! * factor).toFixed(6),
-      "lavfi.deflicker.relative_change": f(factor - 1).toFixed(6)
+      "lavfi.deflicker.new_luminance": formatMeasurement(f(window[0]! * factor)),
+      "lavfi.deflicker.relative_change": formatMeasurement(f(factor - 1))
     };
     budget.allocateMemory(256);
     if (bypass) output.push({ ...frame, filterMetadata });

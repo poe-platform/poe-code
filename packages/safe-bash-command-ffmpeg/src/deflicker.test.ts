@@ -65,6 +65,27 @@ for (const [option, hex] of [
   });
 }
 
+for (const [name, values, measurements] of [
+  ["black frames", [0, 0, 0, 0], Array(4).fill(["0.000000", "-nan", "-nan"])],
+  ["initial black frame", [0, 50, 50, 50], [
+    ["0.000000", "-nan", "inf"], ...Array(3).fill(["50.000000", "50.000000", "0.000000"])
+  ]],
+  ["nonblack control", [50, 50, 50, 50], Array(4).fill(["50.000000", "50.000000", "0.000000"])]
+] as const) {
+  it(`matches native deflicker bypass metadata and bytes for ${name}`, async () => {
+    const input = Buffer.from(values.flatMap(value => [value, value, value, value]));
+    const result = await run("deflicker=s=3:m=am:bypass=1,metadata=print", input);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.output, input);
+    assert.deepEqual(result.stderr.split("\n").filter(line => line.startsWith("lavfi.deflicker.")),
+      measurements.flatMap(([luminance, adjusted, relative]) => [
+        `lavfi.deflicker.luminance=${luminance}`,
+        `lavfi.deflicker.new_luminance=${adjusted}`,
+        `lavfi.deflicker.relative_change=${relative}`
+      ]));
+  });
+}
+
 for (const option of ["size=1", "s=130", "m=unknown", "bypass=2", "unknown=1"]) {
   it(`rejects ${option} without replacing output`, async () => {
     const result = await run(`deflicker=${option}`);

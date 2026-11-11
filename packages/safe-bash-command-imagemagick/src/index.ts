@@ -7409,6 +7409,13 @@ function tryHandleMagickListOption(argv: readonly string[]): ImageMagickCliResul
                     stderr: ""
                 };
             }
+            if (listType !== "list") {
+                return {
+                    exitCode: 1,
+                    stdout: "",
+                    stderr: `magick: unrecognized list type '${arg}' '${argv[i + 1]}'\n`
+                };
+            }
             return {
                 exitCode: 0,
                 stdout: "color\nconfigure\ndelegate\nfont\nformat\nlocale\nlog\nmagic\nmodule\nresource\nthreshold\ntype\n",

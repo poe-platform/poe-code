@@ -3161,7 +3161,7 @@ async function applyVideoFilterChain(
         return { ...frame, width, height, data };
       }, signal);
     } else if (name === "deband") {
-      let threshold = 0.02, range = 16, direction = 2 * Math.PI, blur = true;
+      let threshold = Math.fround(0.02), range = 16, direction = Math.fround(2 * Math.PI), blur = true;
       let sawNamed = false;
       for (const [index, option] of (argStr ? positional : []).entries()) {
         const separator = option.indexOf("=");
@@ -3188,10 +3188,6 @@ async function applyVideoFilterChain(
         } else throw new Error(`deband: unsupported option ${key ?? option}`);
       }
       if (pixelFormat !== "gray" && pixelFormat !== "gray8") throw new Error("deband: requires 8-bit grayscale input");
-      if (range >= 0 || direction >= 0) throw new Error("deband: requires fixed negative range and direction");
-      // Native fixed sampling truncates single-precision offsets and clamps at edges.
-      const dx = Math.trunc(Math.fround(Math.fround(Math.cos(-direction)) * -range));
-      const dy = Math.trunc(Math.fround(Math.fround(Math.sin(-direction)) * -range));
       const limit = Math.trunc(Math.fround(255 * threshold));
       current = await mapWork(current, async ({ native: _native, ...frame }) => {
         budget.allocateMemory(frame.data.byteLength);
@@ -3200,6 +3196,15 @@ async function applyVideoFilterChain(
           for (let x = 0; x < frame.width; x++) {
             const offset = (y * frame.width + x) * 4;
             if (offset % 16384 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            // FFmpeg shares a coordinate-derived random value between distance and angle.
+            // Round each operation to float32 before truncating the sample offsets.
+            const phase = Math.fround(Math.fround(x * Math.fround(12.9898)) + Math.fround(y * Math.fround(78.233)));
+            const noise = Math.fround(Math.fround(Math.sin(phase)) * Math.fround(43758.545));
+            const random = noise - Math.floor(noise);
+            const angle = direction < 0 ? -direction : Math.fround(random * direction);
+            const distance = range < 0 ? -range : Math.trunc(Math.fround(random * Math.fround(range)));
+            const dx = Math.trunc(Math.fround(Math.fround(Math.cos(angle)) * Math.fround(distance)));
+            const dy = Math.trunc(Math.fround(Math.fround(Math.sin(angle)) * Math.fround(distance)));
             const left = Math.max(0, Math.min(frame.width - 1, x - dx));
             const right = Math.max(0, Math.min(frame.width - 1, x + dx));
             const top = Math.max(0, Math.min(frame.height - 1, y - dy)) * frame.width;

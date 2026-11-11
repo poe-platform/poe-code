@@ -6,11 +6,11 @@ import type { MediaResourceLimits } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
 const input = Buffer.from(Array.from({ length: 1024 }, (_, i) => 96 + 2 * Math.floor((i % 32) / 3) + Math.floor(Math.floor(i / 32) / 8)));
-async function run(filter: string, format = "rawvideo", limits?: MediaResourceLimits) {
-  const volume = Volume.fromJSON({ "/in.gray": input, "/out": "KEEP" });
+async function run(filter: string, format = "rawvideo", limits?: MediaResourceLimits, source = input, size = "32x32") {
+  const volume = Volume.fromJSON({ "/in.gray": source, "/out": "KEEP" });
   const errors: Uint8Array[] = [];
   const result = await createFfmpegCommand({ limits }).execute({
-    args: ["-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "gray", "-s", "32x32", "-r", "4", "-i", "/in.gray",
+    args: ["-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "gray", "-s", size, "-r", "4", "-i", "/in.gray",
       "-vf", filter, "-fps_mode", "passthrough", "-pix_fmt", "gray", "-bitexact", "-f", format, "/out"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
@@ -42,7 +42,7 @@ for (const [filter, hash, changes] of [
   });
 }
 
-for (const options of ["1thr=0", "1thr=0.6", "r=-2.5", "d=-7", "b=wrong", "c=1", "unknown=1", "r=3", "d=1"]) {
+for (const options of ["1thr=0", "1thr=0.6", "r=-2.5", "d=-7", "b=wrong", "c=1", "unknown=1"]) {
   it(`rejects invalid or unsupported deband ${options} without replacing output`, async () => {
     const result = await run(`deband=r=-3:d=-1:${options}`);
     assert.notEqual(result.exitCode, 0);
@@ -55,3 +55,37 @@ it("enforces the memory budget without replacing output", async () => {
   assert.notEqual(result.exitCode, 0);
   assert.equal(result.output.toString(), "KEEP");
 });
+
+const samplingInput = Buffer.from(Array.from({ length: 256 }, (_, i) =>
+  96 + 2 * Math.floor((i % 16) / 3) + Math.floor(Math.floor(i / 16) / 4)));
+
+for (const [filter, hash, changes] of [
+  ["deband", "cafd3dbba252b0d3e2236abfb19414dd5bd3585d60ae5f3645a8cf897296f32c", 158],
+  ["deband=r=3:d=-1", "280246faf0de6d8def95ad19a8793e7953c24773659b6411723e435ac1049569", 51],
+  ["deband=r=-3:d=1", "0d53a50dfe32a50145f35052834634d223ea197fe2fd80f36dcc1d6d0a2c7c27", 176],
+  ["deband=r=-3:d=-1:1thr=0.1", "55f93c19c04617cdbb09c1d2d63e7dc728400a2a65ae0d967f5a4c500e6c6a41", 166],
+] as const) {
+  it(`matches native sampling for ${filter} across repeated frames`, async () => {
+    const result = await run(filter, "rawvideo", undefined, Buffer.concat([samplingInput, samplingInput]), "16x16");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.output.length, 512);
+    for (let start = 0; start < result.output.length; start += 256) {
+      const frame = result.output.subarray(start, start + 256);
+      assert.equal(createHash("sha256").update(frame).digest("hex"), hash);
+      assert.equal(frame.filter((value, i) => value !== samplingInput[i]).length, changes);
+    }
+  });
+}
+
+for (const filter of ["deband=r=0", "deband=r=-3:d=0"]) {
+  it(`accepts zero sampling controls for ${filter}`, async () => {
+    const result = await run(filter, "rawvideo", undefined, samplingInput, "16x16");
+    assert.equal(result.exitCode, 0, result.stderr);
+    if (filter === "deband=r=0") assert.deepEqual(result.output, samplingInput);
+    else {
+      const horizontal = await run("deband=r=-3:d=-0.000001", "rawvideo", undefined, samplingInput, "16x16");
+      assert.equal(horizontal.exitCode, 0, horizontal.stderr);
+      assert.deepEqual(result.output, horizontal.output);
+    }
+  });
+}

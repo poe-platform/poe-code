@@ -199,7 +199,7 @@ the final input frame’s enable state controls whether the tail drains buffered
 
 `hue=s=0` desaturates 8-bit planar YUV video by preserving the original Y plane and setting U and V to neutral, including YUV420, YUV422, and YUV444 sampling. Other hue options and input pixel formats are unsupported.
 
-`deband=r=-3:d=-1:1thr=0.1` smooths 8-bit grayscale bands using four edge-clamped samples. Negative `range`/`r` and `direction`/`d` select a fixed distance and angle in radians. `1thr` sets the normalized threshold; `blur`/`b=0` requires every sample to be within the threshold instead of comparing their average. Positional options are accepted. Random sampling, plane coupling, and other pixel formats are unsupported.
+`deband` smooths 8-bit grayscale bands using four edge-clamped samples. Positive `range`/`r` and `direction`/`d` use deterministic per-pixel sampling (defaults: 16 and 2π). Negative values select a fixed distance and angle in radians. `1thr` sets the normalized threshold; `blur`/`b=0` requires every sample to be within the threshold instead of comparing their average. Positional options are accepted. Plane coupling and other pixel formats are unsupported.
 
 `median=radius=2` removes isolated noise from 8-bit grayscale video. Set `percentile=0` or `1` to select each neighborhood’s minimum or maximum; the default is `0.5`. `radiusV` selects a separate vertical radius (zero uses `radius`), `planes` selects the grayscale plane with bit 0, and `enable` accepts timeline expressions. Positional options use `radius:planes:radiusV:percentile`. Borders repeat the nearest pixel, and radii are clipped to the frame dimensions. Other input pixel formats are unsupported.
 

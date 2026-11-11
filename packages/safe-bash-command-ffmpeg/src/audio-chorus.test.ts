@@ -18,6 +18,7 @@ for (const graph of [false, true]) {
     ["chorus=max:min:10:0.5:1:1", 344, []],
     ["chorus=in_gain=1:in_gain=default:out_gain=0:out_gain=max:delays=10:decays=0.5:speeds=1:depths=1", 344, [[0, 6400], [4, 8000]]],
     ["chorus=max/2:default+0.5:10:0.5:1:1", 344, [[0, 7200], [4, 7200]]],
+    ["chorus=1/2:1/2:10:0.5:1:1", 344, [[0, 4000], [4, 4000]]],
     ["chorus=0.5:0.9:0xa:0x.8:0x1:0x1", 344, [[0, 7200], [4, 7200]]],
     ["chorus=0.5:0.9:10|20:0.5|0.3:1|2:1|2", 432, [[0, 7200], [4, 7200], [8, 4320]]],
     ["chorus=in_gain=0.5:out_gain=0.9:delays=10|20:decays=0.5|0.3:speeds=1|2:depths=1|2", 432, [[0, 7200], [4, 7200], [8, 4320]]],
@@ -88,6 +89,21 @@ it("chorus exposes its complete tail to downstream frame filters", async () => {
   assert.deepEqual(output, Buffer.alloc(88 * 2));
 });
 
+for (const graph of [false, true]) {
+  it(`chorus evaluates fractional gain expressions on stereo PCM (graph ${graph})`, async () => {
+    const channels = [
+      Float64Array.from([100, 200, 300, 400], value => value / 32768),
+      Float64Array.from([-100, -200, -300, -400], value => value / 32768)
+    ];
+    const { result, stderr, output } = await run("chorus=0.6:1/2:1:0.4:2:0.25", graph, channels);
+    assert.equal(result.exitCode, 0, stderr);
+    // Native FFmpeg 7.0.2: four input frames plus the ten-frame chorus tail.
+    const expected = Buffer.alloc(56);
+    Buffer.from("1e00e2ff5000b0ff82007effb4004cff5000b0ff", "hex").copy(expected);
+    assert.deepEqual(output, expected);
+  });
+}
+
 // Native FFmpeg 7.0.2 Linux statuses distinguish option parsing failures.
 for (const [filter, exitCode] of [
   ["chorus", 234],
@@ -103,8 +119,16 @@ for (const [filter, exitCode] of [
   ["chorus=0.5:2:10:0.5:1:1", 222],
   ["chorus=max+1:default:10:0.5:1:1", 222],
   ["chorus=default:min-1:10:0.5:1:1", 222],
-  ["chorus=default/0:max:10:0.5:1:1", 1],
-  ["chorus=default:unknown:10:0.5:1:1", 1],
+  ["chorus=default/0:max:10:0.5:1:1", 222],
+  ["chorus=max:default/0:10:0.5:1:1", 222],
+  ["chorus=default:unknown:10:0.5:1:1", 234],
+  ["chorus=bad:0.7:1:0.4:2:0.25", 234],
+  ["chorus=0.6:bad:1:0.4:2:0.25", 234],
+  ["chorus=in_gain=bad:out_gain=0.7:delays=1:decays=0.4:speeds=2:depths=0.25", 234],
+  ["chorus=in_gain=0.6:out_gain=bad:delays=1:decays=0.4:speeds=2:depths=0.25", 234],
+  ["chorus=0.6+:0.7:1:0.4:2:0.25", 234],
+  ["chorus=(0.6:0.7:1:0.4:2:0.25", 234],
+  ["chorus=0.6:0.7bad:1:0.4:2:0.25", 234],
   ["chorus=0.5:0.9:10:0.5:1:1:foo=1", 8],
   ["chorus=0.5:0.9:2000:0.5:1:1", 1]
 ] as const) {

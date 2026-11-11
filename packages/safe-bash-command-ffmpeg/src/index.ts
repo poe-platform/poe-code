@@ -20190,6 +20190,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "chorus: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("chorus: unsupported option ")) return { exitCode: 8 };
             if (msg === "chorus: invalid gain") return { exitCode: 222 };
+            if (msg === "chorus: invalid expression" || msg === "chorus: invalid or unsupported expression") return { exitCode: 234 };
             if (msg === "chorus: delays, decays, speeds and depths must have matching entries") return { exitCode: 234 };
             if (msg.startsWith("aformat: unsupported option ")) return { exitCode: 8 };
             if (msg === "aformat: invalid sample rate" || msg.startsWith("aformat: unsupported sample format ") ||

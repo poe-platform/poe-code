@@ -45,13 +45,14 @@ it.each([false, true])("distinguishes palette colors differing only in alpha wit
     expect((await runConvertCli(argv, { filesystem, cwd: "/" })).exitCode).toBe(0);
     expect(decodeImage(await filesystem.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
 });
-it("preserves original remap pixel vectors", async () => {
+it("preserves native remap pixel vectors", async () => {
     const bytes = await fixture(), hashes: string[] = [];
     for (const args of operators) {
         const files = new Map([["input", bytes], ["palette", await paletteFixture()]]);
         expect((await runConvertCli(["input", ...args, "out.png"], files)).exitCode).toBe(0);
         hashes.push(createHash("sha256").update(decodeImage(files.get("out.png")!).data).digest("hex"));
     }
+    // ImageMagick 7.1.2-35 Q16-HDRI keeps checkerboard in sRGB at gray 102/153.
     expect(hashes).toMatchInlineSnapshot(`
       [
         "f3a788f01bc173e183ab96743bf602253bc0844fcd6812c17eb26acb71e00e81",
@@ -59,7 +60,7 @@ it("preserves original remap pixel vectors", async () => {
         "ab03f6333f370c5dab5267e5c88d5284f476811d9965808347372ccbf89b2061",
         "7670906deccf00f10509bcc2c56054f7bb7a5df8da90cdf01fc020e67838981e",
         "6eac2444bedf289ceee36b9dfc034f5fb8b0e75a294bac17e47ebb2b5ad0aace",
-        "e62276e318574aeaff9b56f0d80d10e4a6f11053e45a90d0d27ac4f35aab3e52",
+        "75b1984598b8b0d542c1699e078d89b43a0b0cb686bc786f6a592a8d16b1e616",
         "6eac2444bedf289ceee36b9dfc034f5fb8b0e75a294bac17e47ebb2b5ad0aace",
         "07f880da26145a8329f7322487ac84bae6a1622fc29a06b39f9ad15b7cf1d904",
       ]

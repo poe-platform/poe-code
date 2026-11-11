@@ -1379,6 +1379,9 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
     if (palette.length === 0)
         return img;
     palette.sort((a, b) => remapColorOrder(b.r, b.g, b.b) - remapColorOrder(a.r, a.g, a.b));
+    // Native assigns and diffuses against the original palette, then makes Gray bilevel.
+    const white = (palImg.space === "b-w" || palImg.space === "grey16") && palette.length === 2
+        ? palette[palette[0]!.r > palette[1]!.r ? 0 : 1] : undefined;
     const w = img.width;
     const h = img.height;
     const buf = new Float32Array(img.data);
@@ -1417,14 +1420,15 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
                     best = p;
                 }
             }
-            out[idx] = Math.round(best.r);
-            out[idx + 1] = Math.round(best.g);
-            out[idx + 2] = Math.round(best.b);
+            const gray = white ? best === white ? 255 : 0 : undefined;
+            out[idx] = Math.round(gray ?? best.r);
+            out[idx + 1] = Math.round(gray ?? best.g);
+            out[idx + 2] = Math.round(gray ?? best.b);
             out[idx + 3] = Math.round(best.a);
             if (data16) {
-                data16[idx] = Math.round(best.r * 257);
-                data16[idx + 1] = Math.round(best.g * 257);
-                data16[idx + 2] = Math.round(best.b * 257);
+                data16[idx] = Math.round((gray ?? best.r) * 257);
+                data16[idx + 1] = Math.round((gray ?? best.g) * 257);
+                data16[idx + 2] = Math.round((gray ?? best.b) * 257);
                 data16[idx + 3] = Math.round(best.a * 257);
             }
             if (dither) {
@@ -1450,6 +1454,7 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
         }
     }
     const { pngPalette: ignoredPalette, pngIndices: ignoredIndices, ...metadata } = img;
+    if (white) for (const color of palette) color.r = color.g = color.b = color === white ? 255 : 0;
     const indexedColors = palette.reverse().map(color => Math.round(color.a) * 16777216 + Math.round(color.r) * 65536 + Math.round(color.g) * 256 + Math.round(color.b));
     return { ...metadata, data: out, indexedColors, isPalette: true, ...(data16 ? { data16 } : {}) };
 }

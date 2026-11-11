@@ -29,6 +29,9 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
     }
     if (!palette.length) return image;
     palette.sort((a, b) => remapColorOrder(b[0]!, b[1]!, b[2]!) - remapColorOrder(a[0]!, a[1]!, a[2]!));
+    // Preserve palette distances and diffusion before converting the output to bilevel.
+    const white = (paletteImage.space === "b-w" || paletteImage.space === "grey16") && palette.length === 2
+        ? palette[palette[0]![0]! > palette[1]![0]! ? 0 : 1] : undefined;
     const count = image.width * image.height, cache = new RasterBackingCache(storage, signal);
     const errors = dither ? { position: storage.allocate(count * 16), length: count * 16 } : undefined;
     if (errors) for (let start = 0; start < count; start += 1024) {
@@ -69,8 +72,9 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
                 if (next < distance) { best = color; distance = next; }
             }
             for (let c = 0; c < 4; c++) {
-                pixels[offset + c] = Math.round(best[c]!);
-                if (samples) samples[offset + c] = Math.round(best[c]! * 257);
+                const value = white && c < 3 ? best === white ? 255 : 0 : best[c]!;
+                pixels[offset + c] = Math.round(value);
+                if (samples) samples[offset + c] = Math.round(value * 257);
             }
             if (errors) {
                 const selectedAlpha = paletteImage.hasAlpha ? best[3]! / 255 : 1;
@@ -98,6 +102,7 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
     }
     const { pngPalette: ignoredPalette, storedPngIndices: ignoredIndices, ...metadata } = image;
     // Search visits the last octree entry first for ties; cycling uses tree order.
+    if (white) for (const color of palette) color.fill(color === white ? 255 : 0, 0, 3);
     const indexedColors = palette.reverse().map(color => Math.round(color[3]!) * 16777216 + Math.round(color[0]!) * 65536 + Math.round(color[1]!) * 256 + Math.round(color[2]!));
     return { ...metadata, position, indexedColors, isPalette: true, ...(storedData16 ? { storedData16 } : {}) };
 }

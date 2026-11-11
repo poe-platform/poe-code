@@ -23,7 +23,7 @@ export function* hilbertPixels(img: { width: number; height: number }): Generato
 }
 
 /** ImageMagick Riemersma diffusion: a 16-entry weighted error queue. */
-export function* riemersmaRemapSteps(image: { width: number; height: number }, paletteImage: { width: number; height: number; hasAlpha: boolean }, highDepth: boolean, diffusionAmount: number): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
+export function* riemersmaRemapSteps(image: { width: number; height: number }, paletteImage: { width: number; height: number; hasAlpha: boolean; space?: string }, highDepth: boolean, diffusionAmount: number): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
     const palette: Float64Array[] = [], seen = new Set<string>();
     for (let position = 0; position < paletteImage.width * paletteImage.height * 4; position += 4096) {
         yield;
@@ -39,6 +39,9 @@ export function* riemersmaRemapSteps(image: { width: number; height: number }, p
         }
     }
     palette.sort((a, b) => remapColorOrder(b[0]!, b[1]!, b[2]!) - remapColorOrder(a[0]!, a[1]!, a[2]!));
+    // Preserve palette distances and diffusion before converting the output to bilevel.
+    const white = (paletteImage.space === "b-w" || paletteImage.space === "grey16") && palette.length === 2
+        ? palette[palette[0]![0]! > palette[1]![0]! ? 0 : 1] : undefined;
     const errors = new Float64Array(64);
     const weights = Float64Array.from({ length: 16 }, (_, i) => diffusionAmount * 16 ** (-1 - i / 15));
     let work = 0;
@@ -67,9 +70,12 @@ export function* riemersmaRemapSteps(image: { width: number; height: number }, p
             const alpha = paletteImage.hasAlpha && c < 3 ? best[3]! / 255 : 1;
             errors[60 + c] = target[c]! - best[c]! * alpha;
         }
+        const gray = best === white ? 255 : 0;
+        const output = white ? Float64Array.of(gray, gray, gray, best[3]!) : best;
         yield highDepth
-            ? { kind: "write", highDepth: true, position, data: new Uint8Array(Uint16Array.from(best, value => Math.round(value * 257)).buffer) }
-            : { kind: "write", position, data: Uint8Array.from(best, Math.round) };
+            ? { kind: "write", highDepth: true, position, data: new Uint8Array(Uint16Array.from(output, value => Math.round(value * 257)).buffer) }
+            : { kind: "write", position, data: Uint8Array.from(output, Math.round) };
     }
+    if (white) for (const color of palette) color.fill(color === white ? 255 : 0, 0, 3);
     return palette.reverse().map(color => Math.round(color[3]!) * 16777216 + Math.round(color[0]!) * 65536 + Math.round(color[1]!) * 256 + Math.round(color[2]!));
 }

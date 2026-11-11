@@ -3413,6 +3413,8 @@ function* applyMagickFunctionSteps(img: RgbaImage, funcRaw: string, params: read
             let y = x;
             if (fn === "polynomial") {
                 y = params.reduce((acc, coeff) => acc * x + coeff, 0);
+                // Q16-HDRI stores float quantum samples, retaining fractional and out-of-range values.
+                y = Math.fround(y * 65535) / 65535;
             }
             else if (fn === "sinusoid") {
                 const freq = params[0] ?? 1;

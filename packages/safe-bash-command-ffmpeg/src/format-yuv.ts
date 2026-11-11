@@ -4,19 +4,21 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 
 /** Convert to limited-range BT.601 planes before subsequent filters see RGBA. */
 export async function formatYuv(
-  frame: MediaVideoFrame, format: "yuv420p" | "yuv422p" | "yuv444p", signal?: AbortSignal
+  frame: MediaVideoFrame, format: "yuv420p10le" | "yuv420p" | "yuv422p" | "yuv444p", signal?: AbortSignal
 ): Promise<MediaVideoFrame> {
   const { width, height, data } = frame;
-  const nativeFormat = format === "yuv420p" ? 0 : format === "yuv422p" ? 4 : 5;
+  const tenBit = format === "yuv420p10le";
+  const nativeFormat = tenBit ? 62 : format === "yuv420p" ? 0 : format === "yuv422p" ? 4 : 5;
   if (frame.native?.format === nativeFormat && frame.native.rgba === data &&
       frame.native.width === width && frame.native.height === height) return frame;
   const hsub = format === "yuv444p" ? 1 : 2;
-  const vsub = format === "yuv420p" ? 2 : 1;
+  const vsub = tenBit || format === "yuv420p" ? 2 : 1;
   const chromaWidth = Math.ceil(width / hsub);
   const chromaHeight = Math.ceil(height / vsub);
   const lumaSize = width * height;
   const chromaSize = chromaWidth * chromaHeight;
-  const pixels = new Uint8Array(lumaSize + chromaSize * 2);
+  const pixels = new Uint8Array((lumaSize + chromaSize * 2) * (tenBit ? 2 : 1));
+  const view10 = tenBit ? new DataView(pixels.buffer) : undefined;
   const source = frame.native;
   if (source && ((source.format === 4 && format === "yuv444p") || (source.format === 5 && format === "yuv422p")) &&
       source.rgba === data && source.width === width && source.height === height) {
@@ -80,6 +82,16 @@ export async function formatYuv(
     const rgba = scaleVideoPicture({ ...frame, native }, width, height)!;
     return { ...frame, data: rgba, native: { ...native, rgba } };
   }
+  if (tenBit && source?.format === 0 && source.rgba === data &&
+      source.width === width && source.height === height) {
+    for (let i = 0; i < source.pixels.length; i++) {
+      if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+      view10!.setUint16(i * 2, source.pixels[i]! << 2, true);
+    }
+    const native = { ...source, pixels, format: nativeFormat };
+    const rgba = scaleVideoPicture({ ...frame, native }, width, height)!;
+    return { ...frame, data: rgba, native: { ...native, rgba } };
+  }
   for (let y = 0; y < height; y++) {
     await yieldTurn(signal);
     signal?.throwIfAborted();
@@ -88,7 +100,8 @@ export async function formatYuv(
       // swscale rounds RGB luma to 14 bits before rounding to an 8-bit plane.
       const luma = (8414 * data[offset]! + 16519 * data[offset + 1]! +
         3208 * data[offset + 2]! + (16 << 15) + 256) >> 9;
-      pixels[y * width + x] = (luma + 32) >> 6;
+      if (view10) view10.setUint16((y * width + x) * 2, (luma + 8) >> 4, true);
+      else pixels[y * width + x] = (luma + 32) >> 6;
     }
   }
   for (let y = 0; y < chromaHeight; y++) {
@@ -106,6 +119,11 @@ export async function formatYuv(
       }
       const count = hsub * vsub;
       const offset = lumaSize + y * chromaWidth + x;
+      if (view10) {
+        view10.setUint16(offset * 2, Math.floor((-4857 * r - 9535 * g + 14392 * b) / (8192 * count) + 512.5), true);
+        view10.setUint16((offset + chromaSize) * 2, Math.floor((14392 * r - 12052 * g - 2340 * b) / (8192 * count) + 512.5), true);
+        continue;
+      }
       pixels[offset] = Math.floor((-4857 * r - 9535 * g + 14392 * b) / (32768 * count) + 128.5);
       pixels[offset + chromaSize] = Math.floor((14392 * r - 12052 * g - 2340 * b) / (32768 * count) + 128.5);
     }

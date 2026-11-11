@@ -6,6 +6,15 @@ import { createFfmpegCommand } from "./index.js";
 // Complete PCM16 output from native FFmpeg 7.0.2 for [2000, -3000, 4000, -5000] repeated four times.
 const input = Buffer.from("d00748f4a00f78ec".repeat(4), "hex");
 for (const [filter, expected] of [
+  ...["nan", "NAN", "inf", "INF", "PHI"].flatMap(expression => {
+    const bypass = expression.toLowerCase() === "nan";
+    const pcm = bypass ? input.toString("hex")
+      : "4102bffef30046ff05fce4ffb30034ff43fc91ff0e01dcfe92fc4eff4401b2fe";
+    return [
+      [`aemphasis=level_out=0.5:enable=${expression}`, pcm],
+      [`asendcmd=c='0 aemphasis@eq enable ${expression}',aemphasis@eq=level_out=0.5:enable=${bypass ? 1 : 0}`, pcm]
+    ];
+  }),
   ["asendcmd=c='0.001 aemphasis@eq enable 0',aemphasis@eq=level_out=0.5",
     "4102bffef30046ff05fce4ffb30034ffd00748f4a00f78ecd00748f4a00f78ec"],
   ["asendcmd=c='0.0005 aemphasis@eq enable 0;0.0015 aemphasis@eq enable 1',aemphasis@eq=level_out=0.5",

@@ -14183,7 +14183,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             : stretched.length === 2 && (!filteredChannelMask || filteredChannelMask === 3) ? "stereo" : undefined;
                           const inputMask = filteredChannelMask || ({ 3: 0xb, 4: 0x107, 6: 0x3f }[stretched.length]);
                           const multichannelStereo = layouts[0] === "stereo" && inputMask !== undefined &&
-                            [0xb, 0x107, 0x3f, 0x60f].includes(inputMask);
+                            [0x7, 0xb, 0x33, 0x107, 0x3f, 0x60f, 0x63f].includes(inputMask);
                           if (!inputLayout && !multichannelStereo) throw new Error("aformat: unsupported input channel layout");
                           if (inputLayout && layouts.includes(inputLayout)) continue;
                           if (!autoConversionFilters) throw new Error(audioConversionDisabled);

@@ -3164,13 +3164,16 @@ async function applyVideoFilterChain(
     } else if (name === "deband") {
       const thresholds = Array<number>(4).fill(Math.fround(0.02));
       let range = 16, direction = Math.fround(2 * Math.PI), blur = true, coupling = false;
-      let sawNamed = false;
-      for (const [index, option] of (argStr ? positional : []).entries()) {
+      if (positional.length > 1 && positional.at(-1) === "") positional.pop();
+      let position = 0;
+      for (const option of argStr ? positional : []) {
         const separator = option.indexOf("=");
-        const key = separator < 0 ? ["1thr", "2thr", "3thr", "4thr", "range", "direction", "blur", "coupling"][index] : option.slice(0, separator);
+        const key = separator < 0 ? ["1thr", "2thr", "3thr", "4thr", "range", "direction", "blur", "coupling"][position] : option.slice(0, separator);
         const value = separator < 0 ? option : option.slice(separator + 1);
-        if (separator < 0 && sawNamed) throw new Error("deband: positional option after named option");
-        sawNamed ||= separator >= 0;
+        // Native restarts shorthand after named options, skipping the first
+        // slot when it was just visited, regardless of the named key.
+        if (separator < 0) position++;
+        else position = position === 0 ? 1 : 0;
         if (key === "enable") continue;
         if (key === "blur" || key === "b") blur = parseFilterBoolean(value, "deband: invalid blur");
         else if (key === "coupling" || key === "c") {

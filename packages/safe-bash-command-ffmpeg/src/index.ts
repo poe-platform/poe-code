@@ -4536,6 +4536,53 @@ async function applyVideoFilterChain(
       current = await colorcontrast(current, argStr, pixelFormat, budget, signal);
     } else if (name === "colorcorrect") {
       current = await colorcorrect(current, argStr, budget, signal);
+    } else if (name === "vibrance") {
+      const keys = ["intensity", "rbal", "gbal", "bbal", "rlum", "glum", "blum", "alternate"];
+      const defaults = [0, 1, 1, 1, 0.072186, 0.715158, 0.212656, 0];
+      const values = defaults.map(Math.fround);
+      for (const [index, option] of (argStr ? positional : []).entries()) {
+        const separator = option.indexOf("=");
+        const key = separator < 0 ? keys[index] : option.slice(0, separator).trim();
+        const channel = key === undefined ? -1 : keys.indexOf(key);
+        if (channel < 0) throw new Error(`vibrance: unsupported option ${key ?? option}`);
+        const expression = separator < 0 ? option : option.slice(separator + 1);
+        if (key === "alternate") {
+          values[channel] = Number(parseFilterBoolean(expression, "vibrance: invalid alternate"));
+          continue;
+        }
+        const min = channel === 0 ? -2 : channel < 4 ? -10 : 0;
+        const max = channel === 0 ? 2 : channel < 4 ? 10 : 1;
+        const value = parseFilterExpression(expression, "vibrance", { default: defaults[channel]!, min, max });
+        if (!Number.isFinite(value) || value < min || value > max) {
+          throw new RangeError(`vibrance: ${key} must be between ${min} and ${max}`);
+        }
+        values[channel] = Math.fround(value);
+      }
+      const intensities = values.slice(1, 4).map(balance => Math.fround(values[0]! * balance));
+      const signs = intensities.map(value => (values[7] ? 1 : -1) * (value > 0 ? 1 : -1));
+      const scale = Math.fround(1 / 255);
+      current = await mapWork(current, async frame => {
+        budget.allocateMemory(frame.data.byteLength);
+        const data = frame.data.slice();
+        for (let offset = 0; offset < data.length; offset += 4) {
+          if (offset % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          const r = Math.fround(data[offset]! * scale);
+          const g = Math.fround(data[offset + 1]! * scale);
+          const b = Math.fround(data[offset + 2]! * scale);
+          const saturation = Math.fround(Math.max(r, g, b) - Math.min(r, g, b));
+          // Match native single-precision operations and truncation to bytes.
+          const luma = Math.fround(Math.fround(Math.fround(g * values[5]!) +
+            Math.fround(r * values[4]!)) + Math.fround(b * values[6]!));
+          for (let channel = 0; channel < 3; channel++) {
+            const color = channel === 0 ? r : channel === 1 ? g : b;
+            const factor = Math.fround(1 + Math.fround(intensities[channel]! *
+              Math.fround(1 - signs[channel]! * saturation)));
+            const result = Math.fround(luma + Math.fround(Math.fround(color - luma) * factor));
+            data[offset + channel] = Math.max(0, Math.min(255, Math.trunc(Math.fround(result * 255))));
+          }
+        }
+        return { ...frame, data };
+      }, signal);
     } else if (name === "colorchannelmixer") {
       const keys = ["rr", "rg", "rb", "ra", "gr", "gg", "gb", "ga", "br", "bg", "bb", "ba", "ar", "ag", "ab", "aa"];
       const coefficients: number[] = keys.map((_, index) => index % 5 === 0 ? 1 : 0);

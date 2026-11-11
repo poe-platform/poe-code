@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function vibratoAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -22,6 +23,10 @@ export async function vibratoAudio(
     // when it was just visited. The named key does not select the next slot.
     if (separator < 0) optionPosition++;
     else optionPosition = optionPosition === 0 ? 1 : 0;
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, option.slice(separator + 1).trim(), "vibrato");
+      continue;
+    }
     if (key === "enable") {
       enable = option.slice(separator + 1).trim();
       parseFilterExpression(enable, "vibrato enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
@@ -33,7 +38,7 @@ export async function vibratoAudio(
     const max = key === "f" ? 20000 : 1;
     const number = parseFilterExpression(value, "vibrato", {
       E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2,
-      min, max, default: key === "f" ? 5 : 0.5
+      none: 0, all: -1, min, max, default: key === "f" ? 5 : 0.5
     });
     if (number < min || number > max) {
       throw new Error(`vibrato: invalid ${key}`);

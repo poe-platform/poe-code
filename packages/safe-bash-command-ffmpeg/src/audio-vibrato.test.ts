@@ -43,6 +43,11 @@ for (const [filter, expected] of [
   ["vibrato=d=500m", "vibrato"],
   ["vibrato=f=10/2:d=1/2", "vibrato"],
   ["vibrato=10/2:1/2", "vibrato"],
+  ["vibrato=d=none", "vibrato=d=0"],
+  ["vibrato=default:none", "vibrato=d=0"],
+  ["vibrato=d=all+1", "vibrato=d=0"],
+  ["vibrato=f=none+5:d=-all", "vibrato=f=5:d=1"],
+  ["vibrato=f=all+6", "vibrato"],
   ["vibrato=d=min", "vibrato=d=0"],
   ["vibrato=d=max", "vibrato=d=1"],
   ["vibrato=f=min", "vibrato=f=0.1"],
@@ -72,6 +77,23 @@ for (const filter of ["vibrato=f=0", "vibrato=f=20001", "vibrato=d=-1", "vibrato
     assert.notEqual(result.exitCode, 0);
     assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
   });
+}
+
+for (const [filter, literal] of [
+  ["vibrato=d=all", "vibrato=d=-1"],
+  ["vibrato=f=none", "vibrato=f=0"],
+  ["vibrato=f=all", "vibrato=f=-1"]
+] as const) {
+  for (const graph of [false, true]) {
+    it(`${filter} reports the same range error as its literal (${graph ? "graph" : "simple"})`, async () => {
+      const expected = await run(literal, graph);
+      const actual = await run(filter, graph);
+      assert.notEqual(expected.result.exitCode, 0);
+      assert.equal(actual.result.exitCode, expected.result.exitCode);
+      assert.equal(actual.stderr, expected.stderr);
+      assert.equal(actual.volume.readFileSync("/out.wav", "utf8"), "keep");
+    });
+  }
 }
 
 async function run(filter: string, graph = false) {

@@ -10170,6 +10170,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const channels = state.channels;
         const explicit = !state.channelDefault;
         apply = function* (image) {
+            if (image.space === "b-w" || image.space === "grey16")
+                image = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(image);
             const cmyk = image.space === "cmyk";
             if (cmyk) image = yield* convertCmykPixels(image);
             const hueSamples = cmyk ? image.hueSamples!.slice() : undefined;

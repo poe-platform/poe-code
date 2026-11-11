@@ -8222,6 +8222,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             throw new Error(`unsupported grayscale method '${tokens[i] ?? ""}'`);
         }
         if (space === "transparent") space = "srgb";
+        if (space === "scrgb") space = "rgb";
         evaluate = (paletteType && !bilevelAlpha) || imageType === undefined && (token === "-grayscale" || ["log", "rgb", "srgb", "gray", "grey", "lineargray", "rec709luma", "rec601luma", "lab", "cielab", "luv", "oklch", "lch", "lchab", "lchuv", "oklab", "ohta", "yuv", "yiq", "ycbcr", "rec601ycbcr"].includes(space));
         const luminance = space === "lineargray" || space === "rec601luminance" || space === "rec709luminance";
         apply = function* (image) {

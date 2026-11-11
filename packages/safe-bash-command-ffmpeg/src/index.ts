@@ -19837,6 +19837,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 return { exitCode: err instanceof RangeError ? 222 : 234 };
               }
             }
+            if (msg === "join: unsupported option enable") return { exitCode: 176 };
+            if (msg.startsWith("join: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("join:")) return { exitCode: 222 };
+            if (msg === "join: invalid expression" || msg === "join: invalid or unsupported expression") return { exitCode: 234 };
             if (msg === "field: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("field: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("field:")) return { exitCode: 222 };

@@ -240,7 +240,7 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
 
 // FFmpeg 7 falls back to 25 fps when setpts clears the filter's rate and durations.
 export async function synchronizeRawVideoFrames(
-  frames: MediaVideoFrame[], budget: MediaBudgetTracker, limit = Infinity, signal?: AbortSignal, rate = 25, statistics?: { duplicates: number }
+  frames: MediaVideoFrame[], budget: MediaBudgetTracker, limit = Infinity, signal?: AbortSignal, rate = 25, statistics?: { duplicates: number }, mode: "cfr" | "vfr" = "cfr"
 ): Promise<MediaVideoFrame[]> {
   const output: MediaVideoFrame[] = [];
   const previousCopies = [0, 0, 0];
@@ -255,8 +255,14 @@ export async function synchronizeRawVideoFrames(
       // FFmpeg adds a small positive bias before float32 rate-conversion rounding.
       const delta0 = frame.ptsSeconds * rate + 1 / 131072 - nextPts;
       const delta = delta0 + frame.durationSeconds * rate;
-      copies = delta < -1.1 ? 0 : delta > 1.1 ? Math.round(Math.fround(delta)) : 1;
-      previous = delta0 > 1.1 ? Math.round(Math.fround(delta0 - 0.6)) : 0;
+      if (mode === "vfr") {
+        copies = delta <= -0.6 ? 0 : 1;
+        previous = 0;
+        if (delta > 0.6) nextPts = Math.round(frame.ptsSeconds * rate);
+      } else {
+        copies = delta < -1.1 ? 0 : delta > 1.1 ? Math.round(Math.fround(delta)) : 1;
+        previous = delta0 > 1.1 ? Math.round(Math.fround(delta0 - 0.6)) : 0;
+      }
       previousCopies.pop();
       previousCopies.unshift(previous);
     } else {

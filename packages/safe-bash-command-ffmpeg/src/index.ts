@@ -11700,10 +11700,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     filtered = filtered.filter(frame => frame.ptsSeconds >= start && frame.ptsSeconds < end)
                       .map(frame => ({ ...frame, ptsSeconds: frame.ptsSeconds - start }));
                   }
-                  if (outputFormat === "rawvideo" && (outputFps !== undefined || !diagnostics.frameRateKnown) &&
-                      ["auto", "-1", "cfr", "1"].includes(videoSync)) {
+                  if (outputFormat === "rawvideo" && ["auto", "-1", "cfr", "1", "vfr", "2"].includes(videoSync)) {
                     const statistics = { duplicates: 0 };
-                    filtered = await synchronizeRawVideoFrames(filtered, budget, streamFrameLimits[index], context.signal, outputFps, statistics);
+                    const rate = outputFps ?? (diagnostics.frameRateKnown
+                      ? 1 / ((filtered[0]?.durationSeconds || diagnostics.frameDuration) * diagnostics.frameRateScale) : 25);
+                    filtered = await synchronizeRawVideoFrames(filtered, budget, streamFrameLimits[index], context.signal, rate, statistics,
+                      videoSync === "vfr" || videoSync === "2" ? "vfr" : "cfr");
                     progressDuplicates += statistics.duplicates;
                     diagnostics.frameRateScale = 1;
                   }

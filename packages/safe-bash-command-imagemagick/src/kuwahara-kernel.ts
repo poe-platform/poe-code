@@ -6,7 +6,7 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
 /** Native Kuwahara: rank-three blur, minimum luma variance, quadrant-center interpolation. */
-export function* kuwaharaPixelSteps(image: { width: number; height: number; region?: Region | undefined }, geometry: { width?: number; height?: number }, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, interpolation: LookupInterpolation = "bilinear", writeMask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* kuwaharaPixelSteps(image: { width: number; height: number; alphaBlend?: boolean | undefined; region?: Region | undefined }, geometry: { width?: number; height?: number }, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, interpolation: LookupInterpolation = "bilinear", writeMask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (interpolation === "average9" || interpolation === "average16" || interpolation === "blend" || interpolation === "mesh" || interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported Kuwahara interpolation: ${interpolation}`);
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
     if (!Number.isFinite(radius) || radius < 0 || radius >= 5000 || !Number.isFinite(sigma)) throw new Error("Kuwahara radius or sigma exceeds limit");
@@ -62,7 +62,7 @@ export function* kuwaharaPixelSteps(image: { width: number; height: number; regi
         for (let k = -half; k <= half; k++) {
             yield;
             const pixel = yield* sample(x + (stage === 1 ? k : 0), y + (stage === 2 ? k : 0), stage - 1);
-            const weight = weights[k + half]!, alpha = pixel[3]! / 65535;
+            const weight = weights[k + half]!, alpha = image.alphaBlend === false ? 1 : pixel[3]! / 65535;
             for (let c = 0; c < 3; c++) sums[c]! += pixel[c]! * alpha * weight;
             sums[3]! += alpha * weight;
         }
@@ -89,7 +89,7 @@ export function* kuwaharaPixelSteps(image: { width: number; height: number; regi
         }
         if (protection > 0) {
             const source = yield* sample(x, y, stage - 1);
-            const sourceAlpha = protection * source[3]! / 65535, editedAlpha = pixel[3]! / 65535;
+            const sourceAlpha = protection * (image.alphaBlend === false ? 1 : source[3]! / 65535), editedAlpha = image.alphaBlend === false ? 1 : pixel[3]! / 65535;
             for (let c = 0; c < 3; c++) if (!mask || mask[c]) pixel[c] = Math.fround(source[c]! * sourceAlpha + pixel[c]! * editedAlpha * (1 - sourceAlpha));
             pixel[3] = source[3]!;
         }
@@ -129,7 +129,7 @@ export function* kuwaharaPixelSteps(image: { width: number; height: number; regi
             for (let dy = 0; dy < (single ? 1 : 2); dy++) for (let dx = 0; dx < (single ? 1 : 2); dx++) {
                 const weight = single ? 1 : interpolation === "average" ? 0.25 : (dx ? fx : 1 - fx) * (dy ? fy : 1 - fy);
                 if (weight === 0) continue;
-                const pixel = yield* sample(left + dx, top + dy, 2), alpha = pixel[3]! / 65535;
+                const pixel = yield* sample(left + dx, top + dy, 2), alpha = image.alphaBlend === false ? 1 : pixel[3]! / 65535;
                 const colorWeight = single ? 1 : interpolation === "average" ? Number(alpha > 0) : alpha;
                 for (let c = 0; c < 3; c++) sums[c]! += pixel[c]! * (mask && !mask[c] ? 1 : colorWeight) * weight;
                 sums[3]! += alpha * weight;

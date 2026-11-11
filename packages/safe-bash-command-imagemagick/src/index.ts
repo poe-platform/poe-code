@@ -9623,8 +9623,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         out[idx + channel] = clampByteVal(scaled / 257);
                     }
                     data16[idx + 3] = initializeAlpha ? 0 : im.data16 ? im.data16[idx + 3]! : im.data[idx + 3]! * 257;
+                    // Associate creates a zero alpha channel when a later raster operation needs it.
+                    if (mode === "associate" && !im.hasAlpha && !im.inactiveAlpha) out[idx + 3] = data16[idx + 3] = evaluateSamples[idx + 3] = 0;
                 }
-                return { ...im, data: out, data16, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), hasAlpha: false, inactiveAlpha: initializeAlpha || im.hasAlpha || im.inactiveAlpha, alphaBlend: mode === "associate" && (im.alphaBlend ?? im.hasAlpha), alphaSeparate: mode === "disassociate", channels: initializeAlpha ? im.channels <= 2 ? 2 : 4 : im.channels };
+                return { ...im, data: out, data16, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), hasAlpha: false, inactiveAlpha: initializeAlpha || im.hasAlpha || im.inactiveAlpha, alphaBlend: mode === "associate", alphaSeparate: mode === "disassociate", channels: initializeAlpha ? im.channels <= 2 ? 2 : 4 : im.channels };
             };
         }
         else if (mode === "deactivate" || mode === "discrete") {

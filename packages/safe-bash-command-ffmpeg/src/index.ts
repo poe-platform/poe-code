@@ -26,6 +26,7 @@ import { swapUv } from "./swapuv.js";
 import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
 import { tmix } from "./tmix.js";
+import { avgblur } from "./avgblur.js";
 import { doubleweave } from "./doubleweave.js";
 import { padTinterlace } from "./tinterlace-pad.js";
 import { weave } from "./weave.js";
@@ -3972,6 +3973,8 @@ async function applyVideoFilterChain(
       } finally {
         budget.releaseMemory(1024);
       }
+    } else if (name === "avgblur") {
+      current = await avgblur(current, argStr, pixelFormat, budget, signal);
     } else if (name === "negate") {
       if (positional.filter(value => !value.includes("=")).length > 2 || Object.keys(named).some(key =>
         !["components", "negate_alpha", "enable", "threads", "thread_type", "extra_hw_frames"].includes(key))) {

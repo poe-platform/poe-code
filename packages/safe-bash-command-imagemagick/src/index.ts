@@ -2280,10 +2280,20 @@ function resolveMagickSpliceGeometry(raw: string, image: Pick<RgbaImage, "width"
     return geometry;
 }
 
+function hasMagickScalarModifierOffsets(raw: string): boolean {
+    const value = [...raw].filter(character => character.trim() !== "").join("");
+    if (value.toLowerCase().includes("x") || value.includes(":")) return false;
+    const offset = [...value].findIndex((character, index) => (character === "+" || character === "-")
+        && value[index - 1]?.toLowerCase() !== "e");
+    return offset > 0 && "!%<>^#".includes(value[offset - 1]!);
+}
+
 function parseMagickShaveGeometry(raw: string, image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">): MagickGeometry {
     // Rectangle geometry ends at the first comma-separated field.
     raw = raw.split(",", 1)[0]!;
     const geometry = parseMagickGeometry(raw.replace(":", "x").replaceAll("@", "").replaceAll("#", ""));
+    // A modifier before scalar offsets leaves the native page rectangle unchanged.
+    if (hasMagickScalarModifierOffsets(raw)) return { ...geometry, isPercent: false, width: image.width, height: image.virtualCanvas?.height || image.height };
     if (!raw.includes("@")) return geometry;
     const hasDimensions = raw.toLowerCase().includes("x") || raw.includes(":");
     let width = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? 0));
@@ -2322,9 +2332,9 @@ function resolveMagickChopGeometry(raw: string, image: Pick<RgbaImage, "width" |
         const dimensions = parseMagickGeometry(raw.slice(0, suffix).replaceAll("#", "").replaceAll("%", ""));
         g = { ...dimensions, aspectRatio: (dimensions.width ?? 0) / (dimensions.height ?? 1) };
     }
-    // Native GetGeometry leaves the page rectangle untouched when a scalar @
-    // width is followed by an offset sign, rather than a dimension separator.
-    if (g.areaLimit !== undefined && g.hasOffset && !g.isPercent) {
+    // Native GetGeometry leaves the page rectangle untouched when a scalar
+    // modifier is followed by an offset sign, rather than a dimension separator.
+    if ((g.areaLimit !== undefined && g.hasOffset && !g.isPercent) || hasMagickScalarModifierOffsets(raw)) {
         return { ...g, width: pageWidth, height: pageHeight, x: 0, y: 0 };
     }
     if (g.aspectRatio !== undefined) {
@@ -2614,7 +2624,8 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
     if (![...value].some(c => "0123456789xX!#%.-:<>@^".includes(c)) || value === "-") throw new Error(`invalid argument for option '${option}': ${raw}`);
     if (["-chop", "-shave", "-swirl", "-implode", "-wave"].includes(option) && !dimensions) {
         const geometry = parseMagickGeometry(value.replaceAll("#", ""));
-        if (geometry.width !== undefined && geometry.hasOffset) {
+        if (geometry.width !== undefined && geometry.hasOffset
+            && !((option === "-chop" || option === "-shave") && hasMagickScalarModifierOffsets(value))) {
             throw new Error(`invalid argument for option '${option}': ${raw}`);
         }
     }

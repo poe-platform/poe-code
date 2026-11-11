@@ -54,14 +54,15 @@ export function chopRegion(region: Region, x0: number, y0: number, x1: number, y
 /** Move the selection with EXIF pixel coordinates, including mirrored orientations. */
 export function orientRegion(region: Region, image: { width: number; height: number; orientation?: number | undefined }): Region {
     const { x, y, width, height } = region;
+    const swappedWrap = region.wrap ? { wrap: { width: region.wrap.height, height: region.wrap.width } } : {};
     switch (image.orientation) {
         case 2: return { ...region, x: image.width - x - width };
         case 3: return { ...region, x: image.width - x - width, y: image.height - y - height };
         case 4: return { ...region, y: image.height - y - height };
-        case 5: return { x: y, y: x, width: height, height: width };
-        case 6: return { x: image.height - y - height, y: x, width: height, height: width };
-        case 7: return { x: image.height - y - height, y: image.width - x - width, width: height, height: width };
-        case 8: return { x: y, y: image.width - x - width, width: height, height: width };
+        case 5: return { ...swappedWrap, x: y, y: x, width: height, height: width };
+        case 6: return { ...swappedWrap, x: image.height - y - height, y: x, width: height, height: width };
+        case 7: return { ...swappedWrap, x: image.height - y - height, y: image.width - x - width, width: height, height: width };
+        case 8: return { ...swappedWrap, x: y, y: image.width - x - width, width: height, height: width };
         default: return region;
     }
 }
@@ -73,15 +74,18 @@ export function* regionPixelSteps(image: { width: number; height: number; hasAlp
     // Either source can supply normalized colors; every output span must fill that plane.
     const hue = image.space !== "cmyk" && ((yield { kind: "read", hue: true, position: 0, length: 4 })?.length
         || (yield { kind: "read", hue: true, image: 1, position: 0, length: 4 })?.length);
-    const left = Math.max(0, Math.min(image.width, region.x));
-    const right = Math.max(left, Math.min(image.width, region.x + region.width));
-    const wrappedRight = region.wrap ? Math.max(0, region.x + region.width - image.width) : 0;
+    // Mirroring can leave a wrapped origin negative; keep both edge spans.
+    const originX = region.wrap ? ((region.x % region.wrap.width) + region.wrap.width) % region.wrap.width : region.x;
+    const originY = region.wrap ? ((region.y % region.wrap.height) + region.wrap.height) % region.wrap.height : region.y;
+    const left = Math.max(0, Math.min(image.width, originX));
+    const right = Math.max(left, Math.min(image.width, originX + region.width));
+    const wrappedRight = region.wrap ? Math.max(0, originX + region.width - image.width) : 0;
     const selectedSpans = wrappedRight > 0
         ? [[0, wrappedRight, 0], [wrappedRight, left, 1], [left, right, 0]]
         : [[0, left, 1], [left, right, 0], [right, image.width, 1]];
     for (let y = 0; y < image.height; y++) {
         yield;
-        const relativeY = region.wrap ? (y - region.y + image.height) % image.height : y - region.y;
+        const relativeY = region.wrap ? (y - originY + region.wrap.height) % region.wrap.height : y - originY;
         const spans = relativeY < 0 || relativeY >= region.height ? [[0, image.width, 1]] : selectedSpans;
         for (const [start, end, selection] of spans) {
             // Alpha replacement preserves the rectangle and writes outside it.

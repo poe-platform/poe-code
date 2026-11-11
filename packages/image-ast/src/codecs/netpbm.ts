@@ -152,7 +152,7 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
   };
 }
 
-export function encodePpm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = false, pam = false): Uint8Array {
+export function encodePpm(img: RgbaImage, depth = Math.min(16, img.bitsPerSample ?? (img.data16 ? 16 : 8)), ascii = false, pam = false): Uint8Array {
   if (pam) ascii = false;
   const gray = pam && (img.space === "b-w" || img.space === "grey16");
   const cmyk = pam && img.space === "cmyk" && img.hueSamples !== undefined;

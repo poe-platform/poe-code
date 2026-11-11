@@ -12941,7 +12941,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             applyMagickReadSetting([t, expanded], state, 0);
             setting = i + 1;
         } else setting = applyMagickReadSetting(tokens, state, i);
-        if (setting === undefined && (((t === "-function" || t === "-evaluate") && tokens[i + 2]?.includes("%")) || t === "-solarize" || t === "-threshold" || ((t === "-black-threshold" || t === "-white-threshold") && tokens[i + 1]?.includes("%")) || ((t === "-color-threshold" || t === "-blue-shift" || t === "-colorize" || t === "-random-threshold") && tokens[i + 1]?.includes("%[")) || ((t === "-modulate" || t === "-posterize" || t === "-ordered-dither") && tokens[i + 1]?.includes("%[")) || ((t === "-range-threshold" || t === "-level" || t === "+level" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%")) || ((t === "-level-colors" || t === "+level-colors") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
+        if (setting === undefined && (((t === "-function" || t === "-evaluate") && tokens[i + 2]?.includes("%")) || t === "-solarize" || t === "-threshold" || t === "-range-threshold" || ((t === "-black-threshold" || t === "-white-threshold") && tokens[i + 1]?.includes("%")) || ((t === "-color-threshold" || t === "-blue-shift" || t === "-colorize" || t === "-random-threshold") && tokens[i + 1]?.includes("%[")) || ((t === "-modulate" || t === "-posterize" || t === "-ordered-dither") && tokens[i + 1]?.includes("%[")) || ((t === "-level" || t === "+level" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%")) || ((t === "-level-colors" || t === "+level-colors") && tokens[i + 1]?.includes("%[")) || t === "-color-matrix" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast" || t === "-tint")) {
             const operationName = t === "-function" || t === "-evaluate" ? tokens[++i]! : undefined;
             const value = tokens[++i] ?? (t === "-solarize" ? "50%" : t === "-threshold" ? "" : t === "-color-matrix" ? "1,0,0 0,1,0 0,0,1" : t === "-brightness-contrast" || t === "-tint" ? "" : "1");
             let sceneIdx = 0;
@@ -12954,7 +12954,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const operation = parseMagickPixelOperation(operationTokens, imageSettings, 0, signal)!;
                 if (operation.warning) analysis.warnings += operation.warning;
                 const result = yield* operation.apply(image);
-                if (t === "-threshold" && image.metaChannels?.length) {
+                if ((t === "-threshold" || t === "-range-threshold") && image.metaChannels?.length) {
                     const metaOperation = parseMagickPixelOperation(operationTokens, { ...state, channelExplicit: true, channelDefault: false, channels: { r: true, g: true, b: true, a: false } }, 0, signal)!;
                     result.metaChannels = [];
                     for (const [index, plane] of image.metaChannels.entries()) {
@@ -16711,7 +16711,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (!stack.length) throw new Error(`no images found for operation '${token}'`);
             return stack;
         });
-        if (!operandsOnly && (((token === "-function" || token === "-evaluate") && tokens[i + 2]?.includes("%")) || token === "-solarize" || token === "-threshold" || ((token === "-black-threshold" || token === "-white-threshold") && tokens[i + 1]?.includes("%")) || ((token === "-color-threshold" || token === "-blue-shift" || token === "-colorize" || token === "-random-threshold") && tokens[i + 1]?.includes("%[")) || (token === "-modulate" && tokens[i + 1]?.includes("%[")) || ((token === "-range-threshold" || token === "-level" || token === "+level" || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%")) || ((token === "-level-colors" || token === "+level-colors") && tokens[i + 1]?.includes("%[")) || token === "-color-matrix" || token === "-gamma" || token === "+gamma" || token === "-brightness-contrast" || token === "-tint")) {
+        if (!operandsOnly && (((token === "-function" || token === "-evaluate") && tokens[i + 2]?.includes("%")) || token === "-solarize" || token === "-threshold" || token === "-range-threshold" || ((token === "-black-threshold" || token === "-white-threshold") && tokens[i + 1]?.includes("%")) || ((token === "-color-threshold" || token === "-blue-shift" || token === "-colorize" || token === "-random-threshold") && tokens[i + 1]?.includes("%[")) || (token === "-modulate" && tokens[i + 1]?.includes("%[")) || ((token === "-level" || token === "+level" || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast") && tokens[i + 1]?.includes("%")) || ((token === "-level-colors" || token === "+level-colors") && tokens[i + 1]?.includes("%[")) || token === "-color-matrix" || token === "-gamma" || token === "+gamma" || token === "-brightness-contrast" || token === "-tint")) {
             if (token === "-solarize") stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
@@ -16730,7 +16730,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const operation = parseMagickPixelOperation(operationTokens, imageSettings, 0, signal)!;
                 if (operation.warning) analysis.warnings += operation.warning;
                 const result = await transformStoredMagickPixels(image, backend, operation, signal);
-                if (token === "-threshold" && image.storedMetaChannels?.length) {
+                if ((token === "-threshold" || token === "-range-threshold") && image.storedMetaChannels?.length) {
                     const metaOperation = parseMagickPixelOperation(operationTokens, { ...settings, channelExplicit: true, channelDefault: false, channels: { r: true, g: true, b: true, a: false } }, 0, signal)!;
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries()) {

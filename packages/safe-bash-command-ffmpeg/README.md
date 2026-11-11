@@ -778,6 +778,8 @@ channels outside the selected layout fail without replacing existing output.
 Use `-ch_layout mono` or `-channel_layout mono` for mono output, equivalent to `-ac 1`. Other output layouts are not supported by these options.
 `aformat=channel_layouts=mono` also converts a single FL or FR speaker to mono
 without changing its samples, including after `channelsplit`.
+`aformat=channel_layouts=stereo` expands a single FL or FR speaker into both
+stereo channels with the same equal-power gains as a mono input.
 `aformat=channel_layouts=mono` (or `aformat=cl=mono`) downmixes stereo by
 averaging left and right samples, or preserves mono input. `stereo` preserves
 stereo input or converts mono with equal-power gains. It also downmixes 2.1,

@@ -14175,10 +14175,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (layouts.some(layout => layout !== "mono" && layout !== "stereo")) {
                             throw new Error(`aformat: unsupported channel layout ${value}`);
                           }
-                          if (layouts[0] === "mono" && stretched.length === 1 && (filteredChannelMask === 1 || filteredChannelMask === 2)) {
+                          if (stretched.length === 1 && (filteredChannelMask === 1 || filteredChannelMask === 2)) {
                             filteredChannelMask = 4;
                             filteredChannelNames = undefined;
-                            continue;
                           }
                           const inputLayout = stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ? "mono"
                             : stretched.length === 2 && (!filteredChannelMask || filteredChannelMask === 3) ? "stereo" : undefined;

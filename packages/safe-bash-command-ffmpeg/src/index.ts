@@ -12606,7 +12606,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               formats = compatible;
                               continue;
                             }
-                            if (name === "vibrato") {
+                            if (name === "vibrato" || name === "compensationdelay") {
                               if (!formats || formats.includes("dblp")) formats = ["dblp"];
                             } else if (name === "volume") {
                               let precision = "float";

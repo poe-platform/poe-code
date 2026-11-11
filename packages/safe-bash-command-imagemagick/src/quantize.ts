@@ -58,7 +58,8 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             if (!hasAlpha) data[i + 3] = 255;
             if (grayscale) {
                 const luma = 0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!;
-                data[i] = data[i + 1] = data[i + 2] = requested === 2 ? (luma >= 127.5 ? 255 : 0) : Math.round(luma);
+                // Keep Q16-HDRI gray samples fractional when accumulating palette means.
+                data[i] = data[i + 1] = data[i + 2] = requested === 2 ? (luma >= 127.5 ? 255 : 0) : Math.fround(luma * 257) / 257;
                 // ImageMagick's two-color gray shortcut produces an opaque bilevel image.
                 if (requested === 2) data[i + 3] = 255;
             }

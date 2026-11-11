@@ -25,7 +25,7 @@ describe.each(["command", "retained", "buffered", "sync"] as const)("+blue-shift
                 : await runMagickCli(argv, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
             expect(result.exitCode).toBe(0);
             expect("stderr" in result ? result.stderr : stderr).toBe("");
-            expect("stdoutBytes" in result ? Buffer.from(result.stdoutBytes!).toString("hex") : stdout).toBe(expected);
+            expect("stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? Buffer.from(result.stdoutBytes).toString("hex") : stdout).toBe(expected);
         }
     });
 

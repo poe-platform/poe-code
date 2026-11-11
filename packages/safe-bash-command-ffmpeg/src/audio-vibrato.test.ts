@@ -36,6 +36,12 @@ for (const [filter, hash] of [
 
 for (const [filter, expected] of [
   ["vibrato=d=1/2", "vibrato"],
+  ["vibrato=d='st(0,0.5)'", "vibrato"],
+  ["vibrato=d='st(0,0.25);ld(0)*2'", "vibrato"],
+  ["vibrato=5:st(9\\,0.25)+ld(9)", "vibrato"],
+  ["vibrato=f='st(0,5)':d=ld(0)", "vibrato=d=0"],
+  ["vibrato=d='st(0,0.5)':d=ld(0)", "vibrato=d=0"],
+  ["vibrato=d='st(0,0.5)':enable=ld(0)", "vibrato=enable=0"],
   ["vibrato=d=(1+1)/4", "vibrato"],
   ["vibrato=d=2^-1", "vibrato"],
   ["vibrato=d=sqrt(0.25)", "vibrato"],
@@ -71,6 +77,7 @@ for (const [filter, expected] of [
 for (const filter of ["vibrato=f=0", "vibrato=f=20001", "vibrato=d=-1", "vibrato=d=1.1", "vibrato=f=NaN", "vibrato=d=", "vibrato=unknown=1",
   "vibrato=d=0b1", "vibrato=d=0o1", "vibrato=d=1/", "vibrato=d=1/0", "vibrato=d=0/0",
   "vibrato=d=3/2", "vibrato=d=-1/2", "vibrato=f=40001/2",
+  "vibrato=d='st(0,1.1)'", "vibrato=d='st(0,-0.1)'", "vibrato=d='st(0,0.5);unknown'",
   "vibrato=d=max+0.1", "vibrato=d=min-0.1", "vibrato=f=max+1", "vibrato=f=min/2"]) {
   it(`${filter} rejects invalid options without replacing output`, async () => {
     const { volume, result } = await run(filter);

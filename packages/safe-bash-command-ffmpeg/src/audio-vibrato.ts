@@ -38,8 +38,13 @@ export async function vibratoAudio(
     const max = key === "f" ? 20000 : 1;
     const number = parseFilterExpression(value, "vibrato", {
       E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2,
+<<<<<<< Updated upstream
       none: 0, all: -1, min, max, default: key === "f" ? 5 : 0.5
     });
+=======
+      min, max, default: key === "f" ? 5 : 0.5
+    }, undefined, new Float64Array(10));
+>>>>>>> Stashed changes
     if (number < min || number > max) {
       throw new Error(`vibrato: invalid ${key}`);
     }

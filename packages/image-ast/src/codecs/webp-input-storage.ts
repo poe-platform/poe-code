@@ -181,6 +181,7 @@ export async function decodeWebpToStorage(
     if (decoded.width !== frame.width || decoded.height !== frame.height) throw new Error("Invalid WebP frame dimensions");
     return { ...decoded, density: meta.density, ...(meta.orientation === undefined ? {} : { orientation: meta.orientation }),
       ...(meta.icc === undefined ? {} : { icc: meta.icc }),
+      ...(meta.exif === undefined ? {} : { exif: meta.exif }),
       delay: meta.delay!, loop: meta.loop!, disposal: frame.disposal,
       virtualCanvas: { width, height, x: frame.x, y: frame.y } };
   }
@@ -204,7 +205,8 @@ export async function decodeWebpToStorage(
     depth: "uchar" as const,
     density,
     hasAlpha,
-    ...(meta.icc === undefined ? {} : { icc: meta.icc })
+    ...(meta.icc === undefined ? {} : { icc: meta.icc }),
+    ...(meta.exif === undefined ? {} : { exif: meta.exif })
   };
   for (let at = 12; at + 8 <= source.size; ) {
     const kind = await fourcc(at),

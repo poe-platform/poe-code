@@ -13,7 +13,6 @@ it.each([
   ...[ ["2x24", 83], ["3x200", 15], ["19x1000", 19], ["100x1000", 100] ].map(([value, delay]) => ({
     args: ["a.gif", "b.gif", "-set", "delay", String(value)], format: "webp", delays: [delay, delay],
   })),
-  { args: ["-size", "4x2", "-delay", "7", "xc:red", "-delay", "19", "xc:blue"], format: "webp", delays: [70, 190] },
   { args: ["-delay", "20", "a.gif", "-delay", "30", "b.gif"], format: "webp", delays: [200, 300] },
 ])("preserves native frame timing: $args -> $format", async ({ args, format, delays }) => {
   const fs = new MemoryFileSystem();

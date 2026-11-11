@@ -1,3 +1,4 @@
+import { buildExifApp1Segment } from "./codecs/exif.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import sharp from "./index.js";
 import { createHash } from "node:crypto";
@@ -367,7 +368,7 @@ it.each(vectors)("preserves frozen WebP output %j", async (v) => {
   expect(reads).toBeGreaterThan(0);
   expect(result.length).toBe(v.length);
   expect(createHash("sha256").update(result).digest("hex")).toBe(v.hash);
-  expect(readWebpMetadata(result)).toEqual(v.metadata);
+  expect(readWebpMetadata(result)).toEqual({ ...v.metadata, ...(v.metadata.orientation === undefined ? {} : { exif: buildExifApp1Segment({ orientation: v.metadata.orientation, density: v.metadata.density }).subarray(6) }) });
   expect(encodeWebpImage(image)).toEqual(result);
 });
 

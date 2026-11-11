@@ -367,6 +367,7 @@ export function decodeWebpImage(bytes: Uint8Array, options?: { readonly page?: n
     if (decoded.width !== frame.width || decoded.height !== frame.height) throw new Error("Invalid WebP frame dimensions");
     return { ...decoded, density: meta.density, ...(meta.orientation === undefined ? {} : { orientation: meta.orientation }),
       ...(meta.icc === undefined ? {} : { icc: meta.icc }),
+      ...(meta.exif === undefined ? {} : { exif: meta.exif }),
       delay: meta.delay!, loop: meta.loop!, disposal: frame.disposal,
       virtualCanvas: { width: meta.width, height: meta.height, x: frame.x, y: frame.y } };
   }
@@ -407,7 +408,8 @@ export function decodeWebpImage(bytes: Uint8Array, options?: { readonly page?: n
               density: meta.density,
               hasAlpha: meta.hasAlpha,
               ...(meta.icc === undefined ? {} : { icc: meta.icc }),
-              ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {})
+              ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
+              ...(meta.exif === undefined ? {} : { exif: meta.exif })
             };
           }
         } catch {
@@ -428,7 +430,8 @@ export function decodeWebpImage(bytes: Uint8Array, options?: { readonly page?: n
             density: meta.density,
             hasAlpha: meta.hasAlpha,
             ...(meta.icc === undefined ? {} : { icc: meta.icc }),
-            ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {})
+            ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
+            ...(meta.exif === undefined ? {} : { exif: meta.exif })
           };
         }
       } catch {

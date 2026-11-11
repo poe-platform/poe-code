@@ -26,6 +26,7 @@ export function* webpMetadataSteps(size:number):Generator<MetadataRead,ImageMeta
   let density = 72;
   let orientation: number | undefined;
   let icc: Uint8Array | undefined;
+  let exifProfile: Uint8Array | undefined;
   const delay: number[] = [];
   let loop: number | undefined;
 
@@ -71,6 +72,11 @@ export function* webpMetadataSteps(size:number):Generator<MetadataRead,ImageMeta
         icc.set(yield { position: dataStart + offset, length: Math.min(4096, chunkSize - offset) }, offset);
       }
     } else if (fourcc === "EXIF") {
+      exifProfile = new Uint8Array(chunkSize);
+      for (let offset = 0; offset < chunkSize; offset += 4096) {
+        exifProfile.set(yield { position: dataStart + offset, length: Math.min(4096, chunkSize - offset) }, offset);
+      }
+      if (exifProfile[0] === 69 && exifProfile[1] === 120 && exifProfile[2] === 105 && exifProfile[3] === 102 && exifProfile[4] === 0 && exifProfile[5] === 0) exifProfile = exifProfile.subarray(6);
       const exif = yield* exifMetadataSteps(chunkSize,dataStart);
       if (exif.orientation !== undefined) orientation = exif.orientation;
       if (exif.density !== undefined) density = exif.density;
@@ -93,6 +99,7 @@ export function* webpMetadataSteps(size:number):Generator<MetadataRead,ImageMeta
     hasAlpha,
     ...(orientation !== undefined ? { orientation } : {}),
     ...(icc === undefined ? {} : { icc }),
+    ...(exifProfile === undefined ? {} : { exif: exifProfile }),
     ...(delay.length ? { pages: delay.length, delay, loop: loop ?? 0 } : {}),
     size
   };

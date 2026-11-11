@@ -18,7 +18,7 @@ function frame(kind:"VP8X"|"VP8L"|"VP8 ",width:number,height:number,alpha:boolea
 }
 for(const kind of ["VP8X","VP8L","VP8 "] as const)for(const alpha of [false,true])for(const exif of [false,true])it(`preserves WebP metadata ${kind}/${alpha}/${exif}`,async()=>{
  const bytes=riff([[kind,frame(kind,773,259,alpha)],...(exif?[["EXIF",buildExifApp1Segment({orientation:8,density:144})] as [string,Uint8Array]]:[])]);
- const expected=readWebpMetadata(bytes);expect(expected).toMatchSnapshot();
+ const expected=readWebpMetadata(bytes);expect(expected).toMatchSnapshot(exif ? { exif: expect.any(Uint8Array) } : {});
  expect(await readWebpMetadataFromSource(source(bytes),new AbortController().signal)).toEqual(expected);
 });
 for(const length of [0,11,12,19,20,24,25,29,30,31,32,33,34,35])it(`preserves truncated WebP metadata ${length}`,async()=>{

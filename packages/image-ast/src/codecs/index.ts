@@ -1,5 +1,4 @@
 import { isPsdBytes, readPsdHeader, decodePsdImage } from "./psd-input.js";
-import { isPcxBytes, readPcxHeader, decodePcxImage } from "./pcx-input.js";
 import { isXwdBytes, readXwdHeader, decodeXwdImage } from "./xwd-input.js";
 import { isQoiBytes, readQoiMetadata, decodeQoiImage } from "./qoi-input.js";
 import { encodeQoiImage } from "./qoi-output.js";
@@ -77,7 +76,6 @@ import {
 
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
-  if (isPcxBytes(bytes)) return "pcx";
   if (isXwdBytes(bytes)) return "xwd";
   if (isQoiBytes(bytes)) return "qoi";
   if (isPsdBytes(bytes)) return "psd";
@@ -180,7 +178,6 @@ export function readImageMetadata(
   const fmt = detectImageFormat(bytes);
   let meta: ImageMetadata;
   switch (fmt) {
-    case "pcx": meta = readPcxHeader(bytes).metadata; break;
     case "xwd": meta = readXwdHeader(bytes).metadata; break;
     case "qoi": meta = readQoiMetadata(bytes); break;
     case "hdr": meta = readRadianceHeader(bytes).metadata; break;
@@ -424,7 +421,6 @@ export function decodeImage(
   const meta = readImageMetadata(bytes, options);
   let decoded: RgbaImage;
   switch (meta.format) {
-    case "pcx": decoded = decodePcxImage(bytes, options); break;
     case "xwd": decoded = decodeXwdImage(bytes, options); break;
     case "qoi": decoded = decodeQoiImage(bytes, options); break;
     case "hdr": decoded = decodeRadianceImage(bytes, options); break;

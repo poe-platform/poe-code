@@ -1,3 +1,4 @@
+import { buildExifApp1Segment } from "./codecs/exif.js";
 import { createHash } from "node:crypto";
 import { expect, it } from "vitest";
 import { decodeWebpImage } from "./codecs/webp.js";
@@ -806,14 +807,15 @@ it.each(vectors)("preserves WebP $name", async (v) => {
     }
   };
   const { position, ...meta } = await decodeWebpToStorage(source, storage, signal);
-  expect(meta).toEqual(v.meta);
+  const expected = { ...v.meta, ...(v.meta.orientation === undefined ? {} : { exif: buildExifApp1Segment({ orientation: v.meta.orientation, density: v.meta.density }).subarray(6) }) };
+  expect(meta).toEqual(expected);
   expect(
     createHash("sha256")
       .update(memory.subarray(position, position + meta.width * meta.height * 4))
       .digest("hex")
   ).toBe(v.hash);
   const { data, ...buffered } = decodeWebpImage(input);
-  expect(buffered).toEqual(v.meta);
+  expect(buffered).toEqual(expected);
   expect(createHash("sha256").update(data).digest("hex")).toBe(v.hash);
 });
 

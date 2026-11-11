@@ -2,7 +2,49 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { textCommands } from "../../src/commands/text.js";
 import { Shell } from "../../src/shell/shell.js";
+import { standardCommands } from "../../src/commands/index.js";
 import { chunks, fixture, run } from "./helpers.js";
+
+for (const [env, unicode] of [
+  [{ LC_ALL: "en_US.ISO-8859-1" }, false],
+  [{ LC_ALL: "en_US.ISO-8859-15" }, false],
+  [{ LC_ALL: "C" }, false],
+  [{ LC_ALL: "POSIX" }, false],
+  [{ LC_ALL: "en_US.UTF-8" }, true],
+  [{ LC_ALL: "C.utf8" }, true],
+  [{ LC_ALL: "en_US.ISO-8859-1", LC_CTYPE: "C.utf8", LANG: "C.utf8" }, false],
+  [{ LC_ALL: "", LC_CTYPE: "en_US.ISO-8859-1", LANG: "C.utf8" }, false],
+  [{ LANG: "en_US.ISO-8859-1" }, false],
+  [{ LC_ALL: "C.utf8", LC_CTYPE: "en_US.ISO-8859-1" }, true],
+  [{}, false],
+] as const) {
+  for (const [option, hex, unicodeHex, byteHex] of [
+    ["-w1", "c3a90ac3aa0a", "c3a90ac3aa0a", "c3a90a"],
+    ["-s1", "c3a90ac3aa0a", "c3a90a", "c3a90ac3aa0a"],
+    ["-f1", "61e28083410a62e28083420a", "61e28083410a62e28083420a", "61e28083410a"],
+  ] as const) {
+    test(`uniq ${option} respects the character encoding ${JSON.stringify(env)}`, async context => {
+      const input = Buffer.from(hex, "hex");
+      const expected = Buffer.from(unicode ? unicodeHex : byteHex, "hex");
+      const fs = await fixture({ in: input });
+      for (const args of [[option], [option, "in"]]) {
+        const result = await run("uniq", args, { fs, commands: textCommands(), stdin: chunks(input), env });
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stderr, "");
+        assert.deepEqual(result.stdoutBytes, expected);
+      }
+      const shell = new Shell({ fs, cwd: "/work", env }).use(standardCommands());
+      context.after(() => shell.dispose());
+      for (const source of [`uniq ${option} in`, `cat in | uniq ${option}`, `uniq ${option} < in`, `uniq ${option} <<< "$input"`]) {
+        const result = await shell.exec(`input=$(cat in); for ((i=0;i<2;i++)); do result=$(${source}); done; printf '%s\\n' "$result"`);
+        assert.equal(result.exitCode, 0, source);
+        assert.equal(result.stderr, "", source);
+        assert.deepEqual(Buffer.from(result.stdout), expected, source);
+      }
+      assert.deepEqual(Buffer.from(await fs.readFile("/work/in")), input);
+    });
+  }
+}
 
 for (const [name, hex, locale, zero, expected] of [
   ["embedded newline", "410a7800420a7900", "C", true, "410a7800420a7900"],

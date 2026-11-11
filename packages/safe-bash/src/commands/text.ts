@@ -12,6 +12,7 @@ import { SortWork, sortRecords } from "safe-bash-command-sort/work";
 import { compareObservedEntries } from "./copy-identity.js";
 import { openFileOutput, writeFileOutput } from "../contracts/filesystem-output.js";
 import { gnuInformationSync } from "./gnu-information.js";
+import { utf8Locale } from "../shell/locale.js";
 
 interface CutRange { start: number; end: number }
 
@@ -707,7 +708,7 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
   // A failed setlocale(LC_ALL, "") leaves every category in the initial C locale.
   const encoding = locales[0]?.split(".")[1]?.toLowerCase().split("-").join("");
   const latin1 = validLocales && (encoding === "iso88591" || encoding === "latin1");
-  const byteLocale = !validLocales || locales[0] === "C" || locales[0] === "POSIX" || latin1;
+  const byteLocale = !validLocales || !utf8Locale(locales[0]!);
   const advanceCharacters = (bytes: Uint8Array, offset: number, count: number) => {
     if (byteLocale) return Math.min(bytes.length, offset + count);
     for (let character = 0; character < count && offset < bytes.length; character++) {

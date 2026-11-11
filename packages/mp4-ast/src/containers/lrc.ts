@@ -18,11 +18,21 @@ function readLyric(line: string): { pts: number; text: string } | undefined {
 
 function parseLrc(bytes: Uint8Array): MediaDocument {
   const samples: MediaSample[] = [];
+  let offset = 0;
   for (const raw of decodeUtf8(bytes).split("\n")) {
-    const cue = readLyric(raw.endsWith("\r") ? raw.slice(0, -1) : raw);
+    const line = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
+    if (line.startsWith("[offset:") && line.endsWith("]")) {
+      const value = line.slice(8, -1).trim();
+      const digits = value.startsWith("+") || value.startsWith("-") ? value.slice(1) : value;
+      if (digits.length > 0 && [...digits].every(c => c >= "0" && c <= "9") && Number.isSafeInteger(Number(value))) {
+        offset = Number(value);
+      }
+      continue;
+    }
+    const cue = readLyric(line);
     if (!cue) continue;
     const data = encodeUtf8(cue.text);
-    samples.push({ pts: cue.pts, dts: cue.pts, cts: 0, duration: 0,
+    samples.push({ pts: cue.pts - offset, dts: cue.pts - offset, cts: 0, duration: 0,
       data, size: data.length, offset: 0, isKeyframe: true, sampleDescriptionIndex: 1 });
   }
   samples.sort((a, b) => a.pts - b.pts);

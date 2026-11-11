@@ -90,10 +90,17 @@ function* miffFrameHeader(size: number): Generator<MiffRead, MiffHeader, Uint8Ar
     const disposal = Math.max(0, ["undefined", "none", "background", "previous"].indexOf(fields.get("dispose")?.toLowerCase() ?? "undefined"));
     const delay = Number(fields.get("delay") ?? 0), ticksPerSecond = Number(fields.get("ticks-per-second") ?? 100) || 100;
     if (!Number.isSafeInteger(delay) || delay < 0 || !Number.isSafeInteger(ticksPerSecond) || ticksPerSecond < 0) throw new Error("Invalid MIFF timing");
+    const chromaticity: Partial<Record<keyof NonNullable<ImageMetadata["chromaticity"]>, readonly [number, number]>> = {};
+    for (const key of ["red-primary", "green-primary", "blue-primary", "white-point"] as const) {
+        const pair = fields.get(key)?.split(",");
+        if (!pair || pair.length !== 2 || pair.some(value => !value.trim())) continue;
+        const x = Number(pair[0]), y = Number(pair[1]);
+        if (Number.isFinite(x) && Number.isFinite(y)) chromaticity[key] = [x, y];
+    }
     const [x = 0, y = x] = (fields.get("resolution") ?? "").split("x").map(Number);
     const unit = fields.get("units") === "PixelsPerInch" ? "inch" : fields.get("units") === "PixelsPerCentimeter" ? "cm" : "unknown";
     const resolution: ImageMetadata["resolution"] = Number.isFinite(x) && Number.isFinite(y) && x > 0 && y > 0 ? { x, y, unit } : undefined;
-    return { metadata: { ...(Number.isFinite(gamma) ? { gamma } : {}), disposal, ...(orientation ? { orientation } : {}), ...(virtualCanvas ? { virtualCanvas } : {}), delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, ...(Object.keys(properties).length ? { properties } : {}), format: "miff", width, height, channels, hasAlpha, depth: floating ? "float" : depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: cmyk ? "cmyk" : gray ? "b-w" : "srgb", magickColorspace: colorspace, density: resolution ? x * (unit === "cm" ? 2.54 : 1) : 72, ...(resolution ? { resolution } : {}), size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes, compression };
+    return { metadata: { ...(Object.keys(chromaticity).length ? { chromaticity } : {}), ...(Number.isFinite(gamma) ? { gamma } : {}), disposal, ...(orientation ? { orientation } : {}), ...(virtualCanvas ? { virtualCanvas } : {}), delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, ...(Object.keys(properties).length ? { properties } : {}), format: "miff", width, height, channels, hasAlpha, depth: floating ? "float" : depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: cmyk ? "cmyk" : gray ? "b-w" : "srgb", magickColorspace: colorspace, density: resolution ? x * (unit === "cm" ? 2.54 : 1) : 72, ...(resolution ? { resolution } : {}), size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes, compression };
 }
 
 /** Scan adjacent frames without retaining their rasters. */

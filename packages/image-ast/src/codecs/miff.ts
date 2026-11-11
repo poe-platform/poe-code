@@ -41,12 +41,18 @@ function miffPixels(bytes: Uint8Array, channels: number, sampleBytes: number, co
     return encoded.subarray(0, length);
 }
 
-function miffHeader(image: Pick<RgbaImage, "properties" | "width" | "height" | "space" | "hasAlpha" | "virtualCanvas" | "resolution" | "density" | "disposal" | "loop" | "delayTicks" | "ticksPerSecond"> & { magickColorspace?: string }, depth: 8 | 16, compression: OutputEncodeOptions["miffCompression"], delay: number | undefined, loop: number | undefined): Uint8Array {
+function miffHeader(image: Pick<RgbaImage, "chromaticity" | "properties" | "width" | "height" | "space" | "hasAlpha" | "virtualCanvas" | "resolution" | "density" | "disposal" | "loop" | "delayTicks" | "ticksPerSecond"> & { magickColorspace?: string }, depth: 8 | 16, compression: OutputEncodeOptions["miffCompression"], delay: number | undefined, loop: number | undefined): Uint8Array {
     const { width, height, virtualCanvas: page } = image;
     let properties = "";
     for (const key of ["comment", "label"] as const) {
         const value = image.properties?.[key];
         if (value !== undefined) properties += `${key}={${value.replaceAll("\\", "\\\\").replaceAll("{", "\\{").replaceAll("}", "\\}")}}\n`;
+    }
+    let chromaticity = "";
+    const defaults = { "red-primary": [0.64, 0.33], "green-primary": [0.3, 0.6], "blue-primary": [0.15, 0.06], "white-point": [0.3127, 0.329] };
+    for (const key of ["red-primary", "green-primary", "blue-primary", "white-point"] as const) {
+        const pair = image.chromaticity?.[key] ?? defaults[key];
+        chromaticity += `${key}=${pair[0]},${pair[1]}\n`;
     }
     const resolution = image.resolution;
     const scale = resolution?.unit === "meter" ? 100 : 1;
@@ -58,7 +64,7 @@ function miffHeader(image: Pick<RgbaImage, "properties" | "width" | "height" | "
     const animation = `delay=${delayTicks}\nticks-per-second=${ticksPerSecond}\niterations=${loop ?? image.loop ?? 0}\ndispose=${["Undefined", "None", "Background", "Previous"][typeof image.disposal === "number" ? image.disposal : image.disposal?.[0] ?? 0] ?? "Undefined"}\n`;
     const geometry = page ? `page=${page.width}x${page.height}${page.x < 0 ? "" : "+"}${page.x}${page.y < 0 ? "" : "+"}${page.y}\n` : "";
     if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0 || !Number.isSafeInteger(width * height * 4)) throw new RangeError("Invalid MIFF dimensions");
-    return new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=DirectClass colors=0 matte=${image.hasAlpha ? "True" : "False"}\ncolumns=${width} rows=${height} depth=${depth}\n${geometry}${properties}${animation}resolution=${x}x${y}\nunits=${units}\ncolorspace=${miffChannels(image) <= 2 ? "Gray" : image.magickColorspace === "RGB" ? "RGB" : "sRGB"}\ncompression=${compression === "zip" ? "Zip" : compression === "bzip" ? "BZip" : compression === "rle" ? "RLE" : "None"}\n\f\n:\x1a`);
+    return new TextEncoder().encode(`id=ImageMagick version=1.0\nclass=DirectClass colors=0 matte=${image.hasAlpha ? "True" : "False"}\ncolumns=${width} rows=${height} depth=${depth}\n${geometry}${properties}${chromaticity}${animation}resolution=${x}x${y}\nunits=${units}\ncolorspace=${miffChannels(image) <= 2 ? "Gray" : image.magickColorspace === "RGB" ? "RGB" : "sRGB"}\ncompression=${compression === "zip" ? "Zip" : compression === "bzip" ? "BZip" : compression === "rle" ? "RLE" : "None"}\n\f\n:\x1a`);
 }
 
 export function encodeMiffImage(image: RgbaImage, requestedDepth?: 8 | 16, compression?: OutputEncodeOptions["miffCompression"], loop?: number): Uint8Array {

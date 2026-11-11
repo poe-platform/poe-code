@@ -11909,6 +11909,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (filter) {
                     let audioCommands: { sample: number; target: string; action: string; expression: string }[] = [];
                     const audioFilters = parseFilterChain(filter.expression);
+                    const silenceEvents: { frame: number; filter: number; text: string }[] = [];
                     for (const [filterIndex, item] of audioFilters.entries()) {
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
@@ -12758,6 +12759,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           while (text.endsWith("0")) text = text.slice(0, -1);
                           return text.endsWith(".") ? text.slice(0, -1) : text;
                         };
+                        const logSilence = (frame: number, text: string): void => {
+                          if (logLevel < 32) return;
+                          budget.allocateMemory(64 + text.length * 2);
+                          silenceEvents.push({ frame, filter: filterIndex, text });
+                        };
                         let noise = 0.001;
                         let duration = 2;
                         let mono = false;
@@ -12823,7 +12829,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                   starts[slot] = start;
                                   budget.allocateMemory(128);
                                   metadata.tags.set(`lavfi.silence_start${suffix}`, formatTime(start * timeBase));
-                                  if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_start: ${formatTime(start * timeBase)}\n`), context.signal);
+                                  logSilence(n, `${prefix}silence_start: ${formatTime(start * timeBase)}\n`);
                                 }
                               } else {
                                 const start = starts[slot];
@@ -12832,7 +12838,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                   budget.allocateMemory(256);
                                   metadata.tags.set(`lavfi.silence_end${suffix}`, formatTime(end * timeBase));
                                   metadata.tags.set(`lavfi.silence_duration${suffix}`, formatTime((end - start) * timeBase));
-                                  if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${formatTime(end * timeBase)} | silence_duration: ${formatTime((end - start) * timeBase)}\n`), context.signal);
+                                  logSilence(n, `${prefix}silence_end: ${formatTime(end * timeBase)} | silence_duration: ${formatTime((end - start) * timeBase)}\n`);
                                 }
                                 counts[slot] = 0;
                                 starts[slot] = undefined;
@@ -12845,7 +12851,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (start === undefined) continue;
                           const end = frameEndPts;
                           const prefix = mono ? `channel: ${slot} | ` : "";
-                          if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${formatTime(end * timeBase)} | silence_duration: ${formatTime((end - start) * timeBase)}\n`), context.signal);
+                          logSilence(Number.POSITIVE_INFINITY, `${prefix}silence_end: ${formatTime(end * timeBase)} | silence_duration: ${formatTime((end - start) * timeBase)}\n`);
+                        }
+                        // Adjacent detectors process each frame in graph order, then flush in reverse.
+                        if (audioFilters[filterIndex + 1]?.trim().split("=", 1)[0]!.split("@", 1)[0] !== "silencedetect") {
+                          budget.checkCpu();
+                          silenceEvents.sort((left, right) => left.frame - right.frame ||
+                            (left.frame === Number.POSITIVE_INFINITY ? right.filter - left.filter : left.filter - right.filter));
+                          for (const event of silenceEvents) {
+                            await writeBytes(context.stderr, encodeUtf8(event.text), context.signal);
+                            budget.releaseMemory(64 + event.text.length * 2);
+                          }
+                          silenceEvents.length = 0;
                         }
                       } else if (trimmed === "astats" || trimmed.startsWith("astats=")) {
                         let perChannel: number | undefined;

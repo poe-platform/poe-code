@@ -1,3 +1,5 @@
+import { solveLinearSystem } from "./linear-system.js";
+import { parseSparseColor, sparseColorPixels } from "./sparse-color-operator.js";
 import { jsonOutputPath, jsonImageDescription } from "./json-output.js";
 import { createIccConversion } from "./icc-conversion.js";
 import { readIccDescription } from "./icc-description.js";
@@ -3970,30 +3972,6 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
     }
 }
 
-function solveLinearSystem(A: number[][], b: number[]): number[] {
-  const n = b.length;
-  const M = A.map((row, idx) => [...row, b[idx]!]);
-  for (let col = 0; col < n; col++) {
-    let maxRow = col;
-    for (let row = col + 1; row < n; row++) {
-      if (Math.abs(M[row]![col]!) > Math.abs(M[maxRow]![col]!)) maxRow = row;
-    }
-    const tmp = M[col]!;
-    M[col] = M[maxRow]!;
-    M[maxRow] = tmp;
-    const pivot = M[col]![col]!;
-    if (Math.abs(pivot) < 1e-12) throw new Error("Unsolvable Matrix");
-    for (let j = col; j <= n; j++) M[col]![j]! /= pivot;
-    for (let row = 0; row < n; row++) {
-      if (row === col) continue;
-      const factor = M[row]![col]!;
-      for (let j = col; j <= n; j++) {
-        M[row]![j]! -= factor * M[col]![j]!;
-      }
-    }
-  }
-  return M.map((row) => row[n]!);
-}
 
 function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">, token: string, spec: string, args = "0"): WarpPlan | undefined {
     if (token === "-swirl" || token === "-implode" || token === "-wave")
@@ -4151,34 +4129,6 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
         };
     }
     if (method === "arc") throw new Error("Unsupported distortion method: Arc");
-    if (method === "depolar") {
-        if (nums.length === 0) throw new Error("invalid list of numbers");
-        if (nums.length === 3 || nums.length > 8) throw new Error("DePolar : number of arguments");
-        const pageX = img.virtualCanvas?.x ?? 0, pageY = img.virtualCanvas?.y ?? 0;
-        const centerX = nums[2] ?? w / 2 + pageX, centerY = nums[3] ?? h / 2 + pageY;
-        let outer = nums[0]!, end = (nums[5] ?? nums[4] ?? -180) * Math.PI / 180;
-        const inner = nums[1] ?? 0, start = (nums[4] ?? -180) * Math.PI / 180;
-        if (Math.abs(end - start) < 1e-12) end += 2 * Math.PI;
-        if (Math.abs(outer) < 1e-12)
-            outer = Math.min(Math.abs(centerX - pageX), Math.abs(centerY - pageY), Math.abs(centerX - pageX - w), Math.abs(centerY - pageY - h));
-        else if (Math.abs(outer + 1) < 1e-12)
-            outer = Math.hypot(Math.max(Math.abs(centerX - pageX), Math.abs(centerX - pageX - w)), Math.max(Math.abs(centerY - pageY), Math.abs(centerY - pageY - h)));
-        if (outer < 1e-12 || inner < -1e-12 || outer - inner < 1e-12) throw new Error("DePolar : Invalid Radius");
-        const fit = token === "+distort";
-        const width = fit ? Math.ceil((outer - inner) * (end - start) * 0.5) : w, height = fit ? Math.ceil(outer - inner) : h;
-        if (![width, height, width * height * 8].every(Number.isSafeInteger) || width < 1 || height < 1)
-            throw new Error("Distortion dimensions exceed limit");
-        const angleStep = (end - start) / width, radiusStep = (outer - inner) / height;
-        return {
-            ...result((x, y) => {
-                const angle = (x + 0.5) * angleStep + start, radius = (y + 0.5) * radiusStep + inner;
-                return [radius * Math.sin(angle) + centerX - (fit ? pageX : 0) - 0.5,
-                    radius * Math.cos(angle) + centerY - (fit ? pageY : 0) - 0.5];
-            }, width, height),
-            // Native DePolar leaves the resampling footprint at its unit default.
-            derivatives: () => [1, 0, 0, 1]
-        };
-    }
     if (method === "plane2cylinder") {
         if (nums.length === 0) throw new Error("invalid list of numbers");
         const fov = nums[0]!;
@@ -4247,31 +4197,6 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
         return bestFit({ ...result(map), derivatives: () => [a, b, c, d] }, (x, y) =>
             [sx * (x + offsetX + 0.5) + rx * (y + offsetY + 0.5) + tx - 0.5 - offsetX,
                 ry * (x + offsetX + 0.5) + sy * (y + offsetY + 0.5) + ty - 0.5 - offsetY]);
-    }
-    if (method === "bilinearreverse") {
-        if (nums.length < 16) return magickWarpPlan(img, token, "Affine", args);
-        if (nums.length % 4 !== 0) throw new Error("BilinearReverse requires at least 4 CPs (complete source/destination point pairs)");
-        // Fit source coordinates to [destination x, y, x*y, 1] using every pair.
-        const matrix = Array.from({ length: 4 }, () => Array<number>(4).fill(0)), xs = Array<number>(4).fill(0), ys = Array<number>(4).fill(0);
-        for (let p = 0; p < nums.length; p += 4) {
-            const x = nums[p + 2]!, y = nums[p + 3]!, row = [x, y, x * y, 1];
-            for (let i = 0; i < 4; i++) {
-                xs[i]! += row[i]! * nums[p]!;
-                ys[i]! += row[i]! * nums[p + 1]!;
-                for (let j = 0; j < 4; j++) matrix[i]![j]! += row[i]! * row[j]!;
-            }
-        }
-        const rx = solveLinearSystem(matrix, xs), ry = solveLinearSystem(matrix, ys);
-        // Control coordinates use pixel edges; the sampler uses pixel centers.
-        return {
-            ...result((x, y) => {
-                const px = x + 0.5, py = y + 0.5;
-                return [rx[0]! * px + rx[1]! * py + rx[2]! * px * py + rx[3]! - 0.5,
-                    ry[0]! * px + ry[1]! * py + ry[2]! * px * py + ry[3]! - 0.5];
-            }),
-            derivatives: (x, y) => [rx[0]! + rx[2]! * (y + 0.5), rx[1]! + rx[2]! * (x + 0.5),
-                ry[0]! + ry[2]! * (y + 0.5), ry[1]! + ry[2]! * (x + 0.5)]
-        };
     }
     if (method === "affine" && (nums.length === 0 || nums.length % 4 !== 0)) throw new Error("Affine requires complete source/destination point pairs");
     if (method === "rigidaffine") {
@@ -4585,7 +4510,6 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             plan = { ...plan, interpolation, channels,
                 hasAlpha: plan.hasAlpha || virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255 };
         }
-        const depolar = distort && spec.toLowerCase().replaceAll("-", "").replaceAll("_", "") === "depolar" ? plan : undefined;
         const samplingOrigin = plan?.virtualCanvas;
         if (plan && distort && image.virtualCanvas) {
             const page = image.virtualCanvas, origin = plan.virtualCanvas;
@@ -4617,9 +4541,6 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             return { ...plan, space: gray && virtualPixel === "background" ? "srgb" as const : image.space, steps: warpPixelSteps(image, { ...plan, channels }, color, "background") };
         }
         if (plan && scale !== undefined) plan = scaleMagickWarpPlan(plan, image, scale);
-        // DePolar samples local output coordinates, ignoring viewport/page offsets.
-        if (plan && depolar) plan = { ...plan, interpolation, derivatives: depolar.derivatives!,
-            map: (x, y) => depolar.map((x + 0.5) / (scale ?? 1) - 0.5, (y + 0.5) / (scale ?? 1) - 0.5) };
         return plan ? { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel, kernel, filter) } : undefined;
     } };
 }
@@ -7123,7 +7044,7 @@ function inferMaxDecodeDimensionFromUpcomingTokens(
     const coordDependentOps = new Set([
         "-copy", "-crop", "-chop", "-splice", "-trim", "-roll", "-shave", "-sort-pixels",
         "-extent", "-border", "-frame", "-draw", "-annotate",
-        "-region", "-floodfill", "+floodfill", "-repage", "+repage", "-distort"
+        "-region", "-floodfill", "+floodfill", "-repage", "+repage", "-distort", "-sparse-color"
     ]);
     for (let k = startIdx; k < tokens.length; k++) {
         const tok = tokens[k]!;
@@ -8519,7 +8440,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     let maskAlpha: MagickPixelOperation["maskAlpha"];
     let meta: MagickPixelOperation["meta"];
     let evaluate = false;
-    if (token === "-colorspace" || token === "-grayscale" || token === "-type" || token === "-monochrome") {
+    if (token === "-sparse-color") {
+        const plan = parseSparseColor(tokens[++i] ?? "", tokens[++i] ?? "", color => parseColor(color, true));
+        const channels = state.channelExplicit ? state.channels : undefined;
+        highDepth = evaluate = true;
+        apply = (image, offset, width) => sparseColorPixels(image, plan, channels, offset, width);
+    } else if (token === "-colorspace" || token === "-grayscale" || token === "-type" || token === "-monochrome") {
         const value = token === "-monochrome" ? "Bilevel" : tokens[++i];
         const imageType = token === "-type" || token === "-monochrome" ? (value ?? "").toLowerCase() : undefined;
         if (imageType !== undefined && !["bilevel", "grayscale", "grayscalealpha", "truecolor", "truecoloralpha", "palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(imageType)) {
@@ -17642,7 +17568,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-clone", "-insert", "-swap", "-delete", "-smush", "+smush", "-layers", "-recolor",
         "-contrast-stretch", "-linear-stretch", "-intensity", "-connected-components", "+connected-components"
     ]);
-    const flagsWithTwoArgs = new Set(["-copy", "-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill", "+floodfill"]);
+    const flagsWithTwoArgs = new Set(["-sparse-color", "-copy", "-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill", "+floodfill"]);
     const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-page", "-comment", "-label", "-caption"]);
     const flagsWithoutArgs = new Set([
         "-despeckle", "+fill", "+caption",

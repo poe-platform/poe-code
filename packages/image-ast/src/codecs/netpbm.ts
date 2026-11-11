@@ -41,8 +41,8 @@ export function isTiffBytes(bytes: Uint8Array): boolean {
   );
 }
 
-export function readNetpbmMetadata(bytes: Uint8Array): ImageMetadata {
-  const { header: hdr, pages } = parseNetpbmSequence(bytes);
+export function readNetpbmMetadata(bytes: Uint8Array, page?: number): ImageMetadata {
+  const { header: hdr, pages } = parseNetpbmSequence(bytes, page);
   return {
     ...(hdr.properties ? {properties: hdr.properties} : {}),
     format: hdr.format,

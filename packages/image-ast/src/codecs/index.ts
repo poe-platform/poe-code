@@ -246,7 +246,7 @@ export function readImageMetadata(
     case "ppm":
     case "pgm":
     case "pbm":
-      meta = readNetpbmMetadata(bytes);
+      meta = readNetpbmMetadata(bytes, options?.page);
       break;
     case "bmp":
       meta = readBmpMetadata(bytes);

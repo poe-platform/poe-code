@@ -99,7 +99,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  else if(isFarbfeldBytes(prefix))metadata=readFarbfeldMetadata(prefix,source.size);
  else if(isPhmBytes(prefix)) { metadata=(await readPhmFromSource(source,signal)).metadata; }
  else if(isNetpbmBytes(prefix)) {
-  const reader=new SourceBytes(source,signal,"Netpbm"),steps=netpbmSequenceSteps(source.size);let next=steps.next();
+  const reader=new SourceBytes(source,signal,"Netpbm"),steps=netpbmSequenceSteps(source.size,options?.page);let next=steps.next();
   while(!next.done)next=steps.next(await reader.at(next.value));
   const {header:{format,width,height,maxval,channels,hasAlpha,cmyk,properties},pages}=next.value;
   metadata={...(properties?{properties}:{}),format,width,height,space:cmyk?"cmyk":channels>=3?"srgb":"b-w",channels,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",bitsPerSample:Math.ceil(Math.log2(maxval+1)),density:72,hasAlpha,size:source.size,...(pages>1?{pages}:{})};

@@ -11108,7 +11108,8 @@ async function prepareStoredIcoPages(stack: StoredImageStack, image: StoredRgbaI
 // Clearing/restoring frames keep their disposal-dependent encoder optimization.
 function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimize: boolean): Generator<void, void, void> {
     for (let n = stack.length - 1; n >= 0; n--) {
-        const current = stack[n]!, previous = n > 0 ? stack[n - 1]! : { ...current, width: 0, height: 0 };
+        let current = stack[n]!;
+        const previous = n > 0 ? stack[n - 1]! : { ...current, width: 0, height: 0 };
         if ((n > 0 && (current.width !== previous.width || current.height !== previous.height)) ||
             (typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
             (typeof previous.disposal === "number" ? previous.disposal : 0) > 1) continue;
@@ -11122,7 +11123,28 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
                 next = bounds.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length));
             }
         }
-        const area = next.value;
+        let area = next.value;
+        // Restoring the preceding canvas can replace a return frame with a pause.
+        const restored = n > 1 ? stack[n - 2] : undefined;
+        if (area && area.width * area.height > 1 && restored && !restored.hasAlpha &&
+            restored.width === current.width && restored.height === current.height &&
+            (typeof restored.disposal !== "number" || restored.disposal <= 1)) {
+            const returning = compareLayerBounds(restored, current, fuzz, "compareany");
+            let back = returning.next();
+            while (!back.done) {
+                if (!back.value) { yield; back = returning.next(); }
+                else {
+                    const { image, position, length, hue } = back.value;
+                    const source = image ? current : restored;
+                    back = returning.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length));
+                }
+            }
+            if (!back.value) {
+                stack[n - 1] = { ...previous, disposal: 3 };
+                current = { ...current, disposal: 3 };
+                area = undefined;
+            }
+        }
         if (!area) {
             // An empty difference is a transparent pause, not a crop of an opaque pixel.
             const background = optimize ? { r: 0, g: 0, b: 0 } : current.backgroundColor ?? { r: 255, g: 255, b: 255 };
@@ -11139,7 +11161,8 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
 
 async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: CompareFileSession, signal: AbortSignal, fuzz: number, optimize: boolean): Promise<void> {
     for (let n = stack.length - 1; n >= 0; n--) {
-        const current = (await stack.get(n))!, previous = n > 0 ? (await stack.get(n - 1))! : { ...current, width: 0, height: 0 };
+        let current = (await stack.get(n))!;
+        const previous = n > 0 ? (await stack.get(n - 1))! : { ...current, width: 0, height: 0 };
         if ((n > 0 && (current.width !== previous.width || current.height !== previous.height)) ||
             (typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
             (typeof previous.disposal === "number" ? previous.disposal : 0) > 1) continue;
@@ -11156,7 +11179,31 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
                 next = bounds.next(data);
             }
         }
-        const area = next.value;
+        let area = next.value;
+        // Restoring the preceding canvas can replace a return frame with a pause.
+        const restored = n > 1 ? await stack.get(n - 2) : undefined;
+        if (area && area.width * area.height > 1 && restored && !restored.hasAlpha &&
+            restored.width === current.width && restored.height === current.height &&
+            (typeof restored.disposal !== "number" || restored.disposal <= 1)) {
+            const returning = compareLayerBounds(restored, current, fuzz, "compareany");
+            let back = returning.next();
+            while (!back.done) {
+                if (!back.value) { await yieldTurn(signal); back = returning.next(); }
+                else {
+                    const { image, position, length, hue } = back.value;
+                    const source = image ? current : restored;
+                    const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
+                        ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
+                        : await backend.storage.read(source.position + position, length);
+                    back = returning.next(data);
+                }
+            }
+            if (!back.value) {
+                await stack.set(n - 1, { ...previous, disposal: 3 });
+                current = { ...current, disposal: 3 };
+                area = undefined;
+            }
+        }
         if (!area) {
             const background = optimize ? { r: 0, g: 0, b: 0 } : current.backgroundColor ?? { r: 255, g: 255, b: 255 };
             const pause = await createStoredCanvas(1, 1, { ...background, a: 0 }, backend, signal, !!current.storedData16);

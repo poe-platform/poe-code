@@ -811,6 +811,8 @@ one stereo impulse response. Both forms produce stereo output.
 Both `type=time` and `type=freq` use bounded direct convolution, preserve the source
 frame count, sample rate, and timestamps, and apply native gain
 (−3 dB for mono or −6 dB for stereo plus `gain`).
+`size` sets output blocks in samples (1024–96000, default 1024), including for downstream
+`aselect`; the last block keeps only the remaining samples.
 Use `map=FR|FL` to reverse the stereo response assignments. All inputs must be
 PCM; impulse responses are resampled to the source sample rate. Filters on the source and
 on either impulse-response branch apply independently before convolution;

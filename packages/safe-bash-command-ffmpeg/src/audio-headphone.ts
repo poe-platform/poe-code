@@ -81,7 +81,27 @@ export async function headphoneAudio(
       }
     }
   }
-  // Convolution preserves sample count and rate, so retain the source packet clock.
-  return { ...tracks[0]!, editList: undefined,
+  // Reframe output by size while retaining the source clock at each block's start.
+  budget.allocateMemory(Math.ceil(length / size) * 96);
+  const samples: MediaTrack["samples"][number][] = [];
+  let packetIndex = 0;
+  let packetStart = 0;
+  let packetEnd = 0;
+  let packetPts = 0;
+  for (let start = 0; start < length; start += size) {
+    budget.checkCpu();
+    while (packetEnd <= start) {
+      budget.checkCpu();
+      const packet = tracks[0]!.samples[packetIndex++];
+      packetStart = packetEnd;
+      packetPts = packet ? packet.pts * source.sampleRate / tracks[0]!.timescale + (packet.skipSamples ?? 0) : packetStart;
+      packetEnd += packet ? Math.max(0, Math.round(packet.duration * source.sampleRate / tracks[0]!.timescale)
+        - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : length - packetEnd;
+    }
+    const pts = packetPts + start - packetStart;
+    samples.push({ data: new Uint8Array(0), size: 0, pts, dts: pts, cts: 0,
+      duration: Math.min(size, length - start), isKeyframe: true, sampleDescriptionIndex: 1 });
+  }
+  return { ...tracks[0]!, timescale: source.sampleRate, duration: length, samples, editList: undefined,
     decodedAudio: { ...source, channels: 2, channelMask: 3, channelData } };
 }

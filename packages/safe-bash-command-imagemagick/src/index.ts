@@ -12301,6 +12301,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const result = state.dither === "riemersma"
                     ? yield* applyMagickRasterSteps(im, riemersmaRemapSteps(im, palette, !!(im.data16 || palette.data16), state.diffusionAmount ?? 1), signal, im, [im, palette])
                     : yield* applyMagickRemapSteps(im, palette, state.dither !== false, state.diffusionAmount ?? 1, signal);
+                if (t === "-remap" && result.space === "cmyk") {
+                    // Remap replaces RGB backing; rebuild inks instead of retaining source samples.
+                    const { hueSamples: ignoredHue, evaluateSamples: ignoredEvaluate, ...remapped } = result;
+                    return { ...yield* convertCmykPixels(remapped), isPalette: true };
+                }
                 return hueSpace ? yield* convertHuePixels({ ...result, evaluateSamples: undefined }, hueSpace) : result;
             });
         }
@@ -15803,6 +15808,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const result = settings.dither === "riemersma"
                     ? await transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!(image.storedData16 || colors.storedData16), settings.diffusionAmount ?? 1), signal, image, [image, colors])
                     : await remapStoredImage(image, colors, backend.storage, settings.dither !== false, settings.diffusionAmount ?? 1, signal);
+                if (result.space === "cmyk") {
+                    const { storedHueSamples: ignoredHue, storedEvaluateSamples: ignoredEvaluate, ...remapped } = result;
+                    return { ...await transformStoredMagickPixels(remapped, backend,
+                        { end: 0, highDepth: true, apply: convertCmykPixels }, signal), isPalette: true };
+                }
                 return hueSpace ? transformStoredMagickPixels(result, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, hueSpace) }, signal) : result;
             });
         } else if (!operandsOnly && (token === "-floodfill" || token === "+floodfill")) {

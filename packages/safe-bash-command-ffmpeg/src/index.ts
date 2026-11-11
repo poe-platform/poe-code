@@ -1941,7 +1941,7 @@ const audioGraphFilterNames = new Set([
 ]);
 
 // Resolve audio graph inputs and transitions before the PCM filter evaluator runs.
-async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string) => Promise<MediaTrack>, mixCommands: { target: string; action: string; expression: string }[], budget: MediaBudgetTracker, signal?: AbortSignal, outputSampleFormat?: string, simple = false) {
+async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string, index?: number, downstreamFilter?: string) => Promise<MediaTrack>, mixCommands: { target: string; action: string; expression: string }[], budget: MediaBudgetTracker, signal?: AbortSignal, outputSampleFormat?: string, simple = false) {
   const nodes = new Map<string, { inputs: string[]; expression: string; asplit?: boolean }>();
   const inputTrack = (label: string): MediaTrack => {
     const [input, selector, ordinal, ...extra] = label.split(":");
@@ -2446,7 +2446,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         if (sources.length !== 2) throw new Error("acrossfade requires two inputs");
         for (const source of sources) {
           if (source.expression && source.expression !== "anull") {
-            source.track = await filterAudio(source.track, source.expression);
+            source.track = await filterAudio(source.track, source.expression, undefined, "acrossfade");
           }
         }
         // Draining a first-branch tail also drains the split's other output.
@@ -2478,12 +2478,18 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const [a, b] = splitInputs;
         const simultaneousEof = a!.inputs !== undefined && a!.inputs === b!.inputs && !b!.buffered &&
           (a!.buffered || !a!.scheduled && !b!.scheduled);
+        // Upstream filters can change precision without changing the source codec.
+        const inputFormats = sources.map(source => {
+          const format = audioGraphFormats.get(source.track)
+            ?? pcmSampleFormat(source.track.codecDescriptions[0]?.codecName);
+          return format?.endsWith("p") ? format.slice(0, -1) : format;
+        });
         // acrossfade cannot consume u8. A supported second input fixes its format;
         // otherwise the encoder selects it, falling back to S16 for u8 output.
-        const format = pcmSampleFormat(sources[0]!.track.codecDescriptions[0]?.codecName) === "u8"
-          ? [...sources.map(source => pcmSampleFormat(source.track.codecDescriptions[0]?.codecName)), outputSampleFormat]
+        const format = inputFormats[0] === "u8"
+          ? [...inputFormats, outputSampleFormat]
             .find(format => format !== undefined && ["s16", "s32", "flt", "dbl"].includes(format)) ?? "s16"
-          : undefined;
+          : inputFormats[0];
         const track = await acrossfadeAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal, simultaneousEof, format);
         return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
@@ -13767,7 +13773,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               workingDoc = { ...workingDoc, tracks: [...workingDoc.tracks, ...audioSinks.map(sink => sink.track)] };
             }
             // A graph branch runs the same filters without final output conversion or cuts.
-            async function filterAudio(t: MediaTrack, expression?: string, index?: number): Promise<MediaTrack> {
+            async function filterAudio(t: MediaTrack, expression?: string, index?: number, downstreamFilter?: string): Promise<MediaTrack> {
                   let work = 0;
                   const maxAudioFrames = index === undefined ? undefined : streamFrameLimits[index];
                   if (t.type !== "audio") return t;
@@ -16565,10 +16571,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               window, undefined, stageFilterSize, cutoff, stagePhaseShift, stageLinearInterp, stageExactRational, { ends, outputEnds }, internalFormat);
                             // Resampling produces floats; later filters and encoders must round
                             // these samples rather than narrow the original integer PCM.
-                            const nextFilter = audioFilters[filterIndex + 1]?.trim().split("=", 1)[0]!.split("@", 1)[0];
-                            // Separate resamplers and afade negotiate their connecting format from the input.
+                            const nextFilter = audioFilters[filterIndex + 1]?.trim().split("=", 1)[0]!.split("@", 1)[0] ?? downstreamFilter;
+                            // Resamplers and fades negotiate their connecting format from the input.
                             // Materialize it before the next stage consumes fractional samples.
-                            if (!autoConversionFilters || nextFilter === "aresample" || nextFilter === "afade" ||
+                            if (!autoConversionFilters || nextFilter === "aresample" || nextFilter === "afade" || nextFilter === "acrossfade" ||
                                 !nextFilter && audioRate !== undefined && audioRate !== targetRate) {
                               format ??= filteredSampleFormat;
                             }

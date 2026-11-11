@@ -9,9 +9,10 @@ function readLyric(line: string): { pts: number; text: string } | undefined {
   if (end < 0 || parts.length !== 2) return undefined;
   const [minutes, seconds] = parts;
   const fraction = seconds!.split(".");
-  if (fraction.length > 2 || ![minutes!, ...fraction].every(part =>
+  if (fraction.length !== 2 || ![minutes!, ...fraction].every(part =>
     part.length > 0 && [...part].every(c => c >= "0" && c <= "9"))) return undefined;
-  const pts = Math.round((Number(minutes) * 60 + Number(seconds)) * 1000);
+  // FFmpeg reads the field after the dot as integer centiseconds, regardless of its width.
+  const pts = Number(minutes) * 60000 + Number(fraction[0]) * 1000 + Number(fraction[1]) * 10;
   if (!Number.isSafeInteger(pts)) return undefined;
   return { pts, text: line.slice(end + 1) };
 }

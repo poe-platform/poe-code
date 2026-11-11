@@ -13060,6 +13060,7 @@ if (t === "-intent" || t === "+intent") {
         state.optionProperties = { ...state.optionProperties };
         if (t![0] === "-") state.optionProperties[property] = tokens[i]!;
         else if (property === "interlace") state.optionProperties[property] = "undefined";
+        else if (property === "gravity") state.optionProperties[property] = "none";
         else delete state.optionProperties[property];
     }
     return i;

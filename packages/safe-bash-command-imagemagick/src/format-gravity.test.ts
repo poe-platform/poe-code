@@ -14,8 +14,8 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     { args: inputs, expected: ";;" },
     { args: [...inputs, "-append"], expected: ";" },
     { args: ["-gravity", "east", ...inputs], expected: "East;East;" },
-    { args: [...inputs, "-gravity", "East", "+gravity"], expected: ";;" },
-    { args: [...inputs, "-gravity", "East", "+gravity", "-append"], expected: ";" },
+    { args: [...inputs, "-gravity", "East", "+gravity"], expected: "none;none;" },
+    { args: [...inputs, "-gravity", "East", "+gravity", "-append"], expected: "none;" },
     { args: [...inputs, "-gravity", "East", "-gravity", "SouthWest"], expected: "SouthWest;SouthWest;" },
     { args: ["-respect-parentheses", "(", "xc:red", "-gravity", "NorthEast", ")", "xc:blue"], expected: "NorthEast;;" },
     { args: ["-respect-parentheses", "(", "xc:red", "-gravity", "NorthEast", ")", "xc:blue", "-append"], expected: "NorthEast;" }

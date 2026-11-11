@@ -28,7 +28,7 @@ describe.each(["command", "retained", "buffered", "sync"] as const)("explicit op
     ].flatMap(([setting, value]) => [
       { options: [`-${setting}`, value!], property: `OPTION:${setting!.toUpperCase()}`, expected: value! },
       { options: [`-${setting}`, value!], property: `option:${setting}`, expected: value!, beforeInput: true },
-      { options: [`-${setting}`, value!, `+${setting}`], property: `option:${setting}`, expected: setting === "interlace" ? "undefined" : "", missing: setting !== "interlace" }
+      { options: [`-${setting}`, value!, `+${setting}`], property: `option:${setting}`, expected: setting === "interlace" ? "undefined" : setting === "gravity" ? "none" : "", missing: setting !== "interlace" && setting !== "gravity" }
     ])
   ])("resolves $property with $options", async ({ options, property, expected, beforeInput = false, missing = false }) => {
     const argv = [...(beforeInput ? [...options, "xc:red"] : ["xc:red", ...options]), "-format", `%[${property}];`, "info:-"];

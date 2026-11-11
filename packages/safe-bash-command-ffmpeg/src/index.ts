@@ -17227,6 +17227,47 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         for (const command of audioCommands) command.sample += padding;
                         audioInitialFrameUnavailable = false;
                       } else if (trimmed === "atempo" || trimmed.startsWith("atempo=")) {
+                        // atempo only accepts packed samples. Its required converter can
+                        // negotiate the output format before tempo blending rounds samples.
+                        if (!["u8", "s16", "s32", "flt", "dbl"].includes(filteredSampleFormat)) {
+                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                          const plugin = outputFormat === "segment" ? segmentPlugin : outPlugin;
+                          const codec = audioCodec ?? (plugin?.supportedAudioCodecs.includes(`pcm_${plugin.id}`)
+                            ? `pcm_${plugin.id}` : ["wav", "w64", "null"].includes(outputFormat ?? plugin?.id ?? "") ? "pcm_s16le" : undefined);
+                          let formats = ["u8", "s16", "s32", "flt", "dbl"];
+                          let reachesOutput = true;
+                          for (let nextIndex = filterIndex + 1; nextIndex < audioFilters.length; nextIndex++) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            const next = audioFilters[nextIndex]!.trim();
+                            const name = next.split("=", 1)[0]!.split("@", 1)[0];
+                            if (["anull", "acopy", "atrim", "asetpts", "asetnsamples", "areverse", "apad",
+                              "asetrate", "atempo", "afade"].includes(name!)) continue;
+                            if (name === "aformat") {
+                              const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "";
+                              let requested: string[] | undefined;
+                              for (const [index, option] of argument.split(":").entries()) {
+                                const separator = option.indexOf("=");
+                                const key = separator < 0 ? ["sample_fmts", "sample_rates", "channel_layouts"][index] : option.slice(0, separator).trim();
+                                if (key === "sample_fmts" || key === "f") requested = (separator < 0 ? option : option.slice(separator + 1)).trim().split("|");
+                              }
+                              if (!requested) continue;
+                              const compatible = formats.filter(format => requested.includes(format));
+                              if (compatible.length > 0) {
+                                formats = compatible;
+                                continue;
+                              }
+                            }
+                            // A converter or another DSP filter ends shared-format negotiation.
+                            reachesOutput = false;
+                            break;
+                          }
+                          const target = reachesOutput ? sampleFormat ?? pcmSampleFormat(codec) : undefined;
+                          const preferred = filteredSampleFormat.endsWith("p") ? filteredSampleFormat.slice(0, -1) : "dbl";
+                          const format = target && formats.includes(target) ? target
+                            : formats.includes(preferred) ? preferred : formats[0]!;
+                          stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
+                          filteredSampleFormat = panSampleFormat = format;
+                        }
                         const argument = trimmed.slice("atempo=".length).trim();
                         const tempo = parseTempo(argument);
                         const inputFrame = audioTimestamps?.[0];

@@ -13159,7 +13159,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const metaOperation = t === "-evaluate" || t === "-clamp" ? parseMagickPixelOperation(tokens,
                 { ...state, channelExplicit: true, channels: { r: true, g: true, b: true, a: false } }, i, signal) : undefined;
             if (pixelOperation.warning) analysis.warnings += pixelOperation.warning;
-            if (t === "-contrast" || t === "+contrast") analysis.warnings += `magick: option has been replaced '${t}', use "${t[0]}level" at CLI arg ${i + 1}\n`;
+            if (t === "-contrast" || t === "+contrast") {
+                if (!stack.length) throw new Error(`no images found for operation '${t}'`);
+                analysis.warnings += `magick: option has been replaced '${t}', use "${t[0]}level" at CLI arg ${i + 1}\n`;
+            }
             i = pixelOperation.end;
             if (t === "-type") state.inputType = tokens[i]!;
             const palette = t === "-type" && ["palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(tokens[i]?.toLowerCase() ?? "");
@@ -16790,6 +16793,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-contrast" || token === "+contrast") {
                 const argumentPosition = i + 1;
                 stackStep(async stack => {
+                    if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                     analysis.warnings += `magick: option has been replaced '${token}', use "${token[0]}level" at CLI arg ${argumentPosition}\n`;
                     return stack;
                 });

@@ -18546,7 +18546,10 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    const rawExtract=packedCoder==="gray"&&geometry?.hasOffset?geometry:undefined;
    const raw=packedCoder==="mono"?monoRasterInput(state.sizeWidth,state.sizeHeight,sources[0]!.size,state.inputOffset,state.inputEndian):packedCoder==="map"?mapRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,sources[0]!.size,state.inputOffset):rawRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,packedCoder==="gray"?1:packedCoder==="graya"?2:packedCoder==="cmyk"?4:packedCoder==="cmyka"?5:packedCoder,state.inputOffset, partition ? "partition" : (packedCoder === "gray" || packedCoder === "graya") && state.rawInterlace === "line" ? "line" : (packedCoder.startsWith("cmyk") || packedCoder.startsWith("rgb") || packedCoder.startsWith("bgr")) && (state.rawInterlace === "line" || state.rawInterlace === "plane") ? state.rawInterlace : packedCoder === "graya" && state.rawInterlace === "plane" ? "plane" : undefined, packedCoder === "gray" && state.tiffFloatingPoint, rawExtract);
    for(const page of selectedInputPages(pageSpec,raw.pages,readOptions.onInvalidIndex)){
-    image=await parseStoredCompareInput(`${packedCoder==="mono"?"pbm":packedCoder==="gray"?"pgm":packedCoder==="graya"?"pam":"miff"}:${path}${inlineGeom && !rawExtract ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,inputFormat:packedCoder.toUpperCase(),...(rawExtract?{extract:""}:{}),source:{size:raw.size,async read(position,length){
+    image=await parseStoredCompareInput(`${packedCoder==="mono"?"pbm":packedCoder==="gray"?"pgm":packedCoder==="graya"?"pam":"miff"}:${path}${inlineGeom && !rawExtract ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,inputFormat:packedCoder.toUpperCase(),...(rawExtract?{extract:""}:{}),visit:async frame=>{
+     Object.assign(frame,{[magickInput]:{...(frame as StoredMagickImage)[magickInput],sceneIdx:page}});
+     await readOptions.visit?.(frame);
+    },source:{size:raw.size,async read(position,length){
      const steps=raw.read(position,length,page);let next=steps.next();
      while(!next.done)next=steps.next(await sources[next.value.channel]!.read(next.value.position,next.value.length,{signal}));
      return next.value;
@@ -18568,7 +18571,10 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const consume=async(sources:ImageByteSource[])=>{
    const raw=rawRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,3,state.inputOffset,state.rawInterlace, state.tiffFloatingPoint);
    for(const page of selectedInputPages(pageSpec,raw.pages,readOptions.onInvalidIndex)){
-    image=await parseStoredCompareInput(`ppm:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,inputFormat:"RGB",source:{size:raw.size,async read(position,length){
+    image=await parseStoredCompareInput(`ppm:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,inputFormat:"RGB",visit:async frame=>{
+     Object.assign(frame,{[magickInput]:{...(frame as StoredMagickImage)[magickInput],sceneIdx:page}});
+     await readOptions.visit?.(frame);
+    },source:{size:raw.size,async read(position,length){
      const steps=raw.read(position,length,page);let next=steps.next();
      while(!next.done)next=steps.next(await sources[next.value.channel]!.read(next.value.position,next.value.length,{signal}));
      return next.value;

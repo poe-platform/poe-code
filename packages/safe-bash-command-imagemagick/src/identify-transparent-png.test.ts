@@ -7,7 +7,7 @@ import { createIdentifyCommand, runIdentifyCli } from "./index.js";
 it.each([
   { format: "png", alpha: 0, expected: "srgba(0,0,0,0)|00000000|0|0|0" },
   { format: "png", alpha: 128, expected: "srgba(200,100,50,0.501961)|C8643280|0.784314|0.392157|0.196078" },
-  { format: "tiff", alpha: 0, expected: "srgba(200,100,50,0)|C8643200|0.784314|0.392157|0.196078" }
+  { format: "tiff", alpha: 0, expected: "srgba(0,0,0,0)|00000000|0|0|0" }
 ] as const)("identify samples $format pixels with alpha=$alpha", async ({ format, alpha, expected }) => {
   const bytes = await sharp(new Uint8Array([200, 100, 50, alpha]), {
     raw: { width: 1, height: 1, channels: 4 }

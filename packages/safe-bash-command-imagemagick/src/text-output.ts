@@ -20,12 +20,13 @@ export function pixelEnumerationLine(x: number, y: number, r: number, g: number,
 export function srgbDepthEnumerationLine(x: number, y: number, samples: Uint8Array | Uint16Array, hasAlpha: boolean, depth: number): string {
     const levels = 2 ** Math.min(depth, 16) - 1, maximum = depth <= 8 ? 255 : 65535;
     const sourceMaximum = samples instanceof Uint16Array ? 65535 : 255;
-    const channels = Array.from(samples.subarray(0, hasAlpha ? 4 : 3), value => Math.round(Math.round(value * levels / sourceMaximum) * maximum / levels));
+    const working = Array.from(samples.subarray(0, hasAlpha ? 4 : 3), value => Math.round(value * levels / sourceMaximum) / levels);
+    const channels = working.map(value => Math.round(value * maximum));
     const color = channels.map(value => hex(value).padStart(maximum === 255 ? 2 : 4, "0")).join("");
     const rgb = channels.slice(0, 3);
-    const percent = maximum === 65535 && rgb.some(value => value % 257 !== 0);
-    const values = rgb.map(value => percent ? `${Number((value * 100 / maximum).toPrecision(6))}%` : String(value / (maximum === 65535 ? 257 : 1)));
-    if (hasAlpha) values.push(String(Number((channels[3]! / maximum).toPrecision(6))));
+    const percent = working.slice(0, 3).some(value => Math.abs(value * 255 - Math.round(value * 255)) > 1e-9);
+    const values = working.slice(0, 3).map(value => percent ? `${Number((value * 100).toPrecision(6))}%` : String(Math.round(value * 255)));
+    if (hasAlpha) values.push(String(Number(working[3]!.toPrecision(6))));
     const name = !hasAlpha || channels[3] === maximum ? histogramColorNames[(Math.round(rgb[0]! * 255 / maximum) << 16) | (Math.round(rgb[1]! * 255 / maximum) << 8) | Math.round(rgb[2]! * 255 / maximum)] : undefined;
     return `${x},${y}: (${channels.join(",")})  #${color}  ${name && !percent ? name : `srgb${hasAlpha ? "a" : ""}(${values.join(",")})`}`;
 }

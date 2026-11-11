@@ -7966,7 +7966,13 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           return { ...sample, data, size: data.byteLength };
         }
         if (codec === "microdvd" || codec === "mpl2" || codec === "pjs") {
-          const text = decodeUtf8(sample.data);
+          let text = decodeUtf8(sample.data);
+          if (codec === "pjs" && (outputFormat === "webvtt" || containerCodec === "webvtt")) {
+            // Native WebVTT's ASS dialogue parser skips initial ASCII spaces only.
+            let start = 0;
+            while (text[start] === " ") start++;
+            text = text.slice(start);
+          }
           const data = encodeUtf8(codec === "microdvd" ? decodeMicrodvd(text).replaceAll("\n",
             outputFormat === "srt" ? "\r\n" : "\n") : text.split("|")
             .map(line => codec === "mpl2" && line.startsWith("/") ? `<i>${line.slice(1)}</i>` : line)

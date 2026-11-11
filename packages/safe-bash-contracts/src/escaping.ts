@@ -42,13 +42,14 @@ export function escapeText(value: string, mode: "display" | "diagnostic", checkO
 
 /** GNU shell-escape-always operand quoting; C locale unless UTF-8 is enabled. */
 export function quoteShellOperand(value: string, utf8 = false): string {
+  const nonprintable = utf8 ? /[\p{Cc}\p{Cn}\p{Zl}\p{Zp}]/u : /[^\x20-\x7e]/;
   if (value.includes("'") && !["$", "`", "\\", '"'].some(character => value.includes(character))
-    && [...value].every(character => character >= " " && (character <= "~" || utf8 && character > "\u009f"))) return `"${value}"`;
+    && [...value].every(character => !nonprintable.test(character))) return `"${value}"`;
   const escapes: Readonly<Record<number, string>> = { 7: "\\a", 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r" };
   let result = "'", escaped = false;
   for (const character of value) {
     const point = character.codePointAt(0)!;
-    const special = point < 32 || point >= 127 && (!utf8 || point <= 159);
+    const special = nonprintable.test(character);
     if (special !== escaped) {
       result += special ? "'$'" : point === 39 ? "" : "''";
       escaped = special;

@@ -100,7 +100,7 @@ function fileError(error: unknown, file: ShellValue, locale: string): unknown {
   const encoding = locale.split("@")[0]!.split(".")[1]?.toLowerCase();
   const utf8 = encoding === "utf-8" || encoding === "utf8";
   const quoted = !name || "#~".includes(name[0]!) || name === "{" || name === "}"
-    || [...name].some(character => character <= " " || (character >= "\x7f" && (!utf8 || character <= "\u009f")) || "\"'`$&*():;<=>?[\\^|!".includes(character));
+    || [...name].some(character => character <= " " || (character >= "\x7f" && (!utf8 || /[\p{Cc}\p{Cn}\p{Zl}\p{Zp}]/u.test(character))) || "\"'`$&*():;<=>?[\\^|!".includes(character));
   return new PublicDiagnostic(`${quoted ? quoteShellOperand(name, utf8) : name}: ${reason}`);
 }
 

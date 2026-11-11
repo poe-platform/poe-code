@@ -13625,11 +13625,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       }
 
-                      if (["highpass", "lowpass", "treble", "highshelf"].includes(filterName) || filterName === "aecho") {
+                      if (["highpass", "lowpass", "bass", "lowshelf", "treble", "highshelf"].includes(filterName) || filterName === "aecho") {
                         // These planar filters share their input/output format. Negotiate downstream
                         // requirements through filters that preserve sample formats before rounding.
                         // A compatible planar input fixes biquad precision before downstream conversion.
-                        let formats: string[] | undefined = (["highpass", "lowpass", "treble", "highshelf"].includes(filterName)) && filteredSampleFormat.endsWith("p")
+                        let formats: string[] | undefined = (["highpass", "lowpass", "bass", "lowshelf", "treble", "highshelf"].includes(filterName)) && filteredSampleFormat.endsWith("p")
                           ? [filteredSampleFormat] : undefined;
                         for (let nextIndex = filterIndex + 1; nextIndex < audioFilters.length; nextIndex++) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -14252,7 +14252,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                       } else if (trimmed === "asubcut" || trimmed.startsWith("asubcut=")) {
                         stretched = await cutSubAudio(stretched, origRate, trimmed, t.codecDescriptions[0]?.codecName, budget, context.signal);
-                      } else if (["highpass", "lowpass", "treble", "highshelf"].includes(filterName)) {
+                      } else if (["highpass", "lowpass", "bass", "lowshelf", "treble", "highshelf"].includes(filterName)) {
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;

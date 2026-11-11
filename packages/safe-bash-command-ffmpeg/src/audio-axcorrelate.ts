@@ -19,9 +19,10 @@ export async function correlateAudio(
   let size = 256;
   let algo = "best";
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  let positional = 0;
+  for (const option of argument ? argument.split(":") : []) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? ["size", "algo"][index] : option.slice(0, separator);
+    const key = separator < 0 ? ["size", "algo"][positional++] : option.slice(0, separator);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "size") {
       size = parseFilterExpression(value, "axcorrelate", {});

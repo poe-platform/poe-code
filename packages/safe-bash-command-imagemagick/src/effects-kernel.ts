@@ -308,6 +308,8 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                         : destinationIn || destinationOut ? (alpha === 0 ? 0 : round(color * pixelScale))
                         // Plus adds alpha-weighted channels without unpremultiplying.
                         : name === "plus" ? round(Math.min(255 * pixelScale, sourceColor * foreground + color * pixelScale * back))
+                        // Destination-over keeps the background above the masked image.
+                        : name === "dstover" ? alpha === 0 ? 0 : round((color * pixelScale * background.a / 255 + sourceColor * foreground * (1 - background.a / 255)) / alpha)
                         : alpha === 0 ? 0 : round((sourceColor * foreground + color * pixelScale * back) / alpha);
                 }
                 if (inks) for (let channel = 0; channel < 3; channel++)

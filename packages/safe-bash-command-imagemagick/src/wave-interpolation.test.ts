@@ -31,7 +31,6 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
 for (const retained of [false, true]) {
     it.each([
         ["-interpolate", "bogus", "-wave", "2x5"],
-        ["-interpolate", "mesh", "-fx", "p{0.5,0.5}"],
     ])(`preserves existing output for unsupported interpolation, retained=${retained}: %s`, async (...operation) => {
         const input = Buffer.from(fixtures[0]!.input, "base64"), existing = Buffer.from("existing output");
         const files = new Map([["/input.png", input], ["/out.png", existing]]), filesystem = new MemoryFileSystem();

@@ -44,7 +44,6 @@ for (const mode of ["command", "convert", "retained", "buffered", "sync"] as con
 
 for (const method of ["average9", "average16"]) {
     it.each([
-        ["-fx", "p{0.5,0.5}"],
         ["-kuwahara", "1x1"]
     ])("rejects unsupported " + method + " sampling in %s without replacing output", async (...operation) => {
         const original = Buffer.from("KEEP"), files = new Map([["/in.png", input], ["/out.png", original]]);

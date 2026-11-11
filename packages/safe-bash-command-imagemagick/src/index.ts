@@ -8613,36 +8613,39 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         else if (mode === "extract") {
             evaluate = true;
+            const channels = state.channels, black = state.channelDefault || channels.k === true;
             apply = function* (im) {
                 im = yield* prepare16BitOutput(im);
                 if (im.alphaBlend !== true) im = yield* prepareInactiveAlphaOutput(im);
-                const extracted = yield* extractChannelImageSteps({ ...im, hasAlpha: true }, 3);
-                if (im.evaluateSamples) extracted.evaluateSamples = im.evaluateSamples.slice();
+                const data = im.data.slice(), data16 = im.data16?.slice();
+                const evaluateSamples = im.evaluateSamples?.slice(), hueSamples = im.hueSamples?.slice();
+                const gray = im.space === "b-w" || im.space === "grey16", cmyk = im.space === "cmyk";
+                const selected = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, black];
                 // Clip-cache blending still uses source opacity before Extract disables alpha.
-                for (let offset = 3; offset < extracted.data.length; offset += 4) {
-                    if (offset % 65536 === 3) yield;
-                    if (extracted.evaluateSamples) {
-                        const alpha = im.evaluateSamples![offset]!;
-                        extracted.evaluateSamples[offset - 3] = extracted.evaluateSamples[offset - 2] = extracted.evaluateSamples[offset - 1] = alpha;
-                    }
-                    extracted.data[offset] = im.data[offset]!;
-                    if (extracted.data16) extracted.data16[offset] = im.data16![offset]!;
-                }
-                const hueSamples = im.hueSamples ? new Float64Array(im.hueSamples.length) : undefined;
-                if (hueSamples) for (let offset = 0; offset < extracted.data.length; offset += 4) {
+                for (let offset = 0; offset < data.length; offset += 4) {
                     if (offset % 65536 === 0) yield;
-                    const alpha = im.evaluateSamples ? im.evaluateSamples[offset + 3]! / 255 : extracted.data16 ? extracted.data16[offset]! / 65535 : extracted.data[offset]! / 255;
-                    // Extract into every working color channel, including CMYK black.
-                    hueSamples[offset] = hueSamples[offset + 1] = hueSamples[offset + 2] = alpha;
-                    hueSamples[offset + 3] = im.space === "cmyk" ? alpha : 1;
-                    if (im.space === "cmyk") {
-                        const gray = (1 - alpha) * (1 - alpha) * 65535;
-                        if (extracted.evaluateSamples) extracted.evaluateSamples[offset] = extracted.evaluateSamples[offset + 1] = extracted.evaluateSamples[offset + 2] = gray / 257;
-                        extracted.data[offset] = extracted.data[offset + 1] = extracted.data[offset + 2] = clampByteVal(gray / 257);
-                        if (extracted.data16) extracted.data16[offset] = extracted.data16[offset + 1] = extracted.data16[offset + 2] = Math.round(gray);
+                    const alpha = im.evaluateSamples ? im.evaluateSamples[offset + 3]! / 255 : im.data16 ? im.data16[offset + 3]! / 65535 : im.data[offset + 3]! / 255;
+                    if (hueSamples) {
+                        for (let channel = 0; channel < (cmyk ? 4 : 3); channel++) {
+                            if (selected[channel]) hueSamples[offset + channel] = alpha;
+                        }
+                        if (!cmyk) hueSamples[offset + 3] = 1;
+                    }
+                    for (let channel = 0; channel < 3; channel++) {
+                        const index = offset + channel;
+                        if (cmyk && hueSamples) {
+                            const value = (1 - hueSamples[index]!) * (1 - hueSamples[offset + 3]!) * 65535;
+                            if (evaluateSamples) evaluateSamples[index] = value / 257;
+                            data[index] = clampByteVal(value / 257);
+                            if (data16) data16[index] = Math.round(value);
+                        } else if (selected[channel]) {
+                            data[index] = im.data[offset + 3]!;
+                            if (data16) data16[index] = im.data16![offset + 3]!;
+                            if (evaluateSamples) evaluateSamples[index] = im.evaluateSamples![offset + 3]!;
+                        }
                     }
                 }
-                return { ...extracted, ...(hueSamples ? { hueSamples } : {}), inactiveAlpha: false, alphaSeparate: false, space: im.space };
+                return { ...im, data, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(hueSamples ? { hueSamples } : {}), channels: 1, hasAlpha: false, inactiveAlpha: false, alphaSeparate: false };
             };
         }
         else { throw new Error(`Unsupported alpha mode: ${mode}`); }

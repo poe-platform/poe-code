@@ -395,6 +395,8 @@ when the first input is mono. Each input branch applies its single-input filters
 before routing channels, for example
 `[1:a]volume=0.5[x];[0:a][x]join=map=0.0-FL|1.0-FR[o]`.
 Filters after join are supported and use the first input's frame timestamps.
+Join accepts `threads`, `thread_type`, and `extra_hw_frames` without changing
+the joined PCM; invalid values fail before replacing output.
 `agate=threshold=0.05:ratio=4:attack=0.1:release=1` attenuates quiet PCM sections
 while preserving sample count and timing. It supports native defaults, range, knee,
 attack/release, peak/RMS detection, channel linking, input/makeup gain, and downward/upward modes.

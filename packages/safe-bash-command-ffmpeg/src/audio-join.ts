@@ -3,6 +3,7 @@ import type { MediaBudgetTracker, MediaSample, MediaTrack } from "@poe-code/mp4-
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { resampleAudio } from "./audio-resample.js";
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function joinAudio(
   tracks: MediaTrack[], filters: string[], budget: MediaBudgetTracker, signal?: AbortSignal
@@ -31,6 +32,8 @@ export async function joinAudio(
     } else if (key === "map") {
       // This is a native string option; only its final value is interpreted.
       map = value;
+    } else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, value, "join");
     } else throw new Error(`join: unsupported option ${key}`);
   }
   if (inputs !== tracks.length) {

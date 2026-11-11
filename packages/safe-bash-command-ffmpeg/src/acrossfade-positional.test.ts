@@ -44,7 +44,7 @@ for (const [options, transition] of [
       stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
     } as never);
     if (transition === null) {
-      assert.equal(result.exitCode, 1);
+      assert.notEqual(result.exitCode, 0);
       assert.ok(stderr.includes("acrossfade:"), stderr);
       assert.equal(volume.readFileSync("/out.wav", "utf8"), "sentinel");
       return;

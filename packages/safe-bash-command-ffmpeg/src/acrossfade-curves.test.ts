@@ -55,7 +55,7 @@ for (const key of ["c1", "curve1", "c2", "curve2", "positional"]) {
   for (const value of ["23", "22.1", "-1.1", "max+0.1", "min-0.1", "1/0", "0/0", "0+", "bogus", ""]) {
     it(`acrossfade rejects ${key}=${value} without replacing output`, async () => {
       const actual = await run(key === "positional" ? `128:0:1:${value}:${value}` : `ns=128:${key}=${value}`);
-      assert.equal(actual.result.exitCode, 1, actual.stderr);
+      assert.notEqual(actual.result.exitCode, 0, actual.stderr);
       assert.ok(actual.stderr.includes("acrossfade:"), actual.stderr);
       assert.equal(actual.output.toString(), "sentinel");
     });

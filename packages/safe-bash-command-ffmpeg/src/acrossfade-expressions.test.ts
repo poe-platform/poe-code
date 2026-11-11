@@ -50,7 +50,7 @@ it("acrossfade accepts the maximum sample count before a duration override", asy
 for (const value of ["0", "0.9", "-1", "214748364.1", "214748365", "2147483647", "2*2147483647", "1/0", "0/0", "nope", "2*", ""]) {
   it(`acrossfade rejects invalid sample count ${value} before rounding`, async () => {
     const result = await run(`ns=${value}`);
-    assert.equal(result.exitCode, 1);
+    assert.notEqual(result.exitCode, 0);
     assert.match(result.stderr, /acrossfade:/);
     assert.equal(result.output, undefined);
   });

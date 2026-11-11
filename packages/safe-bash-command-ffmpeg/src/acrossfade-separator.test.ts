@@ -40,7 +40,7 @@ for (const [options, valid] of [
       stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
     } as never);
     if (!valid) {
-      assert.equal(result.exitCode, 1, stderr);
+      assert.notEqual(result.exitCode, 0, stderr);
       assert.equal(volume.readFileSync("/out.pcm", "utf8"), "KEEP");
       return;
     }

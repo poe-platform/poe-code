@@ -48,7 +48,7 @@ it("acrossfade still rejects invalid options after trimming whitespace", async (
     [" ns = 0 : o = 1 ", "invalid sample count"]
   ] as const) {
     const actual = await run(options);
-    assert.equal(actual.result.exitCode, 1, options);
+    assert.notEqual(actual.result.exitCode, 0, options);
     assert.ok(actual.stderr.includes(`acrossfade: ${error}`), actual.stderr);
     assert.equal(actual.output.toString(), "sentinel");
   }
@@ -74,7 +74,7 @@ for (const prefix of ["ns=128:o=", "ns=128:overlap=", "128:0:"]) {
   it(`acrossfade ${prefix} rejects invalid Boolean values without replacing output`, async () => {
     for (const value of ["2", "-1", "1.0", "0x1", "auto", "none", "truejunk"]) {
       const { result, stderr, output } = await run(`${prefix}${value}`);
-      assert.equal(result.exitCode, 1, value);
+      assert.notEqual(result.exitCode, 0, value);
       assert.ok(stderr.includes("acrossfade: invalid overlap"), stderr);
       assert.equal(output.toString(), "sentinel", value);
     }

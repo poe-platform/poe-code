@@ -6,6 +6,20 @@ import { rawRasterInput } from "./raw-rgb.js";
 
 // Native ImageMagick 7.1.2-35 Q16-HDRI, with each input row padded to a byte.
 const cases: { coder: string; depth: number; input: string; output: string; size?: string; selector?: string; exitCode?: number }[] = [
+    { coder: "rgba", depth: 10, input: "0108c4545c67626aba22cdbbffff87120d156400", output: "012345176789ab88cdefffe112345600" },
+    { coder: "bgra", depth: 10, input: "0108c4545c67626aba22cdbbffff87120d156400", output: "012345176789ab88cdefffe112345600" },
+    { coder: "rgbo", depth: 10, input: "0108c4545c67626aba22cdbbffff87120d156400", output: "012345e86789ab77cdefff1e123456ff" },
+    { coder: "bgr", depth: 10, input: "0108c45467626abacdcbbfff1210d156", output: "452301ffaa621affff2fcdff4511c4ff" },
+    { coder: "rgba", depth: 12, input: "010232454171676898aba888cdcefefffe1d121343565000", output: "012345176789ab88cdefffe112345600" },
+    { coder: "bgra", depth: 12, input: "010232454171676898aba888cdcefefffe1d121343565000", output: "45230117ab896788ffefcde156341200" },
+    { coder: "rgbo", depth: 12, input: "010232454171676898aba888cdcefefffe1d121343565000", output: "012345e86789ab77cdefff1e123456ff" },
+    { coder: "rgbo", depth: 12, input: "010232454000676898aba000cdcefefff000121343565000", output: "012345ff6789abffcdefffff123456ff" },
+    { coder: "bgr", depth: 12, input: "010232454676898abacdcefefff121343565", output: "452301ffab8967ffffefcdff563412ff" },
+    { coder: "rgba", depth: 16, input: "010123234545171767678989abab8888cdcdefefffffe1e11212343456560000", output: "012345176789ab88cdefffe112345600" },
+    { coder: "bgr", depth: 10, input: "0108c45467626abacdcbbfff1210d1", output: "4b454550", exitCode: 1 },
+    { coder: "rgba", depth: 10, input: "0108c4545c67626aba22cdbbffff87120d1564", output: "4b454550", exitCode: 1 },
+    { coder: "bgra", depth: 12, input: "010232454171676898aba888cdcefefffe1d1213435650", output: "4b454550", exitCode: 1 },
+    { coder: "rgbo", depth: 12, input: "010232454000676898aba000cdcefefff0001213435650", output: "4b454550", exitCode: 1 },
     { coder: "rgba", depth: 4, input: "1f364d647b92a9c0", output: "11ff336644dd664477bb9922aa99cc00" },
     { coder: "rgbo", depth: 4, input: "1f364d647b92a9c0", output: "11ff339944dd66bb77bb99ddaa99ccff" },
     { coder: "bgr", depth: 4, input: "1f364d647b92", output: "33ff11ffdd4466ff774466ff2299bbff" },

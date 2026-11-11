@@ -7,7 +7,7 @@ export async function removeSilence(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: { start: number; end: number; pts: number; pos?: number | undefined }[],
   budget: MediaBudgetTracker, signal?: AbortSignal,
-  commands: readonly { sample: number; expression: string }[] = []
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<{ channels: (Float32Array | Float64Array)[]; frames: typeof frames }> {
   let enable: string | undefined;
   const options = {
@@ -82,7 +82,9 @@ export async function removeSilence(
   }
 
   let output = [...channels];
-  budget.allocateMemory(frames.length * 9);
+  budget.allocateMemory(frames.length * 17);
+  const startThresholds = new Float64Array(frames.length);
+  let startThreshold = options.start_threshold;
   let stopThresholds = new Float64Array(frames.length);
   let stopThreshold = options.stop_threshold;
   let nextCommand = 0;
@@ -93,9 +95,13 @@ export async function removeSilence(
       const command = commands[nextCommand++]!;
       try {
         const value = parseFilterExpression(command.expression, "silenceremove", { min: 0, max: Number.MAX_VALUE, default: 0 });
-        if (Number.isFinite(value) && value >= 0) stopThreshold = value;
+        if (Number.isFinite(value) && value >= 0) {
+          if (command.action === "start_threshold") startThreshold = value;
+          else if (command.action === "stop_threshold") stopThreshold = value;
+        }
       } catch { /* Native keeps the previous threshold when a runtime command is rejected. */ }
     }
+    startThresholds[n] = startThreshold;
     stopThresholds[n] = stopThreshold;
     enabledFrames[n] = Number(enable === undefined || Math.abs(parseFilterExpression(enable, "silenceremove enable", {
       n, t: frame.pts / sampleRate,
@@ -139,7 +145,7 @@ export async function removeSilence(
         budget.checkCpu();
       }
       while (frameIndex + 1 < frames.length && i >= frames[frameIndex]!.end) frameIndex++;
-      const threshold = phase === "start" ? options.start_threshold : stopThresholds[frameIndex]!;
+      const threshold = phase === "start" ? startThresholds[frameIndex]! : stopThresholds[frameIndex]!;
       const enabled = enabledFrames[frameIndex] !== 0;
       let keep = !enabled;
       let matches = mode === "all";

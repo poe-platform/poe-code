@@ -994,6 +994,7 @@ Threshold expressions accept `min` and `default` (both `0`) and `max` (the large
 Negative stop periods remove repeated silent sections.
 Timed commands such as `asendcmd=c='0.003 silenceremove@trim stop_threshold 0.5',silenceremove@trim=stop_periods=-1:window=0`
 update the stop threshold at the receiving audio frame, preserving earlier output and detector history.
+Timed `start_threshold` commands likewise update the threshold used to trim leading silence.
 Invalid runtime thresholds leave the previous threshold active.
 Invalid options return native exit codes: `8` for unknown keys, `234` for malformed
 values, and `222` for out-of-range values, without creating or replacing output.

@@ -5497,8 +5497,10 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha"|"isP
     let targetW: number;
     let targetH: number;
     if (g.aspectRatio !== undefined) {
-        targetW = Math.max(1, Math.round(Math.min(srcW, srcH * g.aspectRatio)));
-        targetH = Math.max(1, Math.round(Math.min(srcH, srcW / g.aspectRatio)));
+        // Preserve ParseMetaGeometry's operation order at half-pixel boundaries.
+        const imageRatio = srcW * (1 / srcH);
+        targetW = g.aspectRatio >= imageRatio ? srcW : Math.max(1, Math.floor((1 / imageRatio) * srcW * g.aspectRatio + 0.5));
+        targetH = g.aspectRatio >= imageRatio ? Math.max(1, Math.floor((1 / g.aspectRatio) * srcH * imageRatio + 0.5)) : srcH;
     }
     else if (areaLimit !== undefined) {
         // Native geometry applies the area cap after the ordinary rectangle.

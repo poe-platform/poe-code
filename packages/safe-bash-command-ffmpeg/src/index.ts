@@ -13635,6 +13635,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           && origRate === t.timescale ? packet.exactPts : undefined });
                       start = end;
                     }
+                    if (inputCodec === "mp3" && (!copyTimestamps || startAtZero) && audioTimestamps.length) {
+                      const origin = audioTimestamps[0]!.pts;
+                      for (const frame of audioTimestamps) frame.pts -= origin;
+                    }
                   }
                   const audioFilters = filter ? parseFilterChain(filter.expression).map(item => {
                     const equals = item.indexOf("=");

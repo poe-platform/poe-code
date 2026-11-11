@@ -210,6 +210,35 @@ for (const [interp, format, hash] of [
   });
 }
 
+for (const graph of [false, true]) {
+  for (const options of [
+    "width=50",
+    String.raw`width=st(0\,25)+ld(0)`,
+    "width='st(9,25);ld(9)*2'",
+    "width=ld(0)+50",
+    "width='st(0,25)':width=ld(0)+50",
+    "width='st(0,50)':depth=ld(0)+2"
+  ]) {
+    it(`flanger register options match native width=50 (${options}, graph=${graph})`, async () => {
+      const channels = [
+        Float64Array.from({ length: 16 }, (_, i) => (1000 + i * 97) / 32768),
+        Float64Array.from({ length: 16 }, (_, i) => ((i * 257) % 20001 - 10000) / 32768)
+      ];
+      const { volume, result, stderr } = await run(`flanger=${options}`, 16, true, graph, "s16le", channels, 1000);
+      assert.equal(result.exitCode, 0, stderr);
+      const pcm = volume.readFileSync("/out.s16") as Buffer;
+      assert.equal(pcm.length, 64);
+      assert.equal(createHash("sha256").update(pcm).digest("hex"),
+        "c9e4258b99b8ad451e74e322e01a88da4d43eb6eccede939d74fabf0718bc0fd");
+    });
+  }
+  it(`rejects out-of-range flanger register values (graph=${graph})`, async () => {
+    const { volume, result, stderr } = await run("flanger=width='st(0,101)'", 16, true, graph);
+    assert.equal(result.exitCode, 222, stderr);
+    assert.equal(volume.readFileSync("/out.s16", "utf8"), "keep");
+  });
+}
+
 async function run(filter: string, frames = 256, stereo = false, graph = false, format = "s16le",
   channels = Array.from({ length: stereo ? 2 : 1 }, (_, c) =>
     Float64Array.from({ length: frames }, (_, i) =>

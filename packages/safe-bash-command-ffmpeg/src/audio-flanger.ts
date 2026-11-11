@@ -26,7 +26,7 @@ export async function flangeAudio(
       PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, min, max, default: defaults[key],
       ...(key === "shape" ? { sinusoidal: 0, s: 0, triangular: 1, t: 1 } : {}),
       ...(key === "interp" ? { linear: 0, quadratic: 1 } : {})
-    });
+    }, undefined, new Float64Array(10));
     if (!Number.isFinite(number) || number < min || number > max) throw new RangeError(`flanger: invalid ${key}`);
     options[key] = key === "shape" || key === "interp" ? Number(number > 0.5) : number;
   }

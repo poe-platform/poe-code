@@ -15437,7 +15437,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           if (key === "enable") {
                             enable = value;
-                            parseFilterExpression(enable, "dcshift enable", { n: 0, t: 0 });
+                            parseFilterExpression(enable, "dcshift enable", {
+                              n: 0, t: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+                            });
                           } else if (key === "shift") {
                             shift = parseFilterExpression(value, "dcshift", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, min: -1, max: 1, default: 0, none: 0, all: -1 });
                             if (shift < -1 || shift > 1) {
@@ -15467,7 +15469,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
                           const end = enable === undefined ? length : Math.min(length, start + count);
                           const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "dcshift enable", {
-                            n, t: pts / origRate
+                            n, t: pts / origRate, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
                           })) >= 0.5;
                           for (const [c, channel] of stretched.entries()) {
                             for (let i = start; i < end; i++) {

@@ -15,9 +15,10 @@ export async function normalizeAudio(
   let maxGain = 10;
   let targetRms = 0;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  let positional = 0;
+  for (const option of argument ? argument.split(":") : []) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? ["f", "g", "p", "m", "r"][index] : option.slice(0, separator).trim();
+    const key = separator < 0 ? ["f", "g", "p", "m", "r"][positional++] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "enable") {
       enable = value;

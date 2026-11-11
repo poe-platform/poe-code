@@ -5881,7 +5881,7 @@ function parseMagickRepageGeometry(raw: string): MagickGeometry {
 
 function parseMagickPageGeometry(raw: string) {
     const geometry = parseMagickPageSetting(raw, "page");
-    return { width: Math.round(geometry.width ?? 0), height: Math.round(geometry.height ?? 0), x: Math.trunc(geometry.x), y: Math.trunc(geometry.y) };
+    return { width: Math.round(geometry.width ?? 0), height: Math.round(geometry.height ?? (geometry.isPercent ? geometry.width : undefined) ?? 0), x: Math.trunc(geometry.x), y: Math.trunc(geometry.y) };
 }
 
 function magickRepageCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: MagickGeometry, operation: "repage" | "set") {

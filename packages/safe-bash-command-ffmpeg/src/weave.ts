@@ -4,7 +4,7 @@ import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function weave(
-  frames: MediaVideoFrame[], argument: string, timescale: number, budget: MediaBudgetTracker, signal?: AbortSignal
+  frames: (MediaVideoFrame & { filterMetadata?: Record<string, string> })[], argument: string, timescale: number, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaVideoFrame[]> {
   const options = argument ? argument.split(":") : [];
   if (options.at(-1) === "") options.pop();
@@ -43,6 +43,7 @@ export async function weave(
     const top = topFieldFirst ? first : second;
     const bottom = topFieldFirst ? second : first;
     const woven = { ...first, height,
+      filterMetadata: second.filterMetadata,
       // FFmpeg divides the second field's integer PTS by two in the doubled time base.
       ptsSeconds: Math.trunc(Math.round(second.ptsSeconds * timescale) / 2) * 2 / timescale,
       durationSeconds: first.durationSeconds + second.durationSeconds,

@@ -4,7 +4,7 @@ import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function doubleweave(
-  frames: MediaVideoFrame[], argument: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  frames: (MediaVideoFrame & { filterMetadata?: Record<string, string> })[], argument: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaVideoFrame[]> {
   const options = argument ? argument.split(":") : [];
   if (options.at(-1) === "") options.pop();
@@ -43,6 +43,7 @@ export async function doubleweave(
     const top = (index % 2 ? !topFieldFirst : topFieldFirst) ? first : second;
     const bottom = top === first ? second : first;
     const woven = { ...first, height,
+      filterMetadata: second.filterMetadata,
       interlaced: true, topFieldFirst };
     const native = first.native;
     if (native && [0, 4, 5, 12, 13, 14, 29, 30, 34, 49, 68, 104].includes(native.format) && [first, second].every(frame =>

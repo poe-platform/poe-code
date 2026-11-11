@@ -10,12 +10,12 @@ export async function correlateAudio(
   const a = first.decodedAudio;
   const b = second.decodedAudio;
   if (!a || !b) throw new Error("axcorrelate requires decoded PCM audio");
-  const layoutA = a.channelMask || (a.channels === 1 ? 4 : a.channels === 2 ? 3 : undefined);
-  const layoutB = b.channelMask || (b.channels === 1 ? 4 : b.channels === 2 ? 3 : undefined);
+  const layoutA = a.channelMask || (a.channels === 1 ? 4 : a.channels === 2 ? 3 : a.channels === 6 ? 0x3f : undefined);
+  const layoutB = b.channelMask || (b.channels === 1 ? 4 : b.channels === 2 ? 3 : b.channels === 6 ? 0x3f : undefined);
   const remix = a.channels !== b.channels &&
-    (layoutA === 4 && layoutB === 3 || layoutA === 3 && layoutB === 4);
+    [layoutA, layoutB].every(layout => layout === 4 || layout === 3 || layout === 0x3f);
   if (!remix && (a.channels !== b.channels || layoutA !== layoutB)) {
-    throw new Error("axcorrelate requires matching layouts or mono/stereo inputs");
+    throw new Error("axcorrelate requires matching layouts or mono/stereo/5.1 inputs");
   }
   let size = 256;
   let algo = "best";
@@ -96,17 +96,30 @@ export async function correlateAudio(
     const Samples = double ? Float64Array : Float32Array;
     budget.allocateMemory(received[1]! * Samples.BYTES_PER_ELEMENT);
     remixed = new Samples(received[1]!);
-    const gain = round(Math.SQRT1_2);
-    for (let i = 0; i < remixed.length; i++) {
-      if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-      // Floating PCM uses equal-power mixing without PCM16 normalization.
-      const left = round(secondChannels[0]![i]!);
-      remixed[i] = b.channels === 1 ? left * gain
-        : round(left * gain) + round(round(secondChannels[1]![i]!) * gain);
-    }
   }
   const channelData = a.channelData.map(() => new Float64Array(length));
   for (let c = 0; c < a.channels && length > 0; c++) {
+    if (remixed) {
+      // Float planar mixing preserves equal power without integer normalization.
+      // 5.1 speaker order is FL, FR, FC, LFE, BL, BR; omit LFE on downmix.
+      const gain = round(Math.SQRT1_2);
+      const coefficients = a.channels === 6
+        ? Array.from({ length: b.channels }, (_, input) =>
+          b.channels === 1 ? (c === 2 ? 1 : 0) : (c === input ? 1 : 0))
+        : b.channels === 6
+          ? (a.channels === 1 ? [gain, gain, 1, 0, 0.5, 0.5]
+            : c === 0 ? [1, 0, gain, 0, gain, 0] : [0, 1, gain, 0, 0, gain])
+          : new Array<number>(b.channels).fill(gain);
+      for (let i = 0; i < remixed.length; i++) {
+        if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+        let value = 0;
+        for (let input = 0; input < b.channels; input++) {
+          if (coefficients[input] === 0) continue;
+          value = round(value + round(round(secondChannels[input]![i]!) * coefficients[input]!));
+        }
+        remixed[i] = value;
+      }
+    }
     const x = a.channelData[c]!.subarray(0, received[0]);
     const y = remixed ?? secondChannels[c]!.subarray(0, received[1]);
     let sx = 0, sy = 0, xx = 0, yy = 0, xy = 0;

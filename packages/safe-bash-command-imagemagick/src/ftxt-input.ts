@@ -1,5 +1,22 @@
-// Present the default RGB FTXT records as Q16 PPM to share raster decoding.
-export function* ftxtInput(width: number, height: number, size: number): Generator<{ position: number; length: number } | Uint8Array, void, Uint8Array> {
+// Present RGB FTXT records as Q16 PPM to share raster decoding.
+export function* ftxtInput(width: number, height: number, size: number, format = "\\x,\\y:\\c\\n"): Generator<{ position: number; length: number } | Uint8Array, void, Uint8Array> {
+    const parts: (string | { field: string })[] = [""];
+    for (let index = 0; index < format.length; index++) {
+        let character = format[index]!;
+        if (character === "\\") {
+            character = format[++index] ?? "";
+            if (character === "x" || character === "y" || character === "c") {
+                parts.push({ field: character }, "");
+                continue;
+            }
+            if (character === "n") character = "\n";
+            else if (character === "r") character = "\r";
+            else if (character === "t") character = "\t";
+        }
+        parts[parts.length - 1] += character;
+    }
+    parts[0] = (parts[0] as string).trimStart();
+    parts[parts.length - 1] = (parts[parts.length - 1] as string).trimEnd();
     const pixels = width * height;
     if (!Number.isSafeInteger(pixels * 6) || width < 1 || height < 1 || pixels > size) throw new Error("invalid FTXT image size or truncated input");
     yield new TextEncoder().encode(`P6\n${width} ${height}\n65535\n`);
@@ -18,9 +35,24 @@ export function* ftxtInput(width: number, height: number, size: number): Generat
             }
             const record = line.trim(); line = "";
             if (!record) continue;
-            const colon = record.indexOf(":"), coordinates = record.slice(0, colon).split(",").map(Number);
-            const values = record.slice(colon + 1).split(",").map(value => value.trim() ? Number(value) : NaN);
-            if (colon < 0 || coordinates.length !== 2 || coordinates[0] !== pixel % width || coordinates[1] !== Math.floor(pixel / width) || pixel >= pixels || values.length !== 3 || values.some(value => !Number.isFinite(value) || value < 0 || value > 65535)) throw new Error("invalid FTXT pixel");
+            let cursor = 0;
+            let values: number[] = [];
+            for (let part = 0; part < parts.length; part++) {
+                const token = parts[part]!;
+                if (typeof token === "string") {
+                    if (!record.startsWith(token, cursor)) throw new Error("invalid FTXT pixel");
+                    cursor += token.length;
+                } else {
+                    const delimiter = parts[part + 1] as string;
+                    const end = delimiter ? record.indexOf(delimiter, cursor) : record.length;
+                    if (end < 0) throw new Error("invalid FTXT pixel");
+                    const value = record.slice(cursor, end).trim();
+                    if (token.field === "c") values = value.split(",").map(sample => sample.trim() ? Number(sample) : NaN);
+                    else if (!value || Number(value) !== (token.field === "x" ? pixel % width : Math.floor(pixel / width))) throw new Error("invalid FTXT pixel");
+                    cursor = end;
+                }
+            }
+            if (cursor !== record.length || pixel >= pixels || values.length !== 3 || values.some(value => !Number.isFinite(value) || value < 0 || value > 65535)) throw new Error("invalid FTXT pixel");
             for (const value of values) { const sample = Math.round(value); output[used++] = sample >>> 8; output[used++] = sample & 255; }
             pixel++;
             if (used === output.length) { yield output; used = 0; }

@@ -8241,7 +8241,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         return undefined;
     if (ftxt) {
         if (!state.hasSize) throw new Error("must specify image size for FTXT input");
-        const steps = ftxtInput(state.sizeWidth, state.sizeHeight, rawBytes.length);
+        const steps = ftxtInput(state.sizeWidth, state.sizeHeight, rawBytes.length, state.ftxtFormat);
         let next = steps.next(), offset = 0;
         let bytes: Uint8Array | undefined;
         while (!next.done) {
@@ -20818,7 +20818,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }else if(lower.startsWith("ftxt:")){
   if(!state.hasSize)throw new Error("must specify image size for FTXT input");
   const consume=async(source:ImageByteSource)=>{
-   const steps=ftxtInput(state.sizeWidth,state.sizeHeight,source.size);
+   const steps=ftxtInput(state.sizeWidth,state.sizeHeight,source.size,state.ftxtFormat);
    let next=steps.next(),position=0,size=0,written=0;
    while(!next.done){
     await yieldTurn(signal);

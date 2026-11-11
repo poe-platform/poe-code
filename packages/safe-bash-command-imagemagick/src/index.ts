@@ -2025,7 +2025,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
         const value = exifProperties[key];
         if (value !== undefined) parts.push(value);
         else if (context.analysis) warnUnknownMagickProperty(token, context.analysis);
-      } else if (key === "convex-hull" || key === "minimum-bounding-box") {
+      } else if (key === "convex-hull" || key === "minimum-bounding-box" || key.startsWith("minimum-bounding-box:")) {
         let value: string | undefined;
         if (resolvePixels) value = yield* resolvePixels(key);
         else {
@@ -2201,7 +2201,6 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    yield { async run() { const scene = (metadata as MagickImage)[magickInput]?.sceneIdx ?? context.sceneIdx ?? 0; delay = await raster!.image.storedDelay?.at(scene, signal ? { signal } : undefined) ?? raster!.image.delay?.[scene] ?? 0; } };
    return String(delay);
   }
-  if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,function*(){yield*resolve("mean");return statistics;},signal,context,stack);
   function* load(position:number,length:number):Generator<IdentifyStep,{data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array;evaluateSamples?:Float64Array},void>{
    let chunk!: {data:Uint8Array;data16?:Uint16Array;hueSamples?:Float64Array;evaluateSamples?:Float64Array};
    yield {async run(){const {image,storage}=raster!,data=await storage.read(image.position+position,length,signal?{signal}:undefined);
@@ -2216,7 +2215,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
   }
   if(property === "trim-geometry" || property === "bounding-box")return yield*formatTrimBoundsSteps(raster!.image,load,property,context.fuzz ?? 0,context.analysis,context.trimEdges,context.trimPercentBackground,context.trimBackgroundColor);
   if(property === "signature")return yield*signatureSteps(raster!.image,load);
-  if(property === "convex-hull" || property === "minimum-bounding-box") {
+  if(property === "convex-hull" || property === "minimum-bounding-box" || property.startsWith("minimum-bounding-box:")) {
    if(!hull) {
     const steps = identifyHullSteps(raster!.image, context.precision ?? 6);
     let next = steps.next();
@@ -2228,6 +2227,7 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    }
    return hull[property] ?? "";
   }
+  if(property.includes(":"))return yield*formatStoredFxSteps(property,raster!,function*(){yield*resolve("mean");return statistics;},signal,context,stack);
   if(!properties || (property === "colors" && properties.colors === undefined))properties=yield*magickPixelPropertiesSteps(raster!.image,load,statistics,property === "colors", function*(position, length): Generator<IdentifyStep, Uint8Array | Float64Array, void> {
    let data!: Uint8Array | Float64Array;
    yield { async run() {

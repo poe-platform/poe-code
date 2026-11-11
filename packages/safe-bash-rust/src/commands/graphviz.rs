@@ -1919,16 +1919,16 @@ fn gv_ports(node: &mut GvLayoutNode) {
 
 fn gv_layout_graph(graph: &GvDotGraph, options: &GvLayoutOptions) -> GvGraphLayout {
     let model = gv_resolve_graph(graph);
-    let mut attributes = model.attributes.clone();
-    attributes.extend_from(&options.graph);
+    let mut attributes = options.graph.clone();
+    attributes.extend_from(&model.attributes);
     let rankdir = attributes.get("rankdir").unwrap_or("TB").to_string();
     let horizontal = rankdir == "LR" || rankdir == "RL";
     let mut nodes: Vec<GvLayoutNode> = model
         .nodes
         .iter()
         .map(|n| {
-            let mut attrs = n.attributes.clone();
-            attrs.extend_from(&options.node);
+            let mut attrs = options.node.clone();
+            attrs.extend_from(&n.attributes);
             let (width, height) = gv_node_size(&n.id, &attrs);
             GvLayoutNode {
                 id: n.id.clone(),
@@ -1982,8 +1982,8 @@ fn gv_layout_graph(graph: &GvDotGraph, options: &GvLayoutOptions) -> GvGraphLayo
         .edges
         .iter()
         .map(|e| {
-            let mut ea = e.attributes.clone();
-            ea.extend_from(&options.edge);
+            let mut ea = options.edge.clone();
+            ea.extend_from(&e.attributes);
             ea
         })
         .collect();
@@ -3791,7 +3791,19 @@ mod graphviz_unit_tests {
     }
 
     #[test]
+    fn explicit_dot_styles_override_command_line_defaults() {
+        let vfs = MemoryVfs::new();
+        let out = cmd_graphviz("dot", &gv_args(&["-Tsvg", "-Nfillcolor=blue", "-Nstyle=filled", "-Ecolor=red"]),
+            "digraph { a [fillcolor=gold]; a -> b [color=purple] }", "/", &vfs);
+        assert_eq!(out.exit_code, 0);
+        for style in ["fill=\"gold\"", "fill=\"blue\"", "stroke=\"purple\""] {
+            assert!(out.stdout.contains(style), "missing {style}");
+        }
+    }
+
+    #[test]
     fn unit_graphviz_formats_svg_json_plain_dot_canon_and_png() {
+
 
         let vfs = MemoryVfs::new();
         vfs.mkdir_all("/work").unwrap();

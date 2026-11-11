@@ -11975,6 +11975,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             state.formatStr = tokens[++i] ?? "";
         }
         else if (t === "-print") {
+            // Unlike info:, -print expands once for the current image list.
             const format = tokens[++i];
             if (format === undefined) throw new Error("missing argument '-print'");
             const image = stack[0];

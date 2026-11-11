@@ -47,7 +47,7 @@ const info = await shell.exec("magick identify -format '%m %wx%h' /banner.png");
 console.log(info.stdout); // PNG 60x40
 ```
 
-`-print text` writes formatted text at that point in the pipeline. Both `-format` and `-print` accept literal `-list` text.
+`-print text` expands once using the first image in the current list and writes the result at that point in the pipeline, without adding a newline or changing the image list or `-format`. Both `-format` and `-print` accept literal `-list` text.
 
 Read type-0 WBMP wireless bitmaps with multi-byte dimensions and byte-padded rows through buffered and storage-backed inputs. Read native OTB on-the-air bitmaps with padded bilevel rows and standard or extended dimensions through buffered and storage-backed inputs. Read native SIXEL graphics with RGB or HLS palettes, repeated columns, and six-row bands through buffered and storage-backed inputs. `.wbmp` and `WBMP:` outputs write level-zero wireless bitmaps with byte-padded monochrome rows, including `-write` and standard output. Read and write XBM C byte arrays with least-significant-bit-first pixels and byte-padded scanlines, including widths that are not multiples of eight. XBM width, height, and bitmap identifiers use the output filename with C identifier sanitization. QOI destinations (`out.qoi` or `QOI:out.bin`) preserve 8-bit RGB and RGBA samples, including colors under fully transparent pixels.
 

@@ -59,7 +59,12 @@ export function decodeMicrodvd(text: string): string {
       directives.set(key, { value, persistent: name === name.toUpperCase() });
       position = end + 1;
     }
-    transition(tags());
+    const lineTags = tags();
+    if (line[position] === "/") {
+      position++;
+      if (!lineTags.includes("<i>")) lineTags.push("<i>");
+    }
+    transition(lineTags);
     result += alignment + line.slice(position);
     for (const [key, directive] of directives) {
       if (!directive.persistent) directives.delete(key);

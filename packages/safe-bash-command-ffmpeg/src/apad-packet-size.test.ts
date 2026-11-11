@@ -16,7 +16,11 @@ for (const channels of [1, 2]) {
       ["'PI'", 3], ["'E'", 3], ["'PHI'", 2], ["'sqrt(9)'", 3],
       ["'PI*2'", 6], ["pi", null],
       ["default", 4096], ["default-4094", 2], ["min+2", 2], ["none+2", 2],
-      ["max-2147483645", 2], ["2*2", 4]
+      ["max-2147483645", 2], ["2*2", 4],
+      ["'st(0,2);ld(0)'", 2], ["'st(0,2.5)'", 2],
+      ["'ld(0)+2'", 2], ["'st(0,3)':packet_size='ld(0)+2'", 2],
+      ["'st(0,-1)'", null], ["'st(0,2147483648)'", null],
+      ["'st(0)'", null], ["'ld(0,1)'", null]
     ] as const) {
       it(`apad packet_size=${value} (${channels}ch, ${graph ? "graph" : "simple"})`, async () => {
         const volume = Volume.fromJSON({ "/in.raw": input, "/out.raw": "KEEP" });
@@ -50,4 +54,30 @@ for (const channels of [1, 2]) {
       });
     }
   }
+}
+
+for (const graph of [false, true]) {
+  it(`apad register packet_size preserves downstream selection (${graph ? "graph" : "simple"})`, async () => {
+    const volume = Volume.fromJSON({ "/in.pcm": Buffer.from("6400c8002c019001f4015802bc022003", "hex") });
+    const filter = "apad=pad_len=5:packet_size='st(0,2);ld(0)',aselect='eq(n,1)'";
+    let stderr = "";
+    const output: Buffer[] = [];
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/in.pcm",
+        ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+        "-t", "0.008", "-f", "s16le", "pipe:1"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(),
+      stdout: { async write(bytes: Uint8Array) { output.push(Buffer.from(bytes)); } },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal(stderr, "");
+    assert.deepEqual(Buffer.concat(output), Buffer.alloc(4));
+  });
 }

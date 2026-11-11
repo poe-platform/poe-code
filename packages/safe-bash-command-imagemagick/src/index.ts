@@ -2592,6 +2592,12 @@ function resolveMagickChopGeometry(raw: string, image: Pick<RgbaImage, "width" |
     const pageHeight = image.virtualCanvas?.height || height;
     // Rectangle geometry ends at the first comma-separated field.
     raw = raw.split(",", 1)[0]!.replaceAll("(", "").replaceAll(")", "");
+    // Once offsets begin, a following x terminates the rectangle geometry.
+    raw = normalizeMagickOffsets([...raw].filter(character => character.trim() !== "").join(""));
+    const offset = [...raw].findIndex((character, index) => (character === "+" || character === "-")
+        && raw[index - 1]?.toLowerCase() !== "e");
+    const trailingSeparator = offset < 0 ? -1 : raw.toLowerCase().indexOf("x", offset);
+    if (trailingSeparator >= 0) raw = raw.slice(0, trailingSeparator);
     // Chop ignores # and treats % anywhere as a dimension modifier, preserving pixel offsets.
     let g = parseMagickGeometry(raw.replaceAll("#", "").replaceAll("%", "") + (raw.includes("%") ? "%" : ""));
     const dimensionSeparator = raw.toLowerCase().indexOf("x");

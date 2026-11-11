@@ -51,7 +51,7 @@ function* xpmSteps(size: number, options?: SharpInputOptions): Generator<Step, X
       while (j < fields.length && !keys.includes(fields[j]!)) j++;
       if (!values.has(key)) values.set(key, fields.slice(start, j).join(" "));
     }
-    const color = values.get("c") ?? values.get("g") ?? values.get("g4") ?? values.get("m") ?? values.get("s");
+    const color = values.get("c") ?? values.get("g") ?? values.get("g4") ?? values.get("m") ?? values.get("s") ?? "gray";
     if (!color || symbol.length !== cpp || palette.has(symbol)) throw new Error("Invalid XPM palette");
     let rgba: number[];
     if (color.toLowerCase() === "none") { rgba = [0, 0, 0, 0]; hasAlpha = true; }

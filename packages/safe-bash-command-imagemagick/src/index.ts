@@ -14720,8 +14720,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const raw = tokens[++i] ?? "0x1";
             const { virtualPixel, background, seed } = state;
             const channels = state.channelExplicit ? { ...state.channels } : undefined;
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
                 const geometry = parseMagickGeometry(expanded.replace(",", "x").replace("/", "x"));
                 let edges = yield* applyMagickRasterSteps(im, charcoalEdgePixelSteps({ ...im, hasAlpha: im.hasAlpha || virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255 }, geometry.width ?? 0, channels, virtualPixel, background, seed), signal, { ...im, hasAlpha: false });
@@ -19134,13 +19135,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return transformStoredMagickRaster({ ...metadata, isPalette: false }, backend, whiteBalancePixelSteps(lab, vibrance, !!image.storedWriteMask), signal, lab, image.storedWriteMask ? [lab, image, image.storedWriteMask] : [lab, image]);
             }, { maskAlpha: "transparent" as const, handlesRegion: true }));
         } else if (!operandsOnly && token === "-charcoal") {
+            let images: StoredImageStack, sceneIdx = 0;
+            stackStep(async stack => { images = stack; return stack; });
             const intensity = state.intensity;
             const raw = tokens[++i] ?? "0x1", optionProperties = state.optionProperties;
             const { virtualPixel, background, seed } = state;
             const channels = state.channelExplicit ? { ...state.channels } : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 validateMagickTransformGeometry(expanded, token);
                 const geometry = parseMagickGeometry(expanded.replace(",", "x").replace("/", "x"));
                 let edges = await transformStoredMagickRaster(image, backend, charcoalEdgePixelSteps({ ...image, hasAlpha: image.hasAlpha || virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255 }, geometry.width ?? 0, channels, virtualPixel, background, seed), signal, { ...image, hasAlpha: false });

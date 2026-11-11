@@ -29,7 +29,7 @@ export async function vibratoAudio(
     }
     if (key === "enable") {
       enable = option.slice(separator + 1).trim();
-      parseFilterExpression(enable, "vibrato enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
+      parseFilterExpression(enable, "vibrato enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10), []);
       continue;
     }
     if (key !== "f" && key !== "d") throw new Error(`vibrato: unsupported option ${key}`);
@@ -57,16 +57,18 @@ export async function vibratoAudio(
   let work = 0;
   // Generic timeline bypass freezes both oscillator phase and delay history.
   let position = 0;
-  // Validation uses separate registers so it does not advance the timeline state.
+  // Validation uses separate registers and random state so it does not advance the timeline.
   const registers = new Float64Array(10);
+  const randomStates: BigUint64Array[] = [];
   let commandIndex = 0;
   for (const [n, timestamp] of frames.entries()) {
     while (commandIndex < commands.length && commands[commandIndex]!.sample <= timestamp.start) {
       const command = commands[commandIndex++]!;
       try {
-        parseFilterExpression(command.expression, "vibrato enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
+        parseFilterExpression(command.expression, "vibrato enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10), []);
         enable = command.expression;
         registers.fill(0);
+        randomStates.length = 0;
       } catch { /* Native asendcmd retains the previous expression after a rejected command. */ }
     }
     let enabled = true;
@@ -76,8 +78,8 @@ export async function vibratoAudio(
         E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2
       };
       // FFmpeg evaluates on frame consumption and again before filter_frame.
-      parseFilterExpression(enable, "vibrato enable", variables, undefined, registers);
-      enabled = Math.abs(parseFilterExpression(enable, "vibrato enable", variables, undefined, registers)) >= 0.5;
+      parseFilterExpression(enable, "vibrato enable", variables, undefined, registers, randomStates);
+      enabled = Math.abs(parseFilterExpression(enable, "vibrato enable", variables, undefined, registers, randomStates)) >= 0.5;
     }
     for (let frame = timestamp.start; frame < timestamp.end; frame++) {
       const point = (position % period + phaseOffset) % period;

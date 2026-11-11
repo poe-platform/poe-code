@@ -6,7 +6,7 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 
 // ImageMagick 7.1.2-35 Q16-HDRI (aarch64, with and without OpenMP), RGBA8.
 const horizontal = "ff2d2dffffd2d2ffff2d2dffff0000ffff0000ffff0000ff";
-for (const mode of ["command", "retained", "buffered", "sync"] as const) {
+for (const mode of ["command", "stdout", "retained", "buffered", "sync"] as const) {
     it.each([
         { options: ["-region", "1x1+1+0", "-shear", "-10x0", "+region"], format: "rgba", hex: horizontal },
         { options: ["-region", "1x1+1+0", "-shear", "0x0", "+region"], format: "rgba", hex: "ff0000ffff0000ffff0000ffff0000ffff0000ffff0000ff" },
@@ -20,16 +20,17 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         { options: ["-region", "1x1+1+0", "+region", "-shear", "0x5"], format: "rgba", hex: "ff0000ffff0000ffff0b0bffff2121ffff0b0bffff0000ff" }
     ])(`${mode}: $options $format`, async ({ options, format, hex }) => {
         const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
-        const argv = ["-size", "3x2", "xc:red", ...options, "-depth", "8", `${format}:/out`];
+        const stdout: Uint8Array[] = [];
+        const argv = ["-size", "3x2", "xc:red", ...options, "-depth", "8", `${format}:${mode === "stdout" ? "-" : "/out"}`];
         let stderr = "";
-        const result = mode === "command" ? await createMagickCommand().execute({
+        const result = mode === "command" || mode === "stdout" ? await createMagickCommand().execute({
             command: "magick", args: createCommandArguments(argv).args, cwd: "/", env: {}, fs,
             stdin: (async function* () {})(), signal: new AbortController().signal,
-            stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+            stdout: { async write(bytes) { stdout.push(bytes.slice()); } }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
         }) : mode === "sync" ? runConvertCliSync(argv, files)
             : await runConvertCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
         expect({ exitCode: result.exitCode, stderr: "stderr" in result ? result.stderr : stderr }).toEqual({ exitCode: 0, stderr: "" });
-        const bytes = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
+        const bytes = mode === "stdout" ? Buffer.concat(stdout) : mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
         expect(Buffer.from(format === "PNG32" ? decodeImage(bytes).data : bytes).toString("hex")).toBe(hex);
     });
 }

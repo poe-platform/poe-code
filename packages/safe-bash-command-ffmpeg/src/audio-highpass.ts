@@ -1,10 +1,12 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { audioSpeakerMasks, parseAudioChannelLayout } from "./audio-channel-layout.js";
 
 export async function highpassAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  budget: MediaBudgetTracker, signal?: AbortSignal
+  budget: MediaBudgetTracker, signal?: AbortSignal, channelNames?: readonly string[]
 ): Promise<(Float32Array | Float64Array)[]> {
+  let selected: string[] | undefined;
   const options = { frequency: 3000, poles: 2, mix: 1 };
   const aliases: Record<string, keyof typeof options> = {
     frequency: "frequency", f: "frequency", poles: "poles", p: "poles", mix: "mix", m: "mix"
@@ -13,9 +15,16 @@ export async function highpassAudio(
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
     const name = separator < 0 && index === 0 ? "frequency" : option.slice(0, separator).trim();
+    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (name === "c" || name === "channels") {
+      selected = value === "all" ? undefined : parseAudioChannelLayout(value);
+      if (selected?.some(channel => !Object.hasOwn(audioSpeakerMasks, channel))) {
+        throw new Error("highpass: invalid channels");
+      }
+      continue;
+    }
     const key = Object.hasOwn(aliases, name) ? aliases[name] : undefined;
     if (!key) throw new Error(`highpass: unsupported option ${name}`);
-    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     const number = Number(value);
     if (!value || !Number.isFinite(number)
       || key === "frequency" && (number < 0 || number > 999999)
@@ -35,10 +44,15 @@ export async function highpassAudio(
   const b0 = options.poles === 1 ? (1 - a1) / 2 : (1 + Math.cos(angle)) / (2 * a0);
   const b1 = options.poles === 1 ? -b0 : -2 * b0;
   const b2 = options.poles === 1 ? 0 : b0;
-  budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * 8, 0));
-  const output: Float64Array[] = [];
+  const output: (Float32Array | Float64Array)[] = [];
+  channelNames ??= channels.length === 1 ? ["FC"] : channels.length === 2 ? ["FL", "FR"] : [];
   let work = 0;
-  for (const channel of channels) {
+  for (const [index, channel] of channels.entries()) {
+    if (selected && !selected.includes(channelNames[index] ?? "")) {
+      output.push(channel);
+      continue;
+    }
+    budget.allocateMemory(channel.length * 8);
     const samples = new Float64Array(channel.length);
     let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
     for (let i = 0; i < channel.length; i++) {

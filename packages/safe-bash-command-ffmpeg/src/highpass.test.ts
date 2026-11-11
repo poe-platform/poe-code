@@ -48,7 +48,7 @@ it("keeps channel histories separate", async () => {
   assert.ok(audio.channelData[1]!.every(value => value === 0));
 });
 
-for (const options of ["f=NaN", "f=-1", "f=1000000", "f=", "p=0", "p=3", "p=1.5", "m=-1", "m=1.1", "unknown=1"]) {
+for (const options of ["f=NaN", "f=-1", "f=1000000", "f=", "p=0", "p=3", "p=1.5", "m=-1", "m=1.1", "unknown=1", "c=", "channels=bogus"]) {
   it(`rejects invalid highpass ${options} without overwriting`, async () => {
     const { fs, result, stderr } = await run(`highpass=${options}`);
     assert.equal(result.exitCode, 1);
@@ -96,3 +96,42 @@ it("bounds memory and honors cancellation", async () => {
   await assert.rejects(highpassAudio([samples], rate, "highpass", new MediaBudgetTracker({ maxMemoryBytes: 64 })), /maxMemoryBytes/);
   await assert.rejects(highpassAudio([samples], rate, "highpass", new MediaBudgetTracker(), AbortSignal.abort()));
 });
+
+for (const graph of [false, true]) {
+  for (const [selection, selected] of [
+    ["c=FL", [0]], ["channels=FL", [0]], ["channels=FR", [1]], ["c=FL+FR", [0, 1]],
+    ["c=all", [0, 1]], ["", [0, 1]], ["c=FC", []], ["c=FL:m=0", []]
+  ] as const) {
+    it(`filters only selected impulse channels: ${selection} (graph=${graph})`, async () => {
+      const impulse = Float64Array.from({ length: 64 }, (_, i) => i === 8 ? 12000 / 32768 : 0);
+      const bytes = encodeWav({ sampleRate: 8000, channels: [impulse, impulse] });
+      const { fs, result, stderr } = await run(`highpass=f=1000${selection ? ":" + selection : ""}`, graph, bytes);
+      assert.equal(result.exitCode, 0, stderr);
+      const audio = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+      const source = parseWav(bytes).tracks[0]!.decodedAudio!;
+      for (const [index, channel] of audio.channelData.entries()) {
+        if (!(selected as readonly number[]).includes(index)) {
+          assert.deepEqual(channel, source.channelData[index]);
+        } else {
+          // Native FFmpeg 7.0.2 PCM16 impulse response.
+          const actual = Array.from(channel.slice(8, 11), sample => sample * 32768);
+          for (const [i, expected] of [6828, -7218, -2253].entries()) {
+            assert.ok(Math.abs(actual[i]! - expected) <= 1, `${actual[i]} != ${expected}`);
+          }
+        }
+      }
+    });
+  }
+}
+
+for (const graph of [false, true]) {
+  it(`selects speakers from the upstream channel layout (graph=${graph})`, async () => {
+    const impulse = Float64Array.from({ length: 64 }, (_, i) => i === 8 ? 12000 / 32768 : 0);
+    const bytes = encodeWav({ sampleRate: 8000, channels: [impulse, impulse] });
+    const { fs, result, stderr } = await run("pan=FR+FC|c0=c0|c1=c1,highpass=f=1000:c=FC", graph, bytes);
+    assert.equal(result.exitCode, 0, stderr);
+    const audio = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+    assert.deepEqual(audio.channelData[0], parseWav(bytes).tracks[0]!.decodedAudio!.channelData[0]);
+    assert.ok(Math.abs(audio.channelData[1]![8]! * 32768 - 6828) <= 1);
+  });
+}

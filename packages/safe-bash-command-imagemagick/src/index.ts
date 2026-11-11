@@ -9951,7 +9951,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const spans = white.map((value, channel) => value - black[channel]!);
         const levelValue = (value: number, channel: number, protection = 0): number => {
             const span = spans[channel]!;
-            if (inverse) return black[channel]! + Math.pow(Math.max(0, Math.min(1, value / 255)), gamma) * span;
+            if (inverse) return black[channel]! + (value < 0 ? value / 255 : Math.pow(value / 255, gamma)) * span;
             const norm = (value - black[channel]!) / (span === 0 ? 1e-6 : span);
             // Native gamma_pow leaves negative samples unchanged, then -level clamps the curve.
             const curve = (norm < 0 ? norm : Math.pow(norm, exponent)) * 255;
@@ -9979,7 +9979,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 // Numeric levels sync all channels together, including the unbounded alpha.
                 if (protection > 0 && !colorEndpoints && mask[3]) {
                     const norm = (alpha * 255 - black[3]!) / (spans[3] === 0 ? 1e-6 : spans[3]!);
-                    editedAlpha = inverse ? (black[3]! + Math.pow(Math.max(0, Math.min(1, alpha)), gamma) * spans[3]!) / 255
+                    editedAlpha = inverse ? levelValue(alpha * 255, 3) / 255
                         : norm < 0 ? norm : Math.pow(norm, exponent);
                 }
                 for (let c = 0; c < mask.length; c++) {

@@ -13326,7 +13326,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         if (t === "-set" && tokens[i + 1]?.toLowerCase().startsWith("option:") && tokens[i + 2]?.includes("%") && stack[0]) {
             const image = stack[0];
             const value = yield* formatMagickPropertyStringSteps(tokens[i + 2]!, image, () => image,
-                { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: 0, optionProperties: state.optionProperties });
+                { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: 0, optionProperties: state.optionProperties, ...(state.precision !== undefined ? { precision: state.precision } : {}) });
             tokens = [...tokens.slice(0, i + 2), value, ...tokens.slice(i + 3)];
         }
         let frameListOperand: string | undefined;
@@ -13443,7 +13443,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const properties: { key: string; value: string }[] = [];
             for (let sceneIdx = 0; sceneIdx < stack.length; sceneIdx++) {
                 const image = stack[sceneIdx]!;
-                const context = { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, optionProperties: state.optionProperties };
+                const context = { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, optionProperties: state.optionProperties, ...(state.precision !== undefined ? { precision: state.precision } : {}) };
                 properties.push({
                     key: yield* formatMagickPropertyStringSteps(key, image, () => image, context),
                     value: yield* formatMagickPropertyStringSteps(value, image, () => image, context)
@@ -17265,7 +17265,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-set" && !tokens[i + 1]?.toLowerCase().startsWith("option:") && !tokens[i + 1]?.toLowerCase().startsWith("connected-components:")) {
             const key = tokens[++i] ?? "", value = tokens[++i] ?? "";
-            const optionProperties = state.optionProperties, units = state.units === "unknown" ? undefined : state.units;
+            const optionProperties = state.optionProperties, precision = state.precision, units = state.units === "unknown" ? undefined : state.units;
             let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 images = stack;
@@ -17273,7 +17273,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const context = { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties };
+                const context = { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties, ...(precision !== undefined ? { precision } : {}) };
                 const expandedKey = await formatRetainedIdentify(key, image, context, async () => ({ image, storage: backend.storage }), signal, images);
                 const expanded = await formatRetainedIdentify(value, image, context, async () => ({ image, storage: backend.storage }), signal, images);
                 if (["width", "height", "size", "k", "w", "h", "n", "t"].includes(expandedKey.toLowerCase())) {

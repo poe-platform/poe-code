@@ -8350,6 +8350,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     data16[idx + 3] = 65535;
                 }
             }
+            if (token === "-colorspace" && (space === "gray" || space === "grey")) {
+                image = { ...image, [magickInput]: { ...image[magickInput], imageType: "Grayscale" } };
+            }
             const { data16: ignored, magickColorspace: ignoredSpace, hueSamples: ignoredHue, storedHueSamples: ignoredStoredHue, ...metadata } = image;
             const hasAlpha = imageType === undefined ? image.hasAlpha : imageType === "grayscalealpha";
             return { ...metadata, isPalette: false, data: out, data16, evaluateSamples, space: "b-w", ...(luminance ? { gamma: 1 } : {}), hasAlpha, channels: hasAlpha ? 2 : 1 };
@@ -11461,6 +11464,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const result: RgbaImage = yield* uniqueColorsSteps(image);
+                result[magickInput] = { ...image[magickInput], imageType: undefined };
                 if (image.metaChannels) {
                     result.metaChannels = [];
                     for (const plane of image.metaChannels) result.metaChannels.push(yield* createSolidRgbaImageSteps(result.width, 1, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16));
@@ -14542,6 +14546,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return undefined;
                 const result: StoredRgbaImage = await uniqueColorsStored(image, backend.storage, signal);
+                result[magickInput] = { ...image[magickInput], imageType: undefined };
                 if (image.storedMetaChannels) {
                     result.storedMetaChannels = [];
                     for (const plane of image.storedMetaChannels) result.storedMetaChannels.push(await createStoredCanvas(result.width, 1, { r: 0, g: 0, b: 0, a: 255 }, backend, signal, !!plane.storedData16));

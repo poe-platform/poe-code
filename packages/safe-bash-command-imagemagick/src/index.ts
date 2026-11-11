@@ -7106,18 +7106,43 @@ function* drawOverlayPixelSteps(image: Pick<RgbaImage, "width" | "height">, over
     }
 }
 
-function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: string, state: MagickState): Generator<MagickDrawStep | undefined, void, void> {
-    yield;
+function* applyMagickDrawingSteps(im: RgbaImage, drawSpec: string, state: MagickState, tile?: RgbaImage, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    for (const step of magickDrawSteps(im, drawSpec, state)) {
+        if (!step) { yield; continue; }
+        if ((im.space === "b-w" || im.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
+            im = { ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 };
+        if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step, !!im.data16, tile), signal, { ...im, hasAlpha: true }, tile ? [im, tile] : [im]);
+        else if (step.kind === "paint-point" || step.kind === "reset") im = yield* applyMagickRasterSteps(im, drawPointPixelSteps(im, step, !!im.data16), signal, { ...im, hasAlpha: im.hasAlpha || step.color.a < 255 });
+        else if (step.kind === "replace") im = yield* applyMagickRasterSteps(im, drawReplacePixelSteps(im, step.x, step.y, step.color, step.alphaOnly, state.alphaFuzz, !!im.data16), signal, { ...im, hasAlpha: true });
+        else if (step.kind === "floodfill") im = yield* applyMagickFloodfillSteps(im, `+${step.x}+${step.y}`, step.fillToBorder ? state.borderColor : undefined, step.color, state.alphaFuzz, signal, step.alphaOnly, undefined, step.fillToBorder);
+        else {
+            const overlay = decodeImage(new TextEncoder().encode(step.svg), { density: state.density });
+            im = yield* applyMagickRasterSteps(im, drawOverlayPixelSteps(im, overlay), signal, { ...im, hasAlpha: true }, [im, overlay]);
+            detachRgbaBuffer(overlay.data);
+        }
+    }
+    return im;
+}
+
+async function applyStoredMagickDrawing(image: StoredRgbaImage, drawing: string, settings: MagickState, backend: CompareFileSession, signal: AbortSignal, tile?: StoredRgbaImage): Promise<StoredRgbaImage> {
+    for (const step of magickDrawSteps(image, drawing, settings)) {
+        if (!step) { await yieldTurn(signal); continue; }
+        if ((image.space === "b-w" || image.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
+            image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
+        if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step, !!image.storedData16, tile), signal, { ...image, hasAlpha: true }, tile ? [image, tile] : [image]);
+        else if (step.kind === "paint-point" || step.kind === "reset") image = await transformStoredMagickRaster(image, backend, drawPointPixelSteps(image, step, !!image.storedData16), signal, { ...image, hasAlpha: image.hasAlpha || step.color.a < 255 });
+        else if (step.kind === "replace") image = await transformStoredMagickRaster(image, backend, drawReplacePixelSteps(image, step.x, step.y, step.color, step.alphaOnly, settings.alphaFuzz, !!image.storedData16), signal, { ...image, hasAlpha: true });
+        else if (step.kind === "floodfill") image = await floodfillStoredImage(image, backend.storage, step.x, step.y, step.fillToBorder ? settings.borderColor : undefined, step.color, settings.alphaFuzz, signal, step.alphaOnly, undefined, step.fillToBorder);
+        else {
+            const overlay = await decodeStoredMagickSvg(step.svg, settings.density, backend, signal);
+            image = await transformStoredMagickRaster(image, backend, drawOverlayPixelSteps(image, overlay), signal, { ...image, hasAlpha: true }, [image, overlay]);
+        }
+    }
+    return image;
+}
+
+function* magickDrawTokensSteps(drawCmd: string): Generator<undefined, string[], void> {
     let cooperativeWork = 0;
-    const svgElements: string[] = [];
-    let fill = state.fill;
-    let tile = state.tile !== undefined;
-    let stroke = rgbaToCss(state.stroke);
-    let strokeWidth = state.strokeWidth;
-    let fillOpacity: number | undefined;
-    let strokeOpacity: number | undefined;
-    let affine: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0];
-    const contexts: { fill: RgbaColor; tile: boolean; stroke: string; strokeWidth: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
     const tokens: string[] = [];
     for (let offset = 0; offset < drawCmd.length;) {
         if (++cooperativeWork % 65536 === 0) yield;
@@ -7136,6 +7161,41 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         while (offset < drawCmd.length && drawCmd[offset] !== "," && drawCmd[offset]!.trim() !== "") offset++;
         tokens.push(drawCmd.slice(start, offset));
     }
+    return tokens;
+}
+
+function* mvgCanvasSizeSteps(drawing: string, state: MagickState): Generator<void, { width: number; height: number }, void> {
+    let width = state.hasSize ? state.sizeWidth : 0, height = state.hasSize ? state.sizeHeight : 0;
+    if (!width || !height) {
+        for (const line of drawing.split("\n")) {
+            yield;
+            const tokens = yield* magickDrawTokensSteps(line);
+            if (tokens[0] !== "viewbox" || tokens.length < 5) continue;
+            const bounds = tokens.slice(1, 5).map(Number);
+            if (!bounds.every(Number.isFinite)) continue;
+            width = Math.floor(bounds[2]! - bounds[0]! + 0.5);
+            height = Math.floor(bounds[3]! - bounds[1]! + 0.5);
+            break;
+        }
+    }
+    if (width <= 0 || height <= 0) throw new Error("must specify image size for MVG input");
+    if (!Number.isSafeInteger(width * height * 8) || width * height * 8 > 0x7fffffff) throw new Error("MVG image dimensions exceed resource limits");
+    return { width, height };
+}
+
+function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: string, state: MagickState): Generator<MagickDrawStep | undefined, void, void> {
+    yield;
+    let cooperativeWork = 0;
+    const svgElements: string[] = [];
+    let fill = state.fill;
+    let tile = state.tile !== undefined;
+    let stroke = rgbaToCss(state.stroke);
+    let strokeWidth = state.strokeWidth;
+    let fillOpacity: number | undefined;
+    let strokeOpacity: number | undefined;
+    let affine: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0];
+    const contexts: { fill: RgbaColor; tile: boolean; stroke: string; strokeWidth: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
+    const tokens = yield* magickDrawTokensSteps(drawCmd);
     let i = 0;
     const num = () => {
         const value = Number(tokens[i++]);
@@ -7165,6 +7225,9 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                 if (!context) throw new Error("Cannot pop graphic-context without a matching push");
                 ({ fill, tile, stroke, strokeWidth, affine, fillOpacity, strokeOpacity } = context);
             }
+        }
+        else if (cmd === "viewbox") {
+            for (let coordinate = 0; coordinate < 4; coordinate++) num();
         }
         else if (cmd === "translate" || cmd === "scale" || cmd === "rotate" || cmd === "affine") {
             let next: typeof affine;
@@ -8122,6 +8185,15 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             }
             return { ...tiled, hasAlpha: pattern.hasAlpha || offsetX !== 0 || offsetY !== 0 };
         })));
+    }
+    if (lower.startsWith("mvg:")) {
+        const path = baseToken.slice(4), bytes = path === "-" ? stdinBytes : files.get(path);
+        if (!bytes) return undefined;
+        const drawing = new TextDecoder().decode(bytes);
+        const { width, height } = yield* mvgCanvasSizeSteps(drawing, state);
+        const tile = state.tile === undefined ? undefined : yield* parseInputOperandSteps(state.tile, files, state, stdinBytes, analysis);
+        const image = yield* applyMagickDrawingSteps(yield* createSolidRgbaImageSteps(width, height, state.background), drawing, state, tile);
+        return yield* applyMod([Object.assign(image, { [magickInput]: { filePath: path, byteLen: bytes.length, inputFormat: "MVG" } })]);
     }
     if (lower.startsWith("cube:")) {
         const path = baseToken.slice(5), input = path === "-" ? stdinBytes : files.get(path);
@@ -15509,23 +15581,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const drawSpec = tokens[++i] ?? "";
             const tile = state.tile === undefined ? undefined : yield* parseInputOperandSteps(state.tile, files, state, stdinBytes, analysis);
             if (state.tile !== undefined && !tile) throw new Error(`Unable to read drawing tile '${state.tile}'`);
-            stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                for (const step of magickDrawSteps(im, drawSpec, state)) {
-                    if (!step) { yield; continue; }
-                    if ((im.space === "b-w" || im.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
-                        im = { ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 };
-                    if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step, !!im.data16, tile), signal, { ...im, hasAlpha: true }, tile ? [im, tile] : [im]);
-                    else if (step.kind === "paint-point" || step.kind === "reset") im = yield* applyMagickRasterSteps(im, drawPointPixelSteps(im, step, !!im.data16), signal, { ...im, hasAlpha: im.hasAlpha || step.color.a < 255 });
-                    else if (step.kind === "replace") im = yield* applyMagickRasterSteps(im, drawReplacePixelSteps(im, step.x, step.y, step.color, step.alphaOnly, state.alphaFuzz, !!im.data16), signal, { ...im, hasAlpha: true });
-                    else if (step.kind === "floodfill") im = yield* applyMagickFloodfillSteps(im, `+${step.x}+${step.y}`, step.fillToBorder ? state.borderColor : undefined, step.color, state.alphaFuzz, signal, step.alphaOnly, undefined, step.fillToBorder);
-                    else {
-                        const overlay = decodeImage(new TextEncoder().encode(step.svg), { density: state.density });
-                        im = yield* applyMagickRasterSteps(im, drawOverlayPixelSteps(im, overlay), signal, { ...im, hasAlpha: true }, [im, overlay]);
-                        detachRgbaBuffer(overlay.data);
-                    }
-                }
-                return im;
-            });
+            stack = yield* mapMagickImagesSteps(stack, im => applyMagickDrawingSteps(im, drawSpec, state, tile, signal));
         }
         else if (t === "-annotate") {
             const offsetOrText = tokens[++i] ?? "+0+0";
@@ -18726,20 +18782,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const tile = settings.tile === undefined ? undefined : await parseStoredCompareInput(settings.tile, settings, backend, signal, { analysis });
-                for (const step of magickDrawSteps(image, drawing, settings)) {
-                    if (!step) { await yieldTurn(signal); continue; }
-                    if ((image.space === "b-w" || image.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
-                        image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
-                    if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step, !!image.storedData16, tile), signal, { ...image, hasAlpha: true }, tile ? [image, tile] : [image]);
-                    else if (step.kind === "paint-point" || step.kind === "reset") image = await transformStoredMagickRaster(image, backend, drawPointPixelSteps(image, step, !!image.storedData16), signal, { ...image, hasAlpha: image.hasAlpha || step.color.a < 255 });
-                    else if (step.kind === "replace") image = await transformStoredMagickRaster(image, backend, drawReplacePixelSteps(image, step.x, step.y, step.color, step.alphaOnly, settings.alphaFuzz, !!image.storedData16), signal, { ...image, hasAlpha: true });
-                    else if (step.kind === "floodfill") image = await floodfillStoredImage(image, backend.storage, step.x, step.y, step.fillToBorder ? settings.borderColor : undefined, step.color, settings.alphaFuzz, signal, step.alphaOnly, undefined, step.fillToBorder);
-                    else {
-                        const overlay = await decodeStoredMagickSvg(step.svg, settings.density, backend, signal);
-                        image = await transformStoredMagickRaster(image, backend, drawOverlayPixelSteps(image, overlay), signal, { ...image, hasAlpha: true }, [image, overlay]);
-                    }
-                }
-                return image;
+                return applyStoredMagickDrawing(image, drawing, settings, backend, signal, tile);
             });
         } else if (!operandsOnly && token === "-annotate") {
             const offsetOrText = tokens[++i] ?? "+0+0", explicit = hasAnnotationOffset(offsetOrText);
@@ -20803,6 +20846,22 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   }
   const pattern=await parseStoredCompareInput(baseToken.slice(5),state,backend,signal,{onInvalidIndex:readOptions.onInvalidIndex,analysis:readOptions.analysis,registers:readOptions.registers,source:readOptions.source,lastPage:readOptions.lastPage===true});if(!pattern)return;
   image=await tile(pattern);
+ }else if(lower.startsWith("mvg:")){
+  const path = baseToken.slice(4);
+  const consume = async (source: ImageByteSource) => {
+   const decoder = new TextDecoder();
+   let drawing = "";
+   for (let offset = 0; offset < source.size; offset += 16384) {
+    await yieldTurn(signal);
+    drawing += decoder.decode(await source.read(offset, Math.min(16384, source.size - offset), { signal }), { stream: true });
+   }
+   drawing += decoder.decode();
+   const { width, height } = await drainSteps(mvgCanvasSizeSteps(drawing, state), signal);
+   const tile = state.tile === undefined ? undefined : await parseStoredCompareInput(state.tile, state, backend, signal, { analysis: readOptions.analysis, registers: readOptions.registers });
+   const image = await applyStoredMagickDrawing(await createStoredCanvas(width, height, state.background, backend, signal), drawing, state, backend, signal, tile);
+   return Object.assign(image, { [magickInput]: { filePath: path, byteLen: source.size, inputFormat: "MVG" } });
+  };
+  image = readOptions.source === null ? undefined : readOptions.source ? await consume(readOptions.source) : await backend.read(path, consume);
  }else if(lower.startsWith("cube:")){
   const consume=async(source:ImageByteSource)=>{
    const steps=cubeInput(source.size);

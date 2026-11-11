@@ -10317,7 +10317,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 234 };
             }
             pendingSubtitleCharencMode = subtitleCharencModeNames.get(pendingSubtitleCharencMode ?? "") ?? pendingSubtitleCharencMode;
-            if (!["ignore", "do_nothing", "auto", "pre_decoder"].includes(pendingSubtitleCharencMode ?? "") || !args.slice(i + 1).includes("-i")) {
+            if (pendingSubtitleCharencMode === undefined || !args.slice(i + 1).includes("-i")) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: -sub_charenc_mode requires ignore (2), do_nothing (-1), auto (0) or pre_decoder (1) before an input\n"), context.signal);
               return { exitCode: 1 };
             }
@@ -11822,6 +11822,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     channelLayout: `${description.channels} channels`
                   })) };
                 }) };
+              }
+              if (inp.subtitleCharencMode !== undefined &&
+                  !["ignore", "do_nothing", "auto", "pre_decoder"].includes(inp.subtitleCharencMode) &&
+                  doc.tracks.some(track => track.type === "subtitle")) {
+                await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid sub_charenc_mode: ${inp.subtitleCharencMode}\n`), context.signal);
+                if (subtitleCodec !== "copy") return { exitCode: 234 };
               }
               if (inp.subtitleCharset !== undefined && subtitleCodec !== "copy" && inp.subtitleCharencMode !== "ignore" && inp.subtitleCharencMode !== "do_nothing") doc = recodeSubtitles(doc, inp.subtitleCharset);
               if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);

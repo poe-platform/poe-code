@@ -128,7 +128,13 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
         else if (flag === "d") {
           if (offset + 1 === token.length && context.args[++index] === undefined) usageError("option requires an argument -- 'd'");
           delimiterList = getCommandArguments(context).bytes(index)!.subarray(token.length > offset + 1 ? offset + 1 : 0); break;
-        } else usageError(`invalid option -- '${flag}'`);
+        } else {
+          // All preceding flags are ASCII; GNU reports the first offending byte verbatim.
+          await context.stderr.write(encode("paste: invalid option -- '"));
+          await context.stderr.write(getCommandArguments(context).bytes(index)!.subarray(offset, offset + 1));
+          await context.stderr.write(encode("'\nTry 'paste --help' for more information.\n"));
+          return { exitCode: 1 };
+        }
       }
     }
     const list = delimiters(delimiterList, locale);

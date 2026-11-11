@@ -2277,7 +2277,7 @@ async function applyVideoFilterChain(
   frames: MediaVideoFrame[],
   filterChainStr: string,
   budget: MediaBudgetTracker,
-  diagnostics: { frameRateScale?: number; frameRateKnown?: boolean; sar: number; sarWidth: number; sarHeight: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void>; writeReport: (file: string, text: string) => Promise<void> },
+  diagnostics: { frameDuration: number; frameRateScale?: number; frameRateKnown?: boolean; sar: number; sarWidth: number; sarHeight: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void>; writeReport: (file: string, text: string) => Promise<void> },
   readSubtitle: (filename: string) => Promise<Uint8Array>,
   registry: ReturnType<typeof createMediaAstRegistry>,
   signal?: AbortSignal,
@@ -2312,7 +2312,7 @@ async function applyVideoFilterChain(
       for await (const frame of pending) current.push(frame);
       pending = undefined;
     }
-    frameDuration = current[0]?.durationSeconds ?? frameDuration;
+    frameDuration = current[0]?.durationSeconds || frameDuration;
     const lastInputFrame = pending ? undefined : current.at(-1);
     const argStr = eqIdx >= 0 ? filterSpec.slice(eqIdx + 1).trim() : "";
     const positional = argStr.split(":");
@@ -5585,7 +5585,7 @@ async function applyVideoFilterChain(
         });
         previousInput = input;
         previousOutput = output;
-        return { ...f, ptsSeconds: Math.trunc(output) / timescale };
+        return { ...f, ptsSeconds: Math.trunc(output) / timescale, durationSeconds: 0 };
       }, signal);
       // EOF follows the same expression as frame PTS, independently of frame duration.
       const endTime = endTimeSeconds ?? (lastInputFrame ? lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds : 0);
@@ -5748,6 +5748,7 @@ async function applyVideoFilterChain(
   }
 
   diagnostics.timescale = timescale;
+  diagnostics.frameDuration = frameDuration;
   diagnostics.frameRateKnown = frameRateKnown;
   diagnostics.frameRateScale = frameRateScale;
   return current;
@@ -11586,6 +11587,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const offsetTicks = Math.round(presentationOffset * t.timescale);
                   const decoded = await ensureDecodedFrames(t, workingDoc.timescale, budget, context.signal);
                   const diagnostics = {
+                    frameDuration: decoded[0]?.durationSeconds ?? 1 / t.timescale,
                     frameRateKnown: true,
                     frameRateScale: 1,
                     timescale: workingDoc.containerFormat === "image2" && decoded[0]?.durationSeconds
@@ -11645,9 +11647,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       sarHeight: diagnostics.sarHeight
                     })),
                     samples: [],
-                    // Encoders derive their nominal cadence from frame durations.
+                    // Preserve encoder cadence when setpts clears filter-frame durations.
                     decodedVideoFrames: filtered.map(frame => ({ ...frame,
-                      durationSeconds: frame.durationSeconds * diagnostics.frameRateScale,
+                      durationSeconds: (frame.durationSeconds || diagnostics.frameDuration) * diagnostics.frameRateScale,
                       ptsSeconds: Math.round(frame.ptsSeconds * filteredTimescale) / filteredTimescale + offsetTicks / t.timescale }))
                   };
                 }, context.signal)

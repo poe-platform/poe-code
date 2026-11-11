@@ -4665,7 +4665,7 @@ async function applyVideoFilterChain(
       if (!Number.isFinite(value) || value < 0 || value > 1) throw new RangeError("field: expected type=top or bottom");
       const parity = roundToEven(value);
       current = await mapWork(current, async (f) => {
-        const height = Math.floor(f.height / 2);
+        const height = Math.floor((f.height + 1 - parity) / 2);
         if (height === 0) throw new Error("field: input height must be at least two");
         budget.recordFrame(f.width, height);
         const output = { ...f, height, interlaced: false, topFieldFirst: false };

@@ -7463,7 +7463,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 }
                 im = { ...image, evaluateSamples };
             }
-            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im as MagickImage)[magickInput], blackPointCompensation: state.blackPointCompensation, interpolation: state.interpolation, intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
+            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im.format === "pgm" ? { imageType: "Grayscale" as const } : {}), ...(im as MagickImage)[magickInput], blackPointCompensation: state.blackPointCompensation, interpolation: state.interpolation, intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
             if (state.compression !== undefined) im = { ...im, [magickInput]: { ...im[magickInput], compression: state.compression } };
             if (state.inputType !== undefined) im = setMagickType(im as MagickImage, state.inputType);
             if (state.qualityExplicit) im = { ...im, quality: state.quality };
@@ -8511,6 +8511,21 @@ function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: M
         }
     }
 }
+// ContrastStretchImage restores the gray cache from red when the image type is gray.
+function* prepareMagickGrayStretch(image: RgbaImage): Generator<void, RgbaImage, void> {
+    const data = image.data.slice(), data16 = image.data16?.slice();
+    const evaluateSamples = image.evaluateSamples?.slice(), hueSamples = image.hueSamples?.slice();
+    for (let offset = 0; offset < data.length; offset += 4) {
+        if (offset && offset % 65536 === 0) yield;
+        data[offset + 1] = data[offset + 2] = data[offset]!;
+        if (data16) data16[offset + 1] = data16[offset + 2] = data16[offset]!;
+        if (evaluateSamples) evaluateSamples[offset + 1] = evaluateSamples[offset + 2] = evaluateSamples[offset]!;
+        if (hueSamples) hueSamples[offset + 1] = hueSamples[offset + 2] = hueSamples[offset]!;
+    }
+    return { ...image, data, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}),
+        ...(hueSamples ? { hueSamples } : {}), space: "b-w", magickColorspace: "Gray", channels: image.hasAlpha ? 2 : 1 };
+}
+
 function* applyMagickLookup(image: RgbaImage, lookup: (Uint8Array | Uint16Array | Float32Array)[], paletteLookup = lookup, active?: readonly boolean[]): Generator<void, RgbaImage, void> {
     const data = new Uint8Array(image.data);
     const fractional = lookup[0] instanceof Float32Array;
@@ -12340,6 +12355,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const operation = t === "-auto-threshold" || t === "-sepia-tone" || t === "-contrast-stretch" || t === "-linear-stretch" ? parseMagickAnalysisOperation([t,
                     yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties })
                 ], state, 0)! : analysisOperation;
+                if ((t === "-normalize" || t === "-contrast-stretch") && image.space !== "cmyk" && image[magickInput]?.imageType)
+                    image = yield* prepareMagickGrayStretch(image);
                 const sums = t === "-auto-gamma" ? { count: 0, values: [0, 0, 0, 0, 0] } : undefined;
                 const cmykStretch = image.space === "cmyk" && (t === "-contrast-stretch" || t === "-linear-stretch");
                 const histogram = sums ? [] : t === "-auto-level" ? Array.from({ length: image.space === "cmyk" ? 5 : 4 }, () => new Float64Array([Infinity, -Infinity])) : Array.from({ length: cmykStretch || operation.sepiaThreshold !== undefined && image.space === "cmyk" ? 6 : analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(cmykStretch || channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.data16 ? 65536 : 256));
@@ -16008,8 +16025,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
                 const operation = token === "-auto-threshold" || token === "-sepia-tone" || token === "-contrast-stretch" || token === "-linear-stretch" ? parseMagickAnalysisOperation([token,
-                    await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal)
+                    await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image: image!, storage: backend.storage }), signal)
                 ], settings, 0)! : analysisOperation;
+                if ((token === "-normalize" || token === "-contrast-stretch") && image.space !== "cmyk" && image[magickInput]?.imageType)
+                    image = await transformStoredMagickPixels(image, backend, { end: 0, evaluate: true, apply: prepareMagickGrayStretch }, signal, true);
                 const sums = token === "-auto-gamma" ? { count: 0, values: [0, 0, 0, 0, 0] } : undefined;
                 const cmykStretch = image.space === "cmyk" && (token === "-contrast-stretch" || token === "-linear-stretch");
                 const histogram = sums ? [] : token === "-auto-level" ? Array.from({ length: image.space === "cmyk" ? 5 : 4 }, () => new Float64Array([Infinity, -Infinity])) : Array.from({ length: cmykStretch || operation.sepiaThreshold !== undefined && image.space === "cmyk" ? 6 : analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(cmykStretch || channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.storedData16 ? 65536 : 256)), size = image.width * image.height * 4;
@@ -18893,7 +18912,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    }
    image = { ...metadata, storedEvaluateSamples };
   }
-  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image as StoredMagickImage)[magickInput], blackPointCompensation: state.blackPointCompensation, interpolation: state.interpolation, intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
+  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image.format === "pgm" ? { imageType: "Grayscale" as const } : {}), ...(image as StoredMagickImage)[magickInput], blackPointCompensation: state.blackPointCompensation, interpolation: state.interpolation, intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
   if(state.compression!==undefined)image={...image,[magickInput]:{...image[magickInput],compression:state.compression}};
   if(state.inputType!==undefined)image=setMagickType(image as StoredMagickImage,state.inputType);
   if(state.qualityExplicit)image={...image,quality:state.quality};

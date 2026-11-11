@@ -35,7 +35,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
     const { filesystem: fs, cwd, stdout, registerCleanup } = input, context = { signal, ...(registerCleanup ? { registerCleanup } : {}) }, io = { signal };
     // Coalesce scratch writes into object-sized pages without increasing the 1 MiB working set.
     const storage = new PagedStorage({ fs, cwd, env: {}, signal }, 16, new PagedStorageCache(16, 65536));
-    const snapshots = new EncodedSnapshots(storage, signal);
+    const snapshots = new EncodedSnapshots(storage, signal, cwd);
     let failed = true;
     const materialize = async (source: ImageByteSource) => { const bytes = new Uint8Array(source.size); for (let offset = 0; offset < source.size; offset += 16384) {
         signal.throwIfAborted();

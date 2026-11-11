@@ -3,6 +3,7 @@ import { type ImageByteSource, type StoredImageFileInput, type StoredRgbaImage }
 import { StoredImageStack } from "./stored-stack.js";
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { resolvePath } from "safe-bash-contracts/path";
 
 interface Snapshot {
     image: StoredRgbaImage;
@@ -28,7 +29,7 @@ export class EncodedSnapshots {
     private readonly records = new Map<number, SnapshotRecord>();
     private readonly pages: IntegerTable;
     private nextPage = 0;
-    constructor(private readonly storage: PagedStorage, private readonly signal: AbortSignal) {
+    constructor(private readonly storage: PagedStorage, private readonly signal: AbortSignal, private readonly cwd: string) {
         this.pages = new IntegerTable(storage, 128);
         this.buckets = new IntegerTable(storage, 128); this.order = new IntegerTable(storage, 128);
         this.images = new StoredImageStack(storage, signal);
@@ -49,7 +50,7 @@ export class EncodedSnapshots {
                 if (next.done) {
                     if (!next.value) throw new Error("Image encoding did not finish");
                     if (used) await retain();
-                    const hash = this.hash(path), previous = await this.find(path, hash);
+                    const key = resolvePath(this.cwd, path), hash = this.hash(key), previous = await this.find(key, hash);
                     const record: SnapshotRecord = { path, image: this.images.length, firstPage, size, encoding, info: next.value, next: Number(await this.buckets.get(hash) ?? -1n), order: previous?.order ?? this.size };
                     await this.images.push(image);
                     const bytes = new TextEncoder().encode(JSON.stringify(record)), position = this.storage.allocate(bytes.length + 8), header = new Uint8Array(8);
@@ -88,7 +89,7 @@ export class EncodedSnapshots {
     }
     private async find(path: string, hash: bigint): Promise<SnapshotRecord | undefined> {
         let position = Number(await this.buckets.get(hash) ?? -1n);
-        while (position >= 0) { await yieldTurn(this.signal); const record = await this.record(position); if (record.path === path) return record; position = record.next ?? -1; }
+        while (position >= 0) { await yieldTurn(this.signal); const record = await this.record(position); if (resolvePath(this.cwd, record.path) === path) return record; position = record.next ?? -1; }
     }
     private async snapshot(record: SnapshotRecord): Promise<Snapshot> {
         const { firstPage, size } = record;
@@ -109,7 +110,7 @@ export class EncodedSnapshots {
         return { image: (await this.images.get(record.image))!, encoding: record.encoding, encoded: { source, info: record.info } };
     }
     async get(path: string): Promise<Snapshot | undefined> {
-        const record = await this.find(path, this.hash(path)); return record ? this.snapshot(record) : undefined;
+        const key = resolvePath(this.cwd, path), record = await this.find(key, this.hash(key)); return record ? this.snapshot(record) : undefined;
     }
     async *[Symbol.asyncIterator](): AsyncGenerator<readonly [string, Snapshot]> {
         for (let index = 0; index < this.size; index++) {

@@ -52,13 +52,13 @@ for (const stereo of [false, true]) {
   }
 }
 
-for (const graph of [
-  "[0:a]volume=invalid[x];[x][1:a]amix[o]",
-  "[1:a]unsupported_filter[x];[0:a][x]amix[o]"
-]) {
+for (const [graph, exitCode] of [
+  ["[0:a]volume=invalid[x];[x][1:a]amix[o]", 1],
+  ["[1:a]unsupported_filter[x];[0:a][x]amix[o]", 8]
+] as const) {
   it(`preserves output when an amix branch filter fails: ${graph}`, async () => {
     const { result, volume } = await mix(graph);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, exitCode);
     assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
   });
 }

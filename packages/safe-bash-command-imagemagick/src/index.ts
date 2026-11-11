@@ -11995,6 +11995,10 @@ if (t === "-intent" || t === "+intent") {
             const k = (tokens[++i] ?? "").toLowerCase();
             const v = tokens[++i] ?? "";
             if (k.startsWith("option:")) state.optionProperties = { ...state.optionProperties, [k.slice("option:".length)]: v };
+            if (k === "option:scene") {
+                state.scene = Number(v);
+                if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
+            }
             if (k === "option:magnify:method") state.magnifyMethod = parseMagnifyMethod(v);
             if (k === "option:deskew:auto-crop") state.deskewAutoCrop = v.toLowerCase();
             if (k === "option:connected-components:verbose") {

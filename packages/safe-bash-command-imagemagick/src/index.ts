@@ -7735,6 +7735,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     if (listRes) return listRes;
     let cooperativeWork = 63;
     let verbose = false;
+    let quiet = false;
     let moments = false;
     let convexHull = false;
     let customFormat: string | undefined;
@@ -7764,6 +7765,10 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         }
         if (a === "-verbose" || a === "--verbose") {
             verbose = true;
+        }
+        else if (a === "-quiet" || a === "+quiet") {
+            // Identify treats both spellings as invocation-wide warning suppression.
+            quiet = true;
         }
         else if (a === "-define" || a === "+define") {
             const value = argv[++i];
@@ -7995,7 +8000,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             else {
                 outParts.push(`${inPath} ${meta.format.toUpperCase()} ${meta.width}x${meta.height} ${meta.width}x${meta.height}+0+0 ${bitDepth}-bit ${spaceLabel} ${size}B 0.000u 0:00.000\n`);
             }
-            if (analysis.warnings.length > warningOffset) errParts.push(analysis.warnings.slice(warningOffset));
+            if (!quiet && analysis.warnings.length > warningOffset) errParts.push(analysis.warnings.slice(warningOffset));
             if (analysis.errors) {
                 errParts.push(analysis.errors.replaceAll("magick: ", "identify: "));
                 exitCode = 1;

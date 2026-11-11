@@ -11513,7 +11513,11 @@ if (t === "-intent" || t === "+intent") {
             delete state.font;
         }
         else if (t === "-gravity") {
-            state.gravity = parseGravity(tokens[++i] ?? "center");
+            const value = tokens[++i];
+            if (value === undefined) throw new Error("missing argument for -gravity");
+            if (!["undefined", "none", "forget", "northwest", "north", "northeast", "west", "center", "east", "southwest", "south", "southeast"].includes(value.toLowerCase()))
+                throw new Error(`unrecognized gravity type '-gravity' '${value}'`);
+            state.gravity = value.toLowerCase() === "forget" ? undefined : parseGravity(value);
         }
         else if (t === "+gravity") {
             state.gravity = undefined;

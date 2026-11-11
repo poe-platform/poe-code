@@ -2501,13 +2501,17 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           let branch = nodes.get(input);
           while (branch && !branch.asplit && branch.inputs.length === 1 &&
             parseFilterChain(branch.expression).every(filter =>
-              ["anull", "acopy", "atrim"].includes(filter.split("=", 1)[0]!.split("@", 1)[0]!))) {
+              ["anull", "acopy", "atrim", "apad"].includes(filter.split("=", 1)[0]!.split("@", 1)[0]!))) {
             branch = nodes.get(branch.inputs[0]!);
           }
           return branch?.asplit ? branch.inputs : undefined;
         });
-        const splitGroups = splitInputs.map(input => input ? splitInputs.indexOf(input) : -1);
-        const track = await mixAudio(sources.map(source => source.track), filters[0]!, budget, signal, commands, format, splitGroups);
+        const splitGroups = splitInputs.map((input, index) => input && !audioPaddingEof.has(sources[index]!.track)
+          ? splitInputs.indexOf(input) : -1);
+        const paddingEofs = splitInputs.map((input, index) => input && input === splitInputs[0]
+          ? audioPaddingEof.get(sources[index]!.track) : undefined);
+        const track = await mixAudio(sources.map(source => source.track), filters[0]!, budget, signal, commands, format,
+          splitGroups, paddingEofs);
         return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "acrossfade" || filters[0]?.startsWith("acrossfade=")) {

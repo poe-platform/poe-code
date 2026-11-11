@@ -8,7 +8,7 @@ import { validateWeaveGenericOption } from "./weave-generic-option.js";
 export async function mixAudio(
   tracks: MediaTrack[], filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
   commands: readonly { action: string; expression: string }[] = [], sampleFormat = "flt",
-  splitGroups: readonly number[] = []
+  splitGroups: readonly number[] = [], paddingEofs: readonly (number | undefined)[] = []
 ): Promise<MediaTrack> {
   const inputs = tracks.map(track => {
     if (!track.decodedAudio) throw new Error("amix requires decoded PCM audio");
@@ -142,10 +142,17 @@ export async function mixAudio(
           nextExactPts = Number.isNaN(nextPts) ? -9223372036854775807n : undefined;
           if (nextExactPts !== undefined) nextPts = Number(nextExactPts);
         }
+        const frameStart = frameEnds[index]!;
         frameEnds[index]! += packet
           ? Math.max(0, Math.round(packet.duration * a.sampleRate / track.timescale)
             - Math.round(((packet.skipSamples ?? 0) + (packet.discardPadding ?? 0)) * a.sampleRate / track.decodedAudio!.sampleRate))
           : fallbackFrameSize;
+        // A split sibling delivers apad's first silent packet before input zero's
+        // EOF is acknowledged. Reading its empty PTS queue resets the mixer clock.
+        if (index > 0 && start === lengths[0] && frameStart === start && frameEnds[index] === paddingEofs[index]) {
+          nextPts = NaN;
+          nextExactPts = undefined;
+        }
       }
     }
     // The first input sets the mixer frames until EOF; then drain the remaining inputs.

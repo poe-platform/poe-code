@@ -98,6 +98,7 @@ import { withImageInputs, type ImageInputReader } from "./image-input.js";
 import { appendEnumerationMetaSamples, cmykEnumerationLine, srgbDepthEnumerationLine, gray16EnumerationLine, pixelEnumerationLine, histogramLine, hueHistogramPixel, sourceHistogramSamples, floatingHistogramKey, floatingHistogramLine, storedPixelEnumeration, storedHistogram, sparseColorPoints, storedSparseColor, encodeText } from "./text-output.js";
 import { StoredImageStack, magickInput, type MagickFormatContext, type StoredMagickImage } from "./stored-stack.js";
 import { remapColorOrder, remapStoredImage } from "./remap.js";
+import { paintWorkingChunk, paintWorkingPixel } from "./paint-working.js";
 import { drawReplacePixelSteps } from "./draw-replace.js";
 import { floodfillStoredImage, matchesAlphaFloodfill } from "./floodfill.js";
 import { createHoughTransform } from "./hough-kernel.js";
@@ -1128,6 +1129,7 @@ function* applyMagickFloodfillSteps(
   if (img.space === "cmyk") img = yield* convertCmykPixels(img);
   const inks = img.space === "cmyk" ? img.hueSamples : undefined;
   const out = new Uint8Array(img.data);
+  const hueSamples = img.hueSamples?.slice(), evaluateSamples = img.evaluateSamples?.slice();
   const paint = [replacement.r, replacement.g, replacement.b, replacement.a];
   const data16 = img.data16 ? new Uint16Array(img.data16)
     : paint.some(value => !Number.isInteger(value)) ? Uint16Array.from(img.data, value => value * 257) : undefined;
@@ -1167,11 +1169,8 @@ function* applyMagickFloodfillSteps(
             yield;
         const cur = queue[head++]!;
     const off = cur * 4;
-    for (let channel = alphaOnly ? 3 : 0; channel < 4; channel++) {
-      if (channels && !channels[channel]) continue;
-      if (data16) data16[off + channel] = Math.round(paint[channel]! * 257);
-      out[off + channel] = Math.round(data16 ? data16[off + channel]! / 257 : paint[channel]!);
-    }
+    paintWorkingPixel(data16 ?? out, off, data16 ? 257 : 1, replacement, img.space === "cmyk", hueSamples, evaluateSamples, alphaOnly, channels);
+    if (data16) for (let channel = 0; channel < 4; channel++) out[off + channel] = Math.round(data16[off + channel]! / 257);
 
     const cx = cur % w;
     const cy = Math.floor(cur / w);
@@ -1190,7 +1189,7 @@ function* applyMagickFloodfillSteps(
       }
     }
   }
-  return { ...img, data: out, ...(data16 ? { data16 } : {}), hasAlpha: true };
+  return { ...img, data: out, ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), hasAlpha: true };
 }
 
 function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | readonly number[], channels: readonly boolean[] | undefined, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -6653,22 +6652,18 @@ function* copyMagickPixelSteps(image: Pick<RgbaImage, "width" | "height">, area:
     }
 }
 
-function* drawPointPixelSteps(image: Pick<RgbaImage, "width" | "height">, point: { kind: "paint-point" | "reset"; x: number; y: number; color: RgbaColor; alphaOnly: boolean }, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const seed = point.y * image.width + point.x, scale = highDepth ? 257 : 1;
+function* drawPointPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space">, point: { kind: "paint-point" | "reset"; x: number; y: number; color: RgbaColor; alphaOnly: boolean }, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const seed = point.y * image.width + point.x;
     for (let start = 0; start < image.width * image.height; start += 1024) {
         yield;
         const count = Math.min(1024, image.width * image.height - start);
         const bytes = yield { kind: "read", position: start * 4, length: count * 4, highDepth };
         if (!bytes || bytes.length !== count * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated drawing pixels");
         const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
-        for (let offset = point.kind === "reset" ? 0 : (seed - start) * 4; offset >= 0 && offset < count * 4; offset += point.kind === "reset" ? 4 : count * 4) {
-            if (!point.alphaOnly) {
-                data[offset] = point.color.r * scale;
-                data[offset + 1] = point.color.g * scale;
-                data[offset + 2] = point.color.b * scale;
-            }
-            data[offset + 3] = Math.round(point.color.a * scale);
-        }
+        const selected = new Uint8Array(count);
+        if (point.kind === "reset") selected.fill(1);
+        else if (seed >= start && seed < start + count) selected[seed - start] = 1;
+        yield* paintWorkingChunk(start * 4, data, selected, point.color, image.space === "cmyk", point.alphaOnly);
         yield { kind: "write", position: start * 4, data: new Uint8Array(data.buffer), highDepth };
     }
 }
@@ -15927,7 +15922,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const colorspace = token === "-hald-clut" ? lut.magickColorspace : image.magickColorspace;
                     const cmyk = (token === "-hald-clut" ? lut : image).space === "cmyk";
                     const gray = (token === "-hald-clut" ? [lut] : [image, lut]).every(image => image.space === "b-w" || image.space === "grey16");
-                    if (token === "-hald-clut" && gray) metadata.gamma = lut.gamma;
+                    if (token === "-hald-clut" && gray) {
+                        if (lut.gamma === undefined) delete metadata.gamma;
+                        else metadata.gamma = lut.gamma;
+                    }
                     const lookupArguments = [image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16), (token === "-clut" ? image : lut)[magickInput]?.interpolation, settings.backgroundExplicit ? settings.background : lut.backgroundColor ?? settings.background, lut.virtualPixel, image.space === "cmyk"] as const;
                     let result = await transformStoredMagickRaster({ ...metadata, ...(colorspace ? { magickColorspace: colorspace } : {}), space: cmyk ? "cmyk" : gray ? (token === "-hald-clut" ? lut : image).space : "srgb", channels: cmyk ? 4 : gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps(...lookupArguments, image.hasAlpha) : clutPixelSteps(...lookupArguments)), signal, { ...image, hasAlpha }, [image, lut]);
                     if (image.region) result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, image.region, !!result.storedData16, settings.channels), signal, result, [result, image]);

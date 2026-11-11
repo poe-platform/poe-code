@@ -1,4 +1,6 @@
 import { rgbToCmyk } from "./colorspace-cmyk.js";
+import { paintWorkingPixel } from "./paint-working.js";
+import type { HueMetadata } from "./colorspace-hue.js";
 import { RasterBackingCache } from "./raster-backing.js";
 import type { ImageByteStorage, RgbaColor, StoredRgbaImage } from "@poe-code/image-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -9,7 +11,7 @@ export function matchesAlphaFloodfill(r: number, g: number, b: number, a: number
     return (a - refA) ** 2 + ((r - refR) ** 2 + (g - refG) ** 2 + (b - refB) ** 2) * (a / 255) * (refA / 255) / 3 <= fuzz ** 2 + referenceFuzz ** 2;
 }
 
-export async function floodfillStoredImage(image: StoredRgbaImage, storage: ImageByteStorage, seedX: number, seedY: number, target: (RgbaColor & { cmyk?: readonly number[] }) | undefined, replacement: RgbaColor, fuzz: number, signal: AbortSignal, alphaOnly = false, channels?: readonly boolean[], fillToBorder = false): Promise<StoredRgbaImage> {
+export async function floodfillStoredImage(image: StoredRgbaImage & HueMetadata, storage: ImageByteStorage, seedX: number, seedY: number, target: (RgbaColor & { cmyk?: readonly number[] }) | undefined, replacement: RgbaColor, fuzz: number, signal: AbortSignal, alphaOnly = false, channels?: readonly boolean[], fillToBorder = false): Promise<StoredRgbaImage & HueMetadata> {
     const count = image.width * image.height, source = { position: image.storedData16?.position ?? image.position, length: count * (image.storedData16 ? 8 : 4) }, cache = new RasterBackingCache(storage, signal);
     const inks = image.space === "cmyk" && image.storedHueSamples !== undefined ? { position: image.storedHueSamples, length: count * 32 } : undefined;
     const readPixel = async (index: number): Promise<readonly number[]> => {
@@ -51,6 +53,8 @@ export async function floodfillStoredImage(image: StoredRgbaImage, storage: Imag
     const paint = [replacement.r, replacement.g, replacement.b, replacement.a];
     const storedData16 = image.storedData16 || paint.some(value => !Number.isInteger(value))
         ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;
+    const storedHueSamples = image.storedHueSamples === undefined ? undefined : storage.allocate(count * 32);
+    const storedEvaluateSamples = image.storedEvaluateSamples === undefined ? undefined : storage.allocate(count * 32);
     for (let start = 0; start < count; start += 1024) {
         await yieldTurn(signal);
         const length = Math.min(1024, count - start), pixels = new Uint8Array(await storage.read(image.position + start * 4, length * 4, { signal }));
@@ -60,16 +64,16 @@ export async function floodfillStoredImage(image: StoredRgbaImage, storage: Imag
         if (bytes16 && bytes16.length !== length * 8) throw new Error("Truncated floodfill pixels");
         const data16 = bytes16 ? new Uint16Array(new Uint8Array(bytes16).buffer)
             : storedData16 ? Uint16Array.from(pixels, value => value * 257) : undefined;
+        const hue = image.storedHueSamples === undefined ? undefined : new Float64Array((await storage.read(image.storedHueSamples + start * 32, length * 32, { signal })).slice().buffer);
+        const evaluate = image.storedEvaluateSamples === undefined ? undefined : new Float64Array((await storage.read(image.storedEvaluateSamples + start * 32, length * 32, { signal })).slice().buffer);
         for (let i = 0; i < length; i++) if (flags[i]) {
-            for (let channel = alphaOnly ? 3 : 0; channel < 4; channel++) {
-                if (channels && !channels[channel]) continue;
-                const offset = i * 4 + channel;
-                if (data16) data16[offset] = Math.round(paint[channel]! * 257);
-                pixels[offset] = Math.round(data16 ? data16[offset]! / 257 : paint[channel]!);
-            }
+            paintWorkingPixel(data16 ?? pixels, i * 4, data16 ? 257 : 1, replacement, image.space === "cmyk", hue, evaluate, alphaOnly, channels);
+            if (data16) for (let channel = 0; channel < 4; channel++) pixels[i * 4 + channel] = Math.round(data16[i * 4 + channel]! / 257);
         }
+        if (hue) await storage.write(storedHueSamples! + start * 32, new Uint8Array(hue.buffer), { signal });
+        if (evaluate) await storage.write(storedEvaluateSamples! + start * 32, new Uint8Array(evaluate.buffer), { signal });
         await storage.write(position + start * 4, pixels, { signal });
         if (data16) await storage.write(storedData16!.position + start * 8, new Uint8Array(data16.buffer), { signal });
     }
-    return { ...image, position, ...(storedData16 ? { storedData16 } : {}), hasAlpha: true };
+    return { ...image, position, ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedData16 ? { storedData16 } : {}), hasAlpha: true };
 }

@@ -978,6 +978,12 @@ status 234 and no PCM output.
 Stereo input is expanded to 2.1, quad, 5.1, or 5.1(side) before selecting an output
 channel: front left/right keep their samples, while center, LFE, rear, and side
 channels contain silence.
+With `channel_layout=5.1`, mono, 2.1, 3.0, 3.0(back), 4.0, quad, 5.0,
+5.1(side), 6.1, 7.1, 7.1(wide), hexagonal, and octagonal inputs are routed into
+back-surround 5.1 before extraction. Missing speakers are silent; back-center,
+side, and wide-front speakers are mixed into their corresponding outputs with
+native gains and integer normalization. These conversions require automatic
+conversion filters and work in both simple and labeled complex filter graphs.
 Use `-af channelsplit=channel_layout=stereo:channels=FR` to extract only the right
 channel (`FL` selects the left). `FC+LFE` input contributes center at −3 dB to
 both stereo speakers and omits LFE; `DL+DR` (`downmix`) preserves left/right

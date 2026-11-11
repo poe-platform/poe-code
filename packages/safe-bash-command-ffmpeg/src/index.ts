@@ -18792,6 +18792,36 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         if (customOrder && !matchingOrder) throw new Error("channelsplit: matching input channel layout required");
                         const mask = input.reduce((value, speaker) => value + audioSpeakerMasks[speaker]!, 0);
+                        if (mask === 0x3f && filteredChannelMask !== undefined &&
+                            [0x4, 0x7, 0xb, 0x103, 0x107, 0x33, 0x37, 0x60f, 0x63f, 0x70f, 0x137, 0x737, 0xff].includes(filteredChannelMask)) {
+                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                          const sources = Object.keys(audioSpeakerMasks).filter(name =>
+                            (filteredChannelMask! & audioSpeakerMasks[name]!) !== 0);
+                          // Side speakers replace missing backs; otherwise mix them into the backs.
+                          const surround = sources.includes("BL") ? Math.SQRT1_2 : 1;
+                          const matrix: Record<string, number>[] = [
+                            { FL: 1, FLC: 1 }, { FR: 1, FRC: 1 }, { FC: 1 }, { LFE: 1 },
+                            { BL: 1, BC: Math.SQRT1_2, SL: surround },
+                            { BR: 1, BC: Math.SQRT1_2, SR: surround }
+                          ];
+                          // SWR normalizes the whole integer matrix, including unmixed fronts and LFE.
+                          const normalization = ["flt", "fltp", "dbl", "dblp"].includes(panSampleFormat) ? 1
+                            : Math.max(1, ...matrix.map(row => sources.reduce((sum, name) => sum + (row[name] ?? 0), 0)));
+                          const assignments = matrix.map((row, index) => {
+                            // SWR's general PCM16 mixer rounds each coefficient independently for 3+ inputs.
+                            const quantize = ["u8", "u8p", "s16", "s16p"].includes(panSampleFormat) &&
+                              sources.filter(name => row[name]).length > 2;
+                            return `${input[index]}=` + sources.map(name => {
+                              const gain = (row[name] ?? 0) / normalization;
+                              return `${quantize ? roundToEven(Math.fround(gain * 32768)) / 32768 : gain}*${name}`;
+                            }).join("+");
+                          });
+                          const mixed = await panAudio(`5.1|${assignments.join("|")}`,
+                            stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
+                          stretched = mixed.channels;
+                          filteredChannelMask = mixed.channelMask;
+                          filteredChannelNames = undefined;
+                        }
                         if (mask === 3 && stretched.length === 2 &&
                             (filteredChannelMask === 0xc || filteredChannelMask === 0x60000000)) {
                           if (!autoConversionFilters) throw new Error(audioConversionDisabled);

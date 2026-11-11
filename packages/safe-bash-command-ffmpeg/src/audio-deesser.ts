@@ -47,7 +47,9 @@ export async function deessAudio(
         const start = position;
         if (value[position] === "+" || value[position] === "-") position++;
         while (position < value.length && value[position] !== "+" && value[position] !== "-") position++;
-        const bits = parseFilterExpression(value.slice(start, position), "deesser", { slice: 1, none: 0, all: -1 });
+        const bits = parseFilterExpression(value.slice(start, position), "deesser", {
+          slice: 1, none: 0, all: -1, min: 0, max: 2147483647, default: 1
+        });
         if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
           throw new RangeError("deesser: invalid thread_type");
         }
@@ -56,7 +58,7 @@ export async function deessAudio(
     }
     if (key === "threads" || key === "extra_hw_frames") {
       const min = key === "threads" ? 0 : -1;
-      const number = parseFilterExpression(value, "deesser", { min, max: 2147483647, default: min });
+      const number = parseFilterExpression(value, "deesser", { min, max: 2147483647, default: min, none: 0, all: -1 });
       if (!Number.isFinite(number)) throw new Error(`deesser: invalid ${key}`);
       if (number < min || number > 2147483647) throw new RangeError(`deesser: invalid ${key}`);
       // Scheduling and hardware-frame settings do not change the rendered audio.
@@ -69,10 +71,10 @@ export async function deessAudio(
     }
     if (key !== "i" && key !== "m" && key !== "f" && key !== "s") throw new Error(`deesser: unsupported option ${key}`);
     const number = parseFilterExpression(value, "deesser", {
-      min: 0, max: key === "s" ? 2 : 1, default: key === "i" ? 0 : key === "s" ? 1 : 0.5,
+      none: 0, all: -1, min: 0, max: key === "s" ? 2 : 1, default: key === "i" ? 0 : key === "s" ? 1 : 0.5,
       ...(key === "s" ? { i: 0, o: 1, e: 2 } : {})
     }, undefined, new Float64Array(10), []);
-    if (!value || !Number.isFinite(number)) throw new Error(`deesser: invalid ${key}`);
+    if (!value || Number.isNaN(number)) throw new Error(`deesser: invalid ${key}`);
     if (number < 0 || number > (key === "s" ? 2 : 1)) throw new RangeError(`deesser: invalid ${key}`);
     options[key] = number;
     // AVOption integers validate the range before rounding, with ties to even.

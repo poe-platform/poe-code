@@ -98,7 +98,7 @@ for (const [value, mode] of [[0.5, "i"], [0.6, "o"], [1.4, "o"], [1.5, "e"], [1.
 
 for (const [option, exitCode] of [
   ["i=-1", 222], ["m=1.1", 222], ["f=NaN", 234], ["i=", 234], ["s=3", 222],
-  ["s=-0.1", 222], ["s=2.1", 222], ["s=NaN", 234], ["s=Infinity", 234], ["s=", 234], ["unknown=1", 8]
+  ["s=-0.1", 222], ["s=2.1", 222], ["s=NaN", 234], ["s=Infinity", 222], ["s=", 234], ["unknown=1", 8]
 ] as const) it(`rejects ${option} without overwriting output`, async () => {
   const { fs, result } = await run(`deesser=${option}`);
   assert.equal(result.exitCode, exitCode);

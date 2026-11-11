@@ -13895,6 +13895,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         "aloop", "aresample", "apad", "adelay", "atempo", "aformat", "pan",
                         "channelmap", "channelsplit", "asettb", "asetpts", "aselect", "atrim", "areverse", "earwax"
                       ].includes(filterName)) panSampleFormat = "flt";
+                      if (filterName === "stereotools" && !filteredChannelMask && filteredChannelNames?.some(name => name !== "")) {
+                        throw new Error("stereotools: unsupported input channel layout");
+                      }
                       if (["extrastereo", "stereotools", "stereowiden"].includes(filterName) &&
                         (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ||
                           !filteredChannelMask && [3, 4, 6, 8].includes(stretched.length) ||

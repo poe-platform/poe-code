@@ -61,8 +61,11 @@ export function histogramLine(key: number | bigint, count: number, hasAlpha: boo
     const percent = highDepth && rgb.some(value => value % 257 !== 0);
     const values = rgb.map(value => percent ? `${Number((value * 100 / maximum).toPrecision(6))}%` : String(value / (highDepth ? 257 : 1)));
     if (hasAlpha) values.push(String(Number((samples[3]! / maximum).toPrecision(6))));
-    const name = colorspace === "srgb" && !percent && !hasAlpha
-        ? histogramColorNames[(Number(values[0]) << 16) | (Number(values[1]) << 8) | Number(values[2])] : undefined;
+    let name: string | undefined;
+    if (colorspace === "srgb" && !percent) {
+        if (!hasAlpha || samples[3] === maximum) name = histogramColorNames[(Number(values[0]) << 16) | (Number(values[1]) << 8) | Number(values[2])];
+        else if (samples.every(value => value === 0)) name = "none";
+    }
     return `${String(count).padStart(14)}: (${samples.map(value => formatSignificantMetric(value, precision)).join(",")}) #${samples.map(value => hex(value).padStart(highDepth ? 4 : 2, "0")).join("")} ${name ?? `${colorspace}${hasAlpha ? "a" : ""}(${values.join(",")})`}`;
 }
 export function hueHistogramPixel(values: readonly number[], hasAlpha: boolean, space: Parameters<typeof formatHuePixel>[1], samples: readonly number[] | undefined, depth: number, precision = 6): string {

@@ -20,7 +20,7 @@ const original = [
     "2: (135,101,67,255) #876543FF srgba(135,101,67,1)",
     ...[[0, "00", "0"], [1, "01", "0.00392157"], [128, "80", "0.501961"], [255, "FF", "1"]].map(([a, hex, alpha]) => `1: (170,51,85,${a}) #AA3355${hex} srgba(170,51,85,${alpha})`)
 ];
-const clamped = [[3, 0, "00", "0"], [3, 255, "FF", "1"], [1, 1, "01", "0.00392157"], [1, 128, "80", "0.501961"]].map(([n, a, hex, alpha]) => `${n}: (255,255,255,${a}) #FFFFFF${hex} srgba(255,255,255,${alpha})`);
+const clamped = [[3, 0, "00", "0"], [3, 255, "FF", "1"], [1, 1, "01", "0.00392157"], [1, 128, "80", "0.501961"]].map(([n, a, hex, alpha]) => `${n}: (255,255,255,${a}) #FFFFFF${hex} ${a === 255 ? "white" : `srgba(255,255,255,${alpha})`}`);
 for (const mode of ["command", "sync"] as const) {
     it.each([
         { name: "fractional", operations: ["-evaluate", "multiply", "0.001"], expected: multiplied },

@@ -11,8 +11,8 @@ it.each(["memory", "retained", "streamed"])("distinguishes RGBA histogram entrie
     await filesystem.writeFile("/rgba.png", bytes);
     const input = mode === "memory" ? files : { filesystem, cwd: "/", ...(mode === "streamed" ? { stdout: { async write(chunk: Uint8Array) { chunks.push(chunk.slice()); } } } : {}) };
     const result = await runConvertCli(["rgba.png", "-format", "%c", "histogram:info:-"], input);
-    const expected = "             2: (255,0,0,255) #FF0000FF srgba(255,0,0,1)\n"
-        + "             1: (0,0,255,255) #0000FFFF srgba(0,0,255,1)\n"
+    const expected = "             2: (255,0,0,255) #FF0000FF red\n"
+        + "             1: (0,0,255,255) #0000FFFF blue\n"
         + "             1: (0,255,0,0) #00FF0000 srgba(0,255,0,0)\n"
         + "             1: (0,0,255,0) #0000FF00 srgba(0,0,255,0)\n"
         + "             1: (255,0,0,128) #FF000080 srgba(255,0,0,0.501961)\n";

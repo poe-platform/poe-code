@@ -101,13 +101,15 @@ export function vignetteLayout(source: Pick<RgbaImage, "width" | "height" | "vir
     const width = source.virtualCanvas?.width || source.width, height = source.virtualCanvas?.height || source.height;
     return { width, height, hasAlpha: true, virtualCanvas: { width, height, x: 0, y: 0 } };
 }
-export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" | "virtualCanvas" | "data16" | "space" | "hasAlpha" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { region?: Region | undefined }, background: RgbaColor,
+export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" | "virtualCanvas" | "data16" | "space" | "gamma" | "hasAlpha" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { region?: Region | undefined; magickColorspace?: string | undefined }, background: RgbaColor,
     geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; hasYOffset: boolean; isPercent: boolean }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, compose = "Over"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { name } = magickCompositeMode(compose);
     const sourceIn = name === "srcin" || name === "in", destinationOut = name === "dstout" || name === "destout";
     const copySource = ["src", "source", "copy"].includes(name), copyDestination = ["dst", "destination"].includes(name);
     const blend = name === "multiply" || name === "screen" || name === "difference" || name === "hardlight";
     const copyAlpha = name === "copyalpha" || name === "copyopacity";
+    const linearCoverage = source.magickColorspace === "RGB" ||
+        (source.space === "b-w" || source.space === "grey16") && source.gamma === 1 && source.magickColorspace !== "Gray";
     const { width, height } = source, cx = width / 2, cy = height / 2;
     const insetX = geometry.hasOffset ? geometry.x : width * 0.1, insetY = geometry.hasYOffset ? geometry.y : height * 0.1;
     const rx = cx - Math.ceil(insetX * (geometry.isPercent ? width / 100 : 1) - 0.5);
@@ -222,6 +224,11 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                     rows.set(sy, row);
                 }
                 for (let x = 0; x < count; x++) coverage[x]! += row[x]! * weights[ky + half]!;
+            }
+            // Native converts the blurred linear mask to sRGB before copying its intensity to alpha.
+            if (linearCoverage) for (let x = 0; x < count; x++) {
+                const value = coverage[x]!;
+                coverage[x] = value <= 0.0031308 ? 12.92 * value : 1.055 * value ** (1 / 2.4) - 0.055;
             }
             const position = (y * width + left) * 4, bytes = yield { kind: "read", hue, highDepth, position, length: count * 4 };
             if (!bytes || bytes.length !== count * 4 * (hue ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated vignette pixels");

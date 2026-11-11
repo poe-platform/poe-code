@@ -1177,6 +1177,8 @@ WebVTT input `-kind subtitles|captions|descriptions|metadata` applies to the nex
 (peak-to-peak), or `dev` (standard deviation) detection with a configurable window.
 Numeric detector aliases are `0`, `1`, `2`, `3`, `4`, and `5`, respectively.
 Threshold expressions accept `min` and `default` (both `0`) and `max` (the largest finite double).
+Use `st(index,value)` and `ld(index)` to store and read values within a threshold expression,
+for example `start_threshold='st(0,0.06);ld(0)'`. Each threshold evaluation starts with zeroed registers.
 `random(index)` and `randomi(index,min,max)` use FFmpeg 7's deterministic sequence in thresholds,
 with fresh state for each initial option or timed command; `st(index,value)` can seed that sequence.
 For example, `silenceremove=start_periods=1:window=0:start_threshold='randomi(0,1,1)/16'` uses a threshold of `0.0625`.

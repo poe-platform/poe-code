@@ -11293,10 +11293,10 @@ if (t === "-intent" || t === "+intent") {
             if (key === "connected-components:diameter-threshold") delete state.connectedDiameterThreshold;
             if (key === "connected-components:circularity-threshold") delete state.connectedCircularityThreshold;
             if (key === "connected-components:major-axis-threshold") delete state.connectedMajorAxisThreshold;
-            if (key === "connected-components:keep") delete state.connectedKeep;
+            if (key === "connected-components:keep" || key === "connected-components:keep-ids") delete state.connectedKeep;
             if (key === "connected-components:remove-colors") delete state.connectedRemoveColors;
             if (key === "connected-components:keep-colors") delete state.connectedKeepColors;
-            if (key === "connected-components:remove") delete state.connectedRemove;
+            if (key === "connected-components:remove" || key === "connected-components:remove-ids") delete state.connectedRemove;
             if (key === "connected-components:exclude-header") delete state.connectedExcludeHeader;
             if (key === "connected-components:exclude-ids") delete state.connectedExcludeIds;
             if (key === "connected-components:mean-color") delete state.connectedMeanColor;
@@ -11491,10 +11491,10 @@ if (t === "-intent" || t === "+intent") {
                     const colors = value.split(";").map(color => parseColor(color, true));
                     if (key === "connected-components:keep-colors") state.connectedKeepColors = colors;
                     else state.connectedRemoveColors = colors;
-                } else if (key === "connected-components:keep" || key === "connected-components:remove") {
+                } else if (key === "connected-components:keep" || key === "connected-components:keep-ids" || key === "connected-components:remove" || key === "connected-components:remove-ids") {
                     if (extra !== undefined || !value?.trim()) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     const ranges = parseMagickIndices(value);
-                    if (key === "connected-components:keep") state.connectedKeep = ranges;
+                    if (key === "connected-components:keep" || key === "connected-components:keep-ids") state.connectedKeep = ranges;
                     else state.connectedRemove = ranges;
                 } else if (key === "connected-components:background-id") {
                     const id = Number(value);

@@ -2602,8 +2602,8 @@ function resolveMagickChopGeometry(raw: string, image: Pick<RgbaImage, "width" |
         && raw[index - 1]?.toLowerCase() !== "e");
     const trailingSeparator = offset < 0 ? -1 : raw.toLowerCase().indexOf("x", offset);
     if (trailingSeparator >= 0) raw = raw.slice(0, trailingSeparator);
-    // Chop ignores # and treats % anywhere as a dimension modifier, preserving pixel offsets.
-    let g = parseMagickGeometry(raw.replaceAll("#", "").replaceAll("%", "") + (raw.includes("%") ? "%" : ""));
+    // Chop ignores #, ! and ^ and treats % anywhere as a dimension modifier, preserving pixel offsets.
+    let g = parseMagickGeometry(raw.replaceAll("#", "").replaceAll("!", "").replaceAll("^", "").replaceAll("%", "") + (raw.includes("%") ? "%" : ""));
     const dimensionSeparator = raw.toLowerCase().indexOf("x");
     // A second decimal point in the width leaves the entire native rectangle untouched.
     if (dimensionSeparator >= 0 && !raw.trimStart().startsWith("+") && !raw.trimStart().startsWith("-")
@@ -2615,7 +2615,7 @@ function resolveMagickChopGeometry(raw: string, image: Pick<RgbaImage, "width" |
         // A slash stops GetGeometry before dimensions or offsets are read.
         if (raw[suffix] === "/") return { ...g, width: pageWidth, height: pageHeight, x: 0, y: 0 };
         // A colon uses the first two dimensions as a ratio, retaining preceding offsets.
-        const dimensions = parseMagickGeometry(raw.slice(0, suffix).replaceAll("#", "").replaceAll("%", ""));
+        const dimensions = parseMagickGeometry(raw.slice(0, suffix).replaceAll("#", "").replaceAll("!", "").replaceAll("^", "").replaceAll("%", ""));
         g = { ...dimensions, aspectRatio: (dimensions.width ?? 0) / (dimensions.height ?? 1) };
     }
     // Native GetGeometry leaves the page rectangle untouched when a scalar

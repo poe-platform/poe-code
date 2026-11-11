@@ -79,7 +79,22 @@ export function parseOrderedDither(argument: string) {
         const value = supplied[channel + 1] ?? supplied[0] ?? 2;
         return value >= 1 ? value - 1 : value;
     });
-    return { map, levels };
+    const defaultCount = supplied[0] ?? 2;
+    return { map, levels, defaultLevel: defaultCount >= 1 ? defaultCount - 1 : defaultCount };
+}
+
+// Extra planes follow the selected color and alpha channels in level-count order.
+export function* orderedDitherMetaOptions(image: Pick<RgbaImage, "space" | "hasAlpha"> & { alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined }, options: ReturnType<typeof parseOrderedDither>, channels: readonly (boolean | undefined)[], meta: "all" | readonly number[], count: number) {
+    const gray = image.space === "b-w" || image.space === "grey16";
+    let selected = Number(!!channels[0]) + Number(!gray && !!channels[1]) + Number(!gray && !!channels[2])
+        + Number(image.space === "cmyk" && !!channels[4])
+        + Number(!!channels[3] && !!(image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false));
+    for (let index = 0; index < count; index++) {
+        if (meta !== "all" && !meta.includes(index)) continue;
+        const level = options.levels[selected++] ?? options.defaultLevel;
+        const planeOptions = { ...options, levels: [level, level, level] };
+        yield [index, planeOptions] as const;
+    }
 }
 
 export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">> & HueMetadata & { alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined }, { map, levels }: ReturnType<typeof parseOrderedDither>, channels: readonly (boolean | undefined)[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {

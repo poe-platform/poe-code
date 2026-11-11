@@ -60,7 +60,7 @@ import { compareLayerBounds, optimizePlusPixels, optimizeTransparencyPixels } fr
 import { plasmaPixelSteps } from "./plasma.js";
 import { createMagickRandom } from "./random.js";
 import { evaluateNoiseSteps } from "./noise.js";
-import { orderedDitherPixelSteps, parseOrderedDither } from "./ordered-dither.js";
+import { orderedDitherMetaOptions, orderedDitherPixelSteps, parseOrderedDither } from "./ordered-dither.js";
 import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
 import { bilevelPixelSteps } from "./bilevel-kernel.js";
 import { autoTonalMetaPixelSteps } from "./auto-tonal-meta.js";
@@ -9953,7 +9953,19 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-ordered-dither") {
         highDepth = true;
         const options = parseOrderedDither(tokens[++i] ?? ""), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
-        apply = image => applyMagickRasterSteps({ ...discardDisassociatedAlpha(image), isPalette: false }, orderedDitherPixelSteps(image, options, [channels.r, channels.g, channels.b, channels.a, channels.k]), signal);
+        const mask = [channels.r, channels.g, channels.b, channels.a, channels.k];
+        const metaChannels = !state.channelExplicit || state.channelDefault ? "all" : state.channels.meta ?? [];
+        apply = function* (image) {
+            const result = yield* applyMagickRasterSteps({ ...discardDisassociatedAlpha(image), isPalette: false }, orderedDitherPixelSteps(image, options, mask), signal);
+            if (image.metaChannels?.length) {
+                result.metaChannels = [...image.metaChannels];
+                for (const [index, extraOptions] of orderedDitherMetaOptions(image, options, mask, metaChannels, image.metaChannels.length)) {
+                    const plane = image.metaChannels[index]!;
+                    result.metaChannels[index] = yield* applyMagickRasterSteps(plane, orderedDitherPixelSteps(plane, extraOptions, [true, true, true, false]), signal);
+                }
+            }
+            return result;
+        };
     } else if (token === "-posterize") {
         highDepth = true;
         const levels = parsePosterizeLevels(tokens[++i] ?? "");
@@ -16794,10 +16806,19 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const options = value.includes("%[") ? undefined : parseOrderedDither(value);
             const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
             const mask = [channels.r, channels.g, channels.b, channels.a, channels.k];
+            const metaChannels = !state.channelExplicit || state.channelDefault ? "all" : state.channels.meta ?? [];
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expandedOptions = options ?? parseOrderedDither(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal));
-                return transformStoredMagickRaster({ ...discardDisassociatedAlpha(image), isPalette: false }, backend, orderedDitherPixelSteps(image, expandedOptions, mask), signal);
+                const result = await transformStoredMagickRaster({ ...discardDisassociatedAlpha(image), isPalette: false }, backend, orderedDitherPixelSteps(image, expandedOptions, mask), signal);
+                if (image.storedMetaChannels?.length) {
+                    result.storedMetaChannels = [...image.storedMetaChannels];
+                    for (const [index, extraOptions] of orderedDitherMetaOptions(image, expandedOptions, mask, metaChannels, image.storedMetaChannels.length)) {
+                        const plane = image.storedMetaChannels[index]!;
+                        result.storedMetaChannels[index] = await transformStoredMagickRaster(plane, backend, orderedDitherPixelSteps(plane, extraOptions, [true, true, true, false]), signal);
+                    }
+                }
+                return result;
             });
             continue;
         }

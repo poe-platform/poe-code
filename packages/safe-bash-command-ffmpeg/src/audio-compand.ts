@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { parseFilterFloat } from "./filter-float.js";
 
 export class CompandError extends Error {
@@ -49,8 +50,17 @@ export async function compandAudio(
     // option's offset when it was already the first (attacks) slot.
     positional = separator < 0 ? positional + 1 : positional === 0 ? 1 : 0;
     if (key === "enable") throw new CompandError("compand: timeline is unsupported", "options", 176);
+    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      try {
+        validateWeaveGenericOption(key, value, "compand");
+      } catch (error) {
+        throw new CompandError((error as Error).message, "options", error instanceof RangeError ? 222 : 234);
+      }
+      continue;
+    }
     if (!key || !Object.hasOwn(options, key)) throw new CompandError(`compand: unsupported option ${key}`, "options", 8);
-    options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    options[key] = value;
     if (Object.hasOwn(ranges, key)) numericOption(key);
   }
   const knee = numericOption("soft-knee");

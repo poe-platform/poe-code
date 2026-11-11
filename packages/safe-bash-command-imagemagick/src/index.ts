@@ -1,3 +1,4 @@
+import { htmlImageMap } from "./html-output.js";
 import { solveLinearSystem } from "./linear-system.js";
 import { parseSparseColor, sparseColorPixels } from "./sparse-color-operator.js";
 import { imageDescriptionOutput, imageDescription, type ImageDescriptionOutput } from "./json-output.js";
@@ -13444,7 +13445,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 i++;
                 continue;
             }
-            if (writePath.toLowerCase().startsWith("histogram:") || writePath.toLowerCase().startsWith("sparse-color:")) {
+            if (writePath.toLowerCase() === "html:-" || writePath.toLowerCase().startsWith("histogram:") || writePath.toLowerCase().startsWith("sparse-color:")) {
                 const result = yield* writeConvertOutputSteps([...stack], state, writeTemplate, files, signal, analysis);
                 analysis.text += result.stdout;
                 if (result.stdoutBytes) analysis.bytes.push(result.stdoutBytes);
@@ -15595,6 +15596,11 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
                 if (!histogramInfo || state.formatStr && (state.formatStr.includes("%c") || state.formatStr.includes("%[comment]"))) source = { ...source, properties: { ...source.properties, comment: yield* formatHistogramOutputSteps(source, state.precision) } };
                 stack[index] = yield* applyMagickRasterSteps({ ...source, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } }, histogramPixelSteps(source, width, height, state.channels), signal, { width, height, hasAlpha: source.hasAlpha });
             }
+        }
+        if (outSpec.toLowerCase() === "html:-") {
+            stack = [stack[0]!];
+            analysis.bytes.push(new TextEncoder().encode(htmlImageMap(stack[0]!)));
+            outSpec = "png:-";
         }
         const finalImg = stack[stack.length - 1]!;
         const outLower = outSpec.toLowerCase();
@@ -18031,7 +18037,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     analysis.text += result.stdout;
                     return stack;
                 }
-                if (path.toLowerCase().startsWith("histogram:") || path.toLowerCase().startsWith("sparse-color:")) {
+                if (path.toLowerCase() === "html:-" || path.toLowerCase().startsWith("histogram:") || path.toLowerCase().startsWith("sparse-color:")) {
                     const images = new StoredImageStack(backend.storage, signal, stack);
                     for (let index = 0; index < stack.length; index++) await images.push((await stack.get(index))!);
                     const result = await writeStoredConvertOutput(images, writeState, writeTemplate, input, backend, signal, analysis, true);
@@ -19370,6 +19376,16 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
         const outputTemplate = outSpec;
         if (!state.filenameLiteral) outSpec = expandFilenameProperties(outSpec, (await stack.get(0))!.properties, state.optionProperties);
         const filenameExpanded = outSpec !== outputTemplate;
+        if (outSpec.toLowerCase() === "html:-") {
+            image = (await stack.get(0))!;
+            const first = new StoredImageStack(backend.storage, signal, stack);
+            await first.push(image);
+            stack = first;
+            const document = new TextEncoder().encode(htmlImageMap(image));
+            if (input.stdout) await writeBytes(input.stdout, document, signal);
+            else analysis.bytes.push(document);
+            outSpec = "png:-";
+        }
         const histogramInfo = outSpec.toLowerCase().startsWith("histogram:info:");
         const histogramComment = histogramInfo && state.formatStr === "%c";
         if (histogramInfo) outSpec = outSpec.slice(10);

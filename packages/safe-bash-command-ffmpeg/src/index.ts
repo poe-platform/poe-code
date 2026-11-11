@@ -9121,8 +9121,8 @@ export function evalSyncFfmpeg(
     if (outputFormat === "image2pipe") return undefined;
     synchronizeInputs(loadedDocs, inputs, inputStarts, copyTimestamps, startAtZero, budget);
     if (outPlugin?.id === "image2" && outputStartNumber !== undefined && outputStartNumber > 2147483647) return undefined;
-    // MP4/MOV have no default subtitle encoder for automatic stream selection.
-    if (subtitleCodec === undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) stripSubtitles = true;
+    // These formats have no usable default subtitle encoder for automatic selection.
+    if (subtitleCodec === undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov" || outPlugin?.id === "microdvd")) stripSubtitles = true;
     let workingDoc = muxMp4(selectAutomaticStreams(loadedDocs), { stripAudio, stripVideo, stripSubtitles });
     if (shortest) workingDoc = limitCopyPackets(workingDoc, [], { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec }, true);
     if (workingDoc.tracks.length === 0 && outPlugin?.id !== "ffmetadata") return undefined;
@@ -13245,7 +13245,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               , context.signal);
             } else {
               // Explicit maps retain their requested streams.
-              if (subtitleCodec === undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov")) stripSubtitles = true;
+              if (subtitleCodec === undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov" || outPlugin?.id === "microdvd")) stripSubtitles = true;
               workingDoc = await muxMp4Cooperatively(selectAutomaticStreams(loadedDocs), {
                 stripAudio,
                 stripVideo,
@@ -13287,6 +13287,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (workingDoc.tracks.length === 0 && !workingDoc.attachments?.length && outPlugin?.id !== "ffmetadata") {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: Output file does not contain any stream.\n"), context.signal);
               return { exitCode: 234 };
+            }
+            if (outPlugin?.id === "microdvd" && workingDoc.tracks.some(track => track.type === "subtitle")) {
+              if (subtitleCodec === undefined) {
+                await writeBytes(context.stderr, encodeUtf8("ffmpeg: Automatic encoder selection failed. Default encoder for format microdvd (codec microdvd) is probably disabled. Please choose an encoder manually.\n"), context.signal);
+                return { exitCode: 8 };
+              }
+              if (subtitleCodec === "copy" && workingDoc.tracks.some(track => track.type === "subtitle" &&
+                  track.codecDescriptions.some(description => description.codecName !== "microdvd"))) {
+                await writeBytes(context.stderr, encodeUtf8("ffmpeg: microdvd muxer supports only codec microdvd for type subtitle\n"), context.signal);
+                return { exitCode: 234 };
+              }
             }
             const audioCodecs = new Map<number, string>();
             let codecOrdinal = 0;

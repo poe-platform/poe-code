@@ -7601,6 +7601,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                     `  Geometry: ${meta.width}x${meta.height}+0+0\n` +
                     `  Resolution: ${meta.density}x${meta.density}\n` +
                     `  Colorspace: ${spaceLabel}\n` +
+                    `  Rendering intent: ${["Perceptual", "Relative", "Saturation", "Absolute", "Undefined"].find(intent => intent.toLowerCase() === meta.renderingIntent?.toLowerCase()) ?? "Perceptual"}\n` +
                     `  Depth: ${bitDepth}-bit\n` +
                     `  Channels: ${meta.channels}\n` +
                     `  Alpha: ${meta.hasAlpha ? "True" : "False"}\n` +

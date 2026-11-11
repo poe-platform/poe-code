@@ -10503,6 +10503,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (beforeInput) pendingChannelLayout = layout;
           } else if (arg === "-auto_conversion_filters" || arg === "-noauto_conversion_filters") {
             autoConversionFilters = arg === "-auto_conversion_filters";
+          } else if (arg === "-readrate" || arg === "-re") {
+            const value = arg === "-re" ? "1" : args[++i];
+            const rate = value?.trim() ? Number(value) : NaN;
+            if (!Number.isFinite(rate) || rate < 0) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -readrate must be a finite non-negative number\n"), context.signal);
+              return { exitCode: 234 };
+            }
+            if (!args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${arg} must precede an input\n`), context.signal);
+              return { exitCode: 234 };
+            }
+            // In-memory processing preserves media timing without wall-clock throttling.
           } else if (arg === "-hide_banner" || arg === "-nostdin" || arg === "-stats" || arg === "-nostats") {
             // no-op
           } else if (arg === "-f") {

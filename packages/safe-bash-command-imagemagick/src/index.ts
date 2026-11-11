@@ -771,6 +771,7 @@ interface MagickState {
   gradientExtent?: string;
   gradientCenter?: { x: number; y?: number };
   ftxtFormat?: string;
+  ftxtHasAlpha?: boolean;
   comment?: string;
   label?: string;
   caption?: string;
@@ -8241,13 +8242,13 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         return undefined;
     if (ftxt) {
         if (!state.hasSize) throw new Error("must specify image size for FTXT input");
-        const steps = ftxtInput(state.sizeWidth, state.sizeHeight, rawBytes.length, state.ftxtFormat);
+        const steps = ftxtInput(state.sizeWidth, state.sizeHeight, rawBytes.length, state.ftxtFormat, state.ftxtHasAlpha);
         let next = steps.next(), offset = 0;
         let bytes: Uint8Array | undefined;
         while (!next.done) {
             yield;
             if (next.value instanceof Uint8Array) {
-                bytes ??= new Uint8Array(next.value.length + state.sizeWidth * state.sizeHeight * 6);
+                bytes ??= new Uint8Array(next.value.length + state.sizeWidth * state.sizeHeight * (state.ftxtHasAlpha ? 8 : 6));
                 bytes.set(next.value, offset); offset += next.value.length;
                 next = steps.next(new Uint8Array());
             } else next = steps.next(rawBytes.subarray(next.value.position, next.value.position + next.value.length));
@@ -12747,6 +12748,7 @@ if (t === "-intent" || t === "+intent") {
             if (key === "gradient:center") delete state.gradientCenter;
             if (key === "filename:literal") delete state.filenameLiteral;
             if (key === "ftxt:format") delete state.ftxtFormat;
+            if (key === "ftxt:hasalpha") delete state.ftxtHasAlpha;
             if (key === "icon:auto-resize") delete state.iconAutoResize;
             if (key === "bmp:format") delete state.bmpFormat;
             if (key === "bmp:subtype") delete state.bmpSubtype;
@@ -12822,6 +12824,7 @@ if (t === "-intent" || t === "+intent") {
             }
             if (filterKey === "gradient:direction") state.gradientDirection = filterValue ?? "south";
             if (filterKey === "gradient:angle") state.gradientAngle = Number.parseFloat(filterValue ?? "") || 0;
+            if (filterKey === "ftxt:hasalpha") state.ftxtHasAlpha = filterValue === undefined || ["true", "1", "yes", "on"].includes(filterValue);
             if (filterKey === "filename:literal") state.filenameLiteral = filterValue === undefined || ["true", "1", "yes", "on"].includes(filterValue);
             if (filterKey === "dither:diffusion-amount") {
                 const amount = parseFloat(filterValue ?? "");
@@ -20818,17 +20821,17 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }else if(lower.startsWith("ftxt:")){
   if(!state.hasSize)throw new Error("must specify image size for FTXT input");
   const consume=async(source:ImageByteSource)=>{
-   const steps=ftxtInput(state.sizeWidth,state.sizeHeight,source.size,state.ftxtFormat);
+   const steps=ftxtInput(state.sizeWidth,state.sizeHeight,source.size,state.ftxtFormat,state.ftxtHasAlpha);
    let next=steps.next(),position=0,size=0,written=0;
    while(!next.done){
     await yieldTurn(signal);
     if(next.value instanceof Uint8Array){
-     if(size===0){size=next.value.length+state.sizeWidth*state.sizeHeight*6;position=backend.storage.allocate(size);}
+     if(size===0){size=next.value.length+state.sizeWidth*state.sizeHeight*(state.ftxtHasAlpha?8:6);position=backend.storage.allocate(size);}
      await backend.storage.write(position+written,next.value);written+=next.value.length;
      next=steps.next(new Uint8Array());
     }else next=steps.next(await source.read(next.value.position,next.value.length,{signal}));
    }
-   return parseStoredCompareInput(`ppm:${token.slice(5)}`,state,backend,signal,{...readOptions,source:{size,async read(offset,length){return backend.storage.read(position+offset,length);}}});
+   return parseStoredCompareInput(`${state.ftxtHasAlpha ? "pam" : "ppm"}:${token.slice(5)}`,state,backend,signal,{...readOptions,source:{size,async read(offset,length){return backend.storage.read(position+offset,length);}}});
   };
   return readOptions.source===null?undefined:readOptions.source?consume(readOptions.source):backend.read(baseToken.slice(5),consume);
  }else if(packedCoder){

@@ -1,5 +1,5 @@
-// Present RGB FTXT records as Q16 PPM to share raster decoding.
-export function* ftxtInput(width: number, height: number, size: number, format = "\\x,\\y:\\c\\n"): Generator<{ position: number; length: number } | Uint8Array, void, Uint8Array> {
+// Present FTXT records as Q16 Netpbm to share raster decoding.
+export function* ftxtInput(width: number, height: number, size: number, format = "\\x,\\y:\\c\\n", hasAlpha = false): Generator<{ position: number; length: number } | Uint8Array, void, Uint8Array> {
     const parts: (string | { field: string })[] = [""];
     for (let index = 0; index < format.length; index++) {
         let character = format[index]!;
@@ -17,11 +17,11 @@ export function* ftxtInput(width: number, height: number, size: number, format =
     }
     parts[0] = (parts[0] as string).trimStart();
     parts[parts.length - 1] = (parts[parts.length - 1] as string).trimEnd();
-    const pixels = width * height;
-    if (!Number.isSafeInteger(pixels * 6) || width < 1 || height < 1 || pixels > size) throw new Error("invalid FTXT image size or truncated input");
-    yield new TextEncoder().encode(`P6\n${width} ${height}\n65535\n`);
+    const pixels = width * height, channels = hasAlpha ? 4 : 3;
+    if (!Number.isSafeInteger(pixels * channels * 2) || width < 1 || height < 1 || pixels > size) throw new Error("invalid FTXT image size or truncated input");
+    yield new TextEncoder().encode(hasAlpha ? `P7\nWIDTH ${width}\nHEIGHT ${height}\nDEPTH 4\nMAXVAL 65535\nTUPLTYPE RGB_ALPHA\nENDHDR\n` : `P6\n${width} ${height}\n65535\n`);
     let line = "", pixel = 0, used = 0;
-    const output = new Uint8Array(8190);
+    const output = new Uint8Array(Math.floor(8192 / (channels * 2)) * channels * 2);
     for (let position = 0; position <= size; position += 8192) {
         const length = Math.min(8192, size - position);
         const bytes = length ? yield { position, length } : new Uint8Array();
@@ -52,7 +52,7 @@ export function* ftxtInput(width: number, height: number, size: number, format =
                     cursor = end;
                 }
             }
-            if (cursor !== record.length || pixel >= pixels || values.length !== 3 || values.some(value => !Number.isFinite(value) || value < 0 || value > 65535)) throw new Error("invalid FTXT pixel");
+            if (cursor !== record.length || pixel >= pixels || values.length !== channels || values.some(value => !Number.isFinite(value) || value < 0 || value > 65535)) throw new Error("invalid FTXT pixel");
             for (const value of values) { const sample = Math.round(value); output[used++] = sample >>> 8; output[used++] = sample & 255; }
             pixel++;
             if (used === output.length) { yield output; used = 0; }

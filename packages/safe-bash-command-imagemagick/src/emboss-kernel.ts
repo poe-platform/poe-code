@@ -13,7 +13,7 @@ export interface EmbossEqualization {
 }
 
 /** Native emboss diagonal Gaussian convolution followed by channel-aware equalization. */
-export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space" | "gamma"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined }, geometry: { width?: number; height?: number }, intensity: string, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, equalization?: EmbossEqualization, writeMask?: Pick<RgbaImage, "width" | "height">): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space" | "gamma"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined }, geometry: { width?: number; height?: number }, intensity: string, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, equalization?: EmbossEqualization, writeMask?: Pick<RgbaImage, "width" | "height">, sync = !channels): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
     const hue = !cmyk && !!image.magickColorspace && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
     const linear = image.magickColorspace === "RGB" || image.magickColorspace === "scRGB"
@@ -63,7 +63,7 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
     // Gray's three backing samples represent the single red/gray channel.
     if (channels && (image.space === "b-w" || image.space === "grey16")) channels = { ...channels, g: channels.r, b: channels.r };
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha, channels.k] : [true, true, true, image.hasAlpha, true];
-    const histograms = equalization?.histogram ? [equalization.histogram] : Array.from({ length: channels ? stride : 1 }, () => new Float64Array(65536));
+    const histograms = equalization?.histogram ? [equalization.histogram] : Array.from({ length: sync ? 1 : stride }, () => new Float64Array(65536));
     const lookups = equalization?.lookup ? [equalization.lookup] : histograms.map(() => new Float64Array(65536));
     const bin = (value: number): number => Math.max(0, Math.min(65535, Math.round(value * 257)));
     // Recompute bounded spans for the second pass, retaining floating point values
@@ -101,7 +101,7 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
                 }
             }
             // Keep convolution values unrounded until equalization. Explicit
-            // selections use per-channel maps; the default shares an intensity map.
+            // unsynchronized selections use per-channel maps; Sync shares an intensity map.
             for (let x = 0; x < count; x++) {
                 const alpha = sums[x * stride + 3]!;
                 if (image.hasAlpha) for (let channel = 0; channel < stride; channel++) if (channel !== 3) {
@@ -137,7 +137,7 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
             }
             if (pass === 0) {
                 for (let x = 0; x < count; x++) {
-                    if (channels) {
+                    if (!sync) {
                         for (let channel = 0; channel < stride; channel++) if (mask[channel]) histograms[channel]![bin(sums[x * stride + channel]!)]!++;
                     } else histograms[0]![bin(magickIntensity(sums[x * stride]!, sums[x * stride + 1]!, sums[x * stride + 2]!, intensity, 255, linear))]!++;
                 }
@@ -145,7 +145,7 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
                 const values = samples!.slice();
                 for (let x = 0; x < count; x++) for (let channel = 0; channel < stride; channel++) {
                     if (!mask[channel]) continue;
-                    const map = channels ? channel : 0, black = histograms[map]![0]!, lookup = lookups[map]!;
+                    const map = sync ? 0 : channel, black = histograms[map]![0]!, lookup = lookups[map]!;
                     const value = sums[x * stride + channel]!;
                     let equalized = black === width * height ? value : lookup[bin(value)]!;
                     // Equalization writes through the same mask using the convolved source.
@@ -175,7 +175,7 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
             }
         }
         if (pass === 0) for (let channel = 0; channel < histograms.length; channel++) {
-            if (channels && !mask[channel]) continue;
+            if (!sync && !mask[channel]) continue;
             const histogram = histograms[channel]!, lookup = lookups[channel]!;
             let sum = 0;
             const black = histogram[0]!, range = width * height - black;

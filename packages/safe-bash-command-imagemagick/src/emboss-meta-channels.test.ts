@@ -8,6 +8,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     it.each([
         { name: "unmodified Meta0", operations: [], expected: "2080c0" },
         { name: "default selection", operations: ["-emboss", "1x1"], expected: "00ffff" },
+        { name: "explicit Default", operations: ["-channel", "Default", "-emboss", "1x1"], expected: "00ffff" },
         { name: "explicit Meta0", operations: ["-channel", "Meta0", "-emboss", "1x1"], expected: "0080ff" },
         { name: "red preserves Meta0", operations: ["-channel", "R", "-emboss", "1x1"], expected: "2080c0" },
         { name: "reset selection", operations: ["-channel", "R", "+channel", "-emboss", "1x1"], expected: "00ffff" },

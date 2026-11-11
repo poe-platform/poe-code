@@ -55,10 +55,16 @@ export async function exciteAudio(
   for (const [n, frame] of frames.entries()) {
     while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
       const command = commands[nextCommand++]!;
-      const key = command.action as keyof typeof options;
-      if (!Object.hasOwn(options, key)) continue;
       try {
-        setOption(key, command.expression);
+        if (command.action === "enable") {
+          parseFilterExpression(command.expression, "aexciter enable", {
+            n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2
+          }, undefined, new Float64Array(10));
+          enable = command.expression;
+          registers.fill(0);
+        } else if (Object.hasOwn(options, command.action)) {
+          setOption(command.action as keyof typeof options, command.expression);
+        }
       } catch { /* Native asendcmd continues after a rejected command. */ }
     }
     let enabled = true;

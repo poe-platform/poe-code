@@ -1453,7 +1453,10 @@ with per-option `min`, `max`, and `default` constants, such as `amount=default` 
 default value. `enable` selects whole audio
 frames using `n` (frame number) or `t` (timestamp in seconds), for example
 `asetnsamples=n=64:p=0,aexciter=enable=gte(n\,2)`. Disabled frames pass through
-unchanged while filter history continues updating. A trailing option separator is
+unchanged while filter history continues updating. Scheduled commands can replace
+`enable`, for example `asendcmd=c='0.001 aexciter enable 0',aexciter=listen=1`
+switches to dry audio at the first frame at or after 0.001 seconds. Invalid runtime
+expressions preserve the previous expression. A trailing option separator is
 accepted: `aexciter=amount=2:` produces the same audio as `aexciter=amount=2`. `threads` (0–2147483647) and
 `extra_hw_frames` (-1–2147483647) accept numeric expressions without changing PCM output.
 `thread_type` accepts flags such as `slice`, `none`, or `all-slice`, and numeric

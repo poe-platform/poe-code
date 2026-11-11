@@ -7741,6 +7741,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     let precision = 6;
     let locateMaximum = false;
     let locateLimit = 0;
+    let optionError = "";
     const targets: { path: string; originalInput: string; sceneCount?: number; listIndex: number; customFormat: string | undefined }[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
@@ -7789,15 +7790,19 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             if (!value.trim() || !Number.isFinite(requested)) return { exitCode: 1, stdout: "", stderr: "identify: invalid argument for option '-precision'\n" };
             precision = requested < 1 ? 6 : Math.min(100, Math.trunc(requested));
         }
-        else if (a === "-" || !a.startsWith("-")) {
+        else if (a === "-" || (!a.startsWith("-") && !a.startsWith("+"))) {
             targets.push({ path: a, originalInput: a, listIndex: 0, customFormat });
+        }
+        else {
+            optionError = `identify: unrecognized option '${a}'\n`;
+            break;
         }
     }
     if (targets.length === 0) {
         return {
             exitCode: 1,
             stdout: "",
-            stderr: "identify: missing an image filename\n"
+            stderr: optionError || "identify: missing an image filename\n"
         };
     }
     const outParts: string[] = [];
@@ -7982,9 +7987,9 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         yield* flush();
     }
     return {
-        exitCode,
+        exitCode: optionError ? 1 : exitCode,
         stdout: outParts.join(""),
-        stderr: errParts.join("")
+        stderr: errParts.join("") + optionError
     };
 }
 export async function runIdentifyCli(argv: readonly string[], files: Map<string, Uint8Array>|IdentifyFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {

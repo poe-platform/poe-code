@@ -134,16 +134,23 @@ function* trimBounds(width: number, height: number, hasAlpha: boolean, fuzz: num
     return { left, top, width: right - left + 1, height: bottom - top + 1 };
 }
 
-function cropTrimBounds(area: Area, width: number, height: number, minSize?: { width?: number; height?: number }, gravity?: GravityPosition): Area {
+function cropTrimBounds(area: Area, width: number, height: number, minSize?: { width?: number; height?: number }, gravity?: GravityPosition): Area | undefined {
+    if (area.width === 0 || area.height === 0) return;
     let { left, top } = area;
-    const retainedWidth = Math.min(width, Math.max(Math.min(area.width, width - left), Math.round(minSize?.width ?? 0)));
-    const retainedHeight = Math.min(height, Math.max(Math.min(area.height, height - top), Math.round(minSize?.height ?? 0)));
-    const extraWidth = Math.max(0, retainedWidth - area.width), extraHeight = Math.max(0, retainedHeight - area.height);
-    if (gravity === "northwest" || gravity === "west" || gravity === "southwest") left -= extraWidth;
-    else if (gravity === "north" || gravity === "center" || gravity === "south") left -= Math.floor(extraWidth / 2);
-    if (gravity === "northwest" || gravity === "north" || gravity === "northeast") top -= extraHeight;
-    else if (gravity === "west" || gravity === "center" || gravity === "east") top -= Math.floor(extraHeight / 2);
-    return { left: Math.max(0, Math.min(left, width - retainedWidth)), top: Math.max(0, Math.min(top, height - retainedHeight)), width: retainedWidth, height: retainedHeight };
+    const retainedWidth = Math.max(area.width, Math.round(minSize?.width ?? 0));
+    const retainedHeight = Math.max(area.height, Math.round(minSize?.height ?? 0));
+    const extraWidth = retainedWidth - area.width, extraHeight = retainedHeight - area.height;
+    if (extraWidth > 0 || extraHeight > 0) {
+        if (gravity === "northwest" || gravity === "west" || gravity === "southwest") left -= extraWidth;
+        else if (gravity === "north" || gravity === "center" || gravity === "south") left -= Math.floor(extraWidth / 2);
+        if (gravity === "northwest" || gravity === "north" || gravity === "northeast") top -= extraHeight;
+        else if (gravity === "west" || gravity === "center" || gravity === "east") top -= Math.floor(extraHeight / 2);
+        // Minimum-size expansion can move north/west bounds back inside the raster.
+        left = Math.max(0, Math.min(left, width - retainedWidth));
+        top = Math.max(0, Math.min(top, height - retainedHeight));
+    }
+    if (left >= width || top >= height) return;
+    return { left, top, width: Math.min(retainedWidth, width - left), height: Math.min(retainedHeight, height - top) };
 }
 
 export function* formatTrimBoundsSteps<Step = never>(
@@ -198,8 +205,8 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
         else { const { position, length } = next.value; next = steps.next({ samples: pixels.subarray(position, position + length), inks: image.hueSamples?.subarray(position, position + length) }); }
     }
     if (next.value.warning && analysis) analysis.warnings += "magick: geometry does not contain image\n";
-    if (next.value.width > 0 && next.value.height > 0 && next.value.left < image.width && next.value.top < image.height) {
-        const area = cropTrimBounds(next.value, image.width, image.height, minSize, gravity);
+    const area = cropTrimBounds(next.value, image.width, image.height, minSize, gravity);
+    if (area) {
         image = discardDisassociatedAlpha(image);
         let cropped: RgbaImage = yield* extractImageSteps(image, area);
         if (image.hueSamples) {
@@ -266,8 +273,8 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
         }
     }
     if (next.value.warning && analysis) analysis.warnings += "magick: geometry does not contain image\n";
-    if (next.value.width > 0 && next.value.height > 0 && next.value.left < image.width && next.value.top < image.height) {
-        const area = cropTrimBounds(next.value, image.width, image.height, minSize, gravity);
+    const area = cropTrimBounds(next.value, image.width, image.height, minSize, gravity);
+    if (area) {
         image = discardDisassociatedAlpha(image);
         const cropped: StoredRgbaImage = await transformStoredImage(image, storage, { kind: "extract", ...area }, signal);
         if (image.storedMetaChannels) {

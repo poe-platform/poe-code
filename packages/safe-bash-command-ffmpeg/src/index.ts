@@ -3170,6 +3170,7 @@ async function applyVideoFilterChain(
         const value = separator < 0 ? option : option.slice(separator + 1);
         if (separator < 0 && sawNamed) throw new Error("deband: positional option after named option");
         sawNamed ||= separator >= 0;
+        if (key === "enable") continue;
         if (key === "blur" || key === "b") blur = parseFilterBoolean(value, "deband: invalid blur");
         else if (key === "coupling" || key === "c") {
           coupling = parseFilterBoolean(value, "deband: invalid coupling");
@@ -3177,8 +3178,8 @@ async function applyVideoFilterChain(
           const number = parseFilterExpression(value, "deband", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
           if (!Number.isFinite(number)) throw new Error("deband: invalid number");
           if (key === "range" || key === "r") {
-            if (number < -2147483647 || number > 2147483647) throw new Error("deband: invalid range");
-            range = roundToEven(number);
+            if (!Number.isInteger(number) || number < -2147483647 || number > 2147483647) throw new Error("deband: invalid range");
+            range = number;
           } else if (key === "direction" || key === "d") {
             if (Math.abs(number) > 2 * Math.PI) throw new Error("deband: invalid direction");
             direction = Math.fround(number);
@@ -3190,7 +3191,16 @@ async function applyVideoFilterChain(
       }
       if (!["gray", "gray8", "yuv444p"].includes(pixelFormat ?? "")) throw new Error("deband: requires 8-bit grayscale or yuv444p input");
       const limits = thresholds.map(threshold => Math.trunc(Math.fround(255 * threshold)));
-      current = await mapWork(current, async (frame) => {
+      const registers = new Float64Array(10);
+      const initialVariables = { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, n: 0, t: 0, w: 0, h: 0, pos: NaN, NAN: NaN, INF: Infinity };
+      if (named.enable !== undefined) parseFilterExpression(named.enable, "deband enable", initialVariables, undefined, new Float64Array(10));
+      current = await mapWork(current, async (frame, n) => {
+        if (named.enable !== undefined) {
+          const variables = { ...initialVariables, n, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN };
+          // FFmpeg evaluates the generic timeline twice per frame, using the second result.
+          parseFilterExpression(named.enable, "deband enable", variables, undefined, registers);
+          if (!(Math.abs(parseFilterExpression(named.enable, "deband enable", variables, undefined, registers)) >= 0.5)) return frame;
+        }
         const planar = pixelFormat === "yuv444p";
         if (planar && !(frame.native?.format === 5 && frame.native.rgba === frame.data &&
             frame.native.width === frame.width && frame.native.height === frame.height)) {

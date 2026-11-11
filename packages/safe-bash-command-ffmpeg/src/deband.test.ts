@@ -6,12 +6,12 @@ import type { MediaResourceLimits } from "@poe-code/mp4-ast";
 import { createFfmpegCommand } from "./index.js";
 
 const input = Buffer.from(Array.from({ length: 1024 }, (_, i) => 96 + 2 * Math.floor((i % 32) / 3) + Math.floor(Math.floor(i / 32) / 8)));
-async function run(filter: string, format = "rawvideo", limits?: MediaResourceLimits, source = input, size = "32x32") {
+async function run(filter: string, format = "rawvideo", limits?: MediaResourceLimits, source = input, size = "32x32", graph = false) {
   const volume = Volume.fromJSON({ "/in.gray": source, "/out": "KEEP" });
   const errors: Uint8Array[] = [];
   const result = await createFfmpegCommand({ limits }).execute({
     args: ["-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "gray", "-s", size, "-r", "4", "-i", "/in.gray",
-      "-vf", filter, "-fps_mode", "passthrough", "-pix_fmt", "gray", "-bitexact", "-f", format, "/out"],
+      ...(graph ? ["-filter_complex", `[0:v]${filter}[o]`, "-map", "[o]"] : ["-vf", filter]), "-fps_mode", "passthrough", "-pix_fmt", "gray", "-bitexact", "-f", format, "/out"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
       async readFile(path: string) { return volume.readFileSync(path); },
@@ -102,4 +102,30 @@ for (const [fraction, integer] of [[-2.6, -3], [-2.5, -2], [-3.5, -4], [2.5, 2],
       assert.deepEqual(result.output, control.output);
     });
   }
+}
+
+for (const graph of [false, true]) {
+  for (const enable of ["gte(n,1)", "gte(t,0.25)", "gte(st(0,ld(0)+1),4)"]) {
+    it(`deband honors timeline ${enable} (graph ${graph})`, async () => {
+      const source = Buffer.concat([samplingInput, samplingInput, samplingInput]);
+      const result = await run(`deband=r=-3:d=-1:1thr=0.1:enable='${enable}'`, "rawvideo", undefined, source, "16x16", graph);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.output.length, 768);
+      assert.deepEqual(result.output.subarray(0, 256), samplingInput);
+      assert.equal(createHash("sha256").update(result.output).digest("hex"), "c17f2b7e01065af573a9c1c2df4cdcf36de276f9299140a84996b9d7744d71e6");
+    });
+  }
+  for (const enable of ["0", "NAN", "lt(n,0)", "st(0,not(ld(0)))"]) {
+    it(`deband bypasses disabled frames for ${enable} (graph ${graph})`, async () => {
+      const source = Buffer.concat([samplingInput, samplingInput, samplingInput]);
+      const result = await run(`deband=r=-3:d=-1:1thr=0.1:enable='${enable}'`, "rawvideo", undefined, source, "16x16", graph);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.output, source);
+    });
+  }
+  it(`rejects invalid deband timeline without replacing output (graph ${graph})`, async () => {
+    const result = await run("deband=enable=unknown", "rawvideo", undefined, samplingInput, "16x16", graph);
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(result.output.toString(), "KEEP");
+  });
 }

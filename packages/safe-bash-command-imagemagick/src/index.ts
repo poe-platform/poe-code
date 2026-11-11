@@ -9951,7 +9951,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = image => applyMagickSolarizeSteps(image, threshold, channels, signal);
     } else if (token === "-ordered-dither") {
-        highDepth = true;
+        highDepth = evaluate = true;
         const options = parseOrderedDither(tokens[++i] ?? ""), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         const mask = [channels.r, channels.g, channels.b, channels.a, channels.k];
         const metaChannels = !state.channelExplicit || state.channelDefault ? "all" : state.channels.meta ?? [];

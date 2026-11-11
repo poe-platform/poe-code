@@ -73,9 +73,9 @@ for (const retained of [false, true]) {
         expect(result.exitCode, result.stderr).toBe(0);
         expect(result.stdout.trim()).toBe("cmyka 5.0 cmyka(170,85,0,159,0.501961) cmyka(0,0,0,255,1) 0.623529 1");
         expect(decodeImage(retained ? await fs.readFile("/out.png") : files.get("/out.png")!).data).toEqual(pixels);
-        const linear = await runConvertCli(["/in.png", "-colorspace", "CMYK", "-colorspace", "RGB", "-colorspace", "sRGB", "-format", "%[pixel:p{0,0}]", "info:"], input);
+        const linear = await runConvertCli(["/in.png", "-colorspace", "CMYK", "-colorspace", "RGB", "-colorspace", "sRGB", "-depth", "16", "-endian", "MSB", "rgba:/roundtrip"], input);
         expect(linear.exitCode, linear.stderr).toBe(0);
-        expect(linear.stdout.trim()).toBe("srgba(32,64,96,0.501961)");
+        expect(Buffer.from(retained ? await fs.readFile("/roundtrip") : files.get("/roundtrip")!).toString("hex")).toBe("2020404060608080000000000000ffff");
     });
 }
 

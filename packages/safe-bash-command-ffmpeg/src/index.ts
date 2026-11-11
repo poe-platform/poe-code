@@ -12748,6 +12748,26 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               }
                               if (key === "measure_perchannel") perChannel = new Set(metrics);
                               else overall = new Set(metrics);
+                            } else if (key === "thread_type" && extra === undefined) {
+                              // Scheduling flags do not affect PCM; validate each set/clear operand.
+                              const flags = value.trim();
+                              let position = 0;
+                              do {
+                                if (flags[position] === "+" || flags[position] === "-") position++;
+                                const start = position;
+                                if (flags[position] === "+" || flags[position] === "-") position++;
+                                while (position < flags.length && flags[position] !== "+" && flags[position] !== "-") position++;
+                                const bits = parseFilterExpression(flags.slice(start, position), "astats", { slice: 1, none: 0, all: -1 });
+                                if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
+                                  throw new RangeError("astats: invalid thread_type");
+                                }
+                              } while (position < flags.length);
+                            } else if ((key === "threads" || key === "extra_hw_frames") && extra === undefined) {
+                              const minimum = key === "threads" ? 0 : -1;
+                              const number = parseFilterExpression(value, "astats", { min: minimum, default: minimum });
+                              if (!Number.isFinite(number) || number < minimum || number > 2147483647) {
+                                throw new RangeError(`astats: invalid ${key}`);
+                              }
                             } else if (key === "length" && extra === undefined) {
                               rmsLength = parseFilterExpression(value, "astats", {});
                               if (!Number.isFinite(rmsLength) || rmsLength < 0 || rmsLength > 10) {

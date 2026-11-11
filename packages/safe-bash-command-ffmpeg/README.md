@@ -507,6 +507,8 @@ crossings; the overall report includes the sample count.
 Positional options follow `length:metadata:reset:measure_perchannel:measure_overall`;
 for example, `astats=0.05:0:1:none:Max_level+Number_of_samples` reports only the
 overall maximum and sample count for the final reset interval.
+`threads`, `thread_type`, and `extra_hw_frames` accept FFmpeg scheduling and buffer
+options without changing PCM samples or statistics.
 `astats=length=0.02` sets the RMS peak/trough and noise-floor window to 20 ms
 (default 0.05 seconds, range 0–10); full-input RMS and PCM samples are unchanged.
 `measure_perchannel` and `measure_overall` independently select `none` or a `+`-joined

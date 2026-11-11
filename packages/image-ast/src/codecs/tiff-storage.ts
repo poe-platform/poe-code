@@ -108,7 +108,7 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
   }
   async function* encode() {
    if(pageOptions.tiffCompression === "jpeg") {yield* encodeJpegFromStorage({...block,space:"srgb"},blockStorage,signal,{...pageOptions,chromaSubsampling:"4:4:4"});return;}
-   const compressor=createTiffCompressor(pageOptions.tiffCompression,columns*(pageOptions.tiffPlanar ? 1 : channels)*((pageOptions.tiffFloatDepth ?? pageOptions.tiffIntegerDepth ?? 8)/8));
+   const compressor=createTiffCompressor(pageOptions,columns,pageOptions.tiffPlanar ? 1 : channels);
    try {
     for await(const raw of blockPixels()) {
      const samples=pageOptions.tiffPlanar ? tiffSamplePlane(raw,channels,plane) : raw;

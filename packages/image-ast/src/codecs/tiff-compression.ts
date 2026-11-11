@@ -8,12 +8,38 @@ export const tiffReversedBytes = Uint8Array.from({ length: 256 }, (_, byte) => {
   return (byte << 4) | (byte >>> 4);
 });
 
-export function createTiffCompressor(method: OutputEncodeOptions["tiffCompression"], rowBytes: number) {
-  if (method === "deflate") return createByteCodec({ direction: "encode", format: "zlib", chunkSize: 4096 });
+type TiffCompressionOptions = Pick<OutputEncodeOptions, "tiffCompression" | "tiffPredictor" | "tiffIntegerDepth" | "tiffFloatDepth" | "tiffEndian">;
+
+export function tiffPredictor(options?: TiffCompressionOptions): 1 | 2 | undefined {
+  if (options?.tiffCompression !== "lzw" && options?.tiffCompression !== "deflate") return undefined;
+  if (options.tiffFloatDepth) return undefined;
+  return options.tiffPredictor ?? (options.tiffIntegerDepth === 32 ? 1 : 2);
+}
+
+export function createTiffCompressor(options: TiffCompressionOptions | undefined, columns: number, channels: number) {
+  const method = options?.tiffCompression, sampleBytes = (options?.tiffFloatDepth ?? options?.tiffIntegerDepth ?? 8) / 8;
+  const rowBytes = columns * channels * sampleBytes, little = options?.tiffEndian !== "msb";
+  const previous = tiffPredictor(options) === 2 ? new Uint32Array(channels) : undefined;
+  let sample = 0;
+  const deflate = method === "deflate" ? createByteCodec({ direction: "encode", format: "zlib", chunkSize: 4096 }) : undefined;
   const dictionary = new Map<number, number>();
   let next = 258, width = 9, prefix = -1, bits = 0, buffer = 0, started = false, column = 0;
   return {
     *push(input: Uint8Array, final = false): Generator<Uint8Array> {
+      if (previous) {
+        const view = new DataView(input.buffer, input.byteOffset, input.byteLength);
+        for (let at = 0; at < input.length; at += sampleBytes) {
+          const channel = sample % channels;
+          const value = sampleBytes === 1 ? input[at]! : sampleBytes === 2 ? view.getUint16(at, little) : view.getUint32(at, little);
+          const difference = value - (sample < channels ? 0 : previous[channel]!);
+          previous[channel] = value;
+          if (sampleBytes === 1) input[at] = difference;
+          else if (sampleBytes === 2) view.setUint16(at, difference, little);
+          else view.setUint32(at, difference, little);
+          if (++sample === columns * channels) sample = 0;
+        }
+      }
+      if (deflate) { yield* deflate.push(input, final); return; }
       if (method !== "lzw" && method !== "packbits") { if (input.length) yield input; return; }
       const output: number[] = [];
       const emit = (code: number) => {
@@ -60,6 +86,6 @@ export function createTiffCompressor(method: OutputEncodeOptions["tiffCompressio
       }
       if (output.length) yield Uint8Array.from(output);
     },
-    close() { dictionary.clear(); }
+    close() { deflate?.close(); dictionary.clear(); }
   };
 }

@@ -454,7 +454,7 @@ export function encodeTiffImage(img:RgbaImage,options?:Parameters<typeof createT
   chunks.push(encodeJpegImage({...block,space:"srgb"}, {...pageOptions,chromaSubsampling:"4:4:4"}));
   }
   else {
-   const compressor=createTiffCompressor(pageOptions.tiffCompression,columns*(pageOptions.tiffPlanar ? 1 : channels)*((pageOptions.tiffFloatDepth ?? pageOptions.tiffIntegerDepth ?? 8)/8));
+   const compressor=createTiffCompressor(pageOptions,columns,pageOptions.tiffPlanar ? 1 : channels);
    try {
     for(let offset=0;offset<columns*height*4;offset+=4096) {
      const size=Math.min(4096,columns*height*4-offset),raw=highDepth ? new Uint16Array(size/4*channels) : new Uint8Array(size/4*channels);
@@ -783,27 +783,14 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
           buf[rStart + rx] = ((buf[rStart + rx] ?? 0) + (buf[rStart + rx - chunkSamples] ?? 0)) & 0xff;
         }
       }
-    } else if (bytesPerSample === 2) {
-      const step = chunkSamples * 2;
-      for (let ry = 0; ry < rows; ry++) {
-        const rStart = ry * strideBytes;
-        for (let rx = step; rx + 1 < strideBytes && rStart + rx + 1 < buf.length; rx += 2) {
-          const prevOff = rStart + rx - step;
-          const curOff = rStart + rx;
-          const prev16 = le
-            ? (buf[prevOff] ?? 0) | ((buf[prevOff + 1] ?? 0) << 8)
-            : ((buf[prevOff] ?? 0) << 8) | (buf[prevOff + 1] ?? 0);
-          const cur16 = le
-            ? (buf[curOff] ?? 0) | ((buf[curOff + 1] ?? 0) << 8)
-            : ((buf[curOff] ?? 0) << 8) | (buf[curOff + 1] ?? 0);
-          const sum16 = (prev16 + cur16) & 0xffff;
-          if (le) {
-            buf[curOff] = sum16 & 0xff;
-            buf[curOff + 1] = (sum16 >>> 8) & 0xff;
-          } else {
-            buf[curOff] = (sum16 >>> 8) & 0xff;
-            buf[curOff + 1] = sum16 & 0xff;
-          }
+    } else if (bytesPerSample === 2 || bytesPerSample === 4) {
+      const step = chunkSamples * bytesPerSample, view = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+      for (let row = 0; row < rows; row++) {
+        const start = row * strideBytes;
+        for (let x = step; x + bytesPerSample <= strideBytes && start + x + bytesPerSample <= buf.length; x += bytesPerSample) {
+          const at = start + x;
+          if (bytesPerSample === 2) view.setUint16(at, view.getUint16(at, le) + view.getUint16(at - step, le), le);
+          else view.setUint32(at, view.getUint32(at, le) + view.getUint32(at - step, le), le);
         }
       }
     }

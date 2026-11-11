@@ -223,13 +223,20 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   return {position,length};
  };
  const predict=async(position:number,length:number,rowCount:number,rowStride:number)=>{
-  if(predictor!==2||(sampleBytes!==1&&sampleBytes!==2))return;
+  if(predictor!==2||(sampleBytes!==1&&sampleBytes!==2&&sampleBytes!==4))return;
   const step=chunkSamples*sampleBytes;if(rowStride<=step)return;
   const raster=new Raster(position,length,storage,signal);let work=0;
   for(let y=0;y<rowCount&&y*rowStride<length;y++)for(let x=step;x+sampleBytes<=rowStride&&y*rowStride+x+sampleBytes<=length;x+=sampleBytes){
    if(++work%16384===0)await defaultRuntime.yieldTurn(signal);const at=y*rowStride+x,previous=at-step;
    if(sampleBytes===1)await raster.set(at,(await raster.at(at))+(await raster.at(previous)));
-   else {const a=await raster.at(at),b=await raster.at(at+1),c=await raster.at(previous),d=await raster.at(previous+1),sum=(le?a+(b<<8)+c+(d<<8):(a<<8)+b+(c<<8)+d)&65535;await raster.set(at,le?sum&255:sum>>>8);await raster.set(at+1,le?sum>>>8:sum&255);}
+   else {
+    let carry=0;
+    for(let byte=0;byte<sampleBytes;byte++) {
+     const offset=le?byte:sampleBytes-1-byte;
+     const sum=(await raster.at(at+offset))+(await raster.at(previous+offset))+carry;
+     await raster.set(at+offset,sum&255);carry=sum>>>8;
+    }
+   }
   }await raster.flush();
  };
  const copy=async(from:number,to:number,length:number)=>{for(let at=0;at<length;at+=4096){await write(to+at,await read(from+at,Math.min(4096,length-at)));if(at%65536===0)await defaultRuntime.yieldTurn(signal);}};

@@ -2306,7 +2306,7 @@ export class SharpInstance extends Duplex {
     return this;
   }
 
-  tiff(options?: { readonly quality?: number; readonly force?: boolean; readonly compression?: OutputEncodeOptions["tiffCompression"] }): this {
+  tiff(options?: { readonly quality?: number; readonly force?: boolean; readonly compression?: OutputEncodeOptions["tiffCompression"]; readonly predictor?: "none" | "horizontal" | "float" }): this {
     this.validateQuality(options?.quality);
     const anyOpts = options as Record<string, unknown> | undefined;
     if (anyOpts?.predictor !== undefined && !["none", "horizontal", "float"].includes(anyOpts.predictor as string)) {
@@ -2351,6 +2351,7 @@ export class SharpInstance extends Duplex {
       ...this.outputOptions,
       ...(options?.force === false ? {} : { format: "tiff" }),
       ...(options?.compression === undefined ? {} : { tiffCompression: options.compression }),
+      ...(options?.predictor === "none" ? { tiffPredictor: 1 as const } : options?.predictor === "horizontal" ? { tiffPredictor: 2 as const } : {}),
       ...(options?.quality !== undefined ? { quality: options.quality } : {})
     };
     return this;

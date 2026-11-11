@@ -667,6 +667,7 @@ export function encodeImage(
         ...(options.tiffAlpha === undefined ? {} : {tiffAlpha: options.tiffAlpha}),
         ...(options.tiffEndian === undefined ? {} : {tiffEndian: options.tiffEndian}),
         ...(options.tiffFillOrder === undefined ? {} : {tiffFillOrder: options.tiffFillOrder}),
+        ...(options.tiffPredictor === undefined ? {} : {tiffPredictor: options.tiffPredictor}),
         ...(options.tiffRowsPerStrip === undefined ? {} : {tiffRowsPerStrip: options.tiffRowsPerStrip}),
         ...(options.tiffTile === undefined ? {} : {tiffTile: options.tiffTile}),
         ...(options.tiffCompression === undefined ? {} : {tiffCompression: options.tiffCompression}),

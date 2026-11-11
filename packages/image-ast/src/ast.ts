@@ -565,6 +565,7 @@ export interface OutputEncodeOptions {
   readonly tiffAlpha?: "associated" | "unassociated" | "unspecified";
   readonly tiffEndian?: "msb" | "lsb";
   readonly tiffFillOrder?: "msb" | "lsb";
+  readonly tiffPredictor?: 1 | 2;
   readonly tiffRowsPerStrip?: number;
   readonly tiffTile?: { readonly width: number; readonly height: number };
   readonly tiffCompression?: "none" | "lzw" | "deflate" | "packbits" | "jpeg";

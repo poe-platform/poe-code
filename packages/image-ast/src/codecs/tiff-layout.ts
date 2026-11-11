@@ -1,10 +1,11 @@
 import type {OutputEncodeOptions, RgbaImage} from "../ast.js";
+import {tiffPredictor} from "./tiff-compression.js";
 export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 3 | 4 | 5 {
   return img.space === "cmyk" ? img.hasAlpha ? 5 : 4 : img.space === "b-w" || img.space === "grey16" ? img.hasAlpha ? 2 : 1 : img.hasAlpha ? 4 : 3;
 }
 export function createTiffLayout(
   img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties"|"virtualCanvas"|"metaChannels"> & { storedMetaChannels?: readonly unknown[] | undefined },
-  options?: Pick<OutputEncodeOptions, "tiffBig" | "tiffScene" | "tiffIntegerDepth" | "tiffSigned" | "tiffFloatDepth" | "tiffPlanar" | "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffFillOrder" | "tiffRowsPerStrip" | "tiffTile">,
+  options?: Pick<OutputEncodeOptions, "tiffBig" | "tiffScene" | "tiffIntegerDepth" | "tiffSigned" | "tiffFloatDepth" | "tiffPlanar" | "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffFillOrder" | "tiffRowsPerStrip" | "tiffTile" | "tiffPredictor">,
   offset = 0, hasNext = false, stripSizes?: readonly number[], pageIndex = 0, pageCount = 1
 ) {
   const { width, height } = img;
@@ -13,6 +14,7 @@ export function createTiffLayout(
   const countBytes = big ? 8 : 2, entryBytes = big ? 20 : 12;
   const littleEndian = options?.tiffEndian !== "msb";
   const bits = options?.tiffFloatDepth ?? options?.tiffIntegerDepth ?? 8, sampleBytes = bits / 8;
+  const predictor = tiffPredictor(options);
   const jpeg = options?.tiffCompression === "jpeg";
   if (jpeg && img.space === "cmyk") throw new Error("CMYK TIFF does not support JPEG compression");
   if (jpeg && options?.tiffFloatDepth) throw new Error("Floating-point TIFF does not support JPEG compression");
@@ -47,7 +49,7 @@ export function createTiffLayout(
   const padding = (alignment - pixelBytes % alignment) % alignment;
   const comment = img.properties?.comment === undefined ? undefined : new TextEncoder().encode(img.properties.comment + "\0");
   const commentSize = comment ? Math.ceil(comment.length / alignment) * alignment : 0;
-  const numEntries = (options?.tiffFillOrder === "lsb" ? 1 : 0) + (extras ? 16 : 15) - (hasResolution ? 0 : 3) + (positions ? 2 : 0) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0) + (options?.tiffFloatDepth || options?.tiffIntegerDepth || options?.tiffSigned ? 1 : 0);
+  const numEntries = (predictor ? 1 : 0) + (options?.tiffFillOrder === "lsb" ? 1 : 0) + (extras ? 16 : 15) - (hasResolution ? 0 : 3) + (positions ? 2 : 0) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0) + (options?.tiffFloatDepth || options?.tiffIntegerDepth || options?.tiffSigned ? 1 : 0);
   const tableSize = Math.ceil((countBytes + numEntries * entryBytes + offsetBytes) / alignment) * alignment;
   const directorySize = tableSize + bpsSize + extrasSize + 16 + commentSize + stripArraySize + positionSize;
   const pixelOffset = offset === 0 ? (big ? 16 : 8) : offset + directorySize;
@@ -95,6 +97,7 @@ export function createTiffLayout(
   }
   if (hasResolution) entries.push([296, 3, 1, resolution?.unit === "meter" || resolution?.unit === "cm" ? 3 : resolution?.unit === "unknown" ? 1 : 2]); // ResolutionUnit
   entries.push([297, 3, 2, 0]); // PageNumber
+  if (predictor) entries.push([317, 3, 1, predictor]);
   if (tile) {
     entries.push([322, 4, 1, tile.width]);
     entries.push([323, 4, 1, tile.height]);

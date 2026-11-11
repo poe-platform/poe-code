@@ -1254,7 +1254,7 @@ function* applyMagickCustomConvolveSteps(img: RgbaImage, spec: string, signal?: 
 function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows: number } {
     const separator = spec.indexOf(":");
     const name = (separator < 0 ? spec : spec.slice(0, separator)).trim().toLowerCase();
-    const argument = separator < 0 ? undefined : Number(spec.slice(separator + 1));
+    const argument = separator < 0 || spec.slice(separator + 1).trim() === "" ? undefined : Number(spec.slice(separator + 1));
     let named: number[] | undefined;
     if (name === "unity") named = [argument ?? 1];
     else if (name === "sobel" && (argument === undefined || argument === 0)) named = [1, 0, -1, 2, 0, -2, 1, 0, -1];

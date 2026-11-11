@@ -30,6 +30,10 @@ for (const retained of [false, true]) {
     it.each([
         { matrix: "Sobel", expected: [150, 255, 150, 128] },
         { matrix: "Unity", expected: [200, 100, 50, 128] },
+        { matrix: "Unity:", expected: [200, 100, 50, 128] },
+        { matrix: "Unity:0", expected: [0, 100, 50, 128] },
+        { matrix: "Unity:1", expected: [200, 100, 50, 128] },
+        { matrix: "Unity:2", expected: [255, 100, 50, 128] },
         { matrix: "Square:1", expected: [255, 255, 255, 128] },
         { matrix: "Square:0.2", expected: [255, 255, 255, 128] },
         { matrix: "Square:3", expected: [255, 255, 255, 255] },

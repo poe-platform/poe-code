@@ -10,6 +10,10 @@ const pixels = [200, 21, 62, 128, 15, 99, 51, 255, 0, 0, 0, 200];
 it.each([
     { kernel: "Sobel", expected: [138, 255, 138, 128, 0, 0, 0, 255, 0, 0, 0, 200] },
     { kernel: "Unity", expected: pixels },
+    { kernel: "Unity:", expected: pixels },
+    { kernel: "Unity:0", expected: [0, 21, 62, 128, 0, 99, 51, 255, 0, 0, 0, 200] },
+    { kernel: "Unity:1", expected: pixels },
+    { kernel: "Unity:2", expected: [255, 21, 62, 128, 30, 99, 51, 255, 0, 0, 0, 200] },
     { kernel: "Square:1", expected: [255, 255, 255, 128, 165, 165, 165, 255, 0, 0, 0, 200] },
     { kernel: "1 0 0 0 1 0 0 0 1", expected: pixels }
 ])("magick applies the $kernel color matrix through the command API", async ({ kernel, expected }) => {

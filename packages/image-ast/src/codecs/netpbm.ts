@@ -379,14 +379,16 @@ export function encodeBmpImage(img: RgbaImage, options?: Parameters<typeof creat
       const run = encoder.endRow(); payload.set(run, used); used += run.length;
     }
     payload.set([0, 1], used); used += 2;
-    const { data: header } = createBmpHeader(img, options, palette, used);
-    const out = new Uint8Array(header.length + used);
+    const { data: header, icc } = createBmpHeader(img, options, palette, used);
+    const out = new Uint8Array(header.length + used + (icc?.length ?? 0));
     out.set(header); out.set(payload.subarray(0, used), header.length);
+    if (icc) out.set(icc, header.length + used);
     return out;
   }
-  const {data:header,rowStride,pixelSize,bytesPerPixel,bitDepth,masks}=createBmpHeader(img,options,palette);
-  const out=new Uint8Array(header.length+pixelSize);
+  const {data:header,rowStride,pixelSize,bytesPerPixel,bitDepth,masks,icc}=createBmpHeader(img,options,palette);
+  const out=new Uint8Array(header.length+pixelSize+(icc?.length ?? 0));
   out.set(header);
+  if (icc) out.set(icc, header.length+pixelSize);
 
   for (let y = 0; y < height; y++) {
     const dstRow = header.length + (height - 1 - y) * rowStride;

@@ -1,6 +1,6 @@
 import type {BmpPalette} from "./bmp-palette.js";
 import type {RgbaImage, OutputEncodeOptions} from "../ast.js";
-export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"resolution"|"hasAlpha">, options?: Pick<OutputEncodeOptions,"bmpFormat"|"bmp3Alpha"|"bmpSubtype"|"bmpCompression"|"bmpRenderingIntent">, palette?: BmpPalette, rleSize?: number) {
+export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"resolution"|"hasAlpha"|"icc">, options?: Pick<OutputEncodeOptions,"bmpFormat"|"bmp3Alpha"|"bmpSubtype"|"bmpCompression"|"bmpRenderingIntent">, palette?: BmpPalette, rleSize?: number) {
  const {width,height}=img;
  const version = options?.bmpFormat === "dib" ? "bmp3" : options?.bmpFormat ?? "bmp3";
  const subtype = options?.bmpSubtype;
@@ -10,6 +10,7 @@ export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"resolution"
  }[subtype];
  const dibSize = version === "bmp2" ? 12 : version === "bmp3" ? masks?.[3] ? 56 : 40 : 124;
  if (dibSize === 12 && (width > 65535 || height > 65535)) throw new RangeError("BMP2 dimensions exceed 65535");
+ const icc = dibSize === 124 && img.icc?.length ? img.icc : undefined;
  const bytesPerPixel = masks ? 2 : img.hasAlpha && (dibSize === 124 || (version === "bmp3" && options?.bmp3Alpha === true)) ? 4 : 3;
  const rle = !!palette && version !== "bmp2" && options?.bmpCompression === "rle";
  const bitDepth = rle ? 8 : palette?.depth ?? bytesPerPixel * 8;
@@ -17,7 +18,7 @@ export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"resolution"
  const paletteBytes = palette?.bytes(dibSize === 12 ? 3 : 4, bitDepth);
  const out = new Uint8Array(14 + dibSize + (masks && dibSize === 40 ? 12 : 0) + (paletteBytes?.length ?? 0)), view = new DataView(out.buffer);
  out[0] = 0x42; out[1] = 0x4d;
- view.setUint32(2, out.length + pixelSize, true);
+ view.setUint32(2, out.length + pixelSize + (icc?.length ?? 0), true);
  view.setUint32(10, out.length, true);
  view.setUint32(14, dibSize, true);
  if (dibSize === 12) {
@@ -43,13 +44,17 @@ export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"resolution"
     view.setUint32(54, 0xff0000, true); view.setUint32(58, 0xff00, true);
     view.setUint32(62, 0xff, true); view.setUint32(66, 0xff000000, true);
    }
-   view.setUint32(70, 0x73524742, true); // sRGB
+   view.setUint32(70, icc ? 0x4d424544 : 0x73524742, true); // PROFILE_EMBEDDED or sRGB
+   if (icc) {
+    view.setUint32(126, out.length + pixelSize - 14, true); // Offset relative to the DIB header
+    view.setUint32(130, icc.length, true);
+   }
    const intent = options?.bmpRenderingIntent?.toLowerCase();
    view.setUint32(122, intent === "saturation" ? 1 : intent === "relative" ? 2 : intent === "absolute" ? 8 : 4, true);
   }
  }
  if (paletteBytes) out.set(paletteBytes, 14 + dibSize);
- return {data:options?.bmpFormat === "dib" ? out.subarray(14) : out,rowStride,pixelSize,bytesPerPixel,bitDepth,masks};
+ return {data:options?.bmpFormat === "dib" ? out.subarray(14) : out,rowStride,pixelSize,bytesPerPixel,bitDepth,masks,icc};
 }
 
 /** BI_BITFIELDS masks follow the 40-byte header or occupy the same slots in extended headers. */

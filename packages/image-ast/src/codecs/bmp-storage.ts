@@ -144,11 +144,13 @@ export async function* encodeBmpFromStorage(image:StoredRgbaImage,storage:ImageB
   }
   let size=0;
   for await(const chunk of chunks()) size+=chunk.length;
-  yield createBmpHeader(image,options,palette,size).data;
+  const {data:header,icc}=createBmpHeader(image,options,palette,size);
+  yield header;
   yield* chunks();
+  if(icc) for(let offset=0;offset<icc.length;offset+=4096) {signal.throwIfAborted();yield icc.subarray(offset,offset+4096);}
   return;
  }
- const {data:header,rowStride,bytesPerPixel,bitDepth,masks}=createBmpHeader(image,options,palette);
+ const {data:header,rowStride,bytesPerPixel,bitDepth,masks,icc}=createBmpHeader(image,options,palette);
  yield header;
  const buffer=new Uint8Array(4096);let used=0;
  for(let y=height-1;y>=0;y--) {
@@ -175,4 +177,5 @@ export async function* encodeBmpFromStorage(image:StoredRgbaImage,storage:ImageB
   for(let i=Math.ceil(width*bitDepth/8);i<rowStride;i++){buffer[used++]=0;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}
  }
  signal.throwIfAborted();if(used) yield new Uint8Array(buffer.subarray(0,used));
+ if(icc) for(let offset=0;offset<icc.length;offset+=4096) {signal.throwIfAborted();yield icc.subarray(offset,offset+4096);}
 }

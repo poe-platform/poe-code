@@ -5064,9 +5064,11 @@ function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtual
     const fields = normalized.replaceAll(":", "x").split("x");
     normalized = fields.slice(0, 2).join(ratio ? ":" : "x") +
         (ratio ? fields.slice(2).map(field => `+${field}`).join("") : "");
+    // A negative sigma means zero blur; its sign is not a rectangle offset.
+    const negativeSigma = normalized.includes("x-");
     // Shadow ignores these geometry modifiers, including resize area semantics.
-    const g = parseMagickGeometry(normalized.replaceAll("(", "").replaceAll(")", "").replaceAll("#", "").replaceAll("@", ""));
-    const opacity = opacitySign * (g.aspectRatio ?? g.width ?? 0) / 100, sigma = Math.max(0, g.height ?? 1);
+    const g = parseMagickGeometry(normalized.replace("x-", "x").replaceAll("(", "").replaceAll(")", "").replaceAll("#", "").replaceAll("@", ""));
+    const opacity = opacitySign * (g.aspectRatio ?? g.width ?? 0) / 100, sigma = negativeSigma ? 0 : Math.max(0, g.height ?? 1);
     if (![...geometry].every(char => "0123456789.eExX+- %!<>^@,/:()#".includes(char)) ||
         (!Number.isFinite(g.aspectRatio) && !Number.isFinite(g.width) && !Number.isFinite(g.height))) {
         throw new Error(`invalid argument for option '-shadow': ${geometry}`);

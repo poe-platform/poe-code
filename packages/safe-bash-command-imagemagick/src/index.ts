@@ -11852,6 +11852,12 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     }
     if (format === "png" && image.virtualCanvas?.width === 0 && image.virtualCanvas.height === 0) image = { ...image, virtualCanvas: { ...image.virtualCanvas, width: image.width, height: image.height } };
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
+    // Raw RGB converts CMYK through the write mask, preserving protected ink samples.
+    if (format === "rgb" && image.space === "cmyk" && (image.writeMask || image.region)) {
+        const original = image, mask = image.writeMask ?? image.region!;
+        image = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], createDefaultState(), 0)!.apply(image);
+        image = yield* applyMagickRasterSteps(image, writeMaskPixelSteps(image, mask, !!image.data16, false, undefined, original.hasAlpha && original.alphaBlend !== false), undefined, image, original.writeMask ? [image, original, original.writeMask] : [image, original]);
+    }
     const working = image;
     image = yield* prepareHueOutput(image, format);
     if (isRawCoder(format) && working.writeMask && image.data !== working.data) {
@@ -11912,6 +11918,12 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     }
     if (format === "png" && image.virtualCanvas?.width === 0 && image.virtualCanvas.height === 0) image = { ...image, virtualCanvas: { ...image.virtualCanvas, width: image.width, height: image.height } };
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
+    // Match the buffered raw RGB conversion without materializing the stored image.
+    if (format === "rgb" && image.space === "cmyk" && (image.storedWriteMask || image.region)) {
+        const original = image, mask = image.storedWriteMask ?? image.region!;
+        image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], createDefaultState(), 0)!, signal);
+        image = await transformStoredMagickRaster(image, backend, writeMaskPixelSteps(image, mask, !!image.storedData16, false, undefined, original.hasAlpha && original.alphaBlend !== false), signal, image, original.storedWriteMask ? [image, original, original.storedWriteMask] : [image, original]);
+    }
     if (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") {
         const working = image;
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: frame => prepareHueOutput(frame, format) }, signal);

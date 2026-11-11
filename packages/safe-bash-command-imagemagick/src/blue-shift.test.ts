@@ -56,7 +56,7 @@ it(`preserves 16-bit blue-shift precision (${mode})`, async () => {
 });
 
 for (const mode of ["sync", "command"] as const)
-it.each(["", "bogus", "1.5junk", "Infinity"])(`rejects invalid blue-shift factor %s without replacing output (${mode})`, async factor => {
+it.each(["", "bogus", "1.5junk", "Infinity", "1.5+1", "1.5-1", "2+1"])(`rejects invalid blue-shift factor %s without replacing output (${mode})`, async factor => {
     const files = new Map([["input.png", input], ["out.png", input]]);
     const fs = new MemoryFileSystem();
     await fs.writeFile("/input.png", input);

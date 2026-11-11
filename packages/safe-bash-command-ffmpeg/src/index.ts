@@ -6950,15 +6950,34 @@ function orderFfmetadataReplacements(tags: Mp4MetadataTags, source: Mp4MetadataT
   return ordered;
 }
 
-function mapGlobalMetadata(documents: readonly MediaDocument[], sources: readonly number[]): Mp4MetadataTags {
+function mapGlobalMetadata(documents: readonly MediaDocument[], sources: readonly string[]): Mp4MetadataTags {
   let metadata: Mp4MetadataTags = {};
-  for (const source of sources.length ? sources : [0]) {
-    if (source >= documents.length) throw new Error(`Invalid metadata input index: ${source}`);
-    if (source < 0) continue;
-    const document = documents[source]!;
-    const tags = document.metadata;
+  for (const source of sources.length ? sources : ["0"]) {
+    const [input, scope = "g", ...specifier] = source.split(":");
+    const inputIndex = Number(input);
+    if (inputIndex >= documents.length) throw new Error(`Invalid metadata input index: ${input}`);
+    if (inputIndex < 0) continue;
+    const document = documents[inputIndex]!;
+    let tags = document.metadata;
+    if (scope === "c") {
+      const index = specifier[0]?.trim() ? Number(specifier[0]) : NaN;
+      const chapter = document.chapters?.[index];
+      if (specifier.length !== 1 || !Number.isSafeInteger(index) || !chapter) {
+        throw new Error(`Invalid chapter index ${specifier.join(":")} in metadata source`);
+      }
+      tags = { custom: {} };
+      for (const [key, value] of Object.entries(chapter.tags ?? { title: chapter.title })) {
+        const normalized = key.toLowerCase();
+        if (["title", "artist", "album", "date", "comment", "genre", "encoder", "copyright"].includes(normalized)) {
+          tags = { ...tags, [normalized]: value,
+            keySpellings: { ...tags.keySpellings, [normalized]: key } };
+        } else tags = { ...tags, custom: { ...tags.custom, [key]: value } };
+      }
+    } else if (scope !== "g" || specifier.length) {
+      throw new Error(`Unsupported metadata source: ${source}`);
+    }
     const custom = { ...tags.custom };
-    if (document.containerFormat === "mp4" || document.containerFormat === "mov") {
+    if (scope === "g" && (document.containerFormat === "mp4" || document.containerFormat === "mov")) {
       if (document.majorBrand !== undefined) custom.major_brand = document.majorBrand;
       if (document.minorVersion !== undefined) custom.minor_version = String(document.minorVersion);
       if (document.compatibleBrands?.length) custom.compatible_brands = document.compatibleBrands.join("");
@@ -7030,8 +7049,8 @@ function mapStreamMetadata(tracks: readonly MediaTrack[], documents: readonly Me
   });
 }
 
-function applyStreamMetadata(tracks: readonly MediaTrack[], metadata: readonly [string, "language" | "handlerName" | "timecode" | "title" | "comment" | "stereo_mode", string][], metadataSource: number | undefined): readonly MediaTrack[] {
-  if (metadataSource !== undefined && metadataSource < 0) {
+function applyStreamMetadata(tracks: readonly MediaTrack[], metadata: readonly [string, "language" | "handlerName" | "timecode" | "title" | "comment" | "stereo_mode", string][], metadataSource: string | undefined): readonly MediaTrack[] {
+  if (metadataSource !== undefined && Number(metadataSource.split(":")[0]) < 0) {
     tracks = tracks.map(track => ({ ...track, language: "und" }));
   }
   for (const [specifier, key, value] of metadata) {
@@ -8191,7 +8210,7 @@ export function evalSyncFfmpeg(
     const vfFilters: string[] = [];
     let chapterSource: number | undefined;
     let copyChapterMetadata = true;
-    const metadataSources: number[] = [];
+    const metadataSources: string[] = [];
     const streamMetadataMaps: [string, string][] = [];
     const chapterMetadata: [number, string, string][] = [];
     const metadata: Record<string, string> = {};
@@ -8248,11 +8267,11 @@ export function evalSyncFfmpeg(
         streamMetadataMaps.push([arg.slice("-map_metadata:s:".length), args[++i] ?? ""]);
       } else if (arg === "-map_metadata" || arg === "-map_metadata:g") {
         const source = args[++i];
-        const value = source?.endsWith(":g") ? source.slice(0, -2) : source;
+        const value = source?.split(":")[0];
         const metadataSource = value?.trim() ? Number(value) : NaN;
         if (!Number.isSafeInteger(metadataSource)) return undefined;
-        metadataSources.push(metadataSource);
-        if (arg === "-map_metadata" && metadataSource < 0) copyChapterMetadata = false;
+        metadataSources.push(source!);
+        if ((arg === "-map_metadata" && metadataSource < 0) || source?.split(":")[1] === "c") copyChapterMetadata = false;
       } else if (arg === "-start_number") {
         const val = parseFilterExpression(args[++i] ?? "", "start_number", {});
         if (!Number.isSafeInteger(val) || val < 0) return undefined;
@@ -9528,7 +9547,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const afFilters: { ordinal: number | undefined; expression: string }[] = [];
         let chapterSource: number | undefined;
         let copyChapterMetadata = true;
-        const metadataSources: number[] = [];
+        const metadataSources: string[] = [];
         const streamMetadataMaps: [string, string][] = [];
         const chapterMetadata: [number, string, string][] = [];
         const metadata: Record<string, string> = {};
@@ -10037,14 +10056,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             streamMetadataMaps.push([arg.slice("-map_metadata:s:".length), args[++i] ?? ""]);
           } else if (arg === "-map_metadata" || arg === "-map_metadata:g") {
             const source = args[++i];
-            const value = source?.endsWith(":g") ? source.slice(0, -2) : source;
+            const value = source?.split(":")[0];
             const metadataSource = value?.trim() ? Number(value) : NaN;
             if (!Number.isSafeInteger(metadataSource)) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid metadata input index\n"), context.signal);
               return { exitCode: 1 };
             }
-            metadataSources.push(metadataSource);
-            if (arg === "-map_metadata" && metadataSource < 0) copyChapterMetadata = false;
+            metadataSources.push(source!);
+            if ((arg === "-map_metadata" && metadataSource < 0) || source?.split(":")[1] === "c") copyChapterMetadata = false;
           } else if (arg === "-frame_pts") {
             const value = args[++i]?.toLowerCase();
             if (value !== undefined && ["yes", "true", "on", "y", "enable", "enabled"].includes(value)) {

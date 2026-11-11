@@ -26,7 +26,7 @@ for (const sync of [false, true]) {
   ]) {
     it(`${name} leaves other metadata intact (${sync ? "sync" : "async"})`, async () => {
       const volume = Volume.fromJSON({ "/in.ffmeta": input });
-      const args = ["-y", "-bitexact", "-v", "error", "-f", "ffmetadata", "-i", "/in.ffmeta", ...options, "-f", "ffmetadata", "/out.ffmeta"];
+      const args = ["-y", "-v", "error", "-f", "ffmetadata", "-i", "/in.ffmeta", ...options, "-bitexact", "-f", "ffmetadata", "/out.ffmeta"];
       if (sync) {
         assert.equal(evalSyncFfmpeg(args, undefined,
           path => volume.readFileSync(path) as Buffer,
@@ -59,7 +59,7 @@ for (const sync of [false, true]) {
 for (const options of [["-metadata:c:-1", "title=New"], ["-metadata:c:2", "title=New"], ["-map_chapters", "-1", "-metadata:c:0", "title=New"]]) {
   it(`rejects an unavailable output chapter: ${options.join(" ")}`, async () => {
     const volume = Volume.fromJSON({ "/in.ffmeta": input });
-    const args = ["-y", "-bitexact", "-v", "error", "-f", "ffmetadata", "-i", "/in.ffmeta", ...options, "-f", "ffmetadata", "/out.ffmeta"];
+    const args = ["-y", "-v", "error", "-f", "ffmetadata", "-i", "/in.ffmeta", ...options, "-bitexact", "-f", "ffmetadata", "/out.ffmeta"];
     assert.equal(evalSyncFfmpeg(args, undefined,
       path => volume.readFileSync(path) as Buffer,
       () => { assert.fail("invalid chapter must not write output"); }), undefined);

@@ -12602,8 +12602,9 @@ if (t === "-intent" || t === "+intent") {
         else if (t === "-precision") {
             const value = tokens[++i], requested = Number(value);
             if (value === undefined || !value.trim() || !Number.isFinite(requested)) throw new Error("invalid argument for option '-precision'");
-            state.precision = requested < 1 ? 6 : Math.min(100, Math.trunc(requested));
+            if (requested !== 0) state.precision = requested < 1 ? 6 : Math.min(100, Math.trunc(requested));
         }
+        else if (t === "+precision") { state.precision = 6; }
         else if (t === "-treedepth") {
             const value = tokens[++i], depth = Number(value);
             if (value === undefined || !value.trim() || !Number.isSafeInteger(depth) || depth < 0) throw new Error("invalid argument for option '-treedepth'");

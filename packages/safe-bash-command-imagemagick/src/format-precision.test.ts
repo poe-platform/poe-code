@@ -13,6 +13,12 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     { args: ["xc:red", "-precision", "6"], expected: "0.333333|0.111111" },
     { args: ["xc:red", "-precision", "0"], expected: "0.333333|0.111111" },
     { args: ["xc:red", "-precision", "-1"], expected: "0.333333|0.111111" },
+    { args: ["xc:red", "-precision", "9"], expected: "0.333333333|0.111111111" },
+    { args: ["xc:red", "-precision", "9", "-precision", "0"], expected: "0.333333333|0.111111111" },
+    { args: ["xc:red", "-precision", "9", "+precision"], expected: "0.333333|0.111111" },
+    { args: ["xc:red", "-precision", "9", "-precision", "-1"], expected: "0.333333|0.111111" },
+    { args: ["-precision", "9", "-precision", "0", "xc:red"], expected: "0.333333333|0.111111111" },
+    { args: ["-precision", "9", "+precision", "xc:red"], expected: "0.333333|0.111111" },
     { args: ["xc:red", "-precision", "12", "-precision", "3"], expected: "0.333|0.111" },
     { args: ["xc:#804020", "-precision", "3"], format: "%[fx:mean.r]|%[mean]", expected: "0.502|1.92e+04" }
   ])(`honors INFO format precision (${mode}): $args`, async ({ args, format, expected }) => {

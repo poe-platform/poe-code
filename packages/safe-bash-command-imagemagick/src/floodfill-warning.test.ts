@@ -6,13 +6,14 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 
 for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     it.each(["black", "white"])(`${mode}: unrecognized floodfill color warns and succeeds on %s`, async background => {
-        const input = encodeImage({ width: 2, height: 2, data: new Uint8Array(16).fill(255),
+        const pixel = background === "black" ? [0, 0, 0, 255] : [255, 255, 255, 255];
+        const input = encodeImage({ width: 2, height: 2, data: Uint8Array.from([...pixel, ...pixel, ...pixel, ...pixel]),
             format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true
         }, { format: "png" }).data;
         const files = new Map([["p.png", input]]);
         const fs = new MemoryFileSystem();
         await fs.writeFile("/p.png", input);
-        const argv = ["p.png", "-fill", background, "-colorize", "100", "-fill", "lime",
+        const argv = ["p.png", "-fill", "lime",
             "-floodfill", "+0+0", "not-a-color", "PNG64:o.png"];
         const args = createCommandArguments(argv);
         let stderr = "";
@@ -26,7 +27,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         expect(result.exitCode, stderr).toBe(0);
         expect(stderr).toBe("magick: unrecognized color `not-a-color'\n");
         const output = mode === "command" || mode === "retained" ? await fs.readFile("/o.png") : files.get("o.png")!;
-        const pixel = background === "black" ? [0, 255, 0, 255] : [255, 255, 255, 255];
-        expect([...decodeImage(output).data]).toEqual([...pixel, ...pixel, ...pixel, ...pixel]);
+        const expected = background === "black" ? [0, 255, 0, 255] : pixel;
+        expect([...decodeImage(output).data]).toEqual([...expected, ...expected, ...expected, ...expected]);
     });
 }

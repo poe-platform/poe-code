@@ -21,9 +21,9 @@ export async function doubleweave(
       throw new Error(`doubleweave: unsupported option ${key}`);
     }
     field = parseFilterExpression((separator < 0 ? option : option.slice(separator + 1)).trim(), "doubleweave", {
-      top: 0, t: 0, bottom: 1, b: 1, default: 0, min: 0, max: 1,
+      top: 0, t: 0, bottom: 1, b: 1, default: 0, min: 0, max: 1, none: 0, all: -1,
       PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-    });
+    }, undefined, new Float64Array(10));
     if (!Number.isFinite(field) || field < 0 || field > 1) {
       throw new RangeError("doubleweave: first_field must be top or bottom");
     }

@@ -622,7 +622,8 @@ The width multiplier defaults to 2.5 (range -10 to 10); `c=0` disables clipping.
 Width expressions accept `E`, `PI`, and `PHI`, for example `extrastereo=m=PI/2`.
 `surround` upmixes stereo to 5.1 (FL, FR, FC, LFE, BL, BR) using a
 windowed frequency transform, retaining the sample rate and frame count.
-`surround=chl_out=5.1:win_size=1024:lfe=0` silences only LFE. The default
+`surround=chl_out=5.1:win_size=1024:lfe=0` silences only LFE. `lfe` also accepts
+case-insensitive `n`/`disabled` for off and `y`/`enabled` for on. The default
 window is 4096 samples; powers of two from 1024 to 65536 are supported.
 `win_size` accepts expressions such as `512*2` and constants `min`, `max`, and
 `default`. Values are checked against that range, then rounded to the nearest

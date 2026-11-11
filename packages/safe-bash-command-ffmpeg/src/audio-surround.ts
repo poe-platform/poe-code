@@ -33,8 +33,8 @@ export async function surroundAudio(
       }
     } else if (key === "lfe") {
       const boolean = value.toLowerCase();
-      if (["1", "true", "yes", "on"].includes(boolean)) lfe = true;
-      else if (["0", "false", "no", "off"].includes(boolean)) lfe = false;
+      if (["1", "true", "yes", "on", "y", "enabled"].includes(boolean)) lfe = true;
+      else if (["0", "false", "no", "off", "n", "disabled"].includes(boolean)) lfe = false;
       else throw new Error("surround: invalid lfe");
     } else throw new Error(`surround: unsupported option ${key}`);
   }

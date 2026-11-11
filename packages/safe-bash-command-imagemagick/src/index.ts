@@ -11271,6 +11271,7 @@ if (t === "-intent" || t === "+intent") {
             const key = t === "+set" ? rawKey.slice("option:".length) : rawKey;
             state.optionProperties = { ...state.optionProperties };
             delete state.optionProperties[key];
+            if (key === "compose:args") state.composeArgs = undefined;
             if (key === "connected-components:verbose") delete state.connectedVerbose;
             if (key === "filter:blur" || key === "filter:support" || key === "filter:lobes" || key === "filter:b" || key === "filter:c" || key === "filter:sigma" || key === "filter:window") {
                 state.resizeFilter = { ...state.resizeFilter };
@@ -17904,6 +17905,10 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
             const geometry = argv[++i] ?? "";
             // Composite both sharpens the images and selects Threshold composition.
             options.push(t, geometry, "-define", `compose:args=${geometry}`, "-compose", "Threshold");
+        }
+        else if (t === "+blend" || t === "+dissolve" || t === "+watermark") {
+            // Reset the weights without changing the selected compose operator.
+            options.push("+define", "compose:args");
         }
         else if (t !== "-" && t.startsWith("-")) {
             options.push(t);

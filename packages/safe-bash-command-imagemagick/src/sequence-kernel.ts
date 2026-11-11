@@ -420,7 +420,8 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
             return mask ? [mask.r, mask.g, mask.b, mask.a, mask.k === true] : undefined;
         }) : undefined;
     if (sourceChannels) channels = sourceChannels[inputs.indexOf(canvas)];
-    const fractional = cmyk || ["cos", "cosine", "divide", "inverselog", "log", "mean", "multiply", "rms", "rootmeansquare", "sin", "sine", "thresholdblack", "thresholdwhite"].includes(operation);
+    const bitwise = ["and", "or", "xor"].includes(operation);
+    const fractional = cmyk || bitwise || ["cos", "cosine", "divide", "inverselog", "log", "mean", "multiply", "rms", "rootmeansquare", "sin", "sine", "thresholdblack", "thresholdwhite"].includes(operation);
     const retainRange = ["add", "addmodulus", "sum", "subtract", "min", "max"].includes(operation);
     function* read(image: number, position: number, length: number, retainWorking = retainRange || fractional): Generator<ConvolveRequest, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
         const storagePosition = position / stride * 4, storageLength = length / stride * 4;
@@ -553,14 +554,16 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
             for (let offset = 0; offset < length; offset++) {
                 if (offset % stride !== 3 || hasAlpha) data[offset] = 0;
             }
-        } else if (["and", "or", "xor"].includes(operation)) {
+        } else if (bitwise) {
             for (let image = 1; image < frames; image++) {
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
                 for (let offset = 0; offset < length; offset++) {
-                    if (operation === "and") data[offset] = data[offset]! & bytes[offset]!;
-                    else if (operation === "or") data[offset] = data[offset]! | bytes[offset]!;
-                    else data[offset] = data[offset]! ^ bytes[offset]!;
+                    // Native truncates the incoming Q16 sample and rounds the accumulator mask.
+                    const sample = bytes[offset]! * scale, mask = Math.trunc(data[offset]! * scale + 0.5);
+                    if (operation === "and") data[offset] = (sample & mask) / scale;
+                    else if (operation === "or") data[offset] = (sample | mask) / scale;
+                    else data[offset] = (sample ^ mask) / scale;
                 }
             }
         } else if (operation === "leftshift" || operation === "rightshift") {

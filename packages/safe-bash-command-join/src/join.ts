@@ -1,6 +1,6 @@
-import { getCommandArguments, writeBytes, type CommandDefinition, type CommandContext } from "safe-bash-contracts";
+import { getCommandArguments, isFsError, writeBytes, type CommandDefinition, type CommandContext } from "safe-bash-contracts";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
-import { argument, type Budget, command, compare, empty, encode, fail, Inputs, settings, type OrderMode, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
+import { argument, type Budget, command, compare, empty, encode, fail, Inputs, settings, type OrderMode, type RecordReader, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
 interface Field { readonly file: number; readonly index: number }
 interface Row { readonly bytes: Uint8Array; readonly fields: readonly Uint8Array[]; readonly key: Uint8Array }
@@ -253,7 +253,18 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
     const terminator = Uint8Array.of(options.separator), delimiter = options.delimiter ?? Uint8Array.of(32);
     const orderFailure = Symbol("join order failure");
     try {
-      const readers = [await inputs.open(options.files[0]!), await inputs.open(options.files[1]!)];
+      const readers: RecordReader[] = [];
+      let directory = false;
+      for (const file of options.files) {
+        try { readers.push(await inputs.open(file)); }
+        catch (error) {
+          // GNU can open directories; their read error follows both operand opens.
+          if (isFsError(error) && error.code === "EISDIR") directory = true;
+          else if (isFsError(error) && error.code === "ENOENT") throw new PublicDiagnostic(`${file}: No such file or directory`);
+          else throw error;
+        }
+      }
+      if (directory) throw new PublicDiagnostic("read error: Is a directory");
       const previous: (Uint8Array | undefined)[] = [undefined, undefined];
       const lines = [0, 0], warned = new Set<number>();
       let seenUnpaired = false;

@@ -33,6 +33,19 @@ async function run(args: ShellValue[], files: Record<string, string | Uint8Array
  return { ...result, stdout, stdoutBytes, stderr, combined };
 }
 
+for (const { args, files, stdout, stderr } of [
+ { args: [".", "absent-input"], files: {}, stdout: "", stderr: "join: absent-input: No such file or directory\n" },
+ { args: [".", "right"], files: { "/right": "a right\n" }, stdout: "", stderr: "join: read error: Is a directory\n" },
+ { args: ["left", "right"], files: { "/left": "a left\n", "/right": "a right\n" }, stdout: "a left right\n", stderr: "" },
+] satisfies { args: string[]; files: Record<string, string>; stdout: string; stderr: string }[]) {
+ test(`join opens both operands before reading: ${args.join(" ")}`, async () => {
+  const result = await run(args, files, { LC_ALL: "C" });
+  assert.equal(result.exitCode, stderr ? 1 : 0);
+  assert.equal(result.stdout, stdout);
+  assert.equal(result.stderr, stderr);
+ });
+}
+
 for (const delimiter of ["|", ":"]) {
  for (const automatic of [false, true]) {
   for (const record of ["", delimiter, `${delimiter}x${delimiter}`]) {

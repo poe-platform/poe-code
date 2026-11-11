@@ -8290,6 +8290,7 @@ export function evalSyncFfmpeg(
     let pendingTo: number | undefined;
     let pendingDuration: number | undefined;
     let pendingLoop: number | undefined;
+    let pendingAccurateSeek = true;
     let pendingFps: number | undefined;
     let pendingStartNumber: number | undefined;
     let outputStartNumber: number | undefined;
@@ -8543,6 +8544,9 @@ export function evalSyncFfmpeg(
         if (!Number.isFinite(val) || val < 0) return undefined;
         if (args.slice(i + 1).includes("-i")) pendingDuration = val;
         else outputDuration = val;
+      } else if (arg === "-accurate_seek" || arg === "-noaccurate_seek") {
+        if (!args.slice(i + 1).includes("-i")) return undefined;
+        pendingAccurateSeek = arg === "-accurate_seek";
       } else if (arg === "-stream_loop") pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
       else if (arg === "-kind") {
         pendingWebvttKind = args[++i];
@@ -8611,6 +8615,7 @@ export function evalSyncFfmpeg(
           endSeconds: pendingTo,
           durationSeconds: pendingDuration,
           streamLoop: pendingLoop,
+          accurateSeek: pendingAccurateSeek,
           fps: pendingFps,
           startNumber: pendingStartNumber,
         });
@@ -8627,7 +8632,7 @@ export function evalSyncFfmpeg(
         pendingSkipInitialBytes = 0;
         pendingIgnoreLength = false;
         pendingMaxSize = undefined;
-        pendingFormat = undefined; pendingSs = undefined; pendingSseof = undefined; pendingTo = undefined; pendingDuration = undefined; pendingLoop = undefined; pendingFps = undefined; pendingStartNumber = undefined;
+        pendingFormat = undefined; pendingSs = undefined; pendingSseof = undefined; pendingTo = undefined; pendingDuration = undefined; pendingLoop = undefined; pendingAccurateSeek = true; pendingFps = undefined; pendingStartNumber = undefined;
       } else if (arg === "-c" || arg === "-codec") {
         const val = args[++i]; videoCodec = val; audioCodec = val; subtitleCodec = val;
       } else if (arg === "-force_key_frames") return undefined;
@@ -9031,7 +9036,7 @@ export function evalSyncFfmpeg(
       if (audioCodec === "copy" && (startSeconds !== undefined || outputSs !== undefined) &&
           doc.tracks.some(track => track.codecDescriptions[0]?.codecName === `pcm_${doc.containerFormat}`)) return undefined;
       if (inp.streamLoop && inp.streamLoop > 0) {
-        doc = loopInputMedia(doc, inp.streamLoop, audioCodec === "copy" || isStdin(inp.path) ? undefined : startSeconds, budget);
+        doc = loopInputMedia(doc, inp.streamLoop, inp.accurateSeek === false || audioCodec === "copy" || isStdin(inp.path) ? undefined : startSeconds, budget);
       }
       if (startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
         doc = sliceInputMedia(doc, { inputSeek: startSeconds !== undefined, startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds, copyAudio: audioCodec === "copy", resetTimestamps: !copyTimestamps }, subtitleCodec === "copy");
@@ -9399,6 +9404,7 @@ interface InputSpec {
   readonly endSeconds?: number | undefined;
   readonly durationSeconds?: number | undefined;
   readonly streamLoop?: number | undefined;
+  readonly accurateSeek?: boolean | undefined;
   readonly ignoreLoop?: boolean | undefined;
   readonly imageLoop?: boolean | undefined;
   readonly fps?: number | undefined;
@@ -9486,6 +9492,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingTo: number | undefined;
       let pendingDuration: number | undefined;
       let pendingLoop: number | undefined;
+      let pendingAccurateSeek = true;
       let pendingIgnoreLoop: boolean | undefined;
       let pendingImageLoop: boolean | undefined;
       let pendingFps: number | undefined;
@@ -10600,6 +10607,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 return { exitCode: 1 };
               }
             }
+          } else if (arg === "-accurate_seek" || arg === "-noaccurate_seek") {
+            if (!args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Option ${arg.slice(1)} cannot be applied to an output file.\n`), context.signal);
+              return { exitCode: 234 };
+            }
+            pendingAccurateSeek = arg === "-accurate_seek";
           } else if (arg === "-stream_loop") {
             pendingLoop = parseInt(args[++i] ?? "0", 10) || 0;
           } else if (arg === "-kind") {
@@ -10739,6 +10752,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               endSeconds: pendingTo,
               durationSeconds: pendingDuration,
               streamLoop: pendingLoop,
+              accurateSeek: pendingAccurateSeek,
               ignoreLoop: pendingIgnoreLoop,
               imageLoop: pendingImageLoop,
               fps: pendingFps,
@@ -10776,6 +10790,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingTo = undefined;
             pendingDuration = undefined;
             pendingLoop = undefined;
+            pendingAccurateSeek = true;
             pendingIgnoreLoop = undefined;
             pendingImageLoop = undefined;
             pendingFps = undefined;
@@ -12161,7 +12176,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (audioCodec !== "copy" && !stripAudio) doc = decodeAacInput(doc);
               const loopSourceDuration = doc.durationSeconds;
               if (inp.streamLoop && inp.streamLoop > 0) {
-                doc = loopInputMedia(doc, inp.streamLoop, audioCodec === "copy" || isStdin(inp.path) ? undefined : startSeconds, budget);
+                doc = loopInputMedia(doc, inp.streamLoop, inp.accurateSeek === false || audioCodec === "copy" || isStdin(inp.path) ? undefined : startSeconds, budget);
               }
               if (
                 startSeconds !== undefined ||

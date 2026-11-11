@@ -1010,6 +1010,9 @@ trailing options without a filename do not change earlier outputs.
 With finite input loops, input `-t` limits the total looped timeline, including partial final passes.
 Finite `-stream_loop N` repeats the full input N times after its first pass.
 An input `-ss` seek applies only to the first pass; repeats restart at the beginning.
+`-accurate_seek` (the default) discards decoded audio before the seek timestamp,
+including at loop boundaries. `-noaccurate_seek` preserves that loop-boundary audio.
+Both switches apply to the next input; the last switch before `-i` wins.
 `-stream_loop -1` repeats an input up to a finite output `-t` or `-to`, subject to
 media resource limits. Without either output bound, infinite looping fails explicitly.
 `-metadata:s:m:language:fra language=deu` changes only output tracks whose language is French;

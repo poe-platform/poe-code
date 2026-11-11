@@ -6,7 +6,7 @@ import { createFfmpegCommand } from "./index.js";
 const first = Array.from({ length: 11 }, (_, index) => (index + 1) * 100);
 const second = [-10, -20, -30];
 
-async function run(graph: string, inputs: number[][], output = "[out]") {
+async function run(graph: string, inputs: number[][], output = "[out]", outputArgs = ["-f", "s16le"]) {
   const volume = Volume.fromJSON({ "/out.raw": "keep" });
   inputs.forEach((samples, index) => {
     const bytes = Buffer.alloc(samples.length * 2);
@@ -17,7 +17,7 @@ async function run(graph: string, inputs: number[][], output = "[out]") {
   const result = await createFfmpegCommand().execute({
     args: ["-v", "error", "-y", ...inputs.flatMap((_, index) =>
       ["-f", "s16le", "-ac", "1", "-ar", "1000", "-i", `/${index}.raw`]),
-    "-filter_complex", graph, "-map", output, "-c:a", "pcm_s16le", "-f", "s16le", "/out.raw"],
+    "-filter_complex", graph, "-map", output, "-c:a", "pcm_s16le", ...outputArgs, "/out.raw"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
       async readFile(path: string) { return volume.readFileSync(path); },
@@ -55,5 +55,31 @@ for (const [graph, output] of [
     const result = await run(graph!, [first, second], output);
     assert.notEqual(result.exitCode, 0, result.stderr);
     assert.equal(result.output.toString(), "keep");
+  });
+}
+
+// Native FFmpeg 7.0.2 keeps packet gaps without inserting PCM silence.
+for (const gaps of [false, true]) {
+  const inputs = [145, 200].map((length, input) =>
+    Array.from({ length }, (_, i) => ((i * (119 + 37 * input)) % 17000) - 7000));
+  const graph = `[0:a]${gaps ? "asetpts=PTS*2" : "anull"}[a];[a][1:a]concat=n=2:v=0:a=1[out]`;
+  it(`preserves concat packet timestamps, gaps=${gaps}`, async () => {
+    const result = await run(graph, inputs, "[out]", ["-f", "framecrc"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const rows = result.output.toString().trim().split("\n").filter(line => !line.startsWith("#"));
+    assert.deepEqual(rows.map(row => row.split(",").slice(1, 4).map(Number)),
+      (gaps ? [0, 128, 256, 273, 337, 401, 465] : [0, 64, 128, 145, 209, 273, 337])
+        .map((pts, i) => [pts, pts, [64, 64, 17, 64, 64, 64, 8][i]]));
+  });
+  it(`limits concat output by timestamps, gaps=${gaps}`, async () => {
+    const result = await run(graph, inputs, "[out]", ["-t", "0.200", "-f", "s16le"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(Array.from({ length: result.output.length / 2 }, (_, i) => result.output.readInt16LE(i * 2)),
+      inputs.flat().slice(0, gaps ? 128 : 200));
+  });
+  it(`preserves concat PCM without filling gaps, gaps=${gaps}`, async () => {
+    const result = await run(graph, inputs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(Array.from({ length: result.output.length / 2 }, (_, i) => result.output.readInt16LE(i * 2)), inputs.flat());
   });
 }

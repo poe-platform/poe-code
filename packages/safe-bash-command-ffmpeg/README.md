@@ -847,6 +847,8 @@ Audio `concat=n=2:v=0:a=1` joins connected branches in pad order, including
 multiple branches from one input. For example,
 `-filter_complex '[0:a]asplit[a][b];[b][a]concat=n=2:v=0:a=1[out]' -map '[out]' twice.wav`
 plays the input twice; filters on each branch run before concatenation.
+Packet timestamp gaps are retained, and each segment starts at the preceding
+segment's final packet end; gaps do not insert silence into PCM output.
 Consume an unused audio branch with `anullsink`, which has no output:
 `-filter_complex '[0:a]channelsplit[L][R];[L]anullsink;[R]anull[out]' -map '[out]' right.wav`.
 The retained channel keeps its speaker layout; dropping the sink leaves an invalid

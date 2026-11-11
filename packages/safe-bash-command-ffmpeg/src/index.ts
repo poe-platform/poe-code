@@ -2007,7 +2007,28 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             timescale: track.timescale, durationSeconds: track.duration / track.timescale });
         }
         const joined = concatMp4(segments, { budget });
-        return { track: joined.tracks[0]!, expression: serializeFilterChain(filters.slice(1)) || "anull" };
+        const track = joined.tracks[0]!;
+        // Container concatenation packs timestamps. Filter concat keeps each
+        // segment's packet clock, while decoded PCM stays packed without silence.
+        let offset = 0;
+        let index = 0;
+        const samples: MediaTrack["samples"][number][] = [];
+        for (const segment of segments) {
+          const source = segment.tracks[0]!;
+          const scale = track.timescale / source.timescale;
+          let end = 0;
+          for (const sample of source.samples) {
+            budget.checkCpu();
+            const packet = track.samples[index++]!;
+            const pts = Math.round(sample.pts * scale);
+            const dts = Math.round(sample.dts * scale);
+            samples.push({ ...packet, pts: offset + pts, dts: offset + dts, cts: pts - dts });
+            end = pts + packet.duration;
+          }
+          offset += end;
+        }
+        return { track: { ...track, samples, duration: offset },
+          expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "headphone" || filters[0]?.startsWith("headphone=")) {
         if (sources.some(source => source.expression && source.expression !== "anull")) {

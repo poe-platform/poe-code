@@ -11151,7 +11151,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     t.type === "video" ? { ...t, samples: [], decodedVideoFrames: outFrames } : t
                   )
                 };
-              } else if ((filterComplex.includes("vstack") || filterComplex.includes("hstack") || filterComplex.includes("xstack") || filterComplex.includes("framepack")) && loadedDocs.length >= 2) {
+              } else if (filterComplex.includes("vstack") || filterComplex.includes("hstack") || filterComplex.includes("xstack") || filterComplex.includes("framepack")) {
                 const xstack = filterComplex.includes("xstack");
                 const framepack = filterComplex.includes("framepack");
                 let vertical = filterComplex.includes("vstack");
@@ -11241,7 +11241,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const inputOption = options.find(option => option.trim().startsWith("inputs="))
                   ?.split("=")[1]?.trim() ?? (options[0]?.includes("=") ? undefined : options[0]?.trim());
                 const inputCount = framepack ? 2 : xstack ? gridInputs || Number(xoptions.inputs ?? 2) : Number(inputOption || 2);
-                if (!Number.isInteger(inputCount) || inputCount < 2 || inputCount > loadedDocs.length) {
+                if (!Number.isInteger(inputCount) || inputCount < 2) {
                   throw new Error(`${filter}: inputs must specify at least two available inputs`);
                 }
                 const inputs: MediaVideoFrame[][] = [];

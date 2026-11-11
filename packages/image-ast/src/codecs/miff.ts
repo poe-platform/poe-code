@@ -59,8 +59,8 @@ function miffHeader(image: Pick<RgbaImage, "renderingIntent" | "chromaticity" | 
     }
     const resolution = image.resolution;
     const scale = resolution?.unit === "meter" ? 100 : 1;
-    const x = resolution ? resolution.x / scale : image.density;
-    const y = resolution ? resolution.y / scale : image.density;
+    const x = Number((resolution ? resolution.x / scale : image.density).toPrecision(6));
+    const y = Number((resolution ? resolution.y / scale : image.density).toPrecision(6));
     const units = resolution?.unit === "inch" ? "PixelsPerInch" : resolution?.unit === "cm" || resolution?.unit === "meter" ? "PixelsPerCentimeter" : "Undefined";
     const ticksPerSecond = image.ticksPerSecond ?? 100;
     const delayTicks = image.delayTicks ?? (image.ticksPerSecond === undefined ? Math.floor((delay ?? 0) / 10) : Math.round((delay ?? 0) * ticksPerSecond / 1000));

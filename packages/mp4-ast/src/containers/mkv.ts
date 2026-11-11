@@ -864,7 +864,21 @@ export function serializeMkv(
     let samples = trk.samples;
     let desc = trk.codecDescriptions[0];
 
-    if (samples.length === 0 && trk.type === "video" && trk.decodedVideoFrames?.length) {
+    const pcmEncoder = trk.type === "audio" && trk.decodedAudio && options.audioCodec?.startsWith("pcm_")
+      ? rawAudioAsts().find(plugin => plugin.supportedAudioCodecs.includes(options.audioCodec!)) : undefined;
+    if (pcmEncoder && trk.decodedAudio) {
+      const { sampleRate, channels } = trk.decodedAudio;
+      const encoded = pcmEncoder.serialize({ ...doc, tracks: [trk] }, { ...options, budget });
+      const pcm = pcmEncoder.parse(encoded, { sampleRate, channels, decodeAudio: false, budget }).tracks[0]!;
+      const start = samples[0]?.pts ?? 0;
+      desc = pcm.codecDescriptions[0];
+      samples = pcm.samples.map(sample => ({
+        ...sample,
+        dts: start + sample.dts * ts / sampleRate,
+        pts: start + sample.pts * ts / sampleRate,
+        duration: sample.duration * ts / sampleRate
+      }));
+    } else if (samples.length === 0 && trk.type === "video" && trk.decodedVideoFrames?.length) {
       const w = trk.width ?? trk.decodedVideoFrames[0]!.width;
       const h = trk.height ?? trk.decodedVideoFrames[0]!.height;
       const { sps, pps } = buildH264SpsPps(w, h, 30);

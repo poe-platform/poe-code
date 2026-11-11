@@ -14,7 +14,7 @@ const operators = [
     ["-distort", "PerspectiveProjection", "0,0,0,0,0,0,0,0"],
     ["-distort", "Affine", "0,0,1,2 12,0,11,1 0,16,2,15"],
     ["-distort", "Barrel", "0.1,0.2,-0.3"], ["-distort", "Barrel", "0.1,0.2,-0.3,1,4,5"],
-    ["-distort", "unknown", "1"], ["-distort", "Affine", "0,0 0,0"],
+    ["-distort", "Affine", "0,0 0,0"],
     ["-background", "#12345680", "-shear", "17x9"]
 ];
 async function fixture(width = 13, height = 17) {
@@ -78,7 +78,6 @@ it("preserves original warp pixel vectors", async () => {
         "350b4b31de0933eb4fb46d3473bf7db07829f8a4dc2ac5b8fb0ed49b303bbe54",
         "a43e88b4c5ea08760b2f9efa9c6974dba360fbc5278d605655f9700b0e0d9a92",
         "002491ad2cc89fa294d9de433f0a626900ea91972d6bc2aa8eacf2215f423b7e",
-        "efb7ebcc125449f5a57f3e5ade22a07e0859fb58afbfa8654dca9b2b0cd41b28",
         "d8b795a786891f53dd97ee3ba923380b7bd5411efbf4bb56aeff099187437c94",
         "f2f5e714b4087b2f588b30624e1674e63acd4de156773a2eb23423f3bc0167c0",
       ]
@@ -95,4 +94,14 @@ it.each([...operators, ...["edge", "background", "transparent", "black", "white"
     const argv = ["input", ...args, "out.png"];
     expect(await runConvertCli(argv, { filesystem, cwd: "/" })).toEqual(await runConvertCli(argv, files));
     expect(decodeImage(await fs.readFile("/out.png"))).toEqual(decodeImage(files.get("out.png")!));
+});
+
+it.each([false, true])("rejects unknown distortion methods, retained=%s", async retained => {
+    const bytes = await fixture(), fs = new MemoryFileSystem(), files = new Map([["input", bytes]]);
+    await fs.writeFile("/input", bytes);
+    const result = await runConvertCli(["input", "-distort", "unknown", "1", "out.png"], retained ? { filesystem: fs, cwd: "/" } : files);
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("unknown");
+    if (retained) await expect(fs.readFile("/out.png")).rejects.toMatchObject({ code: "ENOENT" });
+    else expect(files.has("out.png")).toBe(false);
 });

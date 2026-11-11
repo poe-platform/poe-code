@@ -5042,7 +5042,11 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
 
 function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, geometry: string) {
     // A bare trailing offset sign leaves that offset at its shadow default.
-    geometry = geometry.trimEnd();
+    geometry = geometry.trim();
+    // A signed opacity may stand alone or precede sigma; offset-only geometry stays invalid.
+    const signedOpacity = Number.isFinite(Number(geometry)) || [...geometry].some(char => "xX,/".includes(char));
+    const opacitySign = signedOpacity && geometry.startsWith("-") ? -1 : 1;
+    if (signedOpacity && (geometry.startsWith("-") || geometry.startsWith("+"))) geometry = geometry.slice(1);
     if (geometry.endsWith("+") || geometry.endsWith("-")) geometry = geometry.slice(0, -1);
     // Shadow accepts alternate separators and ignores fields after sigma and offsets.
     let normalized = normalizeMagickOffsets(geometry).replaceAll("X", "x").replaceAll(",", "x").replaceAll("/", "x");
@@ -5057,7 +5061,7 @@ function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtual
     normalized = normalized.split("x", 2).join("x");
     // Shadow ignores these geometry modifiers, including resize area semantics.
     const g = parseMagickGeometry(normalized.replaceAll("(", "").replaceAll(")", "").replaceAll("#", "").replaceAll("@", ""));
-    const opacity = Math.max(0, g.aspectRatio ?? g.width ?? 0) / 100, sigma = Math.max(0, g.height ?? 1);
+    const opacity = opacitySign * (g.aspectRatio ?? g.width ?? 0) / 100, sigma = Math.max(0, g.height ?? 1);
     if (![...geometry].every(char => "0123456789.eExX+- %!<>^@,/:()#".includes(char)) ||
         (!Number.isFinite(g.aspectRatio) && !Number.isFinite(g.width) && !Number.isFinite(g.height))) {
         throw new Error(`invalid argument for option '-shadow': ${geometry}`);

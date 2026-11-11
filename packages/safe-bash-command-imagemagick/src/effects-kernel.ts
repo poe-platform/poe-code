@@ -80,13 +80,13 @@ export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "
             for (let x = 0; x < count; x++) {
                 const offset = x * 4, value = sums[x]!;
                 data[offset] = quantum(color.r * scale); data[offset + 1] = quantum(color.g * scale); data[offset + 2] = quantum(color.b * scale);
-                data[offset + 3] = Number.isFinite(value) ? Math.max(0, Math.min(maximum, quantum(value))) : 0;
+                data[offset + 3] = Number.isFinite(value) ? quantum(value) : 0;
             }
             const position = (y * layout.width + left) * 4;
             // Replace working colors as well as the encoding view before a later colorspace conversion.
             if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(data.buffer) };
             else yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.map(value => value / scale).buffer) };
-            const bounded = hue || highDepth ? Uint16Array.from(data, value => Math.round(value * (hue ? 65535 : 1))) : Uint8Array.from(data, value => Math.round(value));
+            const bounded = hue || highDepth ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(maximum, value)) * (hue ? 65535 : 1))) : Uint8Array.from(data, value => Math.round(Math.max(0, Math.min(maximum, value))));
             yield { kind: "write", highDepth: hue || highDepth, position, data: new Uint8Array(bounded.buffer) };
             if (inks) {
                 const samples = new Float64Array(count * 4);

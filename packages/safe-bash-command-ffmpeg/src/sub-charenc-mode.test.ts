@@ -52,7 +52,7 @@ for (const [name, options, expectedCode, expected] of [
   ["resets a numeric mode after its input", ["-sub_charenc_mode", "2", "-i", "/in.srt", "-i", "/second.srt", "-map", "1:s"], 69, Buffer.from("WEBVTT\n")],
   ["does not replace output for an unknown mode", ["-sub_charenc_mode", "unknown", "-i", "/in.srt"], 1, Buffer.from("KEEP")],
   ["does not replace output for a missing mode", ["-sub_charenc_mode"], 1, Buffer.from("KEEP")],
-  ["does not replace output for a misplaced mode", ["-i", "/in.srt", "-sub_charenc_mode", "ignore"], 1, Buffer.from("KEEP")]
+  ["does not replace output for a misplaced mode", ["-i", "/in.srt", "-sub_charenc_mode", "ignore"], 234, Buffer.from("KEEP")]
 ] as const) {
   it(`sub_charenc_mode ${name}`, async () => {
     const volume = Volume.fromJSON({ "/in.srt": srt(invalid), "/second.srt": srt(invalid), "/out.vtt": "KEEP" });

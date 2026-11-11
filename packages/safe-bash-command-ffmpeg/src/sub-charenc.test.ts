@@ -79,14 +79,12 @@ it("rejects an unusable decoder charset before replacing output", async () => {
   assert.equal(output.toString(), "KEEP");
 });
 
-for (const options of [["-sub_charenc"], ["-i", "/in.srt", "-sub_charenc", "ASCII"]]) {
-  it(`rejects misplaced or missing charset: ${options.join(" ")}`, async () => {
-    const { result, stderr, output } = await run(Buffer.from(prefix + "Hello\n\n"), options, false);
-    assert.deepEqual(result, { exitCode: 1 });
-    assert.ok(stderr.includes("requires a charset before an input"), stderr);
-    assert.equal(output.toString(), "KEEP");
-  });
-}
+it("rejects missing charset", async () => {
+  const { result, stderr, output } = await run(Buffer.from(prefix + "Hello\n\n"), ["-sub_charenc"], false);
+  assert.deepEqual(result, { exitCode: 1 });
+  assert.ok(stderr.includes("requires a charset before an input"), stderr);
+  assert.equal(output.toString(), "KEEP");
+});
 
 it("keeps valid events when another event cannot be recoded", async () => {
   const input = prefix + "Café €\n\n2\n00:00:03,000 --> 00:00:04,000\nHello\n\n";

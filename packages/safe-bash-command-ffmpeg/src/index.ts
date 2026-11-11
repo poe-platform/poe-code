@@ -10302,12 +10302,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-sub_charenc") {
             pendingSubtitleCharset = args[++i];
+            if (pendingSubtitleCharset !== undefined && inputs.length > 0 && !args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Codec AVOption sub_charenc is not an encoding option.\n"), context.signal);
+              return { exitCode: 234 };
+            }
             if (!pendingSubtitleCharset || !args.slice(i + 1).includes("-i")) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: -sub_charenc requires a charset before an input\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-sub_charenc_mode") {
             pendingSubtitleCharencMode = args[++i];
+            if (pendingSubtitleCharencMode !== undefined && inputs.length > 0 && !args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Codec AVOption sub_charenc_mode is not an encoding option.\n"), context.signal);
+              return { exitCode: 234 };
+            }
             pendingSubtitleCharencMode = subtitleCharencModeNames.get(pendingSubtitleCharencMode ?? "") ?? pendingSubtitleCharencMode;
             if (!["ignore", "do_nothing", "auto", "pre_decoder"].includes(pendingSubtitleCharencMode ?? "") || !args.slice(i + 1).includes("-i")) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: -sub_charenc_mode requires ignore (2), do_nothing (-1), auto (0) or pre_decoder (1) before an input\n"), context.signal);

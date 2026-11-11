@@ -16,7 +16,7 @@ export function readWebpMetadata(bytes:Uint8Array):ImageMetadata {
 }
 
 export function createWebpEncoder(
-  img: Pick<RgbaImage, "width" | "height" | "density" | "orientation">,
+  img: Pick<RgbaImage, "width" | "height" | "density" | "orientation" | "icc">,
   hasAlpha: boolean,
   options?: {
     readonly pageHeight?: number;
@@ -123,8 +123,9 @@ export function createWebpEncoder(
       }).subarray(6)
     : new Uint8Array();
   const exifPaddedLen = exifPayload.length + (exifPayload.length & 1),
-    vp8xLen = needExif ? 18 : 0;
-  const totalSize = 20 + vp8xLen + vp8lPaddedLen + (needExif ? 8 + exifPaddedLen : 0);
+    vp8xLen = needExif || img.icc ? 18 : 0;
+  const iccLength = img.icc ? 8 + img.icc.length + (img.icc.length & 1) : 0;
+  const totalSize = 20 + vp8xLen + iccLength + vp8lPaddedLen + (needExif ? 8 + exifPaddedLen : 0);
   if (totalSize - 8 > 0xffffffff) throw new RangeError("WebP exceeds RIFF size range");
   const drain = () => {
     const length = Math.floor(bitPos / 8),
@@ -136,15 +137,15 @@ export function createWebpEncoder(
     return result;
   };
   const prefix = drain(),
-    header = new Uint8Array(20 + vp8xLen + prefix.length),
+    header = new Uint8Array(20 + vp8xLen + iccLength + prefix.length),
     view = new DataView(header.buffer);
   header.set([82, 73, 70, 70], 0);
   view.setUint32(4, totalSize - 8, true);
   header.set([87, 69, 66, 80], 8);
-  if (needExif) {
+  if (vp8xLen) {
     header.set([86, 80, 56, 88], 12);
     view.setUint32(16, 10, true);
-    header[20] = (hasAlpha ? 16 : 0) | 8;
+    header[20] = (hasAlpha ? 16 : 0) | (needExif ? 8 : 0) | (img.icc ? 32 : 0);
     const w = width - 1,
       h = height - 1;
     header.set(
@@ -152,7 +153,12 @@ export function createWebpEncoder(
       24
     );
   }
-  const at = 12 + vp8xLen;
+  if (img.icc) {
+    header.set([73, 67, 67, 80], 30);
+    view.setUint32(34, img.icc.length, true);
+    header.set(img.icc, 38);
+  }
+  const at = 12 + vp8xLen + iccLength;
   header.set([86, 80, 56, 76], at);
   view.setUint32(at + 4, vp8lChunkLen, true);
   header.set(prefix, at + 8);
@@ -197,7 +203,7 @@ export function createWebpEncoder(
 
 /** Full-canvas replacement frames keep alpha independent of the previous frame. */
 export function createWebpAnimation(
-  image: Pick<RgbaImage, "width" | "height" | "pageHeight" | "loop" | "density" | "orientation">,
+  image: Pick<RgbaImage, "width" | "height" | "pageHeight" | "loop" | "density" | "orientation" | "icc">,
   hasAlpha: boolean,
   options?: Parameters<typeof createWebpEncoder>[2]
 ) {
@@ -219,17 +225,23 @@ export function createWebpAnimation(
     new DataView(tail.buffer).setUint32(4, exif.length, true);
     tail.set(exif, 8);
   }
-  const size = 44 + pages * (24 + frameSize) + tail.length;
+  const iccLength = image.icc ? 8 + image.icc.length + (image.icc.length & 1) : 0;
+  const size = 44 + iccLength + pages * (24 + frameSize) + tail.length;
   if (!Number.isSafeInteger(size) || size - 8 > 0xffffffff)
     throw new RangeError("WebP exceeds RIFF size range");
-  const header = new Uint8Array(44), view = new DataView(header.buffer);
+  const header = new Uint8Array(44 + iccLength), view = new DataView(header.buffer);
   header.set([82, 73, 70, 70]); view.setUint32(4, size - 8, true);
   header.set([87, 69, 66, 80, 86, 80, 56, 88], 8); view.setUint32(16, 10, true);
-  header[20] = 2 | (hasAlpha ? 16 : 0) | (exif.length ? 8 : 0);
+  header[20] = 2 | (hasAlpha ? 16 : 0) | (exif.length ? 8 : 0) | (image.icc ? 32 : 0);
   const widthMinusOne = image.width - 1, heightMinusOne = height - 1;
   header.set([widthMinusOne & 255, widthMinusOne >>> 8, 0, heightMinusOne & 255, heightMinusOne >>> 8, 0], 24);
-  header.set([65, 78, 73, 77], 30); view.setUint32(34, 6, true);
-  view.setUint16(42, options?.loop ?? image.loop ?? 0, true);
+  if (image.icc) {
+    header.set([73, 67, 67, 80], 30);
+    view.setUint32(34, image.icc.length, true);
+    header.set(image.icc, 38);
+  }
+  header.set([65, 78, 73, 77], 30 + iccLength); view.setUint32(34 + iccLength, 6, true);
+  view.setUint16(42 + iccLength, options?.loop ?? image.loop ?? 0, true);
   return {
     header, tail, height, pages,
     frame(delay: number) {

@@ -4,9 +4,9 @@ import type { RgbaImage } from "../ast.js";
 import { buildExifApp1Segment } from "./exif.js";
 import type { createWebpEncoder } from "./webp.js";
 
-/** Assemble encoded frames, preserving alpha, timing and EXIF in the RIFF container. */
+/** Assemble encoded frames, preserving alpha, timing, ICC and EXIF in the RIFF container. */
 export function assembleLossyWebp(
-  image: Pick<RgbaImage, "width" | "height" | "density" | "orientation" | "loop">,
+  image: Pick<RgbaImage, "width" | "height" | "density" | "orientation" | "loop" | "icc">,
   frames: readonly Uint8Array[], height: number, delays: readonly number[],
   options?: Parameters<typeof createWebpEncoder>[2]
 ): Uint8Array {
@@ -51,9 +51,10 @@ export function assembleLossyWebp(
     new DataView(anim.buffer).setUint16(4, options?.loop ?? image.loop ?? 0, true);
     parts.unshift(chunk("ANIM", anim));
   }
-  if (animated || alpha || exif) {
+  if (image.icc) parts.unshift(chunk("ICCP", image.icc));
+  if (animated || alpha || exif || image.icc) {
     const extended = new Uint8Array(10), w = image.width - 1, h = height - 1;
-    extended[0] = (animated ? 2 : 0) | (alpha ? 16 : 0) | (exif ? 8 : 0);
+    extended[0] = (animated ? 2 : 0) | (alpha ? 16 : 0) | (exif ? 8 : 0) | (image.icc ? 32 : 0);
     extended.set([w & 255, w >>> 8, 0, h & 255, h >>> 8, 0], 4);
     parts.unshift(chunk("VP8X", extended));
   }

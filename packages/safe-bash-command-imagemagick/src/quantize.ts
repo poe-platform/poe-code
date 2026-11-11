@@ -28,7 +28,7 @@ export function* quantizeImageListSteps(images: readonly { length: number; hasAl
 }
 
 // Sums retain RGBA and RGB multiplied by alpha, so merged bins keep exact weights.
-interface ColorBin { count: number; sums: number[]; color: number[] }
+interface ColorBin { count: number; sums: number[]; associated: number[]; color: number[] }
 interface ColorNode {
     parent?: ColorNode;
     level: number;
@@ -42,6 +42,7 @@ interface ColorNode {
 /** A bounded histogram and error-pruned color tree shared by both raster backends. */
 export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; writeMask?: boolean; alphaActive: boolean; channels?: MaskChannels | undefined }, dither?: { width: number; height: number; method: "riemersma" | "floydsteinberg"; diffusionAmount: number }, evaluate = false, working?: "hue" | "cmyk"): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
+    const clamp = (value: number) => Math.max(0, Math.min(255, value));
     // Keep fractional palette means alongside byte output for later arithmetic and deeper output.
     const round = (value: number) => highDepth ? Math.round(value * 257) / 257 : Math.fround(value * 257) / 257;
     function* readPixels(position: number, length: number): Generator<ConvolveRequest, Float64Array, Uint8Array | undefined> {
@@ -74,7 +75,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         // but keeps full-precision sums for each cube's mean color.
         if (cycle !== undefined || evaluate) {
             const alpha = data[i + 3]! / 255;
-            return (Math.round(data[i]! * alpha) << 24 | Math.round(data[i + 1]! * alpha) << 16 | Math.round(data[i + 2]! * alpha) << 8 | Math.round(data[i + 3]!)) & mask;
+            return (Math.round(clamp(data[i]! * alpha)) << 24 | Math.round(clamp(data[i + 1]! * alpha)) << 16 | Math.round(clamp(data[i + 2]! * alpha)) << 8 | Math.round(clamp(data[i + 3]!))) & mask;
         }
         return highDepth && precision === 8 ? data.subarray(i, i + 4).join(",") : (data[i]! << 24 | data[i + 1]! << 16 | data[i + 2]! << 8 | data[i + 3]!) & mask;
     };
@@ -90,10 +91,16 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         for (let i = 0; i < size; i += 4) {
             const id = key(data, i);
             let bin = bins.get(id);
-            if (!bin) { bin = { count: 0, sums: [0, 0, 0, 0, 0, 0, 0], color: [] }; bins.set(id, bin); }
+            if (!bin) { bin = { count: 0, sums: [0, 0, 0, 0, 0, 0, 0], associated: [0, 0, 0], color: [] }; bins.set(id, bin); }
             bin.count++;
-            for (let c = 0; c < 4; c++) bin.sums[c]! += data[i + c]!;
-            for (let c = 0; c < 3; c++) bin.sums[c + 4]! += data[i + c]! * data[i + 3]!;
+            for (let c = 0; c < 4; c++) bin.sums[c]! += clamp(data[i + c]!);
+            // Native clips palette sums after alpha association, but measures
+            // tree errors and assignment distances using the original samples.
+            for (let c = 0; c < 3; c++) {
+                const associated = data[i + c]! * data[i + 3]!;
+                bin.associated[c]! += associated;
+                bin.sums[c + 4]! += Math.max(0, Math.min(255 * 255, associated));
+            }
         }
         // Reduce histogram precision only when necessary; small palettes stay exact.
         if (bins.size > 65536) {
@@ -105,7 +112,11 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
                 if (++work % 1024 === 0) yield;
                 const next = typeof id === "number" ? id & mask : key(Float64Array.from(id.split(","), Number), 0), existing = reduced.get(next);
                 if (!existing) reduced.set(next, bin);
-                else { existing.count += bin.count; for (let c = 0; c < 7; c++) existing.sums[c]! += bin.sums[c]!; }
+                else {
+                    existing.count += bin.count;
+                    for (let c = 0; c < 7; c++) existing.sums[c]! += bin.sums[c]!;
+                    for (let c = 0; c < 3; c++) existing.associated[c]! += bin.associated[c]!;
+                }
             }
             bins = reduced;
         }
@@ -141,12 +152,12 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         const root: ColorNode = { level: 0, children: new Map(), count: 0, sums: [0, 0, 0, 0, 0, 0, 0], error: Infinity, removed: false };
         for (const bin of bins.values()) {
             if (++work % 1024 === 0) yield;
-            const pixel = bin.sums.slice(0, 4).map((value, c) => c < 3 ? bin.sums[c + 4]! / bin.count / 255 : value / bin.count), midpoint = [127.5, 127.5, 127.5, 127.5];
+            const pixel = bin.sums.slice(0, 4).map((value, c) => c < 3 ? bin.associated[c]! / bin.count / 255 : value / bin.count), midpoint = [127.5, 127.5, 127.5, 127.5];
             let node = root;
             for (let bit = 7; bit >= 0; bit--) {
                 let id = 0, distance = 0;
                 for (let c = 0; c < channels; c++) {
-                    const high = (Math.round(pixel[c]!) >>> bit) & 1;
+                    const high = (Math.round(clamp(pixel[c]!)) >>> bit) & 1;
                     id |= high << c;
                     // ImageMagick's Q16 cube centers, expressed in byte units.
                     midpoint[c]! += (high ? 1 : -1) * (128 << bit) / 257;
@@ -232,7 +243,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             let cube = root;
             for (let bit = 7; bit > 0; bit--) {
                 let id = 0;
-                for (let c = 0; c < channels; c++) id |= ((Math.round(pixel[c]!) >>> bit) & 1) << c;
+                for (let c = 0; c < channels; c++) id |= ((Math.round(clamp(pixel[c]!)) >>> bit) & 1) << c;
                 const child = cube.children.get(id);
                 if (!child || child.removed) break;
                 cube = child;
@@ -260,7 +271,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         findDitherColor = nearestColor;
         for (const bin of bins.values()) {
             if (++work % 1024 === 0) yield;
-            const pixel = bin.sums.slice(0, 4).map((value, c) => c < 3 ? bin.sums[c + 4]! / bin.count / 255 : value / bin.count);
+            const pixel = bin.sums.slice(0, 4).map((value, c) => c < 3 ? bin.associated[c]! / bin.count / 255 : value / bin.count);
             // CMYK classification uses RGB, but assignment compares the converted inks.
             if (working === "cmyk") {
                 const inks = rgbToCmyk(bin.sums[0]! / bin.count / 255, bin.sums[1]! / bin.count / 255, bin.sums[2]! / bin.count / 255);

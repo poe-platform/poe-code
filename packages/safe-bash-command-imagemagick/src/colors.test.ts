@@ -55,13 +55,13 @@ for (const retained of [false, true]) {
     }
 }
 
-it("quantizes alpha together with RGB and preserves an already-small palette", async () => {
+it("quantizes alpha together with RGB and preserves an already-small palette without dithering", async () => {
     const source = new Uint8Array([10, 20, 30, 255, 10, 20, 30, 128, 11, 21, 31, 255]);
     const bytes = await sharp(source, { raw: { width: 3, height: 1, channels: 4 } }).png().toBuffer();
     for (const retained of [false, true]) for (const colors of [1, 3]) {
         const files = new Map([["in.png", bytes]]), fs = new MemoryFileSystem();
         await fs.writeFile("/in.png", bytes);
-        expect((await runConvertCli(["in.png", "-colors", String(colors), "out.png"], retained ? { filesystem: fs, cwd: "/" } : files)).exitCode).toBe(0);
+        expect((await runConvertCli(["in.png", "+dither", "-colors", String(colors), "out.png"], retained ? { filesystem: fs, cwd: "/" } : files)).exitCode).toBe(0);
         const pixels = decodeImage(retained ? await fs.readFile("/out.png") : files.get("out.png")!).data;
         expect([...pixels]).toEqual(colors === 3 ? [...source] : Array(3).fill([10, 20, 30, 213]).flat());
     }

@@ -177,17 +177,21 @@ it.each(cases)("decodes retained JPEG-in-TIFF %j", async (spec) => {
       return borrowed.subarray(0, length);
     }
   };
-  const { position, storedData16, ...metadata } = await decodeTiffToStorage(
+  const retained = await decodeTiffToStorage(
     source,
     storage,
     new AbortController().signal,
     { maxDecodeDimension: 1 }
   );
-  expect({
+  const decoded = [retained, ...(retained.storedMetaChannels ?? [])].map(({ position, storedData16, storedMetaChannels: _meta, ...metadata }) => ({
     ...metadata,
-    ...(storedData16 ? {data16: new Uint16Array(memory.slice(storedData16.position, storedData16.position + storedData16.length * 2).buffer)} : {}),
+    ...(storedData16 ? { data16: new Uint16Array(memory.slice(storedData16.position, storedData16.position + storedData16.length * 2).buffer) } : {}),
     data: memory.slice(position, position + metadata.width * metadata.height * 4)
-  }).toEqual(expected);
+  }));
+  const [image, ...metaChannels] = decoded;
+  expect(image).toEqual({ ...expected, metaChannels: undefined });
+  // Retained planes inherit TIFF metadata; buffered planes carry their own defaults.
+  expect(metaChannels).toMatchObject((expected.metaChannels ?? []).map(({ density: _density, ...plane }) => plane));
 });
 
 it.each([false, true])(

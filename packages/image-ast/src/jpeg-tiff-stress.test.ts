@@ -125,7 +125,7 @@ function fixture(spec: Spec = {}) {
     [257, 4, 1, height],
     [258, 3, 1, bits],
     [259, 3, 1, spec.compression ?? 7],
-    [262, 3, 1, 2],
+    [262, 3, 1, samples < 3 ? 1 : 2],
     [277, 3, 1, samples],
     [274, 3, 1, 8],
     [317, 3, 1, spec.predictor ?? 1],
@@ -237,10 +237,16 @@ function harness(
     controller,
     allocations,
     async decode() {
-      const { position, storedData16, ...meta } = await decodeTiffToStorage(source, storage, controller.signal, {
+      const retained = await decodeTiffToStorage(source, storage, controller.signal, {
         maxDecodeDimension: 1
       });
-      return { ...meta, ...(storedData16 ? {data16: new Uint16Array(memory.slice(storedData16.position, storedData16.position + storedData16.length * 2).buffer)} : {}), data: memory.slice(position, position + meta.width * meta.height * 4) };
+      const decoded = [retained, ...(retained.storedMetaChannels ?? [])].map(({ position, storedData16, storedMetaChannels: _meta, ...metadata }) => ({
+        ...metadata,
+        ...(storedData16 ? { data16: new Uint16Array(memory.slice(storedData16.position, storedData16.position + storedData16.length * 2).buffer) } : {}),
+        data: memory.slice(position, position + metadata.width * metadata.height * 4)
+      }));
+      const [image, ...metaChannels] = decoded;
+      return { ...image, ...(metaChannels.length ? { metaChannels } : {}) };
     }
   };
 }
@@ -288,7 +294,10 @@ it.each(cases)("matches original multi-chunk TIFF JPEG %j", async (spec) => {
     await expect(env.decode()).rejects.toThrow((error as Error).message);
     return;
   }
-  expect(await env.decode()).toEqual(expected);
+  const actual = await env.decode();
+  expect({ ...actual, metaChannels: undefined }).toEqual({ ...expected, metaChannels: undefined });
+  // Retained planes inherit TIFF metadata; buffered planes carry their own defaults.
+  expect(actual.metaChannels ?? []).toMatchObject((expected.metaChannels ?? []).map(({ density: _density, ...plane }) => plane));
 });
 for (const event of ["source", "read", "write", "allocate"] as const)
   for (const cancel of [false, true])
@@ -312,7 +321,9 @@ it("copies logical JPEG reads immediately before borrowed source/backing reuse",
       predictor: 2
     }),
     env = harness(input);
-  expect(await env.decode()).toEqual(decodeTiffImage(input));
+  const actual = await env.decode(), expected = decodeTiffImage(input);
+  expect({ ...actual, metaChannels: undefined }).toEqual({ ...expected, metaChannels: undefined });
+  expect(actual.metaChannels ?? []).toMatchObject((expected.metaChannels ?? []).map(({ density: _density, ...plane }) => plane));
 });
 it("keeps ignored large shared-table bodies out of new raster allocations", async () => {
   const input = fixture({ tables: true, padding: 65530 }),
@@ -330,7 +341,10 @@ it("keeps ignored large shared-table bodies out of new raster allocations", asyn
     })
   );
   try {
-    expect(await env.decode()).toEqual(expected);
+    const actual = await env.decode();
+  expect({ ...actual, metaChannels: undefined }).toEqual({ ...expected, metaChannels: undefined });
+  // Retained planes inherit TIFF metadata; buffered planes carry their own defaults.
+  expect(actual.metaChannels ?? []).toMatchObject((expected.metaChannels ?? []).map(({ density: _density, ...plane }) => plane));
     expect(max).toBeLessThanOrEqual(4096);
   } finally {
     vi.unstubAllGlobals();

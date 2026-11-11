@@ -68,7 +68,7 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
                     for (let c = 0; c < 3; c++) sourceSamples[i + c] = sourceInks[i + c]! * 255;
                 }
             }
-            if (inks && (!channels || channels[4])) for (let i = 0; i < samples.length; i += 4) {
+            if (inks && (name !== "copy" || sourceInks) && (!channels || channels[4])) for (let i = 0; i < samples.length; i += 4) {
                 const j = outsideX ? 0 : i;
                 const alpha = overlay.hasAlpha ? sourceSamples[j + 3]! / 255 : 1;
                 const destinationAlpha = base.hasAlpha ? samples[i + 3]! / 255 : 1;

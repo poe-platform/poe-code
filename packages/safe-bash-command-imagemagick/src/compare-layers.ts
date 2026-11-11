@@ -1,16 +1,17 @@
 import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
+import { rgbToCmyk } from "./colorspace-cmyk.js";
 import { regionContains, type Region } from "./region.js";
 import { matchesAlphaFloodfill } from "./floodfill.js";
 import { magickInput, type MagickFormatContext } from "./stored-stack.js";
 
-type Frame = Pick<RgbaImage | StoredRgbaImage, "width" | "height" | "virtualCanvas" | "hasAlpha">;
+type Frame = Pick<RgbaImage | StoredRgbaImage, "width" | "height" | "virtualCanvas" | "hasAlpha"> & Partial<Pick<RgbaImage, "space">>;
 
 // Compare the original frames, never the cropped output of the previous step.
 export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: number, method: string, canvas?: Frame & { [magickInput]?: MagickFormatContext }): Generator<
-    { image: 0 | 1; position: number; length: number } | undefined,
+    { image: 0 | 1; position: number; length: number; hue?: boolean } | undefined,
     { left: number; top: number; width: number; height: number } | undefined,
-    Uint8Array | Uint16Array | undefined
+    Uint8Array | Uint16Array | Float64Array | undefined
 > {
     const mask = canvas?.[magickInput]?.channelMask;
     const channels = mask?.default ? undefined : mask;
@@ -26,15 +27,19 @@ export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: numbe
     const endY = canvas ? Math.min(current.height, (canvas.virtualCanvas?.height || canvas.height) - offsetY) : current.height;
     if (endX <= startX || endY <= startY) return;
     for (let y = startY; y < endY; y++) {
-        for (let x = startX; x < endX; x += 1024) {
+        for (let x = startX; x < endX; x += 512) {
             yield;
-            const count = Math.min(1024, endX - x);
+            const count = Math.min(512, endX - x);
             const data = (yield { image: 1, position: (y * current.width + x) * 4, length: count * 4 })!;
             const start = Math.max(0, x + dx), end = Math.min(previous.width, x + dx + count), py = y + dy;
             const prior = py >= 0 && py < previous.height && end > start
                 ? (yield { image: 0, position: (py * previous.width + start) * 4, length: (end - start) * 4 })! : undefined;
             const scale = data instanceof Uint16Array ? 257 : 1;
             const priorScale = prior instanceof Uint16Array ? 257 : 1;
+            const inks = current.space === "cmyk"
+                ? yield { image: 1, position: (y * current.width + x) * 4, length: count * 4, hue: true } : undefined;
+            const priorInks = previous.space === "cmyk" && prior
+                ? yield { image: 0, position: (py * previous.width + start) * 4, length: (end - start) * 4, hue: true } : undefined;
             for (let pixel = 0; pixel < count; pixel++) {
                 const i = pixel * 4, px = x + pixel + dx, j = (px - start) * 4;
                 const inside = prior && px >= start && px < end;
@@ -44,7 +49,24 @@ export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: numbe
                     if (!inside || priorAlpha < 127.5 || alpha >= 127.5) continue;
                 } else {
                     if (method === "compareoverlay" && alpha < 127.5) continue;
-                    if (matchesAlphaFloodfill(
+                    if (current.space === "cmyk" || previous.space === "cmyk") {
+                        const color = current.space === "cmyk"
+                            ? inks?.length ? inks.subarray(i, i + 4) : rgbToCmyk(data[i]! / scale / 255, data[i + 1]! / scale / 255, data[i + 2]! / scale / 255)
+                            : [data[i]! / scale / 255, data[i + 1]! / scale / 255, data[i + 2]! / scale / 255, 0];
+                        const before = !inside ? [0, 0, 0, 0] : previous.space === "cmyk"
+                            ? priorInks?.length ? priorInks.subarray(j, j + 4) : rgbToCmyk(prior[j]! / priorScale / 255, prior[j + 1]! / priorScale / 255, prior[j + 2]! / priorScale / 255)
+                            : [prior[j]! / priorScale / 255, prior[j + 1]! / priorScale / 255, prior[j + 2]! / priorScale / 255, 0];
+                        let weight = alpha * priorAlpha;
+                        let distance = (alpha - priorAlpha) ** 2;
+                        if (previous.space === "cmyk") {
+                            if (channels?.k !== false) distance += (color[3]! - before[3]!) ** 2 * weight;
+                            weight *= (1 - color[3]!) * (1 - before[3]!);
+                        }
+                        if (channels?.r !== false) distance += (color[0]! - before[0]!) ** 2 * weight / 3;
+                        if (channels?.g !== false) distance += (color[1]! - before[1]!) ** 2 * weight / 3;
+                        if (channels?.b !== false) distance += (color[2]! - before[2]!) ** 2 * weight / 3;
+                        if (distance <= 2 * fuzz ** 2) continue;
+                    } else if (matchesAlphaFloodfill(
                         channels?.r === false ? 0 : data[i]! / scale,
                         channels?.g === false ? 0 : data[i + 1]! / scale,
                         channels?.b === false ? 0 : data[i + 2]! / scale, alpha,

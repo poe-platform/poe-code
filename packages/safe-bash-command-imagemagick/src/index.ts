@@ -10043,9 +10043,9 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
         while (!next.done) {
             if (!next.value) { yield; next = bounds.next(); }
             else {
-                const { image, position, length } = next.value;
+                const { image, position, length, hue } = next.value;
                 const source = image ? current : previous;
-                next = bounds.next((source.data16 ?? source.data).subarray(position, position + length));
+                next = bounds.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length));
             }
         }
         const area = next.value;
@@ -10073,9 +10073,9 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
         while (!next.done) {
             if (!next.value) { await yieldTurn(signal); next = bounds.next(); }
             else {
-                const { image, position, length } = next.value;
+                const { image, position, length, hue } = next.value;
                 const source = image ? current : previous;
-                const data = source.storedData16
+                const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
                     ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
                     : await backend.storage.read(source.position + position, length);
                 next = bounds.next(data);
@@ -11673,8 +11673,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let canvas: RgbaImage | undefined;
             if (!removeDups && stack.length > 1) {
                 const first = stack[0]!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
-                canvas = { ...yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 0 }), virtualCanvas: { width, height, x: 0, y: 0 } };
-                canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, first, first.virtualCanvas?.x ?? 0, first.virtualCanvas?.y ?? 0, "copy", undefined, false, 0, true), signal, canvas, [canvas, first]);
+                canvas = { ...yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 0 }), space: first.space, virtualCanvas: { width, height, x: 0, y: 0 } };
+                canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, first, first.virtualCanvas?.x ?? 0, first.virtualCanvas?.y ?? 0, "copy", undefined, false, 0, true, undefined, true), signal, canvas, [canvas, first]);
             }
             for (let n = 1; n < stack.length; n++) {
                 let current = stack[n]!;
@@ -11695,9 +11695,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     while (!clear.done) {
                         if (!clear.value) { yield; clear = clearing.next(); }
                         else {
-                            const { image, position, length } = clear.value;
+                            const { image, position, length, hue } = clear.value;
                             const source = image ? current : previous;
-                            clear = clearing.next((source.data16 ?? source.data).subarray(position, position + length));
+                            clear = clearing.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length));
                         }
                     }
                     if (clear.value) {
@@ -11716,16 +11716,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     ? Math.max(previous[magickInput]?.fuzz ?? 0, current[magickInput]?.fuzz ?? 0)
                     : removeDups ? state.alphaFuzz : stack[0]?.[magickInput]?.fuzz ?? 0;
                 // Copy original patches even when the comparison omits their output.
-                if (canvas) canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, current, current.virtualCanvas?.x ?? 0, current.virtualCanvas?.y ?? 0, "copy", undefined, false, 0, true), signal, canvas, [canvas, current]);
+                if (canvas) canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, current, current.virtualCanvas?.x ?? 0, current.virtualCanvas?.y ?? 0, "copy", undefined, false, 0, true, undefined, true), signal, canvas, [canvas, current]);
                 const comparison = canvas ?? current;
                 const bounds = compareLayerBounds(previous, comparison, fuzz, method, removeDups ? undefined : stack[0]);
                 let next = bounds.next();
                 while (!next.done) {
                     if (!next.value) { yield; next = bounds.next(); }
                     else {
-                        const { image, position, length } = next.value;
+                        const { image, position, length, hue } = next.value;
                         const source = image ? comparison : previous;
-                        next = bounds.next((source.data16 ?? source.data).subarray(position, position + length));
+                        next = bounds.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length));
                     }
                 }
                 if (removeDups) {
@@ -15055,8 +15055,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (previous) await frames.push(previous);
                 if (!removeDups && first && stack.length > 1) {
                     const width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
-                    const canvas = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
-                    previous = { ...await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, first, first.virtualCanvas?.x ?? 0, first.virtualCanvas?.y ?? 0, "copy", undefined, false, 0, true), signal, canvas, [canvas, first]), virtualCanvas: { width, height, x: 0, y: 0 } };
+                    const canvas = { ...await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal), space: first.space };
+                    previous = { ...await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, first, first.virtualCanvas?.x ?? 0, first.virtualCanvas?.y ?? 0, "copy", undefined, false, 0, true, undefined, true), signal, canvas, [canvas, first]), virtualCanvas: { width, height, x: 0, y: 0 } };
                 }
                 for (let n = 1; n < stack.length; n++) {
                     let current = (await stack.get(n))!;
@@ -15074,9 +15074,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         while (!clear.done) {
                             if (!clear.value) { await yieldTurn(signal); clear = clearing.next(); }
                             else {
-                                const { image, position, length } = clear.value;
+                                const { image, position, length, hue } = clear.value;
                                 const source = image ? current : previous!;
-                                const data = source.storedData16
+                                const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
                                     ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
                                     : await backend.storage.read(source.position + position, length);
                                 clear = clearing.next(data);
@@ -15106,15 +15106,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         : removeDups ? fuzz : first?.[magickInput]?.fuzz ?? 0;
                     // Disposal and cropped outputs do not alter the original comparison canvas.
                     const comparison = removeDups ? current : await transformStoredMagickRaster(previous!, backend,
-                        composite16PixelSteps(previous!, current, current.virtualCanvas?.x ?? 0, current.virtualCanvas?.y ?? 0, "copy", undefined, false, 0, true), signal, previous!, [previous!, current]);
+                        composite16PixelSteps(previous!, current, current.virtualCanvas?.x ?? 0, current.virtualCanvas?.y ?? 0, "copy", undefined, false, 0, true, undefined, true), signal, previous!, [previous!, current]);
                     const bounds = compareLayerBounds(previous!, comparison, frameFuzz, method, removeDups ? undefined : first);
                     let next = bounds.next();
                     while (!next.done) {
                         if (!next.value) { await yieldTurn(signal); next = bounds.next(); }
                         else {
-                            const { image, position, length } = next.value;
+                            const { image, position, length, hue } = next.value;
                             const source = image ? comparison : previous!;
-                            const data = source.storedData16
+                            const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
                                 ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
                                 : await backend.storage.read(source.position + position, length);
                             next = bounds.next(data);
@@ -15166,7 +15166,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const fuzz = state.alphaFuzz;
             stackStep(async (stack, backend) => {
                 if (stack.length < 2) return stack;
-                const first = (await stack.get(0))!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
+                const first: StoredRgbaImage = (await stack.get(0))!, width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
                 let canvas = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
                 for (let n = 0; n < stack.length; n++) {
                     const current: StoredRgbaImage = (await stack.get(n))!, previous = canvas;

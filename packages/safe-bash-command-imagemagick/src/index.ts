@@ -10265,7 +10265,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 if (offset % 65536 === 0) yield;
                 let inside = bounds !== undefined;
                 for (let channel = 0; inside && channel < 4; channel++) {
-                    if (!selected[channel] || channel === 3 && !image.hasAlpha) continue;
+                    if (!selected[channel] || channel === 3 && !image.hasAlpha && image.alphaSeparate !== true) continue;
                     const value = image.evaluateSamples?.[offset + channel] ?? (image.data16 ? image.data16[offset + channel]! / 257 : image.data[offset + channel]!);
                     inside = value >= bounds![0]![channel]! && value <= bounds![1]![channel]!;
                 }

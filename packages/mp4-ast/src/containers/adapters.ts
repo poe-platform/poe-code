@@ -3022,7 +3022,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   for (const rawLine of lines) {
     const line = rawLine.trim();
     if (!line || rawLine.startsWith(";") || rawLine.startsWith("#")) continue;
-    if (line === "[CHAPTER]") {
+    if (rawLine.startsWith("[CHAPTER]")) {
       flushChapter();
       section = "chapter";
       tbNum = 1;
@@ -3034,7 +3034,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       chapterHeader = "timebase";
       continue;
     }
-    if (line === "[STREAM]") {
+    if (rawLine.startsWith("[STREAM]")) {
       flushChapter();
       section = "other";
       tracks.push({

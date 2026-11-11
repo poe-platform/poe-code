@@ -2254,7 +2254,7 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
     };
 }
 
-function* createPatternImageSteps(width: number, height: number, pattern: ReturnType<typeof builtinPattern>, tileOffset?: { x: number; y: number }): Generator<void, RgbaImage, void> {
+function* createPatternImageSteps(width: number, height: number, pattern: ReturnType<typeof builtinPattern>, space: "srgb" | "b-w", tileOffset?: { x: number; y: number }): Generator<void, RgbaImage, void> {
     let work = 0;
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
@@ -2279,11 +2279,11 @@ function* createPatternImageSteps(width: number, height: number, pattern: Return
         width: w,
         height: h,
         format: "png",
-        channels: 4,
+        channels: space === "b-w" ? 1 : 3,
         depth: "uchar",
         density: 72,
-        space: "srgb",
-        hasAlpha: true,
+        space,
+        hasAlpha: false,
         data
     };
 }
@@ -7619,7 +7619,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     if (lower.startsWith("pattern:")) {
         const pattern = builtinPattern(baseToken.slice(8));
-        return yield* applyMod([Object.assign(yield* createPatternImageSteps(state.hasSize ? state.sizeWidth : pattern.width, state.hasSize ? state.sizeHeight : pattern.height, pattern, state.tileOffset), { bitsPerSample: state.hasSize ? state.inputDepth ?? 16 : pattern.bitsPerSample, [magickInput]: { inputFormat: "PATTERN" } })]);
+        return yield* applyMod([Object.assign(yield* createPatternImageSteps(state.hasSize ? state.sizeWidth : pattern.width, state.hasSize ? state.sizeHeight : pattern.height, pattern, state.hasSize ? "srgb" : pattern.space, state.tileOffset), { bitsPerSample: state.hasSize ? state.inputDepth ?? 16 : pattern.bitsPerSample, [magickInput]: { inputFormat: "PATTERN" } })]);
     }
     if (lower === "rose:" || lower === "logo:" || lower === "wizard:" || lower === "granite:") {
         return yield* applyMod([(yield* createRoseImageSteps())]);
@@ -19090,6 +19090,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    if(storedHueSamples!==undefined&&hueSamples)await backend.storage.write(storedHueSamples+start*32,new Uint8Array(hueSamples.buffer));
   }
   image={position,width,height,...(storedData16?{storedData16}:{}),...(storedEvaluateSamples===undefined?{}:{storedEvaluateSamples}),...(storedHueSamples===undefined?{}:{storedHueSamples}),format:"png",channels:a.space?(a.a<255||b.a<255?2:1):4,depth:checker?"uchar":"ushort",space:a.cmyk?"cmyk":a.space??"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
+  if (pattern) image = { ...image, space: state.hasSize ? "srgb" : pattern.space, channels: state.hasSize || pattern.space === "srgb" ? 3 : 1, hasAlpha: false };
   image = Object.assign(image, { ...(pattern ? { bitsPerSample: state.hasSize ? state.inputDepth ?? 16 : pattern.bitsPerSample } : {}), [magickInput]: { ...(!checker ? { filePath: first } : {}), inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } });
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
   const text = baseToken.slice(baseToken.indexOf(":") + 1), kind = lower.startsWith("caption:") ? "caption" : "label";

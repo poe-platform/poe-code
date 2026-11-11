@@ -1890,7 +1890,10 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  const statistics=fn.needsStatistics?yield*getStatistics():undefined;
  const fxContext:FxEvalContext={statistics,sceneCount:context.sceneCount,frameIndex:context.listIndex??context.sceneIdx,stack:source,x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
   if(!target)return 0;
-  const px=Math.max(0,Math.min(target.width-1,Math.round(x))),py=Math.max(0,Math.min(target.height-1,Math.round(y))),position=(py*target.width+px)*4;
+  if(!Number.isFinite(x) || !Number.isFinite(y))return NaN;
+  const pixel=virtualPixelIndex(Math.round(x),Math.round(y),target.width,target.height,target.virtualPixel ?? "edge");
+  if(pixel<0)return sampleFxImage(target,x,y,ch);
+  const position=pixel*4;
   if(!Number.isFinite(position))return NaN;
   const index = source.indexOf(target);
   const data=samples.get(`${index}:${position}`);if(!data)throw new FxPixelDemand(position,index);
@@ -3177,9 +3180,17 @@ function sampleFxImage(
   if (!img) return 0;
   // ImageMagick samples red for alpha qualifiers when no alpha channel exists.
   if (ch === 3 && !img.hasAlpha && !img.inactiveAlpha) ch = 0;
-  const cx = Math.max(0, Math.min(img.width - 1, Math.round(px)));
-  const cy = Math.max(0, Math.min(img.height - 1, Math.round(py)));
-  const idx = (cy * img.width + cx) * 4;
+  if (!Number.isFinite(px) || !Number.isFinite(py)) return NaN;
+  const method = img.virtualPixel ?? "edge";
+  const pixel = virtualPixelIndex(Math.round(px), Math.round(py), img.width, img.height, method);
+  if (pixel < 0) {
+    const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
+    const background = img.backgroundColor ?? { r: 255, g: 255, b: 255, a: 255 };
+    return sampleFxPixel(method === "background" || method.endsWith("-tile")
+      ? [background.r, background.g, background.b, background.a]
+      : [gray, gray, gray, method === "transparent" ? 0 : 255], 0, ch);
+  }
+  const idx = pixel * 4;
   if (img.space === "cmyk" && (ch < 3 || ch === 8)) {
     const channel = ch === 8 ? 3 : ch;
     if (img.hueSamples) return img.hueSamples[idx + channel]!;

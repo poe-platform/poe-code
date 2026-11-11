@@ -902,7 +902,10 @@ to `[a]` and the suffix to `[b]`. Use `asegment=timestamps=0.000625[a][b]`
 to split at a timestamp in seconds (sample 5 at 8 kHz). Pipe-separated points
 create additional segments; each output can be mapped or filtered independently.
 Audio `concat=n=2:v=0:a=1` joins connected branches in pad order, including
-multiple branches from one input. Its `threads`, `thread_type`, and
+multiple branches from one input. Positional `concat=2:0:1` and mixed
+`concat=n=2:0:1` select the same audio layout. Named options restart shorthand
+binding as in FFmpeg; `concat=v=0:2:0:1` and `concat=2:v=0:1` cannot join
+these audio branches and fail without writing output. Its `threads`, `thread_type`, and
 `extra_hw_frames` options accept FFmpeg values without changing PCM. For example,
 `-filter_complex '[0:a]asplit[a][b];[b][a]concat=n=2:v=0:a=1[out]' -map '[out]' twice.wav`
 plays the input twice; filters on each branch run before concatenation. When the first segment is stereo, later mono segments use FFmpeg’s native mono-to-stereo gain; explicitly duplicating both channels with `pan` retains unity gain. Downstream audio expressions use concat’s microsecond time base: at 8 kHz, `asetpts=PTS+125` shifts timestamps by one sample. An explicit `asettb` overrides this time base.

@@ -1884,14 +1884,19 @@ function parseAstreamselectOptions(filter: string): { count: number; selected: n
   return { count, selected };
 }
 
-function audioConcatInputs(filter: string): number | undefined {
+function parseConcatOptions(filter: string) {
   const [name, ...arguments_] = filter.split("=");
   if (name?.split("@", 1)[0] !== "concat") return undefined;
-  const values: Record<string, number> = { n: 2, v: 1, a: 0 };
-  for (const [index, option] of arguments_.join("=").split(":").entries()) {
+  const values = { n: 2, v: 1, a: 0 };
+  let optionPosition = 0;
+  for (const option of arguments_.join("=").split(":")) {
     if (!option) continue;
     const equal = option.indexOf("=");
-    const key = equal < 0 ? ["n", "v", "a", "unsafe"][index] : option.slice(0, equal);
+    const key = equal < 0 ? ["n", "v", "a", "unsafe"][optionPosition] : option.slice(0, equal);
+    // Named options restart shorthand, skipping the first slot only
+    // when it was the slot just visited, regardless of the named key.
+    if (equal < 0) optionPosition++;
+    else optionPosition = optionPosition === 0 ? 1 : 0;
     if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
       validateWeaveGenericOption(key, option.slice(equal + 1), "concat");
       continue;
@@ -1911,8 +1916,7 @@ function audioConcatInputs(filter: string): number | undefined {
     }
     values[key] = roundToEven(value);
   }
-  if (values.v !== 0 || values.a !== 1) return undefined;
-  return values.n;
+  return values;
 }
 
 // Delay tails are execution metadata, not part of the media container.
@@ -2042,7 +2046,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     const filter = parseFilterChain(expression)[0]!;
     const first = filter.split("=", 1)[0]?.split("@", 1)[0];
     const inputCount = first === "amerge" ? parseAmergeInputs(filter)
-      : first === "astreamselect" ? parseAstreamselectOptions(filter).count : (first === "acrossfade" || first === "anlmf" || first === "anlms") ? 2 : audioConcatInputs(filter) ?? 1;
+      : first === "astreamselect" ? parseAstreamselectOptions(filter).count : (first === "acrossfade" || first === "anlmf" || first === "anlms") ? 2 : parseConcatOptions(filter)?.n ?? 1;
     if (first === "amerge" && inputs.length > inputCount) {
       throw new Error(`amerge requires ${inputCount} inputs (inputs=${inputCount})`);
     }
@@ -2089,9 +2093,10 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       if (instance >= 0 && (equals < 0 || instance < equals)) {
         filters[0] = first.slice(0, instance) + (equals < 0 ? "" : first.slice(equals));
       }
-      const concatInputs = audioConcatInputs(filters[0]!);
-      if (concatInputs !== undefined) {
-        if (sources.length !== concatInputs) throw new Error(`concat requires ${concatInputs} inputs`);
+      const concat = parseConcatOptions(filters[0]!);
+      if (concat !== undefined) {
+        if (concat.v !== 0 || concat.a !== 1) throw new Error("concat: incompatible audio pad layout");
+        if (sources.length !== concat.n) throw new Error(`concat requires ${concat.n} inputs`);
         const segments: MediaDocument[] = [];
         for (const source of sources) {
           let track = source.expression && source.expression !== "anull"
@@ -12572,6 +12577,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (features.filterGraph === false) {
                 throw new Error("Filtergraph processing is disabled by consumer feature configuration");
               }
+              const concat = filterComplex.includes("concat=") ? parseConcatOptions(
+                parseFilterChain(filterComplex.slice(filterComplex.indexOf("concat=")).split("[", 1)[0]!.split(";", 1)[0]!)[0]!
+              ) : undefined;
               if (feedback) {
                 if (features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
                 if (vfFilters.length) throw new Error("feedback: cannot combine simple and complex video filters");
@@ -12656,17 +12664,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   language: "und", enabled: true, width: frame.width, height: frame.height,
                   codecDescriptions: [], samples: [], decodedVideoFrames: [frame]
                 }] };
-              } else if (filterComplex.includes("concat=") && audioConcatInputs(
-                parseFilterChain(filterComplex.slice(filterComplex.indexOf("concat=")).split("[", 1)[0]!.split(";", 1)[0]!)[0]!
-              ) === undefined) {
+              } else if (concat && (concat.v !== 0 || concat.a !== 1)) {
                 workingDoc = concatMp4(loadedDocs, { limits: options.limits, budget });
-                if (/concat=[^;[]*\ba=0\b/.test(filterComplex)) {
+                if (concat.a === 0) {
                   workingDoc = {
                     ...workingDoc,
                     tracks: workingDoc.tracks.filter((t) => t.type !== "audio")
                   };
                 }
-                if (/concat=[^;[]*\bv=0\b/.test(filterComplex)) {
+                if (concat.v === 0) {
                   workingDoc = {
                     ...workingDoc,
                     tracks: workingDoc.tracks.filter((t) => t.type !== "video")

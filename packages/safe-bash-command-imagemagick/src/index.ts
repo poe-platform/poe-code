@@ -14839,7 +14839,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 im = discardDisassociatedAlpha(im);
-                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, enhancePixelSteps(im, state.background, state.virtualPixel), signal);
+                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, enhancePixelSteps(im, state.background, state.virtualPixel, state.seed), signal);
             });
         }
         else if (t === "-local-contrast") {
@@ -19074,11 +19074,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const { background, virtualPixel } = state;
+            const { background, virtualPixel, seed } = state;
             steps.push(async (image, backend) => {
                 if (!image) return undefined;
                 image = discardDisassociatedAlpha(image);
-                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, enhancePixelSteps(image, background, virtualPixel), signal);
+                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, enhancePixelSteps(image, background, virtualPixel, seed), signal);
             });
         } else if (!operandsOnly && token === "-local-contrast") {
             stackStep(async stack => {

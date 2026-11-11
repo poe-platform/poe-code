@@ -1,10 +1,11 @@
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
+import { createMagickRandom } from "./random.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 
 /** Native 5x5 enhancement: average only perceptually similar neighbors. */
-export function* enhancePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined }, background: RgbaColor, method: VirtualPixelMethod = "edge"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* enhancePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined }, background: RgbaColor, method: VirtualPixelMethod = "edge", seed?: bigint): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, highDepth = !!(image.data16 || image.storedData16);
     const working = yield { kind: "read", evaluate: true, position: 0, length: 4 };
     const evaluate = !!working?.length, scale = evaluate || !highDepth ? 257 : 1;
@@ -18,8 +19,11 @@ export function* enhancePixelSteps(image: Pick<RgbaImage, "width" | "height" | "
     fill.push(cmyk ? gray * 257 : 0);
     // Four Float64 samples per pixel must fit the 16 KiB storage read limit.
     const blocks = new Map<number, Float64Array>();
+    const random = method === "random" ? createMagickRandom(seed) : undefined;
+    const randomPixels = new Map<number, number>();
     function* sample(x: number, y: number): Generator<ConvolveRequest, ArrayLike<number>, Uint8Array | undefined> {
-        const index = virtualPixelIndex(x, y, width, height, method);
+        const index = randomPixels.get(y * (width + 4) + x + 2)
+            ?? virtualPixelIndex(x, y, width, height, method, random);
         if (index < 0) return fill;
         const start = Math.floor(index / 512) * 512;
         let data = blocks.get(start);
@@ -51,6 +55,17 @@ export function* enhancePixelSteps(image: Pick<RgbaImage, "width" | "height" | "
         for (let i = 0; i < count; i++) {
             yield;
             const x = (start + i) % width, y = Math.floor((start + i) / width), center = yield* sample(x, y);
+            if (random && x === 0) {
+                // Native reads one padded 5-row rectangle per output row and
+                // reuses its random border pixels in overlapping neighborhoods.
+                randomPixels.clear();
+                for (let sy = y - 2; sy <= y + 2; sy++) for (let sx = -2; sx < width + 2; sx++) {
+                    if (sx >= 0 && sx < width && sy >= 0 && sy < height) continue;
+                    yield;
+                    randomPixels.set(sy * (width + 4) + sx + 2,
+                        virtualPixelIndex(sx, sy, width, height, method, random));
+                }
+            }
             // GetPixelInfo initializes native's alpha accumulator to opaque.
             const sums = [0, 0, 0, 65535, 0];
             let total = 0;

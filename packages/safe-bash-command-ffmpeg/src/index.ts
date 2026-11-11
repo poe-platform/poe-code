@@ -14641,7 +14641,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (key === "i") {
                             intensity = Math.fround(parseFilterExpression(value, "crystalizer", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }));
                             if (!Number.isFinite(intensity) || intensity < -10 || intensity > 10) {
-                              throw new Error("crystalizer: i must be in the range [-10, 10]");
+                              throw new RangeError("crystalizer: i must be in the range [-10, 10]");
                             }
                           } else if (key === "c") {
                             if (!["0", "1", "true", "false", "yes", "no", "on", "off"].includes(value)) {
@@ -17601,6 +17601,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "aecho: invalid gain" || (err instanceof RangeError && msg.startsWith("aecho:"))) return { exitCode: 222 };
             if (msg === "aecho: delays and decays must have matching entries" ||
                 msg === "aecho: invalid expression" || msg === "aecho: invalid or unsupported expression") return { exitCode: 234 };
+            if (msg.startsWith("crystalizer: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("crystalizer:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("chorus: unsupported option ")) return { exitCode: 8 };
             if (msg === "chorus: invalid gain") return { exitCode: 222 };
             if (msg === "chorus: delays, decays, speeds and depths must have matching entries") return { exitCode: 234 };

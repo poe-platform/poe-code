@@ -534,6 +534,8 @@ without emitting audio.
 Intensity defaults to 2 (range -10 to 10); negative values smooth the audio.
 Intensity expressions accept `PI`, `E`, and `PHI`, for example `crystalizer=i=PI/2`.
 Clipping is enabled by default; `c=0` preserves peaks for subsequent filters.
+Invalid options leave output untouched and return native FFmpeg statuses: 8 for unknown
+options, 222 for out-of-range intensity, and 234 for invalid expressions or booleans.
 `enable='gte(t,0.256)'` enables processing from that audio frame timestamp;
 disabled frames pass through while updating the previous-sample history.
 `extrastereo=m=0` averages left and right while retaining stereo; `m=-1` swaps them.

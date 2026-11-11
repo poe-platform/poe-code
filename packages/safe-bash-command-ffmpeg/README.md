@@ -1125,7 +1125,7 @@ RealText input (`-f realtext` or automatic detection) preserves `<time begin="�
 
 SAMI input (`-f sami`, `.smi`, or `.sami`) preserves millisecond SYNC timing and `<br>` line breaks; each cue ends at the next SYNC.
 
-LRC lyrics support explicit `-f lrc` and automatic detection, subtract signed `[offset:milliseconds]` headers from subsequent cue timestamps, infer cue ends from the next timestamp, and write each subtitle line with its own centisecond timestamp. LRC output writes title, artist, album and author metadata before a blank header separator; `-bitexact` omits the encoder and version tags.
+LRC lyrics support explicit `-f lrc` and automatic detection, subtract signed `[offset:milliseconds]` headers from subsequent cue timestamps, expand adjacent timestamp tags into repeated cues, infer cue ends from the next timestamp, and write each subtitle line with its own centisecond timestamp. LRC input skips leading spaces, tabs, and bracketed timing prefixes before displayed text, preserves trailing whitespace and interior brackets, and schedules extra cues only for adjacent timestamp tags. LRC output writes title, artist, album and author metadata before a blank header separator; `-bitexact` omits the encoder and version tags.
 
 TTML output (`-f ttml` or `.ttml`) preserves subtitle cue timing, line breaks, and XML-escaped text, using FFmpeg’s default bottom-centered layout region and 384 × 288 cell resolution. Input `-t`/`-to` retain all subtitle cues when transcoding; output limits and input limits with `-c:s copy` select cues by their start time, preserving their full duration.
 PJS input (`-f pjs` or automatic detection) reads quoted cues with decisecond timing, converts `|` to line breaks, and preserves commas within dialogue.

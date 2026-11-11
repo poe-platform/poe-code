@@ -29,11 +29,29 @@ function parseLrc(bytes: Uint8Array): MediaDocument {
       }
       continue;
     }
-    const cue = readLyric(line);
-    if (!cue) continue;
-    const data = encodeUtf8(cue.text);
-    samples.push({ pts: cue.pts - offset, dts: cue.pts - offset, cts: 0, duration: 0,
-      data, size: data.length, offset: 0, isKeyframe: true, sampleDescriptionIndex: 1 });
+    let text = line;
+    const timestamps: number[] = [];
+    for (let cue = readLyric(text); cue; cue = readLyric(text)) {
+      timestamps.push(cue.pts - offset);
+      text = cue.text;
+    }
+    if (timestamps.length === 0) continue;
+    // FFmpeg scans the displayed-text prefix separately from cue timestamps.
+    let start = 0;
+    let brackets = 0;
+    for (; start < text.length; start++) {
+      const char = text[start]!;
+      if (char === " " || char === "\t") continue;
+      if (char === "[") brackets++;
+      else if (char === "]" && brackets > 0) brackets--;
+      else if (!(brackets > 0 && (char === ":" || char === "." || char === "-" ||
+        (char >= "0" && char <= "9")))) break;
+    }
+    const data = encodeUtf8(text.slice(start));
+    for (const pts of timestamps) {
+      samples.push({ pts, dts: pts, cts: 0, duration: 0,
+        data, size: data.length, offset: 0, isKeyframe: true, sampleDescriptionIndex: 1 });
+    }
   }
   samples.sort((a, b) => a.pts - b.pts);
   const timed = samples.map((sample, i) => ({ ...sample,

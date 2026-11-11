@@ -11677,7 +11677,7 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
         let area = transparent ? undefined : next.value;
         // Restoring the preceding canvas can replace a return frame with a pause.
         const restored = n > 1 ? stack[n - 2] : undefined;
-        if (area && area.width * area.height > 1 && restored && !restored.hasAlpha &&
+        if (area && area.width * area.height > 1 && restored &&
             restored.width === current.width && restored.height === current.height &&
             (typeof restored.disposal !== "number" || restored.disposal <= 1)) {
             const returning = compareLayerBounds(restored, current, fuzz, "compareany");
@@ -11736,7 +11736,7 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
         let area = transparent ? undefined : next.value;
         // Restoring the preceding canvas can replace a return frame with a pause.
         const restored = n > 1 ? await stack.get(n - 2) : undefined;
-        if (area && area.width * area.height > 1 && restored && !restored.hasAlpha &&
+        if (area && area.width * area.height > 1 && restored &&
             restored.width === current.width && restored.height === current.height &&
             (typeof restored.disposal !== "number" || restored.disposal <= 1)) {
             const returning = compareLayerBounds(restored, current, fuzz, "compareany");

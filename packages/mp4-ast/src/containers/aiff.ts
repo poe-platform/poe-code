@@ -183,18 +183,18 @@ export function serializeAiff(doc: MediaDocument, options: SerializeMediaOptions
   options.budget?.checkOutputBytes(size);
   const bytes = new Uint8Array(size), view = new DataView(bytes.buffer);
   const text = (offset: number, value: string) => bytes.set(new TextEncoder().encode(value), offset);
-  text(0, "FORM"); view.setUint32(4, size - 8); text(8, compression ? "AIFC" : "AIFF");
+  text(0, "FORM"); view.setUint32(4, options.seekable === false ? 0 : size - 8); text(8, compression ? "AIFC" : "AIFF");
   if (compression) {
     text(12, "FVER"); view.setUint32(16, 4); view.setUint32(20, 0xa2805140);
     text(comm + 26, compression); // Followed by an empty, padded Pascal compression name.
   }
   text(comm, "COMM"); view.setUint32(comm + 4, compression ? 24 : 18);
-  view.setUint16(comm + 8, channels); view.setUint32(comm + 10, frames); view.setUint16(comm + 14, bits);
+  view.setUint16(comm + 8, channels); view.setUint32(comm + 10, options.seekable === false ? 0 : frames); view.setUint16(comm + 14, bits);
   const exponent = Math.floor(Math.log2(sampleRate));
   const mantissa = sampleRate * 2 ** (63 - exponent);
   view.setUint16(comm + 16, exponent + 16383);
   view.setUint32(comm + 18, Math.floor(mantissa / 2 ** 32)); view.setUint32(comm + 22, mantissa % 2 ** 32);
-  text(sound, "SSND"); view.setUint32(sound + 4, data.length + 8);
+  text(sound, "SSND"); view.setUint32(sound + 4, options.seekable === false ? 0 : data.length + 8);
   bytes.set(data, sound + 16);
   for (const chunk of textChunks) {
     text(textOffset, chunk.id); view.setUint32(textOffset + 4, chunk.data.length);

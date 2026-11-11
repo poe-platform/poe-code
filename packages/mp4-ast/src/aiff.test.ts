@@ -125,3 +125,13 @@ for (const frames of [0, 2, 4, 6]) {
     });
   }
 }
+
+for (const seekable of [undefined, true, false]) {
+  it(`writes AIFF size placeholders only when seekable is ${seekable}`, () => {
+    const expected = Buffer.from(native);
+    if (seekable === false) {
+      for (const offset of [4, 22, 42]) expected.writeUInt32BE(0, offset);
+    }
+    assert.deepEqual(Buffer.from(serializeAiff(parseAiff(native), { seekable })), expected);
+  });
+}

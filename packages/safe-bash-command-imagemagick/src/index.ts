@@ -12761,7 +12761,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
             const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: 0, optionProperties: state.optionProperties });
             validateMagickTransformGeometry(expanded, "-scene");
-            validateMagickTransformGeometry(expanded, "-scene");
             state.scene = Number.parseInt(expanded, 10) || 0;
             if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
             const scene = state.scene;

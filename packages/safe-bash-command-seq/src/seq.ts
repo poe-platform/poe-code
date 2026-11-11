@@ -232,22 +232,24 @@ export function createSeqWithSettings(limits: StreamFormatLimits): CommandDefini
         const equals = argument.indexOf("=");
         const key = argument.slice(2, equals < 0 ? undefined : equals);
         const option = key ? ["equal-width", "separator", "format"].find(name => name.startsWith(key)) : undefined;
-        if (option === "equal-width" && equals < 0) equalWidth = true;
-        else if (option === "separator" || option === "format") {
+        if (option === "equal-width") {
+          if (equals >= 0) throw new UsageError(`option '--${key}' doesn't allow an argument\nTry 'seq --help' for more information.`);
+          equalWidth = true;
+        } else if (option === "separator" || option === "format") {
           const value = equals < 0 ? args[++index] : argument.slice(equals + 1);
-          if (value === undefined) throw new UsageError(`option '--${key}' requires an argument`);
+          if (value === undefined) throw new UsageError(`option '--${key}' requires an argument\nTry 'seq --help' for more information.`);
           if (option === "separator") separator = value; else formatText = value;
-        } else throw new UsageError(`unrecognized option '${argument}'`);
+        } else throw new UsageError(`unrecognized option '${argument}'\nTry 'seq --help' for more information.`);
       } else {
         for (let offset = 1; offset < argument.length; offset++) {
           const key = argument[offset]!;
           if (key === "w") equalWidth = true;
           else if (key === "s" || key === "f") {
             const value = argument.slice(offset + 1) || args[++index];
-            if (value === undefined) throw new UsageError(`option '-${key}' requires an argument`);
+            if (value === undefined) throw new UsageError(`option requires an argument -- '${key}'\nTry 'seq --help' for more information.`);
             if (key === "s") separator = value; else formatText = value;
             break;
-          } else throw new UsageError(`invalid option -- '${key}'`);
+          } else throw new UsageError(`invalid option -- '${key}'\nTry 'seq --help' for more information.`);
         }
       }
     }

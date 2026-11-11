@@ -628,13 +628,13 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 }
             }
         } else if (["sin", "sine", "cos", "cosine"].includes(operation)) {
-            const values = Float64Array.from(data, value => value * scale);
+            const values = Float64Array.from(data, value => Math.fround(value * scale));
             const wave = operation === "sin" || operation === "sine" ? Math.sin : Math.cos;
             for (let image = 1; image < frames; image++) {
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
-                // Native uses the accumulated Q16 quantum as the incoming sample's frequency.
-                for (let offset = 0; offset < length; offset++) values[offset] = 65535 * (0.5 + 0.5 * wave(2 * Math.PI * (1 / 65535) * (bytes[offset]! * scale) * values[offset]!));
+                // Native reads float32 Q16 samples but keeps the frequency accumulator in double precision.
+                for (let offset = 0; offset < length; offset++) values[offset] = 65535 * (0.5 + 0.5 * wave(2 * Math.PI * (1 / 65535) * Math.fround(bytes[offset]! * scale) * values[offset]!));
             }
             for (let offset = 0; offset < length; offset++) {
                 if (offset % stride !== 3 || hasAlpha) data[offset] = values[offset]! / scale;

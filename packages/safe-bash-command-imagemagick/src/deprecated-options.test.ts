@@ -6,9 +6,15 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 // ImageMagick 7.1.2-35 Q16-HDRI: deprecated options fail with 1, unknown options with 11.
 for (const mode of ["buffered", "sync", "retained", "command"] as const) {
     it.each([
-        { options: ["+roll", "+1+1"], exitCode: 1, error: "option deprecated, unable to execute '+roll'" },
-        { options: ["+chop", "1x1"], exitCode: 1, error: "option deprecated, unable to execute '+chop'" },
-        { options: ["+splice", "1x1"], exitCode: 1, error: "option deprecated, unable to execute '+splice'" },
+        { options: ["+roll", "+1+1"], exitCode: 1, error: "option deprecated, unable to execute '+roll' at CLI arg 2" },
+        { options: ["+chop", "1x1"], exitCode: 1, error: "option deprecated, unable to execute '+chop' at CLI arg 2" },
+        { options: ["+splice", "1x1"], exitCode: 1, error: "option deprecated, unable to execute '+splice' at CLI arg 2" },
+        { options: ["-gravity", "center", "+roll", "+1+1"], exitCode: 1, error: "option deprecated, unable to execute '+roll' at CLI arg 4" },
+        { options: ["-gravity", "center", "+chop", "1x1"], exitCode: 1, error: "option deprecated, unable to execute '+chop' at CLI arg 4" },
+        { options: ["-gravity", "center", "+splice", "1x1"], exitCode: 1, error: "option deprecated, unable to execute '+splice' at CLI arg 4" },
+        { options: ["(", "-gravity", "center", "+roll", "+1+1", ")"], exitCode: 1, error: "option deprecated, unable to execute '+roll' at CLI arg 5" },
+        { options: ["(", "-gravity", "center", "+chop", "1x1", ")"], exitCode: 1, error: "option deprecated, unable to execute '+chop' at CLI arg 5" },
+        { options: ["(", "-gravity", "center", "+splice", "1x1", ")"], exitCode: 1, error: "option deprecated, unable to execute '+splice' at CLI arg 5" },
         { options: ["+colors"], exitCode: 1, error: "option deprecated, unable to execute '+colors'" },
         { options: ["+color-matrix", "1"], exitCode: 1, error: "option deprecated, unable to execute '+color-matrix'" },
         { options: ["-color-matrix", "1"], exitCode: 0, error: "" },

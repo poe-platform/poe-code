@@ -10997,7 +10997,7 @@ function magickRegion(image: Pick<RgbaImage, "width" | "height">, spec: string, 
     return { ...gravityAdjustBox(image.width, image.height, width, height, g.x, g.y, gravity), width, height };
 }
 
-function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack?: RgbaImage[], stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = createConvertAnalysis(), registers = new Map<string, RgbaImage[]>()): Generator<void, RgbaImage[], void> {
+function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack?: RgbaImage[], stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = createConvertAnalysis(), registers = new Map<string, RgbaImage[]>(), argumentOffset = 0): Generator<void, RgbaImage[], void> {
     function* mapMagickImagesSteps(images: readonly RgbaImage[], transform: (image: RgbaImage) => Generator<void, RgbaImage, void>, maskAlpha?: MagickPixelOperation["maskAlpha"], handlesRegion = false): Generator<void, RgbaImage[], void> {
         return yield* mapSteps(images, function* (original) {
             let result = yield* transform(original);
@@ -11054,7 +11054,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const endIdx = depth === 0 ? j - 1 : j;
             const subTokens = tokens.slice(i + 1, endIdx);
             const subState: MagickState = state.respectParentheses ? { ...state } : state;
-            const subResult = (yield* evaluatePipelineTokensSteps(subTokens, files, subState, stack, stdinBytes, signal, analysis, registers));
+            const subResult = (yield* evaluatePipelineTokensSteps(subTokens, files, subState, stack, stdinBytes, signal, analysis, registers, argumentOffset + i + 1));
             if (subState.qualityExplicit) for (let index = 0; index < subResult.length; index++) {
                 yield;
                 subResult[index] = { ...subResult[index]!, quality: subState.quality };
@@ -13155,7 +13155,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else {
-            if (t === "+roll" || t === "+chop" || t === "+splice" || t === "+flip" || t === "+flop" || t === "+auto-level" || t === "+auto-gamma" || t === "+normalize" || t === "+color-matrix" || t === "+colors" || t === "+solarize" || t === "+separate" || t === "+unique-colors" || t === "+sort-pixels" || t === "+reverse") throw new Error(`option deprecated, unable to execute '${t}'`);
+            if (t === "+roll" || t === "+chop" || t === "+splice") throw new Error(`option deprecated, unable to execute '${t}' at CLI arg ${argumentOffset + i + 1}`);
+            if (t === "+flip" || t === "+flop" || t === "+auto-level" || t === "+auto-gamma" || t === "+normalize" || t === "+color-matrix" || t === "+colors" || t === "+solarize" || t === "+separate" || t === "+unique-colors" || t === "+sort-pixels" || t === "+reverse") throw new Error(`option deprecated, unable to execute '${t}'`);
             if ((t.startsWith("-") && t !== "-") || t.startsWith("+")) throw new UnrecognizedConvertOptionError(`unrecognized option '${t}'`);
             const isLabelOperand = /^(?:label|caption):/i.test(t);
             const mergeOntoCanvas = isLabelOperand && stack.length === 1 && state.hasSize && stack[0]!.width === state.sizeWidth && stack[0]!.height === state.sizeHeight && state.background.r === 255 && state.background.g === 255 && state.background.b === 255 && state.background.a === 255;
@@ -16382,7 +16383,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (!operandsOnly && ((token.startsWith("-") && token !== "-") || token.startsWith("+"))) {
                 // Execute preceding writes before reporting the option error.
                 stackStep(async () => {
-                    if (token === "+roll" || token === "+chop" || token === "+splice" || token === "+flip" || token === "+flop" || token === "+auto-level" || token === "+auto-gamma" || token === "+normalize" || token === "+color-matrix" || token === "+colors" || token === "+solarize" || token === "+separate" || token === "+unique-colors" || token === "+sort-pixels" || token === "+reverse") throw new Error(`option deprecated, unable to execute '${token}'`);
+                    if (token === "+roll" || token === "+chop" || token === "+splice") throw new Error(`option deprecated, unable to execute '${token}' at CLI arg ${i + 1}`);
+                    if (token === "+flip" || token === "+flop" || token === "+auto-level" || token === "+auto-gamma" || token === "+normalize" || token === "+color-matrix" || token === "+colors" || token === "+solarize" || token === "+separate" || token === "+unique-colors" || token === "+sort-pixels" || token === "+reverse") throw new Error(`option deprecated, unable to execute '${token}'`);
                     throw new UnrecognizedConvertOptionError(`unrecognized option '${token}'`);
                 });
                 break;

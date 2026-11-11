@@ -2377,18 +2377,27 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const paths = node.inputs.map(label => {
           const path = new Map<string[], boolean>();
           let buffered = false;
+          let passthrough = true;
           let upstream = nodes.get(label);
           while (upstream) {
             path.set(upstream.inputs, buffered);
-            buffered ||= parseFilterChain(upstream.expression)
-              .some(filter => filter.split("=", 1)[0]!.split("@", 1)[0] === "areverse");
+            const filters = parseFilterChain(upstream.expression)
+              .map(filter => filter.split("=", 1)[0]!.split("@", 1)[0]);
+            buffered ||= filters.includes("areverse");
+            passthrough &&= filters.every(name => name === "anull" || name === "acopy");
             if (upstream.inputs.length !== 1) break;
-            upstream = nodes.get(upstream.inputs[0]!);
+            label = upstream.inputs[0]!;
+            upstream = nodes.get(label);
           }
-          return path;
+          return { path, passthrough, input: upstream ? undefined : Number(label.split(":", 1)[0]) };
         });
-        const queued = paths.map(path => paths.some(other => other !== path &&
-          Array.from(path).some(([inputs, buffered]) => !buffered && other.get(inputs) === true)));
+        // Earlier independent sources queue directly while later sources feed the
+        // graph. A real filter between the source and merge schedules each frame.
+        const lastInput = Math.max(...paths.map(({ input }) => input ?? -1));
+        const queued = paths.map(({ path, passthrough, input }) =>
+          passthrough && input !== undefined && input < lastInput ||
+          paths.some(other => other.path !== path && Array.from(path)
+            .some(([inputs, buffered]) => !buffered && other.path.get(inputs) === true)));
         for (const source of sources) {
           if (source.expression && source.expression !== "anull") {
             source.track = await filterAudio(source.track, source.expression);

@@ -2,6 +2,7 @@ import { parseColor, type ImageMetadata, type RgbaImage, type SharpInputOptions 
 import { checkLimitInputPixels } from "../limits.js";
 import type { ImageByteSource, ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 import { SourceBytes } from "./storage-source.js";
+import { XPM_COLORS } from "./xpm-colors.js";
 
 export function isXpmBytes(bytes: Uint8Array): boolean {
   return new TextDecoder().decode(bytes.subarray(0, 9)) === "/* XPM */";
@@ -59,7 +60,15 @@ function* xpmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
       rgba = [0, 1, 2].map(channel => Math.round(parseInt(hex.slice(channel * digits, (channel + 1) * digits), 16) * 65535 / (16 ** digits - 1)));
       rgba.push(65535);
       highDepth ||= digits > 2;
-    } else { const { r, g, b, a } = parseColor(color); rgba = [r, g, b, a].map(value => value * 257); }
+    } else if (color.includes("(")) {
+      const { r, g, b, a } = parseColor(color); rgba = [r, g, b, a].map(value => value * 257);
+    } else {
+      // Native XPM replaces lowercase "grey" before its case-insensitive lookup.
+      const name = color.replaceAll("grey", "gray").toLowerCase().split(" ").join("");
+      if (!Object.hasOwn(XPM_COLORS, name)) throw new Error("Invalid XPM color");
+      const rgb = XPM_COLORS[name]!;
+      rgba = [rgb >>> 16, (rgb >>> 8) & 255, rgb & 255, 255].map(value => value * 257);
+    }
     palette.set(symbol, rgba);
   }
   const metadata: ImageMetadata = { format: "xpm", width, height, channels: hasAlpha ? 4 : 3, hasAlpha, space: "srgb", depth: highDepth ? "ushort" : "uchar", density: 72, size };

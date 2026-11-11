@@ -1,4 +1,5 @@
 import { isDdsBytes, decodeDdsToStorage } from "./dds-input.js";
+import { isSgiBytes, decodeSgiToStorage } from "./sgi-input.js";
 import { isSunBytes, decodeSunToStorage } from "./sun-input.js";
 import { isWbmpBytes, decodeWbmpToStorage } from "./wbmp-input.js";
 import { isFitsBytes, decodeFitsToStorage } from "./fits-input.js";
@@ -51,6 +52,7 @@ export async function storedImageDecoder(source:ImageByteSource,signal:AbortSign
  if(!(prefix instanceof Uint8Array)||prefix.length!==length)throw new Error("Truncated image source");
  if(isDdsBytes(prefix))return decodeDdsToStorage;
  if(isSixelBytes(prefix))return decodeSixelToStorage;
+ if(isSgiBytes(prefix))return decodeSgiToStorage;
  if(isPcxBytes(prefix))return decodePcxToStorage;
  if(isFitsBytes(prefix))return decodeFitsToStorage;
  if(isSunBytes(prefix))return decodeSunToStorage;

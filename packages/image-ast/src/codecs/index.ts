@@ -1,3 +1,4 @@
+import { isSgiBytes, readSgiHeader, decodeSgiImage } from "./sgi-input.js";
 import { isSunBytes, readSunHeader, decodeSunImage } from "./sun-input.js";
 import { encodeSunImage } from "./sun-output.js";
 import { isDdsBytes, readDdsMetadata, decodeDdsImage } from "./dds-input.js";
@@ -94,6 +95,7 @@ import {
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isDdsBytes(bytes)) return "dds";
+  if (isSgiBytes(bytes)) return "sgi";
   if (isSixelBytes(bytes)) return "sixel";
   if (isPcxBytes(bytes)) return "pcx";
   if (isFitsBytes(bytes)) return "fits";
@@ -203,6 +205,7 @@ export function readImageMetadata(
   const fmt = detectImageFormat(bytes);
   let meta: ImageMetadata;
   switch (fmt) {
+    case "sgi": meta = readSgiHeader(bytes).metadata; break;
     case "otb": meta = readOtbHeader(bytes).metadata; break;
     case "sixel": meta = readSixelMetadata(bytes, options); break;
     case "pcx": meta = readPcxHeader(bytes).metadata; break;
@@ -456,6 +459,7 @@ export function decodeImage(
   switch (meta.format) {
     case "otb": decoded = decodeOtbImage(bytes, options); break;
     case "sixel": decoded = decodeSixelImage(bytes, options); break;
+    case "sgi": decoded = decodeSgiImage(bytes, options); break;
     case "pcx": decoded = decodePcxImage(bytes, options); break;
     case "sun": decoded = decodeSunImage(bytes, options); break;
     case "xwd": decoded = decodeXwdImage(bytes, options); break;

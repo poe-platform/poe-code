@@ -1,4 +1,5 @@
 import { isDdsBytes, readDdsMetadataFromSource } from "./dds-input.js";
+import { isSgiBytes, readSgiHeader } from "./sgi-input.js";
 import { isSunBytes, readSunHeader } from "./sun-input.js";
 import { isWbmpBytes, readWbmpHeader } from "./wbmp-input.js";
 import { isFitsBytes, readFitsFromSource } from "./fits-input.js";
@@ -61,11 +62,12 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  const prefix=new Uint8Array(borrowed);let metadata:RetainedImageMetadata;
  if(isSunBytes(prefix))metadata=readSunHeader(prefix,source.size).metadata;
  else if(isXwdBytes(prefix))metadata=readXwdHeader(prefix,source.size).metadata;
+ else if(isSgiBytes(prefix))metadata=readSgiHeader(prefix,source.size).metadata;
+ else if(isPcxBytes(prefix))metadata=readPcxHeader(prefix,source.size).metadata;
  else if(await detectHeifFormatFromSource(source,signal))metadata=await readHeifMetadataFromSource(source,signal);
  else if(await isXbmSource(source,signal))metadata=await readXbmFromSource(source,undefined,signal,options);
  else if(isDdsBytes(prefix))metadata=await readDdsMetadataFromSource(source,signal);
  else if(isSixelBytes(prefix))metadata=(await readSixelFromSource(source,signal,options)).metadata;
- else if(isPcxBytes(prefix))metadata=readPcxHeader(prefix,source.size).metadata;
  else if(isFitsBytes(prefix))metadata=(await readFitsFromSource(source,signal)).metadata;
  else if(isQoiBytes(prefix))metadata={...readQoiMetadata(prefix),size:source.size};
  else if(isPsdBytes(prefix))metadata=(await readPsdFromSource(source,signal,options)).metadata;

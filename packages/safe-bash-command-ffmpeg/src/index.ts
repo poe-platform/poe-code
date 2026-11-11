@@ -6084,9 +6084,11 @@ async function applyVideoFilterChain(
       let col = parseColorRgba(invert ? "black" : color);
       const thicknessOption = named.t ?? named.thickness ?? values[5] ?? (grid ? "1" : "3");
       const replace = ["1", "true", "yes", "on"].includes(replaceOption);
-      const geometry = (frameWidth: number, frameHeight: number) => {
+      const sar = diagnostics.sar || 1;
+      const geometry = (frameWidth: number, frameHeight: number, hsub: number, vsub: number) => {
         const variables = {
           iw: frameWidth, ih: frameHeight, in_w: frameWidth, in_h: frameHeight,
+          hsub, vsub, sar, dar: frameWidth / frameHeight * sar,
           x: NaN, y: NaN, w: NaN, h: NaN, t: NaN
         };
         // Match FFmpeg's six passes so geometry can refer to later expressions.
@@ -6110,7 +6112,12 @@ async function applyVideoFilterChain(
       let nextCommand = 0;
       current = await mapWork(current, async (f, n) => {
         let work = 0;
-        let variables = geometry(f.width, f.height);
+        const source = f.native;
+        const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
+          [0, 4, 5, 12, 13, 14].includes(source.format) ? source : undefined;
+        const hsub = planar && [0, 4, 12, 13].includes(planar.format) ? 1 : 0;
+        const vsub = planar && [0, 12].includes(planar.format) ? 1 : 0;
+        let variables = geometry(f.width, f.height, hsub, vsub);
         while (nextCommand < commands.length && commands[nextCommand]!.time <= f.ptsSeconds) {
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
           const command = commands[nextCommand++]!;
@@ -6122,7 +6129,7 @@ async function applyVideoFilterChain(
               invert = nextInvert;
             } else {
               named[command.action] = command.expression;
-              variables = geometry(f.width, f.height);
+              variables = geometry(f.width, f.height, hsub, vsub);
             }
           } catch {
             // Rejected runtime commands leave the active box unchanged.
@@ -6153,11 +6160,6 @@ async function applyVideoFilterChain(
         const bx = Math.trunc(variables.x);
         const by = Math.trunc(variables.y);
         const thickness = Math.trunc(variables.t);
-        const source = f.native;
-        const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
-          [0, 4, 5, 12, 13, 14].includes(source.format) ? source : undefined;
-        const hsub = planar && [0, 4, 12, 13].includes(planar.format) ? 1 : 0;
-        const vsub = planar && [0, 12].includes(planar.format) ? 1 : 0;
         const chromaWidth = Math.ceil(f.width / (1 << hsub));
         const chromaSize = chromaWidth * Math.ceil(f.height / (1 << vsub));
         const lumaSize = f.width * f.height;

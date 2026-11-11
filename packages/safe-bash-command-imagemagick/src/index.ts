@@ -10635,7 +10635,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         // Two offsets supply no contrast magnitude; numeric prefixes are not complete dimensions.
         const magnitude = geometry.aspectRatio ?? geometry.width ?? (geometry.hasOffset && !geometry.hasYOffset ? geometry.x : undefined);
         const fields = raw.replaceAll("X", "x").replaceAll(":", "x");
-        const separator = fields.indexOf("x");
+        // A leading plus makes 0x a numeric prefix; unsigned 0x5 remains geometry 0,5.
+        const hexStrength = fields.startsWith("+0x");
+        const separator = fields.indexOf("x", hexStrength ? 3 : 0);
         // Split only the first field so a hexadecimal midpoint keeps its 0x prefix.
         const cStr = separator < 0 ? fields : fields.slice(0, separator);
         const mStr = separator < 0 ? undefined : fields.slice(separator + 1);
@@ -10643,9 +10645,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const signedRatio = ratio && (mStr?.startsWith("+") || mStr?.startsWith("-"));
         // Native geometry treats signed ratio fields as offsets, not divisors.
         // Its safe reciprocal also accepts zero and very small denominators.
-        const strength = parseFloat(cStr ?? "") * (ratio && !signedRatio ? 1 / Math.max(1e-12, parseFloat(mStr ?? "1")) : 1);
+        const strength = (hexStrength ? parseInt(cStr, 16) : parseFloat(cStr)) * (ratio && !signedRatio ? 1 / Math.max(1e-12, parseFloat(mStr ?? "1")) : 1);
         // Incomplete exponents are invalid in the strength, but accepted in the midpoint.
-        if (!Number.isFinite(magnitude) || !Number.isFinite(strength) || cStr.endsWith("e") || cStr.endsWith("E")) {
+        if (!Number.isFinite(magnitude) || !Number.isFinite(strength) || (!hexStrength && (cStr.endsWith("e") || cStr.endsWith("E")))) {
             throw new Error(`invalid argument for option '${token}': ${raw}`);
         }
         const beta = Math.max(1e-4, strength);

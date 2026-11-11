@@ -14541,7 +14541,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             Object.assign(canvas, {
                 depth: image.depth, ...(image.bitsPerSample === undefined ? {} : { bitsPerSample: image.bitsPerSample }),
                 icc: image.icc, exif: image.exif,
-                [magickInput]: { filePath: source?.filePath, originalWidth: source?.originalWidth, originalHeight: source?.originalHeight, delayTicks: source?.delayTicks, channelMask: mask },
+                [magickInput]: { filePath: source?.filePath, originalWidth: source?.originalWidth, originalHeight: source?.originalHeight, compression: source?.compression, delayTicks: source?.delayTicks, channelMask: mask },
                 delay: [image.delay?.[scene] ?? 0], delayTicks: image.delayTicks, ticksPerSecond: image.ticksPerSecond,
                 disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene],
             });
@@ -16552,7 +16552,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 Object.assign(canvas, {
                     depth: image.depth, ...(image.bitsPerSample === undefined ? {} : { bitsPerSample: image.bitsPerSample }),
                     icc: image.icc, exif: image.exif,
-                    [magickInput]: { filePath: source?.filePath, originalWidth: source?.originalWidth, originalHeight: source?.originalHeight, delayTicks: source?.delayTicks, channelMask: mask },
+                    [magickInput]: { filePath: source?.filePath, originalWidth: source?.originalWidth, originalHeight: source?.originalHeight, compression: source?.compression, delayTicks: source?.delayTicks, channelMask: mask },
                     delay: [await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] ?? 0], delayTicks: image.delayTicks, ticksPerSecond: image.ticksPerSecond,
                     disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene],
                 });

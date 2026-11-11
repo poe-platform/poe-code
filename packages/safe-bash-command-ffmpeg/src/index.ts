@@ -13698,6 +13698,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const reverse = audioFilters.slice(filterIndex + 1)
                           .some(filter => filter.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse");
                         const frameLimit = reverse && requestedFrames !== 0 ? undefined : requestedFrames;
+                        const duration = filterName === "silencedetect" && outputCut && !reverse
+                          ? outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0))
+                          : undefined;
+                        let outputEndPts: number | undefined;
                         // Demand includes the complete frame where a downstream trim discovers EOF.
                         let nextIndex = filterIndex + 1;
                         while (nextIndex < audioFilters.length) {
@@ -13740,6 +13744,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
                           if (size === 0) continue;
                           measuredEnd = Math.min(length, start + size);
+                          if (duration !== undefined) {
+                            const pts = frame?.pts ?? audioStartSample + start;
+                            outputEndPts ??= Math.max(pts, outputSs === undefined ? -Infinity : Math.round(outputSs * origRate))
+                              + Math.round(duration * origRate);
+                            // The output trim consumes the complete frame that discovers EOF.
+                            if (pts >= outputEndPts) break;
+                          }
                           if (trim) {
                             const timestamp = frame?.pts ?? (packet ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start);
                             const pts = Number.isNaN(timestamp) ? nextPts : Math.sign(timestamp) * Math.round(Math.abs(timestamp));

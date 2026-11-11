@@ -3071,7 +3071,8 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
                     next = cur / (vFactor || 1);
                     break;
                 case "pow":
-                    next = 255 * Math.pow(cur / 255, vFactor);
+                    // Native stores the Q16 result as a float32 Quantum, including overflow.
+                    next = Math.fround(65535 * Math.pow(cur / 255, vFactor)) / 257;
                     break;
                 case "exp":
                 case "exponential":

@@ -14821,31 +14821,34 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-liquid-rescale") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geometry = tokens[++i] ?? "";
-            stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                let expanded = yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                validateMagickTransformGeometry(expanded, t);
-                expanded = expanded.replaceAll("(", "").replaceAll(")", "");
-                if (expanded === "x") expanded = "0x0";
-                const seam = parseMagickGeometry(expanded);
-                const options = magickResizeOptions(image, expanded, state.kernel);
-                if (!options) return image;
-                const width = options.width!, height = options.height!;
-                if (width <= 2 || height <= 2) return yield* applyMagickResizeSteps(image, expanded, state.kernel, false, false, false, state.resizeFilter);
-                if (width === image.width && height === image.height) return image;
-                const plan = liquidRescaleSteps(image, width, height, seam.hasOffset ? Math.max(0, seam.x) : 1, seam.hasYOffset ? seam.y : 0);
-                const result = yield* applyMagickRasterSteps(image, plan.pixels, signal, { ...image, width, height }, [image, ...(image.readMask ? [image.readMask as RgbaImage] : []), ...(image.writeMask ? [image.writeMask] : []), ...(image.metaChannels ?? [])]);
-                if (image.metaChannels) {
-                    result.metaChannels = [];
-                    for (const pixels of plan.metaChannels) result.metaChannels.push(yield* applyMagickRasterSteps(image, pixels, signal, { width, height, hasAlpha: false }));
-                }
-                if (plan.readMask) result.readMask = yield* applyMagickRasterSteps(image, plan.readMask, signal, { width, height, hasAlpha: false });
-                if (plan.writeMask) {
-                    result.region = undefined;
-                    result.writeMask = yield* applyMagickRasterSteps(image, plan.writeMask, signal, { width, height, hasAlpha: false });
-                }
-                const virtualCanvas = magickResizeCanvas(image, width, height);
-                return { ...result, isPalette: false, ...(virtualCanvas ? { virtualCanvas } : {}) };
-            });
+            for (let sceneIdx = 0; sceneIdx < stack.length; sceneIdx++) {
+                const [resized] = yield* mapMagickImagesSteps([stack[sceneIdx]!], function* (image) {
+                    let expanded = yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, optionProperties: state.optionProperties });
+                    validateMagickTransformGeometry(expanded, t);
+                    expanded = expanded.replaceAll("(", "").replaceAll(")", "");
+                    if (expanded === "x") expanded = "0x0";
+                    const seam = parseMagickGeometry(expanded);
+                    const options = magickResizeOptions(image, expanded, state.kernel);
+                    if (!options) return image;
+                    const width = options.width!, height = options.height!;
+                    if (width <= 2 || height <= 2) return yield* applyMagickResizeSteps(image, expanded, state.kernel, false, false, false, state.resizeFilter);
+                    if (width === image.width && height === image.height) return image;
+                    const plan = liquidRescaleSteps(image, width, height, seam.hasOffset ? Math.max(0, seam.x) : 1, seam.hasYOffset ? seam.y : 0);
+                    const result = yield* applyMagickRasterSteps(image, plan.pixels, signal, { ...image, width, height }, [image, ...(image.readMask ? [image.readMask as RgbaImage] : []), ...(image.writeMask ? [image.writeMask] : []), ...(image.metaChannels ?? [])]);
+                    if (image.metaChannels) {
+                        result.metaChannels = [];
+                        for (const pixels of plan.metaChannels) result.metaChannels.push(yield* applyMagickRasterSteps(image, pixels, signal, { width, height, hasAlpha: false }));
+                    }
+                    if (plan.readMask) result.readMask = yield* applyMagickRasterSteps(image, plan.readMask, signal, { width, height, hasAlpha: false });
+                    if (plan.writeMask) {
+                        result.region = undefined;
+                        result.writeMask = yield* applyMagickRasterSteps(image, plan.writeMask, signal, { width, height, hasAlpha: false });
+                    }
+                    const virtualCanvas = magickResizeCanvas(image, width, height);
+                    return { ...result, isPalette: false, ...(virtualCanvas ? { virtualCanvas } : {}) };
+                });
+                stack[sceneIdx] = resized!;
+            }
         }
         else if (t === "-resize" || t === "-scale" || t === "-sample" || t === "-thumbnail") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
@@ -19344,14 +19347,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return virtualCanvas ? { ...resized, virtualCanvas } : resized;
             });
         } else if (!operandsOnly && token === "-liquid-rescale") {
+            let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
                 return stack;
             });
             const geometry = tokens[++i] ?? "", kernel = state.kernel, settings = state.resizeFilter, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                let expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                let expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 validateMagickTransformGeometry(expanded, token);
                 expanded = expanded.replaceAll("(", "").replaceAll(")", "");
                 if (expanded === "x") expanded = "0x0";

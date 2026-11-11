@@ -26,7 +26,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
       : await runMagickCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
     expect(result.exitCode).toBe(0);
     expect("stderr" in result ? result.stderr : stderr).toBe("");
-    const output = "stdoutBytes" in result ? result.stdoutBytes! : Buffer.concat(stdout);
+    const output = "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : Buffer.concat(stdout);
     expect(Buffer.from(output).toString("hex")).toBe(expected);
   });
 }

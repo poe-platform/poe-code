@@ -12476,6 +12476,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || ["i", "c"].includes(action!) && (target === "crystalizer" || target?.startsWith("crystalizer@"))
                             || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
                             || target === "stereowiden" || target?.startsWith("stereowiden@")
+                            || target === "stereotools" || target?.startsWith("stereotools@")
                             // aphaser declines runtime commands without aborting the render.
                             || target === "aphaser" || target?.startsWith("aphaser@")
                             || target === "adelay" || target?.startsWith("adelay@")
@@ -16273,6 +16274,28 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const balance = { mpan: 0, sbal: 0, balance_in: 0, balance_out: 0 };
                         const balanceModes = { bmode_in: 0, bmode_out: 0 };
                         let enable: string | undefined;
+                        const applyMixOption = (key: string, value: string): boolean => {
+                          if (key === "level_in" || key === "level_out" || key === "mlev" || key === "slev") {
+                            const level = parseFilterExpression(value, "stereotools", { min: 0.015625, max: 64, default: 1 });
+                            if (!Number.isFinite(level) || level < 0.015625 || level > 64) {
+                              throw new Error(`stereotools: ${key} must be in the range [0.015625, 64]`);
+                            }
+                            levels[key] = level;
+                          } else if (key === "mode") {
+                            let nextMode = modes.indexOf(value);
+                            if (nextMode < 0) nextMode = parseFilterExpression(value, "stereotools", {
+                              default: 0, min: 0, max: modes.length - 1,
+                              PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+                            });
+                            if (!Number.isFinite(nextMode) || nextMode < 0 || nextMode > modes.length - 1) {
+                              throw new Error("stereotools: invalid mode");
+                            }
+                            mode = roundToEven(nextMode);
+                          } else if (key === "mutel" || key === "muter" || key === "phasel" || key === "phaser" || key === "softclip") {
+                            flags[key] = parseFilterBoolean(value, `stereotools: invalid ${key}`);
+                          } else return false;
+                          return true;
+                        };
                         const argument = trimmed.slice("stereotools=".length);
                         const positionalKeys = ["level_in", "level_out", "balance_in", "balance_out", "softclip",
                           "mutel", "muter", "phasel", "phaser", "mode", "slev", "sbal", "mlev", "mpan",
@@ -16288,13 +16311,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           sawNamed ||= separator >= 0;
                           const value = option.slice(separator + 1).trim();
-                          if (key === "level_in" || key === "level_out" || key === "mlev" || key === "slev") {
-                            const level = parseFilterExpression(value, "stereotools", { min: 0.015625, max: 64, default: 1 });
-                            if (!Number.isFinite(level) || level < 0.015625 || level > 64) {
-                              throw new Error(`stereotools: ${key} must be in the range [0.015625, 64]`);
-                            }
-                            levels[key] = level;
-                          } else if (key === "sclevel") {
+                          if (applyMixOption(key!, value)) continue;
+                          if (key === "sclevel") {
                             sclevel = parseFilterExpression(value, "stereotools", { min: 1, max: 100, default: 1 });
                             if (!Number.isFinite(sclevel) || sclevel < 1 || sclevel > 100) {
                               throw new Error("stereotools: sclevel must be in the range [1, 100]");
@@ -16329,18 +16347,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (!Number.isFinite(delay) || delay < -20 || delay > 20) {
                               throw new Error("stereotools: delay must be in the range [-20, 20]");
                             }
-                          } else if (key === "mode") {
-                            mode = modes.indexOf(value);
-                            if (mode < 0) mode = parseFilterExpression(value, "stereotools", {
-                              default: 0, min: 0, max: modes.length - 1,
-                              PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-                            });
-                            if (!Number.isFinite(mode) || mode < 0 || mode > modes.length - 1) {
-                              throw new Error("stereotools: invalid mode");
-                            }
-                            mode = roundToEven(mode);
-                          } else if (key === "mutel" || key === "muter" || key === "phasel" || key === "phaser" || key === "softclip") {
-                            flags[key] = parseFilterBoolean(value, `stereotools: invalid ${key}`);
                           } else if (key === "enable") enable = value;
                           else {
                             throw new Error(`stereotools: unsupported option ${key}`);
@@ -16381,10 +16387,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const sideRight = 1 + Math.min(0, balance.sbal);
                         const delayed = new Float64Array(delayFrames);
                         let delayPosition = 0;
+                        const commands = audioCommands.filter(command => command.target === "stereotools" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        audioCommands = audioCommands.filter(command => command.target !== "stereotools" && command.target !== filterTarget);
+                        let commandIndex = 0;
                         let frameEnd = 0;
                         let frameIndex = 0;
                         let enabled = true;
                         for (let i = 0; i < left.length; i++) {
+                          while (commandIndex < commands.length && commands[commandIndex]!.sample <= i) {
+                            const command = commands[commandIndex++]!;
+                            try { applyMixOption(command.action, command.expression); }
+                            catch { /* Rejected runtime updates leave the previous option unchanged. */ }
+                          }
                           if (enable !== undefined && i >= frameEnd) {
                             const packet = t.samples[frameIndex];
                             const timestamp = audioTimestamps?.[frameIndex];

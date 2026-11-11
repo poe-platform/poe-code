@@ -576,6 +576,11 @@ Other layouts and surround options are rejected.
 (`phasel`, `phaser`), stereo pair rotation (`phase=0`–`360` degrees), and all `mode`
 channel conversions, including `lr>ms` and
 `ms>lr`. For example, `-af stereotools=mutel=1` silences only the left channel.
+`asendcmd` updates mute and phase-inversion flags, `softclip`, gains (`level_in`,
+`level_out`, `mlev`, `slev`), and `mode` at audio frame boundaries. Named targets
+such as `stereotools@x` select one instance; invalid updates keep the previous
+setting. For example, `asendcmd=c='1 stereotools@x level_out 0.5',stereotools@x`
+halves output gain starting with the first frame at or after one second.
 Positional arguments follow FFmpeg option order: `stereotools=1:1:0:0:0:0:1`
 is equivalent to `stereotools=muter=1`. Named arguments may follow positional ones.
 A single trailing `:` is accepted, so `stereotools=muter=1:` also mutes the right channel.

@@ -14036,7 +14036,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             throw new Error(`apad: unsupported option ${key}`);
                           }
                           const duration = key!.endsWith("_dur");
-                          const number = duration ? parseHlsDuration(value ?? "") : parseFilterExpression(value ?? "", "apad", { min: -1, default: -1, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+                          const number = duration ? parseHlsDuration(value ?? "") : parseFilterExpression(value ?? "", "apad", { min: -1, default: -1, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
                           const samples = duration ? Math.round(number * origRate) : roundToEven(number);
                           if (number < (duration ? -0.000001 : -1)) {
                             throw new RangeError(`apad: invalid ${key}`);

@@ -42,8 +42,15 @@ for (const [sampleRate, channels, knownSize, packetBytes] of [
       assert.equal(result.exitCode, 0, stderr);
       assert.equal((volume.readFileSync("/output.bin") as Buffer).equals(expected), true, "exact PCM payload");
       volume.unlinkSync("/output.bin");
-      assert.equal(evalSyncFfmpeg(args, undefined, path => volume.readFileSync(path) as Buffer,
-        (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), "");
+      const syncResult = evalSyncFfmpeg(args, undefined, path => volume.readFileSync(path) as Buffer,
+        (path, bytes) => { volume.writeFileSync(path, bytes); return true; });
+      if (operation === "encode") {
+        // Decoded PCM cuts defer to the async path for frame timestamp handling.
+        assert.equal(syncResult, undefined);
+        assert.equal(volume.existsSync("/output.bin"), false);
+        return;
+      }
+      assert.equal(syncResult, "");
       assert.equal((volume.readFileSync("/output.bin") as Buffer).equals(expected), true, "exact PCM payload");
     });
   }

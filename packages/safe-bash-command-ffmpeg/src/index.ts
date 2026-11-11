@@ -1072,7 +1072,7 @@ function parseAsetnsamples(argument: string) {
     const key = separator < 0 ? ["n", "p"][index] : option.slice(0, separator);
     const value = separator < 0 ? option : option.slice(separator + 1);
     if (key === "n" || key === "nb_out_samples") {
-      const number = parseFilterExpression(value, "asetnsamples", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
+      const number = parseFilterExpression(value, "asetnsamples", { default: 1024, min: 1, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
       if (number < 1 || number > 2147483647) throw new RangeError("asetnsamples: invalid frame size");
       size = roundToEven(number);
     } else if (key === "p" || key === "pad") {
@@ -1081,7 +1081,8 @@ function parseAsetnsamples(argument: string) {
       enable = value;
       parseFilterExpression(enable, "asetnsamples enable", variables, undefined, new Float64Array(10));
     } else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
-      const number = parseFilterExpression(value, "asetnsamples", key === "thread_type" ? { slice: 1 } : {});
+      const number = parseFilterExpression(value, "asetnsamples", key === "thread_type" ? { slice: 1 }
+        : key === "threads" ? { default: 0, min: 0 } : { default: -1, min: -1 });
       if (key === "thread_type"
         ? !Number.isInteger(number) || number < -2147483648 || number > 4294967295
         : number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {

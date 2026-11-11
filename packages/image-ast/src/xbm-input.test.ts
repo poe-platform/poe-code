@@ -29,3 +29,11 @@ it("honors cancellation and rejects truncated retained reads", async () => {
   await expect(readXbmFromSource(source, undefined, controller.signal)).rejects.toThrow("cancelled");
   await expect(readXbmFromSource({ ...source, async read() { return new Uint8Array(); } }, undefined, new AbortController().signal)).rejects.toThrow("Truncated XBM source");
 });
+
+it("rejects explicitly sized XBM arrays before reading pixels or metadata", async () => {
+  const bytes = new TextEncoder().encode("#define cur_width 8\n#define cur_height 2\nstatic char cur_bits[2] = { 0x01, 0x80 };");
+  expect(() => decodeImage(bytes)).toThrow("XBM");
+  expect(() => readImageMetadata(bytes)).toThrow("XBM");
+  const source = { size: bytes.length, async read(position: number, length: number) { return bytes.subarray(position, position + length); } };
+  await expect(readXbmFromSource(source, undefined, new AbortController().signal)).rejects.toThrow("XBM");
+});

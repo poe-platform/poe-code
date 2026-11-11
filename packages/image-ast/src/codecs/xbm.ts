@@ -35,6 +35,7 @@ function* xbmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
       if (key.endsWith("_width")) { width = value; name = key.slice(0, -6); }
       else if (key.endsWith("_height")) height = value;
     } else if (part === "char") charArray = true;
+    else if (part === "[" && (yield* token()) !== "]") throw new Error("Invalid XBM array declaration");
     else if (part === "{") break;
     else if (part === "short") throw new Error("Unsupported XBM short array");
   }

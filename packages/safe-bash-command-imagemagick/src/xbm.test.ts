@@ -31,3 +31,23 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
     }
   });
 }
+
+for (const mode of ["sync", "buffered", "retained"] as const) {
+  it.each(["2", ""])(`matches native XBM array declaration acceptance (${mode}, [%s])`, async size => {
+    const input = new TextEncoder().encode(`#define cur_width 8\n#define cur_height 2\nstatic char cur_bits[${size}] = { 0x01, 0x80 };`);
+    const files = new Map([["/in.xbm", input]]), filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/in.xbm", input);
+    const args = ["/in.xbm", "-depth", "8", "gray:/out.raw"];
+    const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+    expect(result.exitCode).toBe(size ? 1 : 0);
+    if (size) {
+      expect(result.stderr).toContain("XBM");
+      if (mode === "retained") await expect(filesystem.readFile("/out.raw")).rejects.toMatchObject({ code: "ENOENT" });
+      else expect(files.has("/out.raw")).toBe(false);
+    } else {
+      expect(result.stderr).toBe("");
+      const output = mode === "retained" ? await filesystem.readFile("/out.raw") : files.get("/out.raw")!;
+      expect(Buffer.from(output).toString("hex")).toBe("00ffffffffffffffffffffffffffff00");
+    }
+  });
+}

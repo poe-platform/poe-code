@@ -4878,6 +4878,8 @@ async function applyVideoFilterChain(
       const threshold = parseFilterExpression(options.scd_threshold ?? "10", "minterpolate", {});
       if (scd < 0 || scd > 1 || threshold < 0 || threshold > 100) throw new Error("minterpolate: invalid scene detection options");
       if (pixelFormat !== "gray" && pixelFormat !== "gray8") throw new Error("minterpolate: only 8-bit grayscale video is supported");
+      // Buffered interpolation drops the final interval, but forwards the input EOF timestamp.
+      if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       current = await minterpolate(current, targetFps, roundToEven(mode), roundToEven(scd) === 1, threshold, timescale, budget, signal);
       timescale = targetFps;
       frameDuration = 1 / targetFps;
@@ -6875,7 +6877,7 @@ async function applyVideoFilterChain(
     }
     // Filters that change the final frame's timing establish a new endpoint.
     const lastOutputFrame = current.at(-1);
-    if (!pending && name !== "tpad" && name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "mpdecimate" && name !== "framestep" && name !== "tile" && name !== "untile" && name !== "shuffleframes" &&
+    if (!pending && name !== "tpad" && name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "mpdecimate" && name !== "framestep" && name !== "tile" && name !== "untile" && name !== "shuffleframes" && name !== "minterpolate" &&
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;

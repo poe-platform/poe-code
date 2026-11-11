@@ -42,7 +42,7 @@ for (const [filter, expected] of [
   ["trim=end_frame=2,minterpolate=6:dup", []],
   ["trim=end_frame=3,minterpolate=6:dup", [10, 30]],
   ["setpts=PTS+1,minterpolate=6:blend:scd=none", [17, 30, 50, 73, 100, 133]],
-  ["minterpolate=6:blend:scd=none,fps=source_fps", [10, 23, 40, 60, 87, 117, 150]],
+  ["minterpolate=6:blend:scd=none,fps=source_fps", [10, 23, 40, 60, 87, 117, 150, 150, 150]],
   ["fps=6", [10, 10, 30, 60, 60, 100, 150, 150, 210]]
 ] as const) {
   it(`matches native grayscale ${filter}`, async () => {

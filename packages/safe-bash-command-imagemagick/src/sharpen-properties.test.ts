@@ -18,13 +18,13 @@ it.each([
     const argv = ["xc:#50406080", "xc:#a08090c0", "+append", ...settings, "-sharpen", geometry, "-depth", "8", "rgba:/out"];
     const argumentValues = createCommandArguments(argv);
     let stderr = "";
-    const result = mode === "command" ? await createMagickCommand().execute({
+    const result = mode === "command" ? { ...await createMagickCommand().execute({
         command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
         signal: new AbortController().signal, stdin: (async function* () {})(),
         stdout: { async write() {} }, stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } }
-    }) : mode === "sync" ? runMagickCliSync(argv, files)
+    }), stderr } : mode === "sync" ? runMagickCliSync(argv, files)
         : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
-    const diagnostic = "stderr" in result ? result.stderr : stderr;
+    const diagnostic = "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr;
     expect(result.exitCode, diagnostic).toBe(0);
     expect(diagnostic).toBe("");
     const bytes = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;

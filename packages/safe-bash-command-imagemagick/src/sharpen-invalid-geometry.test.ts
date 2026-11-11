@@ -19,16 +19,16 @@ it.each([
     const args = ["xc:#50406080", "xc:#a08090c0", "+append", "-sharpen", geometry, "-depth", "8", `rgba:${output}`];
     let stderr = "";
     const stdout: Uint8Array[] = [];
-    const result = mode === "command" ? await createMagickCommand().execute({
+    const result = mode === "command" ? { ...await createMagickCommand().execute({
         command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
         stdin: (async function* () {})(), signal: new AbortController().signal,
         stdout: { async write(bytes) { stdout.push(bytes); } },
         stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
-    }) : mode === "sync" ? runMagickCliSync(args, files)
+    }), stderr, stdout: "", stdoutBytes: Buffer.concat(stdout) } : mode === "sync" ? runMagickCliSync(args, files)
         : await runMagickCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
-    const diagnostic = "stderr" in result ? result.stderr : stderr;
+    const diagnostic = "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr;
     const bytes = output === "-"
-        ? "stdout" in result ? Buffer.from(result.stdoutBytes ?? result.stdout) : Buffer.concat(stdout)
+        ? "stdoutBytes" in result ? result.stdoutBytes ?? Buffer.from(result.stdout) : Buffer.concat(stdout)
         : mode === "buffered" || mode === "sync" ? files.get("/out")! : await fs.readFile("/out");
     expect(result.exitCode, diagnostic).toBe(expected === undefined ? 1 : 0);
     if (expected === undefined) {

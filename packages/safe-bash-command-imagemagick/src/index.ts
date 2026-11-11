@@ -19332,7 +19332,11 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             // Compare first composites the reference onto white, then makes that
             // canvas opaque before applying the highlight/lowlight overlay.
             const base = yield* applyMagickCompositeLayerSteps(canvas, { ...canvas, data: reference }, compose, 0, 0, undefined, signal);
-            for (let i = 3; i < base.data.length; i += 4) base.data[i] = 255;
+            for (let i = 3; i < base.data.length; i += 4) {
+                base.data[i] = 255;
+                if (base.data16) base.data16[i] = 65535;
+                if (base.evaluateSamples) base.evaluateSamples[i] = 255;
+            }
             return (yield* applyMagickCompositeLayerSteps(base, { ...canvas, data: overlay }, compose, 0, 0, undefined, signal)).data;
         } } : {})
     });

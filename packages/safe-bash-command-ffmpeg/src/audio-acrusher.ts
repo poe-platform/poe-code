@@ -6,7 +6,8 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function crushAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
-  budget: MediaBudgetTracker, signal?: AbortSignal
+  budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<Float64Array[]> {
   let enable: string | undefined;
   const defaults = { level_in: 1, level_out: 1, bits: 8, mix: 0.5, mode: 0, dc: 1, aa: 0.5,
@@ -16,6 +17,20 @@ export async function crushAudio(
     mix: [0, 1], mode: [0, 1], dc: [0.25, 4], aa: [0, 1],
     samples: [1, 250], lfo: [0, 1], lforange: [1, 250], lforate: [0.01, 200] };
   const names = Object.keys(options) as (keyof typeof options)[];
+  const setOption = (key: keyof typeof options, expression: string) => {
+    if (!Object.hasOwn(options, key)) throw new Error(`acrusher: unsupported option ${key}`);
+    if (key === "lfo") {
+      options.lfo = parseFilterBoolean(expression, "acrusher: invalid lfo") ? 1 : 0;
+      return;
+    }
+    const [min, max] = ranges[key];
+    const value = parseFilterExpression(expression, "acrusher", {
+      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, min: min!, max: max!, default: defaults[key],
+      ...(key === "mode" ? { lin: 0, log: 1 } : {})
+    });
+    if (!Number.isFinite(value) || value < min! || value > max!) throw new RangeError(`acrusher: invalid ${key}`);
+    options[key] = key === "mode" ? (value > 0.5 ? 1 : 0) : value;
+  };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const parts = argument ? argument.split(":") : [];
   if (argument.endsWith(":")) parts.pop();
@@ -33,33 +48,27 @@ export async function crushAudio(
       continue;
     }
     if (!key || !Object.hasOwn(options, key)) throw new Error(`acrusher: unsupported option ${option}`);
-    if (key === "lfo") {
-      options.lfo = parseFilterBoolean(option.slice(separator + 1).trim(), "acrusher: invalid lfo") ? 1 : 0;
-      continue;
-    }
-    const [min, max] = ranges[key];
-    const value = parseFilterExpression(option.slice(separator + 1).trim(), "acrusher", {
-      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, min: min!, max: max!, default: defaults[key],
-      ...(key === "mode" ? { lin: 0, log: 1 } : {})
-    });
-    if (!Number.isFinite(value) || value < min! || value > max!) throw new RangeError(`acrusher: invalid ${key}`);
-    options[key] = key === "mode" ? (value > 0.5 ? 1 : 0) : value;
+    setOption(key, option.slice(separator + 1).trim());
   }
 
-  const coefficient = 2 ** options.bits - 1;
-  const scale = Math.sqrt(coefficient / 2);
-  const plateau = (1 - options.aa) / 2;
-  const inverseDc = 1 / options.dc;
-  const radius = options.lforange / 2;
-  let minimum = Math.max(options.samples - radius, 1);
-  let maximum = Math.min(options.samples + radius, 250);
-  // Shift the modulation window inward at either sample-reduction limit.
-  const under = options.samples - radius - minimum;
-  const over = options.samples + radius - maximum;
-  maximum -= under;
-  minimum -= over;
-  const span = maximum - minimum;
-  const phaseStep = options.lforate * (1 / sampleRate);
+  const configure = () => {
+    const coefficient = 2 ** options.bits - 1;
+    const scale = Math.sqrt(coefficient / 2);
+    const plateau = (1 - options.aa) / 2;
+    const inverseDc = 1 / options.dc;
+    const radius = options.lforange / 2;
+    let minimum = Math.max(options.samples - radius, 1);
+    let maximum = Math.min(options.samples + radius, 250);
+    // Shift the modulation window inward at either sample-reduction limit.
+    const under = options.samples - radius - minimum;
+    const over = options.samples + radius - maximum;
+    maximum -= under;
+    minimum -= over;
+    const span = maximum - minimum;
+    const phaseStep = options.lforate * (1 / sampleRate);
+    return { coefficient, scale, plateau, inverseDc, minimum, span, phaseStep };
+  };
+  let parameters = configure();
   budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * 8, 0));
   const output = channels.map(channel => new Float64Array(channel.length));
   let work = 0;
@@ -67,7 +76,16 @@ export async function crushAudio(
   const states = channels.map(() => ({ phase: 0, held: 0, elapsed: 0, target: 0, real: 0 }));
   const registers = new Float64Array(10);
   const randomStates: BigUint64Array[] = [];
+  let nextCommand = 0;
   for (const [n, frame] of frames.entries()) {
+    while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
+      const command = commands[nextCommand++]!;
+      try {
+        setOption(command.action as keyof typeof options, command.expression);
+        parameters = configure();
+      } catch { /* Native asendcmd continues after a rejected command. */ }
+    }
+    const { coefficient, scale, plateau, inverseDc, minimum, span, phaseStep } = parameters;
     let enabled = true;
     if (enable !== undefined) {
       const variables = {
@@ -94,6 +112,7 @@ export async function crushAudio(
         const samples = options.lfo
           ? minimum + span * (Math.sin((phase * 360) * Math.PI / 180) * 0.5 + 0.5)
           : options.samples;
+        if (options.lfo) options.samples = samples;
         const rounded = Math.round(samples);
         if (++elapsed >= rounded) {
           target += samples;

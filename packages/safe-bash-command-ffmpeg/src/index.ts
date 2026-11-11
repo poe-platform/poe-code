@@ -15423,6 +15423,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let shift = 0;
                         let limitergain = 0;
                         let enable: string | undefined;
+                        const enableRegisters = new Float64Array(10);
                         const options = argument.split(":");
                         if (options.at(-1) === "") options.pop();
                         let position = 0;
@@ -15439,7 +15440,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             enable = value;
                             parseFilterExpression(enable, "dcshift enable", {
                               n: 0, t: 0, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-                            });
+                            }, undefined, new Float64Array(10));
                           } else if (key === "shift") {
                             shift = parseFilterExpression(value, "dcshift", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, min: -1, max: 1, default: 0, none: 0, all: -1 });
                             if (shift < -1 || shift > 1) {
@@ -15486,7 +15487,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "dcshift enable", {
                             n, t: pts / origRate, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-                          })) >= 0.5;
+                          }, undefined, enableRegisters)) >= 0.5;
                           for (const [c, channel] of stretched.entries()) {
                             for (let i = start; i < end; i++) {
                               if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }

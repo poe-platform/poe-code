@@ -7394,7 +7394,19 @@ function* annotatePixelSteps(img: Pick<RgbaImage, "width" | "height">, offsetStr
 function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "gravity" | "virtualCanvas" | "virtualPixel">[], vertical: boolean, gap: number, gravity: GravityPosition | undefined, background: RgbaColor): Generator<{ index: number; position: number; length: number }, { width: number; height: number; virtualCanvas: NonNullable<RgbaImage["virtualCanvas"]>; offsets: { left: number; top: number }[] }, Uint8Array | Uint16Array | Float64Array> {
     const cross = Math.max(...images.map(image => vertical ? image.width : image.height));
     const offsets: { left: number; top: number }[] = [];
-    const edgeGap = (profile: Float64Array, line: number, empty: number, method: VirtualPixelMethod | undefined): number => {
+    const edgeGap = function* (profile: Float64Array, line: number, empty: number, method: VirtualPixelMethod | undefined, index: number, fromEnd = false): Generator<{ index: number; position: number; length: number }, number, Uint8Array | Uint16Array | Float64Array> {
+        // Dither shifts both coordinates outside the image, including the scan axis.
+        // A one-dimensional edge profile cannot represent those alpha samples.
+        if (method === "dither" && (line < 0 || line >= profile.length)) {
+            const image = images[index]!, length = vertical ? image.height : image.width;
+            for (let gap = 0; gap < empty; gap++) {
+                const along = fromEnd ? length - gap - 1 : gap;
+                const pixel = virtualPixelIndex(vertical ? line : along, vertical ? along : line, image.width, image.height, method);
+                const bytes = yield { index, position: pixel * 4, length: 4 };
+                if (bytes[3] !== 0) return gap;
+            }
+            return empty;
+        }
         const pixel = virtualPixelIndex(vertical ? line : 0, vertical ? 0 : line, vertical ? profile.length : 1, vertical ? 1 : profile.length, method ?? "edge");
         if (pixel >= 0) return profile[pixel]!;
         const transparent = method === "transparent" || (method === "background" || method?.endsWith("-tile") === true) && background.a === 0;
@@ -7421,8 +7433,8 @@ function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlph
         if (previous) {
             let trim = length;
             for (let line = 0; line < cross; line++) {
-                const before = edgeGap(previous.trailing, line - previous.offset, previous.empty, images[index - 1]!.virtualPixel);
-                const after = edgeGap(leading, line - offset, image.hasAlpha ? length : 0, image.virtualPixel);
+                const before = yield* edgeGap(previous.trailing, line - previous.offset, previous.empty, images[index - 1]!.virtualPixel, index - 1, true);
+                const after = yield* edgeGap(leading, line - offset, image.hasAlpha ? length : 0, image.virtualPixel, index);
                 trim = Math.min(trim, before + after);
             }
             cursor += gap - trim;

@@ -4624,6 +4624,7 @@ async function applyVideoFilterChain(
     } else if (name === "framestep") {
       if (positional.at(-1) === "") positional.pop();
       const value = parseFilterExpression(named.step ?? (positional[0]?.includes("=") ? "1" : positional[0] || "1"), "framestep", {
+        min: 1, max: 2147483647, default: 1,
         PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
       });
       if (positional.slice(1).some(part => !part.includes("=")) ||
